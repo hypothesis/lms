@@ -265,6 +265,7 @@ function go() {
         success: function(data) { 
         console.log(data);
         document.getElementById('outcome').innerHTML = data;
+        window.top.location = '%s/courses/%s/assignments';
 		}
       });
   }
@@ -318,7 +319,18 @@ function go() {
     for web_assignment in web_assignments:
         existing_web_assignments += '<div>%s</div>' % web_assignment['name']
     
-    html = template % (CUSTOM_CANVAS_COURSE_ID, course, json.dumps(unassigned_files), lti_server_external, oauth_consumer_key, existing_pdf_assignments, pdf_assignments_to_create, existing_web_assignments, web_assignments_to_create)
+    html = template % (
+        CUSTOM_CANVAS_COURSE_ID, 
+        course, 
+        json.dumps(unassigned_files), 
+        lti_server_external, 
+        oauth_consumer_key, 
+        canvas_server,
+        course,
+        existing_pdf_assignments, 
+        pdf_assignments_to_create, 
+        existing_web_assignments, 
+        web_assignments_to_create)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -356,6 +368,7 @@ def lti_create(request):
     except:
         show_exception()
 
+    print str
     html = template % (str)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
