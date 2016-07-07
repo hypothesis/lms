@@ -1,8 +1,17 @@
-﻿import json, urllib, urlparse, requests,  traceback, pyramid, sys, time, os
+﻿import json
+import urllib
+import urlparse
+import requests
+import  traceback
+import pyramid
+import sys
+import time
+import os
 from pyramid.httpexceptions import HTTPFound
 
 #argv = sys.argv
-#argv = [None, 'http', 'h.jonudell.info', 3000, 'http', 'h.jonudell.info', 8000]
+#argv = [None, 'http', 'h.jonudell.info', 3000, 'http', 'h.jonudell.info',
+#8000]
 argv = [None, 'http', 'h.jonudell.info', 3000, 'http', '10.0.0.9', 8000]
 
 canvas_scheme = argv[1]
@@ -135,7 +144,7 @@ def display_lti_keys(request, lti_keys):
     post_data = ''
     for key in request.POST.keys(): 
         if key in lti_keys:
-            post_data += '<div>%s: %s</div>' % ( key, request.POST[key] )
+            post_data += '<div>%s: %s</div>' % (key, request.POST[key])
     return post_data
 
 def delete_assignment(course, id):
@@ -160,8 +169,8 @@ def create_pdf_external_tool(oauth_consumer_key, course):
         return
     sess = requests.Session()
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
-    wrapper_url = '%s/lti_pdf' % ( lti_server_external)
-    payload={'name':'pdf_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
+    wrapper_url = '%s/lti_pdf' % (lti_server_external)
+    payload = {'name':'pdf_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
     r = sess.post(url=tool_url, headers={'Authorization':'Bearer %s' % lti_token}, data=payload)
     print 'create_pdf_external_tool: %s' % r.status_code
 
@@ -186,7 +195,7 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
         }
     url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
-    return '<p>created pdf assignment for %s: %s</p>' % (filename, r.status_code )
+    return '<p>created pdf assignment for %s: %s</p>' % (filename, r.status_code)
 
 def pdf_response_with_post_data(request,fname):
     template = """
@@ -245,7 +254,7 @@ def get_post_param(request, key):
 def lti_setup(request):
     post_data = capture_post_data(request)
     if lti_token is None:
-      return token_init(request, 'setup:'+ urllib.quote (json.dumps(post_data)) )
+      return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     template = """
@@ -311,7 +320,7 @@ function go() {
         name = file['display_name']
         if id not in existing_pdf_ids:
             pdf_assignments_to_create += '<div>%s</div>' % name 
-            unassigned_files.append( { 'id': id, 'name': name } )
+            unassigned_files.append({ 'id': id, 'name': name })
     
     web_assignments = [a for a in assignments if a["integration_data"].has_key("web")]
     existing_web_assignments = ''
@@ -319,8 +328,7 @@ function go() {
     for web_assignment in web_assignments:
         existing_web_assignments += '<div>%s</div>' % web_assignment['name']
     
-    html = template % (
-        CUSTOM_CANVAS_COURSE_ID, 
+    html = template % (CUSTOM_CANVAS_COURSE_ID, 
         course, 
         json.dumps(unassigned_files), 
         lti_server_external, 
@@ -377,7 +385,7 @@ def lti_create(request):
 def lti_pdf(request):
     post_data = capture_post_data(request)
     if lti_token is None:
-      return token_init(request, 'pdf:'+ urllib.quote (json.dumps(post_data)) )
+      return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
@@ -396,13 +404,13 @@ def lti_pdf(request):
             url = j['url']
             print url
             fname = str(time.time()) + '.pdf'
-            urllib.urlretrieve (url, fname)
+            urllib.urlretrieve(url, fname)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
             return pdf_response_with_post_data(request, fname)
         except:
             return error_response(traceback.print_exc())
     else:
-        return error_response('no file %s in course %s' %  (file, course))
+        return error_response('no file %s in course %s' % (file, course))
 
 def create_web_external_tool(oauth_consumer_key, course, url):
     external_tools = get_external_tools(course)
@@ -412,11 +420,11 @@ def create_web_external_tool(oauth_consumer_key, course, url):
     sess = requests.Session()
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
     wrapper_url = '%s/lti_web' % lti_server_external
-    payload={'name':'web_annotation_assignment_tool (%s)' % url, 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
+    payload = {'name':'web_annotation_assignment_tool (%s)' % url, 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
     print oauth_consumer_key, payload, lti_token
     r = sess.post(url=tool_url, headers={'Authorization':'Bearer %s' % lti_token}, data=payload)
     print 'r: %s' % r.json()
-    return '<p>created web external tool for %s: %s' % ( url, r.status_code )
+    return '<p>created web external tool for %s: %s' % (url, r.status_code)
 
 def create_web_annotation_assignment(oauth_consumer_key, course, url):
     create_web_external_tool(oauth_consumer_key, course, url)
@@ -439,7 +447,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
         }
     api_url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=api_url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
-    r = '<p>created web annotation assignment for %s: %s' % ( url, r.status_code )
+    r = '<p>created web annotation assignment for %s: %s' % (url, r.status_code)
     return r
     
 def web_response_with_post_data(request,url):
@@ -484,7 +492,7 @@ def web_response_with_post_data(request,url):
 def lti_web(request):
     post_data = capture_post_data(request)
     if lti_token is None:
-      return token_init(request, 'pdf:'+ urllib.quote (json.dumps(post_data)) )
+      return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
