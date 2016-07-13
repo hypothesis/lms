@@ -34,6 +34,7 @@ lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assig
 lti_server_external = '%s://%s:%s' % (lti_scheme, '98.234.245.185', lti_port)
 
 CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
+CUSTOM_CANVAS_USER_ID = 'custom_canvas_user_id'
 CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
 OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
 
@@ -55,6 +56,17 @@ def unpack_state(state):
     j = json.loads(urllib.unquote(s))
     return j
 
+def redirect_helper(state, course, user, assignment, oauth_consumer_key):
+    if state.startswith('setup'):
+        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+    elif state.startswith('pdf'):
+        redirect = lti_pdf_url   + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+    elif state.startswith('web'):
+        redirect = lti_web_url   + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+    else:
+        redirect = 'unexpected state'
+    return redirect
+
 def token_init(request, state=None):
     j = unpack_state(state)
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
@@ -69,6 +81,7 @@ def token_callback(request):
     state = q['state'][0]
     j = unpack_state(state)
     course = j[CUSTOM_CANVAS_COURSE_ID]
+    user = j[CUSTOM_CANVAS_USER_ID]
     assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     url = '%s/login/oauth2/token' % canvas_server
@@ -76,7 +89,7 @@ def token_callback(request):
         'grant_type':'authorization_code',
         'client_id': oauth_consumer_key,
         'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server,
+        'redirect_uri': '%s/token_init' % lti_server_external,
         'code': code
         }
     r = requests.post(url, params)
@@ -84,28 +97,32 @@ def token_callback(request):
     lti_token = j['access_token']
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
-    if state.startswith('setup'):
-        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
-    elif state.startswith('pdf'):
-        redirect = lti_pdf_url + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
-    else:
-        redirect = lti_web_url + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+    redirect = redirect_helper(state, course, user, assignment, oauth_consumer_key)
     return HTTPFound(location=redirect)
 
-def refresh_init(request):
+def refresh_init(request, state=None):
+    j = unpack_state(state)
+    oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server_external, state)
+    ret = HTTPFound(location=token_redirect_uri)
     return ret
 
 def refresh_callback(request):
     global lti_token, lti_refresh_token
     q = urlparse.parse_qs(request.query_string)
     code = q['code'][0]
-    oauth_consumer_key = 'fixme'
+    state = q['state'][0]
+    j = unpack_state(state)
+    course = j[CUSTOM_CANVAS_COURSE_ID]
+    user = j[CUSTOM_CANVAS_USER_ID]
+    assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
+    oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     url = '%s/login/oauth2/token' % canvas_server
     params = { 
         'grant_type':'refresh_token',
         'client_id': oauth_consumer_key,
         'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server,
+        'redirect_uri': '%s/token_init' % lti_server_external,
         'refresh_token': lti_refresh_token
         }
     r = requests.post(url, params)
@@ -113,7 +130,8 @@ def refresh_callback(request):
     lti_token = j['access_token']
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
-    pass
+    redirect = redirect_helper(state, course, user, assignment, oauth_consumer_key)
+    return HTTPFound(location=redirect)
 
 def error_response(exc_str):
     template = """
@@ -218,13 +236,15 @@ def pdf_response_with_post_data(request,fname):
     return r
 
 def capture_post_data(request):
-    ret = { OAUTH_CONSUMER_KEY: None, CUSTOM_CANVAS_COURSE_ID: None, CUSTOM_CANVAS_ASSIGNMENT_ID: None }
+    ret = { OAUTH_CONSUMER_KEY: None, CUSTOM_CANVAS_USER_ID: None, CUSTOM_CANVAS_COURSE_ID: None, CUSTOM_CANVAS_ASSIGNMENT_ID: None }
     if request.POST.has_key(OAUTH_CONSUMER_KEY):
         ret[OAUTH_CONSUMER_KEY] = request.POST[OAUTH_CONSUMER_KEY]
     if request.POST.has_key(CUSTOM_CANVAS_COURSE_ID):
         ret[CUSTOM_CANVAS_COURSE_ID] = request.POST[CUSTOM_CANVAS_COURSE_ID]
     if request.POST.has_key(CUSTOM_CANVAS_ASSIGNMENT_ID):
         ret[CUSTOM_CANVAS_ASSIGNMENT_ID] = request.POST[CUSTOM_CANVAS_ASSIGNMENT_ID]
+    if request.POST.has_key(CUSTOM_CANVAS_USER_ID):
+        ret[CUSTOM_CANVAS_USER_ID] = request.POST[CUSTOM_CANVAS_USER_ID]
     return ret
 
 def get_post_or_query_param(request, key):
@@ -259,7 +279,12 @@ def lti_setup(request):
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     template = """
 <html><head> 
-<style> body { font-family:verdana; margin:.5in; font-size:smaller } </style> 
+<style> 
+body { font-family:verdana; margin:.5in; font-size:smaller } 
+p { font-weight: bold }
+ul { list-style-type: none; }
+li { margin: 4px 0 }
+</style> 
 <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
 <script>
 function go() {
@@ -299,19 +324,23 @@ function go() {
 </body>
 </html>
 """ 
+    existing_web_assignments = '<ul>'
+    existing_pdf_assignments = '<ul>'
+    pdf_assignments_to_create = '<ul>'
+
     assignments = get_assignments(course)
     pdf_assignments = [a for a in assignments if a["integration_data"].has_key("pdf")]
-    existing_pdf_assignments = ''
-    pdf_assignments_to_create = ''
     existing_pdf_ids = []
 
     for pdf_assignment in pdf_assignments:
-        existing_pdf_assignments += '<div>%s</div>' % pdf_assignment['name']
+        existing_pdf_assignments += '<li>%s</li>' % pdf_assignment['name']
         existing_pdf_ids.append(pdf_assignment["integration_data"]["pdf"])
     
     sess = requests.Session()
     url = '%s/api/v1/courses/%s/files' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
+    if r.status_code == 401:
+      return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
     files = r.json()
     unassigned_files = []
 
@@ -319,14 +348,17 @@ function go() {
         id = str(file['id'])
         name = file['display_name']
         if id not in existing_pdf_ids:
-            pdf_assignments_to_create += '<div>%s</div>' % name 
+            pdf_assignments_to_create += '<li>%s</li>' % name 
             unassigned_files.append({ 'id': id, 'name': name })
     
     web_assignments = [a for a in assignments if a["integration_data"].has_key("web")]
-    existing_web_assignments = ''
     web_assignments_to_create = ''
     for web_assignment in web_assignments:
-        existing_web_assignments += '<div>%s</div>' % web_assignment['name']
+        existing_web_assignments += '<li>%s</li>' % web_assignment['name']
+
+    existing_pdf_assignments += '</ul>'
+    pdf_assignments_to_create += '</ul>'
+    existing_web_assignments += '</ul>'
     
     html = template % (CUSTOM_CANVAS_COURSE_ID, 
         course, 
@@ -391,6 +423,8 @@ def lti_pdf(request):
     assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
     sess = requests.Session()
     r = sess.get(url=assignment_url, headers={'Authorization':'Bearer %s' % lti_token})
+    if r.status_code == 401:
+      return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     j = r.json()
     assert j.has_key("integration_data")
     file_id = j["integration_data"]["pdf"]
@@ -450,7 +484,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
     r = '<p>created web annotation assignment for %s: %s' % (url, r.status_code)
     return r
     
-def web_response_with_post_data(request,url):
+def web_response_with_post_data(request, url, user):
     template = """
  <html>
  <head>
@@ -468,12 +502,6 @@ def web_response_with_post_data(request,url):
  </html>
 """ 
     post_data = display_lti_keys(request, lti_keys)
-    try:
-        user_id = request.POST['user_id']
-    except:
-        s = traceback.print_exc()
-        return error_response(s)
-
     # work around https://github.com/hypothesis/via/issues/76
     fname = str(time.time()) + '.html'
     print 'via url: %s' % url
@@ -484,7 +512,7 @@ def web_response_with_post_data(request,url):
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    html = template % (post_data, user_id, url, fname)
+    html = template % (post_data, user, url, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -492,15 +520,18 @@ def web_response_with_post_data(request,url):
 def lti_web(request):
     post_data = capture_post_data(request)
     if lti_token is None:
-      return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
+      return token_init(request, 'web:' + urllib.quote(json.dumps(post_data)))
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
+    user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
     assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
     sess = requests.Session()
     r = sess.get(url=assignment_url, headers={'Authorization':'Bearer %s' % lti_token})
+    if r.status_code == 401: # and req header includes www-authenticate? https://canvas.instructure.com/doc/api/file.oauth.html
+      return refresh_init(request, 'web:' + urllib.quote(json.dumps(post_data)))
     j = r.json()
     url = j["integration_data"]["web"]
-    return web_response_with_post_data(request, url)
+    return web_response_with_post_data(request, url, user)
 
 if __name__ == '__main__':
 
@@ -513,8 +544,8 @@ if __name__ == '__main__':
     config.add_route('token_callback', '/token_callback')
     config.add_view(token_callback, route_name='token_callback')
 
-    #config.add_route('refresh_callback', '/refresh_callback')
-    #config.add_view(refresh_callback, route_name='refresh_callback')
+    config.add_route('refresh_callback', '/refresh_callback')
+    config.add_view(refresh_callback, route_name='refresh_callback')
 
     config.add_route('lti_setup', '/lti_setup')
     config.add_view(lti_setup, route_name='lti_setup')
