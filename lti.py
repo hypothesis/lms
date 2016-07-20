@@ -316,8 +316,9 @@ li { margin: 4px 0 }
 <script>
 function go() {
     var urls = document.getElementById('web_urls').value;
+    var checked_files = document.querySelectorAll('input[value][type="checkbox"]:checked');
     urls = urls.split('\\n');
-    post_data = {%s: %s, 'files': %s, 'urls':urls}
+    post_data = {%s: %s, 'files': %s, 'checked_files':checked_files, 'urls':urls}
     var json = JSON.stringify(post_data);
     $.ajax({
         url: '%s/lti_create?oauth_consumer_key=%s',
@@ -375,7 +376,7 @@ function go() {
         id = str(file['id'])
         name = file['display_name']
         if id not in existing_pdf_ids:
-            pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (name, id, id) 
+            pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (id, id, name) 
             unassigned_files.append({ 'id': id, 'name': name })
     
     web_assignments = [a for a in assignments if a["integration_data"].has_key("web")]
@@ -417,12 +418,14 @@ def lti_create(request):
     course = j[CUSTOM_CANVAS_COURSE_ID]
     urls = j['urls']
     files = j['files']
+    checked_files = j['checked_files']
 
     str = ''
     try:
         for file in files:
             display_name = file['name']
             file_id = file['id']
+            print display_name, file_id
             str += create_pdf_annotation_assignment(oauth_consumer_key, course, display_name, file_id)
     except:
         show_exception()
