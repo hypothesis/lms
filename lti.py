@@ -2,7 +2,7 @@
 import urllib
 import urlparse
 import requests
-import  traceback
+import traceback
 import pyramid
 import sys
 import time
@@ -46,23 +46,47 @@ CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
 OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
 
 canvas_config = json.loads(open('canvas-config.json').read())
+integration_data = json.loads(open('integration-data.json').read())
 
 lti_setup_url = '%s/lti_setup' % lti_server_external
 lti_pdf_url = '%s/lti_pdf' % lti_server_external
 lti_web_url = '%s/lti_web' % lti_server_external
 
-class IntegrationData():
+class IntegrationData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
-        self.data = {}
+        self.assignments = {}
+        self.load()
 
-    def get(self,key):
-        if self.data.has_key(key):
-            return self.data[key];
+    def get(self,oauth_consumer_key, course, type, data):
+        key = '{"oauth_consumer_key":"%s","course":"%s","type":"%s","data":"%s"}' % (oauth_consumer_key, course, type, data)
+        if self.assignments.has_key(key):
+            return self.assignments[key];
         else:
             return False
 
-    def set(self, key, id):
-        self.data[key] = id
+    def set(self, oauth_consumer_key, course, type, data, id):
+        key = '{"oauth_consumer_key":"%s","course":"%s","type":"%s","data":"%s"}' % (oauth_consumer_key, course, type, data)
+        self.assignments[key] = str(id)
+        self.save()
+
+    def data_from_assignment(self, oauth_consumer_key, course, type, assignment):
+        for key in self.assignments.keys():
+            if self.assignments[key] == assignment:
+                j = json.loads(key)
+                if j['oauth_consumer_key'] == oauth_consumer_key and j['course'] == course and j['type'] == type:
+                    return j['data']
+        return None
+
+    def load(self):
+        f = open('integration-data.json')
+        self.assignments = json.loads(f.read())
+        f.close()
+
+    def save(self):
+        f = open('integration-data.json', 'wb')
+        j = json.dumps(self.assignments)
+        f.write(j)
+        f.close()  
 
 integration_data = IntegrationData()
 
@@ -73,12 +97,12 @@ def get_config_value(client_id, key):
         print 'no config value for ' + key
         return None
 
-def get_integration_data(oauth_consumer_key, course, type, data):
-    key = '%s_%s_%s_%s' % (oauth_consumer_key, course, type, data)
+def get_integration_data():
+
     return integration_data.get(key)
 
 def set_integration_data(oauth_consumer_key, course, type, data, id):
-    key = '%s_%s_%s_%s' % (oauth_consumer_key, course, type, data)
+
     integration_data.set(key, id)
 
 def show_exception():
@@ -238,7 +262,7 @@ def create_pdf_external_tool(oauth_consumer_key, course):
 def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_id):
     create_pdf_external_tool(oauth_consumer_key, course)
     assignments = get_assignments(course)
-    existing = [x for x in assignments if get_integration_data(oauth_consumer_key, course, 'pdf', str(file_id)) == x['id']]
+    existing = [x for x in assignments if integration_data.get(oauth_consumer_key, course, 'pdf', str(file_id)) == x['id']]
     if len(existing):
         return '<p>reusing pdf assignment for %s' % filename
     sess = requests.Session()
@@ -260,7 +284,7 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
     r = sess.post(url=url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
     status = r.status_code
     id = r.json()['id']
-    set_integration_data(oauth_consumer_key, course, 'pdf', str(file_id), id)
+    integration_data.set(oauth_consumer_key, course, 'pdf', str(file_id), id)
     return '<p>created pdf assignment for %s: %s</p>' % (filename, r.status_code)
 
 def pdf_response_with_post_data(request,fname):
@@ -473,19 +497,14 @@ def lti_pdf(request):
     if lti_token is None:
       return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
+    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     assignment = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
-    assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
-    sess = requests.Session()
-    r = sess.get(url=assignment_url, headers={'Authorization':'Bearer %s' % lti_token})
-    print 'lti_pdf: ', r.status_code, r.json()
-    if r.status_code == 401:
-      return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
-    j = r.json()
-    assert j.has_key("integration_data")
-    file_id = j["integration_data"]["pdf"]
+    file_id = integration_data.data_from_assignment(oauth_consumer_key, course, 'pdf', assignment)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     sess = requests.Session()
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
+    if r.status_code == 401:
+      return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     if r.status_code == 200:
         j = r.json()
         print j
@@ -518,7 +537,7 @@ def create_web_external_tool(oauth_consumer_key, course, url):
 def create_web_annotation_assignment(oauth_consumer_key, course, url):
     create_web_external_tool(oauth_consumer_key, course, url)
     assignments = get_assignments(course)
-    existing = [x for x in assignments if get_integration_data(oauth_consumer_key, course, 'web', url) == x['id']]
+    existing = [x for x in assignments if integration_data.get(oauth_consumer_key, course, 'web', url) == x['id']]
     if len(existing):
         return '<p>reusing web assignment for %s' % url  
     sess = requests.Session()
@@ -537,7 +556,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
     api_url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=api_url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
     id = r.json()['id']
-    set_integration_data(oauth_consumer_key, course, 'web', url, id)
+    integration_data.set(oauth_consumer_key, course, 'web', url, id)
     status = r.status_code
     r = '<p>created web annotation assignment for %s: %s' % (url, status)
     return r
@@ -579,16 +598,11 @@ def lti_web(request):
     post_data = capture_post_data(request)
     if lti_token is None:
       return token_init(request, 'web:' + urllib.quote(json.dumps(post_data)))
+    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
-    assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
-    sess = requests.Session()
-    r = sess.get(url=assignment_url, headers={'Authorization':'Bearer %s' % lti_token})
-    if r.status_code == 401: # and req header includes www-authenticate? https://canvas.instructure.com/doc/api/file.oauth.html
-      return refresh_init(request, 'web:' + urllib.quote(json.dumps(post_data)))
-    j = r.json()
-    url = j["integration_data"]["web"]
+    url = integration_data.data_from_assignment(oauth_consumer_key, course, 'web', assignment)
     return web_response_with_post_data(request, url, user)
 
 from wsgiref.simple_server import make_server
