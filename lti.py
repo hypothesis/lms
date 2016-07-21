@@ -10,50 +10,76 @@ import os
 from pyramid.httpexceptions import HTTPFound
 
 #argv = sys.argv
-argv = [None, 'http', 'h.jonudell.info', 3000, 'http', 'h.jonudell.info', 8000]
-#argv = [None, 'http', 'h.jonudell.info', 3000, 'http', '10.0.0.9', 8000]
+argv = [None, 'http', 'h.jonudell.info', 3000, 'http', '98.234.245.185', 8000]
+lti_host_internal = '10.0.0.9'
+#8000]
+#argv = [None, 'http', 'h.jonudell.info', 3000, 'https', 'h.jonudell.info']
+#argv = [None, 'https', 'canvas.instructure.com', 443, 'https', 'h.jonudell.info']
 
 canvas_scheme = argv[1]
 canvas_host = argv[2]
 canvas_port = argv[3]
 canvas_server = '%s://%s:%s' % (canvas_scheme, canvas_host, canvas_port)
+#canvas_server = '%s://%s' % (canvas_scheme, canvas_host)
+
+print 'canvas_server: ', canvas_server
 
 lti_scheme = argv[4]
 lti_host = argv[5]
 lti_port = int(argv[6])
 lti_server = '%s://%s:%s' % (lti_scheme, lti_host, lti_port)
+#lti_server = '%s://%s' % (lti_scheme, lti_host)
+
+#lti_token = '7~XWt9Lf6037Tqp4xc0JwgKcKA6sW9iCiUPY2HS19rykTS12hCKu1V8vTA7vL0KZOa'
+lti_token = None
+lti_refresh_token = None
+
+lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
 # just for local testing
 #lti_server_external = '%s://%s:%s' % (lti_scheme, '98.234.245.185', lti_port)
 lti_server_external = lti_server
-print lti_server, lti_server_external
-
-lti_token = None
-lti_refresh_token = None
-
-print '%s, %s, %s, %s, %s, %s' % (canvas_scheme, canvas_host, canvas_port, lti_scheme, lti_host, lti_port)
-lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
-
-
 
 CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
 CUSTOM_CANVAS_USER_ID = 'custom_canvas_user_id'
 CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
 OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
 
-canvas_client_secret = None
+canvas_config = json.loads(open('canvas-config.json').read())
 
 lti_setup_url = '%s/lti_setup' % lti_server_external
-lti_pdf_url   = '%s/lti_pdf'   % lti_server_external
-lti_web_url   = '%s/lti_web'   % lti_server_external
-lti_test_url  = '%s/lti_test'  % lti_server_external
+lti_pdf_url = '%s/lti_pdf' % lti_server_external
+lti_web_url = '%s/lti_web' % lti_server_external
 
-def lti_test(request):
-    post_data = capture_post_data(request)
-    if lti_token is None:
-      return token_init(request, 'test:' + urllib.quote(json.dumps(post_data)))
-    r = Response('ok')
-    return r
+class IntegrationData():
+    def __init__(self):
+        self.data = {}
+
+    def get(self,key):
+        if self.data.has_key(key):
+            return self.data[key];
+        else:
+            return False
+
+    def set(self, key, id):
+        self.data[key] = id
+
+integration_data = IntegrationData()
+
+def get_config_value(client_id, key):
+    if canvas_config.has_key(client_id):
+        return canvas_config[client_id][key]
+    else:
+        print 'no config value for ' + key
+        return None
+
+def get_integration_data(oauth_consumer_key, course, type, data):
+    key = '%s_%s_%s_%s' % (oauth_consumer_key, course, type, data)
+    return integration_data.get(key)
+
+def set_integration_data(oauth_consumer_key, course, type, data, id):
+    key = '%s_%s_%s_%s' % (oauth_consumer_key, course, type, data)
+    integration_data.set(key, id)
 
 def show_exception():
     print traceback.print_exc()
@@ -63,33 +89,32 @@ def show_post_keys(request):
         print '%s: %s' % (k, request.POST[k])
 
 def unpack_state(state):
-    s = state.replace('setup:','').replace('web:','').replace('pdf:','').replace('test:','')
+    s = state.replace('setup:','').replace('web:','').replace('pdf:','')
     j = json.loads(urllib.unquote(s))
     return j
 
 def redirect_helper(state, course, user, assignment, oauth_consumer_key):
-    fmt = '%s=%s&%s=%s&%s=%s&%s=%s'
-    pairs = (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
-    params = fmt % pairs
     if state.startswith('setup'):
-        redirect = lti_setup_url + '?' + params
+        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
     elif state.startswith('pdf'):
-        redirect = lti_pdf_url   + '?' + params
+        redirect = lti_pdf_url   + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
     elif state.startswith('web'):
-        redirect = lti_web_url   + '?' + params
+        redirect = lti_web_url   + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, CUSTOM_CANVAS_ASSIGNMENT_ID, assignment, OAUTH_CONSUMER_KEY, oauth_consumer_key)
     else:
-        redirect = lti_test_url  + '?' + params
+        redirect = 'unexpected state'
     return redirect
 
 def token_init(request, state=None):
     j = unpack_state(state)
+    print j
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server_external, state)
     ret = HTTPFound(location=token_redirect_uri)
+    print 'token_init '
+    print token_redirect_uri
     return ret
 
 def token_callback(request):
-    print 'token_callback'
     global lti_token, lti_refresh_token
     q = urlparse.parse_qs(request.query_string)
     code = q['code'][0]
@@ -99,10 +124,10 @@ def token_callback(request):
     user = j[CUSTOM_CANVAS_USER_ID]
     assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
-    canvas_client_secret = get_client_secret(oauth_consumer_key)
-    print oauth_consumer_key, canvas_client_secret
-
-    url = '%s/login/oauth2/token' % canvas_server
+    canvas_client_secret = get_config_value(oauth_consumer_key, 'secret')
+    canvas_host = get_config_value(oauth_consumer_key, 'host')
+    canvas_port = get_config_value(oauth_consumer_key, 'port')
+    url = '%s://%s:%s/login/oauth2/token' % (canvas_scheme, canvas_host, canvas_port)
     params = { 
         'grant_type':'authorization_code',
         'client_id': oauth_consumer_key,
@@ -112,7 +137,6 @@ def token_callback(request):
         }
     r = requests.post(url, params)
     j = r.json()
-    print j
     lti_token = j['access_token']
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
@@ -214,15 +238,16 @@ def create_pdf_external_tool(oauth_consumer_key, course):
 def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_id):
     create_pdf_external_tool(oauth_consumer_key, course)
     assignments = get_assignments(course)
-    existing = [x for x in assignments if x['integration_data'].has_key('pdf') and x['integration_data']['pdf'] == str(file_id)]
+    existing = [x for x in assignments if get_integration_data(oauth_consumer_key, course, 'pdf', str(file_id)) == x['id']]
     if len(existing):
         return '<p>reusing pdf assignment for %s' % filename
     sess = requests.Session()
+    # "are you using a teacher token or admin token? Teachers are not allowed to edit/create integration IDs because doing so requires the admin level permission to manage SIS"
     data = {
         "assignment" : {
             "name": "Annotate " + filename,
-            "integration_id" : "Hypothesis",
-            "integration_data": {"pdf": str(file_id)},
+            "integration_id" : "Hypothesis",                # this may be ignored
+            "integration_data": {"pdf": str(file_id)},      # hence IntegrationData class in this app
             "submission_types" : ["external_tool"],
             "external_tool_tag_attributes": {
                 "url":"%s/lti_pdf" % lti_server_external,
@@ -230,8 +255,12 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
                 }
             }
         }
+    print data
     url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
+    status = r.status_code
+    id = r.json()['id']
+    set_integration_data(oauth_consumer_key, course, 'pdf', str(file_id), id)
     return '<p>created pdf assignment for %s: %s</p>' % (filename, r.status_code)
 
 def pdf_response_with_post_data(request,fname):
@@ -290,14 +319,6 @@ def get_post_param(request, key):
     else:
         return None
 
-def get_client_secret(client_id):
-    s = open('canvas-secrets.json').read()
-    j = json.loads(s)
-    if j.has_key(client_id):
-        return j[client_id]
-    else:
-        return None
-
 def lti_setup(request):
     post_data = capture_post_data(request)
     if lti_token is None:
@@ -316,9 +337,12 @@ li { margin: 4px 0 }
 <script>
 function go() {
     var urls = document.getElementById('web_urls').value;
-    var checked_files = document.querySelectorAll('input[value][type="checkbox"]:checked');
     urls = urls.split('\\n');
-    post_data = {%s: %s, 'files': %s, 'checked_files':checked_files, 'urls':urls}
+    var checked_boxes = document.querySelectorAll('input[value][type="checkbox"]:checked');
+    var checked_files = [];
+    for (var i=0; i<checked_boxes.length; i++)
+        checked_files.push(checked_boxes[i].id);
+    post_data = {%s: %s, 'files': %s, 'checked_files':checked_files, 'checked_boxes':checked_boxes, 'urls':urls}
     var json = JSON.stringify(post_data);
     $.ajax({
         url: '%s/lti_create?oauth_consumer_key=%s',
@@ -334,13 +358,13 @@ function go() {
 </script>
 </head>
 <body>
-<p>Existing PDF assignments:</p>
+<p>Existing PDF assignments</p>
 %s
-<p>PDF assignments to create:</p>
+<p>PDF assignments to create</p>
 %s
-<p>Existing web assignments:</p>
+<p>Existing web assignments</p>
 %s
-<p>Web assignments to create:</p>
+<p>Web assignments to create</p>
 %s
 <textarea style="width:600px;height:100px" id="web_urls">
 </textarea>
@@ -418,15 +442,15 @@ def lti_create(request):
     course = j[CUSTOM_CANVAS_COURSE_ID]
     urls = j['urls']
     files = j['files']
+    checked_boxes = j['checked_boxes']
     checked_files = j['checked_files']
-
     str = ''
     try:
         for file in files:
             display_name = file['name']
             file_id = file['id']
-            print display_name, file_id
-            str += create_pdf_annotation_assignment(oauth_consumer_key, course, display_name, file_id)
+            if file_id in checked_files:
+                str += create_pdf_annotation_assignment(oauth_consumer_key, course, display_name, file_id)
     except:
         show_exception()
 
@@ -453,6 +477,7 @@ def lti_pdf(request):
     assignment_url = '%s/api/v1/courses/%s/assignments/%s' % (canvas_server, course, assignment)
     sess = requests.Session()
     r = sess.get(url=assignment_url, headers={'Authorization':'Bearer %s' % lti_token})
+    print 'lti_pdf: ', r.status_code, r.json()
     if r.status_code == 401:
       return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     j = r.json()
@@ -493,7 +518,7 @@ def create_web_external_tool(oauth_consumer_key, course, url):
 def create_web_annotation_assignment(oauth_consumer_key, course, url):
     create_web_external_tool(oauth_consumer_key, course, url)
     assignments = get_assignments(course)
-    existing = [x for x in assignments if x['integration_data'].has_key('web') and x['integration_data']['web'] == url]
+    existing = [x for x in assignments if get_integration_data(oauth_consumer_key, course, 'web', url) == x['id']]
     if len(existing):
         return '<p>reusing web assignment for %s' % url  
     sess = requests.Session()
@@ -511,7 +536,10 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
         }
     api_url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=api_url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
-    r = '<p>created web annotation assignment for %s: %s' % (url, r.status_code)
+    id = r.json()['id']
+    set_integration_data(oauth_consumer_key, course, 'web', url, id)
+    status = r.status_code
+    r = '<p>created web annotation assignment for %s: %s' % (url, status)
     return r
     
 def web_response_with_post_data(request, url, user):
@@ -563,42 +591,41 @@ def lti_web(request):
     url = j["integration_data"]["web"]
     return web_response_with_post_data(request, url, user)
 
+from wsgiref.simple_server import make_server
+from pyramid.config import Configurator
+from pyramid.response import Response
+
+config = Configurator()
+
+config.add_route('token_callback', '/token_callback')
+config.add_view(token_callback, route_name='token_callback')
+
+config.add_route('refresh_callback', '/refresh_callback')
+config.add_view(refresh_callback, route_name='refresh_callback')
+
+config.add_route('lti_setup', '/lti_setup')
+config.add_view(lti_setup, route_name='lti_setup')
+
+config.add_route('lti_create', '/lti_create')
+config.add_view(lti_create, route_name='lti_create')
+
+config.add_route('lti_pdf', '/lti_pdf')
+config.add_view(lti_pdf, route_name='lti_pdf')
+
+config.add_route('lti_web', '/lti_web')
+config.add_view(lti_web, route_name='lti_web')
+
+from pyramid.static import static_view
+pdf_view = static_view('./pdfjs', use_subpath=True)
+config.add_route('catchall_static', '/*subpath')
+config.add_view(pdf_view, route_name='catchall_static')
+   
+app = config.make_wsgi_app()
+
+
 if __name__ == '__main__':
 
-    from wsgiref.simple_server import make_server
-    from pyramid.config import Configurator
-    from pyramid.response import Response
-
-    config = Configurator()
-
-    config.add_route('lti_test', '/lti_test')
-    config.add_view(lti_test, route_name='lti_test')
-
-    config.add_route('token_callback', '/token_callback')
-    config.add_view(token_callback, route_name='token_callback')
-
-    config.add_route('refresh_callback', '/refresh_callback')
-    config.add_view(refresh_callback, route_name='refresh_callback')
-
-    config.add_route('lti_setup', '/lti_setup')
-    config.add_view(lti_setup, route_name='lti_setup')
-
-    config.add_route('lti_create', '/lti_create')
-    config.add_view(lti_create, route_name='lti_create')
-
-    config.add_route('lti_pdf', '/lti_pdf')
-    config.add_view(lti_pdf, route_name='lti_pdf')
-
-    config.add_route('lti_web', '/lti_web')
-    config.add_view(lti_web, route_name='lti_web')
-
-    from pyramid.static import static_view
-    pdf_view = static_view('./pdfjs', use_subpath=True)
-    config.add_route('catchall_static', '/*subpath')
-    config.add_view(pdf_view, route_name='catchall_static')
-   
-    app = config.make_wsgi_app()
-    server = make_server(lti_host, lti_port, app)
+    server = make_server(lti_host_internal, lti_port, app)
     server.serve_forever()
     
 
