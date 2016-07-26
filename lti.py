@@ -48,18 +48,14 @@ print '%s, %s' % (canvas_server, lti_server)
 
 lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
-# just for local testing
-#lti_server_external = '%s://%s:%s' % (lti_scheme, '98.234.245.185', lti_port)
-lti_server_external = lti_server
-
 CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
 CUSTOM_CANVAS_USER_ID = 'custom_canvas_user_id'
 CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
 OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
 
-lti_setup_url = '%s/lti_setup' % lti_server_external
-lti_pdf_url = '%s/lti_pdf' % lti_server_external
-lti_web_url = '%s/lti_web' % lti_server_external
+lti_setup_url = '%s/lti_setup' % lti_server
+lti_pdf_url = '%s/lti_pdf' % lti_server
+lti_web_url = '%s/lti_web' % lti_server
 
 class AuthData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
@@ -138,6 +134,7 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
         f.close()  
 
 auth_data = AuthData()
+
 integration_data = IntegrationData()
 
 def get_config_value(client_id, key):
@@ -174,7 +171,7 @@ def token_init(request, state=None):
     j = unpack_state(state)
     print j
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
-    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server_external, state)
+    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
     print 'token_init '
     print token_redirect_uri
@@ -195,7 +192,7 @@ def token_callback(request):
         'grant_type':'authorization_code',
         'client_id': oauth_consumer_key,
         'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server_external,
+        'redirect_uri': '%s/token_init' % lti_server,
         'code': code
         }
     r = requests.post(url, params)
@@ -210,7 +207,7 @@ def token_callback(request):
 def refresh_init(request, state=None):
     j = unpack_state(state)
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
-    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server_external, state)
+    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
     return ret
 
@@ -228,7 +225,7 @@ def refresh_callback(request):
         'grant_type':'refresh_token',
         'client_id': oauth_consumer_key,
         'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server_external,
+        'redirect_uri': '%s/token_init' % lti_server,
         'refresh_token': lti_refresh_token
         }
     r = requests.post(url, params)
@@ -299,7 +296,7 @@ def create_pdf_external_tool(oauth_consumer_key, course):
         return
     sess = requests.Session()
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
-    wrapper_url = '%s/lti_pdf' % (lti_server_external)
+    wrapper_url = '%s/lti_pdf' % (lti_server)
     payload = {'name':'pdf_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
     r = sess.post(url=tool_url, headers={'Authorization':'Bearer %s' % lti_token}, data=payload)
     print 'create_pdf_external_tool: %s' % r.status_code
@@ -320,7 +317,7 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
             "integration_data": {"pdf": str(file_id)},      # hence IntegrationData class in this app
             "submission_types" : ["external_tool"],
             "external_tool_tag_attributes": {
-                "url":"%s/lti_pdf" % lti_server_external,
+                "url":"%s/lti_pdf" % lti_server,
                 "new_tab" : "true"
                 }
             }
@@ -497,7 +494,7 @@ function go() {
     html = template % (CUSTOM_CANVAS_COURSE_ID, 
         course, 
         json.dumps(unassigned_files), 
-        lti_server_external, 
+        lti_server, 
         oauth_consumer_key, 
         canvas_server,
         course,
@@ -588,7 +585,7 @@ def create_web_external_tool(oauth_consumer_key, course, url):
         return '<p>create web external tool: reusing' 
     sess = requests.Session()
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
-    wrapper_url = '%s/lti_web' % lti_server_external
+    wrapper_url = '%s/lti_web' % lti_server
     payload = {'name':'web_annotation_assignment_tool (%s)' % url, 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
     print oauth_consumer_key, payload, lti_token
     r = sess.post(url=tool_url, headers={'Authorization':'Bearer %s' % lti_token}, data=payload)
@@ -611,7 +608,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
             "integration_data": {"web": url},
             "submission_types" : ["external_tool"],
             "external_tool_tag_attributes": {
-                "url":"%s/lti_web" % lti_server_external,
+                "url":"%s/lti_web" % lti_server,
                 "new_tab" : "true"
                 }
             }
@@ -702,7 +699,6 @@ config.add_route('catchall_static', '/*subpath')
 config.add_view(pdf_view, route_name='catchall_static')
    
 app = config.make_wsgi_app()
-
 
 if __name__ == '__main__': # local testing
 
