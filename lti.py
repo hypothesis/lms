@@ -11,13 +11,13 @@ from pyramid.httpexceptions import HTTPFound
 
 # canvas server
 
-canvas_server_scheme = 'https'
-canvas_server_host = 'canvas.instructure.com'
-canvas_server_port = None
+#canvas_server_scheme = 'https'
+#canvas_server_host = 'canvas.instructure.com'
+#canvas_server_port = None
 
-#canvas_server_scheme = 'http'
-#canvas_server_host = 'h.jonudell.info'
-#canvas_server_port = 3000
+canvas_server_scheme = 'http'
+canvas_server_host = 'h.jonudell.info'
+canvas_server_port = 3000
 
 if canvas_server_port is None:
     canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
@@ -31,13 +31,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-lti_server_scheme = 'https'
-lti_server_host = 'h.jonudell.info'
-lti_server_port = None
+#lti_server_scheme = 'https'
+#lti_server_host = 'h.jonudell.info'
+#lti_server_port = None
 
-#lti_server_scheme = 'http'
-#lti_server_host = '98.234.245.185'
-#lti_server_port = 8000
+lti_server_scheme = 'http'
+lti_server_host = '98.234.245.185'
+lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -586,7 +586,7 @@ def create_web_external_tool(oauth_consumer_key, course, url):
     sess = requests.Session()
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
     wrapper_url = '%s/lti_web' % lti_server
-    payload = {'name':'web_annotation_assignment_tool (%s)' % url, 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
+    payload = {'name':'web_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
     print oauth_consumer_key, payload, lti_token
     r = sess.post(url=tool_url, headers={'Authorization':'Bearer %s' % lti_token}, data=payload)
     print 'r: %s' % r.json()
