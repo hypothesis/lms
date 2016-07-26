@@ -85,7 +85,7 @@ class AuthData(): # was hoping to avoid but per-assignment integration data in c
 
     def save(self):
         f = open(self.name, 'wb')
-        j = json.dumps(self.auth_data)
+        j = json.dumps(self.auth_data, indent=4, sort_keys=True)
         f.write(j)
         f.close()  
 
@@ -129,7 +129,7 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
 
     def save(self):
         f = open(self.name, 'wb')
-        j = json.dumps(self.assignments)
+        j = json.dumps(self.assignments, indent=4, sort_keys=True)
         f.write(j)
         f.close()  
 
@@ -220,6 +220,8 @@ def refresh_callback(request):
     user = j[CUSTOM_CANVAS_USER_ID]
     assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
+    lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
     url = '%s/login/oauth2/token' % canvas_server
     params = { 
         'grant_type':'refresh_token',
@@ -370,7 +372,10 @@ def get_post_or_query_param(request, key):
     else:
         value = get_post_param(request, key)
         ret = value
-    assert ret is not None
+    if ret is None:
+        print 'no post or query param for %s' % key
+        if key == CUSTOM_CANVAS_COURSE_ID:
+            print 'is privacy set to public in courses/COURSE_NUM/settings/configurations?'
     return ret
 
 def get_query_param(request, key):
