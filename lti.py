@@ -9,30 +9,42 @@ import time
 import os
 from pyramid.httpexceptions import HTTPFound
 
-#argv = sys.argv
-argv = [None, 'http', 'h.jonudell.info', 3000, 'http', '98.234.245.185', 8000]
-lti_host_internal = '10.0.0.9'
-#8000]
-#argv = [None, 'http', 'h.jonudell.info', 3000, 'https', 'h.jonudell.info']
-#argv = [None, 'https', 'canvas.instructure.com', 443, 'https', 'h.jonudell.info']
+# canvas server
 
-canvas_scheme = argv[1]
-canvas_host = argv[2]
-canvas_port = argv[3]
-canvas_server = '%s://%s:%s' % (canvas_scheme, canvas_host, canvas_port)
-#canvas_server = '%s://%s' % (canvas_scheme, canvas_host)
+canvas_server_scheme = 'https'
+canvas_server_host = 'canvas.instructure.com'
+canvas_server_port = None
 
-print 'canvas_server: ', canvas_server
+#canvas_server_scheme = 'http'
+#canvas_server_host = 'h.jonudell.info'
+#canvas_server_port = 3000
 
-lti_scheme = argv[4]
-lti_host = argv[5]
-lti_port = int(argv[6])
-lti_server = '%s://%s:%s' % (lti_scheme, lti_host, lti_port)
-#lti_server = '%s://%s' % (lti_scheme, lti_host)
+if canvas_server_port is None:
+    canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
+else:
+    canvas_server = '%s://%s:%s' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
 
-#lti_token = '7~XWt9Lf6037Tqp4xc0JwgKcKA6sW9iCiUPY2HS19rykTS12hCKu1V8vTA7vL0KZOa'
-#lti_token = None
-#lti_refresh_token = None
+# lti local testing
+
+lti_server_host_internal = '10.0.0.9'  # for local testing
+lti_server_port_internal = 8000
+
+# lti server
+
+lti_server_scheme = 'https'
+lti_server_host = 'h.jonudell.info'
+lti_server_port = None
+
+#lti_server_scheme = 'http'
+#lti_server_host = '98.234.245.185'
+#lti_server_port = 8000
+
+if lti_server_port is None:
+    lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
+else:
+    lti_server = '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
+
+print '%s, %s' % (canvas_server, lti_server)
 
 lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
@@ -178,7 +190,7 @@ def token_callback(request):
     assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-    url = '%s://%s:%s/login/oauth2/token' % (canvas_scheme, canvas_host, canvas_port)
+    url = '%s://%s:%s/login/oauth2/token' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
     params = { 
         'grant_type':'authorization_code',
         'client_id': oauth_consumer_key,
@@ -379,7 +391,6 @@ def get_post_param(request, key):
         return None
 
 def lti_setup(request):
-
     post_data = capture_post_data(request)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
@@ -693,9 +704,9 @@ config.add_view(pdf_view, route_name='catchall_static')
 app = config.make_wsgi_app()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # local testing
 
-    server = make_server(lti_host_internal, lti_port, app)
+    server = make_server(lti_server_host_internal, lti_server_port_internal, app)
     server.serve_forever()
     
 
