@@ -83,6 +83,7 @@ class AuthData(): # was hoping to avoid but per-assignment integration data in c
 
 class IntegrationData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
+        self.name = 'integration-data.json'
         self.assignments = []
         self.load()
 
@@ -114,12 +115,12 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
         return self.assignments
 
     def load(self):
-        f = open('integration-data.json')
+        f = open(self.name)
         self.assignments = json.loads(f.read())
         f.close()
 
     def save(self):
-        f = open('integration-data.json', 'wb')
+        f = open(self.name, 'wb')
         j = json.dumps(self.assignments)
         f.write(j)
         f.close()  
