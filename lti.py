@@ -9,21 +9,6 @@ import time
 import os
 from pyramid.httpexceptions import HTTPFound
 
-# canvas server
-
-#canvas_server_scheme = 'https'
-#canvas_server_host = 'canvas.instructure.com'
-#canvas_server_port = None
-
-canvas_server_scheme = 'http'
-canvas_server_host = 'h.jonudell.info'
-canvas_server_port = 3000
-
-if canvas_server_port is None:
-    canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
-else:
-    canvas_server = '%s://%s:%s' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
-
 # lti local testing
 
 lti_server_host_internal = '10.0.0.9'  # for local testing
@@ -44,7 +29,7 @@ if lti_server_port is None:
 else:
     lti_server = '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
 
-print '%s, %s' % (canvas_server, lti_server)
+print 'lti_server: %s' % lti_server
 
 lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
@@ -78,6 +63,26 @@ class AuthData(): # was hoping to avoid but per-assignment integration data in c
     def get_lti_secret(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['secret']
 
+    def get_canvas_server_scheme(self, oauth_consumer_key):
+        return self.auth_data[oauth_consumer_key]['canvas_server_scheme']
+
+    def get_canvas_server_host(self, oauth_consumer_key):
+        return self.auth_data[oauth_consumer_key]['canvas_server_host']
+
+    def get_canvas_server_port(self, oauth_consumer_key):
+        return self.auth_data[oauth_consumer_key]['canvas_server_port']
+
+    def get_canvas_server(self, oauth_consumer_key):
+        canvas_server_scheme = self.get_canvas_server_scheme(oauth_consumer_key)
+        canvas_server_host = self.get_canvas_server_host(oauth_consumer_key)
+        canvas_server_port = self.get_canvas_server_port(oauth_consumer_key)
+        canvas_server = None
+        if canvas_server_port is None:
+            canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
+        else:
+            canvas_server = '%s://%s:%s' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
+        return canvas_server
+
     def load(self):
         f = open(self.name)
         self.auth_data = json.loads(f.read())
@@ -85,7 +90,7 @@ class AuthData(): # was hoping to avoid but per-assignment integration data in c
 
     def save(self):
         f = open(self.name, 'wb')
-        j = json.dumps(self.auth_data, indent=4, sort_keys=True)
+        j = json.dumps(self.auth_data, indent=2, sort_keys=True)
         f.write(j)
         f.close()  
 
@@ -116,11 +121,11 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
         assert ( len(l) == 0 or len(l) == 1)
         return len(l) == 1
 
-    def get_assignments_for_type(self, type):
-        return [x for x in self.assignments if x['type'] == type]
+    def get_assignments_for_type(self, type, oauth_consumer_key):
+        return [x for x in self.assignments if x['oauth_consumer_key']==oauth_consumer_key and x['type'] == type]
 
-    def get_all_assignments(self):
-        return self.assignments
+    def get_all_assignments(self, oauth_consumer_key):
+        return [x for x in self.assignments if x['oauth_consumer_key']==oauth_consumer_key]
 
     def load(self):
         f = open(self.name)
@@ -129,7 +134,7 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
 
     def save(self):
         f = open(self.name, 'wb')
-        j = json.dumps(self.assignments, indent=4, sort_keys=True)
+        j = json.dumps(self.assignments, indent=2, sort_keys=True)
         f.write(j)
         f.close()  
 
@@ -171,6 +176,7 @@ def token_init(request, state=None):
     j = unpack_state(state)
     print j
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
     print 'token_init '
@@ -187,7 +193,8 @@ def token_callback(request):
     assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-    url = '%s://%s:%s/login/oauth2/token' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    url = '%s/login/oauth2/token' % canvas_server
     params = { 
         'grant_type':'authorization_code',
         'client_id': oauth_consumer_key,
@@ -207,6 +214,7 @@ def token_callback(request):
 def refresh_init(request, state=None):
     j = unpack_state(state)
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
     return ret
@@ -222,6 +230,7 @@ def refresh_callback(request):
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
     lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/login/oauth2/token' % canvas_server
     params = { 
         'grant_type':'refresh_token',
@@ -254,6 +263,7 @@ def get_external_tools(oauth_consumer_key, course):
     assert course is not None
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     sess = requests.Session()
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
     r = sess.get(url, headers={'Authorization':'Bearer %s' % lti_token})
     return r.json()
@@ -262,6 +272,7 @@ def get_assignments(oauth_consumer_key, course):
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     assert course is not None
     sess = requests.Session()
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.get(url, headers={'Authorization':'Bearer %s' % lti_token})
     return r.json()
@@ -297,6 +308,7 @@ def create_pdf_external_tool(oauth_consumer_key, course):
         print 'create_pdf_external_tool: reusing'
         return
     sess = requests.Session()
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
     wrapper_url = '%s/lti_pdf' % (lti_server)
     payload = {'name':'pdf_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
@@ -325,6 +337,7 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
             }
         }
     print data
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
     status = r.status_code
@@ -456,7 +469,7 @@ function go() {
 
     assignments = get_assignments(oauth_consumer_key, course)
     assignment_ids = [str(x['id']) for x in assignments]
-    integration_assignment_ids = [y['assignment_id'] for y in integration_data.get_all_assignments()]
+    integration_assignment_ids = [y['assignment_id'] for y in integration_data.get_all_assignments(oauth_consumer_key)]
     for integration_assignment_id in integration_assignment_ids:
         if integration_assignment_id not in assignment_ids:
             integration_data.delete(oauth_consumer_key, course, integration_assignment_id)
@@ -472,6 +485,7 @@ function go() {
         existing_pdf_ids.append(pdf_assignment['data']['id_or_url'])
     
     sess = requests.Session()
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
@@ -562,6 +576,7 @@ def lti_pdf(request):
     assignment_id = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     assignment = integration_data.get(oauth_consumer_key, course, 'pdf', str(assignment_id))
     file_id = assignment['data']['id_or_url']
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     sess = requests.Session()
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
@@ -589,6 +604,7 @@ def create_web_external_tool(oauth_consumer_key, course, url):
     if len(existing):
         return '<p>create web external tool: reusing' 
     sess = requests.Session()
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     tool_url = '%s/api/v1/courses/%s/external_tools' % (canvas_server, course)
     wrapper_url = '%s/lti_web' % lti_server
     payload = {'name':'web_annotation_assignment_tool', 'privacy_level':'public', 'consumer_key': oauth_consumer_key, 'shared_secret':'None', 'url':wrapper_url}
@@ -618,6 +634,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
                 }
             }
         }
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     api_url = '%s/api/v1/courses/%s/assignments' % (canvas_server, course)
     r = sess.post(url=api_url, headers={'Content-Type':'application/json', 'Authorization':'Bearer %s' % lti_token}, data=json.dumps(data))
     id = r.json()['id']
