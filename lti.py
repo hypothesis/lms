@@ -16,13 +16,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-#lti_server_scheme = 'https'
-#lti_server_host = 'h.jonudell.info'
-#lti_server_port = None
+lti_server_scheme = 'https'
+lti_server_host = 'h.jonudell.info'
+lti_server_port = None
 
-lti_server_scheme = 'http'
-lti_server_host = '98.234.245.185'
-lti_server_port = 8000
+#lti_server_scheme = 'http'
+#lti_server_host = '98.234.245.185'
+#lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -102,8 +102,10 @@ class IntegrationData(): # was hoping to avoid but per-assignment integration da
 
     def get(self, oauth_consumer_key, course, type, assignment_id):
         l = [x for x in self.assignments if x['oauth_consumer_key']==oauth_consumer_key and x['course']==course and x['type']==type  and x['assignment_id']==assignment_id ]
-        assert ( len(l) == 1 )
-        return l[0]
+        if ( len(l) == 1 ):
+            return l[0]
+        else:
+            return None
     
     def set(self, oauth_consumer_key, course, type, assignment_id, data):
         d = {'oauth_consumer_key':oauth_consumer_key, 'course':course, 'type':type, 'assignment_id':assignment_id, 'data':data}
@@ -412,6 +414,7 @@ def lti_setup(request):
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
+    print 'key %s, course %s' % (oauth_consumer_key, course)
     template = """
 <html><head> 
 <style> 
@@ -475,7 +478,7 @@ function go() {
             integration_data.delete(oauth_consumer_key, course, integration_assignment_id)
 
     #pdf_assignments = [a for a in assignments if a["integration_data"].has_key("pdf")]
-    pdf_assignments = integration_data.get_assignments_for_type('pdf')
+    pdf_assignments = integration_data.get_assignments_for_type('pdf', oauth_consumer_key)
 
 
     existing_pdf_ids = []
@@ -501,7 +504,7 @@ function go() {
             unassigned_files.append({ 'id': id, 'name': name })
     
     #web_assignments = [a for a in assignments if a["integration_data"].has_key("web")]
-    web_assignments = integration_data.get_assignments_for_type('web')
+    web_assignments = integration_data.get_assignments_for_type('web', oauth_consumer_key)
     web_assignments_to_create = ''
     for web_assignment in web_assignments:
         existing_web_assignments += '<li>%s</li>' % web_assignment['data']['id_or_url']
@@ -575,6 +578,8 @@ def lti_pdf(request):
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment_id = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     assignment = integration_data.get(oauth_consumer_key, course, 'pdf', str(assignment_id))
+    if assignment == None:
+        return error_response('no assignment %s for key %s course %s' % (assignment, oauth_consumer_key, course))
     file_id = assignment['data']['id_or_url']
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
@@ -688,6 +693,8 @@ def lti_web(request):
     assignment_id = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
     assignment = integration_data.get(oauth_consumer_key, course, 'web', str(assignment_id))
+    if assignment == None:
+        return error_response('no assignment %s for key %s course %s' % (assignment, oauth_consumer_key, course))
     url = assignment['data']['id_or_url']
     return web_response_with_post_data(request, url, user)
 
