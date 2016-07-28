@@ -414,7 +414,18 @@ def lti_setup(request):
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
-    print 'key %s, course %s, token %s' % (oauth_consumer_key, course, token)
+    
+    sess = requests.Session()  # do this first to ensure we have a token
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    url = '%s/api/v1/courses/%s/files' % (canvas_server, course)
+    r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
+    if r.status_code == 401:
+      print 'lti_setup: refreshing token'  
+      return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
+    files = r.json()
+
+    print 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token)
+
     template = """
 <html><head> 
 <style> 
@@ -477,23 +488,14 @@ function go() {
         if integration_assignment_id not in assignment_ids:
             integration_data.delete(oauth_consumer_key, course, integration_assignment_id)
 
-    #pdf_assignments = [a for a in assignments if a["integration_data"].has_key("pdf")]
     pdf_assignments = integration_data.get_assignments_for_type('pdf', oauth_consumer_key)
-
 
     existing_pdf_ids = []
 
     for pdf_assignment in pdf_assignments:
         existing_pdf_assignments += '<li>%s</li>' % pdf_assignment['data']['name']
         existing_pdf_ids.append(pdf_assignment['data']['id_or_url'])
-    
-    sess = requests.Session()
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    url = '%s/api/v1/courses/%s/files' % (canvas_server, course)
-    r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
-    if r.status_code == 401:
-      return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
-    files = r.json()
+
     unassigned_files = []
 
     for file in files:
@@ -503,7 +505,6 @@ function go() {
             pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (id, id, name) 
             unassigned_files.append({ 'id': id, 'name': name })
     
-    #web_assignments = [a for a in assignments if a["integration_data"].has_key("web")]
     web_assignments = integration_data.get_assignments_for_type('web', oauth_consumer_key)
     web_assignments_to_create = ''
     for web_assignment in web_assignments:
@@ -586,6 +587,7 @@ def lti_pdf(request):
     sess = requests.Session()
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
     if r.status_code == 401:
+      print 'lti_pdf: refreshing token'  
       return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     if r.status_code == 200:
         j = r.json()
@@ -622,7 +624,6 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
     create_web_external_tool(oauth_consumer_key, course, url)
     assignments = get_assignments(oauth_consumer_key, course)
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
-    #existing = [x for x in assignments if integration_data.get(oauth_consumer_key, course, 'web', url) == x['id']]
     existing = [x for x in assignments if integration_data.exists(oauth_consumer_key, course, 'web', url)]
     if existing:
         return '<p>reusing web assignment for %s' % url  
@@ -682,13 +683,8 @@ def web_response_with_post_data(request, url, user):
     r.content_type = 'text/html'
     return r
 
-def lti_web(request):
-    post_data = capture_post_data(request)
+def lti_web(request):  # no api token needed in this case
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
-    lti_token = auth_data.get_lti_token(oauth_consumer_key)
-    if lti_token is None:
-      return token_init(request, 'web:' + urllib.quote(json.dumps(post_data)))
-    post_data = capture_post_data(request)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     assignment_id = get_post_or_query_param(request, CUSTOM_CANVAS_ASSIGNMENT_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
