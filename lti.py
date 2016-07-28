@@ -414,7 +414,7 @@ def lti_setup(request):
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
-    print 'key %s, course %s' % (oauth_consumer_key, course)
+    print 'key %s, course %s, token %s' % (oauth_consumer_key, course, token)
     template = """
 <html><head> 
 <style> 
