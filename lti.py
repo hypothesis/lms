@@ -464,28 +464,21 @@ function go() {
 </script>
 </head>
 <body>
-<p>Existing PDF assignments</p>
-%s
-<p>PDF assignments to create</p>
-%s
-<p>Existing web assignments</p>
-%s
-<p>Web assignments to create</p>
-%s
+%s <!-- Existing PDF assignments, if any -->
+<p>PDF assignments to create <span style="font-size:smaller">(from Canvas Files in this course)</span></p>
+%s 
+%s <!-- Existing web assignments if any -->
+<p>Web assignments to create <span style="font-size:smaller">(enter one or more URLS)</span></p>
 <textarea style="width:600px;height:100px" id="web_urls">
 </textarea>
 <p>
-<input type="submit" onclick="go()">
+<input type="submit" name="Create Assignments" onclick="go()">
 </p>
 <p id="outcome">
 </p>
 </body>
 </html>
 """ 
-    existing_web_assignments = '<ul>'
-    existing_pdf_assignments = '<ul>'
-    pdf_assignments_to_create = '<ul>'
-
     assignments = get_assignments(oauth_consumer_key, course)
     assignment_ids = [str(x['id']) for x in assignments]
     integration_assignment_ids = [y['assignment_id'] for y in integration_data.get_all_assignments(oauth_consumer_key)]
@@ -497,27 +490,34 @@ function go() {
 
     existing_pdf_ids = []
 
-    for pdf_assignment in pdf_assignments:
-        existing_pdf_assignments += '<li>%s</li>' % pdf_assignment['data']['name']
-        existing_pdf_ids.append(pdf_assignment['data']['id_or_url'])
+    existing_pdf_assignments = ''
+    if len(pdf_assignments) > 0:
+        existing_pdf_assignments += '<p>Existing PDF assignments</p><ul>'
+        for pdf_assignment in pdf_assignments:
+            existing_pdf_assignments += '<li>%s</li>' % pdf_assignment['data']['name']
+            existing_pdf_ids.append(pdf_assignment['data']['id_or_url'])
+        existing_pdf_assignments += '</ul>'
 
     unassigned_files = []
 
-    for file in files:
-        id = str(file['id'])
-        name = file['display_name']
-        if id not in existing_pdf_ids:
-            pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (id, id, name) 
-            unassigned_files.append({ 'id': id, 'name': name })
+    pdf_assignments_to_create = ''
+    if len(files) > 0:
+        pdf_assignments_to_create += '<ul>'
+        for file in files:
+            id = str(file['id'])
+            name = file['display_name']
+            if id not in existing_pdf_ids:
+                pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (id, id, name) 
+                unassigned_files.append({ 'id': id, 'name': name })
+        pdf_assignments_to_create += '</ul>'
     
     web_assignments = integration_data.get_assignments_for_type('web', oauth_consumer_key)
-    web_assignments_to_create = ''
-    for web_assignment in web_assignments:
-        existing_web_assignments += '<li>%s</li>' % web_assignment['data']['id_or_url']
-
-    existing_pdf_assignments += '</ul>'
-    pdf_assignments_to_create += '</ul>'
-    existing_web_assignments += '</ul>'
+    existing_web_assignments = ''
+    if len(web_assignments) > 0:
+        existing_web_assignments += '<p>Existing web assignments</p><ul>'
+        for web_assignment in web_assignments:
+            existing_web_assignments += '<li>%s</li>' % web_assignment['data']['id_or_url']
+        existing_web_assignments += '</ul>'
     
     html = template % (CUSTOM_CANVAS_COURSE_ID, 
         course, 
@@ -528,8 +528,7 @@ function go() {
         course,
         existing_pdf_assignments, 
         pdf_assignments_to_create, 
-        existing_web_assignments, 
-        web_assignments_to_create)
+        existing_web_assignments)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
