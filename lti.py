@@ -474,7 +474,7 @@ function go() {
 <textarea style="width:600px;height:100px" id="web_urls">
 </textarea>
 <p>
-<input type="submit" name="Create Assignments" onclick="go()">
+<input type="submit" value="Create Assignments" onclick="go()">
 </p>
 <p id="outcome">
 </p>
