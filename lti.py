@@ -506,6 +506,8 @@ function go() {
         for file in files:
             id = str(file['id'])
             name = file['display_name']
+            if not name.lower().endswith('.pdf'):
+                continue
             if id not in existing_pdf_ids:
                 pdf_assignments_to_create += '<li><input type="checkbox" value="%s" id="%s">%s</li>' % (id, id, name) 
                 unassigned_files.append({ 'id': id, 'name': name })
