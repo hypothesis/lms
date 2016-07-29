@@ -354,20 +354,21 @@ def create_pdf_annotation_assignment(oauth_consumer_key, course, filename, file_
     integration_data.set(oauth_consumer_key, course, 'pdf', str(id), {'name':name, 'id_or_url':str(file_id) })
     return '<p>created pdf assignment for %s: %s</p>' % (filename, r.status_code)
 
-def pdf_response_with_post_data(request,fname):
+def pdf_response_with_post_data(request, name, fname):
     template = """
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
- <p>Hello, student #%s. Your assignment: annotate %s.</p>
+ <!-- %s -->
 %s
+<p>%s</p>
  <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
  </body>
  </html>
 """ 
     post_data = display_lti_keys(request, lti_keys)
     user = request.POST['user_id'] if request.POST.has_key('user_id') else 'unknown'
-    html = template % (user, fname, boilerplate, fname)
+    html = template % (post_data, boilerplate, name, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -586,6 +587,7 @@ def lti_pdf(request):
     if assignment == None:
         return error_response('no assignment %s for key %s course %s' % (assignment, oauth_consumer_key, course))
     file_id = assignment['data']['id_or_url']
+    name = assignment['data']['name']
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     sess = requests.Session()
@@ -602,7 +604,7 @@ def lti_pdf(request):
             fname = str(time.time()) + '.pdf'
             urllib.urlretrieve(url, fname)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
-            return pdf_response_with_post_data(request, fname)
+            return pdf_response_with_post_data(request, name, fname)
         except:
             return error_response(traceback.print_exc())
     else:
@@ -654,7 +656,7 @@ def create_web_annotation_assignment(oauth_consumer_key, course, url):
     r = '<p>created web annotation assignment for %s: %s' % (url, status)
     return r
     
-def web_response_with_post_data(request, url, user):
+def web_response_with_post_data(request, name, url, user):
     template = """
  <html>
  <head>
@@ -663,8 +665,9 @@ def web_response_with_post_data(request, url, user):
  </style>
  </head>
  <body>
- <p>Hello, student #%s. Your assignment: annotate %s.</p>
+<!-- %s -->
  %s
+ <p>%s</p>
  <iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
  </body>
  </html>
@@ -680,7 +683,7 @@ def web_response_with_post_data(request, url, user):
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    html = template % (user, url, boilerplate, fname)
+    html = template % (post_data, boilerplate, name, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -694,7 +697,8 @@ def lti_web(request):  # no api token needed in this case
     if assignment == None:
         return error_response('no assignment %s for key %s course %s' % (assignment, oauth_consumer_key, course))
     url = assignment['data']['id_or_url']
-    return web_response_with_post_data(request, url, user)
+    name = assignment['data']['name']
+    return web_response_with_post_data(request, name, url, user)
 
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
