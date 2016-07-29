@@ -415,6 +415,8 @@ def get_post_param(request, key):
 def lti_setup(request):
     post_data = capture_post_data(request)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
+    if course is None:
+        return error_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
