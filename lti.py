@@ -42,6 +42,12 @@ lti_setup_url = '%s/lti_setup' % lti_server
 lti_pdf_url = '%s/lti_pdf' % lti_server
 lti_web_url = '%s/lti_web' % lti_server
 
+boilerplate = """<p>
+This document is annotatable using hypothes.is. 
+You can click highlighted text or expand the sidebar to view existing annotations. 
+You'll need to register for or log in to an <a href="https://hypothes.is">hypothes.is</a> account in order to create annotations; 
+you can do so in the sidebar.</p>"""
+
 class AuthData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
         self.name = 'canvas-auth.json'
@@ -353,17 +359,15 @@ def pdf_response_with_post_data(request,fname):
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
- <h1>LTI launch data</h1>
- %s
- <p>Hello, student %s. Your assignment: annotate %s.</p>
- <h1>Annotatable PDF</h1>
+ <p>Hello, student #%s. Your assignment: annotate %s.</p>
+%s
  <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
  </body>
  </html>
 """ 
     post_data = display_lti_keys(request, lti_keys)
     user = request.POST['user_id'] if request.POST.has_key('user_id') else 'unknown'
-    html = template % (post_data, user, fname, fname)
+    html = template % (user, fname, boilerplate, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -659,10 +663,8 @@ def web_response_with_post_data(request, url, user):
  </style>
  </head>
  <body>
- <h1>LTI launch data</h1>
- %s
- <h1>Annotatable Web Page</h1>
  <p>Hello, student #%s. Your assignment: annotate %s.</p>
+ %s
  <iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
  </body>
  </html>
@@ -678,7 +680,7 @@ def web_response_with_post_data(request, url, user):
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    html = template % (post_data, user, url, fname)
+    html = template % (user, url, boilerplate, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
