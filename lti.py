@@ -17,7 +17,7 @@ lti_server_port_internal = 8000
 # lti server
 
 lti_server_scheme = 'https'
-lti_server_host = 'lti.jonudell.info'
+lti_server_host = 'lti.hypothesislabs.com'
 lti_server_port = None
 
 #lti_server_scheme = 'http'
@@ -210,7 +210,7 @@ def refresh_callback(request):
     redirect = redirect_helper(state, course, user, oauth_consumer_key)
     return HTTPFound(location=redirect)
 
-def error_response(exc_str):
+def simple_response(exc_str):
     template = """
  <html>
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
@@ -220,6 +220,22 @@ def error_response(exc_str):
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
+
+def config_xml(request):
+    with open('config.xml') as f:
+        xml = f.read()
+        print 'config request'
+        r = Response(xml)
+        r.content_type = 'text/xml'
+        return r
+
+def about(request):
+    with open('about.html') as f:
+        html = f.read()
+        print 'about request'
+        r = Response(html)
+        r.content_type = 'text/html'
+        return r
 
 def display_lti_keys(request, lti_keys):
     post_data = ''
@@ -296,7 +312,7 @@ def lti_setup(request):
 
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     if course is None:
-        return error_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
+        return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
 
     type = get_post_or_query_param(request, 'type')
     name = get_post_or_query_param(request, 'name')
@@ -452,9 +468,9 @@ def lti_pdf(request, oauth_consumer_key, course, name, file_id):
             os.rename(fname, './pdfjs/viewer/web/' + fname)
             return pdf_response(name, fname)
         except:
-            return error_response(traceback.print_exc())
+            return simple_response(traceback.print_exc())
     else:
-        return error_response('no file %s in course %s' % (file, course))
+        return simple_response('no file %s in course %s' % (file, course))
 
 def web_response(request, name, url, user):
     template = """
@@ -514,6 +530,12 @@ config.add_view(lti_pdf, route_name='lti_pdf')
 
 config.add_route('lti_web', '/lti_web')
 config.add_view(lti_web, route_name='lti_web')
+
+config.add_route('config_xml', '/config')
+config.add_view(config_xml, route_name='config_xml')
+
+config.add_route('about', '/about')
+config.add_view(about, route_name='about')
 
 from pyramid.static import static_view
 pdf_view = static_view('./pdfjs', use_subpath=True)
