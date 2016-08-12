@@ -16,9 +16,9 @@
       <lticm:property name="privacy_level">public</lticm:property>
       <lticm:options name="resource_selection">
         <lticm:property name="url">https://lti.hypothesislabs.com/lti_setup</lticm:property>
-        <lticm:property name="text">H</lticm:property>
-        <lticm:property name="selection_width">500</lticm:property>
-        <lticm:property name="selection_height">500</lticm:property>
+        <lticm:property name="text">Hypothesis</lticm:property>
+        <lticm:property name="selection_width">800</lticm:property>
+        <lticm:property name="selection_height">600</lticm:property>
         <lticm:property name="enabled">true</lticm:property>
       </lticm:options>
     </blti:extensions>
