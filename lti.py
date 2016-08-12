@@ -123,9 +123,9 @@ def unpack_state(state):
     j = json.loads(urllib.unquote(s))
     return j
 
-def redirect_helper(state, course, user, oauth_consumer_key):
+def redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url):
     if state.startswith('setup'):
-        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key, EXT_CONTENT_RETURN_URL, ext_content_return_url)
     elif state.startswith('pdf'):
         redirect = lti_pdf_url   + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key)
     elif state.startswith('web'):
@@ -154,6 +154,7 @@ def token_callback(request):
     user = j[CUSTOM_CANVAS_USER_ID]
     #assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    ext_content_return_url = j[EXT_CONTENT_RETURN_URL]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/login/oauth2/token' % canvas_server
@@ -170,7 +171,7 @@ def token_callback(request):
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
     auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-    redirect = redirect_helper(state, course, user, oauth_consumer_key)
+    redirect = redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url)
     return HTTPFound(location=redirect)
 
 def refresh_init(request, state=None):
@@ -190,6 +191,7 @@ def refresh_callback(request):
     user = j[CUSTOM_CANVAS_USER_ID]
     #assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
+    ext_content_return_url = j[EXT_CONTENT_RETURN_URL]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
     lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -207,7 +209,7 @@ def refresh_callback(request):
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
     auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-    redirect = redirect_helper(state, course, user, oauth_consumer_key)
+    redirect = redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url)
     return HTTPFound(location=redirect)
 
 def simple_response(exc_str):
@@ -272,6 +274,8 @@ def capture_post_data(request):
             ]:
         if key in request.POST.keys():
             ret[key] = request.POST[key]
+        else:
+            ret[key] = None
     return ret
 
 def get_post_or_query_param(request, key):
@@ -325,10 +329,12 @@ def lti_setup(request):
         return lti_web(request, oauth_consumer_key, course, name, value)
 
     return_url = get_post_or_query_param(request, EXT_CONTENT_RETURN_URL)
+    if return_url is None: # this is an oauth redirect so get what we sent ourselves
+        return_url = get_post_or_query_param(request, 'return_url')
 
     print 'return_url: %s' % return_url
 
-    launch_url_template = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__' % lti_server
+    launch_url_template = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__&return_url=__RETURN_URL__' % lti_server
 
     sess = requests.Session()  # do this first to ensure we have a token
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -395,6 +401,7 @@ function go() {
       launch_url = launch_url.replace('__TYPE__',  'web');
       launch_url = launch_url.replace('__NAME__',  url);
       launch_url = launch_url.replace('__VALUE__', url);
+      launch_url = launch_url.replace('__RETURN_URL__', return_url);
       redirect_url = return_url + '?return_type=lti_launch_url&url=' + encodeURIComponent(launch_url);
       }
 
@@ -435,7 +442,7 @@ I want students to annotate:
             pdf_choices += '<li><input type="radio" name="pdf_choice" onclick="javascript:go()" value="%s" id="%s">%s</li>' % (name, id, name) 
         pdf_choices += '</ul>'
     
-    launch_url = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__' % (lti_server)
+    launch_url = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__&return_url=__RETURN_URL__' % (lti_server)
     
     html = template % (
         return_url,
