@@ -16,13 +16,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-lti_server_scheme = 'https'
-lti_server_host = 'lti.hypothesislabs.com'
-lti_server_port = None
+#lti_server_scheme = 'https'
+#lti_server_host = 'lti.hypothesislabs.com'
+#lti_server_port = None
 
-#lti_server_scheme = 'http'
-#lti_server_host = '98.234.245.185'
-#lti_server_port = 8000
+lti_server_scheme = 'http'
+lti_server_host = '98.234.245.185'
+lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -39,16 +39,48 @@ CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
 OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
 EXT_CONTENT_RETURN_TYPES = 'ext_content_return_types'
 EXT_CONTENT_RETURN_URL = 'ext_content_return_url'
+LIS_OUTCOME_SERVICE_URL = 'lis_outcome_service_url'
+LIS_RESULT_SOURCEDID = 'lis_result_sourcedid'
 
 lti_setup_url = '%s/lti_setup' % lti_server
 lti_pdf_url = '%s/lti_pdf' % lti_server
 lti_web_url = '%s/lti_web' % lti_server
 
+submission_template = """
+<?xml version = "1.0" encoding = "UTF-8"?>
+<imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+  <imsx_POXHeader>
+    <imsx_POXRequestHeaderInfo>
+      <imsx_version>V1.0</imsx_version>
+      <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
+    </imsx_POXRequestHeaderInfo>
+  </imsx_POXHeader>
+  <imsx_POXBody>
+    <replaceResultRequest>
+      <resultRecord>
+        <sourcedGUID>
+          <sourcedId>3124567</sourcedId>
+        </sourcedGUID>
+        <result>
+          <resultScore>
+            <language>en</language>
+            <textString>0.92</textString>
+          </resultScore>
+          <!-- Added element -->
+          <resultData>
+            <url>https://www.example.com/cool_lti_link_submission</url>
+          </resultData>
+        </result>
+      </resultRecord>
+    </replaceResultRequest>
+  </imsx_POXBody>
+</imsx_POXEnvelopeRequest>"""
+
 boilerplate = """<p>
-This document is annotatable using hypothes.is. 
+This document is annotatable using <a href="https://hypothes.is">Hypothes.is</a>. 
 You can click highlighted text or expand the sidebar to view existing annotations. 
-You'll need to register for or log in to an <a href="https://hypothes.is">hypothes.is</a> account in order to create annotations; 
-you can do so in the sidebar.</p>"""
+You'll need to register for (or log in to) an account in order to create annotations; 
+you can do so in the Hypothesis sidebar.</p>"""
 
 class AuthData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
@@ -239,20 +271,13 @@ def about(request):
         r.content_type = 'text/html'
         return r
 
-def display_lti_keys(request, lti_keys):
-    post_data = ''
-    for key in request.POST.keys(): 
-        if key in lti_keys:
-            post_data += '<div>%s: %s</div>' % (key, request.POST[key])
-    return post_data
-
-def pdf_response(name, fname):
+def pdf_response(lis_outcome_service_url=None, name=None, fname=None):
     template = """
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
 %s
-<p>%s</p>
+<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick=javascript:location.href="http://jonudell.net"></p>
  <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
  </body>
  </html>
@@ -270,7 +295,8 @@ def capture_post_data(request):
             CUSTOM_CANVAS_COURSE_ID,
             CUSTOM_CANVAS_ASSIGNMENT_ID,
             EXT_CONTENT_RETURN_TYPES,
-            EXT_CONTENT_RETURN_URL
+            EXT_CONTENT_RETURN_URL,
+            LIS_OUTCOME_SERVICE_URL
             ]:
         if key in request.POST.keys():
             ret[key] = request.POST[key]
@@ -308,6 +334,8 @@ def get_post_param(request, key):
 def lti_setup(request):
     post_data = capture_post_data(request)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+    lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
+    
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
@@ -323,10 +351,10 @@ def lti_setup(request):
     value = get_post_or_query_param(request, 'value')
     
     if type == 'pdf':
-        return lti_pdf(request, oauth_consumer_key, course, name, value)
+        return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, course=course, name=name, value=value)
 
     if type == 'web':
-        return lti_web(request, oauth_consumer_key, course, name, value)
+        return lti_web(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, course=course, name=name, value=value)
 
     return_url = get_post_or_query_param(request, EXT_CONTENT_RETURN_URL)
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
@@ -453,7 +481,9 @@ I want students to annotate:
     r.content_type = 'text/html'
     return r
 
-def lti_pdf(request, oauth_consumer_key, course, name, file_id):
+def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, course=None, name=None, value=None):
+    post_data = capture_post_data(request)
+    file_id = value
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
@@ -473,13 +503,14 @@ def lti_pdf(request, oauth_consumer_key, course, name, file_id):
             fname = str(time.time()) + '.pdf'
             urllib.urlretrieve(url, fname)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
-            return pdf_response(name, fname)
+            return pdf_response(lis_outcome_service_url=lis_outcome_service_url, name=name, fname=fname)
         except:
             return simple_response(traceback.print_exc())
     else:
         return simple_response('no file %s in course %s' % (file, course))
 
-def web_response(request, name, url, user):
+def web_response(lis_outcome_service_url=None, name=None, value=None, user=None):
+    url = value
     template = """
  <html>
  <head>
@@ -488,14 +519,12 @@ def web_response(request, name, url, user):
  </style>
  </head>
  <body>
-<!-- %s -->
  %s
  <p>%s</p>
  <iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
  </body>
  </html>
 """ 
-    post_data = display_lti_keys(request, lti_keys)
     # work around https://github.com/hypothesis/via/issues/76
     fname = str(time.time()) + '.html'
     print 'via url: %s' % url
@@ -506,16 +535,16 @@ def web_response(request, name, url, user):
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    html = template % (post_data, boilerplate, name, fname)
+    html = template % (boilerplate, name, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
 
-def lti_web(request, oauth_consumer_key, course, name, url):  # no api token needed in this case
+def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, course=None, name=None, value=None):  # no api token needed in this case
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
-    return web_response(request, name, url, user)
+    return web_response(request, name=name, value=value, user=user)
 
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
