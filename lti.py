@@ -7,7 +7,9 @@ import pyramid
 import sys
 import time
 import os
+import re
 from pyramid.httpexceptions import HTTPFound
+from requests_oauthlib import OAuth1
 
 # lti local testing
 
@@ -41,10 +43,13 @@ EXT_CONTENT_RETURN_TYPES = 'ext_content_return_types'
 EXT_CONTENT_RETURN_URL = 'ext_content_return_url'
 LIS_OUTCOME_SERVICE_URL = 'lis_outcome_service_url'
 LIS_RESULT_SOURCEDID = 'lis_result_sourcedid'
+EXPORT_URL = 'export_url'
 
 lti_setup_url = '%s/lti_setup' % lti_server
 lti_pdf_url = '%s/lti_pdf' % lti_server
 lti_web_url = '%s/lti_web' % lti_server
+lti_submit_url = '%s/lti_submit' % lti_server
+lti_export_url = '%s/lti_export' % lti_server
 
 submission_template = """
 <?xml version = "1.0" encoding = "UTF-8"?>
@@ -59,22 +64,22 @@ submission_template = """
     <replaceResultRequest>
       <resultRecord>
         <sourcedGUID>
-          <sourcedId>3124567</sourcedId>
+          <sourcedId>__SOURCEDID__</sourcedId>
         </sourcedGUID>
         <result>
           <resultScore>
             <language>en</language>
-            <textString>0.92</textString>
+            <textString>1</textString>
           </resultScore>
-          <!-- Added element -->
           <resultData>
-            <url>https://www.example.com/cool_lti_link_submission</url>
+            <url>__URL__</url>
           </resultData>
         </result>
       </resultRecord>
     </replaceResultRequest>
   </imsx_POXBody>
-</imsx_POXEnvelopeRequest>"""
+</imsx_POXEnvelopeRequest
+"""
 
 boilerplate = """<p>
 This document is annotatable using <a href="https://hypothes.is">Hypothes.is</a>. 
@@ -136,6 +141,16 @@ class AuthData(): # was hoping to avoid but per-assignment integration data in c
 
 auth_data = AuthData()
 
+def get_pdf_fingerprint(fname):
+    f = open(fname, 'rb')
+    s = f.read()
+    m = re.findall('ID\s*\[\s*<(\w+)>',s)
+    f.close()
+    if len(m) > 0:
+        return m[0]
+    else:
+        return 'no pdf fingerprint'
+
 def get_config_value(client_id, key):
     if canvas_config.has_key(client_id):
         return canvas_config[client_id][key]
@@ -151,17 +166,19 @@ def show_post_keys(request):
         print '%s: %s' % (k, request.POST[k])
 
 def unpack_state(state):
-    s = state.replace('setup:','').replace('web:','').replace('pdf:','')
+    s = state.replace('setup:','').replace('web:','').replace('pdf:','').replace('submit:','')
     j = json.loads(urllib.unquote(s))
     return j
 
-def redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url):
+def redirect_helper(state, course=None, user=None, oauth_consumer_key=None, ext_content_return_url=None, lis_outcome_service_url=None, lis_result_sourcedid=None):
     if state.startswith('setup'):
         redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key, EXT_CONTENT_RETURN_URL, ext_content_return_url)
     elif state.startswith('pdf'):
         redirect = lti_pdf_url   + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key)
     elif state.startswith('web'):
         redirect = lti_web_url   + '?%s=%s&%s=%s&%s=%s' % (CUSTOM_CANVAS_COURSE_ID, course, CUSTOM_CANVAS_USER_ID, user, OAUTH_CONSUMER_KEY, oauth_consumer_key)
+    elif state.startswith('submit'):
+        redirect = lti_submit_url   + '?%s=%s&%s=%s&%s=%s' % (OAUTH_CONSUMER_KEY, oauth_consumer_key, LIS_OUTCOME_SERVICE_URL, lis_outcome_service_url, LIS_RESULT_SOURCEDID, lis_result_sourcedid)
     else:
         redirect = 'unexpected state'
     return redirect
@@ -177,34 +194,46 @@ def token_init(request, state=None):
     print token_redirect_uri
     return ret
 
-def token_callback(request):
+def oauth_callback(request, type=None):
     q = urlparse.parse_qs(request.query_string)
     code = q['code'][0]
     state = q['state'][0]
     j = unpack_state(state)
     course = j[CUSTOM_CANVAS_COURSE_ID]
     user = j[CUSTOM_CANVAS_USER_ID]
-    #assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     ext_content_return_url = j[EXT_CONTENT_RETURN_URL]
+    lis_outcome_service_url = j[LIS_OUTCOME_SERVICE_URL]
+    lis_result_sourcedid = j[LIS_RESULT_SOURCEDID]
     canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
+    lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/login/oauth2/token' % canvas_server
+    grant_type = 'authorization_code' if type == 'token' else 'refresh_token'
     params = { 
-        'grant_type':'authorization_code',
-        'client_id': oauth_consumer_key,
-        'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server,
-        'code': code
-        }
+            'grant_type': grant_type,
+            'client_id': oauth_consumer_key,
+            'client_secret': canvas_client_secret,
+            'redirect_uri': '%s/token_init' % lti_server
+            }
+    if grant_type == 'authorization_code': 
+        params['code'] = code
+    else:
+        params['refresh_token'] = lti_refresh_token
     r = requests.post(url, params)
     j = r.json()
     lti_token = j['access_token']
     if j.has_key('refresh_token'):
         lti_refresh_token = j['refresh_token']
     auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-    redirect = redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url)
+    redirect = redirect_helper(state, course=course, user=user, oauth_consumer_key=oauth_consumer_key, ext_content_return_url=ext_content_return_url, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid)
     return HTTPFound(location=redirect)
+
+def token_callback(request):
+    return oauth_callback(request, type='token')
+
+def refresh_callback(request):
+    return oauth_callback(request, type='refresh')
 
 def refresh_init(request, state=None):
     j = unpack_state(state)
@@ -213,36 +242,6 @@ def refresh_init(request, state=None):
     token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
     return ret
-
-def refresh_callback(request):
-    q = urlparse.parse_qs(request.query_string)
-    code = q['code'][0]
-    state = q['state'][0]
-    j = unpack_state(state)
-    course = j[CUSTOM_CANVAS_COURSE_ID]
-    user = j[CUSTOM_CANVAS_USER_ID]
-    #assignment = j[CUSTOM_CANVAS_ASSIGNMENT_ID]
-    oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
-    ext_content_return_url = j[EXT_CONTENT_RETURN_URL]
-    canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-    lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    url = '%s/login/oauth2/token' % canvas_server
-    params = { 
-        'grant_type':'refresh_token',
-        'client_id': oauth_consumer_key,
-        'client_secret': canvas_client_secret,
-        'redirect_uri': '%s/token_init' % lti_server,
-        'refresh_token': lti_refresh_token
-        }
-    r = requests.post(url, params)
-    j = r.json()
-    lti_token = j['access_token']
-    if j.has_key('refresh_token'):
-        lti_refresh_token = j['refresh_token']
-    auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-    redirect = redirect_helper(state, course, user, oauth_consumer_key, ext_content_return_url)
-    return HTTPFound(location=redirect)
 
 def simple_response(exc_str):
     template = """
@@ -271,18 +270,24 @@ def about(request):
         r.content_type = 'text/html'
         return r
 
-def pdf_response(lis_outcome_service_url=None, name=None, fname=None):
+def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, export_url=None):
     template = """
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
 %s
-<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick=javascript:location.href="http://jonudell.net"></p>
+<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>
  <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
  </body>
  </html>
 """ 
-    html = template % (boilerplate, name, fname)
+    launch_url = '/lti_submit?oauth_consumer_key=%s&lis_outcome_service_url=%s&lis_result_sourcedid=%s&export_url=%s' % ( 
+        urllib.quote(oauth_consumer_key),  
+        urllib.quote(lis_outcome_service_url),  
+        urllib.quote(lis_result_sourcedid),
+        export_url
+        )
+    html = template % (boilerplate, name, launch_url, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -296,7 +301,8 @@ def capture_post_data(request):
             CUSTOM_CANVAS_ASSIGNMENT_ID,
             EXT_CONTENT_RETURN_TYPES,
             EXT_CONTENT_RETURN_URL,
-            LIS_OUTCOME_SERVICE_URL
+            LIS_OUTCOME_SERVICE_URL,
+            LIS_RESULT_SOURCEDID
             ]:
         if key in request.POST.keys():
             ret[key] = request.POST[key]
@@ -335,6 +341,7 @@ def lti_setup(request):
     post_data = capture_post_data(request)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
     
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
     if lti_token is None:
@@ -351,10 +358,10 @@ def lti_setup(request):
     value = get_post_or_query_param(request, 'value')
     
     if type == 'pdf':
-        return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, course=course, name=name, value=value)
+        return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=name, value=value)
 
     if type == 'web':
-        return lti_web(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, course=course, name=name, value=value)
+        return lti_web(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=name, value=value)
 
     return_url = get_post_or_query_param(request, EXT_CONTENT_RETURN_URL)
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
@@ -469,19 +476,17 @@ I want students to annotate:
                 continue
             pdf_choices += '<li><input type="radio" name="pdf_choice" onclick="javascript:go()" value="%s" id="%s">%s</li>' % (name, id, name) 
         pdf_choices += '</ul>'
-    
-    launch_url = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__&return_url=__RETURN_URL__' % (lti_server)
-    
+   
     html = template % (
         return_url,
-        launch_url,
+        launch_url_template,
         pdf_choices
         )
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
 
-def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, course=None, name=None, value=None):
+def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     post_data = capture_post_data(request)
     file_id = value
     lti_token = auth_data.get_lti_token(oauth_consumer_key)
@@ -502,8 +507,11 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, cour
             print url
             fname = str(time.time()) + '.pdf'
             urllib.urlretrieve(url, fname)
+            fingerprint = get_pdf_fingerprint(fname)
+            pdf_uri = 'urn:x-pdf:%s' % fingerprint
+            export_url = '%s?uri=%s' % (lti_export_url, pdf_uri)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
-            return pdf_response(lis_outcome_service_url=lis_outcome_service_url, name=name, fname=fname)
+            return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, fname=fname, export_url=export_url)
         except:
             return simple_response(traceback.print_exc())
     else:
@@ -546,6 +554,35 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, cour
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
     return web_response(request, name=name, value=value, user=user)
 
+def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
+    post_data = capture_post_data(request)
+    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+    lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
+    export_url = get_post_or_query_param(request, EXPORT_URL)
+    lti_token = auth_data.get_lti_token(oauth_consumer_key)
+    if lti_token is None:
+      return token_init(request, 'submit:' + urllib.quote(json.dumps(post_data)))
+    secret = auth_data.get_lti_secret(oauth_consumer_key)
+    oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
+    body = submission_template
+    body = body.replace('__URL__', export_url)
+    body = body.replace('__SOURCEDID__', lis_result_sourcedid)
+    headers = {'Content-Type': 'application/xml'}
+    r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
+    print 'lti_submit: %s' % r.status_code
+
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    submissions = '%s/api/v1/courses/2/assignments/22/submissions' % canvas_server
+
+    return simple_response('response: %s' % r.status_code)
+
+def lti_export(request):
+    uri = get_query_param(request, 'uri')
+    export_url = 'http://jonudell.net/h/canvas.html?facet=uri&mode=documents&search=' + uri
+    return HTTPFound(location=export_url)
+
+
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
@@ -566,6 +603,12 @@ config.add_view(lti_pdf, route_name='lti_pdf')
 
 config.add_route('lti_web', '/lti_web')
 config.add_view(lti_web, route_name='lti_web')
+
+config.add_route('lti_submit', '/lti_submit')
+config.add_view(lti_submit, route_name='lti_submit')
+
+config.add_route('lti_export', '/lti_export')
+config.add_view(lti_export, route_name='lti_export')
 
 config.add_route('config_xml', '/config')
 config.add_view(config_xml, route_name='config_xml')
