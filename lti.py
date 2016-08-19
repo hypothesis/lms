@@ -151,6 +151,14 @@ def get_pdf_fingerprint(fname):
     else:
         return 'no pdf fingerprint'
 
+def make_submit_url(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
+    submit_url = '/lti_submit?oauth_consumer_key=%s&lis_outcome_service_url=%s&lis_result_sourcedid=%s&export_url=%s' % ( 
+        oauth_consumer_key,  
+        lis_outcome_service_url,  
+        lis_result_sourcedid,
+        export_url)
+    return submit_url
+
 def get_config_value(client_id, key):
     if canvas_config.has_key(client_id):
         return canvas_config[client_id][key]
@@ -267,10 +275,11 @@ def about(request):
         html = f.read()
         print 'about request'
         r = Response(html)
-        r.content_type = 'text/html'
+        r.content_type = 'text/html'                  
         return r
 
 def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, export_url=None):
+    print 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, export_url)
     template = """
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
@@ -281,13 +290,15 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
  </body>
  </html>
 """ 
-    launch_url = '/lti_submit?oauth_consumer_key=%s&lis_outcome_service_url=%s&lis_result_sourcedid=%s&export_url=%s' % ( 
-        urllib.quote(oauth_consumer_key),  
-        urllib.quote(lis_outcome_service_url),  
-        urllib.quote(lis_result_sourcedid),
-        export_url
+                  
+    submit_url = make_submit_url (
+        oauth_consumer_key=oauth_consumer_key, 
+        lis_outcome_service_url=lis_outcome_service_url, 
+        lis_result_sourcedid=lis_result_sourcedid, 
+        export_url=export_url
         )
-    html = template % (boilerplate, name, launch_url, fname)
+
+    html = template % (boilerplate, name, submit_url, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -517,21 +528,21 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     else:
         return simple_response('no file %s in course %s' % (file, course))
 
-def web_response(lis_outcome_service_url=None, name=None, value=None, user=None):
+def web_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None, ):
     url = value
     template = """
- <html>
- <head>
- <style>
- body { font-family:verdana; margin:.5in; }
- </style>
- </head>
- <body>
- %s
- <p>%s</p>
- <iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
- </body>
- </html>
+<html>
+<head>
+<style>
+body { font-family:verdana; margin:.5in; }
+</style>
+</head>
+<body>
+%s
+<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>
+<iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
+</body>
+</html>
 """ 
     # work around https://github.com/hypothesis/via/issues/76
     fname = str(time.time()) + '.html'
@@ -543,16 +554,23 @@ def web_response(lis_outcome_service_url=None, name=None, value=None, user=None)
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    html = template % (boilerplate, name, fname)
+    export_url = '%s?uri=%s' % (lti_export_url, url)
+    submit_url = make_submit_url (
+        oauth_consumer_key=oauth_consumer_key, 
+        lis_outcome_service_url=lis_outcome_service_url, 
+        lis_result_sourcedid=lis_result_sourcedid, 
+        export_url=export_url
+        )
+    html = template % (boilerplate, name, submit_url, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
 
-def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, course=None, name=None, value=None):  # no api token needed in this case
+def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):  # no api token needed in this case
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
-    return web_response(request, name=name, value=value, user=user)
+    return web_response(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
     post_data = capture_post_data(request)
@@ -572,8 +590,8 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
     print 'lti_submit: %s' % r.status_code
 
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    submissions = '%s/api/v1/courses/2/assignments/22/submissions' % canvas_server
+    #canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    #submissions = '%s/api/v1/courses/2/assignments/22/submissions' % canvas_server
 
     return simple_response('response: %s' % r.status_code)
 
