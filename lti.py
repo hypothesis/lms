@@ -290,20 +290,22 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
 %s
-<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>
+<p><i>%s</i></p>
+%s
  <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
  </body>
  </html>
-""" 
-                  
+"""                 
     submit_url = make_submit_url (
         oauth_consumer_key=oauth_consumer_key, 
         lis_outcome_service_url=lis_outcome_service_url, 
         lis_result_sourcedid=lis_result_sourcedid, 
         export_url=export_url
         )
-
-    html = template % (boilerplate, name, submit_url, fname)
+    submit_html = ''
+    if lis_result_sourcedid is not None:
+        submit_html  = """<p>When you're done annotating, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>"""  % submit_url
+    html = template % (boilerplate, name, submit_html, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -334,7 +336,7 @@ def get_post_or_query_param(request, key):
         value = get_post_param(request, key)
         ret = value
     if ret is None:
-        logger.warning( 'no post or query param for %s' % key )
+        #logger.warning( 'no post or query param for %s' % key )
         if key == CUSTOM_CANVAS_COURSE_ID:
             logger.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
     return ret
@@ -475,7 +477,7 @@ I want students to annotate:
 </div>
 <div id="web_select">
 <p>Enter a URL</p>
-<input id="web_url" onchange="javascript:go()"></input>
+<input size="80" id="web_url" onchange="javascript:go()"></input>
 </p>
 </div>
 
@@ -544,7 +546,8 @@ body { font-family:verdana; margin:.5in; }
 </head>
 <body>
 %s
-<p>When you're done annotating <i>%s</i>, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>
+<p><i>%s</i></p>
+%s
 <iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
 </body>
 </html>
@@ -566,7 +569,10 @@ body { font-family:verdana; margin:.5in; }
         lis_result_sourcedid=lis_result_sourcedid, 
         export_url=export_url
         )
-    html = template % (boilerplate, name, submit_url, fname)
+    submit_html = ''
+    if lis_result_sourcedid is not None:
+        submit_html  = """<p>When you're done annotating, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>"""  % submit_url
+    html = template % (boilerplate, name, submit_html, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
