@@ -8,8 +8,18 @@ import sys
 import time
 import os
 import re
+import logging
 from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth1
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='lti.log',level=logging.DEBUG
+                    )
+logger = logging.getLogger('')
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+logger.addHandler(console)
 
 # lti local testing
 
@@ -31,7 +41,7 @@ if lti_server_port is None:
 else:
     lti_server = '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
 
-print 'lti_server: %s' % lti_server
+logger.info( 'lti_server: %s' % lti_server )
 
 lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
@@ -163,15 +173,11 @@ def get_config_value(client_id, key):
     if canvas_config.has_key(client_id):
         return canvas_config[client_id][key]
     else:
-        print 'no config value for ' + key
+        logger.warning( 'no config value for ' + key )
         return None
 
 def show_exception():
-    print traceback.print_exc()
-
-def show_post_keys(request):
-    for k in request.POST.keys():
-        print '%s: %s' % (k, request.POST[k])
+    logger.exception ( traceback.print_exc() )
 
 def unpack_state(state):
     s = state.replace('setup:','').replace('web:','').replace('pdf:','').replace('submit:','')
@@ -193,13 +199,12 @@ def redirect_helper(state, course=None, user=None, oauth_consumer_key=None, ext_
 
 def token_init(request, state=None):
     j = unpack_state(state)
-    print j
+    logger.info( j )
     oauth_consumer_key = j[OAUTH_CONSUMER_KEY]
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
     ret = HTTPFound(location=token_redirect_uri)
-    print 'token_init '
-    print token_redirect_uri
+    logger.info( 'token_init ' + token_redirect_uri )
     return ret
 
 def oauth_callback(request, type=None):
@@ -265,7 +270,7 @@ def simple_response(exc_str):
 def config_xml(request):
     with open('config.xml') as f:
         xml = f.read()
-        print 'config request'
+        logger.info( 'config request' )
         r = Response(xml)
         r.content_type = 'text/xml'
         return r
@@ -273,13 +278,13 @@ def config_xml(request):
 def about(request):
     with open('about.html') as f:
         html = f.read()
-        print 'about request'
+        logger.info( 'about request' )
         r = Response(html)
         r.content_type = 'text/html'                  
         return r
 
 def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, export_url=None):
-    print 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, export_url)
+    logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, export_url) )
     template = """
  <html> 
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
@@ -329,9 +334,9 @@ def get_post_or_query_param(request, key):
         value = get_post_param(request, key)
         ret = value
     if ret is None:
-        print 'no post or query param for %s' % key
+        logger.warning( 'no post or query param for %s' % key )
         if key == CUSTOM_CANVAS_COURSE_ID:
-            print 'is privacy set to public in courses/COURSE_NUM/settings/configurations?'
+            logger.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
     return ret
 
 def get_query_param(request, key):
@@ -378,22 +383,22 @@ def lti_setup(request):
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
         return_url = get_post_or_query_param(request, 'return_url')
 
-    print 'return_url: %s' % return_url
+    logger.info ( 'return_url: %s' % return_url )
 
     launch_url_template = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__&return_url=__RETURN_URL__' % lti_server
 
     sess = requests.Session()  # do this first to ensure we have a token
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    print 'canvas_server: %s' % canvas_server
+    logger.info ( 'canvas_server: %s' % canvas_server )
 
     url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
-      print 'lti_setup: refreshing token'  
+      logger.info ( 'lti_setup: refreshing token' )
       return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
     files = r.json()
 
-    print 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token)
+    logger.info ( 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token) )
 
     template = """
 <html><head> 
@@ -508,14 +513,14 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     sess = requests.Session()
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
     if r.status_code == 401:
-      print 'lti_pdf: refreshing token'  
+      logger.info( 'lti_pdf: refreshing token' )
       return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     if r.status_code == 200:
         j = r.json()
-        print j
+        logger.info( j )
         try:
             url = j['url']
-            print url
+            logger.info( url )
             fname = str(time.time()) + '.pdf'
             urllib.urlretrieve(url, fname)
             fingerprint = get_pdf_fingerprint(fname)
@@ -546,9 +551,9 @@ body { font-family:verdana; margin:.5in; }
 """ 
     # work around https://github.com/hypothesis/via/issues/76
     fname = str(time.time()) + '.html'
-    print 'via url: %s' % url
+    logger.info( 'via url: %s' % url )
     r = requests.get('https://via.hypothes.is/%s' % url)
-    print 'via result: %s' % r.status_code
+    logger.info ( 'via result: %s' % r.status_code )
     text = r.text.replace('return', '// return')
     fname = str(time.time()) + '.html'
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
@@ -588,12 +593,17 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     body = body.replace('__SOURCEDID__', lis_result_sourcedid)
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
-    print 'lti_submit: %s' % r.status_code
-    return simple_response('response: %s' % r.status_code)
+    logger.info ( 'lti_submit: %s' % r.status_code )
+    response = None
+    if ( r.status_code == 200 ):
+        response = 'OK! Assignment successfuly submitted.'
+    else:
+        response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
+    return simple_response(response)
 
 def lti_export(request):
     uri = get_query_param(request, 'uri')
-    export_url = 'http://jonudell.net/h/canvas.html?facet=uri&mode=documents&search=' + uri
+    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s' % ( lti_server, urllib.quote(uri) )
     return HTTPFound(location=export_url)
 
 
