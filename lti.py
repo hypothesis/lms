@@ -386,7 +386,7 @@ def lti_setup(request):
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     print 'canvas_server: %s' % canvas_server
 
-    url = '%s/api/v1/courses/%s/files' % (canvas_server, course)
+    url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
       print 'lti_setup: refreshing token'  
@@ -589,10 +589,6 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
     print 'lti_submit: %s' % r.status_code
-
-    #canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    #submissions = '%s/api/v1/courses/2/assignments/22/submissions' % canvas_server
-
     return simple_response('response: %s' % r.status_code)
 
 def lti_export(request):
@@ -631,14 +627,17 @@ config.add_view(lti_export, route_name='lti_export')
 config.add_route('config_xml', '/config')
 config.add_view(config_xml, route_name='config_xml')
 
-config.add_route('about', '/about')
+config.add_route('about', '/')
 config.add_view(about, route_name='about')
 
 from pyramid.static import static_view
-pdf_view = static_view('./pdfjs', use_subpath=True)
-config.add_route('catchall_static', '/*subpath')
-config.add_view(pdf_view, route_name='catchall_static')
-   
+
+pdf_view = static_view('./pdfjs')
+config.add_route('catchall_pdf', '/viewer/*subpath')
+config.add_view(pdf_view, route_name='catchall_pdf')
+
+config.add_static_view(name='export', path='./export')
+ 
 app = config.make_wsgi_app()
 
 if __name__ == '__main__': # local testing

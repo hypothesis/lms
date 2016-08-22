@@ -1,0 +1,85 @@
+<html>
+<head>
+<style>
+body { font-family:verdana; word-break:break-word; margin:10px; } 
+.url { font-family:italic; margin-bottom:10px; color:gray; }
+a { text-decoration: none; color: brown } 
+a.toggle {font-weight: bold; }
+a.visit { color: #151414 } 
+a.expand_all { font-weight:bold; margin-right:20px; font-size:larger; float:right }
+a.collapse_all { font-weight:bold; margin-right:20px; font-size:larger; float:right }
+.checkbox { display:none }
+img { width: 90%; margin: 8px } 
+.user { font-weight:bold } 
+.search_term { background-color:antiquewhite }
+.timestamp { font-style:italic; font-size:smaller } 
+.thread, .annotation { border:thin solid lightgray;padding:10px;margin:10px; } 
+//.annotations { display:none; } 
+.anno-count { display:none }
+.annotation-quote { color: #777; font-style: italic;padding: 0 .615em; border-left: 3px solid #d3d3d3; margin-top:12px; margin-bottom: 12px } 
+ .tag-item { margin: 2px; text-decoration: none; border: 1px solid #BBB3B3; border-radius: 2px; padding: 3px; color: #4B4040; background: #f9f9f9; } 
+.anno-count { } 
+.tags { line-height: 2 }
+#selections { display: none }
+#expander { display: none }
+</style>
+<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
+<script src="xss.min.js"></script>
+<script src="showdown.js"></script>
+<script src="utils.js"></script>
+</head>
+<body>
+
+<!--
+<a id="collapser" style="display:none" class="collapse_all" title="collapse all" href="javascript:collapse_all()">-</a>
+<a id="expander" class="expand_all" title="expand all" href="javascript:expand_all()">+</a>
+-->
+
+<h2 id="title"></h2>
+
+<p id="selections"></p>
+
+<div id="widget"></div>
+
+<script>
+token = localStorage.getItem('h_token');
+var args = gup('args');
+args = decodeURIComponent(args);
+var facet = gup('facet', args);
+var mode = gup('mode', args);
+var search = gup('search', args);
+
+//if ( mode == 'documents' )
+//  document.getElementById('expander').style.display = 'inline';
+
+document.getElementById('title').innerHTML = 'Hypothesis activity for ' + facet + '=' + search;
+
+document.getElementById('selections').innerHTML = '<input onchange="javascript:all_or_none()" name="selections" type="radio" checked value="all"> all <input onchange="all_or_none()" name="selections" type="radio" value="none"> none';
+
+query += '&' + facet + '=' + search;
+
+if ( mode == 'documents' )
+  query = query + '&_separate_replies=true';
+
+function process(rows, replies) {
+  switch (mode) {
+    case '':
+    case 'documents': 
+      var gathered = gather(rows);
+      document_view('widget', gathered, replies);
+      break;
+    case 'annotations': 
+      rows = rows.sort(compare);
+      annotation_view(rows);
+      document.getElementById('widget').innerHTML = output;
+      break;
+    default:
+      console.log('iframe: process: unexpected mode ' + mode);
+    }
+}
+
+load(0, [], []);
+
+</script>
+</body>
+</html>
