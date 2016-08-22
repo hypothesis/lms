@@ -28,13 +28,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-#lti_server_scheme = 'https'
-#lti_server_host = 'lti.hypothesislabs.com'
-#lti_server_port = None
+lti_server_scheme = 'https'
+lti_server_host = 'lti.hypothesislabs.com'
+lti_server_port = None
 
-lti_server_scheme = 'http'
-lti_server_host = '98.234.245.185'
-lti_server_port = 8000
+#lti_server_scheme = 'http'
+#lti_server_host = '98.234.245.185'
+#lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
