@@ -13,7 +13,7 @@ img { width: 90%; margin: 8px }
 .user { font-weight:bold } 
 .search_term { background-color:antiquewhite }
 .timestamp { font-style:italic; font-size:smaller } 
-.thread, .annotation { border:thin solid lightgray;padding:10px;margin:10px; } 
+.annotation { border:thin solid lightgray;padding:10px;margin:10px; } 
 //.annotations { display:none; } 
 .anno-count { display:none }
 .annotation-quote { color: #777; font-style: italic;padding: 0 .615em; border-left: 3px solid #d3d3d3; margin-top:12px; margin-bottom: 12px } 
@@ -48,6 +48,7 @@ args = decodeURIComponent(args);
 var facet = gup('facet', args);
 var mode = gup('mode', args);
 var search = gup('search', args);
+var user = gup('user', args);
 
 //if ( mode == 'documents' )
 //  document.getElementById('expander').style.display = 'inline';
@@ -61,12 +62,31 @@ query += '&' + facet + '=' + search;
 if ( mode == 'documents' )
   query = query + '&_separate_replies=true';
 
+function focus_user(user) {
+    var containers = document.querySelectorAll('.container');
+    containers = document.querySelectorAll('.container')
+    for ( var i=0; i<containers.length; i++ ) {
+        container = containers[i];
+        container.style.display = 'none';
+        anno_users = container.querySelectorAll('.user');
+        var has_target_user = false;
+        for ( var j=0; j<anno_users.length; j++ ) {
+            var anno_user = anno_users[j];
+            if (anno_user.innerText == user) {
+                container.style.display = 'block';
+                anno_user.parentElement.style.background = '#fbf6ef';
+            }
+        }
+    }
+}
+
 function process(rows, replies) {
   switch (mode) {
     case '':
     case 'documents': 
       var gathered = gather(rows);
-      document_view('widget', gathered, replies);
+      document_view('widget', gathered, replies, user);
+      focus_user(user);
       break;
     case 'annotations': 
       rows = rows.sort(compare);

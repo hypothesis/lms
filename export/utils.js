@@ -163,9 +163,7 @@ var docview_template = function(){/*
 <span class="anno-count">+__COUNT__</span></a>
 <div class="url">__URL__</div>
 <div class="annotations" id="a__INDEX__">
-<blockquote class="thread">
 __THREAD__
-</blockquote>
 </div>
 </div>
 */};
@@ -203,14 +201,14 @@ function document_view(element, gathered, replies) {
         s = s.replace(/__DOCTITLE__/g, titles[url]);
          
         var ids_for_url = ids[url];
-        var thread_html = ''
+        output = ''
         for (var j = 0; j < ids_for_url.length; j++) {
             var id = ids_for_url[j];
-            output = '';
+            output += '<div id="c' + j + '" class="container">';
             show_thread(annos, id, 0, replies, []);
-            thread_html += output;
+            output += '</div>';
         }
-        s = s.replace(/__THREAD__/, thread_html);
+        s = s.replace(/__THREAD__/, output);
         elt.append(s);
     }
 
@@ -219,9 +217,9 @@ function document_view(element, gathered, replies) {
 }
 
 function show_thread(annos, id, level, replies) {
-    if (displayed_in_thread.indexOf(id) == -1) {
+    var anno = annos[id];
+    if (displayed_in_thread.indexOf(id) == -1 ) {
         var margin = level * 20;
-        var anno = annos[id];
         var dt = new Date(anno['updated']);
         var dt_str = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString();
         var converter = new Showdown.converter();
@@ -247,7 +245,7 @@ function show_thread(annos, id, level, replies) {
         var user = anno.user;
         var quote = filterXSS(anno.quote, {});
 		quote = wrap_search_term(quote);
-        var template = '<div style="margin-left:_MARGIN_px; margin-top:20px">' +
+        var template = '<div class="annotation" style="margin-left:_MARGIN_px;">' +
                         '<span class="user"><a target="_user" href="facet.html?facet=user&search=' + user + '">' + user + '</a></span>' + ' ' +
                         '<span class="timestamp">' + dt_str + '</span>' +
                         '<span style="font-size:smaller"><a title="permalink" target="_new" href="https://hyp.is/' + anno.id + '"> # </a></span>' +
@@ -260,18 +258,18 @@ function show_thread(annos, id, level, replies) {
     }
 
     var children = replies.filter(function (row) {
-        return row.hasOwnProperty('references') && row['references'].indexOf(id) != -1;
+        return row.hasOwnProperty('references') && row.references.indexOf(id) != -1;
     });
 
     children = children.map(function (row) {
-        return row['id'];
+        return row.id;
     });
 
     children.reverse();
 
     if (children.length) {
         for (var i = 0; i < children.length; i++)
-            show_thread(annos, children[i], level + 1, replies);
+            show_thread(annos, children[i], level + 1, replies, user);
     }
 }
 
