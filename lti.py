@@ -77,10 +77,6 @@ submission_template = """
           <sourcedId>__SOURCEDID__</sourcedId>
         </sourcedGUID>
         <result>
-          <resultScore>
-            <language>en</language>
-            <textString>1</textString>
-          </resultScore>
           <resultData>
             <url>__URL__</url>
           </resultData>
@@ -602,7 +598,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     logger.info ( 'lti_submit: %s' % r.status_code )
     response = None
     if ( r.status_code == 200 ):
-        response = 'OK! Assignment successfuly submitted.'
+        response = 'OK! Assignment successfully submitted.'
     else:
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
     return simple_response(response)
