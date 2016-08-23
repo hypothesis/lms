@@ -357,7 +357,11 @@ def lti_setup(request):
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
     
-    lti_token = auth_data.get_lti_token(oauth_consumer_key)
+    try:
+        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+    except:
+        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
+
     if lti_token is None:
       return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
 
@@ -503,7 +507,10 @@ I want students to annotate:
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     post_data = capture_post_data(request)
     file_id = value
-    lti_token = auth_data.get_lti_token(oauth_consumer_key)
+    try:
+        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+    except:
+        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
     if lti_token is None:
       return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -585,10 +592,12 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
     export_url = get_post_or_query_param(request, EXPORT_URL)
-    lti_token = auth_data.get_lti_token(oauth_consumer_key)
-    if lti_token is None:
-      return token_init(request, 'submit:' + urllib.quote(json.dumps(post_data)))
-    secret = auth_data.get_lti_secret(oauth_consumer_key)
+
+    try:
+        secret = auth_data.get_lti_secret(oauth_consumer_key)
+    except:
+        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
+
     oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
     body = submission_template
     body = body.replace('__URL__', export_url)
