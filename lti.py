@@ -28,13 +28,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-lti_server_scheme = 'https'
-lti_server_host = 'lti.hypothesislabs.com'
-lti_server_port = None
+#lti_server_scheme = 'https'
+#lti_server_host = 'lti.hypothesislabs.com'
+#lti_server_port = None
 
-#lti_server_scheme = 'http'
-#lti_server_host = '98.234.245.185'
-#lti_server_port = 8000
+lti_server_scheme = 'http'
+lti_server_host = '98.234.245.185'
+lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -61,7 +61,7 @@ lti_web_url = '%s/lti_web' % lti_server
 lti_submit_url = '%s/lti_submit' % lti_server
 lti_export_url = '%s/lti_export' % lti_server
 
-submission_template = """
+submission_pox_template = """
 <?xml version = "1.0" encoding = "UTF-8"?>
 <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
   <imsx_POXHeader>
@@ -87,11 +87,28 @@ submission_template = """
 </imsx_POXEnvelopeRequest
 """
 
-boilerplate = """<p>
+submission_form_template = """
+<script>
+function make_submit_url() {
+    var submit_url = '/lti_submit?oauth_consumer_key=__OAUTH_CONSUMER_KEY__&lis_outcome_service_url=__LIS_OUTCOME_SERVICE_URL__&lis_result_sourcedid=__LIS_RESULT_SOURCEDID__';
+    var export_url = '__LTI_SERVER__/lti_export?args=' + encodeURIComponent('uri=__DOC_URI__&user=' + document.querySelector('#h_username').value);
+    submit_url += '&export_url=' + encodeURIComponent(export_url);
+    return submit_url;
+}
+</script>
+<p>
+When you're done annotating:
+<br>1. Enter your Hypothesis username: <input id="h_username">
+<br>2. Click <input type="button" value="Submit Assignment" onclick="javascript:location.href=make_submit_url()">
+</p>
+"""  
+
+assignment_boilerplate = """<p>
 This document is annotatable using <a href="https://hypothes.is">Hypothes.is</a>. 
 You can click highlighted text or expand the sidebar to view existing annotations. 
 You'll need to register for (or log in to) an account in order to create annotations; 
-you can do so in the Hypothesis sidebar.</p>"""
+you can do so in the Hypothesis sidebar.</p>
+"""
 
 class AuthData(): # was hoping to avoid but per-assignment integration data in canvas requires elevated privilege
     def __init__(self):
@@ -157,13 +174,14 @@ def get_pdf_fingerprint(fname):
     else:
         return 'no pdf fingerprint'
 
-def make_submit_url(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
-    submit_url = '/lti_submit?oauth_consumer_key=%s&lis_outcome_service_url=%s&lis_result_sourcedid=%s&export_url=%s' % ( 
-        oauth_consumer_key,  
-        lis_outcome_service_url,  
-        lis_result_sourcedid,
-        export_url)
-    return submit_url
+def instantiate_submission_template( oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
+    submit_html = submission_form_template
+    submit_html = submit_html.replace('__OAUTH_CONSUMER_KEY__', oauth_consumer_key)
+    submit_html = submit_html.replace('__LIS_OUTCOME_SERVICE_URL__', lis_outcome_service_url)
+    submit_html = submit_html.replace('__LIS_RESULT_SOURCEDID__', lis_result_sourcedid)
+    submit_html = submit_html.replace('__DOC_URI__', doc_uri)
+    submit_html = submit_html.replace('__LTI_SERVER__', lti_server)
+    return submit_html
 
 def get_config_value(client_id, key):
     if canvas_config.has_key(client_id):
@@ -279,11 +297,10 @@ def about(request):
         r.content_type = 'text/html'                  
         return r
 
-def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, export_url=None):
-    logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, export_url) )
+def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, doc_uri=None):
+    logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, doc_uri) )
     template = """
  <html> 
- <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
 %s
 <p><i>%s</i></p>
@@ -292,16 +309,10 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
  </body>
  </html>
 """                 
-    submit_url = make_submit_url (
-        oauth_consumer_key=oauth_consumer_key, 
-        lis_outcome_service_url=lis_outcome_service_url, 
-        lis_result_sourcedid=lis_result_sourcedid, 
-        export_url=export_url
-        )
     submit_html = ''
     if lis_result_sourcedid is not None:
-        submit_html  = """<p>When you're done annotating, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>"""  % submit_url
-    html = template % (boilerplate, name, submit_html, fname)
+        submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
+    html = template % (assignment_boilerplate, name, submit_html, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -354,6 +365,8 @@ def get_post_param(request, key):
 def lti_setup(request):
     post_data = capture_post_data(request)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+    if oauth_consumer_key is None:
+        logger.warning( 'oauth_consumer_key is None %s' % request.POST )
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
     
@@ -506,6 +519,8 @@ I want students to annotate:
 
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     post_data = capture_post_data(request)
+    if oauth_consumer_key is None:
+        oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     file_id = value
     try:
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
@@ -530,9 +545,9 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             urllib.urlretrieve(url, fname)
             fingerprint = get_pdf_fingerprint(fname)
             pdf_uri = 'urn:x-pdf:%s' % fingerprint
-            export_url = '%s?uri=%s' % (lti_export_url, pdf_uri)
+            #export_url = '%s?uri=%s' % (lti_export_url, pdf_uri)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
-            return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, fname=fname, export_url=export_url)
+            return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, fname=fname, doc_uri=pdf_uri)
         except:
             return simple_response(traceback.print_exc())
     else:
@@ -565,23 +580,18 @@ body { font-family:verdana; margin:.5in; }
     f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
     f.write(text.encode('utf-8'))
     f.close()
-    export_url = '%s?uri=%s' % (lti_export_url, url)
-    submit_url = make_submit_url (
-        oauth_consumer_key=oauth_consumer_key, 
-        lis_outcome_service_url=lis_outcome_service_url, 
-        lis_result_sourcedid=lis_result_sourcedid, 
-        export_url=export_url
-        )
+    export_url = '%s?uri=%s&user=__USER__' % (lti_export_url, url)
     submit_html = ''
     if lis_result_sourcedid is not None:
-        submit_html  = """<p>When you're done annotating, click <input type="button" value="Submit Assignment" onclick="javascript:location.href='%s'"></p>"""  % submit_url
-    html = template % (boilerplate, name, submit_html, fname)
+        submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)  
+    html = template % (assignment_boilerplate, name, submit_html, fname)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
 
 def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):  # no api token needed in this case
-    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+    if oauth_consumer_key is None:
+        oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
     return web_response(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, value)
@@ -599,7 +609,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
     oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
-    body = submission_template
+    body = submission_pox_template
     body = body.replace('__URL__', export_url)
     body = body.replace('__SOURCEDID__', lis_result_sourcedid)
     headers = {'Content-Type': 'application/xml'}
@@ -613,8 +623,11 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     return simple_response(response)
 
 def lti_export(request):
-    uri = get_query_param(request, 'uri')
-    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s' % ( lti_server, urllib.quote(uri) )
+    args = get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
+    parsed_args = urlparse.parse_qs(args)
+    user = parsed_args['user'][0]
+    uri = parsed_args['uri'][0]
+    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server, urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
 
