@@ -269,7 +269,7 @@ function show_thread(annos, id, level, replies) {
 
     if (children.length) {
         for (var i = 0; i < children.length; i++)
-            show_thread(annos, children[i], level + 1, replies, user);
+            show_thread(annos, children[i], level + 1, replies);
     }
 }
 

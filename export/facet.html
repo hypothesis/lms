@@ -72,7 +72,7 @@ function focus_user(user) {
         var has_target_user = false;
         for ( var j=0; j<anno_users.length; j++ ) {
             var anno_user = anno_users[j];
-            if (anno_user.innerText == user) {
+            if (anno_user.innerText.toLowerCase() == user.toLowerCase()) {
                 container.style.display = 'block';
                 anno_user.parentElement.style.background = '#fbf6ef';
             }
