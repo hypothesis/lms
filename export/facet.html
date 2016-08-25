@@ -54,7 +54,7 @@ var token_ux = function(){/*
 </p>
 */};
 
-document.querySelector('#token_container').innerHTML = heredoc(token_ux);
+document.querySelector('#token_ux').innerHTML = heredoc(token_ux);
 token = localStorage.getItem('h_token');
 document.querySelector('#token').value = token;
 var args = gup('args');
