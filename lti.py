@@ -32,9 +32,13 @@ lti_server_port_internal = 8000
 #lti_server_host = 'lti.hypothesislabs.com'
 #lti_server_port = None
 
-lti_server_scheme = 'http'
-lti_server_host = '98.234.245.185'
-lti_server_port = 8000
+lti_server_scheme = 'https'
+lti_server_host = 'h.jonudell.info'
+lti_server_port = None
+
+#lti_server_scheme = 'http'
+#lti_server_host = '98.234.245.185'
+#lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -300,7 +304,8 @@ def about(request):
 def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, doc_uri=None):
     logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, doc_uri) )
     template = """
- <html> 
+ <html>
+ <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
  <body>
 %s
 <p><i>%s</i></p>
@@ -557,11 +562,7 @@ def web_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
     url = value
     template = """
 <html>
-<head>
-<style>
-body { font-family:verdana; margin:.5in; }
-</style>
-</head>
+ <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
 <body>
 %s
 <p><i>%s</i></p>
@@ -635,7 +636,53 @@ from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
 
+###
+def cors_helper(request, response=None):
+    if response is None:
+        response = Response()
+    request_headers = request.headers['Access-Control-Request-Headers'].lower()
+    request_headers = re.findall('\w(?:[-\w]*\w)', request_headers)
+    response_headers = ['access-control-allow-origin']
+    for req_acoa_header in request_headers:
+        if req_acoa_header not in response_headers:
+            response_headers.append(req_acoa_header)
+    response_headers = ','.join(response_headers)
+    response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '%s' % response_headers
+        })
+    response.status_int = 204
+    print response.headers
+    return response
+
+def update(request):
+    if  request.method == 'OPTIONS':
+        print 'cors preflight'
+        return cors_helper(request)
+    else:
+        qs = urlparse.parse_qs(request.query_string)
+        id = qs['id'][0]
+        token = qs['token'][0]
+        data = request.body
+        print id, token, data
+        headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json;charset=utf-8' }
+        r1 = requests.put('https://hypothes.is/api/annotations/' + id, headers=headers, data=data, verify=False)
+        print r1.status_code
+        print r1.text
+        r2 = Response(r1.text)
+        r2.headers.update({
+            'Access-Control-Allow-Origin': '*'
+            })
+        return r2
+###
+
+
 config = Configurator()
+
+###
+config.add_route('update', '/update')
+config.add_view(update, route_name='update')
+###
 
 config.add_route('token_callback', '/token_callback')
 config.add_view(token_callback, route_name='token_callback')
@@ -673,6 +720,8 @@ config.add_view(pdf_view, route_name='catchall_pdf')
 config.add_static_view(name='export', path='./export')
  
 app = config.make_wsgi_app()
+
+
 
 if __name__ == '__main__': # local testing
 

@@ -42,9 +42,9 @@ function set_token() {
 
 <h2 id="title"></h2>
 
-<p>
+<div style="margin-bottom:20px">
 <input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a href="https://hypothes.is/profile/developer">API token</a>)</span> 
-</p>
+</div>
 
 <div id="widget"></div>
 
@@ -61,7 +61,7 @@ var user = gup('user', args);
 //if ( mode == 'documents' )
 //  document.getElementById('expander').style.display = 'inline';
 
-document.getElementById('title').innerHTML = 'Hypothesis activity for ' + facet + '=' + search;
+document.getElementById('title').innerHTML = 'Annotations by ' + user + ' on ' + decodeURIComponent(search);
 
 query += '&' + facet + '=' + search;
 
