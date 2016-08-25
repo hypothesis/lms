@@ -32,13 +32,13 @@ lti_server_port_internal = 8000
 #lti_server_host = 'lti.hypothesislabs.com'
 #lti_server_port = None
 
-lti_server_scheme = 'https'
-lti_server_host = 'h.jonudell.info'
-lti_server_port = None
+#lti_server_scheme = 'https'
+#lti_server_host = 'h.jonudell.info'
+#lti_server_port = None
 
-#lti_server_scheme = 'http'
-#lti_server_host = '98.234.245.185'
-#lti_server_port = 8000
+lti_server_scheme = 'http'
+lti_server_host = '98.234.245.185'
+lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -410,9 +410,14 @@ def lti_setup(request):
     post_data = capture_post_data(request)
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     if oauth_consumer_key is None:
-        logger.warning( 'oauth_consumer_key is None %s' % request.POST )
+        logger.error( 'oauth_consumer_key cannot be None %s' % request.POST )
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
+
+    course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
+    if course is None:
+        logger.error ( 'course cannot be None' )
+        return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     
     try:
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
@@ -420,13 +425,20 @@ def lti_setup(request):
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
     if lti_token is None:
-      return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
+        logger.info ( 'lti_setup: getting token' )
+        return token_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
+
+    sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    logger.info ( 'canvas_server: %s' % canvas_server )
+    url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
+    r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
+    if r.status_code == 401:
+      logger.info ( 'lti_setup: refreshing token' )
+      return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
+    files = r.json()
 
     #return HTTPFound(location='http://h.jonudell.info:3000/courses/2/external_content/success/external_tool_dialog?return_type=lti_launch_url&url=http%3A%2F%2F98.234.245.185%3A8000%2Flti_setup%3FCUSTOM_CANVAS_COURSE_ID%3D2%26type%3Dpdf%26name%3Dfilename%26value%3D9')
-
-    course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
-    if course is None:
-        return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
 
     type = get_post_or_query_param(request, 'type')
     name = get_post_or_query_param(request, 'name')
@@ -445,17 +457,6 @@ def lti_setup(request):
     logger.info ( 'return_url: %s' % return_url )
 
     launch_url_template = '%s/lti_setup?type=__TYPE__&name=__NAME__&value=__VALUE__&return_url=__RETURN_URL__' % lti_server
-
-    sess = requests.Session()  # do this first to ensure we have a token
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    logger.info ( 'canvas_server: %s' % canvas_server )
-
-    url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
-    r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
-    if r.status_code == 401:
-      logger.info ( 'lti_setup: refreshing token' )
-      return refresh_init(request, 'setup:' + urllib.quote(json.dumps(post_data)))
-    files = r.json()
 
     logger.info ( 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token) )
 
@@ -563,7 +564,7 @@ I want students to annotate:
 
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
-    Our app was called from an assignment to annotate a PDF. 
+    Called from lti_setup if it was called from a pdf assignment. 
 
     We expect to know at least the oauth_consume_key, course number, name of the PDF, 
     and value of the PDF (its number as known to the Canvas API)
@@ -581,8 +582,6 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
     except:
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
-    if lti_token is None:
-      return token_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     sess = requests.Session()
