@@ -2,6 +2,13 @@ var output = '';
 var displayed_in_thread = [];
 var query = 'https://hypothes.is/api/search?limit=200&offset=__OFFSET__';
 
+var token_ux = function(){/*
+<p>
+<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a href="https://hypothes.is/profile/developer">API token</a>)</span> 
+</p>
+*/};
+
+
 function load(offset, rows, replies) {
     var limit = 400;
     var _query = query.replace('__OFFSET__', offset);
@@ -26,6 +33,7 @@ function load(offset, rows, replies) {
                 process(rows, replies);
             else
                 load(offset + 200, rows, replies);
+            document.querySelector('#token_ux').innerHTML = heredoc(token_ux);
         }
     });
 }
