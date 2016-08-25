@@ -10,6 +10,7 @@ import os
 import re
 import logging
 from pyramid.httpexceptions import HTTPFound
+from pyramid.view import view_config
 from requests_oauthlib import OAuth1
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
@@ -32,13 +33,13 @@ lti_server_port_internal = 8000
 #lti_server_host = 'lti.hypothesislabs.com'
 #lti_server_port = None
 
-#lti_server_scheme = 'https'
-#lti_server_host = 'h.jonudell.info'
-#lti_server_port = None
+lti_server_scheme = 'https'
+lti_server_host = 'h.jonudell.info'
+lti_server_port = None
 
-lti_server_scheme = 'http'
-lti_server_host = '98.234.245.185'
-lti_server_port = 8000
+#lti_server_scheme = 'http'
+#lti_server_host = '98.234.245.185'
+#lti_server_port = 8000
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -259,9 +260,11 @@ def refresh_init(request, state=None):
     ret = HTTPFound(location=token_redirect_uri)
     return ret
 
+@view_config( route_name='token_callback' )
 def token_callback(request):
     return oauth_callback(request, type='token')
 
+@view_config( route_name='refresh_callback' )
 def refresh_callback(request):
     return oauth_callback(request, type='refresh')
 
@@ -328,6 +331,7 @@ def simple_response(exc_str):
     r.content_type = 'text/html'
     return r
 
+@view_config( route_name='config_xml' )
 def config_xml(request):
     with open('config.xml') as f:
         xml = f.read()
@@ -336,6 +340,7 @@ def config_xml(request):
         r.content_type = 'text/xml'
         return r
 
+@view_config( route_name='about' )
 def about(request):
     with open('about.html') as f:
         html = f.read()
@@ -409,6 +414,7 @@ def get_post_param(request, key):
     else:
         return None
 
+@view_config( route_name='lti_setup' )
 def lti_setup(request):
     """
     LTI-launched from a Canvas assignment's Find interaction to present choice of doc (PDF or URL) to annotate.
@@ -681,6 +687,7 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
     return web_response(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
+@view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
     """
     Called from a student's view of an assignment.
@@ -715,6 +722,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
     return simple_response(response)
 
+@view_config( route_name='lti_export' )
 def lti_export(request):
     """ 
     Called from Speed Grader, which presents the URL that the student submitted.
@@ -725,7 +733,6 @@ def lti_export(request):
     """
     args = get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
     logger.info ( 'lti_export: query: %s' % request.query_string )
-    logger.info ( 'lti_exportp: post: %s' % request.POST )
     parsed_args = urlparse.parse_qs(args)
     user = parsed_args['user'][0]
     uri = parsed_args['uri'][0]
@@ -738,7 +745,7 @@ from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
 
-###
+#############
 def cors_helper(request, response=None):
     if response is None:
         response = Response()
@@ -757,6 +764,7 @@ def cors_helper(request, response=None):
     print response.headers
     return response
 
+@view_config( route_name='update' )
 def update(request):
     if  request.method == 'OPTIONS':
         print 'cors preflight'
@@ -776,42 +784,23 @@ def update(request):
             'Access-Control-Allow-Origin': '*'
             })
         return r2
-###
-
+##################
 
 config = Configurator()
 
+config.scan()
+
 ###
 config.add_route('update', '/update')
-config.add_view(update, route_name='update')
 ###
 
-config.add_route('token_callback', '/token_callback')
-config.add_view(token_callback, route_name='token_callback')
-
-config.add_route('refresh_callback', '/refresh_callback')
-config.add_view(refresh_callback, route_name='refresh_callback')
-
-config.add_route('lti_setup', '/lti_setup')
-config.add_view(lti_setup, route_name='lti_setup')
-
-config.add_route('lti_pdf', '/lti_pdf')
-config.add_view(lti_pdf, route_name='lti_pdf')
-
-config.add_route('lti_web', '/lti_web')
-config.add_view(lti_web, route_name='lti_web')
-
-config.add_route('lti_submit', '/lti_submit')
-config.add_view(lti_submit, route_name='lti_submit')
-
-config.add_route('lti_export', '/lti_export')
-config.add_view(lti_export, route_name='lti_export')
-
-config.add_route('config_xml', '/config')
-config.add_view(config_xml, route_name='config_xml')
-
-config.add_route('about', '/')
-config.add_view(about, route_name='about')
+config.add_route('token_callback',      '/token_callback')
+config.add_route('refresh_callback',    '/refresh_callback')
+config.add_route('lti_setup',           '/lti_setup')
+config.add_route('lti_submit',          '/lti_submit')
+config.add_route('lti_export',          '/lti_export')
+config.add_route('config_xml',          '/config')
+config.add_route('about',               '/')
 
 from pyramid.static import static_view
 
@@ -820,10 +809,8 @@ config.add_route('catchall_pdf', '/viewer/*subpath')
 config.add_view(pdf_view, route_name='catchall_pdf')
 
 config.add_static_view(name='export', path='./export')
- 
+
 app = config.make_wsgi_app()
-
-
 
 if __name__ == '__main__': # local testing
 
