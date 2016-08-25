@@ -4,9 +4,15 @@ var query = 'https://hypothes.is/api/search?limit=200&offset=__OFFSET__';
 
 var token_ux = function(){/*
 <p>
-<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a href="https://hypothes.is/profile/developer">API token</a>)</span> 
+<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a target="token" href="https://hypothes.is/profile/developer">API token</a>)</span> 
 </p>
 */};
+
+function show_token_ux() {
+    document.querySelector('#token_ux').innerHTML = heredoc(token_ux);
+    token = localStorage.getItem('h_token');
+    document.querySelector('#token').value = token;
+}
 
 
 function load(offset, rows, replies) {
@@ -29,11 +35,12 @@ function load(offset, rows, replies) {
                 rows = rows.concat(data.replies);
                 replies = replies.concat(data.replies);
             }
-            if (data.rows.length == 0 || rows.length > limit)
+            if (data.rows.length == 0 || rows.length > limit) {
                 process(rows, replies);
+                show_token_ux();
+                }
             else
                 load(offset + 200, rows, replies);
-            document.querySelector('#token_ux').innerHTML = heredoc(token_ux);
         }
     });
 }
@@ -46,6 +53,8 @@ function gather(rows) {
     var annos = {};
     for (var i = 0; i < rows.length; i++) {
         var row = rows[i];
+//        if ( ! row.permissions.read[0].startsWith('group') )  // exclude private annotations
+//            continue;
         var annotation = parse_annotation(row);  // parse the annotation
         var id = annotation.id;
         annos[id] = annotation;                  // save it by id
@@ -253,10 +262,19 @@ function show_thread(annos, id, level, replies) {
         var user = anno.user;
         var quote = filterXSS(anno.quote, {});
 		quote = wrap_search_term(quote);
+        var anno_scope = ''
+        if ( ! anno.permissions.read[0].startsWith('group') )
+            anno_scope = '(Only Me)';
+        else if ( anno.permissions.read[0] == 'group:__world__') 
+            anno_scope = '(Public)';
+        else if ( anno.permissions.read[0].startsWith('group') )
+            anno_scope = '(Group <a target="group" href="https://hypothes.is/groups/' + anno.group + '">' + anno.group + '</a>)';
+
         var template = '<div class="annotation" style="margin-left:_MARGIN_px;">' +
                         '<span class="user"><a target="_user" href="facet.html?facet=user&search=' + user + '">' + user + '</a></span>' + ' ' +
                         '<span class="timestamp">' + dt_str + '</span>' +
                         '<span style="font-size:smaller"><a title="permalink" target="_new" href="https://hyp.is/' + anno.id + '"> # </a></span>' +
+                        '<span style="font-size:smaller">' + anno_scope + '</span>' +
                         '<div class="annotation-quote">' + quote + '</div>' +
                         tags +
                         '<div>' + html + '</div>' +
@@ -353,24 +371,24 @@ function wrap_search_term(s) {
 }
 
 function parse_annotation(row) {
-    var id = row['id'];
-    var url = row['uri'];
-    var updated = row['updated'].slice(0, 19);
-    var group = row['group'];
+    var id = row.id;
+    var url = row.uri;
+    var updated = row.updated.slice(0, 19);
+    var group = row.group;
     var title = url;
     var refs = row.hasOwnProperty('references') ? row['references'] : [];
-    var user = row['user'].replace('acct:', '').replace('@hypothes.is', '');
+    var user = row.user.replace('acct:', '').replace('@hypothes.is', '');
     var quote = '';
     if ( // sigh...
             row.hasOwnProperty('target') &&
-            row['target'].length
+            row.target.length
             ) {
-        var selectors = row['target'][0]['selector'];
+        var selectors = row.target[0]['selector'];
         if (selectors) {
             for (var i = 0; i < selectors.length; i++) {
                 selector = selectors[i];
-                if (selector['type'] == 'TextQuoteSelector')
-                    quote = selector['exact'];
+                if (selector.type == 'TextQuoteSelector')
+                    quote = selector.exact;
             }
         }
     }
@@ -386,6 +404,7 @@ function parse_annotation(row) {
     catch (e) {
         console.log(e);
     }
+    var permissions = row.permissions;
     return {
         id: id,
         url: url,
@@ -396,7 +415,8 @@ function parse_annotation(row) {
         text: text,
         quote: quote,
         tags: tags,
-        group: group
+        group: group,
+        permissions: permissions
     }
 }
 

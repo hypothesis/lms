@@ -42,17 +42,6 @@ function set_token() {
 <div id="widget"></div>
 
 <script>
-
-
-var token_ux = function(){/*
-<p>
-<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a href="https://hypothes.is/profile/developer">API token</a>)</span> 
-</p>
-*/};
-
-document.querySelector('#token_ux').innerHTML = heredoc(token_ux);
-token = localStorage.getItem('h_token');
-document.querySelector('#token').value = token;
 var args = gup('args');
 args = decodeURIComponent(args);
 var facet = gup('facet', args);
@@ -106,5 +95,6 @@ function process(rows, replies) {
 load(0, [], []);
 
 </script>
+
 </body>
 </html>

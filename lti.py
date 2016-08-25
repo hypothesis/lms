@@ -740,7 +740,6 @@ def lti_export(request):
     export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server, urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
-
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
