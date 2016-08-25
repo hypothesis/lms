@@ -29,13 +29,13 @@ lti_server_port_internal = 8000
 
 # lti server
 
-#lti_server_scheme = 'https'
-#lti_server_host = 'lti.hypothesislabs.com'
-#lti_server_port = None
-
 lti_server_scheme = 'https'
-lti_server_host = 'h.jonudell.info'
+lti_server_host = 'lti.hypothesislabs.com'
 lti_server_port = None
+
+#lti_server_scheme = 'https'
+#lti_server_host = 'h.jonudell.info'
+#lti_server_port = None
 
 #lti_server_scheme = 'http'
 #lti_server_host = '98.234.245.185'
