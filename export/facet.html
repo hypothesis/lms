@@ -42,13 +42,14 @@ function set_token() {
 
 <h2 id="title"></h2>
 
-<div style="margin-bottom:20px">
+<p style="display:none" id="token_container">
 <input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a href="https://hypothes.is/profile/developer">API token</a>)</span> 
-</div>
+</p>
 
 <div id="widget"></div>
 
 <script>
+document.querySelector('#token_container').style.display = 'block'
 token = localStorage.getItem('h_token');
 document.querySelector('#token').value = token;
 var args = gup('args');
