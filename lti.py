@@ -10,6 +10,7 @@ import os
 import re
 import md5
 import logging
+import filelock
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from requests_oauthlib import OAuth1
@@ -156,9 +157,11 @@ class AuthData():
 
     def set_tokens(self, oauth_consumer_key, lti_token, lti_refresh_token):
         assert (self.auth_data.has_key(oauth_consumer_key))
-        self.auth_data[oauth_consumer_key]['lti_token'] = lti_token
-        self.auth_data[oauth_consumer_key]['lti_refresh_token'] = lti_refresh_token
-        self.save()
+        lock = filelock.FileLock("authdata.lock")
+        with lock.acquire(timeout = 1):
+            self.auth_data[oauth_consumer_key]['lti_token'] = lti_token
+            self.auth_data[oauth_consumer_key]['lti_refresh_token'] = lti_refresh_token
+            self.save()
 
     def get_lti_token(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['lti_token']
