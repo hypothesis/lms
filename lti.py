@@ -8,6 +8,7 @@ import sys
 import time
 import os
 import re
+import md5
 import logging
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
@@ -201,16 +202,14 @@ class AuthData():
 
 auth_data = AuthData()
 
-def get_pdf_fingerprint(fname):
+def get_pdf_fingerprint(hash):
     """
     We need the fingerprint to query for annotations on the submission page.
-
-    This naive method mostly works, known to fail for (at least) a compressed PDF.
 
     NB: PDFJS always reports fingerpints with lowercase letters and that's required for a Hypothesis lookup,
     even when the fingerprint found in the doc uses uppercase!
     """
-    f = open(fname, 'rb')
+    f = open('./pdfjs/viewer/web/%s.pdf' % hash, 'rb')
     s = f.read()
     m = re.findall('ID\s*\[\s*<(\w+)>',s)
     f.close()
@@ -349,8 +348,8 @@ def about(request):
         r.content_type = 'text/html'                  
         return r
 
-def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, fname=None, doc_uri=None):
-    logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, fname, doc_uri) )
+def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
+    logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
     template = """
  <html>
  <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
@@ -358,14 +357,14 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
 %s
 <p><i>%s</i></p>
 %s
- <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s"></iframe>
+ <iframe width="100%%" height="1000px" src="/viewer/web/%s.pdf"></iframe>
  </body>
  </html>
 """                 
     submit_html = ''
     if lis_result_sourcedid is not None:
         submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
-    html = template % (assignment_boilerplate, name, submit_html, fname)
+    html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -590,6 +589,12 @@ I want students to annotate:
     r.content_type = 'text/html'
     return r
 
+def exists_pdf(hash):
+    return os.path.isfile('./pdfjs/viewer/web/%s.pdf' % hash)
+
+def exists_html(hash):
+    return os.path.isfile('./pdfjs/viewer/web/%s.html' % hash)
+
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
     Called from lti_setup if it was called from a pdf assignment. 
@@ -614,29 +619,30 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
-    sess = requests.Session()
-    r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
-    if r.status_code == 401:
-      logger.info( 'lti_pdf: refreshing token' )
-      return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
-    if r.status_code == 200:
-        j = r.json()
-        logger.info( j )
-        try:
+    m = md5.new()
+    m.update('%s/%s/%s' % ( canvas_server, course, file_id ))
+    hash = m.hexdigest()
+    if exists_pdf(hash) is False:
+        sess = requests.Session()
+        r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
+        if r.status_code == 401:
+          logger.info( 'lti_pdf: refreshing token' )
+          return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
+        if r.status_code == 200:
+            j = r.json()
+            logger.info( j )
             url = j['url']
             logger.info( url )
-            fname = str(time.time()) + '.pdf'
-            urllib.urlretrieve(url, fname)
-            fingerprint = get_pdf_fingerprint(fname)
-            pdf_uri = 'urn:x-pdf:%s' % fingerprint
-            os.rename(fname, './pdfjs/viewer/web/' + fname)
-            return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, fname=fname, doc_uri=pdf_uri)
-        except:
-            return simple_response(traceback.print_exc())
-    else:
-        return simple_response('no file %s in course %s' % (file, course))
+            #fname = str(time.time()) + '.pdf'
+            urllib.urlretrieve(url, hash)
+            os.rename(hash, './pdfjs/viewer/web/%s.pdf' % hash)
+        else:
+            logger.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
+    fingerprint = get_pdf_fingerprint(hash)
+    pdf_uri = 'urn:x-pdf:%s' % fingerprint
+    return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None, ):
+def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None, ):
     """
     Our app was called from an assignment to annotate a web page.
 
@@ -656,25 +662,27 @@ def web_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
 %s
 <p><i>%s</i></p>
 %s
-<iframe width="100%%" height="1000px" src="/viewer/web/%s"></iframe>
+<iframe width="100%%" height="1000px" src="/viewer/web/%s.html"></iframe>
 </body>
 </html>
 """ 
-    # work around https://github.com/hypothesis/via/issues/76
-    fname = str(time.time()) + '.html'
+    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    m = md5.new()
+    m.update('%s/%s/%s' % ( canvas_server, course, url ))
+    hash = m.hexdigest()
     logger.info( 'via url: %s' % url )
-    r = requests.get('https://via.hypothes.is/%s' % url)
-    logger.info ( 'via result: %s' % r.status_code )
-    text = r.text.replace('return', '// return')
-    fname = str(time.time()) + '.html'
-    f = open('./pdfjs/viewer/web/%s' % fname, 'wb') # temporary!
-    f.write(text.encode('utf-8'))
-    f.close()
+    if exists_html(hash) is False:
+        r = requests.get('https://via.hypothes.is/%s' % url)     
+        logger.info ( 'via result: %s' % r.status_code )
+        text = r.text.replace('return', '// return')               # work around https://github.com/hypothesis/via/issues/76
+        f = open('./pdfjs/viewer/web/%s.html' % hash, 'wb') 
+        f.write(text.encode('utf-8'))
+        f.close()
     export_url = '%s?uri=%s&user=__USER__' % (lti_export_url, url)
     submit_html = ''
     if lis_result_sourcedid is not None:
         submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)  
-    html = template % (assignment_boilerplate, name, submit_html, fname)
+    html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
@@ -684,7 +692,7 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
-    return web_response(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, value)
+    return web_response(oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
