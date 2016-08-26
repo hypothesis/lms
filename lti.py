@@ -128,7 +128,7 @@ class AuthData():
     """
     A simple config db, with records like so:
 
-    "93820000000000002": {
+    "93820000000000002": {        # situation 1 in the install doc: admin provided key/secret
       "canvas_server_host": "hypothesis.instructure.com", 
       "canvas_server_port": null, 
       "canvas_server_scheme": "https", 
@@ -137,7 +137,7 @@ class AuthData():
       "secret": "tJzcNSZadqlHTCW6ow  ... wodX3dfeuIokkLMjrQJqw3Y2",  # from the canvas dev key/secret record
       "redirect": "https://lti.hypothesislabs.com"  # a comment to help visually associate the record with the canvas dev key/secret record
   }, 
-     "93820000000000003": {
+     "jaimejordan": {       # situation 2: teacher created a token, we installed it and created the key/secret
       "canvas_server_host": "hypothesis.instructure.com", 
       "canvas_server_port": null, 
       "canvas_server_scheme": "https", 
@@ -297,8 +297,8 @@ def oauth_callback(request, type=None):
             'grant_type': grant_type,
             'client_id': oauth_consumer_key,
             'client_secret': canvas_client_secret,
-            'redirect_uri': '%s/token_init' % lti_server
-            }
+            'redirect_uri': '%s/token_init' % lti_server # this uri must match the uri in Developer Keys but is not called from
+            }                                            # canvas. rather it calls token_callback or refresh callback 
     if grant_type == 'authorization_code': 
         params['code'] = code
     else:
@@ -421,7 +421,7 @@ def lti_setup(request):
   
     LTI-launched again when the Canvas assignment opens.
   
-    In those two cases we have LTI params in the HTTP POST, if we have a Canvas API token.
+    In those two cases we have LTI params in the HTTP POST -- if we have a Canvas API token.
 
     If there is no token, or the token is expired, called instead by way of OAuth redirect. 
     In that case we expect params in the query string.
@@ -629,7 +629,6 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             urllib.urlretrieve(url, fname)
             fingerprint = get_pdf_fingerprint(fname)
             pdf_uri = 'urn:x-pdf:%s' % fingerprint
-            #export_url = '%s?uri=%s' % (lti_export_url, pdf_uri)
             os.rename(fname, './pdfjs/viewer/web/' + fname)
             return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, fname=fname, doc_uri=pdf_uri)
         except:
@@ -647,7 +646,7 @@ def web_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
 
     Instantiate the submission template so the student can submit the assignment.
 
-    Serve a page that wraps the file in an iframe.
+    Serve a page that wraps the (lightly) transformed via output in an iframe.
     """
     url = value
     template = """
