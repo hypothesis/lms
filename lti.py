@@ -357,7 +357,7 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
 %s
 <p><i>%s</i></p>
 %s
- <iframe width="100%%" height="1000px" src="/viewer/web/%s.pdf"></iframe>
+ <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s.pdf"></iframe>
  </body>
  </html>
 """                 
