@@ -74,6 +74,8 @@ lti_web_url = '%s/lti_web' % lti_server
 lti_submit_url = '%s/lti_submit' % lti_server
 lti_export_url = '%s/lti_export' % lti_server
 
+NO_PDF_FINGERPRINT = 'no pdf fingerprint'
+
 submission_pox_template = """
 <?xml version = "1.0" encoding = "UTF-8"?>
 <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
@@ -195,6 +197,8 @@ class AuthData():
     def load(self):
         f = open(self.name)
         self.auth_data = json.loads(f.read())
+        for key in self.auth_data.keys():
+            logger.info( 'key: %s' % key) 
         f.close()
 
     def save(self):
@@ -219,7 +223,7 @@ def get_pdf_fingerprint(hash):
     if len(m) > 0:
         return m[0].lower()
     else:
-        return 'no pdf fingerprint'
+        return NO_PDF_FINGERPRINT
 
 def instantiate_submission_template( oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
     """
@@ -452,7 +456,10 @@ def lti_setup(request):
     try:
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
     except:
-        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
+        response = "We don't have the Consumer Key %s in our database yet." % oauth_consumer_key
+        logger.error ( response )
+        logger.error ( traceback.print_exc() )
+        return simple_response(response)
 
     if lti_token is None:
         logger.info ( 'lti_setup: getting token' )
@@ -636,13 +643,15 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             logger.info( j )
             url = j['url']
             logger.info( url )
-            #fname = str(time.time()) + '.pdf'
             urllib.urlretrieve(url, hash)
             os.rename(hash, './pdfjs/viewer/web/%s.pdf' % hash)
         else:
             logger.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
     fingerprint = get_pdf_fingerprint(hash)
-    pdf_uri = 'urn:x-pdf:%s' % fingerprint
+    if fingerprint == NO_PDF_FINGERPRINT:
+        pdf_uri = '%s/viewer/web/%s.pdf' % ( lti_server, hash )
+    else:
+        pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
 def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None, ):
