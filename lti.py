@@ -687,6 +687,7 @@ def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=N
         r = requests.get('https://via.hypothes.is/%s' % url)     
         logger.info ( 'via result: %s' % r.status_code )
         text = r.text.replace('return', '// return')               # work around https://github.com/hypothesis/via/issues/76
+        text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
         f = open('./pdfjs/viewer/web/%s.html' % hash, 'wb') 
         f.write(text.encode('utf-8'))
         f.close()
