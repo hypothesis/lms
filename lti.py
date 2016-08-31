@@ -439,6 +439,7 @@ def lti_setup(request):
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     if oauth_consumer_key is None:
         logger.error( 'oauth_consumer_key cannot be None %s' % request.POST )
+    oauth_consumer_key = oauth_consumer_key.strip()
     lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
 
