@@ -781,24 +781,24 @@ def cors_helper(request, response=None):
         'Access-Control-Allow-Headers': '%s' % response_headers
         })
     response.status_int = 204
-    print response.headers
+    print ( response.headers )
     return response
 
 @view_config( route_name='update' )
 def update(request):
     if  request.method == 'OPTIONS':
-        print 'cors preflight'
+        print ( 'cors preflight' )
         return cors_helper(request)
     else:
         qs = urlparse.parse_qs(request.query_string)
         id = qs['id'][0]
         token = qs['token'][0]
         data = request.body
-        print id, token, data
+        print ( id, token, data )
         headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json;charset=utf-8' }
         r1 = requests.put('https://hypothes.is/api/annotations/' + id, headers=headers, data=data, verify=False)
-        print r1.status_code
-        print r1.text
+        print ( r1.status_code )
+        print ( r1.text )
         r2 = Response(r1.text)
         r2.headers.update({
             'Access-Control-Allow-Origin': '*'
