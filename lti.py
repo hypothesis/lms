@@ -736,6 +736,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
     logger.info ( 'lti_submit: %s' % r.status_code )
+    logger.info ( 'lti_submit: %s' % r.text )
     response = None
     if ( r.status_code == 200 ):
         response = 'OK! Assignment successfully submitted.'
