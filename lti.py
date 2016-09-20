@@ -105,20 +105,38 @@ submission_pox_template = """
 submission_form_template = """
 <script>
 function make_submit_url() {
+    var h_user = document.querySelector('#h_username').value.trim();
     var submit_url = '/lti_submit?oauth_consumer_key=__OAUTH_CONSUMER_KEY__&lis_outcome_service_url=__LIS_OUTCOME_SERVICE_URL__&lis_result_sourcedid=__LIS_RESULT_SOURCEDID__';
-    debugger;
-    var export_url = '__LTI_SERVER__/lti_export?args=' + encodeURIComponent('uri=__DOC_URI__&user=' + document.querySelector('#h_username').value);
+    var export_url = '__LTI_SERVER__/lti_export?args=' + encodeURIComponent('uri=__DOC_URI__&user=' + h_user);
     console.log(export_url);
     console.log(encodeURIComponent(export_url));
     submit_url += '&export_url=' + encodeURIComponent(export_url);
     return submit_url;
 }
+function clear_input() {
+  var h_user = document.querySelector('#h_username');
+  var check_element = document.getElementById('check_username');
+  h_user.value = '';
+  check_element.querySelector('a').innerText = '';
+  check_element.querySelector('a').href = '';
+
+}
+function show_stream_link() {
+    var h_user = document.querySelector('#h_username').value.trim();
+    var check_element = document.getElementById('check_username');
+    check_element.style.display = 'inline';
+    check_element.querySelector('a').innerText = h_user;
+    check_element.querySelector('a').href = 'https://hypothes.is/stream?q=user:' + h_user;
+}
 </script>
 <p>
 When you're done annotating:
-<br>1. Enter your Hypothesis username: <input id="h_username">
-<br>2. Click <input type="button" value="Submit Assignment" onclick="javascript:location.href=make_submit_url()">
+<div>1. Enter your Hypothesis username: <input onfocus="javascript:clear_input()" onchange="javascript:show_stream_link()" id="h_username"></div>
+<div>2. Check the name:  <span style="display:none" id="check_username"> <a target="stream" title="check your name" href=""> </a></span>
+<div>3. Click <input type="button" value="Submit Assignment" onclick="javascript:location.href=make_submit_url()"></div>
 </p>
+
+
 """  
 
 assignment_boilerplate = """<p>
