@@ -651,6 +651,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     m = md5.new()
     m.update('%s/%s/%s' % ( canvas_server, course, file_id ))
     hash = m.hexdigest()
+    logger.info( 'server %s, course %s, file_id %s, hash %s' % ( canvas_server, course, file_id, hash ))
     if exists_pdf(hash) is False:
         sess = requests.Session()
         r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
