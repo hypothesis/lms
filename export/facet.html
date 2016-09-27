@@ -31,6 +31,8 @@ img { width: 90%; margin: 8px }
 function set_token() {
   localStorage.setItem('h_token', document.getElementById('token').value);
 }
+
+
 </script>
 </head>
 <body>
@@ -39,7 +41,7 @@ function set_token() {
 
 <div id="token_ux"></div>
 
-<p>See <a target="all_activity" id="all_activity_href" href="">all Hypothesis activity for <span id="all_activity_user"></span></a></p>
+<div id="see_all_ux"></div>
 
 <div id="widget"></div>
 
@@ -57,12 +59,6 @@ query += '&' + facet + '=' + search;
 
 if ( mode == 'documents' )
   query = query + '&_separate_replies=true';
-
-function all_activity_for(user) {
-   var activity_url = 'http://jonudell.net/h/facet.html?facet=user&search=' + user;
-   document.getElementById('all_activity_href').href = activity_url;
-   document.getElementById('all_activity_user').innerText = user;
-}
 
 function focus_user(user) {
     var containers = document.querySelectorAll('.container');
@@ -89,7 +85,6 @@ function process(rows, replies) {
       var gathered = gather(rows);
       document_view('widget', gathered, replies, user);
       focus_user(user);
-      all_activity_for(user);
       break;
     case 'annotations': 
       rows = rows.sort(compare);
@@ -101,7 +96,7 @@ function process(rows, replies) {
     }
 }
 
-load(0, [], []);
+load(user, 0, [], []);
 
 </script>
 
