@@ -21,7 +21,7 @@ function show_token_ux() {
 }
 
 var see_all_ux = function(){/*
-<p>See <a target="all_activity" id="all_activity_href" href="">all Hypothesis activity for <span id="all_activity_user"></span></a></p>
+<p>Below you'll see Hypothesis conversations on this document in which <span style="font-weight:bold" id="all_activity_user"></span> participated. <br>(Click <a target="all_activity" id="all_activity_href" href="">here</a> to review all Hypothesis activity for that user.)</p>
 */};
 
 function show_see_all_ux() {
