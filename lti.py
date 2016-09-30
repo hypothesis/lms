@@ -704,7 +704,7 @@ def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=N
     hash = m.hexdigest()
     logger.info( 'via url: %s' % url )
     if exists_html(hash) is False:
-        r = requests.get('https://via.hypothes.is/%s' % url)     
+        r = requests.get('https://via.hypothes.is/%s' % url, headers={'User-Agent':'Mozilla'})     
         logger.info ( 'via result: %s' % r.status_code )
         text = r.text.replace('return', '// return')               # work around https://github.com/hypothesis/via/issues/76
         text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
