@@ -512,6 +512,7 @@ def lti_setup(request):
         url = r.links['next']['url']
         r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
         files = files + r.json()
+    logger.info ('files: %s' % len(files))
 
     #return HTTPFound(location='http://h.jonudell.info:3000/courses/2/external_content/success/external_tool_dialog?return_type=lti_launch_url&url=http%3A%2F%2F98.234.245.185%3A8000%2Flti_setup%3FCUSTOM_CANVAS_COURSE_ID%3D2%26type%3Dpdf%26name%3Dfilename%26value%3D9')
     
@@ -725,7 +726,7 @@ def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=N
     if exists_html(hash) is False:
         r = requests.get('https://via.hypothes.is/%s' % url, headers={'User-Agent':'Mozilla'})     
         logger.info ( 'via result: %s' % r.status_code )
-        text = r.text.replace('return', '// return')               # work around https://github.com/hypothesis/via/issues/76
+        text = r.text.replace('return;', '// return')               # work around https://github.com/hypothesis/via/issues/76
         text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
         f = open('./pdfjs/viewer/web/%s.html' % hash, 'wb') 
         f.write(text.encode('utf-8'))
