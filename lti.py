@@ -265,24 +265,34 @@ def pack_state(dict):
 
 def token_init(request, state=None):
     """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
-    dict = unpack_state(state)
-    logger.info( 'token_init: state: %s' % dict )
-    oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
-    ret = HTTPFound(location=token_redirect_uri)
-    logger.info( 'token_init ' + token_redirect_uri )
-    return ret
+    try:
+        dict = unpack_state(state)
+        logger.info( 'token_init: state: %s' % dict )
+        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
+        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
+        ret = HTTPFound(location=token_redirect_uri)
+        logger.info( 'token_init ' + token_redirect_uri )
+        return ret
+    except:
+        response = traceback.print_exc()
+        logger.error(response)
+        return simple_response(response)
 
 def refresh_init(request, state=None):
     """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
-    dict = unpack_state(state)
-    logger.info( 'refresh_init: state: %s' % dict )
-    oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
-    ret = HTTPFound(location=token_redirect_uri)
-    return ret
+    try:
+        dict = unpack_state(state)
+        logger.info( 'refresh_init: state: %s' % dict )
+        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
+        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
+        ret = HTTPFound(location=token_redirect_uri)
+        return ret
+    except:
+        response = traceback.print_exc()
+        logger.error(response)
+        return simple_response(response)
 
 @view_config( route_name='token_callback' )
 def token_callback(request):
@@ -294,55 +304,60 @@ def refresh_callback(request):
 
 def oauth_callback(request, type=None):
     """ Canvas called back with an authorization code. Use it to get or refresh an API token """
-    logger.info ( 'oauth_callback: %s' % request.query_string )
-    q = urlparse.parse_qs(request.query_string)
-    code = q['code'][0]
-    state = q['state'][0]
-    dict = unpack_state(state)
-    logger.info ( 'oauth_callback: %s' % state)
+    try:
+        logger.info ( 'oauth_callback: %s' % request.query_string )
+        q = urlparse.parse_qs(request.query_string)
+        code = q['code'][0]
+        state = q['state'][0]
+        dict = unpack_state(state)
+        logger.info ( 'oauth_callback: %s' % state)
 
-    course = dict[CUSTOM_CANVAS_COURSE_ID]
-    user = dict[CUSTOM_CANVAS_USER_ID]
-    oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
-    ext_content_return_url = dict[EXT_CONTENT_RETURN_URL]
-    lis_outcome_service_url = dict[LIS_OUTCOME_SERVICE_URL]
-    lis_result_sourcedid = dict[LIS_RESULT_SOURCEDID]
+        course = dict[CUSTOM_CANVAS_COURSE_ID]
+        user = dict[CUSTOM_CANVAS_USER_ID]
+        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
+        ext_content_return_url = dict[EXT_CONTENT_RETURN_URL]
+        lis_outcome_service_url = dict[LIS_OUTCOME_SERVICE_URL]
+        lis_result_sourcedid = dict[LIS_RESULT_SOURCEDID]
 
-    assignment_type = dict[ASSIGNMENT_TYPE]
-    assignment_name = dict[ASSIGNMENT_NAME]
-    assignment_value = dict[ASSIGNMENT_VALUE]
+        assignment_type = dict[ASSIGNMENT_TYPE]
+        assignment_name = dict[ASSIGNMENT_NAME]
+        assignment_value = dict[ASSIGNMENT_VALUE]
 
-    canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-    lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    url = '%s/login/oauth2/token' % canvas_server
-    grant_type = 'authorization_code' if type == 'token' else 'refresh_token'
-    params = { 
-            'grant_type': grant_type,
-            'client_id': oauth_consumer_key,
-            'client_secret': canvas_client_secret,
-            'redirect_uri': '%s/token_init' % lti_server # this uri must match the uri in Developer Keys but is not called from
-            }                                            # canvas. rather it calls token_callback or refresh callback 
-    if grant_type == 'authorization_code': 
-        params['code'] = code
-    else:
-        params['refresh_token'] = lti_refresh_token
-    r = requests.post(url, params)
-    dict = r.json()
-    lti_token = dict['access_token']
-    if dict.has_key('refresh_token'): # does it ever not?
-        lti_refresh_token = dict['refresh_token']
-    auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-    redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
-        CUSTOM_CANVAS_COURSE_ID, course, 
-        CUSTOM_CANVAS_USER_ID, user, 
-        OAUTH_CONSUMER_KEY, oauth_consumer_key, 
-        EXT_CONTENT_RETURN_URL, ext_content_return_url,
-        ASSIGNMENT_TYPE, assignment_type,
-        ASSIGNMENT_NAME, assignment_name,
-        ASSIGNMENT_VALUE, assignment_value
-        )
-    return HTTPFound(location=redirect)
+        canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
+        lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
+        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        url = '%s/login/oauth2/token' % canvas_server
+        grant_type = 'authorization_code' if type == 'token' else 'refresh_token'
+        params = { 
+                'grant_type': grant_type,
+                'client_id': oauth_consumer_key,
+                'client_secret': canvas_client_secret,
+                'redirect_uri': '%s/token_init' % lti_server # this uri must match the uri in Developer Keys but is not called from
+                }                                            # canvas. rather it calls token_callback or refresh callback 
+        if grant_type == 'authorization_code': 
+            params['code'] = code
+        else:
+            params['refresh_token'] = lti_refresh_token
+        r = requests.post(url, params)
+        dict = r.json()
+        lti_token = dict['access_token']
+        if dict.has_key('refresh_token'): # does it ever not?
+            lti_refresh_token = dict['refresh_token']
+        auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
+        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
+            CUSTOM_CANVAS_COURSE_ID, course, 
+            CUSTOM_CANVAS_USER_ID, user, 
+            OAUTH_CONSUMER_KEY, oauth_consumer_key, 
+            EXT_CONTENT_RETURN_URL, ext_content_return_url,
+            ASSIGNMENT_TYPE, assignment_type,
+            ASSIGNMENT_NAME, assignment_name,
+            ASSIGNMENT_VALUE, assignment_value
+            )
+        return HTTPFound(location=redirect)
+    except:
+        response = traceback.print_exc()
+        logger.error(response)
+        return simple_response(response)
 
 def simple_response(exc_str):
     template = """
