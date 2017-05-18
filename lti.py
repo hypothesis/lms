@@ -351,6 +351,14 @@ def oauth_callback(request, type=None):
         logger.error(response)
         return simple_response(response)
 
+def bare_response(text):
+    r = Response(text.encode('utf-8'))
+    r.headers.update({
+        'Access-Control-Allow-Origin': '*'
+        })
+    r.content_type = 'text/plain'
+    return r
+
 def simple_response(exc_str):
     template = """
  <html>
@@ -359,6 +367,14 @@ def simple_response(exc_str):
  </html>"""
     html = template % exc_str
     r = Response(html.encode('utf-8'))
+    r.content_type = 'text/html'
+    return r
+
+def page_response(html):
+    r = Response(html.encode('utf-8'))
+    r.headers.update({
+        'Access-Control-Allow-Origin': '*'
+        })
     r.content_type = 'text/html'
     return r
 
@@ -794,6 +810,207 @@ def lti_export(request):
     export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server, urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
+lti_credentials_form = """
+<html>
+<head> 
+
+<style> 
+body { font-family:verdana; margin:.5in; font-size:smaller } 
+.path_ux { display:none; margin-top:1em; }
+input { margin-top: 1em; }
+</style> 
+
+<script>
+var endpoint = 'https://lti.hypothesislabs.com/lti_credentials';
+
+function getRVBN(rName) {
+    var radioButtons = document.getElementsByName(rName);
+    for (var i = 0; i < radioButtons.length; i++) {
+        if (radioButtons[i].checked)
+            return radioButtons[i];
+    }
+    return '';
+}
+
+function get_value(id) {
+  return document.querySelector('#' + id).value;
+}
+
+function makeRequest (opts) {
+//  alert('makeRequest: ' + opts.url);
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(opts.method, opts.url);
+    xhr.onload = function () {
+      if (this.status >= 200 && this.status < 300) {
+        resolve(xhr.response);
+      } else {
+        reject({
+          status: this.status,
+          statusText: xhr.statusText
+        });
+      }
+    };
+    xhr.onerror = function () {
+      reject({
+        status: this.status,
+        statusText: xhr.statusText
+      });
+    };
+    if (opts.headers) {
+      Object.keys(opts.headers).forEach(function (key) {
+        xhr.setRequestHeader(key, opts.headers[key]);
+      });
+    }
+    var params = opts.params;
+    if (params && typeof params === 'object') {
+      params = Object.keys(params).map(function (key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+      }).join('&');
+    }
+    xhr.send(params);
+  });
+}
+
+function show() {
+  document.querySelector('#results').innerHTML = '';
+  var path = getRVBN('path_choice').value;
+  console.log(path);
+  if ( path == 'path_a' ) {
+    document.getElementById('path_a_ux').style.display = 'block';
+    document.getElementById('path_b_ux').style.display = 'none';
+    document.getElementById('path_go').style.display = 'block';
+    }
+  if ( path =='path_b' ) {
+    document.getElementById('path_a_ux').style.display = 'none';
+    document.getElementById('path_b_ux').style.display = 'block';
+    document.getElementById('path_go').style.display = 'block';
+    }
+  }
+
+function go() {
+  console.log('go');
+  var path = getRVBN('path_choice').value;
+  console.log('path');
+
+  var json = '';
+
+  if ( path == 'path_a' ) {
+    json = { 
+               "email"         : get_value('email'),
+               "path_a_key"    : get_value('path_a_key'),
+               "path_a_secret" : get_value('path_a_secret'),
+               "path_a_host"   : get_value('path_a_host') 
+               };
+    }
+
+  if ( path == 'path_b' ) {
+    json = { 
+               "email"               : get_value('email'),
+               "path_b_firstname"    : get_value('path_b_firstname'),
+               "path_b_lastname"     : get_value('path_b_lastname'),
+               "path_b_token"        : get_value('path_b_token'),
+               "path_b_host"         : get_value('path_b_host') 
+               };
+    }
+
+  json = JSON.stringify(json);
+  console.log(json);
+
+  var options = {
+    method: 'POST',
+    url: endpoint + '?credentials=' + encodeURIComponent(json),
+    headers: {"Content-type":"application/json" },
+    params: json
+	};
+
+  makeRequest(options)
+    .then ( function (data) {
+      document.querySelector('#results').innerHTML = data;
+    });
+
+  }
+</script>
+
+</head>
+
+<body>
+
+<div>
+I am sending credentials for:
+
+<div>
+<input onchange="javascript:show()" type="radio" name="path_choice" value="path_a"> <a target="_doc" title="read documentation for path A" href="https://docs.google.com/document/d/13FFtk2qRogtU3qxR_oa3kq2ak-S_p7HHVnNM12eZGy8/#heading=h.iigzwjedcwpf">Path A</a> (administrator-provided key and secret)
+</div>
+
+<div>
+<input onchange="javascript:show()" type="radio" name="path_choice" value="path_b"> <a target="_doc" title="read documentation for path B" href="https://docs.google.com/document/d/13FFtk2qRogtU3qxR_oa3kq2ak-S_p7HHVnNM12eZGy8/#heading=h.9gwdor9wzz56">Path B</a> (teacher-provided token)
+</div>
+
+<div class="path_ux" id="path_a_ux">
+<div><input id="email"></input> Email</div>
+<div><input id="path_a_key"></input> Consumer Key</div>
+<div><input id="path_a_secret"></input> Shared Secret</div>
+<div><input id="path_a_host"></input> Canvas Server (example: canvas.myschool.edu) </div>
+</div>
+
+<div class="path_ux" id="path_b_ux">
+<div><input id="path_b_firstname"></input> First Name</div>
+<div><input id="path_b_lastname"></input> Last Name</div>
+<div><input id="email"></input> Email</div>
+<div><input id="path_b_token"></input> Canvas Token</div>
+<div><input id="path_b_host"></input> Canvas Server (example: canvas.myschool.edu)</div>
+</div>
+
+<div class="path_ux" id="path_go">
+<input type="button" value="go" onclick="javascript:go()"></input>
+</div>
+
+</div>
+
+<div id="results"></div>
+
+</body>
+</html>
+"""
+
+def cors_response(request, response=None):
+    if response is None:
+        response = Response()
+    request_headers = request.headers['Access-Control-Request-Headers'].lower()
+    request_headers = re.findall('\w(?:[-\w]*\w)', request_headers)
+    response_headers = ['access-control-allow-origin']
+    for req_acoa_header in request_headers:
+        if req_acoa_header not in response_headers:
+            response_headers.append(req_acoa_header)
+    response_headers = ','.join(response_headers)
+    response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '%s' % response_headers,
+        'Access-Control-Allow-Methods': "UPDATE, POST, GET"
+        })
+    response.status_int = 204
+    print ( response.headers )
+    return response
+
+@view_config( route_name='lti_credentials' )
+def lti_credentials(request):
+    """ 
+    Receive credentials for path A (key/secret/host) or path B (username.username/token/host)
+    """
+    if  request.method == 'OPTIONS':
+        return cors_response(request)
+    else:
+        credentials = get_query_param(request, 'credentials')
+        if ( credentials is None ):
+          return page_response(lti_credentials_form)
+        else: 
+          lock = filelock.FileLock("credentials.lock")
+          with lock.acquire(timeout = 1):
+            with open('credentials.txt', 'a') as f:
+              f.write(credentials + '\n')
+          return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p>" % credentials)
+
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
@@ -807,6 +1024,7 @@ config.add_route('refresh_callback',    '/refresh_callback')
 config.add_route('lti_setup',           '/lti_setup')
 config.add_route('lti_submit',          '/lti_submit')
 config.add_route('lti_export',          '/lti_export')
+config.add_route('lti_credentials',     '/lti_credentials')
 config.add_route('config_xml',          '/config')
 config.add_route('about',               '/')
 
