@@ -1009,7 +1009,7 @@ def lti_credentials(request):
           with lock.acquire(timeout = 1):
             with open('credentials.txt', 'a') as f:
               f.write(credentials + '\n')
-          return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p>" % credentials)
+          return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
 
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
