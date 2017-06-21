@@ -897,7 +897,7 @@ function go() {
 
   if ( path == 'path_a' ) {
     json = { 
-               "email"         : get_value('email'),
+               "path_a_email"  : get_value('path_a_email'),
                "path_a_key"    : get_value('path_a_key'),
                "path_a_secret" : get_value('path_a_secret'),
                "path_a_host"   : get_value('path_a_host') 
@@ -906,7 +906,7 @@ function go() {
 
   if ( path == 'path_b' ) {
     json = { 
-               "email"               : get_value('email'),
+               "path_b_email"        : get_value('path_b_email'),
                "path_b_firstname"    : get_value('path_b_firstname'),
                "path_b_lastname"     : get_value('path_b_lastname'),
                "path_b_token"        : get_value('path_b_token'),
@@ -948,7 +948,7 @@ I am sending credentials for:
 </div>
 
 <div class="path_ux" id="path_a_ux">
-<div><input id="email"></input> Email</div>
+<div><input id="path_a_email"></input> Email</div>
 <div><input id="path_a_key"></input> Consumer Key</div>
 <div><input id="path_a_secret"></input> Shared Secret</div>
 <div><input id="path_a_host"></input> Canvas Server (example: canvas.myschool.edu) </div>
@@ -957,7 +957,7 @@ I am sending credentials for:
 <div class="path_ux" id="path_b_ux">
 <div><input id="path_b_firstname"></input> First Name</div>
 <div><input id="path_b_lastname"></input> Last Name</div>
-<div><input id="email"></input> Email</div>
+<div><input id="path_b_email"></input> Email</div>
 <div><input id="path_b_token"></input> Canvas Token</div>
 <div><input id="path_b_host"></input> Canvas Server (example: canvas.myschool.edu)</div>
 </div>
