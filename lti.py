@@ -13,6 +13,7 @@ import logging
 import filelock
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
+from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
@@ -34,6 +35,8 @@ lti_server_port_internal = 8000
 lti_server_scheme = 'https'
 lti_server_host = 'lti.hypothesislabs.com'
 lti_server_port = None
+
+files_path = './pdfjs/viewer/web'
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
@@ -226,7 +229,7 @@ def get_pdf_fingerprint(hash):
     NB: PDFJS always reports fingerpints with lowercase letters and that's required for a Hypothesis lookup,
     even when the fingerprint found in the doc uses uppercase!
     """
-    f = open('./pdfjs/viewer/web/%s.pdf' % hash, 'rb')
+    f = open('%s/%s.pdf' % (files_path, hash), 'rb')
     s = f.read()
     m = re.findall('ID\s*\[\s*<(\w+)>',s)
     f.close()
@@ -378,23 +381,19 @@ def page_response(html):
     r.content_type = 'text/html'
     return r
 
+def serve_file(path=None, file=None, request=None, content_type=None):
+    response = FileResponse('%s/%s' % (path, file),
+                            request=request,
+                            content_type=content_type)
+    return response
+
 @view_config( route_name='config_xml' )
 def config_xml(request):
-    with open('config.xml') as f:
-        xml = f.read()
-        logger.info( 'config request' )
-        r = Response(xml)
-        r.content_type = 'text/xml'
-        return r
+    return serve_file('.', 'config.xml', request, 'text/xml')
 
 @view_config( route_name='about' )
 def about(request):
-    with open('about.html') as f:
-        html = f.read()
-        logger.info( 'about request' )
-        r = Response(html)
-        r.content_type = 'text/html'                  
-        return r
+    return serve_file('.', 'about.html', request, 'text/html')
 
 def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
     logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
@@ -648,10 +647,10 @@ I want students to annotate:
     return r
 
 def exists_pdf(hash):
-    return os.path.isfile('./pdfjs/viewer/web/%s.pdf' % hash)
+    return os.path.isfile('%s/%s.pdf' % (files_path, hash))
 
 def exists_html(hash):
-    return os.path.isfile('./pdfjs/viewer/web/%s.html' % hash)
+    return os.path.isfile('%s/%s.html' % (files_path, hash))
 
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
@@ -693,7 +692,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             url = j['url']
             logger.info( url )
             urllib.urlretrieve(url, hash)
-            os.rename(hash, './pdfjs/viewer/web/%s.pdf' % hash)
+            os.rename(hash, '%s/%s.pdf' % (files_path, hash))
         else:
             logger.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
     fingerprint = get_pdf_fingerprint(hash)
@@ -737,7 +736,7 @@ def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=N
         logger.info ( 'via result: %s' % r.status_code )
         text = r.text.replace('return;', '// return')               # work around https://github.com/hypothesis/via/issues/76
         text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
-        f = open('./pdfjs/viewer/web/%s.html' % hash, 'wb') 
+        f = open('%s/%s.html' % (files_path, hash), 'wb')
         f.write(text.encode('utf-8'))
         f.close()
     export_url = '%s?uri=%s&user=__USER__' % (lti_export_url, url)
@@ -922,7 +921,7 @@ function go() {
     url: endpoint + '?credentials=' + encodeURIComponent(json),
     headers: {"Content-type":"application/json" },
     params: json
-	};
+    };
 
   makeRequest(options)
     .then ( function (data) {
@@ -1011,9 +1010,21 @@ def lti_credentials(request):
               f.write(credentials + '\n')
           return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
 
+
+@view_config( route_name='lti_serve_pdf' )
+def lti_serve_pdf(request):
+    if request.referer is not None and 'pdf.worker.js' in request.referer:
+        return serve_file(path=files_path,
+                      file=request.matchdict['file'] + '.pdf',
+                      request=request,
+                      content_type='application/pdf')
+    else:
+        return simple_response('You are not logged in to Canvas')
+
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
+from pyramid.static import static_view
 
 config = Configurator()
 
@@ -1028,11 +1039,12 @@ config.add_route('lti_credentials',     '/lti_credentials')
 config.add_route('config_xml',          '/config')
 config.add_route('about',               '/')
 
-from pyramid.static import static_view
+config.add_route('lti_serve_pdf',       '/viewer/web/{file}.pdf')
 
 pdf_view = static_view('./pdfjs')
 config.add_route('catchall_pdf', '/viewer/*subpath')
 config.add_view(pdf_view, route_name='catchall_pdf')
+
 
 config.add_static_view(name='export', path='./export')
 
