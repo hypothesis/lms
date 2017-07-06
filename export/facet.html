@@ -53,7 +53,7 @@ var mode = gup('mode', args);
 var search = gup('search', args);
 var user = gup('user', args);
 
-document.getElementById('title').innerHTML = 'Annotations by ' + user + ' on ' + decodeURIComponent(search);
+document.getElementById('title').innerHTML = 'Annotations by ' + user;
 
 query += '&' + facet + '=' + search;
 

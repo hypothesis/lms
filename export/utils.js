@@ -1,3 +1,4 @@
+
 var output = '';
 var displayed_in_thread = [];
 var query = 'https://hypothes.is/api/search?limit=200&offset=__OFFSET__';
@@ -10,7 +11,7 @@ function all_activity_for(user) {
 
 var token_ux = function(){/*
 <p>
-<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <br> <span class="small">(for private group annotations, include your <a target="token" href="https://hypothes.is/profile/developer">API token</a>)</span> 
+<input onchange="javascript:set_token()" type="password" value="" size="40" id="token"> <span class="small">(for private group annotations, include your <a target="token" href="https://hypothes.is/profile/developer">API token</a>)</span> 
 </p>
 */};
 
@@ -21,7 +22,7 @@ function show_token_ux() {
 }
 
 var see_all_ux = function(){/*
-<p>Below you'll see Hypothesis conversations on this document in which <span style="font-weight:bold" id="all_activity_user"></span> participated. <br>(Click <a target="all_activity" id="all_activity_href" href="">here</a> to review all Hypothesis activity for that user.)</p>
+<p>Below you'll see Hypothesis conversations on this document in which <span style="font-weight:bold" id="all_activity_user"></span> participated. (Click <a target="all_activity" id="all_activity_href" href="">here</a> to review all Hypothesis activity for that user.)</p>
 */};
 
 function show_see_all_ux() {
@@ -105,12 +106,6 @@ function organize(url_updates) {
 
 var docview_template = function(){/*
 <div id="d__INDEX__">
-<input checked="" onchange="javascript:item_checked(__INDEX__)" class="checkbox" id="c__INDEX__" type="checkbox">
-<a class="visit" target="visit" title="click to visit article and see annotations as overlay" 
-  href="__URL__">__DOCTITLE__</a> 
-<a class="toggle" title="expand annotations" href="javascript:toggle('__INDEX__')">
-<span class="anno-count">+__COUNT__</span></a>
-<div class="url">__URL__</div>
 <div class="annotations" id="a__INDEX__">
 __THREAD__
 </div>
@@ -136,12 +131,6 @@ function document_view(element, gathered, replies) {
         s = s.replace(/__INDEX__/g, i);
 
         var url = reverse_chron_urls[i][0];
-        s = s.replace(/__URL__/g, url);
-
-        var count = urls[url];
-        s = s.replace(/__COUNT__/g, count.toString().trim());
-
-        s = s.replace(/__DOCTITLE__/g, titles[url]);
          
         var ids_for_url = ids[url];
         output = ''
