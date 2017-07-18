@@ -1,0 +1,4 @@
+requests
+pyramid
+filelock
+requests_oauthlib
