@@ -24,8 +24,6 @@ class TestConfigure(object):
     def test_it_returns_a_Configurator_with_all_the_settings(self, env_setting):
         def env_setting_side_effect(envvar_name):
             return {
-                'LTI_SERVER_HOST_INTERNAL': 'the_lti_server_host_internal_setting',
-                'LTI_SERVER_PORT_INTERNAL': 'the_lti_server_port_internal_setting',
                 'LTI_SERVER_SCHEME': 'the_lti_server_scheme_setting',
                 'LTI_SERVER_HOST': 'the_lti_server_host_setting',
                 'LTI_SERVER_PORT': 'the_lti_server_port_setting',
@@ -36,8 +34,6 @@ class TestConfigure(object):
 
         config = configure()
 
-        assert config.registry.settings['lti_server_host_internal'] == 'the_lti_server_host_internal_setting'
-        assert config.registry.settings['lti_server_port_internal'] == 'the_lti_server_port_internal_setting'
         assert config.registry.settings['lti_server_scheme'] == 'the_lti_server_scheme_setting'
         assert config.registry.settings['lti_server_host'] == 'the_lti_server_host_setting'
         assert config.registry.settings['lti_server_port'] == 'the_lti_server_port_setting'

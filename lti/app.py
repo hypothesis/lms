@@ -27,11 +27,6 @@ console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 logger.addHandler(console)
 
-# lti local testing
-
-lti_server_host_internal = '10.0.0.9'  # for local testing
-lti_server_port_internal = 8000
-
 # lti server
 
 lti_server_scheme = 'https'
@@ -66,9 +61,6 @@ ASSIGNMENT_NAME = 'assignment_name'
 ASSIGNMENT_VALUE = 'assignment_value'
 
 lti_setup_url = '%s/lti_setup' % lti_server
-lti_pdf_url = '%s/lti_pdf' % lti_server
-lti_web_url = '%s/lti_web' % lti_server
-lti_submit_url = '%s/lti_submit' % lti_server
 lti_export_url = '%s/lti_export' % lti_server
 
 NO_PDF_FINGERPRINT = 'no pdf fingerprint'
