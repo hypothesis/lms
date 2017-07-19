@@ -42,7 +42,6 @@ else:
 
 logger.info( 'lti_server: %s' % lti_server )
 
-lti_keys = ['context_title', 'custom_canvas_assignment_id', 'custom_canvas_assignment_title', 'custom_canvas_user_login_id', 'user_id']
 
 # canvas params
 CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
