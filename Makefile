@@ -6,7 +6,12 @@ clean:
 
 .PHONY: dev
 dev: .pydeps
-	python lti/app.py
+	@PYRAMID_RELOAD_TEMPLATES=1 gunicorn --reload --bind 'localhost:8001' 'lti.app:app()'
+
+.PHONY: test
+test:
+	@pip install -q tox
+	tox
 
 .pydeps: requirements.txt
 	@echo installing python dependencies

@@ -101,6 +101,12 @@ To get the Canvas app running in a dev environment:
    rather than from the Canvas server, so they should be `localhost:8001` even
    if you're running Canvas inside a VM.
 
+### Running the tests
+
+```bash
+$ make test
+```
+
 ### Managing Python dependencies
 
 We use `pip-tools` to manage Python dependencies: <https://github.com/jazzband/pip-tools>.

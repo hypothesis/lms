@@ -16,6 +16,8 @@ from pyramid.view import view_config
 from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
 
+from lti.config import configure
+
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='lti.log',level=logging.DEBUG
@@ -1034,35 +1036,29 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 from pyramid.static import static_view
 
-config = Configurator()
+def app():
+    config = configure()
 
-config.include('pyramid_jinja2')
+    config.include('pyramid_jinja2')
 
-config.scan()
+    config.scan()
 
-config.add_route('token_callback',      '/token_callback')
-config.add_route('refresh_callback',    '/refresh_callback')
-config.add_route('lti_setup',           '/lti_setup')
-config.add_route('lti_submit',          '/lti_submit')
-config.add_route('lti_export',          '/lti_export')
-config.add_route('lti_credentials',     '/lti_credentials')
-config.add_route('config_xml',          '/config')
-config.add_route('about',               '/')
+    config.add_route('token_callback',      '/token_callback')
+    config.add_route('refresh_callback',    '/refresh_callback')
+    config.add_route('lti_setup',           '/lti_setup')
+    config.add_route('lti_submit',          '/lti_submit')
+    config.add_route('lti_export',          '/lti_export')
+    config.add_route('lti_credentials',     '/lti_credentials')
+    config.add_route('config_xml',          '/config')  # FIXME: This should be /config.xml as in Canvas's examples.
+    config.add_route('about',               '/')
 
-config.add_route('lti_serve_pdf',       '/viewer/web/{file}.pdf')
+    config.add_route('lti_serve_pdf',       '/viewer/web/{file}.pdf')
 
-pdf_view = static_view('./pdfjs')
-config.add_route('catchall_pdf', '/viewer/*subpath')
-config.add_view(pdf_view, route_name='catchall_pdf')
+    pdf_view = static_view('./pdfjs')
+    config.add_route('catchall_pdf', '/viewer/*subpath')
+    config.add_view(pdf_view, route_name='catchall_pdf')
 
 
-config.add_static_view(name='export', path='./export')
+    config.add_static_view(name='export', path='./export')
 
-app = config.make_wsgi_app()
-
-if __name__ == '__main__': # local testing
-
-    server = make_server(lti_server_host_internal, lti_server_port_internal, app)
-    server.serve_forever()
-    
-
+    return config.make_wsgi_app()

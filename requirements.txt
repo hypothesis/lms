@@ -7,6 +7,7 @@
 certifi==2017.4.17        # via requests
 chardet==3.0.4            # via requests
 filelock==2.0.10
+gunicorn==19.7.1
 hupper==1.0               # via pyramid
 idna==2.5                 # via requests
 jinja2==2.9.6             # via pyramid-jinja2
