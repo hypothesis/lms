@@ -4,4 +4,4 @@ canvas-auth.json
 credentials.lock
 credentials.txt
 lti.log
-pdfjs/viewer/web/*.html
+lti/pdfjs/viewer/web/*.html

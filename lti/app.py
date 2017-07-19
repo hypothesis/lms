@@ -36,7 +36,7 @@ lti_server_scheme = 'https'
 lti_server_host = 'lti.hypothesislabs.com'
 lti_server_port = None
 
-files_path = './pdfjs/viewer/web'
+files_path = './lti/pdfjs/viewer/web'
 
 if lti_server_port is None:
     lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)

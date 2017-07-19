@@ -6,7 +6,7 @@ clean:
 
 .PHONY: dev
 dev: .pydeps
-	python lti.py
+	python lti/app.py
 
 .pydeps: requirements.txt
 	@echo installing python dependencies
