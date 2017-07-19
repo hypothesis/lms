@@ -7,6 +7,7 @@ import pytest
 from lti.config.settings import (
     SettingError,
     env_setting,
+    optional_env_setting,
 )
 
 
@@ -28,6 +29,25 @@ class TestEnvSetting(object):
 
         assert exc_info.value.message == "environment variable FOOBAR isn't set"
 
-    @pytest.fixture
-    def os(self, patch):
-        return patch('lti.config.settings.os')
+
+@pytest.mark.usefixtures('os')
+class TestOptionalEnvSetting(object):
+
+    def test_it_returns_the_value_from_the_environment_variable(self, os):
+        os.environ = {'FOOBAR': 'the_value' }
+
+        result = optional_env_setting('FOOBAR')
+
+        assert result == 'the_value'
+
+    def test_it_returns_None_if_the_environment_variable_isnt_set(self, os):
+        os.environ = {}
+
+        result = optional_env_setting('FOOBAR')
+
+        assert result is None
+
+
+@pytest.fixture
+def os(patch):
+    return patch('lti.config.settings.os')

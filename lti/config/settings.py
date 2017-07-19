@@ -19,3 +19,10 @@ def env_setting(envvar_name):
             "environment variable {envvar_name} isn't set".format(
                 envvar_name=envvar_name)
         )
+
+
+def optional_env_setting(envvar_name):
+    try:
+        return env_setting(envvar_name)
+    except SettingError:
+        return None

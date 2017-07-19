@@ -9,6 +9,7 @@ from pyramid.config import Configurator
 from lti.config.settings import (
     SettingError,
     env_setting,
+    optional_env_setting,
 )
 
 
@@ -17,6 +18,6 @@ def configure():
     return Configurator(settings = {
         'lti_server_scheme': env_setting('LTI_SERVER_SCHEME'),
         'lti_server_host': env_setting('LTI_SERVER_HOST'),
-        'lti_server_port': env_setting('LTI_SERVER_PORT'),
+        'lti_server_port': optional_env_setting('LTI_SERVER_PORT'),
         'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL'),
     })
