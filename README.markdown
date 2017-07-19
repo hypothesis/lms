@@ -4,9 +4,6 @@
 
 ### Setting up a dev environment
 
-TODO: Document the environment variables that need to be set in dev, once it
-supports env vars.
-
 You will need:
 
 * Git
@@ -73,13 +70,27 @@ To get the Canvas app running in a dev environment:
    machine, instead of `localhost`. If you setup your virtual machine using
    Vagrant this is `redis://10.0.2.2:6379`.
 
-1. Clone the Hypothesis Canvas app and run its development server.
-   First create and activate a Python virtual environment for the Canvas app
-   and then run:
+1. Clone the Hypothesis Canvas app's GitHub repository:
 
    ```bash
    $ git clone https://github.com/hypothesis/lti.git
    $ cd lti
+   ```
+
+1. Set the environment variables that the app needs to values suitable for
+   local development:
+
+   ```bash
+   export LTI_SERVER_SCHEME="http"
+   export LTI_SERVER_HOST="localhost"
+   export LTI_SERVER_PORT="8001"
+   export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
+   ```
+
+1. Run the development server. First create and activate a Python virtual
+   environment for the Canvas app and then run:
+
+   ```bash
    $ make dev
    ```
 
