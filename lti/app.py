@@ -814,7 +814,9 @@ def lti_export(request):
     export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server(request.registry.settings), urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
-lti_credentials_form = """
+
+def lti_credentials_form(settings):
+    return """
 <html>
 <head> 
 
@@ -825,7 +827,7 @@ input { margin-top: 1em; }
 </style> 
 
 <script>
-var endpoint = 'https://lti.hypothesislabs.com/lti_credentials';
+var endpoint = '__LTI_CREDENTIALS_URL__';
 
 function getRVBN(rName) {
     var radioButtons = document.getElementsByName(rName);
@@ -976,7 +978,7 @@ I am sending credentials for:
 
 </body>
 </html>
-"""
+    """.replace('__LTI_CREDENTIALS_URL__', settings['lti_credentials_url'])
 
 def cors_response(request, response=None):
     if response is None:
@@ -1007,7 +1009,7 @@ def lti_credentials(request):
     else:
         credentials = get_query_param(request, 'credentials')
         if ( credentials is None ):
-          return page_response(lti_credentials_form)
+          return page_response(lti_credentials_form(request.registry.settings))
         else: 
           lock = filelock.FileLock("credentials.lock")
           with lock.acquire(timeout = 1):
