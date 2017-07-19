@@ -27,20 +27,26 @@ console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 logger.addHandler(console)
 
-# lti server
-
-lti_server_scheme = 'https'
-lti_server_host = 'lti.hypothesislabs.com'
-lti_server_port = None
 
 files_path = './lti/pdfjs/viewer/web'
 
-if lti_server_port is None:
-    lti_server = '%s://%s' % (lti_server_scheme, lti_server_host)
-else:
-    lti_server = '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
 
-logger.info( 'lti_server: %s' % lti_server )
+def lti_server(settings):
+    lti_server_port = settings['lti_server_port']
+    lti_server_scheme = settings['lti_server_scheme']
+    lti_server_host = settings['lti_server_host']
+
+    if lti_server_port is None:
+        return '%s://%s' % (lti_server_scheme, lti_server_host)
+    else:
+        return '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
+
+def lti_setup_url(settings):
+    return '%s/lti_setup' % lti_server(settings)
+
+
+def lti_export_url(settings):
+    return '%s/lti_export' % lti_server(settings)
 
 
 # canvas params
@@ -59,8 +65,6 @@ ASSIGNMENT_TYPE = 'assignment_type'
 ASSIGNMENT_NAME = 'assignment_name'
 ASSIGNMENT_VALUE = 'assignment_value'
 
-lti_setup_url = '%s/lti_setup' % lti_server
-lti_export_url = '%s/lti_export' % lti_server
 
 NO_PDF_FINGERPRINT = 'no pdf fingerprint'
 
@@ -231,7 +235,7 @@ def get_pdf_fingerprint(hash):
     else:
         return NO_PDF_FINGERPRINT
 
-def instantiate_submission_template( oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
+def instantiate_submission_template(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
     """
     For the Find interaction we need to inject these values into the JS we generate.
     """
@@ -240,7 +244,7 @@ def instantiate_submission_template( oauth_consumer_key=None, lis_outcome_servic
     submit_html = submit_html.replace('__LIS_OUTCOME_SERVICE_URL__', lis_outcome_service_url)
     submit_html = submit_html.replace('__LIS_RESULT_SOURCEDID__', lis_result_sourcedid)
     submit_html = submit_html.replace('__DOC_URI__', doc_uri)
-    submit_html = submit_html.replace('__LTI_SERVER__', lti_server)
+    submit_html = submit_html.replace('__LTI_SERVER__', lti_server(settings))
     return submit_html
 
 def unpack_state(state):
@@ -258,7 +262,7 @@ def token_init(request, state=None):
         logger.info( 'token_init: state: %s' % dict )
         oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
         logger.info( 'token_init ' + token_redirect_uri )
         return ret
@@ -274,7 +278,7 @@ def refresh_init(request, state=None):
         logger.info( 'refresh_init: state: %s' % dict )
         oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server, state)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
         return ret
     except:
@@ -320,8 +324,8 @@ def oauth_callback(request, type=None):
                 'grant_type': grant_type,
                 'client_id': oauth_consumer_key,
                 'client_secret': canvas_client_secret,
-                'redirect_uri': '%s/token_init' % lti_server # this uri must match the uri in Developer Keys but is not called from
-                }                                            # canvas. rather it calls token_callback or refresh callback 
+                'redirect_uri': '%s/token_init' % lti_server(request.registry.settings) # this uri must match the uri in Developer Keys but is not called from
+                }                                                                       # canvas. rather it calls token_callback or refresh callback
         if grant_type == 'authorization_code': 
             params['code'] = code
         else:
@@ -332,7 +336,7 @@ def oauth_callback(request, type=None):
         if dict.has_key('refresh_token'): # does it ever not?
             lti_refresh_token = dict['refresh_token']
         auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
-        redirect = lti_setup_url + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
+        redirect = lti_setup_url(request.registry.settings) + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
             CUSTOM_CANVAS_COURSE_ID, course, 
             CUSTOM_CANVAS_USER_ID, user, 
             OAUTH_CONSUMER_KEY, oauth_consumer_key, 
@@ -387,8 +391,8 @@ def serve_file(path=None, file=None, request=None, content_type=None):
 def config_xml(request):
     request.response.content_type = 'text/xml'
     return {
-        'launch_url': lti_setup_url,
-        'resource_selection_url': lti_setup_url,
+        'launch_url': lti_setup_url(request.registry.settings),
+        'resource_selection_url': lti_setup_url(request.registry.settings),
     }
 
 
@@ -396,7 +400,7 @@ def config_xml(request):
 def about(request):
     return serve_file('.', 'about.html', request, 'text/html')
 
-def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
+def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
     logger.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
     template = """
  <html>
@@ -411,7 +415,7 @@ def pdf_response(oauth_consumer_key=None, lis_outcome_service_url=None, lis_resu
 """                 
     submit_html = ''
     if lis_result_sourcedid is not None:  # it is a student
-        submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
+        submit_html = instantiate_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
     html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -540,7 +544,7 @@ def lti_setup(request):
 
     logger.info ( 'return_url: %s' % return_url )
 
-    launch_url_template = '%s/lti_setup?assignment_type=__TYPE__&assignment_name=__NAME__&assignment_value=__VALUE__&return_url=__RETURN_URL__' % lti_server
+    launch_url_template = '%s/lti_setup?assignment_type=__TYPE__&assignment_name=__NAME__&assignment_value=__VALUE__&return_url=__RETURN_URL__' % lti_server(request.registry.settings)
 
     logger.info ( 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token) )
 
@@ -698,12 +702,12 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             logger.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
     fingerprint = get_pdf_fingerprint(hash)
     if fingerprint == NO_PDF_FINGERPRINT:
-        pdf_uri = '%s/viewer/web/%s.pdf' % ( lti_server, hash )
+        pdf_uri = '%s/viewer/web/%s.pdf' % ( lti_server(request.registry.settings), hash )
     else:
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
-    return pdf_response(oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
+    return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None, ):
+def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None):
     """
     Our app was called from an assignment to annotate a web page.
 
@@ -740,10 +744,10 @@ def web_response(oauth_consumer_key=None, course=None, lis_outcome_service_url=N
         f = open('%s/%s.html' % (files_path, hash), 'wb')
         f.write(text.encode('utf-8'))
         f.close()
-    export_url = '%s?uri=%s&user=__USER__' % (lti_export_url, url)
+    export_url = '%s?uri=%s&user=__USER__' % (lti_export_url(settings), url)
     submit_html = ''
     if lis_result_sourcedid is not None:
-        submit_html = instantiate_submission_template(oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)  
+        submit_html = instantiate_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
     html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -754,7 +758,7 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
     user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
-    return web_response(oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
+    return web_response(request.registry.settings, oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
@@ -807,7 +811,7 @@ def lti_export(request):
     user = parsed_args['user'][0]
     uri = parsed_args['uri'][0]
     logger.info( 'lti_export user: %s, uri %s' % ( user, uri) )
-    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server, urllib.quote(uri), user )
+    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server(request.registry.settings), urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
 lti_credentials_form = """
