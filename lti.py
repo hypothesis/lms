@@ -387,9 +387,17 @@ def serve_file(path=None, file=None, request=None, content_type=None):
                             content_type=content_type)
     return response
 
-@view_config( route_name='config_xml' )
+
+@view_config(route_name='config_xml',
+             renderer='config.xml.jinja2',
+             request_method='GET')
 def config_xml(request):
-    return serve_file('.', 'config.xml', request, 'text/xml')
+    request.response.content_type = 'text/xml'
+    return {
+        'launch_url': lti_setup_url,
+        'resource_selection_url': lti_setup_url,
+    }
+
 
 @view_config( route_name='about' )
 def about(request):
@@ -1027,6 +1035,8 @@ from pyramid.response import Response
 from pyramid.static import static_view
 
 config = Configurator()
+
+config.include('pyramid_jinja2')
 
 config.scan()
 
