@@ -65,44 +65,6 @@ ASSIGNMENT_VALUE = 'assignment_value'
 NO_PDF_FINGERPRINT = 'no pdf fingerprint'
 
 
-""" template for assignment submission form """
-submission_form_template = """
-<script>
-function make_submit_url() {
-    var h_user = document.querySelector('#h_username').value.trim();
-    var submit_url = '/lti_submit?oauth_consumer_key=__OAUTH_CONSUMER_KEY__&lis_outcome_service_url=__LIS_OUTCOME_SERVICE_URL__&lis_result_sourcedid=__LIS_RESULT_SOURCEDID__';
-    var export_url = '__LTI_SERVER__/lti_export?args=' + encodeURIComponent('uri=__DOC_URI__&user=' + h_user);
-    console.log(export_url);
-    console.log(encodeURIComponent(export_url));
-    submit_url += '&export_url=' + encodeURIComponent(export_url);
-    return submit_url;
-}
-function clear_input() {
-  var h_user = document.querySelector('#h_username');
-  var check_element = document.getElementById('check_username');
-  h_user.value = '';
-  check_element.querySelector('a').innerText = '';
-  check_element.querySelector('a').href = '';
-
-}
-function show_stream_link() {
-    var h_user = document.querySelector('#h_username').value.trim();
-    var check_element = document.getElementById('check_username');
-    check_element.style.display = 'inline';
-    check_element.querySelector('a').innerText = h_user;
-    check_element.querySelector('a').href = 'https://hypothes.is/stream?q=user:' + h_user;
-}
-</script>
-<p>
-When you're done annotating:
-<div>1. Enter your Hypothesis username: <input onfocus="javascript:clear_input()" onchange="javascript:show_stream_link()" id="h_username"></div>
-<div>2. Check the name:  <span style="display:none" id="check_username"> <a target="stream" title="check your name" href=""> </a></span>
-<div>3. Click <input type="button" value="Submit Assignment" onclick="javascript:location.href=make_submit_url()"></div>
-</p>
-
-
-"""  
-
 assignment_boilerplate = """<p>
 This document is annotatable using <a href="https://hypothes.is">Hypothes.is</a>. 
 You can click highlighted text or expand the sidebar to view existing annotations. 
@@ -209,13 +171,13 @@ def instantiate_submission_template(settings, oauth_consumer_key=None, lis_outco
     """
     For the Find interaction we need to inject these values into the JS we generate.
     """
-    submit_html = submission_form_template
-    submit_html = submit_html.replace('__OAUTH_CONSUMER_KEY__', oauth_consumer_key)
-    submit_html = submit_html.replace('__LIS_OUTCOME_SERVICE_URL__', lis_outcome_service_url)
-    submit_html = submit_html.replace('__LIS_RESULT_SOURCEDID__', lis_result_sourcedid)
-    submit_html = submit_html.replace('__DOC_URI__', doc_uri)
-    submit_html = submit_html.replace('__LTI_SERVER__', lti_server(settings))
-    return submit_html
+    return render('lti:templates/submission_form.html.jinja2', dict(
+        oauth_consumer_key=oauth_consumer_key,
+        lis_outcome_service_url=lis_outcome_service_url,
+        lis_result_sourcedid=lis_result_sourcedid,
+        doc_uri=doc_uri,
+        lti_server=lti_server(settings),
+    ))
 
 def unpack_state(state):
     dict = json.loads(urllib.unquote(state))
