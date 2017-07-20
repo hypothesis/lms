@@ -13,6 +13,16 @@ test:
 	@pip install -q tox
 	tox
 
+.PHONY: coverage
+coverage: .coverage
+	@pip install -q tox
+	tox -e coverage
+
+.PHONY: codecov
+codecov:
+	@pip install -q tox
+	tox -e codecov
+
 .pydeps: requirements.txt
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
