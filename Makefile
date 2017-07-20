@@ -19,7 +19,7 @@ coverage: .coverage
 	tox -e coverage
 
 .PHONY: codecov
-codecov:
+codecov: .coverage
 	@pip install -q tox
 	tox -e codecov
 
