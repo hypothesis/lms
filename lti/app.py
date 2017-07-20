@@ -65,13 +65,6 @@ ASSIGNMENT_VALUE = 'assignment_value'
 NO_PDF_FINGERPRINT = 'no pdf fingerprint'
 
 
-assignment_boilerplate = """<p>
-This document is annotatable using <a href="https://hypothes.is">Hypothes.is</a>. 
-You can click highlighted text or expand the sidebar to view existing annotations. 
-You'll need to register for (or log in to) an account in order to create annotations; 
-you can do so in the Hypothesis sidebar.</p>
-"""
-
 class AuthData(): 
     """
     A simple config db, with records like so:
@@ -338,7 +331,6 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
     if lis_result_sourcedid is not None:  # it is a student
         submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
     html = render('lti:templates/pdf_assignment.html.jinja2', dict(
-        assignment_boilerplate=assignment_boilerplate,
         name=name,
         submit_html=submit_html,
         hash=hash,
@@ -664,7 +656,6 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
     if lis_result_sourcedid is not None:
         submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
     html = render('lti:templates/html_assignment.html.jinja2', dict(
-        assignment_boilerplate=assignment_boilerplate,
         name=name,
         submit_html=submit_html,
         hash=hash,
