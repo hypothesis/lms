@@ -167,7 +167,7 @@ def get_pdf_fingerprint(hash):
     else:
         return NO_PDF_FINGERPRINT
 
-def instantiate_submission_template(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
+def render_submission_template(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
     """
     For the Find interaction we need to inject these values into the JS we generate.
     """
@@ -347,7 +347,7 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
 """                 
     submit_html = ''
     if lis_result_sourcedid is not None:  # it is a student
-        submit_html = instantiate_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
+        submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
     html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -679,7 +679,7 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
     export_url = '%s?uri=%s&user=__USER__' % (lti_export_url(settings), url)
     submit_html = ''
     if lis_result_sourcedid is not None:
-        submit_html = instantiate_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
+        submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
     html = template % (assignment_boilerplate, name, submit_html, hash)
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
