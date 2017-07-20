@@ -160,18 +160,6 @@ def get_pdf_fingerprint(hash):
     else:
         return NO_PDF_FINGERPRINT
 
-def render_submission_template(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, doc_uri=None):
-    """
-    For the Find interaction we need to inject these values into the JS we generate.
-    """
-    return render('lti:templates/submission_form.html.jinja2', dict(
-        oauth_consumer_key=oauth_consumer_key,
-        lis_outcome_service_url=lis_outcome_service_url,
-        lis_result_sourcedid=lis_result_sourcedid,
-        doc_uri=doc_uri,
-        lti_server=lti_server(settings),
-    ))
-
 def unpack_state(state):
     dict = json.loads(urllib.unquote(state))
     return dict
@@ -327,13 +315,14 @@ def about(request):
 
 def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
     log.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
-    submit_html = ''
-    if lis_result_sourcedid is not None:  # it is a student
-        submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
     html = render('lti:templates/pdf_assignment.html.jinja2', dict(
         name=name,
-        submit_html=submit_html,
         hash=hash,
+        oauth_consumer_key=oauth_consumer_key,
+        lis_outcome_service_url=lis_outcome_service_url,
+        lis_result_sourcedid=lis_result_sourcedid,
+        doc_uri=doc_uri,
+        lti_server=lti_server(settings),
     ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -652,13 +641,14 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
         f.write(text.encode('utf-8'))
         f.close()
     export_url = '%s?uri=%s&user=__USER__' % (lti_export_url(settings), url)
-    submit_html = ''
-    if lis_result_sourcedid is not None:
-        submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
     html = render('lti:templates/html_assignment.html.jinja2', dict(
         name=name,
-        submit_html=submit_html,
         hash=hash,
+        oauth_consumer_key=oauth_consumer_key,
+        lis_outcome_service_url=lis_outcome_service_url,
+        lis_result_sourcedid=lis_result_sourcedid,
+        doc_uri=url,
+        lti_server=lti_server(settings),
     ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
