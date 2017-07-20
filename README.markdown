@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hypothesis/lti.svg?branch=master)](https://travis-ci.org/hypothesis/lti)
+
 # Hypothesis Canvas App
 
 ## Development
