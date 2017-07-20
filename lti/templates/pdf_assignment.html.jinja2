@@ -1,0 +1,16 @@
+{# The template used to render a PDF annotation assignment. #}
+<html>
+  <head>
+  <style>
+    body {
+      font-family:verdana; margin:.5in;
+    }
+  </style>
+  </head>
+  <body>
+    {{ assignment_boilerplate|safe }}
+    <p><i>{{ name }}</i></p>
+    {{ submit_html|safe }}
+    <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file={{ hash }}.pdf"></iframe>
+  </body>
+</html>

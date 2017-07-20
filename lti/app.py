@@ -334,21 +334,15 @@ def about(request):
 
 def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
     log.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
-    template = """
- <html>
- <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
- <body>
-%s
-<p><i>%s</i></p>
-%s
- <iframe width="100%%" height="1000px" src="/viewer/web/viewer.html?file=%s.pdf"></iframe>
- </body>
- </html>
-"""                 
     submit_html = ''
     if lis_result_sourcedid is not None:  # it is a student
         submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, doc_uri)
-    html = template % (assignment_boilerplate, name, submit_html, hash)
+    html = render('lti:templates/pdf_assignment.html.jinja2', dict(
+        assignment_boilerplate=assignment_boilerplate,
+        name=name,
+        submit_html=submit_html,
+        hash=hash,
+    ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
