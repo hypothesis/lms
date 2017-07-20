@@ -24,7 +24,7 @@ from lti.config import configure
 log = logging.getLogger(__name__)
 
 
-files_path = './lti/pdfjs/viewer/web'
+files_path = './lti/static/pdfjs/viewer/web'
 
 
 def lti_server(settings):
@@ -1022,11 +1022,11 @@ def app():
 
     config.add_route('lti_serve_pdf',       '/viewer/web/{file}.pdf')
 
-    pdf_view = static_view('./pdfjs')
+    pdf_view = static_view('lti:static/pdfjs')
     config.add_route('catchall_pdf', '/viewer/*subpath')
     config.add_view(pdf_view, route_name='catchall_pdf')
 
 
-    config.add_static_view(name='export', path='./export')
+    config.add_static_view(name='export', path='lti:static/export')
 
     return config.make_wsgi_app()
