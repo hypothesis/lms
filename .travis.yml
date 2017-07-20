@@ -3,7 +3,9 @@ language:
   - python
 python:
   - 2.7
-script:
-  - make test
+jobs:
+  include:
+    - script: make test
+    - script: make lint
 after_success:
   - make coverage codecov

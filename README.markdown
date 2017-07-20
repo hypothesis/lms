@@ -121,6 +121,12 @@ To get the Canvas app running in a dev environment:
 $ make test
 ```
 
+### Running the linters
+
+```bash
+$ make lint
+```
+
 ### Managing Python dependencies
 
 We use `pip-tools` to manage Python dependencies: <https://github.com/jazzband/pip-tools>.
