@@ -16,6 +16,8 @@ from pyramid.view import view_config
 from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
 
+from pyramid.renderers import render
+
 from lti.config import configure
 
 
@@ -62,32 +64,6 @@ ASSIGNMENT_VALUE = 'assignment_value'
 
 NO_PDF_FINGERPRINT = 'no pdf fingerprint'
 
-""" template for assignment submission payload """
-submission_pox_template = """
-<?xml version = "1.0" encoding = "UTF-8"?>
-<imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-  <imsx_POXHeader>
-    <imsx_POXRequestHeaderInfo>
-      <imsx_version>V1.0</imsx_version>
-      <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
-    </imsx_POXRequestHeaderInfo>
-  </imsx_POXHeader>
-  <imsx_POXBody>
-    <replaceResultRequest>
-      <resultRecord>
-        <sourcedGUID>
-          <sourcedId>__SOURCEDID__</sourcedId>
-        </sourcedGUID>
-        <result>
-          <resultData>
-            <url>__URL__</url>
-          </resultData>
-        </result>
-      </resultRecord>
-    </replaceResultRequest>
-  </imsx_POXBody>
-</imsx_POXEnvelopeRequest
-"""
 
 """ template for assignment submission form """
 submission_form_template = """
@@ -776,9 +752,10 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
     oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
-    body = submission_pox_template
-    body = body.replace('__URL__', export_url)
-    body = body.replace('__SOURCEDID__', lis_result_sourcedid)
+    body = render('lti:templates/submission.xml.jinja2', {
+        'url': export_url,
+        'sourcedid': lis_result_sourcedid,
+    })
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
     log.info ( 'lti_submit: %s' % r.status_code )
