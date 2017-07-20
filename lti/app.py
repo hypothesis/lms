@@ -714,10 +714,10 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
     oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
-    body = render('lti:templates/submission.xml.jinja2', {
-        'url': export_url,
-        'sourcedid': lis_result_sourcedid,
-    })
+    body = render('lti:templates/submission.xml.jinja2', dict(
+        url=export_url,
+        sourcedid=lis_result_sourcedid,
+    ))
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
     log.info ( 'lti_submit: %s' % r.status_code )
