@@ -5,6 +5,7 @@ credentials.lock
 credentials.txt
 lti.log
 lti/static/pdfjs/viewer/web/*.html
+lti/static/pdfjs/viewer/web/*.pdf
 .coverage*
 .tox
 .cache
