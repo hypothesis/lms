@@ -646,17 +646,6 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
     Serve a page that wraps the (lightly) transformed via output in an iframe.
     """
     url = value
-    template = """
-<html>
- <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
-<body>
-%s
-<p><i>%s</i></p>
-%s
-<iframe width="100%%" height="1000px" src="/viewer/web/%s.html"></iframe>
-</body>
-</html>
-""" 
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
     m = md5.new()
     m.update('%s/%s/%s' % ( canvas_server, course, url ))
@@ -674,7 +663,12 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
     submit_html = ''
     if lis_result_sourcedid is not None:
         submit_html = render_submission_template(settings, oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, url)
-    html = template % (assignment_boilerplate, name, submit_html, hash)
+    html = render('lti:templates/html_assignment.html.jinja2', dict(
+        assignment_boilerplate=assignment_boilerplate,
+        name=name,
+        submit_html=submit_html,
+        hash=hash,
+    ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
     return r
