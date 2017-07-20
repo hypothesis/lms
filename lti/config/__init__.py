@@ -15,9 +15,15 @@ from lti.config.settings import (
 
 def configure():
     """Return a Configurator for the Pyramid application."""
-    return Configurator(settings = {
+    return Configurator(settings={
         'lti_server_scheme': env_setting('LTI_SERVER_SCHEME'),
         'lti_server_host': env_setting('LTI_SERVER_HOST'),
         'lti_server_port': optional_env_setting('LTI_SERVER_PORT'),
         'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL'),
     })
+
+
+__all__ = (
+    'SettingError',
+    'configure',
+)

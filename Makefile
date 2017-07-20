@@ -23,6 +23,11 @@ codecov: .coverage
 	@pip install -q tox
 	tox -e codecov
 
+.PHONY: lint
+lint:
+	@pip install -q tox
+	tox -e lint
+
 .pydeps: requirements.txt
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
