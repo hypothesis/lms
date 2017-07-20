@@ -20,12 +20,11 @@ from pyramid.renderers import render
 
 from lti.config import configure
 from lti.models import AuthData
+from lti import util
+from lti import constants
 
 
 log = logging.getLogger(__name__)
-
-
-files_path = './lti/static/pdfjs/viewer/web'
 
 
 def lti_server(settings):
@@ -63,27 +62,8 @@ ASSIGNMENT_NAME = 'assignment_name'
 ASSIGNMENT_VALUE = 'assignment_value'
 
 
-NO_PDF_FINGERPRINT = 'no pdf fingerprint'
-
-
 auth_data = AuthData()
 
-
-def get_pdf_fingerprint(hash):
-    """
-    We need the fingerprint to query for annotations on the submission page.
-
-    NB: PDFJS always reports fingerpints with lowercase letters and that's required for a Hypothesis lookup,
-    even when the fingerprint found in the doc uses uppercase!
-    """
-    f = open('%s/%s.pdf' % (files_path, hash), 'rb')
-    s = f.read()
-    m = re.findall('ID\s*\[\s*<(\w+)>',s)
-    f.close()
-    if len(m) > 0:
-        return m[0].lower()
-    else:
-        return NO_PDF_FINGERPRINT
 
 def unpack_state(state):
     dict = json.loads(urllib.unquote(state))
@@ -484,10 +464,10 @@ I want students to annotate:
     return r
 
 def exists_pdf(hash):
-    return os.path.isfile('%s/%s.pdf' % (files_path, hash))
+    return os.path.isfile('%s/%s.pdf' % (constants.FILES_PATH, hash))
 
 def exists_html(hash):
-    return os.path.isfile('%s/%s.html' % (files_path, hash))
+    return os.path.isfile('%s/%s.html' % (constants.FILES_PATH, hash))
 
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
@@ -529,11 +509,11 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             url = j['url']
             log.info( url )
             urllib.urlretrieve(url, hash)
-            os.rename(hash, '%s/%s.pdf' % (files_path, hash))
+            os.rename(hash, '%s/%s.pdf' % (constants.FILES_PATH, hash))
         else:
             log.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
-    fingerprint = get_pdf_fingerprint(hash)
-    if fingerprint == NO_PDF_FINGERPRINT:
+    fingerprint = util.pdf.get_fingerprint(hash)
+    if fingerprint is None:
         pdf_uri = '%s/viewer/web/%s.pdf' % ( lti_server(request.registry.settings), hash )
     else:
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
@@ -562,7 +542,7 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
         log.info ( 'via result: %s' % r.status_code )
         text = r.text.replace('return;', '// return')               # work around https://github.com/hypothesis/via/issues/76
         text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
-        f = open('%s/%s.html' % (files_path, hash), 'wb')
+        f = open('%s/%s.html' % (constants.FILES_PATH, hash), 'wb')
         f.write(text.encode('utf-8'))
         f.close()
     export_url = '%s?uri=%s&user=__USER__' % (lti_export_url(settings), url)
@@ -848,7 +828,7 @@ def lti_credentials(request):
 @view_config( route_name='lti_serve_pdf' )
 def lti_serve_pdf(request):
     if request.referer is not None and 'pdf.worker.js' in request.referer:
-        return serve_file(path=files_path,
+        return serve_file(path=constants.FILES_PATH,
                       file=request.matchdict['file'] + '.pdf',
                       request=request,
                       content_type='application/pdf')
