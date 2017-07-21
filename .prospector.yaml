@@ -7,6 +7,7 @@ mccabe:
   run: true
 pep8:
   run: true
+  full: true
 pep257:
   disable:
     - D100  # Missing docstring in public module
