@@ -1,6 +1,7 @@
 output-format: grouped
 strictness: veryhigh
 doc-warnings: true
+test-warnings: false
 max-line-length: 160
 mccabe:
   run: true
