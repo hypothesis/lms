@@ -285,7 +285,7 @@ def lti_setup(request):
     """
     log.info ( 'lti_setup: query: %s' % request.query_string )
     log.info ( 'lti_setup: post: %s' % request.POST )
-    dict = capture_post_data(request)
+    post_data = capture_post_data(request)
 
     oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
     if oauth_consumer_key is None:
@@ -299,11 +299,11 @@ def lti_setup(request):
         log.error ( 'course cannot be None' )
         return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     
-    dict[ASSIGNMENT_TYPE] = get_post_or_query_param(request, ASSIGNMENT_TYPE)
-    dict[ASSIGNMENT_NAME] = get_post_or_query_param(request, ASSIGNMENT_NAME)
-    dict[ASSIGNMENT_VALUE] = get_post_or_query_param(request, ASSIGNMENT_VALUE)
+    post_data[ASSIGNMENT_TYPE] = get_post_or_query_param(request, ASSIGNMENT_TYPE)
+    post_data[ASSIGNMENT_NAME] = get_post_or_query_param(request, ASSIGNMENT_NAME)
+    post_data[ASSIGNMENT_VALUE] = get_post_or_query_param(request, ASSIGNMENT_VALUE)
 
-    log.info ( 'lti_setup: dict: %s' % dict )
+    log.info ( 'lti_setup: post_data: %s' % post_data )
 
     try:
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
@@ -315,7 +315,7 @@ def lti_setup(request):
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
-        return token_init(request, pack_state(dict))
+        return token_init(request, pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -324,7 +324,7 @@ def lti_setup(request):
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
       log.info ( 'lti_setup: refreshing token' )
-      return refresh_init(request, pack_state(dict))
+      return refresh_init(request, pack_state(post_data))
     files = r.json()
     while ('next' in r.links):
         url = r.links['next']['url']
@@ -334,9 +334,9 @@ def lti_setup(request):
 
     #return HTTPFound(location='http://h.jonudell.info:3000/courses/2/external_content/success/external_tool_dialog?return_type=lti_launch_url&url=http%3A%2F%2F98.234.245.185%3A8000%2Flti_setup%3FCUSTOM_CANVAS_COURSE_ID%3D2%26type%3Dpdf%26name%3Dfilename%26value%3D9')
     
-    assignment_type = dict[ASSIGNMENT_TYPE]
-    assignment_name = dict[ASSIGNMENT_NAME]
-    assignment_value = dict[ASSIGNMENT_VALUE]
+    assignment_type = post_data[ASSIGNMENT_TYPE]
+    assignment_name = post_data[ASSIGNMENT_NAME]
+    assignment_value = post_data[ASSIGNMENT_VALUE]
 
     if assignment_type == 'pdf':
         return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
@@ -354,89 +354,6 @@ def lti_setup(request):
 
     log.info ( 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token) )
 
-    """ this is the ux for choosing which pdf or web page to annotate """
-    template = """
-<html><head> 
-<style> 
-body { font-family:verdana; margin:.5in; font-size:smaller } 
-p { font-weight: bold }
-ul { list-style-type: none; padding: 0 }
-li { margin: 4px 0 }
-#pdf_select, #web_select { display: none }
-</style> 
-<script>
-var checked_boxes;
-
-function getRVBN(rName) {
-    var radioButtons = document.getElementsByName(rName);
-    for (var i = 0; i < radioButtons.length; i++) {
-        if (radioButtons[i].checked)
-            return radioButtons[i];
-    }
-    return '';
-}
-
-function show() {
-  var type = getRVBN('format').value;
-  if ( type=='pdf' ) {
-    document.getElementById('pdf_select').style.display = 'block';
-    document.getElementById('web_select').style.display = 'none';
-    }
-  if ( type=='web' ) {
-    document.getElementById('web_select').style.display = 'block';
-    document.getElementById('pdf_select').style.display = 'none';
-    }
-  }
-
-function go() {
-    var return_url = '%s';
-    var launch_url = '%s';
-    var redirect_url;
-    var type = getRVBN('format').value;
-
-    if ( type == 'pdf' ) {
-      var pdf_choice = getRVBN('pdf_choice');
-      launch_url = launch_url.replace('__TYPE__',  'pdf');
-      launch_url = launch_url.replace('__NAME__',  encodeURIComponent(pdf_choice.value));
-      launch_url = launch_url.replace('__VALUE__', pdf_choice.id);
-      redirect_url = return_url + '?return_type=lti_launch_url&url=' + encodeURIComponent(launch_url);
-      }
-
-    if ( type == 'web' ) {
-      var url = document.getElementById('web_url').value;
-      launch_url = launch_url.replace('__TYPE__',  'web');
-      launch_url = launch_url.replace('__NAME__',  url);
-      launch_url = launch_url.replace('__VALUE__', url);
-      launch_url = launch_url.replace('__RETURN_URL__', return_url);
-      redirect_url = return_url + '?return_type=lti_launch_url&url=' + encodeURIComponent(launch_url);
-      }
-
-  window.location.href = redirect_url;
-  }
-</script>
-</head>
-<body>
-<p>
-I want students to annotate:
-<div>
-<input onchange="javascript:show()" id="pdf_choice" type="radio" name="format" value="pdf"> A PDF file
-<input onchange="javascript:show()" id="web_choice" type="radio" name="format" value="web"> A web page
-</div>
-</p>
-
-<div id="pdf_select">
-<p<Select a PDF from the Canvas Files in this course</p>
-%s 
-</div>
-<div id="web_select">
-<p>Enter a URL</p>
-<input size="80" id="web_url" onchange="javascript:go()"></input>
-</p>
-</div>
-
-</body>
-</html>
-""" 
     pdf_choices = ''
     if len(files) > 0:
         pdf_choices += '<ul>'
@@ -448,14 +365,11 @@ I want students to annotate:
             pdf_choices += '<li><input type="radio" name="pdf_choice" onclick="javascript:go()" value="%s" id="%s">%s</li>' % (name, id, name) 
         pdf_choices += '</ul>'
    
-    html = template % (
-        return_url,
-        launch_url_template,
-        pdf_choices
-        )
-    r = Response(html.encode('utf-8'))
-    r.content_type = 'text/html'
-    return r
+    return Response(render('lti:templates/document_chooser.html.jinja2', dict(
+        return_url=return_url,
+        launch_url=launch_url_template,
+        pdf_choices=pdf_choices,
+    )))
 
 def exists_pdf(hash):
     return os.path.isfile('%s/%s.pdf' % (constants.FILES_PATH, hash))

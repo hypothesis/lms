@@ -1,0 +1,106 @@
+{# This is the UX for choosing which PDF file or web page URL to annotate. #}
+<html>
+  <head>
+    <style>
+      body {
+        font-family:verdana; margin:.5in;
+        font-size:smaller;
+      }
+      p {
+        font-weight: bold;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        margin: 4px 0;
+      }
+      #pdf_select,
+      #web_select {
+        display: none;
+      }
+    </style>
+    <script>
+var checked_boxes;
+
+function getRVBN(rName) {
+    var radioButtons = document.getElementsByName(rName);
+    for (var i = 0; i < radioButtons.length; i++) {
+        if (radioButtons[i].checked)
+            return radioButtons[i];
+    }
+    return '';
+}
+
+function show() {
+  var type = getRVBN('format').value;
+  if ( type=='pdf' ) {
+    document.getElementById('pdf_select').style.display = 'block';
+    document.getElementById('web_select').style.display = 'none';
+    }
+  if ( type=='web' ) {
+    document.getElementById('web_select').style.display = 'block';
+    document.getElementById('pdf_select').style.display = 'none';
+    }
+  }
+
+function go() {
+    var return_url = '{{ return_url }}';
+    var launch_url = '{{ launch_url }}';
+    var redirect_url;
+    var type = getRVBN('format').value;
+
+    if ( type == 'pdf' ) {
+      var pdf_choice = getRVBN('pdf_choice');
+      launch_url = launch_url.replace('__TYPE__',  'pdf');
+      launch_url = launch_url.replace('__NAME__',  encodeURIComponent(pdf_choice.value));
+      launch_url = launch_url.replace('__VALUE__', pdf_choice.id);
+      redirect_url = return_url + '?return_type=lti_launch_url&url=' + encodeURIComponent(launch_url);
+      }
+
+    if ( type == 'web' ) {
+      var url = document.getElementById('web_url').value;
+      launch_url = launch_url.replace('__TYPE__',  'web');
+      launch_url = launch_url.replace('__NAME__',  url);
+      launch_url = launch_url.replace('__VALUE__', url);
+      launch_url = launch_url.replace('__RETURN_URL__', return_url);
+      redirect_url = return_url + '?return_type=lti_launch_url&url=' + encodeURIComponent(launch_url);
+      }
+
+  window.location.href = redirect_url;
+  }
+    </script>
+  </head>
+  <body>
+    <p>
+      I want students to annotate:
+      <div>
+        <input onchange="javascript:show()"
+               id="pdf_choice"
+               type="radio"
+               name="format"
+               value="pdf">
+          A PDF file
+        </input>
+        <input onchange="javascript:show()"
+               id="web_choice"
+               type="radio"
+               name="format"
+               value="web">
+          A web page
+        </input>
+      </div>
+    </p>
+
+    <div id="pdf_select">
+      <p>Select a PDF from the Canvas Files in this course</p>
+      {{ pdf_choices|safe }}
+    </div>
+
+    <div id="web_select">
+      <p>Enter a URL</p>
+      <input size="80" id="web_url" onchange="javascript:go()"></input>
+    </div>
+  </body>
+</html>
