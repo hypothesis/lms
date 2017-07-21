@@ -1,11 +1,13 @@
 output-format: grouped
 strictness: veryhigh
 doc-warnings: true
+test-warnings: false
 max-line-length: 160
 mccabe:
   run: true
 pep8:
   run: true
+  full: true
 pep257:
   disable:
     - D100  # Missing docstring in public module
