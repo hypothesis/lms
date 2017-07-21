@@ -1,5 +1,10 @@
+# Special prospector config file for the tests dir.
+#
+# Tests can contain mistakes, and should have consistent code style, so I do
+# want to lint the tests, but I don't want to apply exactly the same lint rules
+# to the tests as to the production code.
 inherits:
-    - .prospector
+    - .prospector.base
 test-warnings: true
 pylint:
   options:
