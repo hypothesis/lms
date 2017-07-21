@@ -45,23 +45,6 @@ def lti_export_url(settings):
     return '%s/lti_export' % lti_server(settings)
 
 
-# canvas params
-CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
-CUSTOM_CANVAS_USER_ID = 'custom_canvas_user_id'
-CUSTOM_CANVAS_ASSIGNMENT_ID = 'custom_canvas_assignment_id'
-OAUTH_CONSUMER_KEY = 'oauth_consumer_key'
-EXT_CONTENT_RETURN_TYPES = 'ext_content_return_types'
-EXT_CONTENT_RETURN_URL = 'ext_content_return_url'
-LIS_OUTCOME_SERVICE_URL = 'lis_outcome_service_url'
-LIS_RESULT_SOURCEDID = 'lis_result_sourcedid'
-
-# our params
-EXPORT_URL = 'export_url'
-ASSIGNMENT_TYPE = 'assignment_type'
-ASSIGNMENT_NAME = 'assignment_name'
-ASSIGNMENT_VALUE = 'assignment_value'
-
-
 auth_data = AuthData()
 
 
@@ -78,7 +61,7 @@ def token_init(request, state=None):
     try:
         dict = unpack_state(state)
         log.info( 'token_init: state: %s' % dict )
-        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
+        oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
         token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
@@ -94,7 +77,7 @@ def refresh_init(request, state=None):
     try:
         dict = unpack_state(state)
         log.info( 'refresh_init: state: %s' % dict )
-        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
+        oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
         token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
@@ -122,16 +105,14 @@ def oauth_callback(request, type=None):
         dict = unpack_state(state)
         log.info ( 'oauth_callback: %s' % state)
 
-        course = dict[CUSTOM_CANVAS_COURSE_ID]
-        user = dict[CUSTOM_CANVAS_USER_ID]
-        oauth_consumer_key = dict[OAUTH_CONSUMER_KEY]
-        ext_content_return_url = dict[EXT_CONTENT_RETURN_URL]
-        lis_outcome_service_url = dict[LIS_OUTCOME_SERVICE_URL]
-        lis_result_sourcedid = dict[LIS_RESULT_SOURCEDID]
+        course = dict[constants.CUSTOM_CANVAS_COURSE_ID]
+        user = dict[constants.CUSTOM_CANVAS_USER_ID]
+        oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
+        ext_content_return_url = dict[constants.EXT_CONTENT_RETURN_URL]
 
-        assignment_type = dict[ASSIGNMENT_TYPE]
-        assignment_name = dict[ASSIGNMENT_NAME]
-        assignment_value = dict[ASSIGNMENT_VALUE]
+        assignment_type = dict[constants.ASSIGNMENT_TYPE]
+        assignment_name = dict[constants.ASSIGNMENT_NAME]
+        assignment_value = dict[constants.ASSIGNMENT_VALUE]
 
         canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
         lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
@@ -155,13 +136,13 @@ def oauth_callback(request, type=None):
             lti_refresh_token = dict['refresh_token']
         auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
         redirect = lti_setup_url(request.registry.settings) + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
-            CUSTOM_CANVAS_COURSE_ID, course, 
-            CUSTOM_CANVAS_USER_ID, user, 
-            OAUTH_CONSUMER_KEY, oauth_consumer_key, 
-            EXT_CONTENT_RETURN_URL, ext_content_return_url,
-            ASSIGNMENT_TYPE, assignment_type,
-            ASSIGNMENT_NAME, assignment_name,
-            ASSIGNMENT_VALUE, assignment_value
+            constants.CUSTOM_CANVAS_COURSE_ID, course,
+            constants.CUSTOM_CANVAS_USER_ID, user,
+            constants.OAUTH_CONSUMER_KEY, oauth_consumer_key,
+            constants.EXT_CONTENT_RETURN_URL, ext_content_return_url,
+            constants.ASSIGNMENT_TYPE, assignment_type,
+            constants.ASSIGNMENT_NAME, assignment_name,
+            constants.ASSIGNMENT_VALUE, assignment_value
             )
         return HTTPFound(location=redirect)
     except:
@@ -230,14 +211,14 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
 def capture_post_data(request):
     ret = {}
     for key in [
-            OAUTH_CONSUMER_KEY,
-            CUSTOM_CANVAS_USER_ID,
-            CUSTOM_CANVAS_COURSE_ID,
-            CUSTOM_CANVAS_ASSIGNMENT_ID,
-            EXT_CONTENT_RETURN_TYPES,
-            EXT_CONTENT_RETURN_URL,
-            LIS_OUTCOME_SERVICE_URL,
-            LIS_RESULT_SOURCEDID
+            constants.OAUTH_CONSUMER_KEY,
+            constants.CUSTOM_CANVAS_USER_ID,
+            constants.CUSTOM_CANVAS_COURSE_ID,
+            constants.CUSTOM_CANVAS_ASSIGNMENT_ID,
+            constants.EXT_CONTENT_RETURN_TYPES,
+            constants.EXT_CONTENT_RETURN_URL,
+            constants.LIS_OUTCOME_SERVICE_URL,
+            constants.LIS_RESULT_SOURCEDID
             ]:
         if key in request.POST.keys():
             ret[key] = request.POST[key]
@@ -253,7 +234,7 @@ def get_post_or_query_param(request, key):
         value = get_post_param(request, key)
         ret = value
     if ret is None:
-        if key == CUSTOM_CANVAS_COURSE_ID:
+        if key == constants.CUSTOM_CANVAS_COURSE_ID:
             log.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
     return ret
 
@@ -287,21 +268,21 @@ def lti_setup(request):
     log.info ( 'lti_setup: post: %s' % request.POST )
     post_data = capture_post_data(request)
 
-    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+    oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     if oauth_consumer_key is None:
         log.error( 'oauth_consumer_key cannot be None %s' % request.POST )
     oauth_consumer_key = oauth_consumer_key.strip()
-    lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
-    lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
+    lis_outcome_service_url = get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
 
-    course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
+    course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
     if course is None:
         log.error ( 'course cannot be None' )
         return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     
-    post_data[ASSIGNMENT_TYPE] = get_post_or_query_param(request, ASSIGNMENT_TYPE)
-    post_data[ASSIGNMENT_NAME] = get_post_or_query_param(request, ASSIGNMENT_NAME)
-    post_data[ASSIGNMENT_VALUE] = get_post_or_query_param(request, ASSIGNMENT_VALUE)
+    post_data[constants.ASSIGNMENT_TYPE] = get_post_or_query_param(request, constants.ASSIGNMENT_TYPE)
+    post_data[constants.ASSIGNMENT_NAME] = get_post_or_query_param(request, constants.ASSIGNMENT_NAME)
+    post_data[constants.ASSIGNMENT_VALUE] = get_post_or_query_param(request, constants.ASSIGNMENT_VALUE)
 
     log.info ( 'lti_setup: post_data: %s' % post_data )
 
@@ -334,9 +315,9 @@ def lti_setup(request):
 
     #return HTTPFound(location='http://h.jonudell.info:3000/courses/2/external_content/success/external_tool_dialog?return_type=lti_launch_url&url=http%3A%2F%2F98.234.245.185%3A8000%2Flti_setup%3FCUSTOM_CANVAS_COURSE_ID%3D2%26type%3Dpdf%26name%3Dfilename%26value%3D9')
     
-    assignment_type = post_data[ASSIGNMENT_TYPE]
-    assignment_name = post_data[ASSIGNMENT_NAME]
-    assignment_value = post_data[ASSIGNMENT_VALUE]
+    assignment_type = post_data[constants.ASSIGNMENT_TYPE]
+    assignment_name = post_data[constants.ASSIGNMENT_NAME]
+    assignment_value = post_data[constants.ASSIGNMENT_VALUE]
 
     if assignment_type == 'pdf':
         return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
@@ -344,7 +325,7 @@ def lti_setup(request):
     if assignment_type == 'web':
         return lti_web(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
 
-    return_url = get_post_or_query_param(request, EXT_CONTENT_RETURN_URL)
+    return_url = get_post_or_query_param(request, constants.EXT_CONTENT_RETURN_URL)
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
         return_url = get_post_or_query_param(request, 'return_url')
 
@@ -393,7 +374,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     log.info ( 'lti_pdf: post: %s' % request.POST )
     post_data = capture_post_data(request)
     if oauth_consumer_key is None:
-        oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
+        oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     file_id = value
     try:
         lti_token = auth_data.get_lti_token(oauth_consumer_key)
@@ -469,9 +450,9 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
 
 def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):  # no api token needed in this case
     if oauth_consumer_key is None:
-        oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
-    course = get_post_or_query_param(request, CUSTOM_CANVAS_COURSE_ID)
-    user = get_post_or_query_param(request, CUSTOM_CANVAS_USER_ID)
+        oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
+    course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
+    user = get_post_or_query_param(request, constants.CUSTOM_CANVAS_USER_ID)
     return web_response(request.registry.settings, oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
 @view_config( route_name='lti_submit' )
@@ -485,10 +466,10 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     log.info ( 'lti_submit: query: %s' % request.query_string )
     log.info ( 'lti_submit: post: %s' % request.POST )
     post_data = capture_post_data(request)  # unused until/unless this becomes an lti launch
-    oauth_consumer_key = get_post_or_query_param(request, OAUTH_CONSUMER_KEY)
-    lis_outcome_service_url = get_post_or_query_param(request, LIS_OUTCOME_SERVICE_URL)
-    lis_result_sourcedid = get_post_or_query_param(request, LIS_RESULT_SOURCEDID)
-    export_url = get_post_or_query_param(request, EXPORT_URL)
+    oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
+    lis_outcome_service_url = get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
+    export_url = get_post_or_query_param(request, constants.EXPORT_URL)
 
     try:
         secret = auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
