@@ -178,15 +178,9 @@ def bare_response(text):
     return r
 
 def simple_response(exc_str):
-    template = """
- <html>
- <head> <style> body { font-family:verdana; margin:.5in; } </style> </head>
- <body>%s</body>
- </html>"""
-    html = template % exc_str
-    r = Response(html.encode('utf-8'))
-    r.content_type = 'text/html'
-    return r
+    return Response(render('lti:templates/simple_response.html.jinja2', dict(
+        body=exc_str,
+    )))
 
 def page_response(html):
     r = Response(html.encode('utf-8'))
