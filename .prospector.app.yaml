@@ -1,0 +1,36 @@
+# Special prospector config file for the app.py file.
+#
+# This is so we can still run prospector on app.py to detect things like
+# undefined variables as we refactor, while not getting a whole lot of code
+# style warnings because the code style throughout app.py is non-standard.
+#
+# Once app.py has been brought up to the same lint standards as the other
+# Python files this special config file won't be needed anymore.
+inherits:
+    - .prospector.base
+mccabe:
+    run: false
+pep8:
+    run: false
+pep257:
+    run: false
+pylint:
+    disable:
+        - wrong-import-order
+        - wrong-import-position
+        - ungrouped-imports
+        - invalid-name
+        - redefined-builtin
+        - logging-not-lazy
+        - bad-whitespace
+        - bare-except
+        - assignment-from-no-return
+        - too-many-locals
+        - trailing-whitespace
+        - too-many-arguments
+        - too-many-return-statements
+        - too-many-statements
+        - bad-indentation
+        - superfluous-parens
+        - len-as-condition
+        - anomalous-backslash-in-string
