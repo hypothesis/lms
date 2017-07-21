@@ -3,9 +3,6 @@ import urllib
 import urlparse
 import requests
 import traceback
-import pyramid
-import sys
-import time
 import os
 import re
 import md5
@@ -34,8 +31,7 @@ def lti_server(settings):
 
     if lti_server_port is None:
         return '%s://%s' % (lti_server_scheme, lti_server_host)
-    else:
-        return '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
+    return '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
 
 def lti_setup_url(settings):
     return '%s/lti_setup' % lti_server(settings)
@@ -241,16 +237,14 @@ def get_post_or_query_param(request, key):
 def get_query_param(request, key):
     q = urlparse.parse_qs(request.query_string)
     if q.has_key(key):
-      return q[key][0]
-    else:
-      return None
+        return q[key][0]
+    return None
 
 def get_post_param(request, key):
     post_data = capture_post_data(request)
     if post_data.has_key(key):
         return post_data[key]
-    else:
-        return None
+    return None
 
 @view_config( route_name='lti_setup' )
 def lti_setup(request):
@@ -408,7 +402,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None, user=None):
+def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
     """
     Our app was called from an assignment to annotate a web page.
 
@@ -434,7 +428,6 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
         f = open('%s/%s.html' % (constants.FILES_PATH, hash), 'wb')
         f.write(text.encode('utf-8'))
         f.close()
-    export_url = '%s?uri=%s&user=__USER__' % (lti_export_url(settings), url)
     html = render('lti:templates/html_assignment.html.jinja2', dict(
         name=name,
         hash=hash,
@@ -452,7 +445,6 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     if oauth_consumer_key is None:
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
-    user = get_post_or_query_param(request, constants.CUSTOM_CANVAS_USER_ID)
     return web_response(request.registry.settings, oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
 
 @view_config( route_name='lti_submit' )
@@ -465,7 +457,6 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     """
     log.info ( 'lti_submit: query: %s' % request.query_string )
     log.info ( 'lti_submit: post: %s' % request.POST )
-    post_data = capture_post_data(request)  # unused until/unless this becomes an lti launch
     oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     lis_outcome_service_url = get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
     lis_result_sourcedid = get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
@@ -542,16 +533,16 @@ def lti_credentials(request):
     """
     if  request.method == 'OPTIONS':
         return cors_response(request)
-    else:
-        credentials = get_query_param(request, 'credentials')
-        if ( credentials is None ):
-          return page_response(lti_credentials_form(request.registry.settings))
-        else: 
-          lock = filelock.FileLock("credentials.lock")
-          with lock.acquire(timeout = 1):
-            with open('credentials.txt', 'a') as f:
-              f.write(credentials + '\n')
-          return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
+
+    credentials = get_query_param(request, 'credentials')
+    if ( credentials is None ):
+      return page_response(lti_credentials_form(request.registry.settings))
+
+    lock = filelock.FileLock("credentials.lock")
+    with lock.acquire(timeout = 1):
+      with open('credentials.txt', 'a') as f:
+        f.write(credentials + '\n')
+    return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
 
 
 @view_config( route_name='lti_serve_pdf' )
@@ -561,11 +552,9 @@ def lti_serve_pdf(request):
                       file=request.matchdict['file'] + '.pdf',
                       request=request,
                       content_type='application/pdf')
-    else:
-        return simple_response('You are not logged in to Canvas')
 
-from wsgiref.simple_server import make_server
-from pyramid.config import Configurator
+    return simple_response('You are not logged in to Canvas')
+
 from pyramid.response import Response
 from pyramid.static import static_view
 
