@@ -16,7 +16,6 @@ from requests_oauthlib import OAuth1
 from pyramid.renderers import render
 
 from lti.config import configure
-from lti.models import AuthData
 from lti import util
 from lti import constants
 
@@ -24,42 +23,22 @@ from lti import constants
 log = logging.getLogger(__name__)
 
 
-def lti_server(settings):
-    lti_server_port = settings['lti_server_port']
-    lti_server_scheme = settings['lti_server_scheme']
-    lti_server_host = settings['lti_server_host']
-
-    if lti_server_port is None:
-        return '%s://%s' % (lti_server_scheme, lti_server_host)
-    return '%s://%s:%s' % (lti_server_scheme, lti_server_host, lti_server_port)
-
 def lti_setup_url(settings):
-    return '%s/lti_setup' % lti_server(settings)
+    return '%s/lti_setup' % settings['lti_server']
 
 
 def lti_export_url(settings):
-    return '%s/lti_export' % lti_server(settings)
+    return '%s/lti_export' % settings['lti_server']
 
-
-auth_data = AuthData()
-
-
-def unpack_state(state):
-    dict = json.loads(urllib.unquote(state))
-    return dict
-
-def pack_state(dict):
-    state = urllib.quote(json.dumps(dict))
-    return state
 
 def token_init(request, state=None):
     """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
     try:
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info( 'token_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, request.registry.settings['lti_server'], state)
         ret = HTTPFound(location=token_redirect_uri)
         log.info( 'token_init ' + token_redirect_uri )
         return ret
@@ -71,11 +50,11 @@ def token_init(request, state=None):
 def refresh_init(request, state=None):
     """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
     try:
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info( 'refresh_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, request.registry.settings['lti_server'], state)
         ret = HTTPFound(location=token_redirect_uri)
         return ret
     except:
@@ -98,7 +77,7 @@ def oauth_callback(request, type=None):
         q = urlparse.parse_qs(request.query_string)
         code = q['code'][0]
         state = q['state'][0]
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info ( 'oauth_callback: %s' % state)
 
         course = dict[constants.CUSTOM_CANVAS_COURSE_ID]
@@ -110,17 +89,18 @@ def oauth_callback(request, type=None):
         assignment_name = dict[constants.ASSIGNMENT_NAME]
         assignment_value = dict[constants.ASSIGNMENT_VALUE]
 
-        canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-        lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_client_secret = request.auth_data.get_lti_secret(oauth_consumer_key)
+        lti_refresh_token = request.auth_data.get_lti_refresh_token(
+            oauth_consumer_key)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
         url = '%s/login/oauth2/token' % canvas_server
         grant_type = 'authorization_code' if type == 'token' else 'refresh_token'
         params = { 
                 'grant_type': grant_type,
                 'client_id': oauth_consumer_key,
                 'client_secret': canvas_client_secret,
-                'redirect_uri': '%s/token_init' % lti_server(request.registry.settings) # this uri must match the uri in Developer Keys but is not called from
-                }                                                                       # canvas. rather it calls token_callback or refresh callback
+                'redirect_uri': '%s/token_init' % request.registry.settings['lti_server'] # this uri must match the uri in Developer Keys but is not called from
+                }                                                                         # canvas. rather it calls token_callback or refresh callback
         if grant_type == 'authorization_code': 
             params['code'] = code
         else:
@@ -130,7 +110,9 @@ def oauth_callback(request, type=None):
         lti_token = dict['access_token']
         if dict.has_key('refresh_token'): # does it ever not?
             lti_refresh_token = dict['refresh_token']
-        auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
+        request.auth_data.set_tokens(oauth_consumer_key,
+                                     lti_token,
+                                     lti_refresh_token)
         redirect = lti_setup_url(request.registry.settings) + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
             constants.CUSTOM_CANVAS_COURSE_ID, course,
             constants.CUSTOM_CANVAS_USER_ID, user,
@@ -198,7 +180,7 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
         lis_outcome_service_url=lis_outcome_service_url,
         lis_result_sourcedid=lis_result_sourcedid,
         doc_uri=doc_uri,
-        lti_server=lti_server(settings),
+        lti_server=settings['lti_server'],
     ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -281,7 +263,7 @@ def lti_setup(request):
     log.info ( 'lti_setup: post_data: %s' % post_data )
 
     try:
-        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
     except:
         response = "We don't have the Consumer Key %s in our database yet." % oauth_consumer_key
         log.error ( response )
@@ -290,16 +272,16 @@ def lti_setup(request):
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
-        return token_init(request, pack_state(post_data))
+        return token_init(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
     log.info ( 'canvas_server: %s' % canvas_server )
     url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
       log.info ( 'lti_setup: refreshing token' )
-      return refresh_init(request, pack_state(post_data))
+      return refresh_init(request, util.pack_state(post_data))
     files = r.json()
     while ('next' in r.links):
         url = r.links['next']['url']
@@ -325,7 +307,7 @@ def lti_setup(request):
 
     log.info ( 'return_url: %s' % return_url )
 
-    launch_url_template = '%s/lti_setup?assignment_type=__TYPE__&assignment_name=__NAME__&assignment_value=__VALUE__&return_url=__RETURN_URL__' % lti_server(request.registry.settings)
+    launch_url_template = '%s/lti_setup?assignment_type=__TYPE__&assignment_name=__NAME__&assignment_value=__VALUE__&return_url=__RETURN_URL__' % request.registry.settings['lti_server']
 
     log.info ( 'key %s, course %s, token %s' % (oauth_consumer_key, course, lti_token) )
 
@@ -371,10 +353,10 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     file_id = value
     try:
-        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
     except:
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     m = md5.new()
     m.update('%s/%s/%s' % ( canvas_server, course, file_id ))
@@ -397,12 +379,12 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
             log.error('%s retrieving %s, %s, %s' % (r.status_code, canvas_server, course, file_id))
     fingerprint = util.pdf.get_fingerprint(hash)
     if fingerprint is None:
-        pdf_uri = '%s/viewer/web/%s.pdf' % ( lti_server(request.registry.settings), hash )
+        pdf_uri = '%s/viewer/web/%s.pdf' % ( request.registry.settings['lti_server'], hash )
     else:
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
+def web_response(settings, auth_data, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
     """
     Our app was called from an assignment to annotate a web page.
 
@@ -435,7 +417,7 @@ def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_ser
         lis_outcome_service_url=lis_outcome_service_url,
         lis_result_sourcedid=lis_result_sourcedid,
         doc_uri=url,
-        lti_server=lti_server(settings),
+        lti_server=settings['lti_server'],
     ))
     r = Response(html.encode('utf-8'))
     r.content_type = 'text/html'
@@ -445,7 +427,14 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     if oauth_consumer_key is None:
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
-    return web_response(request.registry.settings, oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
+    return web_response(request.registry.settings,
+                        request.auth_data,
+                        oauth_consumer_key,
+                        course,
+                        lis_outcome_service_url,
+                        lis_result_sourcedid,
+                        name,
+                        value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
@@ -463,7 +452,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     export_url = get_post_or_query_param(request, constants.EXPORT_URL)
 
     try:
-        secret = auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
+        secret = request.auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
     except:
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
@@ -498,7 +487,7 @@ def lti_export(request):
     user = parsed_args['user'][0]
     uri = parsed_args['uri'][0]
     log.info( 'lti_export user: %s, uri %s' % ( user, uri) )
-    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( lti_server(request.registry.settings), urllib.quote(uri), user )
+    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( request.registry.settings['lti_server'], urllib.quote(uri), user )
     return HTTPFound(location=export_url)
 
 
@@ -564,6 +553,8 @@ def app():
     config.include('pyramid_jinja2')
 
     config.scan()
+
+    config.include('lti.models')
 
     config.add_route('token_callback',      '/token_callback')
     config.add_route('refresh_callback',    '/refresh_callback')
