@@ -86,9 +86,7 @@ To get the Canvas app running in a dev environment:
    local development:
 
    ```bash
-   export LTI_SERVER_SCHEME="http"
-   export LTI_SERVER_HOST="localhost"
-   export LTI_SERVER_PORT="8001"
+   export LTI_SERVER="http://localhost:8001"
    export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
    ```
 
