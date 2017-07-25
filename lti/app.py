@@ -16,7 +16,6 @@ from requests_oauthlib import OAuth1
 from pyramid.renderers import render
 
 from lti.config import configure
-from lti.models import AuthData
 from lti import util
 from lti import constants
 
@@ -41,16 +40,13 @@ def lti_export_url(settings):
     return '%s/lti_export' % lti_server(settings)
 
 
-auth_data = AuthData()
-
-
 def token_init(request, state=None):
     """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
     try:
         dict = util.unpack_state(state)
         log.info( 'token_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
         token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
         log.info( 'token_init ' + token_redirect_uri )
@@ -66,7 +62,7 @@ def refresh_init(request, state=None):
         dict = util.unpack_state(state)
         log.info( 'refresh_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
         token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, lti_server(request.registry.settings), state)
         ret = HTTPFound(location=token_redirect_uri)
         return ret
@@ -102,9 +98,10 @@ def oauth_callback(request, type=None):
         assignment_name = dict[constants.ASSIGNMENT_NAME]
         assignment_value = dict[constants.ASSIGNMENT_VALUE]
 
-        canvas_client_secret = auth_data.get_lti_secret(oauth_consumer_key)
-        lti_refresh_token = auth_data.get_lti_refresh_token(oauth_consumer_key)
-        canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_client_secret = request.auth_data.get_lti_secret(oauth_consumer_key)
+        lti_refresh_token = request.auth_data.get_lti_refresh_token(
+            oauth_consumer_key)
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
         url = '%s/login/oauth2/token' % canvas_server
         grant_type = 'authorization_code' if type == 'token' else 'refresh_token'
         params = { 
@@ -122,7 +119,9 @@ def oauth_callback(request, type=None):
         lti_token = dict['access_token']
         if dict.has_key('refresh_token'): # does it ever not?
             lti_refresh_token = dict['refresh_token']
-        auth_data.set_tokens(oauth_consumer_key, lti_token, lti_refresh_token)
+        request.auth_data.set_tokens(oauth_consumer_key,
+                                     lti_token,
+                                     lti_refresh_token)
         redirect = lti_setup_url(request.registry.settings) + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
             constants.CUSTOM_CANVAS_COURSE_ID, course,
             constants.CUSTOM_CANVAS_USER_ID, user,
@@ -273,7 +272,7 @@ def lti_setup(request):
     log.info ( 'lti_setup: post_data: %s' % post_data )
 
     try:
-        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
     except:
         response = "We don't have the Consumer Key %s in our database yet." % oauth_consumer_key
         log.error ( response )
@@ -285,7 +284,7 @@ def lti_setup(request):
         return token_init(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
     log.info ( 'canvas_server: %s' % canvas_server )
     url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
@@ -363,10 +362,10 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     file_id = value
     try:
-        lti_token = auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
     except:
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     m = md5.new()
     m.update('%s/%s/%s' % ( canvas_server, course, file_id ))
@@ -394,7 +393,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(settings, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
+def web_response(settings, auth_data, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
     """
     Our app was called from an assignment to annotate a web page.
 
@@ -437,7 +436,14 @@ def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     if oauth_consumer_key is None:
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
-    return web_response(request.registry.settings, oauth_consumer_key, course, lis_outcome_service_url, lis_result_sourcedid, name, value)
+    return web_response(request.registry.settings,
+                        request.auth_data,
+                        oauth_consumer_key,
+                        course,
+                        lis_outcome_service_url,
+                        lis_result_sourcedid,
+                        name,
+                        value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
@@ -455,7 +461,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     export_url = get_post_or_query_param(request, constants.EXPORT_URL)
 
     try:
-        secret = auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
+        secret = request.auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
     except:
         return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
@@ -556,6 +562,8 @@ def app():
     config.include('pyramid_jinja2')
 
     config.scan()
+
+    config.include('lti.models')
 
     config.add_route('token_callback',      '/token_callback')
     config.add_route('refresh_callback',    '/refresh_callback')
