@@ -44,18 +44,10 @@ def lti_export_url(settings):
 auth_data = AuthData()
 
 
-def unpack_state(state):
-    dict = json.loads(urllib.unquote(state))
-    return dict
-
-def pack_state(dict):
-    state = urllib.quote(json.dumps(dict))
-    return state
-
 def token_init(request, state=None):
     """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
     try:
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info( 'token_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -71,7 +63,7 @@ def token_init(request, state=None):
 def refresh_init(request, state=None):
     """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
     try:
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info( 'refresh_init: state: %s' % dict )
         oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
         canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -98,7 +90,7 @@ def oauth_callback(request, type=None):
         q = urlparse.parse_qs(request.query_string)
         code = q['code'][0]
         state = q['state'][0]
-        dict = unpack_state(state)
+        dict = util.unpack_state(state)
         log.info ( 'oauth_callback: %s' % state)
 
         course = dict[constants.CUSTOM_CANVAS_COURSE_ID]
@@ -290,7 +282,7 @@ def lti_setup(request):
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
-        return token_init(request, pack_state(post_data))
+        return token_init(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
     canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
@@ -299,7 +291,7 @@ def lti_setup(request):
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
       log.info ( 'lti_setup: refreshing token' )
-      return refresh_init(request, pack_state(post_data))
+      return refresh_init(request, util.pack_state(post_data))
     files = r.json()
     while ('next' in r.links):
         url = r.links['next']['url']
