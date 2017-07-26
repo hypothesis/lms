@@ -23,10 +23,6 @@ from lti import constants
 log = logging.getLogger(__name__)
 
 
-def lti_setup_url(settings):
-    return '%s/lti_setup' % settings['lti_server']
-
-
 def lti_export_url(settings):
     return '%s/lti_export' % settings['lti_server']
 
@@ -113,16 +109,16 @@ def oauth_callback(request, type=None):
         request.auth_data.set_tokens(oauth_consumer_key,
                                      lti_token,
                                      lti_refresh_token)
-        redirect = lti_setup_url(request.registry.settings) + '?%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s' % (
-            constants.CUSTOM_CANVAS_COURSE_ID, course,
-            constants.CUSTOM_CANVAS_USER_ID, user,
-            constants.OAUTH_CONSUMER_KEY, oauth_consumer_key,
-            constants.EXT_CONTENT_RETURN_URL, ext_content_return_url,
-            constants.ASSIGNMENT_TYPE, assignment_type,
-            constants.ASSIGNMENT_NAME, assignment_name,
-            constants.ASSIGNMENT_VALUE, assignment_value
-            )
-        return HTTPFound(location=redirect)
+
+        return HTTPFound(location=request.route_url('lti_setup', _query={
+            constants.CUSTOM_CANVAS_COURSE_ID: course,
+            constants.CUSTOM_CANVAS_USER_ID: user,
+            constants.OAUTH_CONSUMER_KEY: oauth_consumer_key,
+            constants.EXT_CONTENT_RETURN_URL: ext_content_return_url,
+            constants.ASSIGNMENT_TYPE: assignment_type,
+            constants.ASSIGNMENT_NAME: assignment_name,
+            constants.ASSIGNMENT_VALUE: assignment_value,
+        }))
     except:
         response = traceback.print_exc()
         log.error(response)
@@ -162,8 +158,8 @@ def serve_file(path=None, file=None, request=None, content_type=None):
 def config_xml(request):
     request.response.content_type = 'text/xml'
     return {
-        'launch_url': lti_setup_url(request.registry.settings),
-        'resource_selection_url': lti_setup_url(request.registry.settings),
+        'launch_url': request.route_url('lti_setup'),
+        'resource_selection_url': request.route_url('lti_setup'),
     }
 
 
