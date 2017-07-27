@@ -47,7 +47,7 @@ def refresh_callback(request):
     return oauth_callback(request, type_='refresh')
 
 
-def oauth_callback(request, type_=None):
+def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
     """
     I'm not sure yet.
 
@@ -106,7 +106,7 @@ def oauth_callback(request, type_=None):
             constants.ASSIGNMENT_NAME: assignment_name,
             constants.ASSIGNMENT_VALUE: assignment_value,
         }))
-    except:
-        response = traceback.print_exc()
+    except:  # pylint: disable=bare-except
+        response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
         log.error(response)
         return util.simple_response(response)
