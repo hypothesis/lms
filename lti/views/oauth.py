@@ -56,12 +56,12 @@ def oauth_callback(request, type_=None):
 
     """
     try:
-        log.info('oauth_callback: {query_string}', query_string=request.query_string)
+        log.info('oauth_callback: %s', request.query_string)
         parsed_query_string = urlparse.parse_qs(request.query_string)
         code = parsed_query_string['code'][0]
         state = parsed_query_string['state'][0]
         unpacked_state = util.unpack_state(state)
-        log.info('oauth_callback: {state}', state=state)
+        log.info('oauth_callback: %s', state)
 
         course = unpacked_state[constants.CUSTOM_CANVAS_COURSE_ID]
         user = unpacked_state[constants.CUSTOM_CANVAS_USER_ID]

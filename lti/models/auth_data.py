@@ -81,7 +81,7 @@ class AuthData(object):
         file_ = open(self.name)
         self.auth_data = json.loads(file_.read())
         for key in self.auth_data.keys():
-            log.info('key: {key}', key=key)
+            log.info('key: %s', key)
         file_.close()
 
     def save(self):
