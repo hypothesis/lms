@@ -538,8 +538,8 @@ def lti_serve_pdf(request):
 from pyramid.response import Response
 from pyramid.static import static_view
 
-def app():
-    config = configure()
+def create_app(global_config, **settings):  # pylint: disable=unused-argument
+    config = configure(settings=settings)
 
     config.include('pyramid_jinja2')
 

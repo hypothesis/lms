@@ -12,12 +12,19 @@ from lti.config.settings import (
 )
 
 
-def configure():
+def configure(settings=None):
     """Return a Configurator for the Pyramid application."""
-    return Configurator(settings={
-        'lti_server': env_setting('LTI_SERVER'),
-        'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL'),
-    })
+    if settings is None:
+        settings = {}
+
+    # Settings from the config file are extended / overwritten by settings from
+    # the environment.
+    settings.update(dict(
+        lti_server=env_setting('LTI_SERVER'),
+        lti_credentials_url=env_setting('LTI_CREDENTIALS_URL'),
+    ))
+
+    return Configurator(settings=settings)
 
 
 __all__ = (

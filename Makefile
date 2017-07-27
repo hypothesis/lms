@@ -6,7 +6,11 @@ clean:
 
 .PHONY: dev
 dev: .pydeps
-	@PYRAMID_RELOAD_TEMPLATES=1 gunicorn --reload --bind 'localhost:8001' 'lti.app:app()'
+	gunicorn --paste conf/development.ini
+
+.PHONY: shell
+shell: .pydeps
+	pshell conf/development.ini
 
 .PHONY: test
 test:
@@ -28,7 +32,7 @@ lint:
 	@pip install -q tox
 	tox -e lint
 
-.pydeps: requirements.txt
+.pydeps: requirements.txt requirements-dev.in
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
 	@touch $@
