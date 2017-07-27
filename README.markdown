@@ -121,6 +121,24 @@ To get the Canvas app running in a dev environment:
 $ make test
 ```
 
+### Getting a shell
+
+`make shell` will get you a Python shell with a Pyramid registry, request, etc.
+Useful for debugging or trying things out in development:
+
+```bash
+$ make shell
+```
+
+**Tip**: If you install `pyramid_ipython` then `make shell` will give you an
+IPython shell instead of a plain Python one:
+
+```
+$ pip install pyramid_ipython
+```
+
+There are also `pyramid_` packages for `bpython`, `ptpython`, etc.
+
 ### Running the linters
 
 ```bash

@@ -10,3 +10,4 @@ lti/static/pdfjs/viewer/web/*.pdf
 .tox
 .cache
 *.pyc
+*.egg-info
