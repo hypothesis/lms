@@ -45,7 +45,7 @@ def token_init(request, state=None):
     except:
         response = traceback.print_exc()
         log.error(response)
-        return simple_response(response)
+        return util.simple_response(response)
 
 def refresh_init(request, state=None):
     """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
@@ -60,7 +60,7 @@ def refresh_init(request, state=None):
     except:
         response = traceback.print_exc()
         log.error(response)
-        return simple_response(response)
+        return util.simple_response(response)
 
 @view_config( route_name='token_callback' )
 def token_callback(request):
@@ -126,7 +126,7 @@ def oauth_callback(request, type=None):
     except:
         response = traceback.print_exc()
         log.error(response)
-        return simple_response(response)
+        return util.simple_response(response)
 
 def bare_response(text):
     r = Response(text.encode('utf-8'))
@@ -135,11 +135,6 @@ def bare_response(text):
         })
     r.content_type = 'text/plain'
     return r
-
-def simple_response(exc_str):
-    return Response(render('lti:templates/simple_response.html.jinja2', dict(
-        body=exc_str,
-    )))
 
 def page_response(html):
     r = Response(html.encode('utf-8'))
@@ -254,7 +249,7 @@ def lti_setup(request):
     course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
     if course is None:
         log.error ( 'course cannot be None' )
-        return simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
+        return util.simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     
     post_data[constants.ASSIGNMENT_TYPE] = get_post_or_query_param(request, constants.ASSIGNMENT_TYPE)
     post_data[constants.ASSIGNMENT_NAME] = get_post_or_query_param(request, constants.ASSIGNMENT_NAME)
@@ -268,7 +263,7 @@ def lti_setup(request):
         response = "We don't have the Consumer Key %s in our database yet." % oauth_consumer_key
         log.error ( response )
         log.error ( traceback.print_exc() )
-        return simple_response(response)
+        return util.simple_response(response)
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
@@ -355,7 +350,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     try:
         lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
     except:
-        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
+        return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
     canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     m = md5.new()
@@ -454,7 +449,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     try:
         secret = request.auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
     except:
-        return simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
+        return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
     oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
     body = render('lti:templates/submission.xml.jinja2', dict(
@@ -470,7 +465,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         response = 'OK! Assignment successfully submitted.'
     else:
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
-    return simple_response(response)
+    return util.simple_response(response)
 
 @view_config( route_name='lti_export' )
 def lti_export(request):
@@ -542,7 +537,7 @@ def lti_serve_pdf(request):
                       request=request,
                       content_type='application/pdf')
 
-    return simple_response('You are not logged in to Canvas')
+    return util.simple_response('You are not logged in to Canvas')
 
 from pyramid.response import Response
 from pyramid.static import static_view
