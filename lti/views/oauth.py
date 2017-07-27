@@ -18,11 +18,32 @@ log = logging.getLogger(__name__)
 
 @view_config(route_name='token_callback')
 def token_callback(request):
+    """
+    I'm not sure yet.
+
+    This view gets called by Canvas when a Hypothesis assignment is launched
+    _if_ we don't yet have an lti_token and lti_refresh_token for the developer
+    key in canvas-auth.json yet. (So I think the first time, for a given developer
+    key, that we're launched inside a Canvas assignment.)
+
+    token_init() puts this view's URL in a request param that it sends to
+    Canvas.
+
+    """
     return oauth_callback(request, type_='token')
 
 
 @view_config(route_name='refresh_callback')
 def refresh_callback(request):
+    """
+    I'm not sure yet.
+
+    This view gets called by Canvas when a Hypothesis assignment is launched
+    _if_ the lti_token that we have in canvas-auth.json for the developer key
+    is expired. refresh_init() puts this view's URL in a request param that it
+    sends to Canvas.
+
+    """
     return oauth_callback(request, type_='refresh')
 
 
