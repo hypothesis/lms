@@ -542,27 +542,12 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
 
     config.include('pyramid_jinja2')
-
-    config.scan()
-
+    config.include('lti.routes')
     config.include('lti.models')
 
-    config.add_route('token_callback',      '/token_callback')
-    config.add_route('refresh_callback',    '/refresh_callback')
-    config.add_route('lti_setup',           '/lti_setup')
-    config.add_route('lti_submit',          '/lti_submit')
-    config.add_route('lti_export',          '/lti_export')
-    config.add_route('lti_credentials',     '/lti_credentials')
-    config.add_route('config_xml',          '/config')  # FIXME: This should be /config.xml as in Canvas's examples.
-    config.add_route('about',               '/')
-
-    config.add_route('lti_serve_pdf',       '/viewer/web/{file}.pdf')
-
     pdf_view = static_view('lti:static/pdfjs')
-    config.add_route('catchall_pdf', '/viewer/*subpath')
     config.add_view(pdf_view, route_name='catchall_pdf')
-
-
     config.add_static_view(name='export', path='lti:static/export')
 
+    config.scan()
     return config.make_wsgi_app()
