@@ -5,15 +5,15 @@ clean:
 	rm -f .pydeps
 
 .PHONY: dev
-dev: .pydeps
+dev: .pydeps canvas-auth.json
 	gunicorn --paste conf/development.ini
 
 .PHONY: shell
-shell: .pydeps
+shell: .pydeps canvas-auth.json
 	pshell conf/development.ini
 
 .PHONY: test
-test:
+test: canvas-auth.json
 	@pip install -q tox
 	tox
 
@@ -36,3 +36,6 @@ lint:
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
 	@touch $@
+
+canvas-auth.json:
+	echo '{}' > canvas-auth.json
