@@ -38,6 +38,8 @@ def unpack_state(url_quoted_json_string):
             ...
         }
 
+    :raises ValueError: if the given string isn't valid JSON
+
     """
     return json.loads(urllib.unquote(url_quoted_json_string))
 
