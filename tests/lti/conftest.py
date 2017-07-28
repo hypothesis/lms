@@ -41,6 +41,7 @@ def pyramid_request():
     pyramid_request.auth_data = mock.create_autospec(AuthData, instance=True)
     pyramid_request.auth_data.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
     pyramid_request.auth_data.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
+    pyramid_request.auth_data.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
 
     return pyramid_request
 
