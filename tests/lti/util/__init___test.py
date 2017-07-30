@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import json
 import urllib
 
+import pytest
+
 from lti.util import pack_state
 from lti.util import unpack_state
 
@@ -34,6 +36,10 @@ class TestUnpackState(object):
         returned = unpack_state(url_quoted_json_string)
 
         assert returned == data
+
+    def test_it_raises_ValueError_if_the_string_isnt_valid_JSON(self):
+        with pytest.raises(ValueError):
+            unpack_state('THIS_IS_NOT_VALID_JSON')
 
 
 class TestPackStateUnpackState(object):
