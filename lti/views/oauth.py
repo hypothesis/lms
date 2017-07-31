@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 # This isn't actually a view function yet but it probably should be.
-def token_init(request, state=None):
+def token_init(request, state):
     """
     Redirect the browser to Canvas's OAuth 2.0 login page.
 
