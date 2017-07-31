@@ -16,6 +16,40 @@ from lti import util
 log = logging.getLogger(__name__)
 
 
+# This isn't actually a view function yet but it probably should be.
+def token_init(request, state=None):
+    """
+    Redirect the browser to Canvas's OAuth 2.0 login page.
+
+    This function gets called during an LTI launch if we don't have a Canvas
+    API access token for the given client ID yet. It redirects the browser to
+    Canvas's /login/oauth2/auth URL with a request for an authorization code.
+
+    If the user authorizes our app Canvas will then redirect the browser back
+    to us with an authorization code, which we can then use to get an API
+    access token from Canvas.
+
+    """
+    try:
+        unpacked_state = util.unpack_state(state)
+        log.info('token_init: state: %s', unpacked_state)
+        oauth_consumer_key = unpacked_state[constants.OAUTH_CONSUMER_KEY]
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (
+            canvas_server,
+            oauth_consumer_key,
+            request.registry.settings['lti_server'],
+            state
+        )
+        ret = HTTPFound(location=token_redirect_uri)
+        log.info('token_init ' + token_redirect_uri)
+        return ret
+    except:  # pylint: disable=bare-except
+        response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
+        log.error(response)
+        return util.simple_response(response)
+
+
 @view_config(route_name='token_callback')
 def token_callback(request):
     """

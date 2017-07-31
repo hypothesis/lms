@@ -18,26 +18,11 @@ from pyramid.renderers import render
 from lti.config import configure
 from lti import util
 from lti import constants
+from lti.views import oauth
 
 
 log = logging.getLogger(__name__)
 
-
-def token_init(request, state=None):
-    """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
-    try:
-        dict = util.unpack_state(state)
-        log.info( 'token_init: state: %s' % dict )
-        oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (canvas_server, oauth_consumer_key, request.registry.settings['lti_server'], state)
-        ret = HTTPFound(location=token_redirect_uri)
-        log.info( 'token_init ' + token_redirect_uri )
-        return ret
-    except:
-        response = traceback.print_exc()
-        log.error(response)
-        return util.simple_response(response)
 
 def refresh_init(request, state=None):
     """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
@@ -193,7 +178,7 @@ def lti_setup(request):
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
-        return token_init(request, util.pack_state(post_data))
+        return oauth.token_init(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
     canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
@@ -377,13 +362,13 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     except:
         return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
-    oauth = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
+    oauth_client = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
     body = render('lti:templates/submission.xml.jinja2', dict(
         url=export_url,
         sourcedid=lis_result_sourcedid,
     ))
     headers = {'Content-Type': 'application/xml'}
-    r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth)
+    r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth_client)
     log.info ( 'lti_submit: %s' % r.status_code )
     log.info ( 'lti_submit: %s' % r.text )
     response = None
