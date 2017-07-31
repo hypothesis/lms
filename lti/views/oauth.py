@@ -19,15 +19,29 @@ log = logging.getLogger(__name__)
 @view_config(route_name='token_callback')
 def token_callback(request):
     """
-    I'm not sure yet.
+    Do an authorization code request and save the access and refresh tokens.
 
     This view gets called by Canvas when a Hypothesis assignment is launched
     _if_ we don't yet have an lti_token and lti_refresh_token for the developer
-    key in canvas-auth.json yet. (So I think the first time, for a given developer
-    key, that we're launched inside a Canvas assignment.)
+    key in canvas-auth.json yet. (So I think the first time, for a given
+    developer key, that we're launched inside a Canvas assignment.)
 
     token_init() puts this view's URL in a request param that it sends to
-    Canvas.
+    Canvas, that's how Canvas knows to request this URL.
+
+    * Receive and parse a request from the user's browser (initiated by Canvas
+      JavaScript code) that includes an OAuth 2.0 client ID and authorization
+      code
+    * Retrieve the saved client secret for this client ID from the database
+    * Use the authorization code and client secret to make an OAuth 2.0
+      authorization code request to Canvas
+    * Receive an access token and refresh token from Canvas and save them to
+      the database
+    * Finally, redirect the browser
+
+    The authorization code request and response are done synchronously, while
+    the browser waits for the response to its original request.
+
 
     """
     return oauth_callback(request, type_='token')
@@ -36,25 +50,34 @@ def token_callback(request):
 @view_config(route_name='refresh_callback')
 def refresh_callback(request):
     """
-    I'm not sure yet.
+    Do a refresh code request and save the new access and refresh tokens.
 
     This view gets called by Canvas when a Hypothesis assignment is launched
-    _if_ the lti_token that we have in canvas-auth.json for the developer key
-    is expired. refresh_init() puts this view's URL in a request param that it
-    sends to Canvas.
+    _if_ the lti_token that we have in canvas-auth.json for the client ID is
+    expired.
+
+    refresh_init() puts this view's URL in a request param that it sends to
+    Canvas, that's how Canvas knows to request this URL.
+
+    * Receive and parse a request from the user's browser (initiated by Canvas
+      JavaScript code) that includes an OAuth 2.0 client ID
+    * Retrieve the saved client secret and refresh token for this client ID
+      from the database
+    * Use the refresh token and client secret to make an OAuth 2.0 refresh
+      request to Canvas
+    * Receive an access token and refresh token from Canvas and save them to
+      the database
+    * Finally, redirect the browser
+
+    The refresh token request and response are done synchronously, while the
+    browser waits for the response to its original request.
 
     """
     return oauth_callback(request, type_='refresh')
 
 
 def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
-    """
-    I'm not sure yet.
-
-    Canvas called back with an authorization code. Use it to get or refresh an
-    API token.
-
-    """
+    """Helper function for token_callback() and refresh_callback() above."""
     try:
         log.info('oauth_callback: %s', request.query_string)
         parsed_query_string = urlparse.parse_qs(request.query_string)
