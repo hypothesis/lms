@@ -23,10 +23,6 @@ from lti import constants
 log = logging.getLogger(__name__)
 
 
-def lti_export_url(settings):
-    return '%s/lti_export' % settings['lti_server']
-
-
 def token_init(request, state=None):
     """ We don't have a Canvas API token yet. Ask Canvas for an authorization code to begin the token-getting OAuth flow """
     try:
