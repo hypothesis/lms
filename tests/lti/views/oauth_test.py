@@ -231,7 +231,7 @@ class TestTokenCallback(object):
                 'client_secret': 'TEST_CLIENT_SECRET',
 
                 'client_id': u'TEST_OAUTH_CONSUMER_KEY',
-                'redirect_uri': 'http://TEST_LTI_SERVER.com/token_init',
+                'redirect_uri': 'http://TEST_LTI_SERVER.com/token_callback',
         })
 
 
@@ -254,7 +254,7 @@ class TestRefreshCallback(object):
                 'client_secret': 'TEST_CLIENT_SECRET',
 
                 'client_id': u'TEST_OAUTH_CONSUMER_KEY',
-                'redirect_uri': 'http://TEST_LTI_SERVER.com/token_init',
+                'redirect_uri': 'http://TEST_LTI_SERVER.com/token_callback',
         })
 
 

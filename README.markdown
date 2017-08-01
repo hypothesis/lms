@@ -103,7 +103,7 @@ To get the Canvas app running in a dev environment:
    google docs.
 
    Tip: In my developer key the **Redirect URI (Legacy)** is set to
-   `http://localhost:8001/token_init`.
+   `http://localhost:8001/token_callback`.
    
    In the Canvas app's settings I set the **Config URL** to
    `http://10.0.0.2:8001/config` because I have Canvas running inside a VM and
