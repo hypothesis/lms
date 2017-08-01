@@ -24,21 +24,6 @@ from lti.views import oauth
 log = logging.getLogger(__name__)
 
 
-def refresh_init(request, state=None):
-    """ Our Canvas API token expired. Ask Canvas for an authorization code to begin the token-refreshing OAuth flow """
-    try:
-        dict = util.unpack_state(state)
-        log.info( 'refresh_init: state: %s' % dict )
-        oauth_consumer_key = dict[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/refresh_callback&state=%s' % (canvas_server, oauth_consumer_key, request.registry.settings['lti_server'], state)
-        ret = HTTPFound(location=token_redirect_uri)
-        return ret
-    except:
-        response = traceback.print_exc()
-        log.error(response)
-        return util.simple_response(response)
-
 def bare_response(text):
     r = Response(text.encode('utf-8'))
     r.headers.update({
@@ -187,7 +172,8 @@ def lti_setup(request):
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
     if r.status_code == 401:
       log.info ( 'lti_setup: refreshing token' )
-      return refresh_init(request, util.pack_state(post_data))
+      return oauth.make_authorization_request(
+            request, util.pack_state(post_data), refresh=True)
     files = r.json()
     while ('next' in r.links):
         url = r.links['next']['url']
@@ -273,7 +259,9 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
         if r.status_code == 401:
           log.info( 'lti_pdf: refreshing token' )
-          return refresh_init(request, 'pdf:' + urllib.quote(json.dumps(post_data)))
+          return oauth.make_authorization_request(
+                request, 'pdf:' + urllib.quote(json.dumps(post_data)),
+                refresh=True)
         if r.status_code == 200:
             j = r.json()
             log.info( j )

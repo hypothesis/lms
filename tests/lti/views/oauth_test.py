@@ -80,6 +80,19 @@ class TestMakeAuthorizationRequest(object):
             'state': ['sentinel.state'],
         }
 
+    def test_the_refresh_arg_changes_the_redirect_uri(self, pyramid_request):
+        # If you pass refresh=True then it sends /refresh_callback instead of
+        # /token_callback as the redirect_uri.
+
+        returned = oauth.make_authorization_request(pyramid_request,
+                                                    mock.sentinel.state,
+                                                    refresh=True)
+
+        parsed = urlparse.urlparse(returned.location)
+        assert urlparse.parse_qs(parsed.query)['redirect_uri'] == [
+            'http://TEST_LTI_SERVER.com/refresh_callback'
+        ]
+
 
 @pytest.mark.parametrize('method', [oauth.token_callback, oauth.refresh_callback])
 class TestTokenCallbackAndRefreshCallback(object):
