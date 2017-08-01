@@ -16,6 +16,38 @@ from lti import util
 log = logging.getLogger(__name__)
 
 
+def make_authorization_request(request, state):
+    """
+    Send an OAuth 2.0 authorization request.
+
+    Send an OAuth 2.0 authorization request by redirecting the browser to
+    Canvas's OAuth 2.0 authorization URL, where Canvas will ask the user to
+    authorize our app.
+
+    This function gets called during an LTI launch if we don't have a Canvas
+    API access token for the given client ID yet.
+
+    """
+    try:
+        unpacked_state = util.unpack_state(state)
+        log.info('make_authorization_request: state: %s', unpacked_state)
+        oauth_consumer_key = unpacked_state[constants.OAUTH_CONSUMER_KEY]
+        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (
+            canvas_server,
+            oauth_consumer_key,
+            request.registry.settings['lti_server'],
+            state
+        )
+        ret = HTTPFound(location=token_redirect_uri)
+        log.info('make_authorization_request ' + token_redirect_uri)
+        return ret
+    except:  # pylint: disable=bare-except
+        response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
+        log.error(response)
+        return util.simple_response(response)
+
+
 @view_config(route_name='token_callback')
 def token_callback(request):
     """
@@ -26,8 +58,8 @@ def token_callback(request):
     key in canvas-auth.json yet. (So I think the first time, for a given
     developer key, that we're launched inside a Canvas assignment.)
 
-    token_init() puts this view's URL in a request param that it sends to
-    Canvas, that's how Canvas knows to request this URL.
+    make_authorization_request() puts this view's URL in a request param that
+    it sends to Canvas, that's how Canvas knows to request this URL.
 
     * Receive and parse a request from the user's browser (initiated by Canvas
       JavaScript code) that includes an OAuth 2.0 client ID and authorization

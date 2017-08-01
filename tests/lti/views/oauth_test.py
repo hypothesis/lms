@@ -19,10 +19,68 @@ pytestmark = pytest.mark.usefixtures(
     'requests_fixture',  # We never want tests to really send HTTP requests.
     'log',
     'traceback',
+    'util',
 )
 
 
-@pytest.mark.usefixtures('util')
+class TestMakeAuthorizationRequest(object):
+
+    def test_it_unpacks_the_state_param(self, pyramid_request, util):
+        oauth.make_authorization_request(pyramid_request, mock.sentinel.state)
+
+        util.unpack_state.assert_called_once_with(mock.sentinel.state)
+
+    def test_it_logs_an_error_if_the_state_param_isnt_valid_json(self,
+                                                                 pyramid_request,
+                                                                 util,
+                                                                 traceback,
+                                                                 log):
+        util.unpack_state.side_effect = ValueError()
+
+        returned = oauth.make_authorization_request(pyramid_request,
+                                                    mock.sentinel.state)
+
+        # It prints out the traceback.
+        traceback.print_exc.assert_called_once_with()
+
+        # It logs None.
+        log.error.assert_called_once_with(None)
+
+        # It returns a simple HTML page with None for its body.
+        util.simple_response.assert_called_once_with(None)
+        assert returned == util.simple_response.return_value
+
+    def test_it_gets_the_canvas_servers_url_from_the_database(self, pyramid_request):
+        oauth.make_authorization_request(pyramid_request, mock.sentinel.state)
+
+        pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
+            'TEST_OAUTH_CONSUMER_KEY')
+
+    def test_it_redirects_the_browser_back_to_canvas_for_authorization(
+            self, pyramid_request):
+        returned = oauth.make_authorization_request(pyramid_request,
+                                                    mock.sentinel.state)
+
+        # It redirects the browser.
+        assert isinstance(returned, httpexceptions.HTTPFound)
+
+        # It redirects to the correct URL.
+        assert returned.location.startswith(
+            'https://TEST_CANVAS_SERVER.com/login/oauth2/auth')
+
+        # It puts the correct query params in the redirect URL.
+        # We actually have to parse the query string here because Python dicts
+        # are unordered which means that the _order_ of the different params
+        # in the query string can change each time the test is run.
+        parsed = urlparse.urlparse(returned.location)
+        assert urlparse.parse_qs(parsed.query) == {
+            'client_id': ['TEST_OAUTH_CONSUMER_KEY'],
+            'response_type': ['code'],
+            'redirect_uri': ['http://TEST_LTI_SERVER.com/token_callback'],
+            'state': ['sentinel.state'],
+        }
+
+
 @pytest.mark.parametrize('method', [oauth.token_callback, oauth.refresh_callback])
 class TestTokenCallbackAndRefreshCallback(object):
 
@@ -212,7 +270,6 @@ class TestTokenCallbackAndRefreshCallback(object):
         self.assert_that_it_logged_an_error(traceback, log, util, returned)
 
 
-@pytest.mark.usefixtures('util')
 class TestTokenCallback(object):
 
     """Unit tests for token_callback() only."""
@@ -235,7 +292,6 @@ class TestTokenCallback(object):
         })
 
 
-@pytest.mark.usefixtures('util')
 class TestRefreshCallback(object):
 
     """Unit tests for refresh_callback() only."""
