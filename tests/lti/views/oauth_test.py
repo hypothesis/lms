@@ -23,10 +23,10 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-class TestTokenInit(object):
+class TestMakeAuthorizationRequest(object):
 
     def test_it_unpacks_the_state_param(self, pyramid_request, util):
-        oauth.token_init(pyramid_request, mock.sentinel.state)
+        oauth.make_authorization_request(pyramid_request, mock.sentinel.state)
 
         util.unpack_state.assert_called_once_with(mock.sentinel.state)
 
@@ -37,7 +37,8 @@ class TestTokenInit(object):
                                                                  log):
         util.unpack_state.side_effect = ValueError()
 
-        returned = oauth.token_init(pyramid_request, mock.sentinel.state)
+        returned = oauth.make_authorization_request(pyramid_request,
+                                                    mock.sentinel.state)
 
         # It prints out the traceback.
         traceback.print_exc.assert_called_once_with()
@@ -50,14 +51,15 @@ class TestTokenInit(object):
         assert returned == util.simple_response.return_value
 
     def test_it_gets_the_canvas_servers_url_from_the_database(self, pyramid_request):
-        oauth.token_init(pyramid_request, mock.sentinel.state)
+        oauth.make_authorization_request(pyramid_request, mock.sentinel.state)
 
         pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
             'TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_redirects_the_browser_back_to_canvas_for_authorization(
             self, pyramid_request):
-        returned = oauth.token_init(pyramid_request, mock.sentinel.state)
+        returned = oauth.make_authorization_request(pyramid_request,
+                                                    mock.sentinel.state)
 
         # It redirects the browser.
         assert isinstance(returned, httpexceptions.HTTPFound)

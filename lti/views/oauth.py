@@ -16,23 +16,21 @@ from lti import util
 log = logging.getLogger(__name__)
 
 
-# This isn't actually a view function yet but it probably should be.
-def token_init(request, state):
+def make_authorization_request(request, state):
     """
-    Redirect the browser to Canvas's OAuth 2.0 login page.
+    Send an OAuth 2.0 authorization request.
+
+    Send an OAuth 2.0 authorization request by redirecting the browser to
+    Canvas's OAuth 2.0 authorization URL, where Canvas will ask the user to
+    authorize our app.
 
     This function gets called during an LTI launch if we don't have a Canvas
-    API access token for the given client ID yet. It redirects the browser to
-    Canvas's /login/oauth2/auth URL with a request for an authorization code.
-
-    If the user authorizes our app Canvas will then redirect the browser back
-    to us with an authorization code, which we can then use to get an API
-    access token from Canvas.
+    API access token for the given client ID yet.
 
     """
     try:
         unpacked_state = util.unpack_state(state)
-        log.info('token_init: state: %s', unpacked_state)
+        log.info('make_authorization_request: state: %s', unpacked_state)
         oauth_consumer_key = unpacked_state[constants.OAUTH_CONSUMER_KEY]
         canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
         token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (
@@ -42,7 +40,7 @@ def token_init(request, state):
             state
         )
         ret = HTTPFound(location=token_redirect_uri)
-        log.info('token_init ' + token_redirect_uri)
+        log.info('make_authorization_request ' + token_redirect_uri)
         return ret
     except:  # pylint: disable=bare-except
         response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
@@ -60,8 +58,8 @@ def token_callback(request):
     key in canvas-auth.json yet. (So I think the first time, for a given
     developer key, that we're launched inside a Canvas assignment.)
 
-    token_init() puts this view's URL in a request param that it sends to
-    Canvas, that's how Canvas knows to request this URL.
+    make_authorization_request() puts this view's URL in a request param that
+    it sends to Canvas, that's how Canvas knows to request this URL.
 
     * Receive and parse a request from the user's browser (initiated by Canvas
       JavaScript code) that includes an OAuth 2.0 client ID and authorization

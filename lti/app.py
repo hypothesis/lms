@@ -178,7 +178,7 @@ def lti_setup(request):
 
     if lti_token is None:
         log.info ( 'lti_setup: getting token' )
-        return oauth.token_init(request, util.pack_state(post_data))
+        return oauth.make_authorization_request(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
     canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
