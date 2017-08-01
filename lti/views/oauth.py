@@ -105,8 +105,8 @@ def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
             'grant_type': grant_type,
             'client_id': oauth_consumer_key,
             'client_secret': canvas_client_secret,
-            'redirect_uri': '%s/token_init' % request.registry.settings['lti_server']  # this uri must match the uri in Developer Keys but is not called from
-        }                                                                              # canvas. rather it calls token_callback or refresh callback
+            'redirect_uri': '%s/token_callback' % request.registry.settings['lti_server']
+        }
         if grant_type == 'authorization_code':
             params['code'] = code
         else:
