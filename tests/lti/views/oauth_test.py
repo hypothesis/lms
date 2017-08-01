@@ -19,10 +19,10 @@ pytestmark = pytest.mark.usefixtures(
     'requests_fixture',  # We never want tests to really send HTTP requests.
     'log',
     'traceback',
+    'util',
 )
 
 
-@pytest.mark.usefixtures('util')
 class TestTokenInit(object):
 
     def test_it_unpacks_the_state_param(self, pyramid_request, util):
@@ -79,7 +79,6 @@ class TestTokenInit(object):
         }
 
 
-@pytest.mark.usefixtures('util')
 @pytest.mark.parametrize('method', [oauth.token_callback, oauth.refresh_callback])
 class TestTokenCallbackAndRefreshCallback(object):
 
@@ -269,7 +268,6 @@ class TestTokenCallbackAndRefreshCallback(object):
         self.assert_that_it_logged_an_error(traceback, log, util, returned)
 
 
-@pytest.mark.usefixtures('util')
 class TestTokenCallback(object):
 
     """Unit tests for token_callback() only."""
@@ -292,7 +290,6 @@ class TestTokenCallback(object):
         })
 
 
-@pytest.mark.usefixtures('util')
 class TestRefreshCallback(object):
 
     """Unit tests for refresh_callback() only."""
