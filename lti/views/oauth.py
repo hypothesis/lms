@@ -77,7 +77,6 @@ def refresh_callback(request):
 
 
 def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
-    """Helper function for token_callback() and refresh_callback() above."""
     try:
         log.info('oauth_callback: %s', request.query_string)
         parsed_query_string = urlparse.parse_qs(request.query_string)
