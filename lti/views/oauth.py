@@ -16,7 +16,7 @@ from lti import util
 log = logging.getLogger(__name__)
 
 
-def make_authorization_request(request, state):
+def make_authorization_request(request, state, refresh=False):
     """
     Send an OAuth 2.0 authorization request.
 
@@ -33,10 +33,18 @@ def make_authorization_request(request, state):
         log.info('make_authorization_request: state: %s', unpacked_state)
         oauth_consumer_key = unpacked_state[constants.OAUTH_CONSUMER_KEY]
         canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
-        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s/token_callback&state=%s' % (
+
+        if refresh:
+            redirect_uri = '%s/refresh_callback'
+        else:
+            redirect_uri = '%s/token_callback'
+
+        redirect_uri = redirect_uri % request.registry.settings['lti_server']
+
+        token_redirect_uri = '%s/login/oauth2/auth?client_id=%s&response_type=code&redirect_uri=%s&state=%s' % (
             canvas_server,
             oauth_consumer_key,
-            request.registry.settings['lti_server'],
+            redirect_uri,
             state
         )
         ret = HTTPFound(location=token_redirect_uri)
