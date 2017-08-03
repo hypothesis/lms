@@ -223,9 +223,6 @@ def lti_setup(request):
 def exists_pdf(hash):
     return os.path.isfile('%s/%s.pdf' % (constants.FILES_PATH, hash))
 
-def exists_html(hash):
-    return os.path.isfile('%s/%s.html' % (constants.FILES_PATH, hash))
-
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
     Called from lti_setup if it was called from a pdf assignment. 
@@ -296,7 +293,7 @@ def web_response(settings, auth_data, oauth_consumer_key=None, course=None, lis_
     m.update('%s/%s/%s' % ( canvas_server, course, url ))
     hash = m.hexdigest()
     log.info( 'via url: %s' % url )
-    if exists_html(hash) is False:
+    if util.filecache.exists_html(hash) is False:
         r = requests.get('https://via.hypothes.is/%s' % url, headers={'User-Agent':'Mozilla'})     
         log.info ( 'via result: %s' % r.status_code )
         text = r.text.replace('return;', '// return')               # work around https://github.com/hypothesis/via/issues/76
