@@ -35,8 +35,9 @@ class AuthData(object):
 
     """
 
-    def __init__(self):
-        self.name = 'canvas-auth.json'
+    def __init__(self, open_=None):
+        self.open_ = open_ or open  # Test seam.
+        self._name = 'canvas-auth.json'
         self.auth_data = {}
         self.load()
 
@@ -57,19 +58,19 @@ class AuthData(object):
     def get_lti_secret(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['secret']
 
-    def get_canvas_server_scheme(self, oauth_consumer_key):
+    def _get_canvas_server_scheme(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['canvas_server_scheme']
 
-    def get_canvas_server_host(self, oauth_consumer_key):
+    def _get_canvas_server_host(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['canvas_server_host']
 
-    def get_canvas_server_port(self, oauth_consumer_key):
+    def _get_canvas_server_port(self, oauth_consumer_key):
         return self.auth_data[oauth_consumer_key]['canvas_server_port']
 
     def get_canvas_server(self, oauth_consumer_key):
-        canvas_server_scheme = self.get_canvas_server_scheme(oauth_consumer_key)
-        canvas_server_host = self.get_canvas_server_host(oauth_consumer_key)
-        canvas_server_port = self.get_canvas_server_port(oauth_consumer_key)
+        canvas_server_scheme = self._get_canvas_server_scheme(oauth_consumer_key)
+        canvas_server_host = self._get_canvas_server_host(oauth_consumer_key)
+        canvas_server_port = self._get_canvas_server_port(oauth_consumer_key)
         canvas_server = None
         if canvas_server_port is None:
             canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
@@ -78,14 +79,12 @@ class AuthData(object):
         return canvas_server
 
     def load(self):
-        file_ = open(self.name)
+        file_ = self.open_(self._name)
         self.auth_data = json.loads(file_.read())
-        for key in self.auth_data.keys():
-            log.info('key: %s', key)
         file_.close()
 
     def save(self):
-        file_ = open(self.name, 'wb')
+        file_ = self.open_(self._name, 'wb')
         j = json.dumps(self.auth_data, indent=2, sort_keys=True)
         file_.write(j)
         file_.close()
