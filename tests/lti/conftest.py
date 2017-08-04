@@ -10,6 +10,7 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lti.models import AuthData
+from lti import constants
 
 
 def autopatcher(request, target, **kwargs):
@@ -42,6 +43,17 @@ def pyramid_request():
     pyramid_request.auth_data.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
     pyramid_request.auth_data.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
     pyramid_request.auth_data.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
+
+    pyramid_request.POST.update({
+        constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
+        constants.CUSTOM_CANVAS_USER_ID: 'TEST_CUSTOM_CANVAS_USER_ID',
+        constants.CUSTOM_CANVAS_COURSE_ID: 'TEST_CUSTOM_CANVAS_COURSE_ID',
+        constants.CUSTOM_CANVAS_ASSIGNMENT_ID: 'TEST_CUSTOM_CANVAS_ASSIGNMENT_ID',
+        constants.EXT_CONTENT_RETURN_TYPES: 'TEST_EXT_CONTENT_RETURN_TYPES',
+        constants.EXT_CONTENT_RETURN_URL: 'TEST_EXT_CONTENT_RETURN_URL',
+        constants.LIS_OUTCOME_SERVICE_URL: 'TEST_LIS_OUTCOME_SERVICE_URL',
+        constants.LIS_RESULT_SOURCEDID: 'TEST_LIS_RESULT_SOURCEDID',
+    })
 
     return pyramid_request
 
