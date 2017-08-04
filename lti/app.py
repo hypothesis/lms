@@ -19,6 +19,7 @@ from lti.config import configure
 from lti import util
 from lti import constants
 from lti.views import oauth
+from lti.views import web
 
 
 log = logging.getLogger(__name__)
@@ -275,57 +276,18 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
 
-def web_response(settings, auth_data, oauth_consumer_key=None, course=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, value=None):
-    """
-    Our app was called from an assignment to annotate a web page.
-
-    Run it through via, and save it as a timestamped name in the PDFJS subtree.
-
-    Neuter the JS return so the page will run in a Canvas iframe.
-
-    Instantiate the submission template so the student can submit the assignment.
-
-    Serve a page that wraps the (lightly) transformed via output in an iframe.
-    """
-    url = value
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
-    m = md5.new()
-    m.update('%s/%s/%s' % ( canvas_server, course, url ))
-    hash = m.hexdigest()
-    log.info( 'via url: %s' % url )
-    if util.filecache.exists_html(hash) is False:
-        r = requests.get('https://via.hypothes.is/%s' % url, headers={'User-Agent':'Mozilla'})     
-        log.info ( 'via result: %s' % r.status_code )
-        text = r.text.replace('return;', '// return')               # work around https://github.com/hypothesis/via/issues/76
-        text = text.replace ("""src="/im_""", 'src="https://via.hypothes.is')  # and that
-        f = open('%s/%s.html' % (constants.FILES_PATH, hash), 'wb')
-        f.write(text.encode('utf-8'))
-        f.close()
-    html = render('lti:templates/html_assignment.html.jinja2', dict(
-        name=name,
-        hash=hash,
-        oauth_consumer_key=oauth_consumer_key,
-        lis_outcome_service_url=lis_outcome_service_url,
-        lis_result_sourcedid=lis_result_sourcedid,
-        doc_uri=url,
-        lti_server=settings['lti_server'],
-    ))
-    r = Response(html.encode('utf-8'))
-    r.content_type = 'text/html'
-    return r
-
 def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):  # no api token needed in this case
     if oauth_consumer_key is None:
         oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
-    return web_response(request.registry.settings,
-                        request.auth_data,
-                        oauth_consumer_key,
-                        course,
-                        lis_outcome_service_url,
-                        lis_result_sourcedid,
-                        name,
-                        value)
+    return web.web_response(request.registry.settings,
+                            request.auth_data,
+                            oauth_consumer_key,
+                            course,
+                            lis_outcome_service_url,
+                            lis_result_sourcedid,
+                            name,
+                            value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
