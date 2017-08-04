@@ -192,7 +192,14 @@ def lti_setup(request):
         return lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
 
     if assignment_type == 'web':
-        return lti_web(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
+        return web.web_response(request.registry.settings,
+                                request.auth_data,
+                                oauth_consumer_key=oauth_consumer_key,
+                                course=course,
+                                lis_outcome_service_url=lis_outcome_service_url,
+                                lis_result_sourcedid=lis_result_sourcedid,
+                                name=assignment_name,
+                                value=assignment_value)
 
     return_url = get_post_or_query_param(request, constants.EXT_CONTENT_RETURN_URL)
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
@@ -275,19 +282,6 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     else:
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
     return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
-
-def lti_web(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):  # no api token needed in this case
-    if oauth_consumer_key is None:
-        oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
-    course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
-    return web.web_response(request.registry.settings,
-                            request.auth_data,
-                            oauth_consumer_key,
-                            course,
-                            lis_outcome_service_url,
-                            lis_result_sourcedid,
-                            name,
-                            value)
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
