@@ -24,9 +24,9 @@ def capture_post_data(request):
 
 
 def get_query_param(request, key):
-    q = urlparse.parse_qs(request.query_string)
-    if q.has_key(key):
-        return q[key][0]
+    query = urlparse.parse_qs(request.query_string)
+    if key in query:
+        return query[key][0]
     return None
 
 
@@ -34,7 +34,7 @@ def get_post_or_query_param(request, key):
 
     def get_post_param(request, key):
         post_data = capture_post_data(request)
-        if post_data.has_key(key):
+        if key in post_data:
             return post_data[key]
         return None
 
@@ -44,7 +44,4 @@ def get_post_or_query_param(request, key):
     else:
         value = get_post_param(request, key)
         ret = value
-    if ret is None:
-        if key == constants.CUSTOM_CANVAS_COURSE_ID:
-            log.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
     return ret
