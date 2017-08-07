@@ -66,7 +66,7 @@ class TestGetQueryParam(object):
         assert requests.get_query_param(pyramid_request, 'foo') == 'bar'
 
     def test_if_the_key_appears_multiple_times_it_returns_the_first(self, pyramid_request):
-        pyramid_request.query_string = 'foo=bar1&fpp=bar2'
+        pyramid_request.query_string = 'foo=bar1&foo=bar2'
 
         assert requests.get_query_param(pyramid_request, 'foo') == 'bar1'
 
