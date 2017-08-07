@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import urllib
+
 from lti import constants
 from lti.util import requests
 
@@ -38,3 +40,22 @@ class TestCapturePostData(object):
         data = requests.capture_post_data(pyramid_request)
 
         assert 'foo' not in data
+
+
+class TestGetQueryParam(object):
+    def test_if_the_key_is_in_the_query_params_it_returns_it(self, pyramid_request):
+        # get_query_param() actually parses request.query_string itself, so we
+        # have to compile an actual query string to test it.
+        pyramid_request.query_string = urllib.urlencode({'foo': 'bar'})
+
+        assert requests.get_query_param(pyramid_request, 'foo') == 'bar'
+
+    def test_if_the_key_appears_multiple_times_it_returns_the_first(self, pyramid_request):
+        pyramid_request.query_string = 'foo=bar1&fpp=bar2'
+
+        assert requests.get_query_param(pyramid_request, 'foo') == 'bar1'
+
+    def test_if_the_key_isnt_there_it_returns_None(self, pyramid_request):
+        pyramid_request.query_string = urllib.urlencode({'foo': 'bar'})
+
+        assert requests.get_query_param(pyramid_request, 'gar') is None

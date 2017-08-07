@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 
+import urlparse
+
 from lti import constants
 
 
@@ -19,3 +21,10 @@ def capture_post_data(request):
         constants.LIS_OUTCOME_SERVICE_URL: post.get(constants.LIS_OUTCOME_SERVICE_URL),
         constants.LIS_RESULT_SOURCEDID: post.get(constants.LIS_RESULT_SOURCEDID),
     }
+
+
+def get_query_param(request, key):
+    q = urlparse.parse_qs(request.query_string)
+    if q.has_key(key):
+        return q[key][0]
+    return None

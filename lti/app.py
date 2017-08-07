@@ -79,7 +79,7 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
     return r
 
 def get_post_or_query_param(request, key):
-    value = get_query_param(request, key)
+    value = util.requests.get_query_param(request, key)
     if value is not None:
         ret = value
     else:
@@ -89,12 +89,6 @@ def get_post_or_query_param(request, key):
         if key == constants.CUSTOM_CANVAS_COURSE_ID:
             log.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
     return ret
-
-def get_query_param(request, key):
-    q = urlparse.parse_qs(request.query_string)
-    if q.has_key(key):
-        return q[key][0]
-    return None
 
 def get_post_param(request, key):
     post_data = util.requests.capture_post_data(request)
@@ -310,7 +304,7 @@ def lti_export(request):
     assignment's PDF or URL, filtered to threads involving the (self-identified) H user, and
     highlighting contributions by that user.
     """
-    args = get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
+    args = util.requests.get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
     log.info ( 'lti_export: query: %s' % request.query_string )
     parsed_args = urlparse.parse_qs(args)
     user = parsed_args['user'][0]
@@ -352,7 +346,7 @@ def lti_credentials(request):
     if  request.method == 'OPTIONS':
         return cors_response(request)
 
-    credentials = get_query_param(request, 'credentials')
+    credentials = util.requests.get_query_param(request, 'credentials')
     if ( credentials is None ):
       return page_response(lti_credentials_form(request.registry.settings))
 
