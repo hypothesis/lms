@@ -34,7 +34,7 @@ def get_query_param(request, key):
     ``None``.
 
     """
-    return (urlparse.parse_qs(request.query_string).get(key) or [None])[0]
+    return (urlparse.parse_qs(request.query_string).get(key, [None]))[0]
 
 
 def get_post_or_query_param(request, key):
