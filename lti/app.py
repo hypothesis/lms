@@ -171,9 +171,6 @@ def lti_setup(request):
         pdf_choices=pdf_choices,
     )))
 
-def exists_pdf(hash):
-    return os.path.isfile('%s/%s.pdf' % (constants.FILES_PATH, hash))
-
 def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, course=None, name=None, value=None):
     """ 
     Called from lti_setup if it was called from a pdf assignment. 
@@ -202,7 +199,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     m.update('%s/%s/%s' % ( canvas_server, course, file_id ))
     hash = m.hexdigest()
     log.info( 'server %s, course %s, file_id %s, hash %s' % ( canvas_server, course, file_id, hash ))
-    if exists_pdf(hash) is False:
+    if util.filecache.exists_pdf(hash) is False:
         sess = requests.Session()
         r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token})
         if r.status_code == 401:
