@@ -63,21 +63,6 @@ def config_xml(request):
 def about(request):
     return serve_file('.', 'about.html', request, 'text/html')
 
-def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, name=None, hash=None, doc_uri=None):
-    log.info( 'pdf_response: %s, %s, %s, %s, %s, %s' % (oauth_consumer_key, lis_outcome_service_url, lis_result_sourcedid, name, hash, doc_uri) )
-    html = render('lti:templates/pdf_assignment.html.jinja2', dict(
-        name=name,
-        hash=hash,
-        oauth_consumer_key=oauth_consumer_key,
-        lis_outcome_service_url=lis_outcome_service_url,
-        lis_result_sourcedid=lis_result_sourcedid,
-        doc_uri=doc_uri,
-        lti_server=settings['lti_server'],
-    ))
-    r = Response(html.encode('utf-8'))
-    r.content_type = 'text/html'
-    return r
-
 @view_config( route_name='lti_setup' )
 def lti_setup(request):
     """
@@ -239,7 +224,20 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
         pdf_uri = '%s/viewer/web/%s.pdf' % ( request.registry.settings['lti_server'], hash )
     else:
         pdf_uri = 'urn:x-pdf:%s' % fingerprint
-    return pdf_response(request.registry.settings, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, name=name, hash=hash, doc_uri=pdf_uri)
+
+    return Response(
+        render('lti:templates/pdf_assignment.html.jinja2', dict(
+                name=name,
+                hash=hash,
+                oauth_consumer_key=oauth_consumer_key,
+                lis_outcome_service_url=lis_outcome_service_url,
+                lis_result_sourcedid=lis_result_sourcedid,
+                doc_uri=pdf_uri,
+                lti_server=request.registry.settings['lti_server'],
+            ),
+        ).encode('utf-8'),
+        content_type='text/html',
+    )
 
 @view_config( route_name='lti_submit' )
 def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
