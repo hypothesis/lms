@@ -4,7 +4,7 @@
 # want to lint the tests, but I don't want to apply exactly the same lint rules
 # to the tests as to the production code.
 inherits:
-    - .prospector.base
+    - ../.prospector.base
 test-warnings: true
 pylint:
   options:
@@ -16,5 +16,3 @@ pylint:
     - no-self-use  # There are often reasons to group test methods into classes
                    # even if they don't use self.
     - redefined-outer-name # Pytest fixtures always break this rule.
-ignore-paths:
-  - lti/
