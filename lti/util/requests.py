@@ -28,3 +28,23 @@ def get_query_param(request, key):
     if q.has_key(key):
         return q[key][0]
     return None
+
+
+def get_post_or_query_param(request, key):
+
+    def get_post_param(request, key):
+        post_data = capture_post_data(request)
+        if post_data.has_key(key):
+            return post_data[key]
+        return None
+
+    value = get_query_param(request, key)
+    if value is not None:
+        ret = value
+    else:
+        value = get_post_param(request, key)
+        ret = value
+    if ret is None:
+        if key == constants.CUSTOM_CANVAS_COURSE_ID:
+            log.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
+    return ret
