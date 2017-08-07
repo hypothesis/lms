@@ -24,24 +24,31 @@ def capture_post_data(request):
 
 
 def get_query_param(request, key):
-    query = urlparse.parse_qs(request.query_string)
-    if key in query:
-        return query[key][0]
-    return None
+    """
+    Return the given ``key``'s value from the given ``request``'s query string.
+
+    If ``key`` appears multiple times in ``request``'s query string then return
+    just the first value.
+
+    If ``key`` doesn't appear in ``request``'s query string then return
+    ``None``.
+
+    """
+    return (urlparse.parse_qs(request.query_string).get(key) or [None])[0]
 
 
 def get_post_or_query_param(request, key):
+    """
+    Return ``key``'s value from ``request``'s query string or POST body.
 
-    def get_post_param(request, key):
-        post_data = capture_post_data(request)
-        if key in post_data:
-            return post_data[key]
-        return None
+    If there's a value for ``key`` in ``request``'s query param then return
+    that value, for any ``key``.
 
-    value = get_query_param(request, key)
-    if value is not None:
-        ret = value
-    else:
-        value = get_post_param(request, key)
-        ret = value
-    return ret
+    Otherwise, if ``key`` is one of the whitelisted keys that
+    :py:func:`capture_post_data` returns, then if there's a value for ``key``
+    in ``request``'s body then return that value.
+
+    Otherwise return ``None``.
+
+    """
+    return get_query_param(request, key) or capture_post_data(request).get(key)
