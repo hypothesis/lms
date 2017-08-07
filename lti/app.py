@@ -78,30 +78,6 @@ def pdf_response(settings, oauth_consumer_key=None, lis_outcome_service_url=None
     r.content_type = 'text/html'
     return r
 
-def get_post_or_query_param(request, key):
-    value = get_query_param(request, key)
-    if value is not None:
-        ret = value
-    else:
-        value = get_post_param(request, key)
-        ret = value
-    if ret is None:
-        if key == constants.CUSTOM_CANVAS_COURSE_ID:
-            log.warning ( 'is privacy set to public in courses/COURSE_NUM/settings/configurations?' )
-    return ret
-
-def get_query_param(request, key):
-    q = urlparse.parse_qs(request.query_string)
-    if q.has_key(key):
-        return q[key][0]
-    return None
-
-def get_post_param(request, key):
-    post_data = util.requests.capture_post_data(request)
-    if post_data.has_key(key):
-        return post_data[key]
-    return None
-
 @view_config( route_name='lti_setup' )
 def lti_setup(request):
     """
@@ -118,21 +94,21 @@ def lti_setup(request):
     log.info ( 'lti_setup: post: %s' % request.POST )
     post_data = util.requests.capture_post_data(request)
 
-    oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
+    oauth_consumer_key = util.requests.get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     if oauth_consumer_key is None:
         log.error( 'oauth_consumer_key cannot be None %s' % request.POST )
     oauth_consumer_key = oauth_consumer_key.strip()
-    lis_outcome_service_url = get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
-    lis_result_sourcedid = get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
+    lis_outcome_service_url = util.requests.get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = util.requests.get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
 
-    course = get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
+    course = util.requests.get_post_or_query_param(request, constants.CUSTOM_CANVAS_COURSE_ID)
     if course is None:
         log.error ( 'course cannot be None' )
         return util.simple_response('No course number. Was Privacy set to Public for this installation of the Hypothesis LTI app? If not please do so (or ask someone who can to do so).')
     
-    post_data[constants.ASSIGNMENT_TYPE] = get_post_or_query_param(request, constants.ASSIGNMENT_TYPE)
-    post_data[constants.ASSIGNMENT_NAME] = get_post_or_query_param(request, constants.ASSIGNMENT_NAME)
-    post_data[constants.ASSIGNMENT_VALUE] = get_post_or_query_param(request, constants.ASSIGNMENT_VALUE)
+    post_data[constants.ASSIGNMENT_TYPE] = util.requests.get_post_or_query_param(request, constants.ASSIGNMENT_TYPE)
+    post_data[constants.ASSIGNMENT_NAME] = util.requests.get_post_or_query_param(request, constants.ASSIGNMENT_NAME)
+    post_data[constants.ASSIGNMENT_VALUE] = util.requests.get_post_or_query_param(request, constants.ASSIGNMENT_VALUE)
 
     log.info ( 'lti_setup: post_data: %s' % post_data )
 
@@ -183,9 +159,9 @@ def lti_setup(request):
                                 name=assignment_name,
                                 value=assignment_value)
 
-    return_url = get_post_or_query_param(request, constants.EXT_CONTENT_RETURN_URL)
+    return_url = util.requests.get_post_or_query_param(request, constants.EXT_CONTENT_RETURN_URL)
     if return_url is None: # this is an oauth redirect so get what we sent ourselves
-        return_url = get_post_or_query_param(request, 'return_url')
+        return_url = util.requests.get_post_or_query_param(request, 'return_url')
 
     log.info ( 'return_url: %s' % return_url )
 
@@ -229,7 +205,7 @@ def lti_pdf(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_
     log.info ( 'lti_pdf: post: %s' % request.POST )
     post_data = util.requests.capture_post_data(request)
     if oauth_consumer_key is None:
-        oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
+        oauth_consumer_key = util.requests.get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
     file_id = value
     try:
         lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
@@ -275,10 +251,10 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     """
     log.info ( 'lti_submit: query: %s' % request.query_string )
     log.info ( 'lti_submit: post: %s' % request.POST )
-    oauth_consumer_key = get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
-    lis_outcome_service_url = get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
-    lis_result_sourcedid = get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
-    export_url = get_post_or_query_param(request, constants.EXPORT_URL)
+    oauth_consumer_key = util.requests.get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
+    lis_outcome_service_url = util.requests.get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
+    lis_result_sourcedid = util.requests.get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
+    export_url = util.requests.get_post_or_query_param(request, constants.EXPORT_URL)
 
     try:
         secret = request.auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
@@ -310,7 +286,7 @@ def lti_export(request):
     assignment's PDF or URL, filtered to threads involving the (self-identified) H user, and
     highlighting contributions by that user.
     """
-    args = get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
+    args = util.requests.get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
     log.info ( 'lti_export: query: %s' % request.query_string )
     parsed_args = urlparse.parse_qs(args)
     user = parsed_args['user'][0]
@@ -352,7 +328,7 @@ def lti_credentials(request):
     if  request.method == 'OPTIONS':
         return cors_response(request)
 
-    credentials = get_query_param(request, 'credentials')
+    credentials = util.requests.get_query_param(request, 'credentials')
     if ( credentials is None ):
       return page_response(lti_credentials_form(request.registry.settings))
 
