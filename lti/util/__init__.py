@@ -9,6 +9,8 @@ from pyramid.response import Response
 from pyramid.renderers import render
 
 from lti.util import pdf
+from lti.util import requests
+from lti.util import filecache
 
 
 def pack_state(data):
@@ -56,4 +58,6 @@ __all__ = (
     'pdf',
     'unpack_state',
     'simple_response',
+    'requests',
+    'filecache',
 )
