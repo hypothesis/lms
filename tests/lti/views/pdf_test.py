@@ -81,10 +81,10 @@ class TestLTIPDF(object):
 
         util.filecache.exists_pdf.assert_called_once_with(self.expected_digest())
 
-    def test_if_the_file_isnt_cached_it_gets_file_metadata_canvas(self,
-                                                                  pyramid_request,
-                                                                  requests,
-                                                                  util):
+    def test_if_the_file_isnt_cached_it_gets_the_file_metadata_from_canvas(self,
+                                                                           pyramid_request,
+                                                                           requests,
+                                                                           util):
         util.filecache.exists_pdf.return_value = False
 
         pdf.lti_pdf(
