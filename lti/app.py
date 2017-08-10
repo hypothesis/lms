@@ -190,25 +190,6 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
     return util.simple_response(response)
 
-@view_config( route_name='lti_export' )
-def lti_export(request):
-    """ 
-    Called from Speed Grader, which presents the URL that the student submitted.
-
-    Redirects to a variant of our viewer/export prototype which displays annotations for the
-    assignment's PDF or URL, filtered to threads involving the (self-identified) H user, and
-    highlighting contributions by that user.
-    """
-    args = util.requests.get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
-    log.info ( 'lti_export: query: %s' % request.query_string )
-    parsed_args = urlparse.parse_qs(args)
-    user = parsed_args['user'][0]
-    uri = parsed_args['uri'][0]
-    log.info( 'lti_export user: %s, uri %s' % ( user, uri) )
-    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % ( request.registry.settings['lti_server'], urllib.quote(uri), user )
-    return HTTPFound(location=export_url)
-
-
 def lti_credentials_form(settings):
     return render('lti:templates/lti_credentials_form.html.jinja2', dict(
         lti_credentials_url=settings['lti_credentials_url'],
