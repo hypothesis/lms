@@ -16,15 +16,20 @@ oauthlib==2.0.2           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.4.1  # via pyramid
 plaster==0.5              # via plaster-pastedeploy, pyramid
+psycopg2==2.7.3
 pyramid-jinja2==2.7
 pyramid-services==1.1
+pyramid-tm==2.2
 pyramid==1.9.1
 repoze.lru==0.6           # via pyramid
 requests-oauthlib==0.8.0
 requests==2.18.3
+sqlalchemy==1.1.13
+transaction==2.1.2        # via pyramid-tm, zope.sqlalchemy
 translationstring==1.3    # via pyramid
 urllib3==1.22             # via requests
 venusian==1.1.0           # via pyramid
 webob==1.7.3              # via pyramid
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.2     # via pyramid, pyramid-services
+zope.interface==4.4.2     # via pyramid, pyramid-services, transaction, zope.sqlalchemy
+zope.sqlalchemy==0.7.7

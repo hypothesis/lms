@@ -75,6 +75,40 @@ To get the Canvas app running in a dev environment:
    machine, instead of `localhost`. If you setup your virtual machine using
    Vagrant this is `redis://10.0.2.2:6379`.
 
+1. Run a PostgreSQL database for the Hypothesis Canvas app to use.
+
+   The easiest way to run a database with the configuration that the app
+   expects is with Docker. The first time you run it you'll need to use this
+   command to create and run the `lti-postgres` docker container:
+
+   ```bash
+   $ sudo docker run -p 5433:5432 --name lti-postgres postgres
+   ```
+
+   Subsequently you can just re-start the already-created container with:
+
+   ```bash
+   sudo docker start -a lti-postgres
+   ```
+
+   **Tip**: You can connect to this database to inspect its contents by
+   installing [psql](https://www.postgresql.org/docs/current/static/app-psql.html)
+   and then running:
+
+   ```bash
+   $ psql postgresql://postgres@localhost:5433/postgres
+   ```
+
+   **Tip**: If you want to delete all your data and reset your dev database,
+   an easy way to do so is just to delete the whole docker container:
+
+   ```bash
+   $ sudo docker rm lti-postgres
+   ```
+
+   You can then re-create the container by re-running the `docker run` command
+   above.
+
 1. Clone the Hypothesis Canvas app's GitHub repository:
 
    ```bash
@@ -117,9 +151,17 @@ To get the Canvas app running in a dev environment:
 
 ### Running the tests
 
-```bash
-$ make test
-```
+1. Create the test database. You only need to do this once:
+
+   ```bash
+   $ psql postgresql://postgres@localhost:5433/postgres -c "CREATE DATABASE lti_test;"
+   ```
+
+2. Run the tests:
+
+   ```bash
+   $ make test
+   ```
 
 ### Getting a shell
 

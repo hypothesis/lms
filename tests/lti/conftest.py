@@ -2,15 +2,66 @@
 
 from __future__ import unicode_literals
 
+import os
 import functools
 
 import mock
 import pytest
 from pyramid import testing
 from pyramid.request import apply_request_extensions
+import sqlalchemy
+from sqlalchemy.orm import sessionmaker
 
 from lti import constants
+from lti import db
 from lti.services.auth_data import AuthDataService
+
+
+TEST_DATABASE_URL = os.environ.get(
+    'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lti_test')
+
+
+SESSION = sessionmaker()
+
+
+@pytest.fixture(scope='session')
+def db_engine():
+    engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
+    db.init(engine)
+    return engine
+
+
+@pytest.yield_fixture
+def db_session(db_engine):
+    """
+    The SQLAlchemy session object.
+
+    We enable fast repeatable database tests by setting up the database only
+    once per session (see :func:`db_engine`) and then wrapping each test
+    function in a transaction that is rolled back.
+
+    Additionally, we set a SAVEPOINT before entering the test, and if we
+    detect that the test has committed (i.e. released the savepoint) we
+    immediately open another. This has the effect of preventing test code from
+    committing the outer transaction.
+
+    """
+    conn = db_engine.connect()
+    trans = conn.begin()
+    session = SESSION(bind=conn)
+    session.begin_nested()
+
+    @sqlalchemy.event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(session, transaction):
+        if transaction.nested and not transaction._parent.nested:
+            session.begin_nested()
+
+    try:
+        yield session
+    finally:
+        session.close()
+        trans.rollback()
+        conn.close()
 
 
 def autopatcher(request, target, **kwargs):
@@ -91,3 +142,11 @@ def auth_data_svc(pyramid_request):
 def routes(pyramid_config):
     """Add all the routes that would be added in production."""
     pyramid_config.add_route('lti_setup', '/lti_setup')
+
+
+@pytest.yield_fixture
+def factories(db_session):
+    import factories
+    factories.set_session(db_session)
+    yield factories
+    factories.set_session(None)
