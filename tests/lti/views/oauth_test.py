@@ -50,10 +50,12 @@ class TestMakeAuthorizationRequest(object):
         util.simple_response.assert_called_once_with(None)
         assert returned == util.simple_response.return_value
 
-    def test_it_gets_the_canvas_servers_url_from_the_database(self, pyramid_request):
+    def test_it_gets_the_canvas_servers_url_from_the_database(self,
+                                                              pyramid_request,
+                                                              auth_data_svc):
         oauth.make_authorization_request(pyramid_request, mock.sentinel.state)
 
-        pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
+        auth_data_svc.get_canvas_server.assert_called_once_with(
             'TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_redirects_the_browser_back_to_canvas_for_authorization(
@@ -111,7 +113,10 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         util.unpack_state.assert_called_once_with('TEST_OAUTH_STATE')
 
-    def test_it_gets_the_client_secret_from_AuthData(self, pyramid_request, method):
+    def test_it_gets_the_client_secret_from_AuthData(self,
+                                                     pyramid_request,
+                                                     method,
+                                                     auth_data_svc):
         """
         It reads the OAuth 2.0 consumer's saved client secret from AuthData.
 
@@ -126,24 +131,28 @@ class TestTokenCallbackAndRefreshCallback(object):
         """
         method(pyramid_request)
 
-        pyramid_request.auth_data.get_lti_secret.assert_called_once_with(
+        auth_data_svc.get_lti_secret.assert_called_once_with(
             'TEST_OAUTH_CONSUMER_KEY')
 
-    def test_it_gets_the_canvas_server_from_AuthData(self, pyramid_request, method):
+    def test_it_gets_the_canvas_server_from_AuthData(self,
+                                                     pyramid_request,
+                                                     method,
+                                                     auth_data_svc):
         """It gets the URL of the Canvas server to login to from AuthData."""
         method(pyramid_request)
 
-        pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
+        auth_data_svc.get_canvas_server.assert_called_once_with(
             'TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_saves_the_oauth_access_and_refresh_tokens(self,
                                                           pyramid_request,
                                                           requests_fixture,
-                                                          method):
+                                                          method,
+                                                          auth_data_svc):
         """It saves the tokens from Canvas to the AuthData object."""
         method(pyramid_request)
 
-        pyramid_request.auth_data.set_tokens.assert_called_once_with(
+        auth_data_svc.set_tokens.assert_called_once_with(
             'TEST_OAUTH_CONSUMER_KEY',
             'TEST_OAUTH_ACCESS_TOKEN',
             'TEST_OAUTH_REFRESH_TOKEN',

@@ -58,6 +58,8 @@ def lti_setup(request):
     If there is no token, or the token is expired, called instead by way of OAuth redirect. 
     In that case we expect params in the query string.
     """
+    auth_data_svc = request.find_service(name='auth_data')
+
     log.info ( 'lti_setup: query: %s' % request.query_string )
     log.info ( 'lti_setup: post: %s' % request.POST )
     post_data = util.requests.capture_post_data(request)
@@ -81,7 +83,7 @@ def lti_setup(request):
     log.info ( 'lti_setup: post_data: %s' % post_data )
 
     try:
-        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = auth_data_svc.get_lti_token(oauth_consumer_key)
     except:
         response = "We don't have the Consumer Key %s in our database yet." % oauth_consumer_key
         log.error ( response )
@@ -93,7 +95,7 @@ def lti_setup(request):
         return oauth.make_authorization_request(request, util.pack_state(post_data))
 
     sess = requests.Session()  # ensure we have a token before calling lti_pdf or lti_web
-    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
     log.info ( 'canvas_server: %s' % canvas_server )
     url = '%s/api/v1/courses/%s/files?per_page=100' % (canvas_server, course)
     r = sess.get(url=url, headers={'Authorization':'Bearer %s' % lti_token })
@@ -119,7 +121,7 @@ def lti_setup(request):
 
     if assignment_type == 'web':
         return web.web_response(request.registry.settings,
-                                request.auth_data,
+                                auth_data_svc,
                                 oauth_consumer_key=oauth_consumer_key,
                                 course=course,
                                 lis_outcome_service_url=lis_outcome_service_url,
@@ -162,6 +164,9 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     In theory can be an LTI launch but that's undocumented and did not seem to work. 
     So we use info we send to ourselves from the JS we generate on the assignment page.
     """
+    auth_data_svc = request.find_service(name='auth_data')
+
+
     log.info ( 'lti_submit: query: %s' % request.query_string )
     log.info ( 'lti_submit: post: %s' % request.POST )
     oauth_consumer_key = util.requests.get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
@@ -170,7 +175,7 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     export_url = util.requests.get_post_or_query_param(request, constants.EXPORT_URL)
 
     try:
-        secret = request.auth_data.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
+        secret = auth_data_svc.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
     except:
         return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
 
@@ -269,8 +274,10 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
 
     config.include('pyramid_jinja2')
+    config.include('pyramid_services')
+
     config.include('lti.routes')
-    config.include('lti.models')
+    config.include('lti.services')
 
     pdf_view = static_view('lti:static/pdfjs')
     config.add_view(pdf_view, route_name='catchall_pdf')

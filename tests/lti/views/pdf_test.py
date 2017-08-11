@@ -19,7 +19,9 @@ from lti.views import pdf
                          'Response')
 class TestLTIPDF(object):
 
-    def test_it_gets_the_access_token_from_the_db(self, pyramid_request):
+    def test_it_gets_the_access_token_from_the_db(self,
+                                                  pyramid_request,
+                                                  auth_data_svc):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
@@ -30,13 +32,13 @@ class TestLTIPDF(object):
             value='TEST_VALUE',
         )
 
-        pyramid_request.auth_data.get_lti_token.assert_called_once_with(
-            'TEST_OAUTH_CONSUMER_KEY')
+        auth_data_svc.get_lti_token.assert_called_once_with('TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_shows_an_error_page_if_we_dont_have_the_consumer_key(self,
                                                                      pyramid_request,
-                                                                     util):
-        pyramid_request.auth_data.get_lti_token.side_effect = KeyError
+                                                                     util,
+                                                                     auth_data_svc):
+        auth_data_svc.get_lti_token.side_effect = KeyError
 
         response = pdf.lti_pdf(
             pyramid_request,
@@ -52,7 +54,9 @@ class TestLTIPDF(object):
             "We don't have the Consumer Key TEST_OAUTH_CONSUMER_KEY in our database yet.")
         assert response == util.simple_response.return_value
 
-    def test_it_gets_the_canvas_servers_url_from_the_db(self, pyramid_request):
+    def test_it_gets_the_canvas_servers_url_from_the_db(self,
+                                                        pyramid_request,
+                                                        auth_data_svc):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
@@ -63,8 +67,7 @@ class TestLTIPDF(object):
             value='TEST_VALUE',
         )
 
-        pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
-            'TEST_OAUTH_CONSUMER_KEY')
+        auth_data_svc.get_canvas_server.assert_called_once_with('TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_checks_whether_the_pdf_file_is_already_cached(self,
                                                               pyramid_request,

@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-certifi==2017.7.27.1        # via requests
+certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 filelock==2.0.11
 gunicorn==19.7.1
@@ -17,13 +17,14 @@ pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.4.1  # via pyramid
 plaster==0.5              # via plaster-pastedeploy, pyramid
 pyramid-jinja2==2.7
+pyramid-services==1.1
 pyramid==1.9.1
 repoze.lru==0.6           # via pyramid
 requests-oauthlib==0.8.0
 requests==2.18.3
 translationstring==1.3    # via pyramid
-urllib3==1.22           # via requests
+urllib3==1.22             # via requests
 venusian==1.1.0           # via pyramid
 webob==1.7.3              # via pyramid
 zope.deprecation==4.2.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.2     # via pyramid
+zope.interface==4.4.2     # via pyramid, pyramid-services
