@@ -6,7 +6,8 @@ import json
 import mock
 import pytest
 
-from lti.models.auth_data import AuthData
+from lti.services.auth_data import AuthDataService
+
 
 class TestAuthData(object):
 
@@ -95,4 +96,4 @@ def open_():
 
 @pytest.fixture
 def auth_data(open_):
-    return AuthData(open_)
+    return AuthDataService(open_)

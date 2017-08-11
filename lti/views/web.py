@@ -13,7 +13,7 @@ from lti import constants
 
 
 # pylint: disable=too-many-arguments, too-many-locals
-def web_response(settings, auth_data, oauth_consumer_key=None, course=None,
+def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
                  lis_outcome_service_url=None, lis_result_sourcedid=None,
                  name=None, value=None, open_=None):
     """
@@ -34,7 +34,7 @@ def web_response(settings, auth_data, oauth_consumer_key=None, course=None,
 
     url = value
 
-    canvas_server = auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
 
     # Create a fingerprint of the URL of the page to be annotated.
     # The fingerprint is Canvas instance- and course-specific.

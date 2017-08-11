@@ -28,11 +28,13 @@ def make_authorization_request(request, state, refresh=False):
     API access token for the given client ID yet.
 
     """
+    auth_data_svc = request.find_service(name='auth_data')
+
     try:
         unpacked_state = util.unpack_state(state)
         log.info('make_authorization_request: state: %s', unpacked_state)
         oauth_consumer_key = unpacked_state[constants.OAUTH_CONSUMER_KEY]
-        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
 
         if refresh:
             redirect_uri = '%s/refresh_callback'
@@ -117,6 +119,8 @@ def refresh_callback(request):
 
 
 def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
+    auth_data_svc = request.find_service(name='auth_data')
+
     try:
         log.info('oauth_callback: %s', request.query_string)
         parsed_query_string = urlparse.parse_qs(request.query_string)
@@ -134,11 +138,11 @@ def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
         assignment_name = unpacked_state[constants.ASSIGNMENT_NAME]
         assignment_value = unpacked_state[constants.ASSIGNMENT_VALUE]
 
-        canvas_client_secret = request.auth_data.get_lti_secret(
+        canvas_client_secret = auth_data_svc.get_lti_secret(
             oauth_consumer_key)
-        lti_refresh_token = request.auth_data.get_lti_refresh_token(
+        lti_refresh_token = auth_data_svc.get_lti_refresh_token(
             oauth_consumer_key)
-        canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+        canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
         url = '%s/login/oauth2/token' % canvas_server
         grant_type = 'authorization_code' if type_ == 'token' else 'refresh_token'
         params = {
@@ -156,9 +160,9 @@ def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
         lti_token = unpacked_state['access_token']
         if 'refresh_token' in unpacked_state:  # Is it ever not?
             lti_refresh_token = unpacked_state['refresh_token']
-        request.auth_data.set_tokens(oauth_consumer_key,
-                                     lti_token,
-                                     lti_refresh_token)
+        auth_data_svc.set_tokens(oauth_consumer_key,
+                                 lti_token,
+                                 lti_refresh_token)
         return HTTPFound(location=request.route_url('lti_setup', _query={
             constants.CUSTOM_CANVAS_COURSE_ID: course,
             constants.CUSTOM_CANVAS_USER_ID: user,

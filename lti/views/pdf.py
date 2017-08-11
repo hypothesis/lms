@@ -33,11 +33,12 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
     """
     post_data = util.requests.capture_post_data(request)
     file_id = value
+    auth_data_svc = request.find_service(name='auth_data')
     try:
-        lti_token = request.auth_data.get_lti_token(oauth_consumer_key)
+        lti_token = auth_data_svc.get_lti_token(oauth_consumer_key)
     except KeyError:
         return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
-    canvas_server = request.auth_data.get_canvas_server(oauth_consumer_key)
+    canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
     md5_obj = md5.new()
     md5_obj.update('%s/%s/%s' % (canvas_server, course, file_id))

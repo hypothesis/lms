@@ -15,10 +15,11 @@ class TestWebResponse(object):
 
     def test_it_gets_the_canvas_servers_url_from_the_database(self,
                                                               pyramid_request,
-                                                              open_):
+                                                              open_,
+                                                              auth_data_svc):
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -28,16 +29,16 @@ class TestWebResponse(object):
             open_=open_,
         )
 
-        pyramid_request.auth_data.get_canvas_server.assert_called_once_with(
-            'TEST_OAUTH_CONSUMER_KEY')
+        auth_data_svc.get_canvas_server.assert_called_once_with('TEST_OAUTH_CONSUMER_KEY')
 
     def test_it_checks_whether_the_file_is_already_cached(self,
                                                           pyramid_request,
                                                           open_,
-                                                          util):
+                                                          util,
+                                                          auth_data_svc):
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -53,12 +54,13 @@ class TestWebResponse(object):
                                                            pyramid_request,
                                                            util,
                                                            requests,
-                                                           open_):
+                                                           open_,
+                                                           auth_data_svc):
         util.filecache.exists_html.return_value = False
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -77,12 +79,13 @@ class TestWebResponse(object):
                                                     pyramid_request,
                                                     util,
                                                     requests,
-                                                    open_):
+                                                    open_,
+                                                    auth_data_svc):
         util.filecache.exists_html.return_value = False
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -104,14 +107,15 @@ class TestWebResponse(object):
                                                                  pyramid_request,
                                                                  util,
                                                                  requests,
-                                                                 open_):
+                                                                 open_,
+                                                                 auth_data_svc):
         util.filecache.exists_html.return_value = False
         requests.get.return_value.text = (
             "return; should be commented out")
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -128,13 +132,14 @@ class TestWebResponse(object):
                                                         pyramid_request,
                                                         util,
                                                         requests,
-                                                        open_):
+                                                        open_,
+                                                        auth_data_svc):
         util.filecache.exists_html.return_value = False
         requests.get.return_value.text = ('src="/im_something"')
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -147,12 +152,12 @@ class TestWebResponse(object):
         open_.return_value.write.assert_called_once_with('src="https://via.hypothes.issomething"')
 
     def test_if_the_page_is_already_cached_it_doesnt_request_it_from_via(
-            self, pyramid_request, util, requests, open_):
+            self, pyramid_request, util, requests, open_, auth_data_svc):
         util.filecache.exists_html.return_value = True
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -165,12 +170,12 @@ class TestWebResponse(object):
         assert not requests.get.called
 
     def test_if_the_page_is_already_cached_it_doesnt_write_to_the_filesystem(
-            self, pyramid_request, util, requests, open_):
+            self, pyramid_request, util, requests, open_, auth_data_svc):
         util.filecache.exists_html.return_value = True
 
         web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
@@ -183,8 +188,14 @@ class TestWebResponse(object):
         assert not open_.called
 
     @pytest.mark.parametrize('already_cached', [True, False])
-    def test_it_returns_the_modified_Via_page(
-            self, pyramid_request, open_, render, Response, already_cached, util):
+    def test_it_returns_the_modified_Via_page(self,
+                                              pyramid_request,
+                                              open_,
+                                              render,
+                                              Response,
+                                              already_cached,
+                                              util,
+                                              auth_data_svc):
         # It returns the modified Via page as an HTML response,
         # regardless of whether the page was retrieved from the cache or has
         # just been fetched from Via now.
@@ -194,7 +205,7 @@ class TestWebResponse(object):
 
         response = web.web_response(
             settings=pyramid_request.registry.settings,
-            auth_data=pyramid_request.auth_data,
+            auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',

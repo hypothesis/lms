@@ -9,8 +9,8 @@ import pytest
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lti.models import AuthData
 from lti import constants
+from lti.services.auth_data import AuthDataService
 
 
 def autopatcher(request, target, **kwargs):
@@ -38,12 +38,6 @@ def pyramid_request():
 
     """
     pyramid_request = testing.DummyRequest()
-
-    pyramid_request.auth_data = mock.create_autospec(AuthData, instance=True)
-    pyramid_request.auth_data.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
-    pyramid_request.auth_data.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
-    pyramid_request.auth_data.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
-    pyramid_request.auth_data.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
 
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
@@ -74,8 +68,23 @@ def pyramid_config(pyramid_request):
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
+        config.include('pyramid_services')
+
         apply_request_extensions(pyramid_request)
+
+        auth_data_svc = mock.create_autospec(AuthDataService, instance=True)
+        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
+        auth_data_svc.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
+        auth_data_svc.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
+        auth_data_svc.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
+        config.register_service(auth_data_svc, name='auth_data')
+
         yield config
+
+
+@pytest.fixture
+def auth_data_svc(pyramid_request):
+    return pyramid_request.find_service(name='auth_data')
 
 
 @pytest.fixture(autouse=True)

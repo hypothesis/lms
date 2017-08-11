@@ -3,4 +3,5 @@ pyramid
 filelock
 requests_oauthlib
 pyramid_jinja2
+pyramid_services
 gunicorn
