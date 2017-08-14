@@ -9,7 +9,7 @@ chardet==3.0.4            # via requests
 filelock==2.0.11
 gunicorn==19.7.1
 hupper==1.0               # via pyramid
-idna==2.5                 # via requests
+idna==2.6                 # via requests
 jinja2==2.9.6             # via pyramid-jinja2
 markupsafe==1.0           # via jinja2, pyramid-jinja2
 oauthlib==2.0.2           # via requests-oauthlib
