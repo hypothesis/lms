@@ -4,7 +4,6 @@ import urllib
 import urlparse
 
 from pyramid.view import view_config
-
 from pyramid.httpexceptions import HTTPFound
 
 from lti import util

@@ -1,8 +1,13 @@
 sudo: false
+env:
+  - TEST_DATABASE_URL=postgresql://postgres@localhost/lti_test
 language:
   - python
 python:
   - 2.7
+addons:
+    postgresql: "9.4"
+before_script: createdb lti_test
 jobs:
   include:
     - script: make test

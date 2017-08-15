@@ -253,7 +253,10 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
 
     config.include('pyramid_jinja2')
     config.include('pyramid_services')
+    config.include('pyramid_tm')
 
+    config.include('lti.models')
+    config.include('lti.db')
     config.include('lti.routes')
     config.include('lti.services')
 

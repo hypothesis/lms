@@ -1,7 +1,11 @@
 requests
 pyramid
-filelock
-requests_oauthlib
+pyramid_tm
 pyramid_jinja2
 pyramid_services
+filelock
+requests_oauthlib
 gunicorn
+sqlalchemy
+psycopg2
+zope.sqlalchemy
