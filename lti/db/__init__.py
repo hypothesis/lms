@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import zope.sqlalchemy
+import zope.sqlalchemy  # pylint:disable=relative-import
 
 
 __all__ = (

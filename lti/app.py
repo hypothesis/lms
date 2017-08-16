@@ -2,7 +2,7 @@
 import traceback
 import re
 import logging
-import filelock
+import json
 from pyramid.view import view_config
 from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
@@ -15,6 +15,7 @@ from lti import constants
 from lti.views import oauth
 from lti.views import web
 from lti.views import pdf
+from lti.models import OAuth2UnvalidatedCredentials
 
 
 log = logging.getLogger(__name__)
@@ -228,10 +229,15 @@ def lti_credentials(request):
     if ( credentials is None ):
       return page_response(lti_credentials_form(request.registry.settings))
 
-    lock = filelock.FileLock("credentials.lock")
-    with lock.acquire(timeout = 1):
-      with open('credentials.txt', 'a') as f:
-        f.write(credentials + '\n')
+    credentials = json.loads(credentials)
+
+    request.db.add(OAuth2UnvalidatedCredentials(
+        client_id=credentials.get("path_a_key"),
+        client_secret=credentials.get("path_a_secret"),
+        authorization_server=credentials.get("path_a_host"),
+        email_address=credentials.get("path_a_email"),
+    ))
+
     return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
 
 
