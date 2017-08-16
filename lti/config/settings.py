@@ -11,11 +11,12 @@ class SettingError(Exception):
     pass
 
 
-def env_setting(envvar_name):
+def env_setting(envvar_name, required=False):
     try:
         return os.environ[envvar_name]
     except KeyError:
-        raise SettingError(
-            "environment variable {envvar_name} isn't set".format(
-                envvar_name=envvar_name)
-        )
+        if required is True:
+            raise SettingError(
+                "environment variable {envvar_name} isn't set".format(
+                    envvar_name=envvar_name)
+                )

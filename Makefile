@@ -1,3 +1,5 @@
+DOCKER_TAG = dev
+
 .PHONY: clean
 clean:
 	find . -type f -name "*.py[co]" -delete
@@ -31,6 +33,10 @@ codecov: .coverage
 lint:
 	@pip install -q tox
 	tox -e lint
+
+.PHONY: docker
+docker:
+	git archive HEAD | docker build -t hypothesis/lti:$(DOCKER_TAG) -
 
 .pydeps: requirements.txt requirements-dev.in
 	@echo installing python dependencies

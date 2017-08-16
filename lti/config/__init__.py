@@ -19,10 +19,16 @@ def configure(settings=None):
 
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
-    settings.update(dict(
-        lti_server=env_setting('LTI_SERVER'),
-        lti_credentials_url=env_setting('LTI_CREDENTIALS_URL'),
-    ))
+    env_settings = {
+        'lti_server': env_setting('LTI_SERVER', required=True),
+        'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL',
+                                           required=True),
+    }
+    database_url = env_setting('DATABASE_URL')
+    if database_url:
+        env_settings['sqlalchemy.url'] = database_url
+
+    settings.update(env_settings)
 
     return Configurator(settings=settings)
 
