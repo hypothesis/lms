@@ -1,6 +1,4 @@
 .pydeps
-authdata.lock
-canvas-auth.json
 lti.log
 lti/static/pdfjs/viewer/web/*.html
 lti/static/pdfjs/viewer/web/*.pdf
