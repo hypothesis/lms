@@ -21,10 +21,11 @@ class TestConfigure(object):
 
     def test_it_returns_a_Configurator_with_all_the_settings(self,
                                                              env_setting):
-        def env_setting_side_effect(envvar_name):
+        def env_setting_side_effect(envvar_name, required=False):
             return {
                 'LTI_SERVER': 'the_lti_server_setting',
                 'LTI_CREDENTIALS_URL':  'the_lti_credentials_url_setting',
+                'DATABASE_URL': 'the_database_url',
             }[envvar_name]
 
         env_setting.side_effect = env_setting_side_effect
@@ -33,6 +34,7 @@ class TestConfigure(object):
 
         assert config.registry.settings['lti_server'] == 'the_lti_server_setting'
         assert config.registry.settings['lti_credentials_url'] == 'the_lti_credentials_url_setting'
+        assert config.registry.settings['sqlalchemy.url'] == 'the_database_url'
 
     @pytest.fixture
     def env_setting(self, patch):

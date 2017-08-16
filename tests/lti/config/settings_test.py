@@ -20,11 +20,18 @@ class TestEnvSetting(object):
 
         assert result == 'the_value'
 
-    def test_it_raises_if_the_environment_variable_isnt_set(self, os_fixture):
+    def test_it_returns_none_when_environment_variable_isnt_set_and_optional(self, os_fixture):
+        os_fixture.environ = {}
+
+        result = env_setting('FOOBAR')
+
+        assert result is None
+
+    def test_it_raises_if_the_environment_variable_isnt_set_and_required(self, os_fixture):
         os_fixture.environ = {}
 
         with pytest.raises(SettingError) as exc_info:
-            env_setting('FOOBAR')
+            env_setting('FOOBAR', required=True)
 
         assert exc_info.value.message == "environment variable FOOBAR isn't set"
 
