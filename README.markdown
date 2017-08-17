@@ -237,3 +237,80 @@ once.
 [requirements.txt]: requirements.txt
 [installing_the_app]: https://docs.google.com/document/d/13FFtk2qRogtU3qxR_oa3kq2ak-S_p7HHVnNM12eZGy8/edit# "Installing the App Google Doc"
 [using_the_app]: https://docs.google.com/document/d/1EvxGoX81H8AWDcskDph8dmu4Ov4gMSkGGXr5_5ggx3I/edit# "Using the App Google Doc"
+
+### Making changes to model code
+
+If you've made any changes to the database schema (for example: added or
+removed a SQLAlchemy ORM class, or added, removed or modified a
+`sqlalchemy.Column` on an ORM class) then you need to create a database
+migration script that can be used to upgrade the production database from the
+previous to your new schema.
+
+**See Also**: [Some tips on writing good migration scripts in the h docs](http://h.readthedocs.io/en/latest/developing/making-changes-to-model-code/#batch-deletes-and-updates-in-migration-scripts).
+
+We use [Alembic](http://alembic.zzzcomputing.com/en/latest/) to create and run
+migration scripts. See the Alembic docs (and look at existing scripts in
+[lti/migrations/versions](lti/migrations/versions)) for details, but the basic
+steps to create a new migration script for h are:
+
+1. Create the revision script by running `alembic revision`, for example:
+
+   ```bash
+   $ alembic -c conf/alembic.ini revision -m "Add the foobar table."
+   ```
+
+   This will create a new script in [lti/migrations/versions](lti/migrations/versions).
+
+1. Edit the generated script, fill in the `upgrade()` and `downgrade()` methods.
+
+   See <http://alembic.zzzcomputing.com/en/latest/ops.html#ops> for details.
+
+   **Note**: Not every migration should have a ``downgrade()`` method. For
+   example if the upgrade removes a max length constraint on a text field, so
+   that values longer than the previous max length can now be entered, then a
+   downgrade that adds the constraint back may not work with data created using
+   the updated schema.
+
+1. Stamp your database.
+
+   Before running any upgrades or downgrades you need to stamp the database
+   with its current revision, so Alembic knows which migration scripts to run:
+
+   ```bash
+   $ alembic -c conf/alembic.ini stamp <revision_id>
+   ```
+
+   `<revision_id>` should be the revision corresponding to the version of the
+   code that was present when the current database was created. The will
+   usually be the `down_revision` from the migration script that you've just
+   generated.
+
+1. Test your `upgrade()` function by upgrading your database to the most recent
+   revision. This will run all migration scripts newer than the revision that
+   your db is currently stamped with, which usually means just your new
+   revision script:
+
+   ```bash
+   $ alembic -c conf/alembic.ini upgrade head
+   ```
+
+   After running this command inspect your database's schema to check that it's
+   as expected, and run the app to check that everything is working.
+
+   **Note**: You should make sure that there's some repesentative data in the
+   relevant columns of the database before testing upgrading and downgrading
+   it. Some migration script crashes will only happen when there's data
+   present.
+
+1. Test your `downgrade()` function:
+
+   ```bash
+   $ alembic -c conf/alembic.ini downgrade -1
+   ```
+
+   After running this command inspect your database's schema to check that it's
+   as expected. You can then upgrade it again:
+
+   ```bash
+   $ alembic -c conf/alembic.ini upgrade +1
+   ```

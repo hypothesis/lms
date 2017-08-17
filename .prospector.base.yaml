@@ -54,3 +54,5 @@ pylint:
     good-names: _,i,j,k,v,e,db,fn,fp,log,parser,id,es
 pyroma:
   run: false
+ignore-paths:
+  - lti/migrations/env.py
