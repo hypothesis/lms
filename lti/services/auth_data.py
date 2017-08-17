@@ -2,9 +2,12 @@
 
 from __future__ import unicode_literals
 
-import json
 import logging
-import filelock
+
+from sqlalchemy.orm.exc import NoResultFound
+
+from lti.models import OAuth2Credentials
+from lti.models import OAuth2AccessToken
 
 
 log = logging.getLogger(__name__)
@@ -36,60 +39,63 @@ class AuthDataService(object):
 
     """
 
-    def __init__(self, open_=None):
-        self.open_ = open_ or open  # Test seam.
-        self._name = 'canvas-auth.json'
-        self.auth_data = {}
-        self.load()
+    def __init__(self, db):
+        self._db = db
 
     def set_tokens(self, oauth_consumer_key, lti_token, lti_refresh_token):
-        assert oauth_consumer_key in self.auth_data
-        lock = filelock.FileLock("authdata.lock")
-        with lock.acquire(timeout=1):
-            self.auth_data[oauth_consumer_key]['lti_token'] = lti_token
-            self.auth_data[oauth_consumer_key]['lti_refresh_token'] = lti_refresh_token
-            self.save()
+        try:
+            credentials = self._credentials_for(oauth_consumer_key)
+        except KeyError:
+            # We raise AssertionError here just to maintain compatibility with
+            # the legacy API of auth_data, for now.
+            raise AssertionError
+
+        # Delete all existing access tokens for these credentials.
+        for access_token in credentials.access_tokens:
+            self._db.delete(access_token)
+
+        # Save a new access and refresh token pair.
+        self._db.add(OAuth2AccessToken(
+            client_id=credentials.client_id,
+            access_token=lti_token,
+            refresh_token=lti_refresh_token,
+        ))
 
     def get_lti_token(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['lti_token']
+        access_token = self._first_access_token_for(oauth_consumer_key)
+        if access_token is None:
+            return None
+        return access_token.access_token
 
     def get_lti_refresh_token(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['lti_refresh_token']
+        access_token = self._first_access_token_for(oauth_consumer_key)
+        if access_token is None:
+            return None
+        return access_token.refresh_token
 
     def get_lti_secret(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['secret']
-
-    def _get_canvas_server_scheme(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['canvas_server_scheme']
-
-    def _get_canvas_server_host(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['canvas_server_host']
-
-    def _get_canvas_server_port(self, oauth_consumer_key):
-        return self.auth_data[oauth_consumer_key]['canvas_server_port']
+        return self._credentials_for(oauth_consumer_key).client_secret
 
     def get_canvas_server(self, oauth_consumer_key):
-        canvas_server_scheme = self._get_canvas_server_scheme(oauth_consumer_key)
-        canvas_server_host = self._get_canvas_server_host(oauth_consumer_key)
-        canvas_server_port = self._get_canvas_server_port(oauth_consumer_key)
-        canvas_server = None
-        if canvas_server_port is None:
-            canvas_server = '%s://%s' % (canvas_server_scheme, canvas_server_host)
-        else:
-            canvas_server = '%s://%s:%s' % (canvas_server_scheme, canvas_server_host, canvas_server_port)
-        return canvas_server
+        return self._credentials_for(oauth_consumer_key).authorization_server
 
-    def load(self):
-        file_ = self.open_(self._name)
-        self.auth_data = json.loads(file_.read())
-        file_.close()
+    def _credentials_for(self, oauth_consumer_key):
+        try:
+            return self._db.query(OAuth2Credentials).filter_by(
+                client_id=oauth_consumer_key).one()
+        except NoResultFound:
+            # We raise KeyError here just to maintain compatibility with
+            # the legacy API of auth_data, for now.
+            raise KeyError
 
-    def save(self):
-        file_ = self.open_(self._name, 'wb')
-        j = json.dumps(self.auth_data, indent=2, sort_keys=True)
-        file_.write(j)
-        file_.close()
+    def _first_access_token_for(self, oauth_consumer_key):
+        credentials = self._credentials_for(oauth_consumer_key)
+
+        if not credentials.access_tokens:
+            return None
+
+        return credentials.access_tokens[0]
 
 
 def auth_data_service_factory(context, request):  # pylint: disable=unused-argument
-    return AuthDataService()
+    return AuthDataService(request.db)
