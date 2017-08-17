@@ -1,5 +1,6 @@
 alembic
 requests
+newrelic
 pyramid
 pyramid_tm
 pyramid_jinja2
