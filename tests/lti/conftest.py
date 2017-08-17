@@ -101,6 +101,8 @@ def pyramid_request():
         constants.LIS_RESULT_SOURCEDID: 'TEST_LIS_RESULT_SOURCEDID',
     })
 
+    pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
+
     return pyramid_request
 
 
