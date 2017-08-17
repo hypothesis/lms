@@ -34,6 +34,20 @@ node {
     }
 }
 
+onlyOnMaster {
+    milestone()
+    stage('qa deploy') {
+        deployApp(image: img, app: 'lti', env: 'qa')
+    }
+
+    milestone()
+    stage('prod deploy') {
+        input(message: "Deploy to prod?")
+        milestone()
+        deployApp(image: img, app: 'lti', env: 'prod')
+    }
+}
+
 def containerPort(container, port) {
     return sh(
         script: "docker port ${container.id} ${port} | cut -d: -f2",
