@@ -82,7 +82,8 @@ class TestLTIPDF(object):
             value='TEST_VALUE',
         )
 
-        util.filecache.exists_pdf.assert_called_once_with(self.expected_digest())
+        util.filecache.exists_pdf.assert_called_once_with(
+            self.expected_digest(), pyramid_request.registry.settings)
 
     def test_if_the_file_isnt_cached_it_gets_the_file_metadata_from_canvas(self,
                                                                            pyramid_request,
@@ -188,9 +189,7 @@ class TestLTIPDF(object):
 
         expected_digest = self.expected_digest()
         os.rename.assert_called_once_with(
-            expected_digest,
-            './lti/static/pdfjs/viewer/web/' + expected_digest + '.pdf',
-        )
+            expected_digest, '/var/lib/lti/' + expected_digest + '.pdf')
 
     def test_it_renders_the_pdf_assignment_template(self,
                                                     pyramid_request,

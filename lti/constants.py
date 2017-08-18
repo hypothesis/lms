@@ -5,9 +5,6 @@
 from __future__ import unicode_literals
 
 
-FILES_PATH = './lti/static/pdfjs/viewer/web'
-
-
 # Canvas params.
 CUSTOM_CANVAS_COURSE_ID = 'custom_canvas_course_id'
 CUSTOM_CANVAS_USER_ID = 'custom_canvas_user_id'

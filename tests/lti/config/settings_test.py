@@ -35,6 +35,20 @@ class TestEnvSetting(object):
 
         assert exc_info.value.message == "environment variable FOOBAR isn't set"
 
+    def test_environment_variables_override_default_settings(self, os_fixture):
+        os_fixture.environ = {'FOOBAR': 'the_value'}
+
+        result = env_setting('FOOBAR', default='DEFAULT')
+
+        assert result == 'the_value'
+
+    def test_if_a_default_is_given_and_theres_no_env_var_it_returns_the_default(self, os_fixture):
+        os_fixture.environ = {}
+
+        result = env_setting('FOOBAR', default='DEFAULT')
+
+        assert result == 'DEFAULT'
+
 
 @pytest.fixture
 def os_fixture(patch):

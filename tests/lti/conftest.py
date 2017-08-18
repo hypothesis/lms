@@ -118,6 +118,7 @@ def pyramid_config(pyramid_request):
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
         'lti_server': 'http://TEST_LTI_SERVER.com',
+        'lti_files_path': '/var/lib/lti',
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
