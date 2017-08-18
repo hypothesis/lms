@@ -314,3 +314,44 @@ steps to create a new migration script for h are:
    ```bash
    $ alembic -c conf/alembic.ini upgrade +1
    ```
+
+### Adding OAuth credentials to the production and QA apps
+
+The production LTI app runs in a Docker container on an Amazon EC2 instance.
+To login to this server and modify the database you need to:
+
+1. Checkout the playbook repo and run its `h-ssh` tool to ssh into the
+   production LTI EC2 instance:
+
+   ```bash
+   sh ./tools/h-ssh prod lti
+   ```
+
+   **Note**: In order for this to work you'll need to have your local ssh
+   configured correctly, see the playbook repo's README.
+
+1. On the EC2 instance run `docker ps` to see the name of the app's docker container:
+
+   ```bash
+   $ sudo docker ps
+   ```
+
+1. Now run `docker exec` to run a shell inside the docker container:
+
+   ```bash
+   $ sudo docker exec -it nostalgic_shockley sh
+   ```
+
+1. In the docker container, run `pshell`:
+
+   ```bash
+   PYTHONPATH=. pshell conf/production.ini
+   ```
+
+1. In `pshell` add the new `OAuth2Credentials` to the database and commit the transaction:
+
+   ```python
+   >>> from lti.models import OAuth2Credentials
+   >>> request.db.add(OAuth2Credentials(client_id='10000000000007', client_secret='1AN***VvS', authorization_server='https://hypothesis.instructure.com'))
+   >>> request.tm.commit()
+   ```
