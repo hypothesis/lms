@@ -345,7 +345,7 @@ To login to this server and modify the database you need to:
 1. In the docker container, run `pshell`:
 
    ```bash
-   PYTHONPATH=. pshell conf/production.ini
+   $ PYTHONPATH=. pshell conf/production.ini
    ```
 
 1. In `pshell` add the new `OAuth2Credentials` to the database and commit the transaction:
