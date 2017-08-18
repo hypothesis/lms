@@ -324,7 +324,7 @@ To login to this server and modify the database you need to:
    production LTI EC2 instance:
 
    ```bash
-   sh ./tools/h-ssh prod lti
+   $ sh ./tools/h-ssh prod lti
    ```
 
    **Note**: In order for this to work you'll need to have your local ssh
