@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import md5
 import urllib
-import os
+import shutil
 import json
 
 import requests
@@ -53,7 +53,7 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
             j = response.json()
             url = j['url']
             urllib.urlretrieve(url, digest)
-            os.rename(digest, '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest))
+            shutil.move(digest, '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest))
     fingerprint = util.pdf.get_fingerprint(digest, request.registry.settings)
     if fingerprint is None:
         pdf_uri = '%s/viewer/web/%s.pdf' % (request.registry.settings['lti_server'], digest)

@@ -15,7 +15,7 @@ from lti.views import pdf
                          'render',
                          'oauth',
                          'urlretrieve',
-                         'os',
+                         'shutil',
                          'Response')
 class TestLTIPDF(object):
 
@@ -173,7 +173,7 @@ class TestLTIPDF(object):
                                                                      pyramid_request,
                                                                      util,
                                                                      requests,
-                                                                     os):
+                                                                     shutil):
         util.filecache.exists_pdf.return_value = False
         requests.Session.return_value.get.return_value.status_code = 200
 
@@ -188,7 +188,7 @@ class TestLTIPDF(object):
         )
 
         expected_digest = self.expected_digest()
-        os.rename.assert_called_once_with(
+        shutil.move.assert_called_once_with(
             expected_digest, '/var/lib/lti/' + expected_digest + '.pdf')
 
     def test_it_renders_the_pdf_assignment_template(self,
@@ -267,8 +267,8 @@ class TestLTIPDF(object):
         return patch('lti.views.pdf.urllib.urlretrieve')
 
     @pytest.fixture
-    def os(self, patch):
-        return patch('lti.views.pdf.os')
+    def shutil(self, patch):
+        return patch('lti.views.pdf.shutil')
 
     @pytest.fixture
     def Response(self, patch):
