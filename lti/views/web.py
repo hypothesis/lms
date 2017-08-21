@@ -9,7 +9,6 @@ from pyramid.response import Response
 from pyramid.renderers import render
 
 from lti import util
-from lti import constants
 
 
 # pylint: disable=too-many-arguments, too-many-locals
@@ -42,7 +41,7 @@ def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
     md5_obj.update('%s/%s/%s' % (canvas_server, course, url))
     digest = md5_obj.hexdigest()
 
-    if util.filecache.exists_html(digest) is False:
+    if util.filecache.exists_html(digest, settings) is False:
         # This URL isn't cached yet (for this Canvas instance and course),
         # so request the page from Via and cache it.
         via_response = requests.get('https://via.hypothes.is/%s' % url,
@@ -54,7 +53,7 @@ def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
         # ?
         text = text.replace("""src="/im_""", 'src="https://via.hypothes.is')
 
-        cached_file = open_('%s/%s.html' % (constants.FILES_PATH, digest), 'wb')
+        cached_file = open_('%s/%s.html' % (settings['lti_files_path'], digest), 'wb')
         cached_file.write(text.encode('utf-8'))
         cached_file.close()
 

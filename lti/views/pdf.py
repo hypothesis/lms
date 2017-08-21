@@ -13,7 +13,6 @@ from pyramid.response import Response
 
 from lti import util
 from lti.views import oauth
-from lti import constants
 
 
 # pylint: disable = too-many-arguments, too-many-locals
@@ -43,7 +42,7 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
     md5_obj = md5.new()
     md5_obj.update('%s/%s/%s' % (canvas_server, course, file_id))
     digest = md5_obj.hexdigest()
-    if util.filecache.exists_pdf(digest) is False:
+    if util.filecache.exists_pdf(digest, request.registry.settings) is False:
         sess = requests.Session()
         response = sess.get(url=url, headers={'Authorization': 'Bearer %s' % lti_token})
         if response.status_code == 401:
@@ -54,8 +53,8 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
             j = response.json()
             url = j['url']
             urllib.urlretrieve(url, digest)
-            os.rename(digest, '%s/%s.pdf' % (constants.FILES_PATH, digest))
-    fingerprint = util.pdf.get_fingerprint(digest)
+            os.rename(digest, '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest))
+    fingerprint = util.pdf.get_fingerprint(digest, request.registry.settings)
     if fingerprint is None:
         pdf_uri = '%s/viewer/web/%s.pdf' % (request.registry.settings['lti_server'], digest)
     else:

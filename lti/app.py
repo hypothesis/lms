@@ -244,7 +244,7 @@ def lti_credentials(request):
 @view_config( route_name='lti_serve_pdf' )
 def lti_serve_pdf(request):
     if request.referer is not None and 'pdf.worker.js' in request.referer:
-        return serve_file(path=constants.FILES_PATH,
+        return serve_file(path=request.registry.settings['lti_files_path'],
                       file=request.matchdict['file'] + '.pdf',
                       request=request,
                       content_type='application/pdf')

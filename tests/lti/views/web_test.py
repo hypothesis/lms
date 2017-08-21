@@ -48,7 +48,8 @@ class TestWebResponse(object):
             open_=open_,
         )
 
-        util.filecache.exists_html.assert_called_once_with(self.expected_hash())
+        util.filecache.exists_html.assert_called_once_with(
+            self.expected_hash(), pyramid_request.registry.settings)
 
     def test_if_its_not_already_cached_it_gets_it_from_via(self,
                                                            pyramid_request,
@@ -95,9 +96,7 @@ class TestWebResponse(object):
             open_=open_,
         )
 
-        open_.assert_called_once_with(
-            './lti/static/pdfjs/viewer/web/' + self.expected_hash() + '.html',
-            'wb')
+        open_.assert_called_once_with('/var/lib/lti/' + self.expected_hash() + '.html', 'wb')
         open_.return_value.write.assert_called_once_with("The text of the web page")
         open_.return_value.close.assert_called_once_with()
 

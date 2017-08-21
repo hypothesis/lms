@@ -23,6 +23,8 @@ def configure(settings=None):
         'lti_server': env_setting('LTI_SERVER', required=True),
         'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL',
                                            required=True),
+        'lti_files_path': env_setting('LTI_FILES_PATH',
+                                      default='./lti/static/pdfjs/viewer/web'),
     }
     database_url = env_setting('DATABASE_URL')
     if database_url:
