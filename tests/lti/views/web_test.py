@@ -18,7 +18,7 @@ class TestWebResponse(object):
                                                               open_,
                                                               auth_data_svc):
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -37,7 +37,7 @@ class TestWebResponse(object):
                                                           util,
                                                           auth_data_svc):
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -60,7 +60,7 @@ class TestWebResponse(object):
         util.filecache.exists_html.return_value = False
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -85,7 +85,7 @@ class TestWebResponse(object):
         util.filecache.exists_html.return_value = False
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -113,7 +113,7 @@ class TestWebResponse(object):
             "return; should be commented out")
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -137,7 +137,7 @@ class TestWebResponse(object):
         requests.get.return_value.text = ('src="/im_something"')
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -155,7 +155,7 @@ class TestWebResponse(object):
         util.filecache.exists_html.return_value = True
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -173,7 +173,7 @@ class TestWebResponse(object):
         util.filecache.exists_html.return_value = True
 
         web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -203,7 +203,7 @@ class TestWebResponse(object):
         render.return_value = 'THE_RENDERED_HTML_PAGE'
 
         response = web.web_response(
-            settings=pyramid_request.registry.settings,
+            request=pyramid_request,
             auth_data_svc=auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
             course='TEST_COURSE_ID',
@@ -216,7 +216,7 @@ class TestWebResponse(object):
 
         render.assert_called_once_with('lti:templates/html_assignment.html.jinja2', {
             'name': 'TEST_ASSIGNMENT_NAME',
-            'hash': self.expected_hash(),
+            'path': '/cache/' + self.expected_hash() + '.html',
             'oauth_consumer_key': 'TEST_OAUTH_CONSUMER_KEY',
             'lis_outcome_service_url': 'TEST_LIS_OUTCOME_SERVICE_URL',
             'lis_result_sourcedid': 'TEST_LIS_RESULT_SOURCEDID',

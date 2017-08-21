@@ -13,6 +13,6 @@
     {% if lis_result_sourcedid %}
       {% include 'lti:templates/includes/submission_form.html.jinja2' %}
     {% endif %}
-    <iframe width="100%%" height="1000px" src="/viewer/web/{{ hash }}.html"></iframe>
+    <iframe width="100%%" height="1000px" src="{{ path }}"></iframe>
   </body>
 </html>

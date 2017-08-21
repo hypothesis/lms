@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import md5
+import os.path
 
 import requests
 from pyramid.response import Response
@@ -12,7 +13,7 @@ from lti import util
 
 
 # pylint: disable=too-many-arguments, too-many-locals
-def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
+def web_response(request, auth_data_svc, oauth_consumer_key=None, course=None,
                  lis_outcome_service_url=None, lis_result_sourcedid=None,
                  name=None, value=None, open_=None):
     """
@@ -41,7 +42,7 @@ def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
     md5_obj.update('%s/%s/%s' % (canvas_server, course, url))
     digest = md5_obj.hexdigest()
 
-    if util.filecache.exists_html(digest, settings) is False:
+    if util.filecache.exists_html(digest, request.registry.settings) is False:
         # This URL isn't cached yet (for this Canvas instance and course),
         # so request the page from Via and cache it.
         via_response = requests.get('https://via.hypothes.is/%s' % url,
@@ -53,17 +54,18 @@ def web_response(settings, auth_data_svc, oauth_consumer_key=None, course=None,
         # ?
         text = text.replace("""src="/im_""", 'src="https://via.hypothes.is')
 
-        cached_file = open_('%s/%s.html' % (settings['lti_files_path'], digest), 'wb')
+        cached_file = open_('%s/%s.html' % (request.registry.settings['lti_files_path'], digest), 'wb')
         cached_file.write(text.encode('utf-8'))
         cached_file.close()
 
     html = render('lti:templates/html_assignment.html.jinja2', dict(
         name=name,
-        hash=digest,
+        path=request.static_path(os.path.join(
+            request.registry.settings['lti_files_path'], digest + '.html')),
         oauth_consumer_key=oauth_consumer_key,
         lis_outcome_service_url=lis_outcome_service_url,
         lis_result_sourcedid=lis_result_sourcedid,
         doc_uri=url,
-        lti_server=settings['lti_server'],
+        lti_server=request.registry.settings['lti_server'],
     ))
     return Response(html.encode('utf-8'), content_type='text/html')

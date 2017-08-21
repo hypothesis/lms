@@ -118,7 +118,7 @@ def lti_setup(request):
         return pdf.lti_pdf(request, oauth_consumer_key=oauth_consumer_key, lis_outcome_service_url=lis_outcome_service_url, lis_result_sourcedid=lis_result_sourcedid, course=course, name=assignment_name, value=assignment_value)
 
     if assignment_type == 'web':
-        return web.web_response(request.registry.settings,
+        return web.web_response(request,
                                 auth_data_svc,
                                 oauth_consumer_key=oauth_consumer_key,
                                 course=course,
@@ -272,6 +272,8 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.add_static_view(name='export', path='lti:static/export')
 
     config.add_static_view(name='static', path='lti:static')
+
+    config.add_static_view(name='cache', path=config.registry.settings['lti_files_path'])
 
     config.registry.settings['jinja2.filters'] = {
         'static_path': 'pyramid_jinja2.filters:static_path_filter',
