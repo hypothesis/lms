@@ -2,17 +2,14 @@
 
 from __future__ import unicode_literals
 
-import json
-import mock
 import pytest
 
 from lti.models import OAuth2AccessToken
 from lti.models import OAuth2Credentials
-from lti.services.auth_data import AuthDataService
+from lti import services
 
 
 class TestAuthData(object):
-
     """Unit tests for the AuthData class."""
 
     def test_get_lti_token(self, auth_data):
@@ -21,8 +18,8 @@ class TestAuthData(object):
         assert actual == expected
 
     def test_get_lti_token_raises_KeyError_if_oauth_consumer_key_doesnt_exist(self, auth_data):
-        with pytest.raises(KeyError) as ex:
-            actual = auth_data.get_lti_token("KEY_DOES_NOT_EXIST")
+        with pytest.raises(KeyError):
+            auth_data.get_lti_token("KEY_DOES_NOT_EXIST")
 
     def test_get_lti_token_returns_None_if_theres_no_token_for_this_client_id(self,
                                                                               auth_data,
@@ -40,13 +37,13 @@ class TestAuthData(object):
         expected = "9382~yRo ... Rlid9UXLhxfvwkWDnj"
         assert actual == expected
 
-    def test_get_lti_refresh_token_raises_KeyError_if_oauth_consumer_key_doesnt_exist(self, auth_data):
-        with pytest.raises(KeyError) as ex:
-            actual = auth_data.get_lti_refresh_token("KEY_DOES_NOT_EXIST")
+    def test_get_lti_refresh_token_raises_KeyError_if_key_doesnt_exist(self, auth_data):
+        with pytest.raises(KeyError):
+            auth_data.get_lti_refresh_token("KEY_DOES_NOT_EXIST")
 
-    def test_get_lti_refresh_token_returns_None_if_theres_no_token_for_this_client_id(self,
-                                                                                     auth_data,
-                                                                                     db_session):
+    def test_get_lti_refresh_token_returns_None_if_theres_no_token(self,
+                                                                   auth_data,
+                                                                   db_session):
         db_session.add(OAuth2Credentials(
             client_id='OTHER_CLIENT_ID',
             client_secret='OTHER_SECRET',
@@ -55,23 +52,23 @@ class TestAuthData(object):
 
         assert auth_data.get_lti_refresh_token('OTHER_CLIENT_ID') is None
 
-    def test_get_lti_secret(self,auth_data):
+    def test_get_lti_secret(self, auth_data):
         actual = auth_data.get_lti_secret("93820000000000002")
         expected = "tJzcNSZadqlHTCW6ow  ... wodX3dfeuIokkLMjrQJqw3Y2"
         assert actual == expected
 
     def test_get_lti_secret_raises_KeyError_if_oauth_consumer_key_doesnt_exist(self, auth_data):
-        with pytest.raises(KeyError) as ex:
-            actual = auth_data.get_lti_secret("KEY_DOES_NOT_EXIST")
+        with pytest.raises(KeyError):
+            auth_data.get_lti_secret("KEY_DOES_NOT_EXIST")
 
-    def test_get_canvas_server(self,auth_data):
+    def test_get_canvas_server(self, auth_data):
         actual = auth_data.get_canvas_server("93820000000000002")
         expected = "https://hypothesis.instructure.com:1000"
         assert actual == expected
 
-    def test_get_canvas_server_raises_KeyError_if_oauth_consumer_key_doesnt_exist(self, auth_data):
-        with pytest.raises(KeyError) as ex:
-            actual = auth_data.get_canvas_server("KEY_DOES_NOT_EXIST")
+    def test_get_canvas_server_raises_KeyError_if_key_doesnt_exist(self, auth_data):
+        with pytest.raises(KeyError):
+            auth_data.get_canvas_server("KEY_DOES_NOT_EXIST")
 
     def test_set_tokens(self, auth_data):
         auth_data.set_tokens("93820000000000002", "new_lti_token", "new_refresh_token")
@@ -132,9 +129,9 @@ class TestAuthData(object):
         assert auth_data.get_lti_token("93820000000000002") == (
             "9382~IAbeGEFScV  ... IIMaEdK3dXlm2d9cjozd")
 
-    def test_set_tokens_throws_assertion_error_if_oauth_consumer_key_doesnt_exist(self, auth_data):
-        with pytest.raises(AssertionError) as ex:
-            actual = auth_data.set_tokens("KEY_DOES_NOT_EXIST", "new_lti_token", "new_refresh_token")
+    def test_set_tokens_throws_assertion_error_if_key_doesnt_exist(self, auth_data):
+        with pytest.raises(AssertionError):
+            auth_data.set_tokens("KEY_DOES_NOT_EXIST", "new_lti_token", "new_refresh_token")
 
 
 @pytest.fixture
@@ -156,4 +153,4 @@ def db_session(db_session):
 
 @pytest.fixture
 def auth_data(db_session):
-    return AuthDataService(db_session)
+    return services.auth_data.AuthDataService(db_session)

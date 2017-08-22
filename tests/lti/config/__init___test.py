@@ -21,7 +21,7 @@ class TestConfigure(object):
 
     def test_it_returns_a_Configurator_with_all_the_settings(self,
                                                              env_setting):
-        def env_setting_side_effect(envvar_name, required=False, default=None):
+        def env_setting_side_effect(envvar_name, required=False, default=None):  # pylint:disable=unused-argument
             return {
                 'LTI_FILES_PATH': 'the_lti_files_path_setting',
                 'LTI_SERVER': 'the_lti_server_setting',

@@ -51,7 +51,7 @@ class TestWebResponse(object):
         util.filecache.exists_html.assert_called_once_with(
             self.expected_hash(), pyramid_request.registry.settings)
 
-    def test_if_its_not_already_cached_it_gets_it_from_via(self,
+    def test_if_its_not_already_cached_it_gets_it_from_via(self,  # pylint:disable=too-many-arguments
                                                            pyramid_request,
                                                            util,
                                                            requests,
@@ -73,13 +73,12 @@ class TestWebResponse(object):
 
         requests.get.assert_called_once_with(
             'https://via.hypothes.is/TEST_ASSIGNMENT_VALUE',
-            headers={'User-Agent':'Mozilla'},
+            headers={'User-Agent': 'Mozilla'},
         )
 
-    def test_if_its_not_already_cached_it_caches_it(self,
+    def test_if_its_not_already_cached_it_caches_it(self,  # pylint:disable=too-many-arguments
                                                     pyramid_request,
                                                     util,
-                                                    requests,
                                                     open_,
                                                     auth_data_svc):
         util.filecache.exists_html.return_value = False
@@ -102,7 +101,7 @@ class TestWebResponse(object):
 
     # This is necessary to work around problems with running Via's responses
     # inside Canvas's iframe.
-    def test_it_comments_out_returns_statements_in_vias_response(self,
+    def test_it_comments_out_returns_statements_in_vias_response(self,  # pylint:disable=too-many-arguments
                                                                  pyramid_request,
                                                                  util,
                                                                  requests,
@@ -127,7 +126,7 @@ class TestWebResponse(object):
         open_.return_value.write.assert_called_once_with(
             "// return should be commented out")
 
-    def test_it_changes_src_attributes_in_vias_response(self,
+    def test_it_changes_src_attributes_in_vias_response(self,  # pylint:disable=too-many-arguments
                                                         pyramid_request,
                                                         util,
                                                         requests,
@@ -150,7 +149,7 @@ class TestWebResponse(object):
 
         open_.return_value.write.assert_called_once_with('src="https://via.hypothes.issomething"')
 
-    def test_if_the_page_is_already_cached_it_doesnt_request_it_from_via(
+    def test_if_the_page_is_already_cached_it_doesnt_request_it_from_via(  # pylint:disable=too-many-arguments
             self, pyramid_request, util, requests, open_, auth_data_svc):
         util.filecache.exists_html.return_value = True
 
@@ -168,8 +167,8 @@ class TestWebResponse(object):
 
         assert not requests.get.called
 
-    def test_if_the_page_is_already_cached_it_doesnt_write_to_the_filesystem(
-            self, pyramid_request, util, requests, open_, auth_data_svc):
+    def test_if_the_page_is_already_cached_it_doesnt_write_to_the_filesystem(  # pylint:disable=too-many-arguments
+            self, pyramid_request, util, open_, auth_data_svc):
         util.filecache.exists_html.return_value = True
 
         web.web_response(
@@ -187,7 +186,7 @@ class TestWebResponse(object):
         assert not open_.called
 
     @pytest.mark.parametrize('already_cached', [True, False])
-    def test_it_returns_the_modified_Via_page(self,
+    def test_it_returns_the_modified_Via_page(self,  # pylint:disable=too-many-arguments
                                               pyramid_request,
                                               open_,
                                               render,
@@ -229,9 +228,9 @@ class TestWebResponse(object):
 
     def expected_hash(self):
         """Return the hash for the test web page we're annotating."""
-        m = md5.new()
-        m.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE_ID/TEST_ASSIGNMENT_VALUE')
-        return m.hexdigest()
+        md5_obj = md5.new()
+        md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE_ID/TEST_ASSIGNMENT_VALUE')
+        return md5_obj.hexdigest()
 
     @pytest.fixture
     def requests(self, patch):

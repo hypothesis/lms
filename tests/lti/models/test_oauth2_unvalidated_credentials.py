@@ -8,10 +8,11 @@ from lti.models import OAuth2UnvalidatedCredentials
 class TestOAuthUnvalidated2Credentials(object):
 
     def test_it_persists_the_fields(self, db_session):
-        db_session.add(OAuth2UnvalidatedCredentials(client_id="TEST_ID",
-                                                    client_secret="TEST_SECRET",
-                                                    authorization_server="TEST_AUTH_SERVER",
-                                                    email_address="TEST_EMAIL",
+        db_session.add(OAuth2UnvalidatedCredentials(
+            client_id="TEST_ID",
+            client_secret="TEST_SECRET",
+            authorization_server="TEST_AUTH_SERVER",
+            email_address="TEST_EMAIL",
         ))
 
         persisted = (db_session.query(OAuth2UnvalidatedCredentials)
@@ -23,20 +24,23 @@ class TestOAuthUnvalidated2Credentials(object):
 
     def test_you_can_add_multiple_rows_with_the_same_values(self, db_session):
         db_session.add_all([
-            OAuth2UnvalidatedCredentials(client_id="TEST_ID",
-                                         client_secret="TEST_SECRET",
-                                         authorization_server="TEST_AUTH_SERVER",
-                                         email_address="TEST_EMAIL",
+            OAuth2UnvalidatedCredentials(
+                client_id="TEST_ID",
+                client_secret="TEST_SECRET",
+                authorization_server="TEST_AUTH_SERVER",
+                email_address="TEST_EMAIL",
             ),
-            OAuth2UnvalidatedCredentials(client_id="TEST_ID",
-                                         client_secret="TEST_SECRET",
-                                         authorization_server="TEST_AUTH_SERVER",
-                                         email_address="TEST_EMAIL",
+            OAuth2UnvalidatedCredentials(
+                client_id="TEST_ID",
+                client_secret="TEST_SECRET",
+                authorization_server="TEST_AUTH_SERVER",
+                email_address="TEST_EMAIL",
             ),
-            OAuth2UnvalidatedCredentials(client_id="TEST_ID",
-                                         client_secret="TEST_SECRET",
-                                         authorization_server="TEST_AUTH_SERVER",
-                                         email_address="TEST_EMAIL",
+            OAuth2UnvalidatedCredentials(
+                client_id="TEST_ID",
+                client_secret="TEST_SECRET",
+                authorization_server="TEST_AUTH_SERVER",
+                email_address="TEST_EMAIL",
             ),
         ])
 

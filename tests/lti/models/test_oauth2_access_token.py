@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 import pytest
 
 from lti.models import OAuth2AccessToken
-from lti.models import OAuth2Credentials
 
 
 class TestOAuth2AccessToken(object):
@@ -23,8 +22,8 @@ class TestOAuth2AccessToken(object):
         assert persisted.access_token == "TEST_ACCESS_TOKEN"
         assert persisted.refresh_token == "TEST_REFRESH_TOKEN"
 
-    def test_the_OAuth2Credentials_object_is_accessible_as_the_credentials_property(self,
-                                                                                    oauth2_credentials):
+    def test_the_OAuth2Credentials_is_accessible_as_the_credentials_property(self,
+                                                                             oauth2_credentials):
         access_token = OAuth2AccessToken(credentials=oauth2_credentials,
                                          access_token="TEST_ACCESS_TOKEN",
                                          refresh_token="TEST_REFRESH_TOKEN")

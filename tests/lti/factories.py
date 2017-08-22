@@ -12,16 +12,15 @@ SESSION = None
 
 
 def set_session(value):
-    global SESSION
+    global SESSION  # pylint:disable=global-statement
 
     SESSION = value
 
 
 class ModelFactory(factory.alchemy.SQLAlchemyModelFactory):
-
     """Base class for all factory classes for model classes."""
 
-    class Meta:
+    class Meta(object):
         abstract = True
 
     @classmethod
@@ -42,7 +41,7 @@ class ModelFactory(factory.alchemy.SQLAlchemyModelFactory):
 
 class OAuth2Credentials(ModelFactory):
 
-    class Meta:
+    class Meta(object):
         model = models.OAuth2Credentials
         sqlalchemy_session_persistence = 'flush'
 
@@ -53,7 +52,7 @@ class OAuth2Credentials(ModelFactory):
 
 class OAuth2AccessToken(ModelFactory):
 
-    class Meta:
+    class Meta(object):
         model = models.OAuth2AccessToken
         sqlalchemy_session_persistence = 'flush'
 

@@ -12,7 +12,6 @@ from lti.util import unpack_state
 
 
 class TestPackState(object):
-
     """Unit tests for pack_state()."""
 
     def test_it_returns_a_dict_as_a_url_quoted_json_string(self):
@@ -23,7 +22,6 @@ class TestPackState(object):
 
 
 class TestUnpackState(object):
-
     """Unit tests for unpack_state()."""
 
     def test_it_returns_a_url_quoted_json_string_as_a_dict(self):
@@ -43,7 +41,6 @@ class TestUnpackState(object):
 
 
 class TestPackStateUnpackState(object):
-
     """Contract tests for how pack_state() and unpack_state() work together."""
 
     def test_unpack_state_reverses_pack_state(self):

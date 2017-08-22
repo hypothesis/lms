@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 
 from lti import constants
 from lti import db
-from lti.services.auth_data import AuthDataService
+from lti.services import auth_data
 
 
 TEST_DATABASE_URL = os.environ.get(
@@ -34,7 +34,7 @@ def db_engine():
 @pytest.yield_fixture
 def db_session(db_engine):
     """
-    The SQLAlchemy session object.
+    Yield the SQLAlchemy session object.
 
     We enable fast repeatable database tests by setting up the database only
     once per session (see :func:`db_engine`) and then wrapping each test
@@ -52,8 +52,8 @@ def db_session(db_engine):
     session.begin_nested()
 
     @sqlalchemy.event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(session, transaction):
-        if transaction.nested and not transaction._parent.nested:
+    def restart_savepoint(session, transaction):  # pylint:disable=unused-variable
+        if transaction.nested and not transaction._parent.nested:  # pylint:disable=protected-access
             session.begin_nested()
 
     try:
@@ -126,7 +126,7 @@ def pyramid_config(pyramid_request):
 
         apply_request_extensions(pyramid_request)
 
-        auth_data_svc = mock.create_autospec(AuthDataService, instance=True)
+        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
         auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
         auth_data_svc.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
         auth_data_svc.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
@@ -151,7 +151,7 @@ def routes(pyramid_config):
 
 @pytest.yield_fixture
 def factories(db_session):
-    import factories
+    import factories  # pylint:disable=relative-import
     factories.set_session(db_session)
     yield factories
     factories.set_session(None)
