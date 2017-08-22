@@ -122,7 +122,7 @@ class TestGetPostOrQueryParam(object):
         assert requests.get_post_or_query_param(pyramid_request, key) == 'value_from_query_string'
 
     @pytest.mark.parametrize('key', WHITELISTED_POST_PARAMS)
-    def test_an_empty_value_from_the_query_string_does_not_override_the_post_params(self, pyramid_request, key):
+    def test_an_empty_value_from_query_string_doesnt_override_post_params(self, pyramid_request, key):
         pyramid_request.query_string = urllib.urlencode({key: ''})
         pyramid_request.POST[key] = 'value_from_post_data'
 

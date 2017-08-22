@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from lti.routes import includeme
+from lti import routes
 
 import mock
 
@@ -12,7 +12,7 @@ class TestIncludeMe(object):
     def test_it_adds_some_routes(self):
         config = mock.MagicMock()
 
-        includeme(config)
+        routes.includeme(config)
 
         expected_calls = [
             mock.call.add_route('about', '/'),

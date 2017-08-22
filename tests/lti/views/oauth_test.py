@@ -14,9 +14,8 @@ import requests
 from pyramid import httpexceptions
 
 
-# Fixtures that will automatically be used for every test in this file.
-pytestmark = pytest.mark.usefixtures(
-    'requests_fixture',  # We never want tests to really send HTTP requests.
+pytestmark = pytest.mark.usefixtures(  # pylint:disable=invalid-name
+    'requests_fixture',
     'log',
     'traceback',
     'util',
@@ -98,7 +97,6 @@ class TestMakeAuthorizationRequest(object):
 
 @pytest.mark.parametrize('method', [oauth.token_callback, oauth.refresh_callback])
 class TestTokenCallbackAndRefreshCallback(object):
-
     """Unit tests that apply to both token_callback() and refresh_callback()."""
 
     def test_it_unpacks_the_state_param(self, pyramid_request, util, method):
@@ -146,7 +144,6 @@ class TestTokenCallbackAndRefreshCallback(object):
 
     def test_it_saves_the_oauth_access_and_refresh_tokens(self,
                                                           pyramid_request,
-                                                          requests_fixture,
                                                           method,
                                                           auth_data_svc):
         """It saves the tokens from Canvas to the AuthData object."""
@@ -196,7 +193,7 @@ class TestTokenCallbackAndRefreshCallback(object):
         util.simple_response.assert_called_once_with(None)
         assert returned == util.simple_response.return_value
 
-    def test_it_logs_an_error_if_authorization_code_missing(self,
+    def test_it_logs_an_error_if_authorization_code_missing(self,  # pylint:disable=too-many-arguments
                                                             pyramid_request,
                                                             traceback,
                                                             log,
@@ -211,7 +208,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         self.assert_that_it_logged_an_error(traceback, log, util, returned)
 
-    def test_it_logs_an_error_if_state_missing(self,
+    def test_it_logs_an_error_if_state_missing(self,  # pylint:disable=too-many-arguments
                                                pyramid_request,
                                                traceback,
                                                log,
@@ -226,7 +223,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         self.assert_that_it_logged_an_error(traceback, log, util, returned)
 
-    def test_it_logs_an_error_if_state_isnt_valid_json(self,
+    def test_it_logs_an_error_if_state_isnt_valid_json(self,  # pylint:disable=too-many-arguments
                                                        pyramid_request,
                                                        traceback,
                                                        log,
@@ -247,7 +244,7 @@ class TestTokenCallbackAndRefreshCallback(object):
         constants.ASSIGNMENT_TYPE,
         constants.ASSIGNMENT_NAME,
         constants.ASSIGNMENT_VALUE,
-    ])
+    ])  # pylint:disable=too-many-arguments
     def test_it_logs_an_error_if_a_field_is_missing_from_state(self,
                                                                pyramid_request,
                                                                traceback,
@@ -263,7 +260,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
     # TODO: It would also log errors if AuthData raised any.
 
-    def test_it_logs_an_error_if_Canvas_login_response_isnt_json(self,
+    def test_it_logs_an_error_if_Canvas_login_response_isnt_json(self,  # pylint:disable=too-many-arguments
                                                                  pyramid_request,
                                                                  traceback,
                                                                  log,
@@ -278,7 +275,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         self.assert_that_it_logged_an_error(traceback, log, util, returned)
 
-    def test_it_logs_an_error_if_Canvas_login_response_lacks_access_token(self,
+    def test_it_logs_an_error_if_Canvas_login_response_lacks_access_token(self,  # pylint:disable=too-many-arguments
                                                                           pyramid_request,
                                                                           traceback,
                                                                           log,
@@ -293,7 +290,6 @@ class TestTokenCallbackAndRefreshCallback(object):
 
 
 class TestTokenCallback(object):
-
     """Unit tests for token_callback() only."""
 
     def test_it_posts_an_authorization_code_request_to_canvas(self,
@@ -302,7 +298,8 @@ class TestTokenCallback(object):
         oauth.token_callback(pyramid_request)
 
         requests_fixture.post.assert_called_once_with(
-            'https://TEST_CANVAS_SERVER.com/login/oauth2/token', {
+            'https://TEST_CANVAS_SERVER.com/login/oauth2/token',
+            {
                 'code': 'TEST_OAUTH_AUTHORIZATION_CODE',
                 'grant_type': 'authorization_code',
 
@@ -311,11 +308,11 @@ class TestTokenCallback(object):
 
                 'client_id': u'TEST_OAUTH_CONSUMER_KEY',
                 'redirect_uri': 'http://TEST_LTI_SERVER.com/token_callback',
-        })
+            },
+        )
 
 
 class TestRefreshCallback(object):
-
     """Unit tests for refresh_callback() only."""
 
     def test_it_posts_a_refresh_token_request_to_canvas(self,
@@ -324,7 +321,8 @@ class TestRefreshCallback(object):
         oauth.refresh_callback(pyramid_request)
 
         requests_fixture.post.assert_called_once_with(
-            'https://TEST_CANVAS_SERVER.com/login/oauth2/token', {
+            'https://TEST_CANVAS_SERVER.com/login/oauth2/token',
+            {
                 'refresh_token': 'TEST_OAUTH_REFRESH_TOKEN',
                 'grant_type': 'refresh_token',
 
@@ -333,8 +331,8 @@ class TestRefreshCallback(object):
 
                 'client_id': u'TEST_OAUTH_CONSUMER_KEY',
                 'redirect_uri': 'http://TEST_LTI_SERVER.com/token_callback',
-        })
-
+            },
+        )
 
 
 @pytest.fixture

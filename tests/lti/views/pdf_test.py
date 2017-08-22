@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import md5
 
 import pytest
-import mock
 
 from lti.views import pdf
 
@@ -25,7 +24,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -43,7 +42,7 @@ class TestLTIPDF(object):
         response = pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -60,7 +59,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -75,7 +74,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -94,7 +93,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -123,7 +122,7 @@ class TestLTIPDF(object):
         response = pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -154,10 +153,10 @@ class TestLTIPDF(object):
             'url': 'THE_URL_OF_THE_PDF_FILE',
         }
 
-        response = pdf.lti_pdf(
+        pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -180,7 +179,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -201,7 +200,7 @@ class TestLTIPDF(object):
         response = pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',
@@ -214,11 +213,12 @@ class TestLTIPDF(object):
                 name='TEST_NAME',
                 hash=expected_digest,
                 oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-                lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+                lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
                 lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
                 doc_uri='http://TEST_LTI_SERVER.com/viewer/web/' + expected_digest + '.pdf',
                 lti_server='http://TEST_LTI_SERVER.com',
-        ))
+            ),
+        )
         Response.assert_called_once_with(
             render.return_value.encode.return_value, content_type='text/html')
         assert response == Response.return_value
@@ -230,7 +230,7 @@ class TestLTIPDF(object):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL', 
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             course='TEST_COURSE',
             name='TEST_NAME',

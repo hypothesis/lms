@@ -5,26 +5,26 @@ from __future__ import unicode_literals
 import pytest
 from pyramid import httpexceptions
 
-from lti.views.error import ErrorController
+from lti.views import error
 
 
 class TestErrorController(object):
 
     def test_httperror_sets_status_code(self, pyramid_request):
-        ErrorController(httpexceptions.HTTPNotFound(), pyramid_request).httperror()
+        error.ErrorController(httpexceptions.HTTPNotFound(), pyramid_request).httperror()
 
         assert pyramid_request.response.status_int == 404
 
     def test_httperror_returns_error_message(self, pyramid_request):
         exc = httpexceptions.HTTPNotFound("Annotation not found")
-        controller = ErrorController(exc, pyramid_request)
+        controller = error.ErrorController(exc, pyramid_request)
 
         template_data = controller.httperror()
 
         assert template_data["message"] == "Annotation not found"
 
     def test_error_sets_status_code(self, pyramid_request):
-        ErrorController(Exception(), pyramid_request).error()
+        error.ErrorController(Exception(), pyramid_request).error()
 
         assert pyramid_request.response.status_int == 500
 
@@ -32,15 +32,15 @@ class TestErrorController(object):
         pyramid_request.registry.settings["debug"] = True
 
         with pytest.raises(Exception):
-            ErrorController(Exception(), pyramid_request).error()
+            error.ErrorController(Exception(), pyramid_request).error()
 
     def test_error_reports_to_sentry(self, pyramid_request):
-        ErrorController(Exception(), pyramid_request).error()
+        error.ErrorController(Exception(), pyramid_request).error()
 
         pyramid_request.raven.captureException.assert_called_once_with()
 
     def test_error_returns_error_message(self, pyramid_request):
-        controller = ErrorController(Exception(), pyramid_request)
+        controller = error.ErrorController(Exception(), pyramid_request)
 
         template_data = controller.error()
 

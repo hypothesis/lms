@@ -78,7 +78,7 @@ class TestOAuth2Credentials(object):
     def test_client_secret_is_required(self, db_session):
         db_session.add(OAuth2Credentials(client_id="TEST_ID",
                                          authorization_server="TEST_AUTH_SERVER"))
-       
+
         with pytest.raises(IntegrityError):
             db_session.flush()
 
