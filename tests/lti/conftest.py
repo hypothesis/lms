@@ -119,10 +119,12 @@ def pyramid_config(pyramid_request):
     settings = {
         'lti_server': 'http://TEST_LTI_SERVER.com',
         'lti_files_path': '/var/lib/lti',
+        'sqlalchemy.url': TEST_DATABASE_URL,
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_services')
+        config.include('lti.db')
 
         apply_request_extensions(pyramid_request)
 

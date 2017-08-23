@@ -1,8 +1,6 @@
 ﻿import requests
 import traceback
-import re
 import logging
-import json
 from pyramid.view import view_config
 from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
@@ -15,27 +13,10 @@ from lti import constants
 from lti.views import oauth
 from lti.views import web
 from lti.views import pdf
-from lti.models import OAuth2UnvalidatedCredentials
 
 
 log = logging.getLogger(__name__)
 
-
-def bare_response(text):
-    r = Response(text.encode('utf-8'))
-    r.headers.update({
-        'Access-Control-Allow-Origin': '*'
-        })
-    r.content_type = 'text/plain'
-    return r
-
-def page_response(html):
-    r = Response(html.encode('utf-8'))
-    r.headers.update({
-        'Access-Control-Allow-Origin': '*'
-        })
-    r.content_type = 'text/html'
-    return r
 
 def serve_file(path=None, file=None, request=None, content_type=None):
     response = FileResponse('%s/%s' % (path, file),
@@ -193,54 +174,6 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
     else:
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
     return util.simple_response(response)
-
-def lti_credentials_form(settings):
-    return render('lti:templates/lti_credentials_form.html.jinja2', dict(
-        lti_credentials_url=settings['lti_credentials_url'],
-    ))
-
-def cors_response(request, response=None):
-    if response is None:
-        response = Response()
-    request_headers = request.headers['Access-Control-Request-Headers'].lower()
-    request_headers = re.findall('\w(?:[-\w]*\w)', request_headers)
-    response_headers = ['access-control-allow-origin']
-    for req_acoa_header in request_headers:
-        if req_acoa_header not in response_headers:
-            response_headers.append(req_acoa_header)
-    response_headers = ','.join(response_headers)
-    response.headers.update({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '%s' % response_headers,
-        'Access-Control-Allow-Methods': "UPDATE, POST, GET"
-        })
-    response.status_int = 204
-    print ( response.headers )
-    return response
-
-@view_config( route_name='lti_credentials' )
-def lti_credentials(request):
-    """ 
-    Receive credentials for path A (key/secret/host) or path B (username.username/token/host)
-    """
-    if  request.method == 'OPTIONS':
-        return cors_response(request)
-
-    credentials = util.requests.get_query_param(request, 'credentials')
-    if ( credentials is None ):
-      return page_response(lti_credentials_form(request.registry.settings))
-
-    credentials = json.loads(credentials)
-
-    request.db.add(OAuth2UnvalidatedCredentials(
-        client_id=credentials.get("path_a_key"),
-        client_secret=credentials.get("path_a_secret"),
-        authorization_server=credentials.get("path_a_host"),
-        email_address=credentials.get("path_a_email"),
-    ))
-
-    return bare_response("<p>Thanks!</p><p>We received:</p><p>%s</p><p>We'll contact you to explain next steps.</p>" % credentials)
-
 
 @view_config( route_name='lti_serve_pdf' )
 def lti_serve_pdf(request):
