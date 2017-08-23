@@ -352,6 +352,6 @@ To login to this server and modify the database you need to:
 
    ```python
    >>> from lti.models import OAuth2Credentials
-   >>> request.db.add(OAuth2Credentials(client_id='10000000000007', client_secret='1AN***VvS', authorization_server='https://hypothesis.instructure.com'))
+   >>> request.db.add(OAuth2Credentials(client_id=u'10000000000007', client_secret=u'1AN***VvS', authorization_server=u'https://hypothesis.instructure.com'))
    >>> request.tm.commit()
    ```
