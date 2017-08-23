@@ -45,6 +45,7 @@ def serve_file(path=None, file=None, request=None, content_type=None):
 
 
 @view_config( route_name='lti_setup' )
+@view_config( route_name='canvas_resource_selection' )
 def lti_setup(request):
     """
     LTI-launched from a Canvas assignment's Find interaction to present choice of doc (PDF or URL) to annotate.

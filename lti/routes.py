@@ -13,6 +13,7 @@ def includeme(config):
 
     config.add_route('lti_credentials', '/lti_credentials')
     config.add_route('lti_setup', '/lti_setup')
+    config.add_route('canvas_resource_selection', '/canvas/resource_selection')
     config.add_route('lti_submit', '/lti_submit')
     config.add_route('lti_export', '/lti_export')
 

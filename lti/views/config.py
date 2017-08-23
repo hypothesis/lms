@@ -12,5 +12,5 @@ def config_xml(request):
     request.response.content_type = 'text/xml'
     return {
         'launch_url': request.route_url('lti_setup'),
-        'resource_selection_url': request.route_url('lti_setup'),
+        'resource_selection_url': request.route_url('canvas_resource_selection'),
     }

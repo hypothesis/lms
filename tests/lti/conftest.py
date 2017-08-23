@@ -145,6 +145,7 @@ def auth_data_svc(pyramid_request):
 def routes(pyramid_config):
     """Add all the routes that would be added in production."""
     pyramid_config.add_route('lti_setup', '/lti_setup')
+    pyramid_config.add_route('canvas_resource_selection', '/canvas/resource_selection')
     pyramid_config.add_static_view(
         name='cache', path=pyramid_config.registry.settings['lti_files_path'])
 
