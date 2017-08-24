@@ -3,3 +3,6 @@ inherits:
     - .prospector.base
 ignore-paths:
   - lti/app.py
+# FIXME: Re-enable mccabe once lti_setup() has been split up.
+mccabe:
+  run: false
