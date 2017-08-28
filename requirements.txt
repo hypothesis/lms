@@ -30,7 +30,7 @@ python-editor==1.0.3      # via alembic
 raven==6.1.0
 repoze.lru==0.6           # via pyramid
 requests-oauthlib==0.8.0
-requests==2.18.3
+requests==2.18.4
 six==1.10.0               # via python-dateutil
 sqlalchemy==1.1.13
 transaction==2.1.2        # via pyramid-tm, zope.sqlalchemy
