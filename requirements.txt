@@ -11,7 +11,7 @@ contextlib2==0.5.5        # via raven
 filelock==2.0.11
 gunicorn==19.7.1
 hupper==1.0               # via pyramid
-idna==2.5                 # via requests
+idna==2.6                 # via requests
 jinja2==2.9.6             # via pyramid-jinja2
 mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
