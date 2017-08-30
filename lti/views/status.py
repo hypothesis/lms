@@ -16,6 +16,6 @@ def status(request):
     try:
         request.db.execute('SELECT 1')
         return {'status': 'okay'}
-    except Exception as exc:  # pylint:disable=broad-except
-        log.exception(exc)
+    except Exception:  # pylint:disable=broad-except
+        log.exception("Executing a simple database query failed:")
         return {'status': 'failure', 'reason': 'Database connection failed'}
