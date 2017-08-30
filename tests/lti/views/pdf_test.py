@@ -15,7 +15,8 @@ from lti.views import pdf
                          'oauth',
                          'urlretrieve',
                          'shutil',
-                         'Response')
+                         'Response',
+                         'hash_of_file_contents')
 class TestLTIPDF(object):
 
     def test_it_gets_the_access_token_from_the_db(self,
@@ -273,3 +274,7 @@ class TestLTIPDF(object):
     @pytest.fixture
     def Response(self, patch):
         return patch('lti.views.pdf.Response')
+
+    @pytest.fixture
+    def hash_of_file_contents(self, patch):
+        return patch('lti.views.pdf.hash_of_file_contents')

@@ -7,6 +7,7 @@ import urllib
 import shutil
 import json
 import logging
+import hashlib
 
 import requests
 from pyramid.renderers import render
@@ -46,7 +47,8 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
     md5_obj = md5.new()
     md5_obj.update('%s/%s/%s' % (canvas_server, course, file_id))
     digest = md5_obj.hexdigest()
-    log.debug("Digest for PDF filename in cache is: %s", digest)
+    path = '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest)
+    log.debug("Path for PDF file in cache is: %s", path)
     if util.filecache.exists_pdf(digest, request.registry.settings) is False:
         log.debug("%s is not already cached", digest)
         sess = requests.Session()
@@ -61,11 +63,14 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
             url = j['url']
             log.debug("Downloading %s from %s", digest, url)
             urllib.urlretrieve(url, digest)
-            path = '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest)
+            log.debug("Hash of downloaded file is: %s", hash_of_file_contents(digest))
             log.debug("Moving %s to %s", digest, path)
             shutil.move(digest, path)
     else:
         log.debug("%s is already cached", digest)
+
+    log.debug("Hash of cached file is: %s", hash_of_file_contents(path))
+
     fingerprint = util.pdf.get_fingerprint(digest, request.registry.settings)
     if fingerprint is None:
         pdf_uri = '%s/viewer/web/%s.pdf' % (request.registry.settings['lti_server'], digest)
@@ -84,3 +89,11 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
                )).encode('utf-8'),
         content_type='text/html',
     )
+
+
+def hash_of_file_contents(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as file_:
+        for chunk in iter(lambda: file_.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
