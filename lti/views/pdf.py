@@ -6,6 +6,7 @@ import md5
 import urllib
 import shutil
 import json
+import logging
 
 import requests
 from pyramid.renderers import render
@@ -13,6 +14,9 @@ from pyramid.response import Response
 
 from lti import util
 from lti.views import oauth
+
+
+log = logging.getLogger(__name__)
 
 
 # pylint: disable = too-many-arguments, too-many-locals
@@ -42,8 +46,11 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
     md5_obj = md5.new()
     md5_obj.update('%s/%s/%s' % (canvas_server, course, file_id))
     digest = md5_obj.hexdigest()
+    log.debug("Digest for PDF filename in cache is: %s", digest)
     if util.filecache.exists_pdf(digest, request.registry.settings) is False:
+        log.debug("%s is not already cached", digest)
         sess = requests.Session()
+        log.debug("Getting %s metadata from %s", digest, url)
         response = sess.get(url=url, headers={'Authorization': 'Bearer %s' % lti_token})
         if response.status_code == 401:
             return oauth.make_authorization_request(
@@ -52,8 +59,13 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
         if response.status_code == 200:
             j = response.json()
             url = j['url']
+            log.debug("Downloading %s from %s", digest, url)
             urllib.urlretrieve(url, digest)
-            shutil.move(digest, '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest))
+            path = '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest)
+            log.debug("Moving %s to %s", digest, path)
+            shutil.move(digest, path)
+    else:
+        log.debug("%s is already cached", digest)
     fingerprint = util.pdf.get_fingerprint(digest, request.registry.settings)
     if fingerprint is None:
         pdf_uri = '%s/viewer/web/%s.pdf' % (request.registry.settings['lti_server'], digest)
