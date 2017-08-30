@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-import md5
 import urllib
 import shutil
 import json
@@ -44,7 +43,7 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
         return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
     canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
     url = '%s/api/v1/courses/%s/files/%s' % (canvas_server, course, file_id)
-    md5_obj = md5.new()
+    md5_obj = hashlib.md5()
     md5_obj.update('%s/%s/%s' % (canvas_server, course, file_id))
     digest = md5_obj.hexdigest()
     path = '%s/%s.pdf' % (request.registry.settings['lti_files_path'], digest)

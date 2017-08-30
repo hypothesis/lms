@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import md5
+import hashlib
 
 import pytest
 
@@ -242,7 +242,7 @@ class TestLTIPDF(object):
 
     def expected_digest(self):
         """Return the MD5 digest we expect lti_pdf() to cache the file with."""
-        md5_obj = md5.new()
+        md5_obj = hashlib.md5()
         md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE/TEST_VALUE')
         return md5_obj.hexdigest()
 
