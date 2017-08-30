@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import logging
 import urlparse
-import traceback
 
 import requests
 from pyramid.view import view_config
@@ -52,10 +51,9 @@ def make_authorization_request(request, state, refresh=False):
         ret = HTTPFound(location=token_redirect_uri)
         log.info('make_authorization_request ' + token_redirect_uri)
         return ret
-    except:  # pylint: disable=bare-except
-        response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
-        log.error(response)
-        return util.simple_response(response)
+    except Exception as err:  # pylint:disable=broad-except
+        log.exception("make_authorization_request() failed:")
+        return util.simple_response(err)
 
 
 @view_config(route_name='token_callback')
@@ -171,7 +169,6 @@ def oauth_callback(request, type_=None):  # pylint: disable=too-many-locals
             constants.ASSIGNMENT_NAME: assignment_name,
             constants.ASSIGNMENT_VALUE: assignment_value,
         }))
-    except:  # pylint: disable=bare-except
-        response = traceback.print_exc()  # pylint: disable=assignment-from-no-return
-        log.error(response)
-        return util.simple_response(response)
+    except Exception as err:  # pylint: disable=broad-except
+        log.exception("oauth_callback() failed:")
+        return util.simple_response(err)

@@ -17,7 +17,6 @@ from pyramid import httpexceptions
 pytestmark = pytest.mark.usefixtures(  # pylint:disable=invalid-name
     'requests_fixture',
     'log',
-    'traceback',
     'util',
 )
 
@@ -32,21 +31,17 @@ class TestMakeAuthorizationRequest(object):
     def test_it_logs_an_error_if_the_state_param_isnt_valid_json(self,
                                                                  pyramid_request,
                                                                  util,
-                                                                 traceback,
                                                                  log):
         util.unpack_state.side_effect = ValueError()
 
         returned = oauth.make_authorization_request(pyramid_request,
                                                     mock.sentinel.state)
 
-        # It prints out the traceback.
-        traceback.print_exc.assert_called_once_with()
-
-        # It logs None.
-        log.error.assert_called_once_with(None)
+        # It logs the traceback.
+        log.exception.assert_called_once_with("make_authorization_request() failed:")
 
         # It returns a simple HTML page with None for its body.
-        util.simple_response.assert_called_once_with(None)
+        util.simple_response.assert_called_once_with(util.unpack_state.side_effect)
         assert returned == util.simple_response.return_value
 
     def test_it_gets_the_canvas_servers_url_from_the_database(self,
@@ -181,21 +176,14 @@ class TestTokenCallbackAndRefreshCallback(object):
             'oauth_consumer_key': ['TEST_OAUTH_CONSUMER_KEY'],
         }
 
-    def assert_that_it_logged_an_error(self, traceback, log, util, returned):
+    def assert_that_it_logged_an_error(self, log, util, returned):
         """Do some assertions about what it does when any exception happens."""
-        # It prints out the traceback.
-        traceback.print_exc.assert_called_once_with()
-
-        # It logs None.
-        log.error.assert_called_once_with(None)
-
-        # It returns a simple HTML page with None for its body.
-        util.simple_response.assert_called_once_with(None)
+        log.exception.assert_called_once()
+        util.simple_response.assert_called_once()
         assert returned == util.simple_response.return_value
 
     def test_it_logs_an_error_if_authorization_code_missing(self,  # pylint:disable=too-many-arguments
                                                             pyramid_request,
-                                                            traceback,
                                                             log,
                                                             util,
                                                             method):
@@ -206,11 +194,10 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
     def test_it_logs_an_error_if_state_missing(self,  # pylint:disable=too-many-arguments
                                                pyramid_request,
-                                               traceback,
                                                log,
                                                util,
                                                method):
@@ -221,11 +208,10 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
     def test_it_logs_an_error_if_state_isnt_valid_json(self,  # pylint:disable=too-many-arguments
                                                        pyramid_request,
-                                                       traceback,
                                                        log,
                                                        util,
                                                        method):
@@ -234,7 +220,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
     @pytest.mark.parametrize('missing_field', [
         constants.CUSTOM_CANVAS_COURSE_ID,
@@ -247,7 +233,6 @@ class TestTokenCallbackAndRefreshCallback(object):
     ])  # pylint:disable=too-many-arguments
     def test_it_logs_an_error_if_a_field_is_missing_from_state(self,
                                                                pyramid_request,
-                                                               traceback,
                                                                log,
                                                                util,
                                                                missing_field,
@@ -256,13 +241,12 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
     # TODO: It would also log errors if AuthData raised any.
 
     def test_it_logs_an_error_if_Canvas_login_response_isnt_json(self,  # pylint:disable=too-many-arguments
                                                                  pyramid_request,
-                                                                 traceback,
                                                                  log,
                                                                  util,
                                                                  requests_fixture,
@@ -273,11 +257,10 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
     def test_it_logs_an_error_if_Canvas_login_response_lacks_access_token(self,  # pylint:disable=too-many-arguments
                                                                           pyramid_request,
-                                                                          traceback,
                                                                           log,
                                                                           util,
                                                                           requests_fixture,
@@ -286,7 +269,7 @@ class TestTokenCallbackAndRefreshCallback(object):
 
         returned = method(pyramid_request)
 
-        self.assert_that_it_logged_an_error(traceback, log, util, returned)
+        self.assert_that_it_logged_an_error(log, util, returned)
 
 
 class TestTokenCallback(object):
@@ -355,16 +338,6 @@ def requests_fixture(patch):
 @pytest.fixture
 def log(patch):
     return patch('lti.views.oauth.log')
-
-
-@pytest.fixture
-def traceback(patch):
-    traceback = patch('lti.views.oauth.traceback')
-
-    # print_exc() doesn't return anything.
-    traceback.print_exc.return_value = None
-
-    return traceback
 
 
 @pytest.fixture
