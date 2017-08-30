@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import md5
+import hashlib
 
 import pytest
 
@@ -15,7 +15,8 @@ from lti.views import pdf
                          'oauth',
                          'urlretrieve',
                          'shutil',
-                         'Response')
+                         'Response',
+                         'hash_of_file_contents')
 class TestLTIPDF(object):
 
     def test_it_gets_the_access_token_from_the_db(self,
@@ -241,7 +242,7 @@ class TestLTIPDF(object):
 
     def expected_digest(self):
         """Return the MD5 digest we expect lti_pdf() to cache the file with."""
-        md5_obj = md5.new()
+        md5_obj = hashlib.md5()
         md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE/TEST_VALUE')
         return md5_obj.hexdigest()
 
@@ -273,3 +274,7 @@ class TestLTIPDF(object):
     @pytest.fixture
     def Response(self, patch):
         return patch('lti.views.pdf.Response')
+
+    @pytest.fixture
+    def hash_of_file_contents(self, patch):
+        return patch('lti.views.pdf.hash_of_file_contents')
