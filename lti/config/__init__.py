@@ -25,6 +25,7 @@ def configure(settings=None):
                                            required=True),
         'lti_files_path': env_setting('LTI_FILES_PATH',
                                       default='./lti/static/pdfjs/viewer/web'),
+        'via_url': env_setting('VIA_URL', default='https://via.hypothes.is'),
     }
     database_url = env_setting('DATABASE_URL')
     if database_url:

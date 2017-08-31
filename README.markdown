@@ -109,6 +109,8 @@ To get the Canvas app running in a dev environment:
    You can then re-create the container by re-running the `docker run` command
    above.
 
+1. Run an instance of [Via](https://github.com/hypothesis/via) locally.
+
 1. Clone the Hypothesis Canvas app's GitHub repository:
 
    ```bash
@@ -122,6 +124,7 @@ To get the Canvas app running in a dev environment:
    ```bash
    export LTI_SERVER="http://localhost:8001"
    export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
+   export VIA_URL="http://localhost:9080"
    ```
 
 1. Run the development server. First create and activate a Python virtual
