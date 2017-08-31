@@ -1,7 +1,6 @@
 ﻿import requests
 import logging
 from pyramid.view import view_config
-from pyramid.response import FileResponse
 from requests_oauthlib import OAuth1
 
 from pyramid.renderers import render
@@ -12,13 +11,6 @@ from lti import constants
 
 
 log = logging.getLogger(__name__)
-
-
-def serve_file(path=None, file=None, request=None, content_type=None):
-    response = FileResponse('%s/%s' % (path, file),
-                            request=request,
-                            content_type=content_type)
-    return response
 
 
 @view_config( route_name='lti_submit' )
@@ -60,17 +52,6 @@ def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, l
         response = 'Something is wrong. %s %s' % (r.status_code, r.text)        
     return util.simple_response(response)
 
-@view_config( route_name='lti_serve_pdf' )
-def lti_serve_pdf(request):
-    if request.referer is not None and 'pdf.worker.js' in request.referer:
-        return serve_file(path=request.registry.settings['lti_files_path'],
-                      file=request.matchdict['file'] + '.pdf',
-                      request=request,
-                      content_type='application/pdf')
-
-    return util.simple_response('You are not logged in to Canvas')
-
-from pyramid.static import static_view
 
 def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
@@ -85,8 +66,6 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include('lti.routes')
     config.include('lti.services')
 
-    pdf_view = static_view('lti:static/pdfjs')
-    config.add_view(pdf_view, route_name='catchall_pdf')
     config.add_static_view(name='export', path='lti:static/export')
 
     config.add_static_view(name='static', path='lti:static')
