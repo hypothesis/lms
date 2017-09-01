@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import hashlib
+
 import pytest
 
 from lti.views import pdf
@@ -12,7 +14,9 @@ from lti.views import pdf
                          'render',
                          'oauth',
                          'urlretrieve',
-                         'Response')
+                         'shutil',
+                         'Response',
+                         'hash_of_file_contents')
 class TestLTIPDF(object):
 
     def test_it_gets_the_access_token_from_the_db(self,
@@ -65,9 +69,28 @@ class TestLTIPDF(object):
 
         auth_data_svc.get_canvas_server.assert_called_once_with('TEST_OAUTH_CONSUMER_KEY')
 
-    def test_it_gets_the_file_metadata_from_canvas(self,
-                                                   pyramid_request,
-                                                   requests):
+    def test_it_checks_whether_the_pdf_file_is_already_cached(self,
+                                                              pyramid_request,
+                                                              util):
+        pdf.lti_pdf(
+            pyramid_request,
+            oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
+            lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
+            course='TEST_COURSE',
+            name='TEST_NAME',
+            value='TEST_VALUE',
+        )
+
+        util.filecache.exists_pdf.assert_called_once_with(
+            self.expected_digest(), pyramid_request.registry.settings)
+
+    def test_if_the_file_isnt_cached_it_gets_the_file_metadata_from_canvas(self,
+                                                                           pyramid_request,
+                                                                           requests,
+                                                                           util):
+        util.filecache.exists_pdf.return_value = False
+
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
@@ -90,7 +113,12 @@ class TestLTIPDF(object):
                                                             requests,
                                                             oauth,
                                                             util):
+        util.filecache.exists_pdf.return_value = False
         requests.Session.return_value.get.return_value.status_code = 401
+
+        # In production capture_post_data() would return several parameters
+        # that Canvas POSTed to us. For this test we'll just make it simple.
+        util.requests.capture_post_data.return_value = {'foo': 'bar'}
 
         response = pdf.lti_pdf(
             pyramid_request,
@@ -115,10 +143,61 @@ class TestLTIPDF(object):
 
         assert response == oauth.make_authorization_request.return_value
 
+    def test_if_the_canvas_api_200s_it_downloads_the_PDF_file(self,
+                                                              pyramid_request,
+                                                              requests,
+                                                              urlretrieve,
+                                                              util):
+        util.filecache.exists_pdf.return_value = False
+        requests.Session.return_value.get.return_value.status_code = 200
+        requests.Session.return_value.get.return_value.json.return_value = {
+            'url': 'THE_URL_OF_THE_PDF_FILE',
+        }
+
+        pdf.lti_pdf(
+            pyramid_request,
+            oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
+            lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
+            course='TEST_COURSE',
+            name='TEST_NAME',
+            value='TEST_VALUE',
+        )
+
+        urlretrieve.assert_called_once_with(
+            'THE_URL_OF_THE_PDF_FILE',
+            self.expected_digest(),
+        )
+
+    def test_it_moves_the_downloaded_file_into_the_FILES_PATH_folder(self,
+                                                                     pyramid_request,
+                                                                     util,
+                                                                     requests,
+                                                                     shutil):
+        util.filecache.exists_pdf.return_value = False
+        requests.Session.return_value.get.return_value.status_code = 200
+
+        pdf.lti_pdf(
+            pyramid_request,
+            oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
+            lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
+            course='TEST_COURSE',
+            name='TEST_NAME',
+            value='TEST_VALUE',
+        )
+
+        expected_digest = self.expected_digest()
+        shutil.move.assert_called_once_with(
+            expected_digest, '/var/lib/lti/' + expected_digest + '.pdf')
+
     def test_it_renders_the_pdf_assignment_template(self,
                                                     pyramid_request,
                                                     render,
-                                                    Response):
+                                                    Response,
+                                                    util):
+        util.pdf.get_fingerprint.return_value = None
+
         response = pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
@@ -129,14 +208,15 @@ class TestLTIPDF(object):
             value='TEST_VALUE',
         )
 
+        expected_digest = self.expected_digest()
         render.assert_called_once_with(
             'lti:templates/pdf_assignment.html.jinja2', dict(
                 name='TEST_NAME',
-                url='DOWNLOAD_URL',
+                hash=expected_digest,
                 oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
                 lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
                 lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
-                doc_uri='DOWNLOAD_URL',
+                doc_uri='http://TEST_LTI_SERVER.com/viewer/web/' + expected_digest + '.pdf',
                 lti_server='http://TEST_LTI_SERVER.com',
             ),
         )
@@ -144,25 +224,35 @@ class TestLTIPDF(object):
             render.return_value.encode.return_value, content_type='text/html')
         assert response == Response.return_value
 
+    def test_if_get_fingerprint_returns_a_value_it_uses_that_as_pdf_uri_instead(
+            self, pyramid_request, util, render):
+        util.pdf.get_fingerprint.return_value = 'abc123'
+
+        pdf.lti_pdf(
+            pyramid_request,
+            oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
+            lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
+            lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
+            course='TEST_COURSE',
+            name='TEST_NAME',
+            value='TEST_VALUE',
+        )
+
+        assert render.call_args[0][1]['doc_uri'] == 'urn:x-pdf:abc123'
+
+    def expected_digest(self):
+        """Return the MD5 digest we expect lti_pdf() to cache the file with."""
+        md5_obj = hashlib.md5()
+        md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE/TEST_VALUE')
+        return md5_obj.hexdigest()
+
     @pytest.fixture
     def requests(self, patch):
-        requests = patch('lti.views.pdf.requests')
-
-        requests.Session.return_value.get.return_value.status_code = 200
-        requests.Session.return_value.get.return_value.json.return_value = {
-            'url': 'DOWNLOAD_URL',
-        }
-
-        return requests
+        return patch('lti.views.pdf.requests')
 
     @pytest.fixture
     def util(self, patch):
         util = patch('lti.views.pdf.util')
-
-        # In production capture_post_data() would return several parameters
-        # that Canvas POSTed to us. For this test we'll just make it simple.
-        util.requests.capture_post_data.return_value = {'foo': 'bar'}
-
         return util
 
     @pytest.fixture
@@ -176,6 +266,10 @@ class TestLTIPDF(object):
     @pytest.fixture
     def urlretrieve(self, patch):
         return patch('lti.views.pdf.urllib.urlretrieve')
+
+    @pytest.fixture
+    def shutil(self, patch):
+        return patch('lti.views.pdf.shutil')
 
     @pytest.fixture
     def Response(self, patch):
