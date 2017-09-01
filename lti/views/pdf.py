@@ -62,7 +62,6 @@ def lti_pdf(request, oauth_consumer_key, lis_outcome_service_url,
                lis_result_sourcedid=lis_result_sourcedid,
                doc_uri=url,
                lti_server=request.registry.settings['lti_server'],
-               via_url=request.registry.settings['via_url'],
                )).encode('utf-8'),
         content_type='text/html',
     )

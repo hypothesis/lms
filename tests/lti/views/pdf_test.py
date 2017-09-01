@@ -138,7 +138,6 @@ class TestLTIPDF(object):
                 lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
                 doc_uri='DOWNLOAD_URL',
                 lti_server='http://TEST_LTI_SERVER.com',
-                via_url='https://via.hypothes.is',
             ),
         )
         Response.assert_called_once_with(
