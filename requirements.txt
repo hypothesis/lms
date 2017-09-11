@@ -8,7 +8,7 @@ alembic==0.9.5
 certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 contextlib2==0.5.5        # via raven
-filelock==2.0.11
+filelock==2.0.12
 gunicorn==19.7.1
 hupper==1.0               # via pyramid
 idna==2.6                 # via requests
