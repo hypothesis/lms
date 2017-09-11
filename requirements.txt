@@ -32,7 +32,7 @@ repoze.lru==0.7           # via pyramid
 requests-oauthlib==0.8.0
 requests==2.18.4
 six==1.10.0               # via python-dateutil
-sqlalchemy==1.1.13
+sqlalchemy==1.1.14
 transaction==2.1.2        # via pyramid-tm, zope.sqlalchemy
 translationstring==1.3    # via pyramid
 urllib3==1.22             # via requests
