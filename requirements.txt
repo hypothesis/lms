@@ -16,7 +16,7 @@ jinja2==2.9.6             # via pyramid-jinja2
 mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
 newrelic==2.92.0.78
-oauthlib==2.0.3           # via requests-oauthlib
+oauthlib==2.0.4           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.4.1  # via pyramid
 plaster==0.5              # via plaster-pastedeploy, pyramid
