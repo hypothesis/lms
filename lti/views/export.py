@@ -21,6 +21,17 @@ def lti_export(request):
     args = util.requests.get_query_param(request, 'args')  # because canvas swallows & in the submitted pox, we pass an opaque construct and unpack here
     parsed_args = urlparse.parse_qs(args)
     user = parsed_args['user'][0]
-    uri = parsed_args['uri'][0]
-    export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % (request.registry.settings['lti_server'], urllib.quote(uri), user)
+
+    if 'uri' in parsed_args:
+        uri = parsed_args['uri'][0]
+        export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % (
+            request.registry.settings['lti_server'],
+            urllib.quote(uri),
+            user)
+    else:
+        uris = parsed_args['uris'][0]
+        export_url = '%s/export/facet.html?facet=uri&mode=documents&search=%s&user=%s' % (
+            request.registry.settings['lti_server'],
+            urllib.quote(uris),
+            user)
     return HTTPFound(location=export_url)
