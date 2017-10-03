@@ -11,10 +11,18 @@ from lti.views import export
 class TestLTIExport(object):
 
     def test_it_redirects_to_the_export_facet_static_file(self, pyramid_request):
+        # This is for legacy support of single-URI submissions.
         pyramid_request.query_string = 'args=' + urllib.quote('uri=http://www.example.com&user=someone')
         returned = export.lti_export(pyramid_request)
         assert isinstance(returned, HTTPFound)
         assert returned.location == 'http://TEST_LTI_SERVER.com/export/facet.html?facet=uri&mode=documents&search=http%3A//www.example.com&user=someone'
+
+    def test_it_redirects_to_the_export_facet_static_file_with_multiple_uris(self, pyramid_request):
+        # This is for the new multi-URI submissions.
+        pyramid_request.query_string = 'args=' + urllib.quote('uris=THE_URIS&user=someone')
+        returned = export.lti_export(pyramid_request)
+        assert isinstance(returned, HTTPFound)
+        assert returned.location == 'http://TEST_LTI_SERVER.com/export/facet.html?facet=uri&mode=documents&search=THE_URIS&user=someone'
 
     def test_it_raises_attribute_error_when_args_is_not_set(self, pyramid_request):
         pyramid_request.query_string = 'something_else=' + urllib.quote('uri=http://www.example.com')

@@ -55,7 +55,29 @@ var user = gup('user', args);
 
 document.getElementById('title').innerHTML = 'Annotations by ' + user;
 
-query += '&' + facet + '=' + search;
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+try {
+  var uris = JSON.parse(getParameterByName("search"));
+  query += uris.reduce(function(acc, curr) { return acc + "&uri=" + encodeURIComponent(curr); }, "")
+} catch (e) {
+  if (e.name == "SyntaxError") {
+    // Looks like the "search" parameter wasn't JSON.
+    // This must be a legacy assignment submission where the search param was
+    // just a single URI, not a JSON array of URIs.
+    query += '&' + facet + '=' + search;
+  } else {
+    throw e;
+  }
+}
 
 if ( mode == 'documents' )
   query = query + '&_separate_replies=true';

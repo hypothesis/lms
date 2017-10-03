@@ -15,6 +15,9 @@ You will need:
 * Python
 * Virtualenv
 * Docker
+* You'll need [h](https://github.com/hypothesis/h),
+  [client](https://github.com/hypothesis/client) and
+  [via](https://github.com/hypothesis/via) development environments running
 * ...
 
 To get the Canvas app running in a dev environment:
@@ -122,6 +125,8 @@ To get the Canvas app running in a dev environment:
    ```bash
    export LTI_SERVER="http://localhost:8001"
    export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
+   export CLIENT_ORIGIN="http://localhost:5000"
+   export VIA_URL="http://localhost:9080"
    ```
 
 1. Run the development server. First create and activate a Python virtual

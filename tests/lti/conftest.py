@@ -120,6 +120,8 @@ def pyramid_config(pyramid_request):
         'lti_server': 'http://TEST_LTI_SERVER.com',
         'lti_files_path': '/var/lib/lti',
         'sqlalchemy.url': TEST_DATABASE_URL,
+        'client_origin': 'http://TEST_H_SERVER.is',
+        'via_url': 'http://TEST_VIA_SERVER.is',
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
