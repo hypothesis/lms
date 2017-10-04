@@ -347,16 +347,78 @@ To login to this server and modify the database you need to:
    $ sudo docker exec -it nostalgic_shockley sh
    ```
 
-1. In the docker container, run `pshell`:
+1. In the docker container, run `pshell` to get a Python shell:
 
    ```bash
    $ PYTHONPATH=. pshell conf/production.ini
    ```
 
-1. In `pshell` add the new `OAuth2Credentials` to the database and commit the transaction:
+1. Import the model classes that you'll be needing:
 
    ```python
-   >>> from lti.models import OAuth2Credentials
+   >>> from pprint import pprint; from lti.models import OAuth2Credentials, OAuth2UnvalidatedCredentials, OAuth2AccessToken
+   ```
+
+1. Before a Canvas website can start using our app they have to generate a
+   Canvas "developer key" (an OAuth 2 `client_id` and `client_secret` for us
+   to use with the Canvas API) and submit it to us using the form at
+   <https://lti.hypothes.is/lti_credentials>.
+
+   Credentials submitted using this form go into the `OAuth2UnvalidatedCredentials`
+   table in the app's database, but the app doesn't use this table at all,
+   it's just a place to store whatever is submitted via the above form.
+
+   Before the Canvas site can start using our app the submitted credentials
+   need to be "activated" by copying them to the `OAuth2Credentials` table,
+   which is the table that the app actually uses.
+
+   To print out all of the Canvas API "developer keys" / OAuth 2 credentials
+   that have been submitted to us using the above form:
+
+   ```python
+   >>> pprint([(o.email_address, o.client_id, o.client_secret, o.authorization_server) for o in request.db.query(OAuth2UnvalidatedCredentials)])
+   ```
+
+   This is everything submitted via the form, without any kind of validation.
+   Some of it is junk. Some of it is incorrectly entered. Some of the rows here
+   will already have been "activated" by adding them to the `OAuth2Credentials`
+   table, some not. I haven't been deleting rows from `OAuth2UnvalidatedCredentials`
+   when adding them to `OAuth2Credentials`.
+
+1. Print out all of the **activated** Canvas API OAuth 2.0 credentials:
+
+   ```python
+   >>> pprint([(o.client_id, o.client_secret, o.authorization_server) for o in request.db.query(OAuth2Credentials)])
+   ```
+
+1. "Activate" a set of credentials by adding them to the `OAuth2Credentials` table:
+
+   ```python
    >>> request.db.add(OAuth2Credentials(client_id=u'10000000000007', client_secret=u'1AN***VvS', authorization_server=u'https://hypothesis.instructure.com'))
+   >>> request.tm.commit()
+   ```
+
+   You probably don't want to copy _exactly_ what you see in the
+   `OAuth2UnvalidatedCredentials` table into the `OAuth2Credentials` table.
+   The stuff in there is completely unvalidated. Users usually forget the
+   `https://` at the start of the `authorization_server` URL, for example.
+
+1. There's an issue with the app that it can sometimes get the "wrong" OAuth
+   access token for a given Canvas instance stuck in its DB and then things
+   will stop working for users.
+
+   See for example <https://github.com/hypothesis/lti/issues/101>,
+   <https://hypothes-is.slack.com/archives/C643EDCP2/p1507049591000274>,
+   and <https://hypothesis.zendesk.com/agent/tickets/1553>.
+
+   Until the app's OAuth 2.0 code is fixed, when this issue happens someone
+   has to manually delete the site in question's access token from the DB and
+   hope.
+
+   To delete an access token (you will need the `client_id` from the
+   `OAuth2Credentials` row of the site in question):
+
+   ```
+   >>> request.db.delete(request.db.query(OAuth2AccessToken).filter_by(client_id=u'xyz123').one())
    >>> request.tm.commit()
    ```
