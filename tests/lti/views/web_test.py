@@ -25,7 +25,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -44,7 +44,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -67,12 +67,12 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
         requests.get.assert_called_once_with(
-            'https://via.hypothes.is/TEST_ASSIGNMENT_VALUE',
+            'https://via.hypothes.is/TEST_ASSIGNMENT_URL',
             headers={'User-Agent': 'Mozilla'},
         )
 
@@ -91,7 +91,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -119,7 +119,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -143,7 +143,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -161,7 +161,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -179,7 +179,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -209,7 +209,7 @@ class TestWebResponse(object):
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
             open_=open_,
         )
 
@@ -228,7 +228,7 @@ class TestWebResponse(object):
     def expected_hash(self):
         """Return the hash for the test web page we're annotating."""
         md5_obj = md5.new()
-        md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE_ID/TEST_ASSIGNMENT_VALUE')
+        md5_obj.update('https://TEST_CANVAS_SERVER.com/TEST_COURSE_ID/TEST_ASSIGNMENT_URL')
         return md5_obj.hexdigest()
 
     @pytest.fixture

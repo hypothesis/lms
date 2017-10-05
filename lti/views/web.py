@@ -15,11 +15,11 @@ from lti import util
 # pylint: disable=too-many-arguments, too-many-locals
 def web_response(request, auth_data_svc, oauth_consumer_key=None, course=None,
                  lis_outcome_service_url=None, lis_result_sourcedid=None,
-                 name=None, value=None, open_=None):
+                 name=None, url=None, open_=None):
     """
     Return an annotatable proxied copy of the given URL.
 
-    The `value` argument is the URL to return. Pass this URL to Via and return
+    The `url` argument is the URL to return. Pass this URL to Via and return
     Via's response (after some modification) as an HTML response.
 
     The HTTP request to Via is done synchronously in this function.
@@ -31,8 +31,6 @@ def web_response(request, auth_data_svc, oauth_consumer_key=None, course=None,
 
     """
     open_ = open_ or open  # Test seam.
-
-    url = value
 
     canvas_server = auth_data_svc.get_canvas_server(oauth_consumer_key)
 
