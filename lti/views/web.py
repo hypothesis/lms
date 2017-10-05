@@ -65,7 +65,6 @@ def web_response(request, auth_data_svc, oauth_consumer_key=None, course=None,
         oauth_consumer_key=oauth_consumer_key,
         lis_outcome_service_url=lis_outcome_service_url,
         lis_result_sourcedid=lis_result_sourcedid,
-        doc_uri=url,
         lti_server=request.registry.settings['lti_server'],
     ))
     return Response(html.encode('utf-8'), content_type='text/html')

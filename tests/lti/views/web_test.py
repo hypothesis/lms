@@ -219,7 +219,6 @@ class TestWebResponse(object):
             'oauth_consumer_key': 'TEST_OAUTH_CONSUMER_KEY',
             'lis_outcome_service_url': 'TEST_LIS_OUTCOME_SERVICE_URL',
             'lis_result_sourcedid': 'TEST_LIS_RESULT_SOURCEDID',
-            'doc_uri': 'TEST_ASSIGNMENT_VALUE',
             'lti_server': 'http://TEST_LTI_SERVER.com',
         })
         Response.assert_called_once_with('THE_RENDERED_HTML_PAGE',
