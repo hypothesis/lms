@@ -189,8 +189,7 @@ class TestLTISetupWhenWeHaveAValidAccessToken(SharedLTISetupTests):
     # FIXME: This should be a "when it's a web assignment" class.
     def test_it_returns_web_response_if_its_a_web_assignment(self,
                                                              pyramid_request,
-                                                             web,
-                                                             auth_data_svc):
+                                                             web):
         # FIXME: We shouldn't have to actually encode a query string in tests
         # like this.
         pyramid_request.query_string = urllib.urlencode({
@@ -203,9 +202,7 @@ class TestLTISetupWhenWeHaveAValidAccessToken(SharedLTISetupTests):
 
         web.web_response.assert_called_once_with(
             pyramid_request,
-            auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',

@@ -91,9 +91,7 @@ def lti_setup(request):
 
     if assignment_type == 'web':
         return web.web_response(request,
-                                auth_data_svc,
                                 oauth_consumer_key=oauth_consumer_key,
-                                course=course,
                                 lis_outcome_service_url=lis_outcome_service_url,
                                 lis_result_sourcedid=lis_result_sourcedid,
                                 name=assignment_name,
