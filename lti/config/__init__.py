@@ -23,8 +23,6 @@ def configure(settings=None):
         'lti_server': env_setting('LTI_SERVER', required=True),
         'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL',
                                            required=True),
-        'lti_files_path': env_setting('LTI_FILES_PATH',
-                                      default='./lti/static/pdfjs/viewer/web'),
         # The origin that this app should use when sending postMessage()
         # requests to the Hypothesis client (e.g. "https://hypothes.is" in prod
         # or "http://localhost:5000" in dev).

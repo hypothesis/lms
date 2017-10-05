@@ -17,8 +17,5 @@ def includeme(config):
     config.add_route('lti_submit', '/lti_submit')
     config.add_route('lti_export', '/lti_export')
 
-    config.add_route('lti_serve_pdf', '/viewer/web/{file}.pdf')
-    config.add_route('catchall_pdf', '/viewer/*subpath')
-
     # Health check
     config.add_route('status', '/_status')

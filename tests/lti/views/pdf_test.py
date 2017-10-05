@@ -65,12 +65,9 @@ class TestLTIPDF(object):
 
         auth_data_svc.get_canvas_server.assert_called_once_with('TEST_OAUTH_CONSUMER_KEY')
 
-    def test_if_the_file_isnt_cached_it_gets_the_file_metadata_from_canvas(self,
-                                                                           pyramid_request,
-                                                                           requests,
-                                                                           util):
-        util.filecache.exists_pdf.return_value = False
-
+    def test_it_gets_the_file_metadata_from_canvas(self,
+                                                   pyramid_request,
+                                                   requests):
         pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
@@ -93,7 +90,6 @@ class TestLTIPDF(object):
                                                             requests,
                                                             oauth,
                                                             util):
-        util.filecache.exists_pdf.return_value = False
         requests.Session.return_value.get.return_value.status_code = 401
 
         # In production capture_post_data() would return several parameters
@@ -126,10 +122,7 @@ class TestLTIPDF(object):
     def test_it_renders_the_pdf_assignment_template(self,
                                                     pyramid_request,
                                                     render,
-                                                    Response,
-                                                    util):
-        util.pdf.get_fingerprint.return_value = None
-
+                                                    Response):
         response = pdf.lti_pdf(
             pyramid_request,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',

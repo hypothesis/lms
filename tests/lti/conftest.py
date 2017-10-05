@@ -118,7 +118,6 @@ def pyramid_config(pyramid_request):
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
         'lti_server': 'http://TEST_LTI_SERVER.com',
-        'lti_files_path': '/var/lib/lti',
         'sqlalchemy.url': TEST_DATABASE_URL,
         'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
@@ -150,8 +149,6 @@ def routes(pyramid_config):
     """Add all the routes that would be added in production."""
     pyramid_config.add_route('lti_setup', '/lti_setup')
     pyramid_config.add_route('canvas_resource_selection', '/canvas/resource_selection')
-    pyramid_config.add_static_view(
-        name='cache', path=pyramid_config.registry.settings['lti_files_path'])
 
 
 @pytest.yield_fixture
