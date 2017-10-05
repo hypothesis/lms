@@ -91,13 +91,11 @@ def lti_setup(request):
 
     if assignment_type == 'web':
         return web.web_response(request,
-                                auth_data_svc,
                                 oauth_consumer_key=oauth_consumer_key,
-                                course=course,
                                 lis_outcome_service_url=lis_outcome_service_url,
                                 lis_result_sourcedid=lis_result_sourcedid,
                                 name=assignment_name,
-                                value=assignment_value)
+                                url=assignment_value)
 
     return_url = util.requests.get_post_or_query_param(request, constants.EXT_CONTENT_RETURN_URL)
     if return_url is None:  # this is an oauth redirect so get what we sent ourselves

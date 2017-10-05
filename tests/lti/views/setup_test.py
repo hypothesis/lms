@@ -73,7 +73,7 @@ class TestLTISetupWhenWeDontHaveAnAccessToken(SharedLTISetupTests):
         setup.lti_setup(pyramid_request)
 
         pack_state.assert_called_once_with({
-            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_VALUE',
+            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_URL',
             constants.ASSIGNMENT_NAME: 'TEST_ASSIGNMENT_NAME',
             constants.ASSIGNMENT_TYPE: 'TEST_ASSIGNMENT_TYPE',
             constants.CUSTOM_CANVAS_ASSIGNMENT_ID: 'TEST_ASSIGNMENT_ID',
@@ -189,12 +189,11 @@ class TestLTISetupWhenWeHaveAValidAccessToken(SharedLTISetupTests):
     # FIXME: This should be a "when it's a web assignment" class.
     def test_it_returns_web_response_if_its_a_web_assignment(self,
                                                              pyramid_request,
-                                                             web,
-                                                             auth_data_svc):
+                                                             web):
         # FIXME: We shouldn't have to actually encode a query string in tests
         # like this.
         pyramid_request.query_string = urllib.urlencode({
-            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_VALUE',
+            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_URL',
             constants.ASSIGNMENT_NAME: 'TEST_ASSIGNMENT_NAME',
             constants.ASSIGNMENT_TYPE: 'web',
         })
@@ -203,13 +202,11 @@ class TestLTISetupWhenWeHaveAValidAccessToken(SharedLTISetupTests):
 
         web.web_response.assert_called_once_with(
             pyramid_request,
-            auth_data_svc,
             oauth_consumer_key='TEST_OAUTH_CONSUMER_KEY',
-            course='TEST_COURSE_ID',
             lis_outcome_service_url='TEST_LIS_OUTCOME_SERVICE_URL',
             lis_result_sourcedid='TEST_LIS_RESULT_SOURCEDID',
             name='TEST_ASSIGNMENT_NAME',
-            value='TEST_ASSIGNMENT_VALUE',
+            url='TEST_ASSIGNMENT_URL',
         )
         assert returned == web.web_response.return_value
 
@@ -219,7 +216,7 @@ class TestLTISetupWhenWeHaveAValidAccessToken(SharedLTISetupTests):
         # FIXME: We shouldn't have to actually encode a query string in tests
         # like this.
         pyramid_request.query_string = urllib.urlencode({
-            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_VALUE',
+            constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_URL',
             constants.ASSIGNMENT_NAME: 'TEST_ASSIGNMENT_NAME',
             # No assignment_type param here.
         })
@@ -420,7 +417,7 @@ def pyramid_request(pyramid_request):
     # FIXME: It looks like these params _also_ appear in the request body, so
     # our code should just get them from the request body like the others.
     pyramid_request.query_string = urllib.urlencode({
-        constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_VALUE',
+        constants.ASSIGNMENT_VALUE: 'TEST_ASSIGNMENT_URL',
         constants.ASSIGNMENT_NAME: 'TEST_ASSIGNMENT_NAME',
         constants.ASSIGNMENT_TYPE: 'TEST_ASSIGNMENT_TYPE',
     })
