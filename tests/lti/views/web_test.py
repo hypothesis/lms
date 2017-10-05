@@ -32,6 +32,7 @@ class TestWebResponse(object):
             'lis_outcome_service_url': 'TEST_LIS_OUTCOME_SERVICE_URL',
             'lis_result_sourcedid': 'TEST_LIS_RESULT_SOURCEDID',
             'lti_server': 'http://TEST_LTI_SERVER.com',
+            'client_origin': 'http://TEST_H_SERVER.is',
         })
         Response.assert_called_once_with('THE_RENDERED_HTML_PAGE',
                                          content_type='text/html')

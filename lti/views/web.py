@@ -30,5 +30,6 @@ def web_response(request, oauth_consumer_key, lis_outcome_service_url,
         lis_outcome_service_url=lis_outcome_service_url,
         lis_result_sourcedid=lis_result_sourcedid,
         lti_server=request.registry.settings['lti_server'],
+        client_origin=request.registry.settings['client_origin'],
     ))
     return Response(html.encode('utf-8'), content_type='text/html')
