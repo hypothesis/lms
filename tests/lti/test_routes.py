@@ -23,8 +23,6 @@ class TestIncludeMe(object):
             mock.call.add_route('lti_setup', '/lti_setup'),
             mock.call.add_route('lti_submit', '/lti_submit'),
             mock.call.add_route('lti_export', '/lti_export'),
-            mock.call.add_route('lti_serve_pdf', '/viewer/web/{file}.pdf'),
-            mock.call.add_route('catchall_pdf', '/viewer/*subpath'),
         ]
         for call in expected_calls:
             assert call in config.mock_calls
