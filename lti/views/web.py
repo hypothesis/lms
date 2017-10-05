@@ -13,9 +13,9 @@ from lti import util
 
 
 # pylint: disable=too-many-arguments, too-many-locals
-def web_response(request, auth_data_svc, oauth_consumer_key=None, course=None,
-                 lis_outcome_service_url=None, lis_result_sourcedid=None,
-                 name=None, url=None, open_=None):
+def web_response(request, auth_data_svc, oauth_consumer_key, course,
+                 lis_outcome_service_url, lis_result_sourcedid, name, url,
+                 open_=None):
     """
     Return an annotatable proxied copy of the given URL.
 
