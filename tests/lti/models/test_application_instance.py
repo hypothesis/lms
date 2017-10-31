@@ -6,6 +6,8 @@ from lti.models import ApplicationInstance
 
 class TestApplicationInstance(object):
   def test_test(self):
+    a = ApplicationInstance()
+    import pdb; pdb.set_trace()
     assert True
 #    def test_it_persists_the_client_id_access_token_and_refresh_token(self,
 #                                                                      db_session,
