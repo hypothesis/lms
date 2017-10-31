@@ -5,7 +5,7 @@ from lti.models import ApplicationInstance
 
 
 class TestApplicationInstance(object):
-    def test_it_persists_the_client_id_access_token_and_refresh_token(self,
+    def test_it_persists_application_instance(self,
         db_session):
       db_session.add(
         ApplicationInstance(
