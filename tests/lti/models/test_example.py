@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from sqlalchemy.exc import IntegrityError
 import pytest
 
-from lti.models import OAuth2AccessToken
+# from lti.models import OAuth2AccessToken
 
 
 class TestOAuth2AccessToken(object):
