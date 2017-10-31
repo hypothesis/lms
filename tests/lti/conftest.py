@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 
 from lti import constants
 from lti import db
-from lti.services import auth_data
+#from lti.services import auth_data
 
 
 TEST_DATABASE_URL = os.environ.get(
@@ -129,12 +129,12 @@ def pyramid_config(pyramid_request):
 
         apply_request_extensions(pyramid_request)
 
-        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
-        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
-        auth_data_svc.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
-        auth_data_svc.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
-        auth_data_svc.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
-        config.register_service(auth_data_svc, name='auth_data')
+#        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
+#        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
+#        auth_data_svc.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
+#        auth_data_svc.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
+#        auth_data_svc.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
+#        config.register_service(auth_data_svc, name='auth_data')
 
         yield config
 

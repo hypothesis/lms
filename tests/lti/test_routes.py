@@ -15,14 +15,6 @@ class TestIncludeMe(object):
         routes.includeme(config)
 
         expected_calls = [
-            mock.call.add_route('about', '/'),
-            mock.call.add_route('token_callback', '/token_callback'),
-            mock.call.add_route('refresh_callback', '/refresh_callback'),
-            mock.call.add_route('config_xml', '/config.xml'),
-            mock.call.add_route('lti_credentials', '/lti_credentials'),
-            mock.call.add_route('lti_setup', '/lti_setup'),
-            mock.call.add_route('lti_submit', '/lti_submit'),
-            mock.call.add_route('lti_export', '/lti_export'),
         ]
         for call in expected_calls:
             assert call in config.mock_calls
