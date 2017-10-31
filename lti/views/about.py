@@ -11,8 +11,8 @@ def sixty_six(request):
                         request=request,
                         content_type='text/html')
 
-@view_config(route_name='about')
-def about(request):
-    return FileResponse('./about.html',
-                        request=request,
-                        content_type='text/html')
+# @view_config(route_name='about')
+# def about(request):
+#     return FileResponse('./about.html',
+#                         request=request,
+#                         content_type='text/html')

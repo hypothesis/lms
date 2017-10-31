@@ -12,4 +12,5 @@ lti/static/pdfjs/viewer/web/*.pdf
 bin/
 include/
 lib/
+.vscode/
 pip-selfcheck.json
