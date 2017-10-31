@@ -15,6 +15,7 @@ You will need:
 * Python
 * Virtualenv
 * Docker
+* openssl
 * You'll need [h](https://github.com/hypothesis/h),
   [client](https://github.com/hypothesis/client) and
   [via](https://github.com/hypothesis/via) development environments running
@@ -78,13 +79,45 @@ You will need:
      source  bin/activate
    ```
 
-5. Run the development server. and then run:
+5. Run the development server. You will need to follow the instructions for setting up ssl if you have not done that already:
 
    ```bash
    $ make dev
    ```
 
 6. TODO Add app to a canvas course
+
+### Setting up SSL
+
+The server will need to be able to accept requests via https. The easiest way to do this is to create a self signed cert. Follow these instructions (for mac):
+1. Create a directory called ssl in the project directory (this folder is git ignored)
+```bash
+$ mkdir ssl
+$ cd ssl
+```
+2. If you don't have openssl you can install it with brew. Once installed run:
+```bash
+$ openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+$ openssl rsa -passin pass:x -in server.pass.key -out server.key
+$ rm server.pass.key
+$ openssl req -new -key server.key -out server.csr
+```
+You will be prompted to enter some information. It doesn't matter what you enter but you will probably want to leave the challenge password blank.
+
+3. Run this command:
+```bash
+$ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
+```
+
+You should now have a file called `server.key` and `server.crt` in that folder.
+
+4. Enable unsecure localhost in your browser. In chrome this can by entering the folling into the url bar.
+```
+  chrome://flags/#allow-insecure-localhost
+```
+Click enable.
+
+5. Verify by running `make dev` and by going to `https://localhost:8001`
 
 ### Running the tests
 
@@ -136,7 +169,7 @@ environments and not in production.
 
 In addition `requirements.in` is compiled to produce a [requirements.txt][]
 file that pins the version numbers of all dependencies for deterministic
-production builds. 
+production builds.
 
 **If you've added a new Python dependency**:
 
