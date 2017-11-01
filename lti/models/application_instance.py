@@ -2,6 +2,7 @@ import sqlalchemy as sa
 import secrets
 from sqlalchemy.orm import relationship
 
+#from ... import lti as app_lti
 from lti.db import BASE
 
 lti_key = "MY_APP"
@@ -16,9 +17,8 @@ class ApplicationInstance(BASE):
     shared_secret = sa.Column(sa.String)
     lms_url = sa.Column(sa.String(2048))
 
-    def generate_secret():
+    def config_xml():
         pass
-
 
 def build_shared_secret():
     return secrets.token_hex(64)
