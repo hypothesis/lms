@@ -29,8 +29,7 @@ class TestEnvSetting(object):
 
         with pytest.raises(settings.SettingError) as exc_info:
             settings.env_setting('FOOBAR', required=True)
-
-        assert exc_info.value.message == "environment variable FOOBAR isn't set"
+        assert str(exc_info.value) == "environment variable FOOBAR isn't set"
 
     def test_environment_variables_override_default_settings(self, os_fixture):
         os_fixture.environ = {'FOOBAR': 'the_value'}

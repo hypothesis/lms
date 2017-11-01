@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 def includeme(config):
     config.add_route('sixty_six', '/')
+    config.add_route('application_instance', '/install')
 
 #    config.add_route('token_callback', '/token_callback')
 #    config.add_route('refresh_callback', '/refresh_callback')
