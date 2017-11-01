@@ -26,9 +26,12 @@ class ApplicationInstance(BASE):
 def build_shared_secret():
     return secrets.token_hex(64)
 
+def build_unique_key():
+  return lti_key + secrets.token_hex(16)
+
 def build_from_lms_url(lms_url):
     return ApplicationInstance(
-      consumer_key=lti_key,
+      consumer_key=build_unique_key(),
       shared_secret=build_shared_secret(),
       lms_url=lms_url
     )
