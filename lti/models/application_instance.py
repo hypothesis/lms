@@ -18,10 +18,14 @@ class ApplicationInstance(BASE):
     def config_xml():
         pass
 
+    def __repr__(self):
+      return str.format("id: {}, consumer_key: {}, lms_url: {}", self.id,
+               self.consumer_key, self.lms_url)
+
 def build_shared_secret():
     return secrets.token_hex(64)
 
-def build_application_instance_from_lms_url(lms_url):
+def build_from_lms_url(lms_url):
     return ApplicationInstance(
       consumer_key=lti_key,
       shared_secret=build_shared_secret(),
