@@ -15,70 +15,13 @@ You will need:
 * Python
 * Virtualenv
 * Docker
+* openssl
 * You'll need [h](https://github.com/hypothesis/h),
   [client](https://github.com/hypothesis/client) and
   [via](https://github.com/hypothesis/via) development environments running
 * ...
 
-To get the Canvas app running in a dev environment:
-
-1. Set up a dev install of Canvas: <https://github.com/instructure/canvas-lms/wiki/Quick-Start>.
-
-   Tip: you might want to install Canvas inside a virtual machine, to avoid
-   installing all that stuff onto your host machine. If you do so you'll have
-   to setup virtual machine <-> host machine networking though.
-
-   Tip: Canvas runs on port 3000 by default, which is a port already used by
-   the Hypothesis client in development. I moved Canvas to port 3333 in my
-   Canvas virtual machine's port forwarding config.
-
-1. You'll also need to install Redis and configure your Canvas dev install to
-   use Redis, even though Canvas's Quick Start docs don't say to do so.
-
-   The easiest way to install Redis is by using Docker. Install Docker if you
-   don't have it already and then just run:
-
-   ```bash
-   $ docker run -p 6379:6379 redis
-   ```
-
-   Redis will now be running on <http://localhost:6379/>. You won't see
-   anything there in a web browser though because Redis doesn't respond to
-   HTTP. Instead you can test it by installing
-   [redis-cli](https://redis.io/topics/rediscli) then running `redis-cli ping`:
-
-   ```bash
-   $ redis-cli ping
-   PONG
-   ```
-
-   After installing Redis follow the parts of the
-   [Canvas Redis configuration docs](https://github.com/instructure/canvas-lms/wiki/Production-Start#redis)
-   where it says to edit your `cache-store.yml` and `redis.yml` files, but
-   note that you don't need to do the `chown` and `chmod` commands.
-
-   Here's my `cache-store.yml` file:
-
-   ```
-   development:
-     cache_store: redis_store
-   ```
-
-   And here's my `redis.yml` file:
-
-   ```
-   development:
-     servers:
-     - redis://localhost:6379
-   ```
-
-   Tip: if Canvas is running inside a virtual machine and Redis is running in
-   a Docker container on the host machine, then the Redis URL above will have
-   to be the IP address of the host machine as seen from inside the virtual
-   machine, instead of `localhost`. If you setup your virtual machine using
-   Vagrant this is `redis://10.0.2.2:6379`.
-
-1. Run a PostgreSQL database for the Hypothesis Canvas app to use.
+1. Run a PostgreSQL database.
 
    The easiest way to run a database with the configuration that the app
    expects is with Docker. The first time you run it you'll need to use this
@@ -112,14 +55,14 @@ To get the Canvas app running in a dev environment:
    You can then re-create the container by re-running the `docker run` command
    above.
 
-1. Clone the Hypothesis Canvas app's GitHub repository:
+2. Clone the  app's GitHub repository:
 
    ```bash
-   $ git clone https://github.com/hypothesis/lti.git
+   $ git clone git@github.com:atomicjolt/hypothesis_lti.git
    $ cd lti
    ```
 
-1. Set the environment variables that the app needs to values suitable for
+3. Set the environment variables that the app needs to values suitable for
    local development:
 
    ```bash
@@ -129,30 +72,52 @@ To get the Canvas app running in a dev environment:
    export VIA_URL="http://localhost:9080"
    ```
 
-1. Run the development server. First create and activate a Python virtual
-   environment for the Canvas app and then run:
+4.   First create and activate a Python virtual
+   environment for the Canvas app
+   ```
+     virtualenv .
+     source  bin/activate
+   ```
+
+5. Run the development server. You will need to follow the instructions for setting up ssl if you have not done that already:
 
    ```bash
    $ make dev
    ```
 
-1. Add the development Hypothesis Canvas app to a course and an assignment in
-   your development Canvas instance. Follow the
-   [Installing the App][installing_the_app] and [Using the App][using_the_app]
-   google docs.
+6. TODO Add app to a canvas course
 
-   Tip: In my developer key the **Redirect URI (Legacy)** is set to
-   `http://localhost:8001/token_callback`.
-   
-   In the Canvas app's settings I set the **Config URL** to
-   `http://10.0.0.2:8001/config` because I have Canvas running inside a VM and
-   `10.0.0.2` is the address of my host machine (where the Hypothesis Canvas
-   app is running) as seen from within the VM. If you don't have Canvas running
-   inside a VM then the Config URL would be `http://localhost:8001/config`.
+### Setting up SSL
 
-   Other app URLs, for example the **Launch URL**, are called from the browser
-   rather than from the Canvas server, so they should be `localhost:8001` even
-   if you're running Canvas inside a VM.
+The server will need to be able to accept requests via https. The easiest way to do this is to create a self signed cert. Follow these instructions (for mac):
+1. Create a directory called ssl in the project directory (this folder is git ignored)
+```bash
+$ mkdir ssl
+$ cd ssl
+```
+2. If you don't have openssl you can install it with brew. Once installed run:
+```bash
+$ openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+$ openssl rsa -passin pass:x -in server.pass.key -out server.key
+$ rm server.pass.key
+$ openssl req -new -key server.key -out server.csr
+```
+You will be prompted to enter some information. It doesn't matter what you enter but you will probably want to leave the challenge password blank.
+
+3. Run this command:
+```bash
+$ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
+```
+
+You should now have a file called `server.key` and `server.crt` in that folder.
+
+4. Enable unsecure localhost in your browser. In chrome this can by entering the folling into the url bar.
+```
+  chrome://flags/#allow-insecure-localhost
+```
+Click enable.
+
+5. Verify by running `make dev` and by going to `https://localhost:8001`
 
 ### Running the tests
 
@@ -204,7 +169,7 @@ environments and not in production.
 
 In addition `requirements.in` is compiled to produce a [requirements.txt][]
 file that pins the version numbers of all dependencies for deterministic
-production builds. 
+production builds.
 
 **If you've added a new Python dependency**:
 
@@ -318,107 +283,4 @@ steps to create a new migration script for h are:
 
    ```bash
    $ alembic -c conf/alembic.ini upgrade +1
-   ```
-
-### Adding OAuth credentials to the production and QA apps
-
-The production LTI app runs in a Docker container on an Amazon EC2 instance.
-To login to this server and modify the database you need to:
-
-1. Checkout the playbook repo and run its `h-ssh` tool to ssh into the
-   production LTI EC2 instance:
-
-   ```bash
-   $ sh ./tools/h-ssh prod lti
-   ```
-
-   **Note**: In order for this to work you'll need to have your local ssh
-   configured correctly, see the playbook repo's README.
-
-1. On the EC2 instance run `docker ps` to see the name of the app's docker container:
-
-   ```bash
-   $ sudo docker ps
-   ```
-
-1. Now run `docker exec` to run a shell inside the docker container:
-
-   ```bash
-   $ sudo docker exec -it nostalgic_shockley sh
-   ```
-
-1. In the docker container, run `pshell` to get a Python shell:
-
-   ```bash
-   $ PYTHONPATH=. pshell conf/production.ini
-   ```
-
-1. Import the model classes that you'll be needing:
-
-   ```python
-   >>> from pprint import pprint; from lti.models import OAuth2Credentials, OAuth2UnvalidatedCredentials, OAuth2AccessToken
-   ```
-
-1. Before a Canvas website can start using our app they have to generate a
-   Canvas "developer key" (an OAuth 2 `client_id` and `client_secret` for us
-   to use with the Canvas API) and submit it to us using the form at
-   <https://lti.hypothes.is/lti_credentials>.
-
-   Credentials submitted using this form go into the `OAuth2UnvalidatedCredentials`
-   table in the app's database, but the app doesn't use this table at all,
-   it's just a place to store whatever is submitted via the above form.
-
-   Before the Canvas site can start using our app the submitted credentials
-   need to be "activated" by copying them to the `OAuth2Credentials` table,
-   which is the table that the app actually uses.
-
-   To print out all of the Canvas API "developer keys" / OAuth 2 credentials
-   that have been submitted to us using the above form:
-
-   ```python
-   >>> pprint([(o.email_address, o.client_id, o.client_secret, o.authorization_server) for o in request.db.query(OAuth2UnvalidatedCredentials)])
-   ```
-
-   This is everything submitted via the form, without any kind of validation.
-   Some of it is junk. Some of it is incorrectly entered. Some of the rows here
-   will already have been "activated" by adding them to the `OAuth2Credentials`
-   table, some not. I haven't been deleting rows from `OAuth2UnvalidatedCredentials`
-   when adding them to `OAuth2Credentials`.
-
-1. Print out all of the **activated** Canvas API OAuth 2.0 credentials:
-
-   ```python
-   >>> pprint([(o.client_id, o.client_secret, o.authorization_server) for o in request.db.query(OAuth2Credentials)])
-   ```
-
-1. "Activate" a set of credentials by adding them to the `OAuth2Credentials` table:
-
-   ```python
-   >>> request.db.add(OAuth2Credentials(client_id=u'10000000000007', client_secret=u'1AN***VvS', authorization_server=u'https://hypothesis.instructure.com'))
-   >>> request.tm.commit()
-   ```
-
-   You probably don't want to copy _exactly_ what you see in the
-   `OAuth2UnvalidatedCredentials` table into the `OAuth2Credentials` table.
-   The stuff in there is completely unvalidated. Users usually forget the
-   `https://` at the start of the `authorization_server` URL, for example.
-
-1. There's an issue with the app that it can sometimes get the "wrong" OAuth
-   access token for a given Canvas instance stuck in its DB and then things
-   will stop working for users.
-
-   See for example <https://github.com/hypothesis/lti/issues/101>,
-   <https://hypothes-is.slack.com/archives/C643EDCP2/p1507049591000274>,
-   and <https://hypothesis.zendesk.com/agent/tickets/1553>.
-
-   Until the app's OAuth 2.0 code is fixed, when this issue happens someone
-   has to manually delete the site in question's access token from the DB and
-   hope.
-
-   To delete an access token (you will need the `client_id` from the
-   `OAuth2Credentials` row of the site in question):
-
-   ```
-   >>> request.db.delete(request.db.query(OAuth2AccessToken).filter_by(client_id=u'xyz123').one())
-   >>> request.tm.commit()
    ```
