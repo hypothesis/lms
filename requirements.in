@@ -12,3 +12,4 @@ sqlalchemy
 psycopg2
 zope.sqlalchemy
 raven
+PyLTI
