@@ -6,7 +6,7 @@ from lti.db import BASE
 lti_key = "MY_APP"
 
 class ApplicationInstance(BASE):
-    """TODO"""
+    """Class to represent a single lti install"""
 
     __tablename__ = 'application_instances'
 
