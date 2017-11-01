@@ -1,8 +1,6 @@
 import sqlalchemy as sa
 import secrets
 from sqlalchemy.orm import relationship
-
-#from ... import lti as app_lti
 from lti.db import BASE
 
 lti_key = "MY_APP"
