@@ -2,7 +2,7 @@
 Add application_instance model
 
 Revision ID: d9e4bc3797b3
-Revises: 9abdc3b2f019
+Revises: f013a6b67f91
 Create Date: 2017-10-31 09:49:40.491059
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'd9e4bc3797b3'
-down_revision = '9abdc3b2f019'
+down_revision = 'f013a6b67f91'
 
 
 def upgrade():
