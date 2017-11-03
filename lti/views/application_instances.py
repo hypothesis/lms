@@ -16,11 +16,8 @@ def create_application_instance(request):
   query = request.db.query(ai.ApplicationInstance).filter(
     ai.ApplicationInstance.lms_url == request.params['lms_url'])
 
-  if query.count() > 0:
-    instance = query.one()
-  else:
-    instance = ai.build_from_lms_url(request.params['lms_url'])
-    request.db.add(instance)
+  instance = ai.build_from_lms_url(request.params['lms_url'])
+  request.db.add(instance)
 
   return {
     'consumer_key': instance.consumer_key,
