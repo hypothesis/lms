@@ -2,6 +2,15 @@ from pylti.common import verify_request_common
 from lti.models import application_instance as ai
 
 def lti_launch(view_function):
+  """
+    This decorator handle the verification of an lti launch and can be used to decorate a route.
+    You should add this decorator before (logically) the route decorator. For example:
+
+    @view_config(...)
+    @lti_launch
+    def some_view(request):
+      ...
+  """
 
   def wrapper(request):
     consumer_key = request.params["oauth_consumer_key"]
