@@ -1,3 +1,4 @@
+from pyramid.renderers import render_to_response
 from pylti.common import verify_request_common
 from lti.models import application_instance as ai
 
@@ -26,3 +27,16 @@ def lti_launch(view_function):
     return view_function(request)
 
   return wrapper
+
+def view_renderer(renderer):
+  def view_decorator(view_function):
+    def wrapper(request, **kwargs):
+      return render_to_response(
+        renderer,
+        view_function(request, **kwargs),
+        request=request
+      )
+    return wrapper
+  return view_decorator
+
+

@@ -12,9 +12,6 @@ def create_application_instance(request):
     If one exists the existing data is provided to view.
   """
   # TODO handle missing scheme in lms_url
-  # check to see if an application instance already exists for this canvas domain
-  query = request.db.query(ai.ApplicationInstance).filter(
-    ai.ApplicationInstance.lms_url == request.params['lms_url'])
 
   instance = ai.build_from_lms_url(request.params['lms_url'])
   request.db.add(instance)
