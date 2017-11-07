@@ -1,10 +1,9 @@
 import sqlalchemy as sa
-import secrets
-from sqlalchemy.orm import relationship
 from lti.db import BASE
 
+
 class ModuleItemConfiguration(BASE):
-    """Class that link a document url to a specific lms module (Not needed for canvas)"""
+    """Class that links a document url to a specific lms module (Not needed for canvas)"""
 
     __tablename__ = 'module_item_configurations'
 

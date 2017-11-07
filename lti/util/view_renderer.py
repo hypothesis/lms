@@ -1,7 +1,8 @@
 from pyramid.renderers import render_to_response
 
+
 """
-  When using lti we dont have the benefit of being able to redirect because you can store a cookie
+  When using lti we don't have the benefit of being able to redirect because you can't store a cookie
   in an iframe. As such, conditionally rendering views is necessary. This decorator provides
   a declarative way to render different views.
   You can decorate any function with this decorator the first argument to the decorator is the
@@ -28,8 +29,10 @@ from pyramid.renderers import render_to_response
   The values are not positional arguments so their names must be used when invoking these
   functions.
 
-  See views/lti_launches.py for some more example useage.
+  See views/lti_launches.py for some more example usage.
 """
+
+
 def view_renderer(renderer):
   def view_decorator(view_function):
     def wrapper(request, **kwargs):

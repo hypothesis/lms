@@ -1,7 +1,11 @@
 from pyramid.view import view_config
 from lti.util.lti_launch import lti_launch
 
-@view_config(route_name='link_selection', renderer='lti:templates/module_item_configurations/new_module_item_configuration.html.jinja2', request_method='POST')
+
+@view_config(
+  route_name='link_selection',
+  renderer='lti:templates/module_item_configurations/new_module_item_configuration.html.jinja2',
+  request_method='POST')
 @lti_launch
 def link_selection(request):
   """

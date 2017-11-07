@@ -11,7 +11,7 @@ def lti_launches(request):
       1. If a student launches before a teacher has configured the document then it will
          display a message say that the teacher still needs to configure the document.
 
-      2. If a student or teach launch after the document has been configured then it diplays the
+      2. If a student or teacher launch after the document has been configured then it disdplays the
          document with the annotation tools.
 
       3. If a teacher launches and no document has been configured, it renders a form that allows
@@ -28,6 +28,7 @@ def lti_launches(request):
 
   return _view_document(request=request, document_url=request.params['url'])
 
+
 @view_renderer(renderer='lti:templates/module_item_configurations/new_module_item_configuration.html.jinja2')
 def _new_module_item_configuration(request):
   return {
@@ -37,6 +38,7 @@ def _new_module_item_configuration(request):
       'tool_consumer_instance_guid': request.params['tool_consumer_instance_guid']
     }
   }
+
 
 @view_renderer(renderer='lti:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(request, document_url):
