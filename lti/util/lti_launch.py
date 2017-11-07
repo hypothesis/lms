@@ -27,16 +27,3 @@ def lti_launch(view_function):
     return view_function(request)
 
   return wrapper
-
-def view_renderer(renderer):
-  def view_decorator(view_function):
-    def wrapper(request, **kwargs):
-      return render_to_response(
-        renderer,
-        view_function(request, **kwargs),
-        request=request
-      )
-    return wrapper
-  return view_decorator
-
-
