@@ -10,4 +10,5 @@ def includeme(config):
   # lti routes
   config.add_route('lti_launches', '/lti_launches')
   config.add_route('link_selection', '/link_selection')
+  config.add_route('content_item_selection', '/content_item_selection')
 
