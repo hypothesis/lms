@@ -8,13 +8,14 @@ from lti.util.lti_launch import lti_launch
   request_method='POST')
 @lti_launch
 def content_item_selection(request):
+  import pdb ; pdb.set_trace()
   """
     Renders the form that teachers see to configure the module item.
     This view is only used for lms's that support link selection
   """
   return {
-    'content_item_return_url': request.params['content_item_return_url'],
-    'lti_launch_url': request.route_url('lti_launches')
+    'content_item_return_url': request.params['ext_content_return_url'],
+    'lti_launch_url': request.route_url('lti_launches'),
     'form_fields': {
       'lti_message_type': request.params['lti_message_type'],
       'lti_version': request.params['lti_version'],

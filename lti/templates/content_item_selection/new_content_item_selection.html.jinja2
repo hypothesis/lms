@@ -6,7 +6,7 @@
       '@graph': [
         { '@type': 'LtiLinkItem',
           'mediaType': 'application/vnd.ims.lti.v1.ltilink',
-          'url': {{ lti_launch_url }} + '?url=' + form.elements['document_url'].value,
+          'url': '{{ lti_launch_url }}' + '?url=' + form.elements['document_url'].value,
           'placementAdvice': {
             'presentationDocumentTarget': 'iframe' // maybe make this configurable in the tool.
           }
@@ -19,7 +19,7 @@
 <form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)">
   <input type="hidden" value="" name="content_items" />
   {% for field in form_fields.keys() %}
-    <input type="hidden" value={{ form_fields[field] }} name={{ field }} />
+    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
   {% endfor %}
   <div>
     <label for="document_url">Public Document URL</label>

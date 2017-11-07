@@ -7,7 +7,7 @@
 <form id="launch-form" action="{{ launch_presentation_return_url  }}" method="post" onsubmit="handleSubmit(this)">
   <input type="hidden" value="lti_launch_url" name="return_type" />
   {% for field in form_fields.keys() %}
-    <input type="hidden" value={{ form_fields[field] }} name={{ field }} />
+    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
   {% endfor %}
   <div>
     <label for="document_url">Public Document URL</label>
