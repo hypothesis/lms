@@ -1,3 +1,4 @@
+from pyramid.renderers import render_to_response
 from pylti.common import verify_request_common
 from lti.models import application_instance as ai
 
