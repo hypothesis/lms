@@ -22,7 +22,7 @@ def lti_launches(request):
       ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
       ModuleItemConfiguration.tool_consumer_instance_guid == request.params['tool_consumer_instance_guid']
     )
-    if config.count() == 1:
+    if config.count() >= 1:
       return _view_document(request=request, document_url=config.one().document_url)
     return _new_module_item_configuration(request)
 
