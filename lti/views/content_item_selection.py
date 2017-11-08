@@ -13,16 +13,16 @@ def content_item_selection(request):
     This view is only used for lms's that support link selection
   """
   return {
-    'content_item_return_url': request.params['ext_content_return_url'],
+    'content_item_return_url': request.params['content_item_return_url'],
     'lti_launch_url': request.route_url('lti_launches'),
     'form_fields': {
-      'lti_message_type': request.params['lti_message_type'],
+      'lti_message_type': 'ContentItemSelection',
       'lti_version': request.params['lti_version'],
       'oauth_version': request.params['oauth_version'],
       'oauth_nonce': request.params['oauth_nonce'],
       'oauth_consumer_key': request.params['oauth_consumer_key'],
-      'oauth_callback': request.params['oauth_callback'],
+      'oauth_callback': 'about:blank', #request.params['oauth_callback'],
       'oauth_signature_method': request.params['oauth_signature_method'],
-      'oauth_signature': request.params['oauth_signature']
+      'oauth_signature': request.params['oauth_signature'],
     }
   }

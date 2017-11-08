@@ -1,29 +1,27 @@
 <script type="text/javascript">
   // TODO: handle form validation!
+
   function handleSubmit(form) {
+    var launchUrl = '{{ lti_launch_url }}' + '?url=' + form.elements['document_url'].value
     var contentItem = {
       '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
       '@graph': [
-        { '@type': 'LtiLinkItem',
-          'mediaType': 'application/vnd.ims.lti.v1.ltilink',
-          'url': '{{ lti_launch_url }}' + '?url=' + form.elements['document_url'].value,
-          'placementAdvice': {
-            'presentationDocumentTarget': 'iframe' // maybe make this configurable in the tool.
-          }
-        }
+        {
+          '@type': 'LtiLinkItem',
+          mediaType: 'application/vnd.ims.lti.v1.ltilink',
+          url: launchUrl,
+        },
       ]
     }
-    form.elements['content_items'].value = encodeURIComponent(JSON.stringify(contentItem));
+    form.elements['content_items'].value = JSON.stringify(contentItem)
   }
 </script>
-<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)">
+<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
   <input type="hidden" value="" name="content_items" />
   {% for field in form_fields.keys() %}
     <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
   {% endfor %}
-  <div>
     <label for="document_url">Public Document URL</label>
     <input type="text" name="document_url" />
-  </div>
   <button type="submit">Submit</button>
 </form>

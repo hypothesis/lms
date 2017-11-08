@@ -12,5 +12,5 @@ def config_xml(request):
 
     return {
       'launch_url': request.route_url('lti_launches'),
-      'resource_selection_url': request.route_url('content_item_selection'),
+      'content_item_url': request.route_url('content_item_selection'),
     }
