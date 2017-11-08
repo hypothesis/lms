@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from lti.db import BASE
 
 # TODO we should figure out a more standard place to set this
-lti_key = "MY_APP"
+lti_key = "Hypothesis"
 
 class ApplicationInstance(BASE):
     """Class to represent a single lti install"""
