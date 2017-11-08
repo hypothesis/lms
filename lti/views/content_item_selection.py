@@ -21,7 +21,6 @@ def content_item_selection(request):
       'oauth_version': request.params['oauth_version'],
       'oauth_nonce': request.params['oauth_nonce'],
       'oauth_consumer_key': request.params['oauth_consumer_key'],
-      'oauth_callback': 'about:blank', #request.params['oauth_callback'],
       'oauth_signature_method': request.params['oauth_signature_method'],
       'oauth_signature': request.params['oauth_signature'],
     }
