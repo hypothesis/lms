@@ -9,4 +9,8 @@ from pyramid.view import view_config
              request_method='GET')
 def config_xml(request):
     request.response.content_type = 'text/xml'
-    return {}
+
+    return {
+      'launch_url': request.route_url('lti_launches'),
+      'resource_selection_url': request.route_url('content_item_selection'),
+    }

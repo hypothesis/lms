@@ -8,7 +8,6 @@ from lti.util.lti_launch import lti_launch
   request_method='POST')
 @lti_launch
 def content_item_selection(request):
-  import pdb ; pdb.set_trace()
   """
     Renders the form that teachers see to configure the module item.
     This view is only used for lms's that support link selection
