@@ -55,5 +55,5 @@ pylint:
 pyroma:
   run: false
 ignore-paths:
-  - lti/migrations/env.py
+  - lms/migrations/env.py
   - gunicorn.conf.py
