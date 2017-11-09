@@ -11,7 +11,6 @@
   function handleSubmit(form) {
     var document_url = addHttp(form.elements['document_url'].value);
     var launchUrl = '{{ lti_launch_url }}' + '?url=' + document_url;
-    alert("launchUrl: " + launchUrl);
     var contentItem = {
       '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
       '@graph': [
