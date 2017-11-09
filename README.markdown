@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/hypothesis/lti.svg?branch=master)](https://travis-ci.org/hypothesis/lti)
-[![codecov](https://codecov.io/gh/hypothesis/lti/branch/master/graph/badge.svg)](https://codecov.io/gh/hypothesis/lti)
-[![Updates](https://pyup.io/repos/github/hypothesis/lti/shield.svg)](https://pyup.io/repos/github/hypothesis/lti/)
-[![Python 3](https://pyup.io/repos/github/hypothesis/lti/python-3-shield.svg)](https://pyup.io/repos/github/hypothesis/lti/)
+[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=master)](https://travis-ci.org/hypothesis/lms)
+[![codecov](https://codecov.io/gh/hypothesis/lms/branch/master/graph/badge.svg)](https://codecov.io/gh/hypothesis/lms)
+[![Updates](https://pyup.io/repos/github/hypothesis/lms/shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)
+[![Python 3](https://pyup.io/repos/github/hypothesis/lms/python-3-shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)
 
 # Hypothesis Canvas App
 
