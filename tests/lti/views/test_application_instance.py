@@ -1,5 +1,5 @@
-from lti.views import create_application_instance
-from lti.models import ApplicationInstance
+from lms.views import create_application_instance
+from lms.models import ApplicationInstance
 
 
 class TestApplicationInstance(object):

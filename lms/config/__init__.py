@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from pyramid.config import Configurator
 
-from lti.config.settings import (
+from lms.config.settings import (
     SettingError,
     env_setting,
 )

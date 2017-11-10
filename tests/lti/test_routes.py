@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from lti import routes
+from lms import routes
 
 import mock
 

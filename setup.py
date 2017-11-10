@@ -7,7 +7,7 @@ with open(os.path.join(HERE, 'README.markdown')) as f:
     README = f.read()
 
 setup(
-    name='lti',
+    name='lms',
     description='Hypothesis Canvas app',
     long_description=README,
     classifiers=[
@@ -16,7 +16,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
-    url='https://github.com/hypothesis/lti',
+    url='https://github.com/hypothesis/lms',
     keywords='web pyramid pylons',
     packages=find_packages(),
     include_package_data=True,

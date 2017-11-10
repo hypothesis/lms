@@ -1,9 +1,9 @@
 from pyramid.view import view_config
-from lti.models.module_item_configuration import ModuleItemConfiguration
-from lti.util.authenticate import authenticate
+from lms.models.module_item_configuration import ModuleItemConfiguration
+from lms.util.authenticate import authenticate
 
 
-@view_config(route_name='module_item_configurations', renderer='lti:templates/lti_launches/new_lti_launch.html.jinja2', request_method='POST')
+@view_config(route_name='module_item_configurations', renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2', request_method='POST')
 @authenticate
 def create_module_item_configuration(request, _):
     instance = ModuleItemConfiguration(

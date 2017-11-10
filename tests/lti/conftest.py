@@ -12,8 +12,8 @@ from pyramid.request import apply_request_extensions
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-from lti import constants
-from lti import db
+from lms import constants
+from lms import db
 
 
 TEST_DATABASE_URL = os.environ.get(
@@ -124,7 +124,7 @@ def pyramid_config(pyramid_request):
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_services')
-        config.include('lti.db')
+        config.include('lms.db')
 
         apply_request_extensions(pyramid_request)
 
