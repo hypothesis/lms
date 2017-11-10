@@ -7,7 +7,7 @@ from lti.util.lti_launch import lti_launch
     renderer='lti:templates/content_item_selection/new_content_item_selection.html.jinja2',
     request_method='POST')
 @lti_launch
-def content_item_selection(request, jwt):
+def content_item_selection(request, _):
     """
     Render the form that teachers see to configure the module item.
 
@@ -23,7 +23,6 @@ def content_item_selection(request, jwt):
             'oauth_nonce': request.params['oauth_nonce'],
             'oauth_consumer_key': request.params['oauth_consumer_key'],
             'oauth_signature_method': request.params['oauth_signature_method'],
-            'oauth_signature': request.params['oauth_signature'],
-            'jwt': jwt
+            'oauth_signature': request.params['oauth_signature']
         }
     }
