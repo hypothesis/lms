@@ -1,8 +1,9 @@
 from sqlalchemy.exc import IntegrityError
 import pytest
 
-from lti.views.application_instance import create_application_instance
+from lti.views.application_instances import create_application_instance
 from lti.models.application_instance import ApplicationInstance
+
 
 class TestApplicationInstance(object):
     def test_it_creates_an_application_instance(self, pyramid_request):
