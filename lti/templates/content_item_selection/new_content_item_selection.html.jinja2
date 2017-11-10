@@ -1,8 +1,16 @@
 <script type="text/javascript">
   // TODO: handle form validation!
 
+  function addHttp(url) {
+    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
+        url = "http://" + url;
+     }
+     return url;
+  }
+
   function handleSubmit(form) {
-    var launchUrl = '{{ lti_launch_url }}' + '?url=' + form.elements['document_url'].value
+    var document_url = addHttp(form.elements['document_url'].value);
+    var launchUrl = '{{ lti_launch_url }}' + '?url=' + document_url;
     var contentItem = {
       '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
       '@graph': [
