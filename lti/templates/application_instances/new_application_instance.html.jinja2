@@ -1,11 +1,25 @@
-<form action="/welcome" method="post">
+<!--suppress CheckValidXmlInScriptTagBody -->
+<script type="text/javascript">
+  function addHttp(url) {
+    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
+        url = "http://" + url;
+     }
+     return url;
+  }
+
+  function handleSubmit(form) {
+    form.elements['lms_url'].value = addHttp(form.elements['lms_url'].value);
+  }
+</script>
+
+<form action="/welcome" method="post" onsubmit="handleSubmit(this)">
   <div>
     <label for="lms_url">LMS Domain</label>
-    <input type="text" name="lms_url" placeholder="eg. atomcicjolt.instructure.com">
+    <input type="text" name="lms_url" placeholder="eg. atomcicjolt.instructure.com" />
   </div>
   <div>
     <label for="email">Email</label>
-    <input type="text" name="email">
+    <input type="text" name="email" />
   </div>
   <button type="submit">Submit</button>
 </form>
