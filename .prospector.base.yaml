@@ -60,5 +60,4 @@ ignore-paths:
   - lib/
   - include/
   - lti/migrations/env.py
-  - alembic/
   - gunicorn.conf.py
