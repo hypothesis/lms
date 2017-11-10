@@ -227,7 +227,7 @@ steps to create a new migration script for h are:
 1. Create the revision script by running `alembic revision`, for example:
 
    ```bash
-   $ alembic -c conf/alembic.ini revision -m "Add the foobar table."
+   $ alembic revision -m "Add the foobar table."
    ```
 
    This will create a new script in [lti/migrations/versions](lti/migrations/versions).
