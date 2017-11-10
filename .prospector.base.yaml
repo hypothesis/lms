@@ -56,7 +56,9 @@ pylint:
 pyroma:
   run: false
 ignore-paths:
+  - bin/
   - lib/
   - include/
   - lti/migrations/env.py
+  - alembic/
   - gunicorn.conf.py

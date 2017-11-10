@@ -1,5 +1,5 @@
 """
-Add application_instance model
+Add application_instance model.
 
 Revision ID: d9e4bc3797b3
 Revises: f013a6b67f91

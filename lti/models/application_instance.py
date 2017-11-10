@@ -1,13 +1,13 @@
-import sqlalchemy as sa
 import secrets
-from sqlalchemy.orm import relationship
+import sqlalchemy as sa
 from lti.db import BASE
 
 # TODO we should figure out a more standard place to set this
-lti_key = "Hypothesis"
+LTI_KEY_BASE = "Hypothesis"
+
 
 class ApplicationInstance(BASE):
-    """Class to represent a single lti install"""
+    """Class to represent a single lti install."""
 
     __tablename__ = 'application_instances'
 
@@ -16,22 +16,21 @@ class ApplicationInstance(BASE):
     shared_secret = sa.Column(sa.String)
     lms_url = sa.Column(sa.String(2048))
 
-    def config_xml():
-        pass
-
-    def __repr__(self):
-      return str.format("id: {}, consumer_key: {}, lms_url: {}", self.id,
-               self.consumer_key, self.lms_url)
 
 def build_shared_secret():
+    """Generate a shared secrect."""
     return secrets.token_hex(64)
 
+
 def build_unique_key():
-  return lti_key + secrets.token_hex(16)
+    """Use the key base to generate lti key."""
+    return LTI_KEY_BASE + secrets.token_hex(16)
+
 
 def build_from_lms_url(lms_url):
+    """Intantiate ApplicationIntance with lms_url."""
     return ApplicationInstance(
-      consumer_key=build_unique_key(),
-      shared_secret=build_shared_secret(),
-      lms_url=lms_url
+        consumer_key=build_unique_key(),
+        shared_secret=build_shared_secret(),
+        lms_url=lms_url
     )

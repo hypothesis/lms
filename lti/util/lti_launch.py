@@ -1,6 +1,5 @@
-"""Provides a decorator that add lti validation capabilities to a pyramid view"""
+"""Provide a decorator that add lti validation capabilities to a pyramid view."""
 import jwt
-from pyramid.renderers import render_to_response
 from pylti.common import verify_request_common
 from lti.models import application_instance as ai
 from lti.config.settings import env_setting
@@ -8,24 +7,25 @@ from lti.config.settings import env_setting
 
 def lti_launch(view_function):
     """
-        This decorator handle the verification of an lti launch and can be used to decorate a route.
-        You should add this decorator before (logically) the route decorator. For example:
+    Handle the verification of an lti launch.
 
-        @view_config(...)
-        @lti_launch
-        def some_view(request):
-            ...
+    You should add this decorator before (logically) the route decorator. For example:
+
+    @view_config(...)
+    @lti_launch
+    def some_view(request):
+    ...
     """
-
     def wrapper(request):
-        """The wrapper that contains the lti validation"""
+        """Handle the lti validation."""
         consumer_key = request.params["oauth_consumer_key"]
         instance = request.db.query(ai.ApplicationInstance).filter(
-        ai.ApplicationInstance.consumer_key == consumer_key).one()
+            ai.ApplicationInstance.consumer_key == consumer_key
+        ).one()
 
         consumers = {}
 
-        consumers[consumer_key] = { "secret": instance.shared_secret }
+        consumers[consumer_key] = {"secret": instance.shared_secret}
 
         # TODO rescue from an invalid lti launch
         verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))

@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import factory
 import faker
 
-from lti import models
 
 FAKER = faker.Factory.create()
 SESSION = None
@@ -21,6 +20,8 @@ class ModelFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Base class for all factory classes for model classes."""
 
     class Meta(object):
+        """Meta class."""
+
         abstract = True
 
     @classmethod

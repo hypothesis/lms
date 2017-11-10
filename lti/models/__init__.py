@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-
-#from lti.models.oauth2_credentials import OAuth2Credentials
 from lti.models.application_instance import ApplicationInstance
+from lti.models.module_item_configuration import ModuleItemConfiguration
 
 __all__ = (
     'ApplicationInstance',
+    'ModuleItemConfiguration'
 )
 
 
