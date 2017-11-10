@@ -31,6 +31,6 @@ def lti_launch(view_function):
         verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
         data = {'user_id': request.params['user_id'], 'roles': request.params['roles']}
         jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
-        return view_function(request, jwt)
+        return view_function(request, jwt_token)
 
     return wrapper
