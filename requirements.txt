@@ -22,6 +22,7 @@ pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.4.1  # via pyramid
 plaster==0.5              # via plaster-pastedeploy, pyramid
 psycopg2==2.7.3.1
+pyjwt==1.5.3
 pylti==0.5.1
 pyramid-jinja2==2.7
 pyramid-services==1.1
