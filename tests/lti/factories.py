@@ -37,25 +37,3 @@ class ModelFactory(factory.alchemy.SQLAlchemyModelFactory):
         if cls._meta.sqlalchemy_session_persistence == 'flush':
             SESSION.flush()
         return obj
-
-
-class OAuth2Credentials(ModelFactory):
-
-    class Meta(object):
-        model = models.OAuth2Credentials
-        sqlalchemy_session_persistence = 'flush'
-
-    client_id = factory.sequence(lambda n: 'TEST_CLIENT_ID_' + str(n))
-    client_secret = factory.sequence(lambda n: 'TEST_CLIENT_SECRET_' + str(n))
-    authorization_server = 'TEST_AUTHORIZATION_SERVER'
-
-
-class OAuth2AccessToken(ModelFactory):
-
-    class Meta(object):
-        model = models.OAuth2AccessToken
-        sqlalchemy_session_persistence = 'flush'
-
-    credentials = factory.SubFactory(OAuth2Credentials)
-    access_token = factory.sequence(lambda n: 'TEST_ACCESS_TOKEN_' + str(n))
-    refresh_token = factory.sequence(lambda n: 'TEST_REFRESH_TOKEN_' + str(n))
