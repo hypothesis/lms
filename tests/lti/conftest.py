@@ -14,7 +14,6 @@ from sqlalchemy.orm import sessionmaker
 
 from lti import constants
 from lti import db
-#from lti.services import auth_data
 
 
 TEST_DATABASE_URL = os.environ.get(

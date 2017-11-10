@@ -52,8 +52,12 @@ pylint:
     #       you're shadowing the builtin.
     #
     good-names: _,i,j,k,v,e,db,fn,fp,log,parser,id,es
+    function-rgx: "[a-z_][a-z0-9_]{2,40}$"
 pyroma:
   run: false
 ignore-paths:
-  - lms/migrations/env.py
+  - bin/
+  - lib/
+  - include/
+  - lti/migrations/env.py
   - gunicorn.conf.py

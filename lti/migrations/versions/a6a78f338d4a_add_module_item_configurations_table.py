@@ -1,5 +1,5 @@
 """
-add module_item_configurations table
+Add module_item_configurations table.
 
 Revision ID: a6a78f338d4a
 Revises: d9e4bc3797b3

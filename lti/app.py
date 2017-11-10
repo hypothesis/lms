@@ -1,64 +1,8 @@
-﻿import requests
-import logging
-from pyramid.view import view_config
-from pyramid.response import FileResponse
-from requests_oauthlib import OAuth1
-
-from pyramid.renderers import render
-
+﻿import logging
 from lti.config import configure
-from lti import util
-from lti import constants
 
 
 log = logging.getLogger(__name__)
-
-
-def serve_file(path=None, file=None, request=None, content_type=None):
-    response = FileResponse('%s/%s' % (path, file),
-                            request=request,
-                            content_type=content_type)
-    return response
-
-
-# @view_config( route_name='lti_submit' )
-# def lti_submit(request, oauth_consumer_key=None, lis_outcome_service_url=None, lis_result_sourcedid=None, export_url=None):
-#     """
-#     Called from a student's view of an assignment.
-
-#     In theory can be an LTI launch but that's undocumented and did not seem to work.
-#     So we use info we send to ourselves from the JS we generate on the assignment page.
-#     """
-#     auth_data_svc = request.find_service(name='auth_data')
-
-
-#     log.info ( 'lti_submit: query: %s' % request.query_string )
-#     log.info ( 'lti_submit: post: %s' % request.POST )
-#     oauth_consumer_key = util.requests.get_post_or_query_param(request, constants.OAUTH_CONSUMER_KEY)
-#     lis_outcome_service_url = util.requests.get_post_or_query_param(request, constants.LIS_OUTCOME_SERVICE_URL)
-#     lis_result_sourcedid = util.requests.get_post_or_query_param(request, constants.LIS_RESULT_SOURCEDID)
-#     export_url = util.requests.get_post_or_query_param(request, constants.EXPORT_URL)
-
-#     try:
-#         secret = auth_data_svc.get_lti_secret(oauth_consumer_key)   # because the submission must be OAuth1-signed
-#     except:
-#         return util.simple_response("We don't have the Consumer Key %s in our database yet." % oauth_consumer_key)
-
-#     oauth_client = OAuth1(client_key=oauth_consumer_key, client_secret=secret, signature_method='HMAC-SHA1', signature_type='auth_header', force_include_body=True)
-#     body = render('lti:templates/submission.xml.jinja2', dict(
-#         url=export_url,
-#         sourcedid=lis_result_sourcedid,
-#     ))
-#     headers = {'Content-Type': 'application/xml'}
-#     r = requests.post(url=lis_outcome_service_url, data=body, headers=headers, auth=oauth_client)
-#     log.info ( 'lti_submit: %s' % r.status_code )
-#     log.info ( 'lti_submit: %s' % r.text )
-#     response = None
-#     if ( r.status_code == 200 ):
-#         response = 'OK! Assignment successfully submitted.'
-#     else:
-#         response = 'Something is wrong. %s %s' % (r.status_code, r.text)
-#     return util.simple_response(response)
 
 
 def create_app(global_config, **settings):  # pylint: disable=unused-argument

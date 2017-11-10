@@ -1,2 +1,2 @@
-def includeme(config):
+def includeme(_):
     return

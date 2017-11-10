@@ -70,6 +70,7 @@ You will need:
    export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
    export CLIENT_ORIGIN="http://localhost:5000"
    export VIA_URL="http://localhost:9080"
+   export JWT_SECRET="some secret"
    ```
 
 4.   First create and activate a Python virtual
@@ -226,7 +227,7 @@ steps to create a new migration script for h are:
 1. Create the revision script by running `alembic revision`, for example:
 
    ```bash
-   $ alembic -c conf/alembic.ini revision -m "Add the foobar table."
+   $ alembic revision -m "Add the foobar table."
    ```
 
    This will create a new script in [lti/migrations/versions](lti/migrations/versions).
