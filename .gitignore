@@ -16,3 +16,6 @@ include/
 lib/
 .vscode/
 pip-selfcheck.json
+
+# Devloper Specific Files
+secret_env.sh
