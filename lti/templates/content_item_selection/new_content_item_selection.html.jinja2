@@ -23,7 +23,93 @@
     }
     form.elements['content_items'].value = JSON.stringify(contentItem)
   }
+
+
+/////// Google Picker /////////
+      // The Browser API key obtained from the Google API Console.
+      var developerKey = '{{ developer_key }}';
+
+      // The Client ID obtained from the Google API Console. Replace with your own Client ID.
+      var clientId = '{{client_id}}';
+
+    // Replace with your own project number from console.developers.google.com.
+    // See "Project number" under "IAM & Admin" > "Settings"
+    var appId = '{{app_id}}';
+
+    // Scope to use to access user's Drive items.
+    var scope = ['https://www.googleapis.com/auth/drive'];
+
+    var pickerApiLoaded = false;
+    var oauthToken;
+
+    // Use the Google API Loader script to load the google.picker script.
+    function loadPicker() {
+      gapi.load('auth', {'callback': onAuthApiLoad});
+      gapi.load('picker', {'callback': onPickerApiLoad});
+    }
+
+    function onAuthApiLoad() {
+      window.gapi.auth.authorize(
+          {
+            'client_id': clientId,
+            'scope': scope,
+            'immediate': false
+          },
+          handleAuthResult);
+    }
+
+    function onPickerApiLoad() {
+      pickerApiLoaded = true;
+      createPicker();
+    }
+
+    function handleAuthResult(authResult) {
+      if (authResult && !authResult.error) {
+        oauthToken = authResult.access_token;
+        createPicker();
+      }
+    }
+
+    // Create and render a Picker object for searching images.
+    function createPicker() {
+      if (pickerApiLoaded && oauthToken) {
+        var view = new google.picker.View(google.picker.ViewId.DOCS);
+        //view.setMimeTypes("image/png,image/jpeg,image/jpg");
+        var picker = new google.picker.PickerBuilder()
+//            .enableFeature(google.picker.Feature.NAV_HIDDEN)
+            .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+            .setAppId(appId)
+//TODO look up host url from lti key
+            .setOrigin("https://atomicjolt.instructure.com")
+            .setOAuthToken(oauthToken)
+            .addView(view)
+            .addView(new google.picker.DocsUploadView())
+            .setDeveloperKey(developerKey)
+            .setCallback(pickerCallback)
+            .build();
+         picker.setVisible(true);
+      }
+    }
+
+   function docUrl(doc) {
+     return 'https://docs.google.com/document/d/'
+       + doc.id
+       + '/export?format=pdf';
+   }
+
+// TODO why 500?
+// TODO use api to update file permissions on upload
+    function pickerCallback(data) {
+      var docCount = data.docs && data.docs.length;
+      if (data.action == google.picker.Action.PICKED && docCount === 1) {
+        var url = docUrl(data.docs[0]);
+        document.getElementById('launch-form').elements['document_url'].value = url;
+      }
+    }
+
 </script>
+ <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
+
 <form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
   <input type="hidden" value="" name="content_items" />
   {% for field in form_fields.keys() %}
