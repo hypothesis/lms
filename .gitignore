@@ -1,7 +1,7 @@
 .pydeps
 lti.log
-lti/static/pdfjs/viewer/web/*.html
-lti/static/pdfjs/viewer/web/*.pdf
+tests/lms/static/pdfjs/viewer/web/*.html
+tests/lms/static/pdfjs/viewer/web/*.pdf
 .coverage*
 .tox
 .cache
