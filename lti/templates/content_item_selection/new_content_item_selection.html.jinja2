@@ -7,7 +7,7 @@
     <input type="text" name="document_url" />
   <button type="submit">Submit</button>
 </form>
-<button id="picker-button" disabled>Use Google Picker</button>
+<button id="picker-button" disabled onclick="loadPicker()">Use Google Picker</button>
 <script type="text/javascript">
   // TODO: handle form validation!
 
@@ -121,8 +121,8 @@
 //  Google Picker Support
 
    function enablePickerButton() {
-var picker = document.getElementById('picker-button');
-debugger;
+     var picker = document.getElementById('picker-button');
+     if(picker) { picker.disabled = false; }
    }
 
 </script>
