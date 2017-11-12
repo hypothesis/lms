@@ -84,12 +84,8 @@
     function createPicker() {
       if (pickerApiLoaded && oauthToken) {
         var view = new google.picker.View(google.picker.ViewId.DOCS);
-        //view.setMimeTypes("image/png,image/jpeg,image/jpg");
         var picker = new google.picker.PickerBuilder()
-//            .enableFeature(google.picker.Feature.NAV_HIDDEN)
-            .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
             .setAppId(appId)
-//TODO look up host url from lti key
             .setOrigin('{{lms_url}}')
             .setOAuthToken(oauthToken)
             .addView(view)
@@ -101,18 +97,42 @@
       }
     }
 
-   function docUrl(doc) {
+  var GOOGLE_MIME_TYPES = {
+    'application/vnd.google-apps.document': 'googleDocs',
+   //'application/vnd.google-apps.drawing',
+   //application/vnd.google-apps.file,
+   //application/vnd.google-apps.folder,
+   //application/vnd.google-apps.form,
+   //application/vnd.google-apps.fusiontable,
+   //application/vnd.google-apps.map
+   //application/vnd.google-apps.photo,
+   //application/vnd.google-apps.presentation,
+   //application/vnd.google-apps.script,
+   //application/vnd.google-apps.sites,
+   //application/vnd.google-apps.spreadsheet,
+   //application/vnd.google-apps.unknown,
+   //application/vnd.google-apps.video,
+   //application/vnd.google-apps.drive-sdk
+  };
+
+   function buildDocUrl(doc) {
+     var urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType]
+     switch() {
+       case 'googleDocs':
+         return googleDocUrl(doc);
+     }
+   }
+
+   function googleDocUrl(doc) {
      return 'https://docs.google.com/document/d/'
        + doc.id
        + '/export?format=pdf';
    }
 
-// TODO why 500?
-// TODO use api to update file permissions on upload
     function pickerCallback(data) {
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
-        var url = docUrl(data.docs[0]);
+        var url = buildDocUrl(data.docs[0]);
         document.getElementById('launch-form').elements['document_url'].value = url;
       }
     }
