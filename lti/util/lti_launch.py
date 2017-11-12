@@ -4,10 +4,12 @@ from pylti.common import verify_request_common
 from lti.models import application_instance as ai
 from lti.config.settings import env_setting
 
+
 def get_application_instance(db, consumer_key):
     return db.query(ai.ApplicationInstance).filter(
-         ai.ApplicationInstance.consumer_key == consumer_key
+        ai.ApplicationInstance.consumer_key == consumer_key
     ).one()
+
 
 def lti_launch(view_function):
     """

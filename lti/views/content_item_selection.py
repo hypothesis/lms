@@ -15,7 +15,6 @@ def content_item_selection(request, _):
 
     This view is only used for lms's that support link selection
     """
-
     consumer_key = request.params['oauth_consumer_key']
     application_instance = get_application_instance(request.db, consumer_key)
     return {
@@ -30,8 +29,8 @@ def content_item_selection(request, _):
             'oauth_signature_method': request.params['oauth_signature_method'],
             'oauth_signature': request.params['oauth_signature']
         },
-       'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
-       'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
-       'google_app_id': env_setting('GOOGLE_APP_ID'),
-       'lms_url': application_instance.lms_url
+        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
+        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
+        'google_app_id': env_setting('GOOGLE_APP_ID'),
+        'lms_url': application_instance.lms_url
     }
