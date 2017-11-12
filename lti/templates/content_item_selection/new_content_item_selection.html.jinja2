@@ -1,3 +1,13 @@
+<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
+  <input type="hidden" value="" name="content_items" />
+  {% for field in form_fields.keys() %}
+    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
+  {% endfor %}
+    <label for="document_url">Public Document URL</label>
+    <input type="text" name="document_url" />
+  <button type="submit">Submit</button>
+</form>
+<button id="picker-button" disabled>Use Google Picker</button>
 <script type="text/javascript">
   // TODO: handle form validation!
 
@@ -107,15 +117,14 @@
       }
     }
 
-</script>
- <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
 
-<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
-  <input type="hidden" value="" name="content_items" />
-  {% for field in form_fields.keys() %}
-    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
-  {% endfor %}
-    <label for="document_url">Public Document URL</label>
-    <input type="text" name="document_url" />
-  <button type="submit">Submit</button>
-</form>
+//  Google Picker Support
+
+   function enablePickerButton() {
+var picker = document.getElementById('picker-button');
+debugger;
+   }
+
+</script>
+ <script type="text/javascript"
+src="https://apis.google.com/js/api.js?onload=enablePickerButton"></script>
