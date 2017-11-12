@@ -27,14 +27,14 @@
 
 /////// Google Picker /////////
       // The Browser API key obtained from the Google API Console.
-      var developerKey = '{{ developer_key }}';
+      var developerKey = '{{ google_developer_key }}';
 
       // The Client ID obtained from the Google API Console. Replace with your own Client ID.
-      var clientId = '{{client_id}}';
+      var clientId = '{{ google_client_id }}';
 
     // Replace with your own project number from console.developers.google.com.
     // See "Project number" under "IAM & Admin" > "Settings"
-    var appId = '{{app_id}}';
+    var appId = '{{ google_app_id }}';
 
     // Scope to use to access user's Drive items.
     var scope = ['https://www.googleapis.com/auth/drive'];
@@ -80,7 +80,7 @@
             .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
             .setAppId(appId)
 //TODO look up host url from lti key
-            .setOrigin("https://atomicjolt.instructure.com")
+            .setOrigin('{{lms_url}}')
             .setOAuthToken(oauthToken)
             .addView(view)
             .addView(new google.picker.DocsUploadView())
