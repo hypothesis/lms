@@ -17,7 +17,7 @@ from lms import db
 
 
 TEST_DATABASE_URL = os.environ.get(
-    'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lti_test')
+    'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
 
 
 SESSION = sessionmaker()
