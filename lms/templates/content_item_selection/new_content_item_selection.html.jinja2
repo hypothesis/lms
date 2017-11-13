@@ -87,30 +87,13 @@
       }
     }
 
-    // Create and render a Picker object for searching images.
-    function createPicker() {
-      if (pickerApiLoaded && oauthToken) {
-        var view = new google.picker.View(google.picker.ViewId.DOCS);
-        var picker = new google.picker.PickerBuilder()
-            .setAppId(appId)
-            .setOrigin('{{lms_url}}')
-            .setOAuthToken(oauthToken)
-            .addView(view)
-            .addView(new google.picker.DocsUploadView())
-            .setDeveloperKey(developerKey)
-            .setCallback(pickerCallback)
-            .build();
-         picker.setVisible(true);
-      }
-    }
-
- ////////// Google Url Support /////////////////
   var GOOGLE_MIME_TYPES = {
     'application/vnd.google-apps.document': 'googleDocs',
     'application/vnd.google-apps.spreadsheet': 'googleSheets',
+    'application/pdf': 'googleDriveFile',
+
     //TODO add support for other file types
-    //  'application/vnd.google-apps.presentation': 'googleSlides',
-    //'image/jpeg':
+   //'application/vnd.google-apps.presentation': 'googleSlides',
    //'application/vnd.google-apps.drawing',
    //application/vnd.google-apps.file,
    //application/vnd.google-apps.folder,
@@ -125,6 +108,28 @@
    //application/vnd.google-apps.drive-sdk
   };
 
+
+    // Create and render a Picker object for searching images.
+    function createPicker() {
+      if (pickerApiLoaded && oauthToken) {
+        var mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
+        var view = new google.picker.View(google.picker.ViewId.DOCS);
+        view.setMimeTypes(mimeTypes);
+
+        var picker = new google.picker.PickerBuilder()
+            .setAppId(appId)
+            .setOrigin('{{lms_url}}')
+            .setOAuthToken(oauthToken)
+            .addView(view)
+            .addView(new google.picker.DocsUploadView())
+            .setDeveloperKey(developerKey)
+            .setCallback(pickerCallback)
+            .build();
+         picker.setVisible(true);
+      }
+    }
+
+ ////////// Google Url Support /////////////////
    function buildDocUrl(doc) {
      var urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType]
      switch(urlBuilder) {
@@ -132,7 +137,15 @@
          return googleDocUrl(doc);
        case 'googleSheets':
          return googleSheetUrl(doc);
+       case 'googleDriveFile':
+         return googleDriveFileUrl(doc);
      }
+   }
+
+   function googleDriveFileUrl(doc) {
+     return 'https://drive.google.com/uc?id='
+       + doc.id
+       + '&authuser=0&export=download';
    }
 
    function googleDocUrl(doc) {
