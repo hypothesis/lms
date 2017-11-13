@@ -25,16 +25,16 @@ You will need:
 
    The easiest way to run a database with the configuration that the app
    expects is with Docker. The first time you run it you'll need to use this
-   command to create and run the `lti-postgres` docker container:
+   command to create and run the `lms-postgres` docker container:
 
    ```bash
-   $ sudo docker run -p 5433:5432 --name lti-postgres postgres
+   $ sudo docker run -p 5433:5432 --name lms-postgres postgres
    ```
 
    Subsequently you can just re-start the already-created container with:
 
    ```bash
-   sudo docker start -a lti-postgres
+   sudo docker start -a lms-postgres
    ```
 
    **Tip**: You can connect to this database to inspect its contents by
@@ -49,7 +49,7 @@ You will need:
    an easy way to do so is just to delete the whole docker container:
 
    ```bash
-   $ sudo docker rm lti-postgres
+   $ sudo docker rm lms-postgres
    ```
 
    You can then re-create the container by re-running the `docker run` command
