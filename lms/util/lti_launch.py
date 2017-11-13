@@ -5,6 +5,12 @@ from lms.models import application_instance as ai
 from lms.config.settings import env_setting
 
 
+def get_application_instance(db, consumer_key):
+    return db.query(ai.ApplicationInstance).filter(
+        ai.ApplicationInstance.consumer_key == consumer_key
+    ).one()
+
+
 def lti_launch(view_function):
     """
     Handle the verification of an lms launch.
@@ -19,9 +25,7 @@ def lti_launch(view_function):
     def wrapper(request):
         """Handle the lms validation."""
         consumer_key = request.params["oauth_consumer_key"]
-        instance = request.db.query(ai.ApplicationInstance).filter(
-            ai.ApplicationInstance.consumer_key == consumer_key
-        ).one()
+        instance = get_application_instance(request.db, consumer_key)
 
         consumers = {}
 
