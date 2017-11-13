@@ -139,6 +139,8 @@
          return googleSheetUrl(doc);
        case 'googleDriveFile':
          return googleDriveFileUrl(doc);
+       default:
+         throw new Error('Mime type not supported');
      }
    }
 
@@ -164,7 +166,9 @@
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
         var url = buildDocUrl(data.docs[0]);
-        document.getElementById('launch-form').elements['document_url'].value = url;
+        if(url) {
+          document.getElementById('launch-form').elements['document_url'].value = url;
+        }
       }
     }
 
