@@ -1,12 +1,12 @@
 from pyramid.view import view_config
-from lti.util.lti_launch import lti_launch
-from lti.config import env_setting
-from lti.util.lti_launch import get_application_instance
+from lms.config import env_setting
+from lms.util.lti_launch import get_application_instance
+from lms.util.lti_launch import lti_launch
 
 
 @view_config(
     route_name='content_item_selection',
-    renderer='lti:templates/content_item_selection/new_content_item_selection.html.jinja2',
+    renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2',
     request_method='POST')
 @lti_launch
 def content_item_selection(request, _):

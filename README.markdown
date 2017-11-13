@@ -25,16 +25,16 @@ You will need:
 
    The easiest way to run a database with the configuration that the app
    expects is with Docker. The first time you run it you'll need to use this
-   command to create and run the `lti-postgres` docker container:
+   command to create and run the `lms-postgres` docker container:
 
    ```bash
-   $ sudo docker run -p 5433:5432 --name lti-postgres postgres
+   $ sudo docker run -p 5433:5432 --name lms-postgres postgres
    ```
 
    Subsequently you can just re-start the already-created container with:
 
    ```bash
-   sudo docker start -a lti-postgres
+   sudo docker start -a lms-postgres
    ```
 
    **Tip**: You can connect to this database to inspect its contents by
@@ -49,7 +49,7 @@ You will need:
    an easy way to do so is just to delete the whole docker container:
 
    ```bash
-   $ sudo docker rm lti-postgres
+   $ sudo docker rm lms-postgres
    ```
 
    You can then re-create the container by re-running the `docker run` command
@@ -58,16 +58,16 @@ You will need:
 2. Clone the  app's GitHub repository:
 
    ```bash
-   $ git clone git@github.com:atomicjolt/hypothesis_lti.git
-   $ cd lti
+   $ git clone git@github.com:hypothesis/lms.git
+   $ cd lms
    ```
 
 3. Set the environment variables that the app needs to values suitable for
    local development:
 
    ```bash
-   export LTI_SERVER="http://localhost:8001"
-   export LTI_CREDENTIALS_URL="http://localhost:8001/lti_credentials"
+   export LMS_SERVER="http://localhost:8001"
+   export LMS_CREDENTIALS_URL="http://localhost:8001/lms_credentials"
    export CLIENT_ORIGIN="http://localhost:5000"
    export VIA_URL="http://localhost:9080"
    export JWT_SECRET="some secret"
@@ -135,7 +135,7 @@ Click enable.
 1. Create the test database. You only need to do this once:
 
    ```bash
-   $ psql postgresql://postgres@localhost:5433/postgres -c "CREATE DATABASE lti_test;"
+   $ psql postgresql://postgres@localhost:5433/postgres -c "CREATE DATABASE lms_test;"
    ```
 
 2. Run the tests:
@@ -231,7 +231,7 @@ previous to your new schema.
 
 We use [Alembic](http://alembic.zzzcomputing.com/en/latest/) to create and run
 migration scripts. See the Alembic docs (and look at existing scripts in
-[lti/migrations/versions](lti/migrations/versions)) for details, but the basic
+[lms/migrations/versions](lms/migrations/versions)) for details, but the basic
 steps to create a new migration script for h are:
 
 1. Create the revision script by running `alembic revision`, for example:
@@ -240,7 +240,7 @@ steps to create a new migration script for h are:
    $ alembic revision -m "Add the foobar table."
    ```
 
-   This will create a new script in [lti/migrations/versions](lti/migrations/versions).
+   This will create a new script in [lms/migrations/versions](lms/migrations/versions).
 
 1. Edit the generated script, fill in the `upgrade()` and `downgrade()` methods.
 

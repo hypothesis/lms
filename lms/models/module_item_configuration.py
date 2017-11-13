@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from lti.db import BASE
+from lms.db import BASE
 
 
 class ModuleItemConfiguration(BASE):

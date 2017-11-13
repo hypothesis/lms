@@ -1,13 +1,13 @@
 import secrets
 import sqlalchemy as sa
-from lti.db import BASE
+from lms.db import BASE
 
 # TODO we should figure out a more standard place to set this
 LTI_KEY_BASE = "Hypothesis"
 
 
 class ApplicationInstance(BASE):
-    """Class to represent a single lti install."""
+    """Class to represent a single lms install."""
 
     __tablename__ = 'application_instances'
 
@@ -23,7 +23,7 @@ def build_shared_secret():
 
 
 def build_unique_key():
-    """Use the key base to generate lti key."""
+    """Use the key base to generate lms key."""
     return LTI_KEY_BASE + secrets.token_hex(16)
 
 

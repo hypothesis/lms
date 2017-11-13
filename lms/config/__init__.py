@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from pyramid.config import Configurator
 
-from lti.config.settings import (
+from lms.config.settings import (
     SettingError,
     env_setting,
 )
@@ -20,8 +20,8 @@ def configure(settings=None):
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
     env_settings = {
-        'lti_server': env_setting('LTI_SERVER', required=True),
-        'lti_credentials_url': env_setting('LTI_CREDENTIALS_URL',
+        'lms_server': env_setting('LMS_SERVER', required=True),
+        'lms_credentials_url': env_setting('LMS_CREDENTIALS_URL',
                                            required=True),
         # The origin that this app should use when sending postMessage()
         # requests to the Hypothesis client (e.g. "https://hypothes.is" in prod

@@ -1,14 +1,14 @@
 from pyramid.view import view_config
-from lti.util.lti_launch import lti_launch
-from lti.util.view_renderer import view_renderer
-from lti.models.module_item_configuration import ModuleItemConfiguration
+from lms.util.lti_launch import lti_launch
+from lms.util.view_renderer import view_renderer
+from lms.models.module_item_configuration import ModuleItemConfiguration
 
 
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch
 def lti_launches(request, jwt):
     """
-    Primary lti launch route. There are 3 views that could be rendered.
+    Primary lms launch route. There are 3 views that could be rendered.
 
     1. If a student launches before a teacher has configured the document then it will
     display a message say that the teacher still needs to configure the document.
@@ -31,7 +31,7 @@ def lti_launches(request, jwt):
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
 
-@view_renderer(renderer='lti:templates/module_item_configurations/new_module_item_configuration.html.jinja2')
+@view_renderer(renderer='lms:templates/module_item_configurations/new_module_item_configuration.html.jinja2')
 def _new_module_item_configuration(request, jwt):
     return {
         'launch_presentation_return_url': request.route_url('module_item_configurations'),
@@ -43,7 +43,7 @@ def _new_module_item_configuration(request, jwt):
     }
 
 
-@view_renderer(renderer='lti:templates/lti_launches/new_lti_launch.html.jinja2')
+@view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(_, document_url, jwt):
     return {
         'hypothesis_url': 'https://via.hypothes.is/' + document_url,

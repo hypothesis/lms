@@ -1,6 +1,6 @@
 """Decorate routes with the ability to authenticate requests."""
 import jwt
-from lti.config.settings import env_setting
+from lms.config.settings import env_setting
 from pyramid.response import Response
 
 

@@ -7,20 +7,20 @@ def img
 node {
     stage('build') {
         checkout(scm)
-        img = buildApp(name: 'hypothesis/lti')
+        img = buildApp(name: 'hypothesis/lms')
     }
 
     stage('test') {
         hostIp = sh(script: 'facter ipaddress_eth0', returnStdout: true).trim()
 
-        postgres = docker.image('postgres:9.4').run('-P -e POSTGRES_DB=ltitest')
-        databaseUrl = "postgresql://postgres@${hostIp}:${containerPort(postgres, 5432)}/ltitest"
+        postgres = docker.image('postgres:9.4').run('-P -e POSTGRES_DB=lmstest')
+        databaseUrl = "postgresql://postgres@${hostIp}:${containerPort(postgres, 5432)}/lmstest"
 
         try {
             testApp(image: img, runArgs: "-u root -e TEST_DATABASE_URL=${databaseUrl}") {
                 sh 'apk-install build-base postgresql-dev python-dev'
                 sh 'pip install -q tox'
-                sh 'cd /var/lib/lti && tox'
+                sh 'cd /var/lib/lms && tox'
             }
         } finally {
             postgres.stop()
@@ -37,14 +37,14 @@ node {
 onlyOnMaster {
     milestone()
     stage('qa deploy') {
-        deployApp(image: img, app: 'lti', env: 'qa')
+        deployApp(image: img, app: 'lms', env: 'qa')
     }
 
     milestone()
     stage('prod deploy') {
         input(message: "Deploy to prod?")
         milestone()
-        deployApp(image: img, app: 'lti', env: 'prod')
+        deployApp(image: img, app: 'lms', env: 'prod')
     }
 }
 

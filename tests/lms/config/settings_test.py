@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import pytest
 
-from lti.config import settings
+from lms.config import settings
 
 
 @pytest.mark.usefixtures('os_fixture')
@@ -48,4 +48,4 @@ class TestEnvSetting(object):
 
 @pytest.fixture
 def os_fixture(patch):
-    return patch('lti.config.settings.os')
+    return patch('lms.config.settings.os')

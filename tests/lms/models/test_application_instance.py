@@ -1,4 +1,4 @@
-from lti.models import ApplicationInstance
+from lms.models import ApplicationInstance
 
 
 class TestApplicationInstance(object):

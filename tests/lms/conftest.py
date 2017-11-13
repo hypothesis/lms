@@ -12,12 +12,12 @@ from pyramid.request import apply_request_extensions
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-from lti import constants
-from lti import db
+from lms import constants
+from lms import db
 
 
 TEST_DATABASE_URL = os.environ.get(
-    'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lti_test')
+    'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
 
 
 SESSION = sessionmaker()
@@ -116,7 +116,7 @@ def pyramid_config(pyramid_request):
     """
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
-        'lti_server': 'http://TEST_LTI_SERVER.com',
+        'lms_server': 'http://TEST_LMS_SERVER.com',
         'sqlalchemy.url': TEST_DATABASE_URL,
         'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
@@ -124,15 +124,15 @@ def pyramid_config(pyramid_request):
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_services')
-        config.include('lti.db')
+        config.include('lms.db')
 
         apply_request_extensions(pyramid_request)
 
 #        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
 #        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
-#        auth_data_svc.get_lti_secret.return_value = 'TEST_CLIENT_SECRET'
-#        auth_data_svc.get_lti_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
-#        auth_data_svc.get_lti_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
+#        auth_data_svc.get_lms_secret.return_value = 'TEST_CLIENT_SECRET'
+#        auth_data_svc.get_lms_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
+#        auth_data_svc.get_lms_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
 #        config.register_service(auth_data_svc, name='auth_data')
 
         yield config
@@ -146,7 +146,7 @@ def auth_data_svc(pyramid_request):
 @pytest.fixture(autouse=True)
 def routes(pyramid_config):
     """Add all the routes that would be added in production."""
-    pyramid_config.add_route('lti_setup', '/lti_setup')
+    pyramid_config.add_route('lms_setup', '/lms_setup')
     pyramid_config.add_route('canvas_resource_selection', '/canvas/resource_selection')
 
 
