@@ -14,3 +14,4 @@ zope.sqlalchemy
 raven
 PyLTI
 PyJWT
+pyramid_mailer
