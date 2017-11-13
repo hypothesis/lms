@@ -71,7 +71,17 @@ You will need:
    export CLIENT_ORIGIN="http://localhost:5000"
    export VIA_URL="http://localhost:9080"
    export JWT_SECRET="some secret"
+   export GOOGLE_CLIENT_ID="Google Oauth Client ID"
+   export GOOGLE_DEVELOPER_KEY="Google Api Key"
+   export GOOGLE_APP_ID="Google Project Id"
    ```
+
+   **Obtaining Google Credentials:** 
+       * Sign in to Google Developer Console
+       * Create a project (Use this id as GOOGLE_APP_ID)
+       * Navigate to Apis and Services Tab
+       * Create an Api Key (Use this as GOOGLE_DEVELOPER_ID)
+       * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
 
 4.   First create and activate a Python virtual
    environment for the Canvas app
