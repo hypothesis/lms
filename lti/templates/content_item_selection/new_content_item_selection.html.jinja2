@@ -127,7 +127,7 @@
 
    function buildDocUrl(doc) {
      var urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType]
-     switch() {
+     switch(urlBuilder) {
        case 'googleDocs':
          return googleDocUrl(doc);
        case 'googleSheets':
