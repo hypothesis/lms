@@ -34,7 +34,7 @@ You will need:
    Subsequently you can just re-start the already-created container with:
 
    ```bash
-   sudo docker start -a lms-postgres
+   sudo docker start -a lti-postgres
    ```
 
    **Tip**: You can connect to this database to inspect its contents by
