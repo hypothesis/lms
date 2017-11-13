@@ -1,3 +1,13 @@
+<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
+  <input type="hidden" value="" name="content_items" />
+  {% for field in form_fields.keys() %}
+    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
+  {% endfor %}
+    <label for="document_url">Public Document URL</label>
+    <input type="text" name="document_url" />
+  <button type="submit">Submit</button>
+</form>
+<button id="picker-button" disabled onclick="loadPicker()">Use Google Picker</button>
 <script type="text/javascript">
   // TODO: handle form validation!
 
@@ -23,13 +33,128 @@
     }
     form.elements['content_items'].value = JSON.stringify(contentItem)
   }
+
+////////  Google Picker Integration ///////
+
+   function enablePickerButton() {
+     var picker = document.getElementById('picker-button');
+     if(picker) { picker.disabled = false; }
+   }
+
+
+/////// Google Picker /////////
+      // The Browser API key obtained from the Google API Console.
+      var developerKey = '{{ google_developer_key }}';
+
+      // The Client ID obtained from the Google API Console. Replace with your own Client ID.
+      var clientId = '{{ google_client_id }}';
+
+    // Replace with your own project number from console.developers.google.com.
+    // See "Project number" under "IAM & Admin" > "Settings"
+    var appId = '{{ google_app_id }}';
+
+    // Scope to use to access user's Drive items.
+    var scope = ['https://www.googleapis.com/auth/drive'];
+
+    var pickerApiLoaded = false;
+    var oauthToken;
+
+    // Use the Google API Loader script to load the google.picker script.
+    function loadPicker() {
+      gapi.load('auth', {'callback': onAuthApiLoad});
+      gapi.load('picker', {'callback': onPickerApiLoad});
+    }
+
+    function onAuthApiLoad() {
+      window.gapi.auth.authorize(
+          {
+            'client_id': clientId,
+            'scope': scope,
+            'immediate': false
+          },
+          handleAuthResult);
+    }
+
+    function onPickerApiLoad() {
+      pickerApiLoaded = true;
+      createPicker();
+    }
+
+    function handleAuthResult(authResult) {
+      if (authResult && !authResult.error) {
+        oauthToken = authResult.access_token;
+        createPicker();
+      }
+    }
+
+    // Create and render a Picker object for searching images.
+    function createPicker() {
+      if (pickerApiLoaded && oauthToken) {
+        var view = new google.picker.View(google.picker.ViewId.DOCS);
+        var picker = new google.picker.PickerBuilder()
+            .setAppId(appId)
+            .setOrigin('{{lms_url}}')
+            .setOAuthToken(oauthToken)
+            .addView(view)
+            .addView(new google.picker.DocsUploadView())
+            .setDeveloperKey(developerKey)
+            .setCallback(pickerCallback)
+            .build();
+         picker.setVisible(true);
+      }
+    }
+
+ ////////// Google Url Support /////////////////
+  var GOOGLE_MIME_TYPES = {
+    'application/vnd.google-apps.document': 'googleDocs',
+    'application/vnd.google-apps.spreadsheet': 'googleSheets',
+    //TODO add support for other file types
+    //  'application/vnd.google-apps.presentation': 'googleSlides',
+    //'image/jpeg':
+   //'application/vnd.google-apps.drawing',
+   //application/vnd.google-apps.file,
+   //application/vnd.google-apps.folder,
+   //application/vnd.google-apps.form,
+   //application/vnd.google-apps.fusiontable,
+   //application/vnd.google-apps.map
+   //application/vnd.google-apps.photo,
+   //application/vnd.google-apps.script,
+   //application/vnd.google-apps.sites,
+   //application/vnd.google-apps.unknown,
+   //application/vnd.google-apps.video,
+   //application/vnd.google-apps.drive-sdk
+  };
+
+   function buildDocUrl(doc) {
+     var urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType]
+     switch(urlBuilder) {
+       case 'googleDocs':
+         return googleDocUrl(doc);
+       case 'googleSheets':
+         return googleSheetUrl(doc);
+     }
+   }
+
+   function googleDocUrl(doc) {
+     return 'https://docs.google.com/document/d/'
+       + doc.id
+       + '/export?format=pdf';
+   }
+
+   function googleSheetUrl(doc) {
+     return 'https://docs.google.com/spreadsheets/d/'
+       + doc.id
+       + '/export?format=csv';
+   }
+
+    function pickerCallback(data) {
+      var docCount = data.docs && data.docs.length;
+      if (data.action == google.picker.Action.PICKED && docCount === 1) {
+        var url = buildDocUrl(data.docs[0]);
+        document.getElementById('launch-form').elements['document_url'].value = url;
+      }
+    }
+
 </script>
-<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
-  <input type="hidden" value="" name="content_items" />
-  {% for field in form_fields.keys() %}
-    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
-  {% endfor %}
-    <label for="document_url">Public Document URL</label>
-    <input type="text" name="document_url" />
-  <button type="submit">Submit</button>
-</form>
+ <script type="text/javascript"
+src="https://apis.google.com/js/api.js?onload=enablePickerButton"></script>
