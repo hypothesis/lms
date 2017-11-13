@@ -80,7 +80,7 @@ You will need:
        * Sign in to Google Developer Console
        * Create a project (Use this id as GOOGLE_APP_ID)
        * Navigate to Apis and Services Tab
-       * Create an Api Key (Use this as GOOGLE_DEVELOPER_ID)
+       * Create an Api Key (Use this as GOOGLE_DEVELOPER_KEY)
        * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
 
 4.   First create and activate a Python virtual
