@@ -15,17 +15,18 @@ def create_application_instance(request):
     request.db.add(instance)
 
     # TODO: Send email about signing up
-    message = Message(
-        subject="New key requested for Hypothesis LMS",
-        sender="noreply@mysite.com",  # TODO: pull from configuration
-        recipients=["keith.richards@atomicjolt.com"],  # TODO: pull from configuration
-        body="""A new key for Hypothesis has been generated.
-                URL: {0}
-                Email: {1}
-                """.format(request.params['lms_url'], request.params['email'])
-    )
-    mailer = request.mailer
-    mailer.send(message)
+    # TODO: tests
+    # message = Message(
+    #     subject="New key requested for Hypothesis LMS",
+    #     sender="noreply@mysite.com",  # TODO: pull from configuration
+    #     recipients=["keith.richards@atomicjolt.com"],  # TODO: pull from configuration
+    #     body="""A new key for Hypothesis has been generated.
+    #             URL: {0}
+    #             Email: {1}
+    #             """.format(request.params['lms_url'], request.params['email'])
+    # )
+    # mailer = request.mailer
+    # mailer.send_immediately(message)
 
     return {
         'consumer_key': instance.consumer_key,
@@ -35,8 +36,7 @@ def create_application_instance(request):
 
 @view_config(
     route_name='welcome',
-    renderer="lms:templates/application_instances/new_application_instance"
-             ".html.jinja2 "
+    renderer="lms:templates/application_instances/new_application_instance.html.jinja2"
 )
 def new_application_instance(_):
     """Render the form where users enter the lms url and email."""
