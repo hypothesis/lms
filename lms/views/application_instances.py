@@ -1,5 +1,6 @@
 from pyramid_mailer.message import Message
 from pyramid.view import view_config
+from pyramid.paster import get_appsettings
 from lms.models import application_instance as ai
 import logging
 
@@ -17,10 +18,12 @@ def create_application_instance(request):
 
     # TODO: tests
     # import pdb; pdb.set_trace()
+    settings = get_appsettings('conf/development.ini', name='main')
+    recipient = settings['new_lms_email_recipient']
     message = Message(
         subject="New key requested for Hypothesis LMS",
-        sender="noreply@mysite.com",  # TODO: pull from configuration
-        recipients=["keith.richards@atomicjolt.com"],  # TODO: pull from configuration
+        sender=settings['new_lms_email_sender'],
+        recipients=[recipient, ],
         body="A new key for the Hypothesis LMS has been generated.\nURL: {0}\nEmail:{1}".format(request.params['lms_url'], request.params['email'])
     )
     mailer = request.mailer
