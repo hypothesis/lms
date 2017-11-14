@@ -8,11 +8,11 @@ class TestApplicationInstance(object):
                 consumer_key='TEST_CONSUMER_KEY',
                 shared_secret='TEST_SHARED_SECRET',
                 lms_url='TEST_LMS_URL',
+                requesters_email='TEST_EMAIL',
             )
         )
-
         persisted = db_session.query(ApplicationInstance).one()
-
         assert persisted.consumer_key == 'TEST_CONSUMER_KEY'
         assert persisted.shared_secret == 'TEST_SHARED_SECRET'
         assert persisted.lms_url == 'TEST_LMS_URL'
+        assert persisted.requesters_email == 'TEST_EMAIL'
