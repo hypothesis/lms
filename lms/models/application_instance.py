@@ -15,6 +15,7 @@ class ApplicationInstance(BASE):
     consumer_key = sa.Column(sa.String)
     shared_secret = sa.Column(sa.String)
     lms_url = sa.Column(sa.String(2048))
+    requesters_email = sa.Column(sa.String(2048))
 
 
 def build_shared_secret():
