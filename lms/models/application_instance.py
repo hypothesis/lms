@@ -28,10 +28,11 @@ def build_unique_key():
     return LTI_KEY_BASE + secrets.token_hex(16)
 
 
-def build_from_lms_url(lms_url):
+def build_from_lms_url(lms_url, email):
     """Intantiate ApplicationIntance with lms_url."""
     return ApplicationInstance(
         consumer_key=build_unique_key(),
         shared_secret=build_shared_secret(),
-        lms_url=lms_url
+        lms_url=lms_url,
+        requesters_email=email
     )
