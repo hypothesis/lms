@@ -56,6 +56,14 @@
     // Scope to use to access user's Drive items.
     var scope = ['https://www.googleapis.com/auth/drive'];
 
+
+      // Array of API discovery doc URLs for APIs used by the quickstart
+      var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+
+      // Authorization scopes required by the API; multiple scopes can be
+      // included, separated by spaces.
+      var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
+
     var pickerApiLoaded = false;
     var oauthToken;
 
@@ -63,7 +71,46 @@
     function loadPicker() {
       gapi.load('auth', {'callback': onAuthApiLoad});
       gapi.load('picker', {'callback': onPickerApiLoad});
+      gapi.load('client', { 'callback': initClient });
     }
+
+      function initClient() {
+        gapi.client.init({
+          apiKey: developerKey,
+          clientId: clientId,
+          discoveryDocs: DISCOVERY_DOCS,
+          scope: SCOPES
+        }).then(function () {
+          // Listen for sign-in state changes.
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+          // Handle the initial sign-in state.
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+          //authorizeButton.onclick = handleAuthClick;
+          //signoutButton.onclick = handleSignoutClick;
+
+          gapi.auth2.getAuthInstance().signIn();
+        });
+      }
+
+      function updateSigninStatus(isSignedIn) {
+        if (isSignedIn) {
+
+          listFiles();
+        } else {
+
+        }
+      }
+
+      function listFiles() {
+        gapi.client.drive.files.list({
+          'pageSize': 10,
+          'fields': "nextPageToken, files(id, name)"
+        }).then(function(response) {
+          console.log(response.body)
+        });
+      }
+
 
     function onAuthApiLoad() {
       window.gapi.auth.authorize(
@@ -128,6 +175,7 @@
          picker.setVisible(true);
       }
     }
+
 
  ////////// Google Url Support /////////////////
    function buildDocUrl(doc) {
