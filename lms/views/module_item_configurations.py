@@ -13,7 +13,6 @@ def create_module_item_configuration(request, _):
     )
     request.db.add(instance)
 
-
     return {
         'hypothesis_url': 'https://via.hypothes.is/' + instance.document_url,
         'jwt': request.params['jwt']

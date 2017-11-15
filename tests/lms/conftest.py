@@ -8,12 +8,12 @@ import mock
 import pytest
 import jwt
 import sqlalchemy
+from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
-from sqlalchemy.orm import sessionmaker
 from lms import constants
 from lms import db
-from lms.config.settings import env_setting
+from lms.config import env_setting
 
 
 TEST_DATABASE_URL = os.environ.get(
@@ -181,23 +181,24 @@ def lti_launch_request(monkeypatch, pyramid_request):
 
     This also creates the application instance that is needed in the decorator.
     """
-    from lms.models import application_instance as ai # pylint:disable=relative-import
+    from lms.models import application_instance as ai  # pylint:disable=relative-import
     instance = ai.build_from_lms_url('https://hypothesis.instructure.com')
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
-    monkeypatch.setattr('pylti.common.verify_request_common', lambda a,b,c,d,e: True)
+    monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
     yield pyramid_request
 
 
 @pytest.fixture
 def module_item_configuration():
-  from lms.models import ModuleItemConfiguration # pylint:disable=relative-import
-  instance = ModuleItemConfiguration(
-      document_url='https://www.example.com',
-      resource_link_id='TEST_RESOURCE_LINK_ID',
-      tool_consumer_instance_guid='TEST_GUID'
-  )
-  yield instance
+    from lms.models import ModuleItemConfiguration  # pylint:disable=relative-import
+    instance = ModuleItemConfiguration(
+        document_url='https://www.example.com',
+        resource_link_id='TEST_RESOURCE_LINK_ID',
+        tool_consumer_instance_guid='TEST_GUID'
+    )
+    yield instance
+
 
 @pytest.fixture
 def authenticated_request(pyramid_request):
@@ -205,5 +206,3 @@ def authenticated_request(pyramid_request):
     jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
     pyramid_request.params['jwt'] = jwt_token
     yield pyramid_request
-
-

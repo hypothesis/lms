@@ -1,5 +1,4 @@
 from lms.views import lti_launches
-from lms.models import application_instance as ai
 
 
 # TODO write tests for student case
@@ -10,12 +9,10 @@ class TestApplicationInstance(object):
         assert 'iframe' in value.body.decode()
         assert 'example.com' in value.body.decode()
 
-
     def test_render_the_form_when_the_url_is_not_present_in_the_params(self, lti_launch_request):
         lti_launch_request.params['resource_link_id'] = 'test_link_id'
         value = lti_launches(lti_launch_request)
         assert '<form' in value.body.decode()
-
 
     def test_render_the_document_if_configured(self, lti_launch_request, module_item_configuration):
         lti_launch_request.db.add(module_item_configuration)
@@ -26,4 +23,3 @@ class TestApplicationInstance(object):
         value = lti_launches(lti_launch_request)
         assert 'iframe' in value.body.decode()
         assert 'example.com' in value.body.decode()
-

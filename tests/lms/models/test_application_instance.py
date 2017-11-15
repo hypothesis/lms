@@ -12,5 +12,3 @@ class TestApplicationInstance(object):
         db_session.add(instance)
         new_count = db_session.query(ApplicationInstance).count()
         assert new_count == initial_count + 1
-
-
