@@ -4,16 +4,16 @@ from __future__ import unicode_literals
 
 import os
 import functools
-
 import mock
 import pytest
-from pyramid import testing
-from pyramid.request import apply_request_extensions
+import jwt
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
-
-from lms import constants
+from pyramid import testing
+from pyramid.request import apply_request_extensions
 from lms import db
+from lms import constants
+from lms.config import env_setting
 
 
 TEST_DATABASE_URL = os.environ.get(
@@ -91,13 +91,16 @@ def pyramid_request():
 
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
-        constants.CUSTOM_CANVAS_USER_ID: 'TEST_CUSTOM_CANVAS_USER_ID',
-        constants.CUSTOM_CANVAS_COURSE_ID: 'TEST_CUSTOM_CANVAS_COURSE_ID',
-        constants.CUSTOM_CANVAS_ASSIGNMENT_ID: 'TEST_CUSTOM_CANVAS_ASSIGNMENT_ID',
-        constants.EXT_CONTENT_RETURN_TYPES: 'TEST_EXT_CONTENT_RETURN_TYPES',
-        constants.EXT_CONTENT_RETURN_URL: 'TEST_EXT_CONTENT_RETURN_URL',
-        constants.LIS_OUTCOME_SERVICE_URL: 'TEST_LIS_OUTCOME_SERVICE_URL',
-        constants.LIS_RESULT_SOURCEDID: 'TEST_LIS_RESULT_SOURCEDID',
+        constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',
+        constants.OAUTH_NONCE: 'TEST_NONCE',
+        constants.OAUTH_SIGNATURE_METHOD: 'SHA256',
+        constants.OAUTH_SIGNATURE: 'TEST_OAUTH_SIGNATURE',
+        constants.OAUTH_VERSION: '1p0p0',
+        constants.USER_ID: 'TEST_USER_ID',
+        constants.ROLES: 'Instructor',
+        constants.TOOL_CONSUMER_INSTANCE_GUID: 'TEST_GUID',
+        constants.CONTENT_ITEM_RETURN_URL: 'https://www.example.com',
+        constants.LTI_VERSION: 'TEST'
     })
 
     pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
@@ -120,12 +123,13 @@ def pyramid_config(pyramid_request):
         'sqlalchemy.url': TEST_DATABASE_URL,
         'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
+        'jwt_secret': 'test_secret'
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_services')
         config.include('lms.db')
-
+        config.include('pyramid_jinja2')
         apply_request_extensions(pyramid_request)
 
 #        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
@@ -146,8 +150,13 @@ def auth_data_svc(pyramid_request):
 @pytest.fixture(autouse=True)
 def routes(pyramid_config):
     """Add all the routes that would be added in production."""
-    pyramid_config.add_route('lms_setup', '/lms_setup')
-    pyramid_config.add_route('canvas_resource_selection', '/canvas/resource_selection')
+    pyramid_config.add_route('welcome', '/welcome')
+    pyramid_config.add_route('config_xml', '/config_xml')
+    pyramid_config.add_route('module_item_configurations', '/module_item_configurations')
+
+    # lms routes
+    pyramid_config.add_route('lti_launches', '/lti_launches')
+    pyramid_config.add_route('content_item_selection', '/content_item_selection')
 
 
 @pytest.yield_fixture
@@ -156,3 +165,37 @@ def factories(db_session):
     factories.set_session(db_session)
     yield factories
     factories.set_session(None)
+
+
+@pytest.fixture
+def lti_launch_request(monkeypatch, pyramid_request):
+    """
+    Handle setting up the lti launch request by monkeypatching the validation.
+
+    This also creates the application instance that is needed in the decorator.
+    """
+    from lms.models import application_instance as ai  # pylint:disable=relative-import
+    instance = ai.build_from_lms_url('https://hypothesis.instructure.com')
+    pyramid_request.db.add(instance)
+    pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
+    monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
+    yield pyramid_request
+
+
+@pytest.fixture
+def module_item_configuration():
+    from lms.models import ModuleItemConfiguration  # pylint:disable=relative-import
+    instance = ModuleItemConfiguration(
+        document_url='https://www.example.com',
+        resource_link_id='TEST_RESOURCE_LINK_ID',
+        tool_consumer_instance_guid='TEST_GUID'
+    )
+    yield instance
+
+
+@pytest.fixture
+def authenticated_request(pyramid_request):
+    data = {'user_id': 'TEST_USER_ID', 'roles': 'Instructor'}
+    jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+    pyramid_request.params['jwt'] = jwt_token
+    yield pyramid_request

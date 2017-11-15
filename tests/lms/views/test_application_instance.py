@@ -9,6 +9,9 @@ class TestApplicationInstance(object):
             'lms_url': 'canvas.example.com',
             'email': 'email@example.com',
         }
+        initial_count = pyramid_request.db.query(ApplicationInstance).filter(
+            ApplicationInstance.lms_url == pyramid_request.params['lms_url']).count()
         create_application_instance(pyramid_request)
-        assert pyramid_request.db.query(ApplicationInstance).filter(
-            ApplicationInstance.lms_url == pyramid_request.params['lms_url']).count() == 1
+        new_count = pyramid_request.db.query(ApplicationInstance).filter(
+            ApplicationInstance.lms_url == pyramid_request.params['lms_url']).count()
+        assert new_count == initial_count + 1
