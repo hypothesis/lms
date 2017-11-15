@@ -32,10 +32,10 @@ def lti_launches(request, jwt):
         )
         if config.count() >= 1:
             return _view_document(request, document_url=config.one().document_url, jwt=jwt)
-        elif can_configure_moudule_item(request.params['roles']):
+        elif can_configure_module_item(request.params['roles']):
             return _new_module_item_configuration(request, jwt=jwt)
         else:
-            return _unauthorized()
+            return _unauthorized(request)
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
@@ -60,5 +60,5 @@ def _view_document(_, document_url, jwt):
     }
 
 @view_renderer(renderer='lms:templates/lti_launches/unauthorized.html.jinja2')
-def _unauthorized(_, document_url, jwt):
+def _unauthorized(_):
     return {}
