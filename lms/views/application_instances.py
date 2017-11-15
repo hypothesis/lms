@@ -41,7 +41,7 @@ def create_application_instance(request):
         except_msg = "'new_lms_email_recipient' and 'new_lms_email_recipient' must be set in the ini file. Missing {}".format(
             e)
     except ConnectionRefusedError:
-        except_msg = "No MTX accepted send email request. "
+        except_msg = "No MTA accepted send email request. "
     finally:
         if except_msg:
             except_msg += "Email body:" + email_body.replace('\n', ' ')
