@@ -295,3 +295,21 @@ steps to create a new migration script for h are:
    ```bash
    $ alembic -c conf/alembic.ini upgrade +1
    ```
+### Email Notification of Request for New Key and Secret
+
+When a new application instance is created, an email will be sent to a mail 
+transfer agent (MTA) on port 25. 
+
+Add values to your ini file (e.g. development.ini) for the email sender and 
+recipients (multiple recipients should be comma separated):
+
+    new_lms_email_recipient = yourEmailAddress@hypothes.is
+    new_lms_email_sender = support@hypothes.is
+
+If the email fails, a warning will be logged with the contents of the email 
+body. 
+
+During development you can run a command line MTA that will print the email 
+to the console:
+
+    sudo python -m smtpd -n -c DebuggingServer localhost:25
