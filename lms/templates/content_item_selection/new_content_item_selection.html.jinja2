@@ -8,6 +8,7 @@
   <button type="submit">Submit</button>
 </form>
 <button id="picker-button" disabled onclick="loadPicker()">Use Google Picker</button>
+<p>Note: Files selected with the Google Picker will be made publicly viewable</p>
 <script type="text/javascript">
   // TODO: handle form validation!
 
@@ -43,11 +44,11 @@
 
 
 /////// Google Picker /////////
-      // The Browser API key obtained from the Google API Console.
-      var developerKey = '{{ google_developer_key }}';
+    // The Browser API key obtained from the Google API Console.
+    var developerKey = '{{ google_developer_key }}';
 
-      // The Client ID obtained from the Google API Console. Replace with your own Client ID.
-      var clientId = '{{ google_client_id }}';
+    // The Client ID obtained from the Google API Console. Replace with your own Client ID.
+    var clientId = '{{ google_client_id }}';
 
     // Replace with your own project number from console.developers.google.com.
     // See "Project number" under "IAM & Admin" > "Settings"
@@ -56,33 +57,84 @@
     // Scope to use to access user's Drive items.
     var scope = ['https://www.googleapis.com/auth/drive'];
 
-    var pickerApiLoaded = false;
-    var oauthToken;
+
+    // Array of API discovery doc URLs for APIs used by the quickstart
+    var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+
+    var state = {
+      pickerApiLoaded: false,
+      driveApiLoaded: false,
+      driveApiReady: false,
+      oauthToken: null,
+    };
 
     // Use the Google API Loader script to load the google.picker script.
     function loadPicker() {
-      gapi.load('auth', {'callback': onAuthApiLoad});
-      gapi.load('picker', {'callback': onPickerApiLoad});
+      gapi.load('auth', {
+        callback: onAuthApiLoad,
+        onerror: onLoadError
+      });
+      gapi.load('picker', {
+        callback: onPickerApiLoad,
+        onerror: onLoadError
+      });
+      gapi.load('client', {
+        callback: onClientLoad,
+        onerror: onLoadError
+      });
     }
+
+    function onLoadError(e) {
+      throw new Error('Error loading Google Api');
+    }
+
+      function onClientLoad() {
+        state.driveApiLoaded = true;
+
+        gapi.client.init({
+          apiKey: developerKey,
+          clientId: clientId,
+          discoveryDocs: DISCOVERY_DOCS,
+          scope: scope[0]
+        }).then(function () {
+          state.driveApiReady = true;
+        });
+      }
+
+     function enablePublicViewing(doc){
+        var body = {
+          'type': 'anyone',
+          'role': 'reader'
+        };
+        var request = gapi.client.drive.permissions.create({
+          'fileId': doc.id,
+          'resource': body
+        });
+        request.execute(function(resp) {
+          // Should we report success to the user?
+        }, function(err) { throw new Error(err); });
+     }
+
 
     function onAuthApiLoad() {
       window.gapi.auth.authorize(
-          {
-            'client_id': clientId,
-            'scope': scope,
-            'immediate': false
-          },
-          handleAuthResult);
+        {
+          'client_id': clientId,
+          'scope': scope,
+          'immediate': false
+        },
+        handleAuthResult
+      );
     }
 
     function onPickerApiLoad() {
-      pickerApiLoaded = true;
+      state.pickerApiLoaded = true;
       createPicker();
     }
 
     function handleAuthResult(authResult) {
       if (authResult && !authResult.error) {
-        oauthToken = authResult.access_token;
+        state.oauthToken = authResult.access_token;
         createPicker();
       }
     }
@@ -91,27 +143,12 @@
     'application/vnd.google-apps.document': 'googleDocs',
     'application/vnd.google-apps.spreadsheet': 'googleSheets',
     'application/pdf': 'googleDriveFile',
-
-    //TODO add support for other file types
-   //'application/vnd.google-apps.presentation': 'googleSlides',
-   //'application/vnd.google-apps.drawing',
-   //application/vnd.google-apps.file,
-   //application/vnd.google-apps.folder,
-   //application/vnd.google-apps.form,
-   //application/vnd.google-apps.fusiontable,
-   //application/vnd.google-apps.map
-   //application/vnd.google-apps.photo,
-   //application/vnd.google-apps.script,
-   //application/vnd.google-apps.sites,
-   //application/vnd.google-apps.unknown,
-   //application/vnd.google-apps.video,
-   //application/vnd.google-apps.drive-sdk
   };
 
 
     // Create and render a Picker object for searching images.
     function createPicker() {
-      if (pickerApiLoaded && oauthToken) {
+      if (state.pickerApiLoaded && state.oauthToken) {
         var mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
         var view = new google.picker.View(google.picker.ViewId.DOCS);
         view.setMimeTypes(mimeTypes);
@@ -119,7 +156,7 @@
         var picker = new google.picker.PickerBuilder()
             .setAppId(appId)
             .setOrigin('{{lms_url}}')
-            .setOAuthToken(oauthToken)
+            .setOAuthToken(state.oauthToken)
             .addView(view)
             .addView(new google.picker.DocsUploadView())
             .setDeveloperKey(developerKey)
@@ -128,6 +165,7 @@
          picker.setVisible(true);
       }
     }
+
 
  ////////// Google Url Support /////////////////
    function buildDocUrl(doc) {
@@ -165,6 +203,7 @@
     function pickerCallback(data) {
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
+        enablePublicViewing(data.docs[0]);
         var url = buildDocUrl(data.docs[0]);
         if(url) {
           document.getElementById('launch-form').elements['document_url'].value = url;
