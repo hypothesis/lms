@@ -10,6 +10,8 @@ def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
     # TODO handle missing scheme in lms_url.
 
+    log = logging.getLogger(__name__)
+
     instance = ai.build_from_lms_url(
         request.params['lms_url'],
         request.params['email']
@@ -18,21 +20,28 @@ def create_application_instance(request):
 
     # TODO: tests
     settings = get_appsettings('conf/development.ini', name='main')  # TODO: which ini file to pull from, dev or prod?
-    recipients = (settings['new_lms_email_recipient']).split(',')
-    message = Message(
-        subject="New key requested for Hypothesis LMS",
-        sender=settings['new_lms_email_sender'],
-        recipients=recipients,
-        body="A new key for the Hypothesis LMS has been generated.\nURL: {0}\nEmail:{1}".format(request.params['lms_url'], request.params['email'])
-    )
-    mailer = request.mailer
+    except_msg = ''
+    email_body = f"A new key for the Hypothesis LMS has been generated.\nURL: {request.params['lms_url']}\nEmail:{request.params['email']}"
     try:
+        recipients = (settings['new_lms_email_recipient']).split(',')
+        sender = settings['new_lms_email_sender']
+
+        message = Message(
+            subject="New key requested for Hypothesis LMS",
+            sender=sender,
+            recipients=recipients,
+            body=email_body
+        )
+        mailer = request.mailer
         mailer.send_immediately(message)
+    except KeyError as e:
+        except_msg = "'new_lms_email_recipient' and 'new_lms_email_recipient' must be set in the ini file. Missing {}".format(e)
     except ConnectionRefusedError:
-        msg = "No MTX accepted send email request. Email body:\n"
-        msg += message.body
-        log = logging.getLogger(__name__)
-        log.warning(msg)
+        except_msg = "No MTX accepted send email request. "
+    finally:
+        if except_msg:
+            except_msg += "Email body:" + email_body.replace('\n', ' ')
+            log.warning(except_msg)
 
     return {
         'consumer_key': instance.consumer_key,
