@@ -11,5 +11,3 @@ ROLES = 'roles'
 TOOL_CONSUMER_INSTANCE_GUID = 'tool_consumer_instance_guid'
 CONTENT_ITEM_RETURN_URL = 'content_item_return_url'
 LTI_VERSION = 'lti_version'
-
-
