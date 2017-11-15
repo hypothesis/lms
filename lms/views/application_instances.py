@@ -17,13 +17,12 @@ def create_application_instance(request):
     request.db.add(instance)
 
     # TODO: tests
-    # import pdb; pdb.set_trace()
-    settings = get_appsettings('conf/development.ini', name='main')
-    recipient = settings['new_lms_email_recipient']
+    settings = get_appsettings('conf/development.ini', name='main')  # TODO: which ini file to pull from, dev or prod?
+    recipients = (settings['new_lms_email_recipient']).split(',')
     message = Message(
         subject="New key requested for Hypothesis LMS",
         sender=settings['new_lms_email_sender'],
-        recipients=[recipient, ],
+        recipients=recipients,
         body="A new key for the Hypothesis LMS has been generated.\nURL: {0}\nEmail:{1}".format(request.params['lms_url'], request.params['email'])
     )
     mailer = request.mailer
