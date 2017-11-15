@@ -2,7 +2,7 @@ from lms.views import lti_launches
 
 
 # TODO write tests for student case
-class TestApplicationInstance(object):
+class TestLtiLaunches(object):
     def test_it_renders_the_iframe_when_the_url_is_present_in_the_params(self, lti_launch_request):
         lti_launch_request.params['url'] = 'https://example.com'
         value = lti_launches(lti_launch_request)

@@ -11,8 +11,8 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
-from lms import constants
 from lms import db
+from lms import constants
 from lms.config import env_setting
 
 
@@ -91,23 +91,16 @@ def pyramid_request():
 
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
-        constants.CUSTOM_CANVAS_USER_ID: 'TEST_CUSTOM_CANVAS_USER_ID',
-        constants.CUSTOM_CANVAS_COURSE_ID: 'TEST_CUSTOM_CANVAS_COURSE_ID',
-        constants.CUSTOM_CANVAS_ASSIGNMENT_ID: 'TEST_CUSTOM_CANVAS_ASSIGNMENT_ID',
-        constants.EXT_CONTENT_RETURN_TYPES: 'TEST_EXT_CONTENT_RETURN_TYPES',
-        constants.EXT_CONTENT_RETURN_URL: 'TEST_EXT_CONTENT_RETURN_URL',
-        constants.LIS_OUTCOME_SERVICE_URL: 'TEST_LIS_OUTCOME_SERVICE_URL',
-        constants.LIS_RESULT_SOURCEDID: 'TEST_LIS_RESULT_SOURCEDID',
-        'oauth_timestamp': 'TEST_TIMESTAMP',
-        'oauth_nonce': 'TEST_NONCE',
-        'oauth_signature_method': 'SHA256',
-        'oauth_signature': 'TEST_OAUTH_SIGNATURE',
-        'oauth_version': '1p0p0',
-        'user_id': 'TEST_USER_ID',
-        'roles': 'Instructor',
-        'tool_consumer_instance_guid': 'TEST_GUID',
-        'content_item_return_url': 'https://www.example.com',
-        'lti_version': 'TEST'
+        constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',
+        constants.OAUTH_NONCE: 'TEST_NONCE',
+        constants.OAUTH_SIGNATURE_METHOD: 'SHA256',
+        constants.OAUTH_SIGNATURE: 'TEST_OAUTH_SIGNATURE',
+        constants.OAUTH_VERSION: '1p0p0',
+        constants.USER_ID: 'TEST_USER_ID',
+        constants.ROLES: 'Instructor',
+        constants.TOOL_CONSUMER_INSTANCE_GUID: 'TEST_GUID',
+        constants.CONTENT_ITEM_RETURN_URL: 'https://www.example.com',
+        constants.LTI_VERSION: 'TEST'
     })
 
     pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
