@@ -20,7 +20,7 @@ def create_application_instance(request):
     request.db.add(instance)
 
     # TODO: tests
-    settings = get_appsettings('conf/development.ini', name='main')  # TODO: which ini file to pull from, dev or prod?
+    settings = request.registry.settings
     except_msg = ''
     email_body = "A new key for the Hypothesis LMS has been generated.\n" + \
                  f"URL: {request.params['lms_url']}\nEmail:{request.params['email']}"
