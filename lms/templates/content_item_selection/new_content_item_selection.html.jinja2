@@ -43,11 +43,11 @@
 
 
 /////// Google Picker /////////
-      // The Browser API key obtained from the Google API Console.
-      var developerKey = '{{ google_developer_key }}';
+    // The Browser API key obtained from the Google API Console.
+    var developerKey = '{{ google_developer_key }}';
 
-      // The Client ID obtained from the Google API Console. Replace with your own Client ID.
-      var clientId = '{{ google_client_id }}';
+    // The Client ID obtained from the Google API Console. Replace with your own Client ID.
+    var clientId = '{{ google_client_id }}';
 
     // Replace with your own project number from console.developers.google.com.
     // See "Project number" under "IAM & Admin" > "Settings"
@@ -57,53 +57,51 @@
     var scope = ['https://www.googleapis.com/auth/drive'];
 
 
-      // Array of API discovery doc URLs for APIs used by the quickstart
-      var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+    // Array of API discovery doc URLs for APIs used by the quickstart
+    var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
 
-      // Authorization scopes required by the API; multiple scopes can be
-      // included, separated by spaces.
-      var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
-
-    var pickerApiLoaded = false;
-    var oauthToken;
+    var state = {
+      pickerApiLoaded: false,
+      driveApiLoaded: false,
+      driveApiReady: false,
+      oauthToken: null,
+    };
 
     // Use the Google API Loader script to load the google.picker script.
     function loadPicker() {
-      gapi.load('auth', {'callback': onAuthApiLoad});
-      gapi.load('picker', {'callback': onPickerApiLoad});
-      gapi.load('client', { 'callback': initClient });
+      gapi.load('auth', {
+        callback: onAuthApiLoad,
+        onerror: onLoadError
+      });
+      gapi.load('picker', {
+        callback: onPickerApiLoad,
+        onerror: onLoadError
+      });
+      gapi.load('client', {
+        callback: onClientLoad,
+        onerror: onLoadError
+      });
     }
 
-      function initClient() {
+    function onLoadError(e) {
+      throw new Error('Error loading Google Api');
+    }
+
+      function onClientLoad() {
+        state.driveApiLoaded = true;
+
         gapi.client.init({
           apiKey: developerKey,
           clientId: clientId,
           discoveryDocs: DISCOVERY_DOCS,
-          scope: SCOPES
+          scope: scope[0]
         }).then(function () {
-          // Listen for sign-in state changes.
-          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-
-          // Handle the initial sign-in state.
-          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-          //authorizeButton.onclick = handleAuthClick;
-          //signoutButton.onclick = handleSignoutClick;
-
-          gapi.auth2.getAuthInstance().signIn();
+          state.driveApiReady = true;
         });
-      }
-
-      function updateSigninStatus(isSignedIn) {
-        if (isSignedIn) {
-          //NOTE how can I synchronize this with updating a file permissions?
-        } else {
-
-        }
       }
 
      function enablePublicViewing(doc){
         var body = {
-          //'value': value,
           'type': 'anyone',
           'role': 'reader'
         };
@@ -112,29 +110,30 @@
           'resource': body
         });
         request.execute(function(resp) {
-          //TODO handle javascript errors
-        });
+          // Should we report success to the user?
+        }, function(err) { throw new Error(err); });
      }
 
 
     function onAuthApiLoad() {
       window.gapi.auth.authorize(
-          {
-            'client_id': clientId,
-            'scope': scope,
-            'immediate': false
-          },
-          handleAuthResult);
+        {
+          'client_id': clientId,
+          'scope': scope,
+          'immediate': false
+        },
+        handleAuthResult
+      );
     }
 
     function onPickerApiLoad() {
-      pickerApiLoaded = true;
+      state.pickerApiLoaded = true;
       createPicker();
     }
 
     function handleAuthResult(authResult) {
       if (authResult && !authResult.error) {
-        oauthToken = authResult.access_token;
+        state.oauthToken = authResult.access_token;
         createPicker();
       }
     }
@@ -143,27 +142,12 @@
     'application/vnd.google-apps.document': 'googleDocs',
     'application/vnd.google-apps.spreadsheet': 'googleSheets',
     'application/pdf': 'googleDriveFile',
-
-    //TODO add support for other file types
-   //'application/vnd.google-apps.presentation': 'googleSlides',
-   //'application/vnd.google-apps.drawing',
-   //application/vnd.google-apps.file,
-   //application/vnd.google-apps.folder,
-   //application/vnd.google-apps.form,
-   //application/vnd.google-apps.fusiontable,
-   //application/vnd.google-apps.map
-   //application/vnd.google-apps.photo,
-   //application/vnd.google-apps.script,
-   //application/vnd.google-apps.sites,
-   //application/vnd.google-apps.unknown,
-   //application/vnd.google-apps.video,
-   //application/vnd.google-apps.drive-sdk
   };
 
 
     // Create and render a Picker object for searching images.
     function createPicker() {
-      if (pickerApiLoaded && oauthToken) {
+      if (state.pickerApiLoaded && state.oauthToken) {
         var mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
         var view = new google.picker.View(google.picker.ViewId.DOCS);
         view.setMimeTypes(mimeTypes);
@@ -171,7 +155,7 @@
         var picker = new google.picker.PickerBuilder()
             .setAppId(appId)
             .setOrigin('{{lms_url}}')
-            .setOAuthToken(oauthToken)
+            .setOAuthToken(state.oauthToken)
             .addView(view)
             .addView(new google.picker.DocsUploadView())
             .setDeveloperKey(developerKey)
