@@ -5,7 +5,8 @@ from lms.models import application_instance as ai
 import logging
 
 
-@view_config(route_name='welcome', request_method='POST', renderer='lms:templates/application_instances/create_application_instance.html.jinja2')
+@view_config(route_name='welcome', request_method='POST',
+             renderer='lms:templates/application_instances/create_application_instance.html.jinja2')
 def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
     # TODO handle missing scheme in lms_url.
@@ -21,7 +22,8 @@ def create_application_instance(request):
     # TODO: tests
     settings = get_appsettings('conf/development.ini', name='main')  # TODO: which ini file to pull from, dev or prod?
     except_msg = ''
-    email_body = f"A new key for the Hypothesis LMS has been generated.\nURL: {request.params['lms_url']}\nEmail:{request.params['email']}"
+    email_body = "A new key for the Hypothesis LMS has been generated.\n" + \
+                 f"URL: {request.params['lms_url']}\nEmail:{request.params['email']}"
     try:
         recipients = (settings['new_lms_email_recipient']).split(',')
         sender = settings['new_lms_email_sender']
@@ -35,7 +37,8 @@ def create_application_instance(request):
         mailer = request.mailer
         mailer.send_immediately(message)
     except KeyError as e:
-        except_msg = "'new_lms_email_recipient' and 'new_lms_email_recipient' must be set in the ini file. Missing {}".format(e)
+        except_msg = "'new_lms_email_recipient' and 'new_lms_email_recipient' must be set in the ini file. Missing {}".format(
+            e)
     except ConnectionRefusedError:
         except_msg = "No MTX accepted send email request. "
     finally:
