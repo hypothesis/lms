@@ -1,6 +1,6 @@
 """Provide a decorator that add lti validation capabilities to a pyramid view."""
 import jwt
-from pylti.common import verify_request_common
+import pylti.common
 from lms.models import application_instance as ai
 from lms.config.settings import env_setting
 
@@ -32,7 +32,7 @@ def lti_launch(view_function):
         consumers[consumer_key] = {"secret": instance.shared_secret}
 
         # TODO rescue from an invalid lms launch
-        verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
+        pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
         data = {'user_id': request.params['user_id'], 'roles': request.params['roles']}
         jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
         return view_function(request, jwt_token)

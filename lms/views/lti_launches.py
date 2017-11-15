@@ -18,7 +18,7 @@ def lti_launches(request, jwt):
     1. If a student launches before a teacher has configured the document then it will
     display a message say that the teacher still needs to configure the document.
 
-    2. If a student or teacher launch after the document has been configured then it disdplays the
+    2. If a student or teacher launch after the document has been configured then it displays the
     document with the annotation tools.
 
     3. If a teacher launches and no document has been configured, ict renders a form that allows
