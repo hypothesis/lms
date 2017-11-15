@@ -1,7 +1,7 @@
 sudo: false
 env:
   - TEST_DATABASE_URL=postgresql://postgres@localhost/lms_test
-  - JWT_SECRET=test_secret
+  - JWT_SECRET="test_secret"
 language:
   - python
 python:
