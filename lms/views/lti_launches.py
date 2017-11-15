@@ -4,6 +4,12 @@ from lms.util.view_renderer import view_renderer
 from lms.models.module_item_configuration import ModuleItemConfiguration
 
 
+def can_configure_module_item(roles):
+    lower_cased_roles = roles.lower()
+    allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
+    return any(role in lower_cased_roles for role in allowed_roles)
+
+
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch
 def lti_launches(request, jwt):
@@ -26,7 +32,9 @@ def lti_launches(request, jwt):
         )
         if config.count() >= 1:
             return _view_document(request, document_url=config.one().document_url, jwt=jwt)
-        return _new_module_item_configuration(request, jwt=jwt)
+        elif can_configure_module_item(request.params['roles']):
+            return _new_module_item_configuration(request, jwt=jwt)
+        return _unauthorized(request)
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
@@ -49,3 +57,8 @@ def _view_document(_, document_url, jwt):
         'hypothesis_url': 'https://via.hypothes.is/' + document_url,
         'jwt': jwt
     }
+
+
+@view_renderer(renderer='lms:templates/lti_launches/unauthorized.html.jinja2')
+def _unauthorized(_):
+    return {}
