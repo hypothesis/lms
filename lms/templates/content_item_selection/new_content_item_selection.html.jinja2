@@ -95,21 +95,26 @@
 
       function updateSigninStatus(isSignedIn) {
         if (isSignedIn) {
-
-          listFiles();
+          //NOTE how can I synchronize this with updating a file permissions?
         } else {
 
         }
       }
 
-      function listFiles() {
-        gapi.client.drive.files.list({
-          'pageSize': 10,
-          'fields': "nextPageToken, files(id, name)"
-        }).then(function(response) {
-          console.log(response.body)
+     function enablePublicViewing(doc){
+        var body = {
+          //'value': value,
+          'type': 'anyone',
+          'role': 'reader'
+        };
+        var request = gapi.client.drive.permissions.create({
+          'fileId': doc.id,
+          'resource': body
         });
-      }
+        request.execute(function(resp) {
+          //TODO handle javascript errors
+        });
+     }
 
 
     function onAuthApiLoad() {
@@ -213,6 +218,7 @@
     function pickerCallback(data) {
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
+        enablePublicViewing(data.docs[0]);
         var url = buildDocUrl(data.docs[0]);
         if(url) {
           document.getElementById('launch-form').elements['document_url'].value = url;
