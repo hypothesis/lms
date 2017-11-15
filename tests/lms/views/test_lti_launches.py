@@ -24,8 +24,7 @@ class TestLtiLaunches(object):
         assert 'iframe' in value.body.decode()
         assert 'example.com' in value.body.decode()
 
-    def test_render_unauthorized_page_for_students(self, lti_launch_request,
-            module_item_configuration):
+    def test_render_unauthorized_for_students(self, lti_launch_request, module_item_configuration):
         lti_launch_request.params['resource_link_id'] = module_item_configuration.resource_link_id
         lti_launch_request.params['tool_consumer_instance_guid'] = (
             module_item_configuration.tool_consumer_instance_guid
@@ -33,4 +32,3 @@ class TestLtiLaunches(object):
         lti_launch_request.params['roles'] = 'urn:lti:role:ims/lis/Learner'
         value = lti_launches(lti_launch_request)
         assert 'This page has not yet been configured' in value.body.decode()
-

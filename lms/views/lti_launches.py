@@ -9,6 +9,7 @@ def can_configure_module_item(roles):
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
+
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch
 def lti_launches(request, jwt):
@@ -24,7 +25,6 @@ def lti_launches(request, jwt):
     3. If a teacher launches and no document has been configured, ict renders a form that allows
     them to configure the document.
     """
-
     if 'url' not in request.params:
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
@@ -34,8 +34,7 @@ def lti_launches(request, jwt):
             return _view_document(request, document_url=config.one().document_url, jwt=jwt)
         elif can_configure_module_item(request.params['roles']):
             return _new_module_item_configuration(request, jwt=jwt)
-        else:
-            return _unauthorized(request)
+        return _unauthorized(request)
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
@@ -58,6 +57,7 @@ def _view_document(_, document_url, jwt):
         'hypothesis_url': 'https://via.hypothes.is/' + document_url,
         'jwt': jwt
     }
+
 
 @view_renderer(renderer='lms:templates/lti_launches/unauthorized.html.jinja2')
 def _unauthorized(_):
