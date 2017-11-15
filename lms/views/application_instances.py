@@ -1,8 +1,9 @@
-from pyramid_mailer.message import Message
-from pyramid.view import view_config
-from pyramid.paster import get_appsettings
-from lms.models import application_instance as ai
 import logging
+
+from pyramid.view import view_config
+from pyramid_mailer.message import Message
+
+from lms.models import application_instance as ai
 
 
 @view_config(route_name='welcome', request_method='POST',
