@@ -73,7 +73,7 @@
     // make that file public. If they use the picker and then change the url,
     // we should not make the selected file public.
     if(state.selectedDocId && state.selectedDocUrl && document_url === state.selectedDocUrl) {
-      // If we need to make a file public, then we need to stop the event to we
+      // If we need to make a file public, then we need to stop the event so we
       // can wait until the 'enable public viewing' request resolves before
       // resubmitting the form. Otherwise the content item selection window
       // will close and the request will be terminated.
@@ -261,6 +261,8 @@
           var input = document.getElementById('launch-form').elements['document_url']
           input.value = url;
           resetError(input)
+        } else {
+          throw new Error('Document url could not be constructed');
         }
       }
     }
