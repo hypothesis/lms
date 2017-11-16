@@ -31,11 +31,7 @@
 
   function validateDomain(input) {
     var parent = input.parentElement;
-    if (
-        input.value.indexOf('.com') === -1 &&
-        input.value.indexOf('.edu') === -1 &&
-        input.value.indexOf('.org') === -1
-      ) {
+    if (input.value.length === 0) {
       parent.classList.add('has-error');
       parent.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid domain';
       return false;
