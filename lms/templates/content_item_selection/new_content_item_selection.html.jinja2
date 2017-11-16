@@ -1,14 +1,30 @@
-<form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(this)" enctype="application/x-www-form-urlencoded">
-  <input type="hidden" value="" name="content_items" />
-  {% for field in form_fields.keys() %}
-    <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
-  {% endfor %}
-    <label for="document_url">Public Document URL</label>
-    <input type="text" name="document_url" />
-  <button type="submit">Submit</button>
+{% extends "templates/base.html.jinja2" %}
+
+{% block content %}
+<form form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(event, this)" enctype="application/x-www-form-urlencoded">
+  <input type="hidden" name="content_items" />
+  <main class="modal-content">
+    <p class="modal-text">Note: sharing a file in this way will make whatever you share public.</p>
+    <div class="document-contain">
+      <div class="input">
+        <label for="url">Public Document URL</label>
+          {% for field in form_fields.keys() %}
+            <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
+          {% endfor %}
+        <input id="url" type="text" name="document_url" onchange="resetError(this)"/>
+        <span class="error"></span>
+      </div>
+      <button class="btn btn--gray" onclick="loadPicker(event)">Use Google Picker</button>
+    </div>
+    <div class="form-controls">
+      <button class="btn" type="submit">Submit</button>
+    </div>
+  </main>
 </form>
-<button id="picker-button" disabled onclick="loadPicker()">Use Google Picker</button>
-<p>Note: Files selected with the Google Picker will be made publicly viewable</p>
+{% endblock %}
+
+
+{% block scripts %}
 <script type="text/javascript">
   // TODO: handle form validation!
 
@@ -19,7 +35,17 @@
      return url;
   }
 
-  function handleSubmit(form) {
+  function resetError(input) {
+    input.parentElement.classList.remove('has-error');
+    input.parentElement.getElementsByClassName('error')[0].innerHTML = '';
+  }
+
+  function handleSubmit(event, form) {
+    if(form.elements['document_url'].value.length === 0) {
+      event.preventDefault();
+      form.getElementsByClassName('input')[0].classList.add('has-error');
+      form.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid url';
+    }
     var document_url = addHttp(form.elements['document_url'].value);
     var launchUrl = '{{ lti_launch_url }}' + '?url=' + document_url;
     var contentItem = {
@@ -69,7 +95,8 @@
     };
 
     // Use the Google API Loader script to load the google.picker script.
-    function loadPicker() {
+    function loadPicker(event) {
+      event.preventDefault()
       gapi.load('auth', {
         callback: onAuthApiLoad,
         onerror: onLoadError
@@ -206,7 +233,9 @@
         enablePublicViewing(data.docs[0]);
         var url = buildDocUrl(data.docs[0]);
         if(url) {
-          document.getElementById('launch-form').elements['document_url'].value = url;
+          var input = document.getElementById('launch-form').elements['document_url']
+          input.value = url;
+          resetError(input)
         }
       }
     }
@@ -214,3 +243,4 @@
 </script>
  <script type="text/javascript"
 src="https://apis.google.com/js/api.js?onload=enablePickerButton"></script>
+{% endblock %}

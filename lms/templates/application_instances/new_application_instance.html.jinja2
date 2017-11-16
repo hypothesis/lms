@@ -1,4 +1,6 @@
 <!--suppress CheckValidXmlInScriptTagBody -->
+{% extends "templates/base.html.jinja2" %}
+{% block scripts %}
 <script type="text/javascript">
   function addHttp(url) {
     if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
@@ -7,19 +9,67 @@
      return url;
   }
 
-  function handleSubmit(form) {
+  function handleSubmit(event, form) {
+    if(!validateDomain(form.elements['lms_url']) || !validateEmail(form.elements['email'])) {
+      event.preventDefault();
+      return false;
+    }
     form.elements['lms_url'].value = addHttp(form.elements['lms_url'].value);
   }
-</script>
 
-<form action="/welcome" method="post" onsubmit="handleSubmit(this)">
-  <div>
-    <label for="lms_url">LMS Domain</label>
-    <input type="text" name="lms_url" placeholder="eg. atomcicjolt.instructure.com" />
-  </div>
-  <div>
-    <label for="email">Email</label>
-    <input type="text" name="email" />
-  </div>
-  <button type="submit">Submit</button>
-</form>
+  function validateEmail(input) {
+    var parent = input.parentElement;
+    if (input.value.indexOf('@') === -1) {
+      parent.classList.add('has-error');
+      parent.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid email address';
+      return false;
+    }
+    parent.classList.remove('has-error');
+    parent.getElementsByClassName('error')[0].innerHTML = '';
+    return true;
+  }
+
+  function validateDomain(input) {
+    var parent = input.parentElement;
+    if (
+        input.value.indexOf('.com') === -1 &&
+        input.value.indexOf('.edu') === -1 &&
+        input.value.indexOf('.org') === -1
+      ) {
+      parent.classList.add('has-error');
+      parent.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid domain';
+      return false;
+    }
+    parent.classList.remove('has-error');
+    parent.getElementsByClassName('error')[0].innerHTML = '';
+    return true;
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="modal-content">
+  <p class="modal-text">Please submit the following information to continue.</p>
+  <form action="/welcome" method="post" onsubmit="handleSubmit(event, this)">
+    <div class="input">
+      <label for="domain">LMS Domain</label>
+      <input
+        id="domain"
+        type="text"
+        name="lms_url"
+        placeholder="ex. yourschool.instructure.com"
+        onblur="validateDomain(this)"
+      />
+      <span class="error"></span>
+    </div>
+    <div class="input">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" onblur="validateEmail(this)"/>
+      <span class="error"></span>
+    </div>
+    <div class="form-controls">
+      <button type="submit" class="btn">Submit</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

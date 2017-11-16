@@ -1,16 +1,14 @@
 <!doctype html>
-  <html lang=en>
+<html lang=en>
   <head>
     <meta charset=utf-8>
     <title>{{ title|safe }}</title>
     <link rel="stylesheet"
           type="text/css"
-          href="{{'lti:static/styles/lti.css'|static_path}}">
+          href="{{'lms:static/styles/lms.css'|static_path}}">
   </head>
   <body>
-    <div class="center">
-      {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
   </body>
   {% block scripts %}{% endblock %}
 </html>
