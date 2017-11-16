@@ -11,7 +11,7 @@ class TestApplicationInstance(object):
             'lms_url': 'canvas.example.com',
             'email': 'email@example.com',
         }
-        pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer
+        pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer()
 
         create_application_instance(pyramid_request)
 
@@ -25,29 +25,33 @@ class TestApplicationInstance(object):
             'lms_url': 'canvas.example.com',
             'email': 'email@example.com',
         }
-        pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer
-        
+        pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer()
+
         create_application_instance(pyramid_request)
 
         out, err = capfd.readouterr()
         assert 'new_lms_email_recipient' in err
         assert 'new_lms_email_recipient' in err
 
-    # def test_log_when_no_mta(self, pyramid_request, pyramid_config, capfd):
-    #     pyramid_config.registry.settings[
-    #         'new_lms_email_recipient'] = 'recipient@hypothes.is'
-    #     pyramid_config.registry.settings[
-    #         'new_lms_email_sender'] = 'sender@hypothes.is'
-    #     pyramid_request.method = 'POST'
-    #     pyramid_request.params = {
-    #         'lms_url': 'canvas.example.com',
-    #         'email': 'email@example.com',
-    #     }
-    #
-    #     pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer
-    #
-    #     create_application_instance(pyramid_request)
-    #
-    #     out, err = capfd.readouterr()
-    #     assert 'new_lms_email_recipient' in err
-    #     assert 'new_lms_email_recipient' in err
+    def test_send_email(self, pyramid_request, pyramid_config, capfd):
+        pyramid_config.registry.settings[
+            'new_lms_email_recipient'] = 'recipient@hypothes.is'
+        pyramid_config.registry.settings[
+            'new_lms_email_sender'] = 'sender@hypothes.is'
+        pyramid_request.method = 'POST'
+        pyramid_request.params = {
+            'lms_url': 'canvas.example.com',
+            'email': 'email@example.com',
+        }
+
+        pyramid_request.mailer = pyramid_mailer.mailer.DummyMailer()
+
+        create_application_instance(pyramid_request)
+
+        is_msg_sent = False
+        for m in pyramid_request.mailer.outbox:
+            if 'A new key for the Hypothesis LMS has been generated' in m.body:
+                is_msg_sent = True
+
+        assert is_msg_sent
+

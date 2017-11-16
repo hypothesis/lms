@@ -39,14 +39,14 @@ def _email_new_key_alert(settings, mailer, lms_url, email):
     try:
         recipients = (settings['new_lms_email_recipient']).split(',')
         sender = settings['new_lms_email_sender']
-
         message = Message(
             subject="New key requested for Hypothesis LMS",
             sender=sender,
             recipients=recipients,
             body=email_body
         )
-        mailer.send_immediately(message)
+
+        mailer.send_immediately(message=message)
     except KeyError as e:
         except_msg = \
             "'new_lms_email_recipient' and 'new_lms_email_recipient' must " + \
