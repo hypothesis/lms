@@ -15,5 +15,5 @@ def create_module_item_configuration(request, _):
 
     return {
         'hypothesis_url': 'https://via.hypothes.is/' + instance.document_url,
-        'jwt': request.params['jwt']
+        'jwt_token': request.params['jwt_token']
     }
