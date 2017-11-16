@@ -14,7 +14,7 @@ class TestApplicationInstance(object):
             ApplicationInstance.lms_url == pyramid_request.params[
                 'lms_url']).count() == 1
 
-    def test_exception_no_mta(self, pyramid_request, capfd):
+    def test_log_when_no_email_settings(self, pyramid_request, capfd):
         pyramid_request.method = 'POST'
         pyramid_request.params = {
             'lms_url': 'canvas.example.com',
