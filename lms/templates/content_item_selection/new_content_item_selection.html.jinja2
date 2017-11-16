@@ -33,6 +33,12 @@
       ]
     }
     form.elements['content_items'].value = JSON.stringify(contentItem)
+
+    // If the user submits the google picker selected url, then we should
+    // make that file public
+    if(state.selectedDocId && document_url === state.selectedDocUrl) {
+      enablePublicViewing(state.selectedDocId)
+    }
   }
 
 ////////  Google Picker Integration ///////
@@ -62,6 +68,8 @@
     var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
 
     var state = {
+      selectedDocId: null,
+      selectedDocUrl: null,
       pickerApiLoaded: false,
       driveApiLoaded: false,
       driveApiReady: false,
@@ -202,8 +210,10 @@
     function pickerCallback(data) {
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
-        enablePublicViewing(data.docs[0]);
-        var url = buildDocUrl(data.docs[0]);
+        var doc = data.docs[0];
+        var url = buildDocUrl(doc);
+        state.selectedDocId = doc.id;
+        state.selectedDocUrl = url;
         if(url) {
           document.getElementById('launch-form').elements['document_url'].value = url;
         }
