@@ -42,12 +42,12 @@
 		}
 		.input{
 			position: relative;
-			max-width: 400px;
+			max-width: 500px;
 			width: 100%;
 			margin-bottom: 20px;
 		}
 		.input.has-error input{
-			border-color: #bd1c2b;
+			border-color: #d00032;
 		}
 		.input.has-error .error{
 			display: block;
@@ -80,13 +80,14 @@
 			display: none;
 			font-family: 'Roboto', sans-serif;
 			font-size: 13px;
-			color: #bd1c2b;
+			color: #d00032;
 			font-weight: 500;
 			margin-top: 5px;
+			text-align: right;
 		}
 		.btn{
 			min-height: 35px;
-			background: #595959;
+			background: #3f3f3f;
 			border-radius: 3px;
 			text-align: center;
 			font-family: 'Roboto', sans-serif;
@@ -99,12 +100,12 @@
 		}
 		.btn:hover{
 			cursor: pointer;
-			background: #444;
+			background: #d00032;
 		}
 		.btn--gray{
 			background: #eee;
 			color: #595959;
-			margin-right: 10px;
+			margin-left: 10px;
 		}
 		.btn--gray:hover{
 			background: #dedede;
@@ -118,7 +119,7 @@
 			bottom: 0;
 			right: 0;
 			min-height: 35px;
-			background: #f4f4f4;
+			background: #eee;
 			border-radius: 0 3px 3px 0;
 			text-align: center;
 			font-family: 'Roboto', sans-serif;
@@ -131,12 +132,30 @@
 		}
 		.copy:hover{
 			cursor: pointer;
-			color: #333;
+			color: #444;
+			background: #dedede;
 		}
 		.copy:focus{
 			border-color: #52A7E7;
 			outline: none;
 			box-shadow: 0 0 5px #52a7e7;
+		}
+		.form-controls{
+			max-width: 500px;
+			display: flex;
+			display: -webkit-box;
+			display: -webkit-flex;
+			display: -ms-flexbox;
+			justify-content: flex-end;
+			-webkit-justify-content: flex-end;
+		}
+		.document-contain{
+			max-width: 500px;
+			display: flex;
+			align-items: center;
+		}
+		.document-contain .input{
+			flex: 1;
 		}
 	</style>
 </head>
@@ -154,7 +173,9 @@
 		<input id="email" type="email"/>
 		<span class="error">Please enter a valid email address</span>
 	</div>
-	<button class="btn">Submit</button>
+	<div class="form-controls">
+		<button class="btn">Submit</button>
+	</div>
 </main>
 
 <main class="modal-content">
@@ -173,13 +194,18 @@
 </main>
 
 <main class="modal-content">
-	<div class="input">
-		<label for="url">Public Document URL</label>
-		<input id="url" type="text"/>
-		<span class="error">Please enter a valid URL</span>
+	<p class="modal-text">Note: sharing a file in this way will make whatever you share public.</p>
+	<div class="document-contain">
+		<div class="input">
+			<label for="url">Public Document URL</label>
+			<input id="url" type="text"/>
+			<span class="error">Please enter a valid URL</span>
+		</div>
+		<button class="btn btn--gray">Use Google Picker</button>
 	</div>
-	<button class="btn btn--gray">Use Google Picker</button>
-	<button class="btn">Submit</button>
+	<div class="form-controls">
+		<button class="btn">Submit</button>
+	</div>
 </main>
 
 </body>
