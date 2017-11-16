@@ -12,19 +12,30 @@ def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
     # TODO handle missing scheme in lms_url.
 
-    log = logging.getLogger(__name__)
-
     instance = ai.build_from_lms_url(
         request.params['lms_url'],
         request.params['email']
     )
     request.db.add(instance)
 
-    # TODO: tests
-    settings = request.registry.settings
+    _email_new_key_alert(
+        settings=request.registry.settings,
+        mailer=request.mailer,
+        lms_url=request.params['lms_url'],
+        email=request.params['email']
+    )
+
+    return {
+        'consumer_key': instance.consumer_key,
+        'shared_secret': instance.shared_secret
+    }
+
+
+def _email_new_key_alert(settings, mailer, lms_url, email):
+    log = logging.getLogger(__name__)
     except_msg = ''
     email_body = "A new key for the Hypothesis LMS has been generated.\n" + \
-                 f"URL: {request.params['lms_url']}\nEmail:{request.params['email']}"
+                 f"URL: {lms_url}\nEmail:{email}"
     try:
         recipients = (settings['new_lms_email_recipient']).split(',')
         sender = settings['new_lms_email_sender']
@@ -35,22 +46,17 @@ def create_application_instance(request):
             recipients=recipients,
             body=email_body
         )
-        mailer = request.mailer
         mailer.send_immediately(message)
     except KeyError as e:
-        except_msg = "'new_lms_email_recipient' and 'new_lms_email_recipient' must be set in the ini file. Missing {}".format(
-            e)
+        except_msg = \
+            "'new_lms_email_recipient' and 'new_lms_email_recipient' must " + \
+            "be set in the ini file. Missing {}".format(e)
     except ConnectionRefusedError:
         except_msg = "No MTA accepted send email request. "
     finally:
         if except_msg:
             except_msg += "Email body:" + email_body.replace('\n', ' ')
             log.warning(except_msg)
-
-    return {
-        'consumer_key': instance.consumer_key,
-        'shared_secret': instance.shared_secret
-    }
 
 
 @view_config(
