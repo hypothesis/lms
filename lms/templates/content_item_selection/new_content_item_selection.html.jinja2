@@ -154,7 +154,6 @@
         view.setMimeTypes(mimeTypes);
 
         var picker = new google.picker.PickerBuilder()
-            .setAppId(appId)
             .setOrigin('{{lms_url}}')
             .setOAuthToken(state.oauthToken)
             .addView(view)
