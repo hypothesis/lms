@@ -29,11 +29,11 @@ class TestApplicationInstance(object):
 
         create_application_instance(pyramid_request)
 
-        out, err = capfd.readouterr()
+        _, err = capfd.readouterr()
         assert 'new_lms_email_recipient' in err
         assert 'new_lms_email_recipient' in err
 
-    def test_send_email(self, pyramid_request, pyramid_config, capfd):
+    def test_send_email(self, pyramid_request, pyramid_config):
         pyramid_config.registry.settings[
             'new_lms_email_recipient'] = 'recipient@hypothes.is'
         pyramid_config.registry.settings[
@@ -49,9 +49,8 @@ class TestApplicationInstance(object):
         create_application_instance(pyramid_request)
 
         is_msg_sent = False
-        for m in pyramid_request.mailer.outbox:
-            if 'A new key for the Hypothesis LMS has been generated' in m.body:
+        for message in pyramid_request.mailer.outbox:
+            if 'A new key for the Hypothesis LMS has been generated' in message.body:
                 is_msg_sent = True
 
         assert is_msg_sent
-
