@@ -49,4 +49,5 @@ def configure(settings=None):
 __all__ = (
     'SettingError',
     'configure',
+    'env_setting'
 )

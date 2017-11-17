@@ -1,11 +1,27 @@
-<h2>Paste these into your lms</h2>
-<table>
-  <tr>
-    <th>Consumer Key</th>
-    <th>Shared Secret</th>
-  </tr>
-  <tr>
-    <td>{{ consumer_key }}</td>
-    <td>{{ shared_secret }}</td>
-  </tr>
-</table>
+{% extends "templates/base.html.jinja2" %}
+
+{% block scripts %}
+<script type="text/javascript">
+function copyToClipboard(field) {
+  field.select()
+  document.execCommand('copy');
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="modal-content">
+	<p class="modal-text">To install Hypothesis in your LMS, paste both of these into the appropriate locations.</p>
+	<p class="modal-subtext">Not sure what to do? Please refer to your LMS's LTI Application install process.</p>
+	<div class="input">
+		<label for="key">Consumer Key</label>
+		<input id="key" type="text" value="{{ consumer_key }}" readonly/>
+		<button class="copy" onclick="copyToClipboard(document.getElementById('key'))">Copy</button>
+	</div>
+	<div class="input">
+		<label for="secret">Shared Secret</label>
+		<input id="secret" type="text" value="{{ shared_secret }}" readonly/>
+		<button class="copy" onclick="copyToClipboard(document.getElementById('secret'))">Copy</button>
+	</div>
+</main>
+{% endblock %}
