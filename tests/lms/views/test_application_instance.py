@@ -1,3 +1,5 @@
+import socket
+
 import pyramid_mailer
 
 from lms.views import create_application_instance
@@ -33,7 +35,10 @@ class TestApplicationInstance(object):
         assert 'new_lms_email_recipient' in err
         assert 'new_lms_email_recipient' in err
 
-    def test_send_email(self, pyramid_request, pyramid_config):
+    def test_send_email_when_new_key_created(
+            self, pyramid_request,
+            pyramid_config
+    ):
         pyramid_config.registry.settings[
             'new_lms_email_recipient'] = 'recipient@hypothes.is'
         pyramid_config.registry.settings[
@@ -54,3 +59,28 @@ class TestApplicationInstance(object):
                 is_msg_sent = True
 
         assert is_msg_sent
+
+    def test_log_when_no_mta_accepts_email(self, pyramid_request,
+                                           pyramid_config, capfd):
+        pyramid_config.registry.settings[
+            'new_lms_email_recipient'] = 'recipient@hypothes.is'
+        pyramid_config.registry.settings[
+            'new_lms_email_sender'] = 'sender@hypothes.is'
+        pyramid_request.method = 'POST'
+        pyramid_request.params = {
+            'lms_url': 'canvas.example.com',
+            'email': 'email@example.com',
+        }
+        pyramid_request.mailer = pyramid_mailer.mailer.Mailer()
+
+        # If the email port is not used, we can test a failed attempt to send
+        #  an email. If it is used, abort the test. We don't want to actually
+        #  send an email.
+        mta_socket = socket.socket()
+        connection_results = mta_socket.connect_ex(('localhost', 25))
+        assert connection_results != 0
+
+        create_application_instance(pyramid_request)
+
+        _, err = capfd.readouterr()
+        assert 'No MTA accepted send email request.' in err
