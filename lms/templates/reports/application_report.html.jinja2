@@ -1,5 +1,18 @@
 {% extends "templates/base.html.jinja2" %}
 
 {% block content %}
-Hello!
+    There are {{ apps|length }} application instances:
+
+    <table border="1">
+        <tr>
+            <th>Consumer Key</th>
+            <th>LMS URL</th>
+        </tr>
+    {% for row in apps %}
+        <tr>
+            <td>{{  row['consumer_key']  }}</td>
+            <td>{{  row['lms_url']  }}</td>
+        </tr>
+    {% endfor %}
+    </table>
 {% endblock %}
