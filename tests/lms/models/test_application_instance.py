@@ -8,6 +8,7 @@ class TestApplicationInstance(object):
             consumer_key='TEST_CONSUMER_KEY',
             shared_secret='TEST_SHARED_SECRET',
             lms_url='TEST_LMS_URL',
+            requesters_email='TEST_EMAIL',
         )
         db_session.add(instance)
         new_count = db_session.query(ApplicationInstance).count()
