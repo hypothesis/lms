@@ -27,6 +27,15 @@
 {% block scripts %}
 <script type="text/javascript">
   // TODO: handle form validation!
+    var state = {
+      selectedDocId: null,
+      selectedDocUrl: null,
+      pickerApiLoaded: false,
+      driveApiLoaded: false,
+      driveApiReady: false,
+      oauthToken: null,
+    };
+
 
   function addHttp(url) {
     if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
@@ -59,6 +68,30 @@
       ]
     }
     form.elements['content_items'].value = JSON.stringify(contentItem)
+
+    // If the user submits the google picker selected url, then we should
+    // make that file public. If they use the picker and then change the url,
+    // we should not make the selected file public.
+    if(state.selectedDocId && state.selectedDocUrl && document_url === state.selectedDocUrl) {
+      // If we need to make a file public, then we need to stop the event so we
+      // can wait until the 'enable public viewing' request resolves before
+      // resubmitting the form. Otherwise the content item selection window
+      // will close and the request will be terminated.
+      event.preventDefault();
+      enablePublicViewing(
+        state.selectedDocId,
+        function(resp) {
+          state.selectedDocId = null;
+          state.selectedDocUrl = null;
+          form.submit();
+        }, function(err) {
+          state.selectedDocId = null;
+          state.selectedDocUrl = null;
+          form.submit();
+          throw new Error(err)
+        }
+      );
+    }
   }
 
 ////////  Google Picker Integration ///////
@@ -86,13 +119,6 @@
 
     // Array of API discovery doc URLs for APIs used by the quickstart
     var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-
-    var state = {
-      pickerApiLoaded: false,
-      driveApiLoaded: false,
-      driveApiReady: false,
-      oauthToken: null,
-    };
 
     // Use the Google API Loader script to load the google.picker script.
     function loadPicker(event) {
@@ -128,18 +154,16 @@
         });
       }
 
-     function enablePublicViewing(doc){
+     function enablePublicViewing(docId, onSuccess, onFailure){
         var body = {
           'type': 'anyone',
           'role': 'reader'
         };
         var request = gapi.client.drive.permissions.create({
-          'fileId': doc.id,
+          'fileId': docId,
           'resource': body
         });
-        request.execute(function(resp) {
-          // Should we report success to the user?
-        }, function(err) { throw new Error(err); });
+        request.execute(onSuccess, onFailure);
      }
 
 
@@ -181,7 +205,6 @@
         view.setMimeTypes(mimeTypes);
 
         var picker = new google.picker.PickerBuilder()
-            .setAppId(appId)
             .setOrigin('{{lms_url}}')
             .setOAuthToken(state.oauthToken)
             .addView(view)
@@ -230,12 +253,16 @@
     function pickerCallback(data) {
       var docCount = data.docs && data.docs.length;
       if (data.action == google.picker.Action.PICKED && docCount === 1) {
-        enablePublicViewing(data.docs[0]);
-        var url = buildDocUrl(data.docs[0]);
+        var doc = data.docs[0];
+        var url = buildDocUrl(doc);
+        state.selectedDocId = doc.id;
+        state.selectedDocUrl = url;
         if(url) {
           var input = document.getElementById('launch-form').elements['document_url']
           input.value = url;
           resetError(input)
+        } else {
+          throw new Error('Document url could not be constructed');
         }
       }
     }
