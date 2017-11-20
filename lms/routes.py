@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 def includeme(config):
     config.add_route('welcome', '/welcome')
+    config.add_route('reports', '/reports')
     config.add_route('config_xml', '/config_xml')
     config.add_route('module_item_configurations', '/module_item_configurations')
 
