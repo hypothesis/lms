@@ -192,7 +192,6 @@
 
   var GOOGLE_MIME_TYPES = {
     'application/vnd.google-apps.document': 'googleDocs',
-    'application/vnd.google-apps.spreadsheet': 'googleSheets',
     'application/pdf': 'googleDriveFile',
   };
 
@@ -223,8 +222,6 @@
      switch(urlBuilder) {
        case 'googleDocs':
          return googleDocUrl(doc);
-       case 'googleSheets':
-         return googleSheetUrl(doc);
        case 'googleDriveFile':
          return googleDriveFileUrl(doc);
        default:
@@ -242,12 +239,6 @@
      return 'https://docs.google.com/document/d/'
        + doc.id
        + '/export?format=pdf';
-   }
-
-   function googleSheetUrl(doc) {
-     return 'https://docs.google.com/spreadsheets/d/'
-       + doc.id
-       + '/export?format=csv';
    }
 
     function pickerCallback(data) {
