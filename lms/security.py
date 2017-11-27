@@ -1,6 +1,6 @@
 from pyramid.authentication import AuthTktAuthenticationPolicy
 
-from .models import User
+from lms.models.user import User
 
 
 class MyAuthenticationPolicy(AuthTktAuthenticationPolicy):
