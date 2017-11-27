@@ -6,14 +6,12 @@
     <table border="1">
         <tr>
             <th>Created</th>
-            <th>Consumer Key</th>
             <th>LMS URL</th>
             <th>Requesters Email</th>
         </tr>
     {% for row in apps %}
         <tr>
             <td>{{  row['created']  }}</td>
-            <td>{{  row['consumer_key']  }}</td>
             <td>{{  row['lms_url']  }}</td>
             <td>{{  row['requesters_email']  }}</td>
         </tr>
