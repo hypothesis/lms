@@ -4,7 +4,12 @@ from pyramid.view import view_config
 
 from lms.security import USERS, check_password
 
+
 class AuthenticationViews:
+    def __init__(self, request):
+        self.request = request
+        self.logged_in = request.authenticated_userid
+
     @view_config(
         route_name='login',
         renderer='templates/login.html.jinja2')
@@ -36,7 +41,6 @@ class AuthenticationViews:
             login=login,
             password=password,
         )
-
 
     @view_config(route_name='logout')
     def logout(self):
