@@ -15,20 +15,20 @@ class User(BASE):
     password_hash = Column(Text)
     salt = Column(Text)
 
-    hash_iterations = 1000000
-
-    def set_new_password_and_salt(self, pw):
-        self.salt = os.urandom(8)
-        self.password_hash = self.get_hashed_password(pw, self.salt)
-
-    def check_password(self, candidate, salt):
-        candidate_hash = self.get_hashed_password(candidate, salt)
-        return self.password_hash == candidate_hash
-
-    def get_hashed_password(self, password, salt):
-        pw_hash = hashlib.pbkdf2_hmac(
-            'sha256',
-            password.encode('utf8'),
-            salt,
-            self.hash_iterations)
-        return binascii.hexlify(pw_hash)
+    # hash_iterations = 1000000
+    #
+    # def set_new_password_and_salt(self, pw):
+    #     self.salt = os.urandom(8)
+    #     self.password_hash = self.get_password_hash(pw, self.salt)
+    #
+    # def check_password(self, candidate, salt):
+    #     candidate_hash = self.get_password_hash(candidate, salt)
+    #     return self.password_hash == candidate_hash
+    #
+    # def get_password_hash(self, password, salt):
+    #     pw_hash = hashlib.pbkdf2_hmac(
+    #         'sha256',
+    #         password.encode('utf8'),
+    #         salt,
+    #         self.hash_iterations)
+    #     return binascii.hexlify(pw_hash)
