@@ -47,7 +47,7 @@ def configure(settings=None):
 
     settings.update(env_settings)
 
-    config = Configurator(settings=settings)
+    config = Configurator(settings=settings, root_factory='.resources.Root')
 
     # Security policies
     authn_policy = AuthTktAuthenticationPolicy(
