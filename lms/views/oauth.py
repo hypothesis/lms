@@ -16,6 +16,8 @@ import pyramid.httpexceptions as exc
 # How can we keep track of token?
 #  Token in the database? Associated with a user_id?
 
+# How can we handle refreshing?
+# Canvas Api Class?
 
 ## User
 # id
