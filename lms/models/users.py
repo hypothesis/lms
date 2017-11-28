@@ -10,5 +10,5 @@ class Token(BASE):
     access_token = sa.Column(sa.String)
     refresh_token = sa.Column(sa.String)
     expires_at = sa.Column(sa.String)
-    user_id = sa.Column(sa.String)
+    user_id = sa.Column(sa.Integer)
 

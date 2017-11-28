@@ -31,15 +31,14 @@ def upgrade():
       sa.Column('access_token', sa.String),
       sa.Column('refresh_token', sa.String),
       sa.Column('expires_at', sa.String),
-      sa.Column('user_id', sa.String),
+      sa.Column('user_id', sa.Integer),
     )
 
     op.create_table(
       'oauth_state',
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
-      sa.Column('user_id', sa.String),
       sa.Column('guid', sa.String),
-      sa.Column('user_id', sa.String),
+      sa.Column('user_id', sa.Integer),
     )
 
 
