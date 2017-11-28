@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember, forget
-from pyramid.view import view_config
+from pyramid.view import view_config, forbidden_view_config
 
 from lms.security import USERS, check_password
 
@@ -13,6 +13,7 @@ class AuthenticationViews:
     @view_config(
         route_name='login',
         renderer='templates/login.html.jinja2')
+    @forbidden_view_config(renderer='templates/login.html.jinja2')
     def login(self):
         request = self.request
         login_url = request.route_url('login')
