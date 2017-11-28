@@ -20,6 +20,7 @@
 import bcrypt
 
 
+# TODO: Move these functions to User model
 def hash_password(pw):
     pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
     return pwhash.decode('utf8')
@@ -33,6 +34,7 @@ def check_password(pw, hashed_pw):
 # USERS = {'editor': hash_password('editor'),
 #          'viewer': hash_password('viewer')}
 # GROUPS = {'editor': ['group:editors']}
+# TODO: don't use these lists, find way to use User model
 USERS = {'report_viewer': hash_password('report_viewer')}
 GROUPS = {'report_viewer': ['group:report_viewers']}
 
