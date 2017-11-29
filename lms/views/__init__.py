@@ -12,9 +12,6 @@ __all__ = (
     'content_item_selection',
     'lti_launches',
     'create_module_item_configuration',
-    'list_application_instances',
-    'login',
-    'logout',
 )
 
 

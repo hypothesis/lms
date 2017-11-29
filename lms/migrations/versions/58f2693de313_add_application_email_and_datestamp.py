@@ -1,5 +1,5 @@
 """
-Add application url and datestamp
+Add application url and datestamp.
 
 Revision ID: 58f2693de313
 Revises: a6a78f338d4a

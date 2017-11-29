@@ -6,7 +6,10 @@ from lms.security import check_password
 
 
 class AuthenticationViews:
+    """Create login and log out views."""
+
     def __init__(self, request):
+        """Store request and authentication information."""
         self.request = request
         self.logged_in = request.authenticated_userid
 

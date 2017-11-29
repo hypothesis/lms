@@ -7,7 +7,6 @@ from lms.models.module_item_configuration import ModuleItemConfiguration
 __all__ = (
     'ApplicationInstance',
     'ModuleItemConfiguration',
-    'User',
 )
 
 
