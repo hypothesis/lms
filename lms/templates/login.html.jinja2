@@ -2,24 +2,23 @@
 
 {% block title %}Please log in{% endblock %}
 
-{%  block content %}
+{% block content %}
     <div id="content">
         <h1>Login</h1>
-        <strong>{{ message }}</strong>
-
+        <h3>{{ message }}</h3>
+        <br/>
         <form action="{{ url }}" method="post">
             <input type="hidden" name="came_from"
                    value="{{ came_from }}"/>
-            <label for="login">Username</label>
-            <input type="text" id="login"
-                   name="login"
-                   value="{{ login }}"/><br/>
+            <label for="username">Username</label>
+            <input type="text" id="username"
+                   name="username"
+                   value="{{ username }}"/><br/>
             <label for="password">Password</label>
             <input type="password" id="password"
-                   name="password"
-                   value="${password}"/><br/>
+                   name="password"/><br/>
             <input type="submit" name="form.submitted"
                    value="Log In"/>
         </form>
     </div>
-{%  endblock %}
+{% endblock %}

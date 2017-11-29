@@ -2,7 +2,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember, forget
 from pyramid.view import view_config, forbidden_view_config
 
-from lms.security import USERS, check_password
+from lms.security import check_password
 
 
 class AuthenticationViews:
@@ -22,25 +22,29 @@ class AuthenticationViews:
             referrer = '/reports'  # never use login form itself as came_from
         came_from = request.params.get('came_from', referrer)
         message = ''
-        login = ''
-        password = ''
+        username = ''
         if 'form.submitted' in request.params:
-            login = request.params['login']
+            settings = request.registry.settings
+            expected_username = settings['username']
+            expected_hashed_pw = settings['hashed_pw']
+            salt = settings['salt']
+
+            username = request.params['username']
             password = request.params['password']
-            hashed_pw = USERS.get(login)
-            if hashed_pw and check_password(password, hashed_pw):
-                headers = remember(request, login)
-                return HTTPFound(location=came_from,
-                                 headers=headers)
+
+            if (expected_username == username and
+                    password and
+                    check_password(password, expected_hashed_pw, salt)):
+                headers = remember(request, username)
+                return HTTPFound(location=came_from, headers=headers)
             message = 'Failed login'
 
         return dict(
             name='Login',
             message=message,
             url=request.application_url + '/login',
+            username=username,
             came_from=came_from,
-            login=login,
-            password=password,
         )
 
     @view_config(route_name='logout')
