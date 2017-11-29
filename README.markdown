@@ -295,3 +295,25 @@ steps to create a new migration script for h are:
    ```bash
    $ alembic -c conf/alembic.ini upgrade +1
    ```
+
+# Application Instances Reports
+
+While running the webserver, to see a list of application instances stored in
+ the database, navigate to `/reports`. You will be redirected to a login page, 
+ the username is `report_viewer` and the password is `asdf`
+ 
+ The username and password hash are stored in `development.ini`. 
+ 
+ WARNING: Do not commit the production.ini to the git repository. You do not 
+  want your `lms.secret` or `hashed_pw` stored in a public repository. 
+ 
+ ### Changing the password ###
+ 
+ To change the password, you will need to compute a new hash, then replace the 
+  hash and salt in the development.ini. You only need to provide a salt if 
+  you are trying to recreate a particular hash. For a new password, just let 
+  the script create the salt. 
+ 
+ To help compute the hash you can use the command line script 
+  `lms/utilget_get_password_hash.py`. You will need to store the salt and 
+  resulting hash in the development.ini file.
