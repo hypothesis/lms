@@ -19,10 +19,11 @@ def upgrade():
     op.create_table(
       'users',
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
+      sa.Column('lms_guid', sa.String, index=True),
       sa.Column('email', sa.String),
       sa.Column('lms_id', sa.String),
       sa.Column('lms_provider', sa.String),
-      sa.Column('lms_url', sa.String)
+      sa.Column('lms_url', sa.String),
     )
 
     op.create_table(

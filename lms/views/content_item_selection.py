@@ -3,11 +3,13 @@ from lms.config import env_setting
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
+from lms.util.associate_user import associate_user
 
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @lti_launch
-def content_item_selection(request, _):
+@associate_user
+def content_item_selection(request, _, user=None):
     """
     Render the form that teachers see to configure the module item.
 

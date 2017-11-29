@@ -1,7 +1,6 @@
 ﻿import logging
 from lms.config import configure
 
-
 log = logging.getLogger(__name__)
 
 
