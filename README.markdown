@@ -310,10 +310,10 @@ While running the webserver, to see a list of application instances stored in
  ### Changing the password ###
  
  To change the password, you will need to compute a new hash, then replace the 
-  hash and salt in the development.ini. You only need to provide a salt if 
-  you are trying to recreate a particular hash. For a new password, just let 
-  the script create the salt. 
+  hash and salt in the development.ini. 
  
  To help compute the hash you can use the command line script 
   `lms/utilget_get_password_hash.py`. You will need to store the salt and 
-  resulting hash in the development.ini file.
+  resulting hash in the development.ini file. You only need to provide a salt if 
+  you are trying to recreate a particular hash. For a new password, just let 
+  the script create the salt. 
