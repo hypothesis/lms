@@ -189,7 +189,9 @@ def lti_launch_request(monkeypatch, pyramid_request):
     This also creates the application instance that is needed in the decorator.
     """
     from lms.models import application_instance as ai  # pylint:disable=relative-import
-    instance = ai.build_from_lms_url('https://hypothesis.instructure.com')
+    instance = ai.build_from_lms_url(
+        'https://hypothesis.instructure.com',
+        'address@)hypothes.is')
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
