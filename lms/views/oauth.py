@@ -46,6 +46,10 @@ def canvas_oauth_callback(request):
   token = github.fetch_token(token_url, client_secret=client_secret,
                              authorization_response=request.url, code=request.params['code'])
 
+  raise exc.HTTPFound('https://google.com')
+  # Save token
+  # Redirect back to source
+
 @view_config(route_name='login', request_method='GET')
 def login(request):
   oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)

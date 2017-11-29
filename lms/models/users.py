@@ -19,11 +19,6 @@ def find_by_lms_guid(session, lms_guid):
   return session.query(User).filter(
     User.lms_guid == lms_guid).one_or_none()
 
-def associate_user(request):
-    lms_guid = request.params['user_id'];
-    if(lms_guid):
-      return find_by_lms_guid(request.db, lms_guid)
-    return None
 
 def build_from_lti_params(lti_launch_params):
     return User(
