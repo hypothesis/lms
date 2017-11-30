@@ -124,6 +124,7 @@ def pyramid_config(pyramid_request):
         'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
         'jwt_secret': 'test_secret',
+        'username': 'report_viewers',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
