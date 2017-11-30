@@ -13,7 +13,6 @@ def authorize_lms(*args, client_id, client_secret, authorization_base_url,
         def wrapper(request, *args, user=None, **kwargs):
             # TODO handle wrong params
             # TODO handle no user
-            
             import pdb; pdb.set_trace()
             oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)
             authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)

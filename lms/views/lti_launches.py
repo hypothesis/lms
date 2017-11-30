@@ -13,7 +13,7 @@ def can_configure_module_item(roles):
 
 # TODO only do for content item select
 @view_config(route_name='lti_launches', request_method='POST')
-@lti_launch
+@lti_launch()
 @associate_user
 def lti_launches(request, jwt, user=None):
     """

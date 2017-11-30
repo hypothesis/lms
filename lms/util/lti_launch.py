@@ -11,31 +11,42 @@ def get_application_instance(db, consumer_key):
     ).one()
 
 
-def lti_launch(view_function):
-    """
-    Handle the verification of an lms launch.
+def default_get_secret(request, consumer_key):
+    instance = get_application_instance(request.db, consumer_key)
+    return instance.shared_secret
 
-    You should add this decorator before (logically) the route decorator. For example:
+def default_get_lti_launch_params(request):
+    return request.params
 
-    @view_config(...)
-    @lti_launch
-    def some_view(request):
-    ...
-    """
-    def wrapper(request):
-        """Handle the lms validation."""
-        import pdb; pdb.set_trace()
-        consumer_key = request.params["oauth_consumer_key"]
-        instance = get_application_instance(request.db, consumer_key)
+def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
+        get_secret=default_get_secret):
+    def decorator(view_function):
+        """
+        Handle the verification of an lms launch.
 
-        consumers = {}
+        You should add this decorator before (logically) the route decorator. For example:
 
-        consumers[consumer_key] = {"secret": instance.shared_secret}
+        @view_config(...)
+        @lti_launch
+        def some_view(request):
+        ...
+        """
+        def wrapper(request):
+            """Handle the lms validation."""
+            import pdb; pdb.set_trace()
 
-        # TODO rescue from an invalid lms launch
-        pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
-        data = {'user_id': request.params['user_id'], 'roles': request.params['roles']}
-        jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
-        return view_function(request, jwt_token)
+            lti_params = get_lti_launch_params(request)
+            consumer_key = lti_params['oauth_consumer_key']
+            shared_secret = get_secret(request, consumer_key)
 
-    return wrapper
+            consumers = {}
+
+            consumers[consumer_key] = {"secret": shared_secret}
+
+            # TODO rescue from an invalid lms launch
+            pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(lti_params))
+            data = {'user_id': lti_params['user_id'], 'roles': lti_params['roles']}
+            jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+            return view_function(request, jwt_token)
+        return wrapper
+    return decorator
