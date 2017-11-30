@@ -8,6 +8,7 @@ Create Date: 2017-11-28 13:56:48.270643
 """
 from alembic import op
 import sqlalchemy as sa
+from datetime import datetime
 
 
 # revision identifiers, used by Alembic.
@@ -31,8 +32,9 @@ def upgrade():
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
       sa.Column('access_token', sa.String),
       sa.Column('refresh_token', sa.String),
-      sa.Column('expires_at', sa.String),
+      sa.Column('expires_in', sa.String),
       sa.Column('user_id', sa.Integer),
+      sa.Column('created', sa.TIMESTAMP, default=datetime.utcnow)
     )
 
     op.create_table(
@@ -40,6 +42,7 @@ def upgrade():
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
       sa.Column('guid', sa.String),
       sa.Column('user_id', sa.Integer),
+      sa.Column('auth_done_url', sa.String)
     )
 
 

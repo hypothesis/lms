@@ -24,6 +24,7 @@ def lti_launch(view_function):
     """
     def wrapper(request):
         """Handle the lms validation."""
+        import pdb; pdb.set_trace()
         consumer_key = request.params["oauth_consumer_key"]
         instance = get_application_instance(request.db, consumer_key)
 

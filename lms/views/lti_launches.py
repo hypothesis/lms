@@ -5,26 +5,16 @@ from lms.util.lti_launch import get_application_instance
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
-from lms.util.authorize_lms import authorize_lms
 
 def can_configure_module_item(roles):
     lower_cased_roles = roles.lower()
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
-
+# TODO only do for content item select
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch
 @associate_user
-# TODO read from ini file
-@authorize_lms(
- client_id = "43460000000000123",
- client_secret
- = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84",
- authorization_base_url = 'https://atomicjolt.instructure.com/login/oauth2/auth',
- token_url = 'https://atomicjolt.instructure.com/login/oauth2/token',
- redirect_uri = 'https://8b608e88.ngrok.io/canvas_oauth_callback'
-)
 def lti_launches(request, jwt, user=None):
     """
     Primary lms launch route. There are 3 views that could be rendered.

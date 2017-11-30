@@ -1,6 +1,8 @@
 from pyramid.view import view_config
+from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
-import os
+from lms.models.tokens import update_user_token
+from lms.models.oauth_state import find_user_from_state, find_by_state
 
 client_id = "43460000000000123"
 client_secret = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84"
@@ -18,7 +20,6 @@ import pyramid.httpexceptions as exc
 
 # How can we handle refreshing?
 # Canvas Api Class?
-
 
 ### Note: User should not have unique email, look up by user_id guid.
 ## User
@@ -41,18 +42,13 @@ import pyramid.httpexceptions as exc
 
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
 def canvas_oauth_callback(request):
-
-  github = OAuth2Session(client_id, state=request.params['state'])
-  token = github.fetch_token(token_url, client_secret=client_secret,
+  state = request.params['state']
+  # TODO handle no state
+  github = OAuth2Session(client_id, state=state)
+  oauth_resp = github.fetch_token(token_url, client_secret=client_secret,
                              authorization_response=request.url, code=request.params['code'])
+  oauth_state = find_by_state(request.db, state)
+  user = find_user_from_state(request.db, state)
 
-  raise exc.HTTPFound('https://google.com')
-  # Save token
-  # Redirect back to source
-
-@view_config(route_name='login', request_method='GET')
-def login(request):
-  oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)
-  authorization_url, state = oauth_session.authorization_url(authorization_base_url)
-
-  raise exc.HTTPFound(authorization_url)
+  token = update_user_token(request.db, oauth_resp, user)
+  return HTTPFound(location=oauth_state.auth_done_url)
