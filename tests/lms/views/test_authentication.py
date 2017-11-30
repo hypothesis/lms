@@ -1,4 +1,4 @@
-from lms.views.authentication import AuthenticationViews
+from lms.views import authentication
 
 
 class TestAuthentication(object):
@@ -8,7 +8,7 @@ class TestAuthentication(object):
             'password': 'asdf',
             'form.submitted': True,
         }
-        sut = AuthenticationViews(pyramid_request)
+        sut = authentication.AuthenticationViews(pyramid_request)
 
         response = sut.login()
 
@@ -21,7 +21,7 @@ class TestAuthentication(object):
             'password': 'wrongpassword',
             'form.submitted': True,
         }
-        sut = AuthenticationViews(pyramid_request)
+        sut = authentication.AuthenticationViews(pyramid_request)
 
         response = sut.login()
 
@@ -30,7 +30,7 @@ class TestAuthentication(object):
         assert response['username'] == 'report_viewers'
 
     def test_login_not_submitted(self, pyramid_request):
-        sut = AuthenticationViews(pyramid_request)
+        sut = authentication.AuthenticationViews(pyramid_request)
 
         response = sut.login()
 
@@ -44,7 +44,7 @@ class TestAuthentication(object):
             'password': 'asdf',
             'form.submitted': True,
         }
-        sut = AuthenticationViews(pyramid_request)
+        sut = authentication.AuthenticationViews(pyramid_request)
 
         # First login
         response_login = sut.login()
@@ -56,4 +56,3 @@ class TestAuthentication(object):
         response_logout = sut.login()
         assert response_logout.status_code == 302
         assert response_logout.location == 'http://example.com'
-
