@@ -53,6 +53,6 @@ class TestAuthentication(object):
         assert response_login.location == 'http://example.com'
 
         # Then logout
-        response_logout = sut.login()
+        response_logout = sut.logout()
         assert response_logout.status_code == 302
-        assert response_logout.location == 'http://example.com'
+        assert response_logout.location == 'http://example.com/login'
