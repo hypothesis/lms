@@ -4,7 +4,11 @@
 
 from __future__ import unicode_literals
 
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
+
+from lms.security import groupfinder
 
 from lms.config.settings import (
     SettingError,
@@ -43,7 +47,17 @@ def configure(settings=None):
 
     settings.update(env_settings)
 
-    return Configurator(settings=settings)
+    config = Configurator(settings=settings, root_factory='.resources.Root')
+
+    # Security policies
+    authn_policy = AuthTktAuthenticationPolicy(
+        settings['lms.secret'], callback=groupfinder,
+        hashalg='sha512')
+    authz_policy = ACLAuthorizationPolicy()
+    config.set_authentication_policy(authn_policy)
+    config.set_authorization_policy(authz_policy)
+
+    return config
 
 
 __all__ = (

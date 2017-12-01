@@ -11,7 +11,7 @@ __all__ = (
     'config_xml',
     'content_item_selection',
     'lti_launches',
-    'create_module_item_configuration'
+    'create_module_item_configuration',
 )
 
 

@@ -124,6 +124,9 @@ def pyramid_config(pyramid_request):
         'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
         'jwt_secret': 'test_secret',
+        'username': 'report_viewers',
+        'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
+        'salt': 'fbe82ee0da72b77b',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
@@ -189,7 +192,9 @@ def lti_launch_request(monkeypatch, pyramid_request):
     This also creates the application instance that is needed in the decorator.
     """
     from lms.models import application_instance as ai  # pylint:disable=relative-import
-    instance = ai.build_from_lms_url('https://hypothesis.instructure.com')
+    instance = ai.build_from_lms_url(
+        'https://hypothesis.instructure.com',
+        'address@)hypothes.is')
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)

@@ -1,0 +1,26 @@
+{% extends "templates/base.html.jinja2" %}
+
+{% block title %}Application Instances{% endblock %}
+
+{% block content %}
+    <div id="content">
+        <p>There are {{ apps|length }} application instances:</p>
+
+        <table border="1">
+            <tr>
+                <th>Created</th>
+                <th>LMS URL</th>
+                <th>Requesters Email</th>
+            </tr>
+        {% for row in apps %}
+            <tr>
+                <td>{{  row['created']  }}</td>
+                <td>{{  row['lms_url']  }}</td>
+                <td>{{  row['requesters_email']  }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+
+        <a href="{{ logout_url }}">Logout</a>
+    </div>
+{% endblock %}
