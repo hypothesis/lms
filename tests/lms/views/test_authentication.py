@@ -15,6 +15,19 @@ class TestAuthentication(object):
         assert response.status_code == 302
         assert response.location == 'http://example.com'
 
+    def test_login_redirected_to_reports(self, pyramid_request):
+        pyramid_request.params = {
+            'username': 'report_viewers',
+            'password': 'asdf',
+            'form.submitted': True,
+        }
+        pyramid_request.url = 'http://example.com/login'
+        sut = authentication.AuthenticationViews(pyramid_request)
+
+        response = sut.login()
+
+        assert response.status_code == 302
+
     def test_failed_login(self, pyramid_request):
         pyramid_request.params = {
             'username': 'report_viewers',
