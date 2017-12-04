@@ -40,9 +40,13 @@ def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
             consumers = {}
 
             consumers[consumer_key] = {"secret": shared_secret}
-
             # TODO rescue from an invalid lms launch
-            pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(lti_params))
+            pylti.common.verify_request_common(
+                    consumers,
+                    request.url,
+                    request.method,
+                    dict(request.headers),
+                    dict(lti_params))
             data = {'user_id': lti_params['user_id'], 'roles': lti_params['roles']}
             jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
             return view_function(request, jwt_token)

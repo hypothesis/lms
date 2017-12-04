@@ -3,6 +3,12 @@ from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
 from lms.models.tokens import update_user_token
 from lms.models.oauth_state import find_user_from_state, find_by_state
+from lms.util.lti_launch import get_application_instance
+from lms.util.lti_launch import lti_launch
+from lms.util.view_renderer import view_renderer
+from lms.models.oauth_state import find_by_state
+import json
+from lms.views.content_item_selection import content_item_form
 
 client_id = "43460000000000123"
 client_secret = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84"
@@ -51,4 +57,16 @@ def canvas_oauth_callback(request):
   user = find_user_from_state(request.db, state)
 
   token = update_user_token(request.db, oauth_resp, user)
-  return HTTPFound(location=oauth_state.auth_done_url)
+#  return HTTPFound(location=oauth_state.auth_done_url)
+
+  oauth_state = find_by_state(request.db, request.params['state'])
+  lti_params = json.loads(oauth_state.lti_params)
+  consumer_key = lti_params['oauth_consumer_key']
+  application_instance = get_application_instance(request.db, consumer_key)
+  return content_item_form(
+      request,
+      lti_params=lti_params,
+      lms_url=application_instance.lms_url,
+      content_item_return_url=lti_params['content_item_return_url'],
+      jwt=None
+  )
