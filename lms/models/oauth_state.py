@@ -11,7 +11,7 @@ class OauthState(BASE):
     user_id = sa.Column(sa.Integer)
     guid = sa.Column(sa.String)
     auth_done_url = sa.Column(sa.String)
-
+    lti_params = sa.Column(sa.String)
 
 def find_by_state(session, state):
   return session.query(OauthState).filter(
@@ -21,11 +21,11 @@ def is_valid_token(token):
     # if exists and expire time is not past
     return False
 
-def find_or_create_from_user(session, state, user, auth_done_url):
+def find_or_create_from_user(session, state, user, auth_done_url, lti_params):
     existing_state = find_by_state(session, state)
     if(existing_state == None):
         oauth_state = OauthState(user_id=user.id, guid=state,
-                auth_done_url=auth_done_url)
+                auth_done_url=auth_done_url, lti_params=lti_params)
         session.add(oauth_state)
         return oauth_state
     return existing_state

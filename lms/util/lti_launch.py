@@ -16,7 +16,7 @@ def default_get_secret(request, consumer_key):
     return instance.shared_secret
 
 def default_get_lti_launch_params(request):
-    return request.params
+    return dict(request.params)
 
 def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
         get_secret=default_get_secret):
@@ -33,8 +33,6 @@ def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
         """
         def wrapper(request):
             """Handle the lms validation."""
-            import pdb; pdb.set_trace()
-
             lti_params = get_lti_launch_params(request)
             consumer_key = lti_params['oauth_consumer_key']
             shared_secret = get_secret(request, consumer_key)

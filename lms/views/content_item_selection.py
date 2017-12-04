@@ -5,20 +5,29 @@ from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
+from lms.models.oauth_state import find_by_state
+import json
+
+def look_up_lti_params(request):
+    if('oauth_consumer_key' in request.params):
+        return request.params
+    elif('state' in request.params):
+        oauth_state = find_by_state(request.db, request.params['state'])
+        return json.loads(oauth_state.lti_params)
+    return None
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @view_config(route_name='content_item_selection', request_method='GET')
-@lti_launch()
+@lti_launch(get_lti_launch_params=look_up_lti_params)
 @associate_user
 # TODO read from ini file
-#@authorize_lms(
-# client_id = "43460000000000123",
-# client_secret
-# = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84",
-# authorization_base_url = 'https://atomicjolt.instructure.com/login/oauth2/auth',
-# token_url = 'https://atomicjolt.instructure.com/login/oauth2/token',
-# redirect_uri = 'https://8b608e88.ngrok.io/canvas_oauth_callback'
-#)
+@authorize_lms(
+ client_id = "43460000000000123",
+ client_secret = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84",
+ authorization_base_url = 'https://atomicjolt.instructure.com/login/oauth2/auth',
+ token_url = 'https://atomicjolt.instructure.com/login/oauth2/token',
+ redirect_uri = 'https://8b608e88.ngrok.io/canvas_oauth_callback'
+)
 def content_item_selection(request, _, user=None):
     """
     Render the form that teachers see to configure the module item.
