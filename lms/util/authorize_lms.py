@@ -14,10 +14,12 @@ def build_oauth_done_url(request, state_guid):
 #   url.params.append
     return request.url + "?state=" + state_guid
 
-def authorize_lms(*args, client_id, client_secret, authorization_base_url,
+def authorize_lms(*args, authorization_base_url,
         token_url, redirect_uri):
     def decorator(view_function):
         def wrapper(request, *args, user=None, **kwargs):
+            client_id = request.registry.settings['oauth.client_id']
+            client_secret = request.registry.settings['oauth.client_secret']
             # TODO handle wrong params
             # TODO handle no user
             oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)

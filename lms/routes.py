@@ -16,5 +16,4 @@ def includeme(config):
     config.add_route('content_item_selection', '/content_item_selection')
 
     # Oauth
-    config.add_route('login', '/login')
     config.add_route('canvas_oauth_callback', '/canvas_oauth_callback')

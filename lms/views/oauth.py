@@ -17,34 +17,6 @@ token_url = 'https://atomicjolt.instructure.com/login/oauth2/token'
 redirect_uri = 'https://8b608e88.ngrok.io/canvas_oauth_callback'
 
 import pyramid.httpexceptions as exc
-# How can we persist user identity?
-#  Maybe similar to oauth_state_middleware?
-#  or add a state table?
-
-# How can we keep track of token?
-#  Token in the database? Associated with a user_id?
-
-# How can we handle refreshing?
-# Canvas Api Class?
-
-### Note: User should not have unique email, look up by user_id guid.
-## User
-# id
-# email
-# lms_id
-# lms_provider
-# lms_url
-
-## Token
-# access_token
-# refresh_token
-# expires_at
-# user_id
-
-## State
-# user_id
-# guid
-# id
 
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
 def canvas_oauth_callback(request):

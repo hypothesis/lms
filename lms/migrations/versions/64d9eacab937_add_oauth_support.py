@@ -2,7 +2,7 @@
 Add oauth support
 
 Revision ID: 64d9eacab937
-Revises: a6a78f338d4a
+Revises: 58f2693de313
 Create Date: 2017-11-28 13:56:48.270643
 
 """
