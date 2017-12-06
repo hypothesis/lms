@@ -5,18 +5,16 @@ from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
-from lms.models.oauth_state import find_by_state
-import json
 
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @lti_launch()
 @associate_user
 @authorize_lms(
- authorization_base_endpoint = 'login/oauth2/auth',
- redirect_endpoint = 'canvas_oauth_callback'
+    authorization_base_endpoint='login/oauth2/auth',
+    redirect_endpoint='canvas_oauth_callback'
 )
-def content_item_selection(request, _, user=None):
+def content_item_selection(request, _, _user=None):
     """
     Render the form that teachers see to configure the module item.
 
@@ -26,6 +24,7 @@ def content_item_selection(request, _, user=None):
     application_instance = get_application_instance(request.db, consumer_key)
     return content_item_form(
         request,
+        lti_params=request.params,
         lms_url=application_instance.lms_url,
         content_item_return_url=request.params['content_item_return_url'],
         jwt=None

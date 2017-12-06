@@ -6,15 +6,17 @@ from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
 
+
 def can_configure_module_item(roles):
     lower_cased_roles = roles.lower()
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
+
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
 @associate_user
-def lti_launches(request, jwt, user=None):
+def lti_launches(request, jwt, _user=None):
     """
     Primary lms launch route. There are 3 views that could be rendered.
 

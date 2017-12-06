@@ -1,4 +1,4 @@
-"""Oauth endpoint views"""
+"""Oauth endpoint views."""
 import json
 from pyramid.view import view_config
 from requests_oauthlib import OAuth2Session
@@ -7,13 +7,15 @@ from lms.models.oauth_state import find_user_from_state, find_by_state
 from lms.util.lti_launch import get_application_instance
 from lms.views.content_item_selection import content_item_form
 
+
 def build_canvas_token_url(lms_url):
-    """Builds a canvas token url from the base lms url and the token"""
+    """Build a canvas token url from the base lms url and the token."""
     return lms_url + '/login/oauth2/token'
+
 
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
 def canvas_oauth_callback(request):
-    """Route to handle content item selection oauth response"""
+    """Route to handle content item selection oauth response."""
     client_id = request.registry.settings['oauth.client_id']
     client_secret = request.registry.settings['oauth.client_secret']
 

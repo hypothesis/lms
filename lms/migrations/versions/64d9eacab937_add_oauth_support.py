@@ -1,5 +1,5 @@
 """
-Add oauth support
+Add oauth support.
 
 Revision ID: 64d9eacab937
 Revises: 58f2693de313
@@ -23,6 +23,7 @@ def upgrade():
       sa.Column('lms_guid', sa.String, index=True),
     )
 
+
     op.create_table(
       'tokens',
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
@@ -32,6 +33,7 @@ def upgrade():
       sa.Column('user_id', sa.Integer),
       sa.Column('created', sa.TIMESTAMP, default=datetime.utcnow)
     )
+
 
     op.create_table(
       'oauth_state',
@@ -44,3 +46,4 @@ def upgrade():
 
 def downgrade():
     pass
+
