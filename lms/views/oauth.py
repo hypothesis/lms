@@ -10,16 +10,16 @@ from lms.models.oauth_state import find_by_state
 import json
 from lms.views.content_item_selection import content_item_form
 
-client_id = "43460000000000123"
-client_secret = "TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOeLogm3sj0ESxCxlsxTSaDAObOK46XEZ84"
 authorization_base_url = 'https://atomicjolt.instructure.com/login/oauth2/auth'
 token_url = 'https://atomicjolt.instructure.com/login/oauth2/token'
-redirect_uri = 'https://8b608e88.ngrok.io/canvas_oauth_callback'
 
 import pyramid.httpexceptions as exc
 
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
 def canvas_oauth_callback(request):
+  client_id = request.registry.settings['oauth.client_id']
+  client_secret = request.registry.settings['oauth.client_secret']
+
   state = request.params['state']
   # TODO handle no state
   github = OAuth2Session(client_id, state=state)

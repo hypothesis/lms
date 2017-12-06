@@ -15,7 +15,7 @@ import json
 @authorize_lms(
  authorization_base_url = 'https://atomicjolt.instructure.com/login/oauth2/auth',
  token_url = 'https://atomicjolt.instructure.com/login/oauth2/token',
- redirect_uri = 'https://ff589d89.ngrok.io/canvas_oauth_callback'
+ redirect_uri = 'https://localhost:8001/canvas_oauth_callback'
 )
 def content_item_selection(request, _, user=None):
     """
