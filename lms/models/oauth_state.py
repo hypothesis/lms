@@ -17,10 +17,6 @@ def find_by_state(session, state):
   return session.query(OauthState).filter(
     OauthState.guid == state).one_or_none()
 
-def is_valid_token(token):
-    # if exists and expire time is not past
-    return False
-
 def find_or_create_from_user(session, state, user, auth_done_url, lti_params):
     existing_state = find_by_state(session, state)
     if(existing_state == None):
