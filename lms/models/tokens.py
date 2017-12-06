@@ -14,9 +14,6 @@ class Token(BASE):
     user_id = sa.Column(sa.Integer)
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
 
-def find_or_create(session, token, user):
-    pass
-
 def find_token_by_user_id(session, user_id):
     return session.query(Token).filter(Token.user_id == user_id).one_or_none()
 
@@ -34,8 +31,8 @@ def update_user_token(session, new_token, user):
         session.add(new_token)
         return new_token
     
-    token.access_token = new_token.access_token #oauth_resp['access_token']
-    token.refresh_token = new_token.refresh_token #oauth_resp['refresh_token']
-    token.expires_in = new_token.expires_in #oauth_resp['expires_in']
+    token.access_token = new_token.access_token
+    token.refresh_token = new_token.refresh_token
+    token.expires_in = new_token.expires_in
 
     return token
