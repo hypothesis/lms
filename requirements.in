@@ -14,3 +14,4 @@ zope.sqlalchemy
 raven
 PyLTI
 PyJWT
+requests_oauthlib
