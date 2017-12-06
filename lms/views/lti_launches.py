@@ -11,7 +11,6 @@ def can_configure_module_item(roles):
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
-# TODO only do for content item select
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
 @associate_user
