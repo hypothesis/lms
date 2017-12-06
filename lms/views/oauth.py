@@ -1,7 +1,7 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
-from lms.models.tokens import update_user_token
+from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models.oauth_state import find_user_from_state, find_by_state
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
@@ -29,8 +29,8 @@ def canvas_oauth_callback(request):
   oauth_state = find_by_state(request.db, state)
   user = find_user_from_state(request.db, state)
 
-  token = update_user_token(request.db, oauth_resp, user)
-#  return HTTPFound(location=oauth_state.auth_done_url)
+  new_token = build_token_from_oauth_response(oauth_resp)
+  token = update_user_token(request.db, new_token, user)
 
   oauth_state = find_by_state(request.db, request.params['state'])
   lti_params = json.loads(oauth_state.lti_params)

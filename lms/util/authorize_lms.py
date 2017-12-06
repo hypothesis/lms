@@ -5,7 +5,7 @@ from pyramid.view import view_config
 # TODO add as dependency
 from requests_oauthlib import OAuth2Session
 import pyramid.httpexceptions as exc
-from lms.models.oauth_state import OauthState, find_by_state, is_valid_token, find_or_create_from_user
+from lms.models.oauth_state import OauthState, find_by_state, find_or_create_from_user
 import urllib
 import json
 
@@ -28,8 +28,6 @@ def authorize_lms(*args, authorization_base_url,
             lti_params = json.dumps(dict(request.params))
             oauth_state = find_or_create_from_user(request.db, state_guid,
                     user, oauth_done_url, lti_params)
-            if(is_valid_token(token)):
-                return view_function(request, *args, **kwargs)
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator

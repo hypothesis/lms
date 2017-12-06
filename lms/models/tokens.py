@@ -26,15 +26,16 @@ def build_token_from_oauth_response(oauth_resp):
         refresh_token=oauth_resp['refresh_token'],
         expires_in=oauth_resp['expires_in'],
     )
-def update_user_token(session, oauth_resp, user):
+def update_user_token(session, new_token, user):
     token = find_token_by_user_id(session, user.id)
 
     if(token == None):
-        new_token = build_token_from_oauth_response(oauth_resp)
+        new_token.user_id = user.id
         session.add(new_token)
         return new_token
-    token.access_token = oauth_resp['access_token']
-    token.refresh_token = oauth_resp['refresh_token']
-    token.expires_in = oauth_resp['expires_in']
+    
+    token.access_token = new_token.access_token #oauth_resp['access_token']
+    token.refresh_token = new_token.refresh_token #oauth_resp['refresh_token']
+    token.expires_in = new_token.expires_in #oauth_resp['expires_in']
 
     return token
