@@ -13,7 +13,6 @@ import json
 
 token_endpoint = 'login/oauth2/token'
 
-import pyramid.httpexceptions as exc
 
 def build_canvas_token_url(lms_url, token_endpoint):
     return lms_url + '/' + token_endpoint

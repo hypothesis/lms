@@ -38,7 +38,6 @@ def upgrade():
       sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
       sa.Column('guid', sa.String),
       sa.Column('user_id', sa.Integer),
-      sa.Column('auth_done_url', sa.String),
       sa.Column('lti_params', sa.String)
     )
 
