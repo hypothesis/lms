@@ -198,6 +198,8 @@ def lti_launch_request(monkeypatch, pyramid_request):
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
+    pyramid_request.registry.settings['oauth.client_id'] = 'fake'
+    pyramid_request.registry.settings['oauth.client_secret'] = 'fake'
     yield pyramid_request
 
 

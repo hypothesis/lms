@@ -20,6 +20,9 @@ class ApplicationInstance(BASE):
     requesters_email = sa.Column(sa.String(2048))
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
 
+def find_by_oauth_consumer_key(session, key):
+    return session.query(ApplicationInstance).filter(
+      ApplicationInstance.consumer_key == key).one_or_none()
 
 def build_shared_secret():
     """Generate a shared secrect."""

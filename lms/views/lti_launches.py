@@ -40,6 +40,7 @@ def lti_launches(request, jwt, user=None):
             application_instance = get_application_instance(request.db, consumer_key)
             return content_item_form(
                 request,
+                lti_params=request.params,
                 content_item_return_url=request.route_url('module_item_configurations'),
                 lms_url=application_instance.lms_url,
                 jwt=jwt
