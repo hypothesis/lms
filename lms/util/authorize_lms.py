@@ -22,9 +22,6 @@ def build_canvas_redirect_uri(request_url, redirect_endpoint):
 
 def build_canvas_authorization_base_url(lms_url, base_auth_endpoint):
     return lms_url + '/' + base_auth_endpoint
-def build_canvas_token_url(lms_url, token_endpoint):
-    return lms_url + '/' + token_endpoint
-    
 
 def build_oauth_done_url(request, state_guid):
     return request.url + "?state=" + state_guid
@@ -39,11 +36,10 @@ def authorize_lms(*args, authorization_base_endpoint,
 
             application_instance = find_by_oauth_consumer_key(request.db,
                     consumer_key)
-            
+
             authorization_base_url = build_canvas_authorization_base_url(application_instance.lms_url,
                     authorization_base_endpoint)
-            token_url = build_canvas_token_url(application_instance.lms_url,
-                    token_endpoint)
+
             redirect_uri = build_canvas_redirect_uri(request.url,
                     redirect_endpoint)
 
