@@ -14,7 +14,6 @@ import json
 @associate_user
 @authorize_lms(
  authorization_base_endpoint = 'login/oauth2/auth',
- token_endpoint = 'login/oauth2/token',
  redirect_endpoint = 'canvas_oauth_callback'
 )
 def content_item_selection(request, _, user=None):
