@@ -4,7 +4,7 @@ from lms.models.users import User
 
 
 def build_mock_view(assertions):
-    """Build a mock view function decorated by associate_user"""
+    """Build a mock view function decorated by associate_user."""
     @associate_user
     def test_view_function(request, user):
         assertions(request, user)
