@@ -34,7 +34,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
     """
     def decorator(_view_function):
         """Decorate view function."""
-        def wrapper(request, *, user=None):
+        def wrapper(request, *_args, user=None):
             """Redirect user."""
             client_id = request.registry.settings['oauth.client_id']
             consumer_key = request.params['oauth_consumer_key']

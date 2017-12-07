@@ -7,6 +7,7 @@ def associate_user(view_function):
     """Decorate a view function to find a user from the lms user_id guid."""
     def wrapper(request, *args, **kwargs):
         """Look for a user with a matching lms_guid."""
+
         lms_guid = request.params['user_id']
         result = find_by_lms_guid(request.db, lms_guid)
 
