@@ -41,6 +41,9 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
 
             application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
+            if application_instance is None:
+                pass # TODO throw an error
+
             authorization_base_url = build_auth_base_url(application_instance.lms_url,
                                                          authorization_base_endpoint)
 
@@ -50,7 +53,9 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
             authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)
 
             lti_params = json.dumps(dict(request.params))
-            find_or_create_from_user(request.db, state_guid, user, lti_params)
+            oauth_state = find_or_create_from_user(request.db, state_guid, user, lti_params)
+            if oauth_state is None:
+                pass # TODO Throw an error
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator
