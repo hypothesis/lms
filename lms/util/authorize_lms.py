@@ -8,22 +8,19 @@ from lms.models.application_instance import find_by_oauth_consumer_key
 
 
 def build_redirect_uri(request_url, redirect_endpoint):
-    """
-    Build redirect uri from the current request uri and the provided
-    redirect endpoint
-    """
+    """Build a redirect uri back to the app."""
     req_url = urllib.parse.urlparse(request_url)
     return req_url.scheme + "://" + req_url.netloc + "/" + redirect_endpoint
 
 
 def build_auth_base_url(lms_url, base_auth_endpoint):
-    """Build base oauth url from lms_url and the provided base_auth_endpoint"""
+    """Build base oauth url from lms_url and the provided base_auth_endpoint."""
     return lms_url + '/' + base_auth_endpoint
 
 
 def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
     """
-    Decorator to support making an oauth request to an lms during an lti launch
+    Decorate view function to support making an oauth requestduring an lti launch.
 
     Usage:
     @authorize_lms(
@@ -36,13 +33,9 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
         ...
     """
     def decorator(_view_function):
-        """
-        Decorate view function
-        """
+        """Decorate view function."""
         def wrapper(request, *, user=None):
-            """
-            Redirect user
-            """
+            """Redirect user."""
             client_id = request.registry.settings['oauth.client_id']
             consumer_key = request.params['oauth_consumer_key']
 

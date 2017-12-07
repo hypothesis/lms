@@ -4,7 +4,7 @@ from lms.models.users import find_by_lms_guid, build_from_lti_params
 
 # TODO add tests
 def associate_user(view_function):
-    """Decorator to find a user from the lms user_id guid."""
+    """Decorate a view function to find a user from the lms user_id guid."""
     def wrapper(request, *args, **kwargs):
         """Look for a user with a matching lms_guid."""
         lms_guid = request.params['user_id']

@@ -13,13 +13,13 @@ def get_application_instance(session, consumer_key):
 
 
 def default_get_secret(request, consumer_key):
-    """Default method to retrieve the lti secret given"""
+    """Retrieve the lti secret given."""
     instance = get_application_instance(request.db, consumer_key)
     return instance.shared_secret
 
 
 def default_get_lti_launch_params(request):
-    """Default method to retrieve the lti launch params."""
+    """Retrieve the lti launch params."""
     return dict(request.params)
 
 

@@ -1,6 +1,7 @@
-from lms.db import BASE
 from datetime import datetime
+from lms.db import BASE
 import sqlalchemy as sa
+
 
 class Token(BASE):
     """Class to represent an lms api token."""
@@ -21,7 +22,7 @@ def find_token_by_user_id(session, user_id):
 
 
 def build_token_from_oauth_response(oauth_resp):
-    """Builds a token from an oauth response."""
+    """Build a token from an oauth response."""
     return Token(
         access_token=oauth_resp['access_token'],
         refresh_token=oauth_resp['refresh_token'],
@@ -31,7 +32,7 @@ def build_token_from_oauth_response(oauth_resp):
 
 def update_user_token(session, new_token, user):
     """
-    Update a user token
+    Update a user token.
 
     Either associate the provided token with
     the provided user or update the user's token
