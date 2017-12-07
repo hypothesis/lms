@@ -1,9 +1,9 @@
 import urllib
-# import json
+import json
 
 from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
-# from lms.models.oauth_state import find_by_state, find_or_create_from_user
+from lms.models.oauth_state import find_or_create_from_user
 from lms.models.application_instance import find_by_oauth_consumer_key
 
 
@@ -39,7 +39,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
         """
         Decorate view function
         """
-        def wrapper(request, *, _user=None):
+        def wrapper(request, *, user=None):
             """
             Redirect user
             """
@@ -54,14 +54,10 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
             redirect_uri = build_redirect_uri(request.url, redirect_endpoint)
 
             oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)
-            authorization_url, _state_guid = oauth_session.authorization_url(authorization_base_url)
+            authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)
 
-            # TODO - we should be able to check the token to see if it is
-            # still valid, if so we should not oauth again
-            # token = find_by_state(request.db, state_guid)
-            # lti_params = json.dumps(dict(request.params))
-            # oauth_state = find_or_create_from_user(request.db, state_guid,
-            #        user, lti_params)
+            lti_params = json.dumps(dict(request.params))
+            find_or_create_from_user(request.db, state_guid, user, lti_params)
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator
