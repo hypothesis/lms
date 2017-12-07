@@ -16,7 +16,7 @@ def can_configure_module_item(roles):
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
 @associate_user
-def lti_launches(request, jwt, _user=None):
+def lti_launches(request, jwt, user=None):
     """
     Primary lms launch route. There are 3 views that could be rendered.
 
