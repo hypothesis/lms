@@ -6,6 +6,7 @@ from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models.oauth_state import find_user_from_state, find_by_state
 from lms.util.lti_launch import get_application_instance
 from lms.views.content_item_selection import content_item_form
+from lms.util.canvas_api import CanvasApi, GET
 
 
 def build_canvas_token_url(lms_url):
@@ -36,10 +37,22 @@ def canvas_oauth_callback(request):
     new_token = build_token_from_oauth_response(oauth_resp)
     update_user_token(request.db, new_token, user)
 
+    # Request canvas files
+    canvas_api = CanvasApi(
+      new_token.access_token,
+      application_instance.lms_url
+    )
+
+    response = canvas_api.get_canvas_course_files(1773, {})
+
+
+    data = response.json()
+
     return content_item_form(
         request,
         lti_params=lti_params,
         lms_url=application_instance.lms_url,
         content_item_return_url=lti_params['content_item_return_url'],
+        canvas_files=data,
         jwt=None
     )

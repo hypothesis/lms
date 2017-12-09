@@ -21,11 +21,30 @@
     </div>
   </main>
 </form>
+<button class="btn btn--gray" style="margin:1rem;" onclick="enableCanvasFileList()">Use Canvas Files</button>
+<div id="canvas_files" style="display: none;">
+  <h3 class="modal-text">Canvas File Picker</h3>
+  <ul>
+    {% for file in canvas_files %}
+        <li class="modal-text">{{ file.display_name }}</li>
+    {% endfor %}
+  </ul>
+</div>
 {% endblock %}
 
 
 {% block scripts %}
 <script type="text/javascript">
+  // Support canvas file list
+  function enableCanvasFileList() {
+    var el = document.getElementById('canvas_files')
+    if(el.style.display == "initial") {
+      el.style.display = "none"
+    } else {
+      el.style.display = "initial"
+    }
+  }
+
   // TODO: handle form validation!
     var state = {
       selectedDocId: null,
@@ -35,7 +54,6 @@
       driveApiReady: false,
       oauthToken: null,
     };
-
 
   function addHttp(url) {
     if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {

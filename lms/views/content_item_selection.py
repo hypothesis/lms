@@ -33,10 +33,12 @@ def content_item_selection(request, _, _user=None):
 
 @view_renderer(
     renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
-def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
+def content_item_form(request, lti_params, lms_url, content_item_return_url,
+        canvas_files=[],jwt=None):
     return {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
+        'canvas_files': canvas_files,
         'form_fields': {
             'lti_message_type': 'ContentItemSelection',
             'lti_version': lti_params['lti_version'],
