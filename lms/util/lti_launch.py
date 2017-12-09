@@ -1,40 +1,71 @@
-"""Provide a decorator that add lti validation capabilities to a pyramid view."""
+"""Decorator that add lti validation capabilities to a pyramid view."""
 import jwt
 import pylti.common
 from lms.models import application_instance as ai
 from lms.config.settings import env_setting
 
 
-def get_application_instance(db, consumer_key):
-    return db.query(ai.ApplicationInstance).filter(
+def get_application_instance(session, consumer_key):
+    """Find an application instance from the application consumer key."""
+    return session.query(ai.ApplicationInstance).filter(
         ai.ApplicationInstance.consumer_key == consumer_key
     ).one()
 
 
-def lti_launch(view_function):
+def default_get_secret(request, consumer_key):
+    """Retrieve the lti secret given."""
+    instance = get_application_instance(request.db, consumer_key)
+    return instance.shared_secret
+
+
+def default_get_lti_launch_params(request):
+    """Retrieve the lti launch params."""
+    return dict(request.params)
+
+
+def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
+               get_secret=default_get_secret):
     """
-    Handle the verification of an lms launch.
+    Initialize decorator.
 
-    You should add this decorator before (logically) the route decorator. For example:
-
-    @view_config(...)
-    @lti_launch
-    def some_view(request):
-    ...
+    Allow caller to supply methods to customize extracting lti launch
+    params and retrieving lti secret
     """
-    def wrapper(request):
-        """Handle the lms validation."""
-        consumer_key = request.params["oauth_consumer_key"]
-        instance = get_application_instance(request.db, consumer_key)
+    def decorator(view_function):
+        """
+        Handle the verification of an lms launch.
 
-        consumers = {}
+        You should add this decorator before (logically) the route decorator.
+        For example:
 
-        consumers[consumer_key] = {"secret": instance.shared_secret}
+        @view_config(...)
+        @lti_launch
+        def some_view(request):
+        ...
+        """
+        def wrapper(request):
+            """Handle the lms validation."""
+            lti_params = get_lti_launch_params(request)
+            consumer_key = lti_params['oauth_consumer_key']
+            shared_secret = get_secret(request, consumer_key)
 
-        # TODO rescue from an invalid lms launch
-        pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
-        data = {'user_id': request.params['user_id'], 'roles': request.params['roles']}
-        jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
-        return view_function(request, jwt_token)
+            consumers = {}
 
-    return wrapper
+            consumers[consumer_key] = {"secret": shared_secret}
+            # TODO rescue from an invalid lms launch
+            pylti.common.verify_request_common(
+                consumers,
+                request.url,
+                request.method,
+                dict(request.headers),
+                dict(lti_params))
+            data = {
+                'user_id': lti_params['user_id'],
+                'roles': lti_params['roles']
+            }
+            jwt_token = jwt.encode(data,
+                                   env_setting('JWT_SECRET'),
+                                   'HS256').decode('utf-8')
+            return view_function(request, jwt_token)
+        return wrapper
+    return decorator

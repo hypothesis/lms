@@ -4,6 +4,7 @@ from lms.util.view_renderer import view_renderer
 from lms.util.lti_launch import get_application_instance
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
+from lms.util.associate_user import associate_user
 
 
 def can_configure_module_item(roles):
@@ -13,8 +14,9 @@ def can_configure_module_item(roles):
 
 
 @view_config(route_name='lti_launches', request_method='POST')
-@lti_launch
-def lti_launches(request, jwt):
+@lti_launch()
+@associate_user
+def lti_launches(request, jwt, user=None):
     """
     Primary lms launch route. There are 3 views that could be rendered.
 
@@ -39,6 +41,7 @@ def lti_launches(request, jwt):
             application_instance = get_application_instance(request.db, consumer_key)
             return content_item_form(
                 request,
+                lti_params=request.params,
                 content_item_return_url=request.route_url('module_item_configurations'),
                 lms_url=application_instance.lms_url,
                 jwt=jwt
