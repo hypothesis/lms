@@ -1,11 +1,9 @@
 alembic
-requests
 newrelic
 pyramid
 pyramid_tm
 pyramid_jinja2
-filelock
-requests_oauthlib
+pyramid_services
 gunicorn
 sqlalchemy
 psycopg2
