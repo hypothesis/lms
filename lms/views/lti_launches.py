@@ -50,7 +50,7 @@ def lti_launches(request, jwt):
 
 
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
-def _view_document(_, document_url, jwt):
+def _view_document(request, document_url, jwt):
     return {
         'hypothesis_url': env_setting('VIA_URL') + document_url,
         'jwt': jwt

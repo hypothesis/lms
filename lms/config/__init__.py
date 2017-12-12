@@ -27,6 +27,7 @@ def configure(settings=None):
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         'via_url': env_setting('VIA_URL', required=True),
+        'jwt_secret': env_setting('JWT_SECRET', required=True)
     }
 
     database_url = env_setting('DATABASE_URL')
