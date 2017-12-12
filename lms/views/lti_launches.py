@@ -1,3 +1,5 @@
+import sqlalchemy
+import logging
 from pyramid.view import view_config
 
 from lms.models import ApplicationInstance
@@ -30,6 +32,8 @@ def lti_launches(request, jwt):
     3. If a teacher launches and no document has been configured, ict renders a form that allows
     them to configure the document.
     """
+    log = logging.getLogger(__name__)
+
     if 'url' not in request.params:
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == request.params[
@@ -54,18 +58,21 @@ def lti_launches(request, jwt):
             )
         return _unauthorized(request)
 
-    # try:
-    query = request.db.query(ApplicationInstance).filter(ApplicationInstance.consumer_key == request.params['oauth_consumer_key'])
-    application_instance_id = query.one().id
-    context_id = request.params['context_id']
-    lti_launch_instance = LtiLaunches(
-        context_id=context_id,
-        application_instance_id=application_instance_id
-    )
-    request.db.add(lti_launch_instance)
-    # except:
-    #     # TODO: catch specific exceptions
-    #     exit("Failed to find exactly 1 instance!")
+    try:
+        query = request.db.query(ApplicationInstance).filter(
+            ApplicationInstance.consumer_key == request.params[
+                'oauth_consumer_key'])
+        application_instance_id = query.one().id
+        context_id = request.params['context_id']
+        lti_launch_instance = LtiLaunches(
+            context_id=context_id,
+            application_instance_id=application_instance_id
+        )
+        request.db.add(lti_launch_instance)
+
+    except Exception as e:
+        # Never prevent a launch because of logging problem.
+        log.error(f"Failed to log lti launch: {e}")
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
