@@ -24,14 +24,6 @@ def configure(settings=None):
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
     env_settings = {
-        'lms_server': env_setting('LMS_SERVER', required=True),
-        'lms_credentials_url': env_setting('LMS_CREDENTIALS_URL',
-                                           required=True),
-        # The origin that this app should use when sending postMessage()
-        # requests to the Hypothesis client (e.g. "https://hypothes.is" in prod
-        # or "http://localhost:5000" in dev).
-        'client_origin': env_setting('CLIENT_ORIGIN', required=True),
-
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         'via_url': env_setting('VIA_URL', required=True),

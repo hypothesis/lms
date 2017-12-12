@@ -119,9 +119,7 @@ def pyramid_config(pyramid_request):
     """
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
-        'lms_server': 'http://TEST_LMS_SERVER.com',
         'sqlalchemy.url': TEST_DATABASE_URL,
-        'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
         'username': 'report_viewers',
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
