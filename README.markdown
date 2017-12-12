@@ -79,16 +79,18 @@ You will need:
    **Obtaining Google Credentials:**
 
        * Sign in to Google Developer Console
+         [here](https://console.developers.google.com/apis/)
 
        * Create a project (Use this id as GOOGLE_APP_ID)
 
-       * Navigate to Apis and Services Tab
+       * Navigate to Apis and Services Tab, then select the "Credentials"
+         tab from the left navigation.
 
        * Create an Api Key (Use this as GOOGLE_DEVELOPER_KEY)
 
        * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
 
-       * Navigate to the Library tab
+       * Navigate to the Library tab in the left navigation
 
        * Find and enable both the google drive api and google picker api (Each
          api page will have a large blue "enable" button)
@@ -319,9 +321,10 @@ consumer key and secret. Make note of these.
 
 4. Navigate to the settings of a course in canvas.
 
-5. Navigate to the Apps tab, then the App Configurations.
+5. Navigate to the Apps tab, then click the "View App Configurations" button.
 
-6. Add an application, and select the 'Paste XML' option from the dropdown.
+6. Add an application with the "+ App" button, and then select the 'Paste XML'
+option from the dropdown in the "Add App" modal.
 
 7. Copy your consumer key and secret into the canvas form you received
 previously from the welcome page.
