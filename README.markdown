@@ -76,12 +76,23 @@ You will need:
    export GOOGLE_APP_ID="Google Project Id"
    ```
 
-   **Obtaining Google Credentials:** 
+   **Obtaining Google Credentials:**
+
        * Sign in to Google Developer Console
+
        * Create a project (Use this id as GOOGLE_APP_ID)
+
        * Navigate to Apis and Services Tab
+
        * Create an Api Key (Use this as GOOGLE_DEVELOPER_KEY)
+
        * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
+
+       * Navigate to the Library tab
+
+       * Find and enable both the google drive api and google picker api (Each
+         api page will have a large blue "enable" button)
+
 
 4.   First create and activate a Python virtual
    environment for the Canvas app
