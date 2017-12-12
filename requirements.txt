@@ -5,7 +5,6 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 alembic==0.9.6
-contextlib2==0.5.5        # via raven
 gunicorn==19.7.1
 httplib2==0.10.3          # via oauth2, pylti
 hupper==1.0               # via pyramid
@@ -26,7 +25,7 @@ pyramid-tm==2.2
 pyramid==1.9.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
-raven==6.3.0
+raven==6.4.0
 repoze.lru==0.7           # via pyramid
 six==1.11.0               # via pylti, python-dateutil
 sqlalchemy==1.1.15
