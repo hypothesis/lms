@@ -6,6 +6,7 @@ from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.config import env_setting
 
+
 def can_configure_module_item(roles):
     lower_cased_roles = roles.lower()
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
