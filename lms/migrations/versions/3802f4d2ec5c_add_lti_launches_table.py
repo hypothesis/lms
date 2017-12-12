@@ -21,9 +21,9 @@ def upgrade():
         'lti_launches',
         sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
         sa.Column('created', sa.TIMESTAMP, default=datetime.utcnow),
-        sa.Column('context_id', sa.Integer),
+        sa.Column('context_id', sa.String),
         sa.Column(
-            'application_instances_id',
+            'application_instance_id',
             sa.Integer,
             sa.ForeignKey('application_instances.id'))
     )
