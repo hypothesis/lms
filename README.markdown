@@ -307,6 +307,36 @@ steps to create a new migration script for h are:
    $ alembic -c conf/alembic.ini upgrade +1
    ```
 
+### Installing Dev Application In Canvas
+
+1. Start your dev server as described above.
+
+2. Navigate to `<dev-url>/welcome` in your browser.
+
+3. Provide your canvas domain and email in the form.
+After submitting the form you should be provided with a
+consumer key and secret. Make note of these.
+
+4. Navigate to the settings of a course in canvas.
+
+5. Navigate to the Apps tab, then the App Configurations.
+
+6. Add an application, and select the 'Paste XML' option from the dropdown.
+
+7. Copy your consumer key and secret into the canvas form you received
+previously from the welcome page.
+
+8. Navigate to `<dev-url>/config_xml` in your browser.
+
+9. Copy the xml into the XML Configuration portion of the canvas form.
+
+10. Submit the form, and your app should be installed.
+
+11. Access your app by adding a module item to a module in your course.
+Select an External Tool module item, and select the 'Hypothesis' tool.
+You should launch the hypothesis lti application, and be allowed to
+choose a file.
+
 # Application Instances Reports
 
 While running the webserver, to see a list of application instances stored in
