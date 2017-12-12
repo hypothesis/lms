@@ -1,4 +1,7 @@
 from pyramid.view import view_config
+
+from lms.models import ApplicationInstance
+from lms.models.lti_launches import LtiLaunches
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.lti_launch import get_application_instance
@@ -29,21 +32,40 @@ def lti_launches(request, jwt):
     """
     if 'url' not in request.params:
         config = request.db.query(ModuleItemConfiguration).filter(
-            ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
-            ModuleItemConfiguration.tool_consumer_instance_guid == request.params['tool_consumer_instance_guid']
+            ModuleItemConfiguration.resource_link_id == request.params[
+                'resource_link_id'] and
+            ModuleItemConfiguration.tool_consumer_instance_guid ==
+            request.params['tool_consumer_instance_guid']
         )
         if config.count() >= 1:
-            return _view_document(request, document_url=config.one().document_url, jwt=jwt)
+            return _view_document(request,
+                                  document_url=config.one().document_url,
+                                  jwt=jwt)
         elif can_configure_module_item(request.params['roles']):
             consumer_key = request.params['oauth_consumer_key']
-            application_instance = get_application_instance(request.db, consumer_key)
+            application_instance = get_application_instance(request.db,
+                                                            consumer_key)
             return content_item_form(
                 request,
-                content_item_return_url=request.route_url('module_item_configurations'),
+                content_item_return_url=request.route_url(
+                    'module_item_configurations'),
                 lms_url=application_instance.lms_url,
                 jwt=jwt
             )
         return _unauthorized(request)
+
+    # try:
+    query = request.db.query(ApplicationInstance).filter(ApplicationInstance.consumer_key == request.params['oauth_consumer_key'])
+    application_instance_id = query.one().id
+    context_id = request.params['context_id']
+    lti_launch_instance = LtiLaunches(
+        context_id=context_id,
+        application_instance_id=application_instance_id
+    )
+    request.db.add(lti_launch_instance)
+    # except:
+    #     # TODO: catch specific exceptions
+    #     exit("Failed to find exactly 1 instance!")
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
