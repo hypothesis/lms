@@ -5,14 +5,15 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 alembic==0.9.6
-certifi==2017.11.5      # via requests
+certifi==2017.11.5        # via requests
 chardet==3.0.4            # via requests
+contextlib2==0.5.5        # via raven
 filelock==2.0.13
 gunicorn==19.7.1
 httplib2==0.10.3          # via oauth2, pylti
 hupper==1.0               # via pyramid
 idna==2.6                 # via requests
-jinja2==2.10             # via pyramid-jinja2
+jinja2==2.10              # via pyramid-jinja2
 mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
 newrelic==2.98.0.81
@@ -25,7 +26,6 @@ psycopg2==2.7.3.2
 pyjwt==1.5.3
 pylti==0.5.1
 pyramid-jinja2==2.7
-pyramid-services==1.1
 pyramid-tm==2.2
 pyramid==1.9.1
 python-dateutil==2.6.1    # via alembic
@@ -42,5 +42,5 @@ urllib3==1.22             # via requests
 venusian==1.1.0           # via pyramid
 webob==1.7.4              # via pyramid
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.3     # via pyramid, pyramid-services, transaction, zope.sqlalchemy
+zope.interface==4.4.3     # via pyramid, transaction, zope.sqlalchemy
 zope.sqlalchemy==0.7.7

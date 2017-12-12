@@ -135,14 +135,12 @@ def pyramid_config(pyramid_request):
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_jinja2')
-        config.include('pyramid_services')
         config.include('pyramid_tm')
 
         config.include('lms.sentry')
         config.include('lms.models')
         config.include('lms.db')
         config.include('lms.routes')
-        config.include('lms.services')
 
         config.add_static_view(name='export', path='lms:static/export')
         config.add_static_view(name='static', path='lms:static')
@@ -150,11 +148,6 @@ def pyramid_config(pyramid_request):
         apply_request_extensions(pyramid_request)
 
         yield config
-
-
-@pytest.fixture
-def auth_data_svc(pyramid_request):
-    return pyramid_request.find_service(name='auth_data')
 
 
 @pytest.fixture(autouse=True)
