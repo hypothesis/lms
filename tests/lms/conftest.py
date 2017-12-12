@@ -149,13 +149,6 @@ def pyramid_config(pyramid_request):
 
         apply_request_extensions(pyramid_request)
 
-#        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
-#        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
-#        auth_data_svc.get_lms_secret.return_value = 'TEST_CLIENT_SECRET'
-#        auth_data_svc.get_lms_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
-#        auth_data_svc.get_lms_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
-#        config.register_service(auth_data_svc, name='auth_data')
-
         yield config
 
 
