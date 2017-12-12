@@ -4,7 +4,7 @@ from lms.util.view_renderer import view_renderer
 from lms.util.lti_launch import get_application_instance
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
-
+from lms.config import env_setting
 
 def can_configure_module_item(roles):
     lower_cased_roles = roles.lower()
@@ -51,7 +51,7 @@ def lti_launches(request, jwt):
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(_, document_url, jwt):
     return {
-        'hypothesis_url': 'https://via.hypothes.is/' + document_url,
+        'hypothesis_url': env_setting('VIA_URL') + document_url,
         'jwt': jwt
     }
 

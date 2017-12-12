@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.authenticate import authenticate
+from lms.config import env_setting
 
 
 @view_config(route_name='module_item_configurations', renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2', request_method='POST')
@@ -14,6 +15,6 @@ def create_module_item_configuration(request, _):
     request.db.add(instance)
 
     return {
-        'hypothesis_url': 'https://via.hypothes.is/' + instance.document_url,
+        'hypothesis_url': env_setting('VIA_URL') + instance.document_url,
         'jwt_token': request.params['jwt_token']
     }

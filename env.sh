@@ -1,2 +1,2 @@
-export VIA_URL="http://localhost:9080"
+export VIA_URL="https://via.hypothes.is/"
 
