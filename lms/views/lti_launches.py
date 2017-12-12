@@ -59,9 +59,9 @@ def lti_launches(request, jwt):
         return _unauthorized(request)
 
     try:
+        lti_key = request.params['oauth_consumer_key']
         query = request.db.query(ApplicationInstance).filter(
-            ApplicationInstance.consumer_key == request.params[
-                'oauth_consumer_key'])
+            ApplicationInstance.consumer_key == lti_key)
         application_instance_id = query.one().id
         context_id = request.params['context_id']
         lti_launch_instance = LtiLaunches(
@@ -72,7 +72,7 @@ def lti_launches(request, jwt):
 
     except Exception as e:
         # Never prevent a launch because of logging problem.
-        log.error(f"Failed to log lti launch: {e}")
+        log.error(f"Failed to log lti launch for lti key '{lti_key}': {e}")
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
