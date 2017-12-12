@@ -2,7 +2,6 @@ import logging
 
 from pyramid.view import view_config
 
-from lms.models import ApplicationInstance
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.lti_launch import get_application_instance
@@ -61,13 +60,10 @@ def lti_launches(request, jwt):
     lti_key = None
     try:
         lti_key = request.params['oauth_consumer_key']
-        query = request.db.query(ApplicationInstance).filter(
-            ApplicationInstance.consumer_key == lti_key)
-        application_instance_id = query.one().id
         context_id = request.params['context_id']
         lti_launch_instance = LtiLaunches(
             context_id=context_id,
-            application_instance_id=application_instance_id
+            lti_key=lti_key
         )
         request.db.add(lti_launch_instance)
 

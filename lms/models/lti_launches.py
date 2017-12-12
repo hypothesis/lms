@@ -11,6 +11,4 @@ class LtiLaunches(BASE):
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
     context_id = sa.Column(sa.String)
-    application_instance_id = sa.Column(
-        sa.Integer,
-        sa.ForeignKey('application_instances.id'))
+    lti_key = sa.Column(sa.String)
