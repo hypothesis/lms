@@ -58,6 +58,7 @@ def lti_launches(request, jwt):
             )
         return _unauthorized(request)
 
+    lti_key = None
     try:
         lti_key = request.params['oauth_consumer_key']
         query = request.db.query(ApplicationInstance).filter(
