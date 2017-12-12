@@ -1,5 +1,5 @@
 """
-Add lti_launches table
+Add lti_launches table.
 
 Revision ID: 3802f4d2ec5c
 Revises: 58f2693de313

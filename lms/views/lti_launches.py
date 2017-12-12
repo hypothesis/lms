@@ -1,13 +1,13 @@
-import sqlalchemy
 import logging
+
 from pyramid.view import view_config
 
 from lms.models import ApplicationInstance
 from lms.models.lti_launches import LtiLaunches
+from lms.models.module_item_configuration import ModuleItemConfiguration
+from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
-from lms.util.lti_launch import get_application_instance
-from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 
 
@@ -71,8 +71,9 @@ def lti_launches(request, jwt):
         )
         request.db.add(lti_launch_instance)
 
+    # Never prevent a launch because of logging problem.
+    # pylint: disable=broad-except
     except Exception as e:
-        # Never prevent a launch because of logging problem.
         log.error(f"Failed to log lti launch for lti key '{lti_key}': {e}")
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)

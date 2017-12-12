@@ -4,7 +4,7 @@ from lms.db import BASE
 
 
 class LtiLaunches(BASE):
-    """Track each LTI launch"""
+    """Track each LTI launch."""
 
     __tablename__ = 'lti_launches'
 
@@ -14,4 +14,3 @@ class LtiLaunches(BASE):
     application_instance_id = sa.Column(
         sa.Integer,
         sa.ForeignKey('application_instances.id'))
-
