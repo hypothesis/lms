@@ -28,7 +28,7 @@ class TestSecurityPassword(object):
 
 class TestSecurityGroupFinder:
     def test_find_group(self, pyramid_request):
-        userid = 'report_viewers'
+        userid = 'report_viewer'
         groups = security.groupfinder(userid, pyramid_request)
 
         assert groups is not None
