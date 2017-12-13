@@ -18,8 +18,8 @@ node {
 
         try {
             testApp(image: img, runArgs: "-u root -e TEST_DATABASE_URL=${databaseUrl}") {
-                sh 'apk-install build-base postgresql-dev python-dev'
-                sh 'pip install -q tox'
+                sh 'apk-install build-base postgresql-dev python3-dev'
+                sh 'pip3 install -q tox'
                 sh 'cd /var/lib/lms && tox'
             }
         } finally {
@@ -31,20 +31,6 @@ node {
         stage('release') {
             releaseApp(image: img)
         }
-    }
-}
-
-onlyOnMaster {
-    milestone()
-    stage('qa deploy') {
-        deployApp(image: img, app: 'lms', env: 'qa')
-    }
-
-    milestone()
-    stage('prod deploy') {
-        input(message: "Deploy to prod?")
-        milestone()
-        deployApp(image: img, app: 'lms', env: 'prod')
     }
 }
 
