@@ -31,6 +31,10 @@ def configure(settings=None):
         'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
         'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
         'google_app_id': env_setting('GOOGLE_APP_ID'),
+        'lms_secret': env_setting('LMS_SECRET'),
+        'hashed_pw': env_setting('HASHED_PW'),
+        'salt': env_setting('SALT'),
+        'username': env_setting('USERNAME'),
     }
 
     database_url = env_setting('DATABASE_URL')
