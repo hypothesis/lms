@@ -4,7 +4,7 @@ from lms.views import authentication
 class TestAuthentication(object):
     def test_login(self, pyramid_request):
         pyramid_request.params = {
-            'username': 'report_viewers',
+            'username': 'report_viewer',
             'password': 'asdf',
             'form.submitted': True,
         }
@@ -17,7 +17,7 @@ class TestAuthentication(object):
 
     def test_login_redirected_to_reports(self, pyramid_request):
         pyramid_request.params = {
-            'username': 'report_viewers',
+            'username': 'report_viewer',
             'password': 'asdf',
             'form.submitted': True,
         }
@@ -30,7 +30,7 @@ class TestAuthentication(object):
 
     def test_failed_login(self, pyramid_request):
         pyramid_request.params = {
-            'username': 'report_viewers',
+            'username': 'report_viewer',
             'password': 'wrongpassword',
             'form.submitted': True,
         }
@@ -40,7 +40,7 @@ class TestAuthentication(object):
 
         assert response['message'] == 'Failed login'
         assert response['url'] == 'http://example.com/login'
-        assert response['username'] == 'report_viewers'
+        assert response['username'] == 'report_viewer'
 
     def test_login_not_submitted(self, pyramid_request):
         sut = authentication.AuthenticationViews(pyramid_request)
@@ -53,7 +53,7 @@ class TestAuthentication(object):
 
     def test_logout(self, pyramid_request):
         pyramid_request.params = {
-            'username': 'report_viewers',
+            'username': 'report_viewer',
             'password': 'asdf',
             'form.submitted': True,
         }

@@ -2,7 +2,6 @@
 import jwt
 import pylti.common
 from lms.models import application_instance as ai
-from lms.config.settings import env_setting
 
 
 def get_application_instance(db, consumer_key):
@@ -34,7 +33,7 @@ def lti_launch(view_function):
         # TODO rescue from an invalid lms launch
         pylti.common.verify_request_common(consumers, request.url, request.method, dict(request.headers), dict(request.params))
         data = {'user_id': request.params['user_id'], 'roles': request.params['roles']}
-        jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+        jwt_token = jwt.encode(data, request.registry.settings['jwt_secret'], 'HS256').decode('utf-8')
         return view_function(request, jwt_token)
 
     return wrapper

@@ -88,7 +88,6 @@ def pyramid_request():
 
     """
     pyramid_request = testing.DummyRequest()
-
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
         constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',
@@ -121,9 +120,14 @@ def pyramid_config(pyramid_request):
     settings = {
         'sqlalchemy.url': TEST_DATABASE_URL,
         'via_url': 'http://TEST_VIA_SERVER.is',
-        'username': 'report_viewers',
+        'jwt_secret': 'test_secret',
+        'google_client_id': 'fake_client_id',
+        'google_developer_key': 'fake_developer_key',
+        'google_app_id': 'fake_app_id',
+        'lms_secret': 'J4hd4epmhDGUibjsiUtKaLbyDEtUis8qGMFnQUJlDtYrQB1m2SM0j2oRpCXhSp7K',
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
         'salt': 'fbe82ee0da72b77b',
+        'username': 'report_viewer',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
