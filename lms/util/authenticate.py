@@ -9,7 +9,7 @@ def authenticate(view_function):
         """Validate the JWT signature."""
         try:
             decoded_jwt = jwt.decode(request.params['jwt_token'],
-                    request.registry.settings['jwt_secret'], algorithms=['HS256'])
+                                     request.registry.settings['jwt_secret'], algorithms=['HS256'])
         except (jwt.exceptions.DecodeError, KeyError):
             return Response('<p>Error: Unauthenticated Request</p>')
 
