@@ -1,5 +1,4 @@
 from pyramid.view import view_config
-from lms.config import env_setting
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
