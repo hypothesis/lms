@@ -10,8 +10,8 @@ RUN addgroup -S lms \
   && adduser -S -G lms -h /var/lib/lms lms
 WORKDIR /var/lib/lms
 
-# Copy packaging
-COPY README.markdown requirements.txt ./
+# Copy minimal data to allow installation of dependencies.
+COPY requirements.txt ./
 
 # Install build deps, build, and then clean up.
 RUN apk-install --virtual build-deps \
