@@ -71,6 +71,17 @@ You will need:
    export GOOGLE_CLIENT_ID="Google Oauth Client ID"
    export GOOGLE_DEVELOPER_KEY="Google Api Key"
    export GOOGLE_APP_ID="Google Project Id"
+   
+   # The secret should be different for each pyramid instance
+   # It should be a 64 character (128 bit) string
+   # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
+   export LMS_SECRET="Unique string used for encryption"
+
+   # (Use lms/util/get_password_hash.py to compute the hash of a password)
+   export HASHED_PW="my_hashed_password"
+   export SALT="my_salt"
+   export USERNAME="my_desired_report_username"
+
    ```
 
    **Obtaining Google Credentials:**
@@ -340,21 +351,19 @@ choose a file.
 # Application Instances Reports
 
 While running the webserver, to see a list of application instances stored in
- the database, navigate to `/reports`. You will be redirected to a login page, 
- the username is `report_viewer` and the password is `asdf`
+ the database, navigate to `/reports`. You will be redirected to a login page.
  
- The username and password hash are stored in `development.ini`. 
- 
- WARNING: Do not commit the production.ini to the git repository. You do not 
-  want your `lms.secret` or `hashed_pw` stored in a public repository. 
- 
+ The username and password hash are passed as environment variables
+ `USERNAME` and `HASHED_PW`
+
+
  ### Changing the password ###
  
  To change the password, you will need to compute a new hash, then replace the 
-  hash and salt in the development.ini. 
+  `HASH` and `SALT` environment variables.
  
  To help compute the hash you can use the command line script 
   `lms/utilget_get_password_hash.py`. You will need to store the salt and 
-  resulting hash in the development.ini file. You only need to provide a salt if 
+  resulting hash as environment variables. You only need to provide a salt if 
   you are trying to recreate a particular hash. For a new password, just let 
   the script create the salt. 
