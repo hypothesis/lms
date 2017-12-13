@@ -88,7 +88,6 @@ def pyramid_request():
 
     """
     pyramid_request = testing.DummyRequest()
-
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
         constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',

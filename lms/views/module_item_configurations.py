@@ -14,6 +14,7 @@ def create_module_item_configuration(request, _):
     request.db.add(instance)
 
     return {
-        'hypothesis_url': request.registry.settings['via_url'] + instance.document_url,
+        'hypothesis_url':
+        f"{request.registry.settings['via_url']}/{instance.document_url}",
         'jwt_token': request.params['jwt_token']
     }
