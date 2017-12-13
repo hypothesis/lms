@@ -27,7 +27,10 @@ def configure(settings=None):
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         'via_url': env_setting('VIA_URL', required=True),
-        'jwt_secret': env_setting('JWT_SECRET', required=True)
+        'jwt_secret': env_setting('JWT_SECRET', required=True),
+        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
+        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
+        'google_app_id': env_setting('GOOGLE_APP_ID'),
     }
 
     database_url = env_setting('DATABASE_URL')

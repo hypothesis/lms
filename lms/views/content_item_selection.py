@@ -41,8 +41,8 @@ def content_item_form(request, lms_url, content_item_return_url, jwt=None):
             'tool_consumer_instance_guid': request.params['oauth_signature'],
             'jwt_token': jwt
         },
-        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
-        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
-        'google_app_id': env_setting('GOOGLE_APP_ID'),
+        'google_client_id': request.registry.settings['google_client_id'],
+        'google_developer_key': request.registry.settings['google_developer_key'],
+        'google_app_id': request.registry.settings['google_app_id'],
         'lms_url': lms_url
     }
