@@ -51,7 +51,7 @@ def configure(settings=None):
 
     # Security policies
     authn_policy = AuthTktAuthenticationPolicy(
-        settings['lms.secret'], callback=groupfinder,
+        settings['lms_secret'], callback=groupfinder,
         hashalg='sha512')
     authz_policy = ACLAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)
