@@ -88,7 +88,6 @@ def pyramid_request():
 
     """
     pyramid_request = testing.DummyRequest()
-
     pyramid_request.POST.update({
         constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
         constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',
@@ -119,14 +118,16 @@ def pyramid_config(pyramid_request):
     """
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
-        'lms_server': 'http://TEST_LMS_SERVER.com',
         'sqlalchemy.url': TEST_DATABASE_URL,
-        'client_origin': 'http://TEST_H_SERVER.is',
         'via_url': 'http://TEST_VIA_SERVER.is',
         'jwt_secret': 'test_secret',
-        'username': 'report_viewers',
+        'google_client_id': 'fake_client_id',
+        'google_developer_key': 'fake_developer_key',
+        'google_app_id': 'fake_app_id',
+        'lms_secret': 'J4hd4epmhDGUibjsiUtKaLbyDEtUis8qGMFnQUJlDtYrQB1m2SM0j2oRpCXhSp7K',
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
         'salt': 'fbe82ee0da72b77b',
+        'username': 'report_viewer',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
@@ -135,33 +136,19 @@ def pyramid_config(pyramid_request):
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include('pyramid_jinja2')
-        config.include('pyramid_services')
         config.include('pyramid_tm')
 
         config.include('lms.sentry')
         config.include('lms.models')
         config.include('lms.db')
         config.include('lms.routes')
-        config.include('lms.services')
 
         config.add_static_view(name='export', path='lms:static/export')
         config.add_static_view(name='static', path='lms:static')
 
         apply_request_extensions(pyramid_request)
 
-#        auth_data_svc = mock.create_autospec(auth_data.AuthDataService, instance=True)
-#        auth_data_svc.get_canvas_server.return_value = 'https://TEST_CANVAS_SERVER.com'
-#        auth_data_svc.get_lms_secret.return_value = 'TEST_CLIENT_SECRET'
-#        auth_data_svc.get_lms_token.return_value = 'TEST_OAUTH_ACCESS_TOKEN'
-#        auth_data_svc.get_lms_refresh_token.return_value = 'TEST_OAUTH_REFRESH_TOKEN'
-#        config.register_service(auth_data_svc, name='auth_data')
-
         yield config
-
-
-@pytest.fixture
-def auth_data_svc(pyramid_request):
-    return pyramid_request.find_service(name='auth_data')
 
 
 @pytest.fixture(autouse=True)

@@ -52,9 +52,10 @@ def lti_launches(request, jwt, user=None):
 
 
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
-def _view_document(_, document_url, jwt):
+def _view_document(request, document_url, jwt):
     return {
-        'hypothesis_url': 'https://via.hypothes.is/' + document_url,
+        'hypothesis_url':
+        f"{request.registry.settings['via_url']}/{document_url}",
         'jwt': jwt
     }
 

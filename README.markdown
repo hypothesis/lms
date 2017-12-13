@@ -66,22 +66,43 @@ You will need:
    local development:
 
    ```bash
-   export LMS_SERVER="http://localhost:8001"
-   export LMS_CREDENTIALS_URL="http://localhost:8001/lms_credentials"
-   export CLIENT_ORIGIN="http://localhost:5000"
    export VIA_URL="http://localhost:9080"
    export JWT_SECRET="some secret"
    export GOOGLE_CLIENT_ID="Google Oauth Client ID"
    export GOOGLE_DEVELOPER_KEY="Google Api Key"
    export GOOGLE_APP_ID="Google Project Id"
+   
+   # The secret should be different for each pyramid instance
+   # It should be a 64 character (128 bit) string
+   # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
+   export LMS_SECRET="Unique string used for encryption"
+
+   # (Use lms/util/get_password_hash.py to compute the hash of a password)
+   export HASHED_PW="my_hashed_password"
+   export SALT="my_salt"
+   export USERNAME="my_desired_report_username"
+
    ```
 
-   **Obtaining Google Credentials:** 
+   **Obtaining Google Credentials:**
+
        * Sign in to Google Developer Console
+         [here](https://console.developers.google.com/apis/)
+
        * Create a project (Use this id as GOOGLE_APP_ID)
-       * Navigate to Apis and Services Tab
+
+       * Navigate to Apis and Services Tab, then select the "Credentials"
+         tab from the left navigation.
+
        * Create an Api Key (Use this as GOOGLE_DEVELOPER_KEY)
+
        * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
+
+       * Navigate to the Library tab in the left navigation
+
+       * Find and enable both the google drive api and google picker api (Each
+         api page will have a large blue "enable" button)
+
 
 4.   First create and activate a Python virtual
    environment for the Canvas app
@@ -296,24 +317,53 @@ steps to create a new migration script for h are:
    $ alembic -c conf/alembic.ini upgrade +1
    ```
 
+### Installing Dev Application In Canvas
+
+1. Start your dev server as described above.
+
+2. Navigate to `<dev-url>/welcome` in your browser.
+
+3. Provide your canvas domain and email in the form.
+After submitting the form you should be provided with a
+consumer key and secret. Make note of these.
+
+4. Navigate to the settings of a course in canvas.
+
+5. Navigate to the Apps tab, then click the "View App Configurations" button.
+
+6. Add an application with the "+ App" button, and then select the 'Paste XML'
+option from the dropdown in the "Add App" modal.
+
+7. Copy your consumer key and secret into the canvas form you received
+previously from the welcome page.
+
+8. Navigate to `<dev-url>/config_xml` in your browser.
+
+9. Copy the xml into the XML Configuration portion of the canvas form.
+
+10. Submit the form, and your app should be installed.
+
+11. Access your app by adding a module item to a module in your course.
+Select an External Tool module item, and select the 'Hypothesis' tool.
+You should launch the hypothesis lti application, and be allowed to
+choose a file.
+
 # Application Instances Reports
 
 While running the webserver, to see a list of application instances stored in
- the database, navigate to `/reports`. You will be redirected to a login page, 
- the username is `report_viewer` and the password is `asdf`
+ the database, navigate to `/reports`. You will be redirected to a login page.
  
- The username and password hash are stored in `development.ini`. 
- 
- WARNING: Do not commit the production.ini to the git repository. You do not 
-  want your `lms.secret` or `hashed_pw` stored in a public repository. 
- 
+ The username and password hash are passed as environment variables
+ `USERNAME` and `HASHED_PW`
+
+
  ### Changing the password ###
  
  To change the password, you will need to compute a new hash, then replace the 
-  hash and salt in the development.ini. 
+  `HASH` and `SALT` environment variables.
  
  To help compute the hash you can use the command line script 
   `lms/utilget_get_password_hash.py`. You will need to store the salt and 
-  resulting hash in the development.ini file. You only need to provide a salt if 
+  resulting hash as environment variables. You only need to provide a salt if 
   you are trying to recreate a particular hash. For a new password, just let 
   the script create the salt. 
