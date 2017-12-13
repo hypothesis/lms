@@ -2,7 +2,7 @@ FROM gliderlabs/alpine:3.6
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk-install ca-certificates python py-pip libpq \
+RUN apk-install ca-certificates python3 libpq \
   collectd collectd-disk supervisor
 
 # Create the lms user, group, home directory and package directory.
@@ -17,9 +17,9 @@ COPY README.markdown requirements.txt ./
 RUN apk-install --virtual build-deps \
     build-base \
     postgresql-dev \
-    python-dev \
-  && pip install --no-cache-dir -U pip supervisor \
-  && pip install --no-cache-dir -r requirements.txt \
+    python3-dev \
+  && pip3 install --no-cache-dir -U pip \
+  && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
 
 # Copy collectd config
