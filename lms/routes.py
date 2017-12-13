@@ -14,3 +14,6 @@ def includeme(config):
     # lms routes
     config.add_route('lti_launches', '/lti_launches')
     config.add_route('content_item_selection', '/content_item_selection')
+
+    # Health check endpoint for load balancers to request.
+    config.add_route('status', '/_status')
