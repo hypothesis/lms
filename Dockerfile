@@ -2,24 +2,23 @@ FROM gliderlabs/alpine:3.6
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk-install ca-certificates python py-pip libpq \
-  collectd collectd-disk supervisor
+RUN apk-install ca-certificates python3 libpq collectd collectd-disk supervisor
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
   && adduser -S -G lms -h /var/lib/lms lms
 WORKDIR /var/lib/lms
 
-# Copy packaging
-COPY README.markdown requirements.txt ./
+# Copy minimal data to allow installation of dependencies.
+COPY requirements.txt ./
 
 # Install build deps, build, and then clean up.
 RUN apk-install --virtual build-deps \
     build-base \
     postgresql-dev \
-    python-dev \
-  && pip install --no-cache-dir -U pip supervisor \
-  && pip install --no-cache-dir -r requirements.txt \
+    python3-dev \
+  && pip3 install --no-cache-dir -U pip \
+  && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
 
 # Copy collectd config
@@ -31,8 +30,6 @@ RUN mkdir /etc/collectd/collectd.conf.d \
 # Even though we later configure it to write to stdout. So we do have to make sure it's
 # writeable.
 RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
-
-RUN apk-install collectd-disk
 
 COPY . .
 

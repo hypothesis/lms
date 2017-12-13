@@ -2,7 +2,6 @@
 import jwt
 import pylti.common
 from lms.models import application_instance as ai
-from lms.config.settings import env_setting
 
 
 def get_application_instance(session, consumer_key):

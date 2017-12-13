@@ -24,17 +24,17 @@ def configure(settings=None):
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
     env_settings = {
-        'lms_server': env_setting('LMS_SERVER', required=True),
-        'lms_credentials_url': env_setting('LMS_CREDENTIALS_URL',
-                                           required=True),
-        # The origin that this app should use when sending postMessage()
-        # requests to the Hypothesis client (e.g. "https://hypothes.is" in prod
-        # or "http://localhost:5000" in dev).
-        'client_origin': env_setting('CLIENT_ORIGIN', required=True),
-
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         'via_url': env_setting('VIA_URL', required=True),
+        'jwt_secret': env_setting('JWT_SECRET', required=True),
+        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
+        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
+        'google_app_id': env_setting('GOOGLE_APP_ID'),
+        'lms_secret': env_setting('LMS_SECRET'),
+        'hashed_pw': env_setting('HASHED_PW'),
+        'salt': env_setting('SALT'),
+        'username': env_setting('USERNAME'),
     }
 
     database_url = env_setting('DATABASE_URL')
@@ -51,7 +51,7 @@ def configure(settings=None):
 
     # Security policies
     authn_policy = AuthTktAuthenticationPolicy(
-        settings['lms.secret'], callback=groupfinder,
+        settings['lms_secret'], callback=groupfinder,
         hashalg='sha512')
     authz_policy = ACLAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)

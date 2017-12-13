@@ -1,6 +1,5 @@
 """Decorate routes with the ability to authenticate requests."""
 import jwt
-from lms.config.settings import env_setting
 from pyramid.response import Response
 from lms.models.users import find_by_lms_guid
 
@@ -10,7 +9,6 @@ def authenticate(view_function):
     def wrapper(request):
         """Validate the JWT signature."""
         try:
-
             jwt_token = request.headers['Authorization'] or request.params['jwt_token']
             decoded_jwt = jwt.decode(
                                     jwt_token,
@@ -19,7 +17,6 @@ def authenticate(view_function):
 
             lms_guid = decoded_jwt['user_id']
             user = find_by_lms_guid(request.db, lms_guid)
-
 
         except (jwt.exceptions.DecodeError, KeyError):
             return Response('<p>Error: Unauthenticated Request</p>')

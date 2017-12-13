@@ -1,5 +1,4 @@
 from pyramid.view import view_config
-from lms.config import env_setting
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
@@ -51,8 +50,8 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url,
             'tool_consumer_instance_guid': lti_params['oauth_signature'],
             'jwt_token': jwt
         },
-        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
-        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
-        'google_app_id': env_setting('GOOGLE_APP_ID'),
+        'google_client_id': request.registry.settings['google_client_id'],
+        'google_developer_key': request.registry.settings['google_developer_key'],
+        'google_app_id': request.registry.settings['google_app_id'],
         'lms_url': lms_url
     }
