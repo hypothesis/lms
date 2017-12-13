@@ -19,7 +19,7 @@ node {
         try {
             testApp(image: img, runArgs: "-u root -e TEST_DATABASE_URL=${databaseUrl}") {
                 sh 'apk-install build-base postgresql-dev python-dev'
-                sh 'pip install -q tox'
+                sh 'pip3 install -q tox'
                 sh 'cd /var/lib/lms && tox'
             }
         } finally {
