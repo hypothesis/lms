@@ -32,8 +32,6 @@ RUN mkdir /etc/collectd/collectd.conf.d \
 # writeable.
 RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
 
-RUN apk-install collectd-disk
-
 COPY . .
 
 EXPOSE 8001
