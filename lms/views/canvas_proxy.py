@@ -3,33 +3,29 @@ import jwt
 from pyramid.view import view_config
 from pyramid.response import Response
 from lms.models import application_instance as ai
-#from lms.users import find_by_lms_guid 
+from lms.models.tokens import find_token_by_user_id
 from lms.util.canvas_api import CanvasApi, GET
 from lms.config.settings import env_setting
-from lms.util.authenticate import authenticate 
-
-
-# TODO
-# * Add proxy api
-#    * Add Jwts
-#       * Where should jwts get stored
-#    * Look up user from jwt
-#
-#Use http://niemeyer.net/mocker for mocking 
+from lms.util.authenticate import authenticate
 
 @authenticate
 @view_config(route_name='canvas_proxy', renderer='json')
 def canvas_proxy(request, decoded_jwt, user):
-    # Request canvas files
+    token = find_token_by_user_id(request.db, user.id)
+    consumer_key = decoded_jwt['consumer_key']
+    application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
-#    canvas_api = CanvasApi(
-#      new_token.access_token,
-#      application_instance.lms_url
-#    )
+    if token is None or application_instance is None:
+        pass # TODO throw error
+
+    canvas_api = CanvasApi(
+      token.access_token,
+      application_instance.lms_url
+    )
+
+    result = canvas_api.proxy(
+             request.params['endpoint_url'],
+             request.params['method'],
+             request.params['params'])
     
-#    response = canvas_api.get_canvas_course_files(1773, {})
-    import pdb; pdb.set_trace()
-
-    return Response({
-      'bad': True    
-    }, status=200)
+    return Response(result.json(), status=response.status_code)

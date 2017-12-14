@@ -193,9 +193,11 @@ def lti_launch_request(monkeypatch, pyramid_request):
 @pytest.fixture
 def canvas_api_proxy_request(monkeypatch, pyramid_request):
     user_id = 'asdf'
+    consumer_key = 'test_application_instance'
     data = {
         'user_id': user_id,
         'roles': '',
+        'lms_consumer_key': consumer_key,
         }
 
     user = User(lms_guid=user_id)

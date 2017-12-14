@@ -60,7 +60,8 @@ def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
                 dict(lti_params))
             data = {
                 'user_id': lti_params['user_id'],
-                'roles': lti_params['roles']
+                'roles': lti_params['roles'],
+                'lms_consumer_key': consumer_key,
             }
             jwt_token = jwt.encode(data,
                                    request.registry.settings['jwt_secret'],
