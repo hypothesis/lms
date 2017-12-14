@@ -13,4 +13,9 @@ def canvas_proxy(request, decoded_jwt, user, canvas_api):
              request.params['endpoint_url'],
              request.params['method'],
              request.params['params'])
-    return Response(result.json(), status=response.status_code)
+    response = None
+    try:
+        response = result.json()
+    except ValueError:
+        response = result.text()
+    return Response(response, status=response.status_code)
