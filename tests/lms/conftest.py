@@ -16,6 +16,8 @@ from lms import constants
 from lms.config import env_setting
 from lms.models.users import User
 from lms.models.tokens import Token
+from lms.models.application_instance import build_from_lms_url
+from lms.util.canvas_api import GET, POST
 
 TEST_DATABASE_URL = os.environ.get(
     'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
@@ -192,14 +194,15 @@ def lti_launch_request(monkeypatch, pyramid_request):
 
 @pytest.fixture
 def canvas_api_proxy_request(monkeypatch, pyramid_request):
+    #monkeypatch.setattr('lms.util.canvas_api.CanvasApi', lambda a, b: True)
     user_id = 'asdf'
-    consumer_key = 'test_application_instance'
+    application_instance = build_from_lms_url('https://example.com', 'test@example.com')
     data = {
         'user_id': user_id,
         'roles': '',
-        'lms_consumer_key': consumer_key,
+        'consumer_key': application_instance.consumer_key,
         }
-
+    pyramid_request.db.add(application_instance)
     user = User(lms_guid=user_id)
     pyramid_request.db.add(user)
     pyramid_request.db.flush()
@@ -211,6 +214,10 @@ def canvas_api_proxy_request(monkeypatch, pyramid_request):
     jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
 
     pyramid_request.headers['Authorization'] = jwt_token
+
+    pyramid_request.params['endpoint_url'] = '/test'
+    pyramid_request.params['method'] = GET
+    pyramid_request.params['params'] = {}
     yield pyramid_request
 
 

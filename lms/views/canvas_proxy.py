@@ -2,7 +2,7 @@ import jwt
 
 from pyramid.view import view_config
 from pyramid.response import Response
-from lms.models import application_instance as ai
+from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import find_token_by_user_id
 from lms.util.canvas_api import CanvasApi, GET
 from lms.config.settings import env_setting
@@ -28,5 +28,4 @@ def canvas_proxy(request, decoded_jwt, user):
              request.params['endpoint_url'],
              request.params['method'],
              request.params['params'])
-    
     return Response(result.json(), status=response.status_code)
