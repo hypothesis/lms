@@ -229,7 +229,13 @@ def module_item_configuration():
 @pytest.fixture
 def authenticated_request(pyramid_request):
     user_id = 'TEST_USER_ID'
-    data = {'user_id': user_id, 'roles': 'Instructor'}
+    consumer_key = 'test_application_instance'
+    data = {
+            'user_id': user_id,
+            'roles': 'Instructor',
+            'consumer_key': consumer_key,
+           }
+
     pyramid_request.db.add(User(lms_guid=user_id))
     pyramid_request.db.flush()
 
