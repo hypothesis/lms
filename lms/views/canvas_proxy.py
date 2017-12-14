@@ -9,7 +9,7 @@ from lms.config.settings import env_setting
 from lms.util.authenticate import authenticate
 
 @authenticate
-@view_config(route_name='canvas_proxy', renderer='json')
+@view_config(route_name='canvas_proxy', request_method='POST', renderer='json')
 def canvas_proxy(request, decoded_jwt, user):
     token = find_token_by_user_id(request.db, user.id)
     consumer_key = decoded_jwt['consumer_key']
