@@ -1,14 +1,25 @@
+import $ from 'jquery/dist/jquery.min.js';
+import _ from 'lodash';
 import Component from './component';
 import PickerTableHeader from './picker_table_header';
-import $ from 'jquery/dist/jquery.min.js';
+import PickerTableRow from './picker_table_row';
+import PickerFooter from './picker_footer';
+
+const MOCK_FILES = [
+  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
+  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
+  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
+  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'}
+];
 
 export default class FilePicker extends Component{
   initializeComponent() {
     this.store.subscribe(this)
+    this.store.canvasApi.proxy('')
   }
 
   handleUpdate(state, eventType) {
-    console.log('called with ', eventType)
+    this.render();
   }
 
   render() {
@@ -18,26 +29,11 @@ export default class FilePicker extends Component{
           <table class="list-view" role="listbox">
             ${new PickerTableHeader(this.store)}
             <tbody>
-              <tr tabindex="0">
-                <th scope="row">file-name.pdf</th>
-                <td>10/24/2017</td>
-              </tr>
-              <tr tabindex="0">
-                <th scope="row">file-name2.pdf</th>
-                <td>10/24/2017</td>
-              </tr>
-              <tr tabindex="0">
-                <th scope="row">file-name3.pdf</th>
-                <td>10/24/2017</td>
-              </tr>
+              ${_.map(MOCK_FILES, (file) => new PickerTableRow(this.store, { file }))}
             </tbody>
           </table>
         </div>
-
-        <footer>
-          <button class="btn btn--gray">Cancel</button>
-          <button class="btn btn--red">Submit</button>
-        </footer>
+        ${new PickerFooter(this.store)}
       </main>
     `;
     $(this.props.mountId).html(output)

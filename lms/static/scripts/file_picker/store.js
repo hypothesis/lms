@@ -1,16 +1,17 @@
 import _ from 'lodash';
-import Api from './api';
+import CanvasApi from './canvas_api';
 
 class BlankState {}
 
-const eventTypes = {
-  DOCUMENT_RENDERED: 'DOCUMENT_RENDERED',
+const defaultState = {
+  pickerOpen: false,
+  selectedUrl: null,
 }
 
 export default class Store {
-  constructor(subscribers = [], state = new BlankState()) {
+  constructor(subscribers = [], state = defaultState) {
     this.subscribers = subscribers;
-    this.api = new Api()
+    this.canvasApi = new CanvasApi()
     this.eventTypes = eventTypes;
   }
 

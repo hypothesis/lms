@@ -21,15 +21,7 @@
     </div>
   </main>
 </form>
-<button class="btn btn--gray" style="margin:1rem;" onclick="enableCanvasFileList()">Use Canvas Files</button>
-<div id="canvas_files" style="display: none;">
-  <h3 class="modal-text">Canvas File Picker</h3>
-  <ul>
-    {% for file in canvas_files %}
-        <li class="modal-text">{{ file.display_name }}</li>
-    {% endfor %}
-  </ul>
-</div>
+<div id="file-picker" />
 {% endblock %}
 
 
@@ -39,6 +31,10 @@
 {% endfor %}
 
 <script type="text/javascript">
+  window.DEFAULT_SETTINGS = {
+    apiUrl: '{{api_url}}',
+    jwt: '{{jwt}}'
+  }
   // Support canvas file list
   function enableCanvasFileList() {
     var el = document.getElementById('canvas_files')

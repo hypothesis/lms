@@ -1,6 +1,6 @@
 import Component from './component';
 
-export default class PickerHeaderTable extends Component {
+export default class PickerFooter extends Component {
 
   initializeComponent() {
     this.store.subscribe(this)

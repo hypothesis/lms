@@ -32,12 +32,10 @@ def content_item_selection(request, _, _user=None):
 
 @view_renderer(
     renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
-def content_item_form(request, lti_params, lms_url, content_item_return_url,
-        canvas_files=[],jwt=None):
+def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
     return {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
-        'canvas_files': canvas_files,
         'form_fields': {
             'lti_message_type': 'ContentItemSelection',
             'lti_version': lti_params['lti_version'],
@@ -53,5 +51,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url,
         'google_client_id': request.registry.settings['google_client_id'],
         'google_developer_key': request.registry.settings['google_developer_key'],
         'google_app_id': request.registry.settings['google_app_id'],
-        'lms_url': lms_url
+        'lms_url': lms_url,
+        'api_url': request.route_url('canvas_proxy'),
+        'jwt': jwt
     }
