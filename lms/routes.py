@@ -19,5 +19,8 @@ def includeme(config):
     # Oauth
     config.add_route('canvas_oauth_callback', '/canvas_oauth_callback')
 
+    # Assets
+    config.add_route('assets', '/assets/*subpath')
+
     # Health check endpoint for load balancers to request.
     config.add_route('status', '/_status')
