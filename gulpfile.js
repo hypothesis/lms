@@ -23,7 +23,7 @@ var createBundle = require('./scripts/gulp/create-bundle');
 var createStyleBundle = require('./scripts/gulp/create-style-bundle');
 var manifest = require('./scripts/gulp/manifest');
 
-var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
+var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production' && false;
 var SCRIPT_DIR = 'build/scripts';
 var STYLE_DIR = 'build/styles';
 var FONTS_DIR = 'build/fonts';
@@ -102,6 +102,7 @@ gulp.task('build-js', ['build-vendor-js'], function () {
 
 gulp.task('watch-js', ['build-vendor-js'], function () {
   bundleConfigs.map(function (config) {
+
     createBundle(config, {watch: true});
   });
 });

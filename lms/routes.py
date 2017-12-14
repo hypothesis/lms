@@ -25,3 +25,5 @@ def includeme(config):
 
     # Health check endpoint for load balancers to request.
     config.add_route('status', '/_status')
+
+    config.add_route('file_picker', '/file_picker')

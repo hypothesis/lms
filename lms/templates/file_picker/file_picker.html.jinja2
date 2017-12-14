@@ -1,0 +1,11 @@
+{% extends "lms:templates/base.html.jinja2" %}
+{% block content %}
+<div>
+  <div id="file-picker"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% for url in asset_urls("file_picker_js") %}
+  <script src="{{ url }}"></script>
+{% endfor %}
+{% endblock%}

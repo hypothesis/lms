@@ -7,6 +7,7 @@ var fs = require('fs');
 var path = require('path');
 
 var browserify = require('browserify');
+var babelify = require('babelify');
 var exorcist = require('exorcist');
 var gulpUtil = require('gulp-util');
 var mkdirp = require('mkdirp');
@@ -121,7 +122,8 @@ module.exports = function createBundle(config, buildOpts) {
   var bundlePath = config.path + '/' + bundleFileName;
   var sourcemapPath = bundlePath + '.map';
 
-  var bundle = browserify([], bundleOpts);
+  var bundle = browserify([], bundleOpts)
+    .transform(babelify.configure({ presets: ['stage-0', 'es2015'] }));
 
   (config.require || []).forEach(function (req) {
     // When another bundle uses 'bundle.external(<module path>)',
