@@ -63,7 +63,7 @@ def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
                 'roles': lti_params['roles']
             }
             jwt_token = jwt.encode(data,
-                                   env_setting('JWT_SECRET'),
+                                   request.registry.settings['jwt_secret'],
                                    'HS256').decode('utf-8')
             return view_function(request, jwt_token)
         return wrapper

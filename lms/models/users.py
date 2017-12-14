@@ -9,7 +9,7 @@ class User(BASE):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     lms_guid = sa.Column(sa.String, index=True)
-    token = sa.orm.relationship("Token", uselist=False, back_populates="users")
+    #token = sa.orm.relationship("Token", uselist=False, back_populates="users")
 
 
 

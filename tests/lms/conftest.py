@@ -199,7 +199,8 @@ def canvas_api_proxy_request(monkeypatch, pyramid_request):
     pyramid_request.db.add(User(lms_guid=user_id))
     pyramid_request.db.flush()
 
-    jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+    jwt_secret = pyramid_request.registry.settings['jwt_secret']
+    jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
     
     pyramid_request.headers['Authorization'] = jwt_token
     yield pyramid_request
@@ -219,7 +220,12 @@ def module_item_configuration():
 
 @pytest.fixture
 def authenticated_request(pyramid_request):
-    data = {'user_id': 'TEST_USER_ID', 'roles': 'Instructor'}
-    jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+    user_id = 'TEST_USER_ID'
+    data = {'user_id': user_id, 'roles': 'Instructor'}
+    pyramid_request.db.add(User(lms_guid=user_id))
+    pyramid_request.db.flush()
+
+    jwt_secret = pyramid_request.registry.settings['jwt_secret']
+    jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
     pyramid_request.params['jwt_token'] = jwt_token
     yield pyramid_request
