@@ -3,6 +3,8 @@
 [![Updates](https://pyup.io/repos/github/hypothesis/lms/shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)
 [![Python 3](https://pyup.io/repos/github/hypothesis/lms/python-3-shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)
 
+Testing test
+
 # Hypothesis Canvas App
 
 ## Development
