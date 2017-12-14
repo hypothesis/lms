@@ -15,6 +15,7 @@ from lms import db
 from lms import constants
 from lms.config import env_setting
 from lms.models.users import User
+from lms.models.tokens import Token
 
 TEST_DATABASE_URL = os.environ.get(
     'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
@@ -194,14 +195,19 @@ def canvas_api_proxy_request(monkeypatch, pyramid_request):
     user_id = 'asdf'
     data = {
         'user_id': user_id,
-        'roles': '', 
+        'roles': '',
         }
-    pyramid_request.db.add(User(lms_guid=user_id))
+
+    user = User(lms_guid=user_id)
+    pyramid_request.db.add(user)
+    pyramid_request.db.flush()
+    token = Token(access_token="test_token", user_id=user.id)
+    pyramid_request.db.add(token)
     pyramid_request.db.flush()
 
     jwt_secret = pyramid_request.registry.settings['jwt_secret']
     jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
-    
+
     pyramid_request.headers['Authorization'] = jwt_token
     yield pyramid_request
 
