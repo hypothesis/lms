@@ -34,6 +34,10 @@
 
 
 {% block scripts %}
+{% for url in asset_urls("file_picker_js") %}
+  <script src="{{ url }}"></script>
+{% endfor %}
+
 <script type="text/javascript">
   // Support canvas file list
   function enableCanvasFileList() {

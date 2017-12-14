@@ -11,6 +11,9 @@ ssl/
 .vscode/
 pip-selfcheck.json
 lib/
+node_modules/
+build/
+bin/
 
 # Devloper Specific Files
 secret_env.sh

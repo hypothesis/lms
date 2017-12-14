@@ -11,6 +11,7 @@ def includeme(config):
     config.add_route('config_xml', '/config_xml')
     config.add_route('module_item_configurations', '/module_item_configurations')
     config.add_route('test_api', '/test_api')
+    config.add_route('canvas_proxy', '/canvas_proxy')
 
     # lms routes
     config.add_route('lti_launches', '/lti_launches')
@@ -19,5 +20,10 @@ def includeme(config):
     # Oauth
     config.add_route('canvas_oauth_callback', '/canvas_oauth_callback')
 
+    # Assets
+    config.add_route('assets', '/assets/*subpath')
+
     # Health check endpoint for load balancers to request.
     config.add_route('status', '/_status')
+
+    config.add_route('file_picker', '/file_picker')

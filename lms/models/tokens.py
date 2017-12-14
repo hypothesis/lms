@@ -12,7 +12,7 @@ class Token(BASE):
     access_token = sa.Column(sa.String)
     refresh_token = sa.Column(sa.String)
     expires_in = sa.Column(sa.String)
-    user_id = sa.Column(sa.Integer)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'))
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
 
 

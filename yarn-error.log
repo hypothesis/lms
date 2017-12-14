@@ -1,0 +1,52 @@
+Arguments: 
+  /Users/josephditton/.asdf/installs/nodejs/8.6.0/bin/node /Users/josephditton/.asdf/installs/nodejs/8.6.0/.npm/bin/yarn add browserify
+
+PATH: 
+  /Users/josephditton/.asdf/bin:/Users/josephditton/.asdf/shims:/usr/local/opt/elasticsearch@5.6/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Applications/Wireshark.app/Contents/MacOS:/Users/josephditton/.asdf/bin:/Users/josephditton/.asdf/shims:/usr/local/opt/elasticsearch@5.6/bin:/Users/josephditton/.nvm/versions/node/v5.10.1/bin:/Users/josephditton/Documents/devirita/go_appengine/:/Users/josephditton/.nvm/versions/node/v5.10.1/bin:/Users/josephditton/Documents/devirita/go_appengine/
+
+Yarn version: 
+  1.3.2
+
+Node version: 
+  8.6.0
+
+Platform: 
+  darwin x64
+
+npm manifest: 
+  {
+    "name": "lms",
+    "version": "1.0.0",
+    "description": "[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=master)](https://travis-ci.org/hypothesis/lms) [![codecov](https://codecov.io/gh/hypothesis/lms/branch/master/graph/badge.svg)](https://codecov.io/gh/hypothesis/lms) [![Updates](https://pyup.io/repos/github/hypothesis/lms/shield.svg)](https://pyup.io/repos/github/hypothesis/lms/) [![Python 3](https://pyup.io/repos/github/hypothesis/lms/python-3-shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)",
+    "main": "index.js",
+    "directories": {
+      "lib": "lib",
+      "test": "tests"
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/hypothesis/lms.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/hypothesis/lms/issues"
+    },
+    "homepage": "https://github.com/hypothesis/lms#readme"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: https://registry.yarnpkg.com/browserify: ETIMEDOUT
+      at Timeout._onTimeout (/Users/josephditton/.asdf/installs/nodejs/8.6.0/.npm/lib/node_modules/yarn/lib/cli.js:123749:19)
+      at ontimeout (timers.js:469:11)
+      at tryOnTimeout (timers.js:304:5)
+      at Timer.listOnTimeout (timers.js:264:5)
