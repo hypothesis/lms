@@ -194,7 +194,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
 
 @pytest.fixture
 def canvas_api_proxy_request(monkeypatch, pyramid_request):
-    #monkeypatch.setattr('lms.util.canvas_api.CanvasApi', lambda a, b: True)
+
     user_id = 'asdf'
     application_instance = build_from_lms_url('https://example.com', 'test@example.com')
     data = {
