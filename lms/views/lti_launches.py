@@ -32,9 +32,18 @@ def is_db_configured(request):
         )
     return config.count == 1
 
+
+@view_config(route_name='module_item_oauth_callback', request_method='POST')
+def module_item_oauth_callback(request):
+    pass # TODO 
+
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
 @associate_user
+@authorize_lms(
+    authorization_base_endpoint='login/oauth2/auth',
+    redirect_endpoint='canvas_oauth_callback'
+)
 def lti_launches(request, jwt, user=None):
     """
     Primary lms launch route. There are 3 views that could be rendered.
