@@ -41,8 +41,8 @@ def canvas_api(view_function):
             return exc.HTTPNotFound()
 
         canvas_api = CanvasApi(
-          token.access_token,
-          application_instance.lms_url
+            token.access_token,
+            application_instance.lms_url
         )
         return view_function(request, decoded_jwt, user=user,
                 canvas_api=canvas_api)

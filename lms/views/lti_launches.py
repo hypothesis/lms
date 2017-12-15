@@ -5,7 +5,7 @@ from lms.util.lti_launch import get_application_instance
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
-from lms.util.canvas_api import CanvasApi
+from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
@@ -82,13 +82,15 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
         )
         return _view_document(request, document_url=config.one().document_url, jwt=jwt)
     elif is_canvas_file(request, lti_params):
-        # TODO Force Oauth
-        # TODO Get a public viewing url
-
         token = find_token_by_user_id(request.db, user.id)
-        canvas_domain = find_by_oauth_consumer_key(request.db,
-                                                   request.params['oauth_consumer_key'])
-        _canvas_api = CanvasApi(token, canvas_domain)
+        application_instance = find_by_oauth_consumer_key(request.db,
+                                                          lti_params['oauth_consumer_key'])
+        canvas_api = CanvasApi(token.access_token, application_instance.lms_url)
+        file_id = lti_params['file_id']
+        result = canvas_api.proxy(f'/api/v1/files/{file_id}/public_url', GET, {})
+        if result.ok:
+            document_url = result.json()['public_url']
+            return _view_document(request, document_url=document_url, jwt=jwt)
         return _unauthorized(request)
     elif is_authorized_to_configure(request, lti_params):
         consumer_key = request.params['oauth_consumer_key']
