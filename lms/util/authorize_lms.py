@@ -1,8 +1,8 @@
 import urllib
 import json
 
-from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
+from pyramid.httpexceptions import HTTPFound
 from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
@@ -23,19 +23,27 @@ def build_auth_base_url(lms_url, base_auth_endpoint):
     return lms_url + '/' + base_auth_endpoint
 
 def default_oauth_condition(_request):
+    """Method to determine whether or not we should make an oauth request"""
     return True
 
 def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
-        oauth_condition=default_oauth_condition):
+                  oauth_condition=default_oauth_condition):
     """
-    Decorate view function to support making an oauth requestduring an lti launch.
+    Decorate view function to support making an oauth request during an lti launch.
 
     Usage:
     @authorize_lms(
-     authorization_base_endpoint = 'login/oauth2/auth', # LMS oauth endpoint
-     token_endpoint = 'login/oauth2/token', # LMS token retrieval endpoint
-     redirect_endpoint = 'canvas_oauth_callback' # Route where oauth response
-     should be directed
+     # LMS oauth endpoint
+     authorization_base_endpoint = 'login/oauth2/auth',
+
+     # LMS token retrieval endpoint
+     token_endpoint = 'login/oauth2/token',
+
+     # Route where oauth response should be directed
+     redirect_endpoint = 'canvas_oauth_callback',
+
+     # Function to determine whether or not an oauth should be performed
+     oauth_condition=lambda(request: True)
     )
     def my_route(request):
         ...
@@ -73,6 +81,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
     return decorator
 
 def save_token(view_function):
+    """Decorate an oauth callback route to save access token"""
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
         client_id = request.registry.settings['oauth.client_id']
@@ -80,8 +89,8 @@ def save_token(view_function):
         state = request.params['state']
         oauth_state = find_by_state(request.db, state)
         lti_params = json.loads(oauth_state.lti_params)
-        consumer_key = lti_params['oauth_consumer_key']
-        application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
+        application_instance = find_by_oauth_consumer_key(request.db,
+                                                          lti_params['oauth_consumer_key'])
         token_url = build_canvas_token_url(application_instance.lms_url)
 
         session = OAuth2Session(client_id, state=state)
@@ -94,8 +103,8 @@ def save_token(view_function):
         new_token = build_token_from_oauth_response(oauth_resp)
         update_user_token(request.db, new_token, user)
 
-        jwt_secret = request.registry.settings['jwt_secret']
-        jwt_token = build_jwt_from_lti_launch(lti_params, jwt_secret)
+        jwt_token = build_jwt_from_lti_launch(lti_params,
+                                              request.registry.settings['jwt_secret'])
 
         return view_function(request, *args, token=new_token,
                              lti_params=lti_params,
