@@ -15,26 +15,32 @@
         <span class="error"></span>
       </div>
       <button class="btn btn--gray" onclick="loadPicker(event)">Use Google Picker</button>
+      <span id="file-picker" />
     </div>
     <div class="form-controls">
-      <button class="btn" type="submit">Submit</button>
+      <button class="btn" id="content-item-submit" type="submit">Submit</button>
     </div>
   </main>
+
 </form>
-<div id="file-picker" />
 {% endblock %}
 
 
 {% block scripts %}
+
+<script type="text/javascript">
+  window.DEFAULT_SETTINGS = {
+    apiUrl: '{{api_url}}',
+    jwt: '{{jwt}}',
+    courseId: '{{course_id}}'
+  }
+</script>
+
 {% for url in asset_urls("file_picker_js") %}
   <script src="{{ url }}"></script>
 {% endfor %}
 
 <script type="text/javascript">
-  window.DEFAULT_SETTINGS = {
-    apiUrl: '{{api_url}}',
-    jwt: '{{jwt}}'
-  }
   // Support canvas file list
   function enableCanvasFileList() {
     var el = document.getElementById('canvas_files')
@@ -73,8 +79,13 @@
       form.getElementsByClassName('input')[0].classList.add('has-error');
       form.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid url';
     }
-    var document_url = addHttp(form.elements['document_url'].value);
-    var launchUrl = '{{ lti_launch_url }}' + '?url=' + document_url;
+    var docInfo;
+    if (form.elements['document_url'].value.indexOf('?') !== 0) {
+      docInfo = '?url=' +addHttp(form.elements['document_url'].value);
+    } else {
+      docInfo = form.elements['document_url'].value;
+    }
+    var launchUrl = '{{ lti_launch_url }}' + docInfo;
     var contentItem = {
       '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
       '@graph': [
@@ -85,6 +96,7 @@
         },
       ]
     }
+
     form.elements['content_items'].value = JSON.stringify(contentItem)
 
     // If the user submits the google picker selected url, then we should

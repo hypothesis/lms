@@ -12,7 +12,7 @@ def authenticate(view_function):
         try:
             jwt_token = None
             if 'Authorization' in request.headers:
-                jwt_token = request.headers['Authorization']
+                jwt_token = request.headers['Authorization'].split(' ')[1]
             else:
                 jwt_token = request.params['jwt_token']
             decoded_jwt = jwt.decode(

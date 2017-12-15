@@ -53,5 +53,6 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         'google_app_id': request.registry.settings['google_app_id'],
         'lms_url': lms_url,
         'api_url': request.route_url('canvas_proxy'),
-        'jwt': jwt
+        'jwt': jwt,
+        'course_id': lti_params['custom_canvas_course_id']
     }

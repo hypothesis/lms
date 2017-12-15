@@ -37,7 +37,7 @@ def canvas_api(view_function):
         consumer_key = decoded_jwt['consumer_key']
         application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
-        if token is None or application_instance is None: 
+        if token is None or application_instance is None:
             return exc.HTTPNotFound()
 
         canvas_api = CanvasApi(

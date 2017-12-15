@@ -1,15 +1,6 @@
 import Component from './component';
 
 export default class PickerHeaderTable extends Component {
-
-  initializeComponent() {
-    this.store.subscribe(this)
-  }
-
-  handleUpdate(state, eventType) {
-    console.log('I got updated too');
-  }
-
   render() {
     return this.r`
       <thead>

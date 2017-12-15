@@ -1,5 +1,6 @@
 """Oauth endpoint views."""
 import json
+import jwt
 from pyramid.view import view_config
 from requests_oauthlib import OAuth2Session
 from lms.models.tokens import update_user_token, build_token_from_oauth_response
@@ -36,11 +37,19 @@ def canvas_oauth_callback(request):
 
     new_token = build_token_from_oauth_response(oauth_resp)
     update_user_token(request.db, new_token, user)
+    data = {
+      'user_id': lti_params['user_id'],
+      'roles': lti_params['roles'],
+      'consumer_key': consumer_key,
+    }
+    jwt_token = jwt.encode(data,
+            request.registry.settings['jwt_secret'],
+            'HS256').decode('utf-8')
 
     return content_item_form(
         request,
         lti_params=lti_params,
         lms_url=application_instance.lms_url,
         content_item_return_url=lti_params['content_item_return_url'],
-        jwt=None
+        jwt=jwt_token
     )

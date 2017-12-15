@@ -5,37 +5,72 @@ import PickerTableHeader from './picker_table_header';
 import PickerTableRow from './picker_table_row';
 import PickerFooter from './picker_footer';
 
-const MOCK_FILES = [
-  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
-  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
-  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'},
-  {fileName: 'file1.pdf', lastUpdatedAt: '11/11/11'}
-];
-
 export default class FilePicker extends Component{
   initializeComponent() {
-    this.store.subscribe(this)
-    this.store.canvasApi.proxy('')
+    this.store.subscribe(this);
+  }
+
+  setupEventListeners() {
+    $('#picker-button').on('click', () => {
+      const state = this.store.getState();
+      this.store.setState(
+        { ...state, pickerOpen: true },
+        this.store.eventTypes.PICKER_OPENED
+      );
+    });
   }
 
   handleUpdate(state, eventType) {
-    this.render();
+    this.setupEventListeners();
+    if (eventType !== this.store.eventTypes.DOCUMENT_RENDERED) {
+      this.render();
+    }
+    if (eventType === this.store.eventTypes.PICKER_OPENED) {
+      this.store.canvasApi.proxy(`courses/${this.props.courseId}/files`).then((res) => {
+        const currentState = this.store.getState()
+        this.store.setState({
+            ...currentState,
+            files: JSON.parse(res.text),
+          },
+          this.store.eventTypes.FILES_LOADED
+        )
+      });
+    }
   }
 
   render() {
-    const output = this.r`
-      <main class="picker-content">
-        <div class="scroll-container">
-          <table class="list-view" role="listbox">
-            ${new PickerTableHeader(this.store)}
-            <tbody>
-              ${_.map(MOCK_FILES, (file) => new PickerTableRow(this.store, { file }))}
-            </tbody>
-          </table>
+    const state = this.store.getState();
+    let output;
+    if(state.pickerOpen) {
+      output = this.r`
+        <div class="file-picker-modal">
+          <main class="picker-content">
+            <div class="scroll-container">
+              <table class="list-view" role="listbox">
+                ${new PickerTableHeader(this.store)}
+                <tbody>
+                  ${_.map(state.files, (file) => new PickerTableRow(this.store, { file }))}
+                </tbody>
+              </table>
+            </div>
+            ${new PickerFooter(
+              this.store,
+              { pickerCallback: this.props.pickerCallback }
+            )}
+          </main>
         </div>
-        ${new PickerFooter(this.store)}
-      </main>
-    `;
+        <div class="file-picker-overlay" />
+      `;
+    } else {
+      output = this.r`
+        <button
+          class="btn btn--gray"
+          id="picker-button"
+        >
+          Use Canvas File
+        </button>
+      `;
+    }
     $(this.props.mountId).html(output)
     this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED)
   }
