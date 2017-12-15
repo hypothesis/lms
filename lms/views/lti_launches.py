@@ -16,7 +16,6 @@ def can_configure_module_item(roles):
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
-
 def is_canvas_file(request, params):
     return 'canvas_file' in params
 
@@ -75,13 +74,16 @@ def module_item_launch_oauth_callback(request, token, lti_params, user, jwt):
     return handle_lti_launch(request, token, lti_params, user, jwt)
 
 
+def should_launch(request):
+    return is_canvas_file(request, request.params)
 
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
 @associate_user
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',
-    redirect_endpoint='module_item_launch_oauth_callback'
+    redirect_endpoint='module_item_launch_oauth_callback',
+    oauth_condition=should_launch
 )
 def lti_launches(request, jwt, user=None):
     """
@@ -97,25 +99,23 @@ def lti_launches(request, jwt, user=None):
     them to configure the document.
     """
 
-    if is_url_configured(request): # We are launching from the provided url
+    if is_url_configured(request, request.params): # We are launching from the provided url
         return _view_document(request, document_url=request.params['url'], jwt=jwt)
-    elif is_db_configured(request): # We are launching a module item saved in the db
+    elif is_db_configured(request, request.params): # We are launching a module item saved in the db
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
             ModuleItemConfiguration.tool_consumer_instance_guid == request.params['tool_consumer_instance_guid']
         )
         return _view_document(request, document_url=config.one().document_url, jwt=jwt)
-    elif is_canvas_file(request): # We are launching a canvas file
-        pass
-        # TODO Force Oauth
-        # TODO Get a public viewing url
-
+    elif is_canvas_file(request, request.params): # We are launching a canvas file
         token = find_token_by_user_id(request.db, user.id)
         canvas_domain = find_by_oauth_consumer_key(request.db,
                                                   request.params['oauth_consumer_key'])
         canvas_api = CanvasApi(token, canvas_domain)
-        import pdb; pdb.set_trace()
-    elif is_authorized_to_configure(request):
+
+        # TODO Get a public viewing url
+        return _unauthorized(request)
+    elif is_authorized_to_configure(request, request.params):
         consumer_key = request.params['oauth_consumer_key']
         application_instance = get_application_instance(request.db, consumer_key)
         return content_item_form(

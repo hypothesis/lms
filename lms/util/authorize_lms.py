@@ -22,8 +22,11 @@ def build_auth_base_url(lms_url, base_auth_endpoint):
     """Build base oauth url from lms_url and the provided base_auth_endpoint."""
     return lms_url + '/' + base_auth_endpoint
 
+def default_oauth_condition(_request):
+    return True
 
-def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
+def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
+        oauth_condition=default_oauth_condition):
     """
     Decorate view function to support making an oauth requestduring an lti launch.
 
@@ -37,10 +40,14 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
     def my_route(request):
         ...
     """
-    def decorator(_view_function):
+    def decorator(view_function):
         """Decorate view function."""
-        def wrapper(request, *_args, user=None):
+        def wrapper(request, *args, user=None, **kwargs):
             """Redirect user."""
+
+            if oauth_condition(request) is False:
+                return view_function(request, *args, **kwargs)
+
             client_id = request.registry.settings['oauth.client_id']
             consumer_key = request.params['oauth_consumer_key']
 
