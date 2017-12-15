@@ -12,3 +12,4 @@ raven
 PyLTI
 PyJWT
 requests_oauthlib
+requests
