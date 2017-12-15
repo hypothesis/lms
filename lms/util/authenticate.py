@@ -7,7 +7,7 @@ from lms.models.application_instance import find_by_oauth_consumer_key
 
 def authenticate(view_function):
     """Wrap a view function with with JWT authentication."""
-    def wrapper(request):
+    def wrapper(request, *args, **kwargs):
         """Validate the JWT signature."""
         try:
             jwt_token = None
@@ -26,5 +26,5 @@ def authenticate(view_function):
 
         except (jwt.exceptions.DecodeError, KeyError):
             return Response('<p>Error: Unauthenticated Request</p>', status=401)
-        return view_function(request, decoded_jwt, user=user)
+        return view_function(request, decoded_jwt, *args,  user=user, **kwargs)
     return wrapper
