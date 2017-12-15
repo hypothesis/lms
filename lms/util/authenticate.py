@@ -15,16 +15,14 @@ def authenticate(view_function):
                 jwt_token = request.headers['Authorization']
             else:
                 jwt_token = request.params['jwt_token']
-            decoded_jwt = jwt.decode(
-                                    jwt_token,
-                                    request.registry.settings['jwt_secret'],
-                                    algorithms=['HS256'])
+            decoded_jwt = jwt.decode(jwt_token,
+                                     request.registry.settings['jwt_secret'],
+                                     algorithms=['HS256'])
 
             lms_guid = decoded_jwt['user_id']
-            consumer_key = decoded_jwt['consumer_key']
             user = find_by_lms_guid(request.db, lms_guid)
 
         except (jwt.exceptions.DecodeError, KeyError):
             return Response('<p>Error: Unauthenticated Request</p>', status=401)
-        return view_function(request, decoded_jwt, *args,  user=user, **kwargs)
+        return view_function(request, decoded_jwt, *args, user=user, **kwargs)
     return wrapper
