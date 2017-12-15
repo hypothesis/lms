@@ -42,3 +42,12 @@ docker:
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
 	@touch $@
+
+GULP := node_modules/.bin/gulp
+
+build:
+	$(GULP) build
+
+watch:
+	$(GULP) watch
+
