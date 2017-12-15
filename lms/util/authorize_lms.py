@@ -3,9 +3,14 @@ import json
 
 from pyramid.httpexceptions import HTTPFound
 from requests_oauthlib import OAuth2Session
-from lms.models.oauth_state import find_or_create_from_user
+from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
 from lms.models.application_instance import find_by_oauth_consumer_key
+from lms.models.tokens import build_token_from_oauth_response, update_user_token
+from lms.util.jwt import build_jwt_from_lti_launch
 
+def build_canvas_token_url(lms_url):
+    """Build a canvas token url from the base lms url and the token."""
+    return lms_url + '/login/oauth2/token'
 
 def build_redirect_uri(request_url, redirect_endpoint):
     """Build a redirect uri back to the app."""
@@ -59,3 +64,35 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint):
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator
+
+def save_token(view_function):
+    def wrapper(request, *args, **kwargs):
+        """Route to handle content item selection oauth response."""
+        client_id = request.registry.settings['oauth.client_id']
+        client_secret = request.registry.settings['oauth.client_secret']
+        state = request.params['state']
+        oauth_state = find_by_state(request.db, state)
+        lti_params = json.loads(oauth_state.lti_params)
+        consumer_key = lti_params['oauth_consumer_key']
+        application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
+        token_url = build_canvas_token_url(application_instance.lms_url)
+
+        session = OAuth2Session(client_id, state=state)
+        oauth_resp = session.fetch_token(token_url, client_secret=client_secret,
+                                         authorization_response=request.url,
+                                         code=request.params['code'])
+
+        user = find_user_from_state(request.db, state)
+
+        new_token = build_token_from_oauth_response(oauth_resp)
+        update_user_token(request.db, new_token, user)
+
+        jwt_secret = request.registry.settings['jwt_secret']
+        jwt_token = build_jwt_from_lti_launch(lti_params, jwt_secret)
+
+        return view_function(request, *args, token=new_token,
+                             lti_params=lti_params,
+                             user=user,
+                             jwt=jwt_token,
+                             **kwargs)
+    return wrapper

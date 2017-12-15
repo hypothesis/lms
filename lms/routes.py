@@ -19,6 +19,7 @@ def includeme(config):
 
     # Oauth
     config.add_route('canvas_oauth_callback', '/canvas_oauth_callback')
+    config.add_route('module_item_launch_oauth_callback', '/module_item_launch_oauth_callback')
 
     # Assets
     config.add_route('assets', '/assets/*subpath')

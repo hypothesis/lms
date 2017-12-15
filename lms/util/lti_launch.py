@@ -1,7 +1,7 @@
 """Decorator that add lti validation capabilities to a pyramid view."""
-import jwt
 import pylti.common
 from lms.models import application_instance as ai
+from lms.util.jwt import build_jwt_from_lti_launch
 
 
 def get_application_instance(session, consumer_key):
@@ -58,14 +58,8 @@ def lti_launch(get_lti_launch_params=default_get_lti_launch_params,
                 request.method,
                 dict(request.headers),
                 dict(lti_params))
-            data = {
-                'user_id': lti_params['user_id'],
-                'roles': lti_params['roles'],
-                'lms_consumer_key': consumer_key,
-            }
-            jwt_token = jwt.encode(data,
-                                   request.registry.settings['jwt_secret'],
-                                   'HS256').decode('utf-8')
+            jwt_secret = request.registry.settings['jwt_secret']
+            jwt_token = build_jwt_from_lti_launch(request.params, jwt_secret)
             return view_function(request, jwt_token)
         return wrapper
     return decorator
