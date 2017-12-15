@@ -12,20 +12,41 @@ from lms.models.application_instance import find_by_oauth_consumer_key
 
 
 def can_configure_module_item(roles):
+    """
+    Determine whether or not someone with roles can configure a module item
+
+    roles should be a list of lti roles
+    """
     lower_cased_roles = roles.lower()
     allowed_roles = ['administrator', 'instructor', 'teachingassisstant']
     return any(role in lower_cased_roles for role in allowed_roles)
 
-def is_canvas_file(request, params):
+
+def is_canvas_file(_request, params):
+    """Determine whether we are launching to view a canvas file"""
     return 'canvas_file' in params
 
-def is_url_configured(request, params):
+def is_url_configured(_request, params):
+    """
+    Determine whether the requested module item is url configured
+
+    A module item is url configured when the document url is stored
+    in a query paramter on the lti launch url
+    """
     return 'url' in params
 
-def is_authorized_to_configure(request, params):
+def is_authorized_to_configure(_request, params):
+    """Determin whether the user is allowed to configure module items"""
     return can_configure_module_item(params['roles'])
 
 def is_db_configured(request, params):
+    """
+    Determine whether or not the requested module item is configured to use db
+
+    A module item is database configured when it's id and document url are
+    stored in our database. This occurs when an lms does not support content
+    item selection
+    """
     config = request.db.query(ModuleItemConfiguration).filter(
         ModuleItemConfiguration.resource_link_id == params['resource_link_id'] and
         ModuleItemConfiguration.tool_consumer_instance_guid == params['tool_consumer_instance_guid']
@@ -33,27 +54,43 @@ def is_db_configured(request, params):
     return config.count == 1
 
 
-# TODO use for non-oauth response route
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):
-    if is_url_configured(request, lti_params): # We are launching from the provided url
+    """
+    Handle determining which view should be rendered for a given lti launch
+
+    The following cases are supported:
+
+    1. If a student launches before a teacher has configured the document then it will
+    display a message say that the teacher still needs to configure the document.
+
+    2. If a student or teacher launch after the document has been configured then it displays the
+    document with the annotation tools.
+
+    3. If a teacher launches and no document has been configured, ict renders a form that allows
+    them to configure the document.
+
+    4. If a student or teacher launches a module item that has been configured
+       as a canvas file
+    """
+    if is_url_configured(request, lti_params):
         return _view_document(request, document_url=lti_params['url'], jwt=jwt)
-    elif is_db_configured(request, lti_params): # We are launching a module item saved in the db
+
+    elif is_db_configured(request, lti_params):
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'] and
             ModuleItemConfiguration.tool_consumer_instance_guid == lti_params['tool_consumer_instance_guid']
         )
         return _view_document(request, document_url=config.one().document_url, jwt=jwt)
-    elif is_canvas_file(request, lti_params): # We are launching a canvas file
-        pass
+    elif is_canvas_file(request, lti_params):
         # TODO Force Oauth
         # TODO Get a public viewing url
 
         token = find_token_by_user_id(request.db, user.id)
         canvas_domain = find_by_oauth_consumer_key(request.db,
-                                                  request.params['oauth_consumer_key'])
-        canvas_api = CanvasApi(token, canvas_domain)
-        import pdb; pdb.set_trace()
-    elif is_authorized_to_configure(request):
+                                                   request.params['oauth_consumer_key'])
+        _canvas_api = CanvasApi(token, canvas_domain)
+        return _unauthorized(request)
+    elif is_authorized_to_configure(request, lti_params):
         consumer_key = request.params['oauth_consumer_key']
         application_instance = get_application_instance(request.db, consumer_key)
         return content_item_form(
@@ -63,18 +100,19 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
             lms_url=application_instance.lms_url,
             jwt=jwt
         )
-    else: # Not configured
-        return _unauthorized(request)
+    return _unauthorized(request)
 
 
 @view_config(route_name='module_item_launch_oauth_callback',
-            request_method='GET')
+             request_method='GET')
 @save_token
-def module_item_launch_oauth_callback(request, token, lti_params, user, jwt):
+def lti_launch_oauth_callback(request, token, lti_params, user, jwt):
+    """Route to handle oauth response from when forced to oauth from lti_launch"""
     return handle_lti_launch(request, token, lti_params, user, jwt)
 
 
 def should_launch(request):
+    """Determine whether or not an oauth should be triggered or not"""
     return is_canvas_file(request, request.params)
 
 @view_config(route_name='lti_launches', request_method='POST')
@@ -86,47 +124,12 @@ def should_launch(request):
     oauth_condition=should_launch
 )
 def lti_launches(request, jwt, user=None):
-    """
-    Primary lms launch route. There are 3 views that could be rendered.
-
-    1. If a student launches before a teacher has configured the document then it will
-    display a message say that the teacher still needs to configure the document.
-
-    2. If a student or teacher launch after the document has been configured then it displays the
-    document with the annotation tools.
-
-    3. If a teacher launches and no document has been configured, ict renders a form that allows
-    them to configure the document.
-    """
-
-    if is_url_configured(request, request.params): # We are launching from the provided url
-        return _view_document(request, document_url=request.params['url'], jwt=jwt)
-    elif is_db_configured(request, request.params): # We are launching a module item saved in the db
-        config = request.db.query(ModuleItemConfiguration).filter(
-            ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
-            ModuleItemConfiguration.tool_consumer_instance_guid == request.params['tool_consumer_instance_guid']
-        )
-        return _view_document(request, document_url=config.one().document_url, jwt=jwt)
-    elif is_canvas_file(request, request.params): # We are launching a canvas file
+    """Route to handle an lti launch to view a module item"""
+    if user is not None:
         token = find_token_by_user_id(request.db, user.id)
-        canvas_domain = find_by_oauth_consumer_key(request.db,
-                                                  request.params['oauth_consumer_key'])
-        canvas_api = CanvasApi(token, canvas_domain)
-
-        # TODO Get a public viewing url
-        return _unauthorized(request)
-    elif is_authorized_to_configure(request, request.params):
-        consumer_key = request.params['oauth_consumer_key']
-        application_instance = get_application_instance(request.db, consumer_key)
-        return content_item_form(
-            request,
-            lti_params=request.params,
-            content_item_return_url=request.route_url('module_item_configurations'),
-            lms_url=application_instance.lms_url,
-            jwt=jwt
-        )
-    else: # Not configured
-        return _unauthorized(request)
+        return handle_lti_launch(request, token=token,
+                                 lti_params=request.params, user=user, jwt=jwt)
+    return _unauthorized(request)
 
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(request, document_url, jwt):
