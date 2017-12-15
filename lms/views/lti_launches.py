@@ -5,6 +5,9 @@ from lms.util.lti_launch import get_application_instance
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
+from lms.util.canvas_api import CanvasApi
+from lms.models.tokens import find_token_by_user_id
+from lms.models.application_instance import find_by_oauth_consumer_key
 
 
 def can_configure_module_item(roles):
@@ -56,7 +59,14 @@ def lti_launches(request, jwt, user=None):
         return _view_document(request, document_url=config.one().document_url, jwt=jwt)
     elif is_canvas_file(request): # We are launching a canvas file
         pass
+        # TODO Force Oauth
         # TODO Get a public viewing url
+
+        token = find_token_by_user_id(request.db, user.id)
+        canvas_domain = find_by_oauth_consumer_key(request.db,
+                                                  request.params['oauth_consumer_key'])
+        canvas_api = CanvasApi(token, canvas_domain)
+        import pdb; pdb.set_trace()
     elif is_authorized_to_configure(request):
         consumer_key = request.params['oauth_consumer_key']
         application_instance = get_application_instance(request.db, consumer_key)
