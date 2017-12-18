@@ -1,10 +1,11 @@
 import Request from 'superagent';
 
-const Constants = {
+export const Constants = {
   GET: 'get',
   POST: 'post',
   DEL: 'del',
-  PUT: 'put'
+  PUT: 'put',
+  GET_ALL: 'get_all'
 }
 
 export default class CanvasApi {
@@ -12,11 +13,11 @@ export default class CanvasApi {
     this.baseUrl = window.DEFAULT_SETTINGS.apiUrl;
   }
 
-  proxy(endpointUrl, params = {}) {
+  proxy(endpointUrl, method, params = {}) {
     return new Promise((resolve, reject) => {
       Request
       .post(this.baseUrl)
-      .send({ method: Constants.GET, endpoint_url: endpointUrl, params })
+      .send({ endpoint_url: endpointUrl,  method, params })
       .set('Authorization', `Bearer ${window.DEFAULT_SETTINGS.jwt}`)
       .end((err, res) => {
         if (err) {

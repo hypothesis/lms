@@ -5,6 +5,20 @@ from lms.models.tokens import find_token_by_user_id
 
 GET = 'get'
 POST = 'post'
+GET_ALL = 'get_all'
+
+
+class CanvasResponse:
+    """Standardize output to handle pagination."""
+
+    def __init__(self, status_code, result_json):
+        """Store the status code and result json."""
+        self.status_code = status_code
+        self.result_json = result_json
+
+    def json(self):
+        """Return the json from the request."""
+        return self.result_json
 
 
 class CanvasApi:
@@ -24,12 +38,24 @@ class CanvasApi:
             response = requests.get(url=url, params=params)
         elif method == POST:
             response = requests.post(url)
+        elif method == GET_ALL:
+            return self.get_all(endpoint_url, params)
 
-        return response
+        return CanvasResponse(response.status_code, response.json())
 
-    def get_canvas_course_files(self, course_id, params):
-        """List canvas course files."""
-        return self.proxy(f'/api/v1/courses/{course_id}/files', GET, params)
+    def get_all(self, endpoint_url, params):
+        params['per_page'] = 100
+        params['page'] = 1
+        resp_jsons = []
+        url = f"{self.canvas_domain}{endpoint_url}"
+        response = requests.get(url=url, params=params)
+        resp_jsons.append(response.json())
+        while 'rel="next"' in response.headers['link']:
+            params['page'] = params['page'] + 1
+            response = requests.get(url=url, params=params)
+            resp_jsons.append(response.json())
+
+        return CanvasResponse(200, [item for resp in resp_jsons for item in resp])
 
 
 def canvas_api(view_function):

@@ -4,6 +4,7 @@ import Component from './component';
 import PickerTableHeader from './picker_table_header';
 import PickerTableRow from './picker_table_row';
 import PickerFooter from './picker_footer';
+import { Constants } from '../canvas_api';
 
 export default class FilePicker extends Component{
   initializeComponent() {
@@ -26,7 +27,10 @@ export default class FilePicker extends Component{
       this.render();
     }
     if (eventType === this.store.eventTypes.PICKER_OPENED) {
-      this.store.canvasApi.proxy(`courses/${this.props.courseId}/files`).then((res) => {
+      this.store.canvasApi.proxy(
+        `courses/${this.props.courseId}/files`,
+        Constants.GET_ALL
+      ).then((res) => {
         const currentState = this.store.getState()
         this.store.setState({
             ...currentState,
