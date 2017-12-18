@@ -49,9 +49,9 @@ def is_db_configured(request, params):
     """
     config = request.db.query(ModuleItemConfiguration).filter(
         ModuleItemConfiguration.resource_link_id == params['resource_link_id'] and
-        ModuleItemConfiguration.tool_consumer_instance_guid == params['tool_consumer_instance_guid']
-        )
-    return config.count == 1
+        ModuleItemConfiguration.tool_consumer_instance_guid == params[
+            'tool_consumer_instance_guid'])
+    return config.count() == 1
 
 
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):
@@ -72,6 +72,7 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     4. If a student or teacher launches a module item that has been configured
        as a canvas file
     """
+
     if is_url_configured(request, lti_params):
         return _view_document(request, document_url=lti_params['url'], jwt=jwt)
 

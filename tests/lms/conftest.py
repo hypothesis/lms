@@ -110,6 +110,11 @@ def pyramid_request():
     return pyramid_request
 
 
+def configure_jinja2_assets(config):
+    jinja2_env = config.get_jinja2_environment()
+    jinja2_env.globals['asset_url'] = 'http://example.com'
+    jinja2_env.globals['asset_urls'] = lambda bundle: 'http://example.com'
+
 @pytest.yield_fixture
 def pyramid_config(pyramid_request):
     """
@@ -148,6 +153,9 @@ def pyramid_config(pyramid_request):
 
         config.add_static_view(name='export', path='lms:static/export')
         config.add_static_view(name='static', path='lms:static')
+
+
+        config.action(None, configure_jinja2_assets, args=(config,))
 
         apply_request_extensions(pyramid_request)
 
