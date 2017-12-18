@@ -7,7 +7,8 @@ export default class PickerHeaderTable extends Component {
     this.store.subscribe(this)
   }
 
-  handleUpdate(state, eventType) {
+  handleUpdate() {
+    $('#picker-cancel').off('click');
     $('#picker-cancel').on('click', () => {
       this.store.setState(
         {
@@ -17,7 +18,7 @@ export default class PickerHeaderTable extends Component {
         this.store.eventTypes.PICKER_CLOSED
       )
     });
-
+    $('#picker-submit').off('click');
     $('#picker-submit').on('click', () => {
       this.props.pickerCallback(
         this.store.getState().selectedFileId

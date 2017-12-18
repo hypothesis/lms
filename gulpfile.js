@@ -116,7 +116,7 @@ function rewriteCSSURL(url) {
 gulp.task('build-vendor-css', function () {
   var vendorCSSFiles = [
     // Icon font
-    // './h/static/styles/vendor/icomoon.css',
+    // './lms/static/styles/vendor/icomoon.css',
     // './node_modules/bootstrap/dist/css/bootstrap.css',
   ];
 
@@ -131,9 +131,9 @@ gulp.task('build-vendor-css', function () {
 });
 
 var styleBundleEntryFiles = [
-  // './h/static/styles/admin.scss',
-  // './h/static/styles/help-page.scss',
-  // './h/static/styles/site.scss',
+  // './lms/static/styles/admin.scss',
+  // './lms/static/styles/help-page.scss',
+  // './lms/static/styles/site.scss',
 ];
 
 function buildStyleBundle(entryFile, options) {
@@ -155,10 +155,10 @@ gulp.task('watch-css', function () {
   // a dependency of this task so that the process continues in the event of an
   // error.
   Promise.all(styleBundleEntryFiles.map(buildStyleBundle)).catch(gulpUtil.log);
-  gulp.watch('h/static/styles/**/*.scss', ['build-css']);
+  gulp.watch('lms/static/styles/**/*.scss', ['build-css']);
 });
 
-// var fontFiles = 'h/static/styles/vendor/fonts/*.woff';
+// var fontFiles = 'lms/static/styles/vendor/fonts/*.woff';
 
 // gulp.task('build-fonts', function () {
 //   gulp.src(fontFiles)
@@ -170,7 +170,7 @@ gulp.task('watch-css', function () {
 //   gulp.watch(fontFiles, ['build-fonts']);
 // });
 
-// var imageFiles = 'h/static/images/**/*';
+// var imageFiles = 'lms/static/images/**/*';
 // gulp.task('build-images', function () {
 //   var shouldMinifySVG = function (file) {
 //     return IS_PRODUCTION_BUILD && file.path.match(/\.svg$/);
@@ -248,22 +248,22 @@ function runKarma(baseConfig, opts, done) {
   var karma = require('karma');
   new karma.Server(Object.assign({}, {
     configFile: path.resolve(__dirname, baseConfig),
-  }, cliOpts, opts), done).start();
+  }, cliOpts, opts)).start();
 }
 
 gulp.task('test', function (callback) {
-  runKarma('./h/static/scripts/karma.config.js', {singleRun:true}, callback);
+  runKarma('./lms/static/scripts/karma.config.js', { singleRun: true, autoWatch: false }, callback);
 });
 
 gulp.task('test-watch', function (callback) {
-  runKarma('./h/static/scripts/karma.config.js', {}, callback);
+  runKarma('./lms/static/scripts/karma.config.js', {}, callback);
 });
 
 gulp.task('lint', function () {
   // Adapted from usage example at https://www.npmjs.com/package/gulp-eslint
   // `gulp-eslint` is loaded lazily so that it is not required during Docker image builds
   var eslint = require('gulp-eslint');
-  return gulp.src(['h/static/scripts/**/*.js'])
+  return gulp.src(['lms/static/scripts/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());

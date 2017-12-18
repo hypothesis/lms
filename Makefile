@@ -16,6 +16,7 @@ shell: .pydeps
 
 .PHONY: test
 test:
+	$(GULP) test
 	@pip install -q tox
 	tox
 

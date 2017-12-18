@@ -12,6 +12,7 @@ export default class FilePicker extends Component{
   }
 
   setupEventListeners() {
+    $('#picker-button').off('click');
     $('#picker-button').on('click', () => {
       const state = this.store.getState();
       this.store.setState(
@@ -24,7 +25,11 @@ export default class FilePicker extends Component{
   handleUpdate(state, eventType) {
     this.setupEventListeners();
     if (eventType !== this.store.eventTypes.DOCUMENT_RENDERED) {
+      const oldContainer = $('.scroll-container')[0] || {};
+      const oldScrollTop = oldContainer.scrollTop;
       this.render();
+      const newContainer = $('.scroll-container')[0] || {};
+      newContainer.scrollTop = oldScrollTop;
     }
     if (eventType === this.store.eventTypes.PICKER_OPENED) {
       this.store.canvasApi.proxy(
@@ -77,5 +82,6 @@ export default class FilePicker extends Component{
     }
     $(this.props.mountId).html(output)
     this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED)
+    return output;
   }
 }
