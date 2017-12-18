@@ -1,5 +1,6 @@
 import urllib
 import json
+import pyramid.httpexceptions as exc
 
 from requests_oauthlib import OAuth2Session
 from pyramid.httpexceptions import HTTPFound
@@ -7,6 +8,8 @@ from lms.models.oauth_state import find_or_create_from_user, find_by_state, find
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
 from lms.util.jwt import build_jwt_from_lti_launch
+
+
 
 def build_canvas_token_url(lms_url):
     """Build a canvas token url from the base lms url and the token."""
@@ -62,7 +65,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
             if application_instance is None:
-                pass # TODO throw an error
+                raise exc.HTTPInternalServerError()
 
             authorization_base_url = build_auth_base_url(application_instance.lms_url,
                                                          authorization_base_endpoint)
@@ -75,7 +78,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             lti_params = json.dumps(dict(request.params))
             oauth_state = find_or_create_from_user(request.db, state_guid, user, lti_params)
             if oauth_state is None:
-                pass # TODO Throw an error
+                raise exc.HTTPInternalServerError()
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator

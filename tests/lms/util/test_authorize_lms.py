@@ -14,6 +14,13 @@ import json
 def view_function(request, user):
     return Response("<h1>Howdy</h1>")
 
+@authorize_lms(
+    authorization_base_endpoint='login/oauth2/auth',
+    redirect_endpoint='canvas_oauth_callback',
+    oauth_condition=lambda request: False
+)
+def oauth_condition_view_function(request, user):
+    return Response("<h1>Howdy</h1>")
 
 def create_application_instance(lti_launch_request):
     lms_url = "https://example.com"
@@ -61,8 +68,14 @@ class TestAuthorizeLms(object):
         assert oauth_state.lti_params is not None
         assert oauth_state.lti_params == expected_lti_params
 
-#    def test_it_throws(): TODO test errors are corectly thrown when values ore
-#    not retrieved or saved
+    def test_it_only_redirects_if_condition_is_truthy(self, lti_launch_request):
+        create_application_instance(lti_launch_request)
+        user = create_user(lti_launch_request)
+
+        response = oauth_condition_view_function(lti_launch_request, user=user)
+        assert response.status_code == 200
+        assert response.body == b'<h1>Howdy</h1>'
+
 
 
 
