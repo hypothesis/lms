@@ -1,6 +1,6 @@
 from urllib.parse import urlparse, parse_qs
 from pyramid.response import Response
-from lms.util.authorize_lms import authorize_lms
+from lms.util.authorize_lms import authorize_lms, save_token
 from lms.models.users import User
 from lms.models.application_instance import build_from_lms_url
 from lms.models.oauth_state import find_by_state
@@ -21,6 +21,13 @@ def view_function(request, user):
 )
 def oauth_condition_view_function(request, user):
     return Response("<h1>Howdy</h1>")
+
+def build_save_token_view(assertions):
+    @save_token
+    def save_token_view_function(request, **kwargs):
+        assertions(request, **kwargs)
+        return Response("<h1>Howdy</h1>")
+    return save_token_view_function
 
 def create_application_instance(lti_launch_request):
     lms_url = "https://example.com"
@@ -75,6 +82,15 @@ class TestAuthorizeLms(object):
         response = oauth_condition_view_function(lti_launch_request, user=user)
         assert response.status_code == 200
         assert response.body == b'<h1>Howdy</h1>'
+
+    def test_it_saves_token(self, oauth_response):
+        def assertions(request, **kwargs):
+            user = kwargs['user']
+            token = kwargs['token']
+            assert user.id is not None
+            assert user.id == token.user_id
+        response = build_save_token_view(assertions)(oauth_response)
+        assert response.status_code == 200
 
 
 

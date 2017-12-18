@@ -1,8 +1,8 @@
 import urllib
 import json
 import pyramid.httpexceptions as exc
+import requests_oauthlib
 
-from requests_oauthlib import OAuth2Session
 from pyramid.httpexceptions import HTTPFound
 from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
 from lms.models.application_instance import find_by_oauth_consumer_key
@@ -72,7 +72,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
 
             redirect_uri = build_redirect_uri(request.url, redirect_endpoint)
 
-            oauth_session = OAuth2Session(client_id, redirect_uri=redirect_uri)
+            oauth_session = requests_oauthlib.OAuth2Session(client_id, redirect_uri=redirect_uri)
             authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)
 
             lti_params = json.dumps(dict(request.params))
@@ -87,25 +87,38 @@ def save_token(view_function):
     """Decorate an oauth callback route to save access token"""
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
+        if 'state' not in request.params or 'code' not in request.params:
+            raise exc.HTTPInternalServerError('Invalid Oauth Response')
+
         client_id = request.registry.settings['oauth.client_id']
         client_secret = request.registry.settings['oauth.client_secret']
         state = request.params['state']
         oauth_state = find_by_state(request.db, state)
+
+        if oauth_state is None:
+            raise exc.HTTPInternalServerError('Oauth state was not found')
+
         lti_params = json.loads(oauth_state.lti_params)
         application_instance = find_by_oauth_consumer_key(request.db,
                                                           lti_params['oauth_consumer_key'])
+
+        if application_instance is None:
+            raise exc.HTTPInternalServerError()
+
         token_url = build_canvas_token_url(application_instance.lms_url)
 
-        session = OAuth2Session(client_id, state=state)
+        session = requests_oauthlib.OAuth2Session(client_id, state=state)
         oauth_resp = session.fetch_token(token_url, client_secret=client_secret,
                                          authorization_response=request.url,
                                          code=request.params['code'])
 
         user = find_user_from_state(request.db, state)
 
+        if application_instance is None:
+            raise exc.HTTPInternalServerError('Application instance was not found')
+
         new_token = build_token_from_oauth_response(oauth_resp)
         update_user_token(request.db, new_token, user)
-
         jwt_token = build_jwt_from_lti_launch(lti_params,
                                               request.registry.settings['jwt_secret'])
 
