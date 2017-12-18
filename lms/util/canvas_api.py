@@ -8,14 +8,15 @@ POST = 'post'
 
 
 class CanvasApi:
-    """Class to encapsulate interactions with the Canvas api"""
+    """Class to encapsulate interactions with the Canvas api."""
+
     def __init__(self, canvas_token, canvas_domain):
         """Initialize the canvas api with a domain and a token."""
         self.canvas_token = canvas_token
         self.canvas_domain = canvas_domain
 
     def proxy(self, endpoint_url, method, params):
-        """Proxy a method to canvas"""
+        """Proxy a method to canvas."""
         response = None
         params['access_token'] = self.canvas_token
         url = f"{self.canvas_domain}{endpoint_url}"
@@ -27,12 +28,13 @@ class CanvasApi:
         return response
 
     def get_canvas_course_files(self, course_id, params):
-        """List canvas course files"""
+        """List canvas course files."""
         return self.proxy(f'/api/v1/courses/{course_id}/files', GET, params)
+
 
 def canvas_api(view_function):
     """
-    Decorate a route to include an instance of the CanvasApi class
+    Decorate a route to include an instance of the CanvasApi class.
 
     Expects to be passed a user and decoded_jwt that includes at least:
     {
@@ -42,7 +44,7 @@ def canvas_api(view_function):
     }
     """
     def wrapper(request, decoded_jwt, user):
-        """Wrap view function"""
+        """Wrap view function."""
         if user is None:
             return exc.HTTPNotFound()
 

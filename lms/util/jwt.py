@@ -1,7 +1,8 @@
 import jwt
 
+
 def build_jwt_from_lti_launch(lti_params, jwt_secret):
-    """Build a client jwt token from lti_launch params"""
+    """Build a client jwt token from lti_launch params."""
     data = {
         'user_id': lti_params['user_id'],
         'roles': lti_params['roles'],

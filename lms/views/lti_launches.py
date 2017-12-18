@@ -13,7 +13,7 @@ from lms.models.application_instance import find_by_oauth_consumer_key
 
 def can_configure_module_item(roles):
     """
-    Determine whether or not someone with roles can configure a module item
+    Determine whether or not someone with roles can configure a module item.
 
     roles should be a list of lti roles
     """
@@ -23,25 +23,28 @@ def can_configure_module_item(roles):
 
 
 def is_canvas_file(_request, params):
-    """Determine whether we are launching to view a canvas file"""
+    """Determine whether we are launching to view a canvas file."""
     return 'canvas_file' in params
+
 
 def is_url_configured(_request, params):
     """
-    Determine whether the requested module item is url configured
+    Determine whether the requested module item is url configured.
 
     A module item is url configured when the document url is stored
     in a query paramter on the lti launch url
     """
     return 'url' in params
 
+
 def is_authorized_to_configure(_request, params):
-    """Determin whether the user is allowed to configure module items"""
+    """Determine whether the user is allowed to configure module items."""
     return can_configure_module_item(params['roles'])
+
 
 def is_db_configured(request, params):
     """
-    Determine whether or not the requested module item is configured to use db
+    Determine whether or not the requested module item is configured to use db.
 
     A module item is database configured when it's id and document url are
     stored in our database. This occurs when an lms does not support content
@@ -50,13 +53,13 @@ def is_db_configured(request, params):
     config = request.db.query(ModuleItemConfiguration).filter(
         ModuleItemConfiguration.resource_link_id == params['resource_link_id'] and
         ModuleItemConfiguration.tool_consumer_instance_guid == params['tool_consumer_instance_guid']
-        )
+    )
     return config.count == 1
 
 
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):
     """
-    Handle determining which view should be rendered for a given lti launch
+    Handle determining which view should be rendered for a given lti launch.
 
     The following cases are supported:
 
@@ -109,13 +112,14 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
              request_method='GET')
 @save_token
 def lti_launch_oauth_callback(request, token, lti_params, user, jwt):
-    """Route to handle oauth response from when forced to oauth from lti_launch"""
+    """Route to handle oauth response from when forced to oauth from lti_launch."""
     return handle_lti_launch(request, token, lti_params, user, jwt)
 
 
 def should_launch(request):
-    """Determine whether or not an oauth should be triggered or not"""
+    """Determine whether or not an oauth should be triggered or not."""
     return is_canvas_file(request, request.params)
+
 
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
@@ -126,12 +130,13 @@ def should_launch(request):
     oauth_condition=should_launch
 )
 def lti_launches(request, jwt, user=None):
-    """Route to handle an lti launch to view a module item"""
+    """Route to handle an lti launch to view a module item."""
     if user is not None:
         token = find_token_by_user_id(request.db, user.id)
         return handle_lti_launch(request, token=token,
                                  lti_params=request.params, user=user, jwt=jwt)
     return _unauthorized(request)
+
 
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(request, document_url, jwt):

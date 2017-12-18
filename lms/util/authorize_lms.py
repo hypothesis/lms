@@ -1,6 +1,5 @@
 import urllib
 import json
-
 from requests_oauthlib import OAuth2Session
 from pyramid.httpexceptions import HTTPFound
 from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
@@ -8,9 +7,11 @@ from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
 from lms.util.jwt import build_jwt_from_lti_launch
 
+
 def build_canvas_token_url(lms_url):
     """Build a canvas token url from the base lms url and the token."""
     return lms_url + '/login/oauth2/token'
+
 
 def build_redirect_uri(request_url, redirect_endpoint):
     """Build a redirect uri back to the app."""
@@ -22,9 +23,11 @@ def build_auth_base_url(lms_url, base_auth_endpoint):
     """Build base oauth url from lms_url and the provided base_auth_endpoint."""
     return lms_url + '/' + base_auth_endpoint
 
+
 def default_oauth_condition(_request):
-    """Method to determine whether or not we should make an oauth request"""
+    """Determine whether or not we should make an oauth request."""
     return True
+
 
 def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
                   oauth_condition=default_oauth_condition):
@@ -52,7 +55,6 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
         """Decorate view function."""
         def wrapper(request, *args, user=None, **kwargs):
             """Redirect user."""
-
             if oauth_condition(request) is False:
                 return view_function(request, *args, user=user, **kwargs)
 
@@ -62,7 +64,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
             if application_instance is None:
-                pass # TODO throw an error
+                pass  # TODO throw an error
 
             authorization_base_url = build_auth_base_url(application_instance.lms_url,
                                                          authorization_base_endpoint)
@@ -75,13 +77,14 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             lti_params = json.dumps(dict(request.params))
             oauth_state = find_or_create_from_user(request.db, state_guid, user, lti_params)
             if oauth_state is None:
-                pass # TODO Throw an error
+                pass  # TODO Throw an error
             return HTTPFound(location=authorization_url)
         return wrapper
     return decorator
 
+
 def save_token(view_function):
-    """Decorate an oauth callback route to save access token"""
+    """Decorate an oauth callback route to save access token."""
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
         client_id = request.registry.settings['oauth.client_id']

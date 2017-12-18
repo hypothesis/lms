@@ -51,3 +51,5 @@ build:
 watch:
 	$(GULP) watch
 
+client_test:
+	$(GULP) test

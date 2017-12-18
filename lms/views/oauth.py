@@ -7,7 +7,6 @@ from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models.oauth_state import find_user_from_state, find_by_state
 from lms.util.lti_launch import get_application_instance
 from lms.views.content_item_selection import content_item_form
-from lms.util.canvas_api import CanvasApi, GET
 
 
 def build_canvas_token_url(lms_url):
@@ -38,13 +37,13 @@ def canvas_oauth_callback(request):
     new_token = build_token_from_oauth_response(oauth_resp)
     update_user_token(request.db, new_token, user)
     data = {
-      'user_id': lti_params['user_id'],
-      'roles': lti_params['roles'],
-      'consumer_key': consumer_key,
+        'user_id': lti_params['user_id'],
+        'roles': lti_params['roles'],
+        'consumer_key': consumer_key,
     }
     jwt_token = jwt.encode(data,
-            request.registry.settings['jwt_secret'],
-            'HS256').decode('utf-8')
+                           request.registry.settings['jwt_secret'],
+                           'HS256').decode('utf-8')
 
     return content_item_form(
         request,

@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-import os
-
-import json
-from pyramid.settings import asbool, aslist
-from pyramid.static import static_view
-
 import configparser
+import json
+import os
+from pyramid.settings import aslist
+from pyramid.static import static_view
 
 
 class _CachedFile(object):
-
     """
     Parses content from a file and caches the result.
 
@@ -19,6 +16,8 @@ class _CachedFile(object):
 
     def __init__(self, path, loader, auto_reload=False):
         """
+        Create the CachedFile object.
+
         :param path: The path to the file to load.
         :param loader: A callable that will be passed the file object and
                        should return the parsed content.
@@ -50,7 +49,6 @@ class _CachedFile(object):
 
 
 class Environment(object):
-
     """
     Environment for generating URLs for Hypothesis' static assets.
 
@@ -101,9 +99,7 @@ class Environment(object):
         return [self.url(path) for path in bundles[bundle]]
 
     def url(self, path):
-        """
-        Return the cache-busted URL for an asset with a given path.
-        """
+        """Return the cache-busted URL for an asset with a given path."""
         manifest = self.manifest.load()
         return '{}/{}'.format(self.assets_base_url, manifest[path])
 
@@ -130,20 +126,20 @@ def _add_cors_header(wrapped):
 def _load_bundles(fp):
     """Read an asset bundle config from a file object."""
     parser = configparser.ConfigParser()
-    parser.readfp(fp)
+    parser.read_file(fp)
     return {k: aslist(v) for k, v in parser.items('bundles')}
 
 
 # Site assets
-assets_view = static_view('lms:../build',
+ASSETS_VIEW = static_view('lms:../build',
                           cache_max_age=None,
                           use_subpath=True)
-assets_view = _add_cors_header(assets_view)
+ASSETS_VIEW = _add_cors_header(ASSETS_VIEW)
 
 
 def includeme(config):
     # TODO: figure out auto reload if we want it
-    config.add_view(route_name='assets', view=assets_view)
+    config.add_view(route_name='assets', view=ASSETS_VIEW)
 
     assets_env = Environment('/assets',
                              'lms/assets.ini',

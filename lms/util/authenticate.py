@@ -2,7 +2,6 @@
 import jwt
 from pyramid.response import Response
 from lms.models.users import find_by_lms_guid
-from lms.models.application_instance import find_by_oauth_consumer_key
 
 
 def authenticate(view_function):
