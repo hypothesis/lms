@@ -9,6 +9,7 @@ export default class PickerFooter extends Component {
 
   handleUpdate(state, eventType) {
     if(eventType === this.store.eventTypes.DOCUMENT_RENDERED) {
+      $(`#file-${this.props.file.id}`).off('click');
       $(`#file-${this.props.file.id}`).on('click', () => {
         this.store.setState(
           {
