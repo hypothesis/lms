@@ -7,7 +7,7 @@ export default class PickerHeaderTable extends Component {
     this.store.subscribe(this)
   }
 
-  handleUpdate(state, eventType) {
+  handleUpdate() {
     $('#picker-cancel').on('click', () => {
       this.store.setState(
         {

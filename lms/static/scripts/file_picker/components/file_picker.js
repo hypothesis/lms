@@ -77,5 +77,6 @@ export default class FilePicker extends Component{
     }
     $(this.props.mountId).html(output)
     this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED)
+    return output;
   }
 }

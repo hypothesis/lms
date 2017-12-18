@@ -41,7 +41,7 @@ export default class Store {
     this.subscribers.push(subscriber);
   }
 
-  unsubscribe(subcriber) {
+  unsubscribe(subscriber) {
     _.remove(this.subscribers, s => s === subscriber );
   }
 }
