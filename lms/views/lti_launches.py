@@ -75,7 +75,6 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     4. If a student or teacher launches a module item that has been configured
        as a canvas file
     """
-
     if is_url_configured(request, lti_params):
         return _view_document(request, document_url=lti_params['url'], jwt=jwt)
 

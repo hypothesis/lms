@@ -1,9 +1,7 @@
 import urllib
 import json
-import pyramid.httpexceptions as exc
 import requests_oauthlib
-
-from pyramid.httpexceptions import HTTPFound
+import pyramid.httpexceptions as exc
 from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
@@ -80,7 +78,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             oauth_state = find_or_create_from_user(request.db, state_guid, user, lti_params)
             if oauth_state is None:
                 raise exc.HTTPInternalServerError()
-            return HTTPFound(location=authorization_url)
+            return exc.HTTPFound(location=authorization_url)
         return wrapper
     return decorator
 

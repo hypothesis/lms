@@ -104,7 +104,7 @@ def pyramid_request():
         constants.ROLES: 'Instructor',
         constants.TOOL_CONSUMER_INSTANCE_GUID: 'TEST_GUID',
         constants.CONTENT_ITEM_RETURN_URL: 'https://www.example.com',
-        constants.LTI_VERSION: 'TEST'
+        constants.LTI_VERSION: 'TEST',
     })
 
     pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
@@ -199,6 +199,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
         'address@)hypothes.is')
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
+    pyramid_request.params['custom_canvas_course_id'] = '1'
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
     pyramid_request.registry.settings['oauth.client_id'] = 'fake'
     pyramid_request.registry.settings['oauth.client_secret'] = 'fake'

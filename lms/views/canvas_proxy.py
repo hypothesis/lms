@@ -8,7 +8,7 @@ from lms.util.canvas_api import canvas_api as canvas_api_provider
 @view_config(route_name='canvas_proxy', request_method='POST')
 @authenticate
 @canvas_api_provider
-def canvas_proxy(request, _decoded_jwt, canvas_api, **kwargs):  # pylint: disable=unused-argument
+def canvas_proxy(request, _decoded_jwt, canvas_api, **_):
     """
     Route to support proxying client side XHR requests.
 
