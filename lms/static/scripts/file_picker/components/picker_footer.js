@@ -8,6 +8,7 @@ export default class PickerHeaderTable extends Component {
   }
 
   handleUpdate() {
+    // Handle the submit and cancel functionality.
     $('#picker-cancel').off('click');
     $('#picker-cancel').on('click', () => {
       this.store.setState(
