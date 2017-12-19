@@ -199,6 +199,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
     pyramid_request.params['custom_canvas_course_id'] = '1'
+    pyramid_request.params['context_id'] = 'fake_context_id'
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
     pyramid_request.registry.settings['oauth.client_id'] = 'fake'
     pyramid_request.registry.settings['oauth.client_secret'] = 'fake'
