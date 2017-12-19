@@ -1,6 +1,6 @@
 from datetime import datetime
-from lms.db import BASE
 import sqlalchemy as sa
+from lms.db import BASE
 
 
 class Token(BASE):

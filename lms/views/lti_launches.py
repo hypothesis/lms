@@ -60,8 +60,9 @@ def is_db_configured(request, params):
             'tool_consumer_instance_guid'])
     return config.count() == 1
 
+
 def launch_lti(request, lti_key=None, context_id=None, document_url=None,
-        jwt=None):
+               jwt=None):
     log = logging.getLogger(__name__)
     try:
         lti_launch_instance = LtiLaunches(
@@ -141,6 +142,7 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
 def lti_launch_oauth_callback(request, token, lti_params, user, jwt):
     """Route to handle oauth response from when forced to oauth from lti_launch."""
     return handle_lti_launch(request, token, lti_params, user, jwt)
+
 
 def should_launch(request):
     """Determine whether or not an oauth should be triggered or not."""
