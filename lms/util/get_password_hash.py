@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# Requires python 3.6+
+
 import hashlib
 import os
 import binascii

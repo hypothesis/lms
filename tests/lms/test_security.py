@@ -39,4 +39,4 @@ class TestSecurityGroupFinder:
 
         groups = security.groupfinder(userid, pyramid_request)
 
-        assert groups is None
+        assert not groups

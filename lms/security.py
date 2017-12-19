@@ -14,6 +14,8 @@ def check_password(password: str, expected_pw_hash: str, salt: str):
 
 
 def groupfinder(userid, request):
+    allowed_groups = list()
     settings = request.registry.settings
     if userid == settings.get('username', None):
-        return ['report_viewers']
+        allowed_groups.append('report_viewers')
+    return allowed_groups
