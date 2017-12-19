@@ -1,8 +1,12 @@
+import logging
+
 from pyramid.view import view_config
+
+from lms.models.lti_launches import LtiLaunches
+from lms.models.module_item_configuration import ModuleItemConfiguration
+from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
-from lms.util.lti_launch import get_application_instance
-from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 
 
@@ -27,23 +31,46 @@ def lti_launches(request, jwt):
     3. If a teacher launches and no document has been configured, ict renders a form that allows
     them to configure the document.
     """
+    log = logging.getLogger(__name__)
+
     if 'url' not in request.params:
         config = request.db.query(ModuleItemConfiguration).filter(
-            ModuleItemConfiguration.resource_link_id == request.params['resource_link_id'] and
-            ModuleItemConfiguration.tool_consumer_instance_guid == request.params['tool_consumer_instance_guid']
+            ModuleItemConfiguration.resource_link_id == request.params[
+                'resource_link_id'] and
+            ModuleItemConfiguration.tool_consumer_instance_guid ==
+            request.params['tool_consumer_instance_guid']
         )
         if config.count() >= 1:
-            return _view_document(request, document_url=config.one().document_url, jwt=jwt)
+            return _view_document(request,
+                                  document_url=config.one().document_url,
+                                  jwt=jwt)
         elif can_configure_module_item(request.params['roles']):
             consumer_key = request.params['oauth_consumer_key']
-            application_instance = get_application_instance(request.db, consumer_key)
+            application_instance = get_application_instance(request.db,
+                                                            consumer_key)
             return content_item_form(
                 request,
-                content_item_return_url=request.route_url('module_item_configurations'),
+                content_item_return_url=request.route_url(
+                    'module_item_configurations'),
                 lms_url=application_instance.lms_url,
                 jwt=jwt
             )
         return _unauthorized(request)
+
+    lti_key = None
+    try:
+        lti_key = request.params['oauth_consumer_key']
+        context_id = request.params['context_id']
+        lti_launch_instance = LtiLaunches(
+            context_id=context_id,
+            lti_key=lti_key
+        )
+        request.db.add(lti_launch_instance)
+
+    # Never prevent a launch because of logging problem.
+    # pylint: disable=broad-except
+    except Exception as e:
+        log.error(f"Failed to log lti launch for lti key '{lti_key}': {e}")
 
     return _view_document(request, document_url=request.params['url'], jwt=jwt)
 
