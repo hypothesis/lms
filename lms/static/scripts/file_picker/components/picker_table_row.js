@@ -9,6 +9,7 @@ export default class PickerFooter extends Component {
 
   handleUpdate(state, eventType) {
     if(eventType === this.store.eventTypes.DOCUMENT_RENDERED) {
+      // handle file selection
       $(`#file-${this.props.file.id}`).off('click');
       $(`#file-${this.props.file.id}`).on('click', () => {
         this.store.setState(
@@ -25,6 +26,8 @@ export default class PickerFooter extends Component {
   render() {
     const state = this.store.getState()
     let className = '';
+
+    // highlight the selected file.
     if (this.props.file.id === state.selectedFileId) {
       className = 'class="selected-file"';
     }

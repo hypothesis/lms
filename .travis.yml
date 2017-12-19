@@ -8,10 +8,13 @@ python:
   - 3.6
 addons:
     postgresql: "9.4"
-before_script: createdb lms_test
+before_script: createdb lms_test; npm install;
 jobs:
   include:
     - script: make test
     - script: make lint
 after_success:
   - make coverage codecov
+cache:
+  directories:
+    - node_modules

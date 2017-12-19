@@ -16,6 +16,9 @@ const eventTypes = {
   FILE_SUBMITED: 'FILE_SUBMITTED',
 }
 
+// Store handles the application state and implements a basic observer pattern.
+// Subscribers are notified any time an update is triggered via the triggerUpdate function, the
+// subscriber will recieve the current state and a message describing the update.
 export default class Store {
   constructor(subscribers = [], state = defaultState) {
     this.subscribers = subscribers;
@@ -24,10 +27,12 @@ export default class Store {
     this.state = state;
   }
 
+  // Notify all subscribers of an update
   triggerUpdate(eventType) {
     _.each(this.subscribers, sub => sub.handleUpdate(this.state, eventType));
   }
 
+  // Replaces existing state with new state then triggers and update.
   setState(state, eventType) {
     this.state = state;
     this.triggerUpdate(eventType);

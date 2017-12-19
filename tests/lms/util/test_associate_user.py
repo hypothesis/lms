@@ -1,6 +1,7 @@
+# pylint: disable=no-value-for-parameter
 from pyramid.response import Response
-from lms.util.associate_user import associate_user
-from lms.models.users import User
+from lms.util import associate_user
+from lms.models import User
 
 
 def build_mock_view(assertions):
@@ -14,8 +15,9 @@ def build_mock_view(assertions):
 
 
 class TestAssociateUser(object):
-    """Test the associate user decorator"""
-    def test_it_finds_an_existing_user(self, lti_launch_request, **kwargs):
+    """Test the associate user decorator."""
+
+    def test_it_finds_an_existing_user(self, lti_launch_request, **_):
         user_id = lti_launch_request.params['user_id']
         existing_user = User(lms_guid=user_id)
 
@@ -32,4 +34,3 @@ class TestAssociateUser(object):
             request.db.flush()
             assert user.id is not None
         build_mock_view(assertions)(lti_launch_request)
-

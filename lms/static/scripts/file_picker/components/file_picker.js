@@ -12,6 +12,7 @@ export default class FilePicker extends Component{
   }
 
   setupEventListeners() {
+    // Remove all the click events the re-add them
     $('#picker-button').off('click');
     $('#picker-button').on('click', () => {
       const state = this.store.getState();
@@ -22,8 +23,12 @@ export default class FilePicker extends Component{
     });
   }
 
+  // Called by Store when an update is triggered.
+  // This method is where you will do things like add and remove event
+  // listeners or restore GUI state if needed
   handleUpdate(state, eventType) {
     this.setupEventListeners();
+    // We always rerender unless the event is the DOCUMENT RENDERED event
     if (eventType !== this.store.eventTypes.DOCUMENT_RENDERED) {
       const oldContainer = $('.scroll-container')[0] || {};
       const oldScrollTop = oldContainer.scrollTop;
@@ -31,6 +36,8 @@ export default class FilePicker extends Component{
       const newContainer = $('.scroll-container')[0] || {};
       newContainer.scrollTop = oldScrollTop;
     }
+
+    // Load the files from the proxy when the picker is opened.
     if (eventType === this.store.eventTypes.PICKER_OPENED) {
       this.store.canvasApi.proxy(
         `courses/${this.props.courseId}/files`,
@@ -50,7 +57,12 @@ export default class FilePicker extends Component{
   render() {
     const state = this.store.getState();
     let output;
+    // Only render the picker if the picker is open
     if(state.pickerOpen) {
+      // This can be a little scary if you are not familiar with tagged template
+      // literals. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
+      // Using this is not necessary just more declarative. r simply calls the render
+      // method of each component for you, you could very easily call render youself.
       output = this.r`
         <div class="file-picker-modal">
           <main class="picker-content">
@@ -70,7 +82,7 @@ export default class FilePicker extends Component{
         </div>
         <div class="file-picker-overlay" />
       `;
-    } else {
+    } else { // render a button that lets you open the picker if the picker is not open.
       output = this.r`
         <button
           class="btn btn--gray"
@@ -80,7 +92,10 @@ export default class FilePicker extends Component{
         </button>
       `;
     }
+
+    // Find the element on the page and set the inner html to output html
     $(this.props.mountId).html(output)
+    // Tell the app we are done rendering so that even listeners can be added.
     this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED)
     return output;
   }
