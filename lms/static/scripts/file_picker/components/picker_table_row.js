@@ -6,7 +6,7 @@ export default class PickerFooter extends Component {
   initializeComponent() {
     this.store.subscribe(this);
   }
-=
+
   handleUpdate(state, eventType) {
     if(eventType === this.store.eventTypes.DOCUMENT_RENDERED) {
       // handle file selection
