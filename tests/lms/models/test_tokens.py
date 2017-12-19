@@ -1,5 +1,5 @@
-from lms.models.tokens import Token, update_user_token
-from lms.models.users import User
+from lms.models import Token, update_user_token
+from lms.models import User
 
 FAKE_ACCESS_TOKEN = "FAKE_TOKEN"
 

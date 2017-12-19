@@ -4,22 +4,21 @@ from __future__ import unicode_literals
 
 import os
 import functools
+import json
 import mock
 import pytest
 import jwt
 import sqlalchemy
-import json
 from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 from lms import db
 from lms import constants
-from lms.config import env_setting
-from lms.models.users import User
-from lms.models.tokens import Token
-from lms.models.oauth_state import OauthState
-from lms.models.application_instance import build_from_lms_url
-from lms.util.canvas_api import GET, POST
+from lms.models import User
+from lms.models import Token
+from lms.models import OauthState
+from lms.models import build_from_lms_url
+from lms.util import GET
 
 TEST_DATABASE_URL = os.environ.get(
     'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
@@ -117,6 +116,7 @@ def configure_jinja2_assets(config):
     jinja2_env.globals['asset_url'] = 'http://example.com'
     jinja2_env.globals['asset_urls'] = lambda bundle: 'http://example.com'
 
+
 @pytest.yield_fixture
 def pyramid_config(pyramid_request):
     """
@@ -157,7 +157,6 @@ def pyramid_config(pyramid_request):
 
         config.add_static_view(name='export', path='lms:static/export')
         config.add_static_view(name='static', path='lms:static')
-
 
         config.action(None, configure_jinja2_assets, args=(config,))
 
@@ -205,8 +204,9 @@ def lti_launch_request(monkeypatch, pyramid_request):
     pyramid_request.registry.settings['oauth.client_secret'] = 'fake'
     yield pyramid_request
 
+
 @pytest.fixture
-def canvas_api_proxy(monkeypatch, pyramid_request):
+def canvas_api_proxy(pyramid_request):
 
     user_id = 'asdf'
     application_instance = build_from_lms_url('https://example.com', 'test@example.com')
@@ -214,7 +214,7 @@ def canvas_api_proxy(monkeypatch, pyramid_request):
         'user_id': user_id,
         'roles': '',
         'consumer_key': application_instance.consumer_key,
-        }
+    }
     pyramid_request.db.add(application_instance)
     user = User(lms_guid=user_id)
     pyramid_request.db.add(user)
@@ -232,14 +232,13 @@ def canvas_api_proxy(monkeypatch, pyramid_request):
     pyramid_request.params['method'] = GET
     pyramid_request.params['params'] = {}
     yield {
-            'request': pyramid_request,
-            'user': user,
-            'application_instance': application_instance,
-            'jwt_token': jwt_token,
-            'decoded_jwt': data,
-            'token': token,
-        }
-
+        'request': pyramid_request,
+        'user': user,
+        'application_instance': application_instance,
+        'jwt_token': jwt_token,
+        'decoded_jwt': data,
+        'token': token,
+    }
 
 
 @pytest.fixture
@@ -273,17 +272,18 @@ def authenticated_request(pyramid_request):
 
 class MockOauth2Session:
     def __init__(self, *args, **kwargs):
+        """Mock the session."""
         pass
 
-    def fetch_token(self, token_url, client_secret=None,
-                    authorization_response=None, code=None):
-            return {
-                    'access_token': '4346~asdf',
-                    'token_type': 'Bearer',
-                    'user': {'id': 403, 'name': 'Nick Benoit','global_id': '43460000000000403'},
-                    'refresh_token':'4346~refresh',
-                    'expires_in': 3600,
-                    'expires_at': 1513619852.757844}
+    def fetch_token(self, _token_url, **_):
+        return {
+            'access_token': '4346~asdf',
+            'token_type': 'Bearer',
+            'user': {'id': 403, 'name': 'Nick Benoit', 'global_id': '43460000000000403'},
+            'refresh_token': '4346~refresh',
+            'expires_in': 3600,
+            'expires_at': 1513619852.757844
+        }
 
 
 @pytest.fixture
@@ -299,7 +299,7 @@ def oauth_response(monkeypatch, pyramid_request):
         'oauth_consumer_key': app_instance.consumer_key,
         'user_id': user_id,
         'roles': roles,
-        })
+    })
     pyramid_request.db.add(OauthState(user_id=user.id, guid=state_guid,
                                       lti_params=lti_params))
     pyramid_request.db.add(app_instance)

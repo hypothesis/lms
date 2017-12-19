@@ -1,26 +1,28 @@
 from urllib.parse import urlparse, parse_qs
-from pyramid.response import Response
-from lms.util.authorize_lms import authorize_lms, save_token
-from lms.models.users import User
-from lms.models.application_instance import build_from_lms_url
-from lms.models.oauth_state import find_by_state
 import json
+from pyramid.response import Response
+from lms.util import authorize_lms, save_token
+from lms.models import build_from_lms_url
+from lms.models import User
+from lms.models import find_by_state
 
 
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',
     redirect_endpoint='canvas_oauth_callback'
 )
-def view_function(request, user):
+def view_function(_request, **_):
     return Response("<h1>Howdy</h1>")
+
 
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',
     redirect_endpoint='canvas_oauth_callback',
     oauth_condition=lambda request: False
 )
-def oauth_condition_view_function(request, user):
+def oauth_condition_view_function(_request, **_):
     return Response("<h1>Howdy</h1>")
+
 
 def build_save_token_view(assertions):
     @save_token
@@ -28,6 +30,7 @@ def build_save_token_view(assertions):
         assertions(request, **kwargs)
         return Response("<h1>Howdy</h1>")
     return save_token_view_function
+
 
 def create_application_instance(lti_launch_request):
     lms_url = "https://example.com"
@@ -49,9 +52,9 @@ def create_user(lti_launch_request):
     return existing_user
 
 
-
 class TestAuthorizeLms(object):
-    """Test the associate user decorator"""
+    """Test the associate user decorator."""
+
     def test_it_redirects_for_oauth(self, lti_launch_request):
         create_application_instance(lti_launch_request)
         user = create_user(lti_launch_request)
@@ -84,14 +87,10 @@ class TestAuthorizeLms(object):
         assert response.body == b'<h1>Howdy</h1>'
 
     def test_it_saves_token(self, oauth_response):
-        def assertions(request, **kwargs):
+        def assertions(_request, **kwargs):
             user = kwargs['user']
             token = kwargs['token']
             assert user.id is not None
             assert user.id == token.user_id
         response = build_save_token_view(assertions)(oauth_response)
         assert response.status_code == 200
-
-
-
-
