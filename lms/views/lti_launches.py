@@ -1,8 +1,12 @@
+import logging
+
 from pyramid.view import view_config
+
+from lms.models.lti_launches import LtiLaunches
+from lms.models.module_item_configuration import ModuleItemConfiguration
+from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
-from lms.util.lti_launch import get_application_instance
-from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
 from lms.util.canvas_api import CanvasApi, GET
@@ -56,6 +60,23 @@ def is_db_configured(request, params):
             'tool_consumer_instance_guid'])
     return config.count() == 1
 
+def launch_lti(request, lti_key=None, context_id=None, document_url=None,
+        jwt=None):
+    log = logging.getLogger(__name__)
+    try:
+        lti_launch_instance = LtiLaunches(
+            context_id=context_id,
+            lti_key=lti_key
+        )
+        request.db.add(lti_launch_instance)
+
+    # Never prevent a launch because of logging problem.
+    # pylint: disable=broad-except
+    except Exception as e:
+        log.error(f"Failed to log lti launch for lti key '{lti_key}': {e}")
+
+    return _view_document(request, document_url=document_url, jwt=jwt)
+
 
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):
     """
@@ -75,15 +96,19 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     4. If a student or teacher launches a module item that has been configured
        as a canvas file
     """
+    lti_key = lti_params['oauth_consumer_key']
+    context_id = lti_params['context_id']
     if is_url_configured(request, lti_params):
-        return _view_document(request, document_url=lti_params['url'], jwt=jwt)
+        return lti_launch(request, lti_key=lti_key, context_id=context_id,
+                document_url=params['url'], jwt=jwt)
 
     elif is_db_configured(request, lti_params):
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'] and
             ModuleItemConfiguration.tool_consumer_instance_guid == lti_params['tool_consumer_instance_guid']
         )
-        return _view_document(request, document_url=config.one().document_url, jwt=jwt)
+        return lti_launch(request, lti_key=lti_key, context_id=context_id,
+                document_url=config.one().document_url, jwt=jwt)
     elif is_canvas_file(request, lti_params):
         token = find_token_by_user_id(request.db, user.id)
         application_instance = find_by_oauth_consumer_key(request.db,
@@ -93,7 +118,8 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
         result = canvas_api.proxy(f'/api/v1/files/{file_id}/public_url', GET, {})
         if result.ok:
             document_url = result.json()['public_url']
-            return _view_document(request, document_url=document_url, jwt=jwt)
+            return lti_launch(request, lti_key=lti_key, context_id=context_id,
+                document_url=document_url, jwt=jwt)
         return _unauthorized(request)
     elif is_authorized_to_configure(request, lti_params):
         consumer_key = request.params['oauth_consumer_key']
@@ -114,7 +140,6 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
 def lti_launch_oauth_callback(request, token, lti_params, user, jwt):
     """Route to handle oauth response from when forced to oauth from lti_launch."""
     return handle_lti_launch(request, token, lti_params, user, jwt)
-
 
 def should_launch(request):
     """Determine whether or not an oauth should be triggered or not."""

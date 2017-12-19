@@ -4,8 +4,9 @@
 
 {% block content %}
     <div id="content">
+        <a href="{{ logout_url }}">Logout</a>
+        <br/>
         <p>There are {{ apps|length }} application instances:</p>
-
         <table border="1">
             <tr>
                 <th>Created</th>
@@ -21,6 +22,22 @@
         {% endfor %}
         </table>
 
-        <a href="{{ logout_url }}">Logout</a>
+        <br/>
+
+        <p>There have been {{ launches|length }} lti launches:</p>
+        <table border="1">
+            <tr>
+                <th>Created</th>
+                <th>Context ID</th>
+                <th>LTI Key</th>
+            </tr>
+        {% for row in launches %}
+            <tr>
+                <td>{{  row['created']  }}</td>
+                <td>{{  row['context_id']  }}</td>
+                <td>{{  row['lti_key']  }}</td>
+            </tr>
+        {% endfor %}
+        </table>
     </div>
 {% endblock %}

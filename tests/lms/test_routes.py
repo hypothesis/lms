@@ -2,9 +2,8 @@
 
 from __future__ import unicode_literals
 
-from lms import routes
-
 import mock
+from lms import routes
 
 
 class TestIncludeMe(object):
