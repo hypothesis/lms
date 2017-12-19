@@ -5,13 +5,20 @@ from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
 
+def should_canvas_oauth(request):
+    """Determine if we should perform a canvas oauth"""
+    # We know we are launching from canvas if we have
+    # been provided custom_canvas_course_id in the lti
+    # launch via variable substitution
+    return 'custom_canvas_course_id' in request.params
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @lti_launch()
 @associate_user
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',
-    redirect_endpoint='canvas_oauth_callback'
+    redirect_endpoint='canvas_oauth_callback',
+    oauth_condition=should_canvas_oauth
 )
 def content_item_selection(request, _, _user=None):
     """
@@ -33,7 +40,7 @@ def content_item_selection(request, _, _user=None):
 @view_renderer(
     renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
 def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
-    return {
+    params = {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
         'form_fields': {
@@ -54,5 +61,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         'lms_url': lms_url,
         'api_url': request.route_url('canvas_proxy'),
         'jwt': jwt,
-        'course_id': lti_params['custom_canvas_course_id']
     }
+    if 'custom_canvas_course_id' in lti_params:
+        params['course_id'] = lti_params['custom_canvas_course_id']
+    return params
