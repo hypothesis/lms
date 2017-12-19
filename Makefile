@@ -44,8 +44,11 @@ docker:
 	@pip install --use-wheel -r requirements-dev.in
 	@touch $@
 
+
 GULP := node_modules/.bin/gulp
 
+
+.PHONY: build
 build:
 	$(GULP) build
 
