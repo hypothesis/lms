@@ -99,16 +99,17 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     lti_key = lti_params['oauth_consumer_key']
     context_id = lti_params['context_id']
     if is_url_configured(request, lti_params):
-        return lti_launch(request, lti_key=lti_key, context_id=context_id,
-                document_url=params['url'], jwt=jwt)
+        return launch_lti(request, lti_key=lti_key, context_id=context_id,
+                          document_url=lti_params['url'], jwt=jwt)
 
     elif is_db_configured(request, lti_params):
         config = request.db.query(ModuleItemConfiguration).filter(
             ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'] and
-            ModuleItemConfiguration.tool_consumer_instance_guid == lti_params['tool_consumer_instance_guid']
+            ModuleItemConfiguration.tool_consumer_instance_guid == lti_params[
+                'tool_consumer_instance_guid']
         )
-        return lti_launch(request, lti_key=lti_key, context_id=context_id,
-                document_url=config.one().document_url, jwt=jwt)
+        return launch_lti(request, lti_key=lti_key, context_id=context_id,
+                          document_url=config.one().document_url, jwt=jwt)
     elif is_canvas_file(request, lti_params):
         token = find_token_by_user_id(request.db, user.id)
         application_instance = find_by_oauth_consumer_key(request.db,
@@ -116,10 +117,10 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
         canvas_api = CanvasApi(token.access_token, application_instance.lms_url)
         file_id = lti_params['file_id']
         result = canvas_api.proxy(f'/api/v1/files/{file_id}/public_url', GET, {})
-        if result.ok:
+        if result.status_code < 400:
             document_url = result.json()['public_url']
-            return lti_launch(request, lti_key=lti_key, context_id=context_id,
-                document_url=document_url, jwt=jwt)
+            return launch_lti(request, lti_key=lti_key, context_id=context_id,
+                              document_url=document_url, jwt=jwt)
         return _unauthorized(request)
     elif is_authorized_to_configure(request, lti_params):
         consumer_key = request.params['oauth_consumer_key']
