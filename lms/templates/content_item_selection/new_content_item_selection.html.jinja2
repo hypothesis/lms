@@ -36,21 +36,13 @@
   }
 </script>
 
-{% for url in asset_urls("file_picker_js") %}
-  <script src="{{ url }}"></script>
-{% endfor %}
+{% if course_id %}
+  {% for url in asset_urls("file_picker_js") %}
+    <script src="{{ url }}"></script>
+  {% endfor %}
+{% endif %}
 
 <script type="text/javascript">
-  // Support canvas file list
-  function enableCanvasFileList() {
-    var el = document.getElementById('canvas_files')
-    if(el.style.display == "initial") {
-      el.style.display = "none"
-    } else {
-      el.style.display = "initial"
-    }
-  }
-
   // TODO: handle form validation!
     var state = {
       selectedDocId: null,
