@@ -5,12 +5,14 @@ from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
 
+
 def should_canvas_oauth(request):
-    """Determine if we should perform a canvas oauth"""
+    """Determine if we should perform a canvas oauth."""
     # We know we are launching from canvas if we have
     # been provided custom_canvas_course_id in the lti
     # launch via variable substitution
     return 'custom_canvas_course_id' in request.params
+
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @lti_launch()
@@ -41,19 +43,20 @@ def content_item_selection(request, _, _user=None):
     renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
 def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
     form_fields = {
-            'lti_message_type': 'ContentItemSelection',
-            'lti_version': lti_params['lti_version'],
-            'oauth_version': lti_params['oauth_version'],
-            'oauth_nonce': lti_params['oauth_nonce'],
-            'oauth_consumer_key': lti_params['oauth_consumer_key'],
-            'oauth_signature_method': lti_params['oauth_signature_method'],
-            'oauth_signature': lti_params['oauth_signature'],
-            'jwt_token': jwt
-        }
-    if('resource_link_id' in lti_params):
-            form_fields['resource_link_id'] = lti_params['resource_link_id']
-    if('tool_consumer_instance_guid' in lti_params):
-            form_fields['tool_consumer_instance_guid'] = lti_params['tool_consumer_instance_guid']
+        'lti_message_type': 'ContentItemSelection',
+        'lti_version': lti_params['lti_version'],
+        'oauth_version': lti_params['oauth_version'],
+        'oauth_nonce': lti_params['oauth_nonce'],
+        'oauth_consumer_key': lti_params['oauth_consumer_key'],
+        'oauth_signature_method': lti_params['oauth_signature_method'],
+        'oauth_signature': lti_params['oauth_signature'],
+        'jwt_token': jwt}
+    # These fields appear in blackboard launches, but not in canvas
+    # launches
+    if 'resource_link_id' in lti_params:
+        form_fields['resource_link_id'] = lti_params['resource_link_id']
+    if 'tool_consumer_instance_guid' in lti_params:
+        form_fields['tool_consumer_instance_guid'] = lti_params['tool_consumer_instance_guid']
     params = {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
