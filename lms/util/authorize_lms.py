@@ -58,10 +58,11 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             if oauth_condition(request) is False:
                 return view_function(request, *args, user=user, **kwargs)
 
-            client_id = request.registry.settings['oauth.client_id']
             consumer_key = request.params['oauth_consumer_key']
 
             application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
+
+            client_id = application_instance.developer_key
 
             if application_instance is None:
                 raise exc.HTTPInternalServerError()
@@ -90,8 +91,6 @@ def save_token(view_function):
         if 'state' not in request.params or 'code' not in request.params:
             raise exc.HTTPInternalServerError('Invalid Oauth Response')
 
-        client_id = request.registry.settings['oauth.client_id']
-        client_secret = request.registry.settings['oauth.client_secret']
         state = request.params['state']
         oauth_state = find_by_state(request.db, state)
 
@@ -99,12 +98,17 @@ def save_token(view_function):
             raise exc.HTTPInternalServerError('Oauth state was not found')
 
         lti_params = json.loads(oauth_state.lti_params)
-        application_instance = find_by_oauth_consumer_key(request.db,
-                                                          lti_params['oauth_consumer_key'])
+
+        application_instance = find_by_oauth_consumer_key(
+            request.db,
+            lti_params['oauth_consumer_key']
+        )
 
         if application_instance is None:
             raise exc.HTTPInternalServerError()
 
+        client_id = application_instance.developer_key
+        client_secret = application_instance.developer_secret
         token_url = build_canvas_token_url(application_instance.lms_url)
 
         session = requests_oauthlib.OAuth2Session(client_id, state=state)

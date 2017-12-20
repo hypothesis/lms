@@ -19,6 +19,8 @@ class ApplicationInstance(BASE):
     lms_url = sa.Column(sa.String(2048))
     requesters_email = sa.Column(sa.String(2048))
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
+    developer_key = sa.Column('developer_key', sa.String)
+    developer_secret = sa.Column('developer_secret', sa.String)
 
 
 def find_by_oauth_consumer_key(session, key):
@@ -36,11 +38,13 @@ def build_unique_key():
     return LTI_KEY_BASE + secrets.token_hex(16)
 
 
-def build_from_lms_url(lms_url, email):
+def build_from_lms_url(lms_url, email, developer_key, developer_secret):
     """Intantiate ApplicationIntance with lms_url."""
     return ApplicationInstance(
         consumer_key=build_unique_key(),
         shared_secret=build_shared_secret(),
         lms_url=lms_url,
-        requesters_email=email
+        requesters_email=email,
+        developer_key=developer_key,
+        developer_secret=developer_secret
     )

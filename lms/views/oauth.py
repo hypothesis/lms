@@ -17,14 +17,13 @@ def build_canvas_token_url(lms_url):
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
 def canvas_oauth_callback(request):
     """Route to handle content item selection oauth response."""
-    client_id = request.registry.settings['oauth.client_id']
-    client_secret = request.registry.settings['oauth.client_secret']
-
     state = request.params['state']
     oauth_state = find_by_state(request.db, state)
     lti_params = json.loads(oauth_state.lti_params)
     consumer_key = lti_params['oauth_consumer_key']
     application_instance = get_application_instance(request.db, consumer_key)
+    client_id = application_instance.developer_key
+    client_secret = application_instance.developer_secret
     token_url = build_canvas_token_url(application_instance.lms_url)
 
     session = OAuth2Session(client_id, state=state)

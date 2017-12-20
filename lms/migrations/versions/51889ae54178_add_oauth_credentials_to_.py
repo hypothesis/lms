@@ -1,5 +1,5 @@
 """
-Add oauth credentials to ApplicationInstance
+Add oauth credentials to ApplicationInstance.
 
 Revision ID: 51889ae54178
 Revises: 3802f4d2ec5c
