@@ -39,6 +39,6 @@ RUN npm rebuild node-sass --force
 RUN NODE_ENV=production node_modules/.bin/gulp build
 RUN npm cache clean
 
-EXPOSE 3000
+EXPOSE 8001
 USER lms
 CMD ["bin/init-env", "supervisord", "-c", "conf/supervisord.conf"]
