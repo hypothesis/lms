@@ -15,6 +15,7 @@ def build_canvas_token_url(lms_url):
 
 
 @view_config(route_name='canvas_oauth_callback', request_method='GET')
+# pylint: disable=too-many-locals
 def canvas_oauth_callback(request):
     """Route to handle content item selection oauth response."""
     state = request.params['state']

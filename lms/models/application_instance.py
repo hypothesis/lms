@@ -1,7 +1,7 @@
 import secrets
+from datetime import datetime
 from Crypto.Cipher import AES
 from Crypto import Random
-from datetime import datetime
 
 import sqlalchemy as sa
 from lms.db import BASE
@@ -14,17 +14,19 @@ def build_aes_iv():
     return Random.new().read(AES.block_size)
 
 
-def encrypt_oauth_secret(oauth_secret, key, iv):
-    cipher = AES.new(key, AES.MODE_CFB, iv)
+def encrypt_oauth_secret(oauth_secret, key, init_v):
+    cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.encrypt(oauth_secret)
 
-def decrypt_oauth_secret(encrypted_secret, key, iv):
-    cipher = AES.new(key, AES.MODE_CFB, iv)
+
+def decrypt_oauth_secret(encrypted_secret, key, init_v):
+    cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.decrypt(encrypted_secret)
 
 
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
+
     __tablename__ = 'application_instances'
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
@@ -75,4 +77,3 @@ def build_from_lms_url(lms_url, email, developer_key,
         developer_secret=encrypted_secret,
         aes_cipher_iv=aes_iv,
     )
-

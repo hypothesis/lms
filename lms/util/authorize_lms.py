@@ -83,8 +83,10 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
         return wrapper
     return decorator
 
+
 def save_token(view_function):
     """Decorate an oauth callback route to save access token."""
+    # pylint: disable=too-many-locals
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
         if 'state' not in request.params or 'code' not in request.params:
