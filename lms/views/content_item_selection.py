@@ -1,4 +1,5 @@
 from pyramid.view import view_config
+from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
@@ -6,12 +7,21 @@ from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
 
 
+def should_show_file_picker(lti_params, request):
+    consumer_key = lti_params['oauth_consumer_key']
+    application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
+    return 'custom_canvas_course_id' in lti_params and application_instance.developer_key is not None
+
+
 def should_canvas_oauth(request):
     """Determine if we should perform a canvas oauth."""
     # We know we are launching from canvas if we have
     # been provided custom_canvas_course_id in the lti
     # launch via variable substitution
-    return 'custom_canvas_course_id' in request.params
+    # also only do oauth if we have a developer key and secret
+    consumer_key = request.params['oauth_consumer_key']
+    application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
+    return 'custom_canvas_course_id' in request.params and application_instance.developer_key is not None
 
 
 @view_config(route_name='content_item_selection', request_method='POST')
@@ -22,7 +32,7 @@ def should_canvas_oauth(request):
     redirect_endpoint='canvas_oauth_callback',
     oauth_condition=should_canvas_oauth
 )
-def content_item_selection(request, _, _user=None):
+def content_item_selection(request, _jwt, **_):
     """
     Render the form that teachers see to configure the module item.
 
@@ -68,6 +78,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         'api_url': request.route_url('canvas_proxy'),
         'jwt': jwt,
     }
-    if 'custom_canvas_course_id' in lti_params:
+
+    if should_show_file_picker(lti_params, request):
         params['course_id'] = lti_params['custom_canvas_course_id']
     return params

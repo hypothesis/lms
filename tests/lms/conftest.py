@@ -138,8 +138,7 @@ def pyramid_config(pyramid_request):
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
         'salt': 'fbe82ee0da72b77b',
         'username': 'report_viewer',
-        'oauth.client_id': 'fake_oauth_client_id',
-        'oauth.client_secret': 'fake_oauth_client_secret',
+        'aes_secret': b'TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
@@ -195,14 +194,16 @@ def lti_launch_request(monkeypatch, pyramid_request):
     from lms.models import application_instance as ai  # pylint:disable=relative-import
     instance = ai.build_from_lms_url(
         'https://hypothesis.instructure.com',
-        'address@)hypothes.is')
+        'address@)hypothes.is',
+        'test',
+        b'test',
+        encryption_key=pyramid_request.registry.settings['aes_secret']
+    )
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
     pyramid_request.params['custom_canvas_course_id'] = '1'
     pyramid_request.params['context_id'] = 'fake_context_id'
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
-    pyramid_request.registry.settings['oauth.client_id'] = 'fake'
-    pyramid_request.registry.settings['oauth.client_secret'] = 'fake'
     yield pyramid_request
 
 
@@ -210,7 +211,12 @@ def lti_launch_request(monkeypatch, pyramid_request):
 def canvas_api_proxy(pyramid_request):
 
     user_id = 'asdf'
-    application_instance = build_from_lms_url('https://example.com', 'test@example.com')
+    application_instance = build_from_lms_url(
+        'https://example.com',
+        'test@example.com',
+        'test',
+        b'test'
+    )
     data = {
         'user_id': user_id,
         'roles': '',
@@ -291,7 +297,13 @@ class MockOauth2Session:
 def oauth_response(monkeypatch, pyramid_request):
     user_id = 'test_user_123'
     roles = 'fake_lti_roles'
-    app_instance = build_from_lms_url('https://example.com', 'test@example.com')
+    app_instance = build_from_lms_url(
+        'https://example.com',
+        'test@example.com',
+        'test',
+        b'test',
+        pyramid_request.registry.settings['aes_secret']
+    )
     state_guid = 'test_oauth_state'
     user = User(lms_guid=user_id)
     pyramid_request.db.add(user)

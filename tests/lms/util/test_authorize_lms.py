@@ -36,7 +36,9 @@ def create_application_instance(lti_launch_request):
     lms_url = "https://example.com"
     email = "example@example.com"
     session = lti_launch_request.db
-    application_instance = build_from_lms_url(lms_url, email)
+    application_instance = build_from_lms_url(lms_url, email, 'test', b'test',
+                                              encryption_key=lti_launch_request.
+                                              registry.settings['aes_secret'])
     session.add(application_instance)
     session.flush()
     return application_instance
