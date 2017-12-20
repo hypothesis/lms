@@ -11,18 +11,18 @@ LTI_KEY_BASE = "Hypothesis"
 
 
 def build_aes_iv():
-    """Build a 16 byte initialization vector"""
+    """Build a 16 byte initialization vector."""
     return Random.new().read(AES.block_size)
 
 
 def encrypt_oauth_secret(oauth_secret, key, init_v):
-    """Encrypt an oauth secrety via AES encryption"""
+    """Encrypt an oauth secrety via AES encryption."""
     cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.encrypt(oauth_secret)
 
 
 def decrypt_oauth_secret(encrypted_secret, key, init_v):
-    """Decrypt AES encrypted secret"""
+    """Decrypt AES encrypted secret."""
     cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.decrypt(encrypted_secret)
 
