@@ -21,7 +21,8 @@ def create_application_instance(request):
     instance = ai.build_from_lms_url(request.params['lms_url'],
                                      request.params['email'],
                                      developer_key,
-                                     developer_secret)
+                                     developer_secret,
+                                     request.registry.settings['aes_secret'])
     request.db.add(instance)
 
     return {

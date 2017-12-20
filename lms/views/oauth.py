@@ -23,7 +23,9 @@ def canvas_oauth_callback(request):
     consumer_key = lti_params['oauth_consumer_key']
     application_instance = get_application_instance(request.db, consumer_key)
     client_id = application_instance.developer_key
-    client_secret = application_instance.developer_secret
+
+    aes_secret = request.registry.settings['aes_secret']
+    client_secret = application_instance.decrypted_developer_secret(aes_secret)
     token_url = build_canvas_token_url(application_instance.lms_url)
 
     session = OAuth2Session(client_id, state=state)

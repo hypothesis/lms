@@ -83,7 +83,6 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
         return wrapper
     return decorator
 
-
 def save_token(view_function):
     """Decorate an oauth callback route to save access token."""
     def wrapper(request, *args, **kwargs):
@@ -107,8 +106,10 @@ def save_token(view_function):
         if application_instance is None:
             raise exc.HTTPInternalServerError()
 
+        aes_secret = request.registry.settings['aes_secret']
         client_id = application_instance.developer_key
-        client_secret = application_instance.developer_secret
+        client_secret = application_instance.decrypted_developer_secret(aes_secret)
+
         token_url = build_canvas_token_url(application_instance.lms_url)
 
         session = requests_oauthlib.OAuth2Session(client_id, state=state)

@@ -35,6 +35,7 @@ def configure(settings=None):
         'hashed_pw': env_setting('HASHED_PW'),
         'salt': env_setting('SALT'),
         'username': env_setting('USERNAME'),
+        'aes_secret': env_setting('LMS_SECRET').encode('ascii')[0:32]
     }
 
     database_url = env_setting('DATABASE_URL')

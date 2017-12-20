@@ -23,12 +23,16 @@ def upgrade():
 
     op.add_column(
         'application_instances',
-        sa.Column('developer_secret', sa.String)
+        sa.Column('developer_secret', sa.LargeBinary)
     )
 
-
+    op.add_column(
+        'application_instances',
+        sa.Column('aes_cipher_iv', sa.LargeBinary)
+    )
 
 
 def downgrade():
     op.drop_column('application_instances', 'developer_key')
     op.drop_column('application_instances', 'developer_secret')
+    op.drop_column('application_instances', 'aes_cipher_iv')
