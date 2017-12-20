@@ -34,8 +34,8 @@ class ApplicationInstance(BASE):
     requesters_email = sa.Column(sa.String(2048))
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
     developer_key = sa.Column(sa.String)
-    developer_secret = sa.Column(sa.LargeBinary)
-    aes_cipher_iv = sa.Column(sa.LargeBinary)
+    developer_secret = sa.Column(sa.LargeBinary, default=None)
+    aes_cipher_iv = sa.Column(sa.LargeBinary, default=None)
 
     def decrypted_developer_secret(self, key):
         encrypted_secret = self.developer_secret
@@ -62,7 +62,7 @@ def build_from_lms_url(lms_url, email, developer_key,
     """Intantiate ApplicationIntance with lms_url."""
     encrypted_secret = developer_secret
     aes_iv = None
-    if encryption_key is not None:
+    if encryption_key is not None and developer_secret and developer_key:
         aes_iv = build_aes_iv()
         encrypted_secret = encrypt_oauth_secret(developer_secret, encryption_key, aes_iv)
 

@@ -138,6 +138,7 @@ def pyramid_config(pyramid_request):
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
         'salt': 'fbe82ee0da72b77b',
         'username': 'report_viewer',
+        'aes_secret': b'TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
@@ -195,7 +196,8 @@ def lti_launch_request(monkeypatch, pyramid_request):
         'https://hypothesis.instructure.com',
         'address@)hypothes.is',
         'test',
-        'test'
+        b'test',
+        encryption_key=pyramid_request.registry.settings['aes_secret']
     )
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
@@ -213,7 +215,7 @@ def canvas_api_proxy(pyramid_request):
         'https://example.com',
         'test@example.com',
         'test',
-        'test'
+        b'test'
     )
     data = {
         'user_id': user_id,
@@ -299,7 +301,8 @@ def oauth_response(monkeypatch, pyramid_request):
         'https://example.com',
         'test@example.com',
         'test',
-        'test'
+        b'test',
+        pyramid_request.registry.settings['aes_secret']
     )
     state_guid = 'test_oauth_state'
     user = User(lms_guid=user_id)

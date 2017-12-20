@@ -23,12 +23,12 @@ def upgrade():
 
     op.add_column(
         'application_instances',
-        sa.Column('developer_secret', sa.LargeBinary)
+        sa.Column('developer_secret', sa.LargeBinary, default=None)
     )
 
     op.add_column(
         'application_instances',
-        sa.Column('aes_cipher_iv', sa.LargeBinary)
+        sa.Column('aes_cipher_iv', sa.LargeBinary, default=None)
     )
 
 
