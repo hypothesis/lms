@@ -2,7 +2,7 @@ FROM gliderlabs/alpine:3.6
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk-install ca-certificates python3 libpq collectd collectd-disk supervisor
+RUN apk-install ca-certificates python3 libpq collectd collectd-disk supervisor nodejs nodejs-npm
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
@@ -33,6 +33,12 @@ RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
 
 COPY . .
 
-EXPOSE 8001
+# Build frontend assets
+RUN npm install --production
+RUN npm rebuild node-sass --force
+RUN NODE_ENV=production node_modules/.bin/gulp build
+RUN npm cache clean
+
+EXPOSE 3000
 USER lms
 CMD ["bin/init-env", "supervisord", "-c", "conf/supervisord.conf"]
