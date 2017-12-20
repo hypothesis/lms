@@ -6,7 +6,7 @@ from lms.models import application_instance as ai
 def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
     # TODO handle missing scheme in lms_url.
-
+    import pdb ; pdb.set_trace()
     instance = ai.build_from_lms_url(request.params['lms_url'],
                                      request.params['email'])
     request.db.add(instance)
