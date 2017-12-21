@@ -1,9 +1,6 @@
 <!--suppress CheckValidXmlInScriptTagBody -->
 {% extends "templates/base.html.jinja2" %}
 {% block scripts %}
-{% for url in asset_urls("file_picker_js") %}
-  <script src="{{ url }}"></script>
-{% endfor %}
 <script type="text/javascript">
   function addHttp(url) {
     if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
