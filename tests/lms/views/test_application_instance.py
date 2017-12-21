@@ -8,6 +8,8 @@ class TestApplicationInstance(object):
         pyramid_request.params = {
             'lms_url': 'canvas.example.com',
             'email': 'email@example.com',
+            'developer_key': '',
+            'developer_secret': ''
         }
         initial_count = pyramid_request.db.query(ApplicationInstance).filter(
             ApplicationInstance.lms_url == pyramid_request.params['lms_url']).count()

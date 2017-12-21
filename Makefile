@@ -16,6 +16,7 @@ shell: .pydeps
 
 .PHONY: test
 test:
+	$(GULP) test
 	@pip install -q tox
 	tox
 
@@ -42,3 +43,17 @@ docker:
 	@echo installing python dependencies
 	@pip install --use-wheel -r requirements-dev.in
 	@touch $@
+
+
+GULP := node_modules/.bin/gulp
+
+
+.PHONY: build
+build:
+	$(GULP) build
+
+watch:
+	$(GULP) watch
+
+client_test:
+	$(GULP) test

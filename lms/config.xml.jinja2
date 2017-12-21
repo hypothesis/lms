@@ -15,7 +15,9 @@ http://www.imsglobal.org/xsd/imslticp_v1p0
 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
   <blti:title>Hypothesis</blti:title>
   <blti:launch_url>{{ launch_url }}</blti:launch_url>
-  <blti:custom></blti:custom>
+  <blti:custom>
+    <lticm:property name="custom_canvas_course_id">$Canvas.course.id</lticm:property>
+  </blti:custom>
   <blti:extensions platform="canvas.instructure.com">
     <lticm:options name="link_selection">
       <lticm:property

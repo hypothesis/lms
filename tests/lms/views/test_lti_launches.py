@@ -16,6 +16,7 @@ class TestLtiLaunches(object):
 
     def test_render_the_document_if_configured(self, lti_launch_request, module_item_configuration):
         lti_launch_request.db.add(module_item_configuration)
+        lti_launch_request.db.flush()
         lti_launch_request.params['resource_link_id'] = module_item_configuration.resource_link_id
         lti_launch_request.params['tool_consumer_instance_guid'] = (
             module_item_configuration.tool_consumer_instance_guid

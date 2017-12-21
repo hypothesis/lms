@@ -66,12 +66,12 @@ You will need:
    local development:
 
    ```bash
-   export VIA_URL="http://localhost:9080"
+   export VIA_URL="https://via.hypothes.is"
    export JWT_SECRET="some secret"
    export GOOGLE_CLIENT_ID="Google Oauth Client ID"
    export GOOGLE_DEVELOPER_KEY="Google Api Key"
    export GOOGLE_APP_ID="Google Project Id"
-   
+
    # The secret should be different for each pyramid instance
    # It should be a 64 character (128 bit) string
    # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
@@ -352,18 +352,40 @@ choose a file.
 
 While running the webserver, to see a list of application instances stored in
  the database, navigate to `/reports`. You will be redirected to a login page.
- 
+
  The username and password hash are passed as environment variables
  `USERNAME` and `HASHED_PW`
 
 
  ### Changing the password ###
- 
- To change the password, you will need to compute a new hash, then replace the 
+
+ To change the password, you will need to compute a new hash, then replace the
   `HASH` and `SALT` environment variables.
- 
- To help compute the hash you can use the command line script 
-  `lms/utilget_get_password_hash.py`. You will need to store the salt and 
-  resulting hash as environment variables. You only need to provide a salt if 
-  you are trying to recreate a particular hash. For a new password, just let 
-  the script create the salt. 
+
+ To help compute the hash you can use the command line script
+  `lms/utilget_get_password_hash.py`. You will need to store the salt and
+  resulting hash as environment variables. You only need to provide a salt if
+  you are trying to recreate a particular hash. For a new password, just let
+  the script create the salt.
+
+
+ ### Getting a Developer Key and Secret ###
+
+ In order to use the canvas file picker you need to get a developer key and id from canvas.
+
+ 1. Log in to Canvas as an admin.
+ 2. Navigate to `Admin` then click the name of the root account.
+ 3. Click on `Developer Keys` on the left menu.
+ 4. Click `+ Developer Key`.
+ 5. A textbox should pop up asking for some information.
+ 5. For name and email you can enter whatever you please leave the legacy redirect uri field blank.
+ 6. For the `Redirect URIs` field enter:
+ ```
+https://localhost:8001/canvas_oauth_callback
+https://localhost:8001/module_item_launch_oauth_callback
+```
+ Note that for QA you will replace
+ `localhost:8001` with `qa-lms.hypothes.is` and for production you will replace it with `lms.hypothes.is`
+
+ 7. Click `Save Key`
+ 8. You can then copy and paste the developer key and secret into their respective fields at `https://localhost:8001/welcome`

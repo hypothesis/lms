@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import functools
+import json
 import mock
 import pytest
 import jwt
@@ -13,8 +14,11 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 from lms import db
 from lms import constants
-from lms.config import env_setting
-
+from lms.models import User
+from lms.models import Token
+from lms.models import OauthState
+from lms.models import build_from_lms_url
+from lms.util import GET
 
 TEST_DATABASE_URL = os.environ.get(
     'TEST_DATABASE_URL', 'postgresql://postgres@localhost:5433/lms_test')
@@ -99,12 +103,18 @@ def pyramid_request():
         constants.ROLES: 'Instructor',
         constants.TOOL_CONSUMER_INSTANCE_GUID: 'TEST_GUID',
         constants.CONTENT_ITEM_RETURN_URL: 'https://www.example.com',
-        constants.LTI_VERSION: 'TEST'
+        constants.LTI_VERSION: 'TEST',
     })
 
     pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
 
     return pyramid_request
+
+
+def configure_jinja2_assets(config):
+    jinja2_env = config.get_jinja2_environment()
+    jinja2_env.globals['asset_url'] = 'http://example.com'
+    jinja2_env.globals['asset_urls'] = lambda bundle: 'http://example.com'
 
 
 @pytest.yield_fixture
@@ -128,6 +138,7 @@ def pyramid_config(pyramid_request):
         'hashed_pw': 'e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a',
         'salt': 'fbe82ee0da72b77b',
         'username': 'report_viewer',
+        'aes_secret': b'TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe',
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
@@ -145,6 +156,8 @@ def pyramid_config(pyramid_request):
 
         config.add_static_view(name='export', path='lms:static/export')
         config.add_static_view(name='static', path='lms:static')
+
+        config.action(None, configure_jinja2_assets, args=(config,))
 
         apply_request_extensions(pyramid_request)
 
@@ -181,11 +194,58 @@ def lti_launch_request(monkeypatch, pyramid_request):
     from lms.models import application_instance as ai  # pylint:disable=relative-import
     instance = ai.build_from_lms_url(
         'https://hypothesis.instructure.com',
-        'address@)hypothes.is')
+        'address@)hypothes.is',
+        'test',
+        b'test',
+        encryption_key=pyramid_request.registry.settings['aes_secret']
+    )
     pyramid_request.db.add(instance)
     pyramid_request.params['oauth_consumer_key'] = instance.consumer_key
+    pyramid_request.params['custom_canvas_course_id'] = '1'
+    pyramid_request.params['context_id'] = 'fake_context_id'
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
     yield pyramid_request
+
+
+@pytest.fixture
+def canvas_api_proxy(pyramid_request):
+
+    user_id = 'asdf'
+    application_instance = build_from_lms_url(
+        'https://example.com',
+        'test@example.com',
+        'test',
+        b'test'
+    )
+    data = {
+        'user_id': user_id,
+        'roles': '',
+        'consumer_key': application_instance.consumer_key,
+    }
+    pyramid_request.db.add(application_instance)
+    user = User(lms_guid=user_id)
+    pyramid_request.db.add(user)
+    pyramid_request.db.flush()
+    token = Token(access_token="test_token", user_id=user.id)
+    pyramid_request.db.add(token)
+    pyramid_request.db.flush()
+
+    jwt_secret = pyramid_request.registry.settings['jwt_secret']
+    jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
+
+    pyramid_request.headers['Authorization'] = jwt_token
+
+    pyramid_request.params['endpoint_url'] = '/test'
+    pyramid_request.params['method'] = GET
+    pyramid_request.params['params'] = {}
+    yield {
+        'request': pyramid_request,
+        'user': user,
+        'application_instance': application_instance,
+        'jwt_token': jwt_token,
+        'decoded_jwt': data,
+        'token': token,
+    }
 
 
 @pytest.fixture
@@ -201,7 +261,64 @@ def module_item_configuration():
 
 @pytest.fixture
 def authenticated_request(pyramid_request):
-    data = {'user_id': 'TEST_USER_ID', 'roles': 'Instructor'}
-    jwt_token = jwt.encode(data, env_setting('JWT_SECRET'), 'HS256').decode('utf-8')
+    user_id = 'TEST_USER_ID'
+    consumer_key = 'test_application_instance'
+    data = {
+        'user_id': user_id,
+        'roles': 'Instructor',
+        'consumer_key': consumer_key}
+
+    pyramid_request.db.add(User(lms_guid=user_id))
+    pyramid_request.db.flush()
+
+    jwt_secret = pyramid_request.registry.settings['jwt_secret']
+    jwt_token = jwt.encode(data, jwt_secret, 'HS256').decode('utf-8')
     pyramid_request.params['jwt_token'] = jwt_token
+    yield pyramid_request
+
+
+class MockOauth2Session:
+    def __init__(self, *args, **kwargs):
+        """Mock the session."""
+        pass
+
+    def fetch_token(self, _token_url, **_):
+        return {
+            'access_token': '4346~asdf',
+            'token_type': 'Bearer',
+            'user': {'id': 403, 'name': 'Nick Benoit', 'global_id': '43460000000000403'},
+            'refresh_token': '4346~refresh',
+            'expires_in': 3600,
+            'expires_at': 1513619852.757844
+        }
+
+
+@pytest.fixture
+def oauth_response(monkeypatch, pyramid_request):
+    user_id = 'test_user_123'
+    roles = 'fake_lti_roles'
+    app_instance = build_from_lms_url(
+        'https://example.com',
+        'test@example.com',
+        'test',
+        b'test',
+        pyramid_request.registry.settings['aes_secret']
+    )
+    state_guid = 'test_oauth_state'
+    user = User(lms_guid=user_id)
+    pyramid_request.db.add(user)
+    pyramid_request.db.flush()
+    lti_params = json.dumps({
+        'oauth_consumer_key': app_instance.consumer_key,
+        'user_id': user_id,
+        'roles': roles,
+    })
+    pyramid_request.db.add(OauthState(user_id=user.id, guid=state_guid,
+                                      lti_params=lti_params))
+    pyramid_request.db.add(app_instance)
+
+    monkeypatch.setattr('requests_oauthlib.OAuth2Session', MockOauth2Session)
+
+    pyramid_request.params['state'] = state_guid
+    pyramid_request.params['code'] = 'test_code'
     yield pyramid_request
