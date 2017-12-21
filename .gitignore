@@ -14,6 +14,7 @@ lib/
 node_modules/
 build/
 yarn-error.log
+include/
 
 # Devloper Specific Files
 secret_env.sh
