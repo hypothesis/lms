@@ -10,7 +10,6 @@ def includeme(config):
     config.add_route('reports', '/reports')
     config.add_route('config_xml', '/config_xml')
     config.add_route('module_item_configurations', '/module_item_configurations')
-    config.add_route('test_api', '/test_api')
     config.add_route('canvas_proxy', '/canvas_proxy')
 
     # lms routes
