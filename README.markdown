@@ -90,11 +90,19 @@ You will need:
        [here](https://console.developers.google.com/apis/)
   
      * Create a project (Use the project id provided as the GOOGLE_APP_ID)
-     
-     * Navigate to Apis and Services Tab, then select the "Credentials"
+
+     <br>
+     <br>
+     <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-21%20at%2011.28.51%20AM.png" alt="Apis and Services Tab"/>
+
+     * Navigate to Apis and Services Tab (shown above), then select the "Credentials"
        tab from the left navigation.
-  
-     * Create an Api Key, using the 'Create Credentials' button on the dashboard (Use this as GOOGLE_DEVELOPER_KEY)
+    
+      <br>
+      <br>
+      <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-20%20at%203.19.21%20PM.png" alt="Create Credentials Button" />
+      
+     * Create an Api Key, using the 'Create Credentials' button on the dashboard (shown above)(Use this as GOOGLE_DEVELOPER_KEY)
   
        * Key restrictions are optional, but can decrease the
          liklihood of keys being misused. If key restriction is
@@ -112,8 +120,12 @@ You will need:
          described above.
   
        * The Authorized redirect uris tab can be left blank.
-  
-     * Navigate to the Library tab in the left navigation menu
+    
+    <br>
+    <br>
+    <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-21%20at%2011.30.15%20AM.png" alt="Api Library" />
+    
+     * Navigate to the Library tab in the left navigation menu. This is depicted above.
   
        * Find and enable both the google drive api and google picker api (Each
          api page will have a large blue "enable" button)
