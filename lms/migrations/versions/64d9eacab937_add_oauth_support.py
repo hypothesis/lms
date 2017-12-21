@@ -2,7 +2,7 @@
 Add oauth support.
 
 Revision ID: 64d9eacab937
-Revises: 58f2693de313
+Revises: 51889ae54178
 Create Date: 2017-11-28 13:56:48.270643
 
 """
@@ -13,7 +13,7 @@ from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '64d9eacab937'
-down_revision = 'a6a78f338d4a'
+down_revision = '51889ae54178'
 
 
 def upgrade():
