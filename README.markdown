@@ -84,22 +84,37 @@ You will need:
 
    ```
 
-   **Obtaining Google Credentials:**
-
-       * Sign in to Google Developer Console
-         [here](https://console.developers.google.com/apis/)
-
-       * Create a project (Use this id as GOOGLE_APP_ID)
-
-       * Navigate to Apis and Services Tab, then select the "Credentials"
-         tab from the left navigation.
-
-       * Create an Api Key (Use this as GOOGLE_DEVELOPER_KEY)
-
-       * Create an Oauth Client ID (Use this as GOOGLE_CLIENT_ID)
-
-       * Navigate to the Library tab in the left navigation
-
+     **Obtaining Google Credentials:**
+  
+     * Sign in to Google Developer Console
+       [here](https://console.developers.google.com/apis/)
+  
+     * Create a project (Use the project id provided as the GOOGLE_APP_ID)
+     
+     * Navigate to Apis and Services Tab, then select the "Credentials"
+       tab from the left navigation.
+  
+     * Create an Api Key, using the 'Create Credentials' button on the dashboard (Use this as GOOGLE_DEVELOPER_KEY)
+  
+       * Key restrictions are optional, but can decrease the
+         liklihood of keys being misused. If key restriction is
+         desired, the key should be restricted to: HTTP referrers,
+         with referrers limited to `*.<app-domain>/*` where `app-domain`
+         is the domain where the app is deployed.
+  
+     * Create an Oauth Client ID, using the 'Create Credentials' button on the dashboard (Use this as GOOGLE_CLIENT_ID)
+  
+       * The application type should be `Web Application`.
+  
+       * The 'Authorized Javascript Origins' list should be edited to include
+         the url of the app. This could be `https://localhost:8001` or
+         elsewhere if you have an alternative development environment than what
+         described above.
+  
+       * The Authorized redirect uris tab can be left blank.
+  
+     * Navigate to the Library tab in the left navigation menu
+  
        * Find and enable both the google drive api and google picker api (Each
          api page will have a large blue "enable" button)
 
