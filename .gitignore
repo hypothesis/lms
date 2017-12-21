@@ -19,3 +19,4 @@ include/
 # Devloper Specific Files
 secret_env.sh
 .autoenv
+docker.sh
