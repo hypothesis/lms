@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from pyramid.view import view_config
 
@@ -67,7 +68,8 @@ def launch_lti(request, lti_key=None, context_id=None, document_url=None,
     try:
         lti_launch_instance = LtiLaunches(
             context_id=context_id,
-            lti_key=lti_key
+            lti_key=lti_key,
+            created=datetime.utcnow()
         )
         request.db.add(lti_launch_instance)
 
