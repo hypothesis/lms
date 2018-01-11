@@ -41,7 +41,8 @@ export default class FilePicker extends Component{
     if (eventType === this.store.eventTypes.PICKER_OPENED) {
       this.store.canvasApi.proxy(
         `courses/${this.props.courseId}/files`,
-        Constants.GET_ALL
+        Constants.GET_ALL,
+        { content_types: ['application/pdf'] }
       ).then((res) => {
         const currentState = this.store.getState()
         this.store.setState({
