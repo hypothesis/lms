@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from pyramid.view import view_config
-
+from sqlalchemy import and_
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.lti_launch import get_application_instance
@@ -55,10 +55,10 @@ def is_db_configured(request, params):
     stored in our database. This occurs when an lms does not support content
     item selection
     """
-    config = request.db.query(ModuleItemConfiguration).filter(
-        ModuleItemConfiguration.resource_link_id == params['resource_link_id'] and
+    config = request.db.query(ModuleItemConfiguration).filter(and_(
+        ModuleItemConfiguration.resource_link_id == params['resource_link_id'],
         ModuleItemConfiguration.tool_consumer_instance_guid == params[
-            'tool_consumer_instance_guid'])
+            'tool_consumer_instance_guid']))
     return config.count() == 1
 
 
@@ -106,10 +106,10 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
                           document_url=lti_params['url'], jwt=jwt)
 
     elif is_db_configured(request, lti_params):
-        config = request.db.query(ModuleItemConfiguration).filter(
-            ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'] and
+        config = request.db.query(ModuleItemConfiguration).filter(and_(
+            ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'],
             ModuleItemConfiguration.tool_consumer_instance_guid == lti_params[
-                'tool_consumer_instance_guid']
+                'tool_consumer_instance_guid'])
         )
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=config.one().document_url, jwt=jwt)
