@@ -12,12 +12,14 @@
                 <th>Created</th>
                 <th>LMS URL</th>
                 <th>Requesters Email</th>
+                <th>Consumer Key</th>
             </tr>
         {% for row in apps %}
             <tr>
                 <td>{{  row['created']  }}</td>
                 <td>{{  row['lms_url']  }}</td>
                 <td>{{  row['requesters_email']  }}</td>
+                <td>{{  row['consumer_key']  }}</td>
             </tr>
         {% endfor %}
         </table>
