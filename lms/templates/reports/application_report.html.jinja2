@@ -11,7 +11,7 @@
             <tr>
                 <th>Created</th>
                 <th>LMS URL</th>
-                <th>Requesters Email</th>
+                <th>Signup Email</th>
                 <th>Consumer Key</th>
             </tr>
         {% for row in apps %}
@@ -29,15 +29,17 @@
         <p>There have been {{ launches|length }} lti launches:</p>
         <table border="1">
             <tr>
-                <th>Created</th>
                 <th>Context ID</th>
-                <th>LTI Key</th>
+                <th>Number of Launches</th>
+                <th>LMS Url</th>
+                <th>Signup Email</th>
+                <th>Consumer Key</th>
             </tr>
         {% for row in launches %}
             <tr>
-                <td>{{  row['created']  }}</td>
-                <td>{{  row['context_id']  }}</td>
-                <td>{{  row['lti_key']  }}</td>
+              {% for element in row %} 
+                <td>{{  element  }}</td>
+              {% endfor %}
             </tr>
         {% endfor %}
         </table>
