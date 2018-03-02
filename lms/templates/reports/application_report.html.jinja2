@@ -13,6 +13,7 @@
                 <th>Lms Url</th>
                 <th>Signup Email</th>
                 <th>Consumer Key</th>
+                <th>Shared Secret</th>
             </tr>
         {% for row in apps %}
             <tr>
@@ -20,6 +21,7 @@
                 <td>{{  row['lms_url']  }}</td>
                 <td>{{  row['requesters_email']  }}</td>
                 <td>{{  row['consumer_key']  }}</td>
+                <td>{{  row['shared_secret']  }}</td>
             </tr>
         {% endfor %}
         </table>
