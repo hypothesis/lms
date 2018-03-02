@@ -1,7 +1,7 @@
 from pyramid.view import view_config
 
-from lms.models.application_instance import ApplicationInstance
-from lms.models.lti_launches import LtiLaunches
+from lms.models import ApplicationInstance
+from lms.models import LtiLaunches
 
 
 @view_config(route_name='reports',
