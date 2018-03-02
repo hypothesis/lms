@@ -9,33 +9,39 @@
         <p>There are {{ apps|length }} application instances:</p>
         <table border="1">
             <tr>
-                <th>Created</th>
-                <th>LMS URL</th>
-                <th>Requesters Email</th>
+                <th>Created At</th>
+                <th>Lms Url</th>
+                <th>Signup Email</th>
+                <th>Consumer Key</th>
+                <th>Shared Secret</th>
             </tr>
         {% for row in apps %}
             <tr>
                 <td>{{  row['created']  }}</td>
                 <td>{{  row['lms_url']  }}</td>
                 <td>{{  row['requesters_email']  }}</td>
+                <td>{{  row['consumer_key']  }}</td>
+                <td>{{  row['shared_secret']  }}</td>
             </tr>
         {% endfor %}
         </table>
 
         <br/>
 
-        <p>There have been {{ launches|length }} lti launches:</p>
+        <p>There have been {{ num_launches }} lti launches:</p>
         <table border="1">
             <tr>
-                <th>Created</th>
                 <th>Context ID</th>
-                <th>LTI Key</th>
+                <th>Number of Launches</th>
+                <th>Lms Url</th>
+                <th>Signup Email</th>
+                <th>Consumer Key</th>
             </tr>
         {% for row in launches %}
             <tr>
-                <td>{{  row['created']  }}</td>
-                <td>{{  row['context_id']  }}</td>
-                <td>{{  row['lti_key']  }}</td>
+              {% for element in row %} 
+                <td>{{  element  }}</td>
+              {% endfor %}
             </tr>
         {% endfor %}
         </table>

@@ -79,4 +79,5 @@ def build_from_lms_url(lms_url, email, developer_key,
         developer_key=developer_key,
         developer_secret=encrypted_secret,
         aes_cipher_iv=aes_iv,
+        created=datetime.utcnow(),
     )
