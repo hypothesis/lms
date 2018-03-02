@@ -16,5 +16,6 @@ def list_application_instances(request):
     return {
         'apps': request.db.query(ApplicationInstance).all(),
         'launches': launches,
+        'num_launches': request.db.query(LtiLaunches).count(),
         'logout_url': request.route_url('logout')
     }
