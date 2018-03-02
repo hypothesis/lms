@@ -12,7 +12,8 @@ def list_application_instances(request):
       lms_url, requesters_email, consumer_key FROM lti_launches LEFT JOIN \
       application_instances on \
       lti_launches.lti_key=application_instances.consumer_key GROUP BY \
-      context_id, consumer_key, requesters_email, lms_url;").fetchall()
+      context_id, consumer_key, requesters_email, lms_url ORDER BY \
+      count(CONTEXT_ID) DESC;").fetchall()
     return {
         'apps': request.db.query(ApplicationInstance).all(),
         'launches': launches,
