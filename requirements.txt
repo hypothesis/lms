@@ -18,7 +18,7 @@ newrelic==3.0.0.89
 oauth2==1.9.0.post1       # via pylti
 oauthlib==2.0.7           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
-plaster-pastedeploy==0.4.2  # via pyramid
+plaster-pastedeploy==0.5  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
 psycopg2==2.7.3.2
 pycrypto==2.4.0
