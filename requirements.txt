@@ -9,7 +9,7 @@ certifi==2018.1.18        # via requests
 chardet==3.0.4            # via requests
 gunicorn==19.7.1
 httplib2==0.11.3          # via oauth2, pylti
-hupper==1.0               # via pyramid
+hupper==1.1               # via pyramid
 idna==2.6                 # via requests
 jinja2==2.10              # via pyramid-jinja2
 mako==1.0.7               # via alembic
