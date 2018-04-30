@@ -7,7 +7,7 @@
 alembic==0.9.9
 certifi==2018.4.16        # via requests
 chardet==3.0.4            # via requests
-gunicorn==19.7.1
+gunicorn==19.8.0
 httplib2==0.10.3          # via oauth2, pylti
 hupper==1.0               # via pyramid
 idna==2.6                 # via requests
