@@ -28,7 +28,7 @@ pyramid-jinja2==2.7
 pyramid-services==1.1
 pyramid-tm==2.2
 pyramid==1.9.2
-python-dateutil==2.6.1    # via alembic
+python-dateutil==2.7.2    # via alembic
 python-editor==1.0.3      # via alembic
 raven==6.4.0
 repoze.lru==0.7           # via pyramid
