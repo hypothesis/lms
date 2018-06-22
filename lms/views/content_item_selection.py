@@ -67,6 +67,11 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         form_fields['resource_link_id'] = lti_params['resource_link_id']
     if 'tool_consumer_instance_guid' in lti_params:
         form_fields['tool_consumer_instance_guid'] = lti_params['tool_consumer_instance_guid']
+
+    custom_lms_url = None
+    if 'custom_canvas_api_domain' in lti_params:
+        custom_lms_url = lti_params['custom_canvas_api_domain']
+    import pdb; pdb.set_trace()
     params = {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
@@ -74,7 +79,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         'google_client_id': request.registry.settings['google_client_id'],
         'google_developer_key': request.registry.settings['google_developer_key'],
         'google_app_id': request.registry.settings['google_app_id'],
-        'lms_url': lms_url,
+        'lms_url': lms_url if custom_lms_url == None else custom_lms_url,
         'api_url': request.route_url('canvas_proxy'),
         'jwt': jwt,
     }
