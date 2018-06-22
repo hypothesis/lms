@@ -71,7 +71,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
     custom_lms_url = None
     if 'custom_canvas_api_domain' in lti_params:
         custom_lms_url = lti_params['custom_canvas_api_domain']
-    import pdb; pdb.set_trace()
+
     params = {
         'content_item_return_url': content_item_return_url,
         'lti_launch_url': request.route_url('lti_launches'),
