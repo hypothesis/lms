@@ -79,7 +79,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         'google_client_id': request.registry.settings['google_client_id'],
         'google_developer_key': request.registry.settings['google_developer_key'],
         'google_app_id': request.registry.settings['google_app_id'],
-        'lms_url': lms_url if custom_lms_url == None else custom_lms_url,
+        'lms_url': lms_url if custom_lms_url is None else custom_lms_url,
         'api_url': request.route_url('canvas_proxy'),
         'jwt': jwt,
     }
