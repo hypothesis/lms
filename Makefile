@@ -41,7 +41,7 @@ docker:
 
 .pydeps: requirements.txt requirements-dev.in
 	@echo installing python dependencies
-	@pip install --use-wheel -r requirements-dev.in
+	@pip install -r requirements-dev.in
 	@touch $@
 
 
