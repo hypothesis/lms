@@ -42,5 +42,5 @@ urllib3==1.22             # via requests
 venusian==1.1.0           # via pyramid
 webob==1.8.2              # via pyramid
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.3     # via pyramid, pyramid-services, transaction, zope.sqlalchemy
+zope.interface==4.5.0     # via pyramid, pyramid-services, transaction, zope.sqlalchemy
 zope.sqlalchemy==0.7.7
