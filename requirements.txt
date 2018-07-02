@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-alembic==0.9.6
+alembic==0.9.10
 certifi==2017.11.5        # via requests
 chardet==3.0.4            # via requests
 gunicorn==19.7.1
