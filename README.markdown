@@ -5,180 +5,268 @@
 
 # Hypothesis Canvas App
 
-## Development
+## Installation and configuration
 
-### Setting up a dev environment
+**Q**: Whoa! This `README` is so long! Which steps do I actually need to take?
 
-You will need:
+**A**:
 
-* Git
-* Python
-* Virtualenv
+  * You need to [install and run this application locally](#setup-dev)
+  * If you want the Google Drive file picker to be available for configuring assignments/modules, [Configure Google APIs](#google-apis)
+  * Install the Hypothesis LMS application for one or more Canvas (LMS) courses:
+      * Optionally enable the [Canvas file picker](#canvas-picker) so instructors may select assignment files from Canvas uploads
+      * [Install the Hypothesis LMS application for a Canvas/LMS course](#install-app-for-course)
+  * You may wish to [configure access to reports](#instance-reports) if you'd like to see details on LTI launch history
+
+### Prerequisites
+
+The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for managing front-end assets. You'll need:
+
+* git
+* python 3
+* virtualenv
 * Docker
 * openssl
-* You'll need [h](https://github.com/hypothesis/h),
+* Node.js
+* yarn
+* local installations of [h](https://github.com/hypothesis/h),
   [client](https://github.com/hypothesis/client) and
-  [via](https://github.com/hypothesis/via) development environments running
-* ...
+  [via](https://github.com/hypothesis/via) (*TODO*: Why?)
 
-1. Run a PostgreSQL database.
+<a id="setup-dev"></a>
+### Installing this app locally
 
-   The easiest way to run a database with the configuration that the app
-   expects is with Docker. The first time you run it you'll need to use this
-   command to create and run the `lms-postgres` docker container:
+1. **Clone this repository**
 
-   ```bash
-   $ sudo docker run -p 5433:5432 --name lms-postgres postgres
-   ```
+    The following steps assume that you are working within the `lms` project directory.
 
-   Subsequently you can just re-start the already-created container with:
+1. **Create a Python virtual environment**
 
-   ```bash
-   sudo docker start -a lms-postgres
-   ```
+    Using `virtualenv` or your preferred virtualenv-management utility, set up virtualenv. Note that this project requires Python 3. The following commands work on a Mac with `virtualenv` installed as of mid 2018:
 
-   **Tip**: You can connect to this database to inspect its contents by
-   installing [psql](https://www.postgresql.org/docs/current/static/app-psql.html)
-   and then running:
+    ```bash
+    $ virtualenv -p python3 .
+    $ source bin/activate
+    ```
 
-   ```bash
-   $ psql postgresql://postgres@localhost:5433/postgres
-   ```
+1. **Configure environment variables**
 
-   **Tip**: If you want to delete all your data and reset your dev database,
-   an easy way to do so is just to delete the whole docker container:
+    Setting up [Google API integration](#google-apis) and [application instance reports](#instance-reports) access is optional at this point; you can leave the default values for related environment variables for now, if you like.
 
-   ```bash
-   $ sudo docker rm lms-postgres
-   ```
+    ```bash
+    export VIA_URL="https://via.hypothes.is"
+    export JWT_SECRET="some secret string here"
 
-   You can then re-create the container by re-running the `docker run` command
-   above.
+    # The secret should be different for each pyramid instance
+    # It should be a 64 character (128 bit) string
+    # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
+    export LMS_SECRET="Unique string used for encryption"
 
-2. Clone the  app's GitHub repository:
+    # From Google API integration
+    export GOOGLE_CLIENT_ID="Google Oauth Client ID"
+    export GOOGLE_DEVELOPER_KEY="Google Api Key"
+    export GOOGLE_APP_ID="Google Project Id"
 
-   ```bash
-   $ git clone git@github.com:hypothesis/lms.git
-   $ cd lms
-   ```
+    # For application instance reports access
+    # Use lms/util/get_password_hash.py to provide vaues for HASHED_PW and SALT
+    export HASHED_PW="my_hashed_password"
+    export SALT="my_salt"
+    export USERNAME="my_desired_report_username"
+    ```
 
-3. Set the environment variables that the app needs to values suitable for
-   local development:
+1. **Configure SSL**
 
-   ```bash
-   export VIA_URL="https://via.hypothes.is"
-   export JWT_SECRET="some secret"
-   export GOOGLE_CLIENT_ID="Google Oauth Client ID"
-   export GOOGLE_DEVELOPER_KEY="Google Api Key"
-   export GOOGLE_APP_ID="Google Project Id"
+    The server will need to be able to accept requests via https. The easiest way to do this is to create a self signed cert. The following instructions should work on a Mac:
 
-   # The secret should be different for each pyramid instance
-   # It should be a 64 character (128 bit) string
-   # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
-   export LMS_SECRET="Unique string used for encryption"
+    1. Make sure you have **openssl** installed. You can install it with [homebrew](https://brew.sh/) if not.
+    2. Create an `ssl` directory within the project:
 
-   # (Use lms/util/get_password_hash.py to compute the hash of a password)
-   export HASHED_PW="my_hashed_password"
-   export SALT="my_salt"
-   export USERNAME="my_desired_report_username"
+    ```bash
+    $ mkdir ssl
+    $ cd ssl
+    ```
 
-   ```
+    3. Generate an RSA keypair and a certificate signing request (CSR):
 
-     **Obtaining Google Credentials:**
-  
-     * Sign in to Google Developer Console
-       [here](https://console.developers.google.com/apis/)
-  
-     * Create a project (Use the project id provided as the GOOGLE_APP_ID)
+    ```bash
+    $ openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+    $ openssl rsa -passin pass:x -in server.pass.key -out server.key
+    $ rm server.pass.key
+    $ openssl req -new -key server.key -out server.csr
+    ```
 
-     <br>
-     <br>
-     <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-21%20at%2011.28.51%20AM.png" alt="Apis and Services Tab"/>
+    When you execute the last command above, you will be prompted to enter some information. It doesn't matter what you enter but you will probably want to leave the challenge password blank.
 
-     * Navigate to Apis and Services Tab (shown above), then select the "Credentials"
-       tab from the left navigation.
-    
-      <br>
-      <br>
-      <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-20%20at%203.19.21%20PM.png" alt="Create Credentials Button" />
-      
-     * Create an Api Key, using the 'Create Credentials' button on the dashboard (shown above)(Use this as GOOGLE_DEVELOPER_KEY)
-  
-       * Key restrictions are optional, but can decrease the
-         liklihood of keys being misused. If key restriction is
-         desired, the key should be restricted to: HTTP referrers,
-         with referrers limited to `*.<app-domain>/*` where `app-domain`
-         is the domain where the app is deployed.
-  
-     * Create an Oauth Client ID, using the 'Create Credentials' button on the dashboard (Use this as GOOGLE_CLIENT_ID)
-  
-       * The application type should be `Web Application`.
-  
-       * The 'Authorized Javascript Origins' list should be edited to include
-         the url of the app. This could be `https://localhost:8001` or
-         elsewhere if you have an alternative development environment than what
-         described above.
-  
-       * The Authorized redirect uris tab can be left blank.
-    
-    <br>
-    <br>
-    <img src="https://raw.githubusercontent.com/hypothesis/lms/master/docs/images/Screen%20Shot%202017-12-21%20at%2011.30.15%20AM.png" alt="Api Library" />
-    
-     * Navigate to the Library tab in the left navigation menu. This is depicted above.
-  
-       * Find and enable both the google drive api and google picker api (Each
-         api page will have a large blue "enable" button)
+    4. Generate the self-signed cert:
 
+    ```bash
+    $ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
+    ```
 
-4.   First create and activate a Python virtual
-   environment for the Canvas app
-   ```
-     virtualenv .
-     source  bin/activate
-   ```
+    You should now have a file called `server.key` and `server.crt` in the `ssl` folder.
 
-5. Run the development server. You will need to follow the instructions for setting up ssl if you have not done that already:
+    5. Enable insecure localhost in your browser. In Chrome this can by visiting the URL:
+
+    ```
+      chrome://flags/#allow-insecure-localhost
+    ```
+
+    Enable this flag (you may need to restart Chrome for it to take effect).
+
+1. **Build the app's front-end asets**
+
+    Make sure you're in the `lms` project directory. Install Node.js dependencies and build the app's front-end assets:
+
+    ```bash
+    $ yarn install
+    $ make build
+    ```
+
+1. **Try out the postgres docker container**
+
+    The app's postgres database runs within a docker container. To start the container:
+
+    ```bash
+    docker run --rm -d -p 5433:5432 --name lms-postgres postgres
+    ```
+
+    You can subsequently stop the container with:
+
+    ```bash
+    docker stop lms-postgres
+    ```
+
+<a id="run-webserver"></a>
+### Running the app locally
+
+1. Make sure your `virtualenv` is activated. Use your preferred virtualenv management utility or:
 
    ```bash
-   $ make dev
+   $ source bin/activate
    ```
 
-6. TODO Add app to a canvas course
+2. Start the psql (database) container if it's not already running:
 
-### Setting up SSL
+    ```bash
+    $ docker run --rm -d -p 5433:5432 --name lms-postgres postgres
+    ```
 
-The server will need to be able to accept requests via https. The easiest way to do this is to create a self signed cert. Follow these instructions (for mac):
-1. Create a directory called ssl in the project directory (this folder is git ignored)
-```bash
-$ mkdir ssl
-$ cd ssl
-```
-2. If you don't have openssl you can install it with brew. Once installed run:
-```bash
-$ openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
-$ openssl rsa -passin pass:x -in server.pass.key -out server.key
-$ rm server.pass.key
-$ openssl req -new -key server.key -out server.csr
-```
-You will be prompted to enter some information. It doesn't matter what you enter but you will probably want to leave the challenge password blank.
+3. Start the development web server and app:
 
-3. Run this command:
-```bash
-$ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
-```
+    ```bash
+    $ make dev
+    ```
 
-You should now have a file called `server.key` and `server.crt` in that folder.
+4. Visit [https://localhost:8001/welcome](https://localhost:8001/welcome) in a browser
 
-4. Enable unsecure localhost in your browser. In chrome this can by entering the folling into the url bar.
-```
-  chrome://flags/#allow-insecure-localhost
-```
-Click enable.
 
-5. Verify by running `make dev` and by going to `https://localhost:8001`
+<a id="google-apis"></a>
+### Integrating Google Drive, Picker APIs
 
-### Running the tests
+The app supports the ability to select documents (for annotation) via Google Drive. These steps allow you to enable that feature. The outcome of this process will be a configured Google project and valid values for the `GOOGLE_APP_ID`, `GOOGLE_DEVELOPER_KEY` and `GOOGLE_CLIENT_ID` environment variables.
+
+1. Sign in to the [Google Developer Console](https://console.developers.google.com/apis/)
+1. Create a new project. Set the `GOOGLE_APP_ID` environment variable to the ID for this project.
+1. Navigate to the "Credentials" section
+1. Generate an API key
+
+    Use the "Create Credentials" option to generate an API key — retain this for the `GOOGLE_DEVELOPER_KEY` environment variable
+
+1. Generate an OAuth client ID.
+
+    Again, use the "Create Credentials" option to generate an OAuth client ID.
+
+    This process involves a few steps (via web forms). The resulting ID string can be used as the value for the `GOOGLE_CLIENT_ID` environment variable.
+
+    As of June, 2018, you'll need to create a "consent screen" before you can generate any OAuth client IDs — enter sensible values in the form fields here.
+
+    For the OAuth client ID form itself:
+
+    * Set application type to `Web Application`
+    * The 'Authorized Javascript Origins' list should be edited to include the url of the app. (Hint: this is probably `https://localhost:8001` unless you changed the default settings for this)
+    * The Authorized redirect URIs tab can be left blank
+
+1. Enable the needed APIs.
+
+    Head to the "Library" section of the Google developer console and enable:
+
+    * Google Drive API
+    * Google Picker API
+
+## Installing the LMS app in Canvas (LMSes)
+
+<a id="canvas-picker"></a>
+### Enabling the Canvas File Picker
+
+In order to use the Canvas file picker, you need to generate a developer key and ID within the target Canvas instance.
+
+1. Log in to Canvas as an admin user
+1. Navigate to `Admin` then click the name of the root account
+1. Navigate to `Developer Keys`, then click `+ Developer Key`.
+1. Fill out the form:
+    1. For name and email you can enter whatever you please; leave the legacy redirect URI field blank
+    1. For the `Redirect URIs` field enter:
+        ```
+        https://localhost:8001/canvas_oauth_callback
+        https://localhost:8001/module_item_launch_oauth_callback
+        ```
+
+        *Note*: For QA, replace `localhost:8001` with `qa-lms.hypothes.is`; for production, replace it with `lms.hypothes.is`
+
+     7. Click `Save Key`
+ 8. Take note of the resulting credentials:
+
+    * The `ID` is the `Developer Key` needed in the following steps
+    * The `key` is the `Developer Secret` needed in the following steps
+
+<a id="install-app-for-course"></a>
+### Installing the App for a Canvas (LMS) Course
+
+#### Generating a consumer key and secret
+
+The [https://localhost:8001/welcome](https://localhost:8001/welcome) tool is used to generate a consumer key and a secret that will be used when installing the Hypothesis LMS app for a Canvas (LMS) course.
+
+1. With your [dev web server running](#run-webserver), visit [https://localhost:8001/welcome](https://localhost:8001/welcome) in a browser.
+1. Enter the domain for the Canvas instance where the Hypothesis LMS app will be installed (e.g. `foo.instructure.com`)
+1. Enter your email (any email is fine here)
+1. To enable Canvas picker integration, enter the Developer Key and Developer Secret generated during the [the Canvas Picker configuration step](#canvas-picker) into the corresponding fields here
+
+#### Installing the Hypothesis LMS app for a Canvas (LMS) Course
+
+1. Log into the your Canvas instance as an admin user
+1. Navigate to the course you'd like to add the Hypothesis app to
+1. Add a new app for the course
+
+    Navigate to `Settings` and then to the `Apps` tab. Click the `View App Configurations` button, and then the `+ App` (add an app) button.
+
+1. Fill out the Add-App form
+
+    * For `Configuration Type`, select `Paste XML`
+    * Give your App a name
+    * Enter the consumer key and secret you generated (above) in the provided fields
+    * Visit [https://localhost:8001/config_xml](https://localhost:8001/config_xml) and paste the contents of the output into the `XML Configuration` field
+    * Submitting the form should install the app and it should be available from within the Modules and Assignments areas of the course
+
+### Configuring Assignments and Modules
+
+**TODO**
+
+When creating a new module or assignment, select `External Tool` and `Hypothesis` from the available list. This should allow you to choose a file from [Google Drive](#google-apis) or [Canvas](#canvas-picker) itself (if you have configured either of those features).
+
+<a id="instance-reports"></a>
+### Application Instance Reports
+
+To enable a report of application instances in the DB, you'll need to define the `USERNAME`, `HASHED_PW` and `SALT` environment variables—this will establish credentials so that the reports may be viewed.
+
+#### Configuring a Username and Password
+
+* Run the command-line script `lms/util/get_password_hash.py`. It will generate a value for `HASHED_PW` and `SALT`
+* Set `USERNAME` to the desired username for accessing these reports
+* When the webserver is running, you can access the reports in a browser at [https://localhost:8001/reports](https://localhost:8001/reports)
+
+## Development
+
+### Running tests
 
 1. Create the test database. You only need to do this once:
 
@@ -186,13 +274,15 @@ Click enable.
    $ psql postgresql://postgres@localhost:5433/postgres -c "CREATE DATABASE lms_test;"
    ```
 
-2. Run the tests:
+1. Run the tests:
 
    ```bash
    $ make test
    ```
 
-### Getting a shell
+### Interacting with shell, database
+
+#### Shell
 
 `make shell` will get you a Python shell with a Pyramid registry, request, etc.
 Useful for debugging or trying things out in development:
@@ -210,7 +300,27 @@ $ pip install pyramid_ipython
 
 There are also `pyramid_` packages for `bpython`, `ptpython`, etc.
 
-### Running the linters
+#### Database
+
+**Tip**: You can connect to the app's database to inspect its contents by
+installing [psql](https://www.postgresql.org/docs/current/static/app-psql.html)
+and then running:
+
+```bash
+$ psql postgresql://postgres@localhost:5433/postgres
+```
+
+**Tip**: If you want to delete all your data and reset your dev database,
+an easy way to do so is just to delete the whole docker container:
+
+```bash
+$ sudo docker rm lms-postgres
+```
+
+You can then re-create the container by re-running the `docker run` command
+above.
+
+### Running the linter
 
 ```bash
 $ make lint
@@ -343,76 +453,3 @@ steps to create a new migration script for h are:
    ```bash
    $ alembic -c conf/alembic.ini upgrade +1
    ```
-
-### Installing Dev Application In Canvas
-
-1. Start your dev server as described above.
-
-2. Navigate to `<dev-url>/welcome` in your browser.
-
-3. Provide your canvas domain and email in the form.
-After submitting the form you should be provided with a
-consumer key and secret. Make note of these.
-
-4. Navigate to the settings of a course in canvas.
-
-5. Navigate to the Apps tab, then click the "View App Configurations" button.
-
-6. Add an application with the "+ App" button, and then select the 'Paste XML'
-option from the dropdown in the "Add App" modal.
-
-7. Copy your consumer key and secret into the canvas form you received
-previously from the welcome page.
-
-8. Navigate to `<dev-url>/config_xml` in your browser.
-
-9. Copy the xml into the XML Configuration portion of the canvas form.
-
-10. Submit the form, and your app should be installed.
-
-11. Access your app by adding a module item to a module in your course.
-Select an External Tool module item, and select the 'Hypothesis' tool.
-You should launch the hypothesis lti application, and be allowed to
-choose a file.
-
-# Application Instances Reports
-
-While running the webserver, to see a list of application instances stored in
- the database, navigate to `/reports`. You will be redirected to a login page.
-
- The username and password hash are passed as environment variables
- `USERNAME` and `HASHED_PW`
-
-
- ### Changing the password ###
-
- To change the password, you will need to compute a new hash, then replace the
-  `HASH` and `SALT` environment variables.
-
- To help compute the hash you can use the command line script
-  `lms/utilget_get_password_hash.py`. You will need to store the salt and
-  resulting hash as environment variables. You only need to provide a salt if
-  you are trying to recreate a particular hash. For a new password, just let
-  the script create the salt.
-
-
- ### Getting a Developer Key and Secret ###
-
- In order to use the canvas file picker you need to get a developer key and id from canvas.
-
- 1. Log in to Canvas as an admin.
- 2. Navigate to `Admin` then click the name of the root account.
- 3. Click on `Developer Keys` on the left menu.
- 4. Click `+ Developer Key`.
- 5. A textbox should pop up asking for some information.
- 5. For name and email you can enter whatever you please leave the legacy redirect uri field blank.
- 6. For the `Redirect URIs` field enter:
- ```
-https://localhost:8001/canvas_oauth_callback
-https://localhost:8001/module_item_launch_oauth_callback
-```
- Note that for QA you will replace
- `localhost:8001` with `qa-lms.hypothes.is` and for production you will replace it with `lms.hypothes.is`
-
- 7. Click `Save Key`
- 8. You can then copy and paste the developer key and secret into their respective fields at `https://localhost:8001/welcome`
