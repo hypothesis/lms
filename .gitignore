@@ -15,6 +15,7 @@ node_modules/
 build/
 yarn-error.log
 include/
+.pytest_cache
 
 # Devloper Specific Files
 secret_env.sh
