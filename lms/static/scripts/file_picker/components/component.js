@@ -1,5 +1,4 @@
 import _ from 'lodash';
-
 // All UI elements extend this class.
 // Provides a declarative rendering api and some lifecycle methods.
 export default class Component {
@@ -27,7 +26,8 @@ export default class Component {
         const comp = components[index];
         // handle rendering of strings and other primitive values
         if(comp && typeof comp !== 'object') {
-          return `${part}${comp}`;
+          // ensure that all string values not explicitly returned from component are sanitized
+          return `${part}${_.escape(`${comp}`)}`;
         }
         let output = _.chain([comp])
           .flatten()
