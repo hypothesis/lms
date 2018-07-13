@@ -13,7 +13,6 @@ from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 from lms import db
-from lms import constants
 from lms.models import User
 from lms.models import Token
 from lms.models import OauthState
@@ -93,17 +92,17 @@ def pyramid_request():
     """
     pyramid_request = testing.DummyRequest()
     pyramid_request.POST.update({
-        constants.OAUTH_CONSUMER_KEY: 'TEST_OAUTH_CONSUMER_KEY',
-        constants.OAUTH_TIMESTAMP: 'TEST_TIMESTAMP',
-        constants.OAUTH_NONCE: 'TEST_NONCE',
-        constants.OAUTH_SIGNATURE_METHOD: 'SHA256',
-        constants.OAUTH_SIGNATURE: 'TEST_OAUTH_SIGNATURE',
-        constants.OAUTH_VERSION: '1p0p0',
-        constants.USER_ID: 'TEST_USER_ID',
-        constants.ROLES: 'Instructor',
-        constants.TOOL_CONSUMER_INSTANCE_GUID: 'TEST_GUID',
-        constants.CONTENT_ITEM_RETURN_URL: 'https://www.example.com',
-        constants.LTI_VERSION: 'TEST',
+        'oauth_consumer_key': 'TEST_OAUTH_CONSUMER_KEY',
+        'oauth_timestamp': 'TEST_TIMESTAMP',
+        'oauth_nonce': 'TEST_NONCE',
+        'oauth_signature_method': 'SHA256',
+        'oauth_signature': 'TEST_OAUTH_SIGNATURE',
+        'oauth_version': '1p0p0',
+        'user_id': 'TEST_USER_ID',
+        'roles': 'Instructor',
+        'tool_consumer_instance_guid': 'TEST_GUID',
+        'content_item_return_url': 'https://www.example.com',
+        'lti_version': 'TEST',
     })
 
     pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
