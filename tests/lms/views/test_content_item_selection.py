@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-from lms.views import content_item_selection
+from lms.views.content_item_selection import content_item_selection
 
 
 class TestContentItemSelection(object):

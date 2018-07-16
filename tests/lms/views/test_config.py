@@ -1,4 +1,4 @@
-from lms.views import config_xml
+from lms.views.config import config_xml
 
 
 class TestConfigXml(object):

@@ -1,4 +1,4 @@
-from lms.views import create_application_instance
+from lms.views.application_instances import create_application_instance
 from lms.models import ApplicationInstance
 
 

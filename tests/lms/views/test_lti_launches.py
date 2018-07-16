@@ -1,4 +1,4 @@
-from lms.views import lti_launches
+from lms.views.lti_launches import lti_launches
 
 
 # TODO write tests for student case
