@@ -166,9 +166,7 @@ class TestGenerateDisplayName:
     def test_it_returns_display_names_generated_from_lti_request_params(
         self, request_params, expected_display_name
     ):
-        display_name   = generate_display_name(request_params)
-
-        assert display_name == expected_display_name
+        assert generate_display_name(request_params) == expected_display_name
 
 
 @pytest.mark.usefixtures("random")
