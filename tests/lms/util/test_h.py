@@ -172,7 +172,7 @@ class TestGenerateDisplayName:
 
 
 @pytest.mark.usefixtures("random")
-class TestGenerateUsername(object):
+class TestGenerateUsername:
     @pytest.mark.parametrize(
         "full_name,user_id,expected_username",
         [
