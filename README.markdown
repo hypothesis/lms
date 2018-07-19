@@ -49,6 +49,35 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     $ source bin/activate
     ```
 
+1. Create a client_credentials auth client in h.
+
+   The LMS app requires the OAuth 2.0 `client_id` and `client_secret` from a
+   `client_credentials`-type auth client in h. To create the necessary auth client in h:
+
+   1. Log in to your local installation of h as an admin user.
+
+      If you don't have an admin user account for your local h see
+      [Accessing the admin interface](http://h.readthedocs.io/en/latest/developing/administration/)
+      in the h docs.
+
+   1. Go to <http://localhost:5000/admin/oauthclients/new> and create an auth
+      client with these settings:
+
+      <dl>
+        <dt>Name</dt>
+        <dd>LMS</dd>
+        <dt>Authority</dt>
+        <dd>lms.hypothes.is</dd>
+        <dt>Grant type</dt>
+        <dd>client_credentials</dd>
+        <dt>Redirect URL</dt>
+        <dd>(Leave empty)</dd>
+      </dl>
+
+     Click <samp>Register client</samp> and keep the tab open because you'll
+     need the generated <samp>Client ID</samp> and <samp>Client secret</samp>
+     for setting your environment variables later.
+
 1. **Configure environment variables**
 
     Setting up [Google API integration](#google-apis) and [application instance reports](#instance-reports) access is optional at this point; you can leave the default values for related environment variables for now, if you like.
@@ -72,6 +101,14 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export HASHED_PW="my_hashed_password"
     export SALT="my_salt"
     export USERNAME="my_desired_report_username"
+
+    # For using the h API.
+    # The values for H_CLIENT_ID, H_CLIENT_SECRET and H_AUTHORITY should come
+    # from the auth client that you created in h earlier.
+    export H_CLIENT_ID="232c***5121"
+    export H_CLIENT_SECRET="eVJ4***rXkk"
+    export H_AUTHORITY="lms.hypothes.is"
+    export H_API_URL="https://localhost:5000/api"
     ```
 
 1. **Configure SSL**
