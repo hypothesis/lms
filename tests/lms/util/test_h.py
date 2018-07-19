@@ -7,6 +7,9 @@ import pytest
 
 from lms.util import generate_display_name
 from lms.util import generate_username
+from lms.util import generate_provider_unique_id
+from lms.util import MissingOAuthConsumerKeyError
+from lms.util import MissingUserIDError
 
 
 class TestGenerateDisplayName:
@@ -309,3 +312,48 @@ class TestGenerateUsername:
         random = patch("lms.util.h.random")
         random.choice.side_effect = "random_characters"
         return random
+
+
+class TestGenerateProviderUniqueID:
+
+    def test_it_returns_a_provider_unique_id_from_consumer_key_and_user_id(self):
+        request_params = {
+            "oauth_consumer_key": "Hypothesis5e36***8059",
+            "user_id": "4533***70d9",
+        }
+
+        provider_unique_id = generate_provider_unique_id(request_params)
+
+        assert provider_unique_id == "Hypothesis5e36***8059:4533***70d9"
+
+    def test_you_can_extract_the_consumer_key_and_user_id(self):
+        request_params = {
+            "oauth_consumer_key": "Hypothesis5e36***8059",
+            "user_id": "4533***70d9",
+        }
+
+        provider_unique_id = generate_provider_unique_id(request_params)
+
+        # You can extract the consumer key and user_id separately from the
+        # provider_unique_id.
+        consumer_key, user_id = provider_unique_id.split(":")
+        assert consumer_key == "Hypothesis5e36***8059"
+        assert user_id == "4533***70d9"
+
+    @pytest.mark.parametrize("request_params", [
+        {"user_id": "4533***70d9"},
+        {"oauth_consumer_key": "", "user_id": "4533***70d9"},
+        {"oauth_consumer_key": None, "user_id": "4533***70d9"},
+    ])
+    def test_it_raises_if_oauth_consumer_key_is_missing(self, request_params):
+        with pytest.raises(MissingOAuthConsumerKeyError):
+            generate_provider_unique_id(request_params)
+
+    @pytest.mark.parametrize("request_params", [
+        {"oauth_consumer_key": "Hypothesis5e36***8059"},
+        {"user_id": "", "oauth_consumer_key": "Hypothesis5e36***8059"},
+        {"user_id": None, "oauth_consumer_key": "Hypothesis5e36***8059"},
+    ])
+    def test_it_raises_if_user_id_is_missing(self, request_params):
+        with pytest.raises(MissingUserIDError):
+            generate_provider_unique_id(request_params)

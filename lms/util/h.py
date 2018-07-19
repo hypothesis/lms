@@ -7,6 +7,9 @@ from __future__ import unicode_literals
 import random
 import string
 
+from lms.util.exceptions import MissingOAuthConsumerKeyError
+from lms.util.exceptions import MissingUserIDError
+
 
 USERNAME_ALLOWED_CHARS = string.ascii_letters + string.digits + "._"
 """The characters that are allowed in h usernames."""
@@ -74,3 +77,26 @@ def generate_username(request_params):
     user_id = pad(user_id, max_chars_from_user_id)
 
     return full_name + user_id
+
+
+def generate_provider_unique_id(request_params):
+    """
+    Return an h provider_unique_id from the given LTI launch request params.
+
+    :raises :py:exception:`lms.util.MissingOAuthConsumerKeyError`:
+      if ``"oauth_consumer_key"`` is missing from ``request_params``
+
+    :raises :py:exception:`lms.util.MissingUserIDError`:
+      if ``"user_id"`` is missing from ``request_params``
+
+    """
+    consumer_key = request_params.get("oauth_consumer_key")
+    user_id = request_params.get("user_id")
+
+    if not consumer_key:
+        raise MissingOAuthConsumerKeyError()
+
+    if not user_id:
+        raise MissingUserIDError()
+
+    return ":".join((consumer_key, user_id))
