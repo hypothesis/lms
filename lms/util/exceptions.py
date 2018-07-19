@@ -9,7 +9,7 @@ class UtilError(Exception):
     pass
 
 
-class MissingOAuthConsumerKeyError(UtilError):
+class MissingToolConsumerIntanceGUIDError(UtilError):
     pass
 
 
