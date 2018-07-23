@@ -74,9 +74,9 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
         <dd>(Leave empty)</dd>
       </dl>
 
-     Click <samp>Register client</samp> and keep the tab open because you'll
-     need the generated <samp>Client ID</samp> and <samp>Client secret</samp>
-     for setting your environment variables later.
+      Click <samp>Register client</samp> and keep the tab open because you'll
+      need the generated <samp>Client ID</samp> and <samp>Client secret</samp>
+      for setting your environment variables later.
 
 1. **Configure environment variables**
 
