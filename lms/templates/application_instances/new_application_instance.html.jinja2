@@ -45,7 +45,7 @@
 
 {% block content %}
 <main class="modal-content">
-  <p class="modal-text">Please submit the following information to continue.</p>
+  <h1>Please submit the following information to continue.</h1>
   <form action="/welcome" method="post" onsubmit="handleSubmit(event, this)">
     <div class="input">
       <label for="domain">LMS Domain</label>
@@ -63,6 +63,9 @@
       <input id="email" type="email" name="email" onblur="validateEmail(this)"/>
       <span class="error"></span>
     </div>
+    <h2>
+      Fill out these fields to be able to annotate PDF files from canvas.
+    </h2>
     <div class="input">
       <label for="developer-key">Developer Key (optional)</label>
       <input id="developer-key" type="text" name="developer_key"/>
