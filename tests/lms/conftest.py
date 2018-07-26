@@ -143,7 +143,11 @@ def pyramid_config(pyramid_request):
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
-        }
+        },
+        'h_client_id': 'TEST_CLIENT_ID',
+        'h_client_secret': 'TEST_CLIENT_SECRET',
+        'h_authority': 'TEST_AUTHORITY',
+        'h_api_url': 'https://example.com/api',
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
