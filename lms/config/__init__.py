@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
+from pyramid.config import aslist
 
 from lms.security import groupfinder
 
@@ -48,6 +49,10 @@ def configure(settings=None):
 
         # The base URL of the h API (e.g. "https://hypothes.is/api).
         'h_api_url': env_setting('H_API_URL', required=True),
+
+        # The list of `oauth_consumer_key`s of the application instances for
+        # which the automatic user and group provisioning features are enabled.
+        'auto_provisioning': env_setting('AUTO_PROVISIONING', default=[], callback=aslist),
     }
 
     database_url = env_setting('DATABASE_URL')

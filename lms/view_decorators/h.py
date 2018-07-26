@@ -20,8 +20,16 @@ def maybe_create_user(wrapped):
     Call the h API to create a user for the authorized LTI user, if one doesn't
     exist already.
     """
+
     def wrapper(request, jwt):
         params = request.params
+
+        # Only create users for application instances that we've enabled the
+        # user integration feature for.
+        oauth_consumer_key = params.get("oauth_consumer_key")
+        enabled_consumer_keys = request.registry.settings["auto_provisioning"]
+        if oauth_consumer_key not in enabled_consumer_keys:
+            return wrapped(request, jwt)
 
         # Our OAuth 2.0 client_id and client_secret for authenticating to the h API.
         client_id = request.registry.settings["h_client_id"]
