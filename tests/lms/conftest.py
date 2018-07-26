@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 import functools
 import json
+
 import mock
 import pytest
 import jwt
@@ -12,6 +13,7 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
+
 from lms import db
 from lms.models import User
 from lms.models import Token
