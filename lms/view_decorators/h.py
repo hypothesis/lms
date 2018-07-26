@@ -20,7 +20,6 @@ def maybe_create_user(wrapped):
     Call the h API to create a user for the authorized LTI user, if one doesn't
     exist already.
     """
-
     def wrapper(request, jwt):
         params = request.params
 
