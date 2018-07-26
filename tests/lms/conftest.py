@@ -5,7 +5,9 @@ from __future__ import unicode_literals
 import os
 import functools
 import json
+import re
 
+import httpretty
 import mock
 import pytest
 import jwt
@@ -327,3 +329,28 @@ def oauth_response(monkeypatch, pyramid_request):
     pyramid_request.params['state'] = state_guid
     pyramid_request.params['code'] = 'test_code'
     yield pyramid_request
+
+
+@pytest.fixture(autouse=True)
+def httpretty_():
+    """
+    Monkey-patch Python's socket core module to mock all HTTP responses.
+
+    We never want real HTTP requests to be sent by the tests so replace them
+    all with mock responses. This handles requests sent using the standard
+    urllib2 library and the third-party httplib2 and requests libraries.
+    """
+    httpretty.enable()
+
+    # Tell httpretty which HTTP requests we want it to mock (all of them).
+    for method in (httpretty.GET, httpretty.PUT, httpretty.POST, httpretty.DELETE, httpretty.HEAD, httpretty.PATCH, httpretty.OPTIONS, httpretty.CONNECT):
+        httpretty.register_uri(
+            method=method,
+            uri=re.compile(r'http(s?)://.*'),  # Matches all http:// and https:// URLs.
+            body='',
+        )
+
+    yield
+
+    httpretty.disable()
+    httpretty.reset()
