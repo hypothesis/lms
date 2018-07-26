@@ -84,7 +84,7 @@ class TestEnvSetting(object):
 
         try:
             settings.env_setting('FOOBAR', required=True, callback=callback)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
         callback.assert_not_called()
