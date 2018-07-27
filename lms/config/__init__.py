@@ -35,15 +35,24 @@ def configure(settings):
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
         'aes_secret': env_setting('LMS_SECRET', required=True),
+
+        # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
+        'h_client_id': env_setting('H_CLIENT_ID', required=True),
+        'h_client_secret': env_setting('H_CLIENT_SECRET', required=True),
+
+        # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
+        'h_authority': env_setting('H_AUTHORITY', required=True),
+
+        # The base URL of the h API (e.g. "https://hypothes.is/api).
+        'h_api_url': env_setting('H_API_URL', required=True),
     }
 
     database_url = env_setting('DATABASE_URL')
     if database_url:
         env_settings['sqlalchemy.url'] = database_url
 
-    # Make sure that via_url doesn't end with a /.
-    if env_settings['via_url'].endswith('/'):
-        env_settings['via_url'] = env_settings['via_url'][:-1]
+    env_settings['via_url'] = _strip_trailing_slash(env_settings['via_url'])
+    env_settings['h_api_url'] = _strip_trailing_slash(env_settings['h_api_url'])
 
     try:
         env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
@@ -63,6 +72,13 @@ def configure(settings):
     config.set_authorization_policy(authz_policy)
 
     return config
+
+
+def _strip_trailing_slash(s):  # pylint: disable=invalid-name
+    """Return s with any trailing '/' stripped."""
+    if s.endswith("/"):
+        s = s[:-1]
+    return s
 
 
 __all__ = (
