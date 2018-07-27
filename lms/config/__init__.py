@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
+from pyramid.config import aslist
 
 from lms.security import groupfinder
 
@@ -37,7 +38,21 @@ def configure(settings=None):
         'username': env_setting('USERNAME'),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
-        'aes_secret': env_setting('LMS_SECRET').encode('ascii')[0:16]
+        'aes_secret': env_setting('LMS_SECRET').encode('ascii')[0:16],
+
+        # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
+        'h_client_id': env_setting('H_CLIENT_ID', required=True),
+        'h_client_secret': env_setting('H_CLIENT_SECRET', required=True),
+
+        # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
+        'h_authority': env_setting('H_AUTHORITY', required=True),
+
+        # The base URL of the h API (e.g. "https://hypothes.is/api).
+        'h_api_url': env_setting('H_API_URL', required=True),
+
+        # The list of `oauth_consumer_key`s of the application instances for
+        # which the automatic user and group provisioning features are enabled.
+        'auto_provisioning': env_setting('AUTO_PROVISIONING', default=[], callback=aslist),
     }
 
     database_url = env_setting('DATABASE_URL')
@@ -47,6 +62,10 @@ def configure(settings=None):
     # Make sure that via_url doesn't end with a /.
     if env_settings['via_url'].endswith('/'):
         env_settings['via_url'] = env_settings['via_url'][:-1]
+
+    # Make sure that h_api_url doesn't end with a /.
+    if env_settings['h_api_url'].endswith('/'):
+        env_settings['h_api_url'] = env_settings['h_api_url'][:-1]
 
     settings.update(env_settings)
 

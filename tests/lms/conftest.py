@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 import os
 import functools
 import json
+import re
+
+import httpretty
 import mock
 import pytest
 import jwt
@@ -12,6 +15,7 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
+
 from lms import db
 from lms.models import User
 from lms.models import Token
@@ -141,7 +145,12 @@ def pyramid_config(pyramid_request):
         'jinja2.filters': {
             'static_path': 'pyramid_jinja2.filters:static_path_filter',
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
-        }
+        },
+        'h_client_id': 'TEST_CLIENT_ID',
+        'h_client_secret': 'TEST_CLIENT_SECRET',
+        'h_authority': 'TEST_AUTHORITY',
+        'h_api_url': 'https://example.com/api',
+        'auto_provisioning': 'Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20',
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
@@ -321,3 +330,28 @@ def oauth_response(monkeypatch, pyramid_request):
     pyramid_request.params['state'] = state_guid
     pyramid_request.params['code'] = 'test_code'
     yield pyramid_request
+
+
+@pytest.fixture(autouse=True)
+def httpretty_():
+    """
+    Monkey-patch Python's socket core module to mock all HTTP responses.
+
+    We never want real HTTP requests to be sent by the tests so replace them
+    all with mock responses. This handles requests sent using the standard
+    urllib2 library and the third-party httplib2 and requests libraries.
+    """
+    httpretty.enable()
+
+    # Tell httpretty which HTTP requests we want it to mock (all of them).
+    for method in (httpretty.GET, httpretty.PUT, httpretty.POST, httpretty.DELETE, httpretty.HEAD, httpretty.PATCH, httpretty.OPTIONS, httpretty.CONNECT):
+        httpretty.register_uri(
+            method=method,
+            uri=re.compile(r'http(s?)://.*'),  # Matches all http:// and https:// URLs.
+            body='',
+        )
+
+    yield
+
+    httpretty.disable()
+    httpretty.reset()
