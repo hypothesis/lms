@@ -10,15 +10,22 @@
         <form action="{{ url }}" method="post">
             <input type="hidden" name="came_from"
                    value="{{ came_from }}"/>
-            <label for="username">Username</label>
-            <input type="text" id="username"
-                   name="username"
-                   value="{{ username }}"/><br/>
-            <label for="password">Password</label>
-            <input type="password" id="password"
-                   name="password"/><br/>
-            <input type="submit" name="form.submitted"
-                   value="Log In"/>
+            <div class="input">
+                <label for="username">Username</label>
+                <input type="text" id="username"
+                       name="username"
+                       value="{{ username }}"/><br/>
+            </div>
+            <div class="input">
+                <label for="password">Password</label>
+                <input type="password" id="password"
+                       name="password"/><br/>
+            </div>
+            <div class="form-controls">
+                <button type="submit" name="form.submitted" class="btn">
+                    Log In
+                </button>
+            </div>
         </form>
     </div>
 {% endblock %}
