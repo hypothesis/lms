@@ -62,8 +62,7 @@ class TestConfigure:
 
         assert configurator.registry.settings["aes_secret"] == b"test_lms_secret_"
 
-    @pytest.mark.xfail
-    def test_LMS_SECRET_cant_contain_non_ascii_chars(self, env_setting, SettingError):
+    def test_LMS_SECRET_cant_contain_non_ascii_chars(self, env_setting):
         def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
             if envvar_name == "LMS_SECRET":
                 return "test_lms_secret_\u2119"
@@ -71,7 +70,7 @@ class TestConfigure:
 
         env_setting.side_effect = side_effect
 
-        with pytest.raises(SettingError):
+        with pytest.raises(SettingError, match="LMS_SECRET must contain only ASCII characters"):
             configure({})
 
     def test_the_DATABASE_URL_envvar_becomes_the_sqlalchemy_url_setting(self, env_setting):
