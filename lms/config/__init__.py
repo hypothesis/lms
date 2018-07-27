@@ -16,11 +16,8 @@ from lms.config.settings import (
 )
 
 
-def configure(settings=None):
+def configure(settings):
     """Return a Configurator for the Pyramid application."""
-    if settings is None:
-        settings = {}
-
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
     env_settings = {
