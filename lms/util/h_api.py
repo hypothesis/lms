@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 
+import hashlib
 
 from lms.util.exceptions import MissingToolConsumerIntanceGUIDError
 from lms.util.exceptions import MissingUserIDError
@@ -11,6 +12,10 @@ from lms.util.exceptions import MissingUserIDError
 
 DISPLAY_NAME_MAX_LENGTH = 30
 """The maximum length of an h display name."""
+
+
+USERNAME_MAX_LENGTH = 30
+"""The maximum length of an h username."""
 
 
 def generate_display_name(request_params):
@@ -32,6 +37,22 @@ def generate_display_name(request_params):
         display_name = display_name[:DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
     return display_name
+
+
+def generate_username(request_params):
+    """
+    Return an h username generated from the given LTI launch request params.
+
+    :raises :py:exception:`lms.util.MissingToolConsumerIntanceGUIDError`:
+      if ``"tool_consumer_instance_guid"`` is missing from ``request_params``
+
+    :raises :py:exception:`lms.util.MissingUserIDError`:
+      if ``"user_id"`` is missing from ``request_params``
+    """
+    h = hashlib.sha1()  # pylint: disable=invalid-name
+    h.update(generate_provider(request_params).encode())
+    h.update(generate_provider_unique_id(request_params).encode())
+    return h.hexdigest()[:USERNAME_MAX_LENGTH]
 
 
 def generate_provider(request_params):

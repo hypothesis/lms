@@ -9,6 +9,7 @@ from lms.util.exceptions import MissingUserIDError
 from lms.util.h_api import generate_display_name
 from lms.util.h_api import generate_provider
 from lms.util.h_api import generate_provider_unique_id
+from lms.util.h_api import generate_username
 from lms.util.jwt import jwt
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
@@ -21,6 +22,7 @@ __all__ = (
     'generate_display_name',
     'generate_provider',
     'generate_provider_unique_id',
+    'generate_username',
     'jwt',
     'lti_launch',
     'save_token',
