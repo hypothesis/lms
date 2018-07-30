@@ -49,10 +49,10 @@ def generate_username(request_params):
     :raises :py:exception:`lms.util.MissingUserIDError`:
       if ``"user_id"`` is missing from ``request_params``
     """
-    h = hashlib.sha1()  # pylint: disable=invalid-name
-    h.update(generate_provider(request_params).encode())
-    h.update(generate_provider_unique_id(request_params).encode())
-    return h.hexdigest()[:USERNAME_MAX_LENGTH]
+    hash_object = hashlib.sha1()
+    hash_object.update(generate_provider(request_params).encode())
+    hash_object.update(generate_provider_unique_id(request_params).encode())
+    return hash_object.hexdigest()[:USERNAME_MAX_LENGTH]
 
 
 def generate_provider(request_params):
