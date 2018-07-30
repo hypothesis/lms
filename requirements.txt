@@ -20,7 +20,7 @@ oauthlib==2.1.0           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.6  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
-psycopg2==2.7.3.2
+psycopg2==2.7.5
 pycrypto==2.4.0
 pyjwt==1.5.3
 pylti==0.5.1
