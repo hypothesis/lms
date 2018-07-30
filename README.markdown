@@ -52,7 +52,10 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 1. Create a client_credentials auth client in h.
 
    The LMS app requires the OAuth 2.0 `client_id` and `client_secret` from a
-   `client_credentials`-type auth client in h. To create the necessary auth client in h:
+   `client_credentials`-type auth client in h in order to use certain h APIs,
+   such as the API for creating users.
+
+   To create the necessary auth client in h:
 
    1. Log in to your local installation of h as an admin user.
 
