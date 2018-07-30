@@ -14,8 +14,11 @@ html{
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
 }
+.data {
+  font-family: 'Inconsolata', 'Hack', 'Courier New', 'Courier', monospace;
+}
 .modal-content{
-  padding: 30px;
+  padding: 10px 30px;
 }
 .modal-text{
   margin: 0 0 20px;
@@ -550,4 +553,30 @@ html{
 
 .selected-file {
   background: #f5f5f5;
+}
+
+/* A few table styles */
+
+table {
+  border-spacing: 0.5rem;
+  border-collapse: collapse;
+  max-width: 100%;
+}
+
+th {
+  border-bottom: 2px solid #dddddd;
+}
+
+th, td {
+  padding: 0.25em;
+  border: 1px solid #ddd;
+}
+
+table tr:nth-child(odd) { /* Zebra-stripe the rows */
+  background: #eee;
+}
+
+td.wrap { /* wrap veryyyyyyyy long data */
+  white-space: normal;
+  word-break: break-all;
 }

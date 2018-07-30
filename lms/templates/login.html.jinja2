@@ -3,22 +3,25 @@
 {% block title %}Please log in{% endblock %}
 
 {% block content %}
-    <div id="content">
-        <h1>Login</h1>
+    <main class="modal-content">
+        <h1>Log in</h1>
         <h3>{{ message }}</h3>
-        <br/>
         <form action="{{ url }}" method="post">
             <input type="hidden" name="came_from"
                    value="{{ came_from }}"/>
-            <label for="username">Username</label>
-            <input type="text" id="username"
+            <div class="input">
+              <label for="username">Username</label>
+              <input type="text" id="username"
                    name="username"
-                   value="{{ username }}"/><br/>
-            <label for="password">Password</label>
-            <input type="password" id="password"
-                   name="password"/><br/>
+                   value="{{ username }}"/>
+            </div>
+            <div class="input">
+              <label for="password">Password</label>
+              <input type="password" id="password"
+                     name="password"/><br/>
+            </div>
             <input type="submit" name="form.submitted"
                    value="Log In"/>
         </form>
-    </div>
+    </main>
 {% endblock %}

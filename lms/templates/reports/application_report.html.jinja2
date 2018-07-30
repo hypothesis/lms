@@ -4,10 +4,11 @@
 
 {% block content %}
     <div id="content">
-        <a href="{{ logout_url }}">Logout</a>
-        <br/>
-        <p>There are {{ apps|length }} application instances:</p>
-        <table border="1">
+        <h1>Application Reports</h1>
+
+        <h2>Generated Application Instances</h2>
+        <p>{{ apps|length }} application instance credentials have been generated:</p>
+        <table>
             <tr>
                 <th>Created At</th>
                 <th>Lms Url</th>
@@ -16,20 +17,19 @@
                 <th>Shared Secret</th>
             </tr>
         {% for row in apps %}
-            <tr>
+            <tr class="data">
                 <td>{{  row['created']  }}</td>
                 <td>{{  row['lms_url']  }}</td>
                 <td>{{  row['requesters_email']  }}</td>
                 <td>{{  row['consumer_key']  }}</td>
-                <td>{{  row['shared_secret']  }}</td>
+                <td class="wrap">{{  row['shared_secret']  }}</td>
             </tr>
         {% endfor %}
         </table>
 
-        <br/>
-
+        <h2>LTI App Launches</h2>
         <p>There have been {{ num_launches }} lti launches:</p>
-        <table border="1">
+        <table>
             <tr>
                 <th>Context ID</th>
                 <th>Number of Launches</th>
@@ -38,12 +38,14 @@
                 <th>Consumer Key</th>
             </tr>
         {% for row in launches %}
-            <tr>
-              {% for element in row %} 
+            <tr class="data">
+              {% for element in row %}
                 <td>{{  element  }}</td>
               {% endfor %}
             </tr>
         {% endfor %}
         </table>
+
+        <div><p><a class="btn btn--gray" href="{{ logout_url }}">Log out</a></p></div>
     </div>
 {% endblock %}

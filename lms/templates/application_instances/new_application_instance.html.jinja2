@@ -45,7 +45,8 @@
 
 {% block content %}
 <main class="modal-content">
-  <p class="modal-text">Please submit the following information to continue.</p>
+  <h1>Hypothesis Installation</h1>
+  <p class="modal-text">This tool allows you to generate the info you'll need to install Hypothesis in your LMS.</p>
   <form action="/welcome" method="post" onsubmit="handleSubmit(event, this)">
     <div class="input">
       <label for="domain">LMS Domain</label>
@@ -63,18 +64,20 @@
       <input id="email" type="email" name="email" onblur="validateEmail(this)"/>
       <span class="error"></span>
     </div>
+    <h2>Canvas File Picker Integration</h2>
+    <p class="modal-text">The following fields are only needed if you are using the Canvas LMS and would like to enable the file picker.</p>
     <div class="input">
-      <label for="developer-key">Developer Key (optional)</label>
+      <label for="developer-key">Canvas Developer Key (optional)</label>
       <input id="developer-key" type="text" name="developer_key"/>
       <span class="error"></span>
     </div>
     <div class="input">
-      <label for="developer-secret">Developer Secret (optional)</label>
+      <label for="developer-secret">Canvas Developer Secret (optional)</label>
       <input id="developer-secret" type="text" name="developer_secret"/>
       <span class="error"></span>
     </div>
     <div class="form-controls">
-      <button type="submit" class="btn">Submit</button>
+      <button type="submit" class="btn">Generate Credentials</button>
     </div>
   </form>
 </main>
