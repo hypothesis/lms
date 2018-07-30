@@ -17,6 +17,11 @@ html{
 .data {
   font-family: 'Inconsolata', 'Hack', 'Courier New', 'Courier', monospace;
 }
+.centered {
+  position: fixed;
+  top: 40%;
+  left: 48%;
+}
 .modal-content{
   padding: 10px 30px;
 }

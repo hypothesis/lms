@@ -3,8 +3,10 @@
 {% set title = message %}
 
 {% block content %}
-  <img src="{{ 'lti:static/images/sad-annotation.svg'|static_path }}">
-  <p>
-    {{ message|safe }}
-  </p>
+  <div class="centered">
+    <img src="{{ 'lms:static/images/sad-annotation.svg'|static_path }}">
+    <p>
+      {{ message|safe }}
+    </p>
+  </div>
 {% endblock %}
