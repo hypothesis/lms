@@ -150,6 +150,7 @@ def pyramid_config(pyramid_request):
         'h_client_secret': 'TEST_CLIENT_SECRET',
         'h_authority': 'TEST_AUTHORITY',
         'h_api_url': 'https://example.com/api',
+        'auto_provisioning': 'Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20',
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
