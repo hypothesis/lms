@@ -16,11 +16,8 @@ from lms.config.settings import (
 )
 
 
-def configure(settings=None):
+def configure(settings):
     """Return a Configurator for the Pyramid application."""
-    if settings is None:
-        settings = {}
-
     # Settings from the config file are extended / overwritten by settings from
     # the environment.
     env_settings = {
@@ -37,7 +34,7 @@ def configure(settings=None):
         'username': env_setting('USERNAME'),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
-        'aes_secret': env_setting('LMS_SECRET').encode('ascii')[0:16]
+        'aes_secret': env_setting('LMS_SECRET', required=True),
     }
 
     database_url = env_setting('DATABASE_URL')
@@ -47,6 +44,11 @@ def configure(settings=None):
     # Make sure that via_url doesn't end with a /.
     if env_settings['via_url'].endswith('/'):
         env_settings['via_url'] = env_settings['via_url'][:-1]
+
+    try:
+        env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
+    except UnicodeEncodeError:
+        raise SettingError("LMS_SECRET must contain only ASCII characters")
 
     settings.update(env_settings)
 
