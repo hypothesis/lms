@@ -8,6 +8,7 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 from pyramid.settings import asbool
 
+from lms.exceptions import MissingLtiLaunchParamError
 
 _ = i18n.TranslationStringFactory(__package__)
 
@@ -48,3 +49,14 @@ class ErrorController(object):
         return {'message': _("Sorry, but something went wrong. "
                              "The issue has been reported and we'll try to "
                              "fix it.")}
+
+
+    @view_config(context=MissingLtiLaunchParamError)
+    def ltilauncherror(self):
+        self.request.response.status_int = 400
+        # If code raises a MissingLtiLaunchParamError it means that
+        # lti was not successfully launched:
+        # 1. Show the user an error page including specific error message
+        # 2. Report the error to Sentry
+        self.request.raven.captureException()
+        return {'message': str(self.exc)}

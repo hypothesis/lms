@@ -14,6 +14,7 @@ from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
+from lms.exceptions import MissingLtiLaunchParamError
 
 
 def can_configure_module_item(roles):
@@ -100,7 +101,12 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
        as a canvas file
     """
     lti_key = lti_params['oauth_consumer_key']
-    context_id = lti_params['context_id']
+
+    try:
+        context_id = lti_params['context_id']
+    except KeyError:
+        raise MissingLtiLaunchParamError('Context Id is required for lti launch.')
+
     if is_url_configured(request, lti_params):
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=lti_params['url'], jwt=jwt)

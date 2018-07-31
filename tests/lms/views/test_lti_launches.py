@@ -1,5 +1,8 @@
 from lms.views.lti_launches import lti_launches
 
+import pytest
+
+from lms.exceptions import MissingLtiLaunchParamError
 
 # TODO write tests for student case
 class TestLtiLaunches(object):
@@ -33,3 +36,9 @@ class TestLtiLaunches(object):
         lti_launch_request.params['roles'] = 'urn:lti:role:ims/lis/Learner'
         value = lti_launches(lti_launch_request)
         assert 'This page has not yet been configured' in value.body.decode()
+
+    def test_raises_for_missing_context_id_param(self, lti_launch_request):
+        lti_launch_request.params.pop('context_id', None)
+
+        with pytest.raises(MissingLtiLaunchParamError, match="Context Id is required for lti launch."):
+            lti_launches(lti_launch_request)
