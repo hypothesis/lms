@@ -1,4 +1,4 @@
-from lms.views import list_application_instances
+from lms.views.reports import list_application_instances
 from lms.models import build_from_lms_url
 from lms.models import LtiLaunches
 

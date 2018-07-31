@@ -1,4 +1,4 @@
-from lms.views import create_module_item_configuration
+from lms.views.module_item_configurations import create_module_item_configuration
 from lms.models import ModuleItemConfiguration
 
 
