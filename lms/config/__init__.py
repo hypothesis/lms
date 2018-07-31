@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
+from pyramid.config import aslist
 
 from lms.security import groupfinder
 
@@ -45,6 +46,10 @@ def configure(settings):
 
         # The base URL of the h API (e.g. "https://hypothes.is/api).
         'h_api_url': env_setting('H_API_URL', required=True),
+
+        # The list of `oauth_consumer_key`s of the application instances for
+        # which the automatic user and group provisioning features are enabled.
+        'auto_provisioning': env_setting('AUTO_PROVISIONING', default=''),
     }
 
     database_url = env_setting('DATABASE_URL')
@@ -58,6 +63,8 @@ def configure(settings):
         env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
     except UnicodeEncodeError:
         raise SettingError("LMS_SECRET must contain only ASCII characters")
+
+    env_settings['auto_provisioning'] = aslist(env_settings['auto_provisioning'])
 
     settings.update(env_settings)
 

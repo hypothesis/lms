@@ -123,6 +123,43 @@ class TestConfigure:
 
         assert configurator.registry.settings["h_api_url"] == "https://hypothes.is/api"
 
+    @pytest.mark.parametrize("envvar_value,expected_setting", [
+        # Strings with spaces in them get turned into lists.
+        (
+            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
+            ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"],
+        ),
+
+        # A string with no spaces in it becomes a list of one.
+        ("Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
+
+        # Leading and trailing whitespace is ignored.
+        ("Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
+        ("  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
+        ("  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
+        (
+            " Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef   Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20 ",
+            ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"],
+        ),
+
+        # An empty string produces an empty list.
+        ("", []),
+
+        # A whitespace-only string produces an empty list.
+        ("  ", []),
+    ])
+    def test_auto_provisioning_setting(self, env_setting, envvar_value, expected_setting):
+        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+            if envvar_name == "AUTO_PROVISIONING":
+                return envvar_value
+            return mock.DEFAULT
+
+        env_setting.side_effect = side_effect
+
+        configurator = configure({})
+
+        assert configurator.registry.settings["auto_provisioning"] == expected_setting
+
     # Pre-existing settings in the `settings` dict (which come from the *.ini
     # file) get overwritten if there's an environment variable with the same
     # setting name.
