@@ -82,10 +82,12 @@ def create_h_user(wrapped):  # noqa: MC0001
         except MissingUserIDError:
             raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
 
+        display_name = util.generate_display_name(params)
+
         # The user data that we will post to h.
         user_data = {
             "username": username,
-            "display_name": util.generate_display_name(params),
+            "display_name": display_name,
             "authority": authority,
             "identities": [
                 {
