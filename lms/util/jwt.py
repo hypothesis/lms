@@ -9,7 +9,7 @@ def build_jwt_from_lti_launch(lti_params, jwt_secret):
     try:
         roles = lti_params['roles']
     except KeyError:
-        raise MissingLTILaunchParamError(_('LTI data parameter roles is required for launch.'))
+        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: roles'))
 
     data = {
         'user_id': lti_params['user_id'],

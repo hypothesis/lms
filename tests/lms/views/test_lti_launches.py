@@ -38,21 +38,27 @@ class TestLtiLaunches(object):
         assert 'This page has not yet been configured' in value.body.decode()
 
     def test_raises_for_missing_context_id_param(self, lti_launch_request):
-        del lti_launch_request.params["context_id"]
+        del lti_launch_request.params['context_id']
 
-        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter context_id is required for launch."):
+        with pytest.raises(MissingLTILaunchParamError, match='Required data param for LTI launch missing: context_id'):
             lti_launches(lti_launch_request)
 
     def test_raises_for_missing_resource_link_id_param(self, lti_launch_request):
-        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter resource_link_id is required for launch."):
+        with pytest.raises(MissingLTILaunchParamError, match='Required data param for LTI launch missing: resource_link_id'):
             lti_launches(lti_launch_request)
 
     def test_raises_for_missing_roles_param(self, lti_launch_request, module_item_configuration):
         del lti_launch_request.params['roles']
-        with pytest.raises(MissingLTILaunchParamError, match='LTI data parameter roles is required for launch.'):
+        with pytest.raises(MissingLTILaunchParamError, match='Required data param for LTI launch missing: roles'):
             lti_launches(lti_launch_request)
 
     def test_raises_for_tool_consumer_instance_guid_param(self, lti_launch_request):
         del lti_launch_request.params['tool_consumer_instance_guid']
-        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter tool_consumer_instance_guid is required for launch."):
+        with pytest.raises(MissingLTILaunchParamError, match='Required data param for LTI launch missing: tool_consumer_instance_guid'):
+            lti_launches(lti_launch_request)
+
+    def test_raises_for_missing_oauth_consumer_key_param(self, lti_launch_request):
+        del lti_launch_request.params['oauth_consumer_key']
+
+        with pytest.raises(MissingLTILaunchParamError, match='Required data param for LTI launch missing: oauth_consumer_key'):
             lti_launches(lti_launch_request)

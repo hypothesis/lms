@@ -52,7 +52,7 @@ def is_authorized_to_configure(_request, params):
     try:
         roles = params['roles']
     except KeyError:
-        raise MissingLTILaunchParamError(_('LTI data parameter roles is required for launch.'))
+        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: roles'))
     return can_configure_module_item(roles)
 
 
@@ -67,7 +67,7 @@ def is_db_configured(request, params):
     try:
         resource_link_id = params['resource_link_id']
     except KeyError:
-        raise MissingLTILaunchParamError(_('LTI data parameter resource_link_id is required for launch.'))
+        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: resource_link_id'))
 
     config = request.db.query(ModuleItemConfiguration).filter(and_(
         ModuleItemConfiguration.resource_link_id == resource_link_id,
@@ -95,6 +95,18 @@ def launch_lti(request, lti_key=None, context_id=None, document_url=None,
     return _view_document(request, document_url=document_url, jwt=jwt)
 
 
+def _check_params(lti_params):
+    """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
+    except_msg = _('Required data param for LTI launch missing: ')
+    required_params = ['oauth_consumer_key', 'context_id', 'tool_consumer_instance_guid']
+
+    for required_param in required_params:
+        try:
+            lti_params[required_param]
+        except KeyError:
+            raise MissingLTILaunchParamError(except_msg + required_param)
+
+
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):
     """
     Handle determining which view should be rendered for a given lti launch.
@@ -113,17 +125,11 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     4. If a student or teacher launches a module item that has been configured
        as a canvas file
     """
+    _check_params(lti_params)
+
     lti_key = lti_params['oauth_consumer_key']
-
-    try:
-        context_id = lti_params['context_id']
-    except KeyError:
-        raise MissingLTILaunchParamError(_('LTI data parameter context_id is required for launch.'))
-
-    try:
-        tool_consumer_instance_guid = lti_params['tool_consumer_instance_guid']
-    except KeyError:
-        raise MissingLTILaunchParamError(_('LTI data parameter tool_consumer_instance_guid is required for launch.'))
+    context_id = lti_params['context_id']
+    tool_consumer_instance_guid = lti_params['tool_consumer_instance_guid']
 
     if is_url_configured(request, lti_params):
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
