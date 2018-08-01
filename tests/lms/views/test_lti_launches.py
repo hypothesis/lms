@@ -42,3 +42,9 @@ class TestLtiLaunches(object):
 
         with pytest.raises(MissingLtiLaunchParamError, match="Context Id is required for lti launch."):
             lti_launches(lti_launch_request)
+
+    def test_raises_for_missing_resource_link_id_param(self, lti_launch_request):
+        lti_launch_request.params.pop('resource_link_id', None)
+
+        with pytest.raises(MissingLtiLaunchParamError, match="Resource link id is required for lti launch."):
+            lti_launches(lti_launch_request)

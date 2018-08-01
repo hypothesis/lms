@@ -56,8 +56,13 @@ def is_db_configured(request, params):
     stored in our database. This occurs when an lms does not support content
     item selection
     """
+    try:
+        resource_link_id = params['resource_link_id']
+    except KeyError:
+        raise MissingLtiLaunchParamError('Resource link id is required for lti launch.')
+
     config = request.db.query(ModuleItemConfiguration).filter(and_(
-        ModuleItemConfiguration.resource_link_id == params['resource_link_id'],
+        ModuleItemConfiguration.resource_link_id == resource_link_id,
         ModuleItemConfiguration.tool_consumer_instance_guid == params[
             'tool_consumer_instance_guid']))
     return config.count() == 1
