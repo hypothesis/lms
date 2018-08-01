@@ -55,7 +55,7 @@ def create_h_user(wrapped):  # noqa: MC0001
         try:
             oauth_consumer_key = params["oauth_consumer_key"]
         except KeyError:
-            raise HTTPBadRequest('Required paramer "oauth_consumer_key" missing from LTI params')
+            raise HTTPBadRequest('Required parameter "oauth_consumer_key" missing from LTI params')
 
         # Only create users for application instances that we've enabled the
         # auto provisioning features for.
