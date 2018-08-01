@@ -22,6 +22,15 @@ def create_h_user(wrapped):  # noqa: MC0001
 
     Call the h API to create a user for the authorized LTI user, if one doesn't
     exist already.
+
+    Use this function as a decorator rather than calling it directly.
+    The wrapped view must take ``request`` and ``jwt`` arguments::
+
+      @view_config(...)
+      @create_h_user
+      def my_view(request, jwt):
+          ...
+
     """
     def wrapper(request, jwt):  # pylint: disable=too-many-branches
         params = request.params
