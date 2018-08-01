@@ -32,6 +32,23 @@ def create_h_user(wrapped):  # noqa: MC0001
           ...
 
     """
+    # FIXME: This function doesn't do anything with the ``jwt`` argument,
+    # other than pass it through to the wrapped view (or to the next decorator
+    # on the wrapped view). The ``jwt`` argument has to be here because:
+    #
+    # - This decorator is called by the ``@lti_launch`` decorator (because
+    #   ``@lti_launch`` is always placed above this decorator on decorated views)
+    #   and ``@lti_launch`` passes a ``jwt_token`` argument when it calls this
+    #   decorator.
+    #
+    # - The views that this decorator decorates expect a ``jwt`` argument so this
+    #   decorator has to pass it to them (or rather it has to pass it down to the
+    #   next decorator down in the stack, and it eventually gets passed to the
+    #   view).
+    #
+    # This should all be refactored so that views and view decorators aren't
+    # tightly coupled and arguments don't need to be passed through multiple
+    # decorators to the view.
     def wrapper(request, jwt):  # pylint: disable=too-many-branches
         params = request.params
 
