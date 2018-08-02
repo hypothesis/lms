@@ -5,6 +5,7 @@ from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
+from lms.views.decorators import create_h_user
 
 
 def should_show_file_picker(lti_params, request):
@@ -26,6 +27,7 @@ def should_canvas_oauth(request):
 
 @view_config(route_name='content_item_selection', request_method='POST')
 @lti_launch()
+@create_h_user
 @associate_user
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',

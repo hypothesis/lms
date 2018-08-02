@@ -14,6 +14,7 @@ from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
+from lms.views.decorators import create_h_user
 
 
 def can_configure_module_item(roles):
@@ -153,6 +154,7 @@ def should_launch(request):
 
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch()
+@create_h_user
 @associate_user
 @authorize_lms(
     authorization_base_endpoint='login/oauth2/auth',
