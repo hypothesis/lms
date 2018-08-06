@@ -125,45 +125,6 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export AUTO_PROVISIONING="Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"
     ```
 
-1. **Configure SSL**
-
-    The server will need to be able to accept requests via https. The easiest way to do this is to create a self signed cert. The following instructions should work on a Mac:
-
-    1. Make sure you have **openssl** installed. You can install it with [homebrew](https://brew.sh/) if not.
-    2. Create an `ssl` directory within the project:
-
-    ```bash
-    $ mkdir ssl
-    $ cd ssl
-    ```
-
-    3. Generate an RSA keypair and a certificate signing request (CSR):
-
-    ```bash
-    $ openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
-    $ openssl rsa -passin pass:x -in server.pass.key -out server.key
-    $ rm server.pass.key
-    $ openssl req -new -key server.key -out server.csr
-    ```
-
-    When you execute the last command above, you will be prompted to enter some information. It doesn't matter what you enter but you will probably want to leave the challenge password blank.
-
-    4. Generate the self-signed cert:
-
-    ```bash
-    $ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
-    ```
-
-    You should now have a file called `server.key` and `server.crt` in the `ssl` folder.
-
-    5. Enable insecure localhost in your browser. In Chrome this can by visiting the URL:
-
-    ```
-      chrome://flags/#allow-insecure-localhost
-    ```
-
-    Enable this flag (you may need to restart Chrome for it to take effect).
-
 1. **Build the app's front-end asets**
 
     Make sure you're in the `lms` project directory. Install Node.js dependencies and build the app's front-end assets:
@@ -303,6 +264,31 @@ The [https://localhost:8001/welcome](https://localhost:8001/welcome) tool is use
 **TODO**
 
 When creating a new module or assignment, select `External Tool` and `Hypothesis` from the available list. This should allow you to choose a file from [Google Drive](#google-apis) or [Canvas](#canvas-picker) itself (if you have configured either of those features).
+
+#### Bypassing the browser's "unsafe scripts" (mixed content) blocking
+
+If you use our hosted Canvas instance at <https://hypothesis.instructure.com/>
+to test your local dev instance of the app you'll get "unsafe scripts" or "mixed content"
+warnings from your browser. This is because hypothesis.instructure.com uses https but your
+local dev app, which is running in an iframe in hypothesis.instructure.com, only uses http.
+
+You'll see a blank iframe in Canvas where the app should be, along with a warning about
+"trying to launch insecure content" like this:
+
+!["Trying to launch insecure content" error](docs/images/trying-to-launch-insecure-content.png "'Trying to launch insecure content' error")
+
+If you open the browser's developer console you should see an error message like:
+
+    Mixed Content: The page at 'https://hypothesis.instructure.com/...' was loaded over HTTPS,
+    but requested an insecure form action 'http://localhost:8001/...'. This request has been
+    blocked; the content must be served over HTTPS.
+
+Fortunately you can easily bypass this mixed content blocking by your browser.
+You should also see an "Insecure content blocked" icon in the top right of the location bar:
+
+!["Insecure content blocked" dialog](docs/images/insecure-content-blocked.png "'Insecure content blocked' dialog")
+
+Click on the <samp>Load unsafe scripts</samp> link and the app should load successfully.
 
 <a id="instance-reports"></a>
 ### Application Instance Reports

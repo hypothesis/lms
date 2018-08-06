@@ -14,13 +14,19 @@ html{
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
 }
+body {
+  height: 100%;
+  margin: 0;
+}
 .data {
   font-family: 'Inconsolata', 'Hack', 'Courier New', 'Courier', monospace;
 }
-.centered {
-  position: fixed;
-  top: 40%;
-  left: 48%;
+.content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 .modal-content{
   padding: 10px 30px;

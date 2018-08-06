@@ -10,11 +10,12 @@ from pyramid.settings import asbool
 
 from lms.exceptions import MissingLtiLaunchParamError
 
+
 _ = i18n.TranslationStringFactory(__package__)
 
 
 @view_defaults(renderer='lms:templates/error.html.jinja2')
-class ErrorController(object):
+class ErrorViews(object):
     """Show user an error page and an appropriate message."""
 
     def __init__(self, exc, request):
