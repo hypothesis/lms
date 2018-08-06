@@ -48,3 +48,9 @@ class TestLtiLaunches(object):
 
         with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter resource_link_id is required for launch."):
             lti_launches(lti_launch_request)
+
+    def test_raises_for_tool_consumer_instance_guid_param(self, lti_launch_request):
+        lti_launch_request.params.pop('tool_consumer_instance_guid', None)
+
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter tool_consumer_instance_guid is required for launch."):
+            lti_launches(lti_launch_request)
