@@ -6,7 +6,7 @@ from pyramid import httpexceptions
 import pytest
 
 from lms.views import error
-from lms.exceptions import MissingLtiLaunchParamError
+from lms.exceptions import MissingLTILaunchParamError
 
 
 class TestErrorViews:
@@ -59,28 +59,28 @@ class TestErrorViews:
         assert pyramid_request.response.status_int == 500
 
     def test_it_logs_missing_lti_launch_param_error_in_sentry(self, pyramid_request):
-        exc = MissingLtiLaunchParamError('test lti launch param error msg')
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
 
         error_views = error.ErrorViews(exc, pyramid_request)
-        error_views.ltilauncherror()
+        error_views.missing_lti_launch_param_error()
 
         pyramid_request.raven.captureException.assert_called_once()
 
     def test_it_sets_correct_message_for_missing_lti_param_error(self, pyramid_request):
-        exc = MissingLtiLaunchParamError('test lti launch param error msg')
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
 
         error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.ltilauncherror()
+        resp = error_views.missing_lti_launch_param_error()
 
         assert resp['message'] == 'test lti launch param error msg'
 
     def test_it_sets_correct_status_int_for_missing_lti_param_error(self, pyramid_request):
-        exc = MissingLtiLaunchParamError('test lti launch param error msg')
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
 
         error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.error()
+        resp = error_views.missing_lti_launch_param_error()
 
-        assert pyramid_request.response.status_int == 500
+        assert pyramid_request.response.status_int == 400
 
     def test_it_logs_non_http_error_in_sentry(self, pyramid_request):
         exc = Exception()

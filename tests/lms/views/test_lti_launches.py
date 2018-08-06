@@ -2,7 +2,7 @@ from lms.views.lti_launches import lti_launches
 
 import pytest
 
-from lms.exceptions import MissingLtiLaunchParamError
+from lms.exceptions import MissingLTILaunchParamError
 
 # TODO write tests for student case
 class TestLtiLaunches(object):
@@ -40,11 +40,11 @@ class TestLtiLaunches(object):
     def test_raises_for_missing_context_id_param(self, lti_launch_request):
         lti_launch_request.params.pop('context_id', None)
 
-        with pytest.raises(MissingLtiLaunchParamError, match="Context Id is required for lti launch."):
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter context_id is required for launch."):
             lti_launches(lti_launch_request)
 
     def test_raises_for_missing_resource_link_id_param(self, lti_launch_request):
         lti_launch_request.params.pop('resource_link_id', None)
 
-        with pytest.raises(MissingLtiLaunchParamError, match="Resource link id is required for lti launch."):
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter resource_link_id is required for launch."):
             lti_launches(lti_launch_request)

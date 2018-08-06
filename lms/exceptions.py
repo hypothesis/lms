@@ -4,21 +4,16 @@
 
 from __future__ import unicode_literals
 
-from pyramid.i18n import TranslationString as _  # noqa: N813
+from pyramid.httpexceptions import HTTPBadRequest
 
 
-class LtiLaunchError(Exception):
+class LTILaunchError(HTTPBadRequest):  # pylint: disable=too-many-ancestors
     """Base exception for problems handling LTI launches."""
 
-    def __init__(self, message, status_int=400):
-        """Store exception message and status code."""
-        self.status_int = status_int
-        super(LtiLaunchError, self).__init__(message)
+    pass
 
 
-class MissingLtiLaunchParamError(LtiLaunchError):
+class MissingLTILaunchParamError(LTILaunchError):  # pylint: disable=too-many-ancestors
     """Exception raised if params required for lti launch are missing."""
 
-    def __init__(self, msg):
-        """Initialise with a message and status code."""
-        super(MissingLtiLaunchParamError, self).__init__(_(msg), status_int=400)
+    pass

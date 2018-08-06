@@ -1,8 +1,12 @@
+from __future__ import unicode_literals
+
 import logging
 from datetime import datetime
 
+from pyramid.i18n import TranslationString as _  # noqa: N813
 from pyramid.view import view_config
 from sqlalchemy import and_
+from lms.exceptions import MissingLTILaunchParamError
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.lti_launch import get_application_instance
@@ -14,7 +18,6 @@ from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
-from lms.exceptions import MissingLtiLaunchParamError
 from lms.views.decorators import create_h_user
 
 
@@ -60,7 +63,7 @@ def is_db_configured(request, params):
     try:
         resource_link_id = params['resource_link_id']
     except KeyError:
-        raise MissingLtiLaunchParamError('Resource link id is required for lti launch.')
+        raise MissingLTILaunchParamError(_('LTI data parameter resource_link_id is required for launch.'))
 
     config = request.db.query(ModuleItemConfiguration).filter(and_(
         ModuleItemConfiguration.resource_link_id == resource_link_id,
@@ -111,7 +114,7 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     try:
         context_id = lti_params['context_id']
     except KeyError:
-        raise MissingLtiLaunchParamError('Context Id is required for lti launch.')
+        raise MissingLTILaunchParamError(_('LTI data parameter context_id is required for launch.'))
 
     if is_url_configured(request, lti_params):
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
