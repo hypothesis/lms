@@ -46,3 +46,16 @@ class TestLtiLaunches(object):
     def test_raises_for_missing_resource_link_id_param(self, lti_launch_request):
         with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter resource_link_id is required for launch."):
             lti_launches(lti_launch_request)
+
+    def test_raises_for_missing_resource_link_id_param(self, lti_launch_request):
+        lti_launch_request.params.pop('resource_link_id', None)
+
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter resource_link_id is required for launch."):
+            lti_launches(lti_launch_request)
+
+    def test_raises_for_missing_roles_param(self, lti_launch_request):
+        lti_launch_request.params['resource_link_id'] = 'test_resource_link_id'
+        lti_launch_request.params.pop('roles', None)
+
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter roles is required for launch."):
+            lti_launches(lti_launch_request)

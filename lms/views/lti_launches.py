@@ -49,7 +49,11 @@ def is_url_configured(_request, params):
 
 def is_authorized_to_configure(_request, params):
     """Determine whether the user is allowed to configure module items."""
-    return can_configure_module_item(params['roles'])
+    try:
+        roles = params['roles']
+    except KeyError:
+        raise MissingLTILaunchParamError(_('LTI data parameter roles is required for launch.'))
+    return can_configure_module_item(roles)
 
 
 def is_db_configured(request, params):
