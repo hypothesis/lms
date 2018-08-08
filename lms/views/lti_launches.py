@@ -167,7 +167,7 @@ def should_launch(request):
 
 
 @view_config(route_name='lti_launches', request_method='POST')
-@lti_launch()
+@lti_launch
 @create_h_user
 @associate_user
 @authorize_lms(

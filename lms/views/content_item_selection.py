@@ -26,7 +26,7 @@ def should_canvas_oauth(request):
 
 
 @view_config(route_name='content_item_selection', request_method='POST')
-@lti_launch()
+@lti_launch
 @create_h_user
 @associate_user
 @authorize_lms(
