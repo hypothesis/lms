@@ -51,3 +51,8 @@ class TestLtiLaunches(object):
         del lti_launch_request.params['roles']
         with pytest.raises(MissingLTILaunchParamError, match='LTI data parameter roles is required for launch.'):
             lti_launches(lti_launch_request)
+
+    def test_raises_for_tool_consumer_instance_guid_param(self, lti_launch_request):
+        del lti_launch_request.params['tool_consumer_instance_guid']
+        with pytest.raises(MissingLTILaunchParamError, match="LTI data parameter tool_consumer_instance_guid is required for launch."):
+            lti_launches(lti_launch_request)
