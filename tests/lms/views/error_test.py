@@ -6,6 +6,7 @@ from pyramid import httpexceptions
 import pytest
 
 from lms.views import error
+from lms.exceptions import MissingLTILaunchParamError
 
 
 class TestErrorViews:
@@ -49,6 +50,14 @@ class TestErrorViews:
 
         assert resp['message'] == 'Sorry, but something went wrong. The issue has been reported and we\'ll try to fix it.'
 
+    def test_it_sets_correct_status_int_for_non_http_error(self, pyramid_request):
+        exc = Exception()
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        resp = error_views.error()
+
+        assert pyramid_request.response.status_int == 500
+
     def test_it_logs_non_http_error_in_sentry(self, pyramid_request):
         exc = Exception()
 
@@ -65,3 +74,19 @@ class TestErrorViews:
 
         with pytest.raises(Exception, match="test exception msg"):
             error_views.error()
+
+    def test_it_sets_correct_message_for_missing_lti_param_error(self, pyramid_request):
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        resp = error_views.missing_lti_launch_param_error()
+
+        assert resp['message'] == 'test lti launch param error msg'
+
+    def test_it_sets_correct_status_int_for_missing_lti_param_error(self, pyramid_request):
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        resp = error_views.missing_lti_launch_param_error()
+
+        assert pyramid_request.response.status_int == 400

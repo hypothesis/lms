@@ -1,8 +1,12 @@
+from __future__ import unicode_literals
+
 import logging
 from datetime import datetime
 
+from pyramid.i18n import TranslationString as _
 from pyramid.view import view_config
 from sqlalchemy import and_
+from lms.exceptions import MissingLTILaunchParamError
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.lti_launch import get_application_instance
@@ -56,8 +60,13 @@ def is_db_configured(request, params):
     stored in our database. This occurs when an lms does not support content
     item selection
     """
+    try:
+        resource_link_id = params['resource_link_id']
+    except KeyError:
+        raise MissingLTILaunchParamError(_('LTI data parameter resource_link_id is required for launch.'))
+
     config = request.db.query(ModuleItemConfiguration).filter(and_(
-        ModuleItemConfiguration.resource_link_id == params['resource_link_id'],
+        ModuleItemConfiguration.resource_link_id == resource_link_id,
         ModuleItemConfiguration.tool_consumer_instance_guid == params[
             'tool_consumer_instance_guid']))
     return config.count() == 1
@@ -101,7 +110,12 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
        as a canvas file
     """
     lti_key = lti_params['oauth_consumer_key']
-    context_id = lti_params['context_id']
+
+    try:
+        context_id = lti_params['context_id']
+    except KeyError:
+        raise MissingLTILaunchParamError(_('LTI data parameter context_id is required for launch.'))
+
     if is_url_configured(request, lti_params):
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=lti_params['url'], jwt=jwt)
