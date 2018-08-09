@@ -120,6 +120,11 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     except KeyError:
         raise MissingLTILaunchParamError(_('LTI data parameter context_id is required for launch.'))
 
+    try:
+        tool_consumer_instance_guid = lti_params['tool_consumer_instance_guid']
+    except KeyError:
+        raise MissingLTILaunchParamError(_('LTI data parameter tool_consumer_instance_guid is required for launch.'))
+
     if is_url_configured(request, lti_params):
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=lti_params['url'], jwt=jwt)
@@ -127,8 +132,7 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
     elif is_db_configured(request, lti_params):
         config = request.db.query(ModuleItemConfiguration).filter(and_(
             ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'],
-            ModuleItemConfiguration.tool_consumer_instance_guid == lti_params[
-                'tool_consumer_instance_guid'])
+            ModuleItemConfiguration.tool_consumer_instance_guid == tool_consumer_instance_guid)
         )
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=config.one().document_url, jwt=jwt)
