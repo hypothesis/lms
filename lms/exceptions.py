@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Exceptions raised by lti launch code."""
+"""Exceptions raised by LTI launch code."""
 
 from __future__ import unicode_literals
 
@@ -14,6 +14,12 @@ class LTILaunchError(HTTPBadRequest):  # pylint: disable=too-many-ancestors
 
 
 class MissingLTILaunchParamError(LTILaunchError):  # pylint: disable=too-many-ancestors
-    """Exception raised if params required for lti launch are missing."""
+    """Exception raised if params required for LTI launch are missing."""
+
+    pass
+
+
+class MissingLTIContentItemParamError(LTILaunchError):  # pylint: disable=too-many-ancestors
+    """Exception raised if params required for LTI content item selection are missing."""
 
     pass

@@ -1,4 +1,9 @@
+from __future__ import unicode_literals
+
+from pyramid.i18n import TranslationString as _
 from pyramid.view import view_config
+
+from lms.exceptions import MissingLTIContentItemParamError
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.util.lti_launch import get_application_instance
 from lms.util.lti_launch import lti_launch
@@ -6,6 +11,18 @@ from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
 from lms.views.decorators import create_h_user
+
+
+def _check_params(lti_params):
+    """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
+    except_msg = _('Required LTI data param for content item selection missing: ')
+    required_params = ['lti_version', 'oauth_version', 'oauth_nonce', 'oauth_signature']
+
+    for required_param in required_params:
+        try:
+            lti_params[required_param]
+        except KeyError:
+            raise MissingLTIContentItemParamError(except_msg + required_param)
 
 
 def should_show_file_picker(lti_params, request):
@@ -51,9 +68,11 @@ def content_item_selection(request, _jwt, **_):
     )
 
 
-@view_renderer(
-    renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
+@view_renderer(renderer='lms:templates/content_item_selection/new_content_item_selection.html.jinja2')
 def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
+
+    _check_params(lti_params)
+
     form_fields = {
         'lti_message_type': 'ContentItemSelection',
         'lti_version': lti_params['lti_version'],
