@@ -106,3 +106,12 @@ class TestErrorViews:
         resp = error_views.missing_lti_param_error()
 
         assert pyramid_request.response.status_int == 400
+
+    def test_it_logs_missing_lti_launch_param_error_in_sentry(self, pyramid_request):
+        exc = MissingLTILaunchParamError('test lti launch param error msg')
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        error_views.missing_lti_param_error()
+
+        assert pyramid_request.raven.captureException.call_count == 1
+        pyramid_request.raven.captureException.assert_called_once_with()
