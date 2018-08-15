@@ -8,8 +8,7 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 from pyramid.settings import asbool
 
-from lms.exceptions import MissingLTILaunchParamError
-
+from lms.exceptions import LTILaunchError
 _ = i18n.TranslationStringFactory(__package__)
 
 
@@ -51,13 +50,16 @@ class ErrorViews(object):
                              "fix it.")}
 
 
-    @view_config(context=MissingLTILaunchParamError)
-    def missing_lti_launch_param_error(self):
+    @view_config(context=LTILaunchError)
+    def missing_lti_param_error(self):
         """
-        Catch MissingLTILaunchParamError, render a 400 page and report the exception to Sentry.
+        Catch MissingLTILaunchParamError and MissingLTIContentItemParamError, render a 400 page and report the exception to Sentry.
 
-        If code raises a MissingLTILaunchParamError it means that a required parameter was
-        missing from an LTI launch request that we received:
+        If code raises a MissingLTILaunchParamError it means that a required parameter was missing
+        from an LTI launch request that we received.
+        If code raises a MissingLTIContentItemParamError it means that a required parameter was missing
+        from an LTI content item selection request that we received:
+
         1. Show the user an error page including specific error message
         2. Report the error to Sentry
         """

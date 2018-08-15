@@ -6,7 +6,7 @@ from pyramid import httpexceptions
 import pytest
 
 from lms.views import error
-from lms.exceptions import MissingLTILaunchParamError
+from lms.exceptions import MissingLTILaunchParamError, MissingLTIContentItemParamError
 
 
 class TestErrorViews:
@@ -75,18 +75,34 @@ class TestErrorViews:
         with pytest.raises(Exception, match="test exception msg"):
             error_views.error()
 
-    def test_it_sets_correct_message_for_missing_lti_param_error(self, pyramid_request):
+    def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
         exc = MissingLTILaunchParamError('test lti launch param error msg')
 
         error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_launch_param_error()
+        resp = error_views.missing_lti_param_error()
 
         assert resp['message'] == 'test lti launch param error msg'
 
-    def test_it_sets_correct_status_int_for_missing_lti_param_error(self, pyramid_request):
+    def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
         exc = MissingLTILaunchParamError('test lti launch param error msg')
 
         error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_launch_param_error()
+        resp = error_views.missing_lti_param_error()
+
+        assert pyramid_request.response.status_int == 400
+
+    def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
+        exc = MissingLTIContentItemParamError('test lti launch param error msg')
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        resp = error_views.missing_lti_param_error()
+
+        assert resp['message'] == 'test lti launch param error msg'
+
+    def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
+        exc = MissingLTIContentItemParamError('test lti launch param error msg')
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        resp = error_views.missing_lti_param_error()
 
         assert pyramid_request.response.status_int == 400
