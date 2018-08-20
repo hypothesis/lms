@@ -26,6 +26,14 @@ class TestErrorViews:
 
         assert pyramid_request.response.status_int == exc.status_int
 
+    def test_it_logs_http_error_in_sentry(self, pyramid_request):
+        exc = httpexceptions.HTTPError('test http error msg', status_code=500)
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        error_views.httperror()
+
+        assert pyramid_request.raven.captureException.call_count == 1
+
     def test_it_sets_correct_message_for_http_server_error(self, pyramid_request):
         exc = httpexceptions.HTTPServerError('test server error msg', status_code=500)
 
@@ -41,6 +49,14 @@ class TestErrorViews:
         error_views.httperror()
 
         assert pyramid_request.response.status_int == exc.status_int
+
+    def test_it_logs_http_server_error_in_sentry(self, pyramid_request):
+        exc = httpexceptions.HTTPServerError('test http error msg', status_code=500)
+
+        error_views = error.ErrorViews(exc, pyramid_request)
+        error_views.httperror()
+
+        assert pyramid_request.raven.captureException.call_count == 1
 
     def test_it_sets_correct_message_for_non_http_error(self, pyramid_request):
         exc = Exception()

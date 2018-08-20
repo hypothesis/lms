@@ -26,9 +26,8 @@ class ErrorViews(object):
     def httperror(self):
         self.request.response.status_int = self.exc.status_int
         # If code raises an HTTPError or HTTPServerError we assume this was
-        # deliberately raised and:
-        # 1. Show the user an error page including specific error message
-        # 2. _Do not_ report the error to Sentry
+        # deliberately raised and show the user an error page including specific error message
+        self.request.raven.captureException()
         return {'message': str(self.exc)}
 
     @view_config(context=Exception)
