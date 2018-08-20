@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import logging
 from datetime import datetime
 
-from pyramid.i18n import TranslationString as _
 from pyramid.view import view_config
 from sqlalchemy import and_
 from lms.exceptions import MissingLTILaunchParamError
@@ -52,7 +51,7 @@ def is_authorized_to_configure(_request, params):
     try:
         roles = params['roles']
     except KeyError:
-        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: roles'))
+        raise MissingLTILaunchParamError('roles')
     return can_configure_module_item(roles)
 
 
@@ -67,7 +66,7 @@ def is_db_configured(request, params):
     try:
         resource_link_id = params['resource_link_id']
     except KeyError:
-        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: resource_link_id'))
+        raise MissingLTILaunchParamError('resource_link_id')
 
     config = request.db.query(ModuleItemConfiguration).filter(and_(
         ModuleItemConfiguration.resource_link_id == resource_link_id,
@@ -97,14 +96,13 @@ def launch_lti(request, lti_key=None, context_id=None, document_url=None,
 
 def _check_params(lti_params):
     """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
-    except_msg = _('Required data param for LTI launch missing: ')
     required_params = ['oauth_consumer_key', 'context_id', 'tool_consumer_instance_guid']
 
     for required_param in required_params:
         try:
             lti_params[required_param]
         except KeyError:
-            raise MissingLTILaunchParamError(except_msg + required_param)
+            raise MissingLTILaunchParamError(required_param)
 
 
 def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None):

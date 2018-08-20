@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from pyramid.i18n import TranslationString as _
 from pyramid.view import view_config
 
 from lms.exceptions import MissingLTIContentItemParamError
@@ -15,14 +14,13 @@ from lms.views.decorators import create_h_user
 
 def _check_params(lti_params):
     """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
-    except_msg = _('Required LTI data param for content item selection missing: ')
     required_params = ['lti_version', 'oauth_version', 'oauth_nonce', 'oauth_signature']
 
     for required_param in required_params:
         try:
             lti_params[required_param]
         except KeyError:
-            raise MissingLTIContentItemParamError(except_msg + required_param)
+            raise MissingLTIContentItemParamError(required_param)
 
 
 def should_show_file_picker(lti_params, request):
