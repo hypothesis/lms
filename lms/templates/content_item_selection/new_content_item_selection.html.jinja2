@@ -60,6 +60,13 @@
      return url;
   }
 
+  function addHttps(url) {
+    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
+        url = "https://" + url;
+     }
+     return url;
+  }
+
   function resetError(input) {
     input.parentElement.classList.remove('has-error');
     input.parentElement.getElementsByClassName('error')[0].innerHTML = '';
@@ -228,9 +235,8 @@
         var mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
         var view = new google.picker.View(google.picker.ViewId.DOCS);
         view.setMimeTypes(mimeTypes);
-
         var picker = new google.picker.PickerBuilder()
-            .setOrigin('{{lms_url}}')
+            .setOrigin(addHttps('{{lms_url}}'))
             .setOAuthToken(state.oauthToken)
             .addView(view)
             .addView(new google.picker.DocsUploadView())
