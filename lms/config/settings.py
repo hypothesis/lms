@@ -2,8 +2,6 @@
 
 """Functions for reading config settings."""
 
-from __future__ import unicode_literals
-
 import os
 
 

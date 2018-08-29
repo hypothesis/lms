@@ -2,8 +2,6 @@
 
 """View decorators for working with the h API."""
 
-from __future__ import unicode_literals
-
 import functools
 import json
 import requests

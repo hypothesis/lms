@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 from pyramid import httpexceptions
 from pyramid import i18n
 from pyramid.view import view_config

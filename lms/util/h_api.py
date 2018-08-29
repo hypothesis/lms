@@ -2,8 +2,6 @@
 
 """Utility functions for working with the h API."""
 
-from __future__ import unicode_literals
-
 import hashlib
 
 from lms.util.exceptions import MissingToolConsumerIntanceGUIDError
