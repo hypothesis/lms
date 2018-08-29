@@ -5,7 +5,7 @@ import pytest
 from lms.exceptions import MissingLTILaunchParamError
 
 # TODO write tests for student case
-class TestLtiLaunches(object):
+class TestLtiLaunches:
     def test_it_renders_the_iframe_when_the_url_is_present_in_the_params(self, lti_launch_request):
         lti_launch_request.params['url'] = 'https://example.com'
         value = lti_launches(lti_launch_request)

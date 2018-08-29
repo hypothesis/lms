@@ -16,7 +16,7 @@ def setup_launches(pyramid_request, app_instances):
     pyramid_request.db.flush()
 
 
-class TestReports(object):
+class TestReports:
     def test_build_launches_rows(self, pyramid_request):
         test_urls = ['https://example.com', 'https://sub.example.com',
                      'https://another.example.com']

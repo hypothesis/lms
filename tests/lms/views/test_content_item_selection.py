@@ -5,7 +5,7 @@ from lms.exceptions import MissingLTILaunchParamError, MissingLTIContentItemPara
 from lms.views.content_item_selection import content_item_selection, content_item_form
 
 
-class TestContentItemSelection(object):
+class TestContentItemSelection:
 
     def test_it_redirects_to_oauth_provider(self, lti_launch_request):
         response = content_item_selection(lti_launch_request)

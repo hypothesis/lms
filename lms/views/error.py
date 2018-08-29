@@ -11,7 +11,7 @@ _ = i18n.TranslationStringFactory(__package__)
 
 
 @view_defaults(renderer='lms:templates/error.html.jinja2')
-class ErrorViews(object):
+class ErrorViews:
     """Show user an error page and an appropriate message."""
 
     def __init__(self, exc, request):

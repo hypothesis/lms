@@ -3,7 +3,7 @@ from lms.models import build_from_lti_params
 from lms.models import OauthState, find_or_create_from_user
 
 
-class TestOauthState(object):
+class TestOAuthState:
     def test_find_or_create_from_user_creates_user(self, lti_launch_request, db_session):
         session = db_session
         state_guid = "asdf"

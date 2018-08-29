@@ -1,7 +1,7 @@
 from lms.models import ApplicationInstance
 
 
-class TestApplicationInstance(object):
+class TestApplicationInstance:
     def test_it_persists_application_instance(self, db_session):
         initial_count = db_session.query(ApplicationInstance).count()
         instance = ApplicationInstance(

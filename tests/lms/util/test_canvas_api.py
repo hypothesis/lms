@@ -11,7 +11,7 @@ def build_mock_view(assertions):
     return view_function
 
 
-class TestCanvasApi(object):
+class TestCanvasApi:
     def test_it_creates_canvas_api(self, canvas_api_proxy):
         def assertions(_request, _decoded_jwt, _user, canvas_api):
             assert canvas_api.canvas_token == canvas_api_proxy['token'].access_token

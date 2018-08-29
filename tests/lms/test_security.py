@@ -1,7 +1,7 @@
 from lms import security
 
 
-class TestSecurityPassword(object):
+class TestSecurityPassword:
     def test_correct_password(self):
         salt = 'fbe82ee0da72b77b'
         password = 'asdf'

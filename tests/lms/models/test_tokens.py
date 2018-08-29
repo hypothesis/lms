@@ -4,7 +4,7 @@ from lms.models import User
 FAKE_ACCESS_TOKEN = "FAKE_TOKEN"
 
 
-class TestTokens(object):
+class TestTokens:
     def test_it_updates_none_token(self, db_session):
         user = User()
         db_session.add(user)

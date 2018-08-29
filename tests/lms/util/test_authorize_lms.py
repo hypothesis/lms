@@ -54,7 +54,7 @@ def create_user(lti_launch_request):
     return existing_user
 
 
-class TestAuthorizeLms(object):
+class TestAuthorizeLms:
     """Test the associate user decorator."""
 
     def test_it_redirects_for_oauth(self, lti_launch_request):
