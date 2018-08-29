@@ -1,7 +1,7 @@
 from lms.views import authentication
 
 
-class TestAuthentication(object):
+class TestAuthentication:
     def test_login(self, pyramid_request):
         pyramid_request.params = {
             'username': 'report_viewer',

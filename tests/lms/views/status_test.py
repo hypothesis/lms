@@ -8,7 +8,7 @@ from lms.views import status
 
 
 @pytest.mark.usefixtures('db')
-class TestStatus(object):
+class TestStatus:
     def test_it_returns_okay_on_success(self, pyramid_request):
         result = status.status(pyramid_request)
         assert result == {'status': 'okay'}

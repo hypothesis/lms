@@ -1,7 +1,7 @@
 from lms.util import get_password_hash
 
 
-class TestPasswordHash(object):
+class TestPasswordHash:
     def test_recreate_hash(self):
         password = 'asdf'
         expected_hashed = \

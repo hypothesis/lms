@@ -17,7 +17,7 @@ def set_session(value):
 class ModelFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Base class for all factory classes for model classes."""
 
-    class Meta(object):
+    class Meta:
         """Meta class."""
 
         abstract = True

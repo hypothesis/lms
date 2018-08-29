@@ -4,7 +4,7 @@ import mock
 from lms import routes
 
 
-class TestIncludeMe(object):
+class TestIncludeMe:
 
     def test_it_adds_some_routes(self):
         config = mock.MagicMock()

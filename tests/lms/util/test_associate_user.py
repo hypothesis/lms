@@ -14,7 +14,7 @@ def build_mock_view(assertions):
     return test_view_function
 
 
-class TestAssociateUser(object):
+class TestAssociateUser:
     """Test the associate user decorator."""
 
     def test_it_finds_an_existing_user(self, lti_launch_request, **_):

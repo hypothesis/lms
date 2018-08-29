@@ -2,7 +2,7 @@ from lms.views.module_item_configurations import create_module_item_configuratio
 from lms.models import ModuleItemConfiguration
 
 
-class TestModuleItemConfiguration(object):
+class TestModuleItemConfiguration:
     def test_it_creates_a_module_item_configuration(self,
                                                     authenticated_request):
         initial_count = authenticated_request.db.query(

@@ -6,7 +6,7 @@ from lms.config import settings
 
 
 @pytest.mark.usefixtures('os_fixture')
-class TestEnvSetting(object):
+class TestEnvSetting:
 
     def test_it_returns_the_value_from_the_environment_variable(self, os_fixture):
         os_fixture.environ = {'FOOBAR': 'the_value'}

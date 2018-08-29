@@ -2,7 +2,7 @@ from lms.views.application_instances import create_application_instance
 from lms.models import ApplicationInstance
 
 
-class TestApplicationInstance(object):
+class TestApplicationInstance:
     def test_it_creates_an_application_instance(self, pyramid_request):
         pyramid_request.method = 'POST'
         pyramid_request.params = {
