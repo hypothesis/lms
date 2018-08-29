@@ -2,8 +2,6 @@
 
 """Exceptions raised by LTI launch code."""
 
-from __future__ import unicode_literals
-
 from pyramid.httpexceptions import HTTPBadRequest
 
 

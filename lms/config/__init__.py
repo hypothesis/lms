@@ -2,8 +2,6 @@
 
 """Configuration for the Pyramid application."""
 
-from __future__ import unicode_literals
-
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
