@@ -6,10 +6,12 @@ from lms.util.canvas_api import canvas_api, GET, POST
 from lms.util.exceptions import UtilError
 from lms.util.exceptions import MissingToolConsumerIntanceGUIDError
 from lms.util.exceptions import MissingUserIDError
+from lms.util.exceptions import MissingContextTitleError
 from lms.util.h_api import generate_display_name
 from lms.util.h_api import generate_provider
 from lms.util.h_api import generate_provider_unique_id
 from lms.util.h_api import generate_username
+from lms.util.h_api import generate_group_name
 from lms.util.jwt import jwt
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
@@ -23,6 +25,7 @@ __all__ = (
     'generate_provider',
     'generate_provider_unique_id',
     'generate_username',
+    'generate_group_name',
     'jwt',
     'lti_launch',
     'save_token',
@@ -32,4 +35,5 @@ __all__ = (
     'UtilError',
     'MissingToolConsumerIntanceGUIDError',
     'MissingUserIDError',
+    'MissingContextTitleError',
 )
