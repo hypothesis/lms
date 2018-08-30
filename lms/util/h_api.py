@@ -43,10 +43,10 @@ def generate_username(request_params):
     """
     Return an h username generated from the given LTI launch request params.
 
-    :raises :py:exception:`lms.util.MissingToolConsumerIntanceGUIDError`:
+    :raises lms.util.MissingToolConsumerIntanceGUIDError:
       if ``"tool_consumer_instance_guid"`` is missing from ``request_params``
 
-    :raises :py:exception:`lms.util.MissingUserIDError`:
+    :raises lms.util.MissingUserIDError:
       if ``"user_id"`` is missing from ``request_params``
     """
     hash_object = hashlib.sha1()
@@ -59,7 +59,7 @@ def generate_provider(request_params):
     """
     Return an h "provider" string from the given LTI launch request params.
 
-    :raises :py:exception:`lms.util.MissingToolConsumerIntanceGUIDError`:
+    :raises ~lms.util.MissingToolConsumerIntanceGUIDError:
       if ``"tool_consumer_instance_guid"`` is missing from ``request_params``
 
     """
@@ -75,7 +75,7 @@ def generate_provider_unique_id(request_params):
     """
     Return an h provider_unique_id from the given LTI launch request params.
 
-    :raises :py:exception:`lms.util.MissingUserIDError`:
+    :raises ~lms.util.MissingUserIDError:
       if ``"user_id"`` is missing from ``request_params``
 
     """
