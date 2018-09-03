@@ -162,6 +162,43 @@ def create_course_group(wrapped):
     return wrapper
 
 
+def add_user_to_group(wrapped):
+    def wrapper(request, jwt):
+        if not _auto_provisioning_feature_enabled(request):
+            return wrapped(request, jwt)
+
+        get_param = functools.partial(_get_param, request)
+
+        tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
+        context_id = get_param("context_id")
+
+        group = models.CourseGroup.get(request.db, tool_consumer_instance_guid, context_id)
+
+        # Deliberately assume that generate_username() will succeed and not
+        # raise an error.  create_h_user() should always have been run
+        # successfully before this function gets called, so if
+        # generate_username() was going to fail it would have already failed.
+        username = util.generate_username(request.params)
+
+        authority = request.registry.settings["h_authority"]
+        userid = f"acct:{username}@{authority}"
+        client_id = request.registry.settings["h_client_id"]
+        client_secret = request.registry.settings["h_client_secret"]
+
+        try:
+            response = requests.post(
+                request.registry.settings["h_api_url"] + f"/groups/{group.pubid}/members/{userid}",
+                auth=(client_id, client_secret),
+                timeout=1,
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
+
+        return wrapped(request, jwt)
+    return wrapper
+
+
 def _maybe_create_group(request):
     """Create a Hypothesis group for the LTI course, if one doesn't exist."""
     # Only create groups for application instances that we've enabled the
@@ -196,6 +233,11 @@ def _maybe_create_group(request):
         raise HTTPBadRequest('Required parameter "context_title" missing from LTI params')
 
     authority = request.registry.settings["h_authority"]
+
+    # Deliberately assume that generate_username() will succeed and not
+    # raise an error.  create_h_user() should always have been run
+    # successfully before this function gets called, so if
+    # generate_username() was going to fail it would have already failed.
     username = util.generate_username(request.params)
 
     # Create the group in h.
