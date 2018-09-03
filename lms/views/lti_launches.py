@@ -20,6 +20,7 @@ from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.views.decorators import create_h_user
 from lms.views.decorators import create_course_group
+from lms.views.decorators import add_user_to_group
 
 
 def can_configure_module_item(roles):
@@ -184,6 +185,7 @@ def should_launch(request):
 @view_config(route_name='lti_launches', request_method='POST')
 @lti_launch
 @create_h_user
+@add_user_to_group
 @create_course_group
 @associate_user
 @authorize_lms(
