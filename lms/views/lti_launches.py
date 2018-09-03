@@ -202,10 +202,29 @@ def lti_launches(request, jwt, user=None):
 
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(request, document_url, jwt):
+
+    def grant_token():
+        import datetime
+        import jwt
+        from lms import util
+
+        now = datetime.datetime.utcnow()
+        username = util.generate_username(request.params)
+
+        claims = {
+            'aud': "localhost",
+            'iss': "a76b2074-af6e-11e8-8d65-0b3c44e2567a",
+            'sub': "acct:{}@{}".format(username, "lms.hypothes.is"),
+            'nbf': now,
+            'exp': now + datetime.timedelta(minutes=5),
+        }
+        return jwt.encode(claims, "uHzsLp8-W4-A2r0Zys9k4svegKTmNtbbVym_8C4lMV8", algorithm="HS256")
+
+    grant_token_ = grant_token()
     return {
-        'hypothesis_url':
-        f"{request.registry.settings['via_url']}/{document_url}",
-        'jwt': jwt
+        "hypothesis_url": f"{request.registry.settings['via_url']}/{document_url}",
+        "jwt": jwt,
+        "grant_token": grant_token_.decode("utf-8"),
     }
 
 

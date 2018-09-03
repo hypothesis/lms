@@ -1,1 +1,17 @@
+<script>
+  function receiveMessage(event) {
+    if (event.origin !== "http://localhost:5000") {
+      return;
+    }
+
+    if (event.data !== "gimme_grant_token") {
+      return;
+    }
+
+    // Send back grant token in response.
+    var grantToken = '{{ grant_token }}';
+    event.source.postMessage(grantToken, event.origin)
+  }
+  window.addEventListener("message", receiveMessage, false);
+</script>
 <iframe width="100%" height="100%" src="{{hypothesis_url}}" />
