@@ -164,6 +164,33 @@ def create_course_group(wrapped):
     return wrapper
 
 
+def add_user_to_group(wrapped):
+    def wrapper(request, jwt):
+        get_param = functools.partial(_get_param, request)
+
+        tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
+        context_id = get_param("context_id")
+
+        group = models.CourseGroup.get(request.db, tool_consumer_instance_guid, context_id)
+        username = util.generate_username(request.params)
+        authority = request.registry.settings["h_authority"]
+        userid = f"acct:{username}@{authority}"
+        client_id = request.registry.settings["h_client_id"]
+        client_secret = request.registry.settings["h_client_secret"]
+
+        response = requests.post(
+            request.registry.settings["h_api_url"] + f"/groups/{group.pubid}/members/{userid}",
+            auth=(client_id, client_secret),
+            headers={
+                "X-Forwarded-User": userid,
+            },
+            timeout=1,
+        )
+
+        return wrapped(request, jwt)
+    return wrapper
+
+
 def _maybe_create_group(request):
     """Create a Hypothesis group for the LTI course, if one doesn't exist."""
     # Only create groups for application instances that we've enabled the
