@@ -13,4 +13,4 @@ PyLTI
 PyJWT
 requests_oauthlib
 requests
-pycrypto==2.4.0
+pycrypto==2.6.1
