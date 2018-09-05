@@ -54,7 +54,7 @@
     "postcss-url": "^5.1.1",
     "query-string": "^3.0.1",
     "raven-js": "^3.7.0",
-    "scroll-into-view": "^1.7.1",
+    "scroll-into-view": "^1.9.3",
     "superagent": "^3.8.2",
     "through2": "^2.0.1",
     "uglifyify": "^3.0.1",
