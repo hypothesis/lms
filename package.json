@@ -47,7 +47,7 @@
     "jquery": "^3.2.1",
     "js-polyfills": "^0.1.16",
     "keyboardevent-key-polyfill": "^1.0.2",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",
     "node-sass": "^4.5.3",
     "postcss": "^5.0.6",
