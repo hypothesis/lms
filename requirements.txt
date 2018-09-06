@@ -20,14 +20,14 @@ oauthlib==2.0.6           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy, pyramid
 plaster-pastedeploy==0.4.2  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
-psycopg2==2.7.3.2
+psycopg2==2.7.5
 pycrypto==2.6.1
 pyjwt==1.5.3
 pylti==0.7.0
 pyramid-jinja2==2.7
+pyramid-services==2.1
 pyramid-tm==2.2
 pyramid==1.9.1
-pyramid_services==2.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
 raven==6.4.0
