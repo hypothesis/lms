@@ -25,9 +25,9 @@ pycrypto==2.6.1
 pyjwt==1.5.3
 pylti==0.7.0
 pyramid-jinja2==2.7
-pyramid-services==1.1
 pyramid-tm==2.2
 pyramid==1.9.1
+pyramid_services==2.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
 raven==6.4.0
@@ -41,6 +41,7 @@ translationstring==1.3    # via pyramid
 urllib3==1.22             # via requests
 venusian==1.1.0           # via pyramid
 webob==1.7.4              # via pyramid
+wired==0.1.1              # via pyramid-services
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.3     # via pyramid, pyramid-services, transaction, zope.sqlalchemy
+zope.interface==4.4.3     # via pyramid, pyramid-services, transaction, wired, zope.sqlalchemy
 zope.sqlalchemy==0.7.7
