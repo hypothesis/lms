@@ -1,6 +1,5 @@
 """Decorator that add lti validation capabilities to a pyramid view."""
 import pylti.common
-from pyramid.i18n import TranslationString as _
 
 from lms.models import application_instance as ai
 from lms.util.jwt import build_jwt_from_lti_launch
@@ -43,7 +42,7 @@ def lti_launch(view_function):
         try:
             consumer_key = lti_params['oauth_consumer_key']
         except KeyError:
-            raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: oauth_consumer_key'))
+            raise MissingLTILaunchParamError('oauth_consumer_key')
         shared_secret = get_secret(request, consumer_key)
 
         consumers = {}

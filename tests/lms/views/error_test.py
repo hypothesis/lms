@@ -74,15 +74,15 @@ class TestErrorViews:
             error_views.error()
 
     def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
-        exc = MissingLTILaunchParamError('test lti launch param error msg')
+        exc = MissingLTILaunchParamError('test')
 
         error_views = error.ErrorViews(exc, pyramid_request)
         resp = error_views.missing_lti_param_error()
 
-        assert resp['message'] == 'test lti launch param error msg'
+        assert resp['message'] == 'Required data param for LTI launch missing: test'
 
     def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
-        exc = MissingLTILaunchParamError('test lti launch param error msg')
+        exc = MissingLTILaunchParamError('test')
 
         error_views = error.ErrorViews(exc, pyramid_request)
         resp = error_views.missing_lti_param_error()
@@ -90,15 +90,15 @@ class TestErrorViews:
         assert pyramid_request.response.status_int == 400
 
     def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
-        exc = MissingLTIContentItemParamError('test lti launch param error msg')
+        exc = MissingLTIContentItemParamError('test')
 
         error_views = error.ErrorViews(exc, pyramid_request)
         resp = error_views.missing_lti_param_error()
 
-        assert resp['message'] == 'test lti launch param error msg'
+        assert resp['message'] == 'Required LTI data param for content item selection missing: test'
 
     def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
-        exc = MissingLTIContentItemParamError('test lti launch param error msg')
+        exc = MissingLTIContentItemParamError('test')
 
         error_views = error.ErrorViews(exc, pyramid_request)
         resp = error_views.missing_lti_param_error()
