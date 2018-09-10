@@ -71,7 +71,7 @@
     "eslint-config-hypothesis": "^1.0.0",
     "fetch-mock": "^5.1.5",
     "gulp-eslint": "^3.0.1",
-    "karma": "^1.7.1",
+    "karma": "^3.0.0",
     "karma-browserify": "^5.1.0",
     "karma-chai": "^0.1.0",
     "karma-mocha": "^1.1.1",
