@@ -55,7 +55,7 @@
     "query-string": "^3.0.1",
     "raven-js": "^3.7.0",
     "scroll-into-view": "^1.9.3",
-    "superagent": "^3.8.2",
+    "superagent": "^3.8.3",
     "through2": "^2.0.1",
     "uglifyify": "^3.0.1",
     "unorm": "^1.4.1",
