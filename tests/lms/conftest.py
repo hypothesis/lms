@@ -6,7 +6,7 @@ import json
 import re
 
 import httpretty
-import mock
+from unittest import mock
 import pytest
 import jwt
 import sqlalchemy

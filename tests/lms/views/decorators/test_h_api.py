@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import mock
+from unittest import mock
 import pytest
 
 from pyramid.httpexceptions import HTTPBadGateway

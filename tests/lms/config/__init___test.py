@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import mock
+from __future__ import unicode_literals
+
+from unittest import mock
 import pytest
 import pyramid.config
 
