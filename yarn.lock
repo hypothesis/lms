@@ -918,7 +918,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0:
+babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -2144,9 +2144,11 @@ element-closest@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-2.0.2.tgz#72a740a107453382e28df9ce5dbb5a8df0f966ec"
 
-element-dataset@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/element-dataset/-/element-dataset-1.3.0.tgz#0451ba1b1dc5a1e0981f67d4109830880e4370d4"
+element-dataset@^2.2.6:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/element-dataset/-/element-dataset-2.2.6.tgz#a4e46dbb3ee991e8c7d5366ec654f87670c2ef80"
+  dependencies:
+    babel-runtime "^6.23.0"
 
 elliptic@^6.0.0:
   version "6.4.0"
