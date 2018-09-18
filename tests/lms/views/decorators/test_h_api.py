@@ -24,7 +24,7 @@ class TestCreateHUser:
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(self, create_h_user, pyramid_request, wrapped):
-        pyramid_request.params = {"oauth_consumer_key": "foo"}
+        pyramid_request.params["oauth_consumer_key"] = "foo"
 
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
 
@@ -32,7 +32,7 @@ class TestCreateHUser:
         assert returned == wrapped.return_value
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(self, create_h_user, post, pyramid_request):
-        pyramid_request.params = {"oauth_consumer_key": "foo"}
+        pyramid_request.params["oauth_consumer_key"] = "foo"
 
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
@@ -149,7 +149,7 @@ class TestCreateCourseGroup:
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
         # wrapped view.
-        pyramid_request.params = {"oauth_consumer_key": "foo"}
+        pyramid_request.params["oauth_consumer_key"] = "foo"
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
@@ -267,14 +267,14 @@ def post(patch):
 
 @pytest.fixture
 def pyramid_request(pyramid_request):
-    pyramid_request.params = {
+    pyramid_request.params.update({
         # A valid oauth_consumer_key (matches one for which the
         # provisioning features are enabled).
         "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         "tool_consumer_instance_guid": "TEST_GUID",
         "context_id": "TEST_CONTEXT",
         "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
-    }
+    })
     pyramid_request.db = mock.MagicMock()
     return pyramid_request
 
