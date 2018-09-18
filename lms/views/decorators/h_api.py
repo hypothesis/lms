@@ -174,6 +174,11 @@ def add_user_to_group(wrapped):
 
         group = models.CourseGroup.get(request.db, tool_consumer_instance_guid, context_id)
 
+        assert group is not None, ("create_course_group() should always have "
+                                   "been run successfully before this "
+                                   "function gets called, so group should "
+                                   "never be None.")
+
         # Deliberately assume that generate_username() will succeed and not
         # raise an error.  create_h_user() should always have been run
         # successfully before this function gets called, so if

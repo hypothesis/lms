@@ -271,7 +271,7 @@ class TestAddUserToGroup:
     def test_it_raises_if_the_group_doesnt_exist(self, add_user_to_group, pyramid_request, models):
         models.CourseGroup.get.return_value = None
 
-        with pytest.raises(AttributeError, match="'NoneType' object has no attribute 'pubid'"):
+        with pytest.raises(AssertionError, match="group should never be None"):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_gets_the_group_from_the_db(self, add_user_to_group, models, pyramid_request):
