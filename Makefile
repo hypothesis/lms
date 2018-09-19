@@ -37,7 +37,7 @@ lint:
 
 .PHONY: docker
 docker:
-	git archive HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
+	git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
 
 .pydeps: requirements.txt requirements-dev.in
 	@echo installing python dependencies
