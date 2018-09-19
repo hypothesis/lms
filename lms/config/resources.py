@@ -7,5 +7,4 @@ class Root:
     __acl__ = [(Allow, "report_viewers", "view")]
 
     def __init__(self, request):
-        """Pass."""
         pass
