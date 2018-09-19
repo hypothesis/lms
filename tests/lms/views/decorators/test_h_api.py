@@ -16,7 +16,6 @@ from lms.util import MissingUserIDError
 from lms.models import CourseGroup
 
 
-@pytest.mark.usefixtures("post", "util")
 class TestCreateHUser:
     def test_it_400s_if_no_oauth_consumer_key_param(self, create_h_user, pyramid_request):
         del pyramid_request.params["oauth_consumer_key"]
@@ -113,41 +112,7 @@ class TestCreateHUser:
         # Return the actual wrapper function so that tests can call it directly.
         return create_h_user(wrapped)
 
-    @pytest.fixture
-    def post(self, patch):
-        post = patch("lms.views.decorators.h_api.requests.post")
-        post.return_value = mock.create_autospec(
-            requests.models.Response,
-            instance=True,
-            status_code=200,
-        )
-        return post
 
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
-            # A valid oauth_consumer_key (matches one for which the
-            # provisioning features are enabled).
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-        }
-        return pyramid_request
-
-    @pytest.fixture
-    def util(self, patch):
-        util = patch("lms.views.decorators.h_api.util")
-        util.generate_username.return_value = "test_username"
-        util.generate_display_name.return_value = "test_display_name"
-        util.generate_provider.return_value = "test_provider"
-        util.generate_provider_unique_id.return_value = "test_provider_unique_id"
-        return util
-
-    @pytest.fixture
-    def wrapped(self):
-        """Return the wrapped view function."""
-        return mock.MagicMock()
-
-
-@pytest.mark.usefixtures("models", "util", "post")
 class TestCreateCourseGroup:
     @pytest.mark.parametrize("required_param_name", (
         "oauth_consumer_key",
@@ -209,9 +174,9 @@ class TestCreateCourseGroup:
         post.assert_called_once_with(
             "https://example.com/api/groups",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            data='{"name": "TEST_GROUP"}',
+            data='{"name": "test_group_name"}',
             headers={
-                "X-Forwarded-User": "acct:TEST_USERNAME@TEST_AUTHORITY",
+                "X-Forwarded-User": "acct:test_username@TEST_AUTHORITY",
             },
             timeout=1,
         )
@@ -271,49 +236,61 @@ class TestCreateCourseGroup:
         return create_course_group(wrapped)
 
     @pytest.fixture
-    def wrapped(self):
-        """Return the wrapped view function."""
-        return mock.MagicMock()
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
-            # A valid oauth_consumer_key (matches one for which the
-            # provisioning features are enabled).
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-            "tool_consumer_instance_guid": "TEST_GUID",
-            "context_id": "TEST_CONTEXT",
-            "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
-        }
-        pyramid_request.db = mock.MagicMock()
-        return pyramid_request
-
-    @pytest.fixture
-    def models(self, patch):
-        models = patch("lms.views.decorators.h_api.models")
-
-        def side_effect(**kwargs):
-            return mock.create_autospec(CourseGroup, instance=True, **kwargs)
-        models.CourseGroup.side_effect = side_effect
-
-        models.CourseGroup.get.return_value = None
-
-        return models
-
-    @pytest.fixture
-    def util(self, patch):
-        util = patch("lms.views.decorators.h_api.util")
-        util.generate_group_name.return_value = "TEST_GROUP"
-        util.generate_username.return_value = "TEST_USERNAME"
-        return util
-
-    @pytest.fixture
-    def post(self, patch):
-        post = patch("lms.views.decorators.h_api.requests.post")
-        post.return_value = mock.create_autospec(
-            requests.models.Response,
-            instance=True,
-            status_code=200,
-        )
+    def post(self, post):
         post.return_value.json.return_value = {"id": "TEST_PUBID"}
         return post
+
+
+@pytest.fixture(autouse=True)
+def models(patch):
+    models = patch("lms.views.decorators.h_api.models")
+
+    def side_effect(**kwargs):
+        return mock.create_autospec(CourseGroup, instance=True, **kwargs)
+    models.CourseGroup.side_effect = side_effect
+
+    models.CourseGroup.get.return_value = None
+
+    return models
+
+
+@pytest.fixture(autouse=True)
+def post(patch):
+    post = patch("lms.views.decorators.h_api.requests.post")
+    post.return_value = mock.create_autospec(
+        requests.models.Response,
+        instance=True,
+        status_code=200,
+    )
+    return post
+
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.params = {
+        # A valid oauth_consumer_key (matches one for which the
+        # provisioning features are enabled).
+        "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+        "tool_consumer_instance_guid": "TEST_GUID",
+        "context_id": "TEST_CONTEXT",
+        "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
+    }
+    pyramid_request.db = mock.MagicMock()
+    return pyramid_request
+
+
+@pytest.fixture(autouse=True)
+def util(patch):
+    util = patch("lms.views.decorators.h_api.util")
+    util.generate_display_name.return_value = "test_display_name"
+    util.generate_group_name.return_value = "test_group_name"
+    util.generate_username.return_value = "test_username"
+    util.generate_provider.return_value = "test_provider"
+    util.generate_provider_unique_id.return_value = "test_provider_unique_id"
+    return util
+
+
+@pytest.fixture
+def wrapped():
+    """Return the wrapped view function."""
+    return mock.MagicMock()
