@@ -2,7 +2,7 @@ from pyramid.security import Allow
 
 
 class Root:
-    """Create list of users and what they are allowed to access."""
+    """The default root factory for the application."""
 
     __acl__ = [(Allow, 'report_viewers', 'view')]
 
