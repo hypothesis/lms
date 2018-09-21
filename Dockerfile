@@ -35,7 +35,6 @@ COPY . .
 
 # Build frontend assets
 RUN npm install --production
-RUN npm rebuild node-sass --force
 RUN NODE_ENV=production node_modules/.bin/gulp build
 RUN npm cache clean
 
