@@ -1,33 +1,22 @@
 'use strict';
 
-require('core-js/es6/promise');
-require('core-js/fn/object/assign');
-require('core-js/fn/string');
+/* global process, __dirname */
+/* eslint-disable no-var, prefer-arrow-callback */
 
 var path = require('path');
 
 var batch = require('gulp-batch');
-var changed = require('gulp-changed');
 var commander = require('commander');
 var endOfStream = require('end-of-stream');
 var gulp = require('gulp');
-var gulpIf = require('gulp-if');
 var gulpUtil = require('gulp-util');
-var newer = require('gulp-newer');
-var postcss = require('gulp-postcss');
-var postcssURL = require('postcss-url');
-var svgmin = require('gulp-svgmin');
 var through = require('through2');
 
 var createBundle = require('./scripts/gulp/create-bundle');
-var createStyleBundle = require('./scripts/gulp/create-style-bundle');
 var manifest = require('./scripts/gulp/manifest');
 
 var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production' && false;
 var SCRIPT_DIR = 'build/scripts';
-var STYLE_DIR = 'build/styles';
-var FONTS_DIR = 'build/fonts';
-var IMAGES_DIR = 'build/images';
 
 function parseCommandLine() {
   commander
@@ -46,13 +35,6 @@ function parseCommandLine() {
 }
 
 var taskArgs = parseCommandLine();
-
-function getEnv(key) {
-  if (!process.env.hasOwnProperty(key)) {
-    throw new Error(`Environment variable ${key} is not set`);
-  }
-  return process.env[key];
-}
 
 var vendorBundles = {
   // jquery: ['jquery'],
@@ -102,91 +84,11 @@ gulp.task('build-js', ['build-vendor-js'], function () {
 
 gulp.task('watch-js', ['build-vendor-js'], function () {
   bundleConfigs.map(function (config) {
-
     createBundle(config, {watch: true});
   });
 });
 
-// Rewrite font URLs to look for fonts in 'build/fonts' instead of
-// 'build/styles/fonts'
-function rewriteCSSURL(url) {
-  return url.replace(/^fonts\//, '../fonts/');
-}
-
-gulp.task('build-vendor-css', function () {
-  var vendorCSSFiles = [
-    // Icon font
-    // './lms/static/styles/vendor/icomoon.css',
-    // './node_modules/bootstrap/dist/css/bootstrap.css',
-  ];
-
-  var cssURLRewriter = postcssURL({
-    url: rewriteCSSURL,
-  });
-
-  return gulp.src(vendorCSSFiles)
-    .pipe(newer(STYLE_DIR))
-    .pipe(postcss([cssURLRewriter]))
-    .pipe(gulp.dest(STYLE_DIR));
-});
-
-var styleBundleEntryFiles = [
-  // './lms/static/styles/admin.scss',
-  // './lms/static/styles/help-page.scss',
-  // './lms/static/styles/site.scss',
-];
-
-function buildStyleBundle(entryFile, options) {
-  return createStyleBundle({
-    input: entryFile,
-    output: './build/styles/' + path.basename(entryFile, '.scss') + '.css',
-    minify: IS_PRODUCTION_BUILD,
-    urlRewriter: rewriteCSSURL,
-    watch: options.watch,
-  });
-}
-
-gulp.task('build-css', ['build-vendor-css'], function () {
-  return Promise.all(styleBundleEntryFiles.map(buildStyleBundle));
-});
-
-gulp.task('watch-css', function () {
-  // Build initial CSS bundles. This is done rather than adding 'build-css' as
-  // a dependency of this task so that the process continues in the event of an
-  // error.
-  Promise.all(styleBundleEntryFiles.map(buildStyleBundle)).catch(gulpUtil.log);
-  gulp.watch('lms/static/styles/**/*.scss', ['build-css']);
-});
-
-// var fontFiles = 'lms/static/styles/vendor/fonts/*.woff';
-
-// gulp.task('build-fonts', function () {
-//   gulp.src(fontFiles)
-//     .pipe(changed(FONTS_DIR))
-//     .pipe(gulp.dest(FONTS_DIR));
-// });
-
-// gulp.task('watch-fonts', function () {
-//   gulp.watch(fontFiles, ['build-fonts']);
-// });
-
-// var imageFiles = 'lms/static/images/**/*';
-// gulp.task('build-images', function () {
-//   var shouldMinifySVG = function (file) {
-//     return IS_PRODUCTION_BUILD && file.path.match(/\.svg$/);
-//   };
-
-//   gulp.src(imageFiles)
-//     .pipe(changed(IMAGES_DIR))
-//     .pipe(gulpIf(shouldMinifySVG, svgmin()))
-//     .pipe(gulp.dest(IMAGES_DIR));
-// });
-
-// gulp.task('watch-images', function () {
-//   gulp.watch(imageFiles, ['build-images']);
-// });
-
-var MANIFEST_SOURCE_FILES = 'build/@(fonts|images|scripts|styles)/**/*.*';
+var MANIFEST_SOURCE_FILES = 'build/scripts/**/*.*';
 
 /**
  * Generate a JSON manifest mapping file paths to
@@ -212,18 +114,11 @@ gulp.task('watch-manifest', function () {
 });
 
 gulp.task('build',
-          ['build-js',
-           'build-css',
-          //  'build-fonts',
-          //  'build-images'
-          ],
+          ['build-js'],
           generateManifest);
 
 gulp.task('watch',
           ['watch-js',
-           'watch-css',
-          //  'watch-fonts',
-          //  'watch-images',
            'watch-manifest'
         ]);
 
