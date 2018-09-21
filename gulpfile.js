@@ -39,11 +39,9 @@ var taskArgs = parseCommandLine();
 var vendorBundles = {
   // jquery: ['jquery'],
   // bootstrap: ['bootstrap'],
-  // raven: ['raven-js'],
-  // unorm: ['unorm'],
 };
-var vendorModules = ['jquery', 'bootstrap', 'raven-js', 'unorm'];
-var vendorNoParseModules = ['jquery', 'unorm'];
+var vendorModules = ['jquery', 'bootstrap'];
+var vendorNoParseModules = ['jquery'];
 
 // Builds the bundles containing vendor JS code
 gulp.task('build-vendor-js', function () {
