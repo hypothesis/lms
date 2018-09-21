@@ -81,7 +81,7 @@ gulp.task('build-js', ['build-vendor-js'], function () {
 });
 
 gulp.task('watch-js', ['build-vendor-js'], function () {
-  bundleConfigs.map(function (config) {
+  bundleConfigs.forEach(function (config) {
     createBundle(config, {watch: true});
   });
 });
@@ -115,12 +115,9 @@ gulp.task('build',
           ['build-js'],
           generateManifest);
 
-gulp.task('watch',
-          ['watch-js',
-           'watch-manifest'
-        ]);
+gulp.task('watch', ['watch-js', 'watch-manifest']);
 
-function runKarma(baseConfig, opts, done) {
+function runKarma(baseConfig, opts) {
   // See https://github.com/karma-runner/karma-mocha#configuration
   var cliOpts = {
     client: {
