@@ -10,7 +10,7 @@ describe('picker table row', () => {
     };
     const pickerTableRow = new PickerTableRow(store, { file });
     const output = pickerTableRow.render();
-    assert.include(output, 'Test'),
+    assert.include(output, 'Test');
     assert.include(output, '11/11/11');
   });
 });

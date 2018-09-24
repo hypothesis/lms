@@ -21,7 +21,6 @@ describe('store', () => {
     const store = new Store();
     const sub = new Subscriber();
     sub.handleUpdate = sinon.stub();
-    const newState = {};
     store.subscribe(sub);
     store.triggerUpdate('TEST_UPDATE');
     assert.calledWith(sub.handleUpdate, store.getState(), 'TEST_UPDATE');
