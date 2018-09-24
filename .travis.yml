@@ -11,8 +11,10 @@ addons:
 before_script: createdb lms_test; npm install;
 jobs:
   include:
-    - script: make test
-    - script: make lint
+    - env: ACTION=test
+      script: make test
+    - env: ACTION=lint
+      script: make lint
 after_success:
   - make coverage codecov
 cache:

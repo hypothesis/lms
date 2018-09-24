@@ -34,6 +34,7 @@ codecov: .coverage
 lint:
 	@pip install -q tox
 	tox -e lint
+	$(GULP) lint
 
 .PHONY: docker
 docker:
