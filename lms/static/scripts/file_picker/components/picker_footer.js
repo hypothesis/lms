@@ -4,7 +4,7 @@ import Component from './component';
 export default class PickerHeaderTable extends Component {
 
   initializeComponent() {
-    this.store.subscribe(this)
+    this.store.subscribe(this);
   }
 
   handleUpdate() {
@@ -17,7 +17,7 @@ export default class PickerHeaderTable extends Component {
           pickerOpen: false,
         },
         this.store.eventTypes.PICKER_CLOSED
-      )
+      );
     });
     $('#picker-submit').off('click');
     $('#picker-submit').on('click', () => {

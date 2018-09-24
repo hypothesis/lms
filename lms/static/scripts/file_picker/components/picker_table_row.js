@@ -8,23 +8,23 @@ export default class PickerFooter extends Component {
   }
 
   handleUpdate(state, eventType) {
-    if(eventType === this.store.eventTypes.DOCUMENT_RENDERED) {
+    if (eventType === this.store.eventTypes.DOCUMENT_RENDERED) {
       // handle file selection
       $(`#file-${this.props.file.id}`).off('click');
       $(`#file-${this.props.file.id}`).on('click', () => {
         this.store.setState(
           {
             ...this.store.getState(),
-            selectedFileId: this.props.file.id
+            selectedFileId: this.props.file.id,
           },
           this.store.eventTypes.FILE_SELECTED
-        )
+        );
       });
     }
   }
 
   render() {
-    const state = this.store.getState()
+    const state = this.store.getState();
     let className = '';
 
     // highlight the selected file.

@@ -15,7 +15,7 @@ export default class Component {
 
   // Return an html string from this method. Can be called explicitly or will be
   // called by the `r` method below.
-  render() {};
+  render() {}
 
   // A template literal tag that takes a template literal interploted with
   // instances of the Component class.
@@ -26,10 +26,10 @@ export default class Component {
       .map((part, index) => {
         const comp = components[index];
         // handle rendering of strings and other primitive values
-        if(comp && typeof comp !== 'object') {
+        if (comp && typeof comp !== 'object') {
           return `${part}${comp}`;
         }
-        let output = _.chain([comp])
+        const output = _.chain([comp])
           .flatten()
           .compact()
           .map(value => value.render())

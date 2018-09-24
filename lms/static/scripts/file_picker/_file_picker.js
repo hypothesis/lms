@@ -14,6 +14,6 @@ new FilePicker(
   {
     mountId: '#file-picker',
     courseId: window.DEFAULT_SETTINGS.courseId,
-    pickerCallback
+    pickerCallback,
   }
 ).render();

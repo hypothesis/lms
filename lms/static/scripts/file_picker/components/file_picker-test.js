@@ -27,15 +27,15 @@ describe('file picker', () => {
     const filePicker = new FilePicker(store, {});
     store.unsubscribe(filePicker); // hack to avoid api calls
     const output = filePicker.render();
-    assert.include(output, 'picker-button')
+    assert.include(output, 'picker-button');
     store.setState(
       {
         ...store.getState(),
-        pickerOpen: true
+        pickerOpen: true,
       },
       store.eventTypes.PICKER_OPENED
     );
     const secondOutput = filePicker.render();
-    assert.include(secondOutput, '<main')
+    assert.include(secondOutput, '<main');
   });
 });

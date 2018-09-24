@@ -5,8 +5,8 @@ export const Constants = {
   POST: 'post',
   DEL: 'del',
   PUT: 'put',
-  GET_ALL: 'get_all'
-}
+  GET_ALL: 'get_all',
+};
 
 // Handle the requests to the canvas proxy on the server.
 export default class CanvasApi {

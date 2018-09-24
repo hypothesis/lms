@@ -6,7 +6,7 @@ import PickerTableRow from './picker_table_row';
 import PickerFooter from './picker_footer';
 import { Constants } from '../canvas_api';
 
-export default class FilePicker extends Component{
+export default class FilePicker extends Component {
   initializeComponent() {
     this.store.subscribe(this);
   }
@@ -44,13 +44,13 @@ export default class FilePicker extends Component{
         Constants.GET_ALL,
         { content_types: ['application/pdf'] }
       ).then((res) => {
-        const currentState = this.store.getState()
+        const currentState = this.store.getState();
         this.store.setState({
-            ...currentState,
-            files: JSON.parse(res.text),
-          },
+          ...currentState,
+          files: JSON.parse(res.text),
+        },
           this.store.eventTypes.FILES_LOADED
-        )
+        );
       });
     }
   }
@@ -59,7 +59,7 @@ export default class FilePicker extends Component{
     const state = this.store.getState();
     let output;
     // Only render the picker if the picker is open
-    if(state.pickerOpen) {
+    if (state.pickerOpen) {
       // This can be a little scary if you are not familiar with tagged template
       // literals. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
       // Using this is not necessary just more declarative. r simply calls the render
@@ -71,7 +71,7 @@ export default class FilePicker extends Component{
               <table class="list-view" role="listbox">
                 ${new PickerTableHeader(this.store)}
                 <tbody>
-                  ${_.map(state.files, (file) => new PickerTableRow(this.store, { file }))}
+                  ${_.map(state.files, file => new PickerTableRow(this.store, { file }))}
                 </tbody>
               </table>
             </div>
@@ -95,9 +95,9 @@ export default class FilePicker extends Component{
     }
 
     // Find the element on the page and set the inner html to output html
-    $(this.props.mountId).html(output)
+    $(this.props.mountId).html(output);
     // Tell the app we are done rendering so that even listeners can be added.
-    this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED)
+    this.store.triggerUpdate(this.store.eventTypes.DOCUMENT_RENDERED);
     return output;
   }
 }

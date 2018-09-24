@@ -5,7 +5,7 @@ const defaultState = {
   pickerOpen: false,
   selectedFileId: null,
   files: [],
-}
+};
 
 const eventTypes = {
   DOCUMENT_RENDERED: 'DOCUMENT_RENDERED',
@@ -14,7 +14,7 @@ const eventTypes = {
   PICKER_CLOSED: 'PICKER_CLOSED',
   FILE_SELECTED: 'FILE_SELECTED',
   FILE_SUBMITED: 'FILE_SUBMITTED',
-}
+};
 
 // Store handles the application state and implements a basic observer pattern.
 // Subscribers are notified any time an update is triggered via the triggerUpdate function, the
