@@ -122,8 +122,7 @@ module.exports = function createBundle(config, buildOpts) {
   var bundlePath = config.path + '/' + bundleFileName;
   var sourcemapPath = bundlePath + '.map';
 
-  var bundle = browserify([], bundleOpts)
-    .transform(babelify.configure({ presets: ['stage-0', 'es2015'] }));
+  var bundle = browserify([], bundleOpts);
 
   (config.require || []).forEach(function (req) {
     // When another bundle uses 'bundle.external(<module path>)',

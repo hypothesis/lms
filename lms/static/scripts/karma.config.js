@@ -45,7 +45,6 @@ module.exports = function(config) {
       debug: true,
       configure: function (bundle) {
         bundle.plugin('proxyquire-universal');
-        bundle.transform(babelify.configure({ presets: ['stage-0', 'es2015'] }));
       },
     },
 

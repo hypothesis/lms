@@ -21,8 +21,8 @@
   },
   "homepage": "https://github.com/hypothesis/lms#readme",
   "dependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
     "babelify": "^7.3.0",
     "bootstrap": "4.1.3",
     "browserify": "^16.2.2",
@@ -61,15 +61,8 @@
     "sinon": "^6.3.3"
   },
   "browserify": {
-    "browserify": {
-      "transform": [
-        [
-          "babelify",
-          {
-            "presets": "stage-0"
-          }
-        ]
-      ]
-    }
+    "transform": [
+      "babelify"
+    ]
   }
 }
