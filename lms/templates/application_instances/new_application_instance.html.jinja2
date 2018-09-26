@@ -1,53 +1,16 @@
 <!--suppress CheckValidXmlInScriptTagBody -->
 {% extends "templates/base.html.jinja2" %}
 {% block scripts %}
-<script type="text/javascript">
-  function addHttp(url) {
-    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
-        url = "https://" + url;
-     }
-     return url;
-  }
-
-  function handleSubmit(event, form) {
-    if(!validateDomain(form.elements['lms_url']) || !validateEmail(form.elements['email'])) {
-      event.preventDefault();
-      return false;
-    }
-    form.elements['lms_url'].value = addHttp(form.elements['lms_url'].value);
-  }
-
-  function validateEmail(input) {
-    var parent = input.parentElement;
-    if (input.value.indexOf('@') === -1) {
-      parent.classList.add('has-error');
-      parent.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid email address';
-      return false;
-    }
-    parent.classList.remove('has-error');
-    parent.getElementsByClassName('error')[0].innerHTML = '';
-    return true;
-  }
-
-  function validateDomain(input) {
-    var parent = input.parentElement;
-    if (input.value.length === 0) {
-      parent.classList.add('has-error');
-      parent.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid domain';
-      return false;
-    }
-    parent.classList.remove('has-error');
-    parent.getElementsByClassName('error')[0].innerHTML = '';
-    return true;
-  }
-</script>
+{% for url in asset_urls("new_application_instance_js") %}
+<script src="{{ url }}"></script>
+{% endfor %}
 {% endblock %}
 
 {% block content %}
 <main class="modal-content">
   <h1>Hypothesis Installation</h1>
   <p class="modal-text">This tool allows you to generate the info you'll need to install Hypothesis in your LMS.</p>
-  <form action="/welcome" method="post" onsubmit="handleSubmit(event, this)">
+  <form action="/welcome" method="post" onsubmit="newApplicationInstanceForm.handleSubmit(event, this)">
     <div class="input">
       <label for="domain">LMS Domain</label>
       <input
@@ -55,13 +18,13 @@
         type="text"
         name="lms_url"
         placeholder="ex. yourschool.instructure.com"
-        onblur="validateDomain(this)"
+        onblur="newApplicationInstanceForm.validateDomain(this)"
       />
       <span class="error"></span>
     </div>
     <div class="input">
       <label for="email">Email</label>
-      <input id="email" type="email" name="email" onblur="validateEmail(this)"/>
+      <input id="email" type="email" name="email" onblur="newApplicationInstanceForm.validateEmail(this)"/>
       <span class="error"></span>
     </div>
     <h2>Canvas File Picker Integration</h2>
