@@ -67,6 +67,9 @@ var bundleBaseConfig = {
 var bundles = [{
   name: 'file_picker',
   entry: './lms/static/scripts/file_picker/_file_picker',
+},{
+  name: 'content_item_selection',
+  entry: './lms/static/scripts/content-item-selection.js',
 }];
 
 var bundleConfigs = bundles.map(function (config) {
