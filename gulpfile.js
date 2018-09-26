@@ -38,9 +38,8 @@ var taskArgs = parseCommandLine();
 
 var vendorBundles = {
   // jquery: ['jquery'],
-  // bootstrap: ['bootstrap'],
 };
-var vendorModules = ['jquery', 'bootstrap'];
+var vendorModules = ['jquery'];
 var vendorNoParseModules = ['jquery'];
 
 // Builds the bundles containing vendor JS code
