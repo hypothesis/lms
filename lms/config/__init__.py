@@ -39,6 +39,10 @@ def configure(settings):
         'h_client_id': env_setting('H_CLIENT_ID', required=True),
         'h_client_secret': env_setting('H_CLIENT_SECRET', required=True),
 
+        # The OAuth 2.0 client_id and client_secret for logging users in to h.
+        'h_jwt_client_id': env_setting('H_JWT_CLIENT_ID', required=True),
+        'h_jwt_client_secret': env_setting('H_JWT_CLIENT_SECRET', required=True),
+
         # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
         'h_authority': env_setting('H_AUTHORITY', required=True),
 
