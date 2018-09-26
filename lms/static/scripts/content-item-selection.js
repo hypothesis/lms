@@ -7,10 +7,6 @@
 const state = {
   selectedDocId: null,
   selectedDocUrl: null,
-  pickerApiLoaded: false,
-  driveApiLoaded: false,
-  driveApiReady: false,
-  oauthToken: null,
 };
 
 function addHttp(url) {
@@ -86,10 +82,6 @@ function handleSubmit(event, form) {
 }
 
 ////////  Google Picker Integration ///////
-function enablePickerButton() {
-  const picker = document.getElementById('picker-button');
-  if (picker) { picker.disabled = false; }
-}
 
 /////// Google Picker /////////
 // The Browser API key obtained from the Google API Console.
@@ -99,25 +91,69 @@ const developerKey = window.DEFAULT_SETTINGS.googleDeveloperKey;
 const clientId = window.DEFAULT_SETTINGS.googleClientId;
 
 // Scope to use to access user's Drive items.
-const scope = ['https://www.googleapis.com/auth/drive'];
+const scopes = ['https://www.googleapis.com/auth/drive'];
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
 
-// Use the Google API Loader script to load the google.picker script.
-function loadPicker(event) {
+const GOOGLE_MIME_TYPES = {
+  // 'application/vnd.google-apps.document': 'googleDocs', // Note: we can
+  // reenable google documents when we figure out how to make hypothesis
+  // support pdf exports
+  'application/pdf': 'googleDriveFile',
+};
+
+/** The `gapi.auth2.GoogleAuth` instance returned by `gapi.auth2.init`. */
+let googleAuth = null;
+
+/**
+ * Promise which resolves when the Google API client libraries are loaded.
+ *
+ * Loading is triggered by a callback to the `gapiLoaded` function when the
+ * apis.google.com/js/api.js script finishes loading.
+ */
+const googleApisLoaded = new Promise((resolve, reject) => {
+  window.gapiLoaded = () => {
+    gapi.load('client:auth2:picker', {
+      callback: resolve,
+      onerror: reject,
+    });
+  };
+}).then(() => {
+  // Initialize the `gapi.auth2` library. This must happen before attempting
+  // to sign in.
+  return gapi.auth2.init({
+    client_id: clientId,
+    scope: scopes.join(' '),
+  });
+}).then((googleAuth_) => {
+  googleAuth = googleAuth_;
+}).catch(onLoadError);
+
+/**
+ * Handle Google picker button click.
+ *
+ * Initialize the Google API client, authorize the user and then show the
+ * Google file picker.
+ */
+function showGoogleDriveFilePicker(event) {
   event.preventDefault();
-  gapi.load('auth', {
-    callback: onAuthApiLoad,
-    onerror: onLoadError,
-  });
-  gapi.load('picker', {
-    callback: onPickerApiLoad,
-    onerror: onLoadError,
-  });
-  gapi.load('client', {
-    callback: onClientLoad,
-    onerror: onLoadError,
+
+  googleApisLoaded.then(() => {
+    return Promise.all([authorizeGoogleDriveAccess(), initGoogleClient()]);
+  }).then(([accessToken]) => {
+    const mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
+    const view = new google.picker.View(google.picker.ViewId.DOCS);
+    view.setMimeTypes(mimeTypes);
+    const picker = new google.picker.PickerBuilder()
+        .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
+        .setOAuthToken(accessToken)
+        .addView(view)
+        .addView(new google.picker.DocsUploadView())
+        .setDeveloperKey(developerKey)
+        .setCallback(pickerCallback)
+        .build();
+    picker.setVisible(true);
   });
 }
 
@@ -125,16 +161,13 @@ function onLoadError(e) {
   throw new Error('Error loading Google Api: ' + e.message);
 }
 
-function onClientLoad() {
-  state.driveApiLoaded = true;
-
-  gapi.client.init({
+/** Initialize the `gapi.client` library. */
+function initGoogleClient() {
+  return gapi.client.init({
     apiKey: developerKey,
     clientId: clientId,
     discoveryDocs: DISCOVERY_DOCS,
-    scope: scope[0],
-  }).then(() => {
-    state.driveApiReady = true;
+    scope: scopes.join(' '),
   });
 }
 
@@ -150,52 +183,15 @@ function enablePublicViewing(docId, onSuccess, onFailure) {
   request.execute(onSuccess, onFailure);
 }
 
-function onAuthApiLoad() {
-  window.gapi.auth.authorize(
-    {
-      'client_id': clientId,
-      'scope': scope,
-      'immediate': false,
-    },
-    handleAuthResult
-  );
-}
-
-function onPickerApiLoad() {
-  state.pickerApiLoaded = true;
-  createPicker();
-}
-
-function handleAuthResult(authResult) {
-  if (authResult && !authResult.error) {
-    state.oauthToken = authResult.access_token;
-    createPicker();
-  }
-}
-
-const GOOGLE_MIME_TYPES = {
-  // 'application/vnd.google-apps.document': 'googleDocs', // Note: we can
-  // reenable google documents when we figure out how to make hypothesis
-  // support pdf exports
-  'application/pdf': 'googleDriveFile',
-};
-
-// Create and render a Picker object for searching images.
-function createPicker() {
-  if (state.pickerApiLoaded && state.oauthToken) {
-    const mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
-    const view = new google.picker.View(google.picker.ViewId.DOCS);
-    view.setMimeTypes(mimeTypes);
-    const picker = new google.picker.PickerBuilder()
-        .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
-        .setOAuthToken(state.oauthToken)
-        .addView(view)
-        .addView(new google.picker.DocsUploadView())
-        .setDeveloperKey(developerKey)
-        .setCallback(pickerCallback)
-        .build();
-    picker.setVisible(true);
-  }
+/**
+ * Request access to the user's data in Google Drive.
+ */
+function authorizeGoogleDriveAccess() {
+  return googleAuth.signIn().then((user) => {
+    return user.getAuthResponse();
+  }).then((authResponse) => {
+    return authResponse.access_token;
+  });
 }
 
 ////////// Google Url Support /////////////////
@@ -243,8 +239,7 @@ function pickerCallback(data) {
 // Expose public API for use by server-rendered form in the content_item_selection
 // template.
 window.contentItemSelection = {
-  enablePickerButton,
   handleSubmit,
-  loadPicker,
+  showGoogleDriveFilePicker,
   resetError,
 };
