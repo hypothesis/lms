@@ -6,11 +6,11 @@ describe('picker table row', () => {
     const file = {
       filename: 'Test',
       updated_at: '11/11/11',
-      id: '1'
-    }
+      id: '1',
+    };
     const pickerTableRow = new PickerTableRow(store, { file });
     const output = pickerTableRow.render();
-    assert.include(output, 'Test'),
-    assert.include(output, '11/11/11')
+    assert.include(output, 'Test');
+    assert.include(output, '11/11/11');
   });
 });

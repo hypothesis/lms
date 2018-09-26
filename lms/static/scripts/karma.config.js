@@ -1,4 +1,4 @@
-var babelify = require('babelify');
+const babelify = require('babelify');
 
 module.exports = function(config) {
   config.set({
