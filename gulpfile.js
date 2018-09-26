@@ -15,7 +15,7 @@ var through = require('through2');
 var createBundle = require('./scripts/gulp/create-bundle');
 var manifest = require('./scripts/gulp/manifest');
 
-var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production' && false;
+var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
 var SCRIPT_DIR = 'build/scripts';
 
 function parseCommandLine() {
