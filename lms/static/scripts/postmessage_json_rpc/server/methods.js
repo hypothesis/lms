@@ -1,0 +1,19 @@
+/**
+ * Methods that're remotely callable by JSON-RPC over postMessage.
+ *
+ * Methods that can be remotely called by clients using our
+ * JSON-RPC-over-postMessage server (postmessage_json_rpc/server/server.js) are
+ * defined in one place in this module.
+  */
+
+"use strict";
+
+
+/**
+ * Return a Hypothesis client config object for the current LTI request.
+ */
+export function requestConfig() {
+  // Send back grant token in response.
+  const configEl = document.getElementsByClassName("js-hypothesis-config")[0]
+  return JSON.parse(configEl.textContent);
+}
