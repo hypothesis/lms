@@ -64,16 +64,24 @@ var bundleBaseConfig = {
   noParse: vendorNoParseModules,
 };
 
-var bundles = [{
-  name: 'file_picker',
-  entry: './lms/static/scripts/file_picker/_file_picker',
-},{
-  name: 'content_item_selection',
-  entry: './lms/static/scripts/content-item-selection.js',
-},{
-  name: 'new_application_instance',
-  entry: './lms/static/scripts/new-application-instance.js',
-}];
+var bundles = [
+  {
+    name: 'file_picker',
+    entry: './lms/static/scripts/file_picker/_file_picker',
+  },
+  {
+    name: 'content_item_selection',
+    entry: './lms/static/scripts/content-item-selection.js',
+  },
+  {
+    name: 'new_application_instance',
+    entry: './lms/static/scripts/new-application-instance.js',
+  },
+  {
+    name: 'postmessage_json_rpc_server',
+    entry: './lms/static/scripts/postmessage_json_rpc/server/index',
+  },
+];
 
 var bundleConfigs = bundles.map(function (config) {
   return Object.assign({}, bundleBaseConfig, config);
