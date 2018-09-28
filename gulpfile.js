@@ -70,6 +70,9 @@ var bundles = [{
 },{
   name: 'content_item_selection',
   entry: './lms/static/scripts/content-item-selection.js',
+},{
+  name: 'new_application_instance',
+  entry: './lms/static/scripts/new-application-instance.js',
 }];
 
 var bundleConfigs = bundles.map(function (config) {
