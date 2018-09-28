@@ -15,7 +15,7 @@
         <input id="url" type="text" name="document_url" onchange="contentItemSelection.resetError(this)"/>
         <span class="error"></span>
       </div>
-      <button class="btn btn--gray" onclick="contentItemSelection.loadPicker(event)">Use Google Picker</button>
+      <button class="btn btn--gray" onclick="contentItemSelection.showGoogleDriveFilePicker(event)">Use Google Picker</button>
       <span id="file-picker" />
     </div>
     <div class="form-controls">
@@ -51,6 +51,6 @@
 {% for url in asset_urls("content_item_selection_js") %}
 <script src="{{ url }}"></script>
 {% endfor %}
-<script type="text/javascript" src="https://apis.google.com/js/api.js?onload=contentItemSelection.enablePickerButton"></script>
+<script type="text/javascript" src="https://apis.google.com/js/api.js?onload=gapiLoaded"></script>
 
 {% endblock %}
