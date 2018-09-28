@@ -1,7 +1,8 @@
 {% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
-<form form id="launch-form" action="{{ content_item_return_url  }}" method="post" onsubmit="handleSubmit(event, this)" enctype="application/x-www-form-urlencoded">
+<form form id="launch-form" action="{{ content_item_return_url  }}" method="post"
+      onsubmit="contentItemSelection.handleSubmit(event, this)" enctype="application/x-www-form-urlencoded">
   <input type="hidden" name="content_items" />
   <main class="modal-content">
     <p class="modal-text">Note: sharing a file in this way creates a shared link for your course to access.</p>
@@ -11,10 +12,10 @@
           {% for field in form_fields.keys() %}
             <input type="hidden" value="{{ form_fields[field] }}" name="{{ field }}" />
           {% endfor %}
-        <input id="url" type="text" name="document_url" onchange="resetError(this)"/>
+        <input id="url" type="text" name="document_url" onchange="contentItemSelection.resetError(this)"/>
         <span class="error"></span>
       </div>
-      <button class="btn btn--gray" onclick="loadPicker(event)">Use Google Picker</button>
+      <button class="btn btn--gray" onclick="contentItemSelection.loadPicker(event)">Use Google Picker</button>
       <span id="file-picker" />
     </div>
     <div class="form-controls">
@@ -27,12 +28,17 @@
 
 
 {% block scripts %}
-
 <script type="text/javascript">
   window.DEFAULT_SETTINGS = {
     apiUrl: '{{api_url}}',
     jwt: '{{jwt}}',
-    courseId: '{{course_id}}'
+    courseId: '{{course_id}}',
+
+    lmsUrl: '{{ lms_url }}',
+    ltiLaunchUrl: '{{ lti_launch_url }}',
+
+    googleDeveloperKey: '{{ google_developer_key }}',
+    googleClientId: '{{ google_client_id }}',
   }
 </script>
 
@@ -42,255 +48,9 @@
   {% endfor %}
 {% endif %}
 
-<script type="text/javascript">
-  // TODO: handle form validation!
-    var state = {
-      selectedDocId: null,
-      selectedDocUrl: null,
-      pickerApiLoaded: false,
-      driveApiLoaded: false,
-      driveApiReady: false,
-      oauthToken: null,
-    };
+{% for url in asset_urls("content_item_selection_js") %}
+<script src="{{ url }}"></script>
+{% endfor %}
+<script type="text/javascript" src="https://apis.google.com/js/api.js?onload=contentItemSelection.enablePickerButton"></script>
 
-  function addHttp(url) {
-    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
-        url = "http://" + url;
-     }
-     return url;
-  }
-
-  function addHttps(url) {
-    if (url != "" && !/^(f|ht)tps?:\/\//i.test(url)) {
-        url = "https://" + url;
-     }
-     return url;
-  }
-
-  function resetError(input) {
-    input.parentElement.classList.remove('has-error');
-    input.parentElement.getElementsByClassName('error')[0].innerHTML = '';
-  }
-
-  function handleSubmit(event, form) {
-    if(form.elements['document_url'].value.length === 0) {
-      event.preventDefault();
-      form.getElementsByClassName('input')[0].classList.add('has-error');
-      form.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid url';
-    }
-    var docInfo;
-    if (form.elements['document_url'].value.indexOf('?') !== 0) {
-      docInfo = '?url=' +addHttp(form.elements['document_url'].value);
-    } else {
-      docInfo = form.elements['document_url'].value;
-    }
-    var launchUrl = '{{ lti_launch_url }}' + docInfo;
-    var contentItem = {
-      '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
-      '@graph': [
-        {
-          '@type': 'LtiLinkItem',
-          mediaType: 'application/vnd.ims.lti.v1.ltilink',
-          url: launchUrl,
-        },
-      ]
-    }
-
-    form.elements['content_items'].value = JSON.stringify(contentItem)
-
-    // If the user submits the google picker selected url, then we should
-    // make that file public. If they use the picker and then change the url,
-    // we should not make the selected file public.
-    var urlSelectedDocUrl = "?url=" + state.selectedDocUrl;
-    if(state.selectedDocId && state.selectedDocUrl && docInfo === urlSelectedDocUrl) {
-      // If we need to make a file public, then we need to stop the event so we
-      // can wait until the 'enable public viewing' request resolves before
-      // resubmitting the form. Otherwise the content item selection window
-      // will close and the request will be terminated.
-
-      event.preventDefault();
-      enablePublicViewing(
-        state.selectedDocId,
-        function(resp) {
-          state.selectedDocId = null;
-          state.selectedDocUrl = null;
-          form.submit();
-        }, function(err) {
-          state.selectedDocId = null;
-          state.selectedDocUrl = null;
-          form.submit();
-          throw new Error(err)
-        }
-      );
-    }
-  }
-
-////////  Google Picker Integration ///////
-
-   function enablePickerButton() {
-     var picker = document.getElementById('picker-button');
-     if(picker) { picker.disabled = false; }
-   }
-
-
-/////// Google Picker /////////
-    // The Browser API key obtained from the Google API Console.
-    var developerKey = '{{ google_developer_key }}';
-
-    // The Client ID obtained from the Google API Console. Replace with your own Client ID.
-    var clientId = '{{ google_client_id }}';
-
-    // Replace with your own project number from console.developers.google.com.
-    // See "Project number" under "IAM & Admin" > "Settings"
-    var appId = '{{ google_app_id }}';
-
-    // Scope to use to access user's Drive items.
-    var scope = ['https://www.googleapis.com/auth/drive'];
-
-
-    // Array of API discovery doc URLs for APIs used by the quickstart
-    var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-
-    // Use the Google API Loader script to load the google.picker script.
-    function loadPicker(event) {
-      event.preventDefault()
-      gapi.load('auth', {
-        callback: onAuthApiLoad,
-        onerror: onLoadError
-      });
-      gapi.load('picker', {
-        callback: onPickerApiLoad,
-        onerror: onLoadError
-      });
-      gapi.load('client', {
-        callback: onClientLoad,
-        onerror: onLoadError
-      });
-    }
-
-    function onLoadError(e) {
-      throw new Error('Error loading Google Api');
-    }
-
-      function onClientLoad() {
-        state.driveApiLoaded = true;
-
-        gapi.client.init({
-          apiKey: developerKey,
-          clientId: clientId,
-          discoveryDocs: DISCOVERY_DOCS,
-          scope: scope[0]
-        }).then(function () {
-          state.driveApiReady = true;
-        });
-      }
-
-     function enablePublicViewing(docId, onSuccess, onFailure){
-        var body = {
-          'type': 'anyone',
-          'role': 'reader'
-        };
-        var request = gapi.client.drive.permissions.create({
-          'fileId': docId,
-          'resource': body
-        });
-        request.execute(onSuccess, onFailure);
-     }
-
-
-    function onAuthApiLoad() {
-      window.gapi.auth.authorize(
-        {
-          'client_id': clientId,
-          'scope': scope,
-          'immediate': false
-        },
-        handleAuthResult
-      );
-    }
-
-    function onPickerApiLoad() {
-      state.pickerApiLoaded = true;
-      createPicker();
-    }
-
-    function handleAuthResult(authResult) {
-      if (authResult && !authResult.error) {
-        state.oauthToken = authResult.access_token;
-        createPicker();
-      }
-    }
-
-  var GOOGLE_MIME_TYPES = {
-    // 'application/vnd.google-apps.document': 'googleDocs', // Note: we can
-    // reenable google documents when we figure out how to make hypothesis
-    // support pdf exports
-    'application/pdf': 'googleDriveFile',
-  };
-
-
-    // Create and render a Picker object for searching images.
-    function createPicker() {
-      if (state.pickerApiLoaded && state.oauthToken) {
-        var mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
-        var view = new google.picker.View(google.picker.ViewId.DOCS);
-        view.setMimeTypes(mimeTypes);
-        var picker = new google.picker.PickerBuilder()
-            .setOrigin(addHttps('{{lms_url}}'))
-            .setOAuthToken(state.oauthToken)
-            .addView(view)
-            .addView(new google.picker.DocsUploadView())
-            .setDeveloperKey(developerKey)
-            .setCallback(pickerCallback)
-            .build();
-         picker.setVisible(true);
-      }
-    }
-
-
- ////////// Google Url Support /////////////////
-   function buildDocUrl(doc) {
-     var urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType]
-     switch(urlBuilder) {
-       case 'googleDocs':
-         return googleDocUrl(doc);
-       case 'googleDriveFile':
-         return googleDriveFileUrl(doc);
-       default:
-         throw new Error('Mime type not supported');
-     }
-   }
-
-   function googleDriveFileUrl(doc) {
-     return 'https://drive.google.com/uc?id='
-       + doc.id
-       + '&authuser=0&export=download';
-   }
-
-   function googleDocUrl(doc) {
-     return 'https://docs.google.com/document/d/'
-       + doc.id
-       + '/export?format=pdf';
-   }
-
-    function pickerCallback(data) {
-      var docCount = data.docs && data.docs.length;
-      if (data.action == google.picker.Action.PICKED && docCount === 1) {
-        var doc = data.docs[0];
-        var url = buildDocUrl(doc);
-        state.selectedDocId = doc.id;
-        state.selectedDocUrl = url;
-        if(url) {
-          var input = document.getElementById('launch-form').elements['document_url']
-          input.value = url;
-          resetError(input)
-        } else {
-          throw new Error('Document url could not be constructed');
-        }
-      }
-    }
-
-</script>
- <script type="text/javascript"
-src="https://apis.google.com/js/api.js?onload=enablePickerButton"></script>
 {% endblock %}
