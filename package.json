@@ -28,7 +28,7 @@
     "browserify": "^16.2.2",
     "commander": "^2.9.0",
     "end-of-stream": "^1.1.0",
-    "exorcist": "^0.4.0",
+    "exorcist": "^1.0.1",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-util": "^3.0.7",
