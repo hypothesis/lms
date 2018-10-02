@@ -6,14 +6,12 @@
  * defined in one place in this module.
   */
 
-"use strict";
-
 
 /**
  * Return a Hypothesis client config object for the current LTI request.
  */
 export function requestConfig() {
   // Send back grant token in response.
-  const configEl = document.getElementsByClassName("js-hypothesis-config")[0]
+  const configEl = document.getElementsByClassName('js-hypothesis-config')[0];
   return JSON.parse(configEl.textContent);
 }

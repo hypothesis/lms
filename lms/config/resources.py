@@ -14,11 +14,13 @@ class Root:
     __acl__ = [(Allow, "report_viewers", "view")]
 
     def __init__(self, request):
+        """Return the default root resource object."""
         self.request = request
 
     @property
     def hypothesis_config(self):
-        """Return the Hypothesis client config object for the current request.
+        """
+        Return the Hypothesis client config object for the current request.
 
         Return a dict suitable for dumping to JSON and using as a Hypothesis
         client config object. Includes settings specific to the current LTI

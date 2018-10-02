@@ -1,4 +1,4 @@
-"use strict";
+
 
 export default class Server {
 
@@ -9,7 +9,7 @@ export default class Server {
 
     // Add a postMessage event listener so we can recieve JSON-RPC requests.
     this._boundReceiveMessage = this._receiveMessage.bind(this);
-    window.addEventListener("message", this._boundReceiveMessage);
+    window.addEventListener('message', this._boundReceiveMessage);
 
     // The methods that can be called remotely via this server.
     this._registeredMethods = {};
@@ -26,7 +26,7 @@ export default class Server {
    * Turn off this Server instance, it will no longer respond to messages.
    */
   off() {
-    window.removeEventListener("message", this._boundReceiveMessage);
+    window.removeEventListener('message', this._boundReceiveMessage);
   }
 
   /**
@@ -44,14 +44,14 @@ export default class Server {
       return;
     }
 
-    event.source.postMessage(this._jsonRPCResponse(event.data), event.origin)
+    event.source.postMessage(this._jsonRPCResponse(event.data), event.origin);
   }
 
   /**
    * Return true if the given postMessage event is a JSON-RPC request.
    */
   _isJSONRPCRequest(event) {
-    if (!(event.data instanceof Object) || event.data.jsonrpc !== "2.0") {
+    if (!(event.data instanceof Object) || event.data.jsonrpc !== '2.0') {
       // Event is neither a JSON-RPC request or response.
       return false;
     }
@@ -71,11 +71,11 @@ export default class Server {
     // Return an error response if the request id is invalid.
     // id must be a string, number or null.
     const id = event.data.id;
-    if (!(["string", "number"].includes(typeof id) || id === null)) {
+    if (!(['string', 'number'].includes(typeof id) || id === null)) {
       return {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: null,
-        error: {code: -32600, message: "request id invalid"},
+        error: {code: -32600, message: 'request id invalid'},
       };
     }
 
@@ -84,13 +84,13 @@ export default class Server {
     // Return an error response if the method name is invalid.
     if (method === undefined) {
       return {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: request.id,
-        error: {code: -32600, message: "method name not recognized"},
+        error: {code: -32600, message: 'method name not recognized'},
       };
     }
 
     // Call the method and return the result response.
-    return {jsonrpc: "2.0", result: method(), id: request.id};
+    return {jsonrpc: '2.0', result: method(), id: request.id};
   }
 }
