@@ -7,5 +7,5 @@ class Root:
     __acl__ = [(Allow, 'report_viewers', 'view')]
 
     def __init__(self, request):
-        """Pass."""
-        pass
+        """Return the default root resource object."""
+        self.request = request
