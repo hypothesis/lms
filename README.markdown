@@ -143,6 +143,11 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export H_JWT_CLIENT_ID="3ac7***71e4"
     export H_JWT_CLIENT_SECRET="OJGx***c8x4"
 
+    # A space-separated list of window origins from which JSON-RPC requests
+    # will be accepted over postMessage. In a development environment the
+    # Hypothesis client would normally be served from localhost:5000.
+    export RPC_ALLOWED_ORIGINS="http://localhost:5000"
+
     # An optional space-separated list of the consumer keys of the application
     # instances for which the "auto provisioning" features should be enabled.
     # Defaults to an empty list ([]) if none provided (i.e. the features will
