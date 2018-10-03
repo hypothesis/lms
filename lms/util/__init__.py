@@ -14,6 +14,7 @@ from lms.util.h_api import generate_username
 from lms.util.h_api import generate_group_name
 from lms.util.jwt import jwt
 from lms.util.lti_launch import lti_launch
+from lms.util.via import via_url
 from lms.util.view_renderer import view_renderer
 
 __all__ = (
@@ -29,6 +30,7 @@ __all__ = (
     'jwt',
     'lti_launch',
     'save_token',
+    'via_url',
     'view_renderer',
     'GET',
     'POST',

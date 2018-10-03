@@ -13,6 +13,7 @@ from lms.views.content_item_selection import content_item_form
 from lms.util.associate_user import associate_user
 from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
+from lms.util import via_url
 from lms.models.tokens import find_token_by_user_id
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.views.decorators import create_h_user
@@ -201,8 +202,7 @@ def lti_launches(request, jwt, user=None):
 @view_renderer(renderer='lms:templates/lti_launches/new_lti_launch.html.jinja2')
 def _view_document(request, document_url, jwt):
     return {
-        'hypothesis_url':
-        f"{request.registry.settings['via_url']}/{document_url}",
+        'via_url': via_url(request, document_url),
         'jwt': jwt
     }
 
