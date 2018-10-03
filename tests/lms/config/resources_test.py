@@ -33,6 +33,9 @@ class TestRoot:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
+    def test_rpc_server_config(self, root):
+        assert root.rpc_server_config == {"allowedOrigins": ["http://localhost:5000"]}
+
     @pytest.fixture
     def root(self, pyramid_request):
         return resources.Root(pyramid_request)

@@ -57,3 +57,9 @@ class Root:
                 }
             ]
         }
+
+    @property
+    def rpc_server_config(self):
+        """Return the config object for the JSON-RPC server."""
+        allowed_origins = self.request.registry.settings["rpc_allowed_origins"]
+        return {"allowedOrigins": allowed_origins}

@@ -151,6 +151,7 @@ def pyramid_config(pyramid_request):
         'h_authority': 'TEST_AUTHORITY',
         'h_api_url': 'https://example.com/api',
         'auto_provisioning': 'Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20',
+        'rpc_allowed_origins': ['http://localhost:5000'],
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
@@ -213,7 +214,10 @@ def lti_launch_request(monkeypatch, pyramid_request):
     pyramid_request.params['context_id'] = 'fake_context_id'
     monkeypatch.setattr('pylti.common.verify_request_common', lambda a, b, c, d, e: True)
 
-    pyramid_request.context = {"hypothesis_config": {}}
+    pyramid_request.context = {
+        "rpc_server_config": {},
+        "hypothesis_config": {},
+    }
 
     yield pyramid_request
 
