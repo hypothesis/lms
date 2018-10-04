@@ -40,6 +40,12 @@ class Root:
         authority = self.request.registry.settings["h_authority"]
         audience = urllib.parse.urlparse(api_url).hostname
 
+        # Make sure that the API URL ends with a /.
+        # The client handles it incorrectly otherwise.
+        # See https://github.com/hypothesis/client/issues/783
+        if not api_url.endswith("/"):
+            api_url = api_url + "/"
+
         def grant_token():
             now = datetime.datetime.utcnow()
             username = util.generate_username(self.request.params)
