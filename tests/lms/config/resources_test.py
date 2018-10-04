@@ -33,8 +33,25 @@ class TestRoot:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
+    def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
+        self, pyramid_request, root
+    ):
+        pyramid_request.params.update({"oauth_consumer_key": "some_other_key"})
+        assert root.hypothesis_config == {}
+
     def test_rpc_server_config(self, root):
         assert root.rpc_server_config == {"allowedOrigins": ["http://localhost:5000"]}
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params.update(
+            {
+                # A valid oauth_consumer_key (matches one for which the
+                # provisioning features are enabled).
+                "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
+            }
+        )
+        return pyramid_request
 
     @pytest.fixture
     def root(self, pyramid_request):

@@ -2,6 +2,7 @@ import datetime
 import urllib
 
 import jwt
+from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms import util
@@ -30,6 +31,9 @@ class Root:
         See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
 
         """
+        if not self._auto_provisioning_feature_enabled:
+            return {}
+
         client_id = self.request.registry.settings["h_jwt_client_id"]
         client_secret = self.request.registry.settings["h_jwt_client_secret"]
         api_url = self.request.registry.settings["h_api_url"]
@@ -63,3 +67,14 @@ class Root:
         """Return the config object for the JSON-RPC server."""
         allowed_origins = self.request.registry.settings["rpc_allowed_origins"]
         return {"allowedOrigins": allowed_origins}
+
+    @property
+    def _auto_provisioning_feature_enabled(self):
+        try:
+            oauth_consumer_key = self.request.params["oauth_consumer_key"]
+        except KeyError:
+            raise HTTPBadRequest(
+                f'Required parameter "oauth_consumer_key" missing from LTI params'
+            )
+        enabled_consumer_keys = self.request.registry.settings["auto_provisioning"]
+        return oauth_consumer_key in enabled_consumer_keys
