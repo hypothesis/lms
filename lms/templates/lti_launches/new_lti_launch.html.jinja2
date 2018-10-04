@@ -1,1 +1,8 @@
-<iframe width="100%" height="100%" src="{{hypothesis_url}}" />
+<script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson}}</script>
+<script type="application/json" class="js-hypothesis-config">{{ context.hypothesis_config|tojson}}</script>
+
+{% for url in asset_urls("postmessage_json_rpc_server_js") %}
+  <script src="{{ url }}"></script>
+{% endfor %}
+
+<iframe width="100%" height="100%" src="{{ via_url }}" />

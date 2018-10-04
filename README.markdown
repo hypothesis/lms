@@ -81,6 +81,30 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
       need the generated <samp>Client ID</samp> and <samp>Client secret</samp>
       for setting your environment variables later.
 
+1. Also create a jwt_bearer auth client in h.
+
+   The LMS app also requires the `client_id` and `client_secret` from a
+   `jwt_bearer`-type auth client in h in order to generate authorization grant
+   tokens for logging in to h user accounts.
+
+   Go to <http://localhost:5000/admin/oauthclients/new> and create an auth
+   client with these settings:
+
+      <dl>
+        <dt>Name</dt>
+        <dd>LMS JWT</dd>
+        <dt>Authority</dt>
+        <dd>lms.hypothes.is</dd>
+        <dt>Grant type</dt>
+        <dd>jwt_bearer</dd>
+        <dt>Redirect URL</dt>
+        <dd>(Leave empty)</dd>
+      </dl>
+
+      Click <samp>Register client</samp> and keep the tab open because you'll
+      need the generated <samp>Client ID</samp> and <samp>Client secret</samp>
+      for setting your environment variables later.
+
 1. **Configure environment variables**
 
     Setting up [Google API integration](#google-apis) and [application instance reports](#instance-reports) access is optional at this point; you can leave the default values for related environment variables for now, if you like.
@@ -112,6 +136,17 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export H_CLIENT_SECRET="eVJ4***rXkk"
     export H_AUTHORITY="lms.hypothes.is"
     export H_API_URL="http://localhost:5000/api"
+
+    # For logging in to the Hypothesis client.
+    # The values for H_JWT_CLIENT_ID and H_JWT_CLIENT_SECRET should come from
+    # the jwt_bearer auth client that you created in h earlier.
+    export H_JWT_CLIENT_ID="3ac7***71e4"
+    export H_JWT_CLIENT_SECRET="OJGx***c8x4"
+
+    # A space-separated list of window origins from which JSON-RPC requests
+    # will be accepted over postMessage. In a development environment the
+    # Hypothesis client would normally be served from localhost:5000.
+    export RPC_ALLOWED_ORIGINS="http://localhost:5000"
 
     # An optional space-separated list of the consumer keys of the application
     # instances for which the "auto provisioning" features should be enabled.
