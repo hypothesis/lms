@@ -46,7 +46,7 @@
     "diff": "^3.5.0",
     "eslint": "^5.6.1",
     "eslint-config-hypothesis": "^1.0.0",
-    "gulp-eslint": "^3.0.1",
+    "gulp-eslint": "^5.0.0",
     "karma": "^3.0.0",
     "karma-browserify": "^5.3.0",
     "karma-chai": "^0.1.0",
