@@ -19,16 +19,16 @@ export default class CanvasApi {
     return new Promise((resolve, reject) => {
       // All requests to the proxy are posts.
       Request
-      .post(this.baseUrl)
-      .send({ endpoint_url: endpointUrl,  method, params })
-      .set('Authorization', `Bearer ${window.DEFAULT_SETTINGS.jwt}`)
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(res);
-      });
+        .post(this.baseUrl)
+        .send({ endpoint_url: endpointUrl,  method, params })
+        .set('Authorization', `Bearer ${window.DEFAULT_SETTINGS.jwt}`)
+        .end((err, res) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(res);
+        });
     });
   }
 }

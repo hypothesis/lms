@@ -146,13 +146,13 @@ function showGoogleDriveFilePicker(event) {
     const view = new google.picker.View(google.picker.ViewId.DOCS);
     view.setMimeTypes(mimeTypes);
     const picker = new google.picker.PickerBuilder()
-        .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
-        .setOAuthToken(accessToken)
-        .addView(view)
-        .addView(new google.picker.DocsUploadView())
-        .setDeveloperKey(developerKey)
-        .setCallback(pickerCallback)
-        .build();
+      .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
+      .setOAuthToken(accessToken)
+      .addView(view)
+      .addView(new google.picker.DocsUploadView())
+      .setDeveloperKey(developerKey)
+      .setCallback(pickerCallback)
+      .build();
     picker.setVisible(true);
   });
 }
