@@ -11,7 +11,7 @@ class TestOAuthState:
         user = build_from_lti_params(lti_launch_request.params)
         session.add(user)
         session.flush()
-        lti_params = json.dumps(dict(lti_launch_request.params))
+        lti_params = lti_launch_request.params
 
         result = find_or_create_from_user(db_session, state_guid, user, lti_params)
 

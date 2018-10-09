@@ -21,6 +21,7 @@ class OauthState(BASE):
 def find_or_create_from_user(session, state, user, lti_params):
     existing_state = _find_by_state(session, state)
     if existing_state is None:
+        lti_params = json.dumps(dict(lti_params))
         oauth_state = OauthState(user_id=user.id, guid=state, lti_params=lti_params)
         session.add(oauth_state)
         return oauth_state
