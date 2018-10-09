@@ -3,8 +3,7 @@ import json
 from pyramid.response import Response
 from lms.util import authorize_lms, save_token
 from lms.models import build_from_lms_url
-from lms.models import User
-from lms.models import find_by_state
+from lms.models import User, find_lti_params
 
 
 @authorize_lms(
@@ -65,20 +64,15 @@ class TestAuthorizeLms:
         assert response.code == 302
         assert "https://hypothesis.instructure.com/login/oauth2/auth" in response.location
 
-    def test_it_saves_state(self, lti_launch_request):
+    def test_it_saves_lti_params(self, lti_launch_request):
         create_application_instance(lti_launch_request)
         user = create_user(lti_launch_request)
 
         response = view_function(lti_launch_request, user=user)
         query_params = parse_qs(urlparse(response.location).query)
 
-        oauth_state = find_by_state(lti_launch_request.db, query_params['state'][0])
-
-        expected_lti_params = json.dumps(dict(lti_launch_request.params))
-
-        assert oauth_state.lti_params != ""
-        assert oauth_state.lti_params is not None
-        assert oauth_state.lti_params == expected_lti_params
+        lti_params = find_lti_params(lti_launch_request.db, query_params['state'][0])
+        assert lti_params == lti_launch_request.params
 
     def test_it_only_redirects_if_condition_is_truthy(self, lti_launch_request):
         create_application_instance(lti_launch_request)

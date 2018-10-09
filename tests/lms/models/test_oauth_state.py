@@ -1,6 +1,7 @@
 import json
+
 from lms.models import build_from_lti_params
-from lms.models import OauthState, find_or_create_from_user
+from lms.models import OauthState, find_or_create_from_user, find_lti_params
 
 
 class TestOAuthState:
@@ -33,3 +34,14 @@ class TestOAuthState:
         result = find_or_create_from_user(db_session, state_guid, user, lti_params)
 
         assert result.id == existing_state.id
+
+
+class TestFindLTIParams:
+    def test_if_theres_no_record_in_the_db_it_returns_None(self, db_session):
+        assert find_lti_params(db_session, "foo") is None
+
+    def test_if_theres_a_record_in_the_db_it_returns_the_lti_params(self, db_session):
+        lti_params = {"foo": "bar"}
+        db_session.add(OauthState(user_id=1, guid="test_guid", lti_params=json.dumps(lti_params)))
+
+        assert find_lti_params(db_session, "test_guid") == lti_params
