@@ -49,7 +49,7 @@ export default class FilePicker extends Component {
           ...currentState,
           files: JSON.parse(res.text),
         },
-          this.store.eventTypes.FILES_LOADED
+        this.store.eventTypes.FILES_LOADED
         );
       });
     }
@@ -76,9 +76,9 @@ export default class FilePicker extends Component {
               </table>
             </div>
             ${new PickerFooter(
-              this.store,
-              { pickerCallback: this.props.pickerCallback }
-            )}
+    this.store,
+    { pickerCallback: this.props.pickerCallback }
+  )}
           </main>
         </div>
         <div class="file-picker-overlay" />
