@@ -1,11 +1,11 @@
 import urllib
-import json
 import requests_oauthlib
 import pyramid.httpexceptions as exc
-from lms.models.oauth_state import find_or_create_from_user, find_by_state, find_user_from_state
+from lms.models import find_or_create_from_user, find_user_from_state
 from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
 from lms.util.jwt import build_jwt_from_lti_launch
+from lms.util.lti import lti_params_for
 
 
 def build_canvas_token_url(lms_url):
@@ -75,8 +75,7 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             oauth_session = requests_oauthlib.OAuth2Session(client_id, redirect_uri=redirect_uri)
             authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)
 
-            lti_params = json.dumps(dict(request.params))
-            oauth_state = find_or_create_from_user(request.db, state_guid, user, lti_params)
+            oauth_state = find_or_create_from_user(request.db, state_guid, user, request.params)
             if oauth_state is None:
                 raise exc.HTTPInternalServerError()
             return exc.HTTPFound(location=authorization_url)
@@ -92,13 +91,7 @@ def save_token(view_function):
         if 'state' not in request.params or 'code' not in request.params:
             raise exc.HTTPInternalServerError('Invalid Oauth Response')
 
-        state = request.params['state']
-        oauth_state = find_by_state(request.db, state)
-
-        if oauth_state is None:
-            raise exc.HTTPInternalServerError('Oauth state was not found')
-
-        lti_params = json.loads(oauth_state.lti_params)
+        lti_params = lti_params_for(request)
 
         application_instance = find_by_oauth_consumer_key(
             request.db,
@@ -114,6 +107,7 @@ def save_token(view_function):
 
         token_url = build_canvas_token_url(application_instance.lms_url)
 
+        state = request.params["state"]
         session = requests_oauthlib.OAuth2Session(client_id, state=state)
         oauth_resp = session.fetch_token(token_url, client_secret=client_secret,
                                          authorization_response=request.url,
