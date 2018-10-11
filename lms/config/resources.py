@@ -6,6 +6,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms import util
+from lms.util import lti_params_for
 
 
 class Root:
@@ -16,6 +17,10 @@ class Root:
     def __init__(self, request):
         """Return the default root resource object."""
         self.request = request
+        # This will raise HTTPBadRequest if the request looks like an OAuth
+        # redirect request but no DB-stashed LTI params can be found for the
+        # request.
+        self.lti_params = lti_params_for(request)
 
     @property
     def hypothesis_config(self):
@@ -48,7 +53,7 @@ class Root:
 
         def grant_token():
             now = datetime.datetime.utcnow()
-            username = util.generate_username(self.request.params)
+            username = util.generate_username(self.lti_params)
             claims = {
                 "aud": audience,
                 "iss": client_id,
@@ -77,7 +82,7 @@ class Root:
     @property
     def _auto_provisioning_feature_enabled(self):
         try:
-            oauth_consumer_key = self.request.params["oauth_consumer_key"]
+            oauth_consumer_key = self.lti_params["oauth_consumer_key"]
         except KeyError:
             raise HTTPBadRequest(
                 f'Required parameter "oauth_consumer_key" missing from LTI params'
