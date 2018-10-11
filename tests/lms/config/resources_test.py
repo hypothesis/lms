@@ -18,7 +18,7 @@ class TestLTILaunch:
         assert len(lti_launch.hypothesis_config["services"]) == 1
 
     def test_hypothesis_config_includes_the_api_url(self, lti_launch):
-        lti_launch.hypothesis_config["services"][0]["apiUrl"] == "https://example.com/api"
+        assert lti_launch.hypothesis_config["services"][0]["apiUrl"] == "https://example.com/api/"
 
     def test_hypothesis_config_includes_the_authority(self, lti_launch):
         assert lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
