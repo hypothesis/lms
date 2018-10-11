@@ -169,7 +169,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     $ make dev
     ```
 
-4. Visit [https://localhost:8001/welcome](https://localhost:8001/welcome) in a browser
+4. Visit [http://localhost:8001/welcome](http://localhost:8001/welcome) in a browser
 
 
 <a id="google-apis"></a>
@@ -195,7 +195,7 @@ The app supports the ability to select documents (for annotation) via Google Dri
     For the OAuth client ID form itself:
 
     * Set application type to `Web Application`
-    * The 'Authorized Javascript Origins' list should be edited to include the url of the app. (Hint: this is probably `https://localhost:8001` unless you changed the default settings for this)
+    * The 'Authorized Javascript Origins' list should be edited to include the url of the app. (Hint: this is probably `http://localhost:8001` unless you changed the default settings for this)
     * The Authorized redirect URIs tab can be left blank
 
 1. Enable the needed APIs.
@@ -219,8 +219,8 @@ In order to use the Canvas file picker, you need to generate a developer key and
     1. For name and email you can enter whatever you please; leave the legacy redirect URI field blank
     1. For the `Redirect URIs` field enter:
         ```
-        https://localhost:8001/canvas_oauth_callback
-        https://localhost:8001/module_item_launch_oauth_callback
+        http://localhost:8001/canvas_oauth_callback
+        http://localhost:8001/module_item_launch_oauth_callback
         ```
 
         *Note*: For QA, replace `localhost:8001` with `qa-lms.hypothes.is`; for production, replace it with `lms.hypothes.is`
@@ -236,9 +236,9 @@ In order to use the Canvas file picker, you need to generate a developer key and
 
 #### Generating a consumer key and secret
 
-The [https://localhost:8001/welcome](https://localhost:8001/welcome) tool is used to generate a consumer key and a secret that will be used when installing the Hypothesis LMS app for a Canvas (LMS) course.
+The [http://localhost:8001/welcome](http://localhost:8001/welcome) tool is used to generate a consumer key and a secret that will be used when installing the Hypothesis LMS app for a Canvas (LMS) course.
 
-1. With your [dev web server running](#run-webserver), visit [https://localhost:8001/welcome](https://localhost:8001/welcome) in a browser.
+1. With your [dev web server running](#run-webserver), visit [http://localhost:8001/welcome](http://localhost:8001/welcome) in a browser.
 1. Enter the domain for the Canvas instance where the Hypothesis LMS app will be installed (e.g. `foo.instructure.com`)
 1. Enter your email (any email is fine here)
 1. To enable Canvas picker integration, enter the Developer Key and Developer Secret generated during the [the Canvas Picker configuration step](#canvas-picker) into the corresponding fields here
@@ -256,7 +256,7 @@ The [https://localhost:8001/welcome](https://localhost:8001/welcome) tool is use
     * For `Configuration Type`, select `Paste XML`
     * Give your App a name
     * Enter the consumer key and secret you generated (above) in the provided fields
-    * Visit [https://localhost:8001/config_xml](https://localhost:8001/config_xml) and paste the contents of the output into the `XML Configuration` field
+    * Visit [http://localhost:8001/config_xml](http://localhost:8001/config_xml) and paste the contents of the output into the `XML Configuration` field
     * Submitting the form should install the app and it should be available from within the Modules and Assignments areas of the course
 
 ### Configuring Assignments and Modules
@@ -299,7 +299,7 @@ To enable a report of application instances in the DB, you'll need to define the
 
 * Run the command-line script `lms/util/get_password_hash.py`. It will generate a value for `HASHED_PW` and `SALT`
 * Set `USERNAME` to the desired username for accessing these reports
-* When the webserver is running, you can access the reports in a browser at [https://localhost:8001/reports](https://localhost:8001/reports)
+* When the webserver is running, you can access the reports in a browser at [http://localhost:8001/reports](http://localhost:8001/reports)
 
 ## Development
 
