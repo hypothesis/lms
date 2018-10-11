@@ -17,6 +17,14 @@ class Root:
     def __init__(self, request):
         """Return the default root resource object."""
         self.request = request
+
+
+class LTILaunch:
+    """Context resource for LTI launch requests."""
+
+    def __init__(self, request):
+        """Return the context resource for an LTI launch request."""
+        self.request = request
         # This will raise HTTPBadRequest if the request looks like an OAuth
         # redirect request but no DB-stashed LTI params can be found for the
         # request.

@@ -7,26 +7,26 @@ from pyramid.httpexceptions import HTTPBadRequest
 from lms.config import resources
 
 
-class TestRoot:
+class TestLTILaunch:
     def test_it_raises_if_no_lti_params_for_request(self, pyramid_request, lti_params_for):
         lti_params_for.side_effect = HTTPBadRequest()
 
         with pytest.raises(HTTPBadRequest):
-            resources.Root(pyramid_request)
+            resources.LTILaunch(pyramid_request)
 
-    def test_hypothesis_config_contains_one_service_config(self, root):
-        assert len(root.hypothesis_config["services"]) == 1
+    def test_hypothesis_config_contains_one_service_config(self, lti_launch):
+        assert len(lti_launch.hypothesis_config["services"]) == 1
 
-    def test_hypothesis_config_includes_the_api_url(self, root):
-        root.hypothesis_config["services"][0]["apiUrl"] == "https://example.com/api"
+    def test_hypothesis_config_includes_the_api_url(self, lti_launch):
+        lti_launch.hypothesis_config["services"][0]["apiUrl"] == "https://example.com/api"
 
-    def test_hypothesis_config_includes_the_authority(self, root):
-        assert root.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
+    def test_hypothesis_config_includes_the_authority(self, lti_launch):
+        assert lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
 
-    def test_hypothesis_config_includes_grant_token(self, root):
+    def test_hypothesis_config_includes_grant_token(self, lti_launch):
         before = int(datetime.datetime.now().timestamp())
 
-        grant_token = root.hypothesis_config["services"][0]["grantToken"]
+        grant_token = lti_launch.hypothesis_config["services"][0]["grantToken"]
 
         claims = jwt.decode(
             grant_token,
@@ -41,17 +41,17 @@ class TestRoot:
         assert claims["exp"] > before
 
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
-        self, pyramid_request, root, lti_params_for
+        self, pyramid_request, lti_launch, lti_params_for
     ):
         lti_params_for.return_value.update({"oauth_consumer_key": "some_other_key"})
-        assert root.hypothesis_config == {}
+        assert lti_launch.hypothesis_config == {}
 
-    def test_rpc_server_config(self, root):
-        assert root.rpc_server_config == {"allowedOrigins": ["http://localhost:5000"]}
+    def test_rpc_server_config(self, lti_launch):
+        assert lti_launch.rpc_server_config == {"allowedOrigins": ["http://localhost:5000"]}
 
     @pytest.fixture
-    def root(self, pyramid_request):
-        return resources.Root(pyramid_request)
+    def lti_launch(self, pyramid_request):
+        return resources.LTILaunch(pyramid_request)
 
     @pytest.fixture(autouse=True)
     def lti_params_for(self, patch):
