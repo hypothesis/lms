@@ -160,6 +160,43 @@ class TestConfigure:
 
         assert configurator.registry.settings["auto_provisioning"] == expected_setting
 
+    @pytest.mark.parametrize("envvar_value,expected_setting", [
+        # Strings with spaces in them get turned into lists.
+        (
+            "https://example.com https://hypothes.is",
+            ["https://example.com", "https://hypothes.is"],
+        ),
+
+        # A string with no spaces in it becomes a list of one.
+        ("https://example.com", ["https://example.com"]),
+
+        # Leading and trailing whitespace is ignored.
+        ("https://example.com  ", ["https://example.com"]),
+        ("  https://example.com", ["https://example.com"]),
+        ("  https://example.com  ", ["https://example.com"]),
+        (
+            " https://example.com   https://hypothes.is ",
+            ["https://example.com", "https://hypothes.is"],
+        ),
+
+        # An empty string produces an empty list.
+        ("", []),
+
+        # A whitespace-only string produces an empty list.
+        ("  ", []),
+    ])
+    def test_rpc_allowed_origins_setting(self, env_setting, envvar_value, expected_setting):
+        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+            if envvar_name == "RPC_ALLOWED_ORIGINS":
+                return envvar_value
+            return mock.DEFAULT
+
+        env_setting.side_effect = side_effect
+
+        configurator = configure({})
+
+        assert configurator.registry.settings["rpc_allowed_origins"] == expected_setting
+
     # Pre-existing settings in the `settings` dict (which come from the *.ini
     # file) get overwritten if there's an environment variable with the same
     # setting name.
