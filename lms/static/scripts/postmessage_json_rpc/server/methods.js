@@ -10,6 +10,6 @@
  * Return a Hypothesis client config object for the current LTI request.
  */
 export function requestConfig() {
-  const configEl = document.getElementsByClassName('js-hypothesis-config')[0];
+  const configEl = document.querySelector('.js-hypothesis-config');
   return JSON.parse(configEl.textContent);
 }
