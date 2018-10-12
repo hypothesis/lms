@@ -91,7 +91,7 @@ export default class Server {
   _jsonRPCResponse(request) {
     // Return an error response if the request id is invalid.
     // id must be a string, number or null.
-    const id = event.data.id;
+    const id = request.id;
     if (!(['string', 'number'].includes(typeof id) || id === null)) {
       return {
         jsonrpc: '2.0',
