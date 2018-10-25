@@ -5,6 +5,7 @@ import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
+from lms import models
 from lms import util
 from lms.util import lti_params_for
 
@@ -71,12 +72,22 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
+        tool_consumer_instance_guid = self.lti_params.get(
+            "tool_consumer_instance_guid"
+        )
+        context_id = self.lti_params.get("context_id")
+        group = models.CourseGroup.get(
+            self.request.db, tool_consumer_instance_guid, context_id
+        )
+        assert group is not None, "The group should always exist by now"
+
         return {
             "services": [
                 {
                     "apiUrl": api_url,
                     "authority": authority,
                     "grantToken": grant_token().decode("utf-8"),
+                    "groups": [group.pubid],
                 }
             ]
         }
