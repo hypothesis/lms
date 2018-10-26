@@ -56,14 +56,6 @@ class TestErrorViews:
 
         assert pyramid_request.response.status_int == 500
 
-    def test_it_logs_non_http_error_in_sentry(self, pyramid_request):
-        exc = Exception()
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-        error_views.error()
-
-        assert pyramid_request.raven.captureException.call_count == 1
-
     def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
         exc = MissingLTILaunchParamError('test')
 
@@ -95,12 +87,3 @@ class TestErrorViews:
         resp = error_views.missing_lti_param_error()
 
         assert pyramid_request.response.status_int == 400
-
-    def test_it_logs_missing_lti_launch_param_error_in_sentry(self, pyramid_request):
-        exc = MissingLTILaunchParamError('test lti launch param error msg')
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-        error_views.missing_lti_param_error()
-
-        assert pyramid_request.raven.captureException.call_count == 1
-        pyramid_request.raven.captureException.assert_called_once_with()

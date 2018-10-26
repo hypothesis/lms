@@ -39,7 +39,6 @@ class ErrorViews:
         and report the issue to Sentry.
         """
         self.request.response.status_int = 400
-        self.request.raven.captureException()
         return {"message": str(self.exc)}
 
     @exception_view_config(Exception)
@@ -53,7 +52,6 @@ class ErrorViews:
         Sentry.
         """
         self.request.response.status_int = 500
-        self.request.raven.captureException()
         return {
             "message": _(
                 "Sorry, but something went wrong. "

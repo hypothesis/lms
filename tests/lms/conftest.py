@@ -107,8 +107,6 @@ def pyramid_request():
         'lti_version': 'TEST',
     })
 
-    pyramid_request.raven = mock.MagicMock(spec_set=['captureException'])
-
     return pyramid_request
 
 
