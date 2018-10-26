@@ -1,6 +1,7 @@
 alembic
 newrelic
 pyramid
+pyramid_exclog
 pyramid_tm
 pyramid_jinja2
 pyramid_services

@@ -15,6 +15,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
 
     config.include('pyramid_jinja2')
     config.include('pyramid_tm')
+    config.include('pyramid_exclog')
 
     config.include('lms.sentry')
     config.include('lms.models')

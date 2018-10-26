@@ -24,6 +24,7 @@ psycopg2==2.7.5
 pycrypto==2.6.1
 pyjwt==1.6.4
 pylti==0.7.0
+pyramid-exclog==1.0
 pyramid-jinja2==2.7
 pyramid-services==2.1
 pyramid-tm==2.2

@@ -64,15 +64,6 @@ class TestErrorViews:
 
         assert pyramid_request.raven.captureException.call_count == 1
 
-    def test_it_re_raises_exception_in_debug_mode(self, pyramid_request):
-        exc = Exception('test exception msg')
-        pyramid_request.registry.settings = {'debug': True}
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-
-        with pytest.raises(Exception, match="test exception msg"):
-            error_views.error()
-
     def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
         exc = MissingLTILaunchParamError('test')
 
