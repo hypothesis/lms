@@ -26,8 +26,8 @@ pyjwt==1.6.4
 pylti==0.7.0
 pyramid-jinja2==2.7
 pyramid-services==2.1
-pyramid-tm==2.2
 pyramid==1.9.2
+pyramid_tm==2.2.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
 raven==6.9.0
