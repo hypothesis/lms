@@ -1,66 +1,63 @@
-# -*- coding: utf-8 -*-
-
 from pyramid import httpexceptions
 from pyramid import i18n
-from pyramid.view import view_config
+from pyramid.view import exception_view_config
 from pyramid.view import view_defaults
-from pyramid.settings import asbool
 
 from lms.exceptions import LTILaunchError
+
 _ = i18n.TranslationStringFactory(__package__)
 
 
-@view_defaults(renderer='lms:templates/error.html.jinja2')
+@view_defaults(renderer="lms:templates/error.html.jinja2")
 class ErrorViews:
-    """Show user an error page and an appropriate message."""
-
     def __init__(self, exc, request):
-        """Store request and exception information."""
         self.exc = exc
         self.request = request
 
-    @view_config(context=httpexceptions.HTTPError)
-    @view_config(context=httpexceptions.HTTPServerError)
+    @exception_view_config(httpexceptions.HTTPError)
+    @exception_view_config(httpexceptions.HTTPServerError)
     def httperror(self):
+        """
+        Handle an HTTP 4xx or 5xx exception.
+
+        If code raises an HTTP client or server error we assume this was
+        deliberately raised We show the user an error page including specific
+        error message but _do not_ report the error to Sentry
+        """
         self.request.response.status_int = self.exc.status_int
-        # If code raises an HTTPError or HTTPServerError we assume this was
-        # deliberately raised and:
-        # 1. Show the user an error page including specific error message
-        # 2. _Do not_ report the error to Sentry
-        return {'message': str(self.exc)}
+        return {"message": str(self.exc)}
 
-    @view_config(context=Exception)
-    def error(self):
-        # In debug mode re-raise exceptions so that they get printed in the
-        # terminal.
-        if asbool(self.request.registry.settings.get('debug')):
-            raise self.exc
-
-        self.request.response.status_int = 500
-
-        # If code raises a non-HTTPException exception we assume it was a bug
-        # and:
-        # 1. Show the user a generic error page
-        # 2. Report the details of the error to Sentry
-        self.request.raven.captureException()
-        return {'message': _("Sorry, but something went wrong. "
-                             "The issue has been reported and we'll try to "
-                             "fix it.")}
-
-
-    @view_config(context=LTILaunchError)
+    @exception_view_config(LTILaunchError)
     def missing_lti_param_error(self):
         """
-        Catch MissingLTILaunchParamError and MissingLTIContentItemParamError, render a 400 page and report the exception to Sentry.
+        Handle LTILaunchErrors.
 
-        If code raises a MissingLTILaunchParamError it means that a required parameter was missing
-        from an LTI launch request that we received.
-        If code raises a MissingLTIContentItemParamError it means that a required parameter was missing
-        from an LTI content item selection request that we received:
-
-        1. Show the user an error page including specific error message
-        2. Report the error to Sentry
+        If code raises an LTILaunchError we assume this was deliberately raised
+        because an invalid LTI launch request was received. For example a
+        required LTI launch parameter was missing. We return a 400 Bad Request
+        response, show the user an error page with the specific error message,
+        and report the issue to Sentry.
         """
         self.request.response.status_int = 400
         self.request.raven.captureException()
-        return {'message': str(self.exc)}
+        return {"message": str(self.exc)}
+
+    @exception_view_config(Exception)
+    def error(self):
+        """
+        Handle an unexpected exception.
+
+        If the code raises an unexpected exception (anything not caught by any
+        of the more specific exception views above) then we assume it was a
+        bug.  We show the user a generic error page and report the exception to
+        Sentry.
+        """
+        self.request.response.status_int = 500
+        self.request.raven.captureException()
+        return {
+            "message": _(
+                "Sorry, but something went wrong. "
+                "The issue has been reported and we'll try to "
+                "fix it."
+            )
+        }
