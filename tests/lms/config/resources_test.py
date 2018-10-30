@@ -1,10 +1,12 @@
 import datetime
 import jwt
 
+from unittest import mock
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.config import resources
+from lms.models import CourseGroup
 
 
 class TestLTILaunch:
@@ -40,6 +42,61 @@ class TestLTILaunch:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
+    def test_hypothesis_config_includes_the_group(
+        self, lti_launch, models, pyramid_request
+    ):
+        group = models.CourseGroup.get.return_value
+
+        groups = lti_launch.hypothesis_config["services"][0]["groups"]
+
+        models.CourseGroup.get.assert_called_once_with(
+            pyramid_request.db,
+            mock.sentinel.tool_consumer_instance_guid,
+            mock.sentinel.context_id,
+        )
+        assert groups == [group.pubid]
+
+    def test_if_theres_no_tool_consumer_instance_guid(
+        self, lti_launch, lti_params_for, models, pyramid_request
+    ):
+        del lti_params_for.return_value["tool_consumer_instance_guid"]
+
+        groups = lti_launch.hypothesis_config["services"][0]["groups"]
+
+        models.CourseGroup.get.assert_called_once_with(
+            pyramid_request.db, None, mock.sentinel.context_id
+        )
+        assert groups == [models.CourseGroup.get.return_value.pubid]
+
+    def test_if_theres_no_context_id(
+        self, lti_launch, lti_params_for, models, pyramid_request
+    ):
+        del lti_params_for.return_value["context_id"]
+
+        groups = lti_launch.hypothesis_config["services"][0]["groups"]
+
+        models.CourseGroup.get.assert_called_once_with(
+            pyramid_request.db, mock.sentinel.tool_consumer_instance_guid, None
+        )
+        assert groups == [models.CourseGroup.get.return_value.pubid]
+
+    def test_if_theres_no_tool_consumer_instance_guid_OR_context_id(
+        self, lti_launch, lti_params_for, models, pyramid_request
+    ):
+        del lti_params_for.return_value["tool_consumer_instance_guid"]
+        del lti_params_for.return_value["context_id"]
+
+        groups = lti_launch.hypothesis_config["services"][0]["groups"]
+
+        models.CourseGroup.get.assert_called_once_with(pyramid_request.db, None, None)
+        assert groups == [models.CourseGroup.get.return_value.pubid]
+
+    def test_it_raises_AssertionError_if_theres_no_group(self, lti_launch, models):
+        models.CourseGroup.get.return_value = None
+
+        with pytest.raises(AssertionError, match="group should always exist by now"):
+            lti_launch.hypothesis_config
+
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
         self, pyramid_request, lti_launch, lti_params_for
     ):
@@ -57,11 +114,21 @@ class TestLTILaunch:
     def lti_params_for(self, patch):
         lti_params_for = patch("lms.config.resources.lti_params_for")
         lti_params_for.return_value = {
+            "tool_consumer_instance_guid": mock.sentinel.tool_consumer_instance_guid,
+            "context_id": mock.sentinel.context_id,
             # A valid oauth_consumer_key (matches one for which the
             # provisioning features are enabled).
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return lti_params_for
+
+    @pytest.fixture(autouse=True)
+    def models(self, patch):
+        models = patch("lms.config.resources.models")
+        models.CourseGroup.get.return_value = mock.create_autospec(
+            CourseGroup, instance=True, spec_set=True
+        )
+        return models
 
     @pytest.fixture(autouse=True)
     def util(self, patch):
