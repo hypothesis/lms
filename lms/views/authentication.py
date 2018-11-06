@@ -21,7 +21,7 @@ class AuthenticationViews:
         request = self.request
         login_url = request.route_url('login')
         referrer = request.url
-        if referrer == login_url or referrer == '/':
+        if referrer in (login_url, "/"):
             referrer = '/reports'  # never use login form itself as came_from
         came_from = request.params.get('came_from', referrer)
         message = ''

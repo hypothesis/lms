@@ -25,6 +25,6 @@ def lti_params_for(request):
         if lti_params is None:
             raise HTTPBadRequest("OAuth state was not found")
         return lti_params
-    else:
-        # This is an LTI launch request.
-        return request.params
+
+    # This is an LTI launch request.
+    return request.params
