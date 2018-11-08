@@ -90,7 +90,7 @@ def launch_lti(request, lti_key=None, context_id=None, document_url=None,
     # Never prevent a launch because of logging problem.
     # pylint: disable=broad-except
     except Exception as e:
-        log.error(f"Failed to log lti launch for lti key '{lti_key}': {e}")
+        log.error("Failed to log lti launch for lti key '%s': %s", lti_key, e)
 
     return _view_document(request, document_url=document_url, jwt=jwt)
 
@@ -134,14 +134,15 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=lti_params['url'], jwt=jwt)
 
-    elif is_db_configured(request, lti_params):
+    if is_db_configured(request, lti_params):
         config = request.db.query(ModuleItemConfiguration).filter(and_(
             ModuleItemConfiguration.resource_link_id == lti_params['resource_link_id'],
             ModuleItemConfiguration.tool_consumer_instance_guid == tool_consumer_instance_guid)
         )
         return launch_lti(request, lti_key=lti_key, context_id=context_id,
                           document_url=config.one().document_url, jwt=jwt)
-    elif is_canvas_file(request, lti_params):
+
+    if is_canvas_file(request, lti_params):
         token = find_token_by_user_id(request.db, user.id)
         application_instance = find_by_oauth_consumer_key(request.db,
                                                           lti_params['oauth_consumer_key'])
@@ -153,7 +154,8 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
             return launch_lti(request, lti_key=lti_key, context_id=context_id,
                               document_url=document_url, jwt=jwt)
         return _unauthorized(request)
-    elif is_authorized_to_configure(request, lti_params):
+
+    if is_authorized_to_configure(request, lti_params):
         consumer_key = request.params['oauth_consumer_key']
         application_instance = get_application_instance(request.db, consumer_key)
         return content_item_form(

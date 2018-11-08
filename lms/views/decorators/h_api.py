@@ -278,6 +278,6 @@ def _get_param(request, param_name):
 
 
 def _auto_provisioning_feature_enabled(request):
-    oauth_consumer_key = _get_param(request, "oauth_consumer_key")
+    oauth_consumer_key = _get_param(request, "oauth_consumer_key")  # pylint: disable=too-many-function-args
     enabled_consumer_keys = request.registry.settings["auto_provisioning"]
     return oauth_consumer_key in enabled_consumer_keys

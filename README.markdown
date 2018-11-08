@@ -22,7 +22,8 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 
 * git
 * python 3
-* virtualenv
+* [tox](https://tox.readthedocs.io/en/latest/) and [tox-pip-extensions](https://github.com/tox-dev/tox-pip-extensions)
+* [GNU Make](https://www.gnu.org/software/make/)
 * Docker
 * openssl
 * Node.js
@@ -37,15 +38,6 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 1. **Clone this repository**
 
     The following steps assume that you are working within the `lms` project directory.
-
-1. **Create a Python virtual environment**
-
-    Using `virtualenv` or your preferred virtualenv-management utility, set up virtualenv. Note that this project requires Python 3. The following commands work on a Mac with `virtualenv` installed as of mid 2018:
-
-    ```bash
-    $ virtualenv -p python3 .
-    $ source bin/activate
-    ```
 
 1. Create a client_credentials auth client in h.
 
@@ -158,15 +150,6 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export AUTO_PROVISIONING="Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"
     ```
 
-1. **Build the app's front-end asets**
-
-    Make sure you're in the `lms` project directory. Install Node.js dependencies and build the app's front-end assets:
-
-    ```bash
-    $ yarn install
-    $ make build
-    ```
-
 1. **Try out the postgres docker container**
 
     The app's postgres database runs within a docker container. To start the container:
@@ -184,25 +167,19 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 <a id="run-webserver"></a>
 ### Running the app locally
 
-1. Make sure your `virtualenv` is activated. Use your preferred virtualenv management utility or:
-
-   ```bash
-   $ source bin/activate
-   ```
-
-2. Start the psql (database) container if it's not already running:
+1. Start the psql (database) container if it's not already running:
 
     ```bash
     $ docker run --rm -d -p 5433:5432 --name lms-postgres postgres
     ```
 
-3. Start the development web server and app:
+1. Start the development web server and app:
 
     ```bash
     $ make dev
     ```
 
-4. Visit [http://localhost:8001/welcome](http://localhost:8001/welcome) in a browser
+1. Visit [http://localhost:8001/welcome](http://localhost:8001/welcome) in a browser
 
 
 <a id="google-apis"></a>
@@ -361,15 +338,6 @@ Useful for debugging or trying things out in development:
 $ make shell
 ```
 
-**Tip**: If you install `pyramid_ipython` then `make shell` will give you an
-IPython shell instead of a plain Python one:
-
-```
-$ pip install pyramid_ipython
-```
-
-There are also `pyramid_` packages for `bpython`, `ptpython`, etc.
-
 #### Database
 
 **Tip**: You can connect to the app's database to inspect its contents by
@@ -377,7 +345,7 @@ installing [psql](https://www.postgresql.org/docs/current/static/app-psql.html)
 and then running:
 
 ```bash
-$ psql postgresql://postgres@localhost:5433/postgres
+$ make psql
 ```
 
 **Tip**: If you want to delete all your data and reset your dev database,
