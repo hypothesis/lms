@@ -77,5 +77,5 @@ build/manifest.json: node_modules/.uptodate
 
 node_modules/.uptodate: package.json
 	@echo installing javascript dependencies
-	@node_modules/.bin/check-dependencies 2>/dev/null || yarn install
+	@node_modules/.bin/check-dependencies 2>/dev/null || yarn --ignore-engines install
 	@touch $@
