@@ -16,7 +16,6 @@ class ErrorViews:
         self.request = request
 
     @exception_view_config(httpexceptions.HTTPError)
-    @exception_view_config(httpexceptions.HTTPServerError)
     def httperror(self):
         """
         Handle an HTTP 4xx or 5xx exception.
