@@ -34,7 +34,7 @@ RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
 COPY . .
 
 # Build frontend assets
-RUN npm install --production
+RUN npm ci --production
 RUN NODE_ENV=production node_modules/.bin/gulp build
 RUN npm cache clean
 
