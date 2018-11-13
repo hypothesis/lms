@@ -39,6 +39,7 @@ class ErrorViews:
         response, show the user an error page with the specific error message,
         and report the issue to Sentry.
         """
+        sentry_sdk.capture_exception(self.exc)
         self.request.response.status_int = 400
         return {"message": str(self.exc)}
 
