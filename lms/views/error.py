@@ -2,6 +2,7 @@ from pyramid import httpexceptions
 from pyramid import i18n
 from pyramid.view import exception_view_config
 from pyramid.view import view_defaults
+import sentry_sdk
 
 from lms.exceptions import LTILaunchError
 
@@ -24,6 +25,7 @@ class ErrorViews:
         deliberately raised We show the user an error page including specific
         error message but _do not_ report the error to Sentry
         """
+        sentry_sdk.capture_exception(self.exc)
         self.request.response.status_int = self.exc.status_int
         return {"message": str(self.exc)}
 
