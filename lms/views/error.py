@@ -20,9 +20,19 @@ class ErrorViews:
         """
         Handle an HTTP 4xx or 5xx exception.
 
-        If code raises an HTTP client or server error we assume this was
-        deliberately raised We show the user an error page including specific
-        error message but _do not_ report the error to Sentry
+        If code raises HTTPClientError (the base class for all the HTTP 4xx
+        errors) or HTTPServerError (base class for 5xx errors), or a subclass
+        of either, then we:
+
+        1. Report the error to Sentry.
+           This has to be done manually, only 500s are reported to Sentry
+           automatically.
+        2. Set the HTTP response status to the 4xx or 5xx status from the
+           exception.
+        3. Show the user an error page containing the specific error message
+           from the exception.
+
+        (HTTPError is the base class for HTTPClientError and HTTPServerError).
         """
         sentry_sdk.capture_exception(self.exc)
         self.request.response.status_int = self.exc.status_int
@@ -31,13 +41,15 @@ class ErrorViews:
     @exception_view_config(LTILaunchError)
     def missing_lti_param_error(self):
         """
-        Handle LTILaunchErrors.
+        Handle an invalid LTI launch request.
 
-        If code raises an LTILaunchError we assume this was deliberately raised
-        because an invalid LTI launch request was received. For example a
-        required LTI launch parameter was missing. We return a 400 Bad Request
-        response, show the user an error page with the specific error message,
-        and report the issue to Sentry.
+        Code raises :exc:`lms.exceptions.LTILaunchError` if there's a problem
+        with an LTI launch request, such as a required LTI launch parameter
+        missing. When this happens we:
+
+        1. Report the error to Sentry.
+        2. Set the HTTP response status code to 400 Bad Request.
+        3. Show the user an error page containing the specific error message
         """
         sentry_sdk.capture_exception(self.exc)
         self.request.response.status_int = 400
@@ -50,8 +62,15 @@ class ErrorViews:
 
         If the code raises an unexpected exception (anything not caught by any
         of the more specific exception views above) then we assume it was a
-        bug.  We show the user a generic error page and report the exception to
-        Sentry.
+        bug. When this happens we:
+
+        1. Set the response status to 500 Server Error.
+        2. Show the user an error page containing only a generic error message
+           (don't show them the exception message).
+
+        These issues also get reported to Sentry but we don't have to
+        do that here -- non-HTTPError exceptions are automatically
+        reported by the Pyramid Sentry integration.
         """
         self.request.response.status_int = 500
         return {
