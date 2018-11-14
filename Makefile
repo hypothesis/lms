@@ -36,6 +36,10 @@ lint:
 	tox -e py36-lint
 	$(GULP) lint
 
+.PHONY: format
+format:
+	tox -e py36-format
+
 .PHONY: test
 test: node_modules/.uptodate
 	tox -e py36-tests
