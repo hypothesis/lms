@@ -1,89 +1,89 @@
 # -*- coding: utf-8 -*-
 
-from pyramid import httpexceptions
+from pyramid.httpexceptions import HTTPNotImplemented
 import pytest
 
-from lms.views import error
-from lms.exceptions import MissingLTILaunchParamError, MissingLTIContentItemParamError
+from lms.views.error import ErrorViews
+from lms.exceptions import LTILaunchError
 
 
 class TestErrorViews:
-    def test_it_sets_correct_message_for_http_error(self, pyramid_request):
-        exc = httpexceptions.HTTPError('test http error msg', status_code=500)
+    def test_http_error_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
+        exc = HTTPNotImplemented()
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.httperror()
+        ErrorViews(exc, pyramid_request).http_error()
 
-        assert resp['message'] == 'test http error msg'
+        sentry_sdk.capture_exception.assert_called_once_with(exc)
 
-    def test_it_sets_correct_request_status_int_for_http_error(self, pyramid_request):
-        exc = httpexceptions.HTTPError('test http error msg', status_code=500)
+    def test_http_error_sets_response_status(self, pyramid_request):
+        exc = HTTPNotImplemented()
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        error_views.httperror()
+        ErrorViews(exc, pyramid_request).http_error()
 
-        assert pyramid_request.response.status_int == exc.status_int
+        assert pyramid_request.response.status_int == 501
 
-    def test_it_sets_correct_message_for_http_server_error(self, pyramid_request):
-        exc = httpexceptions.HTTPServerError('test server error msg', status_code=500)
+    def test_http_error_shows_the_exception_message_to_the_user(self, pyramid_request):
+        exc = HTTPNotImplemented("This is the error message")
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.httperror()
+        result = ErrorViews(exc, pyramid_request).http_error()
 
-        assert resp['message'] == 'test server error msg'
+        assert result["message"] == "This is the error message"
 
-    def test_it_sets_correct_request_status_int_for_http_server_error(self, pyramid_request):
-        exc = httpexceptions.HTTPServerError('test server error msg', status_code=500)
+    def test_lti_launch_error_reports_exception_to_sentry(
+        self, pyramid_request, sentry_sdk
+    ):
+        exc = LTILaunchError("the_message")
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        error_views.httperror()
+        ErrorViews(exc, pyramid_request).lti_launch_error()
 
-        assert pyramid_request.response.status_int == exc.status_int
+        sentry_sdk.capture_exception.assert_called_once_with(exc)
 
-    def test_it_sets_correct_message_for_non_http_error(self, pyramid_request):
-        exc = Exception()
+    def test_lti_launch_error_sets_response_status(self, pyramid_request):
+        exc = LTILaunchError("the_message")
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.error()
+        ErrorViews(exc, pyramid_request).lti_launch_error()
 
-        assert resp['message'] == 'Sorry, but something went wrong. The issue has been reported and we\'ll try to fix it.'
+        assert pyramid_request.response.status_int == 400
 
-    def test_it_sets_correct_status_int_for_non_http_error(self, pyramid_request):
-        exc = Exception()
+    def test_lti_launch_error_shows_the_exception_message_to_the_user(
+        self, pyramid_request
+    ):
+        exc = LTILaunchError("the_message")
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.error()
+        result = ErrorViews(exc, pyramid_request).http_error()
+
+        assert result["message"] == "the_message"
+
+    def test_error_does_not_report_exception_to_sentry(
+        self, pyramid_request, sentry_sdk
+    ):
+        exc = RuntimeError()
+
+        ErrorViews(exc, pyramid_request).error()
+
+        # Although I don't think it would do any harm (sentry_sdk seems smart
+        # enough to not double report the exception to Sentry) we don't need to
+        # call capture_exception() in the case of a non-HTTPError exception
+        # because Sentry's Pyramid integration does it for us automatically.
+        sentry_sdk.capture_exception.assert_not_called()
+
+    def test_error_sets_response_status(self, pyramid_request):
+        exc = RuntimeError()
+
+        ErrorViews(exc, pyramid_request).error()
 
         assert pyramid_request.response.status_int == 500
 
-    def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
-        exc = MissingLTILaunchParamError('test')
+    def test_error_shows_a_generic_error_message_to_the_user(self, pyramid_request):
+        exc = RuntimeError("the_specific_error_message")
 
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_param_error()
+        result = ErrorViews(exc, pyramid_request).error()
 
-        assert resp['message'] == 'Required data param for LTI launch missing: test'
+        assert (
+            result["message"]
+            == "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
+        )
 
-    def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_launch_params(self, pyramid_request):
-        exc = MissingLTILaunchParamError('test')
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_param_error()
-
-        assert pyramid_request.response.status_int == 400
-
-    def test_it_sets_correct_message_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
-        exc = MissingLTIContentItemParamError('test')
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_param_error()
-
-        assert resp['message'] == 'Required LTI data param for content item selection missing: test'
-
-    def test_it_sets_correct_status_int_for_missing_lti_param_error_for_missing_lti_content_item_params(self, pyramid_request):
-        exc = MissingLTIContentItemParamError('test')
-
-        error_views = error.ErrorViews(exc, pyramid_request)
-        resp = error_views.missing_lti_param_error()
-
-        assert pyramid_request.response.status_int == 400
+    @pytest.fixture(autouse=True)
+    def sentry_sdk(self, patch):
+        return patch("lms.views.error.sentry_sdk")
