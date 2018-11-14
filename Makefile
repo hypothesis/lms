@@ -40,6 +40,10 @@ lint:
 format:
 	tox -e py36-format
 
+.PHONY: checkformatting
+checkformatting:
+	tox -e py36-checkformatting
+
 .PHONY: test
 test: node_modules/.uptodate
 	tox -e py36-tests
