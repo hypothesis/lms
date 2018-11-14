@@ -16,7 +16,7 @@ class ErrorViews:
         self.request = request
 
     @exception_view_config(httpexceptions.HTTPError)
-    def httperror(self):
+    def http_error(self):
         """
         Handle an HTTP 4xx or 5xx exception.
 
@@ -25,21 +25,17 @@ class ErrorViews:
         of either, then we:
 
         1. Report the error to Sentry.
-           This has to be done manually, only 500s are reported to Sentry
-           automatically.
         2. Set the HTTP response status to the 4xx or 5xx status from the
            exception.
         3. Show the user an error page containing the specific error message
            from the exception.
-
-        (HTTPError is the base class for HTTPClientError and HTTPServerError).
         """
         sentry_sdk.capture_exception(self.exc)
         self.request.response.status_int = self.exc.status_int
         return {"message": str(self.exc)}
 
     @exception_view_config(LTILaunchError)
-    def missing_lti_param_error(self):
+    def lti_launch_error(self):
         """
         Handle an invalid LTI launch request.
 
