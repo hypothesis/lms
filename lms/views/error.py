@@ -88,7 +88,5 @@ def includeme(config):
     config.add_exception_view(
         http_error, context=httpexceptions.HTTPError, **view_defaults
     )
-    config.add_exception_view(
-        lti_launch_error, context=LTILaunchError, **view_defaults
-    )
+    config.add_exception_view(lti_launch_error, context=LTILaunchError, **view_defaults)
     config.add_exception_view(error, context=Exception, **view_defaults)

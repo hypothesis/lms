@@ -11,19 +11,20 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f013a6b67f91'
+revision = "f013a6b67f91"
 down_revision = None
 
 
 def upgrade():
-    op.create_table('oauth2_unvalidated_credentials',
-        sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
-        sa.Column('client_id', sa.UnicodeText),
-        sa.Column('client_secret', sa.UnicodeText),
-        sa.Column('authorization_server', sa.UnicodeText),
-        sa.Column('email_address', sa.UnicodeText),
+    op.create_table(
+        "oauth2_unvalidated_credentials",
+        sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
+        sa.Column("client_id", sa.UnicodeText),
+        sa.Column("client_secret", sa.UnicodeText),
+        sa.Column("authorization_server", sa.UnicodeText),
+        sa.Column("email_address", sa.UnicodeText),
     )
 
 
 def downgrade():
-    op.drop_table('oauth2_unvalidated_credentials')
+    op.drop_table("oauth2_unvalidated_credentials")

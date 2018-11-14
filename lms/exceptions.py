@@ -19,14 +19,24 @@ class MissingLTILaunchParamError(LTILaunchError):  # pylint: disable=too-many-an
 
     def __init__(self, data_param):
         """Construct error message with the data param information."""
-        message = TranslationString('Required data param for LTI launch missing: ') + data_param
+        message = (
+            TranslationString("Required data param for LTI launch missing: ")
+            + data_param
+        )
         super(MissingLTILaunchParamError, self).__init__(message)
 
 
-class MissingLTIContentItemParamError(LTILaunchError):  # pylint: disable=too-many-ancestors
+class MissingLTIContentItemParamError(
+    LTILaunchError
+):  # pylint: disable=too-many-ancestors
     """Exception raised if params required for LTI content item selection are missing."""
 
     def __init__(self, data_param):
         """Construct error message with the data param information."""
-        message = TranslationString('Required LTI data param for content item selection missing: ') + data_param
+        message = (
+            TranslationString(
+                "Required LTI data param for content item selection missing: "
+            )
+            + data_param
+        )
         super(MissingLTIContentItemParamError, self).__init__(message)

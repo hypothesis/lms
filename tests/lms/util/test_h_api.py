@@ -13,159 +13,115 @@ from lms.util import MissingContextTitleError
 
 
 class TestGenerateDisplayName:
-    @pytest.mark.parametrize("request_params,expected_display_name", [
-        # It returns the full name if there is one.
-        (
-            {
-                "lis_person_name_full": "Test Full",
-                # Add given and family names too. These should be ignored.
-                "lis_person_name_given": "Test Given",
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Full",
-        ),
-
-        # It strips leading and trailing whitespace from the full name.
-        (
-            {
-                "lis_person_name_full": " Test Full  ",
-            },
-            "Test Full",
-        ),
-
-        # If theres no full name it concatenates given and family names.
-        (
-            {
-                "lis_person_name_given": "Test Given",
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Given Test Family",
-        ),
-
-        # If full name is empty it concatenates given and family names.
-        (
-            {
-                "lis_person_name_full": "",
-                "lis_person_name_given": "Test Given",
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Given Test Family",
-        ),
-        (
-            {
-                "lis_person_name_full": "   ",
-                "lis_person_name_given": "Test Given",
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Given Test Family",
-        ),
-
-        # It strips leading and trailing whitespace from the concatenated
-        # given name and family name.
-        (
-            {
-                "lis_person_name_given": "  Test Given  ",
-                "lis_person_name_family": "  Test Family  ",
-            },
-            "Test Given Test Family",
-        ),
-
-        # If theres no full name or given name it uses just the family name.
-        (
-            {
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Family",
-        ),
-        (
-            {
-                "lis_person_name_full": "   ",
-                "lis_person_name_given": "",
-                "lis_person_name_family": "Test Family",
-            },
-            "Test Family",
-        ),
-
-        # It strips leading and trailing whitespace from just the family name.
-        (
-            {
-                "lis_person_name_family": "  Test Family ",
-            },
-            "Test Family",
-        ),
-
-        # If theres no full name or family name it uses just the given name.
-        (
-            {
-                "lis_person_name_given": "Test Given",
-            },
-            "Test Given",
-        ),
-        (
-            {
-                "lis_person_name_full": "   ",
-                "lis_person_name_given": "Test Given",
-                "lis_person_name_family": "",
-            },
-            "Test Given",
-        ),
-
-        # It strips leading and trailing whitespace from just the given name.
-        (
-            {
-                "lis_person_name_given": "  Test Given ",
-            },
-            "Test Given",
-        ),
-
-        # If there's nothing else it just returns "Anonymous".
-        (
-            {},
-            "Anonymous",
-        ),
-        (
-            {
-                "lis_person_name_full": "   ",
-                "lis_person_name_given": " ",
-                "lis_person_name_family": "",
-            },
-            "Anonymous",
-        ),
-
-        # If the full name is more than 30 characters long it truncates it.
-        (
-            {
-                "lis_person_name_full": "Test Very Very Looong Full Name",
-            },
-            "Test Very Very Looong Full Na…",
-        ),
-
-        # If the given name is more than 30 characters long it truncates it.
-        (
-            {
-                "lis_person_name_given": "Test Very Very Looong Given Name",
-            },
-            "Test Very Very Looong Given N…",
-        ),
-
-        # If the family name is more than 30 characters long it truncates it.
-        (
-            {
-                "lis_person_name_family": "Test Very Very Looong Family Name",
-            },
-            "Test Very Very Looong Family…",
-        ),
-
-        # If the concatenated given name + family name is more than 30
-        # characters long it truncates it.
-        (
-            {
-                "lis_person_name_given": "Test Very Very",
-                "lis_person_name_family": "Looong Concatenated Name",
-            },
-            "Test Very Very Looong Concate…",
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "request_params,expected_display_name",
+        [
+            # It returns the full name if there is one.
+            (
+                {
+                    "lis_person_name_full": "Test Full",
+                    # Add given and family names too. These should be ignored.
+                    "lis_person_name_given": "Test Given",
+                    "lis_person_name_family": "Test Family",
+                },
+                "Test Full",
+            ),
+            # It strips leading and trailing whitespace from the full name.
+            ({"lis_person_name_full": " Test Full  "}, "Test Full"),
+            # If theres no full name it concatenates given and family names.
+            (
+                {
+                    "lis_person_name_given": "Test Given",
+                    "lis_person_name_family": "Test Family",
+                },
+                "Test Given Test Family",
+            ),
+            # If full name is empty it concatenates given and family names.
+            (
+                {
+                    "lis_person_name_full": "",
+                    "lis_person_name_given": "Test Given",
+                    "lis_person_name_family": "Test Family",
+                },
+                "Test Given Test Family",
+            ),
+            (
+                {
+                    "lis_person_name_full": "   ",
+                    "lis_person_name_given": "Test Given",
+                    "lis_person_name_family": "Test Family",
+                },
+                "Test Given Test Family",
+            ),
+            # It strips leading and trailing whitespace from the concatenated
+            # given name and family name.
+            (
+                {
+                    "lis_person_name_given": "  Test Given  ",
+                    "lis_person_name_family": "  Test Family  ",
+                },
+                "Test Given Test Family",
+            ),
+            # If theres no full name or given name it uses just the family name.
+            ({"lis_person_name_family": "Test Family"}, "Test Family"),
+            (
+                {
+                    "lis_person_name_full": "   ",
+                    "lis_person_name_given": "",
+                    "lis_person_name_family": "Test Family",
+                },
+                "Test Family",
+            ),
+            # It strips leading and trailing whitespace from just the family name.
+            ({"lis_person_name_family": "  Test Family "}, "Test Family"),
+            # If theres no full name or family name it uses just the given name.
+            ({"lis_person_name_given": "Test Given"}, "Test Given"),
+            (
+                {
+                    "lis_person_name_full": "   ",
+                    "lis_person_name_given": "Test Given",
+                    "lis_person_name_family": "",
+                },
+                "Test Given",
+            ),
+            # It strips leading and trailing whitespace from just the given name.
+            ({"lis_person_name_given": "  Test Given "}, "Test Given"),
+            # If there's nothing else it just returns "Anonymous".
+            ({}, "Anonymous"),
+            (
+                {
+                    "lis_person_name_full": "   ",
+                    "lis_person_name_given": " ",
+                    "lis_person_name_family": "",
+                },
+                "Anonymous",
+            ),
+            # If the full name is more than 30 characters long it truncates it.
+            (
+                {"lis_person_name_full": "Test Very Very Looong Full Name"},
+                "Test Very Very Looong Full Na…",
+            ),
+            # If the given name is more than 30 characters long it truncates it.
+            (
+                {"lis_person_name_given": "Test Very Very Looong Given Name"},
+                "Test Very Very Looong Given N…",
+            ),
+            # If the family name is more than 30 characters long it truncates it.
+            (
+                {"lis_person_name_family": "Test Very Very Looong Family Name"},
+                "Test Very Very Looong Family…",
+            ),
+            # If the concatenated given name + family name is more than 30
+            # characters long it truncates it.
+            (
+                {
+                    "lis_person_name_given": "Test Very Very",
+                    "lis_person_name_family": "Looong Concatenated Name",
+                },
+                "Test Very Very Looong Concate…",
+            ),
+        ],
+    )
     def test_it_returns_display_names_generated_from_lti_request_params(
         self, request_params, expected_display_name
     ):
@@ -185,17 +141,13 @@ class TestGenerateUsername:
         assert len(username) == 30
 
     def test_it_raises_if_tool_consumer_instance_guid_is_missing(self):
-        request_params = {
-            "user_id": "4533***70d9",
-        }
+        request_params = {"user_id": "4533***70d9"}
 
         with pytest.raises(MissingToolConsumerIntanceGUIDError):
             generate_username(request_params)
 
     def test_it_raises_if_user_id_is_missing(self):
-        request_params = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-        }
+        request_params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
 
         with pytest.raises(MissingUserIDError):
             generate_username(request_params)
@@ -209,11 +161,14 @@ class TestGenerateProvider:
 
         assert provider_unique_id == "VCSy*G1u3:canvas-lms"
 
-    @pytest.mark.parametrize("request_params", [
-        {},
-        {"tool_consumer_instance_guid": ""},
-        {"tool_consumer_instance_guid": None},
-    ])
+    @pytest.mark.parametrize(
+        "request_params",
+        [
+            {},
+            {"tool_consumer_instance_guid": ""},
+            {"tool_consumer_instance_guid": None},
+        ],
+    )
     def test_it_raises_if_tool_consumer_instance_guid_is_missing(self, request_params):
         with pytest.raises(MissingToolConsumerIntanceGUIDError):
             generate_provider(request_params)
@@ -227,32 +182,34 @@ class TestGenerateProviderUniqueID:
 
         assert provider_unique_id == "4533***70d9"
 
-    @pytest.mark.parametrize("request_params", [
-        {},
-        {"user_id": ""},
-        {"user_id": None},
-    ])
+    @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
     def test_it_raises_if_user_id_is_missing(self, request_params):
         with pytest.raises(MissingUserIDError):
             generate_provider_unique_id(request_params)
 
 
 class TestGenerateGroupName:
-
     def test_it_raises_if_theres_no_context_title(self):
         with pytest.raises(MissingContextTitleError):
             generate_group_name({})
 
-    @pytest.mark.parametrize("context_title,expected_group_name", (
-        ("Test Course", "Test Course"),
-        (" Test Course", "Test Course"),
-        ("Test Course ", "Test Course"),
-        (" Test Course ", "Test Course"),
-        ("Test   Course", "Test   Course"),
-        ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
-        ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
-        ("Object Oriented Polymorphism 101", "Object Oriented Polymorphism…"),
-        ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorphism…"),
-    ))
-    def test_it_returns_group_names_based_on_context_titles(self, context_title, expected_group_name):
-        assert generate_group_name({"context_title": context_title}) == expected_group_name
+    @pytest.mark.parametrize(
+        "context_title,expected_group_name",
+        (
+            ("Test Course", "Test Course"),
+            (" Test Course", "Test Course"),
+            ("Test Course ", "Test Course"),
+            (" Test Course ", "Test Course"),
+            ("Test   Course", "Test   Course"),
+            ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
+            ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorphism…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorphism…"),
+        ),
+    )
+    def test_it_returns_group_names_based_on_context_titles(
+        self, context_title, expected_group_name
+    ):
+        assert (
+            generate_group_name({"context_title": context_title}) == expected_group_name
+        )

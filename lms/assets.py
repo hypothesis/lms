@@ -63,8 +63,9 @@ class Environment:
     URLs for a bundle via the urls() method.
     """
 
-    def __init__(self, assets_base_url, bundle_config_path, manifest_path,
-                 auto_reload=False):
+    def __init__(
+        self, assets_base_url, bundle_config_path, manifest_path, auto_reload=False
+    ):
         """
         Construct an Environment from the given configuration files.
 
@@ -77,10 +78,10 @@ class Environment:
                             automatically reloaded if they change.
         """
         self.assets_base_url = assets_base_url
-        self.manifest = _CachedFile(manifest_path, json.load,
-                                    auto_reload=auto_reload)
-        self.bundles = _CachedFile(bundle_config_path, _load_bundles,
-                                   auto_reload=auto_reload)
+        self.manifest = _CachedFile(manifest_path, json.load, auto_reload=auto_reload)
+        self.bundles = _CachedFile(
+            bundle_config_path, _load_bundles, auto_reload=auto_reload
+        )
 
     def files(self, bundle):
         """Return the file paths for all files in a bundle."""
@@ -101,7 +102,7 @@ class Environment:
     def url(self, path):
         """Return the cache-busted URL for an asset with a given path."""
         manifest = self.manifest.load()
-        return '{}/{}'.format(self.assets_base_url, manifest[path])
+        return "{}/{}".format(self.assets_base_url, manifest[path])
 
 
 def _add_cors_header(wrapped):
@@ -115,9 +116,7 @@ def _add_cors_header(wrapped):
         # resources, eg. Firefox enforces same-domain policy for @font-face
         # unless a CORS header is provided.
         response = wrapped(context, request)
-        response.headers.extend({
-            'Access-Control-Allow-Origin': '*'
-        })
+        response.headers.extend({"Access-Control-Allow-Origin": "*"})
         return response
 
     return wrapper
@@ -127,25 +126,22 @@ def _load_bundles(fp):
     """Read an asset bundle config from a file object."""
     parser = configparser.ConfigParser()
     parser.read_file(fp)
-    return {k: aslist(v) for k, v in parser.items('bundles')}
+    return {k: aslist(v) for k, v in parser.items("bundles")}
 
 
 # Site assets
-ASSETS_VIEW = static_view('lms:../build',
-                          cache_max_age=None,
-                          use_subpath=True)
+ASSETS_VIEW = static_view("lms:../build", cache_max_age=None, use_subpath=True)
 ASSETS_VIEW = _add_cors_header(ASSETS_VIEW)
 
 
 def includeme(config):
     # TODO: figure out auto reload if we want it
-    config.add_view(route_name='assets', view=ASSETS_VIEW)
+    config.add_view(route_name="assets", view=ASSETS_VIEW)
 
-    assets_env = Environment('/assets',
-                             'lms/assets.ini',
-                             'build/manifest.json',
-                             auto_reload=False)
+    assets_env = Environment(
+        "/assets", "lms/assets.ini", "build/manifest.json", auto_reload=False
+    )
 
     # We store the environment objects on the registry so that the Jinja2
     # integration can be configured in app.py
-    config.registry['assets_env'] = assets_env
+    config.registry["assets_env"] = assets_env

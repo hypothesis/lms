@@ -8,14 +8,12 @@ from lms.models.users import User
 
 class OauthState(BASE):
 
-    __tablename__ = 'oauth_state'
+    __tablename__ = "oauth_state"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     user_id = sa.Column(sa.Integer)
     guid = sa.Column(sa.String)
     lti_params = sa.Column(sa.String)
-
-
 
 
 def find_or_create_from_user(session, state, user, lti_params):
@@ -43,5 +41,4 @@ def find_lti_params(session, state):
 
 
 def _find_by_state(session, state):
-    return session.query(OauthState).filter(
-        OauthState.guid == state).one_or_none()
+    return session.query(OauthState).filter(OauthState.guid == state).one_or_none()

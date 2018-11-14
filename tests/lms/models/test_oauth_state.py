@@ -5,7 +5,9 @@ from lms.models import OauthState, find_or_create_from_user, find_lti_params
 
 
 class TestOAuthState:
-    def test_find_or_create_from_user_creates_user(self, lti_launch_request, db_session):
+    def test_find_or_create_from_user_creates_user(
+        self, lti_launch_request, db_session
+    ):
         session = db_session
         state_guid = "asdf"
         user = build_from_lti_params(lti_launch_request.params)
@@ -27,7 +29,9 @@ class TestOAuthState:
         session.flush()
         lti_params = json.dumps(dict(lti_launch_request.params))
 
-        existing_state = OauthState(user_id=user.id, guid=state_guid, lti_params=lti_params)
+        existing_state = OauthState(
+            user_id=user.id, guid=state_guid, lti_params=lti_params
+        )
         session.add(existing_state)
         session.flush()
 
@@ -42,6 +46,8 @@ class TestFindLTIParams:
 
     def test_if_theres_a_record_in_the_db_it_returns_the_lti_params(self, db_session):
         lti_params = {"foo": "bar"}
-        db_session.add(OauthState(user_id=1, guid="test_guid", lti_params=json.dumps(lti_params)))
+        db_session.add(
+            OauthState(user_id=1, guid="test_guid", lti_params=json.dumps(lti_params))
+        )
 
         assert find_lti_params(db_session, "test_guid") == lti_params

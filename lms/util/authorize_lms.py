@@ -10,7 +10,7 @@ from lms.util.lti import lti_params_for
 
 def build_canvas_token_url(lms_url):
     """Build a canvas token url from the base lms url and the token."""
-    return lms_url + '/login/oauth2/token'
+    return lms_url + "/login/oauth2/token"
 
 
 def build_redirect_uri(request_url, redirect_endpoint):
@@ -21,7 +21,7 @@ def build_redirect_uri(request_url, redirect_endpoint):
 
 def build_auth_base_url(lms_url, base_auth_endpoint):
     """Build base oauth url from lms_url and the provided base_auth_endpoint."""
-    return lms_url + '/' + base_auth_endpoint
+    return lms_url + "/" + base_auth_endpoint
 
 
 def default_oauth_condition(_request):
@@ -29,8 +29,12 @@ def default_oauth_condition(_request):
     return True
 
 
-def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
-                  oauth_condition=default_oauth_condition):
+def authorize_lms(
+    *,
+    authorization_base_endpoint,
+    redirect_endpoint,
+    oauth_condition=default_oauth_condition
+):
     """
     Decorate view function to support making an oauth request during an lti launch.
 
@@ -51,14 +55,16 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
     def my_route(request):
         ...
     """
+
     def decorator(view_function):
         """Decorate view function."""
+
         def wrapper(request, *args, user=None, **kwargs):
             """Redirect user."""
             if oauth_condition(request) is False:
                 return view_function(request, *args, user=user, **kwargs)
 
-            consumer_key = request.params['oauth_consumer_key']
+            consumer_key = request.params["oauth_consumer_key"]
 
             application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
 
@@ -67,19 +73,28 @@ def authorize_lms(*, authorization_base_endpoint, redirect_endpoint,
             if application_instance is None:
                 raise exc.HTTPInternalServerError()
 
-            authorization_base_url = build_auth_base_url(application_instance.lms_url,
-                                                         authorization_base_endpoint)
+            authorization_base_url = build_auth_base_url(
+                application_instance.lms_url, authorization_base_endpoint
+            )
 
             redirect_uri = build_redirect_uri(request.url, redirect_endpoint)
 
-            oauth_session = requests_oauthlib.OAuth2Session(client_id, redirect_uri=redirect_uri)
-            authorization_url, state_guid = oauth_session.authorization_url(authorization_base_url)
+            oauth_session = requests_oauthlib.OAuth2Session(
+                client_id, redirect_uri=redirect_uri
+            )
+            authorization_url, state_guid = oauth_session.authorization_url(
+                authorization_base_url
+            )
 
-            oauth_state = find_or_create_from_user(request.db, state_guid, user, request.params)
+            oauth_state = find_or_create_from_user(
+                request.db, state_guid, user, request.params
+            )
             if oauth_state is None:
                 raise exc.HTTPInternalServerError()
             return exc.HTTPFound(location=authorization_url)
+
         return wrapper
+
     return decorator
 
 
@@ -88,20 +103,19 @@ def save_token(view_function):
     # pylint: disable=too-many-locals
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
-        if 'state' not in request.params or 'code' not in request.params:
-            raise exc.HTTPInternalServerError('Invalid Oauth Response')
+        if "state" not in request.params or "code" not in request.params:
+            raise exc.HTTPInternalServerError("Invalid Oauth Response")
 
         lti_params = lti_params_for(request)
 
         application_instance = find_by_oauth_consumer_key(
-            request.db,
-            lti_params['oauth_consumer_key']
+            request.db, lti_params["oauth_consumer_key"]
         )
 
         if application_instance is None:
             raise exc.HTTPInternalServerError()
 
-        aes_secret = request.registry.settings['aes_secret']
+        aes_secret = request.registry.settings["aes_secret"]
         client_id = application_instance.developer_key
         client_secret = application_instance.decrypted_developer_secret(aes_secret)
 
@@ -109,23 +123,32 @@ def save_token(view_function):
 
         state = request.params["state"]
         session = requests_oauthlib.OAuth2Session(client_id, state=state)
-        oauth_resp = session.fetch_token(token_url, client_secret=client_secret,
-                                         authorization_response=request.url,
-                                         code=request.params['code'])
+        oauth_resp = session.fetch_token(
+            token_url,
+            client_secret=client_secret,
+            authorization_response=request.url,
+            code=request.params["code"],
+        )
 
         user = find_user_from_state(request.db, state)
 
         if application_instance is None:
-            raise exc.HTTPInternalServerError('Application instance was not found')
+            raise exc.HTTPInternalServerError("Application instance was not found")
 
         new_token = build_token_from_oauth_response(oauth_resp)
         update_user_token(request.db, new_token, user)
-        jwt_token = build_jwt_from_lti_launch(lti_params,
-                                              request.registry.settings['jwt_secret'])
+        jwt_token = build_jwt_from_lti_launch(
+            lti_params, request.registry.settings["jwt_secret"]
+        )
 
-        return view_function(request, *args, token=new_token,
-                             lti_params=lti_params,
-                             user=user,
-                             jwt=jwt_token,
-                             **kwargs)
+        return view_function(
+            request,
+            *args,
+            token=new_token,
+            lti_params=lti_params,
+            user=user,
+            jwt=jwt_token,
+            **kwargs
+        )
+
     return wrapper

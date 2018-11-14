@@ -30,7 +30,7 @@ def decrypt_oauth_secret(encrypted_secret, key, init_v):
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
 
-    __tablename__ = 'application_instances'
+    __tablename__ = "application_instances"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     consumer_key = sa.Column(sa.String)
@@ -48,8 +48,11 @@ class ApplicationInstance(BASE):
 
 
 def find_by_oauth_consumer_key(session, key):
-    return session.query(ApplicationInstance).filter(
-        ApplicationInstance.consumer_key == key).one_or_none()
+    return (
+        session.query(ApplicationInstance)
+        .filter(ApplicationInstance.consumer_key == key)
+        .one_or_none()
+    )
 
 
 def build_shared_secret():
@@ -62,14 +65,17 @@ def build_unique_key():
     return LTI_KEY_BASE + secrets.token_hex(16)
 
 
-def build_from_lms_url(lms_url, email, developer_key,
-                       developer_secret, encryption_key=None):
+def build_from_lms_url(
+    lms_url, email, developer_key, developer_secret, encryption_key=None
+):
     """Intantiate ApplicationIntance with lms_url."""
     encrypted_secret = developer_secret
     aes_iv = None
     if encryption_key is not None and developer_secret and developer_key:
         aes_iv = build_aes_iv()
-        encrypted_secret = encrypt_oauth_secret(developer_secret, encryption_key, aes_iv)
+        encrypted_secret = encrypt_oauth_secret(
+            developer_secret, encryption_key, aes_iv
+        )
 
     return ApplicationInstance(
         consumer_key=build_unique_key(),

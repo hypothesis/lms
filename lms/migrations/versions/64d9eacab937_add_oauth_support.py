@@ -12,38 +12,35 @@ from datetime import datetime
 
 
 # revision identifiers, used by Alembic.
-revision = '64d9eacab937'
-down_revision = '51889ae54178'
+revision = "64d9eacab937"
+down_revision = "51889ae54178"
 
 
 def upgrade():
     op.create_table(
-      'users',
-      sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
-      sa.Column('lms_guid', sa.String, index=True),
+        "users",
+        sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
+        sa.Column("lms_guid", sa.String, index=True),
     )
 
-
     op.create_table(
-      'tokens',
-      sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
-      sa.Column('access_token', sa.String),
-      sa.Column('refresh_token', sa.String),
-      sa.Column('expires_in', sa.String),
-      sa.Column('user_id', sa.Integer),
-      sa.Column('created', sa.TIMESTAMP, default=datetime.utcnow)
+        "tokens",
+        sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
+        sa.Column("access_token", sa.String),
+        sa.Column("refresh_token", sa.String),
+        sa.Column("expires_in", sa.String),
+        sa.Column("user_id", sa.Integer),
+        sa.Column("created", sa.TIMESTAMP, default=datetime.utcnow),
     )
 
-
     op.create_table(
-      'oauth_state',
-      sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
-      sa.Column('guid', sa.String),
-      sa.Column('user_id', sa.Integer),
-      sa.Column('lti_params', sa.String)
+        "oauth_state",
+        sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
+        sa.Column("guid", sa.String),
+        sa.Column("user_id", sa.Integer),
+        sa.Column("lti_params", sa.String),
     )
 
 
 def downgrade():
     pass
-

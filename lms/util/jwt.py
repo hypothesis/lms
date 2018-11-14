@@ -4,19 +4,20 @@ from pyramid.i18n import TranslationString as _
 
 from lms.exceptions import MissingLTILaunchParamError
 
+
 def build_jwt_from_lti_launch(lti_params, jwt_secret):
     """Build a client jwt token from lti_launch params."""
     try:
-        roles = lti_params['roles']
+        roles = lti_params["roles"]
     except KeyError:
-        raise MissingLTILaunchParamError(_('Required data param for LTI launch missing: roles'))
+        raise MissingLTILaunchParamError(
+            _("Required data param for LTI launch missing: roles")
+        )
 
     data = {
-        'user_id': lti_params['user_id'],
-        'roles': roles,
-        'consumer_key': lti_params['oauth_consumer_key'],
+        "user_id": lti_params["user_id"],
+        "roles": roles,
+        "consumer_key": lti_params["oauth_consumer_key"],
     }
-    jwt_token = jwt.encode(data,
-                           jwt_secret,
-                           'HS256').decode('utf-8')
+    jwt_token = jwt.encode(data, jwt_secret, "HS256").decode("utf-8")
     return jwt_token

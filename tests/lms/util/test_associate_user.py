@@ -6,6 +6,7 @@ from lms.models import User
 
 def build_mock_view(assertions):
     """Build a mock view function decorated by associate_user."""
+
     @associate_user
     def test_view_function(request, user):
         assertions(request, user)
@@ -18,7 +19,7 @@ class TestAssociateUser:
     """Test the associate user decorator."""
 
     def test_it_finds_an_existing_user(self, lti_launch_request, **_):
-        user_id = lti_launch_request.params['user_id']
+        user_id = lti_launch_request.params["user_id"]
         existing_user = User(lms_guid=user_id)
 
         db_session = lti_launch_request.db
@@ -27,10 +28,12 @@ class TestAssociateUser:
 
         def assertions(_request, user):
             assert user.id == existing_user.id
+
         build_mock_view(assertions)(lti_launch_request)
 
     def test_it_creates_a_user(self, lti_launch_request):
         def assertions(request, user):
             request.db.flush()
             assert user.id is not None
+
         build_mock_view(assertions)(lti_launch_request)

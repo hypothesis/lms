@@ -10,7 +10,9 @@ from lms.models import CourseGroup
 
 
 class TestLTILaunch:
-    def test_it_raises_if_no_lti_params_for_request(self, pyramid_request, lti_params_for):
+    def test_it_raises_if_no_lti_params_for_request(
+        self, pyramid_request, lti_params_for
+    ):
         lti_params_for.side_effect = HTTPBadRequest()
 
         with pytest.raises(HTTPBadRequest):
@@ -20,10 +22,15 @@ class TestLTILaunch:
         assert len(lti_launch.hypothesis_config["services"]) == 1
 
     def test_hypothesis_config_includes_the_api_url(self, lti_launch):
-        assert lti_launch.hypothesis_config["services"][0]["apiUrl"] == "https://example.com/api/"
+        assert (
+            lti_launch.hypothesis_config["services"][0]["apiUrl"]
+            == "https://example.com/api/"
+        )
 
     def test_hypothesis_config_includes_the_authority(self, lti_launch):
-        assert lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
+        assert (
+            lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
+        )
 
     def test_hypothesis_config_includes_grant_token(self, lti_launch):
         before = int(datetime.datetime.now().timestamp())
@@ -104,7 +111,9 @@ class TestLTILaunch:
         assert lti_launch.hypothesis_config == {}
 
     def test_rpc_server_config(self, lti_launch):
-        assert lti_launch.rpc_server_config == {"allowedOrigins": ["http://localhost:5000"]}
+        assert lti_launch.rpc_server_config == {
+            "allowedOrigins": ["http://localhost:5000"]
+        }
 
     @pytest.fixture
     def lti_launch(self, pyramid_request):

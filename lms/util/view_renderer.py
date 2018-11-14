@@ -7,9 +7,9 @@ def view_renderer(renderer):
         def wrapper(request, **kwargs):
             """Return a response object that pyramid can use."""
             return render_to_response(
-                renderer,
-                view_function(request, **kwargs),
-                request=request
+                renderer, view_function(request, **kwargs), request=request
             )
+
         return wrapper
+
     return view_decorator

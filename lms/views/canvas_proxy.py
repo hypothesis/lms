@@ -5,7 +5,7 @@ from lms.util.authenticate import authenticate
 from lms.util.canvas_api import canvas_api as canvas_api_provider
 
 
-@view_config(route_name='canvas_proxy', request_method='POST')
+@view_config(route_name="canvas_proxy", request_method="POST")
 @authenticate
 @canvas_api_provider
 def canvas_proxy(request, _decoded_jwt, canvas_api, **_):
@@ -18,8 +18,9 @@ def canvas_proxy(request, _decoded_jwt, canvas_api, **_):
     """
     result = canvas_api.proxy(
         f"/api/v1/{request.json['endpoint_url']}",
-        request.json['method'],
-        request.json['params'])
+        request.json["method"],
+        request.json["params"],
+    )
     response = None
     try:
         response = json.dumps(result.json())
