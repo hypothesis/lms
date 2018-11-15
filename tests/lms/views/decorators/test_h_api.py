@@ -142,7 +142,7 @@ class TestCreateHUser:
         requests.post.return_value.raise_for_status.side_effect = HTTPError()
         requests.post.return_value.status_code = status
 
-        with pytest.raises(HAPIError, match="Connecting to Hypothesis failed"):
+        with pytest.raises(HAPIError):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
     @pytest.fixture

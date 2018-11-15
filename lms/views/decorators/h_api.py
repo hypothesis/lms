@@ -110,7 +110,9 @@ def create_h_user(wrapped):  # noqa: MC0001
         else:
             # Something unexpected went wrong when trying to create the user
             # account in h. Abort and show the user an error page.
-            raise HAPIError(explanation="Connecting to Hypothesis failed")
+            raise HAPIError(
+                explanation="Connecting to Hypothesis faled", response=response
+            )
 
         return wrapped(request, jwt)
 
