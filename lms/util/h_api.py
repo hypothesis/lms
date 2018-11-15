@@ -37,7 +37,7 @@ def generate_display_name(request_params):
     display_name = display_name or "Anonymous"
 
     if len(display_name) > DISPLAY_NAME_MAX_LENGTH:
-        display_name = display_name[:DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
+        display_name = display_name[: DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
     return display_name
 
@@ -114,6 +114,6 @@ def generate_group_name(request_params):
     name = name.strip()
 
     if len(name) > GROUP_NAME_MAX_LENGTH:
-        name = name[:GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
+        name = name[: GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
     return name

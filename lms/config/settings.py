@@ -18,6 +18,6 @@ def env_setting(envvar_name, required=False, default=None):
         if required is True:
             raise SettingError(
                 "environment variable {envvar_name} isn't set".format(
-                    envvar_name=envvar_name,
+                    envvar_name=envvar_name
                 )
             )

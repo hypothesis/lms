@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=master)](https://travis-ci.org/hypothesis/lms)
 [![codecov](https://codecov.io/gh/hypothesis/lms/branch/master/graph/badge.svg)](https://codecov.io/gh/hypothesis/lms)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 # Hypothesis Canvas App
 

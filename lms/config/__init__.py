@@ -9,10 +9,7 @@ from pyramid.config import aslist
 
 from lms.security import groupfinder
 
-from lms.config.settings import (
-    SettingError,
-    env_setting,
-)
+from lms.config.settings import SettingError, env_setting
 
 
 def configure(settings):
@@ -22,64 +19,58 @@ def configure(settings):
     env_settings = {
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
-        'via_url': env_setting('VIA_URL', required=True),
-        'jwt_secret': env_setting('JWT_SECRET', required=True),
-        'google_client_id': env_setting('GOOGLE_CLIENT_ID'),
-        'google_developer_key': env_setting('GOOGLE_DEVELOPER_KEY'),
-        'google_app_id': env_setting('GOOGLE_APP_ID'),
-        'lms_secret': env_setting('LMS_SECRET'),
-        'hashed_pw': env_setting('HASHED_PW'),
-        'salt': env_setting('SALT'),
-        'username': env_setting('USERNAME'),
+        "via_url": env_setting("VIA_URL", required=True),
+        "jwt_secret": env_setting("JWT_SECRET", required=True),
+        "google_client_id": env_setting("GOOGLE_CLIENT_ID"),
+        "google_developer_key": env_setting("GOOGLE_DEVELOPER_KEY"),
+        "google_app_id": env_setting("GOOGLE_APP_ID"),
+        "lms_secret": env_setting("LMS_SECRET"),
+        "hashed_pw": env_setting("HASHED_PW"),
+        "salt": env_setting("SALT"),
+        "username": env_setting("USERNAME"),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
-        'aes_secret': env_setting('LMS_SECRET', required=True),
-
+        "aes_secret": env_setting("LMS_SECRET", required=True),
         # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
-        'h_client_id': env_setting('H_CLIENT_ID', required=True),
-        'h_client_secret': env_setting('H_CLIENT_SECRET', required=True),
-
+        "h_client_id": env_setting("H_CLIENT_ID", required=True),
+        "h_client_secret": env_setting("H_CLIENT_SECRET", required=True),
         # The OAuth 2.0 client_id and client_secret for logging users in to h.
-        'h_jwt_client_id': env_setting('H_JWT_CLIENT_ID', required=True),
-        'h_jwt_client_secret': env_setting('H_JWT_CLIENT_SECRET', required=True),
-
+        "h_jwt_client_id": env_setting("H_JWT_CLIENT_ID", required=True),
+        "h_jwt_client_secret": env_setting("H_JWT_CLIENT_SECRET", required=True),
         # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
-        'h_authority': env_setting('H_AUTHORITY', required=True),
-
+        "h_authority": env_setting("H_AUTHORITY", required=True),
         # The base URL of the h API (e.g. "https://hypothes.is/api).
-        'h_api_url': env_setting('H_API_URL', required=True),
-
+        "h_api_url": env_setting("H_API_URL", required=True),
         # The list of `oauth_consumer_key`s of the application instances for
         # which the automatic user and group provisioning features are enabled.
-        'auto_provisioning': env_setting('AUTO_PROVISIONING', default=''),
-
+        "auto_provisioning": env_setting("AUTO_PROVISIONING", default=""),
         # The postMessage origins from which to accept RPC requests.
-        'rpc_allowed_origins': env_setting('RPC_ALLOWED_ORIGINS', required=True),
+        "rpc_allowed_origins": env_setting("RPC_ALLOWED_ORIGINS", required=True),
     }
 
-    database_url = env_setting('DATABASE_URL')
+    database_url = env_setting("DATABASE_URL")
     if database_url:
-        env_settings['sqlalchemy.url'] = database_url
+        env_settings["sqlalchemy.url"] = database_url
 
-    env_settings['via_url'] = _strip_trailing_slash(env_settings['via_url'])
-    env_settings['h_api_url'] = _strip_trailing_slash(env_settings['h_api_url'])
+    env_settings["via_url"] = _strip_trailing_slash(env_settings["via_url"])
+    env_settings["h_api_url"] = _strip_trailing_slash(env_settings["h_api_url"])
 
     try:
         env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
     except UnicodeEncodeError:
         raise SettingError("LMS_SECRET must contain only ASCII characters")
 
-    env_settings['auto_provisioning'] = aslist(env_settings['auto_provisioning'])
-    env_settings['rpc_allowed_origins'] = aslist(env_settings['rpc_allowed_origins'])
+    env_settings["auto_provisioning"] = aslist(env_settings["auto_provisioning"])
+    env_settings["rpc_allowed_origins"] = aslist(env_settings["rpc_allowed_origins"])
 
     settings.update(env_settings)
 
-    config = Configurator(settings=settings, root_factory='.resources.Root')
+    config = Configurator(settings=settings, root_factory=".resources.Root")
 
     # Security policies
     authn_policy = AuthTktAuthenticationPolicy(
-        settings['lms_secret'], callback=groupfinder,
-        hashalg='sha512')
+        settings["lms_secret"], callback=groupfinder, hashalg="sha512"
+    )
     authz_policy = ACLAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
@@ -94,8 +85,4 @@ def _strip_trailing_slash(s):  # pylint: disable=invalid-name
     return s
 
 
-__all__ = (
-    'SettingError',
-    'configure',
-    'env_setting'
-)
+__all__ = ("SettingError", "configure", "env_setting")

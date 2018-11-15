@@ -71,7 +71,9 @@ def create_h_user(wrapped):  # noqa: MC0001
             provider = util.generate_provider(params)
             provider_unique_id = util.generate_provider_unique_id(params)
         except MissingToolConsumerIntanceGUIDError:
-            raise HTTPBadRequest('Required parameter "tool_consumer_instance_guid" missing from LTI params')
+            raise HTTPBadRequest(
+                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
+            )
         except MissingUserIDError:
             raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
 
@@ -83,10 +85,7 @@ def create_h_user(wrapped):  # noqa: MC0001
             "display_name": display_name,
             "authority": authority,
             "identities": [
-                {
-                    "provider": provider,
-                    "provider_unique_id": provider_unique_id,
-                }
+                {"provider": provider, "provider_unique_id": provider_unique_id}
             ],
         }
 
@@ -159,6 +158,7 @@ def create_course_group(wrapped):
     def wrapper(request, jwt):
         _maybe_create_group(request)
         return wrapped(request, jwt)
+
     return wrapper
 
 
@@ -172,12 +172,16 @@ def add_user_to_group(wrapped):
         tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
         context_id = get_param("context_id")
 
-        group = models.CourseGroup.get(request.db, tool_consumer_instance_guid, context_id)
+        group = models.CourseGroup.get(
+            request.db, tool_consumer_instance_guid, context_id
+        )
 
-        assert group is not None, ("create_course_group() should always have "
-                                   "been run successfully before this "
-                                   "function gets called, so group should "
-                                   "never be None.")
+        assert group is not None, (
+            "create_course_group() should always have "
+            "been run successfully before this "
+            "function gets called, so group should "
+            "never be None."
+        )
 
         # Deliberately assume that generate_username() will succeed and not
         # raise an error.  create_h_user() should always have been run
@@ -192,7 +196,8 @@ def add_user_to_group(wrapped):
 
         try:
             response = requests.post(
-                request.registry.settings["h_api_url"] + f"/groups/{group.pubid}/members/{userid}",
+                request.registry.settings["h_api_url"]
+                + f"/groups/{group.pubid}/members/{userid}",
                 auth=(client_id, client_secret),
                 timeout=1,
             )
@@ -201,6 +206,7 @@ def add_user_to_group(wrapped):
             raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
 
         return wrapped(request, jwt)
+
     return wrapper
 
 
@@ -224,7 +230,10 @@ def _maybe_create_group(request):
 
     # Show the user an error page if the group hasn't been created yet and
     # the user isn't allowed to create groups.
-    if not any(role in get_param("roles").lower() for role in ("administrator", "instructor", "teachingassisstant")):
+    if not any(
+        role in get_param("roles").lower()
+        for role in ("administrator", "instructor", "teachingassisstant")
+    ):
         raise HTTPBadRequest("Instructor must launch assignment first.")
 
     create_group_api_url = request.registry.settings["h_api_url"] + "/groups"
@@ -235,7 +244,9 @@ def _maybe_create_group(request):
     try:
         name = util.generate_group_name(request.params)
     except MissingContextTitleError:
-        raise HTTPBadRequest('Required parameter "context_title" missing from LTI params')
+        raise HTTPBadRequest(
+            'Required parameter "context_title" missing from LTI params'
+        )
 
     authority = request.registry.settings["h_authority"]
 
@@ -252,7 +263,9 @@ def _maybe_create_group(request):
             auth=(client_id, client_secret),
             data=json.dumps({"name": name}),
             headers={
-                "X-Forwarded-User": "acct:{username}@{authority}".format(username=username, authority=authority),
+                "X-Forwarded-User": "acct:{username}@{authority}".format(
+                    username=username, authority=authority
+                )
             },
             timeout=1,
         )
@@ -262,11 +275,13 @@ def _maybe_create_group(request):
 
     # Save a record of the group's pubid in the DB so that we can find it
     # again later.
-    request.db.add(models.CourseGroup(
-        tool_consumer_instance_guid=tool_consumer_instance_guid,
-        context_id=context_id,
-        pubid=response.json()["id"],
-    ))
+    request.db.add(
+        models.CourseGroup(
+            tool_consumer_instance_guid=tool_consumer_instance_guid,
+            context_id=context_id,
+            pubid=response.json()["id"],
+        )
+    )
 
 
 def _get_param(request, param_name):
@@ -274,10 +289,14 @@ def _get_param(request, param_name):
     try:
         return request.params[param_name]
     except KeyError:
-        raise HTTPBadRequest(f'Required parameter "{param_name}" missing from LTI params')
+        raise HTTPBadRequest(
+            f'Required parameter "{param_name}" missing from LTI params'
+        )
 
 
 def _auto_provisioning_feature_enabled(request):
-    oauth_consumer_key = _get_param(request, "oauth_consumer_key")  # pylint: disable=too-many-function-args
+    oauth_consumer_key = _get_param(  # pylint: disable=too-many-function-args
+        request, "oauth_consumer_key"
+    )
     enabled_consumer_keys = request.registry.settings["auto_provisioning"]
     return oauth_consumer_key in enabled_consumer_keys

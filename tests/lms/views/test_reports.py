@@ -18,26 +18,44 @@ def setup_launches(pyramid_request, app_instances):
 
 class TestReports:
     def test_build_launches_rows(self, pyramid_request):
-        test_urls = ['https://example.com', 'https://sub.example.com',
-                     'https://another.example.com']
-        test_emails = ['a@example.com', 'b@sub.example.com',
-                       'c@another.example.com']
+        test_urls = [
+            "https://example.com",
+            "https://sub.example.com",
+            "https://another.example.com",
+        ]
+        test_emails = ["a@example.com", "b@sub.example.com", "c@another.example.com"]
 
         def build_ai_from_pair(pair):
             return build_from_lms_url(pair[0], pair[1], None, None, None)
 
-        app_instances = list(
-            map(build_ai_from_pair, zip(test_urls, test_emails)))
+        app_instances = list(map(build_ai_from_pair, zip(test_urls, test_emails)))
         for app in app_instances:
             pyramid_request.db.add(app)
 
         setup_launches(pyramid_request, app_instances)
 
         result = list_application_instances(pyramid_request)
-        assert result['num_launches'] == 6
-        assert result['launches'] == [
-            ('asdf', 3, 'https://example.com', 'a@example.com', app_instances[0].consumer_key),
-            ('another', 2, 'https://another.example.com',
-             'c@another.example.com', app_instances[2].consumer_key),
-            ('fdsa', 1, 'https://sub.example.com',
-             'b@sub.example.com', app_instances[1].consumer_key)]
+        assert result["num_launches"] == 6
+        assert result["launches"] == [
+            (
+                "asdf",
+                3,
+                "https://example.com",
+                "a@example.com",
+                app_instances[0].consumer_key,
+            ),
+            (
+                "another",
+                2,
+                "https://another.example.com",
+                "c@another.example.com",
+                app_instances[2].consumer_key,
+            ),
+            (
+                "fdsa",
+                1,
+                "https://sub.example.com",
+                "b@sub.example.com",
+                app_instances[1].consumer_key,
+            ),
+        ]

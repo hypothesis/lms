@@ -72,9 +72,7 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        tool_consumer_instance_guid = self.lti_params.get(
-            "tool_consumer_instance_guid"
-        )
+        tool_consumer_instance_guid = self.lti_params.get("tool_consumer_instance_guid")
         context_id = self.lti_params.get("context_id")
         group = models.CourseGroup.get(
             self.request.db, tool_consumer_instance_guid, context_id

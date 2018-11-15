@@ -17,7 +17,9 @@ from lms.config import SettingError
     "AuthTktAuthenticationPolicy",
 )
 class TestConfigure:
-    def test_it_returns_a_Configurator_with_the_deployment_settings_set(self, env_setting):
+    def test_it_returns_a_Configurator_with_the_deployment_settings_set(
+        self, env_setting
+    ):
         configurator = configure({})
 
         assert isinstance(configurator, pyramid.config.Configurator)
@@ -26,7 +28,9 @@ class TestConfigure:
             assert configurator.registry.settings[setting] == env_setting.return_value
 
     def test_when_an_ENV_VAR_isnt_set_it_puts_None_into_the_settings(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "USERNAME":
                 return None
             return mock.DEFAULT
@@ -43,8 +47,12 @@ class TestConfigure:
         with pytest.raises(SettingError, match="error message"):
             configure({})
 
-    def test_the_aes_secret_setting_is_the_LMS_SECRET_env_var_as_a_byte_string(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+    def test_the_aes_secret_setting_is_the_LMS_SECRET_env_var_as_a_byte_string(
+        self, env_setting
+    ):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "LMS_SECRET":
                 return "test_lms_secret"
             return mock.DEFAULT
@@ -63,18 +71,26 @@ class TestConfigure:
         assert configurator.registry.settings["aes_secret"] == b"test_lms_secret_"
 
     def test_LMS_SECRET_cant_contain_non_ascii_chars(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "LMS_SECRET":
                 return "test_lms_secret_\u2119"
             return mock.DEFAULT
 
         env_setting.side_effect = side_effect
 
-        with pytest.raises(SettingError, match="LMS_SECRET must contain only ASCII characters"):
+        with pytest.raises(
+            SettingError, match="LMS_SECRET must contain only ASCII characters"
+        ):
             configure({})
 
-    def test_the_DATABASE_URL_envvar_becomes_the_sqlalchemy_url_setting(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+    def test_the_DATABASE_URL_envvar_becomes_the_sqlalchemy_url_setting(
+        self, env_setting
+    ):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "DATABASE_URL":
                 return "test_database_url"
             return mock.DEFAULT
@@ -85,8 +101,12 @@ class TestConfigure:
 
         assert configurator.registry.settings["sqlalchemy.url"] == "test_database_url"
 
-    def test_the_sqlalchemy_url_setting_is_omitted_if_theres_no_DATABASE_URL(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+    def test_the_sqlalchemy_url_setting_is_omitted_if_theres_no_DATABASE_URL(
+        self, env_setting
+    ):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "DATABASE_URL":
                 return None
             return mock.DEFAULT
@@ -100,7 +120,9 @@ class TestConfigure:
         assert "sqlalchemy.url" not in configurator.registry.settings
 
     def test_trailing_slashes_are_removed_from_via_url(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "VIA_URL":
                 return "https://via.hypothes.is/"
             return mock.DEFAULT
@@ -112,7 +134,9 @@ class TestConfigure:
         assert configurator.registry.settings["via_url"] == "https://via.hypothes.is"
 
     def test_trailing_slashes_are_removed_from_h_api_url(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "H_API_URL":
                 return "https://hypothes.is/api/"
             return mock.DEFAULT
@@ -123,33 +147,54 @@ class TestConfigure:
 
         assert configurator.registry.settings["h_api_url"] == "https://hypothes.is/api"
 
-    @pytest.mark.parametrize("envvar_value,expected_setting", [
-        # Strings with spaces in them get turned into lists.
-        (
-            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
-            ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"],
-        ),
-
-        # A string with no spaces in it becomes a list of one.
-        ("Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
-
-        # Leading and trailing whitespace is ignored.
-        ("Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
-        ("  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
-        ("  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ", ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"]),
-        (
-            " Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef   Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20 ",
-            ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef", "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"],
-        ),
-
-        # An empty string produces an empty list.
-        ("", []),
-
-        # A whitespace-only string produces an empty list.
-        ("  ", []),
-    ])
-    def test_auto_provisioning_setting(self, env_setting, envvar_value, expected_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+    @pytest.mark.parametrize(
+        "envvar_value,expected_setting",
+        [
+            # Strings with spaces in them get turned into lists.
+            (
+                "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
+                [
+                    "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+                    "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
+                ],
+            ),
+            # A string with no spaces in it becomes a list of one.
+            (
+                "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+                ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"],
+            ),
+            # Leading and trailing whitespace is ignored.
+            (
+                "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ",
+                ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"],
+            ),
+            (
+                "  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+                ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"],
+            ),
+            (
+                "  Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef  ",
+                ["Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"],
+            ),
+            (
+                " Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef   Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20 ",
+                [
+                    "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+                    "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
+                ],
+            ),
+            # An empty string produces an empty list.
+            ("", []),
+            # A whitespace-only string produces an empty list.
+            ("  ", []),
+        ],
+    )
+    def test_auto_provisioning_setting(
+        self, env_setting, envvar_value, expected_setting
+    ):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "AUTO_PROVISIONING":
                 return envvar_value
             return mock.DEFAULT
@@ -160,33 +205,36 @@ class TestConfigure:
 
         assert configurator.registry.settings["auto_provisioning"] == expected_setting
 
-    @pytest.mark.parametrize("envvar_value,expected_setting", [
-        # Strings with spaces in them get turned into lists.
-        (
-            "https://example.com https://hypothes.is",
-            ["https://example.com", "https://hypothes.is"],
-        ),
-
-        # A string with no spaces in it becomes a list of one.
-        ("https://example.com", ["https://example.com"]),
-
-        # Leading and trailing whitespace is ignored.
-        ("https://example.com  ", ["https://example.com"]),
-        ("  https://example.com", ["https://example.com"]),
-        ("  https://example.com  ", ["https://example.com"]),
-        (
-            " https://example.com   https://hypothes.is ",
-            ["https://example.com", "https://hypothes.is"],
-        ),
-
-        # An empty string produces an empty list.
-        ("", []),
-
-        # A whitespace-only string produces an empty list.
-        ("  ", []),
-    ])
-    def test_rpc_allowed_origins_setting(self, env_setting, envvar_value, expected_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+    @pytest.mark.parametrize(
+        "envvar_value,expected_setting",
+        [
+            # Strings with spaces in them get turned into lists.
+            (
+                "https://example.com https://hypothes.is",
+                ["https://example.com", "https://hypothes.is"],
+            ),
+            # A string with no spaces in it becomes a list of one.
+            ("https://example.com", ["https://example.com"]),
+            # Leading and trailing whitespace is ignored.
+            ("https://example.com  ", ["https://example.com"]),
+            ("  https://example.com", ["https://example.com"]),
+            ("  https://example.com  ", ["https://example.com"]),
+            (
+                " https://example.com   https://hypothes.is ",
+                ["https://example.com", "https://hypothes.is"],
+            ),
+            # An empty string produces an empty list.
+            ("", []),
+            # A whitespace-only string produces an empty list.
+            ("  ", []),
+        ],
+    )
+    def test_rpc_allowed_origins_setting(
+        self, env_setting, envvar_value, expected_setting
+    ):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "RPC_ALLOWED_ORIGINS":
                 return envvar_value
             return mock.DEFAULT
@@ -210,7 +258,9 @@ class TestConfigure:
     # ENV_VAR isn't set, an ini file setting with the same name will be
     # overwritten with None.
     def test_config_file_settings_are_overwritten_with_None(self, env_setting):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "JWT_SECRET":
                 return None
             return mock.DEFAULT
@@ -233,7 +283,9 @@ class TestConfigure:
     def test_it_sets_the_pyramid_authentication_policy(
         self, AuthTktAuthenticationPolicy, config, env_setting, groupfinder
     ):
-        def side_effect(envvar_name, *args, **kwargs):  # pylint: disable=unused-argument
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
             if envvar_name == "LMS_SECRET":
                 return "test_lms_secret"
             return mock.DEFAULT
@@ -249,7 +301,9 @@ class TestConfigure:
             AuthTktAuthenticationPolicy.return_value
         )
 
-    def test_it_sets_the_pyramid_authorization_policy(self, ACLAuthorizationPolicy, config):
+    def test_it_sets_the_pyramid_authorization_policy(
+        self, ACLAuthorizationPolicy, config
+    ):
         configure({})
 
         ACLAuthorizationPolicy.assert_called_once_with()

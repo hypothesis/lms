@@ -6,13 +6,13 @@ from lms.db import BASE
 class Token(BASE):
     """Class to represent an lms api token."""
 
-    __tablename__ = 'tokens'
+    __tablename__ = "tokens"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     access_token = sa.Column(sa.String)
     refresh_token = sa.Column(sa.String)
     expires_in = sa.Column(sa.String)
-    user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id'))
+    user_id = sa.Column(sa.Integer, sa.ForeignKey("users.id"))
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
 
 
@@ -24,9 +24,9 @@ def find_token_by_user_id(session, user_id):
 def build_token_from_oauth_response(oauth_resp):
     """Build a token from an oauth response."""
     return Token(
-        access_token=oauth_resp['access_token'],
-        refresh_token=oauth_resp['refresh_token'],
-        expires_in=oauth_resp['expires_in'],
+        access_token=oauth_resp["access_token"],
+        refresh_token=oauth_resp["refresh_token"],
+        expires_in=oauth_resp["expires_in"],
     )
 
 

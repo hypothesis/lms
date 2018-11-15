@@ -16,6 +16,8 @@ jobs:
       script: make test
     - env: ACTION=lint
       script: make lint
+    - env: ACTION=checkformatting
+      script: make checkformatting
 after_success:
   - make coverage codecov
 cache:

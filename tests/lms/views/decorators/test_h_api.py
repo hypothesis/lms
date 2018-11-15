@@ -18,13 +18,17 @@ from lms.models import CourseGroup
 
 
 class TestCreateHUser:
-    def test_it_400s_if_no_oauth_consumer_key_param(self, create_h_user, pyramid_request):
+    def test_it_400s_if_no_oauth_consumer_key_param(
+        self, create_h_user, pyramid_request
+    ):
         del pyramid_request.params["oauth_consumer_key"]
 
         with pytest.raises(HTTPBadRequest, match="oauth_consumer_key"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(self, create_h_user, pyramid_request, wrapped):
+    def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
+        self, create_h_user, pyramid_request, wrapped
+    ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
@@ -32,32 +36,42 @@ class TestCreateHUser:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_doesnt_use_the_h_api_if_feature_not_enabled(self, create_h_user, post, pyramid_request):
+    def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
+        self, create_h_user, post, pyramid_request
+    ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
         assert not post.called
 
-    def test_it_400s_if_generate_username_raises_MissingToolConsumerInstanceGUIDError(self, create_h_user, pyramid_request, util):
+    def test_it_400s_if_generate_username_raises_MissingToolConsumerInstanceGUIDError(
+        self, create_h_user, pyramid_request, util
+    ):
         util.generate_username.side_effect = MissingToolConsumerIntanceGUIDError()
 
         with pytest.raises(HTTPBadRequest, match="tool_consumer_instance_guid"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_400s_if_generate_username_raises_MissingUserIDError(self, create_h_user, pyramid_request, util):
+    def test_it_400s_if_generate_username_raises_MissingUserIDError(
+        self, create_h_user, pyramid_request, util
+    ):
         util.generate_username.side_effect = MissingUserIDError()
 
         with pytest.raises(HTTPBadRequest, match="user_id"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_400s_if_generate_provider_raises_MissingToolConsumerInstanceGUIDError(self, create_h_user, pyramid_request, util):
+    def test_it_400s_if_generate_provider_raises_MissingToolConsumerInstanceGUIDError(
+        self, create_h_user, pyramid_request, util
+    ):
         util.generate_provider.side_effect = MissingToolConsumerIntanceGUIDError()
 
         with pytest.raises(HTTPBadRequest, match="tool_consumer_instance_guid"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_400s_if_generate_provider_unique_id_raises_MissingUserIDError(self, create_h_user, pyramid_request, util):
+    def test_it_400s_if_generate_provider_unique_id_raises_MissingUserIDError(
+        self, create_h_user, pyramid_request, util
+    ):
         util.generate_provider_unique_id.side_effect = MissingUserIDError()
 
         with pytest.raises(HTTPBadRequest, match="user_id"):
@@ -69,31 +83,41 @@ class TestCreateHUser:
         post.assert_called_once_with(
             "https://example.com/api/users",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            data=json.dumps({
-                "username": "test_username",
-                "display_name": "test_display_name",
-                "authority": "TEST_AUTHORITY",
-                "identities": [{
-                    "provider": "test_provider",
-                    "provider_unique_id": "test_provider_unique_id",
-                }],
-            }),
+            data=json.dumps(
+                {
+                    "username": "test_username",
+                    "display_name": "test_display_name",
+                    "authority": "TEST_AUTHORITY",
+                    "identities": [
+                        {
+                            "provider": "test_provider",
+                            "provider_unique_id": "test_provider_unique_id",
+                        }
+                    ],
+                }
+            ),
             timeout=1,
         )
 
-    def test_it_504s_if_the_h_request_times_out(self, create_h_user, patch, post, pyramid_request):
+    def test_it_504s_if_the_h_request_times_out(
+        self, create_h_user, patch, post, pyramid_request
+    ):
         post.side_effect = requests.exceptions.ReadTimeout()
 
         with pytest.raises(HTTPGatewayTimeout):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_continues_to_the_wrapped_function_if_h_200s(self, create_h_user, pyramid_request, wrapped):
+    def test_it_continues_to_the_wrapped_function_if_h_200s(
+        self, create_h_user, pyramid_request, wrapped
+    ):
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
 
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_continues_to_the_wrapped_function_if_h_409s(self, create_h_user, post, pyramid_request, wrapped):
+    def test_it_continues_to_the_wrapped_function_if_h_409s(
+        self, create_h_user, post, pyramid_request, wrapped
+    ):
         post.return_value.status_code = 409
 
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
@@ -101,8 +125,12 @@ class TestCreateHUser:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    @pytest.mark.parametrize("status", (500, 501, 502, 503, 504, 400, 401, 403, 404, 408))
-    def test_it_502s_for_unexpected_errors_from_h(self, create_h_user, post, pyramid_request, status):
+    @pytest.mark.parametrize(
+        "status", (500, 501, 502, 503, 504, 400, 401, 403, 404, 408)
+    )
+    def test_it_502s_for_unexpected_errors_from_h(
+        self, create_h_user, post, pyramid_request, status
+    ):
         post.return_value.status_code = status
 
         with pytest.raises(HTTPBadGateway, match="Connecting to Hypothesis failed"):
@@ -115,28 +143,34 @@ class TestCreateHUser:
 
 
 class TestCreateCourseGroup:
-    @pytest.mark.parametrize("required_param_name", (
-        "oauth_consumer_key",
-        "tool_consumer_instance_guid",
-        "context_id",
-        "roles",
-    ))
-    def test_it_400s_if_theres_a_required_param_missing(self, create_course_group, pyramid_request, required_param_name):
+    @pytest.mark.parametrize(
+        "required_param_name",
+        ("oauth_consumer_key", "tool_consumer_instance_guid", "context_id", "roles"),
+    )
+    def test_it_400s_if_theres_a_required_param_missing(
+        self, create_course_group, pyramid_request, required_param_name
+    ):
         del pyramid_request.params[required_param_name]
 
         with pytest.raises(HTTPBadRequest, match=required_param_name):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_400s_if_the_user_isnt_allowed_to_create_groups(self, create_course_group, pyramid_request):
+    def test_it_400s_if_the_user_isnt_allowed_to_create_groups(
+        self, create_course_group, pyramid_request
+    ):
         pyramid_request.params["roles"] = "Learner"
 
-        with pytest.raises(HTTPBadRequest, match="Instructor must launch assignment first"):
+        with pytest.raises(
+            HTTPBadRequest, match="Instructor must launch assignment first"
+        ):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_does_nothing_if_the_user_isnt_allowed_to_create_groups_but_the_group_already_exists(
         self, create_course_group, pyramid_request, models, post, wrapped
     ):
-        models.CourseGroup.get.return_value = mock.create_autospec(CourseGroup, instance=True)
+        models.CourseGroup.get.return_value = mock.create_autospec(
+            CourseGroup, instance=True
+        )
         pyramid_request.params["roles"] = "Learner"
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
@@ -146,7 +180,9 @@ class TestCreateCourseGroup:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_does_nothing_if_the_feature_isnt_enabled(self, create_course_group, pyramid_request, wrapped, post):
+    def test_it_does_nothing_if_the_feature_isnt_enabled(
+        self, create_course_group, pyramid_request, wrapped, post
+    ):
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
         # wrapped view.
@@ -159,8 +195,12 @@ class TestCreateCourseGroup:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_does_nothing_if_the_course_group_already_exists(self, create_course_group, models, pyramid_request, wrapped, post):
-        models.CourseGroup.get.return_value = mock.create_autospec(CourseGroup, instance=True)
+    def test_it_does_nothing_if_the_course_group_already_exists(
+        self, create_course_group, models, pyramid_request, wrapped, post
+    ):
+        models.CourseGroup.get.return_value = mock.create_autospec(
+            CourseGroup, instance=True
+        )
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
@@ -169,37 +209,46 @@ class TestCreateCourseGroup:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_posts_to_the_group_create_api(self, create_course_group, pyramid_request, post):
+    def test_it_posts_to_the_group_create_api(
+        self, create_course_group, pyramid_request, post
+    ):
         create_course_group(pyramid_request, mock.sentinel.jwt)
 
         post.assert_called_once_with(
             "https://example.com/api/groups",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             data='{"name": "test_group_name"}',
-            headers={
-                "X-Forwarded-User": "acct:test_username@TEST_AUTHORITY",
-            },
+            headers={"X-Forwarded-User": "acct:test_username@TEST_AUTHORITY"},
             timeout=1,
         )
 
-    @pytest.mark.parametrize("request_exception", (
-        requests.ConnectionError(),
-        requests.TooManyRedirects(),
-        requests.ReadTimeout(),
-    ))
-    def test_it_504s_if_the_h_request_errors(self, create_course_group, post, pyramid_request, request_exception):
+    @pytest.mark.parametrize(
+        "request_exception",
+        (
+            requests.ConnectionError(),
+            requests.TooManyRedirects(),
+            requests.ReadTimeout(),
+        ),
+    )
+    def test_it_504s_if_the_h_request_errors(
+        self, create_course_group, post, pyramid_request, request_exception
+    ):
         post.side_effect = request_exception
 
         with pytest.raises(HTTPGatewayTimeout):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_504s_if_the_h_response_is_unsuccessful(self, create_course_group, post, pyramid_request):
+    def test_it_504s_if_the_h_response_is_unsuccessful(
+        self, create_course_group, post, pyramid_request
+    ):
         post.return_value.raise_for_status.side_effect = requests.HTTPError()
 
         with pytest.raises(HTTPGatewayTimeout):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_saves_the_group_to_the_db(self, create_course_group, pyramid_request, models):
+    def test_it_saves_the_group_to_the_db(
+        self, create_course_group, pyramid_request, models
+    ):
         # It saves a record of the created group to the DB so that next time
         # this course is used it'll retrieve it from the DB and know not to
         # create another group for the same course.
@@ -207,25 +256,33 @@ class TestCreateCourseGroup:
 
         class CourseGroupMatcher:
             """An object equal to any other object with matching CourseGroup properties."""
+
             def __init__(self, pubid, tool_consumer_instance_guid, context_id):
                 self.pubid = pubid
                 self.tool_consumer_instance_guid = tool_consumer_instance_guid
                 self.context_id = context_id
 
             def __eq__(self, other):
-                return all((
-                    other.pubid == self.pubid,
-                    other.tool_consumer_instance_guid == self.tool_consumer_instance_guid,
-                    other.context_id == self.context_id,
-                ))
+                return all(
+                    (
+                        other.pubid == self.pubid,
+                        other.tool_consumer_instance_guid
+                        == self.tool_consumer_instance_guid,
+                        other.context_id == self.context_id,
+                    )
+                )
 
-        pyramid_request.db.add.assert_called_once_with(CourseGroupMatcher(
-            pubid="TEST_PUBID",
-            tool_consumer_instance_guid="TEST_GUID",
-            context_id="TEST_CONTEXT",
-        ))
+        pyramid_request.db.add.assert_called_once_with(
+            CourseGroupMatcher(
+                pubid="TEST_PUBID",
+                tool_consumer_instance_guid="TEST_GUID",
+                context_id="TEST_CONTEXT",
+            )
+        )
 
-    def test_it_calls_and_returns_the_wrapped_view(self, create_course_group, pyramid_request, wrapped):
+    def test_it_calls_and_returns_the_wrapped_view(
+        self, create_course_group, pyramid_request, wrapped
+    ):
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
@@ -243,14 +300,18 @@ class TestCreateCourseGroup:
 
 
 class TestAddUserToGroup:
-    def test_it_doesnt_post_to_the_api_if_feature_not_enabled(self, add_user_to_group, pyramid_request, post):
+    def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
+        self, add_user_to_group, pyramid_request, post
+    ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
         post.assert_not_called()
 
-    def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(self, add_user_to_group, pyramid_request, wrapped):
+    def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
+        self, add_user_to_group, pyramid_request, wrapped
+    ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         returned = add_user_to_group(pyramid_request, mock.sentinel.jwt)
@@ -258,57 +319,72 @@ class TestAddUserToGroup:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    @pytest.mark.parametrize("required_param_name", (
-        "tool_consumer_instance_guid",
-        "context_id",
-    ))
-    def test_it_400s_if_theres_a_required_param_missing(self, add_user_to_group, pyramid_request, required_param_name):
+    @pytest.mark.parametrize(
+        "required_param_name", ("tool_consumer_instance_guid", "context_id")
+    )
+    def test_it_400s_if_theres_a_required_param_missing(
+        self, add_user_to_group, pyramid_request, required_param_name
+    ):
         del pyramid_request.params[required_param_name]
 
         with pytest.raises(HTTPBadRequest, match=required_param_name):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_raises_if_the_group_doesnt_exist(self, add_user_to_group, pyramid_request, models):
+    def test_it_raises_if_the_group_doesnt_exist(
+        self, add_user_to_group, pyramid_request, models
+    ):
         models.CourseGroup.get.return_value = None
 
         with pytest.raises(AssertionError, match="group should never be None"):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_gets_the_group_from_the_db(self, add_user_to_group, models, pyramid_request):
+    def test_it_gets_the_group_from_the_db(
+        self, add_user_to_group, models, pyramid_request
+    ):
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-        models.CourseGroup.get.assert_called_once_with(pyramid_request.db,
-                                                       "test_tool_consumer_instance_guid",
-                                                       "test_context_id")
+        models.CourseGroup.get.assert_called_once_with(
+            pyramid_request.db, "test_tool_consumer_instance_guid", "test_context_id"
+        )
 
-    def test_it_adds_the_user_to_the_group(self, add_user_to_group, pyramid_request, post):
+    def test_it_adds_the_user_to_the_group(
+        self, add_user_to_group, pyramid_request, post
+    ):
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
         post.assert_called_once_with(
             "https://example.com/api/groups/test_pubid/members/acct:test_username@TEST_AUTHORITY",
-            auth=('TEST_CLIENT_ID', 'TEST_CLIENT_SECRET'),
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=1,
         )
 
-    @pytest.mark.parametrize("request_exception", (
-        requests.ConnectionError(),
-        requests.TooManyRedirects(),
-        requests.ReadTimeout(),
-    ))
-    def test_it_504s_if_the_h_request_errors(self, add_user_to_group, post, pyramid_request, request_exception):
+    @pytest.mark.parametrize(
+        "request_exception",
+        (
+            requests.ConnectionError(),
+            requests.TooManyRedirects(),
+            requests.ReadTimeout(),
+        ),
+    )
+    def test_it_504s_if_the_h_request_errors(
+        self, add_user_to_group, post, pyramid_request, request_exception
+    ):
         post.side_effect = request_exception
 
         with pytest.raises(HTTPGatewayTimeout):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_504s_if_the_h_response_is_unsuccessful(self, add_user_to_group, post, pyramid_request):
+    def test_it_504s_if_the_h_response_is_unsuccessful(
+        self, add_user_to_group, post, pyramid_request
+    ):
         post.return_value.raise_for_status.side_effect = requests.HTTPError()
 
         with pytest.raises(HTTPGatewayTimeout):
-             add_user_to_group(pyramid_request, mock.sentinel.jwt)
+            add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-
-    def test_it_continues_to_the_wrapped_func(self, add_user_to_group, pyramid_request, wrapped):
+    def test_it_continues_to_the_wrapped_func(
+        self, add_user_to_group, pyramid_request, wrapped
+    ):
         returned = add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
@@ -321,14 +397,17 @@ class TestAddUserToGroup:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params["tool_consumer_instance_guid"] = "test_tool_consumer_instance_guid"
+        pyramid_request.params[
+            "tool_consumer_instance_guid"
+        ] = "test_tool_consumer_instance_guid"
         pyramid_request.params["context_id"] = "test_context_id"
         return pyramid_request
 
     @pytest.fixture
     def models(self, models):
         models.CourseGroup.get.return_value = mock.create_autospec(
-            CourseGroup, instance=True, pubid="test_pubid")
+            CourseGroup, instance=True, pubid="test_pubid"
+        )
         return models
 
 
@@ -338,6 +417,7 @@ def models(patch):
 
     def side_effect(**kwargs):
         return mock.create_autospec(CourseGroup, instance=True, **kwargs)
+
     models.CourseGroup.side_effect = side_effect
 
     models.CourseGroup.get.return_value = None
@@ -349,23 +429,23 @@ def models(patch):
 def post(patch):
     post = patch("lms.views.decorators.h_api.requests.post")
     post.return_value = mock.create_autospec(
-        requests.models.Response,
-        instance=True,
-        status_code=200,
+        requests.models.Response, instance=True, status_code=200
     )
     return post
 
 
 @pytest.fixture
 def pyramid_request(pyramid_request):
-    pyramid_request.params.update({
-        # A valid oauth_consumer_key (matches one for which the
-        # provisioning features are enabled).
-        "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-        "tool_consumer_instance_guid": "TEST_GUID",
-        "context_id": "TEST_CONTEXT",
-        "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
-    })
+    pyramid_request.params.update(
+        {
+            # A valid oauth_consumer_key (matches one for which the
+            # provisioning features are enabled).
+            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+            "tool_consumer_instance_guid": "TEST_GUID",
+            "context_id": "TEST_CONTEXT",
+            "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
+        }
+    )
     pyramid_request.db = mock.MagicMock()
     return pyramid_request
 

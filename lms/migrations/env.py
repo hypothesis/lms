@@ -17,13 +17,15 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 # FIXME: Import lms.db.BASE.metadata instead of duplicating the naming convention here.
-target_metadata = MetaData(naming_convention={
-    "ix": "ix__%(column_0_label)s",
-    "uq": "uq__%(table_name)s__%(column_0_name)s",
-    "ck": "ck__%(table_name)s__%(constraint_name)s",
-    "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
-    "pk": "pk__%(table_name)s"
-})
+target_metadata = MetaData(
+    naming_convention={
+        "ix": "ix__%(column_0_label)s",
+        "uq": "uq__%(table_name)s__%(column_0_name)s",
+        "ck": "ck__%(table_name)s__%(constraint_name)s",
+        "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
+        "pk": "pk__%(table_name)s",
+    }
+)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -32,8 +34,8 @@ target_metadata = MetaData(naming_convention={
 
 
 def get_database_url():
-    if 'DATABASE_URL' in os.environ:
-        return os.environ['DATABASE_URL']
+    if "DATABASE_URL" in os.environ:
+        return os.environ["DATABASE_URL"]
     return config.get_main_option("sqlalchemy.url")
 
 
@@ -50,8 +52,7 @@ def run_migrations_offline():
 
     """
     url = get_database_url()
-    context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True)
+    context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
 
     with context.begin_transaction():
         context.run_migrations()
@@ -65,21 +66,18 @@ def run_migrations_online():
 
     """
     section = config.config_ini_section
-    config.set_section_option(section, 'sqlalchemy.url', get_database_url())
+    config.set_section_option(section, "sqlalchemy.url", get_database_url())
 
     connectable = engine_from_config(
-        config.get_section(section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool)
+        config.get_section(section), prefix="sqlalchemy.", poolclass=pool.NullPool
+    )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()
