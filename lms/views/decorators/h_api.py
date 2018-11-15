@@ -8,12 +8,11 @@ import requests
 from requests import RequestException
 from requests import ReadTimeout
 
-from pyramid.httpexceptions import HTTPBadGateway
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.httpexceptions import HTTPGatewayTimeout
 
 from lms import models
 from lms import util
+from lms.views import HAPIError
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.util import MissingContextTitleError
@@ -100,7 +99,7 @@ def create_h_user(wrapped):  # noqa: MC0001
                 timeout=1,
             )
         except ReadTimeout:
-            raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
+            raise HAPIError(explanation="Connecting to Hypothesis failed")
 
         if response.status_code == 200:
             # User was created successfully.
@@ -111,7 +110,7 @@ def create_h_user(wrapped):  # noqa: MC0001
         else:
             # Something unexpected went wrong when trying to create the user
             # account in h. Abort and show the user an error page.
-            raise HTTPBadGateway(explanation="Connecting to Hypothesis failed")
+            raise HAPIError(explanation="Connecting to Hypothesis failed")
 
         return wrapped(request, jwt)
 
@@ -205,7 +204,7 @@ def add_user_to_group(wrapped):
             )
             response.raise_for_status()
         except RequestException:
-            raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
+            raise HAPIError(explanation="Connecting to Hypothesis failed")
 
         return wrapped(request, jwt)
 
@@ -273,7 +272,7 @@ def _maybe_create_group(request):
         )
         response.raise_for_status()
     except RequestException:
-        raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
+        raise HAPIError(explanation="Connecting to Hypothesis failed")
 
     # Save a record of the group's pubid in the DB so that we can find it
     # again later.

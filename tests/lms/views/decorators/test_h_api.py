@@ -4,15 +4,15 @@ import json
 from unittest import mock
 import pytest
 
-from pyramid.httpexceptions import HTTPBadGateway
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.httpexceptions import HTTPGatewayTimeout
+
 from requests import ConnectionError
 from requests import HTTPError
 from requests import ReadTimeout
 from requests import Response
 from requests import TooManyRedirects
 
+from lms.views import HAPIError
 from lms.views.decorators.h_api import create_h_user
 from lms.views.decorators.h_api import create_course_group
 from lms.views.decorators.h_api import add_user_to_group
@@ -108,7 +108,7 @@ class TestCreateHUser:
     ):
         requests.post.side_effect = ReadTimeout()
 
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
     def test_it_continues_to_the_wrapped_function_if_h_200s(
@@ -142,7 +142,7 @@ class TestCreateHUser:
         requests.post.return_value.raise_for_status.side_effect = HTTPError()
         requests.post.return_value.status_code = status
 
-        with pytest.raises(HTTPBadGateway, match="Connecting to Hypothesis failed"):
+        with pytest.raises(HAPIError, match="Connecting to Hypothesis failed"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
     @pytest.fixture
@@ -239,7 +239,7 @@ class TestCreateCourseGroup:
     ):
         requests.post.side_effect = request_exception
 
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_504s_if_the_h_response_is_unsuccessful(
@@ -247,7 +247,7 @@ class TestCreateCourseGroup:
     ):
         requests.post.return_value.raise_for_status.side_effect = HTTPError()
 
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_saves_the_group_to_the_db(
@@ -365,7 +365,7 @@ class TestAddUserToGroup:
     ):
         requests.post.side_effect = request_exception
 
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_504s_if_the_h_response_is_unsuccessful(
@@ -373,7 +373,7 @@ class TestAddUserToGroup:
     ):
         requests.post.return_value.raise_for_status.side_effect = HTTPError()
 
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_continues_to_the_wrapped_func(
