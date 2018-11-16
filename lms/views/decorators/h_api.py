@@ -5,6 +5,8 @@
 import functools
 import json
 import requests
+from requests import RequestException
+from requests import ReadTimeout
 
 from pyramid.httpexceptions import HTTPBadGateway
 from pyramid.httpexceptions import HTTPBadRequest
@@ -97,7 +99,7 @@ def create_h_user(wrapped):  # noqa: MC0001
                 data=json.dumps(user_data),
                 timeout=1,
             )
-        except requests.exceptions.ReadTimeout:
+        except ReadTimeout:
             raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
 
         if response.status_code == 200:
@@ -202,7 +204,7 @@ def add_user_to_group(wrapped):
                 timeout=1,
             )
             response.raise_for_status()
-        except requests.RequestException:
+        except RequestException:
             raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
 
         return wrapped(request, jwt)
@@ -270,7 +272,7 @@ def _maybe_create_group(request):
             timeout=1,
         )
         response.raise_for_status()
-    except requests.RequestException:
+    except RequestException:
         raise HTTPGatewayTimeout(explanation="Connecting to Hypothesis failed")
 
     # Save a record of the group's pubid in the DB so that we can find it
