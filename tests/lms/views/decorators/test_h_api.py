@@ -16,6 +16,7 @@ from lms.views import HAPIError
 from lms.views.decorators.h_api import create_h_user
 from lms.views.decorators.h_api import create_course_group
 from lms.views.decorators.h_api import add_user_to_group
+from lms.views.decorators.h_api import post
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.models import CourseGroup
@@ -403,6 +404,76 @@ class TestAddUserToGroup:
             CourseGroup, instance=True, pubid="test_pubid"
         )
         return models
+
+
+class TestPost:
+    @pytest.mark.parametrize(
+        "setting", ["h_client_id", "h_client_secret", "h_authority", "h_api_url"]
+    )
+    def test_it_crashes_if_a_required_setting_is_missing(
+        self, pyramid_request, setting
+    ):
+        del pyramid_request.registry.settings[setting]
+
+        with pytest.raises(KeyError, match=setting):
+            post(pyramid_request.registry.settings, "/path")
+
+    def test_it_posts_to_the_h_api(self, pyramid_request, requests):
+        post(pyramid_request.registry.settings, "/path")
+
+        requests.post.assert_called_once_with(
+            url="https://example.com/api/path",
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+            timeout=1,
+        )
+
+    def test_it_posts_data_as_json(self, pyramid_request, requests):
+        post(pyramid_request.registry.settings, "/path", data={"foo": "bar"})
+
+        assert requests.post.call_args[1]["data"] == '{"foo": "bar"}'
+
+    def test_it_posts_username_as_x_forwarded_user(self, pyramid_request, requests):
+        post(pyramid_request.registry.settings, "/path", username="seanh")
+
+        assert requests.post.call_args[1]["headers"]["X-Forwarded-User"] == (
+            "acct:seanh@TEST_AUTHORITY"
+        )
+
+    @pytest.mark.parametrize(
+        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+    )
+    def test_it_raises_HAPIError_if_the_request_fails(
+        self, exception, pyramid_request, requests
+    ):
+        requests.post.side_effect = exception
+
+        with pytest.raises(HAPIError):
+            post(pyramid_request.registry.settings, "/path")
+
+    def test_it_raises_HAPIError_if_it_receives_an_error_response(
+        self, pyramid_request, requests
+    ):
+        requests.post.return_value.raise_for_status.side_effect = HTTPError(
+            response=requests.post.return_value
+        )
+
+        with pytest.raises(HAPIError) as exc_info:
+            post(pyramid_request.registry.settings, "/path")
+
+        assert (
+            exc_info.value.response == requests.post.return_value
+        ), "It passes the h API response to HAPIError so that it gets logged"
+
+    def test_you_can_tell_it_not_to_raise_for_certain_error_statuses(
+        self, pyramid_request, requests
+    ):
+        response = Response()
+        response.status_code = requests.post.return_value.status_code = 409
+        requests.post.return_value.raise_for_status.side_effect = HTTPError(
+            response=response
+        )
+
+        post(pyramid_request.registry.settings, "/path", statuses=[409])
 
 
 @pytest.fixture(autouse=True)
