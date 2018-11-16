@@ -118,7 +118,11 @@ class TestCreateHUser:
     def test_it_continues_to_the_wrapped_function_if_h_409s(
         self, create_h_user, post, pyramid_request, wrapped
     ):
-        post.return_value.status_code = 409
+        response = requests.Response()
+        response.status_code = post.return_value.status_code = 409
+        post.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            response=response
+        )
 
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
 
@@ -131,6 +135,7 @@ class TestCreateHUser:
     def test_it_502s_for_unexpected_errors_from_h(
         self, create_h_user, post, pyramid_request, status
     ):
+        post.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError()
         post.return_value.status_code = status
 
         with pytest.raises(HTTPBadGateway, match="Connecting to Hypothesis failed"):
