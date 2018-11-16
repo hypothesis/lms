@@ -6,7 +6,6 @@ import functools
 import json
 import requests
 from requests import RequestException
-from requests import ReadTimeout
 
 from pyramid.httpexceptions import HTTPBadRequest
 
@@ -57,16 +56,6 @@ def create_h_user(wrapped):  # noqa: MC0001
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
-        # Our OAuth 2.0 client_id and client_secret for authenticating to the h API.
-        client_id = request.registry.settings["h_client_id"]
-        client_secret = request.registry.settings["h_client_secret"]
-
-        # The authority that we'll create h users and groups in.
-        authority = request.registry.settings["h_authority"]
-
-        # The URL of h's create user API endpoint.
-        create_user_api_url = request.registry.settings["h_api_url"] + "/users"
-
         try:
             username = util.generate_username(params)
             provider = util.generate_provider(params)
@@ -84,35 +73,14 @@ def create_h_user(wrapped):  # noqa: MC0001
         user_data = {
             "username": username,
             "display_name": display_name,
-            "authority": authority,
+            "authority": request.registry.settings["h_authority"],
             "identities": [
                 {"provider": provider, "provider_unique_id": provider_unique_id}
             ],
         }
 
         # Call the h API to create the user in h if it doesn't exist already.
-        try:
-            response = requests.post(
-                create_user_api_url,
-                auth=(client_id, client_secret),
-                data=json.dumps(user_data),
-                timeout=1,
-            )
-        except ReadTimeout:
-            raise HAPIError(explanation="Connecting to Hypothesis failed")
-
-        if response.status_code == 200:
-            # User was created successfully.
-            pass
-        elif response.status_code == 409:
-            # The user already exists in h, so we don't need to do anything.
-            pass
-        else:
-            # Something unexpected went wrong when trying to create the user
-            # account in h. Abort and show the user an error page.
-            raise HAPIError(
-                explanation="Connecting to Hypothesis faled", response=response
-            )
+        post(request.registry.settings, "/users", user_data, statuses=[409])
 
         return wrapped(request, jwt)
 
@@ -194,23 +162,83 @@ def add_user_to_group(wrapped):
 
         authority = request.registry.settings["h_authority"]
         userid = f"acct:{username}@{authority}"
-        client_id = request.registry.settings["h_client_id"]
-        client_secret = request.registry.settings["h_client_secret"]
+        url = f"/groups/{group.pubid}/members/{userid}"
 
-        try:
-            response = requests.post(
-                request.registry.settings["h_api_url"]
-                + f"/groups/{group.pubid}/members/{userid}",
-                auth=(client_id, client_secret),
-                timeout=1,
-            )
-            response.raise_for_status()
-        except RequestException:
-            raise HAPIError(explanation="Connecting to Hypothesis failed")
+        post(request.registry.settings, url)
 
         return wrapped(request, jwt)
 
     return wrapper
+
+
+def post(settings, path, data=None, username=None, statuses=None):
+    """
+    Do an H API post and return the response.
+
+    If the request fails for any reason (for example a network connection error
+    or a timeout) :exc:`~lms.views.HAPIError` is raised.
+    :exc:`~lms.views.HAPIError` is also raised if a 4xx or 5xx response is
+    received. Use the optional keyword argument ``statuses`` to supply a list
+    of one or more 4xx or 5xx statuses for which :exc:`~lms.views.HAPIError`
+    should not be raised -- the 4xx or 5xx response will be returned instead.
+
+    :arg settings: the Pyramid request.registry.settings object
+    :type settings: dict
+    :arg path: the h API path to post to, relative to
+      ``settings["h_api_url"]``, for example: ``"/users"`` or
+      ``"/groups/<PUBID>/members/<USERID>"``
+    :type url: str
+    :arg data: the data to post as JSON in the request body
+    :type data: dict
+    :arg username: the username of the user to post as (using an
+      X-Forwarded-User header)
+    :type username: str
+    :arg statuses: the list of 4xx and 5xx statuses that should not trigger an
+      exception, for example: ``[409, 410]``
+    :type statuses: list of ints
+
+    :raise HAPIError: if the request fails for any reason, including if a 4xx
+      or 5xx response is received
+
+    :return: the response from the h API
+    :rtype: requests.Response
+    """
+    statuses = statuses or []
+
+    # Our OAuth 2.0 client_id and client_secret for authenticating to the h API.
+    client_id = settings["h_client_id"]
+    client_secret = settings["h_client_secret"]
+
+    # The authority that we'll create h users and groups in.
+    authority = settings["h_authority"]
+
+    # The full h API URL to post to.
+    url = settings["h_api_url"] + path
+
+    post_args = dict(url=url, auth=(client_id, client_secret), timeout=1)
+
+    if data is not None:
+        post_args["data"] = json.dumps(data)
+
+    if username is not None:
+        post_args["headers"] = {
+            "X-Forwarded-User": "acct:{username}@{authority}".format(
+                username=username, authority=authority
+            )
+        }
+
+    try:
+        response = requests.post(**post_args)
+        response.raise_for_status()
+    except RequestException as err:
+        response = getattr(err, "response", None)
+        status_code = getattr(response, "status_code", None)
+        if status_code is None or status_code not in statuses:
+            raise HAPIError(
+                explanation="Connecting to Hypothesis failed", response=response
+            )
+
+    return response
 
 
 def _maybe_create_group(request):
@@ -239,10 +267,6 @@ def _maybe_create_group(request):
     ):
         raise HTTPBadRequest("Instructor must launch assignment first.")
 
-    create_group_api_url = request.registry.settings["h_api_url"] + "/groups"
-    client_id = request.registry.settings["h_client_id"]
-    client_secret = request.registry.settings["h_client_secret"]
-
     # Generate the name for the new group.
     try:
         name = util.generate_group_name(request.params)
@@ -251,8 +275,6 @@ def _maybe_create_group(request):
             'Required parameter "context_title" missing from LTI params'
         )
 
-    authority = request.registry.settings["h_authority"]
-
     # Deliberately assume that generate_username() will succeed and not
     # raise an error.  create_h_user() should always have been run
     # successfully before this function gets called, so if
@@ -260,21 +282,7 @@ def _maybe_create_group(request):
     username = util.generate_username(request.params)
 
     # Create the group in h.
-    try:
-        response = requests.post(
-            create_group_api_url,
-            auth=(client_id, client_secret),
-            data=json.dumps({"name": name}),
-            headers={
-                "X-Forwarded-User": "acct:{username}@{authority}".format(
-                    username=username, authority=authority
-                )
-            },
-            timeout=1,
-        )
-        response.raise_for_status()
-    except RequestException:
-        raise HAPIError(explanation="Connecting to Hypothesis failed")
+    response = post(request.registry.settings, "/groups", {"name": name}, username)
 
     # Save a record of the group's pubid in the DB so that we can find it
     # again later.
