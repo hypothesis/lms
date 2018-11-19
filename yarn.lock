@@ -80,7 +80,7 @@ acorn@^1.0.3:
   version "1.2.2"
   resolved "http://registry.npmjs.org/acorn/-/acorn-1.2.2.tgz#c8ce27de0acc76d896d2b1fad3df588d9e82f014"
 
-acorn@^5.0.0, acorn@^5.0.3, acorn@^5.2.1, acorn@^5.6.0, acorn@^5.7.1:
+acorn@^5.0.0, acorn@^5.0.3, acorn@^5.6.0, acorn@^5.7.1:
   version "5.7.3"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
 
@@ -1560,14 +1560,7 @@ detect-libc@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-1.0.3.tgz#fa137c4bd698edf55cd5cd02ac559f91a4c4ba9b"
 
-detective@^4.5.0:
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/detective/-/detective-4.7.1.tgz#0eca7314338442febb6d65da54c10bb1c82b246e"
-  dependencies:
-    acorn "^5.2.1"
-    defined "^1.0.0"
-
-detective@^5.0.2:
+detective@^5.0.2, detective@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/detective/-/detective-5.1.0.tgz#7a20d89236d7b331ccea65832e7123b5551bb7cb"
   dependencies:
@@ -3999,12 +3992,12 @@ progress@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
 
-proxyquire-universal@^1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/proxyquire-universal/-/proxyquire-universal-1.0.8.tgz#2d0884365f76baf8da910b1be6c7f9c942d8640a"
+proxyquire-universal@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/proxyquire-universal/-/proxyquire-universal-2.0.0.tgz#9f64ab28620029a6485055ab2c96850c1e0a2f8b"
   dependencies:
-    replace-requires "~1.0.1"
-    through2 "~0.6.3"
+    replace-requires "~1.1.0"
+    through2 "~3.0.0"
     transformify "^0.1.2"
 
 proxyquire@^2.1.0:
@@ -4264,11 +4257,11 @@ replace-ext@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.0.tgz#de63128373fcbf7c3ccfa4de5a480c45a67958eb"
 
-replace-requires@~1.0.1:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/replace-requires/-/replace-requires-1.0.4.tgz#014b7330b6b9e2557b71043b66fb02660c3bf667"
+replace-requires@~1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/replace-requires/-/replace-requires-1.1.0.tgz#6c660431d32ecc92b52625dae1f36805013d7e32"
   dependencies:
-    detective "^4.5.0"
+    detective "^5.1.0"
     has-require "~1.2.1"
     patch-text "~1.0.2"
     xtend "~4.0.0"
@@ -4845,7 +4838,7 @@ throttleit@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/throttleit/-/throttleit-1.0.0.tgz#9e785836daf46743145a5984b6268d828528ac6c"
 
-through2@^0.6.1, through2@~0.6.3:
+through2@^0.6.1:
   version "0.6.5"
   resolved "https://registry.yarnpkg.com/through2/-/through2-0.6.5.tgz#41ab9c67b29d57209071410e1d7a7a968cd3ad48"
   dependencies:
@@ -4859,7 +4852,7 @@ through2@^2.0.0:
     readable-stream "^2.1.5"
     xtend "~4.0.1"
 
-through2@^3.0.0:
+through2@^3.0.0, through2@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.0.tgz#468b461df9cd9fcc170f22ebf6852e467e578ff2"
   dependencies:
