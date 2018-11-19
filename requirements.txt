@@ -33,7 +33,7 @@ python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
 requests-oauthlib==1.0.0
 requests==2.20.1
-sentry-sdk==0.5.4
+sentry-sdk==0.5.5
 six==1.11.0               # via pylti, python-dateutil
 sqlalchemy==1.2.14
 transaction==2.1.2        # via pyramid-tm, zope.sqlalchemy
