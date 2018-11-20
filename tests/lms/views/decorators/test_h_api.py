@@ -357,7 +357,7 @@ class TestPost:
         requests.post.assert_called_once_with(
             url="https://example.com/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            timeout=1,
+            timeout=10,
         )
 
     def test_it_posts_data_as_json(self, pyramid_request, requests):

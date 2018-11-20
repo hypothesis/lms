@@ -215,7 +215,7 @@ def post(settings, path, data=None, username=None, statuses=None):
     # The full h API URL to post to.
     url = settings["h_api_url"] + path
 
-    post_args = dict(url=url, auth=(client_id, client_secret), timeout=1)
+    post_args = dict(url=url, auth=(client_id, client_secret), timeout=10)
 
     if data is not None:
         post_args["data"] = json.dumps(data)
