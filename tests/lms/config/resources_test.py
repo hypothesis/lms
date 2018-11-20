@@ -32,6 +32,9 @@ class TestLTILaunch:
             lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
         )
 
+    def test_hypothesis_config_disables_share_links(self, lti_launch):
+        assert lti_launch.hypothesis_config["services"][0]["enableShareLinks"] is False
+
     def test_hypothesis_config_includes_grant_token(self, lti_launch):
         before = int(datetime.datetime.now().timestamp())
 

@@ -84,6 +84,7 @@ class LTILaunch:
                 {
                     "apiUrl": api_url,
                     "authority": authority,
+                    "enableShareLinks": False,
                     "grantToken": grant_token().decode("utf-8"),
                     "groups": [group.pubid],
                 }
