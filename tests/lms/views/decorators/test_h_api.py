@@ -4,30 +4,27 @@ import json
 from unittest import mock
 import pytest
 
-from pyramid.httpexceptions import HTTPBadGateway
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.httpexceptions import HTTPGatewayTimeout
+
 from requests import ConnectionError
 from requests import HTTPError
 from requests import ReadTimeout
 from requests import Response
 from requests import TooManyRedirects
 
-from lms.views.decorators.h_api import create_h_user
-from lms.views.decorators.h_api import create_course_group
-from lms.views.decorators.h_api import add_user_to_group
+from lms.views import HAPIError
+from lms.views.decorators import h_api
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.models import CourseGroup
 
 
+@pytest.mark.usefixtures("post")
 class TestCreateHUser:
-    def test_it_400s_if_no_oauth_consumer_key_param(
-        self, create_h_user, pyramid_request
-    ):
-        del pyramid_request.params["oauth_consumer_key"]
+    def test_it_raises_if_post_raises(self, create_h_user, pyramid_request, post):
+        post.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HTTPBadRequest, match="oauth_consumer_key"):
+        with pytest.raises(HAPIError, match="Oops"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
@@ -41,13 +38,13 @@ class TestCreateHUser:
         assert returned == wrapped.return_value
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, create_h_user, requests, pyramid_request
+        self, create_h_user, post, pyramid_request
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
-        assert not requests.post.called
+        assert not post.called
 
     def test_it_400s_if_generate_username_raises_MissingToolConsumerInstanceGUIDError(
         self, create_h_user, pyramid_request, util
@@ -81,37 +78,27 @@ class TestCreateHUser:
         with pytest.raises(HTTPBadRequest, match="user_id"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_creates_the_user_in_h(self, create_h_user, requests, pyramid_request):
+    def test_it_creates_the_user_in_h(self, create_h_user, post, pyramid_request):
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
-        requests.post.assert_called_once_with(
-            "https://example.com/api/users",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            data=json.dumps(
-                {
-                    "username": "test_username",
-                    "display_name": "test_display_name",
-                    "authority": "TEST_AUTHORITY",
-                    "identities": [
-                        {
-                            "provider": "test_provider",
-                            "provider_unique_id": "test_provider_unique_id",
-                        }
-                    ],
-                }
-            ),
-            timeout=1,
+        post.assert_called_once_with(
+            pyramid_request.registry.settings,
+            "/users",
+            {
+                "username": "test_username",
+                "display_name": "test_display_name",
+                "authority": "TEST_AUTHORITY",
+                "identities": [
+                    {
+                        "provider": "test_provider",
+                        "provider_unique_id": "test_provider_unique_id",
+                    }
+                ],
+            },
+            statuses=[409],
         )
 
-    def test_it_504s_if_the_h_request_times_out(
-        self, create_h_user, patch, requests, pyramid_request
-    ):
-        requests.post.side_effect = ReadTimeout()
-
-        with pytest.raises(HTTPGatewayTimeout):
-            create_h_user(pyramid_request, mock.sentinel.jwt)
-
-    def test_it_continues_to_the_wrapped_function_if_h_200s(
+    def test_it_continues_to_the_wrapped_function(
         self, create_h_user, pyramid_request, wrapped
     ):
         returned = create_h_user(pyramid_request, mock.sentinel.jwt)
@@ -119,42 +106,16 @@ class TestCreateHUser:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_continues_to_the_wrapped_function_if_h_409s(
-        self, create_h_user, requests, pyramid_request, wrapped
-    ):
-        response = Response()
-        response.status_code = requests.post.return_value.status_code = 409
-        requests.post.return_value.raise_for_status.side_effect = HTTPError(
-            response=response
-        )
-
-        returned = create_h_user(pyramid_request, mock.sentinel.jwt)
-
-        wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
-        assert returned == wrapped.return_value
-
-    @pytest.mark.parametrize(
-        "status", (500, 501, 502, 503, 504, 400, 401, 403, 404, 408)
-    )
-    def test_it_502s_for_unexpected_errors_from_h(
-        self, create_h_user, requests, pyramid_request, status
-    ):
-        requests.post.return_value.raise_for_status.side_effect = HTTPError()
-        requests.post.return_value.status_code = status
-
-        with pytest.raises(HTTPBadGateway, match="Connecting to Hypothesis failed"):
-            create_h_user(pyramid_request, mock.sentinel.jwt)
-
     @pytest.fixture
     def create_h_user(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return create_h_user(wrapped)
+        return h_api.create_h_user(wrapped)
 
 
+@pytest.mark.usefixtures("post")
 class TestCreateCourseGroup:
     @pytest.mark.parametrize(
-        "required_param_name",
-        ("oauth_consumer_key", "tool_consumer_instance_guid", "context_id", "roles"),
+        "required_param_name", ("tool_consumer_instance_guid", "context_id", "roles")
     )
     def test_it_400s_if_theres_a_required_param_missing(
         self, create_course_group, pyramid_request, required_param_name
@@ -175,7 +136,7 @@ class TestCreateCourseGroup:
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_does_nothing_if_the_user_isnt_allowed_to_create_groups_but_the_group_already_exists(
-        self, create_course_group, pyramid_request, models, requests, wrapped
+        self, create_course_group, pyramid_request, models, post, wrapped
     ):
         models.CourseGroup.get.return_value = mock.create_autospec(
             CourseGroup, instance=True
@@ -184,13 +145,13 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not requests.post.called
+        assert not post.called
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_does_nothing_if_the_feature_isnt_enabled(
-        self, create_course_group, pyramid_request, wrapped, requests
+        self, create_course_group, pyramid_request, wrapped, post
     ):
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
@@ -199,13 +160,13 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not requests.post.called
+        assert not post.called
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_does_nothing_if_the_course_group_already_exists(
-        self, create_course_group, models, pyramid_request, wrapped, requests
+        self, create_course_group, models, pyramid_request, wrapped, post
     ):
         models.CourseGroup.get.return_value = mock.create_autospec(
             CourseGroup, instance=True
@@ -213,41 +174,27 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not requests.post.called
+        assert not post.called
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_posts_to_the_group_create_api(
-        self, create_course_group, pyramid_request, requests
+        self, create_course_group, pyramid_request, post
     ):
         create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        requests.post.assert_called_once_with(
-            "https://example.com/api/groups",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            data='{"name": "test_group_name"}',
-            headers={"X-Forwarded-User": "acct:test_username@TEST_AUTHORITY"},
-            timeout=1,
+        post.assert_called_once_with(
+            pyramid_request.registry.settings,
+            "/groups",
+            {"name": "test_group_name"},
+            "test_username",
         )
 
-    @pytest.mark.parametrize(
-        "request_exception", (ConnectionError(), TooManyRedirects(), ReadTimeout())
-    )
-    def test_it_504s_if_the_h_request_errors(
-        self, create_course_group, requests, pyramid_request, request_exception
-    ):
-        requests.post.side_effect = request_exception
+    def test_it_raises_if_post_raises(self, create_course_group, pyramid_request, post):
+        post.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HTTPGatewayTimeout):
-            create_course_group(pyramid_request, mock.sentinel.jwt)
-
-    def test_it_504s_if_the_h_response_is_unsuccessful(
-        self, create_course_group, requests, pyramid_request
-    ):
-        requests.post.return_value.raise_for_status.side_effect = HTTPError()
-
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError, match="Oops"):
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_saves_the_group_to_the_db(
@@ -295,18 +242,19 @@ class TestCreateCourseGroup:
     @pytest.fixture
     def create_course_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return create_course_group(wrapped)
+        return h_api.create_course_group(wrapped)
 
 
+@pytest.mark.usefixtures("post")
 class TestAddUserToGroup:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
-        self, add_user_to_group, pyramid_request, requests
+        self, add_user_to_group, pyramid_request, post
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-        requests.post.assert_not_called()
+        post.assert_not_called()
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, add_user_to_group, pyramid_request, wrapped
@@ -347,33 +295,19 @@ class TestAddUserToGroup:
         )
 
     def test_it_adds_the_user_to_the_group(
-        self, add_user_to_group, pyramid_request, requests
+        self, add_user_to_group, pyramid_request, post
     ):
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-        requests.post.assert_called_once_with(
-            "https://example.com/api/groups/test_pubid/members/acct:test_username@TEST_AUTHORITY",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            timeout=1,
+        post.assert_called_once_with(
+            pyramid_request.registry.settings,
+            "/groups/test_pubid/members/acct:test_username@TEST_AUTHORITY",
         )
 
-    @pytest.mark.parametrize(
-        "request_exception", (ConnectionError(), TooManyRedirects(), ReadTimeout())
-    )
-    def test_it_504s_if_the_h_request_errors(
-        self, add_user_to_group, requests, pyramid_request, request_exception
-    ):
-        requests.post.side_effect = request_exception
+    def test_it_raises_if_post_raises(self, add_user_to_group, pyramid_request, post):
+        post.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HTTPGatewayTimeout):
-            add_user_to_group(pyramid_request, mock.sentinel.jwt)
-
-    def test_it_504s_if_the_h_response_is_unsuccessful(
-        self, add_user_to_group, requests, pyramid_request
-    ):
-        requests.post.return_value.raise_for_status.side_effect = HTTPError()
-
-        with pytest.raises(HTTPGatewayTimeout):
+        with pytest.raises(HAPIError, match="Oops"):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_continues_to_the_wrapped_func(
@@ -387,7 +321,7 @@ class TestAddUserToGroup:
     @pytest.fixture
     def add_user_to_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return add_user_to_group(wrapped)
+        return h_api.add_user_to_group(wrapped)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -405,6 +339,80 @@ class TestAddUserToGroup:
         return models
 
 
+class TestPost:
+    @pytest.mark.parametrize(
+        "setting", ["h_client_id", "h_client_secret", "h_authority", "h_api_url"]
+    )
+    def test_it_crashes_if_a_required_setting_is_missing(
+        self, pyramid_request, setting
+    ):
+        del pyramid_request.registry.settings[setting]
+
+        with pytest.raises(KeyError, match=setting):
+            h_api.post(pyramid_request.registry.settings, "/path")
+
+    def test_it_posts_to_the_h_api(self, pyramid_request, requests):
+        h_api.post(pyramid_request.registry.settings, "/path")
+
+        requests.post.assert_called_once_with(
+            url="https://example.com/api/path",
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+            timeout=10,
+        )
+
+    def test_it_posts_data_as_json(self, pyramid_request, requests):
+        h_api.post(pyramid_request.registry.settings, "/path", data={"foo": "bar"})
+
+        assert requests.post.call_args[1]["data"] == '{"foo": "bar"}'
+
+    def test_it_posts_username_as_x_forwarded_user(self, pyramid_request, requests):
+        h_api.post(pyramid_request.registry.settings, "/path", username="seanh")
+
+        assert requests.post.call_args[1]["headers"]["X-Forwarded-User"] == (
+            "acct:seanh@TEST_AUTHORITY"
+        )
+
+    @pytest.mark.parametrize(
+        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+    )
+    def test_it_raises_HAPIError_if_the_request_fails(
+        self, exception, pyramid_request, requests
+    ):
+        requests.post.side_effect = exception
+
+        with pytest.raises(HAPIError):
+            h_api.post(pyramid_request.registry.settings, "/path")
+
+    def test_it_raises_HAPIError_if_it_receives_an_error_response(
+        self, pyramid_request, requests
+    ):
+        requests.post.return_value.raise_for_status.side_effect = HTTPError(
+            response=requests.post.return_value
+        )
+
+        with pytest.raises(HAPIError) as exc_info:
+            h_api.post(pyramid_request.registry.settings, "/path")
+
+        assert (
+            exc_info.value.response == requests.post.return_value
+        ), "It passes the h API response to HAPIError so that it gets logged"
+
+    def test_you_can_tell_it_not_to_raise_for_certain_error_statuses(
+        self, pyramid_request, requests
+    ):
+        response = Response()
+        response.status_code = requests.post.return_value.status_code = 409
+        requests.post.return_value.raise_for_status.side_effect = HTTPError(
+            response=response
+        )
+
+        h_api.post(pyramid_request.registry.settings, "/path", statuses=[409])
+
+    @pytest.fixture(autouse=True)
+    def requests(self, patch):
+        return patch("lms.views.decorators.h_api.requests")
+
+
 @pytest.fixture(autouse=True)
 def models(patch):
     models = patch("lms.views.decorators.h_api.models")
@@ -417,16 +425,6 @@ def models(patch):
     models.CourseGroup.get.return_value = None
 
     return models
-
-
-@pytest.fixture(autouse=True)
-def requests(patch):
-    requests = patch("lms.views.decorators.h_api.requests")
-    requests.post.return_value = mock.create_autospec(
-        Response, instance=True, status_code=200, reason="OK", text=""
-    )
-    requests.post.return_value.json.return_value = {"id": "TEST_PUBID"}
-    return requests
 
 
 @pytest.fixture
@@ -460,3 +458,13 @@ def util(patch):
 def wrapped():
     """Return the wrapped view function."""
     return mock.MagicMock()
+
+
+@pytest.fixture
+def post(patch):
+    post = patch("lms.views.decorators.h_api.post")
+    post.return_value = mock.create_autospec(
+        Response, instance=True, status_code=200, reason="OK", text=""
+    )
+    post.return_value.json.return_value = {"id": "TEST_PUBID"}
+    return post
