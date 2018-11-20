@@ -187,7 +187,7 @@ def post(settings, path, data=None, username=None, statuses=None):
     :arg path: the h API path to post to, relative to
       ``settings["h_api_url"]``, for example: ``"/users"`` or
       ``"/groups/<PUBID>/members/<USERID>"``
-    :type url: str
+    :type path: str
     :arg data: the data to post as JSON in the request body
     :type data: dict
     :arg username: the username of the user to post as (using an
