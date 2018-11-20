@@ -17,7 +17,7 @@ USERNAME_MAX_LENGTH = 30
 """The maximum length of an h username."""
 
 
-GROUP_NAME_MAX_LENGTH = 30
+GROUP_NAME_MAX_LENGTH = 25
 """The maximum length of an h group name."""
 
 

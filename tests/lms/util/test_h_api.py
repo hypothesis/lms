@@ -201,10 +201,9 @@ class TestGenerateGroupName:
             ("Test Course ", "Test Course"),
             (" Test Course ", "Test Course"),
             ("Test   Course", "Test   Course"),
-            ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
-            ("Object Oriented Programming 101", "Object Oriented Programming 1…"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorphism…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorphism…"),
+            ("Object Oriented Programming 101", "Object Oriented Programm…"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
         ),
     )
     def test_it_returns_group_names_based_on_context_titles(
