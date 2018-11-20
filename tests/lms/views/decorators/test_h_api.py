@@ -13,10 +13,7 @@ from requests import Response
 from requests import TooManyRedirects
 
 from lms.views import HAPIError
-from lms.views.decorators.h_api import create_h_user
-from lms.views.decorators.h_api import create_course_group
-from lms.views.decorators.h_api import add_user_to_group
-from lms.views.decorators.h_api import post
+from lms.views.decorators import h_api
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.models import CourseGroup
@@ -149,7 +146,7 @@ class TestCreateHUser:
     @pytest.fixture
     def create_h_user(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return create_h_user(wrapped)
+        return h_api.create_h_user(wrapped)
 
 
 class TestCreateCourseGroup:
@@ -296,7 +293,7 @@ class TestCreateCourseGroup:
     @pytest.fixture
     def create_course_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return create_course_group(wrapped)
+        return h_api.create_course_group(wrapped)
 
 
 class TestAddUserToGroup:
@@ -388,7 +385,7 @@ class TestAddUserToGroup:
     @pytest.fixture
     def add_user_to_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return add_user_to_group(wrapped)
+        return h_api.add_user_to_group(wrapped)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -416,10 +413,10 @@ class TestPost:
         del pyramid_request.registry.settings[setting]
 
         with pytest.raises(KeyError, match=setting):
-            post(pyramid_request.registry.settings, "/path")
+            h_api.post(pyramid_request.registry.settings, "/path")
 
     def test_it_posts_to_the_h_api(self, pyramid_request, requests):
-        post(pyramid_request.registry.settings, "/path")
+        h_api.post(pyramid_request.registry.settings, "/path")
 
         requests.post.assert_called_once_with(
             url="https://example.com/api/path",
@@ -428,12 +425,12 @@ class TestPost:
         )
 
     def test_it_posts_data_as_json(self, pyramid_request, requests):
-        post(pyramid_request.registry.settings, "/path", data={"foo": "bar"})
+        h_api.post(pyramid_request.registry.settings, "/path", data={"foo": "bar"})
 
         assert requests.post.call_args[1]["data"] == '{"foo": "bar"}'
 
     def test_it_posts_username_as_x_forwarded_user(self, pyramid_request, requests):
-        post(pyramid_request.registry.settings, "/path", username="seanh")
+        h_api.post(pyramid_request.registry.settings, "/path", username="seanh")
 
         assert requests.post.call_args[1]["headers"]["X-Forwarded-User"] == (
             "acct:seanh@TEST_AUTHORITY"
@@ -448,7 +445,7 @@ class TestPost:
         requests.post.side_effect = exception
 
         with pytest.raises(HAPIError):
-            post(pyramid_request.registry.settings, "/path")
+            h_api.post(pyramid_request.registry.settings, "/path")
 
     def test_it_raises_HAPIError_if_it_receives_an_error_response(
         self, pyramid_request, requests
@@ -458,7 +455,7 @@ class TestPost:
         )
 
         with pytest.raises(HAPIError) as exc_info:
-            post(pyramid_request.registry.settings, "/path")
+            h_api.post(pyramid_request.registry.settings, "/path")
 
         assert (
             exc_info.value.response == requests.post.return_value
@@ -473,7 +470,7 @@ class TestPost:
             response=response
         )
 
-        post(pyramid_request.registry.settings, "/path", statuses=[409])
+        h_api.post(pyramid_request.registry.settings, "/path", statuses=[409])
 
 
 @pytest.fixture(autouse=True)
