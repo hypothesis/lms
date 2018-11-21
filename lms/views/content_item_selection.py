@@ -13,17 +13,6 @@ from lms.views.decorators import create_h_user
 from lms.views.decorators import create_course_group
 
 
-def _check_params(lti_params):
-    """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
-    required_params = ["lti_version", "oauth_version", "oauth_nonce", "oauth_signature"]
-
-    for required_param in required_params:
-        try:
-            lti_params[required_param]
-        except KeyError:
-            raise MissingLTIContentItemParamError(required_param)
-
-
 def should_show_file_picker(lti_params, request):
     consumer_key = lti_params["oauth_consumer_key"]
     application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
@@ -78,8 +67,9 @@ def content_item_selection(request, _jwt, **_):
     renderer="lms:templates/content_item_selection/new_content_item_selection.html.jinja2"
 )
 def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
-
-    _check_params(lti_params)
+    for param in ["lti_version", "oauth_version", "oauth_nonce", "oauth_signature"]:
+        if param not in lti_params:
+            raise MissingLTIContentItemParamError(param)
 
     form_fields = {"lti_message_type": "ContentItemSelection", "jwt_token": jwt}
     form_fields.update(lti_params)
