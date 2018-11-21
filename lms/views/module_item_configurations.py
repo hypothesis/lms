@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.util.authenticate import authenticate
+from lms.util import via_url
 
 
 @view_config(
@@ -18,6 +19,6 @@ def create_module_item_configuration(request, _jwt, **_):
 
     request.db.add(instance)
     return {
-        "via_url": f"{request.registry.settings['via_url']}/{instance.document_url}",
+        "via_url": via_url(request, instance.document_url),
         "jwt_token": request.params["jwt_token"],
     }
