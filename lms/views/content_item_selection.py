@@ -81,10 +81,7 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
 
     _check_params(lti_params)
 
-    form_fields = {
-        "lti_message_type": "ContentItemSelection",
-        "jwt_token": jwt,
-    }
+    form_fields = {"lti_message_type": "ContentItemSelection", "jwt_token": jwt}
     form_fields.update(lti_params)
 
     custom_lms_url = None
