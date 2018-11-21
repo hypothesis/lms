@@ -14,6 +14,8 @@ class TestContentItemSelection:
         assert response.code == 302
         assert location.netloc == "hypothesis.instructure.com"
 
+
+class TestContentItemForm:
     def test_raises_for_lti_version_param(self, lti_launch_request):
         del lti_launch_request.params["lti_version"]
         with pytest.raises(
