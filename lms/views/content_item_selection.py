@@ -13,17 +13,6 @@ from lms.views.decorators import create_h_user
 from lms.views.decorators import create_course_group
 
 
-def _check_params(lti_params):
-    """Raise a MissingLTILaunchParamError when a required parameter is missing from an LTI launch request."""
-    required_params = ["lti_version", "oauth_version", "oauth_nonce", "oauth_signature"]
-
-    for required_param in required_params:
-        try:
-            lti_params[required_param]
-        except KeyError:
-            raise MissingLTIContentItemParamError(required_param)
-
-
 def should_show_file_picker(lti_params, request):
     consumer_key = lti_params["oauth_consumer_key"]
     application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
@@ -78,27 +67,12 @@ def content_item_selection(request, _jwt, **_):
     renderer="lms:templates/content_item_selection/new_content_item_selection.html.jinja2"
 )
 def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt=None):
+    for param in ["lti_version", "oauth_version", "oauth_nonce", "oauth_signature"]:
+        if param not in lti_params:
+            raise MissingLTIContentItemParamError(param)
 
-    _check_params(lti_params)
-
-    form_fields = {
-        "lti_message_type": "ContentItemSelection",
-        "lti_version": lti_params["lti_version"],
-        "oauth_version": lti_params["oauth_version"],
-        "oauth_nonce": lti_params["oauth_nonce"],
-        "oauth_consumer_key": lti_params["oauth_consumer_key"],
-        "oauth_signature_method": lti_params["oauth_signature_method"],
-        "oauth_signature": lti_params["oauth_signature"],
-        "jwt_token": jwt,
-    }
-    # These fields appear in blackboard launches, but not in canvas
-    # launches
-    if "resource_link_id" in lti_params:
-        form_fields["resource_link_id"] = lti_params["resource_link_id"]
-    if "tool_consumer_instance_guid" in lti_params:
-        form_fields["tool_consumer_instance_guid"] = lti_params[
-            "tool_consumer_instance_guid"
-        ]
+    form_fields = {"lti_message_type": "ContentItemSelection", "jwt_token": jwt}
+    form_fields.update(lti_params)
 
     custom_lms_url = None
     if "custom_canvas_api_domain" in lti_params:
