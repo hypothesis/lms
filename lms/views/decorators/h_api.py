@@ -3,15 +3,11 @@
 """View decorators for working with the h API."""
 
 import functools
-import json
-import requests
-from requests import RequestException
 
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms import models
 from lms import util
-from lms.views import HAPIError
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.util import MissingContextTitleError
@@ -80,7 +76,7 @@ def create_h_user(wrapped):  # noqa: MC0001
         }
 
         # Call the h API to create the user in h if it doesn't exist already.
-        post(request.registry.settings, "/users", user_data, statuses=[409])
+        request.find_service(name="hapi").post("/users", user_data, statuses=[409])
 
         return wrapped(request, jwt)
 
@@ -162,83 +158,13 @@ def add_user_to_group(wrapped):
 
         authority = request.registry.settings["h_authority"]
         userid = f"acct:{username}@{authority}"
-        url = f"/groups/{group.pubid}/members/{userid}"
+        path = f"/groups/{group.pubid}/members/{userid}"
 
-        post(request.registry.settings, url)
+        request.find_service(name="hapi").post(path)
 
         return wrapped(request, jwt)
 
     return wrapper
-
-
-def post(settings, path, data=None, username=None, statuses=None):
-    """
-    Do an H API post and return the response.
-
-    If the request fails for any reason (for example a network connection error
-    or a timeout) :exc:`~lms.views.HAPIError` is raised.
-    :exc:`~lms.views.HAPIError` is also raised if a 4xx or 5xx response is
-    received. Use the optional keyword argument ``statuses`` to supply a list
-    of one or more 4xx or 5xx statuses for which :exc:`~lms.views.HAPIError`
-    should not be raised -- the 4xx or 5xx response will be returned instead.
-
-    :arg settings: the Pyramid request.registry.settings object
-    :type settings: dict
-    :arg path: the h API path to post to, relative to
-      ``settings["h_api_url"]``, for example: ``"/users"`` or
-      ``"/groups/<PUBID>/members/<USERID>"``
-    :type path: str
-    :arg data: the data to post as JSON in the request body
-    :type data: dict
-    :arg username: the username of the user to post as (using an
-      X-Forwarded-User header)
-    :type username: str
-    :arg statuses: the list of 4xx and 5xx statuses that should not trigger an
-      exception, for example: ``[409, 410]``
-    :type statuses: list of ints
-
-    :raise HAPIError: if the request fails for any reason, including if a 4xx
-      or 5xx response is received
-
-    :return: the response from the h API
-    :rtype: requests.Response
-    """
-    statuses = statuses or []
-
-    # Our OAuth 2.0 client_id and client_secret for authenticating to the h API.
-    client_id = settings["h_client_id"]
-    client_secret = settings["h_client_secret"]
-
-    # The authority that we'll create h users and groups in.
-    authority = settings["h_authority"]
-
-    # The full h API URL to post to.
-    url = settings["h_api_url"] + path
-
-    post_args = dict(url=url, auth=(client_id, client_secret), timeout=10)
-
-    if data is not None:
-        post_args["data"] = json.dumps(data)
-
-    if username is not None:
-        post_args["headers"] = {
-            "X-Forwarded-User": "acct:{username}@{authority}".format(
-                username=username, authority=authority
-            )
-        }
-
-    try:
-        response = requests.post(**post_args)
-        response.raise_for_status()
-    except RequestException as err:
-        response = getattr(err, "response", None)
-        status_code = getattr(response, "status_code", None)
-        if status_code is None or status_code not in statuses:
-            raise HAPIError(
-                explanation="Connecting to Hypothesis failed", response=response
-            )
-
-    return response
 
 
 def _maybe_create_group(request):
@@ -282,7 +208,9 @@ def _maybe_create_group(request):
     username = util.generate_username(request.params)
 
     # Create the group in h.
-    response = post(request.registry.settings, "/groups", {"name": name}, username)
+    response = request.find_service(name="hapi").post(
+        "/groups", {"name": name}, username
+    )
 
     # Save a record of the group's pubid in the DB so that we can find it
     # again later.

@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from requests import Response
 
-from lms.views import HAPIError
+from lms.services import HAPIError
 
 
 class TestHAPIError:

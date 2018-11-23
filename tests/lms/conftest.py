@@ -159,6 +159,7 @@ def pyramid_config(pyramid_request):
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include("pyramid_jinja2")
+        config.include("pyramid_services")
         config.include("pyramid_tm")
 
         config.include("lms.sentry")

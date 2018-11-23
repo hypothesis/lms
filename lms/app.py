@@ -14,6 +14,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
 
     config.include("pyramid_jinja2")
+    config.include("pyramid_services")
     config.include("pyramid_tm")
 
     config.include("lms.sentry")
@@ -22,6 +23,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.routes")
     config.include("lms.assets")
     config.include("lms.views.error")
+    config.include("lms.services")
     config.add_static_view(name="export", path="lms:static/export")
     config.add_static_view(name="static", path="lms:static")
 
