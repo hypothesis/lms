@@ -133,7 +133,7 @@ def pyramid_config(pyramid_request):
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
         "sqlalchemy.url": TEST_DATABASE_URL,
-        "via_url": "http://TEST_VIA_SERVER.is",
+        "via_url": "http://TEST_VIA_SERVER.is/",
         "jwt_secret": "test_secret",
         "google_client_id": "fake_client_id",
         "google_developer_key": "fake_developer_key",

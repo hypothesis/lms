@@ -101,7 +101,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     Setting up [Google API integration](#google-apis) and [application instance reports](#instance-reports) access is optional at this point; you can leave the default values for related environment variables for now, if you like.
 
     ```bash
-    export VIA_URL="https://via.hypothes.is"
+    export VIA_URL="https://via.hypothes.is/"
     export JWT_SECRET="some secret string here"
 
     # The secret should be different for each pyramid instance

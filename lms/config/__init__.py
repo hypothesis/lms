@@ -52,7 +52,7 @@ def configure(settings):
     if database_url:
         env_settings["sqlalchemy.url"] = database_url
 
-    env_settings["via_url"] = _strip_trailing_slash(env_settings["via_url"])
+    env_settings["via_url"] = _append_trailing_slash(env_settings["via_url"])
     env_settings["h_api_url"] = _append_trailing_slash(env_settings["h_api_url"])
 
     try:
@@ -76,13 +76,6 @@ def configure(settings):
     config.set_authorization_policy(authz_policy)
 
     return config
-
-
-def _strip_trailing_slash(s):  # pylint: disable=invalid-name
-    """Return ``s`` with any trailing ``"/"`` stripped."""
-    if s.endswith("/"):
-        s = s[:-1]
-    return s
 
 
 def _append_trailing_slash(s):

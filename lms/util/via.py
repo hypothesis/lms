@@ -36,17 +36,13 @@ def via_url(request, document_url):
     query_string_as_list.append(("via.request_config_from_frame", request.host_url))
     query_string = parse.urlencode(query_string_as_list)
 
-    return (
-        request.registry.settings["via_url"]
-        + "/"
-        + parse.urlunparse(
-            (
-                parts.scheme,
-                parts.netloc,
-                parts.path,
-                parts.params,
-                query_string,
-                parts.fragment,
-            )
+    return request.registry.settings["via_url"] + parse.urlunparse(
+        (
+            parts.scheme,
+            parts.netloc,
+            parts.path,
+            parts.params,
+            query_string,
+            parts.fragment,
         )
     )

@@ -119,19 +119,19 @@ class TestConfigure:
         # ENV_VAR, it omits it entirely.
         assert "sqlalchemy.url" not in configurator.registry.settings
 
-    def test_trailing_slashes_are_removed_from_via_url(self, env_setting):
+    def test_trailing_slashes_are_appended_to_via_url(self, env_setting):
         def side_effect(
             envvar_name, *args, **kwargs
         ):  # pylint: disable=unused-argument
             if envvar_name == "VIA_URL":
-                return "https://via.hypothes.is/"
+                return "https://via.hypothes.is"
             return mock.DEFAULT
 
         env_setting.side_effect = side_effect
 
         configurator = configure({})
 
-        assert configurator.registry.settings["via_url"] == "https://via.hypothes.is"
+        assert configurator.registry.settings["via_url"] == "https://via.hypothes.is/"
 
     def test_trailing_slashes_are_appended_to_h_api_url(self, env_setting):
         def side_effect(
