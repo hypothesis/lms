@@ -83,7 +83,7 @@ class TestCreateHUser:
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
         hapi_svc.post.assert_called_once_with(
-            "/users",
+            "users",
             {
                 "username": "test_username",
                 "display_name": "test_display_name",
@@ -185,7 +185,7 @@ class TestCreateCourseGroup:
         create_course_group(pyramid_request, mock.sentinel.jwt)
 
         hapi_svc.post.assert_called_once_with(
-            "/groups", {"name": "test_group_name"}, "test_username"
+            "groups", {"name": "test_group_name"}, "test_username"
         )
 
     def test_it_raises_if_post_raises(
@@ -299,7 +299,7 @@ class TestAddUserToGroup:
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
         hapi_svc.post.assert_called_once_with(
-            "/groups/test_pubid/members/acct:test_username@TEST_AUTHORITY"
+            "groups/test_pubid/members/acct:test_username@TEST_AUTHORITY"
         )
 
     def test_it_raises_if_post_raises(

@@ -90,8 +90,8 @@ class HypothesisAPIService:
           "PUT", "PATCH" or "DELETE"
         :type method: str
         :arg path: the h API path to post to, relative to
-          ``settings["h_api_url"]``, for example: ``"/users"`` or
-          ``"/groups/<PUBID>/members/<USERID>"``
+          ``settings["h_api_url"]``, for example: ``"users"`` or
+          ``"groups/<PUBID>/members/<USERID>"``
         :type path: str
         :arg data: the data to post as JSON in the request body
         :type data: dict
@@ -111,6 +111,9 @@ class HypothesisAPIService:
         statuses = statuses or []
 
         request_args = {}
+
+        if path.startswith("/"):
+            path = path[1:]
 
         if data is not None:
             request_args["data"] = json.dumps(data)

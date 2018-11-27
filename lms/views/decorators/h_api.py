@@ -76,7 +76,7 @@ def create_h_user(wrapped):  # noqa: MC0001
         }
 
         # Call the h API to create the user in h if it doesn't exist already.
-        request.find_service(name="hapi").post("/users", user_data, statuses=[409])
+        request.find_service(name="hapi").post("users", user_data, statuses=[409])
 
         return wrapped(request, jwt)
 
@@ -158,7 +158,7 @@ def add_user_to_group(wrapped):
 
         authority = request.registry.settings["h_authority"]
         userid = f"acct:{username}@{authority}"
-        path = f"/groups/{group.pubid}/members/{userid}"
+        path = f"groups/{group.pubid}/members/{userid}"
 
         request.find_service(name="hapi").post(path)
 
@@ -209,7 +209,7 @@ def _maybe_create_group(request):
 
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "/groups", {"name": name}, username
+        "groups", {"name": name}, username
     )
 
     # Save a record of the group's pubid in the DB so that we can find it

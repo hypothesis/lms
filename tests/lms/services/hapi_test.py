@@ -27,7 +27,7 @@ class TestAPIRequest:
         # Retrieve the method to call, e.g. HypothesisAPIService.delete() or .get().
         method = getattr(svc, verb.lower())
 
-        method("/path")
+        method("path")
 
         requests.request.assert_called_once_with(
             method=verb,
@@ -36,10 +36,17 @@ class TestAPIRequest:
             timeout=10,
         )
 
+    def test_it_strips_leading_slashes_from_the_path(
+        self, pyramid_request, requests, svc
+    ):
+        svc.request("POST", "/path")
+
+        assert requests.request.call_args[1]["url"] == "https://example.com/api/path"
+
     # Instead of calling get() or post() etc you can also call request()
     # directly and pass in the HTTP verb as a string.
     def test_you_can_also_call_request_directly(self, pyramid_request, requests, svc):
-        svc.request("PUT", "/path")
+        svc.request("PUT", "path")
 
         requests.request.assert_called_once_with(
             method="PUT",
@@ -49,14 +56,14 @@ class TestAPIRequest:
         )
 
     def test_it_sends_data_as_json(self, pyramid_request, requests, svc):
-        svc.post("/path", data={"foo": "bar"})
+        svc.post("path", data={"foo": "bar"})
 
         assert requests.request.call_args[1]["data"] == '{"foo": "bar"}'
 
     def test_it_sends_username_as_x_forwarded_user(
         self, pyramid_request, requests, svc
     ):
-        svc.post("/path", username="seanh")
+        svc.post("path", username="seanh")
 
         assert requests.request.call_args[1]["headers"]["X-Forwarded-User"] == (
             "acct:seanh@TEST_AUTHORITY"
@@ -71,7 +78,7 @@ class TestAPIRequest:
         requests.request.side_effect = exception
 
         with pytest.raises(HAPIError):
-            svc.post("/path")
+            svc.post("path")
 
     def test_it_raises_HAPIError_if_it_receives_an_error_response(
         self, pyramid_request, requests, svc
@@ -81,7 +88,7 @@ class TestAPIRequest:
         )
 
         with pytest.raises(HAPIError) as exc_info:
-            svc.post("/path")
+            svc.post("path")
 
         assert (
             exc_info.value.response == requests.request.return_value
@@ -96,7 +103,7 @@ class TestAPIRequest:
             response=response
         )
 
-        svc.post("/path", statuses=[409])
+        svc.post("path", statuses=[409])
 
     @pytest.fixture(autouse=True)
     def requests(self, patch):

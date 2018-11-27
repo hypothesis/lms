@@ -126,7 +126,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export H_CLIENT_ID="232c***5121"
     export H_CLIENT_SECRET="eVJ4***rXkk"
     export H_AUTHORITY="lms.hypothes.is"
-    export H_API_URL="http://localhost:5000/api"
+    export H_API_URL="http://localhost:5000/api/"
 
     # For logging in to the Hypothesis client.
     # The values for H_JWT_CLIENT_ID and H_JWT_CLIENT_SECRET should come from
