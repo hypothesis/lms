@@ -78,7 +78,7 @@ def configure(settings):
     return config
 
 
-def _append_trailing_slash(s):
+def _append_trailing_slash(s):  # pylint: disable=invalid-name
     """
     Return ``s`` with a trailing ``"/"`` appended.
 
