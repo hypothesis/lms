@@ -31,7 +31,7 @@ shell:
 # It should use psql from docker / docker-compose.
 .PHONY: sql
 sql:
-	psql postgresql://postgres@localhost:5433/postgres
+	psql --pset expanded=auto postgresql://postgres@localhost:5433/postgres
 
 .PHONY: lint
 lint:
