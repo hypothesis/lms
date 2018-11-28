@@ -72,6 +72,8 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
             raise MissingLTIContentItemParamError(param)
 
     form_fields = {
+        "context_id": lti_params["context_id"],
+        "user_id": lti_params["user_id"],
         "lti_message_type": "ContentItemSelection",
         "lti_version": lti_params["lti_version"],
         "oauth_version": lti_params["oauth_version"],
