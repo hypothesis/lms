@@ -244,6 +244,39 @@ class TestLTILaunch:
         ):
             resources.LTILaunch(pyramid_request).h_username
 
+    def test_h_userid(self, pyramid_request, lti_params_for):
+        lti_params_for.return_value = {
+            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
+            "user_id": "4533***70d9",
+        }
+
+        userid = resources.LTILaunch(pyramid_request).h_userid
+
+        assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
+
+    def test_h_userid_raises_if_tool_consumer_instance_guid_is_missing(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {"user_id": "4533***70d9"}
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).h_userid
+
+    def test_h_userid_raises_if_user_id_is_missing(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {
+            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
+        }
+
+        with pytest.raises(
+            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
+        ):
+            resources.LTILaunch(pyramid_request).h_userid
+
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
 

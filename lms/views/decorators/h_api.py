@@ -137,11 +137,9 @@ def add_user_to_group(wrapped):
             "never be None."
         )
 
-        authority = request.registry.settings["h_authority"]
-        userid = f"acct:{context.h_username}@{authority}"
-        path = f"groups/{group.pubid}/members/{userid}"
-
-        request.find_service(name="hapi").post(path)
+        request.find_service(name="hapi").post(
+            f"groups/{group.pubid}/members/{context.h_userid}"
+        )
 
         return wrapped(request, jwt)
 
@@ -176,7 +174,7 @@ def _maybe_create_group(context, request):
 
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "groups", {"name": context.h_group_name}, context.h_username
+        "groups", {"name": context.h_group_name}, context.h_userid
     )
 
     # Save a record of the group's pubid in the DB so that we can find it

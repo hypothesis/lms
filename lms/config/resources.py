@@ -39,6 +39,7 @@ class LTILaunch:
         # redirect request but no DB-stashed LTI params can be found for the
         # request.
         self._lti_params = lti_params_for(request)
+        self._authority = self._request.registry.settings["h_authority"]
 
     @property
     def h_display_name(self):
@@ -141,6 +142,16 @@ class LTILaunch:
         return hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
 
     @property
+    def h_userid(self):
+        """
+        Return the h userid for the current request.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+          userid is missing
+        """
+        return f"acct:{self.h_username}@{self._authority}"
+
+    @property
     def hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
@@ -160,7 +171,6 @@ class LTILaunch:
         client_id = self._request.registry.settings["h_jwt_client_id"]
         client_secret = self._request.registry.settings["h_jwt_client_secret"]
         api_url = self._request.registry.settings["h_api_url"]
-        authority = self._request.registry.settings["h_authority"]
         audience = urllib.parse.urlparse(api_url).hostname
 
         def grant_token():
@@ -168,7 +178,7 @@ class LTILaunch:
             claims = {
                 "aud": audience,
                 "iss": client_id,
-                "sub": "acct:{}@{}".format(self.h_username, authority),
+                "sub": self.h_userid,
                 "nbf": now,
                 "exp": now + datetime.timedelta(minutes=5),
             }
@@ -187,7 +197,7 @@ class LTILaunch:
             "services": [
                 {
                     "apiUrl": api_url,
-                    "authority": authority,
+                    "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": grant_token().decode("utf-8"),
                     "groups": [group.pubid],
