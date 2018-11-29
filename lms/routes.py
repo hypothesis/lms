@@ -16,7 +16,9 @@ def includeme(config):
 
     # lms routes
     config.add_route("lti_launches", "/lti_launches", factory=LTILaunch)
-    config.add_route("content_item_selection", "/content_item_selection")
+    config.add_route(
+        "content_item_selection", "/content_item_selection", factory=LTILaunch
+    )
 
     # Oauth
     config.add_route("canvas_oauth_callback", "/canvas_oauth_callback")
