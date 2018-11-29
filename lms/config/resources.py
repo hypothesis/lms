@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import urllib
 
 import jwt
@@ -6,7 +7,6 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms import models
-from lms import util
 from lms.util import lti_params_for
 
 
@@ -28,6 +28,9 @@ class LTILaunch:
 
     GROUP_NAME_MAX_LENGTH = 25
     """The maximum length of an h group name."""
+
+    USERNAME_MAX_LENGTH = 30
+    """The maximum length of an h username."""
 
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
@@ -91,6 +94,53 @@ class LTILaunch:
         return name
 
     @property
+    def h_provider(self):
+        """
+        Return the h "provider" string for the current request.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+          provider is missing
+        """
+        tool_consumer_instance_guid = self._lti_params.get(
+            "tool_consumer_instance_guid"
+        )
+
+        if not tool_consumer_instance_guid:
+            raise HTTPBadRequest(
+                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
+            )
+
+        return tool_consumer_instance_guid
+
+    @property
+    def h_provider_unique_id(self):
+        """
+        Return the h provider_unique_id for the current request.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+          provider unique ID is missing
+        """
+        user_id = self._lti_params.get("user_id")
+
+        if not user_id:
+            raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
+
+        return user_id
+
+    @property
+    def h_username(self):
+        """
+        Return the h username for the current request.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+          username is missing
+        """
+        hash_object = hashlib.sha1()
+        hash_object.update(self.h_provider.encode())
+        hash_object.update(self.h_provider_unique_id.encode())
+        return hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+
+    @property
     def hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
@@ -115,11 +165,10 @@ class LTILaunch:
 
         def grant_token():
             now = datetime.datetime.utcnow()
-            username = util.generate_username(self._lti_params)
             claims = {
                 "aud": audience,
                 "iss": client_id,
-                "sub": "acct:{}@{}".format(username, authority),
+                "sub": "acct:{}@{}".format(self.h_username, authority),
                 "nbf": now,
                 "exp": now + datetime.timedelta(minutes=5),
             }

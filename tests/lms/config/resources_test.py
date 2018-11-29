@@ -160,6 +160,90 @@ class TestLTILaunch:
 
         assert resources.LTILaunch(pyramid_request).h_group_name == expected_group_name
 
+    def test_h_provider_just_returns_the_tool_consumer_instance_guid(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {
+            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
+        }
+
+        provider = resources.LTILaunch(pyramid_request).h_provider
+
+        assert provider == "VCSy*G1u3:canvas-lms"
+
+    @pytest.mark.parametrize(
+        "request_params",
+        [
+            {},
+            {"tool_consumer_instance_guid": ""},
+            {"tool_consumer_instance_guid": None},
+        ],
+    )
+    def test_h_provider_raises_if_tool_consumer_instance_guid_is_missing(
+        self, request_params, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = request_params
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).h_provider
+
+    def test_h_provider_unique_id_just_returns_the_user_id(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {"user_id": "4533***70d9"}
+
+        provider_unique_id = resources.LTILaunch(pyramid_request).h_provider_unique_id
+
+        assert provider_unique_id == "4533***70d9"
+
+    @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
+    def test_h_provider_unique_id_raises_if_user_id_is_missing(
+        self, request_params, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = request_params
+
+        with pytest.raises(
+            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
+        ):
+            resources.LTILaunch(pyramid_request).h_provider_unique_id
+
+    def test_h_username_returns_a_30_char_string(self, pyramid_request, lti_params_for):
+        lti_params_for.return_value = {
+            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
+            "user_id": "4533***70d9",
+        }
+
+        username = resources.LTILaunch(pyramid_request).h_username
+
+        assert isinstance(username, str)
+        assert len(username) == 30
+
+    def test_h_username_raises_if_tool_consumer_instance_guid_is_missing(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {"user_id": "4533***70d9"}
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).h_username
+
+    def test_h_username_raises_if_user_id_is_missing(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {
+            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
+        }
+
+        with pytest.raises(
+            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
+        ):
+            resources.LTILaunch(pyramid_request).h_username
+
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
 
@@ -190,7 +274,7 @@ class TestLTILaunch:
         )
         after = int(datetime.datetime.now().timestamp())
         assert claims["iss"] == "TEST_JWT_CLIENT_ID"
-        assert claims["sub"] == "acct:75a0b8df844a493bc789385bbbd885@TEST_AUTHORITY"
+        assert claims["sub"] == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
@@ -202,23 +286,9 @@ class TestLTILaunch:
         groups = lti_launch.hypothesis_config["services"][0]["groups"]
 
         models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db,
-            mock.sentinel.tool_consumer_instance_guid,
-            mock.sentinel.context_id,
+            pyramid_request.db, "test_tool_consumer_instance_guid", "test_context_id"
         )
         assert groups == [group.pubid]
-
-    def test_if_theres_no_tool_consumer_instance_guid(
-        self, lti_launch, lti_params_for, models, pyramid_request
-    ):
-        del lti_params_for.return_value["tool_consumer_instance_guid"]
-
-        groups = lti_launch.hypothesis_config["services"][0]["groups"]
-
-        models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db, None, mock.sentinel.context_id
-        )
-        assert groups == [models.CourseGroup.get.return_value.pubid]
 
     def test_if_theres_no_context_id(
         self, lti_launch, lti_params_for, models, pyramid_request
@@ -228,19 +298,8 @@ class TestLTILaunch:
         groups = lti_launch.hypothesis_config["services"][0]["groups"]
 
         models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db, mock.sentinel.tool_consumer_instance_guid, None
+            pyramid_request.db, "test_tool_consumer_instance_guid", None
         )
-        assert groups == [models.CourseGroup.get.return_value.pubid]
-
-    def test_if_theres_no_tool_consumer_instance_guid_OR_context_id(
-        self, lti_launch, lti_params_for, models, pyramid_request
-    ):
-        del lti_params_for.return_value["tool_consumer_instance_guid"]
-        del lti_params_for.return_value["context_id"]
-
-        groups = lti_launch.hypothesis_config["services"][0]["groups"]
-
-        models.CourseGroup.get.assert_called_once_with(pyramid_request.db, None, None)
         assert groups == [models.CourseGroup.get.return_value.pubid]
 
     def test_it_raises_AssertionError_if_theres_no_group(self, lti_launch, models):
@@ -268,8 +327,9 @@ class TestLTILaunch:
     def lti_params_for(self, patch):
         lti_params_for = patch("lms.config.resources.lti_params_for")
         lti_params_for.return_value = {
-            "tool_consumer_instance_guid": mock.sentinel.tool_consumer_instance_guid,
-            "context_id": mock.sentinel.context_id,
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+            "context_id": "test_context_id",
+            "user_id": "test_user_id",
             # A valid oauth_consumer_key (matches one for which the
             # provisioning features are enabled).
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
@@ -283,9 +343,3 @@ class TestLTILaunch:
             CourseGroup, instance=True, spec_set=True
         )
         return models
-
-    @pytest.fixture(autouse=True)
-    def util(self, patch):
-        util = patch("lms.config.resources.util")
-        util.generate_username.return_value = "75a0b8df844a493bc789385bbbd885"
-        return util

@@ -14,8 +14,6 @@ from requests import TooManyRedirects
 
 from lms.services import HAPIError
 from lms.views.decorators import h_api
-from lms.util import MissingToolConsumerIntanceGUIDError
-from lms.util import MissingUserIDError
 from lms.models import CourseGroup
 from lms.services.hapi import HypothesisAPIService
 from lms.config.resources import LTILaunch
@@ -50,36 +48,30 @@ class TestCreateHUser:
 
         hapi_svc.post.assert_not_called()
 
-    def test_it_400s_if_generate_username_raises_MissingToolConsumerInstanceGUIDError(
-        self, create_h_user, pyramid_request, util
+    def test_it_raises_if_h_username_raises(
+        self, create_h_user, context, pyramid_request
     ):
-        util.generate_username.side_effect = MissingToolConsumerIntanceGUIDError()
+        type(context).h_username = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
-        with pytest.raises(HTTPBadRequest, match="tool_consumer_instance_guid"):
-            create_h_user(pyramid_request, mock.sentinel.jwt)
-
-    def test_it_400s_if_generate_username_raises_MissingUserIDError(
-        self, create_h_user, pyramid_request, util
-    ):
-        util.generate_username.side_effect = MissingUserIDError()
-
-        with pytest.raises(HTTPBadRequest, match="user_id"):
-            create_h_user(pyramid_request, mock.sentinel.jwt)
-
-    def test_it_400s_if_generate_provider_raises_MissingToolConsumerInstanceGUIDError(
-        self, create_h_user, context, pyramid_request, util
-    ):
-        util.generate_provider.side_effect = MissingToolConsumerIntanceGUIDError()
-
-        with pytest.raises(HTTPBadRequest, match="tool_consumer_instance_guid"):
+        with pytest.raises(HTTPBadRequest, match="Oops"):
             create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
-    def test_it_400s_if_generate_provider_unique_id_raises_MissingUserIDError(
-        self, create_h_user, context, pyramid_request, util
+    def test_it_raises_if_h_provider_raises(
+        self, create_h_user, context, pyramid_request
     ):
-        util.generate_provider_unique_id.side_effect = MissingUserIDError()
+        type(context).h_provider = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
-        with pytest.raises(HTTPBadRequest, match="user_id"):
+        with pytest.raises(HTTPBadRequest, match="Oops"):
+            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+
+    def test_it_raises_if_provider_unique_id_raises(
+        self, create_h_user, context, pyramid_request
+    ):
+        type(context).h_provider_unique_id = mock.PropertyMock(
+            side_effect=HTTPBadRequest("Oops")
+        )
+
+        with pytest.raises(HTTPBadRequest, match="Oops"):
             create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
     def test_it_creates_the_user_in_h(
@@ -352,6 +344,9 @@ def context():
         instance=True,
         h_display_name="test_display_name",
         h_group_name="test_group_name",
+        h_username="test_username",
+        h_provider="test_provider",
+        h_provider_unique_id="test_provider_unique_id",
     )
     return context
 
@@ -384,15 +379,6 @@ def pyramid_request(pyramid_request):
     )
     pyramid_request.db = mock.MagicMock()
     return pyramid_request
-
-
-@pytest.fixture(autouse=True)
-def util(patch):
-    util = patch("lms.views.decorators.h_api.util")
-    util.generate_username.return_value = "test_username"
-    util.generate_provider.return_value = "test_provider"
-    util.generate_provider_unique_id.return_value = "test_provider_unique_id"
-    return util
 
 
 @pytest.fixture

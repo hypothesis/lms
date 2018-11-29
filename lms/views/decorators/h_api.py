@@ -7,9 +7,6 @@ import functools
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms import models
-from lms import util
-from lms.util import MissingToolConsumerIntanceGUIDError
-from lms.util import MissingUserIDError
 
 
 def create_h_user(wrapped):  # noqa: MC0001
@@ -47,29 +44,20 @@ def create_h_user(wrapped):  # noqa: MC0001
     # decorators to the view.
     def wrapper(request, jwt, context=None):  # pylint: disable=too-many-branches
         context = context or request.context
-        params = request.params
 
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
-        try:
-            username = util.generate_username(params)
-            provider = util.generate_provider(params)
-            provider_unique_id = util.generate_provider_unique_id(params)
-        except MissingToolConsumerIntanceGUIDError:
-            raise HTTPBadRequest(
-                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
-            )
-        except MissingUserIDError:
-            raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
-
         # The user data that we will post to h.
         user_data = {
-            "username": username,
+            "username": context.h_username,
             "display_name": context.h_display_name,
             "authority": request.registry.settings["h_authority"],
             "identities": [
-                {"provider": provider, "provider_unique_id": provider_unique_id}
+                {
+                    "provider": context.h_provider,
+                    "provider_unique_id": context.h_provider_unique_id,
+                }
             ],
         }
 
@@ -149,14 +137,8 @@ def add_user_to_group(wrapped):
             "never be None."
         )
 
-        # Deliberately assume that generate_username() will succeed and not
-        # raise an error.  create_h_user() should always have been run
-        # successfully before this function gets called, so if
-        # generate_username() was going to fail it would have already failed.
-        username = util.generate_username(request.params)
-
         authority = request.registry.settings["h_authority"]
-        userid = f"acct:{username}@{authority}"
+        userid = f"acct:{context.h_username}@{authority}"
         path = f"groups/{group.pubid}/members/{userid}"
 
         request.find_service(name="hapi").post(path)
@@ -192,15 +174,9 @@ def _maybe_create_group(context, request):
     ):
         raise HTTPBadRequest("Instructor must launch assignment first.")
 
-    # Deliberately assume that generate_username() will succeed and not
-    # raise an error.  create_h_user() should always have been run
-    # successfully before this function gets called, so if
-    # generate_username() was going to fail it would have already failed.
-    username = util.generate_username(request.params)
-
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "groups", {"name": context.h_group_name}, username
+        "groups", {"name": context.h_group_name}, context.h_username
     )
 
     # Save a record of the group's pubid in the DB so that we can find it
