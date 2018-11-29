@@ -17,7 +17,7 @@ class Root:
 
     def __init__(self, request):
         """Return the default root resource object."""
-        self.request = request
+        self._request = request
 
 
 class LTILaunch:
@@ -25,11 +25,11 @@ class LTILaunch:
 
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
-        self.request = request
+        self._request = request
         # This will raise HTTPBadRequest if the request looks like an OAuth
         # redirect request but no DB-stashed LTI params can be found for the
         # request.
-        self.lti_params = lti_params_for(request)
+        self._lti_params = lti_params_for(request)
 
     @property
     def hypothesis_config(self):
@@ -48,15 +48,15 @@ class LTILaunch:
         if not self._auto_provisioning_feature_enabled:
             return {}
 
-        client_id = self.request.registry.settings["h_jwt_client_id"]
-        client_secret = self.request.registry.settings["h_jwt_client_secret"]
-        api_url = self.request.registry.settings["h_api_url"]
-        authority = self.request.registry.settings["h_authority"]
+        client_id = self._request.registry.settings["h_jwt_client_id"]
+        client_secret = self._request.registry.settings["h_jwt_client_secret"]
+        api_url = self._request.registry.settings["h_api_url"]
+        authority = self._request.registry.settings["h_authority"]
         audience = urllib.parse.urlparse(api_url).hostname
 
         def grant_token():
             now = datetime.datetime.utcnow()
-            username = util.generate_username(self.lti_params)
+            username = util.generate_username(self._lti_params)
             claims = {
                 "aud": audience,
                 "iss": client_id,
@@ -66,10 +66,12 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        tool_consumer_instance_guid = self.lti_params.get("tool_consumer_instance_guid")
-        context_id = self.lti_params.get("context_id")
+        tool_consumer_instance_guid = self._lti_params.get(
+            "tool_consumer_instance_guid"
+        )
+        context_id = self._lti_params.get("context_id")
         group = models.CourseGroup.get(
-            self.request.db, tool_consumer_instance_guid, context_id
+            self._request.db, tool_consumer_instance_guid, context_id
         )
         assert group is not None, "The group should always exist by now"
 
@@ -88,16 +90,16 @@ class LTILaunch:
     @property
     def rpc_server_config(self):
         """Return the config object for the JSON-RPC server."""
-        allowed_origins = self.request.registry.settings["rpc_allowed_origins"]
+        allowed_origins = self._request.registry.settings["rpc_allowed_origins"]
         return {"allowedOrigins": allowed_origins}
 
     @property
     def _auto_provisioning_feature_enabled(self):
         try:
-            oauth_consumer_key = self.lti_params["oauth_consumer_key"]
+            oauth_consumer_key = self._lti_params["oauth_consumer_key"]
         except KeyError:
             raise HTTPBadRequest(
                 f'Required parameter "oauth_consumer_key" missing from LTI params'
             )
-        enabled_consumer_keys = self.request.registry.settings["auto_provisioning"]
+        enabled_consumer_keys = self._request.registry.settings["auto_provisioning"]
         return oauth_consumer_key in enabled_consumer_keys
