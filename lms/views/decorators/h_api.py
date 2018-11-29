@@ -42,7 +42,7 @@ def create_h_user(wrapped):  # noqa: MC0001
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
-    def wrapper(request, jwt, context=None):  # pylint: disable=too-many-branches
+    def wrapper(request, jwt, context=None):
         context = context or request.context
 
         if not _auto_provisioning_feature_enabled(request):
