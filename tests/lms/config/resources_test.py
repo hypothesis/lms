@@ -303,6 +303,44 @@ class TestLTILaunch:
         ):
             resources.LTILaunch(pyramid_request).h_userid
 
+    def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {}
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "oauth_consumer_key" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).hypothesis_config
+
+    def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {
+            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
+        }
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).hypothesis_config
+
+    def test_hypothesis_config_raises_if_theres_no_context_id(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {
+            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+            "tool_consumer_instance_guid": "test_guid",
+        }
+
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "context_id" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).hypothesis_config
+
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
 
@@ -348,18 +386,6 @@ class TestLTILaunch:
             pyramid_request.db, "test_tool_consumer_instance_guid", "test_context_id"
         )
         assert groups == [group.pubid]
-
-    def test_if_theres_no_context_id(
-        self, lti_launch, lti_params_for, models, pyramid_request
-    ):
-        del lti_params_for.return_value["context_id"]
-
-        groups = lti_launch.hypothesis_config["services"][0]["groups"]
-
-        models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db, "test_tool_consumer_instance_guid", None
-        )
-        assert groups == [models.CourseGroup.get.return_value.pubid]
 
     def test_it_raises_AssertionError_if_theres_no_group(self, lti_launch, models):
         models.CourseGroup.get.return_value = None
