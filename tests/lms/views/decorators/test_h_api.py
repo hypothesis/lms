@@ -12,17 +12,18 @@ from requests import ReadTimeout
 from requests import Response
 from requests import TooManyRedirects
 
-from lms.views import HAPIError
+from lms.services import HAPIError
 from lms.views.decorators import h_api
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
 from lms.models import CourseGroup
+from lms.services.hapi import HypothesisAPIService
 
 
-@pytest.mark.usefixtures("post")
+@pytest.mark.usefixtures("hapi_svc")
 class TestCreateHUser:
-    def test_it_raises_if_post_raises(self, create_h_user, pyramid_request, post):
-        post.side_effect = HAPIError("Oops")
+    def test_it_raises_if_post_raises(self, create_h_user, pyramid_request, hapi_svc):
+        hapi_svc.post.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
@@ -38,13 +39,13 @@ class TestCreateHUser:
         assert returned == wrapped.return_value
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, create_h_user, post, pyramid_request
+        self, create_h_user, hapi_svc, pyramid_request
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
-        assert not post.called
+        hapi_svc.post.assert_not_called()
 
     def test_it_400s_if_generate_username_raises_MissingToolConsumerInstanceGUIDError(
         self, create_h_user, pyramid_request, util
@@ -78,12 +79,11 @@ class TestCreateHUser:
         with pytest.raises(HTTPBadRequest, match="user_id"):
             create_h_user(pyramid_request, mock.sentinel.jwt)
 
-    def test_it_creates_the_user_in_h(self, create_h_user, post, pyramid_request):
+    def test_it_creates_the_user_in_h(self, create_h_user, hapi_svc, pyramid_request):
         create_h_user(pyramid_request, mock.sentinel.jwt)
 
-        post.assert_called_once_with(
-            pyramid_request.registry.settings,
-            "/users",
+        hapi_svc.post.assert_called_once_with(
+            "users",
             {
                 "username": "test_username",
                 "display_name": "test_display_name",
@@ -112,7 +112,7 @@ class TestCreateHUser:
         return h_api.create_h_user(wrapped)
 
 
-@pytest.mark.usefixtures("post")
+@pytest.mark.usefixtures("hapi_svc")
 class TestCreateCourseGroup:
     @pytest.mark.parametrize(
         "required_param_name", ("tool_consumer_instance_guid", "context_id", "roles")
@@ -136,7 +136,7 @@ class TestCreateCourseGroup:
             create_course_group(pyramid_request, mock.sentinel.jwt)
 
     def test_it_does_nothing_if_the_user_isnt_allowed_to_create_groups_but_the_group_already_exists(
-        self, create_course_group, pyramid_request, models, post, wrapped
+        self, create_course_group, pyramid_request, models, hapi_svc, wrapped
     ):
         models.CourseGroup.get.return_value = mock.create_autospec(
             CourseGroup, instance=True
@@ -145,13 +145,13 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not post.called
+        hapi_svc.post.assert_not_called()
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_does_nothing_if_the_feature_isnt_enabled(
-        self, create_course_group, pyramid_request, wrapped, post
+        self, create_course_group, pyramid_request, wrapped, hapi_svc
     ):
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
@@ -160,13 +160,13 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not post.called
+        hapi_svc.post.assert_not_called()
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_does_nothing_if_the_course_group_already_exists(
-        self, create_course_group, models, pyramid_request, wrapped, post
+        self, create_course_group, models, pyramid_request, wrapped, hapi_svc
     ):
         models.CourseGroup.get.return_value = mock.create_autospec(
             CourseGroup, instance=True
@@ -174,25 +174,24 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        assert not post.called
+        hapi_svc.post.assert_not_called()
         assert not pyramid_request.db.add.called
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_posts_to_the_group_create_api(
-        self, create_course_group, pyramid_request, post
+        self, create_course_group, pyramid_request, hapi_svc
     ):
         create_course_group(pyramid_request, mock.sentinel.jwt)
 
-        post.assert_called_once_with(
-            pyramid_request.registry.settings,
-            "/groups",
-            {"name": "test_group_name"},
-            "test_username",
+        hapi_svc.post.assert_called_once_with(
+            "groups", {"name": "test_group_name"}, "test_username"
         )
 
-    def test_it_raises_if_post_raises(self, create_course_group, pyramid_request, post):
-        post.side_effect = HAPIError("Oops")
+    def test_it_raises_if_post_raises(
+        self, create_course_group, pyramid_request, hapi_svc
+    ):
+        hapi_svc.post.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
             create_course_group(pyramid_request, mock.sentinel.jwt)
@@ -245,16 +244,16 @@ class TestCreateCourseGroup:
         return h_api.create_course_group(wrapped)
 
 
-@pytest.mark.usefixtures("post")
+@pytest.mark.usefixtures("hapi_svc")
 class TestAddUserToGroup:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
-        self, add_user_to_group, pyramid_request, post
+        self, add_user_to_group, pyramid_request, hapi_svc
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-        post.assert_not_called()
+        hapi_svc.post.assert_not_called()
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, add_user_to_group, pyramid_request, wrapped
@@ -295,17 +294,18 @@ class TestAddUserToGroup:
         )
 
     def test_it_adds_the_user_to_the_group(
-        self, add_user_to_group, pyramid_request, post
+        self, add_user_to_group, pyramid_request, hapi_svc
     ):
         add_user_to_group(pyramid_request, mock.sentinel.jwt)
 
-        post.assert_called_once_with(
-            pyramid_request.registry.settings,
-            "/groups/test_pubid/members/acct:test_username@TEST_AUTHORITY",
+        hapi_svc.post.assert_called_once_with(
+            "groups/test_pubid/members/acct:test_username@TEST_AUTHORITY"
         )
 
-    def test_it_raises_if_post_raises(self, add_user_to_group, pyramid_request, post):
-        post.side_effect = HAPIError("Oops")
+    def test_it_raises_if_post_raises(
+        self, add_user_to_group, pyramid_request, hapi_svc
+    ):
+        hapi_svc.post.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
             add_user_to_group(pyramid_request, mock.sentinel.jwt)
@@ -337,80 +337,6 @@ class TestAddUserToGroup:
             CourseGroup, instance=True, pubid="test_pubid"
         )
         return models
-
-
-class TestPost:
-    @pytest.mark.parametrize(
-        "setting", ["h_client_id", "h_client_secret", "h_authority", "h_api_url"]
-    )
-    def test_it_crashes_if_a_required_setting_is_missing(
-        self, pyramid_request, setting
-    ):
-        del pyramid_request.registry.settings[setting]
-
-        with pytest.raises(KeyError, match=setting):
-            h_api.post(pyramid_request.registry.settings, "/path")
-
-    def test_it_posts_to_the_h_api(self, pyramid_request, requests):
-        h_api.post(pyramid_request.registry.settings, "/path")
-
-        requests.post.assert_called_once_with(
-            url="https://example.com/api/path",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            timeout=10,
-        )
-
-    def test_it_posts_data_as_json(self, pyramid_request, requests):
-        h_api.post(pyramid_request.registry.settings, "/path", data={"foo": "bar"})
-
-        assert requests.post.call_args[1]["data"] == '{"foo": "bar"}'
-
-    def test_it_posts_username_as_x_forwarded_user(self, pyramid_request, requests):
-        h_api.post(pyramid_request.registry.settings, "/path", username="seanh")
-
-        assert requests.post.call_args[1]["headers"]["X-Forwarded-User"] == (
-            "acct:seanh@TEST_AUTHORITY"
-        )
-
-    @pytest.mark.parametrize(
-        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
-    )
-    def test_it_raises_HAPIError_if_the_request_fails(
-        self, exception, pyramid_request, requests
-    ):
-        requests.post.side_effect = exception
-
-        with pytest.raises(HAPIError):
-            h_api.post(pyramid_request.registry.settings, "/path")
-
-    def test_it_raises_HAPIError_if_it_receives_an_error_response(
-        self, pyramid_request, requests
-    ):
-        requests.post.return_value.raise_for_status.side_effect = HTTPError(
-            response=requests.post.return_value
-        )
-
-        with pytest.raises(HAPIError) as exc_info:
-            h_api.post(pyramid_request.registry.settings, "/path")
-
-        assert (
-            exc_info.value.response == requests.post.return_value
-        ), "It passes the h API response to HAPIError so that it gets logged"
-
-    def test_you_can_tell_it_not_to_raise_for_certain_error_statuses(
-        self, pyramid_request, requests
-    ):
-        response = Response()
-        response.status_code = requests.post.return_value.status_code = 409
-        requests.post.return_value.raise_for_status.side_effect = HTTPError(
-            response=response
-        )
-
-        h_api.post(pyramid_request.registry.settings, "/path", statuses=[409])
-
-    @pytest.fixture(autouse=True)
-    def requests(self, patch):
-        return patch("lms.views.decorators.h_api.requests")
 
 
 @pytest.fixture(autouse=True)
@@ -461,10 +387,11 @@ def wrapped():
 
 
 @pytest.fixture
-def post(patch):
-    post = patch("lms.views.decorators.h_api.post")
-    post.return_value = mock.create_autospec(
+def hapi_svc(patch, pyramid_config):
+    hapi_svc = mock.create_autospec(HypothesisAPIService, spec_set=True, instance=True)
+    hapi_svc.post.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )
-    post.return_value.json.return_value = {"id": "TEST_PUBID"}
-    return post
+    hapi_svc.post.return_value.json.return_value = {"id": "TEST_PUBID"}
+    pyramid_config.register_service(hapi_svc, name="hapi")
+    return hapi_svc

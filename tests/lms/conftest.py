@@ -133,7 +133,7 @@ def pyramid_config(pyramid_request):
     # Settings that will end up in pyramid_request.registry.settings.
     settings = {
         "sqlalchemy.url": TEST_DATABASE_URL,
-        "via_url": "http://TEST_VIA_SERVER.is",
+        "via_url": "http://TEST_VIA_SERVER.is/",
         "jwt_secret": "test_secret",
         "google_client_id": "fake_client_id",
         "google_developer_key": "fake_developer_key",
@@ -152,13 +152,14 @@ def pyramid_config(pyramid_request):
         "h_jwt_client_id": "TEST_JWT_CLIENT_ID",
         "h_jwt_client_secret": "TEST_JWT_CLIENT_SECRET",
         "h_authority": "TEST_AUTHORITY",
-        "h_api_url": "https://example.com/api",
+        "h_api_url": "https://example.com/api/",
         "auto_provisioning": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20",
         "rpc_allowed_origins": ["http://localhost:5000"],
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
         config.include("pyramid_jinja2")
+        config.include("pyramid_services")
         config.include("pyramid_tm")
 
         config.include("lms.sentry")

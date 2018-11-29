@@ -52,8 +52,8 @@ def configure(settings):
     if database_url:
         env_settings["sqlalchemy.url"] = database_url
 
-    env_settings["via_url"] = _strip_trailing_slash(env_settings["via_url"])
-    env_settings["h_api_url"] = _strip_trailing_slash(env_settings["h_api_url"])
+    env_settings["via_url"] = _append_trailing_slash(env_settings["via_url"])
+    env_settings["h_api_url"] = _append_trailing_slash(env_settings["h_api_url"])
 
     try:
         env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
@@ -78,10 +78,14 @@ def configure(settings):
     return config
 
 
-def _strip_trailing_slash(s):  # pylint: disable=invalid-name
-    """Return s with any trailing '/' stripped."""
-    if s.endswith("/"):
-        s = s[:-1]
+def _append_trailing_slash(s):  # pylint: disable=invalid-name
+    """
+    Return ``s`` with a trailing ``"/"`` appended.
+
+    If ``s`` already ends with a trailing ``"/"`` it'll be returned unmodified.
+    """
+    if not s.endswith("/"):
+        s = s + "/"
     return s
 
 
