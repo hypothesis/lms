@@ -65,6 +65,50 @@ class LTILaunch:
         return display_name
 
     @property
+    def h_groupid(self):
+        """
+        Return a unique h groupid for the current request.
+
+        The returned ID is suitable for use with the h API's ``groupid`` parameter.
+
+        The groupid is deterministic and is unique to the LTI course. Calling this
+        function again with params representing the same LTI course will always
+        return the same groupid. Calling this function with different params will
+        always return a different groupid.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the group
+          name is missing
+        """
+        # Generate the groupid based on the LTI tool_consumer_instance_guid and
+        # context_id parameters.
+        # These are "recommended" LTI parameters (according to the spec) that in
+        # practice are provided by all of the major LMS's.
+        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        # and context_id uniquely identifies a course within an LMS. Together they
+        # globally uniquely identify a course.
+        try:
+            tool_consumer_instance_guid = self._lti_params[
+                "tool_consumer_instance_guid"
+            ]
+        except KeyError:
+            raise HTTPBadRequest(
+                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
+            )
+
+        try:
+            context_id = self._lti_params["context_id"]
+        except KeyError:
+            raise HTTPBadRequest(
+                'Required parameter "context_id" missing from LTI params'
+            )
+
+        hash_object = hashlib.sha1()
+        hash_object.update(tool_consumer_instance_guid.encode())
+        hash_object.update(context_id.encode())
+
+        return f"group:{hash_object.hexdigest()}@{self._authority}"
+
+    @property
     def h_group_name(self):
         """
         Return the h group name for the current request.

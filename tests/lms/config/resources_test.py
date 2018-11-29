@@ -136,6 +136,32 @@ class TestLTILaunch:
             resources.LTILaunch(pyramid_request).h_display_name == expected_display_name
         )
 
+    def test_h_groupid_raises_if_theres_no_tool_consumer_instance_guid(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {}
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).h_groupid
+
+    def test_h_groupid_raises_if_theres_no_context_id(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {"tool_consumer_instance_guid": "test_guid"}
+        with pytest.raises(
+            HTTPBadRequest,
+            match='Required parameter "context_id" missing from LTI params',
+        ):
+            resources.LTILaunch(pyramid_request).h_groupid
+
+    def test_h_groupid(self, lti_launch):
+        assert (
+            lti_launch.h_groupid
+            == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
+        )
+
     def test_h_group_name_raises_if_theres_no_context_title(self, lti_launch):
         with pytest.raises(HTTPBadRequest):
             lti_launch.h_group_name
