@@ -74,7 +74,7 @@ class HypothesisAPIService:
         return self.request("PUT", *args, **kwargs)
 
     def request(
-        self, method, path, data=None, username=None, statuses=None
+        self, method, path, data=None, userid=None, statuses=None
     ):  # pylint:disable=too-many-arguments
         """
         Send any kind of HTTP request to the h API and return the response.
@@ -95,9 +95,9 @@ class HypothesisAPIService:
         :type path: str
         :arg data: the data to post as JSON in the request body
         :type data: dict
-        :arg username: the username of the user to post as (using an
+        :arg userid: the userid of the user to post as (using an
           X-Forwarded-User header)
-        :type username: str
+        :type userid: str
         :arg statuses: the list of 4xx and 5xx statuses that should not trigger an
           exception, for example: ``[409, 410]``
         :type statuses: list of ints
@@ -118,10 +118,8 @@ class HypothesisAPIService:
         if data is not None:
             request_args["data"] = json.dumps(data)
 
-        if username is not None:
-            request_args["headers"] = {
-                "X-Forwarded-User": f"acct:{username}@{self._authority}"
-            }
+        if userid is not None:
+            request_args["headers"] = {"X-Forwarded-User": userid}
 
         try:
             response = requests.request(

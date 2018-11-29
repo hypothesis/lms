@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from requests import ConnectionError
@@ -6,6 +8,7 @@ from requests import ReadTimeout
 from requests import Response
 from requests import TooManyRedirects
 
+from lms.config.resources import LTILaunch
 from lms.services.hapi import HypothesisAPIService
 from lms.services import HAPIError
 
@@ -60,10 +63,8 @@ class TestAPIRequest:
 
         assert requests.request.call_args[1]["data"] == '{"foo": "bar"}'
 
-    def test_it_sends_username_as_x_forwarded_user(
-        self, pyramid_request, requests, svc
-    ):
-        svc.post("path", username="seanh")
+    def test_it_sends_userid_as_x_forwarded_user(self, pyramid_request, requests, svc):
+        svc.post("path", userid="acct:seanh@TEST_AUTHORITY")
 
         assert requests.request.call_args[1]["headers"]["X-Forwarded-User"] == (
             "acct:seanh@TEST_AUTHORITY"
@@ -105,10 +106,20 @@ class TestAPIRequest:
 
         svc.post("path", statuses=[409])
 
+    @pytest.fixture
+    def context(self):
+        context = mock.create_autospec(
+            LTILaunch,
+            spec_set=True,
+            instance=True,
+            h_userid="acct:seanh@TEST_AUTHORITY",
+        )
+        return context
+
     @pytest.fixture(autouse=True)
     def requests(self, patch):
         return patch("lms.services.hapi.requests")
 
     @pytest.fixture
-    def svc(self, pyramid_request):
-        return HypothesisAPIService(None, pyramid_request)
+    def svc(self, context, pyramid_request):
+        return HypothesisAPIService(context, pyramid_request)

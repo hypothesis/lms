@@ -7,10 +7,6 @@ import functools
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms import models
-from lms import util
-from lms.util import MissingToolConsumerIntanceGUIDError
-from lms.util import MissingUserIDError
-from lms.util import MissingContextTitleError
 
 
 def create_h_user(wrapped):  # noqa: MC0001
@@ -46,32 +42,22 @@ def create_h_user(wrapped):  # noqa: MC0001
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
-    def wrapper(request, jwt):  # pylint: disable=too-many-branches
-        params = request.params
+    def wrapper(request, jwt, context=None):
+        context = context or request.context
 
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
-        try:
-            username = util.generate_username(params)
-            provider = util.generate_provider(params)
-            provider_unique_id = util.generate_provider_unique_id(params)
-        except MissingToolConsumerIntanceGUIDError:
-            raise HTTPBadRequest(
-                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
-            )
-        except MissingUserIDError:
-            raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
-
-        display_name = util.generate_display_name(params)
-
         # The user data that we will post to h.
         user_data = {
-            "username": username,
-            "display_name": display_name,
+            "username": context.h_username,
+            "display_name": context.h_display_name,
             "authority": request.registry.settings["h_authority"],
             "identities": [
-                {"provider": provider, "provider_unique_id": provider_unique_id}
+                {
+                    "provider": context.h_provider,
+                    "provider_unique_id": context.h_provider_unique_id,
+                }
             ],
         }
 
@@ -122,18 +108,19 @@ def create_course_group(wrapped):
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
-    def wrapper(request, jwt):
-        _maybe_create_group(request)
+    def wrapper(request, jwt, context=None):
+        _maybe_create_group(context or request.context, request)
         return wrapped(request, jwt)
 
     return wrapper
 
 
 def add_user_to_group(wrapped):
-    def wrapper(request, jwt):
+    def wrapper(request, jwt, context=None):
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
+        context = context or request.context
         get_param = functools.partial(_get_param, request)
 
         tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
@@ -150,24 +137,16 @@ def add_user_to_group(wrapped):
             "never be None."
         )
 
-        # Deliberately assume that generate_username() will succeed and not
-        # raise an error.  create_h_user() should always have been run
-        # successfully before this function gets called, so if
-        # generate_username() was going to fail it would have already failed.
-        username = util.generate_username(request.params)
-
-        authority = request.registry.settings["h_authority"]
-        userid = f"acct:{username}@{authority}"
-        path = f"groups/{group.pubid}/members/{userid}"
-
-        request.find_service(name="hapi").post(path)
+        request.find_service(name="hapi").post(
+            f"groups/{group.pubid}/members/{context.h_userid}"
+        )
 
         return wrapped(request, jwt)
 
     return wrapper
 
 
-def _maybe_create_group(request):
+def _maybe_create_group(context, request):
     """Create a Hypothesis group for the LTI course, if one doesn't exist."""
     # Only create groups for application instances that we've enabled the
     # auto provisioning features for.
@@ -193,23 +172,9 @@ def _maybe_create_group(request):
     ):
         raise HTTPBadRequest("Instructor must launch assignment first.")
 
-    # Generate the name for the new group.
-    try:
-        name = util.generate_group_name(request.params)
-    except MissingContextTitleError:
-        raise HTTPBadRequest(
-            'Required parameter "context_title" missing from LTI params'
-        )
-
-    # Deliberately assume that generate_username() will succeed and not
-    # raise an error.  create_h_user() should always have been run
-    # successfully before this function gets called, so if
-    # generate_username() was going to fail it would have already failed.
-    username = util.generate_username(request.params)
-
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "groups", {"name": name}, username
+        "groups", {"name": context.h_group_name}, context.h_userid
     )
 
     # Save a record of the group's pubid in the DB so that we can find it
