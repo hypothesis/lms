@@ -174,7 +174,9 @@ def _maybe_create_group(context, request):
 
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "groups", {"name": context.h_group_name}, context.h_userid
+        "groups",
+        {"groupid": context.h_groupid, "name": context.h_group_name},
+        context.h_userid,
     )
 
     # Save a record of the group's pubid in the DB so that we can find it
