@@ -23,6 +23,9 @@ class Root:
 class LTILaunch:
     """Context resource for LTI launch requests."""
 
+    DISPLAY_NAME_MAX_LENGTH = 30
+    """The maximum length of an h display name."""
+
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
@@ -30,6 +33,29 @@ class LTILaunch:
         # redirect request but no DB-stashed LTI params can be found for the
         # request.
         self._lti_params = lti_params_for(request)
+
+    @property
+    def h_display_name(self):
+        """Return the h user display name for the current request."""
+        full_name = (self._lti_params.get("lis_person_name_full") or "").strip()
+        given_name = (self._lti_params.get("lis_person_name_given") or "").strip()
+        family_name = (self._lti_params.get("lis_person_name_family") or "").strip()
+
+        if full_name:
+            display_name = full_name
+        else:
+            display_name = " ".join((given_name, family_name))
+
+        display_name = display_name.strip()
+
+        display_name = display_name or "Anonymous"
+
+        if len(display_name) > self.DISPLAY_NAME_MAX_LENGTH:
+            display_name = (
+                display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
+            )
+
+        return display_name
 
     @property
     def hypothesis_config(self):

@@ -7,7 +7,6 @@ from lms.util.exceptions import UtilError
 from lms.util.exceptions import MissingToolConsumerIntanceGUIDError
 from lms.util.exceptions import MissingUserIDError
 from lms.util.exceptions import MissingContextTitleError
-from lms.util.h_api import generate_display_name
 from lms.util.h_api import generate_provider
 from lms.util.h_api import generate_provider_unique_id
 from lms.util.h_api import generate_username
@@ -23,7 +22,6 @@ __all__ = (
     "authenticate",
     "authorize_lms",
     "canvas_api",
-    "generate_display_name",
     "generate_provider",
     "generate_provider_unique_id",
     "generate_username",

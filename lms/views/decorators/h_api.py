@@ -46,7 +46,8 @@ def create_h_user(wrapped):  # noqa: MC0001
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
-    def wrapper(request, jwt):  # pylint: disable=too-many-branches
+    def wrapper(request, jwt, context=None):  # pylint: disable=too-many-branches
+        context = context or request.context
         params = request.params
 
         if not _auto_provisioning_feature_enabled(request):
@@ -63,12 +64,10 @@ def create_h_user(wrapped):  # noqa: MC0001
         except MissingUserIDError:
             raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
 
-        display_name = util.generate_display_name(params)
-
         # The user data that we will post to h.
         user_data = {
             "username": username,
-            "display_name": display_name,
+            "display_name": context.h_display_name,
             "authority": request.registry.settings["h_authority"],
             "identities": [
                 {"provider": provider, "provider_unique_id": provider_unique_id}
@@ -122,18 +121,19 @@ def create_course_group(wrapped):
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
-    def wrapper(request, jwt):
-        _maybe_create_group(request)
+    def wrapper(request, jwt, context=None):
+        _maybe_create_group(context or request.context, request)
         return wrapped(request, jwt)
 
     return wrapper
 
 
 def add_user_to_group(wrapped):
-    def wrapper(request, jwt):
+    def wrapper(request, jwt, context=None):
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
+        context = context or request.context
         get_param = functools.partial(_get_param, request)
 
         tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
@@ -167,7 +167,7 @@ def add_user_to_group(wrapped):
     return wrapper
 
 
-def _maybe_create_group(request):
+def _maybe_create_group(context, request):
     """Create a Hypothesis group for the LTI course, if one doesn't exist."""
     # Only create groups for application instances that we've enabled the
     # auto provisioning features for.
