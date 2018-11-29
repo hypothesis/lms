@@ -10,7 +10,6 @@ from lms import models
 from lms import util
 from lms.util import MissingToolConsumerIntanceGUIDError
 from lms.util import MissingUserIDError
-from lms.util import MissingContextTitleError
 
 
 def create_h_user(wrapped):  # noqa: MC0001
@@ -193,14 +192,6 @@ def _maybe_create_group(context, request):
     ):
         raise HTTPBadRequest("Instructor must launch assignment first.")
 
-    # Generate the name for the new group.
-    try:
-        name = util.generate_group_name(request.params)
-    except MissingContextTitleError:
-        raise HTTPBadRequest(
-            'Required parameter "context_title" missing from LTI params'
-        )
-
     # Deliberately assume that generate_username() will succeed and not
     # raise an error.  create_h_user() should always have been run
     # successfully before this function gets called, so if
@@ -209,7 +200,7 @@ def _maybe_create_group(context, request):
 
     # Create the group in h.
     response = request.find_service(name="hapi").post(
-        "groups", {"name": name}, username
+        "groups", {"name": context.h_group_name}, username
     )
 
     # Save a record of the group's pubid in the DB so that we can find it

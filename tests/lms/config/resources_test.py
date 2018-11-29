@@ -136,6 +136,30 @@ class TestLTILaunch:
             resources.LTILaunch(pyramid_request).h_display_name == expected_display_name
         )
 
+    def test_h_group_name_raises_if_theres_no_context_title(self, lti_launch):
+        with pytest.raises(HTTPBadRequest):
+            lti_launch.h_group_name
+
+    @pytest.mark.parametrize(
+        "context_title,expected_group_name",
+        (
+            ("Test Course", "Test Course"),
+            (" Test Course", "Test Course"),
+            ("Test Course ", "Test Course"),
+            (" Test Course ", "Test Course"),
+            ("Test   Course", "Test   Course"),
+            ("Object Oriented Programming 101", "Object Oriented Programm…"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
+        ),
+    )
+    def test_h_group_name_returns_group_names_based_on_context_titles(
+        self, context_title, expected_group_name, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value = {"context_title": context_title}
+
+        assert resources.LTILaunch(pyramid_request).h_group_name == expected_group_name
+
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
 

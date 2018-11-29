@@ -13,7 +13,3 @@ class MissingToolConsumerIntanceGUIDError(UtilError):
 
 class MissingUserIDError(UtilError):
     pass
-
-
-class MissingContextTitleError(UtilError):
-    pass

@@ -347,7 +347,11 @@ class TestAddUserToGroup:
 @pytest.fixture
 def context():
     context = mock.create_autospec(
-        LTILaunch, spec_set=True, instance=True, h_display_name="test_display_name"
+        LTILaunch,
+        spec_set=True,
+        instance=True,
+        h_display_name="test_display_name",
+        h_group_name="test_group_name",
     )
     return context
 
@@ -385,7 +389,6 @@ def pyramid_request(pyramid_request):
 @pytest.fixture(autouse=True)
 def util(patch):
     util = patch("lms.views.decorators.h_api.util")
-    util.generate_group_name.return_value = "test_group_name"
     util.generate_username.return_value = "test_username"
     util.generate_provider.return_value = "test_provider"
     util.generate_provider_unique_id.return_value = "test_provider_unique_id"

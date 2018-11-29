@@ -26,6 +26,9 @@ class LTILaunch:
     DISPLAY_NAME_MAX_LENGTH = 30
     """The maximum length of an h display name."""
 
+    GROUP_NAME_MAX_LENGTH = 25
+    """The maximum length of an h group name."""
+
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
@@ -56,6 +59,36 @@ class LTILaunch:
             )
 
         return display_name
+
+    @property
+    def h_group_name(self):
+        """
+        Return the h group name for the current request.
+
+        This will usually generate a valid Hypothesis group name from the LTI
+        params. For example if the LTI course's title is too long for a Hypothesis
+        group name it'll be truncated. But this doesn't currently handle LTI course
+        names that are *too short* to be Hypothesis group names (shorter than 3
+        chars) - in that case if you try to create a Hypothesis group using the
+        generated name you'll get back an unsuccessful response from the Hypothesis
+        API.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the group
+          name is missing
+        """
+        name = self._lti_params.get("context_title")
+
+        if not name:
+            raise HTTPBadRequest(
+                'Required parameter "context_title" missing from LTI params'
+            )
+
+        name = name.strip()
+
+        if len(name) > self.GROUP_NAME_MAX_LENGTH:
+            name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
+
+        return name
 
     @property
     def hypothesis_config(self):
