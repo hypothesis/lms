@@ -182,7 +182,9 @@ class TestCreateCourseGroup:
         create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
         hapi_svc.post.assert_called_once_with(
-            "groups", {"name": "test_group_name"}, "acct:test_username@TEST_AUTHORITY"
+            "groups",
+            {"groupid": "test_groupid", "name": "test_group_name"},
+            "acct:test_username@TEST_AUTHORITY",
         )
 
     def test_it_raises_if_post_raises(
@@ -343,6 +345,7 @@ def context():
         spec_set=True,
         instance=True,
         h_display_name="test_display_name",
+        h_groupid="test_groupid",
         h_group_name="test_group_name",
         h_username="test_username",
         h_userid="acct:test_username@TEST_AUTHORITY",

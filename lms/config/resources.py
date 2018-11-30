@@ -65,6 +65,33 @@ class LTILaunch:
         return display_name
 
     @property
+    def h_groupid(self):
+        """
+        Return a unique h groupid for the current request.
+
+        The returned ID is suitable for use with the h API's ``groupid`` parameter.
+
+        The groupid is deterministic and is unique to the LTI course. Calling this
+        function again with params representing the same LTI course will always
+        return the same groupid. Calling this function with different params will
+        always return a different groupid.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the group
+          name is missing
+        """
+        # Generate the groupid based on the LTI tool_consumer_instance_guid and
+        # context_id parameters.
+        # These are "recommended" LTI parameters (according to the spec) that in
+        # practice are provided by all of the major LMS's.
+        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        # and context_id uniquely identifies a course within an LMS. Together they
+        # globally uniquely identify a course.
+        hash_object = hashlib.sha1()
+        hash_object.update(self._get_param("tool_consumer_instance_guid").encode())
+        hash_object.update(self._get_param("context_id").encode())
+        return f"group:{hash_object.hexdigest()}@{self._authority}"
+
+    @property
     def h_group_name(self):
         """
         Return the h group name for the current request.
@@ -80,14 +107,7 @@ class LTILaunch:
         :raise HTTPBadRequest: if an LTI param needed for generating the group
           name is missing
         """
-        name = self._lti_params.get("context_title")
-
-        if not name:
-            raise HTTPBadRequest(
-                'Required parameter "context_title" missing from LTI params'
-            )
-
-        name = name.strip()
+        name = self._get_param("context_title").strip()
 
         if len(name) > self.GROUP_NAME_MAX_LENGTH:
             name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
@@ -102,16 +122,7 @@ class LTILaunch:
         :raise HTTPBadRequest: if an LTI param needed for generating the
           provider is missing
         """
-        tool_consumer_instance_guid = self._lti_params.get(
-            "tool_consumer_instance_guid"
-        )
-
-        if not tool_consumer_instance_guid:
-            raise HTTPBadRequest(
-                'Required parameter "tool_consumer_instance_guid" missing from LTI params'
-            )
-
-        return tool_consumer_instance_guid
+        return self._get_param("tool_consumer_instance_guid")
 
     @property
     def h_provider_unique_id(self):
@@ -121,12 +132,7 @@ class LTILaunch:
         :raise HTTPBadRequest: if an LTI param needed for generating the
           provider unique ID is missing
         """
-        user_id = self._lti_params.get("user_id")
-
-        if not user_id:
-            raise HTTPBadRequest('Required parameter "user_id" missing from LTI params')
-
-        return user_id
+        return self._get_param("user_id")
 
     @property
     def h_username(self):
@@ -184,12 +190,10 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        tool_consumer_instance_guid = self._lti_params.get(
-            "tool_consumer_instance_guid"
-        )
-        context_id = self._lti_params.get("context_id")
         group = models.CourseGroup.get(
-            self._request.db, tool_consumer_instance_guid, context_id
+            self._request.db,
+            self._get_param("tool_consumer_instance_guid"),
+            self._get_param("context_id"),
         )
         assert group is not None, "The group should always exist by now"
 
@@ -213,11 +217,14 @@ class LTILaunch:
 
     @property
     def _auto_provisioning_feature_enabled(self):
-        try:
-            oauth_consumer_key = self._lti_params["oauth_consumer_key"]
-        except KeyError:
-            raise HTTPBadRequest(
-                f'Required parameter "oauth_consumer_key" missing from LTI params'
-            )
         enabled_consumer_keys = self._request.registry.settings["auto_provisioning"]
-        return oauth_consumer_key in enabled_consumer_keys
+        return self._get_param("oauth_consumer_key") in enabled_consumer_keys
+
+    def _get_param(self, param_name):
+        """Return the named param from the request or raise a 400."""
+        param = self._lti_params.get(param_name)
+        if not param:
+            raise HTTPBadRequest(
+                f'Required parameter "{param_name}" missing from LTI params'
+            )
+        return param
