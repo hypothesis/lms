@@ -11,6 +11,7 @@ from requests import TooManyRedirects
 from lms.config.resources import LTILaunch
 from lms.services.hapi import HypothesisAPIService
 from lms.services import HAPIError
+from lms.services import HAPINotFoundError
 
 
 class TestAPIRequest:
@@ -80,6 +81,21 @@ class TestAPIRequest:
 
         with pytest.raises(HAPIError):
             svc.post("path")
+
+    def test_it_raises_HAPINotFoundError_if_it_receives_a_404_response(
+        self, pyramid_request, requests, svc
+    ):
+        requests.request.return_value.status_code = 404
+        requests.request.return_value.raise_for_status.side_effect = HTTPError(
+            response=requests.request.return_value
+        )
+
+        with pytest.raises(HAPINotFoundError) as exc_info:
+            svc.post("path")
+
+        assert (
+            exc_info.value.response == requests.request.return_value
+        ), "It passes the h API response to HAPIError so that it gets logged"
 
     def test_it_raises_HAPIError_if_it_receives_an_error_response(
         self, pyramid_request, requests, svc

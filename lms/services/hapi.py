@@ -5,6 +5,7 @@ import requests
 from requests import RequestException
 
 from lms.services import HAPIError
+from lms.services import HAPINotFoundError
 
 
 class HypothesisAPIService:
@@ -133,8 +134,12 @@ class HypothesisAPIService:
         except RequestException as err:
             response = getattr(err, "response", None)
             status_code = getattr(response, "status_code", None)
+            if status_code == 404:
+                exception_class = HAPINotFoundError
+            else:
+                exception_class = HAPIError
             if status_code is None or status_code not in statuses:
-                raise HAPIError(
+                raise exception_class(
                     explanation="Connecting to Hypothesis failed", response=response
                 )
 

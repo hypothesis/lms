@@ -1,6 +1,7 @@
 from lms.services.exceptions import HAPIError
+from lms.services.exceptions import HAPINotFoundError
 
-__all__ = ("HAPIError",)
+__all__ = ("HAPIError", "HAPINotFoundError")
 
 
 def includeme(config):
