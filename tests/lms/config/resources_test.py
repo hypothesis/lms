@@ -6,7 +6,6 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.config import resources
-from lms.models import CourseGroup
 
 
 class TestLTILaunch:
@@ -327,20 +326,6 @@ class TestLTILaunch:
         ):
             resources.LTILaunch(pyramid_request).hypothesis_config
 
-    def test_hypothesis_config_raises_if_theres_no_context_id(
-        self, lti_params_for, pyramid_request
-    ):
-        lti_params_for.return_value = {
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-            "tool_consumer_instance_guid": "test_guid",
-        }
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "context_id" missing from LTI params',
-        ):
-            resources.LTILaunch(pyramid_request).hypothesis_config
-
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
 
@@ -375,23 +360,12 @@ class TestLTILaunch:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
-    def test_hypothesis_config_includes_the_group(
-        self, lti_launch, models, pyramid_request
-    ):
-        group = models.CourseGroup.get.return_value
-
+    def test_hypothesis_config_includes_the_group(self, lti_launch, pyramid_request):
         groups = lti_launch.hypothesis_config["services"][0]["groups"]
 
-        models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db, "test_tool_consumer_instance_guid", "test_context_id"
-        )
-        assert groups == [group.pubid]
-
-    def test_it_raises_AssertionError_if_theres_no_group(self, lti_launch, models):
-        models.CourseGroup.get.return_value = None
-
-        with pytest.raises(AssertionError, match="group should always exist by now"):
-            lti_launch.hypothesis_config
+        assert groups == [
+            "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
+        ]
 
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
         self, pyramid_request, lti_launch, lti_params_for
@@ -420,11 +394,3 @@ class TestLTILaunch:
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return lti_params_for
-
-    @pytest.fixture(autouse=True)
-    def models(self, patch):
-        models = patch("lms.config.resources.models")
-        models.CourseGroup.get.return_value = mock.create_autospec(
-            CourseGroup, instance=True, spec_set=True
-        )
-        return models

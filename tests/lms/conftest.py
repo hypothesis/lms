@@ -224,7 +224,11 @@ def lti_launch_request(monkeypatch, pyramid_request):
         "pylti.common.verify_request_common", lambda a, b, c, d, e: True
     )
 
-    pyramid_request.context = {"rpc_server_config": {}, "hypothesis_config": {}}
+    pyramid_request.context = mock.MagicMock(
+        spec_set=["rpc_server_config", "hypothesis_config"],
+        rpc_server_config={},
+        hypothesis_config={},
+    )
 
     yield pyramid_request
 

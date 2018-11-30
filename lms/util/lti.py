@@ -24,6 +24,7 @@ def lti_params_for(request):
         lti_params = models.find_lti_params(request.db, request.params["state"])
         if lti_params is None:
             raise HTTPBadRequest("OAuth state was not found")
+
         return lti_params
 
     # This is an LTI launch request.

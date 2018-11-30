@@ -6,7 +6,7 @@ import functools
 
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms import models
+from lms.services import HAPINotFoundError
 
 
 def create_h_user(wrapped):  # noqa: MC0001
@@ -109,7 +109,7 @@ def create_course_group(wrapped):
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
     def wrapper(request, jwt, context=None):
-        _maybe_create_group(context or request.context, request)
+        _upsert_group(context or request.context, request)
         return wrapped(request, jwt)
 
     return wrapper
@@ -121,24 +121,9 @@ def add_user_to_group(wrapped):
             return wrapped(request, jwt)
 
         context = context or request.context
-        get_param = functools.partial(_get_param, request)
-
-        tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
-        context_id = get_param("context_id")
-
-        group = models.CourseGroup.get(
-            request.db, tool_consumer_instance_guid, context_id
-        )
-
-        assert group is not None, (
-            "create_course_group() should always have "
-            "been run successfully before this "
-            "function gets called, so group should "
-            "never be None."
-        )
 
         request.find_service(name="hapi").post(
-            f"groups/{group.pubid}/members/{context.h_userid}"
+            f"groups/{context.h_groupid}/members/{context.h_userid}"
         )
 
         return wrapped(request, jwt)
@@ -146,8 +131,8 @@ def add_user_to_group(wrapped):
     return wrapper
 
 
-def _maybe_create_group(context, request):
-    """Create a Hypothesis group for the LTI course, if one doesn't exist."""
+def _upsert_group(context, request):
+    """Create or update the course group in h."""
     # Only create groups for application instances that we've enabled the
     # auto provisioning features for.
     if not _auto_provisioning_feature_enabled(request):
@@ -155,39 +140,26 @@ def _maybe_create_group(context, request):
 
     get_param = functools.partial(_get_param, request)
 
-    tool_consumer_instance_guid = get_param("tool_consumer_instance_guid")
-    context_id = get_param("context_id")
+    hapi_svc = request.find_service(name="hapi")
 
-    group = models.CourseGroup.get(request.db, tool_consumer_instance_guid, context_id)
-
-    if group:
-        # The group has already been created in h, nothing more to do here.
-        return
-
-    # Show the user an error page if the group hasn't been created yet and
-    # the user isn't allowed to create groups.
-    if not any(
+    is_instructor = any(
         role in get_param("roles").lower()
         for role in ("administrator", "instructor", "teachingassisstant")
-    ):
-        raise HTTPBadRequest("Instructor must launch assignment first.")
-
-    # Create the group in h.
-    response = request.find_service(name="hapi").post(
-        "groups",
-        {"groupid": context.h_groupid, "name": context.h_group_name},
-        context.h_userid,
     )
 
-    # Save a record of the group's pubid in the DB so that we can find it
-    # again later.
-    request.db.add(
-        models.CourseGroup(
-            tool_consumer_instance_guid=tool_consumer_instance_guid,
-            context_id=context_id,
-            pubid=response.json()["id"],
-        )
-    )
+    try:
+        hapi_svc.patch(f"groups/{context.h_groupid}", {"name": context.h_group_name})
+    except HAPINotFoundError:
+        # The group hasn't been created in h yet.
+        if is_instructor:
+            # Try to create the group with the current instructor as its creator.
+            hapi_svc.put(
+                f"groups/{context.h_groupid}",
+                {"groupid": context.h_groupid, "name": context.h_group_name},
+                context.h_userid,
+            )
+        else:
+            raise HTTPBadRequest("Instructor must launch assignment first.")
 
 
 def _get_param(request, param_name):
