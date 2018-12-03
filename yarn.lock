@@ -4004,9 +4004,10 @@ progress@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
 
-proxyquire-universal@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/proxyquire-universal/-/proxyquire-universal-2.0.0.tgz#9f64ab28620029a6485055ab2c96850c1e0a2f8b"
+proxyquire-universal@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/proxyquire-universal/-/proxyquire-universal-2.1.0.tgz#61c3708e6a58837c516a0be3768109f72bf97f89"
+  integrity sha512-4TwHEb6vey+7fe9rwwF2GST19+OLndfrImu1qwtPwK9ZhUmSvu9njAtcoZXMUMy+/DmmTij/6UWUx4QhdO3lRg==
   dependencies:
     replace-requires "~1.1.0"
     through2 "~3.0.0"
