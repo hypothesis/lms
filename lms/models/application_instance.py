@@ -56,8 +56,8 @@ def find_by_oauth_consumer_key(session, key):
 
 
 def build_shared_secret():
-    """Generate a shared secrect."""
-    return secrets.token_hex(64)
+    """Generate a shared secret."""
+    return secrets.token_hex(32)
 
 
 def build_unique_key():
