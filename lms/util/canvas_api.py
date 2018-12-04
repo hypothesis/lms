@@ -1,3 +1,5 @@
+import functools
+
 import requests
 import pyramid.httpexceptions as exc
 from lms.models.application_instance import find_by_oauth_consumer_key
@@ -70,6 +72,7 @@ def canvas_api(view_function):
     }
     """
 
+    @functools.wraps(view_function)
     def wrapper(request, decoded_jwt, user):
         """Wrap view function."""
         if user is None:

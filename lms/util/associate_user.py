@@ -1,4 +1,6 @@
 """Decorator to find a user from the lms user_id guid."""
+import functools
+
 from lms.models.users import find_by_lms_guid, build_from_lti_params
 
 
@@ -10,6 +12,7 @@ def associate_user(view_function):
     associated with the user_id then a new user will be created.
     """
 
+    @functools.wraps(view_function)
     def wrapper(request, *args, **kwargs):
         """Look for a user with a matching lms_guid."""
         lms_guid = request.params["user_id"]

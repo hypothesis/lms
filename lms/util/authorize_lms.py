@@ -1,4 +1,6 @@
+import functools
 import urllib
+
 import requests_oauthlib
 import pyramid.httpexceptions as exc
 from lms.models import find_or_create_from_user, find_user_from_state
@@ -59,6 +61,7 @@ def authorize_lms(
     def decorator(view_function):
         """Decorate view function."""
 
+        @functools.wraps(view_function)
         def wrapper(request, *args, user=None, **kwargs):
             """Redirect user."""
             if oauth_condition(request) is False:
@@ -101,6 +104,7 @@ def authorize_lms(
 def save_token(view_function):
     """Decorate an oauth callback route to save access token."""
     # pylint: disable=too-many-locals
+    @functools.wraps(view_function)
     def wrapper(request, *args, **kwargs):
         """Route to handle content item selection oauth response."""
         if "state" not in request.params or "code" not in request.params:

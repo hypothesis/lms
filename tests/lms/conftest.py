@@ -81,6 +81,19 @@ def autopatcher(request, target, **kwargs):
     return obj
 
 
+def unwrap(decorated_function):
+    """
+    Return the function wrapped by a decorated function.
+
+    Given a function which has been decorated by one or more `functools.wraps`
+    decorators, return the wrapped function.
+    """
+    unwrapped = decorated_function
+    while hasattr(unwrapped, "__wrapped__"):
+        unwrapped = unwrapped.__wrapped__
+    return unwrapped
+
+
 @pytest.fixture
 def patch(request):
     return functools.partial(autopatcher, request)
