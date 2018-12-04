@@ -370,7 +370,9 @@ class TestLTILaunch:
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
         self, pyramid_request, lti_launch, lti_params_for
     ):
-        lti_params_for.return_value.update({"oauth_consumer_key": "some_other_key"})
+        lti_params_for.return_value.update(
+            {"oauth_consumer_key": "no_provisioning_key"}
+        )
         assert lti_launch.hypothesis_config == {}
 
     def test_rpc_server_config(self, lti_launch):

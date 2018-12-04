@@ -189,13 +189,13 @@ class TestConfigure:
             ("  ", []),
         ],
     )
-    def test_auto_provisioning_setting(
+    def test_no_auto_provisioning_setting(
         self, env_setting, envvar_value, expected_setting
     ):
         def side_effect(
             envvar_name, *args, **kwargs
         ):  # pylint: disable=unused-argument
-            if envvar_name == "AUTO_PROVISIONING":
+            if envvar_name == "NO_AUTO_PROVISIONING":
                 return envvar_value
             return mock.DEFAULT
 
@@ -203,7 +203,9 @@ class TestConfigure:
 
         configurator = configure({})
 
-        assert configurator.registry.settings["auto_provisioning"] == expected_setting
+        assert (
+            configurator.registry.settings["no_auto_provisioning"] == expected_setting
+        )
 
     @pytest.mark.parametrize(
         "envvar_value,expected_setting",

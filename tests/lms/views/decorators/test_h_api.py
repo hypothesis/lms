@@ -32,7 +32,7 @@ class TestCreateHUser:
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, create_h_user, context, pyramid_request, wrapped
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        pyramid_request.params["oauth_consumer_key"] = "no_provisioning_key"
 
         returned = create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
@@ -42,7 +42,7 @@ class TestCreateHUser:
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
         self, create_h_user, context, hapi_svc, pyramid_request
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        pyramid_request.params["oauth_consumer_key"] = "no_provisioning_key"
 
         create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
@@ -117,7 +117,7 @@ class TestCreateCourseGroup:
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
         # wrapped view.
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        pyramid_request.params["oauth_consumer_key"] = "no_provisioning_key"
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
@@ -198,7 +198,7 @@ class TestAddUserToGroup:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
         self, add_user_to_group, context, pyramid_request, hapi_svc
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        pyramid_request.params["oauth_consumer_key"] = "no_provisioning_key"
 
         add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
 
@@ -207,7 +207,7 @@ class TestAddUserToGroup:
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, add_user_to_group, context, pyramid_request, wrapped
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        pyramid_request.params["oauth_consumer_key"] = "no_provisioning_key"
 
         returned = add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
 

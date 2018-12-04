@@ -210,8 +210,8 @@ class LTILaunch:
 
     @property
     def _auto_provisioning_feature_enabled(self):
-        enabled_consumer_keys = self._request.registry.settings["auto_provisioning"]
-        return self._get_param("oauth_consumer_key") in enabled_consumer_keys
+        disabled_consumer_keys = self._request.registry.settings["no_auto_provisioning"]
+        return self._get_param("oauth_consumer_key") not in disabled_consumer_keys
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""

@@ -179,5 +179,5 @@ def _auto_provisioning_feature_enabled(request):
     oauth_consumer_key = _get_param(  # pylint: disable=too-many-function-args
         request, "oauth_consumer_key"
     )
-    enabled_consumer_keys = request.registry.settings["auto_provisioning"]
-    return oauth_consumer_key in enabled_consumer_keys
+    disabled_consumer_keys = request.registry.settings["no_auto_provisioning"]
+    return oauth_consumer_key not in disabled_consumer_keys
