@@ -5,6 +5,7 @@ import requests
 from requests import RequestException
 
 from lms.services import HAPIError
+from lms.services import HAPINotFoundError
 
 
 class HypothesisAPIService:
@@ -91,7 +92,7 @@ class HypothesisAPIService:
         :type method: str
         :arg path: the h API path to post to, relative to
           ``settings["h_api_url"]``, for example: ``"users"`` or
-          ``"groups/<PUBID>/members/<USERID>"``
+          ``"groups/<GROUPID>/members/<USERID>"``
         :type path: str
         :arg data: the data to post as JSON in the request body
         :type data: dict
@@ -133,8 +134,12 @@ class HypothesisAPIService:
         except RequestException as err:
             response = getattr(err, "response", None)
             status_code = getattr(response, "status_code", None)
+            if status_code == 404:
+                exception_class = HAPINotFoundError
+            else:
+                exception_class = HAPIError
             if status_code is None or status_code not in statuses:
-                raise HAPIError(
+                raise exception_class(
                     explanation="Connecting to Hypothesis failed", response=response
                 )
 

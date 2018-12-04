@@ -13,8 +13,8 @@ from requests import Response
 from requests import TooManyRedirects
 
 from lms.services import HAPIError
+from lms.services import HAPINotFoundError
 from lms.views.decorators import h_api
-from lms.models import CourseGroup
 from lms.services.hapi import HypothesisAPIService
 from lms.config.resources import LTILaunch
 
@@ -111,42 +111,6 @@ class TestCreateHUser:
 
 @pytest.mark.usefixtures("hapi_svc")
 class TestCreateCourseGroup:
-    @pytest.mark.parametrize(
-        "required_param_name", ("tool_consumer_instance_guid", "context_id", "roles")
-    )
-    def test_it_400s_if_theres_a_required_param_missing(
-        self, create_course_group, context, pyramid_request, required_param_name
-    ):
-        del pyramid_request.params[required_param_name]
-
-        with pytest.raises(HTTPBadRequest, match=required_param_name):
-            create_course_group(pyramid_request, mock.sentinel.jwt, context)
-
-    def test_it_400s_if_the_user_isnt_allowed_to_create_groups(
-        self, create_course_group, context, pyramid_request
-    ):
-        pyramid_request.params["roles"] = "Learner"
-
-        with pytest.raises(
-            HTTPBadRequest, match="Instructor must launch assignment first"
-        ):
-            create_course_group(pyramid_request, mock.sentinel.jwt, context)
-
-    def test_it_does_nothing_if_the_user_isnt_allowed_to_create_groups_but_the_group_already_exists(
-        self, create_course_group, context, pyramid_request, models, hapi_svc, wrapped
-    ):
-        models.CourseGroup.get.return_value = mock.create_autospec(
-            CourseGroup, instance=True
-        )
-        pyramid_request.params["roles"] = "Learner"
-
-        returned = create_course_group(pyramid_request, mock.sentinel.jwt, context)
-
-        hapi_svc.post.assert_not_called()
-        assert not pyramid_request.db.add.called
-        wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
-        assert returned == wrapped.return_value
-
     def test_it_does_nothing_if_the_feature_isnt_enabled(
         self, create_course_group, context, pyramid_request, wrapped, hapi_svc
     ):
@@ -157,77 +121,63 @@ class TestCreateCourseGroup:
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
-        hapi_svc.post.assert_not_called()
-        assert not pyramid_request.db.add.called
+        hapi_svc.patch.assert_not_called()
+        hapi_svc.put.assert_not_called()
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    def test_it_does_nothing_if_the_course_group_already_exists(
-        self, create_course_group, context, models, pyramid_request, wrapped, hapi_svc
+    def test_it_400s_if_roles_param_missing(
+        self, create_course_group, context, pyramid_request
     ):
-        models.CourseGroup.get.return_value = mock.create_autospec(
-            CourseGroup, instance=True
-        )
+        del pyramid_request.params["roles"]
 
-        returned = create_course_group(pyramid_request, mock.sentinel.jwt, context)
+        with pytest.raises(HTTPBadRequest, match="roles"):
+            create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
-        hapi_svc.post.assert_not_called()
-        assert not pyramid_request.db.add.called
-        wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
-        assert returned == wrapped.return_value
-
-    def test_it_posts_to_the_group_create_api(
+    def test_it_calls_the_group_update_api(
         self, create_course_group, context, pyramid_request, hapi_svc
     ):
         create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
-        hapi_svc.post.assert_called_once_with(
-            "groups",
-            {"groupid": "test_groupid", "name": "test_group_name"},
-            "acct:test_username@TEST_AUTHORITY",
+        hapi_svc.patch.assert_called_once_with(
+            "groups/test_groupid", {"name": "test_group_name"}
         )
 
-    def test_it_raises_if_post_raises(
+    def test_it_raises_if_updating_the_group_fails(
         self, create_course_group, context, pyramid_request, hapi_svc
     ):
-        hapi_svc.post.side_effect = HAPIError("Oops")
+        # If the group update API call fails for any non-404 reason then the
+        # view raises an exception and an error page is shown.
+        hapi_svc.patch.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
             create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
-    def test_it_saves_the_group_to_the_db(
-        self, create_course_group, context, pyramid_request, models
+    def test_if_the_group_doesnt_exist_it_creates_it(
+        self, create_course_group, context, pyramid_request, hapi_svc
     ):
-        # It saves a record of the created group to the DB so that next time
-        # this course is used it'll retrieve it from the DB and know not to
-        # create another group for the same course.
+        hapi_svc.patch.side_effect = HAPINotFoundError()
+
         create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
-        class CourseGroupMatcher:
-            """An object equal to any other object with matching CourseGroup properties."""
-
-            def __init__(self, pubid, tool_consumer_instance_guid, context_id):
-                self.pubid = pubid
-                self.tool_consumer_instance_guid = tool_consumer_instance_guid
-                self.context_id = context_id
-
-            def __eq__(self, other):
-                return all(
-                    (
-                        other.pubid == self.pubid,
-                        other.tool_consumer_instance_guid
-                        == self.tool_consumer_instance_guid,
-                        other.context_id == self.context_id,
-                    )
-                )
-
-        pyramid_request.db.add.assert_called_once_with(
-            CourseGroupMatcher(
-                pubid="TEST_PUBID",
-                tool_consumer_instance_guid="TEST_GUID",
-                context_id="TEST_CONTEXT",
-            )
+        hapi_svc.put.assert_called_once_with(
+            "groups/test_groupid",
+            {"groupid": "test_groupid", "name": "test_group_name"},
+            "acct:test_username@TEST_AUTHORITY",
         )
+
+    def test_if_the_group_doesnt_exist_and_the_user_isnt_allowed_to_create_groups_it_400s(
+        self, create_course_group, context, pyramid_request, hapi_svc
+    ):
+        hapi_svc.patch.side_effect = HAPINotFoundError()
+        pyramid_request.params["roles"] = "Learner"
+
+        with pytest.raises(
+            HTTPBadRequest, match="Instructor must launch assignment first"
+        ):
+            create_course_group(pyramid_request, mock.sentinel.jwt, context)
+
+        hapi_svc.put.assert_not_called()
 
     def test_it_calls_and_returns_the_wrapped_view(
         self, create_course_group, context, pyramid_request, wrapped
@@ -264,41 +214,13 @@ class TestAddUserToGroup:
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
-    @pytest.mark.parametrize(
-        "required_param_name", ("tool_consumer_instance_guid", "context_id")
-    )
-    def test_it_400s_if_theres_a_required_param_missing(
-        self, add_user_to_group, context, pyramid_request, required_param_name
-    ):
-        del pyramid_request.params[required_param_name]
-
-        with pytest.raises(HTTPBadRequest, match=required_param_name):
-            add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
-
-    def test_it_raises_if_the_group_doesnt_exist(
-        self, add_user_to_group, context, pyramid_request, models
-    ):
-        models.CourseGroup.get.return_value = None
-
-        with pytest.raises(AssertionError, match="group should never be None"):
-            add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
-
-    def test_it_gets_the_group_from_the_db(
-        self, add_user_to_group, context, models, pyramid_request
-    ):
-        add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
-
-        models.CourseGroup.get.assert_called_once_with(
-            pyramid_request.db, "test_tool_consumer_instance_guid", "test_context_id"
-        )
-
     def test_it_adds_the_user_to_the_group(
         self, add_user_to_group, context, pyramid_request, hapi_svc
     ):
         add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
 
         hapi_svc.post.assert_called_once_with(
-            "groups/test_pubid/members/acct:test_username@TEST_AUTHORITY"
+            "groups/test_groupid/members/acct:test_username@TEST_AUTHORITY"
         )
 
     def test_it_raises_if_post_raises(
@@ -330,13 +252,6 @@ class TestAddUserToGroup:
         pyramid_request.params["context_id"] = "test_context_id"
         return pyramid_request
 
-    @pytest.fixture
-    def models(self, models):
-        models.CourseGroup.get.return_value = mock.create_autospec(
-            CourseGroup, instance=True, pubid="test_pubid"
-        )
-        return models
-
 
 @pytest.fixture
 def context():
@@ -353,20 +268,6 @@ def context():
         h_provider_unique_id="test_provider_unique_id",
     )
     return context
-
-
-@pytest.fixture(autouse=True)
-def models(patch):
-    models = patch("lms.views.decorators.h_api.models")
-
-    def side_effect(**kwargs):
-        return mock.create_autospec(CourseGroup, instance=True, **kwargs)
-
-    models.CourseGroup.side_effect = side_effect
-
-    models.CourseGroup.get.return_value = None
-
-    return models
 
 
 @pytest.fixture

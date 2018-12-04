@@ -6,7 +6,6 @@ import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
-from lms import models
 from lms.util import lti_params_for
 
 
@@ -35,11 +34,12 @@ class LTILaunch:
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
+        self._authority = self._request.registry.settings["h_authority"]
+
         # This will raise HTTPBadRequest if the request looks like an OAuth
         # redirect request but no DB-stashed LTI params can be found for the
         # request.
         self._lti_params = lti_params_for(request)
-        self._authority = self._request.registry.settings["h_authority"]
 
     @property
     def h_display_name(self):
@@ -190,13 +190,6 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        group = models.CourseGroup.get(
-            self._request.db,
-            self._get_param("tool_consumer_instance_guid"),
-            self._get_param("context_id"),
-        )
-        assert group is not None, "The group should always exist by now"
-
         return {
             "services": [
                 {
@@ -204,7 +197,7 @@ class LTILaunch:
                     "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": grant_token().decode("utf-8"),
-                    "groups": [group.pubid],
+                    "groups": [self.h_groupid],
                 }
             ]
         }

@@ -37,3 +37,7 @@ class HAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
             self.response.text,
         ]
         return " ".join([part for part in parts if part])
+
+
+class HAPINotFoundError(HAPIError):  # pylint: disable=too-many-ancestors
+    """A 404 error from an API request."""
