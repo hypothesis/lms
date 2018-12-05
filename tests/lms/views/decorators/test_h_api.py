@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import json
 from unittest import mock
 import pytest
 
 from pyramid.httpexceptions import HTTPBadRequest
 
-from requests import ConnectionError
-from requests import HTTPError
-from requests import ReadTimeout
 from requests import Response
-from requests import TooManyRedirects
 
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
@@ -21,9 +16,29 @@ from lms.config.resources import LTILaunch
 
 @pytest.mark.usefixtures("hapi_svc")
 class TestCreateHUser:
+    def test_it_invokes_patch_for_user_update(
+        self, create_h_user, context, pyramid_request, hapi_svc
+    ):
+
+        create_h_user(pyramid_request, mock.sentinel.jwt, context)
+
+        hapi_svc.patch.assert_called_once_with(
+            "users/test_username", {"display_name": "test_display_name"}
+        )
+
+    def test_it_raises_if_patch_raises_unexpected_error(
+        self, create_h_user, context, pyramid_request, hapi_svc
+    ):
+        hapi_svc.patch.side_effect = HAPIError("whatever")
+
+        with pytest.raises(HAPIError, match="whatever"):
+            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+
     def test_it_raises_if_post_raises(
         self, create_h_user, context, pyramid_request, hapi_svc
     ):
+        # It will only invoke POST if PATCH raises HAPINotFoundError
+        hapi_svc.patch.side_effect = HAPINotFoundError("whatever")
         hapi_svc.post.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
@@ -74,9 +89,11 @@ class TestCreateHUser:
         with pytest.raises(HTTPBadRequest, match="Oops"):
             create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
-    def test_it_creates_the_user_in_h(
+    def test_it_creates_the_user_in_h_if_it_does_not_exist(
         self, create_h_user, context, hapi_svc, pyramid_request
     ):
+        hapi_svc.patch.side_effect = HAPINotFoundError("whatever")
+
         create_h_user(pyramid_request, mock.sentinel.jwt, context)
 
         hapi_svc.post.assert_called_once_with(
@@ -92,7 +109,6 @@ class TestCreateHUser:
                     }
                 ],
             },
-            statuses=[409],
         )
 
     def test_it_continues_to_the_wrapped_function(
@@ -295,6 +311,9 @@ def wrapped():
 @pytest.fixture
 def hapi_svc(patch, pyramid_config):
     hapi_svc = mock.create_autospec(HypothesisAPIService, spec_set=True, instance=True)
+    hapi_svc.patch.return_value = mock.create_autospec(
+        Response, instance=True, status_code=200, reason="OK", text=""
+    )
     hapi_svc.post.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )

@@ -11,10 +11,10 @@ from lms.services import HAPINotFoundError
 
 def create_h_user(wrapped):  # noqa: MC0001
     """
-    Create a user in h if one doesn't exist already.
+    Update or create a Hypothesis LTI user.
 
-    Call the h API to create a user for the authorized LTI user, if one doesn't
-    exist already.
+    Update the h user's information from LTI data. If the user doesn't exist
+    yet, call the h API to create one.
 
     Use this function as a decorator rather than calling it directly.
     The wrapped view must take ``request`` and ``jwt`` arguments::
@@ -48,7 +48,9 @@ def create_h_user(wrapped):  # noqa: MC0001
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
 
-        # The user data that we will post to h.
+        hapi_svc = request.find_service(name="hapi")
+
+        # User data that is relevant to h
         user_data = {
             "username": context.h_username,
             "display_name": context.h_display_name,
@@ -61,8 +63,16 @@ def create_h_user(wrapped):  # noqa: MC0001
             ],
         }
 
-        # Call the h API to create the user in h if it doesn't exist already.
-        request.find_service(name="hapi").post("users", user_data, statuses=[409])
+        # Send a PATCH user request to update user data to keep it in sync
+        # with the data sent over LTI. This will succeed if the user already
+        # exists.
+        try:
+            hapi_svc.patch(
+                f"users/{context.h_username}", {"display_name": context.h_display_name}
+            )
+        except HAPINotFoundError:
+            # Call the h API to create the user in h if it doesn't exist already.
+            hapi_svc.post("users", user_data)
 
         return wrapped(request, jwt)
 
