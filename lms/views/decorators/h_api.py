@@ -9,7 +9,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from lms.services import HAPINotFoundError
 
 
-def create_h_user(wrapped):  # noqa: MC0001
+def upsert_h_user(wrapped):  # noqa: MC0001
     """
     Update or create a Hypothesis LTI user.
 
@@ -20,7 +20,7 @@ def create_h_user(wrapped):  # noqa: MC0001
     The wrapped view must take ``request`` and ``jwt`` arguments::
 
       @view_config(...)
-      @create_h_user
+      @upsert_h_user
       def my_view(request, jwt):
           ...
 
