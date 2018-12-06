@@ -1,4 +1,6 @@
 """Decorate routes with the ability to authenticate requests."""
+import functools
+
 import jwt
 from pyramid.response import Response
 from lms.models.users import find_by_lms_guid
@@ -7,6 +9,7 @@ from lms.models.users import find_by_lms_guid
 def authenticate(view_function):
     """Wrap a view function with with JWT authentication."""
 
+    @functools.wraps(view_function)
     def wrapper(request, *args, **kwargs):
         """Validate the JWT signature."""
         try:

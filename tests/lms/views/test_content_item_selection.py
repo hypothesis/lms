@@ -1,18 +1,24 @@
+from unittest.mock import Mock
+
 import pytest
 
 from urllib.parse import urlparse
 from lms.exceptions import MissingLTILaunchParamError, MissingLTIContentItemParamError
 from lms.views.content_item_selection import content_item_selection, content_item_form
+from tests.lms.conftest import unwrap
+
+# The `content_item_selection` view function is wrapped in a series of
+# decorators which handle authorization and creating the user/group for the
+# current course.
+#
+# In these tests we only want to test the view function itself, so extract that
+# from the decorated function.
+content_item_selection = unwrap(content_item_selection)
 
 
 class TestContentItemSelection:
-    def test_it_redirects_to_oauth_provider(self, lti_launch_request):
-        response = content_item_selection(lti_launch_request)
-
-        location = urlparse(response.location)
-
-        assert response.code == 302
-        assert location.netloc == "hypothesis.instructure.com"
+    # TODO - Tests for `content_item_selection` view
+    pass
 
 
 class TestContentItemForm:

@@ -1,4 +1,6 @@
 """Decorator that add lti validation capabilities to a pyramid view."""
+from functools import wraps
+
 import pylti.common
 
 from lms.models import application_instance as ai
@@ -39,6 +41,7 @@ def lti_launch(view_function):
     ...
     """
 
+    @wraps(view_function)
     def wrapper(request):
         """Handle the lms validation."""
         lti_params = get_lti_launch_params(request)

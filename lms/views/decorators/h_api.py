@@ -42,6 +42,7 @@ def create_h_user(wrapped):  # noqa: MC0001
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
+    @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
         context = context or request.context
 
@@ -108,6 +109,7 @@ def create_course_group(wrapped):
     # This should all be refactored so that views and view decorators aren't
     # tightly coupled and arguments don't need to be passed through multiple
     # decorators to the view.
+    @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
         _upsert_group(context or request.context, request)
         return wrapped(request, jwt)
@@ -116,6 +118,7 @@ def create_course_group(wrapped):
 
 
 def add_user_to_group(wrapped):
+    @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
         if not _auto_provisioning_feature_enabled(request):
             return wrapped(request, jwt)
