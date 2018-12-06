@@ -13,9 +13,6 @@ from tests.lms.conftest import unwrap
 #
 # In these tests we only want to test the view function itself, so extract that
 # from the decorated function.
-#
-# nb. This stack of decorators makes it hard to test. It would be much better to
-# use service method calls to handle the work done by decorators.
 content_item_selection = unwrap(content_item_selection)
 
 
