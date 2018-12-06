@@ -298,6 +298,5 @@ def hapi_svc(patch, pyramid_config):
     hapi_svc.post.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )
-    hapi_svc.post.return_value.json.return_value = {"id": "TEST_PUBID"}
     pyramid_config.register_service(hapi_svc, name="hapi")
     return hapi_svc
