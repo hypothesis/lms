@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import json
 from unittest import mock
 import pytest
 
 from pyramid.httpexceptions import HTTPBadRequest
 
-from requests import ConnectionError
-from requests import HTTPError
-from requests import ReadTimeout
 from requests import Response
-from requests import TooManyRedirects
 
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
@@ -20,64 +15,86 @@ from lms.config.resources import LTILaunch
 
 
 @pytest.mark.usefixtures("hapi_svc")
-class TestCreateHUser:
-    def test_it_raises_if_post_raises(
-        self, create_h_user, context, pyramid_request, hapi_svc
+class TestUpsertHUser:
+    def test_it_invokes_patch_for_user_update(
+        self, upsert_h_user, context, pyramid_request, hapi_svc
     ):
+
+        upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
+
+        hapi_svc.patch.assert_called_once_with(
+            "users/test_username", {"display_name": "test_display_name"}
+        )
+
+    def test_it_raises_if_patch_raises_unexpected_error(
+        self, upsert_h_user, context, pyramid_request, hapi_svc
+    ):
+        hapi_svc.patch.side_effect = HAPIError("whatever")
+
+        with pytest.raises(HAPIError, match="whatever"):
+            upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
+
+    def test_it_raises_if_post_raises(
+        self, upsert_h_user, context, pyramid_request, hapi_svc
+    ):
+        # It will only invoke POST if PATCH raises HAPINotFoundError
+        hapi_svc.patch.side_effect = HAPINotFoundError("whatever")
         hapi_svc.post.side_effect = HAPIError("Oops")
 
         with pytest.raises(HAPIError, match="Oops"):
-            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+            upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
-        self, create_h_user, context, pyramid_request, wrapped
+        self, upsert_h_user, context, pyramid_request, wrapped
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
-        returned = create_h_user(pyramid_request, mock.sentinel.jwt, context)
+        returned = upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, create_h_user, context, hapi_svc, pyramid_request
+        self, upsert_h_user, context, hapi_svc, pyramid_request
     ):
         pyramid_request.params["oauth_consumer_key"] = "foo"
 
-        create_h_user(pyramid_request, mock.sentinel.jwt, context)
+        upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
         hapi_svc.post.assert_not_called()
 
     def test_it_raises_if_h_username_raises(
-        self, create_h_user, context, pyramid_request
+        self, upsert_h_user, context, pyramid_request
     ):
         type(context).h_username = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
-            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+            upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
     def test_it_raises_if_h_provider_raises(
-        self, create_h_user, context, pyramid_request
+        self, upsert_h_user, context, pyramid_request
     ):
         type(context).h_provider = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
-            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+            upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
     def test_it_raises_if_provider_unique_id_raises(
-        self, create_h_user, context, pyramid_request
+        self, upsert_h_user, context, pyramid_request
     ):
         type(context).h_provider_unique_id = mock.PropertyMock(
             side_effect=HTTPBadRequest("Oops")
         )
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
-            create_h_user(pyramid_request, mock.sentinel.jwt, context)
+            upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
-    def test_it_creates_the_user_in_h(
-        self, create_h_user, context, hapi_svc, pyramid_request
+    def test_it_creates_the_user_in_h_if_it_does_not_exist(
+        self, upsert_h_user, context, hapi_svc, pyramid_request
     ):
-        create_h_user(pyramid_request, mock.sentinel.jwt, context)
+        hapi_svc.patch.side_effect = HAPINotFoundError("whatever")
+
+        upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
         hapi_svc.post.assert_called_once_with(
             "users",
@@ -92,21 +109,20 @@ class TestCreateHUser:
                     }
                 ],
             },
-            statuses=[409],
         )
 
     def test_it_continues_to_the_wrapped_function(
-        self, create_h_user, context, pyramid_request, wrapped
+        self, upsert_h_user, context, pyramid_request, wrapped
     ):
-        returned = create_h_user(pyramid_request, mock.sentinel.jwt, context)
+        returned = upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
         wrapped.assert_called_once_with(pyramid_request, mock.sentinel.jwt)
         assert returned == wrapped.return_value
 
     @pytest.fixture
-    def create_h_user(self, wrapped):
+    def upsert_h_user(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return h_api.create_h_user(wrapped)
+        return h_api.upsert_h_user(wrapped)
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -295,6 +311,9 @@ def wrapped():
 @pytest.fixture
 def hapi_svc(patch, pyramid_config):
     hapi_svc = mock.create_autospec(HypothesisAPIService, spec_set=True, instance=True)
+    hapi_svc.patch.return_value = mock.create_autospec(
+        Response, instance=True, status_code=200, reason="OK", text=""
+    )
     hapi_svc.post.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )
