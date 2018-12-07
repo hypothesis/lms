@@ -378,6 +378,33 @@ class TestLTILaunch:
             "allowedOrigins": ["http://localhost:5000"]
         }
 
+    def test_provisioning_enabled_returns_True_if_oauth_consumer_key_in_auto_provisioning(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value.update(
+            {"oauth_consumer_key": "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"}
+        )
+        lti_launch = resources.LTILaunch(pyramid_request)
+
+        assert lti_launch.provisioning_enabled is True
+
+    def test_provisioning_enabled_returns_False_if_oauth_consumer_key_not_in_auto_provisioning(
+        self, lti_params_for, pyramid_request
+    ):
+        lti_params_for.return_value.update({"oauth_consumer_key": "Hypothesisabc123"})
+        lti_launch = resources.LTILaunch(pyramid_request)
+
+        assert lti_launch.provisioning_enabled is False
+
+    def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
+        self, lti_params_for, pyramid_request
+    ):
+        del lti_params_for.return_value["oauth_consumer_key"]
+        lti_launch = resources.LTILaunch(pyramid_request)
+
+        with pytest.raises(HTTPBadRequest):
+            lti_launch.provisioning_enabled
+
     @pytest.fixture
     def lti_launch(self, pyramid_request):
         return resources.LTILaunch(pyramid_request)

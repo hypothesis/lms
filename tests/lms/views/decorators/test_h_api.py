@@ -47,7 +47,7 @@ class TestUpsertHUser:
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, upsert_h_user, context, pyramid_request, wrapped
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        context.provisioning_enabled = False
 
         returned = upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
@@ -57,7 +57,7 @@ class TestUpsertHUser:
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
         self, upsert_h_user, context, hapi_svc, pyramid_request
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        context.provisioning_enabled = False
 
         upsert_h_user(pyramid_request, mock.sentinel.jwt, context)
 
@@ -133,7 +133,7 @@ class TestCreateCourseGroup:
         # If the auto provisioning feature isn't enabled for this application
         # instance then create_course_group() doesn't do anything - just calls the
         # wrapped view.
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        context.provisioning_enabled = False
 
         returned = create_course_group(pyramid_request, mock.sentinel.jwt, context)
 
@@ -214,7 +214,7 @@ class TestAddUserToGroup:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
         self, add_user_to_group, context, pyramid_request, hapi_svc
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        context.provisioning_enabled = False
 
         add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
 
@@ -223,7 +223,7 @@ class TestAddUserToGroup:
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
         self, add_user_to_group, context, pyramid_request, wrapped
     ):
-        pyramid_request.params["oauth_consumer_key"] = "foo"
+        context.provisioning_enabled = False
 
         returned = add_user_to_group(pyramid_request, mock.sentinel.jwt, context)
 
@@ -282,6 +282,7 @@ def context():
         h_userid="acct:test_username@TEST_AUTHORITY",
         h_provider="test_provider",
         h_provider_unique_id="test_provider_unique_id",
+        provisioning_enabled=True,
     )
     return context
 
@@ -290,8 +291,6 @@ def context():
 def pyramid_request(pyramid_request):
     pyramid_request.params.update(
         {
-            # A valid oauth_consumer_key (matches one for which the
-            # provisioning features are enabled).
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
             "tool_consumer_instance_guid": "TEST_GUID",
             "context_id": "TEST_CONTEXT",

@@ -171,7 +171,7 @@ class LTILaunch:
         See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
 
         """
-        if not self._auto_provisioning_feature_enabled:
+        if not self.provisioning_enabled:
             return {}
 
         client_id = self._request.registry.settings["h_jwt_client_id"]
@@ -209,7 +209,16 @@ class LTILaunch:
         return {"allowedOrigins": allowed_origins}
 
     @property
-    def _auto_provisioning_feature_enabled(self):
+    def provisioning_enabled(self):
+        """
+        Return True if provisioning is enabled for this request.
+
+        Return True if the provisioning feature is enabled for the current
+        request, False otherwise.
+
+        :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
+          params
+        """
         enabled_consumer_keys = self._request.registry.settings["auto_provisioning"]
         return self._get_param("oauth_consumer_key") in enabled_consumer_keys
 

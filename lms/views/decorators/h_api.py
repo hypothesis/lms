@@ -46,7 +46,7 @@ def upsert_h_user(wrapped):  # noqa: MC0001
     def wrapper(request, jwt, context=None):
         context = context or request.context
 
-        if not _auto_provisioning_feature_enabled(request):
+        if not context.provisioning_enabled:
             return wrapped(request, jwt)
 
         hapi_svc = request.find_service(name="hapi")
@@ -130,7 +130,7 @@ def create_course_group(wrapped):
 def add_user_to_group(wrapped):
     @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
-        if not _auto_provisioning_feature_enabled(request):
+        if not context.provisioning_enabled:
             return wrapped(request, jwt)
 
         context = context or request.context
@@ -148,7 +148,7 @@ def _upsert_group(context, request):
     """Create or update the course group in h."""
     # Only create groups for application instances that we've enabled the
     # auto provisioning features for.
-    if not _auto_provisioning_feature_enabled(request):
+    if not context.provisioning_enabled:
         return
 
     get_param = functools.partial(_get_param, request)
@@ -183,11 +183,3 @@ def _get_param(request, param_name):
         raise HTTPBadRequest(
             f'Required parameter "{param_name}" missing from LTI params'
         )
-
-
-def _auto_provisioning_feature_enabled(request):
-    oauth_consumer_key = _get_param(  # pylint: disable=too-many-function-args
-        request, "oauth_consumer_key"
-    )
-    enabled_consumer_keys = request.registry.settings["auto_provisioning"]
-    return oauth_consumer_key in enabled_consumer_keys

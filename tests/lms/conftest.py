@@ -244,6 +244,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
         instance=True,
         rpc_server_config={},
         hypothesis_config={},
+        provisioning_enabled=True,
     )
 
     yield pyramid_request
