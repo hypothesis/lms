@@ -41,6 +41,12 @@ class ApplicationInstance(BASE):
     developer_key = sa.Column(sa.String)
     developer_secret = sa.Column(sa.LargeBinary, default=None)
     aes_cipher_iv = sa.Column(sa.LargeBinary, default=None)
+    provisioning = sa.Column(
+        sa.Boolean(),
+        default=True,
+        server_default=sa.sql.expression.true(),
+        nullable=False,
+    )
 
     def decrypted_developer_secret(self, key):
         encrypted_secret = self.developer_secret
