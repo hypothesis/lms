@@ -6,6 +6,7 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.config import resources
+from lms.models import ApplicationInstance
 
 
 class TestLTILaunch:
@@ -368,9 +369,10 @@ class TestLTILaunch:
         ]
 
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
-        self, pyramid_request, lti_launch, lti_params_for
+        self, lti_launch, find_by_oauth_consumer_key
     ):
-        lti_params_for.return_value.update({"oauth_consumer_key": "some_other_key"})
+        find_by_oauth_consumer_key.return_value.provisioning = False
+
         assert lti_launch.hypothesis_config == {}
 
     def test_rpc_server_config(self, lti_launch):
@@ -378,21 +380,33 @@ class TestLTILaunch:
             "allowedOrigins": ["http://localhost:5000"]
         }
 
-    def test_provisioning_enabled_returns_True_if_oauth_consumer_key_in_auto_provisioning(
-        self, lti_params_for, pyramid_request
+    def test_provisioning_enabled_gets_application_instance_from_db(
+        self, find_by_oauth_consumer_key, lti_launch, pyramid_request
     ):
-        lti_params_for.return_value.update(
-            {"oauth_consumer_key": "Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"}
+        lti_launch.provisioning_enabled
+
+        find_by_oauth_consumer_key.assert_called_once_with(
+            pyramid_request.db, "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
-        lti_launch = resources.LTILaunch(pyramid_request)
+
+    def test_provisioning_enabled_returns_True_if_provisioning_enabled_for_application_instance(
+        self, find_by_oauth_consumer_key, lti_launch
+    ):
+        find_by_oauth_consumer_key.return_value.provisioning = True
 
         assert lti_launch.provisioning_enabled is True
 
-    def test_provisioning_enabled_returns_False_if_oauth_consumer_key_not_in_auto_provisioning(
-        self, lti_params_for, pyramid_request
+    def test_provisioning_enabled_returns_False_if_provisioning_disabled_for_application_instance(
+        self, find_by_oauth_consumer_key, lti_launch
     ):
-        lti_params_for.return_value.update({"oauth_consumer_key": "Hypothesisabc123"})
-        lti_launch = resources.LTILaunch(pyramid_request)
+        find_by_oauth_consumer_key.return_value.provisioning = False
+
+        assert lti_launch.provisioning_enabled is False
+
+    def test_provisioning_enabled_returns_False_if_application_instance_not_found(
+        self, find_by_oauth_consumer_key, lti_launch
+    ):
+        find_by_oauth_consumer_key.return_value = None
 
         assert lti_launch.provisioning_enabled is False
 
@@ -416,8 +430,16 @@ class TestLTILaunch:
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
             "context_id": "test_context_id",
             "user_id": "test_user_id",
-            # A valid oauth_consumer_key (matches one for which the
-            # provisioning features are enabled).
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return lti_params_for
+
+    @pytest.fixture(autouse=True)
+    def find_by_oauth_consumer_key(self, patch):
+        find_by_oauth_consumer_key = patch(
+            "lms.config.resources.find_by_oauth_consumer_key"
+        )
+        find_by_oauth_consumer_key.return_value = mock.create_autospec(
+            ApplicationInstance, spec_set=True, instance=True
+        )
+        return find_by_oauth_consumer_key
