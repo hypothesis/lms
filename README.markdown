@@ -434,7 +434,7 @@ steps to create a new migration script for h are:
 1. Create the revision script by running `alembic revision`, for example:
 
    ```bash
-   $ alembic -c conf/alembic.ini revision -m "Add the foobar table."
+   $ .tox/py36-dev/bin/alembic -c conf/alembic.ini revision -m "Add the foobar table."
    ```
 
    This will create a new script in [lms/migrations/versions](lms/migrations/versions).
@@ -455,7 +455,7 @@ steps to create a new migration script for h are:
    with its current revision, so Alembic knows which migration scripts to run:
 
    ```bash
-   $ alembic -c conf/alembic.ini stamp <revision_id>
+   $ .tox/py36-dev/bin/alembic -c conf/alembic.ini stamp <revision_id>
    ```
 
    `<revision_id>` should be the revision corresponding to the version of the
@@ -469,7 +469,7 @@ steps to create a new migration script for h are:
    revision script:
 
    ```bash
-   $ alembic -c conf/alembic.ini upgrade head
+   $ .tox/py36-dev/bin/alembic -c conf/alembic.ini upgrade head
    ```
 
    After running this command inspect your database's schema to check that it's
@@ -483,12 +483,12 @@ steps to create a new migration script for h are:
 1. Test your `downgrade()` function:
 
    ```bash
-   $ alembic -c conf/alembic.ini downgrade -1
+   $ .tox/py36-dev/bin/alembic -c conf/alembic.ini downgrade -1
    ```
 
    After running this command inspect your database's schema to check that it's
    as expected. You can then upgrade it again:
 
    ```bash
-   $ alembic -c conf/alembic.ini upgrade +1
+   $ .tox/py36-dev/bin/alembic -c conf/alembic.ini upgrade +1
    ```
