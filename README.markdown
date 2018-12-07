@@ -138,17 +138,6 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     # will be accepted over postMessage. In a development environment the
     # Hypothesis client would normally be served from localhost:5000.
     export RPC_ALLOWED_ORIGINS="http://localhost:5000"
-
-    # An optional space-separated list of the consumer keys of the application
-    # instances for which the "auto provisioning" features should be enabled.
-    # Defaults to an empty list ([]) if none provided (i.e. the features will
-    # be disabled for all application instances).
-    #
-    # The consumer key strings here should match the values in the
-    # lms.models.ApplicationInstances.consumer_key column in the database,
-    # which are also the same as the LTI "oauth_consumer_key" parameter values
-    # that LMS's send to us in LTI launch requests.
-    export AUTO_PROVISIONING="Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef Hypothesisf6f3a575c0c73e20ab41aa6be09b9c20"
     ```
 
 1. **Try out the postgres docker container**

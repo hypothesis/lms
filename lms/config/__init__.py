@@ -41,9 +41,6 @@ def configure(settings):
         "h_authority": env_setting("H_AUTHORITY", required=True),
         # The base URL of the h API (e.g. "https://hypothes.is/api).
         "h_api_url": env_setting("H_API_URL", required=True),
-        # The list of `oauth_consumer_key`s of the application instances for
-        # which the automatic user and group provisioning features are enabled.
-        "auto_provisioning": env_setting("AUTO_PROVISIONING", default=""),
         # The postMessage origins from which to accept RPC requests.
         "rpc_allowed_origins": env_setting("RPC_ALLOWED_ORIGINS", required=True),
     }
@@ -60,7 +57,6 @@ def configure(settings):
     except UnicodeEncodeError:
         raise SettingError("LMS_SECRET must contain only ASCII characters")
 
-    env_settings["auto_provisioning"] = aslist(env_settings["auto_provisioning"])
     env_settings["rpc_allowed_origins"] = aslist(env_settings["rpc_allowed_origins"])
 
     settings.update(env_settings)
