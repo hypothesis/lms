@@ -130,10 +130,10 @@ def create_course_group(wrapped):
 def add_user_to_group(wrapped):
     @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
+        context = context or request.context
+
         if not context.provisioning_enabled:
             return wrapped(request, jwt)
-
-        context = context or request.context
 
         request.find_service(name="hapi").post(
             f"groups/{context.h_groupid}/members/{context.h_userid}"
