@@ -22,7 +22,7 @@ plaster-pastedeploy==0.4.2  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
 psycopg2==2.7.6.1
 pycrypto==2.6.1
-pyjwt==1.7.0
+pyjwt==1.7.1
 pylti==0.7.0
 pyramid-exclog==1.0
 pyramid-jinja2==2.7
