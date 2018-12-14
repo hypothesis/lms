@@ -1,51 +1,53 @@
-{% extends "templates/base.html.jinja2" %}
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <title>Application Instances</title>
+    <link rel="stylesheet" type="text/css" href="{{'lms:static/styles/reports.css'|static_path}}">
+  </head>
+  <body>
+    <h1>Application Reports</h1>
 
-{% block title %}Application Instances{% endblock %}
+    <h2>Generated Application Instances</h2>
+    <p>{{ apps|length }} application instance credentials have been generated:</p>
+    <table>
+      <tr>
+          <th>Created At</th>
+          <th>Lms Url</th>
+          <th>Signup Email</th>
+          <th>Consumer Key</th>
+          <th>Shared Secret</th>
+      </tr>
+      {% for row in apps %}
+        <tr class="data">
+          <td>{{  row['created']  }}</td>
+          <td>{{  row['lms_url']  }}</td>
+          <td>{{  row['requesters_email']  }}</td>
+          <td>{{  row['consumer_key']  }}</td>
+          <td>{{  row['shared_secret']  }}</td>
+        </tr>
+      {% endfor %}
+    </table>
 
-{% block content %}
-    <div id="content">
-        <h1>Application Reports</h1>
+    <h2>LTI App Launches</h2>
+    <p>There have been {{ num_launches }} lti launches:</p>
+    <table>
+      <tr>
+        <th>Context ID</th>
+        <th>Number of Launches</th>
+        <th>Lms Url</th>
+        <th>Signup Email</th>
+        <th>Consumer Key</th>
+      </tr>
+      {% for row in launches %}
+        <tr class="data">
+          {% for element in row %}
+            <td>{{  element  }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
 
-        <h2>Generated Application Instances</h2>
-        <p>{{ apps|length }} application instance credentials have been generated:</p>
-        <table>
-            <tr>
-                <th>Created At</th>
-                <th>Lms Url</th>
-                <th>Signup Email</th>
-                <th>Consumer Key</th>
-                <th>Shared Secret</th>
-            </tr>
-        {% for row in apps %}
-            <tr class="data">
-                <td>{{  row['created']  }}</td>
-                <td>{{  row['lms_url']  }}</td>
-                <td>{{  row['requesters_email']  }}</td>
-                <td>{{  row['consumer_key']  }}</td>
-                <td class="wrap">{{  row['shared_secret']  }}</td>
-            </tr>
-        {% endfor %}
-        </table>
-
-        <h2>LTI App Launches</h2>
-        <p>There have been {{ num_launches }} lti launches:</p>
-        <table>
-            <tr>
-                <th>Context ID</th>
-                <th>Number of Launches</th>
-                <th>Lms Url</th>
-                <th>Signup Email</th>
-                <th>Consumer Key</th>
-            </tr>
-        {% for row in launches %}
-            <tr class="data">
-              {% for element in row %}
-                <td>{{  element  }}</td>
-              {% endfor %}
-            </tr>
-        {% endfor %}
-        </table>
-
-        <div><p><a class="btn btn--gray" href="{{ logout_url }}">Log out</a></p></div>
-    </div>
-{% endblock %}
+    <div><p><a class="btn btn--gray" href="{{ logout_url }}">Log out</a></p></div>
+  </body>
+</html>
