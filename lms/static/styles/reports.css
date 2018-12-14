@@ -1,0 +1,31 @@
+html{
+  font-family: 'Roboto', sans-serif;
+}
+
+.data {
+  font-family: 'Inconsolata', 'Hack', 'Courier New', 'Courier', monospace;
+}
+
+table {
+  border-spacing: 0.5rem;
+  border-collapse: collapse;
+  max-width: 100%;
+}
+
+th {
+  border-bottom: 2px solid #dddddd;
+}
+
+th, td {
+  padding: 0.25em;
+  border: 1px solid #ddd;
+}
+
+table tr:nth-child(odd) { /* Zebra-stripe the rows */
+  background: #eee;
+}
+
+td.wrap { /* wrap veryyyyyyyy long data */
+  white-space: normal;
+  word-break: break-all;
+}
