@@ -16,7 +16,7 @@ mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
 newrelic==4.8.0.110
 oauth2==1.9.0.post1       # via pylti
-oauthlib==2.0.6           # via requests-oauthlib
+oauthlib==2.1.0           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy
 plaster-pastedeploy==0.4.2  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
@@ -31,8 +31,8 @@ pyramid-tm==2.2.1
 pyramid==1.10.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
-requests-oauthlib==1.0.0
 requests==2.21.0
+requests_oauthlib==1.1.0
 sentry-sdk==0.6.6
 six==1.11.0               # via pylti, python-dateutil
 sqlalchemy==1.2.15
