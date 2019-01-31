@@ -33,3 +33,8 @@ def includeme(config):
 
     # Health check endpoint for load balancers to request.
     config.add_route("status", "/_status")
+
+    # Make requests to /favicon.ico work.
+    # Browsers seem to send requests to this URL on their own accord, even
+    # though we dont link to it.
+    config.add_route("favicon", "/favicon.ico")
