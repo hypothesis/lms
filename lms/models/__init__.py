@@ -11,7 +11,6 @@ from lms.models.oauth_state import (
 )
 from lms.models.tokens import Token, update_user_token
 from lms.models.users import User, build_from_lti_params
-from lms.models.course_groups import CourseGroup
 
 
 __all__ = (
@@ -27,7 +26,6 @@ __all__ = (
     "Token",
     "update_user_token",
     "User",
-    "CourseGroup",
 )
 
 
