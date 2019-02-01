@@ -3,11 +3,18 @@ import os
 from pyramid import httpexceptions
 from pyramid import i18n
 from pyramid.settings import asbool
+from pyramid.view import notfound_view_config
 import sentry_sdk
 
 from lms.exceptions import LTILaunchError
 
 _ = i18n.TranslationStringFactory(__package__)
+
+
+@notfound_view_config(renderer="lms:templates/error.html.jinja2")
+def notfound(request):
+    request.response.status_int = 404
+    return {"message": _("Page not found")}
 
 
 def http_error(exc, request):
