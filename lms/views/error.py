@@ -6,7 +6,6 @@ from pyramid.settings import asbool
 from pyramid.view import notfound_view_config
 import sentry_sdk
 
-from lms.exceptions import LTILaunchError
 
 _ = i18n.TranslationStringFactory(__package__)
 
@@ -33,23 +32,6 @@ def http_error(exc, request):
     """
     sentry_sdk.capture_exception(exc)
     request.response.status_int = exc.status_int
-    return {"message": str(exc)}
-
-
-def lti_launch_error(exc, request):
-    """
-    Handle an invalid LTI launch request.
-
-    Code raises :exc:`lms.exceptions.LTILaunchError` if there's a problem
-    with an LTI launch request, such as a required LTI launch parameter
-    missing. When this happens we:
-
-    1. Report the error to Sentry.
-    2. Set the HTTP response status code to 400 Bad Request.
-    3. Show the user an error page containing the specific error message
-    """
-    sentry_sdk.capture_exception(exc)
-    request.response.status_int = 400
     return {"message": str(exc)}
 
 
@@ -95,5 +77,4 @@ def includeme(config):
     config.add_exception_view(
         http_error, context=httpexceptions.HTTPError, **view_defaults
     )
-    config.add_exception_view(lti_launch_error, context=LTILaunchError, **view_defaults)
     config.add_exception_view(error, context=Exception, **view_defaults)
