@@ -6,6 +6,23 @@ import pytest
 from lms.views import error
 
 
+class TestNotFound:
+    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+        error.notfound(pyramid_request)
+
+        sentry_sdk.capture_exception.assert_not_called()
+
+    def test_it_sets_response_status(self, pyramid_request):
+        error.notfound(pyramid_request)
+
+        assert pyramid_request.response.status_int == 404
+
+    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
+        result = error.notfound(pyramid_request)
+
+        assert result["message"] == "Page not found"
+
+
 class TestHTTPClientError:
     def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
         exc = httpexceptions.HTTPBadRequest()
