@@ -16,23 +16,21 @@ def notfound(request):
     return {"message": _("Page not found")}
 
 
-def http_error(exc, request):
-    """
-    Handle an HTTP 4xx or 5xx exception.
-
-    If code raises HTTPClientError (the base class for all the HTTP 4xx
-    errors) or HTTPServerError (base class for 5xx errors), or a subclass
-    of either, then we:
-
-    1. Report the error to Sentry.
-    2. Set the HTTP response status to the 4xx or 5xx status from the
-       exception.
-    3. Show the user an error page containing the specific error message
-       from the exception.
-    """
-    sentry_sdk.capture_exception(exc)
+def _http_error(exc, request):
+    """Handle an HTTP 4xx or 5xx exception."""
     request.response.status_int = exc.status_int
     return {"message": str(exc)}
+
+
+def http_client_error(exc, request):
+    """Handle an HTTP 4xx (client error) exception."""
+    return _http_error(exc, request)
+
+
+def http_server_error(exc, request):
+    """Handle an HTTP 5xx (server error) exception."""
+    sentry_sdk.capture_exception(exc)
+    return _http_error(exc, request)
 
 
 def error(request):
@@ -75,6 +73,9 @@ def includeme(config):
     view_defaults = {"renderer": "lms:templates/error.html.jinja2"}
 
     config.add_exception_view(
-        http_error, context=httpexceptions.HTTPError, **view_defaults
+        http_client_error, context=httpexceptions.HTTPClientError, **view_defaults
+    )
+    config.add_exception_view(
+        http_server_error, context=httpexceptions.HTTPServerError, **view_defaults
     )
     config.add_exception_view(error, context=Exception, **view_defaults)

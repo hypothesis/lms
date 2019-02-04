@@ -6,25 +6,48 @@ import pytest
 from lms.views import error
 
 
-class TestHTTPError:
-    def test_it_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
+class TestHTTPClientError:
+    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
         exc = HTTPNotImplemented()
 
-        error.http_error(exc, pyramid_request)
+        error.http_client_error(exc, pyramid_request)
 
-        sentry_sdk.capture_exception.assert_called_once_with(exc)
+        sentry_sdk.capture_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
         exc = HTTPNotImplemented()
 
-        error.http_error(exc, pyramid_request)
+        error.http_client_error(exc, pyramid_request)
 
         assert pyramid_request.response.status_int == 501
 
     def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
         exc = HTTPNotImplemented("This is the error message")
 
-        result = error.http_error(exc, pyramid_request)
+        result = error.http_client_error(exc, pyramid_request)
+
+        assert result["message"] == "This is the error message"
+
+
+class TestHTTPServerError:
+    def test_it_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
+        exc = HTTPNotImplemented()
+
+        error.http_server_error(exc, pyramid_request)
+
+        sentry_sdk.capture_exception.assert_called_once_with(exc)
+
+    def test_it_sets_response_status(self, pyramid_request):
+        exc = HTTPNotImplemented()
+
+        error.http_server_error(exc, pyramid_request)
+
+        assert pyramid_request.response.status_int == 501
+
+    def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
+        exc = HTTPNotImplemented("This is the error message")
+
+        result = error.http_server_error(exc, pyramid_request)
 
         assert result["message"] == "This is the error message"
 
