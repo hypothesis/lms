@@ -4,7 +4,6 @@ from pyramid.httpexceptions import HTTPNotImplemented
 import pytest
 
 from lms.views import error
-from lms.exceptions import LTILaunchError
 
 
 class TestHTTPError:
@@ -28,29 +27,6 @@ class TestHTTPError:
         result = error.http_error(exc, pyramid_request)
 
         assert result["message"] == "This is the error message"
-
-
-class TestLTILaunchError:
-    def test_it_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
-        exc = LTILaunchError("the_message")
-
-        error.lti_launch_error(exc, pyramid_request)
-
-        sentry_sdk.capture_exception.assert_called_once_with(exc)
-
-    def test_it_sets_response_status(self, pyramid_request):
-        exc = LTILaunchError("the_message")
-
-        error.lti_launch_error(exc, pyramid_request)
-
-        assert pyramid_request.response.status_int == 400
-
-    def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
-        exc = LTILaunchError("the_message")
-
-        result = error.lti_launch_error(exc, pyramid_request)
-
-        assert result["message"] == "the_message"
 
 
 class TestError:
