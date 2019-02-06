@@ -79,19 +79,24 @@ class TestAPIRequest:
     ):
         requests.request.side_effect = exception
 
-        with pytest.raises(HAPIError):
+        with pytest.raises(HAPIError) as exc_info:
             svc.post("path")
+
+        # It records the requests exception that caused the HAPIError.
+        assert exc_info.value.__cause__ == exception
 
     def test_it_raises_HAPINotFoundError_if_it_receives_a_404_response(
         self, pyramid_request, requests, svc
     ):
         requests.request.return_value.status_code = 404
-        requests.request.return_value.raise_for_status.side_effect = HTTPError(
-            response=requests.request.return_value
-        )
+        exception = HTTPError(response=requests.request.return_value)
+        requests.request.return_value.raise_for_status.side_effect = exception
 
         with pytest.raises(HAPINotFoundError) as exc_info:
             svc.post("path")
+
+        # It records the requests exception that caused the HAPIError.
+        assert exc_info.value.__cause__ == exception
 
         assert (
             exc_info.value.response == requests.request.return_value
@@ -100,12 +105,14 @@ class TestAPIRequest:
     def test_it_raises_HAPIError_if_it_receives_an_error_response(
         self, pyramid_request, requests, svc
     ):
-        requests.request.return_value.raise_for_status.side_effect = HTTPError(
-            response=requests.request.return_value
-        )
+        exception = HTTPError(response=requests.request.return_value)
+        requests.request.return_value.raise_for_status.side_effect = exception
 
         with pytest.raises(HAPIError) as exc_info:
             svc.post("path")
+
+        # It records the requests exception that caused the HAPIError.
+        assert exc_info.value.__cause__ == exception
 
         assert (
             exc_info.value.response == requests.request.return_value

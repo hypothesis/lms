@@ -141,6 +141,6 @@ class HypothesisAPIService:
             if status_code is None or status_code not in statuses:
                 raise exception_class(
                     explanation="Connecting to Hypothesis failed", response=response
-                )
+                ) from err
 
         return response
