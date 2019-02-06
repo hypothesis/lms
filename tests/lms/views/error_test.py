@@ -124,7 +124,6 @@ class TestIncludeMe:
 
         pyramid_config.add_exception_view.assert_not_called()
 
-
     @pytest.fixture
     def os(self, patch):
         os = patch("lms.views.error.os")
