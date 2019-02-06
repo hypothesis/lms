@@ -1,28 +1,46 @@
 # -*- coding: utf-8 -*-
+from unittest import mock
 
-from pyramid.httpexceptions import HTTPNotImplemented
+from pyramid import httpexceptions
 import pytest
 
 from lms.views import error
 
 
+class TestNotFound:
+    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+        error.notfound(pyramid_request)
+
+        sentry_sdk.capture_exception.assert_not_called()
+
+    def test_it_sets_response_status(self, pyramid_request):
+        error.notfound(pyramid_request)
+
+        assert pyramid_request.response.status_int == 404
+
+    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
+        result = error.notfound(pyramid_request)
+
+        assert result["message"] == "Page not found"
+
+
 class TestHTTPClientError:
     def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
-        exc = HTTPNotImplemented()
+        exc = httpexceptions.HTTPBadRequest()
 
         error.http_client_error(exc, pyramid_request)
 
         sentry_sdk.capture_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
-        exc = HTTPNotImplemented()
+        exc = httpexceptions.HTTPBadRequest()
 
         error.http_client_error(exc, pyramid_request)
 
-        assert pyramid_request.response.status_int == 501
+        assert pyramid_request.response.status_int == 400
 
     def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
-        exc = HTTPNotImplemented("This is the error message")
+        exc = httpexceptions.HTTPBadRequest("This is the error message")
 
         result = error.http_client_error(exc, pyramid_request)
 
@@ -31,21 +49,21 @@ class TestHTTPClientError:
 
 class TestHTTPServerError:
     def test_it_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
-        exc = HTTPNotImplemented()
+        exc = httpexceptions.HTTPServerError()
 
         error.http_server_error(exc, pyramid_request)
 
         sentry_sdk.capture_exception.assert_called_once_with(exc)
 
     def test_it_sets_response_status(self, pyramid_request):
-        exc = HTTPNotImplemented()
+        exc = httpexceptions.HTTPServerError()
 
         error.http_server_error(exc, pyramid_request)
 
-        assert pyramid_request.response.status_int == 501
+        assert pyramid_request.response.status_int == 500
 
     def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
-        exc = HTTPNotImplemented("This is the error message")
+        exc = httpexceptions.HTTPServerError("This is the error message")
 
         result = error.http_server_error(exc, pyramid_request)
 
@@ -74,6 +92,48 @@ class TestError:
             result["message"]
             == "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
         )
+
+
+@pytest.mark.usefixtures("os", "pyramid_config")
+class TestIncludeMe:
+    def test_it_adds_the_exception_views(self, pyramid_config):
+        error.includeme(pyramid_config)
+
+        assert pyramid_config.add_exception_view.call_args_list == [
+            mock.call(
+                error.http_client_error,
+                context=httpexceptions.HTTPClientError,
+                renderer="lms:templates/error.html.jinja2",
+            ),
+            mock.call(
+                error.http_server_error,
+                context=httpexceptions.HTTPServerError,
+                renderer="lms:templates/error.html.jinja2",
+            ),
+            mock.call(
+                error.error,
+                context=Exception,
+                renderer="lms:templates/error.html.jinja2",
+            ),
+        ]
+
+    def test_it_doesnt_add_the_exception_views_in_debug_mode(self, os, pyramid_config):
+        os.environ["DEBUG"] = True
+
+        error.includeme(pyramid_config)
+
+        pyramid_config.add_exception_view.assert_not_called()
+
+    @pytest.fixture
+    def os(self, patch):
+        os = patch("lms.views.error.os")
+        os.environ = {"DEBUG": False}
+        return os
+
+    @pytest.fixture
+    def pyramid_config(self, pyramid_config):
+        pyramid_config.add_exception_view = mock.MagicMock()
+        return pyramid_config
 
 
 @pytest.fixture(autouse=True)
