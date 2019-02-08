@@ -8,7 +8,6 @@ from lms.models import find_user_from_state
 from lms.util import lti_params_for
 from lms.util.lti_launch import get_application_instance
 from lms.views.content_item_selection import content_item_form
-from lms.validation import parser
 from lms.validation import CANVAS_OAUTH_CALLBACK_ARGS
 
 
@@ -17,11 +16,17 @@ def build_canvas_token_url(lms_url):
     return lms_url + "/login/oauth2/token"
 
 
-@view_config(route_name="canvas_oauth_callback", request_method="GET")
-@parser.use_kwargs(CANVAS_OAUTH_CALLBACK_ARGS)
+@view_config(
+    route_name="canvas_oauth_callback",
+    request_method="GET",
+    schema=CANVAS_OAUTH_CALLBACK_ARGS,
+)
 # pylint: disable=too-many-locals
-def canvas_oauth_callback(request, code, state):
+def canvas_oauth_callback(request):
     """Route to handle content item selection oauth response."""
+    code = request.parsed_params["code"]
+    state = request.parsed_params["state"]
+
     lti_params = lti_params_for(request)
     consumer_key = lti_params["oauth_consumer_key"]
     application_instance = get_application_instance(request.db, consumer_key)
