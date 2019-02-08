@@ -53,7 +53,7 @@ def _validated_view(view, info):
 
     If validation fails don't call the view.
 
-    This is a Pyramid "view deriver" that Pyramid calls if the view has a
+    This is a Pyramid "view deriver" that a view can activate by having a
     ``schema=some_schema`` argument in its view config. For example
     ``@view_config(..., schema=lms.validation.foo_schema)``. See:
 
