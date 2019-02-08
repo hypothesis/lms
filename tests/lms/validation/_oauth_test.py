@@ -1,14 +1,14 @@
 import pytest
 from pyramid import testing
 
-from lms.validation import CANVAS_OAUTH_CALLBACK_ARGS
+from lms.validation import CANVAS_OAUTH_CALLBACK_SCHEMA
 from lms.validation import parser
 from lms.validation import ValidationError
 
 
 class TestCanvasOauthCallbackArgs:
     def test_it_returns_the_parsed_args_for_a_valid_request(self, valid_request):
-        parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+        parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert parsed_args == {"code": "test_code", "state": "test_state"}
 
@@ -16,7 +16,7 @@ class TestCanvasOauthCallbackArgs:
         del valid_request.params["state"]
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {
             "state": ["Missing data for required field."]
@@ -26,7 +26,7 @@ class TestCanvasOauthCallbackArgs:
         valid_request.params["state"] = 23
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {"state": ["Not a valid string."]}
 
@@ -34,7 +34,7 @@ class TestCanvasOauthCallbackArgs:
         valid_request.params["state"] = None
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {"state": ["Field may not be null."]}
 
@@ -42,7 +42,7 @@ class TestCanvasOauthCallbackArgs:
         del valid_request.params["code"]
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {"code": ["Missing data for required field."]}
 
@@ -50,7 +50,7 @@ class TestCanvasOauthCallbackArgs:
         valid_request.params["code"] = 23
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {"code": ["Not a valid string."]}
 
@@ -58,7 +58,7 @@ class TestCanvasOauthCallbackArgs:
         valid_request.params["code"] = None
 
         with pytest.raises(ValidationError) as exc_info:
-            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_ARGS, valid_request)
+            parsed_args = parser.parse(CANVAS_OAUTH_CALLBACK_SCHEMA, valid_request)
 
         assert exc_info.value.messages == {"code": ["Field may not be null."]}
 
