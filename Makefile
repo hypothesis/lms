@@ -70,7 +70,7 @@ checkdocstrings:
 
 .PHONY: pip-compile
 pip-compile:
-	tox -e py36-dev -- pip-compile --output-file requirements.txt requirements.in
+	tox -qe py36-dev -- pip-compile --output-file requirements.txt requirements.in
 
 .PHONY: docker
 docker:
