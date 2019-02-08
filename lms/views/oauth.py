@@ -2,11 +2,13 @@
 import jwt
 from pyramid.view import view_config
 from requests_oauthlib import OAuth2Session
+
 from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models import find_user_from_state
 from lms.util import lti_params_for
 from lms.util.lti_launch import get_application_instance
 from lms.views.content_item_selection import content_item_form
+from lms.validation import CANVAS_OAUTH_CALLBACK_SCHEMA
 
 
 def build_canvas_token_url(lms_url):
@@ -14,11 +16,16 @@ def build_canvas_token_url(lms_url):
     return lms_url + "/login/oauth2/token"
 
 
-@view_config(route_name="canvas_oauth_callback", request_method="GET")
+@view_config(
+    route_name="canvas_oauth_callback",
+    request_method="GET",
+    schema=CANVAS_OAUTH_CALLBACK_SCHEMA,
+)
 # pylint: disable=too-many-locals
 def canvas_oauth_callback(request):
     """Route to handle content item selection oauth response."""
-    state = request.params["state"]
+    code = request.parsed_params["code"]
+    state = request.parsed_params["state"]
 
     lti_params = lti_params_for(request)
     consumer_key = lti_params["oauth_consumer_key"]
@@ -34,7 +41,7 @@ def canvas_oauth_callback(request):
         token_url,
         client_secret=client_secret,
         authorization_response=request.url,
-        code=request.params["code"],
+        code=code,
     )
 
     user = find_user_from_state(request.db, state)

@@ -6,6 +6,7 @@ from pyramid.settings import asbool
 from pyramid.view import notfound_view_config
 import sentry_sdk
 
+from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
 
@@ -31,6 +32,12 @@ def http_server_error(exc, request):
     """Handle an HTTP 5xx (server error) exception."""
     sentry_sdk.capture_exception(exc)
     return _http_error(exc, request)
+
+
+def validation_error(exc, request):
+    """Handle a ValidationError."""
+    request.response.status_int = exc.status_int
+    return {"error": exc}
 
 
 def error(request):
@@ -79,3 +86,10 @@ def includeme(config):
         http_server_error, context=httpexceptions.HTTPServerError, **view_defaults
     )
     config.add_exception_view(error, context=Exception, **view_defaults)
+
+    validation_view_defaults = dict(view_defaults)
+    validation_view_defaults["renderer"] = "lms:templates/validation_error.html.jinja2"
+
+    config.add_exception_view(
+        validation_error, context=ValidationError, **validation_view_defaults
+    )

@@ -4,6 +4,7 @@ from unittest import mock
 from pyramid import httpexceptions
 import pytest
 
+from lms.validation import ValidationError
 from lms.views import error
 
 
@@ -70,6 +71,22 @@ class TestHTTPServerError:
         assert result["message"] == "This is the error message"
 
 
+class TestValidationError:
+    def test_it_sets_response_status(self, pyramid_request):
+        exc = ValidationError(mock.sentinel.messages)
+
+        error.validation_error(exc, pyramid_request)
+
+        assert pyramid_request.response.status_int == 422
+
+    def test_it_passes_the_exception_to_the_template(self, pyramid_request):
+        exc = ValidationError(mock.sentinel.messages)
+
+        template_data = error.validation_error(exc, pyramid_request)
+
+        assert template_data["error"] == exc
+
+
 class TestError:
     def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
         error.error(pyramid_request)
@@ -114,6 +131,11 @@ class TestIncludeMe:
                 error.error,
                 context=Exception,
                 renderer="lms:templates/error.html.jinja2",
+            ),
+            mock.call(
+                error.validation_error,
+                context=ValidationError,
+                renderer="lms:templates/validation_error.html.jinja2",
             ),
         ]
 
