@@ -1,3 +1,29 @@
+"""
+Schemas for parsing and validating requests.
+
+This package contains schemas that views can use to validate and parse
+requests. The idea is that the request is validated before the view is called.
+If validation fails an error response is sent back and the view is never
+called. If validation succeeds the parsed and validated parameters are made
+available to the view as ``request.parsed_params``. The view's own code can
+assume that all the parsed params are valid and that all required params are
+present.
+
+Usage::
+
+    from lms.validation import FOO_SCHEMA
+
+    @view_config(..., schema=FOO_SCHEMA)
+    def foo_view(request):
+        validated_arg_1 = request.parsed_params["validated_arg_1"]
+        validated_arg_2 = request.parsed_params["validated_arg_2"]
+        ...
+
+Note that we're using our own view deriver (the ``schema`` argument to
+``view_config``) to integrate our schemas and views, rather than using webargs's
+``@use_args()`` / ``@use_kwargs()`` decorators. For the reasons for this see
+commit message f61a5ff3cae6b983e24db809d8e4b4933aca1e92.
+"""
 from webargs import pyramidparser
 
 from lms.validation._exceptions import ValidationError
