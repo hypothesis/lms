@@ -15,17 +15,18 @@ help:
 	@echo "make codecov           Upload the coverage report to codecov.io"
 	@echo "make docstrings        View all the docstrings locally as HTML"
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
+	@echo "make pip-compile       Compile requirements.in to requirements.txt"
 	@echo "make docker            Make the app's Docker image"
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
 
 .PHONY: dev
 dev: build/manifest.json
-	tox -e py36-dev
+	tox -qe py36-dev
 
 .PHONY: shell
 shell:
-	tox -e py36-dev -- pshell conf/development.ini
+	tox -qe py36-dev -- pshell conf/development.ini
 
 # FIXME: This requires psql to be installed locally.
 # It should use psql from docker / docker-compose.
@@ -35,37 +36,41 @@ sql:
 
 .PHONY: lint
 lint:
-	tox -e py36-lint
+	tox -qe py36-lint
 	$(GULP) lint
 
 .PHONY: format
 format:
-	tox -e py36-format
+	tox -qe py36-format
 
 .PHONY: checkformatting
 checkformatting:
-	tox -e py36-checkformatting
+	tox -qe py36-checkformatting
 
 .PHONY: test
 test: node_modules/.uptodate
-	tox -e py36-tests
+	tox -qe py36-tests
 	$(GULP) test
 
 .PHONY: coverage
 coverage:
-	tox -e py36-coverage
+	tox -qe py36-coverage
 
 .PHONY: codecov
 codecov:
-	tox -e py36-codecov
+	tox -qe py36-codecov
 
 .PHONY: docstrings
 docstrings:
-	tox -e py36-docstrings
+	tox -qe py36-docstrings
 
 .PHONY: checkdocstrings
 checkdocstrings:
-	tox -e py36-checkdocstrings
+	tox -qe py36-checkdocstrings
+
+.PHONY: pip-compile
+pip-compile:
+	tox -qe py36-dev -- pip-compile --output-file requirements.txt requirements.in
 
 .PHONY: docker
 docker:
