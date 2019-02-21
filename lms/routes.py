@@ -4,6 +4,7 @@ from lms.config.resources import LTILaunch
 
 def includeme(config):
     config.add_route("index", "/")
+    config.add_route("feature_flags_test", "/flags/test")
     config.add_route("welcome", "/welcome")
     config.add_route("login", "/login")
     config.add_route("logout", "/logout")
