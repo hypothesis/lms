@@ -111,7 +111,7 @@ class HypothesisAPIService:
         """
         statuses = statuses or []
 
-        request_args = {}
+        request_args = {"headers": {"Hypothesis-Application": "lms"}}
 
         if path.startswith("/"):
             path = path[1:]
@@ -120,7 +120,7 @@ class HypothesisAPIService:
             request_args["data"] = json.dumps(data)
 
         if userid is not None:
-            request_args["headers"] = {"X-Forwarded-User": userid}
+            request_args["headers"]["X-Forwarded-User"] = userid
 
         try:
             response = requests.request(

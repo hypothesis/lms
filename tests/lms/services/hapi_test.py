@@ -38,6 +38,7 @@ class TestAPIRequest:
             url="https://example.com/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
+            headers={"Hypothesis-Application": "lms"},
         )
 
     def test_it_strips_leading_slashes_from_the_path(
@@ -57,6 +58,7 @@ class TestAPIRequest:
             url="https://example.com/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
+            headers={"Hypothesis-Application": "lms"},
         )
 
     def test_it_sends_data_as_json(self, pyramid_request, requests, svc):
@@ -69,6 +71,13 @@ class TestAPIRequest:
 
         assert requests.request.call_args[1]["headers"]["X-Forwarded-User"] == (
             "acct:seanh@TEST_AUTHORITY"
+        )
+
+    def test_it_sends_hypothesis_lms_header(self, pyramid_request, requests, svc):
+        svc.post("path", data={"foo": "bar"})
+
+        assert requests.request.call_args[1]["headers"]["Hypothesis-Application"] == (
+            "lms"
         )
 
     @pytest.mark.parametrize(
