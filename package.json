@@ -47,7 +47,7 @@
     "eslint": "^5.14.1",
     "eslint-config-hypothesis": "^1.0.0",
     "gulp-eslint": "^5.0.0",
-    "karma": "^4.0.0",
+    "karma": "^4.0.1",
     "karma-browserify": "^6.0.0",
     "karma-chai": "^0.1.0",
     "karma-mocha": "^1.1.1",
