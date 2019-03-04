@@ -36,7 +36,7 @@
     "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",
     "superagent": "^3.8.3",
-    "through2": "^3.0.0",
+    "through2": "^3.0.1",
     "uglifyify": "^5.0.1",
     "vinyl": "^2.2.0",
     "watchify": "^3.11.1"
