@@ -6,7 +6,7 @@ from sqlalchemy import and_
 from lms.exceptions import MissingLTILaunchParamError
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
-from lms.util.lti_launch import get_application_instance
+from lms.util import get_application_instance
 from lms.util.lti_launch import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.views.content_item_selection import content_item_form
