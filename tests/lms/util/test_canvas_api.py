@@ -1,6 +1,7 @@
 # pylint: disable=no-value-for-parameter
 from pyramid.response import Response
 from lms.util import canvas_api
+from lms.services import ConsumerKeyError
 
 
 def build_mock_view(assertions):
@@ -50,16 +51,17 @@ class TestCanvasApi:
         )
         assert response.status_code == 404
 
-    def test_it_handles_no_application_instance(self, canvas_api_proxy):
+    def test_it_handles_no_lms_url(self, canvas_api_proxy, ai_getter):
         def assertions(_request, _decoded_jwt, _user, _canvas_api):
             pass
 
+        ai_getter.lms_url.side_effect = ConsumerKeyError()
         request = canvas_api_proxy["request"]
-        application_instance = canvas_api_proxy["application_instance"]
-        request.db.delete(application_instance)
+
         response = build_mock_view(assertions)(
             canvas_api_proxy["request"],
             canvas_api_proxy["decoded_jwt"],
             canvas_api_proxy["user"],
         )
+
         assert response.status_code == 404

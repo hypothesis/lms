@@ -56,7 +56,9 @@ def lti_launch(view_function):
         except KeyError:
             raise MissingLTILaunchParamError("oauth_consumer_key")
 
-        shared_secret = get_application_instance(request.db, consumer_key).shared_secret
+        shared_secret = request.find_service(name="ai_getter").shared_secret(
+            consumer_key
+        )
 
         consumers = {}
 

@@ -6,7 +6,6 @@ from requests_oauthlib import OAuth2Session
 from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models import find_user_from_state
 from lms.util import lti_params_for
-from lms.util import get_application_instance
 from lms.views.content_item_selection import content_item_form
 from lms.validation import CANVAS_OAUTH_CALLBACK_SCHEMA
 
@@ -29,12 +28,12 @@ def canvas_oauth_callback(request):
 
     lti_params = lti_params_for(request)
     consumer_key = lti_params["oauth_consumer_key"]
-    application_instance = get_application_instance(request.db, consumer_key)
-    client_id = application_instance.developer_key
 
-    aes_secret = request.registry.settings["aes_secret"]
-    client_secret = application_instance.decrypted_developer_secret(aes_secret)
-    token_url = build_canvas_token_url(application_instance.lms_url)
+    ai_getter = request.find_service(name="ai_getter")
+    client_id = ai_getter.developer_key(consumer_key)
+    client_secret = ai_getter.decrypted_developer_secret(consumer_key)
+    lms_url = ai_getter.lms_url(consumer_key)
+    token_url = build_canvas_token_url(lms_url)
 
     session = OAuth2Session(client_id, state=state)
     oauth_resp = session.fetch_token(
@@ -60,7 +59,7 @@ def canvas_oauth_callback(request):
     return content_item_form(
         request,
         lti_params=lti_params,
-        lms_url=application_instance.lms_url,
+        lms_url=lms_url,
         content_item_return_url=lti_params["content_item_return_url"],
         jwt=jwt_token,
     )

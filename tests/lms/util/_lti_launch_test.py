@@ -50,11 +50,11 @@ class TestLTILaunch:
             wrapper(pyramid_request)
 
     def test_it_crashes_if_theres_no_application_instance_in_the_db(
-        self, pyramid_request, wrapper, get_application_instance
+        self, pyramid_request, wrapper, ai_getter
     ):
-        get_application_instance.side_effect = NoResultFound()
+        ai_getter.shared_secret.side_effect = ConsumerKeyError()
 
-        with pytest.raises(NoResultFound):
+        with pytest.raises(ConsumerKeyError):
             wrapper(pyramid_request)
 
     def test_it_verifies_the_request(self, pyramid_request, pylti, wrapper):
@@ -112,14 +112,6 @@ class TestLTILaunch:
     def wrapper(self, view):
         """The wrapped view."""
         return lti_launch(view)
-
-    @pytest.fixture(autouse=True)
-    def get_application_instance(self, patch, application_instance):
-        get_application_instance = patch(
-            "lms.util._lti_launch.get_application_instance"
-        )
-        get_application_instance.return_value = application_instance
-        return get_application_instance
 
     @pytest.fixture(autouse=True)
     def build_jwt_from_lti_launch(self, patch):

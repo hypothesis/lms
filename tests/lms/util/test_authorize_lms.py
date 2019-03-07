@@ -1,8 +1,10 @@
 from urllib.parse import urlparse, parse_qs
 import json
+
+import pytest
 from pyramid.response import Response
+
 from lms.util import authorize_lms, save_token
-from lms.models import build_from_lms_url
 from lms.models import User, find_lti_params
 
 
@@ -32,22 +34,6 @@ def build_save_token_view(assertions):
     return save_token_view_function
 
 
-def create_application_instance(lti_launch_request):
-    lms_url = "https://example.com"
-    email = "example@example.com"
-    session = lti_launch_request.db
-    application_instance = build_from_lms_url(
-        lms_url,
-        email,
-        "test",
-        b"test",
-        encryption_key=lti_launch_request.registry.settings["aes_secret"],
-    )
-    session.add(application_instance)
-    session.flush()
-    return application_instance
-
-
 def create_user(lti_launch_request):
     user_id = lti_launch_request.params["user_id"]
     existing_user = User(lms_guid=user_id)
@@ -62,17 +48,13 @@ class TestAuthorizeLms:
     """Test the associate user decorator."""
 
     def test_it_redirects_for_oauth(self, lti_launch_request):
-        create_application_instance(lti_launch_request)
         user = create_user(lti_launch_request)
 
         response = view_function(lti_launch_request, user=user)
         assert response.code == 302
-        assert (
-            "https://hypothesis.instructure.com/login/oauth2/auth" in response.location
-        )
+        assert "https://example.com/login/oauth2/auth" in response.location
 
     def test_it_saves_lti_params(self, lti_launch_request):
-        create_application_instance(lti_launch_request)
         user = create_user(lti_launch_request)
 
         response = view_function(lti_launch_request, user=user)
@@ -82,7 +64,6 @@ class TestAuthorizeLms:
         assert lti_params == lti_launch_request.params
 
     def test_it_only_redirects_if_condition_is_truthy(self, lti_launch_request):
-        create_application_instance(lti_launch_request)
         user = create_user(lti_launch_request)
 
         response = oauth_condition_view_function(lti_launch_request, user=user)

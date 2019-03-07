@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms.util import lti_params_for
-from lms.models.application_instance import find_by_oauth_consumer_key
+from lms.services import ConsumerKeyError
 
 
 class Root:
@@ -36,6 +36,7 @@ class LTILaunch:
         """Return the context resource for an LTI launch request."""
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
+        self._ai_getter = self._request.find_service(name="ai_getter")
 
         # This will raise HTTPBadRequest if the request looks like an OAuth
         # redirect request but no DB-stashed LTI params can be found for the
@@ -220,12 +221,10 @@ class LTILaunch:
         :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
           params
         """
-        application_instance = find_by_oauth_consumer_key(
-            self._request.db, self._get_param("oauth_consumer_key")
-        )
-        if application_instance is None:
+        try:
+            return self._ai_getter.provisioning(self._get_param("oauth_consumer_key"))
+        except ConsumerKeyError:
             return False
-        return application_instance.provisioning
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""

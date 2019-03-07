@@ -6,7 +6,6 @@ from sqlalchemy import and_
 from lms.exceptions import MissingLTILaunchParamError
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
-from lms.util import get_application_instance
 from lms.util import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.views.content_item_selection import content_item_form
@@ -15,7 +14,6 @@ from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.util import via_url
 from lms.models.tokens import find_token_by_user_id
-from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.views.decorators import upsert_h_user
 from lms.views.decorators import create_course_group
 from lms.views.decorators import add_user_to_group
@@ -162,10 +160,10 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
 
     if is_canvas_file(request, lti_params):
         token = find_token_by_user_id(request.db, user.id)
-        application_instance = find_by_oauth_consumer_key(
-            request.db, lti_params["oauth_consumer_key"]
+        lms_url = request.find_service(name="ai_getter").lms_url(
+            lti_params["oauth_consumer_key"]
         )
-        canvas_api = CanvasApi(token.access_token, application_instance.lms_url)
+        canvas_api = CanvasApi(token.access_token, lms_url)
         file_id = lti_params["file_id"]
         result = canvas_api.proxy(f"/api/v1/files/{file_id}/public_url", GET, {})
         if result.status_code < 400:
@@ -181,12 +179,12 @@ def handle_lti_launch(request, token=None, lti_params=None, user=None, jwt=None)
 
     if is_authorized_to_configure(request, lti_params):
         consumer_key = request.params["oauth_consumer_key"]
-        application_instance = get_application_instance(request.db, consumer_key)
+        lms_url = request.find_service(name="ai_getter").lms_url(consumer_key)
         return content_item_form(
             request,
             lti_params=request.params,
             content_item_return_url=request.route_url("module_item_configurations"),
-            lms_url=application_instance.lms_url,
+            lms_url=lms_url,
             jwt=jwt,
         )
     return _unauthorized(request)
