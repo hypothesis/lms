@@ -23,19 +23,6 @@ class TestGetApplicationInstance:
             == application_instance
         )
 
-    def test_it_crashes_if_theres_more_than_one_matching_application_instance(
-        self, pyramid_request
-    ):
-        pyramid_request.db.add_all(
-            [
-                ApplicationInstance(consumer_key="TEST_OAUTH_CONSUMER_KEY"),
-                ApplicationInstance(consumer_key="TEST_OAUTH_CONSUMER_KEY"),
-            ]
-        )
-
-        with pytest.raises(MultipleResultsFound):
-            get_application_instance(pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY")
-
     def test_it_crashes_if_theres_no_matching_application_instance(
         self, pyramid_request
     ):
