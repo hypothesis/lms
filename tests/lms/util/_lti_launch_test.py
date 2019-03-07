@@ -57,7 +57,6 @@ class TestGetApplicationInstance:
 
 
 class TestLTILaunch:
-    @pytest.mark.usefixtures("application_instance")
     def test_it_raises_if_theres_no_oauth_consumer_key(self, pyramid_request, wrapper):
         del pyramid_request.params["oauth_consumer_key"]
 
@@ -65,12 +64,21 @@ class TestLTILaunch:
             wrapper(pyramid_request)
 
     def test_it_crashes_if_theres_no_application_instance_in_the_db(
-        self, pyramid_request, wrapper
+        self, pyramid_request, wrapper, get_application_instance
     ):
+        get_application_instance.side_effect = NoResultFound()
+
         with pytest.raises(NoResultFound):
             wrapper(pyramid_request)
 
-    @pytest.mark.usefixtures("application_instance")
+    def test_it_crashes_if_theres_more_than_one_application_instance_in_the_db(
+        self, pyramid_request, wrapper, get_application_instance
+    ):
+        get_application_instance.side_effect = MultipleResultsFound()
+
+        with pytest.raises(MultipleResultsFound):
+            wrapper(pyramid_request)
+
     def test_it_verifies_the_request(self, pyramid_request, pylti, wrapper):
         wrapper(pyramid_request)
 
@@ -82,7 +90,6 @@ class TestLTILaunch:
             pyramid_request.params,
         )
 
-    @pytest.mark.usefixtures("application_instance")
     def test_it_crashes_if_verification_fails(self, pyramid_request, wrapper, pylti):
         pylti.common.verify_request_common.side_effect = LTIException(
             "TEST_ERROR_MESSAGE"
@@ -91,7 +98,6 @@ class TestLTILaunch:
         with pytest.raises(LTIException, match="TEST_ERROR_MESSAGE"):
             wrapper(pyramid_request)
 
-    @pytest.mark.usefixtures("application_instance")
     def test_it_builds_a_jwt(self, build_jwt_from_lti_launch, wrapper, pyramid_request):
         wrapper(pyramid_request)
 
@@ -99,7 +105,6 @@ class TestLTILaunch:
             pyramid_request.params, "test_secret"
         )
 
-    @pytest.mark.usefixtures("application_instance")
     def test_it_calls_the_wrapped_view(
         self, view, wrapper, pyramid_request, build_jwt_from_lti_launch
     ):
@@ -110,12 +115,15 @@ class TestLTILaunch:
         )
 
     @pytest.fixture
-    def application_instance(self, pyramid_request):
-        application_instance = ApplicationInstance(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY", shared_secret="TEST_SECRET"
+    def application_instance(self):
+        """The matching ApplicationInstance from the DB."""
+        return mock.create_autospec(
+            ApplicationInstance,
+            instance=True,
+            spec_set=True,
+            consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            shared_secret="TEST_SECRET",
         )
-        pyramid_request.db.add(application_instance)
-        return application_instance
 
     @pytest.fixture
     def view(self):
@@ -126,6 +134,14 @@ class TestLTILaunch:
     def wrapper(self, view):
         """The wrapped view."""
         return lti_launch(view)
+
+    @pytest.fixture(autouse=True)
+    def get_application_instance(self, patch, application_instance):
+        get_application_instance = patch(
+            "lms.util._lti_launch.get_application_instance"
+        )
+        get_application_instance.return_value = application_instance
+        return get_application_instance
 
     @pytest.fixture(autouse=True)
     def build_jwt_from_lti_launch(self, patch):
