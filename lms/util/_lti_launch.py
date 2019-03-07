@@ -17,12 +17,6 @@ def get_application_instance(session, consumer_key):
     )
 
 
-def get_secret(request, consumer_key):
-    """Retrieve the lti secret given."""
-    instance = get_application_instance(request.db, consumer_key)
-    return instance.shared_secret
-
-
 def get_lti_launch_params(request):
     """Retrieve the LTI launch params."""
     return dict(request.params)
@@ -49,7 +43,8 @@ def lti_launch(view_function):
             consumer_key = lti_params["oauth_consumer_key"]
         except KeyError:
             raise MissingLTILaunchParamError("oauth_consumer_key")
-        shared_secret = get_secret(request, consumer_key)
+
+        shared_secret = get_application_instance(request.db, consumer_key).shared_secret
 
         consumers = {}
 
