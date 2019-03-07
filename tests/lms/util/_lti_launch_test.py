@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.exc import MultipleResultsFound
 from pylti.common import LTIException
 
 from lms.util import get_application_instance
@@ -56,14 +55,6 @@ class TestLTILaunch:
         get_application_instance.side_effect = NoResultFound()
 
         with pytest.raises(NoResultFound):
-            wrapper(pyramid_request)
-
-    def test_it_crashes_if_theres_more_than_one_application_instance_in_the_db(
-        self, pyramid_request, wrapper, get_application_instance
-    ):
-        get_application_instance.side_effect = MultipleResultsFound()
-
-        with pytest.raises(MultipleResultsFound):
             wrapper(pyramid_request)
 
     def test_it_verifies_the_request(self, pyramid_request, pylti, wrapper):

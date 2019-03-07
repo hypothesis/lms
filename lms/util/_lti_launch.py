@@ -18,8 +18,6 @@ def get_application_instance(db, consumer_key):
 
     :raise sqlalchemy.orm.exc.NoResultFound: if there's no application instance
       in the DB with the given ``consumer_key``
-    :raise sqlalchemy.orm.exc.MultipleResultsFound: if there's more than one
-      application instance in the DB with the given ``consumer_key``
 
     :return: the matching application instance
     :rtype: lms.models.ApplicationInstance
