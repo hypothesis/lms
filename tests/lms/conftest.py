@@ -101,7 +101,7 @@ def patch(request):
 
 
 @pytest.fixture
-def pyramid_request():
+def pyramid_request(db_session):
     """
     Return a dummy Pyramid request object.
 
@@ -109,7 +109,7 @@ def pyramid_request():
     fixture below.
 
     """
-    pyramid_request = testing.DummyRequest()
+    pyramid_request = testing.DummyRequest(db=db_session)
     pyramid_request.POST.update(
         {
             "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",

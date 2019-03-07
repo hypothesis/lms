@@ -4,8 +4,8 @@ from pyramid.view import view_config
 
 from lms.exceptions import MissingLTIContentItemParamError
 from lms.models.application_instance import find_by_oauth_consumer_key
-from lms.util.lti_launch import get_application_instance
-from lms.util.lti_launch import lti_launch
+from lms.util import get_application_instance
+from lms.util import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
