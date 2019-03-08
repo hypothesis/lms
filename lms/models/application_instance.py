@@ -74,7 +74,7 @@ def build_unique_key():
 def build_from_lms_url(
     lms_url, email, developer_key, developer_secret, encryption_key=None
 ):
-    """Intantiate ApplicationIntance with lms_url."""
+    """Instantiate ApplicationInstance with lms_url."""
     encrypted_secret = developer_secret
     aes_iv = None
     if encryption_key is not None and developer_secret and developer_key:
