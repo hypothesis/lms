@@ -1,45 +1,12 @@
 from unittest import mock
 
 import pytest
-from sqlalchemy.orm.exc import NoResultFound
 from pylti.common import LTIException
 
-from lms.util import get_application_instance
 from lms.util import lti_launch
 from lms.exceptions import MissingLTILaunchParamError
 from lms.models import ApplicationInstance
-
-
-class TestGetApplicationInstance:
-    def test_it_returns_the_matching_application_instance(self, pyramid_request):
-        application_instance = ApplicationInstance(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY"
-        )
-        pyramid_request.db.add(application_instance)
-
-        assert (
-            get_application_instance(pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY")
-            == application_instance
-        )
-
-    def test_it_crashes_if_theres_no_matching_application_instance(
-        self, pyramid_request
-    ):
-        with pytest.raises(NoResultFound):
-            get_application_instance(pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY")
-
-    @pytest.fixture(autouse=True)
-    def application_instances(self, pyramid_request):
-        """Some "noise" application instances."""
-        # Add some "noise" application instances to the DB for every test, to
-        # make the tests more realistic.
-        application_instances = [
-            ApplicationInstance(consumer_key="NOISE_1"),
-            ApplicationInstance(consumer_key="NOISE_2"),
-            ApplicationInstance(consumer_key="NOISE_3"),
-        ]
-        pyramid_request.db.add_all(application_instances)
-        return application_instances
+from lms.services import ConsumerKeyError
 
 
 class TestLTILaunch:

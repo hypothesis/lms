@@ -3,30 +3,8 @@ from functools import wraps
 
 import pylti.common
 
-from lms.models import application_instance as ai
 from lms.util.jwt import build_jwt_from_lti_launch
 from lms.exceptions import MissingLTILaunchParamError
-
-
-def get_application_instance(db, consumer_key):
-    """
-    Return the application instance with the given ``consumer_key``.
-
-    :arg db: the sqlalchemy session
-    :arg consumer_key: the consumer key to search for
-    :type consumer_key: str
-
-    :raise sqlalchemy.orm.exc.NoResultFound: if there's no application instance
-      in the DB with the given ``consumer_key``
-
-    :return: the matching application instance
-    :rtype: lms.models.ApplicationInstance
-    """
-    return (
-        db.query(ai.ApplicationInstance)
-        .filter(ai.ApplicationInstance.consumer_key == consumer_key)
-        .one()
-    )
 
 
 def get_lti_launch_params(request):
