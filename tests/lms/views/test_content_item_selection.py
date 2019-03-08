@@ -37,3 +37,8 @@ class TestContentItemForm:
                 lms_url="test_lms_url",
                 content_item_return_url="content_item_return_url",
             )
+
+
+@pytest.fixture(autouse=True)
+def canvas_files_available(patch):
+    return patch("lms.views.content_item_selection.canvas_files_available")

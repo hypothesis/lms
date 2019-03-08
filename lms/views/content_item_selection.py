@@ -9,25 +9,7 @@ from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
 from lms.views.decorators import upsert_h_user
 from lms.views.decorators import create_course_group
-
-
-def should_show_file_picker(lti_params, request):
-    developer_key = request.find_service(name="ai_getter").developer_key(
-        lti_params["oauth_consumer_key"]
-    )
-    return "custom_canvas_course_id" in lti_params and developer_key is not None
-
-
-def should_canvas_oauth(request):
-    """Determine if we should perform a canvas oauth."""
-    # We know we are launching from canvas if we have
-    # been provided custom_canvas_course_id in the lti
-    # launch via variable substitution
-    # also only do oauth if we have a developer key and secret
-    developer_key = request.find_service(name="ai_getter").developer_key(
-        request.params["oauth_consumer_key"]
-    )
-    return "custom_canvas_course_id" in request.params and developer_key is not None
+from lms.views.helpers import canvas_files_available
 
 
 @view_config(route_name="content_item_selection", request_method="POST")
@@ -38,7 +20,7 @@ def should_canvas_oauth(request):
 @authorize_lms(
     authorization_base_endpoint="login/oauth2/auth",
     redirect_endpoint="canvas_oauth_callback",
-    oauth_condition=should_canvas_oauth,
+    oauth_condition=canvas_files_available,
 )
 def content_item_selection(request, _jwt, **_):
     """
@@ -103,6 +85,6 @@ def content_item_form(request, lti_params, lms_url, content_item_return_url, jwt
         "jwt": jwt,
     }
 
-    if should_show_file_picker(lti_params, request):
+    if canvas_files_available(request, params=lti_params):
         params["course_id"] = lti_params["custom_canvas_course_id"]
     return params
