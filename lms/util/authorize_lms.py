@@ -136,9 +136,6 @@ def save_token(view_function):
 
         user = find_user_from_state(request.db, state)
 
-        if application_instance is None:
-            raise exc.HTTPInternalServerError("Application instance was not found")
-
         new_token = build_token_from_oauth_response(oauth_resp)
         update_user_token(request.db, new_token, user)
         jwt_token = build_jwt_from_lti_launch(
