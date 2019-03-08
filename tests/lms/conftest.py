@@ -15,7 +15,6 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms import db
-from lms.config.resources import LTILaunch
 from lms.models import User
 from lms.models import Token
 from lms.models import OauthState
@@ -235,15 +234,6 @@ def lti_launch_request(monkeypatch, pyramid_request):
     pyramid_request.params["context_id"] = "fake_context_id"
     monkeypatch.setattr(
         "pylti.common.verify_request_common", lambda a, b, c, d, e: True
-    )
-
-    pyramid_request.context = mock.create_autospec(
-        LTILaunch,
-        spec_set=True,
-        instance=True,
-        rpc_server_config={},
-        hypothesis_config={},
-        provisioning_enabled=True,
     )
 
     yield pyramid_request
