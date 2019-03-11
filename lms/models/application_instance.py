@@ -33,8 +33,8 @@ class ApplicationInstance(BASE):
     requesters_email = sa.Column(sa.String(2048), nullable=False)
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow(), nullable=False)
     developer_key = sa.Column(sa.String)
-    developer_secret = sa.Column(sa.LargeBinary, default=None)
-    aes_cipher_iv = sa.Column(sa.LargeBinary, default=None)
+    developer_secret = sa.Column(sa.LargeBinary)
+    aes_cipher_iv = sa.Column(sa.LargeBinary)
     provisioning = sa.Column(
         sa.Boolean(),
         default=True,
