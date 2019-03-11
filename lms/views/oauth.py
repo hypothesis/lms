@@ -31,7 +31,7 @@ def canvas_oauth_callback(request):
 
     ai_getter = request.find_service(name="ai_getter")
     client_id = ai_getter.developer_key(consumer_key)
-    client_secret = ai_getter.decrypted_developer_secret(consumer_key)
+    client_secret = ai_getter.developer_secret(consumer_key)
     lms_url = ai_getter.lms_url(consumer_key)
     token_url = build_canvas_token_url(lms_url)
 
