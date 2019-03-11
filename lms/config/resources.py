@@ -220,7 +220,9 @@ class LTILaunch:
         :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
           params
         """
-        return self._ai_getter.provisioning_enabled(self._get_param("oauth_consumer_key"))
+        return self._ai_getter.provisioning_enabled(
+            self._get_param("oauth_consumer_key")
+        )
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""
