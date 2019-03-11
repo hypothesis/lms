@@ -63,7 +63,7 @@ class ApplicationInstanceGetter:
         """
         return self._get(consumer_key).lms_url
 
-    def provisioning(self, consumer_key):
+    def provisioning_enabled(self, consumer_key):
         """
         Return ``True`` if provisioning is enabled for the given consumer key.
 

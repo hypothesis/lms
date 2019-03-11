@@ -86,12 +86,12 @@ class TestApplicationInstanceGetter:
             ApplicationInstance(consumer_key="TEST_CONSUMER_KEY", provisioning=flag)
         )
 
-        assert ai_getter.provisioning("TEST_CONSUMER_KEY") == flag
+        assert ai_getter.provisioning_enabled("TEST_CONSUMER_KEY") == flag
 
     def test_provisioning_returns_False_if_consumer_key_unknown(
         self, ai_getter, pyramid_request
     ):
-        assert ai_getter.provisioning("UNKNOWN_CONSUMER_KEY") is False
+        assert ai_getter.provisioning_enabled("UNKNOWN_CONSUMER_KEY") is False
 
     def test_shared_secret_returns_the_shared_secret(self, ai_getter, pyramid_request):
         pyramid_request.db.add(

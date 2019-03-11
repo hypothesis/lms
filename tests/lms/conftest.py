@@ -195,7 +195,7 @@ def ai_getter(pyramid_config):
     ai_getter = mock.create_autospec(
         ApplicationInstanceGetter, spec_set=True, instance=True
     )
-    ai_getter.provisioning.return_value = True
+    ai_getter.provisioning_enabled.return_value = True
     ai_getter.lms_url.return_value = "https://example.com"
     ai_getter.shared_secret.return_value = "TEST_SECRET"
     pyramid_config.register_service(ai_getter, name="ai_getter")

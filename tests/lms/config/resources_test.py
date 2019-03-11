@@ -372,7 +372,7 @@ class TestLTILaunch:
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
         self, lti_launch, ai_getter
     ):
-        ai_getter.provisioning.return_value = False
+        ai_getter.provisioning_enabled.return_value = False
 
         assert lti_launch.hypothesis_config == {}
 
@@ -386,7 +386,7 @@ class TestLTILaunch:
     ):
         lti_launch.provisioning_enabled
 
-        ai_getter.provisioning.assert_called_once_with(
+        ai_getter.provisioning_enabled.assert_called_once_with(
             "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
 
@@ -398,7 +398,7 @@ class TestLTILaunch:
     def test_provisioning_enabled_returns_False_if_provisioning_disabled_for_application_instance(
         self, ai_getter, lti_launch
     ):
-        ai_getter.provisioning.return_value = False
+        ai_getter.provisioning_enabled.return_value = False
 
         assert lti_launch.provisioning_enabled is False
 
