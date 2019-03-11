@@ -58,7 +58,7 @@
     "proxyquire": "^2.1.0",
     "proxyquire-universal": "^2.1.0",
     "proxyquireify": "^3.2.1",
-    "sinon": "^7.2.6"
+    "sinon": "^7.2.7"
   },
   "browserify": {
     "transform": [
