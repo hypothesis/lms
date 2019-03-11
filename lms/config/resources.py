@@ -7,7 +7,6 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms.util import lti_params_for
-from lms.services import ConsumerKeyError
 
 
 class Root:
@@ -221,10 +220,7 @@ class LTILaunch:
         :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
           params
         """
-        try:
-            return self._ai_getter.provisioning(self._get_param("oauth_consumer_key"))
-        except ConsumerKeyError:
-            return False
+        return self._ai_getter.provisioning(self._get_param("oauth_consumer_key"))
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""

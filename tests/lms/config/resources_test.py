@@ -402,13 +402,6 @@ class TestLTILaunch:
 
         assert lti_launch.provisioning_enabled is False
 
-    def test_provisioning_enabled_returns_False_if_application_instance_not_found(
-        self, ai_getter, lti_launch
-    ):
-        ai_getter.provisioning.side_effect = ConsumerKeyError()
-
-        assert lti_launch.provisioning_enabled is False
-
     def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
         self, lti_params_for, pyramid_request
     ):
