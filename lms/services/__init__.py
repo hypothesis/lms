@@ -1,9 +1,20 @@
 from lms.services.exceptions import ServiceError
+from lms.services.exceptions import LTILaunchVerificationError
+from lms.services.exceptions import NoConsumerKey
 from lms.services.exceptions import ConsumerKeyError
+from lms.services.exceptions import LTIOAuthError
 from lms.services.exceptions import HAPIError
 from lms.services.exceptions import HAPINotFoundError
 
-__all__ = ("ServiceError", "ConsumerKeyError", "HAPIError", "HAPINotFoundError")
+__all__ = (
+    "ServiceError",
+    "LTILaunchVerificationError",
+    "NoConsumerKey",
+    "ConsumerKeyError",
+    "LTIOAuthError",
+    "HAPIError",
+    "HAPINotFoundError",
+)
 
 
 def includeme(config):
@@ -14,3 +25,4 @@ def includeme(config):
         "lms.services.application_instance_getter.ApplicationInstanceGetter",
         name="ai_getter",
     )
+    config.register_service_factory("lms.services.lti.LTIService", name="lti")

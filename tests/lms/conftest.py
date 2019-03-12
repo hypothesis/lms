@@ -21,6 +21,7 @@ from lms.models import OauthState
 from lms.models import build_from_lms_url
 from lms.util import GET
 from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.lti import LTIService
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql://postgres@localhost:5433/lms_test"
@@ -200,6 +201,13 @@ def ai_getter(pyramid_config):
     ai_getter.shared_secret.return_value = "TEST_SECRET"
     pyramid_config.register_service(ai_getter, name="ai_getter")
     return ai_getter
+
+
+@pytest.fixture(autouse=True)
+def lti_svc(pyramid_config):
+    lti_svc = mock.create_autospec(LTIService, spec_set=True, instance=True)
+    pyramid_config.register_service(lti_svc, name="lti")
+    return lti_svc
 
 
 @pytest.fixture(autouse=True)
