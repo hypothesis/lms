@@ -40,14 +40,13 @@ class ApplicationInstanceGetter:
         """
         application_instance = self._get(consumer_key)
 
-        developer_secret = application_instance.developer_secret
-        if developer_secret is None:
+        if application_instance.developer_secret is None:
             return None
 
         cipher = AES.new(
             self._aes_secret, AES.MODE_CFB, application_instance.aes_cipher_iv
         )
-        return cipher.decrypt(developer_secret)
+        return cipher.decrypt(application_instance.developer_secret)
 
     def lms_url(self, consumer_key):
         """
