@@ -21,12 +21,6 @@ def encrypt_oauth_secret(oauth_secret, key, init_v):
     return cipher.encrypt(oauth_secret)
 
 
-def decrypt_oauth_secret(encrypted_secret, key, init_v):
-    """Decrypt AES encrypted secret."""
-    cipher = AES.new(key, AES.MODE_CFB, init_v)
-    return cipher.decrypt(encrypted_secret)
-
-
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
 
@@ -46,18 +40,6 @@ class ApplicationInstance(BASE):
         default=True,
         server_default=sa.sql.expression.true(),
         nullable=False,
-    )
-
-    def decrypted_developer_secret(self, key):
-        encrypted_secret = self.developer_secret
-        return decrypt_oauth_secret(encrypted_secret, key, self.aes_cipher_iv)
-
-
-def find_by_oauth_consumer_key(session, key):
-    return (
-        session.query(ApplicationInstance)
-        .filter(ApplicationInstance.consumer_key == key)
-        .one_or_none()
     )
 
 

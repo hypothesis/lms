@@ -6,7 +6,8 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.config import resources
-from lms.models import ApplicationInstance
+from lms import models
+from lms.services import ConsumerKeyError
 
 
 class TestLTILaunch:
@@ -369,9 +370,9 @@ class TestLTILaunch:
         ]
 
     def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
-        self, lti_launch, find_by_oauth_consumer_key
+        self, lti_launch, ai_getter
     ):
-        find_by_oauth_consumer_key.return_value.provisioning = False
+        ai_getter.provisioning_enabled.return_value = False
 
         assert lti_launch.hypothesis_config == {}
 
@@ -380,33 +381,24 @@ class TestLTILaunch:
             "allowedOrigins": ["http://localhost:5000"]
         }
 
-    def test_provisioning_enabled_gets_application_instance_from_db(
-        self, find_by_oauth_consumer_key, lti_launch, pyramid_request
+    def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
+        self, ai_getter, lti_launch, pyramid_request
     ):
         lti_launch.provisioning_enabled
 
-        find_by_oauth_consumer_key.assert_called_once_with(
-            pyramid_request.db, "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
+        ai_getter.provisioning_enabled.assert_called_once_with(
+            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
 
     def test_provisioning_enabled_returns_True_if_provisioning_enabled_for_application_instance(
-        self, find_by_oauth_consumer_key, lti_launch
+        self, lti_launch
     ):
-        find_by_oauth_consumer_key.return_value.provisioning = True
-
         assert lti_launch.provisioning_enabled is True
 
     def test_provisioning_enabled_returns_False_if_provisioning_disabled_for_application_instance(
-        self, find_by_oauth_consumer_key, lti_launch
+        self, ai_getter, lti_launch
     ):
-        find_by_oauth_consumer_key.return_value.provisioning = False
-
-        assert lti_launch.provisioning_enabled is False
-
-    def test_provisioning_enabled_returns_False_if_application_instance_not_found(
-        self, find_by_oauth_consumer_key, lti_launch
-    ):
-        find_by_oauth_consumer_key.return_value = None
+        ai_getter.provisioning_enabled.return_value = False
 
         assert lti_launch.provisioning_enabled is False
 
@@ -433,13 +425,3 @@ class TestLTILaunch:
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return lti_params_for
-
-    @pytest.fixture(autouse=True)
-    def find_by_oauth_consumer_key(self, patch):
-        find_by_oauth_consumer_key = patch(
-            "lms.config.resources.find_by_oauth_consumer_key"
-        )
-        find_by_oauth_consumer_key.return_value = mock.create_autospec(
-            ApplicationInstance, spec_set=True, instance=True
-        )
-        return find_by_oauth_consumer_key

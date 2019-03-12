@@ -4,10 +4,10 @@ import urllib
 import requests_oauthlib
 import pyramid.httpexceptions as exc
 from lms.models import find_or_create_from_user, find_user_from_state
-from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import build_token_from_oauth_response, update_user_token
 from lms.util.jwt import build_jwt_from_lti_launch
 from lms.util.lti import lti_params_for
+from lms.services import ConsumerKeyError
 
 
 def build_canvas_token_url(lms_url):
@@ -67,17 +67,16 @@ def authorize_lms(
             if oauth_condition(request) is False:
                 return view_function(request, *args, user=user, **kwargs)
 
+            ai_getter = request.find_service(name="ai_getter")
             consumer_key = request.params["oauth_consumer_key"]
-
-            application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
-
-            client_id = application_instance.developer_key
-
-            if application_instance is None:
+            try:
+                client_id = ai_getter.developer_key(consumer_key)
+                lms_url = ai_getter.lms_url(consumer_key)
+            except ConsumerKeyError:
                 raise exc.HTTPInternalServerError()
 
             authorization_base_url = build_auth_base_url(
-                application_instance.lms_url, authorization_base_endpoint
+                lms_url, authorization_base_endpoint
             )
 
             redirect_uri = build_redirect_uri(request.url, redirect_endpoint)
@@ -112,18 +111,16 @@ def save_token(view_function):
 
         lti_params = lti_params_for(request)
 
-        application_instance = find_by_oauth_consumer_key(
-            request.db, lti_params["oauth_consumer_key"]
-        )
-
-        if application_instance is None:
+        ai_getter = request.find_service(name="ai_getter")
+        consumer_key = lti_params["oauth_consumer_key"]
+        try:
+            client_id = ai_getter.developer_key(consumer_key)
+            client_secret = ai_getter.developer_secret(consumer_key)
+            lms_url = ai_getter.lms_url(consumer_key)
+        except ConsumerKeyError:
             raise exc.HTTPInternalServerError()
 
-        aes_secret = request.registry.settings["aes_secret"]
-        client_id = application_instance.developer_key
-        client_secret = application_instance.decrypted_developer_secret(aes_secret)
-
-        token_url = build_canvas_token_url(application_instance.lms_url)
+        token_url = build_canvas_token_url(lms_url)
 
         state = request.params["state"]
         session = requests_oauthlib.OAuth2Session(client_id, state=state)

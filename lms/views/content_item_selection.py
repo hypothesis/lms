@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 from pyramid.view import view_config
 
 from lms.exceptions import MissingLTIContentItemParamError
-from lms.models.application_instance import find_by_oauth_consumer_key
-from lms.util import get_application_instance
 from lms.util import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
@@ -14,12 +12,10 @@ from lms.views.decorators import create_course_group
 
 
 def should_show_file_picker(lti_params, request):
-    consumer_key = lti_params["oauth_consumer_key"]
-    application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
-    return (
-        "custom_canvas_course_id" in lti_params
-        and application_instance.developer_key is not None
+    developer_key = request.find_service(name="ai_getter").developer_key(
+        lti_params["oauth_consumer_key"]
     )
+    return "custom_canvas_course_id" in lti_params and developer_key is not None
 
 
 def should_canvas_oauth(request):
@@ -28,12 +24,10 @@ def should_canvas_oauth(request):
     # been provided custom_canvas_course_id in the lti
     # launch via variable substitution
     # also only do oauth if we have a developer key and secret
-    consumer_key = request.params["oauth_consumer_key"]
-    application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
-    return (
-        "custom_canvas_course_id" in request.params
-        and application_instance.developer_key is not None
+    developer_key = request.find_service(name="ai_getter").developer_key(
+        request.params["oauth_consumer_key"]
     )
+    return "custom_canvas_course_id" in request.params and developer_key is not None
 
 
 @view_config(route_name="content_item_selection", request_method="POST")
@@ -52,12 +46,13 @@ def content_item_selection(request, _jwt, **_):
 
     This view is only used for lms's that support link selection
     """
-    consumer_key = request.params["oauth_consumer_key"]
-    application_instance = get_application_instance(request.db, consumer_key)
+    lms_url = request.find_service(name="ai_getter").lms_url(
+        request.params["oauth_consumer_key"]
+    )
     return content_item_form(
         request,
         lti_params=request.params,
-        lms_url=application_instance.lms_url,
+        lms_url=lms_url,
         content_item_return_url=request.params["content_item_return_url"],
         jwt=None,
     )

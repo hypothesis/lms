@@ -1,45 +1,12 @@
 from unittest import mock
 
 import pytest
-from sqlalchemy.orm.exc import NoResultFound
 from pylti.common import LTIException
 
-from lms.util import get_application_instance
 from lms.util import lti_launch
 from lms.exceptions import MissingLTILaunchParamError
 from lms.models import ApplicationInstance
-
-
-class TestGetApplicationInstance:
-    def test_it_returns_the_matching_application_instance(self, pyramid_request):
-        application_instance = ApplicationInstance(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY"
-        )
-        pyramid_request.db.add(application_instance)
-
-        assert (
-            get_application_instance(pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY")
-            == application_instance
-        )
-
-    def test_it_crashes_if_theres_no_matching_application_instance(
-        self, pyramid_request
-    ):
-        with pytest.raises(NoResultFound):
-            get_application_instance(pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY")
-
-    @pytest.fixture(autouse=True)
-    def application_instances(self, pyramid_request):
-        """Some "noise" application instances."""
-        # Add some "noise" application instances to the DB for every test, to
-        # make the tests more realistic.
-        application_instances = [
-            ApplicationInstance(consumer_key="NOISE_1"),
-            ApplicationInstance(consumer_key="NOISE_2"),
-            ApplicationInstance(consumer_key="NOISE_3"),
-        ]
-        pyramid_request.db.add_all(application_instances)
-        return application_instances
+from lms.services import ConsumerKeyError
 
 
 class TestLTILaunch:
@@ -50,11 +17,11 @@ class TestLTILaunch:
             wrapper(pyramid_request)
 
     def test_it_crashes_if_theres_no_application_instance_in_the_db(
-        self, pyramid_request, wrapper, get_application_instance
+        self, pyramid_request, wrapper, ai_getter
     ):
-        get_application_instance.side_effect = NoResultFound()
+        ai_getter.shared_secret.side_effect = ConsumerKeyError()
 
-        with pytest.raises(NoResultFound):
+        with pytest.raises(ConsumerKeyError):
             wrapper(pyramid_request)
 
     def test_it_verifies_the_request(self, pyramid_request, pylti, wrapper):
@@ -112,14 +79,6 @@ class TestLTILaunch:
     def wrapper(self, view):
         """The wrapped view."""
         return lti_launch(view)
-
-    @pytest.fixture(autouse=True)
-    def get_application_instance(self, patch, application_instance):
-        get_application_instance = patch(
-            "lms.util._lti_launch.get_application_instance"
-        )
-        get_application_instance.return_value = application_instance
-        return get_application_instance
 
     @pytest.fixture(autouse=True)
     def build_jwt_from_lti_launch(self, patch):

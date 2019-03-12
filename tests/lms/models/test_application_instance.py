@@ -1,3 +1,5 @@
+import pytest
+
 from lms.models import ApplicationInstance
 
 

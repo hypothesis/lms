@@ -20,6 +20,7 @@ from lms.models import Token
 from lms.models import OauthState
 from lms.models import build_from_lms_url
 from lms.util import GET
+from lms.services.application_instance_getter import ApplicationInstanceGetter
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql://postgres@localhost:5433/lms_test"
@@ -187,6 +188,18 @@ def pyramid_config(pyramid_request):
         apply_request_extensions(pyramid_request)
 
         yield config
+
+
+@pytest.fixture(autouse=True)
+def ai_getter(pyramid_config):
+    ai_getter = mock.create_autospec(
+        ApplicationInstanceGetter, spec_set=True, instance=True
+    )
+    ai_getter.provisioning_enabled.return_value = True
+    ai_getter.lms_url.return_value = "https://example.com"
+    ai_getter.shared_secret.return_value = "TEST_SECRET"
+    pyramid_config.register_service(ai_getter, name="ai_getter")
+    return ai_getter
 
 
 @pytest.fixture(autouse=True)

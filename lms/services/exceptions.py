@@ -1,6 +1,14 @@
 from pyramid.httpexceptions import HTTPInternalServerError
 
 
+class ServiceError(Exception):
+    """Base class for all :mod:`lms.services` exceptions."""
+
+
+class ConsumerKeyError(ServiceError):
+    """Raised when a given ``consumer_key`` doesn't exist in the DB."""
+
+
 class HAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
     """
     A problem with an h API request.

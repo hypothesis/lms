@@ -2,8 +2,8 @@ import functools
 
 import requests
 import pyramid.httpexceptions as exc
-from lms.models.application_instance import find_by_oauth_consumer_key
 from lms.models.tokens import find_token_by_user_id
+from lms.services import ConsumerKeyError
 
 GET = "get"
 POST = "post"
@@ -79,13 +79,17 @@ def canvas_api(view_function):
             return exc.HTTPNotFound()
 
         token = find_token_by_user_id(request.db, user.id)
-        consumer_key = decoded_jwt["consumer_key"]
-        application_instance = find_by_oauth_consumer_key(request.db, consumer_key)
-
-        if token is None or application_instance is None:
+        if token is None:
             return exc.HTTPNotFound()
 
-        api = CanvasApi(token.access_token, application_instance.lms_url)
+        try:
+            lms_url = request.find_service(name="ai_getter").lms_url(
+                decoded_jwt["consumer_key"]
+            )
+        except ConsumerKeyError:
+            return exc.HTTPNotFound()
+
+        api = CanvasApi(token.access_token, lms_url)
         return view_function(request, decoded_jwt, user=user, canvas_api=api)
 
     return wrapper
