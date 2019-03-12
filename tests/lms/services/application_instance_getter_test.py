@@ -10,19 +10,15 @@ from lms.models.application_instance import encrypt_oauth_secret
 
 
 class TestApplicationInstanceGetter:
-    def test_developer_key_returns_the_developer_key(self, ai_getter, pyramid_request):
-        pyramid_request.db.add(
-            ApplicationInstance(
-                consumer_key="TEST_CONSUMER_KEY", developer_key="TEST_DEVELOPER_KEY"
-            )
-        )
-
+    def test_developer_key_returns_the_developer_key(
+        self, ai_getter, pyramid_request, test_application_instance
+    ):
         assert ai_getter.developer_key("TEST_CONSUMER_KEY") == "TEST_DEVELOPER_KEY"
 
     def test_developer_key_returns_None_if_ApplicationInstance_has_no_developer_key(
-        self, ai_getter, pyramid_request
+        self, ai_getter, pyramid_request, test_application_instance
     ):
-        pyramid_request.db.add(ApplicationInstance(consumer_key="TEST_CONSUMER_KEY"))
+        test_application_instance.developer_key = None
 
         assert ai_getter.developer_key("TEST_CONSUMER_KEY") is None
 
@@ -33,19 +29,13 @@ class TestApplicationInstanceGetter:
             ai_getter.developer_key("UNKNOWN_CONSUMER_KEY")
 
     def test_developer_secret_returns_the_decrypted_developer_secret(
-        self, ai_getter, pyramid_request
+        self, ai_getter, pyramid_request, test_application_instance
     ):
-        aes_iv = build_aes_iv()
-        pyramid_request.db.add(
-            ApplicationInstance(
-                consumer_key="TEST_CONSUMER_KEY",
-                developer_secret=encrypt_oauth_secret(
-                    b"TEST_DEVELOPER_SECRET",
-                    pyramid_request.registry.settings["aes_secret"],
-                    aes_iv,
-                ),
-                aes_cipher_iv=aes_iv,
-            )
+        test_application_instance.aes_cipher_iv = build_aes_iv()
+        test_application_instance.developer_secret = encrypt_oauth_secret(
+            b"TEST_DEVELOPER_SECRET",
+            pyramid_request.registry.settings["aes_secret"],
+            test_application_instance.aes_cipher_iv,
         )
 
         assert (
@@ -53,10 +43,8 @@ class TestApplicationInstanceGetter:
         )
 
     def test_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
-        self, ai_getter, pyramid_request
+        self, ai_getter, pyramid_request, test_application_instance
     ):
-        pyramid_request.db.add(ApplicationInstance(consumer_key="TEST_CONSUMER_KEY"))
-
         assert ai_getter.developer_secret("TEST_CONSUMER_KEY") is None
 
     def test_developer_secret_raises_if_consumer_key_unknown(
@@ -65,13 +53,9 @@ class TestApplicationInstanceGetter:
         with pytest.raises(ConsumerKeyError):
             ai_getter.developer_secret("UNKNOWN_CONSUMER_KEY")
 
-    def test_lms_url_returns_the_lms_url(self, ai_getter, pyramid_request):
-        pyramid_request.db.add(
-            ApplicationInstance(
-                consumer_key="TEST_CONSUMER_KEY", lms_url="TEST_LMS_URL"
-            )
-        )
-
+    def test_lms_url_returns_the_lms_url(
+        self, ai_getter, pyramid_request, test_application_instance
+    ):
         assert ai_getter.lms_url("TEST_CONSUMER_KEY") == "TEST_LMS_URL"
 
     def test_lms_url_raises_if_consumer_key_unknown(self, ai_getter, pyramid_request):
@@ -80,11 +64,9 @@ class TestApplicationInstanceGetter:
 
     @pytest.mark.parametrize("flag", [True, False])
     def test_provisioning_returns_the_provisioning_flag(
-        self, ai_getter, pyramid_request, flag
+        self, ai_getter, pyramid_request, flag, test_application_instance
     ):
-        pyramid_request.db.add(
-            ApplicationInstance(consumer_key="TEST_CONSUMER_KEY", provisioning=flag)
-        )
+        test_application_instance.provisioning = flag
 
         assert ai_getter.provisioning_enabled("TEST_CONSUMER_KEY") == flag
 
@@ -93,13 +75,9 @@ class TestApplicationInstanceGetter:
     ):
         assert ai_getter.provisioning_enabled("UNKNOWN_CONSUMER_KEY") is False
 
-    def test_shared_secret_returns_the_shared_secret(self, ai_getter, pyramid_request):
-        pyramid_request.db.add(
-            ApplicationInstance(
-                consumer_key="TEST_CONSUMER_KEY", shared_secret="TEST_SHARED_SECRET"
-            )
-        )
-
+    def test_shared_secret_returns_the_shared_secret(
+        self, ai_getter, pyramid_request, test_application_instance
+    ):
         assert ai_getter.shared_secret("TEST_CONSUMER_KEY") == "TEST_SHARED_SECRET"
 
     def test_shared_secret_raises_if_consumer_key_unknown(
@@ -111,6 +89,18 @@ class TestApplicationInstanceGetter:
     @pytest.fixture
     def ai_getter(self, pyramid_config, pyramid_request):
         return ApplicationInstanceGetter(mock.sentinel.context, pyramid_request)
+
+    @pytest.fixture
+    def test_application_instance(self, pyramid_request):
+        application_instance = ApplicationInstance(
+            consumer_key="TEST_CONSUMER_KEY",
+            developer_key="TEST_DEVELOPER_KEY",
+            lms_url="TEST_LMS_URL",
+            shared_secret="TEST_SHARED_SECRET",
+            requesters_email="TEST_EMAIL",
+        )
+        pyramid_request.db.add(application_instance)
+        return application_instance
 
     @pytest.fixture(autouse=True)
     def application_instances(self, pyramid_request):
@@ -124,6 +114,7 @@ class TestApplicationInstanceGetter:
                 lms_url="NOISE_LMS_URL_1",
                 provisioning=True,
                 shared_secret="NOISE_SHARED_SECRET_1",
+                requesters_email="NOISE_EMAIL_1",
             ),
             ApplicationInstance(
                 consumer_key="NOISE_CONSUMER_KEY_2",
@@ -131,6 +122,7 @@ class TestApplicationInstanceGetter:
                 lms_url="NOISE_LMS_URL_2",
                 provisioning=True,
                 shared_secret="NOISE_SHARED_SECRET_2",
+                requesters_email="NOISE_EMAIL_2",
             ),
             ApplicationInstance(
                 consumer_key="NOISE_CONSUMER_KEY_3",
@@ -138,6 +130,7 @@ class TestApplicationInstanceGetter:
                 lms_url="NOISE_LMS_URL_3",
                 provisioning=True,
                 shared_secret="NOISE_SHARED_SECRET_3",
+                requesters_email="NOISE_EMAIL_3",
             ),
         ]
         pyramid_request.db.add_all(application_instances)

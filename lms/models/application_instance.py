@@ -27,11 +27,11 @@ class ApplicationInstance(BASE):
     __tablename__ = "application_instances"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
-    consumer_key = sa.Column(sa.String, unique=True)
-    shared_secret = sa.Column(sa.String)
-    lms_url = sa.Column(sa.String(2048))
-    requesters_email = sa.Column(sa.String(2048))
-    created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
+    consumer_key = sa.Column(sa.String, unique=True, nullable=False)
+    shared_secret = sa.Column(sa.String, nullable=False)
+    lms_url = sa.Column(sa.String(2048), nullable=False)
+    requesters_email = sa.Column(sa.String(2048), nullable=False)
+    created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow(), nullable=False)
     developer_key = sa.Column(sa.String)
     developer_secret = sa.Column(sa.LargeBinary, default=None)
     aes_cipher_iv = sa.Column(sa.LargeBinary, default=None)
