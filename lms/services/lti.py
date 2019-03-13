@@ -7,6 +7,7 @@ can have state (e.g. to cache the results of computations).
 """
 import pylti.common
 
+from lms.services import LTILaunchVerificationError
 from lms.services import NoConsumerKey
 from lms.services import ConsumerKeyError
 from lms.services import LTIOAuthError
@@ -17,6 +18,8 @@ class LTIService:
 
     def __init__(self, _context, request):
         self._request = request
+        self._called = False
+        self._exception = None
 
     def verify_launch_request(self):
         """
@@ -37,6 +40,18 @@ class LTIService:
         :raise LTIOAuthError: If OAuth 1.0 verification of the request and its
           signature fails
         """
+        if not self._called:
+            try:
+                self._verify_launch_request()
+            except LTILaunchVerificationError as err:
+                self._exception = err
+            finally:
+                self._called = True
+
+        if self._exception:
+            raise self._exception  # pylint: disable=raising-bad-type
+
+    def _verify_launch_request(self):
         try:
             consumer_key = self._request.params["oauth_consumer_key"]
         except KeyError:

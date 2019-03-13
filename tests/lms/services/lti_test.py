@@ -4,6 +4,7 @@ from unittest import mock
 import oauthlib.oauth1
 import oauthlib.common
 import pytest
+from pylti.common import LTIException
 
 from lms.services.lti import LTIService
 from lms.services import NoConsumerKey
@@ -102,6 +103,29 @@ class TestVerifyLaunchRequest:
         with pytest.raises(LTIOAuthError):
             lti_svc.verify_launch_request()
 
+    def test_it_caches_a_successful_verification_result(self, lti_svc, pylti):
+        # Even if verify_lti_launch_request() is called multiple times, the
+        # actual verification is done only once per request.
+        lti_svc.verify_launch_request()
+        lti_svc.verify_launch_request()
+        lti_svc.verify_launch_request()
+
+        assert pylti.common.verify_request_common.call_count == 1
+
+    def test_it_caches_a_failed_verification_result(self, lti_svc, pylti):
+        pylti.common.verify_request_common.side_effect = LTIException()
+
+        # Even if verify_lti_launch_request() is called multiple times, the
+        # actual verification is done only once per request.
+        with pytest.raises(LTIOAuthError):
+            lti_svc.verify_launch_request()
+        with pytest.raises(LTIOAuthError):
+            lti_svc.verify_launch_request()
+        with pytest.raises(LTIOAuthError):
+            lti_svc.verify_launch_request()
+
+        assert pylti.common.verify_request_common.call_count == 1
+
     @pytest.fixture
     def lti_svc(self, pyramid_request):
         return LTIService(mock.sentinel.context, pyramid_request)
@@ -127,7 +151,9 @@ class TestVerifyLaunchRequest:
 
     @pytest.fixture
     def pylti(self, patch):
-        return patch("lms.services.lti.pylti")
+        pylti = patch("lms.services.lti.pylti")
+        pylti.common.LTIException = LTIException
+        return pylti
 
 
 def sign(pyramid_request):
