@@ -7,11 +7,6 @@ from lms.util.jwt import build_jwt_from_lti_launch
 from lms.exceptions import MissingLTILaunchParamError
 
 
-def get_lti_launch_params(request):
-    """Retrieve the LTI launch params."""
-    return dict(request.params)
-
-
 def lti_launch(view_function):
     """
     Handle the verification of an lms launch.
@@ -28,9 +23,8 @@ def lti_launch(view_function):
     @wraps(view_function)
     def wrapper(request):
         """Handle the lms validation."""
-        lti_params = get_lti_launch_params(request)
         try:
-            consumer_key = lti_params["oauth_consumer_key"]
+            consumer_key = request.params["oauth_consumer_key"]
         except KeyError:
             raise MissingLTILaunchParamError("oauth_consumer_key")
 
@@ -47,7 +41,7 @@ def lti_launch(view_function):
             request.url,
             request.method,
             dict(request.headers),
-            dict(lti_params),
+            dict(request.params),
         )
         jwt_secret = request.registry.settings["jwt_secret"]
         jwt_token = build_jwt_from_lti_launch(request.params, jwt_secret)
