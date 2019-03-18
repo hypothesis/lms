@@ -19,10 +19,9 @@ class LaunchVerifier:
         """
         Raise if the current request isn't a valid LTI launch request.
 
-        :raise ~lms.services.LTILaunchVerificationError: if the request isn't a
-          valid LTI launch request. Different
-          :exc:`~lms.services.LTILaunchVerificationError` subclasses are raised
-          for different types of verification failure.
+        :raise LTILaunchVerificationError: if the request isn't a valid LTI
+          launch request. Different :exc:`LTILaunchVerificationError`
+          subclasses are raised for different types of verification failure.
 
         :raise NoConsumerKey: If the request has no ``oauth_consumer_key``
           parameter (maybe it's not an LTI launch request at all?)
