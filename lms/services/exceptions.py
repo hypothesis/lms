@@ -5,8 +5,26 @@ class ServiceError(Exception):
     """Base class for all :mod:`lms.services` exceptions."""
 
 
-class ConsumerKeyError(ServiceError):
+class LTILaunchVerificationError(ServiceError):
+    """
+    Raised when LTI launch request verification fails.
+
+    This is the base class for all LTI launch request verification errors.
+    Different subclasses of this exception class are raised for specific
+    failure types.
+    """
+
+
+class NoConsumerKey(LTILaunchVerificationError):
+    """Raised when a launch request has no ``oauth_consumer_key`` parameter."""
+
+
+class ConsumerKeyError(LTILaunchVerificationError):
     """Raised when a given ``consumer_key`` doesn't exist in the DB."""
+
+
+class LTIOAuthError(LTILaunchVerificationError):
+    """Raised when OAuth signature verification of a launch request fails."""
 
 
 class HAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
