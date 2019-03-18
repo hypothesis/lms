@@ -20,7 +20,7 @@ def lti_launch(view_function):
     @wraps(view_function)
     def wrapper(request):
         """Handle the lms validation."""
-        request.find_service(name="lti").verify_launch_request()
+        request.find_service(name="launch_verifier").verify()
 
         jwt_secret = request.registry.settings["jwt_secret"]
         jwt_token = build_jwt_from_lti_launch(request.params, jwt_secret)

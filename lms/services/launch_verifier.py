@@ -1,10 +1,4 @@
-"""
-LTI service.
-
-This is a place to put LTI-related methods where they can be called from
-anywhere in the code, they can have access to the request and context, and they
-can have state (e.g. to cache the results of computations).
-"""
+"""LTI launch request verifier service."""
 import pylti.common
 
 from lms.services import LTILaunchVerificationError
@@ -13,15 +7,15 @@ from lms.services import ConsumerKeyError
 from lms.services import LTIOAuthError
 
 
-class LTIService:
-    """A collection of LTI-related methods."""
+class LaunchVerifier:
+    """LTI launch request verifier."""
 
     def __init__(self, _context, request):
         self._request = request
-        self._called = False
+        self._request_verified = False
         self._exception = None
 
-    def verify_launch_request(self):
+    def verify(self):
         """
         Raise if the current request isn't a valid LTI launch request.
 
@@ -40,18 +34,18 @@ class LTIService:
         :raise LTIOAuthError: If OAuth 1.0 verification of the request and its
           signature fails
         """
-        if not self._called:
+        if not self._request_verified:
             try:
-                self._verify_launch_request()
+                self._verify()
             except LTILaunchVerificationError as err:
                 self._exception = err
             finally:
-                self._called = True
+                self._request_verified = True
 
         if self._exception:
             raise self._exception  # pylint: disable=raising-bad-type
 
-    def _verify_launch_request(self):
+    def _verify(self):
         try:
             consumer_key = self._request.params["oauth_consumer_key"]
         except KeyError:

@@ -21,7 +21,7 @@ from lms.models import OauthState
 from lms.models import build_from_lms_url
 from lms.util import GET
 from lms.services.application_instance_getter import ApplicationInstanceGetter
-from lms.services.lti import LTIService
+from lms.services.launch_verifier import LaunchVerifier
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql://postgres@localhost:5433/lms_test"
@@ -204,10 +204,10 @@ def ai_getter(pyramid_config):
 
 
 @pytest.fixture(autouse=True)
-def lti_svc(pyramid_config):
-    lti_svc = mock.create_autospec(LTIService, spec_set=True, instance=True)
-    pyramid_config.register_service(lti_svc, name="lti")
-    return lti_svc
+def launch_verifier(pyramid_config):
+    launch_verifier = mock.create_autospec(LaunchVerifier, spec_set=True, instance=True)
+    pyramid_config.register_service(launch_verifier, name="launch_verifier")
+    return launch_verifier
 
 
 @pytest.fixture(autouse=True)

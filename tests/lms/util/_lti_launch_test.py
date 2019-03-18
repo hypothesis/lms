@@ -9,13 +9,15 @@ from lms.services import ConsumerKeyError, LTILaunchVerificationError
 
 
 class TestLTILaunch:
-    def test_it_verifies_the_request(self, pyramid_request, lti_svc, wrapper):
+    def test_it_verifies_the_request(self, pyramid_request, launch_verifier, wrapper):
         wrapper(pyramid_request)
 
-        lti_svc.verify_launch_request.assert_called_once_with()
+        launch_verifier.verify.assert_called_once_with()
 
-    def test_it_crashes_if_verification_fails(self, pyramid_request, wrapper, lti_svc):
-        lti_svc.verify_launch_request.side_effect = LTILaunchVerificationError()
+    def test_it_crashes_if_verification_fails(
+        self, pyramid_request, wrapper, launch_verifier
+    ):
+        launch_verifier.verify.side_effect = LTILaunchVerificationError()
 
         with pytest.raises(LTILaunchVerificationError):
             wrapper(pyramid_request)

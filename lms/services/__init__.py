@@ -25,4 +25,6 @@ def includeme(config):
         "lms.services.application_instance_getter.ApplicationInstanceGetter",
         name="ai_getter",
     )
-    config.register_service_factory("lms.services.lti.LTIService", name="lti")
+    config.register_service_factory(
+        "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
+    )
