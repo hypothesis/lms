@@ -1,7 +1,4 @@
-﻿import logging
-from lms.config import configure
-
-log = logging.getLogger(__name__)
+﻿from lms.config import configure
 
 
 def configure_jinja2_assets(config):
