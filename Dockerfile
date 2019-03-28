@@ -1,8 +1,8 @@
-FROM gliderlabs/alpine:3.6
+FROM alpine:3.9.2
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk-install ca-certificates python3 libpq collectd collectd-disk supervisor nodejs nodejs-npm
+RUN apk add ca-certificates python3 libpq collectd collectd-disk supervisor nodejs nodejs-npm
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
@@ -13,7 +13,7 @@ WORKDIR /var/lib/lms
 COPY requirements.txt ./
 
 # Install build deps, build, and then clean up.
-RUN apk-install --virtual build-deps \
+RUN apk add --virtual build-deps \
     build-base \
     postgresql-dev \
     python3-dev \
@@ -36,7 +36,7 @@ COPY . .
 # Build frontend assets
 RUN npm install --production
 RUN NODE_ENV=production node_modules/.bin/gulp build
-RUN npm cache clean
+RUN npm cache clean --force
 
 EXPOSE 8001
 USER lms
