@@ -22,13 +22,29 @@
 The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for managing front-end assets. You'll need:
 
 * git
+
 * python 3
+
 * [tox](https://tox.readthedocs.io/en/latest/) and [tox-pip-extensions](https://github.com/tox-dev/tox-pip-extensions)
+
+  Tox 3.7.0 and tox-pip-extensions 1.6.0 are officially supported:
+
+  ```shellsession
+  [sudo ]pip install tox===3.7.0 tox-pip-extensions===1.6.0
+  ```
+
+  Newer versions may or may not work.
+
 * [GNU Make](https://www.gnu.org/software/make/)
+
 * Docker
+
 * openssl
+
 * Node.js
+
 * yarn
+
 * local installations of [h](https://github.com/hypothesis/h),
   [client](https://github.com/hypothesis/client) and
   [via](https://github.com/hypothesis/via) (*TODO*: Why?)
