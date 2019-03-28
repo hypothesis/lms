@@ -18,7 +18,7 @@ node {
 
         try {
             testApp(image: img, runArgs: "-u root -e TEST_DATABASE_URL=${databaseUrl} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") {
-                sh 'apk-install build-base postgresql-dev python3-dev'
+                sh 'apk add build-base postgresql-dev python3-dev'
                 sh 'pip3 install -q tox>=3.8.0'
                 sh 'cd /var/lib/lms && tox -e py36-checkformatting -e py36-lint -e py36-tests -e py36-coverage -e py36-codecov'
             }
