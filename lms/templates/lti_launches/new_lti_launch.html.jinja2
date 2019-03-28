@@ -1,8 +1,14 @@
-<script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson}}</script>
-<script type="application/json" class="js-hypothesis-config">{{ context.hypothesis_config|tojson}}</script>
+{% extends "lms:templates/base.html.jinja2" %}
 
-{% for url in asset_urls("postmessage_json_rpc_server_js") %}
-  <script src="{{ url }}"></script>
-{% endfor %}
+{% block content %}
+  <iframe width="100%" height="100%" src="{{ via_url }}"></iframe>
+{% endblock %}
 
-<iframe width="100%" height="100%" src="{{ via_url }}" />
+{% block scripts %}
+  <script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson }}</script>
+  <script type="application/json" class="js-hypothesis-config">{{ context.hypothesis_config|tojson }}</script>
+
+  {% for url in asset_urls("postmessage_json_rpc_server_js") %}
+    <script src="{{ url }}"></script>
+  {% endfor %}
+{% endblock %}
