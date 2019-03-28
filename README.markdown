@@ -23,7 +23,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 
 * git
 * python 3
-* [tox](https://tox.readthedocs.io/en/latest/) and [tox-pip-extensions](https://github.com/tox-dev/tox-pip-extensions)
+* [tox](https://tox.readthedocs.io/en/latest/) 3.8 or newer
 * [GNU Make](https://www.gnu.org/software/make/)
 * Docker
 * openssl

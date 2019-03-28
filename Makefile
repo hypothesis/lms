@@ -22,11 +22,11 @@ help:
 
 .PHONY: dev
 dev: build/manifest.json
-	tox -qe py36-dev
+	tox -q -e py36-dev
 
 .PHONY: shell
 shell:
-	tox -qe py36-dev -- pshell conf/development.ini
+	tox -q -e py36-dev -- pshell conf/development.ini
 
 # FIXME: This requires psql to be installed locally.
 # It should use psql from docker / docker-compose.
@@ -36,41 +36,41 @@ sql:
 
 .PHONY: lint
 lint:
-	tox -qe py36-lint
+	tox -q -e py36-lint
 	$(GULP) lint
 
 .PHONY: format
 format:
-	tox -qe py36-format
+	tox -q -e py36-format
 
 .PHONY: checkformatting
 checkformatting:
-	tox -qe py36-checkformatting
+	tox -q -e py36-checkformatting
 
 .PHONY: test
 test: node_modules/.uptodate
-	tox -qe py36-tests
+	tox -q -e py36-tests
 	$(GULP) test
 
 .PHONY: coverage
 coverage:
-	tox -qe py36-coverage
+	tox -q -e py36-coverage
 
 .PHONY: codecov
 codecov:
-	tox -qe py36-codecov
+	tox -q -e py36-codecov
 
 .PHONY: docstrings
 docstrings:
-	tox -qe py36-docstrings
+	tox -q -e py36-docstrings
 
 .PHONY: checkdocstrings
 checkdocstrings:
-	tox -qe py36-checkdocstrings
+	tox -q -e py36-checkdocstrings
 
 .PHONY: pip-compile
 pip-compile:
-	tox -qe py36-dev -- pip-compile --output-file requirements.txt requirements.in
+	tox -q -e py36-dev -- pip-compile --output-file requirements.txt requirements.in
 
 .PHONY: docker
 docker:
