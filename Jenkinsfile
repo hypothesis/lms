@@ -20,6 +20,12 @@ node {
             testApp(image: img, runArgs: "-u root -e TEST_DATABASE_URL=${databaseUrl} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") {
                 sh 'apk add build-base postgresql-dev python3-dev yarn'
                 sh 'pip3 install -q tox>=3.8.0'
+
+                // Hack to work around a race condition and make sure that
+                // .tox/.tox/bin/tox gets created before any of the parallelised
+                // `make` commands below try to access it.
+                sh 'cd /var/lib/lms && tox -e py36 --notest'
+
                 sh 'cd /var/lib/lms && make -j `nproc` checkformatting lint backend-tests'
                 sh 'cd /var/lib/lms && make coverage codecov'
             }
