@@ -14,6 +14,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("pyramid_services")
     config.include("pyramid_tm")
 
+    config.include("lms.authentication")
     config.include("lms.extensions.feature_flags")
     config.add_feature_flag_providers(
         "lms.extensions.feature_flags.config_file_provider",

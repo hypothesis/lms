@@ -10,12 +10,7 @@ from lms.config import configure
 from lms.config import SettingError
 
 
-@pytest.mark.usefixtures(
-    "env_setting",
-    "groupfinder",
-    "ACLAuthorizationPolicy",
-    "AuthTktAuthenticationPolicy",
-)
+@pytest.mark.usefixtures("env_setting", "ACLAuthorizationPolicy")
 class TestConfigure:
     def test_it_returns_a_Configurator_with_the_deployment_settings_set(
         self, env_setting
@@ -222,27 +217,6 @@ class TestConfigure:
 
         assert configurator.registry.settings["foo"] == "bar"
 
-    def test_it_sets_the_pyramid_authentication_policy(
-        self, AuthTktAuthenticationPolicy, config, env_setting, groupfinder
-    ):
-        def side_effect(
-            envvar_name, *args, **kwargs
-        ):  # pylint: disable=unused-argument
-            if envvar_name == "LMS_SECRET":
-                return "test_lms_secret"
-            return mock.DEFAULT
-
-        env_setting.side_effect = side_effect
-
-        configure({})
-
-        AuthTktAuthenticationPolicy.assert_called_once_with(
-            "test_lms_secret", callback=groupfinder, hashalg="sha512"
-        )
-        config.set_authentication_policy.assert_called_once_with(
-            AuthTktAuthenticationPolicy.return_value
-        )
-
     def test_it_sets_the_pyramid_authorization_policy(
         self, ACLAuthorizationPolicy, config
     ):
@@ -258,10 +232,6 @@ class TestConfigure:
         return patch("lms.config.ACLAuthorizationPolicy")
 
     @pytest.fixture
-    def AuthTktAuthenticationPolicy(self, patch):
-        return patch("lms.config.AuthTktAuthenticationPolicy")
-
-    @pytest.fixture
     def config(self, patch):
         configurator_class = patch("lms.config.Configurator")
         return configurator_class.return_value
@@ -269,7 +239,3 @@ class TestConfigure:
     @pytest.fixture
     def env_setting(self, patch):
         return patch("lms.config.env_setting")
-
-    @pytest.fixture
-    def groupfinder(self, patch):
-        return patch("lms.config.groupfinder")
