@@ -1,6 +1,4 @@
-from pyramid.authentication import AuthTktAuthenticationPolicy
-
-from lms.security import groupfinder
+from lms.authentication._policy import AuthenticationPolicy
 
 
 __all__ = ()
@@ -9,9 +7,5 @@ __all__ = ()
 def includeme(config):
     config.include("lms.authentication._helpers")
     config.set_authentication_policy(
-        AuthTktAuthenticationPolicy(
-            config.registry.settings["lms_secret"],
-            callback=groupfinder,
-            hashalg="sha512",
-        )
+        AuthenticationPolicy(config.registry.settings["lms_secret"])
     )
