@@ -2,6 +2,8 @@
 from pyramid.events import subscriber
 from pyramid.events import BeforeRender
 
+from lms.validation import BearerTokenSchema
+
 
 __all__ = []
 
@@ -14,4 +16,11 @@ def _add_js_config(event):
     A template renders this into the HTML page as a JSON object. The object
     contains general config settings used by the app's JavaScript code.
     """
+    request = event["request"]
+
     event["js_config"] = {"urls": {}}
+
+    if request.lti_user:
+        event["js_config"]["authorization_param"] = BearerTokenSchema(
+            request
+        ).authorization_param(request.lti_user)
