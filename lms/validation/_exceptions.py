@@ -1,5 +1,7 @@
 from pyramid import httpexceptions
 
+# pylint: disable=too-many-ancestors
+
 
 class ValidationError(
     httpexceptions.HTTPUnprocessableEntity
@@ -35,3 +37,15 @@ class ValidationError(
         """
         super().__init__()
         self.messages = messages
+
+
+class ExpiredSessionTokenError(ValidationError):
+    """Raised when the request has an expired session token."""
+
+
+class MissingSessionTokenError(ValidationError):
+    """Raised when the request has no session token."""
+
+
+class InvalidSessionTokenError(ValidationError):
+    """Raised when the request has an invalid session token."""
