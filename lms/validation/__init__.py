@@ -28,9 +28,15 @@ from webargs import pyramidparser
 
 from lms.validation._exceptions import ValidationError
 from lms.validation._oauth import CANVAS_OAUTH_CALLBACK_SCHEMA
+from lms.validation._launch_params import LaunchParamsSchema
 
 
-__all__ = ("parser", "CANVAS_OAUTH_CALLBACK_SCHEMA", "ValidationError")
+__all__ = (
+    "parser",
+    "CANVAS_OAUTH_CALLBACK_SCHEMA",
+    "LaunchParamsSchema",
+    "ValidationError",
+)
 
 
 parser = pyramidparser.PyramidParser()
