@@ -26,7 +26,7 @@ node {
                 // `make` commands below try to access it.
                 sh 'cd /var/lib/lms && tox -e py36 --notest'
 
-                sh 'cd /var/lib/lms && make -j `nproc` checkformatting lint backend-tests'
+                sh 'cd /var/lib/lms && make checkformatting lint backend-tests'
                 sh 'cd /var/lib/lms && make coverage codecov'
             }
         } finally {
