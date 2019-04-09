@@ -1,7 +1,26 @@
 import pytest
 
-from lms.authentication._helpers import get_lti_user
+from lms.authentication._helpers import authenticated_userid, get_lti_user
 from lms.validation import ValidationError
+from lms.values import LTIUser
+
+
+class TestAuthenticatedUserID:
+    @pytest.mark.parametrize(
+        "lti_user,expected_userid",
+        [
+            (
+                LTIUser("sam", "Hypothesisf301584250a2dece14f021ab8424018a"),
+                "c2Ft:Hypothesisf301584250a2dece14f021ab8424018a",
+            ),
+            (
+                LTIUser("Sam:Smith", "Hypothesisf301584250a2dece14f021ab8424018a"),
+                "U2FtOlNtaXRo:Hypothesisf301584250a2dece14f021ab8424018a",
+            ),
+        ],
+    )
+    def test_it(self, lti_user, expected_userid):
+        assert authenticated_userid(lti_user) == expected_userid
 
 
 class TestGetLTIUser:
