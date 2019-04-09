@@ -4,7 +4,7 @@ import urllib
 
 import jwt
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.security import Allow
+from pyramid.security import Allow, Authenticated
 
 from lms.util import lti_params_for
 
@@ -12,7 +12,10 @@ from lms.util import lti_params_for
 class Root:
     """The default root factory for the application."""
 
-    __acl__ = [(Allow, "report_viewers", "view")]
+    __acl__ = [
+        (Allow, "report_viewers", "view"),
+        (Allow, Authenticated, "test_permission"),
+    ]
 
     def __init__(self, request):
         """Return the default root resource object."""

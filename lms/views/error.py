@@ -3,7 +3,7 @@ import os
 from pyramid import httpexceptions
 from pyramid import i18n
 from pyramid.settings import asbool
-from pyramid.view import notfound_view_config
+from pyramid.view import notfound_view_config, forbidden_view_config
 import sentry_sdk
 
 from lms.validation import ValidationError
@@ -15,6 +15,12 @@ _ = i18n.TranslationStringFactory(__package__)
 def notfound(request):
     request.response.status_int = 404
     return {"message": _("Page not found")}
+
+
+@forbidden_view_config(renderer="json", path_info="/api/")
+def forbidden_api(request):
+    request.response.status_code = 401
+    return {"message": _("Bad credentials")}
 
 
 def _http_error(exc, request):
