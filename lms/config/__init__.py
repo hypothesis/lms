@@ -2,12 +2,9 @@
 
 """Configuration for the Pyramid application."""
 
-from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.config import aslist
-
-from lms.security import groupfinder
 
 from lms.config.settings import SettingError, env_setting
 
@@ -64,11 +61,7 @@ def configure(settings):
     config = Configurator(settings=settings, root_factory=".resources.Root")
 
     # Security policies
-    authn_policy = AuthTktAuthenticationPolicy(
-        settings["lms_secret"], callback=groupfinder, hashalg="sha512"
-    )
     authz_policy = ACLAuthorizationPolicy()
-    config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
 
     return config
