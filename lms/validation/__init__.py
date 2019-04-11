@@ -26,16 +26,26 @@ commit message f61a5ff3cae6b983e24db809d8e4b4933aca1e92.
 """
 from webargs import pyramidparser
 
-from lms.validation._exceptions import ValidationError
+from lms.validation._exceptions import (
+    ValidationError,
+    ExpiredSessionTokenError,
+    MissingSessionTokenError,
+    InvalidSessionTokenError,
+)
 from lms.validation._oauth import CANVAS_OAUTH_CALLBACK_SCHEMA
 from lms.validation._launch_params import LaunchParamsSchema
+from lms.validation._bearer_token import BearerTokenSchema
 
 
 __all__ = (
     "parser",
     "CANVAS_OAUTH_CALLBACK_SCHEMA",
+    "BearerTokenSchema",
     "LaunchParamsSchema",
     "ValidationError",
+    "ExpiredSessionTokenError",
+    "MissingSessionTokenError",
+    "InvalidSessionTokenError",
 )
 
 
