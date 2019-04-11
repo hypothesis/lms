@@ -8,7 +8,7 @@ from lms.authentication import includeme
 
 class TestIncludeMe:
     def test_it_sets_the_authentication_policy(
-        self, groupfinder, pyramid_config, AuthTktAuthenticationPolicy
+        self, pyramid_config, AuthenticationPolicy
     ):
         # We need to set an authorization policy first otherwise setting an
         # authentication policy will fail (you can't have an authentication
@@ -17,18 +17,12 @@ class TestIncludeMe:
 
         includeme(pyramid_config)
 
-        AuthTktAuthenticationPolicy.assert_called_once_with(
-            "TEST_LMS_SECRET", callback=groupfinder, hashalg="sha512"
-        )
+        AuthenticationPolicy.assert_called_once_with("TEST_LMS_SECRET")
         assert (
             pyramid_config.registry.queryUtility(IAuthenticationPolicy)
-            == AuthTktAuthenticationPolicy.return_value
+            == AuthenticationPolicy.return_value
         )
 
     @pytest.fixture(autouse=True)
-    def AuthTktAuthenticationPolicy(self, patch):
-        return patch("lms.authentication.AuthTktAuthenticationPolicy")
-
-    @pytest.fixture(autouse=True)
-    def groupfinder(self, patch):
-        return patch("lms.authentication.groupfinder")
+    def AuthenticationPolicy(self, patch):
+        return patch("lms.authentication.AuthenticationPolicy")
