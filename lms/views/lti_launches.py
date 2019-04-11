@@ -215,6 +215,10 @@ def should_launch(request):
 )
 def lti_launches(request, jwt, user=None):
     """Route to handle an lti launch to view a module item."""
+    if request.feature("new_oauth"):
+        from pyramid.renderers import render_to_response
+
+        return render_to_response("lms:templates/test.html.jinja2", {}, request)
     if user is not None:
         token = find_token_by_user_id(request.db, user.id)
         return handle_lti_launch(
