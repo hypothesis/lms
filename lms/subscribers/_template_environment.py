@@ -18,7 +18,7 @@ def _add_js_config(event):
     """
     request = event["request"]
 
-    event["js_config"] = {"urls": {"test_xhr": request.route_url("test_xhr")}}
+    event["js_config"] = {"urls": {}}
 
     if request.lti_user:
         event["js_config"]["authorization_param"] = BearerTokenSchema(

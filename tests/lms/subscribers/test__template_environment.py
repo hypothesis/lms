@@ -10,7 +10,7 @@ class TestJSConfig:
         _add_js_config(event)
 
         # urls is an empty dict for now!
-        assert event["js_config"]["urls"] == {"test_xhr": "http://example.com/api/test"}
+        assert event["js_config"]["urls"] == {}
 
     def test_if_theres_an_lti_user_it_adds_the_authorization_param_to_the_template_environment(
         self, bearer_token_schema, BearerTokenSchema, pyramid_request
