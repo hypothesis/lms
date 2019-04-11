@@ -1,4 +1,20 @@
+import base64
+
 from lms.validation import LaunchParamsSchema, BearerTokenSchema, ValidationError
+
+
+def authenticated_userid(lti_user):
+    """Return a ``request.authenticated_userid`` string for ``lti_user``."""
+    # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
+    user_id_bytes = lti_user.user_id.encode()
+
+    safe_user_id_bytes = base64.urlsafe_b64encode(user_id_bytes)
+
+    # urlsafe_b64encode() returns ASCII bytes but we need unicode, so
+    # decode it.
+    safe_user_id = safe_user_id_bytes.decode("ascii")
+
+    return ":".join([safe_user_id, lti_user.oauth_consumer_key])
 
 
 def get_lti_user(request):
