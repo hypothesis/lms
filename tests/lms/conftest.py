@@ -22,6 +22,7 @@ from lms.models import build_from_lms_url
 from lms.util import GET
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
+from lms.values import LTIUser
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql://postgres@localhost:5433/lms_test"
@@ -126,6 +127,10 @@ def pyramid_request(db_session):
             "lti_version": "TEST",
         }
     )
+    pyramid_request.feature = mock.create_autospec(
+        lambda feature: False, return_value=False
+    )
+    pyramid_request.lti_user = LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY")
 
     return pyramid_request
 
