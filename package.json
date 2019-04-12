@@ -55,9 +55,6 @@
     "karma-phantomjs-launcher": "^1.0.1",
     "karma-sinon": "^1.0.5",
     "mocha": "^6.1.4",
-    "proxyquire": "^2.1.0",
-    "proxyquire-universal": "^2.1.0",
-    "proxyquireify": "^3.2.1",
     "sinon": "^7.3.2"
   },
   "browserify": {
