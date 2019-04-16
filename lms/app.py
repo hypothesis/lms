@@ -27,6 +27,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.db")
     config.include("lms.routes")
     config.include("lms.assets")
+    config.include("lms.views")
     config.include("lms.views.error")
     config.include("lms.services")
     config.include("lms.subscribers")
