@@ -29,7 +29,7 @@ pyramid-exclog==1.0
 pyramid-jinja2==2.8
 pyramid-services==2.1
 pyramid-tm==2.2.1
-pyramid==1.10.3
+pyramid==1.10.4
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
 requests-oauthlib==1.2.0
