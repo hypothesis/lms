@@ -16,7 +16,8 @@ from lms.services import HAPINotFoundError
 
 class TestAPIRequest:
     @pytest.mark.parametrize(
-        "setting", ["h_client_id", "h_client_secret", "h_authority", "h_api_url"]
+        "setting",
+        ["h_client_id", "h_client_secret", "h_authority", "h_api_url_private"],
     )
     def test_it_crashes_if_a_required_setting_is_missing(
         self, pyramid_request, setting
@@ -35,7 +36,7 @@ class TestAPIRequest:
 
         requests.request.assert_called_once_with(
             method=verb,
-            url="https://example.com/api/path",
+            url="https://private.com/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
             headers={"Hypothesis-Application": "lms"},
@@ -46,7 +47,7 @@ class TestAPIRequest:
     ):
         svc.request("POST", "/path")
 
-        assert requests.request.call_args[1]["url"] == "https://example.com/api/path"
+        assert requests.request.call_args[1]["url"] == "https://private.com/api/path"
 
     # Instead of calling get() or post() etc you can also call request()
     # directly and pass in the HTTP verb as a string.
@@ -55,7 +56,7 @@ class TestAPIRequest:
 
         requests.request.assert_called_once_with(
             method="PUT",
-            url="https://example.com/api/path",
+            url="https://private.com/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
             headers={"Hypothesis-Application": "lms"},

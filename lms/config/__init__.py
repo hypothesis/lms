@@ -36,8 +36,12 @@ def configure(settings):
         "h_jwt_client_secret": env_setting("H_JWT_CLIENT_SECRET", required=True),
         # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
         "h_authority": env_setting("H_AUTHORITY", required=True),
-        # The base URL of the h API (e.g. "https://hypothes.is/api).
-        "h_api_url": env_setting("H_API_URL", required=True),
+        # The public base URL of the h API (e.g. "https://hypothes.is/api).
+        "h_api_url_public": env_setting("H_API_URL_PUBLIC", required=True),
+        # A private (within-VPC) URL for the same h API. Faster and more secure
+        # than the public one. This is used for internal server-to-server
+        # comms.
+        "h_api_url_private": env_setting("H_API_URL_PRIVATE", required=True),
         # The postMessage origins from which to accept RPC requests.
         "rpc_allowed_origins": env_setting("RPC_ALLOWED_ORIGINS", required=True),
     }
@@ -47,7 +51,12 @@ def configure(settings):
         env_settings["sqlalchemy.url"] = database_url
 
     env_settings["via_url"] = _append_trailing_slash(env_settings["via_url"])
-    env_settings["h_api_url"] = _append_trailing_slash(env_settings["h_api_url"])
+    env_settings["h_api_url_public"] = _append_trailing_slash(
+        env_settings["h_api_url_public"]
+    )
+    env_settings["h_api_url_private"] = _append_trailing_slash(
+        env_settings["h_api_url_private"]
+    )
 
     try:
         env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]

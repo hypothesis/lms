@@ -177,7 +177,7 @@ class LTILaunch:
 
         client_id = self._request.registry.settings["h_jwt_client_id"]
         client_secret = self._request.registry.settings["h_jwt_client_secret"]
-        api_url = self._request.registry.settings["h_api_url"]
+        api_url = self._request.registry.settings["h_api_url_public"]
         audience = urllib.parse.urlparse(api_url).hostname
 
         def grant_token():

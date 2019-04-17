@@ -173,7 +173,8 @@ def pyramid_config(pyramid_request):
         "h_jwt_client_id": "TEST_JWT_CLIENT_ID",
         "h_jwt_client_secret": "TEST_JWT_CLIENT_SECRET",
         "h_authority": "TEST_AUTHORITY",
-        "h_api_url": "https://example.com/api/",
+        "h_api_url_public": "https://example.com/api/",
+        "h_api_url_private": "https://private.com/api/",
         "rpc_allowed_origins": ["http://localhost:5000"],
     }
 
