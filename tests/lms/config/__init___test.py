@@ -128,11 +128,11 @@ class TestConfigure:
 
         assert configurator.registry.settings["via_url"] == "https://via.hypothes.is/"
 
-    def test_trailing_slashes_are_appended_to_h_api_url(self, env_setting):
+    def test_trailing_slashes_are_appended_to_h_api_url_public(self, env_setting):
         def side_effect(
             envvar_name, *args, **kwargs
         ):  # pylint: disable=unused-argument
-            if envvar_name == "H_API_URL":
+            if envvar_name == "H_API_URL_PUBLIC":
                 return "https://hypothes.is/api"
             return mock.DEFAULT
 
@@ -140,7 +140,27 @@ class TestConfigure:
 
         configurator = configure({})
 
-        assert configurator.registry.settings["h_api_url"] == "https://hypothes.is/api/"
+        assert (
+            configurator.registry.settings["h_api_url_public"]
+            == "https://hypothes.is/api/"
+        )
+
+    def test_trailing_slashes_are_appended_to_h_api_url_private(self, env_setting):
+        def side_effect(
+            envvar_name, *args, **kwargs
+        ):  # pylint: disable=unused-argument
+            if envvar_name == "H_API_URL_PRIVATE":
+                return "https://hypothes.is/api"
+            return mock.DEFAULT
+
+        env_setting.side_effect = side_effect
+
+        configurator = configure({})
+
+        assert (
+            configurator.registry.settings["h_api_url_private"]
+            == "https://hypothes.is/api/"
+        )
 
     @pytest.mark.parametrize(
         "envvar_value,expected_setting",

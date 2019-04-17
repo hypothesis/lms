@@ -32,7 +32,7 @@ class HypothesisAPIService:
         self._client_id = settings["h_client_id"]
         self._client_secret = settings["h_client_secret"]
         self._authority = settings["h_authority"]
-        self._base_url = settings["h_api_url"]
+        self._base_url = settings["h_api_url_private"]
 
     def delete(self, *args, **kwargs):
         """
@@ -91,7 +91,7 @@ class HypothesisAPIService:
           "PUT", "PATCH" or "DELETE"
         :type method: str
         :arg path: the h API path to post to, relative to
-          ``settings["h_api_url"]``, for example: ``"users"`` or
+          ``settings["h_api_url_private"]``, for example: ``"users"`` or
           ``"groups/<GROUPID>/members/<USERID>"``
         :type path: str
         :arg data: the data to post as JSON in the request body
