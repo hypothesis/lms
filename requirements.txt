@@ -15,7 +15,7 @@ jinja2==2.10.1            # via pyramid-jinja2
 mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
 marshmallow==2.18.0       # via webargs
-newrelic==4.16.1.117
+newrelic==4.18.0.118
 oauth2==1.9.0.post1       # via pylti
 oauthlib==3.0.1           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy
