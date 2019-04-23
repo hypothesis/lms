@@ -1,8 +1,11 @@
+from unittest import mock
+
 import pytest
 
 from lms.extensions.feature_flags import config_file_provider
 from lms.extensions.feature_flags import envvar_provider
 from lms.extensions.feature_flags import query_string_provider
+from lms.extensions.feature_flags import cookie_provider
 
 
 class TestConfigFileProvider:
@@ -39,6 +42,17 @@ class TestEnvVarProvider:
         return os
 
 
+class TestCookieProvider:
+    def test_it(self, FeatureFlagsCookieHelper):
+        result = cookie_provider(mock.sentinel.request, "test_feature")
+
+        FeatureFlagsCookieHelper.assert_called_once_with(mock.sentinel.request)
+        FeatureFlagsCookieHelper.return_value.get.assert_called_once_with(
+            "test_feature"
+        )
+        assert result == FeatureFlagsCookieHelper.return_value.get.return_value
+
+
 class TestQueryStringProvider:
     @pytest.mark.parametrize(
         "query_params,result",
@@ -51,3 +65,8 @@ class TestQueryStringProvider:
     def test_it(self, pyramid_request, query_params, result):
         pyramid_request.GET.update(query_params)
         assert query_string_provider(pyramid_request, "test_feature") == result
+
+
+@pytest.fixture(autouse=True)
+def FeatureFlagsCookieHelper(patch):
+    return patch("lms.extensions.feature_flags._providers.FeatureFlagsCookieHelper")

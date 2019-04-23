@@ -6,9 +6,10 @@ multiple sources including:
 
 - The config file
 - Environment variables
+- A feature flags cookie
 - URL query string parameters
 - Custom providers (you could add providers for reading feature flags from a
-  cookie, the database, a feature flags microservice queried over HTTPS, ...)
+  database, a feature flags microservice queried over HTTPS, ...)
 
 Usage
 =====
@@ -83,6 +84,34 @@ environment variables, one envvar per feature flag. For example::
     export FEATURE_FLAG_FOO=true
     export FEATURE_FLAG_BAR=false
 
+``cookie_provider``
+-------------------
+
+Enable or disable feature flags using a browser cookie.
+
+Usage::
+
+    config.add_feature_flag_provider("lms.extensions.feature_flags.cookie_provider")
+
+This will add a ``/flags`` page to your app that you can visit to enable or disable
+feature flags in your browser's feature flags cookie.
+
+To use this provider you need to add two deployment settings to your ``.ini`` file:
+
+``feature_flags_cookie_secret`` is a secret string that'll be used to sign the
+feature flags cookie::
+
+  feature_flags_cookie_secret = "notasecret"
+
+You can generate a suitable ``feature_flags_cookie_secret`` string like this::
+
+  python3 -c 'import secrets; print(secrets.token_hex())'
+
+``feature_flags_allowed_in_cookie`` is a list of the feature flags that can be
+toggled on or off in the cookie and that will appear on the ``/flags`` page::
+
+  feature_flags_allowed_in_cookie = my_feature my_other_feature
+
 ``query_string_provider``
 -------------------------
 
@@ -118,6 +147,7 @@ from ._exceptions import SettingError
 from ._feature_flags import FeatureFlags
 from ._providers import config_file_provider  # noqa
 from ._providers import envvar_provider  # noqa
+from ._providers import cookie_provider  # noqa
 from ._providers import query_string_provider  # noqa
 
 
