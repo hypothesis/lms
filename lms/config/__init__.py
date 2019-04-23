@@ -25,6 +25,12 @@ def configure(settings):
         "hashed_pw": sg.get("HASHED_PW"),
         "salt": sg.get("SALT"),
         "username": sg.get("USERNAME"),
+        # The secret string that's used to sign the session cookie.
+        # This needs to be a 64-byte, securely generated random string.
+        # For example you can generate one using Python 3 on the command line
+        # like this:
+        #     python3 -c 'import secrets; print(secrets.token_hex(nbytes=64))'
+        "cookie_signing_secret": sg.get("COOKIE_SIGNING_SECRET", required=True),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
         "aes_secret": sg.get("LMS_SECRET", required=True),
