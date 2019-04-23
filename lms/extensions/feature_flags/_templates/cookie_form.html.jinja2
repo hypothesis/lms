@@ -1,0 +1,76 @@
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block styles %}
+  <link rel="stylesheet" type="text/css" href="{{ request.static_url('lms.extensions.feature_flags:_static/feature-flags.css') }}">
+{% endblock %}
+
+{% block content %}
+  <main class="modal-content">
+    <h1>Feature Flags Cookie</h1>
+
+    <p class="modal-text">Toggle feature flags on or off with a cookie.</p>
+
+    {% if flags %}
+      <p class="modal-subtext">
+        These feature flag toggles are saved in a browser cookie so they'll apply
+        <strong>whenever you're using this browser</strong>, regardless of which user account
+        you're logged in to.
+
+      <p class="modal-subtext">
+        To toggle feature flags in another browser visit this page with that
+        browser.
+      </p>
+
+      <form class="feature_flags_form" action="{{ request.route_url('feature_flags_cookie_form') }}" method="post">
+
+        <ul>
+        {% for flag in flags %}
+          <li>
+            <input type="checkbox"{% if flags[flag] %} checked{% endif %} id="{{ flag }}" name="{{ flag }}">
+            <label for="{{ flag }}">{{ flag }}</label>
+          </li>
+        {% endfor %}
+        </ul>
+
+        <div class="form-controls">
+          <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            <button class="btn" type="submit">Save</button>
+            {% for message in request.session.pop_flash('feature_flags') %}
+              <p class="js-flash">{{ message }}</p>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+    {% else %}
+      <p class="modal-subtext">
+        There are currently no feature flags available for toggling in browser cookies.
+      </p>
+      <p class="modal-subtext">
+        To make them appear on this page add your feature flags to the
+        <code>feature_flags_allowed_in_cookie</code> deployment setting in the
+        <code>.ini</code> configuration file. For example:
+      </p>
+
+      <pre><code>[app:main]
+# .. other settings
+feature_flags_allowed_in_cookie =
+  foo
+  bar
+  gar</code></pre>
+    {% endif %}
+  </main>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    window.setTimeout(
+      () => {
+        document.querySelectorAll('.js-flash').forEach((flashMessage) => {
+          flashMessage.style.transition = 'opacity .2s linear 3s';
+          flashMessage.style.opacity = 0;
+        });
+      },
+      0,
+    )
+  </script>
+{% endblock %}
