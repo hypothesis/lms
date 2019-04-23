@@ -119,6 +119,7 @@ from ._feature_flags import FeatureFlags
 from ._providers import config_file_provider  # noqa
 from ._providers import envvar_provider  # noqa
 from ._providers import query_string_provider  # noqa
+from ._providers import cookie_provider  # noqa
 
 
 __all__ = ["SettingError"]

@@ -8,7 +8,15 @@ import os
 
 from pyramid.settings import asbool
 
-__all__ = ["config_file_provider", "envvar_provider", "query_string_provider"]
+from ._helpers import FeatureFlagsCookieHelper
+
+
+__all__ = [
+    "config_file_provider",
+    "envvar_provider",
+    "query_string_provider",
+    "cookie_provider",
+]
 
 
 def config_file_provider(request, feature_flag_name):
@@ -45,6 +53,10 @@ def query_string_provider(request, feature_flag_name):
     """
     key = f"feature_flags.{feature_flag_name}"
     return _bool_or_none_from_dict(request.GET, key)
+
+
+def cookie_provider(request, feature_flag_name):
+    return FeatureFlagsCookieHelper(request).get(feature_flag_name)
 
 
 def _bool_or_none_from_dict(dict_, key):
