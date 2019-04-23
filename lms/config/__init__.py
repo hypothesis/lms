@@ -6,47 +6,47 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.config import aslist
 
-from lms.config.settings import SettingError, env_setting
+from lms.config.settings import SettingError, SettingGetter
 
 
 def configure(settings):
     """Return a Configurator for the Pyramid application."""
-    # Settings from the config file are extended / overwritten by settings from
-    # the environment.
+    sg = SettingGetter(settings)  # pylint:disable=invalid-name
+
     env_settings = {
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
-        "via_url": env_setting("VIA_URL", required=True),
-        "jwt_secret": env_setting("JWT_SECRET", required=True),
-        "google_client_id": env_setting("GOOGLE_CLIENT_ID"),
-        "google_developer_key": env_setting("GOOGLE_DEVELOPER_KEY"),
-        "google_app_id": env_setting("GOOGLE_APP_ID"),
-        "lms_secret": env_setting("LMS_SECRET"),
-        "hashed_pw": env_setting("HASHED_PW"),
-        "salt": env_setting("SALT"),
-        "username": env_setting("USERNAME"),
+        "via_url": sg.get("VIA_URL", required=True),
+        "jwt_secret": sg.get("JWT_SECRET", required=True),
+        "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
+        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
+        "google_app_id": sg.get("GOOGLE_APP_ID"),
+        "lms_secret": sg.get("LMS_SECRET"),
+        "hashed_pw": sg.get("HASHED_PW"),
+        "salt": sg.get("SALT"),
+        "username": sg.get("USERNAME"),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
-        "aes_secret": env_setting("LMS_SECRET", required=True),
+        "aes_secret": sg.get("LMS_SECRET", required=True),
         # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
-        "h_client_id": env_setting("H_CLIENT_ID", required=True),
-        "h_client_secret": env_setting("H_CLIENT_SECRET", required=True),
+        "h_client_id": sg.get("H_CLIENT_ID", required=True),
+        "h_client_secret": sg.get("H_CLIENT_SECRET", required=True),
         # The OAuth 2.0 client_id and client_secret for logging users in to h.
-        "h_jwt_client_id": env_setting("H_JWT_CLIENT_ID", required=True),
-        "h_jwt_client_secret": env_setting("H_JWT_CLIENT_SECRET", required=True),
+        "h_jwt_client_id": sg.get("H_JWT_CLIENT_ID", required=True),
+        "h_jwt_client_secret": sg.get("H_JWT_CLIENT_SECRET", required=True),
         # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
-        "h_authority": env_setting("H_AUTHORITY", required=True),
+        "h_authority": sg.get("H_AUTHORITY", required=True),
         # The public base URL of the h API (e.g. "https://hypothes.is/api).
-        "h_api_url_public": env_setting("H_API_URL_PUBLIC", required=True),
+        "h_api_url_public": sg.get("H_API_URL_PUBLIC", required=True),
         # A private (within-VPC) URL for the same h API. Faster and more secure
         # than the public one. This is used for internal server-to-server
         # comms.
-        "h_api_url_private": env_setting("H_API_URL_PRIVATE", required=True),
+        "h_api_url_private": sg.get("H_API_URL_PRIVATE", required=True),
         # The postMessage origins from which to accept RPC requests.
-        "rpc_allowed_origins": env_setting("RPC_ALLOWED_ORIGINS", required=True),
+        "rpc_allowed_origins": sg.get("RPC_ALLOWED_ORIGINS", required=True),
     }
 
-    database_url = env_setting("DATABASE_URL")
+    database_url = sg.get("DATABASE_URL")
     if database_url:
         env_settings["sqlalchemy.url"] = database_url
 
@@ -87,4 +87,4 @@ def _append_trailing_slash(s):  # pylint: disable=invalid-name
     return s
 
 
-__all__ = ("SettingError", "configure", "env_setting")
+__all__ = ("configure",)

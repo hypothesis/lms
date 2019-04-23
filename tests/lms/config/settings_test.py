@@ -2,53 +2,120 @@
 
 import pytest
 
-from lms.config import settings
+from lms.config.settings import SettingError, SettingGetter
 
 
 @pytest.mark.usefixtures("os_fixture")
-class TestEnvSetting:
-    def test_it_returns_the_value_from_the_environment_variable(self, os_fixture):
-        os_fixture.environ = {"FOOBAR": "the_value"}
+class TestSettingGetter:
+    @pytest.mark.parametrize(
+        "environ,settings,envvar_name,required,default,expected",
+        [
+            ({"FOO_BAR": "from_environ"}, {}, "FOO_BAR", False, None, "from_environ"),
+            ({"FOO_BAR": "from_environ"}, {}, "FOO_BAR", True, None, "from_environ"),
+            (
+                {"FOO_BAR": "from_environ"},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                False,
+                None,
+                "from_environ",
+            ),
+            (
+                {"FOO_BAR": "from_environ"},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                True,
+                None,
+                "from_environ",
+            ),
+            (
+                {"FOO_BAR": "from_environ"},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                False,
+                "default",
+                "from_environ",
+            ),
+            (
+                {"FOO_BAR": "from_environ"},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                True,
+                "default",
+                "from_environ",
+            ),
+            (
+                {"FOO_BAR": "from_environ"},
+                {},
+                "FOO_BAR",
+                False,
+                "default",
+                "from_environ",
+            ),
+            (
+                {"FOO_BAR": "from_environ"},
+                {},
+                "FOO_BAR",
+                True,
+                "default",
+                "from_environ",
+            ),
+            (
+                {},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                False,
+                None,
+                "from_config_file",
+            ),
+            (
+                {},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                True,
+                None,
+                "from_config_file",
+            ),
+            (
+                {},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                False,
+                "default",
+                "from_config_file",
+            ),
+            (
+                {},
+                {"foo_bar": "from_config_file"},
+                "FOO_BAR",
+                True,
+                "default",
+                "from_config_file",
+            ),
+            ({}, {}, "FOO_BAR", False, "default", "default"),
+            ({}, {}, "FOO_BAR", True, "default", "default"),
+            ({}, {}, "FOO_BAR", False, None, None),
+        ],
+    )
+    def test_it(
+        self, os_fixture, environ, settings, envvar_name, required, default, expected
+    ):
+        os_fixture.environ = environ
+        sg = SettingGetter(settings)
 
-        result = settings.env_setting("FOOBAR")
+        assert sg.get(envvar_name, required=required, default=default) == expected
 
-        assert result == "the_value"
-
-    def test_it_returns_none_when_environment_variable_isnt_set_and_optional(
+    def test_it_raises_if_a_required_setting_with_no_default_is_missing(
         self, os_fixture
     ):
         os_fixture.environ = {}
+        sg = SettingGetter({})
 
-        result = settings.env_setting("FOOBAR")
+        with pytest.raises(
+            SettingError, match="Required setting FOO_BAR / foo_bar isn't set"
+        ):
+            sg.get("FOO_BAR", required=True)
 
-        assert result is None
-
-    def test_it_raises_if_the_environment_variable_isnt_set_and_required(
-        self, os_fixture
-    ):
-        os_fixture.environ = {}
-
-        with pytest.raises(settings.SettingError) as exc_info:
-            settings.env_setting("FOOBAR", required=True)
-        assert str(exc_info.value) == "environment variable FOOBAR isn't set"
-
-    def test_environment_variables_override_default_settings(self, os_fixture):
-        os_fixture.environ = {"FOOBAR": "the_value"}
-
-        result = settings.env_setting("FOOBAR", default="DEFAULT")
-
-        assert result == "the_value"
-
-    def test_if_a_default_is_given_and_theres_no_env_var_it_returns_the_default(
-        self, os_fixture
-    ):
-        os_fixture.environ = {}
-
-        result = settings.env_setting("FOOBAR", default="DEFAULT")
-
-        assert result == "DEFAULT"
-
-
-@pytest.fixture
-def os_fixture(patch):
-    return patch("lms.config.settings.os")
+    @pytest.fixture
+    def os_fixture(self, patch):
+        return patch("lms.config.settings.os")
