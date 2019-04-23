@@ -3,18 +3,20 @@
 {% set title = error.message %}
 
 {% block content %}
-  <img src="{{ 'lms:static/images/sad-annotation.svg'|static_path }}">
-  <p>{% trans %}Hypothesis received an invalid request.
-  There were problems with these request parameters:{% endtrans %}</p>
-  <ul>
-  {% for field in error.messages %}
-    <li>
-      {{ field }}:
-      <ul>
-        {% for message in error.messages[field] %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    </li>
-  {% endfor %}
+  <main class="modal-content">
+    <img src="{{ 'lms:static/images/sad-annotation.svg'|static_path }}">
+    <p>{% trans %}Hypothesis received an invalid request.
+    There were problems with these request parameters:{% endtrans %}</p>
+    <ul>
+    {% for field in error.messages %}
+      <li>
+        {{ field }}:
+        <ul>
+          {% for message in error.messages[field] %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </main>
 {% endblock %}
