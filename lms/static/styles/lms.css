@@ -25,11 +25,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%;
 }
 .modal-content{
-  padding: 10px 30px;
+  padding: 80px 30px;
 }
 .modal-text{
   margin: 0 0 20px;
@@ -590,4 +590,11 @@ table tr:nth-child(odd) { /* Zebra-stripe the rows */
 td.wrap { /* wrap veryyyyyyyy long data */
   white-space: normal;
   word-break: break-all;
+}
+
+/* Horizontally center an element's direct children. */
+.u-horizontally-center-children {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
