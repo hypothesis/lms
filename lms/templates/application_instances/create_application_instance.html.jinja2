@@ -11,8 +11,13 @@ function copyToClipboard(field) {
 
 {% block content %}
 <main class="modal-content">
-	<p class="modal-text">To install Hypothesis in your LMS, paste both of these into the appropriate locations.</p>
-	<p class="modal-subtext">Not sure what to do? Please refer to your LMS's LTI Application install process.</p>
+  <h1>Hypothesis Installation</h1>
+  <p class="modal-text">
+    Below are your <strong>Consumer Key</strong> and
+    <strong>Shared Secret</strong> for installing the Hypothesis LTI app.
+    For installation instructions for your LMS see our
+    <a target="_blank" href="https://web.hypothes.is/education/lms/">Hypothesis LMS Documentation.</a>
+  </p>
 	<div class="input">
 		<label for="key">Consumer Key</label>
 		<input id="key" type="text" value="{{ consumer_key }}" readonly/>
