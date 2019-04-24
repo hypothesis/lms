@@ -15,7 +15,7 @@ class FeatureFlagsCookieHelper:
         # The set of feature flags that are allowed to be toggled on or off by the
         # feature flags cookie.
         self._allowed_flags = aslist(
-            request.registry.settings.get("feature_flags_allowed_in_cookie", "")
+            request.registry.settings.get("feature_flags_allowed_in_cookie", "") or ""
         )
         self._jwt_cookie_helper = JWTCookieHelper("feature_flags", request)
         self._request = request

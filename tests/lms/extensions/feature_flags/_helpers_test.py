@@ -90,10 +90,13 @@ class TestFeatureFlagsCookieHelper:
 
         assert helper.get_all() == {"test_flag_one": True, "test_flag_two": False}
 
+    @pytest.mark.parametrize("flags_setting", ["", None])
     def test_when_theres_no_flags_allowed_set_turns_off_all_flags(
-        self, pyramid_request, jwt_cookie_helper
+        self, pyramid_request, jwt_cookie_helper, flags_setting
     ):
-        pyramid_request.registry.settings["feature_flags_allowed_in_cookie"] = ""
+        pyramid_request.registry.settings[
+            "feature_flags_allowed_in_cookie"
+        ] = flags_setting
         pyramid_request.params = {"test_flag_one": True, "test_flag_two": False}
         response = HTTPFound()
         helper = FeatureFlagsCookieHelper(pyramid_request)
