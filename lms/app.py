@@ -23,6 +23,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     )
 
     config.include("lms.sentry")
+    config.include("lms.session")
     config.include("lms.models")
     config.include("lms.db")
     config.include("lms.routes")
