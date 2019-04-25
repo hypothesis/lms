@@ -9,7 +9,12 @@
 {% block content %}
 <main class="modal-content">
   <h1>Hypothesis Installation</h1>
-  <p class="modal-text">This tool allows you to generate the info you'll need to install Hypothesis in your LMS.</p>
+  <p class="modal-text">
+    Register here to receive a <strong>Consumer Key</strong> and
+    <strong>Shared Secret</strong> for installing the Hypothesis LTI app.
+    For installation instructions for your LMS see our
+    <a target="_blank" href="https://web.hypothes.is/education/lms/">Hypothesis LMS Documentation.</a>
+  </p>
   <form action="/welcome" method="post" onsubmit="newApplicationInstanceForm.handleSubmit(event, this)">
     <div class="input">
       <label for="domain">LMS Domain</label>
