@@ -50,6 +50,15 @@ def configure(settings):
         "h_api_url_private": sg.get("H_API_URL_PRIVATE", required=True),
         # The postMessage origins from which to accept RPC requests.
         "rpc_allowed_origins": sg.get("RPC_ALLOWED_ORIGINS", required=True),
+        # The secret string that's used to sign the feature flags cookie.
+        # For example you can generate one using Python 3 on the command line
+        # like this:
+        #     python3 -c 'import secrets; print(secrets.token_hex())'
+        "feature_flags_cookie_secret": sg.get(
+            "FEATURE_FLAGS_COOKIE_SECRET", required=True
+        ),
+        # The list of feature flags that are allowed to be set in the feature flags cookie.
+        "feature_flags_allowed_in_cookie": sg.get("FEATURE_FLAGS_ALLOWED_IN_COOKIE"),
     }
 
     database_url = sg.get("DATABASE_URL")

@@ -114,16 +114,22 @@ set by that source. For example::
         elif feature_flag_name == "disabled_feature_flag":
             return False
 """
+from ._exceptions import SettingError
 from ._feature_flags import FeatureFlags
 from ._providers import config_file_provider  # noqa
 from ._providers import envvar_provider  # noqa
 from ._providers import query_string_provider  # noqa
 
 
-__all__ = []
+__all__ = ["SettingError"]
 
 
 def includeme(config):
+    config.include("lms.extensions.feature_flags._routes")
+    config.add_static_view(
+        name="feature-flags-static", path="lms.extensions.feature_flags:_static"
+    )
+
     # The singleton FeatureFlags instance for the entire app.
     feature_flags = FeatureFlags()
 
