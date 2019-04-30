@@ -14,7 +14,7 @@ class AuthenticationViews:
         self.logged_in = request.authenticated_userid
 
     @view_config(route_name="login", renderer="templates/login.html.jinja2")
-    @forbidden_view_config(renderer="templates/login.html.jinja2")
+    @forbidden_view_config(renderer="templates/login.html.jinja2", route_name="reports")
     def login(self):
         request = self.request
         login_url = request.route_url("login")
