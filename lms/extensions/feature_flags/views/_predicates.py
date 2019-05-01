@@ -27,7 +27,7 @@ class FeatureFlagViewPredicate:
 
     def text(self):
         """
-        Return a string desribing the behavior of this predicate.
+        Return a string describing the behavior of this predicate.
 
         Used by Pyramid in error messages.
         """
