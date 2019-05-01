@@ -1,14 +1,14 @@
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config, view_defaults
 
-from ._helpers import FeatureFlagsCookieHelper
+from lms.extensions.feature_flags._helpers import FeatureFlagsCookieHelper
 
 
 @view_defaults(
     route_name="feature_flags_cookie_form",
-    renderer="_templates/cookie_form.html.jinja2",
+    renderer="../_templates/cookie_form.html.jinja2",
 )
-class _FeatureFlagsCookieFormViews:
+class CookieFormViews:
     """A form for toggling feature flags in a cookie."""
 
     def __init__(self, request):

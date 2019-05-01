@@ -149,6 +149,7 @@ from ._providers import config_file_provider  # noqa
 from ._providers import envvar_provider  # noqa
 from ._providers import cookie_provider  # noqa
 from ._providers import query_string_provider  # noqa
+from .views._predicates import FeatureFlagViewPredicate
 
 
 __all__ = ["SettingError"]
@@ -199,3 +200,5 @@ def includeme(config):
     config.add_directive(
         "add_feature_flag_providers", add_feature_flag_providers, action_wrap=False
     )
+
+    config.add_view_predicate("feature_flag", FeatureFlagViewPredicate)

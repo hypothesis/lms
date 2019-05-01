@@ -1,14 +1,14 @@
 import pytest
 from pyramid import httpexceptions
 
-from lms.extensions.feature_flags._views import _FeatureFlagsCookieFormViews
+from lms.extensions.feature_flags.views.cookie_form import CookieFormViews
 
 
 class TestFeatureFlagsCookieFormViews:
     def test_get_passes_the_feature_flags_to_the_template(
         self, pyramid_request, FeatureFlagsCookieHelper, cookie_helper
     ):
-        views = _FeatureFlagsCookieFormViews(pyramid_request)
+        views = CookieFormViews(pyramid_request)
 
         template_data = views.get()
 
@@ -19,14 +19,14 @@ class TestFeatureFlagsCookieFormViews:
     def test_post_sets_cookie_and_redirects_browser(
         self, pyramid_request, FeatureFlagsCookieHelper, cookie_helper
     ):
-        returned = _FeatureFlagsCookieFormViews(pyramid_request).post()
+        returned = CookieFormViews(pyramid_request).post()
 
         assert returned == Redirect302To("http://example.com/flags")
         FeatureFlagsCookieHelper.assert_called_once_with(pyramid_request)
         cookie_helper.set_cookie.assert_called_once_with(returned)
 
     def test_post_flashes_success_message(self, pyramid_request):
-        _FeatureFlagsCookieFormViews(pyramid_request).post()
+        CookieFormViews(pyramid_request).post()
 
         assert pyramid_request.session.peek_flash("feature_flags") == [
             "Feature flags saved in cookie ✔"
@@ -52,7 +52,9 @@ class Redirect302To:
 
 @pytest.fixture(autouse=True)
 def FeatureFlagsCookieHelper(patch):
-    return patch("lms.extensions.feature_flags._views.FeatureFlagsCookieHelper")
+    return patch(
+        "lms.extensions.feature_flags.views.cookie_form.FeatureFlagsCookieHelper"
+    )
 
 
 @pytest.fixture
