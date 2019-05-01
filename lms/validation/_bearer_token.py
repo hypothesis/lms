@@ -118,7 +118,9 @@ class BearerTokenSchema(marshmallow.Schema):
         :rtype: LTIUser
         """
         try:
-            return parser.parse(self, self._request, locations=["headers"])
+            return parser.parse(
+                self, self._request, locations=["headers", "querystring"]
+            )
         except HTTPUnprocessableEntity as error:
             try:
                 authorization_error_message = error.json["authorization"][0]

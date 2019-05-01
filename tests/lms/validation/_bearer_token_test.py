@@ -26,9 +26,14 @@ class TestBearerTokenSchema:
     ):
         pyramid_request.headers["authorization"] = authorization_param
 
-        deserialized_lti_user = schema.lti_user()
+        assert schema.lti_user() == lti_user
 
-        assert deserialized_lti_user == lti_user
+    def test_it_deserializes_lti_users_from_authorization_query_params(
+        self, authorization_param, lti_user, pyramid_request, schema
+    ):
+        pyramid_request.params["authorization"] = authorization_param
+
+        assert schema.lti_user() == lti_user
 
     def test_it_raises_if_theres_no_authorization_param(self, schema):
         with pytest.raises(MissingSessionTokenError) as exc_info:
