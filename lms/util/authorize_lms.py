@@ -64,6 +64,9 @@ def authorize_lms(
         @functools.wraps(view_function)
         def wrapper(request, *args, user=None, **kwargs):
             """Redirect user."""
+            if request.feature("new_oauth"):
+                return view_function(request, *args, user=user, **kwargs)
+
             if oauth_condition(request) is False:
                 return view_function(request, *args, user=user, **kwargs)
 

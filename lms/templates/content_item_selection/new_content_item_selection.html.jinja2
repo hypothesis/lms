@@ -15,6 +15,7 @@
         <input id="url" type="text" name="document_url" onchange="contentItemSelection.resetError(this)"/>
         <span class="error"></span>
       </div>
+      {% if request.feature("new_oauth") %}<button onclick="window.open('/api/canvas/authorize?authorization=' + JSON.parse(document.querySelector('.js-config').textContent).authorization_param, 'popup', 'height=475,width=775')">Select PDF from Canvas</button>{% endif %}
       <button class="btn btn--gray" onclick="contentItemSelection.showGoogleDriveFilePicker(event)">Use Google Picker</button>
       <span id="file-picker" />
     </div>

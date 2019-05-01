@@ -39,3 +39,5 @@ def includeme(config):
     # Browsers seem to send requests to this URL on their own accord, even
     # though we dont link to it.
     config.add_route("favicon", "/favicon.ico")
+
+    config.add_route("canvas_api_authorize", "/api/canvas/authorize")
