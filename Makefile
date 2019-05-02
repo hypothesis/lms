@@ -35,9 +35,7 @@ sql:
 	psql --pset expanded=auto postgresql://postgres@localhost:5433/postgres
 
 .PHONY: lint
-lint: node_modules/.uptodate
-	tox -q -e py36-lint
-	$(GULP) lint
+lint: backend-lint frontend-lint
 
 .PHONY: format
 format:
@@ -80,6 +78,14 @@ clean:
 	find . -type d -name "__pycache__" -delete
 	rm -f node_modules/.uptodate
 	rm -rf build
+
+.PHONY: backend-lint
+backend-lint:
+	tox -q -e py36-lint
+
+.PHONY: frontend-lint
+frontend-lint: node_modules/.uptodate
+	$(GULP) lint
 
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
