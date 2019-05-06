@@ -7,7 +7,7 @@ from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models import find_user_from_state
 from lms.util import lti_params_for
 from lms.views.content_item_selection import content_item_form
-from lms.validation import CANVAS_OAUTH_CALLBACK_SCHEMA
+from lms.validation import CanvasOAuthCallbackSchema
 
 
 def build_canvas_token_url(lms_url):
@@ -18,7 +18,7 @@ def build_canvas_token_url(lms_url):
 @view_config(
     route_name="canvas_oauth_callback",
     request_method="GET",
-    schema=CANVAS_OAUTH_CALLBACK_SCHEMA,
+    schema=CanvasOAuthCallbackSchema,
 )
 # pylint: disable=too-many-locals
 def canvas_oauth_callback(request):
