@@ -110,7 +110,8 @@ backend-lint:
 
 .PHONY: frontend-lint
 frontend-lint: node_modules/.uptodate
-	$(GULP) lint
+	yarn format
+	yarn lint
 
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
