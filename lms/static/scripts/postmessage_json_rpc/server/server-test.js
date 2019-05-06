@@ -39,11 +39,14 @@ describe('postmessage_json_rpc/server#Server', () => {
   beforeEach('listen for JSON-RPC responses', () => {
     receiveMessage = sinon.stub();
 
-    listener = (event) => {
+    listener = event => {
       // Only call `receiveMessage` if the event is a JSON-RPC response.
       // This is to avoid calling receiveMessage with postMessage requests sent
       // by the tests (intended for the server).
-      if (event.data.jsonrpc === '2.0' && (event.data.result || event.data.error)) {
+      if (
+        event.data.jsonrpc === '2.0' &&
+        (event.data.result || event.data.error)
+      ) {
         receiveMessage(event);
       }
     };
@@ -60,7 +63,7 @@ describe('postmessage_json_rpc/server#Server', () => {
       window.postMessage(validRequest(), serversOrigin);
 
       return Promise.race([
-        new Promise((resolve) => {
+        new Promise(resolve => {
           receiveMessage.callsFake(() => {
             assert.isTrue(registeredMethod.calledOnce);
             assert.isTrue(registeredMethod.calledWithExactly());
@@ -71,7 +74,7 @@ describe('postmessage_json_rpc/server#Server', () => {
       ]);
     });
 
-    [null, 'test_id'].forEach((id) => {
+    [null, 'test_id'].forEach(id => {
       it('sends a response message', () => {
         const request = validRequest();
         request.id = id;
@@ -79,8 +82,8 @@ describe('postmessage_json_rpc/server#Server', () => {
         window.postMessage(request, serversOrigin);
 
         return Promise.race([
-          new Promise((resolve) => {
-            receiveMessage.callsFake((event) => {
+          new Promise(resolve => {
+            receiveMessage.callsFake(event => {
               assert.equal(event.data.jsonrpc, '2.0');
               assert.equal(event.data.result, 'test_result');
               assert.equal(event.data.id, id);
@@ -136,7 +139,7 @@ describe('postmessage_json_rpc/server#Server', () => {
 
     // The JSON-RPC spec says that `id` must be a number, string, or null.
     // If some other type of value is used the server should ignore the request.
-    [{}, true, undefined].forEach((value) => {
+    [{}, true, undefined].forEach(value => {
       it('responds with an error if the request identifier is invalid', () => {
         const request = validRequest();
         request.id = value;
@@ -156,7 +159,7 @@ describe('postmessage_json_rpc/server#Server', () => {
       return assertThatServerRespondedWithError('method name not recognized');
     });
 
-    [{}, true, 2.0, null].forEach((method_name) => {
+    [{}, true, 2.0, null].forEach(method_name => {
       it("responds with an error if the method name isn't a string", () => {
         const request = validRequest();
         request.method = method_name;
@@ -187,20 +190,17 @@ describe('postmessage_json_rpc/server#Server', () => {
    * Return a Promise that resolves if the server responds with a given error.
    * Rejects otherwise.
    */
-  function assertThatServerRespondedWithError(message, id='test_id') {
+  function assertThatServerRespondedWithError(message, id = 'test_id') {
     return Promise.race([
-      new Promise((resolve) => {
-        receiveMessage.callsFake((event) => {
+      new Promise(resolve => {
+        receiveMessage.callsFake(event => {
           assert.equal(event.data.jsonrpc, '2.0');
           assert.equal(event.data.id, id);
           assert.equal(event.data.result, undefined);
-          assert.deepEqual(
-            event.data.error,
-            {
-              code: -32600,
-              message: message,
-            },
-          );
+          assert.deepEqual(event.data.error, {
+            code: -32600,
+            message: message,
+          });
           resolve();
         });
       }),
@@ -209,17 +209,17 @@ describe('postmessage_json_rpc/server#Server', () => {
   }
 
   /**
-  * Return a Promise that simply resolves itself after a given delay.
-  */
+   * Return a Promise that simply resolves itself after a given delay.
+   */
   function resolveAfterDelay() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       window.setTimeout(resolve, 1);
     });
   }
 
   /**
-  * Return a Promise that simply rejects after a given delay.
-  */
+   * Return a Promise that simply rejects after a given delay.
+   */
   function rejectAfterDelay(message) {
     return new Promise((resolve, reject) => {
       window.setTimeout(reject, 1500, new Error(message));

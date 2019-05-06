@@ -9,11 +9,8 @@ function pickerCallback(fileId) {
 }
 
 // Initialize the file picker app.
-new FilePicker(
-  store,
-  {
-    mountId: '#file-picker',
-    courseId: window.DEFAULT_SETTINGS.courseId,
-    pickerCallback,
-  }
-).render();
+new FilePicker(store, {
+  mountId: '#file-picker',
+  courseId: window.DEFAULT_SETTINGS.courseId,
+  pickerCallback,
+}).render();

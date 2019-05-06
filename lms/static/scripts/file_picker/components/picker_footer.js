@@ -2,7 +2,6 @@ import $ from 'jquery/dist/jquery.min.js';
 import Component from './component';
 
 export default class PickerHeaderTable extends Component {
-
   initializeComponent() {
     this.store.subscribe(this);
   }
@@ -21,9 +20,7 @@ export default class PickerHeaderTable extends Component {
     });
     $('#picker-submit').off('click');
     $('#picker-submit').on('click', () => {
-      this.props.pickerCallback(
-        this.store.getState().selectedFileId
-      );
+      this.props.pickerCallback(this.store.getState().selectedFileId);
       this.store.setState(
         {
           ...this.store.getState(),

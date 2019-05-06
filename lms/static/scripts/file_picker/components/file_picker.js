@@ -39,19 +39,20 @@ export default class FilePicker extends Component {
 
     // Load the files from the proxy when the picker is opened.
     if (eventType === this.store.eventTypes.PICKER_OPENED) {
-      this.store.canvasApi.proxy(
-        `courses/${this.props.courseId}/files`,
-        Constants.GET_ALL,
-        { content_types: ['application/pdf'] }
-      ).then((res) => {
-        const currentState = this.store.getState();
-        this.store.setState({
-          ...currentState,
-          files: JSON.parse(res.text),
-        },
-        this.store.eventTypes.FILES_LOADED
-        );
-      });
+      this.store.canvasApi
+        .proxy(`courses/${this.props.courseId}/files`, Constants.GET_ALL, {
+          content_types: ['application/pdf'],
+        })
+        .then(res => {
+          const currentState = this.store.getState();
+          this.store.setState(
+            {
+              ...currentState,
+              files: JSON.parse(res.text),
+            },
+            this.store.eventTypes.FILES_LOADED
+          );
+        });
     }
   }
 
@@ -71,19 +72,22 @@ export default class FilePicker extends Component {
               <table class="list-view" role="listbox">
                 ${new PickerTableHeader(this.store)}
                 <tbody>
-                  ${_.map(state.files, file => new PickerTableRow(this.store, { file }))}
+                  ${_.map(
+                    state.files,
+                    file => new PickerTableRow(this.store, { file })
+                  )}
                 </tbody>
               </table>
             </div>
-            ${new PickerFooter(
-    this.store,
-    { pickerCallback: this.props.pickerCallback }
-  )}
+            ${new PickerFooter(this.store, {
+              pickerCallback: this.props.pickerCallback,
+            })}
           </main>
         </div>
         <div class="file-picker-overlay" />
       `;
-    } else { // render a button that lets you open the picker if the picker is not open.
+    } else {
+      // render a button that lets you open the picker if the picker is not open.
       output = this.r`
         <button
           class="btn btn--gray"
