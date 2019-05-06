@@ -1,8 +1,20 @@
+# Stage 1: Build frontend assets.
+FROM node:11-alpine as frontend-build
+
+ENV NODE_ENV production
+COPY .babelrc gulpfile.js package.json yarn.lock ./
+COPY scripts/gulp ./scripts/gulp
+COPY lms/static ./lms/static
+RUN yarn install --frozen-lockfile
+
+RUN yarn build
+
+# Stage 2: Build the rest of the app using build output from Stage 1.
 FROM alpine:3.9.3
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk add ca-certificates python3 libpq collectd collectd-disk supervisor nodejs nodejs-npm
+RUN apk add ca-certificates python3 libpq collectd collectd-disk supervisor
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
@@ -31,12 +43,11 @@ RUN mkdir /etc/collectd/collectd.conf.d \
 # writeable.
 RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
 
-COPY . .
+# Copy frontend assets.
+COPY --from=frontend-build /build build
 
-# Build frontend assets
-RUN npm install --production
-RUN NODE_ENV=production node_modules/.bin/gulp build
-RUN npm cache clean --force
+# Copy the rest of the application files.
+COPY . .
 
 EXPOSE 8001
 USER lms
