@@ -35,6 +35,7 @@ from lms.validation._exceptions import (
 from lms.validation._oauth import CANVAS_OAUTH_CALLBACK_SCHEMA
 from lms.validation._launch_params import LaunchParamsSchema
 from lms.validation._bearer_token import BearerTokenSchema
+from lms.validation._helpers import instantiate_schema
 
 
 __all__ = (
@@ -81,8 +82,9 @@ def _validated_view(view, info):
             # Use the view's configured schema to validate the request,
             # and make the validated and parsed request params available as
             # request.parsed_params.
-            # If validation fails this will raise ValidationError and the view won't be called.
-            request.parsed_params = parser.parse(info.options["schema"], request)
+            request.parsed_params = parser.parse(
+                instantiate_schema(info.options["schema"], request), request
+            )
 
             # Call the view normally.
             return view(context, request)

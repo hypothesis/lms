@@ -1,5 +1,6 @@
 from unittest import mock
 
+import marshmallow
 import pytest
 import webargs
 from pyramid.interfaces import IViewDerivers
@@ -47,13 +48,24 @@ class TestValidatedView:
 
         assert _validated_view(view, info) == view
 
-    def test_it_validates_the_request_with_the_views_schema(
-        self, context, info, parser, pyramid_request, schema, view
+    def test_it_instantiates_the_views_schema(
+        self, context, info, instantiate_schema, pyramid_request, view, schema
     ):
         # Derive and call the wrapper view.
         _validated_view(view, info)(context, pyramid_request)
 
-        parser.parse.assert_called_once_with(schema, pyramid_request)
+        instantiate_schema.assert_called_once_with(schema, pyramid_request)
+
+    def test_it_validates_the_request(
+        self, context, info, parser, pyramid_request, view, instantiate_schema
+    ):
+        # Derive and call the wrapper view.
+        _validated_view(view, info)(context, pyramid_request)
+
+        # It uses the schema dict to parse the request.
+        parser.parse.assert_called_once_with(
+            instantiate_schema.return_value, pyramid_request
+        )
 
     def test_it_adds_the_parsed_params_to_the_request(
         self, context, info, pyramid_request, view, parsed_params
@@ -84,6 +96,10 @@ class TestValidatedView:
     def context(self):
         """Return the Pyramid context object."""
         return mock.sentinel.context
+
+    @pytest.fixture(autouse=True)
+    def instantiate_schema(self, patch):
+        return patch("lms.validation.instantiate_schema")
 
     @pytest.fixture
     def info(self):
