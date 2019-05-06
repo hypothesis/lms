@@ -9,7 +9,7 @@ var batch = require('gulp-batch');
 var commander = require('commander');
 var endOfStream = require('end-of-stream');
 var gulp = require('gulp');
-var gulpUtil = require('gulp-util');
+var log = require('gulplog');
 var through = require('through2');
 
 var createBundle = require('./scripts/gulp/create-bundle');
@@ -26,7 +26,7 @@ function parseCommandLine() {
     .parse(process.argv);
 
   if (commander.grep) {
-    gulpUtil.log(`Running tests matching pattern /${commander.grep}/`);
+    log.info(`Running tests matching pattern /${commander.grep}/`);
   }
 
   return {
@@ -43,16 +43,18 @@ var vendorModules = ['jquery'];
 var vendorNoParseModules = ['jquery'];
 
 // Builds the bundles containing vendor JS code
-gulp.task('build-vendor-js', function () {
+gulp.task('build-vendor-js', function() {
   var finished = [];
-  Object.keys(vendorBundles).forEach(function (name) {
-    finished.push(createBundle({
-      name: name,
-      require: vendorBundles[name],
-      minify: IS_PRODUCTION_BUILD,
-      path: SCRIPT_DIR,
-      noParse: vendorNoParseModules,
-    }));
+  Object.keys(vendorBundles).forEach(function(name) {
+    finished.push(
+      createBundle({
+        name: name,
+        require: vendorBundles[name],
+        minify: IS_PRODUCTION_BUILD,
+        path: SCRIPT_DIR,
+        noParse: vendorNoParseModules,
+      })
+    );
   });
   return Promise.all(finished);
 });
@@ -83,21 +85,29 @@ var bundles = [
   },
 ];
 
-var bundleConfigs = bundles.map(function (config) {
+var bundleConfigs = bundles.map(function(config) {
   return Object.assign({}, bundleBaseConfig, config);
 });
 
-gulp.task('build-js', ['build-vendor-js'], function () {
-  return Promise.all(bundleConfigs.map(function (config) {
-    return createBundle(config);
-  }));
-});
+gulp.task(
+  'build-js',
+  gulp.series(['build-vendor-js'], function() {
+    return Promise.all(
+      bundleConfigs.map(function(config) {
+        return createBundle(config);
+      })
+    );
+  })
+);
 
-gulp.task('watch-js', ['build-vendor-js'], function () {
-  bundleConfigs.forEach(function (config) {
-    createBundle(config, {watch: true});
-  });
-});
+gulp.task(
+  'watch-js',
+  gulp.series(['build-vendor-js'], function() {
+    bundleConfigs.forEach(function(config) {
+      createBundle(config, { watch: true });
+    });
+  })
+);
 
 var MANIFEST_SOURCE_FILES = 'build/scripts/**/*.*';
 
@@ -106,31 +116,35 @@ var MANIFEST_SOURCE_FILES = 'build/scripts/**/*.*';
  * URLs containing cache-busting query string parameters.
  */
 function generateManifest() {
-  gulp.src(MANIFEST_SOURCE_FILES)
-    .pipe(manifest({name: 'manifest.json'}))
-    .pipe(through.obj(function (file, enc, callback) {
-      gulpUtil.log('Updated asset manifest');
-      this.push(file);
-      callback();
-    }))
+  return gulp
+    .src(MANIFEST_SOURCE_FILES)
+    .pipe(manifest({ name: 'manifest.json' }))
+    .pipe(
+      through.obj(function(file, enc, callback) {
+        log.info('Updated asset manifest');
+        this.push(file);
+        callback();
+      })
+    )
     .pipe(gulp.dest('build/'));
 }
 
-gulp.task('watch-manifest', function () {
-  gulp.watch(MANIFEST_SOURCE_FILES, batch(function (events, done) {
-    endOfStream(generateManifest(), function () {
-      done();
-    });
-  }));
+gulp.task('watch-manifest', function() {
+  gulp.watch(
+    MANIFEST_SOURCE_FILES,
+    batch(function(events, done) {
+      endOfStream(generateManifest(), function() {
+        done();
+      });
+    })
+  );
 });
 
-gulp.task('build',
-          ['build-js'],
-          generateManifest);
+gulp.task('build', gulp.series(['build-js'], generateManifest));
 
-gulp.task('watch', ['watch-js', 'watch-manifest']);
+gulp.task('watch', gulp.parallel(['watch-js', 'watch-manifest']));
 
-function runKarma(baseConfig, opts) {
+function runKarma(baseConfig, opts, done) {
   // See https://github.com/karma-runner/karma-mocha#configuration
   var cliOpts = {
     client: {
@@ -144,29 +158,42 @@ function runKarma(baseConfig, opts) {
   // be displayed when using a non-default reporter.
   // See https://github.com/karma-runner/karma/pull/2220
   var BaseReporter = require('karma/lib/reporters/base');
-  BaseReporter.decoratorFactory.$inject =
-    BaseReporter.decoratorFactory.$inject.map(dep =>
-        dep.replace('browserLogOptions', 'browserConsoleLogOptions'));
+  BaseReporter.decoratorFactory.$inject = BaseReporter.decoratorFactory.$inject.map(
+    dep => dep.replace('browserLogOptions', 'browserConsoleLogOptions')
+  );
 
   var karma = require('karma');
-  new karma.Server(Object.assign({}, {
-    configFile: path.resolve(__dirname, baseConfig),
-  }, cliOpts, opts)).start();
+  new karma.Server(
+    Object.assign(
+      {},
+      {
+        configFile: path.resolve(__dirname, baseConfig),
+      },
+      cliOpts,
+      opts
+    ),
+    done
+  ).start();
 }
 
-gulp.task('test', function (callback) {
-  runKarma('./lms/static/scripts/karma.config.js', { singleRun: true, autoWatch: false }, callback);
+gulp.task('test', function(callback) {
+  runKarma(
+    './lms/static/scripts/karma.config.js',
+    { singleRun: true, autoWatch: false },
+    callback
+  );
 });
 
-gulp.task('test-watch', function (callback) {
+gulp.task('test-watch', function(callback) {
   runKarma('./lms/static/scripts/karma.config.js', {}, callback);
 });
 
-gulp.task('lint', function () {
+gulp.task('lint', function() {
   // Adapted from usage example at https://www.npmjs.com/package/gulp-eslint
   // `gulp-eslint` is loaded lazily so that it is not required during Docker image builds
   var eslint = require('gulp-eslint');
-  return gulp.src(['lms/static/scripts/**/*.js'])
+  return gulp
+    .src(['lms/static/scripts/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());

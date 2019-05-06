@@ -9,12 +9,10 @@ var path = require('path');
 var browserify = require('browserify');
 var babelify = require('babelify');
 var exorcist = require('exorcist');
-var gulpUtil = require('gulp-util');
+var log = require('gulplog');
 var mkdirp = require('mkdirp');
 var uglifyify = require('uglifyify');
 var watchify = require('watchify');
-
-var log = gulpUtil.log;
 
 function streamFinished(stream) {
   return new Promise(function(resolve, reject) {
@@ -159,7 +157,7 @@ module.exports = function createBundle(config, buildOpts) {
     var output = fs.createWriteStream(bundlePath);
     var b = bundle.bundle();
     b.on('error', function(err) {
-      log('Build error', err.toString());
+      log.error('Build error', err.toString());
     });
     var stream = b.pipe(exorcist(sourcemapPath)).pipe(output);
     return streamFinished(stream);
@@ -170,10 +168,10 @@ module.exports = function createBundle(config, buildOpts) {
     bundle.on('update', function(ids) {
       var start = Date.now();
 
-      log('Source files changed', ids);
+      log.info('Source files changed', ids);
       build()
         .then(function() {
-          log('Updated %s (%d ms)', bundleFileName, Date.now() - start);
+          log.info('Updated %s (%d ms)', bundleFileName, Date.now() - start);
         })
         .catch(function(err) {
           console.error('Building updated bundle failed:', err);
@@ -181,7 +179,7 @@ module.exports = function createBundle(config, buildOpts) {
     });
     build()
       .then(function() {
-        log('Built ' + bundleFileName);
+        log.info('Built ' + bundleFileName);
       })
       .catch(function(err) {
         console.error('Error building bundle:', err);
