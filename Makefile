@@ -104,7 +104,7 @@ GULP := node_modules/.bin/gulp
 build/manifest.json: node_modules/.uptodate
 	$(GULP) build
 
-node_modules/.uptodate: package.json
+node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
-	@node_modules/.bin/check-dependencies 2>/dev/null || yarn --ignore-engines install
+	yarn install
 	@touch $@
