@@ -18,8 +18,8 @@ def build_canvas_token_url(lms_url):
 # pylint: disable=too-many-locals
 def canvas_oauth_callback(request):
     """Route to handle content item selection oauth response."""
-    code = request.parsed_params["code"]
-    state = request.parsed_params["state"]
+    code = request.params["code"]
+    state = request.params["state"]
 
     lti_params = lti_params_for(request)
     consumer_key = lti_params["oauth_consumer_key"]
