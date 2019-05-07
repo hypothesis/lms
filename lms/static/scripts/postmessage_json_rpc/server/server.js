@@ -19,7 +19,6 @@
  *
  */
 export default class Server {
-
   constructor() {
     const configEl = document.getElementsByClassName('js-rpc-server-config')[0];
     const configObj = JSON.parse(configEl.textContent);
@@ -96,7 +95,7 @@ export default class Server {
       return {
         jsonrpc: '2.0',
         id: null,
-        error: {code: -32600, message: 'request id invalid'},
+        error: { code: -32600, message: 'request id invalid' },
       };
     }
 
@@ -107,11 +106,11 @@ export default class Server {
       return {
         jsonrpc: '2.0',
         id: request.id,
-        error: {code: -32600, message: 'method name not recognized'},
+        error: { code: -32600, message: 'method name not recognized' },
       };
     }
 
     // Call the method and return the result response.
-    return {jsonrpc: '2.0', result: method(), id: request.id};
+    return { jsonrpc: '2.0', result: method(), id: request.id };
   }
 }

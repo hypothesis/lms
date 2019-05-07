@@ -2,7 +2,6 @@ import $ from 'jquery/dist/jquery.min.js';
 import Component from './component';
 
 export default class PickerFooter extends Component {
-
   initializeComponent() {
     this.store.subscribe(this);
   }

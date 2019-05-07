@@ -7,7 +7,7 @@ describe('postmessage_json_rpc/methods#requestConfig', () => {
     configEl = document.createElement('script');
     configEl.setAttribute('type', 'application/json');
     configEl.classList.add('js-hypothesis-config');
-    configEl.textContent = JSON.stringify({foo: 'bar'});
+    configEl.textContent = JSON.stringify({ foo: 'bar' });
     document.body.appendChild(configEl);
   });
 
@@ -16,6 +16,6 @@ describe('postmessage_json_rpc/methods#requestConfig', () => {
   });
 
   it('returns the config object', () => {
-    assert.deepEqual(requestConfig(), {foo: 'bar'});
+    assert.deepEqual(requestConfig(), { foo: 'bar' });
   });
 });

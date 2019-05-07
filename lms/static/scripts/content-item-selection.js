@@ -32,11 +32,12 @@ function handleSubmit(event, form) {
   if (form.elements.document_url.value.length === 0) {
     event.preventDefault();
     form.getElementsByClassName('input')[0].classList.add('has-error');
-    form.getElementsByClassName('error')[0].innerHTML = 'Please enter a valid url';
+    form.getElementsByClassName('error')[0].innerHTML =
+      'Please enter a valid url';
   }
   let docInfo;
   if (form.elements.document_url.value.indexOf('?') !== 0) {
-    docInfo = '?url=' +addHttp(form.elements.document_url.value);
+    docInfo = '?url=' + addHttp(form.elements.document_url.value);
   } else {
     docInfo = form.elements.document_url.value;
   }
@@ -58,7 +59,11 @@ function handleSubmit(event, form) {
   // make that file public. If they use the picker and then change the url,
   // we should not make the selected file public.
   const urlSelectedDocUrl = '?url=' + state.selectedDocUrl;
-  if (state.selectedDocId && state.selectedDocUrl && docInfo === urlSelectedDocUrl) {
+  if (
+    state.selectedDocId &&
+    state.selectedDocUrl &&
+    docInfo === urlSelectedDocUrl
+  ) {
     // If we need to make a file public, then we need to stop the event so we
     // can wait until the 'enable public viewing' request resolves before
     // resubmitting the form. Otherwise the content item selection window
@@ -71,7 +76,8 @@ function handleSubmit(event, form) {
         state.selectedDocId = null;
         state.selectedDocUrl = null;
         form.submit();
-      }, (err) => {
+      },
+      err => {
         state.selectedDocId = null;
         state.selectedDocUrl = null;
         form.submit();
@@ -94,7 +100,9 @@ const clientId = window.DEFAULT_SETTINGS.googleClientId;
 const scopes = ['https://www.googleapis.com/auth/drive'];
 
 // Array of API discovery doc URLs for APIs used by the quickstart
-const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+const DISCOVERY_DOCS = [
+  'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+];
 
 const GOOGLE_MIME_TYPES = {
   // 'application/vnd.google-apps.document': 'googleDocs', // Note: we can
@@ -119,16 +127,19 @@ const googleApisLoaded = new Promise((resolve, reject) => {
       onerror: reject,
     });
   };
-}).then(() => {
-  // Initialize the `gapi.auth2` library. This must happen before attempting
-  // to sign in.
-  return gapi.auth2.init({
-    client_id: clientId,
-    scope: scopes.join(' '),
-  });
-}).then((googleAuth_) => {
-  googleAuth = googleAuth_;
-}).catch(onLoadError);
+})
+  .then(() => {
+    // Initialize the `gapi.auth2` library. This must happen before attempting
+    // to sign in.
+    return gapi.auth2.init({
+      client_id: clientId,
+      scope: scopes.join(' '),
+    });
+  })
+  .then(googleAuth_ => {
+    googleAuth = googleAuth_;
+  })
+  .catch(onLoadError);
 
 /**
  * Handle Google picker button click.
@@ -139,22 +150,24 @@ const googleApisLoaded = new Promise((resolve, reject) => {
 function showGoogleDriveFilePicker(event) {
   event.preventDefault();
 
-  googleApisLoaded.then(() => {
-    return Promise.all([authorizeGoogleDriveAccess(), initGoogleClient()]);
-  }).then(([accessToken]) => {
-    const mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
-    const view = new google.picker.View(google.picker.ViewId.DOCS);
-    view.setMimeTypes(mimeTypes);
-    const picker = new google.picker.PickerBuilder()
-      .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
-      .setOAuthToken(accessToken)
-      .addView(view)
-      .addView(new google.picker.DocsUploadView())
-      .setDeveloperKey(developerKey)
-      .setCallback(pickerCallback)
-      .build();
-    picker.setVisible(true);
-  });
+  googleApisLoaded
+    .then(() => {
+      return Promise.all([authorizeGoogleDriveAccess(), initGoogleClient()]);
+    })
+    .then(([accessToken]) => {
+      const mimeTypes = Object.keys(GOOGLE_MIME_TYPES).join(',');
+      const view = new google.picker.View(google.picker.ViewId.DOCS);
+      view.setMimeTypes(mimeTypes);
+      const picker = new google.picker.PickerBuilder()
+        .setOrigin(addHttps(window.DEFAULT_SETTINGS.lmsUrl))
+        .setOAuthToken(accessToken)
+        .addView(view)
+        .addView(new google.picker.DocsUploadView())
+        .setDeveloperKey(developerKey)
+        .setCallback(pickerCallback)
+        .build();
+      picker.setVisible(true);
+    });
 }
 
 function onLoadError(e) {
@@ -173,12 +186,12 @@ function initGoogleClient() {
 
 function enablePublicViewing(docId, onSuccess, onFailure) {
   const body = {
-    'type': 'anyone',
-    'role': 'reader',
+    type: 'anyone',
+    role: 'reader',
   };
   const request = gapi.client.drive.permissions.create({
-    'fileId': docId,
-    'resource': body,
+    fileId: docId,
+    resource: body,
   });
   request.execute(onSuccess, onFailure);
 }
@@ -187,36 +200,37 @@ function enablePublicViewing(docId, onSuccess, onFailure) {
  * Request access to the user's data in Google Drive.
  */
 function authorizeGoogleDriveAccess() {
-  return googleAuth.signIn().then((user) => {
-    return user.getAuthResponse();
-  }).then((authResponse) => {
-    return authResponse.access_token;
-  });
+  return googleAuth
+    .signIn()
+    .then(user => {
+      return user.getAuthResponse();
+    })
+    .then(authResponse => {
+      return authResponse.access_token;
+    });
 }
 
 ////////// Google Url Support /////////////////
 function buildDocUrl(doc) {
   const urlBuilder = GOOGLE_MIME_TYPES[doc.mimeType];
   switch (urlBuilder) {
-  case 'googleDocs':
-    return googleDocUrl(doc);
-  case 'googleDriveFile':
-    return googleDriveFileUrl(doc);
-  default:
-    throw new Error('Mime type not supported');
+    case 'googleDocs':
+      return googleDocUrl(doc);
+    case 'googleDriveFile':
+      return googleDriveFileUrl(doc);
+    default:
+      throw new Error('Mime type not supported');
   }
 }
 
 function googleDriveFileUrl(doc) {
-  return 'https://drive.google.com/uc?id='
-    + doc.id
-    + '&authuser=0&export=download';
+  return (
+    'https://drive.google.com/uc?id=' + doc.id + '&authuser=0&export=download'
+  );
 }
 
 function googleDocUrl(doc) {
-  return 'https://docs.google.com/document/d/'
-    + doc.id
-    + '/export?format=pdf';
+  return 'https://docs.google.com/document/d/' + doc.id + '/export?format=pdf';
 }
 
 function pickerCallback(data) {
@@ -227,7 +241,8 @@ function pickerCallback(data) {
     state.selectedDocId = doc.id;
     state.selectedDocUrl = url;
     if (url) {
-      const input = document.getElementById('launch-form').elements.document_url;
+      const input = document.getElementById('launch-form').elements
+        .document_url;
       input.value = url;
       resetError(input);
     } else {

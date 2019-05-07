@@ -5,12 +5,11 @@ class Subscriber {
 }
 
 describe('store', () => {
-
   beforeEach(() => {
     window.DEFAULT_SETTINGS = {};
   });
 
-  it('#subscribe should correctly subscribe observers',  () => {
+  it('#subscribe should correctly subscribe observers', () => {
     const store = new Store();
     const sub = new Subscriber();
     store.subscribe(sub);
@@ -43,5 +42,4 @@ describe('store', () => {
     store.unsubscribe(sub);
     assert.equal(store.subscribers.length, 0);
   });
-
 });

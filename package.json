@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "gulp build",
+    "format": "prettier --list-different --write lms/**/*.js scripts/**/*.js",
     "lint": "gulp lint",
     "test": "gulp test"
   },
@@ -56,6 +57,7 @@
     "karma-phantomjs-launcher": "^1.0.1",
     "karma-sinon": "^1.0.5",
     "mocha": "^6.1.4",
+    "prettier": "1.17.0",
     "sinon": "^7.3.2"
   },
   "browserify": {

@@ -2,7 +2,6 @@ import FilePicker from './file_picker';
 import Store from '../store';
 
 describe('file picker', () => {
-
   it('#handleUpdate should call setupEventListeners', () => {
     const store = new Store();
     const filePicker = new FilePicker(store, {});
@@ -16,10 +15,7 @@ describe('file picker', () => {
     const filePicker = new FilePicker(store, {});
     store.triggerUpdate = sinon.stub();
     filePicker.render();
-    assert.calledWith(
-      store.triggerUpdate,
-      store.eventTypes.DOCUMENT_RENDERED
-    );
+    assert.calledWith(store.triggerUpdate, store.eventTypes.DOCUMENT_RENDERED);
   });
 
   it('only renders the picker if the pickerOpen state is true', () => {
