@@ -17,6 +17,7 @@ help:
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
 	@echo "make docker            Make the app's Docker image"
+	@echo "make run-docker        Run the app's Docker image locally"
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
 
@@ -72,6 +73,30 @@ pip-compile:
 docker:
 	git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
 
+.PHONY: run-docker
+run-docker:
+	# To run the Docker container locally, first build the Docker image using
+	# `make docker` and then set the environment variables below to appropriate
+	# values (see conf/development.ini for non-production quality examples).
+	docker run \
+		--net lms_default \
+		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
+		-e FEATURE_FLAGS_COOKIE_SECRET \
+		-e H_API_URL_PRIVATE \
+		-e H_API_URL_PUBLIC \
+		-e H_AUTHORITY \
+		-e H_CLIENT_ID \
+		-e H_CLIENT_SECRET  \
+		-e H_JWT_CLIENT_ID \
+		-e H_JWT_CLIENT_SECRET \
+		-e JWT_SECRET \
+		-e LMS_SECRET \
+		-e RPC_ALLOWED_ORIGINS \
+		-e VIA_URL \
+		-e SESSION_COOKIE_SECRET \
+		-p 8001:8001 \
+		hypothesis/lms:$(DOCKER_TAG)
+
 .PHONY: clean
 clean:
 	find . -type f -name "*.py[co]" -delete
@@ -104,7 +129,7 @@ GULP := node_modules/.bin/gulp
 build/manifest.json: node_modules/.uptodate
 	$(GULP) build
 
-node_modules/.uptodate: package.json
+node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
-	@node_modules/.bin/check-dependencies 2>/dev/null || yarn --ignore-engines install
+	yarn install
 	@touch $@
