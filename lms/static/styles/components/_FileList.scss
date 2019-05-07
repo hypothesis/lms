@@ -1,0 +1,41 @@
+$file-list-item-height: 40px;
+$file-list-icon-size: 24px;
+
+.FileList {
+  position: relative;
+}
+
+.FileList__spinner {
+  position: absolute;
+  left: calc(50% - #{$file-list-icon-size / 2});
+  top: calc(50% - #{$file-list-icon-size / 2});
+}
+
+.FileList__name-col {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.FileList__date-col {
+  width: 120px;
+  text-align: left;
+}
+
+.FileList__icon {
+  margin-left: 10px;
+  margin-right: 10px;
+  width: $file-list-icon-size;
+  height: $file-list-icon-size;
+  vertical-align: middle;
+}
+
+.FileList__name {
+  flex-grow: 1;
+  text-decoration: none;
+  color: black;
+  vertical-align: middle;
+}
+
+.FileList__date {
+  padding-right: 10px;
+}

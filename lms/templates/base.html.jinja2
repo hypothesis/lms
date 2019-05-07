@@ -4,15 +4,16 @@
     <meta charset=utf-8>
     <meta name="google-site-verification" content="gaQfw17MvkfgMs1jAeZAEv0kuJTMS28lvH21_rQKBPY" />
     <title>{% block title %}Hypothesis{% endblock %}</title>
+    {% block base_styles %}
     {% for url in asset_urls("lms_css") %}
     <link rel="stylesheet"
           type="text/css"
           href="{{ url }}">
-    {% endfor %}
-    {% block styles %}{% endblock %}
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet">
-
+    {% endfor %}
+    {% endblock %}
+    {% block styles %}{% endblock %}
     <link rel="apple-touch-icon" sizes="152x152"
           href="{{ 'lms:static/images/apple-touch-icon-152x152.png'|static_path }}">
     <link rel="icon" type="image/png" sizes="16x16"

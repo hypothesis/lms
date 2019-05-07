@@ -1,6 +1,9 @@
 {% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
+{% if request.feature("new_oauth") %}
+<div id="app"></div>
+{% else %}
 <form form id="launch-form" action="{{ content_item_return_url  }}" method="post"
       onsubmit="contentItemSelection.handleSubmit(event, this)" enctype="application/x-www-form-urlencoded">
   <input type="hidden" name="content_items" />
@@ -15,7 +18,6 @@
         <input id="url" type="text" name="document_url" onchange="contentItemSelection.resetError(this)"/>
         <span class="error"></span>
       </div>
-      {% if request.feature("new_oauth") %}<button onclick="window.open('/api/canvas/authorize?authorization=' + JSON.parse(document.querySelector('.js-config').textContent).authorization_param, 'popup', 'height=475,width=775')">Select PDF from Canvas</button>{% endif %}
       <button class="btn btn--gray" onclick="contentItemSelection.showGoogleDriveFilePicker(event)">Use Google Picker</button>
       <span id="file-picker" />
     </div>
@@ -23,12 +25,45 @@
       <button class="btn" id="content-item-submit" type="submit">Submit</button>
     </div>
   </main>
-
 </form>
+{% endif %}
 {% endblock %}
 
+{% block base_styles %}
+{% if not request.feature("new_oauth") %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block styles %}
+{% if request.feature("new_oauth") %}
+{% for url in  asset_urls("file_picker_v2_css") %}
+<link rel="stylesheet" href="{{ url }}">
+{% endfor %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
 
 {% block scripts %}
+{% if request.feature("new_oauth") %}
+{% for url in asset_urls("file_picker_v2_js") %}
+<script async defer src="{{ url }}"></script>
+{% endfor %}
+
+<script class="js-hypothesis-config" type="text/json">
+{
+  "authToken": "{{ js_config.authorization_param }}",
+  "authUrl": "{{ request.route_url('canvas_api.authorize') }}",
+  "courseId": "{{ course_id }}",
+  "formAction": "{{ content_item_return_url }}",
+  "formFields": {{ form_fields | tojson }},
+  "lmsName" : "Canvas",
+  "ltiLaunchUrl": "{{ lti_launch_url }}"
+}
+</script>
+
+{% else %}
 <script type="text/javascript">
   window.DEFAULT_SETTINGS = {
     apiUrl: '{{api_url}}',
@@ -53,5 +88,5 @@
 <script src="{{ url }}"></script>
 {% endfor %}
 <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=gapiLoaded"></script>
-
+{% endif %}
 {% endblock %}

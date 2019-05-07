@@ -1,0 +1,53 @@
+$table-item-height: 40px;
+$table-icon-size: 24px;
+
+// Wrapper around the table. This is used because table elements do not support
+// setting the `height` or `overflow` properties directly.
+.Table__wrapper {
+  height: 7 * $table-item-height;
+  overflow: auto;
+  border: 1px solid $grey-6;
+
+  margin-top: 10px;
+}
+
+.Table__table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: $normal-font-size;
+}
+
+.Table__head {
+  color: white;
+}
+
+// Sticky header for the table. On browsers that do not support `position: sticky`,
+// this falls back to a non-fixed header. Logically `position: sticky` should
+// be applied to the `thead` element, but there are bugs in Chrome and Edge.
+// See https://caniuse.com/#feat=css-sticky.
+.Table__head th {
+  background-color: $grey-6;
+  position: sticky;
+  top: 0;
+  font-weight: normal;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.Table__body {
+  text-align: left;
+}
+
+.Table__row {
+  background-color: white;
+  cursor: pointer;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-right: 10px;
+
+  height: $table-item-height;
+}
+
+.Table__row.is-selected {
+  background-color: $grey-3;
+}

@@ -1,0 +1,15 @@
+.FilePickerApp__form {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.FilePickerApp__source-button {
+  min-width: 175px;
+  margin-bottom: 10px;
+  text-align: left;
+}
