@@ -18,7 +18,7 @@ class LTIAuthenticationPolicy:
         principals = [security.Everyone]
 
         if userid:
-            principals.extend([security.Authenticated, userid])
+            principals.extend([security.Authenticated, userid, "lti_user"])
 
         return principals
 
