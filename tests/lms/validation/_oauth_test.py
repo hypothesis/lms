@@ -25,6 +25,18 @@ class TestCanvasOauthCallbackSchema:
             "state": ["Missing data for required field."]
         }
 
+    def test_its_invalid_if_state_is_missing_from_the_session(
+        self, schema, valid_request
+    ):
+        del valid_request.session["canvas_api_authorize_state"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            parsed_args = parser.parse(schema, valid_request)
+
+        assert exc_info.value.messages == {
+            "state": ["Invalid or missing state parameter."]
+        }
+
     def test_its_invalid_if_state_isnt_a_string(self, schema, valid_request):
         valid_request.params["state"] = 23
 
@@ -32,6 +44,23 @@ class TestCanvasOauthCallbackSchema:
             parsed_args = parser.parse(schema, valid_request)
 
         assert exc_info.value.messages == {"state": ["Not a valid string."]}
+
+    def test_its_invalid_if_state_is_the_wrong_string(self, schema, valid_request):
+        valid_request.params["state"] = "the_wrong_string"
+
+        with pytest.raises(ValidationError) as exc_info:
+            parsed_args = parser.parse(schema, valid_request)
+
+        assert exc_info.value.messages == {
+            "state": ["Invalid or missing state parameter."]
+        }
+
+    def test_it_removes_the_state_param_after_validating_it(
+        self, schema, valid_request
+    ):
+        parsed_args = parser.parse(schema, valid_request)
+
+        assert "canvas_api_authorize_state" not in valid_request.session
 
     def test_its_invalid_if_state_is_null(self, schema, valid_request):
         valid_request.params["state"] = None
@@ -66,8 +95,8 @@ class TestCanvasOauthCallbackSchema:
         assert exc_info.value.messages == {"code": ["Field may not be null."]}
 
     @pytest.fixture
-    def schema(self, pyramid_request):
-        return instantiate_schema(CanvasOAuthCallbackSchema, pyramid_request)
+    def schema(self, valid_request):
+        return instantiate_schema(CanvasOAuthCallbackSchema, valid_request)
 
     @pytest.fixture
     def valid_request(self):
@@ -78,4 +107,5 @@ class TestCanvasOauthCallbackSchema:
         valid_request = testing.DummyRequest()
         valid_request.params["code"] = "test_code"
         valid_request.params["state"] = "test_state"
+        valid_request.session["canvas_api_authorize_state"] = "test_state"
         return valid_request
