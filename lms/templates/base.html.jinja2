@@ -4,9 +4,11 @@
     <meta charset=utf-8>
     <meta name="google-site-verification" content="gaQfw17MvkfgMs1jAeZAEv0kuJTMS28lvH21_rQKBPY" />
     <title>{% block title %}Hypothesis{% endblock %}</title>
+    {% for url in asset_urls("lms_css") %}
     <link rel="stylesheet"
           type="text/css"
-          href="{{'lms:static/styles/lms.css'|static_path}}">
+          href="{{ url }}">
+    {% endfor %}
     {% block styles %}{% endblock %}
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet">
