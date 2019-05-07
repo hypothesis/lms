@@ -110,7 +110,7 @@ backend-lint:
 
 .PHONY: frontend-lint
 frontend-lint: node_modules/.uptodate
-	yarn format
+	yarn checkformatting
 	yarn lint
 
 # Backend and frontend tests are split into separate targets because on Jenkins
