@@ -32,7 +32,7 @@ from lms.validation._exceptions import (
     MissingSessionTokenError,
     InvalidSessionTokenError,
 )
-from lms.validation._oauth import CANVAS_OAUTH_CALLBACK_SCHEMA
+from lms.validation._oauth import CanvasOAuthCallbackSchema
 from lms.validation._launch_params import LaunchParamsSchema
 from lms.validation._bearer_token import BearerTokenSchema
 from lms.validation._helpers import instantiate_schema
@@ -40,7 +40,7 @@ from lms.validation._helpers import instantiate_schema
 
 __all__ = (
     "parser",
-    "CANVAS_OAUTH_CALLBACK_SCHEMA",
+    "CanvasOAuthCallbackSchema",
     "BearerTokenSchema",
     "LaunchParamsSchema",
     "ValidationError",

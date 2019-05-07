@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlparse, urlunparse
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
-from lms.validation import CANVAS_OAUTH_CALLBACK_SCHEMA
+from lms.validation import CanvasOAuthCallbackSchema
 
 
 @view_config(route_name="canvas_api_authorize", request_method="GET")
@@ -40,7 +40,7 @@ def authorize(request):
     request_method="GET",
     route_name="canvas_oauth_callback",
     renderer="string",
-    schema=CANVAS_OAUTH_CALLBACK_SCHEMA,
+    schema=CanvasOAuthCallbackSchema,
 )
 def oauth2_redirect(request):
     access_code = request.parsed_params["code"]
