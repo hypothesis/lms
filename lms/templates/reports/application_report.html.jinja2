@@ -3,7 +3,9 @@
   <head>
     <meta charset=utf-8>
     <title>Application Instances</title>
-    <link rel="stylesheet" type="text/css" href="{{'lms:static/styles/reports.css'|static_path}}">
+    {% for url in asset_urls("reports_css") %}
+    <link rel="stylesheet" type="text/css" href="{{ url }}">
+    {% endfor %}
   </head>
   <body>
     <h1>Application Reports</h1>

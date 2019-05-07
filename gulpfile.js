@@ -1,8 +1,9 @@
 'use strict';
 
-/* global process, __dirname */
+/* eslint-env node */
 /* eslint-disable no-var, prefer-arrow-callback */
 
+var { mkdirSync } = require('fs');
 var path = require('path');
 
 var batch = require('gulp-batch');
@@ -13,6 +14,7 @@ var log = require('gulplog');
 var through = require('through2');
 
 var createBundle = require('./scripts/gulp/create-bundle');
+var createStyleBundle = require('./scripts/gulp/create-style-bundle');
 var manifest = require('./scripts/gulp/manifest');
 
 var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
@@ -109,7 +111,26 @@ gulp.task(
   })
 );
 
-var MANIFEST_SOURCE_FILES = 'build/scripts/**/*.*';
+var cssBundles = [
+  './lms/static/styles/lms.css',
+  './lms/static/styles/reports.css',
+];
+
+gulp.task('build-css', () => {
+  mkdirSync('build/styles', { recursive: true });
+  const bundles = cssBundles.map(entry => createStyleBundle({
+    input: entry,
+    output: `build/styles/${path.basename(entry, path.extname(entry))}.css`,
+    minify: IS_PRODUCTION_BUILD,
+  }));
+  return Promise.all(bundles);
+});
+
+var MANIFEST_SOURCE_FILES = [
+  'build/**/*.css',
+  'build/**/*.js',
+  'build/**/*.map',
+];
 
 /**
  * Generate a JSON manifest mapping file paths to
@@ -140,7 +161,7 @@ gulp.task('watch-manifest', function() {
   );
 });
 
-gulp.task('build', gulp.series(['build-js'], generateManifest));
+gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
 
 gulp.task('watch', gulp.parallel(['watch-js', 'watch-manifest']));
 
