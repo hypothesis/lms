@@ -15,3 +15,10 @@ class CanvasOAuthCallbackSchema(marshmallow.Schema):
         # Silence a strict=False deprecation warning from marshmallow.
         # TODO: Remove this once we've upgraded to marshmallow 3.
         strict = True
+
+    @marshmallow.validates("state")
+    def validate_state(self, state):
+        request = self.context["request"]
+
+        if state != request.session.pop("canvas_api_authorize_state", None):
+            raise marshmallow.ValidationError("Invalid or missing state parameter.")
