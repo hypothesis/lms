@@ -47,6 +47,15 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
+    def test_it_saves_the_state_param_in_the_session(self, pyramid_request, secrets):
+        response = authorize(pyramid_request)
+
+        secrets.token_hex.assert_called_once_with()
+        assert (
+            pyramid_request.session["canvas_api_authorize_state"]
+            == secrets.token_hex.return_value
+        )
+
     def test_it_includes_the_state_param_in_a_query_param(
         self, pyramid_request, secrets
     ):

@@ -12,6 +12,8 @@ def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
     consumer_key = request.lti_user.oauth_consumer_key
 
+    state = request.session["canvas_api_authorize_state"] = secrets.token_hex()
+
     authorize_url = urlunparse(
         (
             "https",
@@ -23,7 +25,7 @@ def authorize(request):
                     "client_id": ai_getter.developer_key(consumer_key),
                     "response_type": "code",
                     "redirect_uri": request.route_url("canvas_oauth_callback"),
-                    "state": secrets.token_hex(),
+                    "state": state,
                 }
             ),
             "",
