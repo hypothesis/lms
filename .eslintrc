@@ -1,12 +1,30 @@
 {
-  "extends": "hypothesis",
+  "extends": [
+    "hypothesis",
+    "plugin:react/recommended"
+  ],
   "rules": {
-    "arrow-spacing": "error",
     "indent": "off",
     "no-var": "error",
-    "keyword-spacing": "error",
     "prefer-arrow-callback": "error",
     "prefer-const": ["error", { "destructuring": "all" }],
-    "space-before-blocks": "error"
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": [
+    "react",
+    "react-hooks"
+  ],
+  "settings": {
+    "react": {
+      "pragma": "createElement",
+      "version": "16.8"
+    }
   }
 }
