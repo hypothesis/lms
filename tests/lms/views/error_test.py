@@ -25,6 +25,23 @@ class TestNotFound:
         assert result["message"] == "Page not found"
 
 
+class TestForbidden:
+    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+        error.forbidden(pyramid_request)
+
+        sentry_sdk.capture_exception.assert_not_called()
+
+    def test_it_sets_response_status(self, pyramid_request):
+        error.forbidden(pyramid_request)
+
+        assert pyramid_request.response.status_int == 403
+
+    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
+        result = error.forbidden(pyramid_request)
+
+        assert result["message"] == "You're not authorized to view this page"
+
+
 class TestHTTPClientError:
     def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
         exc = httpexceptions.HTTPBadRequest()
