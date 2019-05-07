@@ -161,7 +161,7 @@ gulp.task('watch-manifest', function() {
   );
 });
 
-gulp.task('build', gulp.series(['build-js'], generateManifest));
+gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
 
 gulp.task('watch', gulp.parallel(['watch-js', 'watch-manifest']));
 
