@@ -7,7 +7,9 @@ from pyramid.view import view_config
 from lms.validation import CanvasOAuthCallbackSchema
 
 
-@view_config(route_name="canvas_api_authorize", request_method="GET")
+@view_config(
+    route_name="canvas_api_authorize", request_method="GET", permission="canvas_api"
+)
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
     consumer_key = request.lti_user.oauth_consumer_key

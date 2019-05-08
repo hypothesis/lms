@@ -41,6 +41,7 @@ class TestLTIAuthenticationPolicy:
             security.Everyone,
             security.Authenticated,
             _helpers.authenticated_userid.return_value,
+            "lti_user",
         ]
 
     def test_effective_principals_when_theres_no_lti_user(
