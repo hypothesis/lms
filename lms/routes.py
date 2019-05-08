@@ -40,4 +40,7 @@ def includeme(config):
     # though we dont link to it.
     config.add_route("favicon", "/favicon.ico")
 
-    config.add_route("canvas_api_authorize", "/api/canvas/authorize")
+    config.add_route("canvas_api.authorize", "/api/canvas/authorize")
+    config.add_route(
+        "canvas_api.courses.files.list", "/api/canvas/courses/{course_id}/files"
+    )

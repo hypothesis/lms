@@ -8,7 +8,7 @@ from lms.validation import CanvasOAuthCallbackSchema
 
 
 @view_config(
-    route_name="canvas_api_authorize", request_method="GET", permission="canvas_api"
+    route_name="canvas_api.authorize", request_method="GET", permission="canvas_api"
 )
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
