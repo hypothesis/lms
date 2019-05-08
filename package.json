@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "gulp build",
+    "checkformatting": "prettier --check lms/**/*.js scripts/**/*.js",
     "format": "prettier --list-different --write lms/**/*.js scripts/**/*.js",
     "lint": "gulp lint",
     "test": "gulp test"
