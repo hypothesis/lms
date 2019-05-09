@@ -1,9 +1,6 @@
-from unittest import mock
-
 import marshmallow
-import pytest
 
-from lms.validation._helpers import instantiate_schema
+from lms.validation import _helpers
 
 
 class TestInstantiateSchema:
@@ -13,15 +10,15 @@ class TestInstantiateSchema:
             "field2": marshmallow.fields.Str(required=True),
         }
 
-        assert instantiate_schema(schema, pyramid_request) == schema
+        assert _helpers.instantiate_schema(schema, pyramid_request) == schema
 
     def test_it_returns_class_schemas_instantiated(self, pyramid_request):
-        instantiated_schema = instantiate_schema(MySchema, pyramid_request)
+        instantiated_schema = _helpers.instantiate_schema(MySchema, pyramid_request)
 
         assert isinstance(instantiated_schema, MySchema)
 
     def test_it_adds_the_request_to_a_schema_objects_context(self, pyramid_request):
-        instantiated_schema = instantiate_schema(MySchema, pyramid_request)
+        instantiated_schema = _helpers.instantiate_schema(MySchema, pyramid_request)
 
         assert instantiated_schema.context["request"] == pyramid_request
 

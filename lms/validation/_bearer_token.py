@@ -1,12 +1,10 @@
 """Schema for our bearer token-based LTI authentication."""
-import datetime
-
-import jwt
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from webargs.pyramidparser import parser
 import marshmallow
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
+from lms.validation import _helpers
+from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.validation._exceptions import (
     ValidationError,
     ExpiredSessionTokenError,
@@ -144,18 +142,9 @@ class BearerTokenSchema(marshmallow.Schema):
 
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
-        one_hour_from_now = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        data["exp"] = one_hour_from_now
-
-        jwt_bytes = jwt.encode(data, self.context["secret"], algorithm="HS256")
-
-        # PyJWT returns JWT's as UTF8-encoded byte strings (this isn't
-        # documented, but see
-        # https://github.com/jpadilla/pyjwt/blob/ed28e495f937f50165a252fd5696a82942cd83a7/jwt/api_jwt.py#L62).
-        # We need a unicode string, so decode it.
-        jwt_str = jwt_bytes.decode("utf-8")
-
-        return {"authorization": "Bearer " + jwt_str}
+        return {
+            "authorization": f"Bearer {_helpers.encode_jwt(data, self.context['secret'])}"
+        }
 
     @marshmallow.pre_load
     def _decode_jwt(self, data):
@@ -167,28 +156,22 @@ class BearerTokenSchema(marshmallow.Schema):
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
         try:
-            authorization_param = data["authorization"]
+            jwt = data["authorization"][len("Bearer ") :]
         except KeyError:
             raise marshmallow.ValidationError(
                 "Missing data for required field.", "authorization"
             )
 
-        encoded_jwt = authorization_param[len("Bearer ") :]
-
         try:
-            payload = jwt.decode(
-                encoded_jwt,
-                self.context["secret"],
-                algorithms=["HS256"],
-                options={"require_exp": True},
-            )
-        except ExpiredSignatureError:
-            raise marshmallow.ValidationError("Expired session token", "authorization")
-        except InvalidTokenError:
-            raise marshmallow.ValidationError("Invalid session token", "authorization")
-
-        del payload["exp"]
-        return payload
+            return _helpers.decode_jwt(jwt, self.context["secret"])
+        except ExpiredJWTError as err:
+            raise marshmallow.ValidationError(
+                "Expired session token", "authorization"
+            ) from err
+        except InvalidJWTError as err:
+            raise marshmallow.ValidationError(
+                "Invalid session token", "authorization"
+            ) from err
 
     @marshmallow.post_load
     def _make_user(self, kwargs):  # pylint:disable=no-self-use
