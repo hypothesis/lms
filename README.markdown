@@ -147,7 +147,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 1. Start the database container:
 
     ```bash
-    $ docker-compose up -d
+    $ make services
     ```
 
 1. Start the development web server and app:
