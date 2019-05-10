@@ -31,6 +31,9 @@ from lms.validation._exceptions import (
     ExpiredSessionTokenError,
     MissingSessionTokenError,
     InvalidSessionTokenError,
+    MissingStateParamError,
+    ExpiredStateParamError,
+    InvalidStateParamError,
 )
 from lms.validation._oauth import CanvasOAuthCallbackSchema
 from lms.validation._launch_params import LaunchParamsSchema
@@ -47,6 +50,9 @@ __all__ = (
     "ExpiredSessionTokenError",
     "MissingSessionTokenError",
     "InvalidSessionTokenError",
+    "MissingStateParamError",
+    "InvalidStateParamError",
+    "ExpiredStateParamError",
 )
 
 
