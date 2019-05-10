@@ -1,6 +1,11 @@
 import base64
 
-from lms.validation import LaunchParamsSchema, BearerTokenSchema, ValidationError
+from lms.validation import (
+    LaunchParamsSchema,
+    BearerTokenSchema,
+    CanvasOAuthCallbackSchema,
+    ValidationError,
+)
 
 
 def authenticated_userid(lti_user):
@@ -36,6 +41,11 @@ def get_lti_user(request):
 
     try:
         return BearerTokenSchema(request).lti_user()
+    except ValidationError:
+        pass
+
+    try:
+        return CanvasOAuthCallbackSchema(request).lti_user()
     except ValidationError:
         return None
 

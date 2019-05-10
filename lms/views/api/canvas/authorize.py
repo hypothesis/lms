@@ -45,5 +45,6 @@ def oauth2_redirect(request):
     access_code = request.parsed_params["code"]
     state = request.parsed_params["state"]
     return f"""Redirect received
+lti_user: {request.lti_user}
 access_code: {access_code}
 state: {state}"""
