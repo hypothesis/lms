@@ -29,3 +29,6 @@ class MySchema(marshmallow.Schema):
 
     class Meta:
         strict = True
+
+    def __init__(self, request):
+        self.context = {"request": request}
