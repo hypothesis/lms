@@ -63,6 +63,7 @@ node {
                 }
             } finally {
                 postgresContainer.stop()
+                cleanWs()
             }
         }
     },
