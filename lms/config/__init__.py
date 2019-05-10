@@ -59,6 +59,11 @@ def configure(settings):
         ),
         # The list of feature flags that are allowed to be set in the feature flags cookie.
         "feature_flags_allowed_in_cookie": sg.get("FEATURE_FLAGS_ALLOWED_IN_COOKIE"),
+        # The secret string that's used to sign the OAuth 2 state param.
+        # For example you can generate one using Python 3 on the command line
+        # like this:
+        #     python3 -c 'import secrets; print(secrets.token_hex())'
+        "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET", required=True),
     }
 
     database_url = sg.get("DATABASE_URL")
