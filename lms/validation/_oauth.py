@@ -16,6 +16,13 @@ class CanvasOAuthCallbackSchema(marshmallow.Schema):
         # TODO: Remove this once we've upgraded to marshmallow 3.
         strict = True
 
+    def __init__(self, request):
+        super().__init__()
+        self.context = {
+            "request": request,
+            "secret": request.registry.settings["oauth2_state_secret"],
+        }
+
     @marshmallow.validates("state")
     def validate_state(self, state):
         request = self.context["request"]

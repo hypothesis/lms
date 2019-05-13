@@ -22,7 +22,6 @@ def instantiate_schema(schema, request):
     parse a request.
     """
     if inspect.isclass(schema):
-        schema = schema()
-        schema.context["request"] = request
+        schema = schema(request)
 
     return schema
