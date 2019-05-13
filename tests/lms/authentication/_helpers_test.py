@@ -58,13 +58,41 @@ class TestGetLTIUser:
         bearer_token_schema.lti_user.assert_called_once_with()
         assert lti_user == bearer_token_schema.lti_user.return_value
 
-    def test_it_returns_None_if_both_schemas_fail(
-        self, launch_params_schema, bearer_token_schema, pyramid_request
+    def test_if_LaunchParamsSchema_and_BearerTokenSchema_fails_it_falls_back_on_CanvasOAuthCallbackSchema(
+        self,
+        launch_params_schema,
+        bearer_token_schema,
+        CanvasOAuthCallbackSchema,
+        canvas_oauth_callback_schema,
+        pyramid_request,
     ):
         launch_params_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
         bearer_token_schema.lti_user.side_effect = ValidationError(
+            ["TEST_ERROR_MESSAGE"]
+        )
+
+        lti_user = get_lti_user(pyramid_request)
+
+        CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
+        canvas_oauth_callback_schema.lti_user.assert_called_once_with()
+        assert lti_user == canvas_oauth_callback_schema.lti_user.return_value
+
+    def test_it_returns_None_if_all_schemas_fail(
+        self,
+        launch_params_schema,
+        bearer_token_schema,
+        canvas_oauth_callback_schema,
+        pyramid_request,
+    ):
+        launch_params_schema.lti_user.side_effect = ValidationError(
+            ["TEST_ERROR_MESSAGE"]
+        )
+        bearer_token_schema.lti_user.side_effect = ValidationError(
+            ["TEST_ERROR_MESSAGE"]
+        )
+        canvas_oauth_callback_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
 
@@ -86,6 +114,16 @@ def BearerTokenSchema(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
+
+
+@pytest.fixture(autouse=True)
+def CanvasOAuthCallbackSchema(patch):
+    return patch("lms.authentication._helpers.CanvasOAuthCallbackSchema")
+
+
+@pytest.fixture
+def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
+    return CanvasOAuthCallbackSchema.return_value
 
 
 @pytest.fixture(autouse=True)

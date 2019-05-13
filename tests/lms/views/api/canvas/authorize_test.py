@@ -47,28 +47,18 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
-    def test_it_saves_the_state_param_in_the_session(self, pyramid_request, secrets):
-        response = authorize(pyramid_request)
-
-        secrets.token_hex.assert_called_once_with()
-        assert (
-            pyramid_request.session["canvas_api_authorize_state"]
-            == secrets.token_hex.return_value
-        )
-
-    def test_it_includes_the_state_param_in_a_query_param(
-        self, pyramid_request, secrets
+    def test_it_includes_the_state_in_a_query_param(
+        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
     ):
         response = authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        secrets.token_hex.assert_called_once_with()
-        assert query_params["state"] == [str(secrets.token_hex.return_value)]
-
-    @pytest.fixture
-    def secrets(self, patch):
-        return patch("lms.views.api.canvas.authorize.secrets")
+        CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
+        canvas_oauth_callback_schema.state_param.assert_called_once_with()
+        assert query_params["state"] == [
+            canvas_oauth_callback_schema.state_param.return_value
+        ]
 
 
 class TestOAuth2Redirect:
@@ -79,3 +69,15 @@ class TestOAuth2Redirect:
         }
 
         oauth2_redirect(pyramid_request)
+
+
+@pytest.fixture(autouse=True)
+def CanvasOAuthCallbackSchema(patch):
+    return patch("lms.views.api.canvas.authorize.CanvasOAuthCallbackSchema")
+
+
+@pytest.fixture
+def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
+    schema = CanvasOAuthCallbackSchema.return_value
+    schema.state_param.return_value = "test_state"
+    return schema
