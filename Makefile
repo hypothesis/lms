@@ -94,6 +94,7 @@ run-docker:
 		-e RPC_ALLOWED_ORIGINS \
 		-e VIA_URL \
 		-e SESSION_COOKIE_SECRET \
+		-e OAUTH2_STATE_SECRET \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)
 

@@ -176,6 +176,7 @@ def pyramid_config(pyramid_request):
         "h_api_url_public": "https://example.com/api/",
         "h_api_url_private": "https://private.com/api/",
         "rpc_allowed_origins": ["http://localhost:5000"],
+        "oauth2_state_secret": "test_oauth2_state_secret",
     }
 
     with testing.testConfig(request=pyramid_request, settings=settings) as config:
