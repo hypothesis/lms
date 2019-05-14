@@ -42,9 +42,9 @@ def authorize(request):
     schema=CanvasOAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    access_code = request.parsed_params["code"]
-    state = request.parsed_params["state"]
-    return f"""Redirect received
-lti_user: {request.lti_user}
-access_code: {access_code}
-state: {state}"""
+    canvas_api_client = request.find_service(name="canvas_api_client")
+
+    authorization_code = request.parsed_params["code"]
+
+    token = canvas_api_client.get_token(authorization_code)
+    canvas_api_client.save_token(*token)

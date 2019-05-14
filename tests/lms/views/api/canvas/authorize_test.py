@@ -1,8 +1,10 @@
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 
 from lms.views.api.canvas.authorize import authorize, oauth2_redirect
+from lms.services.canvas_api import CanvasAPIClient
 
 
 class TestAuthorize:
@@ -62,13 +64,38 @@ class TestAuthorize:
 
 
 class TestOAuth2Redirect:
-    def test_it(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "code": "test_access_code",
-            "state": "test_state",
-        }
+    def test_it_gets_an_access_token_from_canvas(
+        self, canvas_api_client, pyramid_request
+    ):
+        pyramid_request.parsed_params = {"code": "test_authorization_code"}
 
         oauth2_redirect(pyramid_request)
+
+        canvas_api_client.get_token.assert_called_once_with("test_authorization_code")
+
+    def test_it_saves_the_access_token_to_the_db(
+        self, canvas_api_client, pyramid_request
+    ):
+        pyramid_request.parsed_params = {"code": "test_authorization_code"}
+
+        oauth2_redirect(pyramid_request)
+
+        canvas_api_client.save_token.assert_called_once_with(
+            *canvas_api_client.get_token.return_value
+        )
+
+    @pytest.fixture(autouse=True)
+    def canvas_api_client(self, pyramid_config):
+        canvas_api_client = mock.create_autospec(
+            CanvasAPIClient, spec_set=True, instance=True
+        )
+        canvas_api_client.get_token.return_value = (
+            "test_access_token",
+            "test_refresh_token",
+            3600,
+        )
+        pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
+        return canvas_api_client
 
 
 @pytest.fixture(autouse=True)
