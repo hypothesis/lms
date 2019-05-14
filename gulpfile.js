@@ -74,6 +74,10 @@ var bundles = [
     entry: './lms/static/scripts/file_picker/_file_picker',
   },
   {
+    name: 'file_picker_v2',
+    entry: './lms/static/scripts/file_picker_v2/index',
+  },
+  {
     name: 'content_item_selection',
     entry: './lms/static/scripts/content-item-selection.js',
   },
@@ -114,6 +118,7 @@ gulp.task(
 var cssBundles = [
   './lms/static/styles/lms.css',
   './lms/static/styles/reports.css',
+  './lms/static/styles/file-picker-app.scss',
 ];
 
 gulp.task('build-css', () => {

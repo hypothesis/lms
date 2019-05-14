@@ -1,0 +1,54 @@
+.Button {
+  @include font-normal;
+
+  min-height: 30px;
+
+  background-color: $grey-6;
+  border: none;
+  border-radius: 2px;
+  color: $white;
+  font-weight: bold;
+  padding-left: 15px;
+  padding-right: 15px;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $brand;
+  }
+
+  &:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  &[disabled] {
+    color: $grey-6;
+    background-color: $grey-2;
+    &:hover {
+      background-color: $grey-2;
+    }
+  }
+}
+
+.Button.is-hidden {
+  display: none;
+}
+
+.Button--cancel {
+  color: $grey-6;
+  background-color: $grey-2;
+
+  &:hover {
+    background-color: $grey-3;
+    color: $brand;
+  }
+}
+
+.Button--danger {
+  background-color: $brand;
+}
+
+@include touch-input {
+  .Button {
+    min-height: $touch-target-size;
+  }
+}
