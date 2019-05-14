@@ -29,11 +29,9 @@ dev: build/manifest.json
 shell:
 	tox -q -e py36-dev -- pshell conf/development.ini
 
-# FIXME: This requires psql to be installed locally.
-# It should use psql from docker / docker-compose.
 .PHONY: sql
 sql:
-	psql --pset expanded=auto postgresql://postgres@localhost:5433/postgres
+	docker-compose exec postgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
 lint: backend-lint frontend-lint
