@@ -4,6 +4,8 @@ default: help
 .PHONY: help
 help:
 	@echo "make help              Show this help message"
+	@echo 'make services          Run the services that `make dev` requires'
+	@echo "                       (Postgres) in Docker"
 	@echo "make dev               Run the app in the development server"
 	@echo "make shell             Launch a Python shell in the dev environment"
 	@echo "make sql               Connect to the dev database with a psql shell"
@@ -21,6 +23,10 @@ help:
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
 
+.PHONY: services
+services:
+	docker-compose up -d
+
 .PHONY: dev
 dev: build/manifest.json
 	tox -q -e py36-dev
@@ -29,11 +35,9 @@ dev: build/manifest.json
 shell:
 	tox -q -e py36-dev -- pshell conf/development.ini
 
-# FIXME: This requires psql to be installed locally.
-# It should use psql from docker / docker-compose.
 .PHONY: sql
 sql:
-	psql --pset expanded=auto postgresql://postgres@localhost:5433/postgres
+	docker-compose exec postgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
 lint: backend-lint frontend-lint

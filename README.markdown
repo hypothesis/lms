@@ -25,7 +25,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
 * python 3
 * [tox](https://tox.readthedocs.io/en/latest/) 3.8 or newer
 * [GNU Make](https://www.gnu.org/software/make/)
-* Docker
+* Docker and Docker Compose
 * openssl
 * Node.js
 * yarn
@@ -141,27 +141,13 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export RPC_ALLOWED_ORIGINS="http://localhost:5000"
     ```
 
-1. **Try out the postgres docker container**
-
-    The app's postgres database runs within a docker container. To start the container:
-
-    ```bash
-    docker run --rm -d -p 5433:5432 --name lms-postgres postgres
-    ```
-
-    You can subsequently stop the container with:
-
-    ```bash
-    docker stop lms-postgres
-    ```
-
 <a id="run-webserver"></a>
 ### Running the app locally
 
-1. Start the psql (database) container if it's not already running:
+1. Start the database container:
 
     ```bash
-    $ docker run --rm -d -p 5433:5432 --name lms-postgres postgres
+    $ make services
     ```
 
 1. Start the development web server and app:
@@ -309,7 +295,7 @@ To enable a report of application instances in the DB, you'll need to define the
 1. Create the test database. You only need to do this once:
 
    ```bash
-   $ psql postgresql://postgres@localhost:5433/postgres -c "CREATE DATABASE lms_test;"
+   $ docker-compose exec postgres psql -U postgres -c "CREATE DATABASE lms_test;"
    ```
 
 1. Run the tests:
@@ -332,22 +318,11 @@ $ make shell
 #### Database
 
 **Tip**: You can connect to the app's database to inspect its contents by
-installing [psql](https://www.postgresql.org/docs/current/static/app-psql.html)
-and then running:
+running:
 
 ```bash
-$ make psql
+$ make sql
 ```
-
-**Tip**: If you want to delete all your data and reset your dev database,
-an easy way to do so is just to delete the whole docker container:
-
-```bash
-$ sudo docker rm lms-postgres
-```
-
-You can then re-create the container by re-running the `docker run` command
-above.
 
 ### Running the linter
 
