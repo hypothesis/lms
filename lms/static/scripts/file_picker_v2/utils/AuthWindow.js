@@ -32,8 +32,8 @@ export default class AuthWindow {
    * an API call and check for a successful response.
    */
   async authorize() {
-    const width = 640;
-    const height = Math.round(width * (2 / 3));
+    const width = 775;
+    const height = 475;
     const left = Math.round(window.screen.width / 2 - width / 2);
     const top = Math.round(window.screen.height / 2 - height / 2);
     const settings = queryString
