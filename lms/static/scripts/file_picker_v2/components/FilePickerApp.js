@@ -7,9 +7,9 @@ import {
   contentItemForUrl,
   contentItemForLmsFile,
 } from '../utils/content-item';
+import { GooglePickerClient } from '../utils/google-picker-client';
 import Button from './Button';
 import LMSFilePicker from './LMSFilePicker';
-import GoogleFilePicker from './GoogleFilePicker';
 import URLPicker from './URLPicker';
 
 /**
@@ -28,7 +28,10 @@ export default function FilePickerApp({
     courseId,
     formAction,
     formFields,
+    googleClientId,
+    googleDeveloperKey,
     lmsName,
+    lmsUrl,
     ltiLaunchUrl,
   } = useContext(Config);
 
@@ -36,6 +39,15 @@ export default function FilePickerApp({
   const [url, setUrl] = useState(null);
   const [lmsFile, setLmsFile] = useState(null);
   const [lmsFilesAuthorized, setLmsFilesAuthorized] = useState(authorized);
+  const googlePicker = useRef(null);
+
+  if (!googlePicker.current && googleClientId && googleDeveloperKey && lmsUrl) {
+    googlePicker.current = new GooglePickerClient({
+      developerKey: googleDeveloperKey,
+      clientId: googleClientId,
+      origin: lmsUrl,
+    });
+  }
 
   /**
    * Flag indicating whether the form should be auto-submitted on the next
@@ -56,6 +68,21 @@ export default function FilePickerApp({
     setActiveDialog(null);
     setUrl(url);
     submit(true);
+  };
+
+  const showGooglePicker = async () => {
+    try {
+      // TODO - Show some indicator here that we are waiting for the user
+      // to make a selection.
+      const { id, url } = await googlePicker.current.showPicker();
+      // TODO - Show an indicator here that something is happening, in case
+      // these API calls take a perceptable amount of time.
+      await googlePicker.current.enablePublicViewing(id);
+      setUrl(url);
+      submit(true);
+    } catch (err) {
+      console.error('Showing picker failed', err);
+    }
   };
 
   // Submit the form after a selection is made via one of the available
@@ -93,9 +120,6 @@ export default function FilePickerApp({
           onSelectFile={selectLMSFile}
         />
       );
-      break;
-    case 'google':
-      dialog = <GoogleFilePicker onCancel={cancelDialog} />;
       break;
     default:
       dialog = null;
@@ -143,11 +167,13 @@ export default function FilePickerApp({
           label={`Select PDF from ${lmsName}`}
           onClick={() => setActiveDialog('lms')}
         />
-        <Button
-          className="FilePickerApp__source-button"
-          label="Select PDF from Google Drive"
-          onClick={() => setActiveDialog('google')}
-        />
+        {googlePicker.current && (
+          <Button
+            className="FilePickerApp__source-button"
+            label="Select PDF from Google Drive"
+            onClick={showGooglePicker}
+          />
+        )}
         <input style={{ display: 'none' }} type="submit" />
       </form>
       {dialog}
@@ -159,7 +185,7 @@ FilePickerApp.propTypes = {
   /**
    * The dialog that should be shown when the app is first opened.
    */
-  defaultActiveDialog: propTypes.oneOf(['url', 'lms', 'google']),
+  defaultActiveDialog: propTypes.oneOf(['url', 'lms']),
 
   /** Callback invoked when the form is submitted. */
   onSubmit: propTypes.func,

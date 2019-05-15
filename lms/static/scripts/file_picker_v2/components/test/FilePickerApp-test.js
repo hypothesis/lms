@@ -15,10 +15,16 @@ function interact(wrapper, callback) {
   wrapper.update();
 }
 
+class FakeGooglePickerClient {
+  constructor() {
+    this.showPicker = sinon.stub();
+    this.enablePublicViewing = sinon.stub();
+  }
+}
+
 describe('FilePickerApp', () => {
   const FakeURLPicker = () => null;
   const FakeLMSFilePicker = () => null;
-  const FakeGoogleFilePicker = () => null;
 
   let fakeConfig;
 
@@ -46,7 +52,6 @@ describe('FilePickerApp', () => {
     // shallow rendering because the modern context API doesn't seem to work
     // with shallow rendering yet.
     $imports.$mock({
-      './GoogleFilePicker': FakeGoogleFilePicker,
       './LMSFilePicker': FakeLMSFilePicker,
       './URLPicker': FakeURLPicker,
     });
@@ -74,7 +79,6 @@ describe('FilePickerApp', () => {
 
     assert.isFalse(wrapper.exists(FakeLMSFilePicker));
     assert.isFalse(wrapper.exists(FakeURLPicker));
-    assert.isFalse(wrapper.exists(FakeGoogleFilePicker));
     assert.equal(wrapper.find(Button).length, 3);
   });
 
@@ -133,6 +137,10 @@ describe('FilePickerApp', () => {
     );
   });
 
+  it('initializes Google Picker client when a Google Developer key is provided', () => {});
+
+  it('shows "Select PDF from Google Drive" button if Google Developer key is provided', () => {});
+
   it('shows Google Drive picker when "Select PDF from Google Drive is clicked', () => {
     const wrapper = renderFilePicker();
 
@@ -143,4 +151,6 @@ describe('FilePickerApp', () => {
 
     assert.isTrue(wrapper.exists(FakeGoogleFilePicker));
   });
+
+  it('submits a Google Drive link when a file is selected from the Google Picker', () => {});
 });
