@@ -28,7 +28,7 @@ def upgrade():
         sa.Column("refresh_token", sa.UnicodeText()),
         sa.Column("expires_in", sa.Integer()),
         sa.Column(
-            "created", sa.DateTime(), server_default=sa.func.now(), nullable=False
+            "received_at", sa.DateTime(), server_default=sa.func.now(), nullable=False
         ),
         sa.UniqueConstraint(
             "user_id", "consumer_key", name="uq__oauth2_token__user_id"
