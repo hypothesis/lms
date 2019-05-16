@@ -38,7 +38,7 @@ def authorize(request):
     feature_flag="new_oauth",
     request_method="GET",
     route_name="canvas_oauth_callback",
-    renderer="string",
+    renderer="lms:templates/api/canvas/oauth2_redirect.html.jinja2",
     schema=CanvasOAuthCallbackSchema,
 )
 def oauth2_redirect(request):
@@ -48,3 +48,5 @@ def oauth2_redirect(request):
 
     token = canvas_api_client.get_token(authorization_code)
     canvas_api_client.save_token(*token)
+
+    return {}
