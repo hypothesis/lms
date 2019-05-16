@@ -7,7 +7,13 @@ from lms.db import BASE
 
 
 class OAuth2Token(BASE):
-    """An OAuth 2.0 access token, refresh token and expiry time."""
+    """
+    An OAuth 2.0 access token, refresh token and expiry time.
+
+    These are used when this app is acting as an OAuth 2 client and
+    communicating with APIs that require OAuth 2 access token authentication,
+    for example the Canvas API.
+    """
 
     __tablename__ = "oauth2_token"
     __table_args__ = (sa.UniqueConstraint("user_id", "consumer_key"),)
