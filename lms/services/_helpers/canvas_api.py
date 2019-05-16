@@ -1,5 +1,5 @@
 """Helpers for working with the Canvas API."""
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlencode, urlparse, urlunparse
 
 import requests
 
@@ -51,9 +51,30 @@ class CanvasAPIHelper:
 
         https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
 
-        :rtype str:
+        :rtype: str
         """
         return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
+
+    def list_files_url(self, course_id):
+        """
+        Return a Canvas list files API URL for ``course_id``.
+
+        This is the API that returns a list of all the files in a course. See:
+
+        https://canvas.instructure.com/doc/api/files.html#method.files.api_index
+
+        :rtype: str
+        """
+        return urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/files",
+                "",
+                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
+                "",
+            )
+        )
 
     def access_token_request(self, authorization_code):
         """
@@ -86,4 +107,34 @@ class CanvasAPIHelper:
                 "redirect_uri": self._redirect_uri,
                 "code": authorization_code,
             },
+        ).prepare()
+
+    def list_files_request(self, access_token, course_id):
+        """
+        Return a prepared list files request.
+
+        The returned request, when sent, will make a server-to-server request
+        to Canvas's list files API to get a list of the files belonging to
+        ``course_id``.
+
+        The request can be sent like this::
+
+            >>> response = requests.Session().send(request)
+
+        For documentation of this request see:
+
+        https://canvas.instructure.com/doc/api/files.html#method.files.api_index
+
+        :arg access_token: the access token to authenticate the request with
+        :type access_token: str
+
+        :arg course_id: the Canvas course_id of the course to look in
+        :type course_id: str
+
+        :rtype: requests.PreparedRequest
+        """
+        return requests.Request(
+            "GET",
+            self.list_files_url(course_id),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
