@@ -28,3 +28,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
     )
+    config.register_service_factory(
+        "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
+    )
