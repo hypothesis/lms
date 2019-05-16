@@ -43,8 +43,19 @@ class OAuth2Token(BASE):
     #: Null if the authorization server didn't provide an expires_in number.
     expires_in = sa.Column(sa.Integer())
 
-    #: The time when this access token was created.
-    created = sa.Column(
+    #: The time when we received `access_token` and `expires_in`.
+    #:
+    #: This is the time when we received the `access_token` and
+    #: `expires_in` values above from the authorization server.
+    #:
+    #: It's needed to compute whether `expires_in` has elapsed and therefore
+    #: `access_token` has expired.
+    #:
+    #: If database rows are updated in place (rather than being deleted and
+    #: inserting new rows) then whenever `access_token` and `expires_in`
+    #: are updated with new values from the authorization server, `received_at`
+    #: should also be updated to the current time.
+    received_at = sa.Column(
         sa.DateTime,
         default=datetime.datetime.utcnow,
         server_default=sa.func.now(),
@@ -57,4 +68,4 @@ class OAuth2Token(BASE):
         )
 
     def __repr__(self):
-        return f"<lms.models.OAuth2Token user_id:'{self.user_id}' consumer_key:'{self.consumer_key}' access_token:'{self.access_token}' refresh_token:'{self.refresh_token}' expires_in:{self.expires_in}' created:'{self.created}'>"
+        return f"<lms.models.OAuth2Token user_id:'{self.user_id}' consumer_key:'{self.consumer_key}' access_token:'{self.access_token}' refresh_token:'{self.refresh_token}' expires_in:{self.expires_in}' received_at:'{self.received_at}'>"
