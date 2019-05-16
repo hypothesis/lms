@@ -9,7 +9,6 @@ from lms.models.oauth_state import (
     find_or_create_from_user,
     find_user_from_state,
 )
-from lms.models.oauth2_token import OAuth2Token
 from lms.models.tokens import Token, update_user_token
 from lms.models.users import User, build_from_lti_params
 
@@ -24,7 +23,6 @@ __all__ = (
     "find_user_from_state",
     "ModuleItemConfiguration",
     "OauthState",
-    "OAuth2Token",
     "Token",
     "update_user_token",
     "User",
