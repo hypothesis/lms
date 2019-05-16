@@ -67,3 +67,43 @@ class CanvasAPIClient:
         token.refresh_token = refresh_token
         token.expires_in = expires_in
         token.received_at = datetime.datetime.utcnow()
+
+    def list_files(self, course_id):
+        """
+        Return the list of files for the given ``course_id``.
+
+        Send an HTTP request to the Canvas API to get the list of files, and
+        return the list of files.
+
+        :arg course_id: the Canvas course_id of the course to look in
+        :type course_id: str
+
+        :rtype: list(dict)
+        """
+        # TODO: Handle the case where we don't have an access token yet
+        access_token = (
+            self._db.query(OAuth2Token)
+            .filter_by(
+                consumer_key=self._lti_user.oauth_consumer_key,
+                user_id=self._lti_user.user_id,
+            )
+            .one()
+            .access_token
+        )
+
+        list_files_request = self._helper.list_files_request(access_token, course_id)
+        list_files_response = requests.Session().send(list_files_request)
+
+        # TODO: Validate list_files_response
+        # TODO: Handle Canvas list files API error responses (for example an
+        #       authorization error might require us to refresh the access
+        #       token and try again)
+
+        def present_file(file_dict):
+            return {
+                "id": file_dict["id"],
+                "display_name": file_dict["display_name"],
+                "updated_at": file_dict["updated_at"],
+            }
+
+        return [present_file(file_dict) for file_dict in list_files_response.json()]

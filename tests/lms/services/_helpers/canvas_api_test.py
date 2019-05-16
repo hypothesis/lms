@@ -7,8 +7,23 @@ class TestCanvasAPIHelper:
     def test_token_url(self, ai_getter, route_url):
         helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
 
+        token_url = helper.token_url
+
         ai_getter.lms_url.assert_called_once_with("test_consumer_key")
-        assert helper.token_url == "https://my-canvas-instance.com/login/oauth2/token"
+        assert token_url == "https://my-canvas-instance.com/login/oauth2/token"
+
+    def test_list_files_url(self, ai_getter, route_url):
+        helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
+
+        list_files_url = helper.list_files_url("test_course_id")
+
+        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
+        assert (
+            list_files_url
+            == "https://my-canvas-instance.com/api/v1/courses/test_course_id/files"
+            "?content_types%5B%5D=application%2Fpdf"
+            "&per_page=100"
+        )
 
     def test_access_token_request(self, ai_getter, route_url):
         helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
@@ -25,6 +40,18 @@ class TestCanvasAPIHelper:
             "&client_secret=test_developer_secret"
             "&redirect_uri=http%3A%2F%2Fexample.com%2Fcanvas_oauth_callback"
             "&code=test_authorization_code"
+        )
+
+    def test_list_files_request(self, ai_getter, route_url):
+        helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
+
+        request = helper.list_files_request("test_access_token", "test_course_id")
+
+        assert request.method == "GET"
+        assert request.url == (
+            "https://my-canvas-instance.com/api/v1/courses/test_course_id/files"
+            "?content_types%5B%5D=application%2Fpdf"
+            "&per_page=100"
         )
 
     @pytest.fixture

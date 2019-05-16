@@ -38,27 +38,8 @@ from pyramid.view import view_config
     request_method="GET",
     route_name="canvas_api.courses.files.list",
 )
-def list_files(_request):
+def list_files(request):
     """Return the list of files in the given course."""
-    # TODO: Replace this stub response with a real response based on a response
-    # obtained from the Canvas API.
-    return [
-        {
-            "id": 56,
-            "display_name": "Biography.pdf",
-            "updated_at": "2017-03-06T12:58:27Z",
-        },
-        {"id": 1, "display_name": "Comedies.pdf", "updated_at": "2012-05-01T20:36:32Z"},
-        {
-            "id": 23,
-            "display_name": "Histories.pdf",
-            "updated_at": "2011-011-20T07:23:20Z",
-        },
-        {"id": 460, "display_name": "Poems.pdf", "updated_at": "2018-08-17T11:45:50Z"},
-        {"id": 7, "display_name": "Sonnets.pdf", "updated_at": "2016-06-06T17:58:01"},
-        {
-            "id": 112,
-            "display_name": "Tragedies.pdf",
-            "updated_at": "2010-07-23T14:01:50Z",
-        },
-    ]
+    course_id = request.matchdict["course_id"]
+    canvas_api_client = request.find_service(name="canvas_api_client")
+    return canvas_api_client.list_files(course_id)
