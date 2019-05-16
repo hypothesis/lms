@@ -42,6 +42,13 @@ class ApplicationInstance(BASE):
         nullable=False,
     )
 
+    #: A list of all the OAuth2Tokens for this application instance
+    #: (each token belongs to a different user of this application
+    #: instance's LMS).
+    access_tokens = sa.orm.relationship(
+        "OAuth2Token", back_populates="application_instance"
+    )
+
 
 def build_shared_secret():
     """Generate a shared secret."""
