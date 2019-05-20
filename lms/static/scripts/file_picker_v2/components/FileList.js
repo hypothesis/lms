@@ -17,11 +17,11 @@ export default function FileList({
   const columns = [
     {
       label: 'Name',
-      className: 'FileList__name-col',
+      className: 'FileList__name-header',
     },
     {
       label: 'Last modified',
-      className: 'FileList__date-col',
+      className: 'FileList__date-header',
     },
   ];
 
@@ -35,7 +35,7 @@ export default function FileList({
         onUseItem={onUseFile}
         renderItem={file => (
           <Fragment>
-            <td>
+            <td className="FileList__name-col">
               <img
                 className="FileList__icon"
                 src="/static/images/file-pdf.svg"
@@ -44,7 +44,7 @@ export default function FileList({
                 {file.display_name}
               </a>
             </td>
-            <td className="FileList__date">
+            <td className="FileList__date-col">
               {file.updated_at && formatDate(file.updated_at)}
             </td>
           </Fragment>

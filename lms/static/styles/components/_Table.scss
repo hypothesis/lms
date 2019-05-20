@@ -15,6 +15,7 @@ $table-icon-size: 24px;
   border-collapse: collapse;
   width: 100%;
   font-size: $normal-font-size;
+  table-layout: fixed;
 }
 
 .Table__head {

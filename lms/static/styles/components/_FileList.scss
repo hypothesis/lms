@@ -11,12 +11,12 @@ $file-list-icon-size: 24px;
   top: calc(50% - #{$file-list-icon-size / 2});
 }
 
-.FileList__name-col {
+.FileList__name-header {
   text-align: left;
   padding-left: 10px;
 }
 
-.FileList__date-col {
+.FileList__date-header {
   width: 120px;
   text-align: left;
 }
@@ -29,6 +29,12 @@ $file-list-icon-size: 24px;
   vertical-align: middle;
 }
 
+.FileList__name-col {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .FileList__name {
   flex-grow: 1;
   text-decoration: none;
@@ -36,6 +42,6 @@ $file-list-icon-size: 24px;
   vertical-align: middle;
 }
 
-.FileList__date {
+.FileList__date-col {
   padding-right: 10px;
 }
