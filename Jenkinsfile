@@ -93,17 +93,24 @@ node {
     }
 }
 
-onlyOnMaster {
-    milestone()
-    stage("qa deploy") {
-        deployApp(image: img, app: "lms", env: "qa")
-    }
+deployToQAAndProd()
 
-    milestone()
-    stage("prod deploy") {
-        input(message: "Deploy to prod?")
+/**
+ * If this is the master branch then deploy the app to QA and prod.
+ */
+def deployToQAAndProd() {
+    onlyOnMaster {
         milestone()
-        deployApp(image: img, app: "lms", env: "prod")
+        stage("qa deploy") {
+            deployApp(image: img, app: "lms", env: "qa")
+        }
+
+        milestone()
+        stage("prod deploy") {
+            input(message: "Deploy to prod?")
+            milestone()
+            deployApp(image: img, app: "lms", env: "prod")
+        }
     }
 }
 
