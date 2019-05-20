@@ -6,9 +6,7 @@
 var { mkdirSync } = require('fs');
 var path = require('path');
 
-var batch = require('gulp-batch');
 var commander = require('commander');
-var endOfStream = require('end-of-stream');
 var gulp = require('gulp');
 var log = require('gulplog');
 var through = require('through2');
@@ -123,12 +121,22 @@ var cssBundles = [
 
 gulp.task('build-css', () => {
   mkdirSync('build/styles', { recursive: true });
-  const bundles = cssBundles.map(entry => createStyleBundle({
-    input: entry,
-    output: `build/styles/${path.basename(entry, path.extname(entry))}.css`,
-    minify: IS_PRODUCTION_BUILD,
-  }));
+  const bundles = cssBundles.map(entry =>
+    createStyleBundle({
+      input: entry,
+      output: `build/styles/${path.basename(entry, path.extname(entry))}.css`,
+      minify: IS_PRODUCTION_BUILD,
+    })
+  );
   return Promise.all(bundles);
+});
+
+gulp.task('watch-css', () => {
+  gulp.watch(
+    './lms/static/styles/**/*.{css,scss}',
+    { ignoreInitial: false },
+    gulp.series('build-css')
+  );
 });
 
 var MANIFEST_SOURCE_FILES = [
@@ -156,19 +164,12 @@ function generateManifest() {
 }
 
 gulp.task('watch-manifest', function() {
-  gulp.watch(
-    MANIFEST_SOURCE_FILES,
-    batch(function(events, done) {
-      endOfStream(generateManifest(), function() {
-        done();
-      });
-    })
-  );
+  gulp.watch(MANIFEST_SOURCE_FILES, generateManifest);
 });
 
 gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
 
-gulp.task('watch', gulp.parallel(['watch-js', 'watch-manifest']));
+gulp.task('watch', gulp.parallel(['watch-js', 'watch-css', 'watch-manifest']));
 
 function runKarma(baseConfig, opts, done) {
   // See https://github.com/karma-runner/karma-mocha#configuration
