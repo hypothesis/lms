@@ -43,3 +43,17 @@ def list_files(request):
     course_id = request.matchdict["course_id"]
     canvas_api_client = request.find_service(name="canvas_api_client")
     return canvas_api_client.list_files(course_id)
+
+
+@view_config(
+    permission="canvas_api",
+    renderer="json",
+    request_method="GET",
+    route_name="canvas_api.files.public_url",
+)
+def public_url(_request):
+    """Return the public URL of the given file."""
+    # TODO: Replace the hardcoded URL with a real one received from Canvas.
+    return {
+        "public_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    }

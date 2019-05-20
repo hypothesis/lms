@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 
 from lms.services.canvas_api import CanvasAPIClient
-from lms.views.api.canvas.files import list_files
+from lms.views.api.canvas.files import list_files, public_url
 
 
 class TestListFiles:
@@ -28,3 +28,13 @@ class TestListFiles:
     def pyramid_request(self, pyramid_request):
         pyramid_request.matchdict = {"course_id": "test_course_id"}
         return pyramid_request
+
+
+class TestPublicURL:
+    def test_it_returns_the_public_url(self, pyramid_request):
+        data = public_url(pyramid_request)
+
+        assert (
+            data["public_url"]
+            == "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        )
