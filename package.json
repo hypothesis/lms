@@ -37,7 +37,7 @@
     "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-hooks": "^1.6.0",
     "exorcist": "^1.0.1",
-    "gulp": "^4.0.1",
+    "gulp": "^4.0.2",
     "gulplog": "^1.0.0",
     "jquery": "^3.4.1",
     "lodash": "^4.17.10",
