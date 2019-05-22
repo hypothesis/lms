@@ -29,31 +29,24 @@ proxy API caller::
                       |Real Canvas API|
                       +---------------+
 """
-from pyramid.view import view_config
+from pyramid.view import view_config, view_defaults
 
 
-@view_config(
-    permission="canvas_api",
-    renderer="json",
-    request_method="GET",
-    route_name="canvas_api.courses.files.list",
-)
-def list_files(request):
-    """Return the list of files in the given course."""
-    course_id = request.matchdict["course_id"]
-    canvas_api_client = request.find_service(name="canvas_api_client")
-    return canvas_api_client.list_files(course_id)
+@view_defaults(permission="canvas_api", renderer="json")
+class FilesAPIViews:
+    def __init__(self, request):
+        self.request = request
+        self.canvas_api_client = request.find_service(name="canvas_api_client")
 
+    @view_config(request_method="GET", route_name="canvas_api.courses.files.list")
+    def list_files(self):
+        """Return the list of files in the given course."""
+        return self.canvas_api_client.list_files(self.request.matchdict["course_id"])
 
-@view_config(
-    permission="canvas_api",
-    renderer="json",
-    request_method="GET",
-    route_name="canvas_api.files.public_url",
-)
-def public_url(_request):
-    """Return the public URL of the given file."""
-    # TODO: Replace the hardcoded URL with a real one received from Canvas.
-    return {
-        "public_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-    }
+    @view_config(request_method="GET", route_name="canvas_api.files.public_url")
+    def public_url(self):  # pylint:disable=no-self-use
+        """Return the public URL of the given file."""
+        # TODO: Replace the hardcoded URL with a real one received from Canvas.
+        return {
+            "public_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        }
