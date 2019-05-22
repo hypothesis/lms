@@ -80,18 +80,9 @@ class CanvasAPIClient:
 
         :rtype: list(dict)
         """
-        # TODO: Handle the case where we don't have an access token yet
-        access_token = (
-            self._db.query(OAuth2Token)
-            .filter_by(
-                consumer_key=self._lti_user.oauth_consumer_key,
-                user_id=self._lti_user.user_id,
-            )
-            .one()
-            .access_token
+        list_files_request = self._helper.list_files_request(
+            self._access_token, course_id
         )
-
-        list_files_request = self._helper.list_files_request(access_token, course_id)
         list_files_response = requests.Session().send(list_files_request)
 
         # TODO: Validate list_files_response
@@ -107,3 +98,17 @@ class CanvasAPIClient:
             }
 
         return [present_file(file_dict) for file_dict in list_files_response.json()]
+
+    @property
+    def _access_token(self):
+        """Return the user's saved access token from the DB."""
+        # TODO: Handle the case where we don't have an access token yet
+        return (
+            self._db.query(OAuth2Token)
+            .filter_by(
+                consumer_key=self._lti_user.oauth_consumer_key,
+                user_id=self._lti_user.user_id,
+            )
+            .one()
+            .access_token
+        )
