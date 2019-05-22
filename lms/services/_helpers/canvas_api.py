@@ -46,16 +46,8 @@ class CanvasAPIHelper:
         """Return the URL of the Canvas API's token endpoint."""
         return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
 
-    def list_files_url(self, course_id):
-        """
-        Return a Canvas list files API URL for ``course_id``.
-
-        This is the API that returns a list of all the files in a course. See:
-
-        https://canvas.instructure.com/doc/api/files.html#method.files.api_index
-
-        :rtype: str
-        """
+    def _list_files_url(self, course_id):
+        """Return the Canvas list files API URL for ``course_id``."""
         return urlunparse(
             (
                 "https",
@@ -126,6 +118,6 @@ class CanvasAPIHelper:
         """
         return requests.Request(
             "GET",
-            self.list_files_url(course_id),
+            self._list_files_url(course_id),
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
