@@ -41,24 +41,6 @@ class CanvasAPIHelper:
         self._canvas_url = urlparse(ai_getter.lms_url(consumer_key)).netloc
         self._redirect_uri = route_url("canvas_oauth_callback")
 
-    @property
-    def _token_url(self):
-        """Return the URL of the Canvas API's token endpoint."""
-        return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
-
-    def _list_files_url(self, course_id):
-        """Return the Canvas list files API URL for ``course_id``."""
-        return urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}/files",
-                "",
-                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
-                "",
-            )
-        )
-
     def access_token_request(self, authorization_code):
         """
         Return a prepared access token request.
@@ -121,3 +103,21 @@ class CanvasAPIHelper:
             self._list_files_url(course_id),
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
+
+    @property
+    def _token_url(self):
+        """Return the URL of the Canvas API's token endpoint."""
+        return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
+
+    def _list_files_url(self, course_id):
+        """Return the Canvas list files API URL for ``course_id``."""
+        return urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/files",
+                "",
+                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
+                "",
+            )
+        )
