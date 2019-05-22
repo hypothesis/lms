@@ -128,6 +128,42 @@ class TestCanvasAPIClient:
             },
         ]
 
+    @pytest.mark.usefixtures("access_token", "public_url_response")
+    def test_public_url_sends_a_public_url_request_to_canvas(
+        self,
+        ai_getter,
+        canvas_api_client,
+        CanvasAPIHelper,
+        canvas_api_helper,
+        public_url_request,
+        pyramid_request,
+        requests,
+    ):
+        canvas_api_client.public_url("test_file_id")
+
+        # It initializes canvas_api_helper correctly.
+        CanvasAPIHelper.assert_called_once_with(
+            pyramid_request.lti_user.oauth_consumer_key,
+            ai_getter,
+            pyramid_request.route_url,
+        )
+
+        # It gets the public URL request from canvas_api_helper.
+        canvas_api_helper.public_url_request.assert_called_once_with(
+            "test_access_token", "test_file_id"
+        )
+
+        # It sends the public URL request.
+        requests.Session.assert_called_once_with()
+        requests.Session.return_value.send.assert_called_once_with(public_url_request)
+
+    @pytest.mark.usefixtures("access_token", "public_url_response")
+    def test_public_url_returns_the_public_url(self, canvas_api_client):
+        assert (
+            canvas_api_client.public_url("test_file_id")
+            == "https://my-canvas-instance.com/files/1/download"
+        )
+
     @pytest.fixture
     def access_token(self, db_session, pyramid_request):
         access_token = OAuth2Token(
@@ -250,6 +286,17 @@ class TestCanvasAPIClient:
         return list_files_response
 
     @pytest.fixture
+    def public_url_response(self, requests):
+        """Configure requests to send back public URL responses."""
+        public_url_response = {
+            "public_url": "https://my-canvas-instance.com/files/1/download"
+        }
+        requests.Session.return_value.send.return_value.json.return_value = (
+            public_url_response
+        )
+        return public_url_response
+
+    @pytest.fixture
     def before(self):
         """A time before the test method was called."""
         return datetime.datetime.utcnow()
@@ -273,6 +320,11 @@ def access_token_request(canvas_api_helper):
 @pytest.fixture
 def list_files_request(canvas_api_helper):
     return canvas_api_helper.list_files_request.return_value
+
+
+@pytest.fixture
+def public_url_request(canvas_api_helper):
+    return canvas_api_helper.public_url_request.return_value
 
 
 @pytest.fixture(autouse=True)

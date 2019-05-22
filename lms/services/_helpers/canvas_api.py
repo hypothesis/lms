@@ -100,6 +100,31 @@ class CanvasAPIHelper:
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
+    def public_url_request(self, access_token, file_id):
+        """
+        Return a prepared public URL request.
+
+        Return a server-to-server request to Canvas's file public URL API that
+        gets a public download URL for the file with ID ``file_id``.
+
+        For documentation of this request see:
+
+        https://canvas.instructure.com/doc/api/files.html#method.files.public_url
+
+        :arg access_token: the access token to authenticate the request with
+        :type access_token: str
+
+        :arg file_id: the Canvas file ID of the file
+        :type course_id: str
+
+        :rtype: requests.PreparedRequest
+        """
+        return requests.Request(
+            "GET",
+            self._public_url(file_id),
+            headers={"Authorization": f"Bearer {access_token}"},
+        ).prepare()
+
     @property
     def _token_url(self):
         """Return the URL of the Canvas API's token endpoint."""
@@ -114,6 +139,19 @@ class CanvasAPIHelper:
                 f"/api/v1/courses/{course_id}/files",
                 "",
                 urlencode({"content_types[]": "application/pdf", "per_page": 100}),
+                "",
+            )
+        )
+
+    def _public_url(self, file_id):
+        """Return a URL for Canvas's file public URL API."""
+        return urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/files/{file_id}/public_url",
+                "",
+                "",
                 "",
             )
         )

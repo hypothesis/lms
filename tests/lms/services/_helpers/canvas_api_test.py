@@ -36,6 +36,18 @@ class TestCanvasAPIHelper:
             "&per_page=100"
         )
 
+    def test_public_url_request(self, ai_getter, route_url):
+        helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
+
+        request = helper.public_url_request("test_access_token", "test_file_id")
+
+        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
+        assert request.method == "GET"
+        assert request.headers["Authorization"] == "Bearer test_access_token"
+        assert request.url == (
+            "https://my-canvas-instance.com/api/v1/files/test_file_id/public_url"
+        )
+
     @pytest.fixture
     def ai_getter(self, ai_getter):
         ai_getter.developer_key.return_value = "test_developer_key"

@@ -25,13 +25,22 @@ class TestListFiles:
 
 
 class TestPublicURL:
-    def test_it_returns_the_public_url(self, pyramid_request):
+    def test_it_gets_the_public_url_from_canvas(
+        self, canvas_api_client, pyramid_request
+    ):
+        FilesAPIViews(pyramid_request).public_url()
+
+        canvas_api_client.public_url.assert_called_once_with("test_file_id")
+
+    def test_it_returns_the_public_url(self, canvas_api_client, pyramid_request):
         data = FilesAPIViews(pyramid_request).public_url()
 
-        assert (
-            data["public_url"]
-            == "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        )
+        assert data["public_url"] == canvas_api_client.public_url.return_value
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.matchdict = {"file_id": "test_file_id"}
+        return pyramid_request
 
 
 @pytest.fixture(autouse=True)

@@ -99,6 +99,30 @@ class CanvasAPIClient:
 
         return [present_file(file_dict) for file_dict in list_files_response.json()]
 
+    def public_url(self, file_id):
+        """
+        Return a new public download URL for the file with the given ID.
+
+        Send an HTTP request to the Canvas API to get a new temporary public
+        download URL, and return the URL.
+
+        :arg file_id: the ID of the Canvas file
+        :type file_id: str
+
+        :rtype: str
+        """
+        public_url_request = self._helper.public_url_request(
+            self._access_token, file_id
+        )
+        public_url_response = requests.Session().send(public_url_request)
+
+        # TODO: Validate public_url_response
+        # TODO: Handle Canvas public URL API error responses (for example an
+        #       authorization error might require us to refresh the access
+        #       token and try again)
+
+        return public_url_response.json()["public_url"]
+
     @property
     def _access_token(self):
         """Return the user's saved access token from the DB."""
