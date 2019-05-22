@@ -11,6 +11,7 @@ class TestCanvasAPIHelper:
 
         ai_getter.developer_key.assert_called_once_with("test_consumer_key")
         ai_getter.developer_secret.assert_called_once_with("test_consumer_key")
+        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
         assert request.method == "POST"
         assert request.url == (
             "https://my-canvas-instance.com/login/oauth2/token"
@@ -26,6 +27,7 @@ class TestCanvasAPIHelper:
 
         request = helper.list_files_request("test_access_token", "test_course_id")
 
+        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
         assert request.method == "GET"
         assert request.url == (
             "https://my-canvas-instance.com/api/v1/courses/test_course_id/files"
