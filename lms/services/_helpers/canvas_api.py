@@ -13,7 +13,7 @@ class CanvasAPIHelper:
 
     A lot of working with the Canvas API is generating correct values. For
     example generating the token endpoint URL for the right Canvas instance, or
-    generating an access token request with the right URL, HTTP verb
+    generating an access token request with the right URL, HTTP verb and
     parameters.
 
     This helper handles generating these kinds of values so that the higher
