@@ -21,6 +21,12 @@ class CanvasAPIHelper:
 
     Objects of this class are immutable, and none of their properties or
     methods have any side effects.
+
+    Many of the returned values are :class:`requests.PreparedRequest` objects.
+    These are HTTP requests prepared with the right URL, headers and params.
+    They can be sent like this::
+
+        >>> response = requests.Session().send(prepared_request)
     """
 
     def __init__(self, consumer_key, ai_getter, route_url):
@@ -45,13 +51,8 @@ class CanvasAPIHelper:
         """
         Return a prepared access token request.
 
-        Return a prepared request object that, when sent, will make a
-        server-to-server request to the Canvas API's token endpoint in order to
-        exchange ``authorization_code`` for an access token.
-
-        The request can be sent like this::
-
-            >>> response = requests.Session().send(request)
+        Return a server-to-server request to the Canvas API's token endpoint
+        that exchanges ``authorization_code`` for an access token.
 
         For documentation of this request see:
 
@@ -78,13 +79,8 @@ class CanvasAPIHelper:
         """
         Return a prepared list files request.
 
-        The returned request, when sent, will make a server-to-server request
-        to Canvas's list files API to get a list of the files belonging to
-        ``course_id``.
-
-        The request can be sent like this::
-
-            >>> response = requests.Session().send(request)
+        Return a server-to-server request to Canvas's list files API that gets
+        a list of the files belonging to ``course_id``.
 
         For documentation of this request see:
 
