@@ -29,6 +29,7 @@ class TestCanvasAPIHelper:
 
         ai_getter.lms_url.assert_called_once_with("test_consumer_key")
         assert request.method == "GET"
+        assert request.headers["Authorization"] == "Bearer test_access_token"
         assert request.url == (
             "https://my-canvas-instance.com/api/v1/courses/test_course_id/files"
             "?content_types%5B%5D=application%2Fpdf"
