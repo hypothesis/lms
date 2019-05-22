@@ -4,14 +4,6 @@ from lms.services._helpers.canvas_api import CanvasAPIHelper
 
 
 class TestCanvasAPIHelper:
-    def test_token_url(self, ai_getter, route_url):
-        helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
-
-        token_url = helper.token_url
-
-        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
-        assert token_url == "https://my-canvas-instance.com/login/oauth2/token"
-
     def test_list_files_url(self, ai_getter, route_url):
         helper = CanvasAPIHelper("test_consumer_key", ai_getter, route_url)
 

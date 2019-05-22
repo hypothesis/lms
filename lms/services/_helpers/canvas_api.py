@@ -42,17 +42,8 @@ class CanvasAPIHelper:
         self._redirect_uri = route_url("canvas_oauth_callback")
 
     @property
-    def token_url(self):
-        """
-        Return the URL of the Canvas API's token endpoint.
-
-        This is the OAuth 2.0 endpoint that you post an authorization code to
-        in order to get an access token. See:
-
-        https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
-
-        :rtype: str
-        """
+    def _token_url(self):
+        """Return the URL of the Canvas API's token endpoint."""
         return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
 
     def list_files_url(self, course_id):
@@ -99,7 +90,7 @@ class CanvasAPIHelper:
         """
         return requests.Request(
             "POST",
-            self.token_url,
+            self._token_url,
             params={
                 "grant_type": "authorization_code",
                 "client_id": self._client_id,
