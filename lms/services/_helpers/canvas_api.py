@@ -115,7 +115,7 @@ class CanvasAPIHelper:
         :type access_token: str
 
         :arg file_id: the Canvas file ID of the file
-        :type course_id: str
+        :type file_id: str
 
         :rtype: requests.PreparedRequest
         """
