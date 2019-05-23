@@ -97,10 +97,12 @@ class BearerTokenSchema(marshmallow.Schema):
         authorization param, decodes the JWT, validates the JWT's payload, and
         returns an :class:`~lms.values.LTIUser` from the payload.
 
-        The authorization param must be in an HTTP header
-        ``Authorization: Bearer <ENCODED_JWT>`` in the request. In the future
-        we may add support for reading the authorization param from other parts
-        of the request, such as from form fields or JSON parameters.
+        The authorization param can be in an HTTP header
+        ``Authorization: Bearer <ENCODED_JWT>``, in a query string parameter
+        ``?authorization=Bearer%20<ENCODED_JWT>``, or in a form field
+        ``authorization=Bearer+<ENCODED_JWT>``. In the future we may add
+        support for reading the authorization param from other parts of the
+        request, such as from JSON body fields.
 
         :raise ExpiredSessionTokenError: if the request's Authorization header
           contains an expired JWT
@@ -117,7 +119,7 @@ class BearerTokenSchema(marshmallow.Schema):
         """
         try:
             return parser.parse(
-                self, self._request, locations=["headers", "querystring"]
+                self, self._request, locations=["headers", "querystring", "form"]
             )
         except HTTPUnprocessableEntity as error:
             try:
