@@ -161,7 +161,7 @@ class TestCanvasAPIClient:
     def test_public_url_returns_the_public_url(self, canvas_api_client):
         assert (
             canvas_api_client.public_url("test_file_id")
-            == "https://my-canvas-instance.com/files/1/download"
+            == "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
         )
 
     @pytest.fixture
@@ -289,7 +289,7 @@ class TestCanvasAPIClient:
     def public_url_response(self, requests):
         """Configure requests to send back public URL responses."""
         public_url_response = {
-            "public_url": "https://my-canvas-instance.com/files/1/download"
+            "public_url": "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
         }
         requests.Session.return_value.send.return_value.json.return_value = (
             public_url_response
