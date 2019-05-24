@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """View decorators for working with the h API."""
 
 import functools
