@@ -2,6 +2,7 @@ import datetime
 
 import requests
 from requests import RequestException
+from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIError
@@ -135,13 +136,18 @@ class CanvasAPIClient:
     @property
     def _access_token(self):
         """Return the user's saved access token from the DB."""
-        # TODO: Handle the case where we don't have an access token yet
-        return (
-            self._db.query(OAuth2Token)
-            .filter_by(
-                consumer_key=self._lti_user.oauth_consumer_key,
-                user_id=self._lti_user.user_id,
+        try:
+            return (
+                self._db.query(OAuth2Token)
+                .filter_by(
+                    consumer_key=self._lti_user.oauth_consumer_key,
+                    user_id=self._lti_user.user_id,
+                )
+                .one()
+                .access_token
             )
-            .one()
-            .access_token
-        )
+        except NoResultFound as err:
+            raise CanvasAPIError(
+                explanation="We don't have a Canvas API access token for this user",
+                response=None,
+            ) from err
