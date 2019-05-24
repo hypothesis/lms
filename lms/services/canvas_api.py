@@ -1,8 +1,10 @@
 import datetime
 
 import requests
+from requests import RequestException
 
 from lms.models import OAuth2Token
+from lms.services import CanvasAPIError
 from lms.services._helpers import CanvasAPIHelper
 
 
@@ -114,12 +116,19 @@ class CanvasAPIClient:
         public_url_request = self._helper.public_url_request(
             self._access_token, file_id
         )
-        public_url_response = requests.Session().send(public_url_request)
+
+        try:
+            public_url_response = requests.Session().send(public_url_request)
+            public_url_response.raise_for_status()
+        except RequestException as err:
+            # TODO: Try refreshing the access token and re-trying the response.
+            response = getattr(err, "response", None)
+
+            raise CanvasAPIError(
+                explanation="Connecting to the Canvas API failed", response=response
+            ) from err
 
         # TODO: Validate public_url_response
-        # TODO: Handle Canvas public URL API error responses (for example an
-        #       authorization error might require us to refresh the access
-        #       token and try again)
 
         return public_url_response.json()["public_url"]
 
