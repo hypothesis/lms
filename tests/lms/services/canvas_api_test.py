@@ -195,6 +195,18 @@ class TestCanvasAPIClient:
         with pytest.raises(CanvasAPIError, match="Not authorized"):
             canvas_api_client.public_url("test_file_id")
 
+    @pytest.mark.parametrize("method_under_test", ["list_files", "public_url"])
+    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
+        self, canvas_api_client, method_under_test, requests
+    ):
+        method = getattr(canvas_api_client, method_under_test)
+
+        with pytest.raises(
+            CanvasAPIError,
+            match="We don't have a Canvas API access token for this user",
+        ):
+            method("test_file_or_course_id")
+
     @pytest.fixture
     def access_token(self, db_session, pyramid_request):
         access_token = OAuth2Token(
