@@ -14,9 +14,9 @@ from lms.util.canvas_api import CanvasApi, GET
 from lms.util.authorize_lms import authorize_lms, save_token
 from lms.util import via_url
 from lms.models.tokens import find_token_by_user_id
-from lms.views.decorators import upsert_h_user
-from lms.views.decorators import create_course_group
-from lms.views.decorators import add_user_to_group
+from lms.views.decorators import legacy_upsert_h_user
+from lms.views.decorators import legacy_create_course_group
+from lms.views.decorators import legacy_add_user_to_group
 
 
 def can_configure_module_item(roles):
@@ -204,9 +204,9 @@ def should_launch(request):
 
 @view_config(route_name="lti_launches", request_method="POST")
 @lti_launch
-@upsert_h_user
-@create_course_group
-@add_user_to_group
+@legacy_upsert_h_user
+@legacy_create_course_group
+@legacy_add_user_to_group
 @associate_user
 @authorize_lms(
     authorization_base_endpoint="login/oauth2/auth",

@@ -7,15 +7,15 @@ from lms.util import lti_launch
 from lms.util.view_renderer import view_renderer
 from lms.util.associate_user import associate_user
 from lms.util.authorize_lms import authorize_lms
-from lms.views.decorators import upsert_h_user
-from lms.views.decorators import create_course_group
+from lms.views.decorators import legacy_upsert_h_user
+from lms.views.decorators import legacy_create_course_group
 from lms.views.helpers import canvas_files_available
 
 
 @view_config(route_name="content_item_selection", request_method="POST")
 @lti_launch
-@upsert_h_user
-@create_course_group
+@legacy_upsert_h_user
+@legacy_create_course_group
 @associate_user
 @authorize_lms(
     authorization_base_endpoint="login/oauth2/auth",

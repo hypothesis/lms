@@ -9,7 +9,7 @@ from requests import Response
 
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
-from lms.views.decorators import h_api
+from lms.views.decorators import legacy_h_api
 from lms.services.hapi import HypothesisAPIService
 from lms.config.resources import LTILaunch
 
@@ -122,7 +122,7 @@ class TestUpsertHUser:
     @pytest.fixture
     def upsert_h_user(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return h_api.upsert_h_user(wrapped)
+        return legacy_h_api.legacy_upsert_h_user(wrapped)
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -206,7 +206,7 @@ class TestCreateCourseGroup:
     @pytest.fixture
     def create_course_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return h_api.create_course_group(wrapped)
+        return legacy_h_api.legacy_create_course_group(wrapped)
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -258,7 +258,7 @@ class TestAddUserToGroup:
     @pytest.fixture
     def add_user_to_group(self, wrapped):
         # Return the actual wrapper function so that tests can call it directly.
-        return h_api.add_user_to_group(wrapped)
+        return legacy_h_api.legacy_add_user_to_group(wrapped)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
