@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from lms.services import HAPINotFoundError
 
 
-def upsert_h_user(wrapped):  # noqa: MC0001
+def legacy_upsert_h_user(wrapped):  # noqa: MC0001
     """
     Update or create a Hypothesis LTI user.
 
@@ -18,7 +18,7 @@ def upsert_h_user(wrapped):  # noqa: MC0001
     The wrapped view must take ``request`` and ``jwt`` arguments::
 
       @view_config(...)
-      @upsert_h_user
+      @legacy_upsert_h_user
       def my_view(request, jwt):
           ...
 
@@ -78,7 +78,7 @@ def upsert_h_user(wrapped):  # noqa: MC0001
     return wrapper
 
 
-def create_course_group(wrapped):
+def legacy_create_course_group(wrapped):
     """
     Create a Hypothesis group for the LTI course, if one doesn't exist already.
 
@@ -95,7 +95,7 @@ def create_course_group(wrapped):
     The decorated view must take ``request`` and ``jwt`` arguments::
 
       @view_config(...)
-      @create_course_group
+      @legacy_create_course_group
       def my_view(request, jwt):
           ...
 
@@ -125,7 +125,7 @@ def create_course_group(wrapped):
     return wrapper
 
 
-def add_user_to_group(wrapped):
+def legacy_add_user_to_group(wrapped):
     @functools.wraps(wrapped)
     def wrapper(request, jwt, context=None):
         context = context or request.context
