@@ -31,6 +31,8 @@ class LTILaunch:
     USERNAME_MAX_LENGTH = 30
     """The maximum length of an h username."""
 
+    __acl__ = [(Allow, "lti_user", "launch_lti_assignment")]
+
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
