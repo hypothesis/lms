@@ -3,6 +3,7 @@ import jwt
 
 from unittest import mock
 import pytest
+from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.config import resources
@@ -11,6 +12,28 @@ from lms.services import ConsumerKeyError
 
 
 class TestLTILaunch:
+    def test_it_allows_LTI_users_to_launch_LTI_assignments(
+        self, pyramid_config, pyramid_request
+    ):
+        policy = ACLAuthorizationPolicy()
+        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["lti_user"])
+        pyramid_config.set_authorization_policy(policy)
+
+        context = resources.LTILaunch(pyramid_request)
+
+        assert pyramid_request.has_permission("launch_lti_assignment", context)
+
+    def test_it_doesnt_allow_non_LTI_users_to_launch_LTI_assignments(
+        self, pyramid_config, pyramid_request
+    ):
+        policy = ACLAuthorizationPolicy()
+        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["foo", "bar"])
+        pyramid_config.set_authorization_policy(policy)
+
+        context = resources.LTILaunch(pyramid_request)
+
+        assert not pyramid_request.has_permission("launch_lti_assignment", context)
+
     def test_it_raises_if_no_lti_params_for_request(
         self, pyramid_request, lti_params_for
     ):
