@@ -11,6 +11,6 @@ class ModuleItemConfiguration(BASE):
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
-    resource_link_id = sa.Column(sa.String)
-    tool_consumer_instance_guid = sa.Column(sa.String)
-    document_url = sa.Column(sa.String)
+    resource_link_id = sa.Column(sa.String, nullable=False)
+    tool_consumer_instance_guid = sa.Column(sa.String, nullable=False)
+    document_url = sa.Column(sa.String, nullable=False)
