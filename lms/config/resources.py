@@ -193,7 +193,7 @@ class LTILaunch:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        return {
+        config = {
             "services": [
                 {
                     "apiUrl": api_url,
@@ -204,6 +204,11 @@ class LTILaunch:
                 }
             ]
         }
+
+        if "grading_user" in self._request.params:
+            config["grading_user"] = self._request.params["grading_user"]
+
+        return config
 
     @property
     def rpc_server_config(self):

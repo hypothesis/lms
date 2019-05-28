@@ -16,6 +16,7 @@ feature flag is on. They replace legacy views from ``lti_launches.py``
 that're still used when the feature flag is off.
 """
 from pyramid.view import view_config, view_defaults
+from pyramid.config import not_
 
 from lms.models import ModuleItemConfiguration
 from lms.services import CanvasAPIError
@@ -26,6 +27,69 @@ from lms.views.decorators import (
     add_user_to_group,
     report_lti_launch,
 )
+
+
+def lti_submit(request, document_url):
+    try:
+        lis_outcome_service_url = request.params["lis_outcome_service_url"]
+        lis_result_sourcedid = request.params["lis_result_sourcedid"]
+    except KeyError:
+        return
+    consumer_key = request.lti_user.oauth_consumer_key
+
+    from lms.models import ApplicationInstance
+
+    secret = (
+        request.db.query(ApplicationInstance)
+        .filter_by(consumer_key=consumer_key)
+        .one()
+        .shared_secret
+    )
+
+    from requests_oauthlib import OAuth1
+
+    oauth_client = OAuth1(
+        client_key=consumer_key,
+        client_secret=secret,
+        signature_method="HMAC-SHA1",
+        signature_type="auth_header",
+        force_include_body=True,
+    )
+
+    import requests
+    from urllib.parse import urlencode
+
+    lti_launch_url = (
+        f"http://localhost:8001/lti_launches?speedgrader=true&amp;url={document_url}&amp;grading_user={request.context.h_display_name}"
+    )
+    response = requests.post(
+        url=lis_outcome_service_url,
+        data=f"""<?xml version = "1.0" encoding = "UTF-8"?>
+<imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+  <imsx_POXHeader>
+    <imsx_POXRequestHeaderInfo>
+      <imsx_version>V1.0</imsx_version>
+      <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
+    </imsx_POXRequestHeaderInfo>
+  </imsx_POXHeader>
+  <imsx_POXBody>
+    <replaceResultRequest>
+      <resultRecord>
+        <sourcedGUID>
+          <sourcedId>{ lis_result_sourcedid }</sourcedId>
+        </sourcedGUID>
+        <result>
+          <resultData>
+            <ltiLaunchUrl>{ lti_launch_url }</ltiLaunchUrl>
+          </resultData>
+        </result>
+      </resultRecord>
+    </replaceResultRequest>
+  </imsx_POXBody>
+</imsx_POXEnvelopeRequest>""",
+        headers={"Content-Type": "application/xml"},
+        auth=oauth_client,
+    )
 
 
 @view_defaults(
@@ -104,7 +168,7 @@ class BasicLTILaunchViews:
 
         return {"via_url": via_url(self.request, document_url)}
 
-    @view_config(url_configured=True)
+    @view_config(url_configured=True, request_param=not_("speedgrader"))
     def url_configured_basic_lti_launch(self):
         """
         Respond to a URL-configured assignment launch.
@@ -116,6 +180,7 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
+        lti_submit(self.request, self.request.params["url"])
         return {"via_url": via_url(self.request, self.request.params["url"])}
 
     @view_config(
@@ -123,6 +188,7 @@ class BasicLTILaunchViews:
         configured=False,
         decorator=[],  # Disable the class's default decorators just for this view.
         renderer="lms:templates/basic_lti_launch/unconfigured_basic_lti_launch.html.jinja2",
+        request_param=not_("speedgrader"),
     )
     def unconfigured_basic_lti_launch(self):
         """
@@ -199,3 +265,10 @@ class BasicLTILaunchViews:
         )
 
         return {"via_url": via_url(self.request, document_url)}
+
+    @view_config(
+        decorator=[],  # Disable the default decorators just for this view.
+        request_param="speedgrader",
+    )
+    def speedgrader(self):
+        return {"via_url": via_url(self.request, self.request.params["url"])}
