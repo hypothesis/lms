@@ -20,6 +20,7 @@ from pyramid.view import view_config, view_defaults
 from lms.models import ModuleItemConfiguration
 from lms.services import CanvasAPIError
 from lms.util import via_url
+from lms.validation import BearerTokenSchema
 from lms.views.decorators import (
     upsert_h_user,
     upsert_course_group,
@@ -141,13 +142,21 @@ class BasicLTILaunchViews:
         will then be DB-configured launches rather than unconfigured.
         """
         return {
-            "resource_link_id": self.request.params["resource_link_id"],
-            "tool_consumer_instance_guid": self.request.params[
-                "tool_consumer_instance_guid"
-            ],
-            "oauth_consumer_key": self.request.lti_user.oauth_consumer_key,
-            "user_id": self.request.lti_user.user_id,
-            "context_id": self.request.params["context_id"],
+            "content_item_return_url": self.request.route_url(
+                "module_item_configurations"
+            ),
+            "form_fields": {
+                "authorization": BearerTokenSchema(self.request).authorization_param(
+                    self.request.lti_user
+                ),
+                "resource_link_id": self.request.params["resource_link_id"],
+                "tool_consumer_instance_guid": self.request.params[
+                    "tool_consumer_instance_guid"
+                ],
+                "oauth_consumer_key": self.request.lti_user.oauth_consumer_key,
+                "user_id": self.request.lti_user.user_id,
+                "context_id": self.request.params["context_id"],
+            },
         }
 
     # pylint:disable=no-self-use

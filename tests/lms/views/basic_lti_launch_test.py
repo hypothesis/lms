@@ -73,7 +73,9 @@ class TestURLConfiguredBasicLTILaunch:
 
 
 class TestUnconfiguredBasicLTILaunch:
-    def test_it_returns_the_right_template_data(self, pyramid_request):
+    def test_it_returns_the_right_template_data(
+        self, BearerTokenSchema, bearer_token_schema, pyramid_request
+    ):
         pyramid_request.params = {
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
@@ -81,12 +83,20 @@ class TestUnconfiguredBasicLTILaunch:
         }
         data = BasicLTILaunchViews(pyramid_request).unconfigured_basic_lti_launch()
 
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        bearer_token_schema.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
+        )
         assert data == {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-            "user_id": "TEST_USER_ID",
-            "context_id": "TEST_CONTEXT_ID",
+            "content_item_return_url": "http://example.com/module_item_configurations",
+            "form_fields": {
+                "authorization": bearer_token_schema.authorization_param.return_value,
+                "resource_link_id": "TEST_RESOURCE_LINK_ID",
+                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+                "user_id": "TEST_USER_ID",
+                "context_id": "TEST_CONTEXT_ID",
+            },
         }
 
 
@@ -130,6 +140,16 @@ class TestConfigureModuleItem:
 
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert data["via_url"] == via_url.return_value
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.views.basic_lti_launch.BearerTokenSchema")
+
+
+@pytest.fixture
+def bearer_token_schema(BearerTokenSchema):
+    return BearerTokenSchema.return_value
 
 
 @pytest.fixture(autouse=True)

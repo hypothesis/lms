@@ -1,34 +1,24 @@
 {% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
-  <p>Assignment is not configured. You need to choose a file:</p>
+  <div id="app"></div>
+{% endblock %}
 
-  <form method="POST" action="http://localhost:8001/module_item_configurations">
+{% block styles %}
+  {% for url in  asset_urls("file_picker_v2_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}
 
-    <input type="hidden" id="authorization" name="authorization" value="{{ js_config.authorization_param }}">
-    <input type="hidden" id="resource_link_id" name="resource_link_id" value="{{ resource_link_id }}">
-    <input type="hidden" id="tool_consumer_instance_guid" name="tool_consumer_instance_guid" value="{{ tool_consumer_instance_guid }}">
-    <input type="hidden" id="oauth_consumer_key" name="oauth_consumer_key" value="{{ oauth_consumer_key }}">
-    <input type="hidden" id="user_id" name="user_id" value="{{ user_id }}">
-    <input type="hidden" id="context_id" name="context_id" value="{{ context_id }}">
+{% block scripts %}
+  {% for url in asset_urls("file_picker_v2_js") %}
+    <script async defer src="{{ url }}"></script>
+  {% endfor %}
 
-    <fieldset>
-      <legend>Which file should the assignment use?</legend>
-      <ul>
-        <li>
-          <label for="dummy">Dummy PDF File</label>
-          <input type="radio" checked id="dummy" name="document_url" value="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-        </li>
-        <li>
-          <label for="document">PDF document</label>
-          <input type="radio" id="document" name="document_url" value="http://www.pdf995.com/samples/pdf.pdf">
-        </li>
-        <li>
-          <label for="simple">A Simple PDF File</label>
-          <input type="radio" id="simple" name="document_url" value="http://www.africau.edu/images/default/sample.pdf">
-        </li>
-      </ul>
-    </fieldset>
-    <button type="submit">Submit</button>
-  </form>
+  <script class="js-hypothesis-config" type="text/json">
+    {
+      "formAction": "{{ content_item_return_url }}",
+      "formFields": {{ form_fields | tojson }}
+    }
+  </script>
 {% endblock %}
