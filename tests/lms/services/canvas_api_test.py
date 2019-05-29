@@ -3,8 +3,14 @@ from unittest import mock
 
 import pytest
 import requests as _requests
+from requests import ConnectionError
+from requests import HTTPError
+from requests import ReadTimeout
+from requests import Response
+from requests import TooManyRedirects
 
 from lms.models import ApplicationInstance, OAuth2Token
+from lms.services import CanvasAPIError
 from lms.services.canvas_api import CanvasAPIClient
 
 
@@ -163,6 +169,43 @@ class TestCanvasAPIClient:
             canvas_api_client.public_url("test_file_id")
             == "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
         )
+
+    @pytest.mark.usefixtures("access_token")
+    @pytest.mark.parametrize(
+        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+    )
+    def test_public_url_raises_CanvasAPIError_if_the_Canvas_API_request_fails(
+        self, canvas_api_client, exception, requests
+    ):
+        requests.Session.return_value.send.side_effect = exception
+
+        with pytest.raises(CanvasAPIError, match="Connecting to the Canvas API failed"):
+            canvas_api_client.public_url("test_file_id")
+
+    @pytest.mark.usefixtures("access_token")
+    def test_public_url_raises_CanvasAPIError_if_the_Canvas_API_returns_an_error_response(
+        self, canvas_api_client, requests
+    ):
+        response = requests.Session.return_value.send.return_value
+        response.status_code = 401
+        response.reason = "Not authorized"
+        exception = HTTPError(response=response)
+        response.raise_for_status.side_effect = exception
+
+        with pytest.raises(CanvasAPIError, match="Not authorized"):
+            canvas_api_client.public_url("test_file_id")
+
+    @pytest.mark.parametrize("method_under_test", ["list_files", "public_url"])
+    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
+        self, canvas_api_client, method_under_test, requests
+    ):
+        method = getattr(canvas_api_client, method_under_test)
+
+        with pytest.raises(
+            CanvasAPIError,
+            match="We don't have a Canvas API access token for this user",
+        ):
+            method("test_file_or_course_id")
 
     @pytest.fixture
     def access_token(self, db_session, pyramid_request):
@@ -331,6 +374,6 @@ def public_url_request(canvas_api_helper):
 def requests(patch):
     requests = patch("lms.services.canvas_api.requests")
     requests.Session.return_value.send.return_value = mock.create_autospec(
-        _requests.Response, instance=True, spec_set=True
+        _requests.Response, instance=True, status_code=200, reason="OK", text=""
     )
     return requests

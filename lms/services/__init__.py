@@ -5,6 +5,7 @@ from lms.services.exceptions import ConsumerKeyError
 from lms.services.exceptions import LTIOAuthError
 from lms.services.exceptions import HAPIError
 from lms.services.exceptions import HAPINotFoundError
+from lms.services.exceptions import CanvasAPIError
 
 __all__ = (
     "ServiceError",
@@ -14,6 +15,7 @@ __all__ = (
     "LTIOAuthError",
     "HAPIError",
     "HAPINotFoundError",
+    "CanvasAPIError",
 )
 
 
