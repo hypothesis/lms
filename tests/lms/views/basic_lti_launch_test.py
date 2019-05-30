@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.models import ModuleItemConfiguration
+from lms.services import CanvasAPIError
 from lms.services.canvas_api import CanvasAPIClient
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
@@ -28,6 +29,19 @@ class TestCanvasFileBasicLTILaunch:
             pyramid_request, canvas_api_client.public_url.return_value
         )
         assert data["via_url"] == via_url.return_value
+
+    def test_if_getting_the_public_url_from_Canvas_fails_it_doesnt_return_a_via_url(
+        self, canvas_api_client, pyramid_request
+    ):
+        # If no via_url is passed to the template then the template renders a
+        # "Hypothesis needs your authorization" message instead of a Via
+        # iframe.
+        canvas_api_client.public_url.side_effect = CanvasAPIError("Failed")
+        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
+
+        data = BasicLTILaunchViews(pyramid_request).canvas_file_basic_lti_launch()
+
+        assert data == {}
 
     @pytest.fixture(autouse=True)
     def canvas_api_client(self, pyramid_config):
