@@ -38,6 +38,7 @@ from lms.validation._exceptions import (
 from lms.validation._oauth import CanvasOAuthCallbackSchema
 from lms.validation._launch_params import LaunchParamsSchema
 from lms.validation._bearer_token import BearerTokenSchema
+from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 from lms.validation._helpers import instantiate_schema
 
 
@@ -46,6 +47,7 @@ __all__ = (
     "CanvasOAuthCallbackSchema",
     "BearerTokenSchema",
     "LaunchParamsSchema",
+    "ConfigureModuleItemSchema",
     "ValidationError",
     "ExpiredSessionTokenError",
     "MissingSessionTokenError",
