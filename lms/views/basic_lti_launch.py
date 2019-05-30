@@ -178,6 +178,7 @@ class BasicLTILaunchViews:
         return {}
 
     @view_config(
+        authorized_to_configure_assignments=True,
         decorator=[],  # Disable the default decorators just for this view.
         route_name="module_item_configurations",
     )
