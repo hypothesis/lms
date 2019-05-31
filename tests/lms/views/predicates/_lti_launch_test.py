@@ -3,7 +3,6 @@ from unittest import mock
 from pyramid.testing import DummyRequest
 import pytest
 
-from lms.models import ModuleItemConfiguration
 from lms.values import LTIUser
 from lms.views.predicates import (
     DBConfigured,
@@ -17,44 +16,56 @@ from lms.views.predicates import (
 class TestDBConfigured:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
     def test_when_theres_a_matching_assignment_config_in_the_db(
-        self, pyramid_request, value, expected
+        self, pyramid_request, value, expected, ModuleItemConfiguration
     ):
+        ModuleItemConfiguration.get_document_url.return_value = "test_document_url"
         pyramid_request.params = {
             "resource_link_id": "test_resource_link_id",
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
         predicate = DBConfigured(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, pyramid_request) is expected
+        result = predicate(mock.sentinel.context, pyramid_request)
+
+        ModuleItemConfiguration.get_document_url.assert_called_once_with(
+            pyramid_request.db,
+            "test_tool_consumer_instance_guid",
+            "test_resource_link_id",
+        )
+        assert result is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
     def test_when_theres_no_matching_assignment_config_in_the_db(
-        self, pyramid_request, value, expected
+        self, pyramid_request, value, expected, ModuleItemConfiguration
     ):
+        ModuleItemConfiguration.get_document_url.return_value = None
         pyramid_request.params = {
-            "resource_link_id": "doesnt_match",
-            "tool_consumer_instance_guid": "doesnt_match",
+            "resource_link_id": "test_resource_link_id",
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
         predicate = DBConfigured(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, pyramid_request) is expected
+        result = predicate(mock.sentinel.context, pyramid_request)
+        ModuleItemConfiguration.get_document_url.assert_called_once_with(
+            pyramid_request.db,
+            "test_tool_consumer_instance_guid",
+            "test_resource_link_id",
+        )
+        assert result is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_request_params_are_missing(self, pyramid_request, value, expected):
+    def test_when_request_params_are_missing(
+        self, pyramid_request, value, expected, ModuleItemConfiguration
+    ):
         pyramid_request.params = {}
+        ModuleItemConfiguration.get_document_url.return_value = None
         predicate = DBConfigured(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, pyramid_request) is expected
-
-    @pytest.fixture(autouse=True)
-    def module_item_configuration(self, pyramid_request):
-        pyramid_request.db.add(
-            ModuleItemConfiguration(
-                resource_link_id="test_resource_link_id",
-                tool_consumer_instance_guid="test_tool_consumer_instance_guid",
-                document_url="test_document_url",
-            )
+        result = predicate(mock.sentinel.context, pyramid_request)
+        ModuleItemConfiguration.get_document_url.assert_called_once_with(
+            pyramid_request.db, None, None
         )
+        assert result is expected
 
 
 class TestCanvasFile:
@@ -103,20 +114,19 @@ class TestConfigured:
         assert predicate(mock.sentinel.context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_db_configured(self, pyramid_request, value, expected):
-        pyramid_request.db.add(
-            ModuleItemConfiguration(
-                resource_link_id="test_resource_link_id",
-                tool_consumer_instance_guid="test_tool_consumer_instance_guid",
-                document_url="test_document_url",
-            )
-        )
+    def test_when_assignment_is_db_configured(
+        self, pyramid_request, value, expected, ModuleItemConfiguration
+    ):
+        ModuleItemConfiguration.get_document_url.return_value = "test_document_url"
         predicate = Configured(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_unconfigured(self, pyramid_request, value, expected):
+    def test_when_assignment_is_unconfigured(
+        self, pyramid_request, value, expected, ModuleItemConfiguration
+    ):
+        ModuleItemConfiguration.get_document_url.return_value = None
         pyramid_request.params = {}
         predicate = Configured(value, mock.sentinel.config)
 
@@ -167,3 +177,8 @@ class TestAuthorizedToConfigureAssignments:
         predicate = AuthorizedToConfigureAssignments(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, request) is expected
+
+
+@pytest.fixture(autouse=True)
+def ModuleItemConfiguration(patch):
+    return patch("lms.views.predicates._lti_launch.ModuleItemConfiguration")

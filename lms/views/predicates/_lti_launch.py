@@ -43,13 +43,10 @@ class DBConfigured(Base):
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
         has_module_item_configuration = (
-            request.db.query(ModuleItemConfiguration)
-            .filter_by(
-                resource_link_id=resource_link_id,
-                tool_consumer_instance_guid=tool_consumer_instance_guid,
+            ModuleItemConfiguration.get_document_url(
+                request.db, tool_consumer_instance_guid, resource_link_id
             )
-            .count()
-            > 0
+            is not None
         )
 
         return has_module_item_configuration == self.value
