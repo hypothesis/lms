@@ -125,7 +125,7 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
 
 class TestConfigureModuleItem:
     def test_it_saves_the_assignments_document_url_to_the_db(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "document_url": "TEST_DOCUMENT_URL",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
@@ -144,7 +144,7 @@ class TestConfigureModuleItem:
     def test_it_passes_the_right_via_url_to_the_template(
         self, pyramid_request, via_url
     ):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "document_url": "TEST_DOCUMENT_URL",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",

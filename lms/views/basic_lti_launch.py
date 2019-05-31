@@ -20,7 +20,7 @@ from pyramid.view import view_config, view_defaults
 from lms.models import ModuleItemConfiguration
 from lms.services import CanvasAPIError
 from lms.util import via_url
-from lms.validation import BearerTokenSchema
+from lms.validation import BearerTokenSchema, ConfigureModuleItemSchema
 from lms.views.decorators import (
     upsert_h_user,
     upsert_course_group,
@@ -181,6 +181,7 @@ class BasicLTILaunchViews:
         authorized_to_configure_assignments=True,
         decorator=[],  # Disable the default decorators just for this view.
         route_name="module_item_configurations",
+        schema=ConfigureModuleItemSchema,
     )
     def configure_module_item(self):
         """
@@ -196,13 +197,13 @@ class BasicLTILaunchViews:
         And we also send back the assignment launch page, passing the chosen
         URL to Via, as the direct response to the content item form submission.
         """
-        document_url = self.request.params["document_url"]
+        document_url = self.request.parsed_params["document_url"]
 
         self.request.db.add(
             ModuleItemConfiguration(
                 document_url=document_url,
-                resource_link_id=self.request.params["resource_link_id"],
-                tool_consumer_instance_guid=self.request.params[
+                resource_link_id=self.request.parsed_params["resource_link_id"],
+                tool_consumer_instance_guid=self.request.parsed_params[
                     "tool_consumer_instance_guid"
                 ],
             )
