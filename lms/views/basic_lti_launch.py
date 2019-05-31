@@ -93,14 +93,8 @@ class BasicLTILaunchViews:
         # won't be called if there isn't a matching ModuleItemConfiguration in
         # the DB. So here we can safely assume that the ModuleItemConfiguration
         # exists.
-        document_url = (
-            self.request.db.query(ModuleItemConfiguration)
-            .filter_by(
-                resource_link_id=resource_link_id,
-                tool_consumer_instance_guid=tool_consumer_instance_guid,
-            )
-            .one()
-            .document_url
+        document_url = ModuleItemConfiguration.get_document_url(
+            self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
         return {"via_url": via_url(self.request, document_url)}
@@ -199,14 +193,11 @@ class BasicLTILaunchViews:
         """
         document_url = self.request.parsed_params["document_url"]
 
-        self.request.db.add(
-            ModuleItemConfiguration(
-                document_url=document_url,
-                resource_link_id=self.request.parsed_params["resource_link_id"],
-                tool_consumer_instance_guid=self.request.parsed_params[
-                    "tool_consumer_instance_guid"
-                ],
-            )
+        ModuleItemConfiguration.set_document_url(
+            self.request.db,
+            self.request.parsed_params["tool_consumer_instance_guid"],
+            self.request.parsed_params["resource_link_id"],
+            document_url,
         )
 
         return {"via_url": via_url(self.request, document_url)}

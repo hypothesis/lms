@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from lms.models import ModuleItemConfiguration
 from lms.services import CanvasAPIError
 from lms.services.canvas_api import CanvasAPIClient
 from lms.views.basic_lti_launch import BasicLTILaunchViews
@@ -54,22 +53,21 @@ class TestCanvasFileBasicLTILaunch:
 
 class TestDBConfiguredBasicLTILaunch:
     def test_it_passes_the_right_via_url_to_the_template(
-        self, pyramid_request, via_url
+        self, pyramid_request, via_url, ModuleItemConfiguration
     ):
         pyramid_request.params = {
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
         }
-        pyramid_request.db.add(
-            ModuleItemConfiguration(
-                resource_link_id="TEST_RESOURCE_LINK_ID",
-                tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
-                document_url="TEST_DOCUMENT_URL",
-            )
-        )
+        ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
         data = BasicLTILaunchViews(pyramid_request).db_configured_basic_lti_launch()
 
+        ModuleItemConfiguration.get_document_url.assert_called_once_with(
+            pyramid_request.db,
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "TEST_RESOURCE_LINK_ID",
+        )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert data["via_url"] == via_url.return_value
 
@@ -124,7 +122,9 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
 
 
 class TestConfigureModuleItem:
-    def test_it_saves_the_assignments_document_url_to_the_db(self, pyramid_request):
+    def test_it_saves_the_assignments_document_url_to_the_db(
+        self, pyramid_request, ModuleItemConfiguration
+    ):
         pyramid_request.parsed_params = {
             "document_url": "TEST_DOCUMENT_URL",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
@@ -133,13 +133,12 @@ class TestConfigureModuleItem:
 
         BasicLTILaunchViews(pyramid_request).configure_module_item()
 
-        mic = (
-            pyramid_request.db.query(ModuleItemConfiguration).filter_by(
-                resource_link_id="TEST_RESOURCE_LINK_ID",
-                tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            )
-        ).one_or_none()
-        assert mic and mic.document_url == "TEST_DOCUMENT_URL"
+        ModuleItemConfiguration.set_document_url.assert_called_once_with(
+            pyramid_request.db,
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "TEST_RESOURCE_LINK_ID",
+            "TEST_DOCUMENT_URL",
+        )
 
     def test_it_passes_the_right_via_url_to_the_template(
         self, pyramid_request, via_url
@@ -164,6 +163,11 @@ def BearerTokenSchema(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
+
+
+@pytest.fixture(autouse=True)
+def ModuleItemConfiguration(patch):
+    return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
 
 
 @pytest.fixture(autouse=True)
