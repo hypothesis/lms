@@ -1,6 +1,7 @@
 import { Fragment, createElement } from 'preact';
 import propTypes from 'prop-types';
 
+import Spinner from './Spinner';
 import Table from './Table';
 
 /**
@@ -50,9 +51,7 @@ export default function FileList({
           </Fragment>
         )}
       />
-      {isLoading && (
-        <img className="FileList__spinner" src="/static/images/spinner.svg" />
-      )}
+      {isLoading && <Spinner className="FileList__spinner" />}
     </div>
   );
 }

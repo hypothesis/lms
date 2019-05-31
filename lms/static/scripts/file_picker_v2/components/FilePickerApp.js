@@ -1,5 +1,5 @@
 import { createElement } from 'preact';
-import { useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import propTypes from 'prop-types';
 
 import { Config } from '../config';
@@ -7,9 +7,15 @@ import {
   contentItemForUrl,
   contentItemForLmsFile,
 } from '../utils/content-item';
-import { GooglePickerClient } from '../utils/google-picker-client';
+import {
+  GooglePickerClient,
+  PickerCanceledError,
+} from '../utils/google-picker-client';
+
 import Button from './Button';
+import ErrorDialog from './ErrorDialog';
 import LMSFilePicker from './LMSFilePicker';
+import Spinner from './Spinner';
 import URLPicker from './URLPicker';
 
 /**
@@ -39,15 +45,24 @@ export default function FilePickerApp({
   const [url, setUrl] = useState(null);
   const [lmsFile, setLmsFile] = useState(null);
   const [lmsFilesAuthorized, setLmsFilesAuthorized] = useState(authorized);
-  const googlePicker = useRef(null);
+  const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
+    false
+  );
+  const [errorInfo, setErrorInfo] = useState(null);
 
-  if (!googlePicker.current && googleClientId && googleDeveloperKey && lmsUrl) {
-    googlePicker.current = new GooglePickerClient({
+  // Initialize the Google Picker client if credentials have been provided.
+  // We do this eagerly to make the picker load faster if the user does click
+  // on the "Select from Google Drive" button.
+  const googlePicker = useMemo(() => {
+    if (!googleClientId || !googleDeveloperKey || !lmsUrl) {
+      return null;
+    }
+    return new GooglePickerClient({
       developerKey: googleDeveloperKey,
       clientId: googleClientId,
       origin: lmsUrl,
     });
-  }
+  }, [googleDeveloperKey, googleClientId, lmsUrl]);
 
   /**
    * Flag indicating whether the form should be auto-submitted on the next
@@ -72,16 +87,20 @@ export default function FilePickerApp({
 
   const showGooglePicker = async () => {
     try {
-      // TODO - Show some indicator here that we are waiting for the user
-      // to make a selection.
-      const { id, url } = await googlePicker.current.showPicker();
-      // TODO - Show an indicator here that something is happening, in case
-      // these API calls take a perceptable amount of time.
-      await googlePicker.current.enablePublicViewing(id);
+      setLoadingIndicatorVisible(true);
+      const { id, url } = await googlePicker.showPicker();
+      await googlePicker.enablePublicViewing(id);
       setUrl(url);
       submit(true);
-    } catch (err) {
-      console.error('Showing picker failed', err);
+    } catch (error) {
+      setLoadingIndicatorVisible(false);
+      if (!(error instanceof PickerCanceledError)) {
+        console.error(error);
+        setErrorInfo({
+          title: 'There was a problem choosing a file from Google Drive',
+          error,
+        });
+      }
     }
   };
 
@@ -167,7 +186,7 @@ export default function FilePickerApp({
           label={`Select PDF from ${lmsName}`}
           onClick={() => setActiveDialog('lms')}
         />
-        {googlePicker.current && (
+        {googlePicker && (
           <Button
             className="FilePickerApp__source-button"
             label="Select PDF from Google Drive"
@@ -176,7 +195,19 @@ export default function FilePickerApp({
         )}
         <input style={{ display: 'none' }} type="submit" />
       </form>
+      {isLoadingIndicatorVisible && (
+        <div className="FilePickerApp__loading-backdrop">
+          <Spinner className="FilePickerApp__loading-spinner" />
+        </div>
+      )}
       {dialog}
+      {errorInfo && (
+        <ErrorDialog
+          title={errorInfo.title}
+          error={errorInfo.error}
+          onCancel={() => setErrorInfo(null)}
+        />
+      )}
     </main>
   );
 }
