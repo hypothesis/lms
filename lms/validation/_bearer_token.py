@@ -60,6 +60,7 @@ class BearerTokenSchema(marshmallow.Schema):
 
     user_id = marshmallow.fields.Str(required=True)
     oauth_consumer_key = marshmallow.fields.Str(required=True)
+    roles = marshmallow.fields.Str(required=True)
 
     class Meta:
         """Marshmallow options for this schema."""

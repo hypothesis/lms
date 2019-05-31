@@ -10,11 +10,17 @@ class TestAuthenticatedUserID:
         "lti_user,expected_userid",
         [
             (
-                LTIUser("sam", "Hypothesisf301584250a2dece14f021ab8424018a"),
+                LTIUser(
+                    "sam", "Hypothesisf301584250a2dece14f021ab8424018a", "TEST_ROLES"
+                ),
                 "c2Ft:Hypothesisf301584250a2dece14f021ab8424018a",
             ),
             (
-                LTIUser("Sam:Smith", "Hypothesisf301584250a2dece14f021ab8424018a"),
+                LTIUser(
+                    "Sam:Smith",
+                    "Hypothesisf301584250a2dece14f021ab8424018a",
+                    "TEST_ROLES",
+                ),
                 "U2FtOlNtaXRo:Hypothesisf301584250a2dece14f021ab8424018a",
             ),
         ],

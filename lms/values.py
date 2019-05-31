@@ -13,3 +13,6 @@ class LTIUser(NamedTuple):
 
     oauth_consumer_key: str
     """The oauth_consumer_key LTI launch parameter."""
+
+    roles: str
+    """The user's LTI roles."""

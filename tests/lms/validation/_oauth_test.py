@@ -151,7 +151,7 @@ class TestCanvasOauthCallbackSchema:
 
     @pytest.fixture
     def lti_user(self):
-        return LTIUser("test_user_id", "test_oauth_consumer_key")
+        return LTIUser("test_user_id", "test_oauth_consumer_key", "test_roles")
 
     @pytest.fixture
     def pyramid_request(self, lti_user):
