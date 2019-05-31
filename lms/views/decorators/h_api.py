@@ -76,7 +76,7 @@ def upsert_course_group(wrapped):
         hapi_svc = request.find_service(name="hapi")
 
         is_instructor = any(
-            role in request.params["roles"].lower()
+            role in request.lti_user.roles.lower()
             for role in ("administrator", "instructor", "teachingassisstant")
         )
 

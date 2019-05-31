@@ -162,7 +162,7 @@ class AuthorizedToConfigureAssignments(Base):
     name = "authorized_to_configure_assignments"
 
     def __call__(self, context, request):
-        roles = request.params.get("roles", "").lower()
+        roles = request.lti_user.roles.lower()
         authorized = any(
             role in roles
             for role in ["administrator", "instructor", "teachingassistant"]

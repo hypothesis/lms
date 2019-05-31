@@ -10,7 +10,9 @@ class TestLaunchParamsSchema:
     def test_it_returns_the_lti_user_info(self, schema):
         lti_user = schema.lti_user()
 
-        assert lti_user == LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY")
+        assert lti_user == LTIUser(
+            "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
+        )
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
         schema.lti_user()
@@ -29,6 +31,7 @@ class TestLaunchParamsSchema:
         "missing_param",
         [
             "user_id",
+            "roles",
             "oauth_consumer_key",
             "oauth_nonce",
             "oauth_signature",
@@ -64,5 +67,6 @@ class TestLaunchParamsSchema:
             "oauth_signature_method": "TEST_OAUTH_SIGNATURE_METHOD",
             "oauth_timestamp": "TEST_OAUTH_TIMESTAMP",
             "oauth_version": "TEST_OAUTH_VERSION",
+            "roles": "TEST_ROLES",
         }
         return pyramid_request

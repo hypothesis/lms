@@ -31,6 +31,7 @@ class LaunchParamsSchema(marshmallow.Schema):
     """
 
     user_id = marshmallow.fields.Str(required=True)
+    roles = marshmallow.fields.Str(required=True)
 
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     oauth_nonce = marshmallow.fields.Str(required=True)
@@ -64,7 +65,9 @@ class LaunchParamsSchema(marshmallow.Schema):
         except HTTPUnprocessableEntity as err:
             raise ValidationError(err.json) from err
 
-        return LTIUser(kwargs["user_id"], kwargs["oauth_consumer_key"])
+        return LTIUser(
+            kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs.get("roles", "")
+        )
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data):

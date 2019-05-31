@@ -10,6 +10,7 @@ from lms.services import HAPINotFoundError
 from lms.views.decorators import h_api
 from lms.services.hapi import HypothesisAPIService
 from lms.config.resources import LTILaunch
+from lms.values import LTIUser
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -162,6 +163,11 @@ class TestCreateCourseGroup:
     def test_if_the_group_doesnt_exist_it_creates_it(
         self, upsert_course_group, context, pyramid_request, hapi_svc
     ):
+        pyramid_request.lti_user = LTIUser(
+            user_id="TEST_USER_ID",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            roles="instructor",
+        )
         hapi_svc.patch.side_effect = HAPINotFoundError()
 
         upsert_course_group(context, pyramid_request)
@@ -175,8 +181,12 @@ class TestCreateCourseGroup:
     def test_if_the_group_doesnt_exist_and_the_user_isnt_allowed_to_create_groups_it_400s(
         self, upsert_course_group, context, pyramid_request, hapi_svc
     ):
+        pyramid_request.lti_user = LTIUser(
+            user_id="TEST_USER_ID",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            roles="learner",
+        )
         hapi_svc.patch.side_effect = HAPINotFoundError()
-        pyramid_request.params["roles"] = "Learner"
 
         with pytest.raises(
             HTTPBadRequest, match="Instructor must launch assignment first"
@@ -284,7 +294,6 @@ def pyramid_request(pyramid_request):
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
             "tool_consumer_instance_guid": "TEST_GUID",
             "context_id": "TEST_CONTEXT",
-            "roles": "Instructor,urn:lti:instrole:ims/lis/Administrator",
         }
     )
     pyramid_request.db = mock.MagicMock()

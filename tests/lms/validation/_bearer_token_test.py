@@ -94,6 +94,16 @@ class TestBearerTokenSchema:
             "oauth_consumer_key": ["Missing data for required field."]
         }
 
+    def test_it_raises_if_the_roles_param_is_missing(self, schema, _helpers):
+        del _helpers.decode_jwt.return_value["roles"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.lti_user()
+
+        assert exc_info.value.messages == {
+            "roles": ["Missing data for required field."]
+        }
+
     def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
         serialized = schema.dump(lti_user)
         deserialized = schema.load(serialized.data)
@@ -109,7 +119,9 @@ class TestBearerTokenSchema:
     def lti_user(self):
         """The original LTIUser that was encoded as a JWT in the request."""
         return LTIUser(
-            user_id="TEST_USER_ID", oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY"
+            user_id="TEST_USER_ID",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            roles="TEST_ROLES",
         )
 
     @pytest.fixture
@@ -133,5 +145,6 @@ def _helpers(patch):
     _helpers.decode_jwt.return_value = {
         "user_id": "TEST_USER_ID",
         "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+        "roles": "TEST_ROLES",
     }
     return _helpers

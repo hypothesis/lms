@@ -130,7 +130,9 @@ def pyramid_request(db_session):
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False
     )
-    pyramid_request.lti_user = LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY")
+    pyramid_request.lti_user = LTIUser(
+        "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
+    )
 
     return pyramid_request
 
