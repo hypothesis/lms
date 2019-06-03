@@ -55,7 +55,7 @@ describe('Table', () => {
   });
 
   it('uses selected item on double-click', () => {
-    const item = {};
+    const item = 'Test item';
     const onUseItem = sinon.stub();
     const wrapper = renderTable({ items: [item], onUseItem });
 
