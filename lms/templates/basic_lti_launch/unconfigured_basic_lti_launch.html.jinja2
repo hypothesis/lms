@@ -1,0 +1,24 @@
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block content %}
+  <div id="app"></div>
+{% endblock %}
+
+{% block styles %}
+  {% for url in  asset_urls("file_picker_v2_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+  {% for url in asset_urls("file_picker_v2_js") %}
+    <script async defer src="{{ url }}"></script>
+  {% endfor %}
+
+  <script class="js-hypothesis-config" type="text/json">
+    {
+      "formAction": "{{ content_item_return_url }}",
+      "formFields": {{ form_fields | tojson }}
+    }
+  </script>
+{% endblock %}
