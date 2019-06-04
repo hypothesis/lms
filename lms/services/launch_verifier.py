@@ -68,8 +68,8 @@ class LaunchVerifier:
                 dict(self._request.headers),
                 dict(self._request.params),
             )
-        except pylti.common.LTIException:
-            raise LTIOAuthError()
+        except pylti.common.LTIException as err:
+            raise LTIOAuthError() from err
         except KeyError:
             # pylti crashes if certain params (e.g. oauth_nonce) are missing
             # from the request.
