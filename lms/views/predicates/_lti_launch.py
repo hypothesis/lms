@@ -159,9 +159,14 @@ class AuthorizedToConfigureAssignments(Base):
     name = "authorized_to_configure_assignments"
 
     def __call__(self, context, request):
-        roles = request.lti_user.roles.lower()
+        if request.lti_user:
+            roles = request.lti_user.roles.lower()
+        else:
+            roles = ""
+
         authorized = any(
             role in roles
             for role in ["administrator", "instructor", "teachingassistant"]
         )
+
         return authorized == self.value

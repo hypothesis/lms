@@ -178,6 +178,14 @@ class TestAuthorizedToConfigureAssignments:
 
         assert predicate(mock.sentinel.context, request) is expected
 
+    @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
+    def test_when_theres_no_lti_user(self, value, expected):
+        request = DummyRequest()
+        request.lti_user = None
+        predicate = AuthorizedToConfigureAssignments(value, mock.sentinel.config)
+
+        assert predicate(mock.sentinel.context, request) is expected
+
 
 @pytest.fixture(autouse=True)
 def ModuleItemConfiguration(patch):
