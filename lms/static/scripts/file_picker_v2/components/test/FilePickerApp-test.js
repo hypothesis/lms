@@ -1,3 +1,5 @@
+/* eslint-disable new-cap */
+
 import { createElement } from 'preact';
 import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
@@ -7,6 +9,7 @@ import {
   contentItemForLmsFile,
   contentItemForUrl,
 } from '../../utils/content-item';
+import { PickerCanceledError } from '../../utils/google-picker-client';
 import Button from '../Button';
 import FilePickerApp, { $imports } from '../FilePickerApp';
 
@@ -15,18 +18,14 @@ function interact(wrapper, callback) {
   wrapper.update();
 }
 
-class FakeGooglePickerClient {
-  constructor() {
-    this.showPicker = sinon.stub();
-    this.enablePublicViewing = sinon.stub();
-  }
-}
-
 describe('FilePickerApp', () => {
-  const FakeURLPicker = () => null;
+  const FakeErrorDialog = () => null;
   const FakeLMSFilePicker = () => null;
+  const FakeSpinner = () => null;
+  const FakeURLPicker = () => null;
 
   let fakeConfig;
+  let FakeGooglePickerClient;
 
   const renderFilePicker = (props = {}) => {
     const preventFormSubmission = e => e.preventDefault();
@@ -48,12 +47,22 @@ describe('FilePickerApp', () => {
       ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
     };
 
+    FakeGooglePickerClient = sinon.stub().returns({
+      showPicker: sinon.stub(),
+      enablePublicViewing: sinon.stub(),
+    });
+
     // nb. We mock these components manually rather than using Enzyme's
     // shallow rendering because the modern context API doesn't seem to work
-    // with shallow rendering yet.
+    // with shallow rendering yet
     $imports.$mock({
+      './ErrorDialog': FakeErrorDialog,
       './LMSFilePicker': FakeLMSFilePicker,
       './URLPicker': FakeURLPicker,
+      './Spinner': FakeSpinner,
+      '../utils/google-picker-client': {
+        GooglePickerClient: FakeGooglePickerClient,
+      },
     });
   });
 
@@ -79,7 +88,7 @@ describe('FilePickerApp', () => {
 
     assert.isFalse(wrapper.exists(FakeLMSFilePicker));
     assert.isFalse(wrapper.exists(FakeURLPicker));
-    assert.equal(wrapper.find(Button).length, 3);
+    assert.equal(wrapper.find(Button).length, 2);
   });
 
   it('shows URL selection dialog when "Enter URL" button is clicked', () => {
@@ -137,20 +146,157 @@ describe('FilePickerApp', () => {
     );
   });
 
-  it('initializes Google Picker client when a Google Developer key is provided', () => {});
+  describe('Google picker', () => {
+    beforeEach(() => {
+      fakeConfig.googleClientId = 'goog-client-id';
+      fakeConfig.googleDeveloperKey = 'goog-developer-key';
+      fakeConfig.lmsUrl = 'https://test.chalkboard.com';
 
-  it('shows "Select PDF from Google Drive" button if Google Developer key is provided', () => {});
+      const picker = FakeGooglePickerClient();
+      picker.showPicker.resolves({
+        id: 'doc1',
+        url: 'https://files.google.com/doc1',
+      });
+      picker.enablePublicViewing.resolves();
+      FakeGooglePickerClient.resetHistory();
 
-  it('shows Google Drive picker when "Select PDF from Google Drive is clicked', () => {
-    const wrapper = renderFilePicker();
-
-    const btn = wrapper.find('Button[label="Select PDF from Google Drive"]');
-    interact(wrapper, () => {
-      btn.props().onClick();
+      // Silence errors logged if showing Google Picker fails.
+      sinon.stub(console, 'error');
     });
 
-    assert.isTrue(wrapper.exists(FakeGoogleFilePicker));
-  });
+    afterEach(() => {
+      console.error.restore();
+    });
 
-  it('submits a Google Drive link when a file is selected from the Google Picker', () => {});
+    function clickGoogleDriveButton(wrapper) {
+      const btn = wrapper.find('Button[label="Select PDF from Google Drive"]');
+      interact(wrapper, () => {
+        btn.props().onClick();
+      });
+    }
+
+    it('initializes Google Picker client when developer key is provided', () => {
+      renderFilePicker();
+      assert.calledWith(FakeGooglePickerClient, {
+        developerKey: fakeConfig.googleDeveloperKey,
+        clientId: fakeConfig.googleClientId,
+        origin: fakeConfig.lmsUrl,
+      });
+    });
+
+    it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
+      const wrapper = renderFilePicker();
+      assert.isTrue(
+        wrapper.exists('Button[label="Select PDF from Google Drive"]')
+      );
+    });
+
+    it('shows Google Picker when "Select PDF from Google Drive" is clicked', async () => {
+      const wrapper = renderFilePicker();
+      clickGoogleDriveButton(wrapper);
+      const picker = FakeGooglePickerClient();
+      assert.called(picker.showPicker);
+
+      const { id } = await picker.showPicker();
+
+      assert.calledWith(picker.enablePublicViewing, id);
+    });
+
+    it('submits a Google Drive download URL when a file is selected', async () => {
+      let resolveSubmitted;
+      const submitted = new Promise(resolve => (resolveSubmitted = resolve));
+      const onSubmit = e => {
+        e.preventDefault();
+        resolveSubmitted();
+      };
+      const wrapper = renderFilePicker({ onSubmit });
+
+      clickGoogleDriveButton(wrapper);
+      await submitted;
+
+      wrapper.update();
+      assert.deepEqual(
+        getContentItem(wrapper),
+        contentItemForUrl(
+          fakeConfig.ltiLaunchUrl,
+          'https://files.google.com/doc1'
+        )
+      );
+    });
+
+    it('shows loading indicator while waiting for user to pick file', () => {
+      const wrapper = renderFilePicker();
+      assert.isFalse(wrapper.exists(FakeSpinner));
+      clickGoogleDriveButton(wrapper);
+      assert.isTrue(wrapper.exists(FakeSpinner));
+    });
+
+    it('shows error message if Google Picker fails to load', async () => {
+      const err = new Error('Failed to load');
+      FakeGooglePickerClient().showPicker.rejects(err);
+      const wrapper = renderFilePicker();
+
+      clickGoogleDriveButton(wrapper);
+      try {
+        await FakeGooglePickerClient().showPicker();
+      } catch (e) {
+        /* noop */
+      }
+
+      wrapper.setProps({}); // Force re-render.
+      const errDialog = wrapper.find(FakeErrorDialog);
+      assert.equal(errDialog.length, 1);
+      assert.equal(errDialog.prop('error'), err);
+    });
+
+    it('dismisses error dialog if user clicks close button', async () => {
+      const err = new Error('Failed to load');
+      FakeGooglePickerClient().showPicker.rejects(err);
+      const wrapper = renderFilePicker();
+
+      clickGoogleDriveButton(wrapper);
+      try {
+        await FakeGooglePickerClient().showPicker();
+      } catch (e) {
+        /* noop */
+      }
+
+      wrapper.setProps({}); // Force re-render.
+      const errDialog = wrapper.find(FakeErrorDialog);
+      const onCancel = errDialog.prop('onCancel');
+      assert.isFunction(onCancel);
+      interact(wrapper, onCancel);
+      assert.isFalse(wrapper.exists(FakeErrorDialog));
+    });
+
+    it('does not show error message if user cancels picker', async () => {
+      FakeGooglePickerClient().showPicker.rejects(new PickerCanceledError());
+      const wrapper = renderFilePicker();
+
+      clickGoogleDriveButton(wrapper);
+      try {
+        await FakeGooglePickerClient().showPicker();
+      } catch (e) {
+        /* noop */
+      }
+
+      wrapper.setProps({}); // Force re-render.
+      assert.isFalse(wrapper.exists(FakeErrorDialog));
+    });
+
+    it('hides loading indicator if user cancels picker', async () => {
+      FakeGooglePickerClient().showPicker.rejects(new PickerCanceledError());
+      const wrapper = renderFilePicker();
+
+      clickGoogleDriveButton(wrapper);
+      try {
+        await FakeGooglePickerClient().showPicker();
+      } catch (e) {
+        /* noop */
+      }
+
+      wrapper.setProps({}); // Force re-render.
+      assert.isFalse(wrapper.exists(FakeSpinner));
+    });
+  });
 });
