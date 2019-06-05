@@ -96,8 +96,8 @@ export class GooglePickerClient {
     function pickerCallback({ action, docs }) {
       if (action === pickerLib.Action.PICKED) {
         const doc = docs[0];
-        // TODO - Can we get this URL from Google Drive instead of hardcoding
-        // it here?
+        // nb. It would be better to get this URL from Google Drive instead of
+        // hardcoding it if possible.
         const url = `https://drive.google.com/uc?id=${doc.id}&export=download`;
         resolve({ id: doc.id, url });
       } else if (action === pickerLib.Action.CANCEL) {

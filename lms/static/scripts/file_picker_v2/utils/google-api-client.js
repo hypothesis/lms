@@ -44,6 +44,6 @@ async function loadLibraries(names) {
   });
 }
 
-// TODO - Add note that this is a workaround for issue with mockable-imports +
-// exported async functions.
+// Separate function declaration from export to work around
+// https://github.com/robertknight/babel-plugin-mockable-imports/issues/9.
 export { loadLibraries };
