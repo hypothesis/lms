@@ -94,6 +94,9 @@ def content_item_selection(context, request):
     # course, as this is a required param of the API it'll call to get the list
     # of files in the course.
     if helpers.canvas_files_available(request):
+        context.js_config["enableLmsFilePicker"] = True
         context.js_config["courseId"] = request.params["custom_canvas_course_id"]
+    else:
+        context.js_config["enableLmsFilePicker"] = False
 
     return {}

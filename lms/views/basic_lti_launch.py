@@ -142,6 +142,10 @@ class BasicLTILaunchViews:
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
             {
+                # It is assumed that this view is only used by LMSes for which
+                # we do not have an integration with the LMS's file storage.
+                # (currently only Canvas supports this).
+                "enableLmsFilePicker": False,
                 "formAction": self.request.route_url("module_item_configurations"),
                 "formFields": {
                     "authorization": BearerTokenSchema(

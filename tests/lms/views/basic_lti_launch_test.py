@@ -78,6 +78,7 @@ class TestUnconfiguredBasicLTILaunch:
             pyramid_request.lti_user
         )
         assert context.js_config == {
+            "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
             "formFields": {
                 "authorization": bearer_token_schema.authorization_param.return_value,
