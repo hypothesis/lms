@@ -13,7 +13,14 @@ export default function ErrorDialog({ title, error }) {
       <p>{title}</p>
       <p>
         If you have a problem using Hypothesis LMS integration, please{' '}
-        <a href="https://web.hypothes.is/help/">visit our support page.</a>
+        <a
+          href="https://web.hypothes.is/help/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          visit our support page
+        </a>
+        .
       </p>
       <p>Problem details: {error.message}</p>
     </Dialog>
