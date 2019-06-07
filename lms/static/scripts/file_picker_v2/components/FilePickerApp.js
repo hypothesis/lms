@@ -1,5 +1,5 @@
 import { createElement } from 'preact';
-import { useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import propTypes from 'prop-types';
 
 import { Config } from '../config';
@@ -7,9 +7,15 @@ import {
   contentItemForUrl,
   contentItemForLmsFile,
 } from '../utils/content-item';
+import {
+  GooglePickerClient,
+  PickerCanceledError,
+} from '../utils/google-picker-client';
+
 import Button from './Button';
+import ErrorDialog from './ErrorDialog';
 import LMSFilePicker from './LMSFilePicker';
-import GoogleFilePicker from './GoogleFilePicker';
+import Spinner from './Spinner';
 import URLPicker from './URLPicker';
 
 /**
@@ -28,7 +34,10 @@ export default function FilePickerApp({
     courseId,
     formAction,
     formFields,
+    googleClientId,
+    googleDeveloperKey,
     lmsName,
+    lmsUrl,
     ltiLaunchUrl,
   } = useContext(Config);
 
@@ -36,6 +45,24 @@ export default function FilePickerApp({
   const [url, setUrl] = useState(null);
   const [lmsFile, setLmsFile] = useState(null);
   const [lmsFilesAuthorized, setLmsFilesAuthorized] = useState(authorized);
+  const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
+    false
+  );
+  const [errorInfo, setErrorInfo] = useState(null);
+
+  // Initialize the Google Picker client if credentials have been provided.
+  // We do this eagerly to make the picker load faster if the user does click
+  // on the "Select from Google Drive" button.
+  const googlePicker = useMemo(() => {
+    if (!googleClientId || !googleDeveloperKey || !lmsUrl) {
+      return null;
+    }
+    return new GooglePickerClient({
+      developerKey: googleDeveloperKey,
+      clientId: googleClientId,
+      origin: lmsUrl,
+    });
+  }, [googleDeveloperKey, googleClientId, lmsUrl]);
 
   /**
    * Flag indicating whether the form should be auto-submitted on the next
@@ -56,6 +83,25 @@ export default function FilePickerApp({
     setActiveDialog(null);
     setUrl(url);
     submit(true);
+  };
+
+  const showGooglePicker = async () => {
+    try {
+      setLoadingIndicatorVisible(true);
+      const { id, url } = await googlePicker.showPicker();
+      await googlePicker.enablePublicViewing(id);
+      setUrl(url);
+      submit(true);
+    } catch (error) {
+      setLoadingIndicatorVisible(false);
+      if (!(error instanceof PickerCanceledError)) {
+        console.error(error);
+        setErrorInfo({
+          title: 'There was a problem choosing a file from Google Drive',
+          error,
+        });
+      }
+    }
   };
 
   // Submit the form after a selection is made via one of the available
@@ -93,9 +139,6 @@ export default function FilePickerApp({
           onSelectFile={selectLMSFile}
         />
       );
-      break;
-    case 'google':
-      dialog = <GoogleFilePicker onCancel={cancelDialog} />;
       break;
     default:
       dialog = null;
@@ -143,14 +186,28 @@ export default function FilePickerApp({
           label={`Select PDF from ${lmsName}`}
           onClick={() => setActiveDialog('lms')}
         />
-        <Button
-          className="FilePickerApp__source-button"
-          label="Select PDF from Google Drive"
-          onClick={() => setActiveDialog('google')}
-        />
+        {googlePicker && (
+          <Button
+            className="FilePickerApp__source-button"
+            label="Select PDF from Google Drive"
+            onClick={showGooglePicker}
+          />
+        )}
         <input style={{ display: 'none' }} type="submit" />
       </form>
+      {isLoadingIndicatorVisible && (
+        <div className="FilePickerApp__loading-backdrop">
+          <Spinner className="FilePickerApp__loading-spinner" />
+        </div>
+      )}
       {dialog}
+      {errorInfo && (
+        <ErrorDialog
+          title={errorInfo.title}
+          error={errorInfo.error}
+          onCancel={() => setErrorInfo(null)}
+        />
+      )}
     </main>
   );
 }
@@ -159,7 +216,7 @@ FilePickerApp.propTypes = {
   /**
    * The dialog that should be shown when the app is first opened.
    */
-  defaultActiveDialog: propTypes.oneOf(['url', 'lms', 'google']),
+  defaultActiveDialog: propTypes.oneOf(['url', 'lms']),
 
   /** Callback invoked when the form is submitted. */
   onSubmit: propTypes.func,
