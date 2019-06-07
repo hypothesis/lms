@@ -108,8 +108,8 @@ export class GooglePickerClient {
     const view = new pickerLib.View(pickerLib.ViewId.DOCS);
     view.setMimeTypes('application/pdf');
     const picker = new pickerLib.PickerBuilder()
-      .addView(new pickerLib.DocsUploadView())
       .addView(view)
+      .addView(new pickerLib.DocsUploadView())
       .setCallback(pickerCallback)
       .setDeveloperKey(this._developerKey)
       .setMaxItems(1)
