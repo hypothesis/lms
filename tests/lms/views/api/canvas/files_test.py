@@ -24,18 +24,27 @@ class TestListFiles:
         return pyramid_request
 
 
-class TestPublicURL:
+class TestViaURL:
     def test_it_gets_the_public_url_from_canvas(
         self, canvas_api_client, pyramid_request
     ):
-        FilesAPIViews(pyramid_request).public_url()
+        FilesAPIViews(pyramid_request).via_url()
 
         canvas_api_client.public_url.assert_called_once_with("test_file_id")
 
-    def test_it_returns_the_public_url(self, canvas_api_client, pyramid_request):
-        data = FilesAPIViews(pyramid_request).public_url()
+    def test_it_gets_the_via_url_for_the_public_url(
+        self, canvas_api_client, pyramid_request, util
+    ):
+        FilesAPIViews(pyramid_request).via_url()
 
-        assert data["public_url"] == canvas_api_client.public_url.return_value
+        util.via_url.assert_called_once_with(
+            pyramid_request, canvas_api_client.public_url.return_value
+        )
+
+    def test_it_returns_the_via_url(self, pyramid_request, util):
+        data = FilesAPIViews(pyramid_request).via_url()
+
+        assert data["via_url"] == util.via_url.return_value
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -50,3 +59,8 @@ def canvas_api_client(pyramid_config):
     )
     pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
     return canvas_api_client
+
+
+@pytest.fixture(autouse=True)
+def util(patch):
+    return patch("lms.views.api.canvas.files.util")
