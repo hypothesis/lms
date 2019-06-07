@@ -18,7 +18,10 @@
   <script class="js-hypothesis-config" type="text/json">
     {
       "formAction": "{{ content_item_return_url }}",
-      "formFields": {{ form_fields | tojson }}
+      "formFields": {{ form_fields | tojson }},
+      "googleClientId": "{{ google_client_id }}",
+      "googleDeveloperKey": "{{ google_developer_key }}",
+      "lmsUrl": "{{ lms_url }}"
     }
   </script>
 {% endblock %}

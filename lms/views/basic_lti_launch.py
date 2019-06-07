@@ -135,10 +135,24 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
+        oauth_consumer_key = self.request.lti_user.oauth_consumer_key
+
+        lms_url = self.request.params.get("custom_canvas_api_domain")
+
+        if not lms_url:
+            lms_url = self.request.find_service(name="ai_getter").lms_url(
+                oauth_consumer_key
+            )
+
         return {
             "content_item_return_url": self.request.route_url(
                 "module_item_configurations"
             ),
+            "google_client_id": self.request.registry.settings["google_client_id"],
+            "google_developer_key": self.request.registry.settings[
+                "google_developer_key"
+            ],
+            "lms_url": lms_url,
             "form_fields": {
                 "authorization": BearerTokenSchema(self.request).authorization_param(
                     self.request.lti_user
@@ -147,7 +161,7 @@ class BasicLTILaunchViews:
                 "tool_consumer_instance_guid": self.request.params[
                     "tool_consumer_instance_guid"
                 ],
-                "oauth_consumer_key": self.request.lti_user.oauth_consumer_key,
+                "oauth_consumer_key": oauth_consumer_key,
                 "user_id": self.request.lti_user.user_id,
                 "context_id": self.request.params["context_id"],
             },
