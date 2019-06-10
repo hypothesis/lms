@@ -88,11 +88,14 @@ class TestUnconfiguredBasicLTILaunch:
     def test_it_returns_the_right_template_data(
         self, BearerTokenSchema, bearer_token_schema, pyramid_request
     ):
-        pyramid_request.params = {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "context_id": "TEST_CONTEXT_ID",
-        }
+        pyramid_request.params[
+            "custom_canvas_api_domain"
+        ] = "TEST_CUSTOM_CANVAS_API_DOMAIN"
+        pyramid_request.registry.settings["google_client_id"] = "TEST_GOOGLE_CLIENT_ID"
+        pyramid_request.registry.settings[
+            "google_developer_key"
+        ] = "TEST_GOOGLE_DEVELOPER_KEY"
+
         data = BasicLTILaunchViews(pyramid_request).unconfigured_basic_lti_launch()
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
@@ -101,6 +104,9 @@ class TestUnconfiguredBasicLTILaunch:
         )
         assert data == {
             "content_item_return_url": "http://example.com/module_item_configurations",
+            "google_client_id": "TEST_GOOGLE_CLIENT_ID",
+            "google_developer_key": "TEST_GOOGLE_DEVELOPER_KEY",
+            "lms_url": "TEST_CUSTOM_CANVAS_API_DOMAIN",
             "form_fields": {
                 "authorization": bearer_token_schema.authorization_param.return_value,
                 "resource_link_id": "TEST_RESOURCE_LINK_ID",
@@ -110,6 +116,23 @@ class TestUnconfiguredBasicLTILaunch:
                 "context_id": "TEST_CONTEXT_ID",
             },
         }
+
+    def test_if_theres_no_custom_canvas_api_domain_it_falls_back_on_the_application_instances_lms_url(
+        self, ai_getter, pyramid_request
+    ):
+        data = BasicLTILaunchViews(pyramid_request).unconfigured_basic_lti_launch()
+
+        ai_getter.lms_url.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
+        assert data["lms_url"] == ai_getter.lms_url.return_value
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "context_id": "TEST_CONTEXT_ID",
+        }
+        return pyramid_request
 
 
 class TestUnconfiguredBasicLTILaunchNotAuthorized:

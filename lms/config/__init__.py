@@ -18,9 +18,9 @@ def configure(settings):
         # integrate with.
         "via_url": sg.get("VIA_URL", required=True),
         "jwt_secret": sg.get("JWT_SECRET", required=True),
-        "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
-        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
-        "google_app_id": sg.get("GOOGLE_APP_ID"),
+        "google_client_id": sg.get("GOOGLE_CLIENT_ID", required=True),
+        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY", required=True),
+        "google_app_id": sg.get("GOOGLE_APP_ID", required=True),
         "lms_secret": sg.get("LMS_SECRET"),
         "hashed_pw": sg.get("HASHED_PW"),
         "salt": sg.get("SALT"),
