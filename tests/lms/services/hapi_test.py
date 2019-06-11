@@ -8,7 +8,7 @@ from requests import ReadTimeout
 from requests import Response
 from requests import TooManyRedirects
 
-from lms.config.resources import LTILaunch
+from lms.resources import LTILaunchResource
 from lms.services.hapi import HypothesisAPIService
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
@@ -142,7 +142,7 @@ class TestAPIRequest:
     @pytest.fixture
     def context(self):
         context = mock.create_autospec(
-            LTILaunch,
+            LTILaunchResource,
             spec_set=True,
             instance=True,
             h_userid="acct:seanh@TEST_AUTHORITY",

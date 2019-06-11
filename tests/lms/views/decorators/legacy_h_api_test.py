@@ -11,7 +11,7 @@ from lms.services import HAPIError
 from lms.services import HAPINotFoundError
 from lms.views.decorators import legacy_h_api
 from lms.services.hapi import HypothesisAPIService
-from lms.config.resources import LTILaunch
+from lms.resources import LTILaunchResource
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -272,7 +272,7 @@ class TestAddUserToGroup:
 @pytest.fixture
 def context():
     context = mock.create_autospec(
-        LTILaunch,
+        LTILaunchResource,
         spec_set=True,
         instance=True,
         h_display_name="test_display_name",

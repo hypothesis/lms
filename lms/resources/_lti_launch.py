@@ -1,3 +1,4 @@
+"""Traversal resources for LTI launch views."""
 import datetime
 import hashlib
 import urllib
@@ -9,17 +10,10 @@ from pyramid.security import Allow
 from lms.util import lti_params_for
 
 
-class Root:
-    """The default root factory for the application."""
-
-    __acl__ = [(Allow, "report_viewers", "view"), (Allow, "lti_user", "canvas_api")]
-
-    def __init__(self, request):
-        """Return the default root resource object."""
-        self._request = request
+__all__ = ["LTILaunchResource"]
 
 
-class LTILaunch:
+class LTILaunchResource:
     """Context resource for LTI launch requests."""
 
     DISPLAY_NAME_MAX_LENGTH = 30
