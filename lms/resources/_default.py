@@ -6,7 +6,7 @@ __all__ = ["DefaultResource"]
 
 
 class DefaultResource:
-    """The application'a default root resource."""
+    """The application's default root resource."""
 
     __acl__ = [(Allow, "report_viewers", "view"), (Allow, "lti_user", "canvas_api")]
 
