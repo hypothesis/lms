@@ -4,7 +4,7 @@ import pytest
 
 from lms.views.lti_launches import lti_launches
 from lms.exceptions import MissingLTILaunchParamError
-from lms.config.resources import LTILaunch
+from lms.resources import LTILaunchResource
 from tests.lms.conftest import unwrap
 
 
@@ -118,7 +118,7 @@ def lti_launch_request(lti_launch_request):
     lti_launch_request.params["resource_link_id"] = "test_link_id"
 
     lti_launch_request.context = mock.create_autospec(
-        LTILaunch,
+        LTILaunchResource,
         spec_set=True,
         instance=True,
         rpc_server_config={},
