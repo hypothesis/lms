@@ -4,7 +4,10 @@ import pytest
 
 from urllib.parse import urlparse
 from lms.exceptions import MissingLTILaunchParamError, MissingLTIContentItemParamError
-from lms.views.content_item_selection import content_item_selection, content_item_form
+from lms.views.legacy_content_item_selection import (
+    content_item_selection,
+    content_item_form,
+)
 from tests.lms.conftest import unwrap
 
 # The `content_item_selection` view function is wrapped in a series of
@@ -41,4 +44,4 @@ class TestContentItemForm:
 
 @pytest.fixture(autouse=True)
 def canvas_files_available(patch):
-    return patch("lms.views.content_item_selection.canvas_files_available")
+    return patch("lms.views.legacy_content_item_selection.canvas_files_available")

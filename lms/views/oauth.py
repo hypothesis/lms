@@ -6,7 +6,7 @@ from requests_oauthlib import OAuth2Session
 from lms.models.tokens import update_user_token, build_token_from_oauth_response
 from lms.models import find_user_from_state
 from lms.util import lti_params_for
-from lms.views.content_item_selection import content_item_form
+from lms.views.legacy_content_item_selection import content_item_form
 
 
 def build_canvas_token_url(lms_url):
