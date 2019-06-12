@@ -74,4 +74,12 @@ class OAuth2Token(BASE):
         )
 
     def __repr__(self):
-        return f"<lms.models.OAuth2Token user_id:'{self.user_id}' consumer_key:'{self.consumer_key}' access_token:'{self.access_token}' refresh_token:'{self.refresh_token}' expires_in:{self.expires_in}' received_at:'{self.received_at}'>"
+        return (
+            "<lms.models.OAuth2Token"
+            f" user_id:'{self.user_id}'"
+            f" consumer_key:'{self.consumer_key}'"
+            f" access_token:'{self.access_token}'"
+            f" refresh_token:'{self.refresh_token}'"
+            f" expires_in:{self.expires_in}'"
+            f" received_at:'{self.received_at}'>"
+        )

@@ -1,6 +1,6 @@
 import jwt
 
-from pyramid.i18n import TranslationString as _
+from pyramid.i18n import TranslationString
 
 from lms.exceptions import MissingLTILaunchParamError
 
@@ -11,7 +11,7 @@ def build_jwt_from_lti_launch(lti_params, jwt_secret):
         roles = lti_params["roles"]
     except KeyError:
         raise MissingLTILaunchParamError(
-            _("Required data param for LTI launch missing: roles")
+            TranslationString("Required data param for LTI launch missing: roles")
         )
 
     data = {

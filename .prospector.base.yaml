@@ -9,6 +9,8 @@ mccabe:
 pep8:
   run: true
   full: true
+  disable:
+    - E203  # Whitespace before ':', this sometimes conflicts with Black.
 pep257:
   disable:
     - D100  # Missing docstring in public module
