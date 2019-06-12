@@ -1,0 +1,32 @@
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block content %}
+  <div id="app"></div>
+{% endblock %}
+
+{% block styles %}
+  {% for url in  asset_urls("file_picker_v2_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+  {% for url in asset_urls("file_picker_v2_js") %}
+    <script async defer src="{{ url }}"></script>
+  {% endfor %}
+
+  <script class="js-hypothesis-config" type="text/json">
+  {
+    "authToken": "{{ js_config.authorization_param }}",
+    "authUrl": "{{ request.route_url('canvas_api.authorize') }}",
+    "courseId": "{{ course_id }}",
+    "formAction": "{{ content_item_return_url }}",
+    "formFields": {{ form_fields | tojson }},
+    "googleClientId": "{{ google_client_id }}",
+    "googleDeveloperKey": "{{ google_developer_key }}",
+    "lmsName" : "Canvas",
+    "lmsUrl": "{{ lms_url }}",
+    "ltiLaunchUrl": "{{ lti_launch_url }}"
+  }
+  </script>
+{% endblock %}
