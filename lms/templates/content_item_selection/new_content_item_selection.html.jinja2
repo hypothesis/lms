@@ -53,7 +53,7 @@
 
 <script class="js-config" type="text/json">
 {
-  "authToken": "{{ context.js_config.authorization_param }}",
+  "authToken": "{{ context.js_config.authToken }}",
   "authUrl": "{{ request.route_url('canvas_api.authorize') }}",
   "courseId": "{{ course_id }}",
   "formAction": "{{ content_item_return_url }}",
