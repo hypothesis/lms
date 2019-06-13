@@ -333,6 +333,36 @@ class TestLTILaunchResource:
         ):
             resources.LTILaunchResource(pyramid_request).h_userid
 
+    def test_js_config_includes_the_urls(self, pyramid_request):
+        js_config = resources.LTILaunchResource(pyramid_request).js_config
+
+        # urls is an empty dict for now!
+        assert js_config["urls"] == {}
+
+    def test_js_config_includes_the_authorization_param_for_lti_users(
+        self, bearer_token_schema, BearerTokenSchema, pyramid_request
+    ):
+        js_config = resources.LTILaunchResource(pyramid_request).js_config
+
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        bearer_token_schema.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
+        )
+        assert (
+            js_config["authorization_param"]
+            == bearer_token_schema.authorization_param.return_value
+        )
+
+    def test_js_config_doesnt_include_the_authorization_param_for_non_lti_users(
+        self, BearerTokenSchema, pyramid_request
+    ):
+        pyramid_request.lti_user = None
+
+        js_config = resources.LTILaunchResource(pyramid_request).js_config
+
+        BearerTokenSchema.assert_not_called()
+        assert "authorization_param" not in js_config
+
     def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
         self, lti_params_for, pyramid_request
     ):
@@ -454,3 +484,13 @@ class TestLTILaunchResource:
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return lti_params_for
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.resources._lti_launch.BearerTokenSchema")
+
+
+@pytest.fixture
+def bearer_token_schema(BearerTokenSchema):
+    return BearerTokenSchema.return_value

@@ -8,6 +8,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms.util import lti_params_for
+from lms.validation import BearerTokenSchema
 
 
 __all__ = ["LTILaunchResource"]
@@ -37,6 +38,8 @@ class LTILaunchResource:
         # redirect request but no DB-stashed LTI params can be found for the
         # request.
         self._lti_params = lti_params_for(request)
+
+        self._js_config = None
 
     @property
     def h_display_name(self):
@@ -153,6 +156,29 @@ class LTILaunchResource:
           userid is missing
         """
         return f"acct:{self.h_username}@{self._authority}"
+
+    @property
+    def js_config(self):
+        """
+        Return the configuration for the app's JavaScript code.
+
+        This is a mutable config dict. It can be accessed, for example by
+        views, as ``request.context.js_config``, and they can mutate it or add
+        their own view-specific config settings. The modified config object
+        will then be passed to the JavaScript code in the response page.
+
+        :rtype: dict
+        """
+        if self._js_config is None:
+            # Initialize self._js_config for the first time.
+            self._js_config = {"urls": {}}
+
+            if self._request.lti_user:
+                self._js_config["authorization_param"] = BearerTokenSchema(
+                    self._request
+                ).authorization_param(self._request.lti_user)
+
+        return self._js_config
 
     @property
     def hypothesis_config(self):
