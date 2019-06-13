@@ -1,0 +1,5 @@
+coverage
+httpretty
+pytest
+factory-boy
+-r requirements.txt

@@ -1,0 +1,2 @@
+sphinx
+-r requirements-tests.txt
