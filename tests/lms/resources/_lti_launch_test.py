@@ -470,6 +470,24 @@ class TestLTILaunchResource:
         with pytest.raises(HTTPBadRequest):
             lti_launch.provisioning_enabled
 
+    def test_lms_url_returns_the_custom_canvas_api_domain(self, pyramid_request):
+        pyramid_request.params[
+            "custom_canvas_api_domain"
+        ] = "test_custom_canvas_api_domain"
+
+        lti_launch = resources.LTILaunchResource(pyramid_request)
+
+        assert lti_launch.lms_url == "test_custom_canvas_api_domain"
+
+    def test_lms_url_falls_back_on_the_ApplicationInstances_lms_url(
+        self, ai_getter, pyramid_request
+    ):
+        lti_launch = resources.LTILaunchResource(pyramid_request)
+
+        lms_url = lti_launch.lms_url
+        ai_getter.lms_url.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
+        assert lms_url == ai_getter.lms_url.return_value
+
     @pytest.fixture
     def lti_launch(self, pyramid_request):
         return resources.LTILaunchResource(pyramid_request)

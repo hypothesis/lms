@@ -138,13 +138,6 @@ class BasicLTILaunchViews:
         """
         oauth_consumer_key = self.request.lti_user.oauth_consumer_key
 
-        lms_url = self.request.params.get("custom_canvas_api_domain")
-
-        if not lms_url:
-            lms_url = self.request.find_service(name="ai_getter").lms_url(
-                oauth_consumer_key
-            )
-
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
             {
@@ -165,7 +158,7 @@ class BasicLTILaunchViews:
                 "googleDeveloperKey": self.request.registry.settings[
                     "google_developer_key"
                 ],
-                "lmsUrl": lms_url,
+                "lmsUrl": self.context.lms_url,
             }
         )
 

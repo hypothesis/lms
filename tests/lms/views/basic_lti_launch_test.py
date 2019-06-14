@@ -123,16 +123,8 @@ class TestUnconfiguredBasicLTILaunch:
             },
             "googleClientId": "TEST_GOOGLE_CLIENT_ID",
             "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
-            "lmsUrl": "TEST_CUSTOM_CANVAS_API_DOMAIN",
+            "lmsUrl": context.lms_url,
         }
-
-    def test_if_theres_no_custom_canvas_api_domain_it_falls_back_on_the_application_instances_lms_url(
-        self, ai_getter, context, pyramid_request
-    ):
-        BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
-
-        ai_getter.lms_url.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
-        assert context.js_config["lmsUrl"] == ai_getter.lms_url.return_value
 
     @pytest.fixture
     def pyramid_request(self, context, pyramid_request):

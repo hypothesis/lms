@@ -79,19 +79,7 @@ class TestContentItemSelection:
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["lmsUrl"] == "TEST_CUSTOM_CANVAS_API_DOMAIN"
-
-    def test_if_theres_no_custom_canvas_api_domain_it_falls_back_on_the_application_instances_lms_url(
-        self, context, ai_getter, pyramid_request
-    ):
-        del pyramid_request.params["custom_canvas_api_domain"]
-
-        content_item_selection(context, pyramid_request)
-
-        ai_getter.lms_url.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key
-        )
-        assert context.js_config["lmsUrl"] == ai_getter.lms_url.return_value
+        assert context.js_config["lmsUrl"] == context.lms_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
