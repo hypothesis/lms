@@ -33,6 +33,10 @@
     </div>
 
     {% block scripts %}
+      {% if context.js_config %}
+        <script type="application/json" class="js-config">{{ context.js_config|tojson }}</script>
+      {% endif %}
+
       {% if context.rpc_server_config %}
         <script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson }}</script>
         {% for url in asset_urls("postmessage_json_rpc_server_js") %}

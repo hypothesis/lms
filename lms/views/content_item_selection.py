@@ -55,44 +55,51 @@ from lms.views.decorators import upsert_h_user, upsert_course_group
     request_method="POST",
     route_name="content_item_selection",
 )
-def content_item_selection(request):
-    template_variables = {
-        # The URL that we'll POST the ContentItemSelection form submission
-        # (containing the user's selected document) to.
-        "content_item_return_url": request.params["content_item_return_url"],
-        # The "content item selection" that we submit to the
-        # content_item_return_url is actually an LTI launch URL with the
-        # selected document URL or file_id as a query parameter. To construct
-        # these launch URLs our JavaScript code needs the base URL of our LTI
-        # launch endpoint.
-        "lti_launch_url": request.route_url("lti_launches"),
-        # The fields of the form that we'll POST to the content_item_return_url.
-        # (The JavaScript also adds the content item selection itself to the
-        # form as another field, in addition to the ones here.)
-        "form_fields": {
-            "lti_message_type": "ContentItemSelection",
-            "lti_version": request.params["lti_version"],
-        },
-        # Variables needed for initializing Google Picker.
-        "google_client_id": request.registry.settings["google_client_id"],
-        "google_developer_key": request.registry.settings["google_developer_key"],
-    }
+def content_item_selection(context, request):
+    context.js_config.update(
+        {
+            # The URL that the JavaScript code will open if it needs the user to
+            # authorize us to request a new access token.
+            "authUrl": request.route_url("canvas_api.authorize"),
+            # The URL that we'll POST the ContentItemSelection form submission
+            # (containing the user's selected document) to.
+            "formAction": request.params["content_item_return_url"],
+            # The fields of the form that we'll POST to the content_item_return_url.
+            # (The JavaScript also adds the content item selection itself to the
+            # form as another field, in addition to the ones here.)
+            "formFields": {
+                "lti_message_type": "ContentItemSelection",
+                "lti_version": request.params["lti_version"],
+            },
+            # Variables needed for initializing Google Picker.
+            "googleClientId": request.registry.settings["google_client_id"],
+            "googleDeveloperKey": request.registry.settings["google_developer_key"],
+            # Shown on the "Select PDF from Canvas" button label.
+            "lmsName": "Canvas",
+            # The "content item selection" that we submit to the
+            # content_item_return_url is actually an LTI launch URL with the
+            # selected document URL or file_id as a query parameter. To construct
+            # these launch URLs our JavaScript code needs the base URL of our LTI
+            # launch endpoint.
+            "ltiLaunchUrl": request.route_url("lti_launches"),
+        }
+    )
+
+    # For Canvas Picker support our JavaScript needs the ID of the Canvas
+    # course, as this is a required param of the API it'll call to get the list
+    # of files in the course.
+    if helpers.canvas_files_available(request):
+        context.js_config["courseId"] = request.params["custom_canvas_course_id"]
 
     # Pass the URL of the LMS that is launching us to our JavaScript code.
     # When we're being launched in an iframe within the LMS our JavaScript
     # needs to pass this URL (which is the URL of the top-most page) to Google
     # Picker, otherwise Picker refuses to launch inside an iframe.
     if "custom_canvas_api_domain" in request.params:
-        template_variables["lms_url"] = request.params["custom_canvas_api_domain"]
+        context.js_config["lmsUrl"] = request.params["custom_canvas_api_domain"]
     else:
-        template_variables["lms_url"] = request.find_service(name="ai_getter").lms_url(
+        context.js_config["lmsUrl"] = request.find_service(name="ai_getter").lms_url(
             request.lti_user.oauth_consumer_key
         )
 
-    # For Canvas Picker support our JavaScript needs the ID of the Canvas
-    # course, as this is a required param of the API it'll call to get the list
-    # of files in the course.
-    if helpers.canvas_files_available(request):
-        template_variables["course_id"] = request.params["custom_canvas_course_id"]
-
-    return template_variables
+    return {}

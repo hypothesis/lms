@@ -121,6 +121,7 @@ def lti_launch_request(lti_launch_request):
         LTILaunchResource,
         spec_set=True,
         instance=True,
+        js_config={},
         rpc_server_config={},
         hypothesis_config={},
         provisioning_enabled=True,
