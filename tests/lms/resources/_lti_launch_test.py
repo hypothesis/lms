@@ -349,7 +349,7 @@ class TestLTILaunchResource:
             pyramid_request.lti_user
         )
         assert (
-            js_config["authorization_param"]
+            js_config["authToken"]
             == bearer_token_schema.authorization_param.return_value
         )
 
@@ -361,7 +361,7 @@ class TestLTILaunchResource:
         js_config = resources.LTILaunchResource(pyramid_request).js_config
 
         BearerTokenSchema.assert_not_called()
-        assert "authorization_param" not in js_config
+        assert "authToken" not in js_config
 
     def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
         self, lti_params_for, pyramid_request

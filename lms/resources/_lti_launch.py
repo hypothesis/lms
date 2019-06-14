@@ -174,7 +174,7 @@ class LTILaunchResource:
             self._js_config = {"urls": {}}
 
             if self._request.lti_user:
-                self._js_config["authorization_param"] = BearerTokenSchema(
+                self._js_config["authToken"] = BearerTokenSchema(
                     self._request
                 ).authorization_param(self._request.lti_user)
 
