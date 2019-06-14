@@ -82,6 +82,11 @@ def content_item_selection(context, request):
             # these launch URLs our JavaScript code needs the base URL of our LTI
             # launch endpoint.
             "ltiLaunchUrl": request.route_url("lti_launches"),
+            # Pass the URL of the LMS that is launching us to our JavaScript code.
+            # When we're being launched in an iframe within the LMS our JavaScript
+            # needs to pass this URL (which is the URL of the top-most page) to Google
+            # Picker, otherwise Picker refuses to launch inside an iframe.
+            "lmsUrl": context.lms_url,
         }
     )
 
@@ -90,16 +95,5 @@ def content_item_selection(context, request):
     # of files in the course.
     if helpers.canvas_files_available(request):
         context.js_config["courseId"] = request.params["custom_canvas_course_id"]
-
-    # Pass the URL of the LMS that is launching us to our JavaScript code.
-    # When we're being launched in an iframe within the LMS our JavaScript
-    # needs to pass this URL (which is the URL of the top-most page) to Google
-    # Picker, otherwise Picker refuses to launch inside an iframe.
-    if "custom_canvas_api_domain" in request.params:
-        context.js_config["lmsUrl"] = request.params["custom_canvas_api_domain"]
-    else:
-        context.js_config["lmsUrl"] = request.find_service(name="ai_getter").lms_url(
-            request.lti_user.oauth_consumer_key
-        )
 
     return {}
