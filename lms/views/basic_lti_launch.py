@@ -118,7 +118,7 @@ class BasicLTILaunchViews:
         authorized_to_configure_assignments=True,
         configured=False,
         decorator=[],  # Disable the class's default decorators just for this view.
-        renderer="lms:templates/basic_lti_launch/unconfigured_basic_lti_launch.html.jinja2",
+        renderer="lms:templates/file_picker.html.jinja2",
     )
     def unconfigured_basic_lti_launch(self):
         """

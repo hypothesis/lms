@@ -51,7 +51,7 @@ from lms.views.decorators import upsert_h_user, upsert_course_group
     decorator=[upsert_h_user, upsert_course_group],
     feature_flag="new_oauth",
     permission="launch_lti_assignment",
-    renderer="lms:templates/content_item_selection.html.jinja2",
+    renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",
 )
