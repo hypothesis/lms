@@ -15,7 +15,7 @@
     <script async defer src="{{ url }}"></script>
   {% endfor %}
 
-  <script class="js-hypothesis-config" type="text/json">
+  <script class="js-config" type="text/json">
     {
       "formAction": "{{ content_item_return_url }}",
       "formFields": {{ form_fields | tojson }},
