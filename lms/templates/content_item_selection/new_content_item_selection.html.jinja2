@@ -51,7 +51,7 @@
 <script async defer src="{{ url }}"></script>
 {% endfor %}
 
-<script class="js-hypothesis-config" type="text/json">
+<script class="js-config" type="text/json">
 {
   "authToken": "{{ js_config.authorization_param }}",
   "authUrl": "{{ request.route_url('canvas_api.authorize') }}",
