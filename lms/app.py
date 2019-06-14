@@ -32,7 +32,6 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.views")
     config.include("lms.views.error")
     config.include("lms.services")
-    config.include("lms.subscribers")
     config.include("lms.validation")
     config.add_static_view(name="export", path="lms:static/export")
     config.add_static_view(name="static", path="lms:static")
