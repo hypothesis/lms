@@ -18,7 +18,6 @@ that're still used when the feature flag is off.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
-from lms.services import CanvasAPIError
 from lms.util import via_url
 from lms.validation import BearerTokenSchema, ConfigureModuleItemSchema
 from lms.views.decorators import (
@@ -65,15 +64,17 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
-        canvas_api_client = self.request.find_service(name="canvas_api_client")
         file_id = self.request.params["file_id"]
 
-        try:
-            document_url = canvas_api_client.public_url(file_id)
-        except CanvasAPIError:
-            return {}
+        self.context.js_config["urls"].update(
+            {
+                "via_url": self.request.route_url(
+                    "canvas_api.files.via_url", file_id=file_id
+                )
+            }
+        )
 
-        return {"via_url": via_url(self.request, document_url)}
+        return {}
 
     @view_config(db_configured=True)
     def db_configured_basic_lti_launch(self):

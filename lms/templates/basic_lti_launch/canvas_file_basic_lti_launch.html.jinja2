@@ -1,17 +1,1 @@
-{% extends "lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2" %}
-
-{% block content %}
-  {% if via_url %}
-    {{ super() }}
-  {% else %}
-    <main class="modal-content">
-      <h1>Authorize Hypothesis</h1>
-
-      <p class="modal-text">
-        Hypothesis needs your authorization to access this assignment.
-      </p>
-
-      <button class="btn" type="submit">Authorize</button>
-  </main>
-  {% endif %}
-{% endblock %}
+{% extends "lms:templates/base.html.jinja2" %}
