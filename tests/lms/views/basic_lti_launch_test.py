@@ -9,51 +9,17 @@ from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
 class TestCanvasFileBasicLTILaunch:
-    def test_it_gets_a_public_url_from_the_canvas_api(
-        self, canvas_api_client, context, pyramid_request
+    def test_it_adds_the_via_url_to_the_javascript_config(
+        self, context, pyramid_request
     ):
         pyramid_request.params = {"file_id": "TEST_FILE_ID"}
 
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
-        canvas_api_client.public_url.assert_called_once_with("TEST_FILE_ID")
-
-    def test_it_passes_the_right_via_url_to_the_template(
-        self, canvas_api_client, context, pyramid_request, via_url
-    ):
-        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
-
-        data = BasicLTILaunchViews(
-            context, pyramid_request
-        ).canvas_file_basic_lti_launch()
-
-        via_url.assert_called_once_with(
-            pyramid_request, canvas_api_client.public_url.return_value
+        assert (
+            context.js_config["urls"]["via_url"]
+            == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
-        assert data["via_url"] == via_url.return_value
-
-    def test_if_getting_the_public_url_from_Canvas_fails_it_doesnt_return_a_via_url(
-        self, canvas_api_client, context, pyramid_request
-    ):
-        # If no via_url is passed to the template then the template renders a
-        # "Hypothesis needs your authorization" message instead of a Via
-        # iframe.
-        canvas_api_client.public_url.side_effect = CanvasAPIError("Failed")
-        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
-
-        data = BasicLTILaunchViews(
-            context, pyramid_request
-        ).canvas_file_basic_lti_launch()
-
-        assert data == {}
-
-    @pytest.fixture(autouse=True)
-    def canvas_api_client(self, pyramid_config):
-        canvas_api_client = mock.create_autospec(
-            CanvasAPIClient, spec_set=True, instance=True
-        )
-        pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
-        return canvas_api_client
 
 
 class TestDBConfiguredBasicLTILaunch:
@@ -124,6 +90,7 @@ class TestUnconfiguredBasicLTILaunch:
             "googleClientId": "TEST_GOOGLE_CLIENT_ID",
             "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
             "lmsUrl": context.lms_url,
+            "urls": {},
         }
 
     @pytest.fixture
@@ -192,7 +159,7 @@ def bearer_token_schema(BearerTokenSchema):
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-    context.js_config = {}
+    context.js_config = {"urls": {}}
     return context
 
 
