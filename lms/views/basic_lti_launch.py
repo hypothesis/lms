@@ -51,7 +51,7 @@ class BasicLTILaunchViews:
 
     @view_config(
         canvas_file=True,
-        renderer="lms:templates/basic_lti_launch/canvas_file_basic_lti_launch.html.jinja2",
+        renderer="lms:templates/base.html.jinja2",
     )
     def canvas_file_basic_lti_launch(self):
         """
