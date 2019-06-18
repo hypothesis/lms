@@ -49,10 +49,7 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
-    @view_config(
-        canvas_file=True,
-        renderer="lms:templates/base.html.jinja2",
-    )
+    @view_config(canvas_file=True, renderer="lms:templates/base.html.jinja2")
     def canvas_file_basic_lti_launch(self):
         """
         Respond to a Canvas file assignment launch.
