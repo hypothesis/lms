@@ -1,4 +1,4 @@
-import { act } from 'preact/test-utils';
+import * as testUtils from 'preact/test-utils';
 import { options } from 'preact';
 
 // Expose sinon assertions.
@@ -11,18 +11,11 @@ import { Adapter } from 'enzyme-adapter-preact-pure';
 configure({ adapter: new Adapter() });
 
 // Work around https://github.com/preactjs/preact/issues/1681.
-// Run `act` which replaces `options.debounceRendering`, then replace it
-// with a fixed version and prevent that fixed version from being overwritten
-// later.
-act(() => {});
-const debounceRendering = options.debounceRendering;
-const fixedDebounceRendering = callback => {
-  debounceRendering(callback);
-  setTimeout(callback);
+// Replace `act` function from `preact/test-utils` with a version which restores
+// `options.debounceRendering` afterwards.
+const originalAct = testUtils;
+testUtils.act = callback => {
+  const debounceRendering = options.debounceRendering;
+  originalAct(callback);
+  options.debounceRendering = debounceRendering;
 };
-Object.defineProperty(options, 'debounceRendering', {
-  get: () => fixedDebounceRendering,
-  set: () => {
-    /* make attempts to update this a no-op */
-  },
-});
