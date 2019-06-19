@@ -125,7 +125,7 @@ class TestUpsertHUser:
 
 
 @pytest.mark.usefixtures("hapi_svc")
-class TestCreateCourseGroup:
+class TestUpsertCourseGroup:
     def test_it_does_nothing_if_the_feature_isnt_enabled(
         self, upsert_course_group, context, pyramid_request, wrapped, hapi_svc
     ):
