@@ -2,9 +2,9 @@
 
 import functools
 
-from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
-from lms.services import HAPINotFoundError
+from lms.services import HAPIError, HAPINotFoundError
 
 
 def legacy_upsert_h_user(wrapped):  # noqa: MC0001
@@ -62,16 +62,20 @@ def legacy_upsert_h_user(wrapped):  # noqa: MC0001
             ],
         }
 
-        # Send a PATCH user request to update user data to keep it in sync
-        # with the data sent over LTI. This will succeed if the user already
-        # exists.
         try:
-            hapi_svc.patch(
-                f"users/{context.h_username}", {"display_name": context.h_display_name}
-            )
-        except HAPINotFoundError:
-            # Call the h API to create the user in h if it doesn't exist already.
-            hapi_svc.post("users", user_data)
+            # Send a PATCH user request to update user data to keep it in sync
+            # with the data sent over LTI. This will succeed if the user already
+            # exists.
+            try:
+                hapi_svc.patch(
+                    f"users/{context.h_username}",
+                    {"display_name": context.h_display_name},
+                )
+            except HAPINotFoundError:
+                # Call the h API to create the user in h if it doesn't exist already.
+                hapi_svc.post("users", user_data)
+        except HAPIError as err:
+            raise HTTPInternalServerError(explanation=err.explanation) from err
 
         return wrapped(request, jwt)
 
@@ -133,9 +137,12 @@ def legacy_add_user_to_group(wrapped):
         if not context.provisioning_enabled:
             return wrapped(request, jwt)
 
-        request.find_service(name="hapi").post(
-            f"groups/{context.h_groupid}/members/{context.h_userid}"
-        )
+        try:
+            request.find_service(name="hapi").post(
+                f"groups/{context.h_groupid}/members/{context.h_userid}"
+            )
+        except HAPIError as err:
+            raise HTTPInternalServerError(explanation=err.explanation) from err
 
         return wrapped(request, jwt)
 
@@ -159,18 +166,23 @@ def _upsert_group(context, request):
     )
 
     try:
-        hapi_svc.patch(f"groups/{context.h_groupid}", {"name": context.h_group_name})
-    except HAPINotFoundError:
-        # The group hasn't been created in h yet.
-        if is_instructor:
-            # Try to create the group with the current instructor as its creator.
-            hapi_svc.put(
-                f"groups/{context.h_groupid}",
-                {"groupid": context.h_groupid, "name": context.h_group_name},
-                context.h_userid,
+        try:
+            hapi_svc.patch(
+                f"groups/{context.h_groupid}", {"name": context.h_group_name}
             )
-        else:
-            raise HTTPBadRequest("Instructor must launch assignment first.")
+        except HAPINotFoundError:
+            # The group hasn't been created in h yet.
+            if is_instructor:
+                # Try to create the group with the current instructor as its creator.
+                hapi_svc.put(
+                    f"groups/{context.h_groupid}",
+                    {"groupid": context.h_groupid, "name": context.h_group_name},
+                    context.h_userid,
+                )
+            else:
+                raise HTTPBadRequest("Instructor must launch assignment first.")
+    except HAPIError as err:
+        raise HTTPInternalServerError(explanation=err.explanation) from err
 
 
 def _get_param(request, param_name):

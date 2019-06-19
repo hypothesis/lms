@@ -1,6 +1,3 @@
-from pyramid.httpexceptions import HTTPInternalServerError
-
-
 class ServiceError(Exception):
     """Base class for all :mod:`lms.services` exceptions."""
 
@@ -27,32 +24,25 @@ class LTIOAuthError(LTILaunchVerificationError):
     """Raised when OAuth signature verification of a launch request fails."""
 
 
-class HAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
+class HAPIError(ServiceError):
     """
     A problem with an h API request.
 
     This exception class is raised whenever an h API request times out or when
     an unsuccessful, invalid or unexpected response is received from the h API.
 
-    An HAPIError is a 500 Internal Server Error response (HTTPInternalServerError
-    subclass) rather than, say, a 502 Bad Gateway because Cloudflare intercepts
-    gateway error responses and replaces our error page with its own error
-    page, and we don't want that.
-
-    Any arguments or keyword arguments other than ``response`` are passed
-    through to HTTPInternalServerError.
-
     :param response: The response from the HTTP request to the h API
     :type response: requests.Response
     """
 
-    def __init__(self, *args, response=None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, explanation=None, response=None):
+        super().__init__()
+        self.explanation = explanation
         self.response = response
 
     def __str__(self):
         if self.response is None:
-            return super().__str__()
+            return self.explanation
 
         # Log the details of the h API response. This goes to both Sentry and
         # the application's logs. It's helpful for debugging to know how h
@@ -65,11 +55,11 @@ class HAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
         return " ".join([part for part in parts if part])
 
 
-class HAPINotFoundError(HAPIError):  # pylint: disable=too-many-ancestors
+class HAPINotFoundError(HAPIError):
     """A 404 error from an API request."""
 
 
-class CanvasAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ancestors
+class CanvasAPIError(ServiceError):
     """
     A problem with a Canvas API request.
 
@@ -77,25 +67,18 @@ class CanvasAPIError(HTTPInternalServerError):  # pylint: disable=too-many-ances
     when an unsuccessful, invalid or unexpected response is received from the
     Canvas API.
 
-    An CanvasAPIError is a 500 Internal Server Error response
-    (HTTPInternalServerError subclass) rather than, say, a 502 Bad Gateway
-    because Cloudflare intercepts gateway error responses and replaces our
-    error page with its own error page, and we don't want that.
-
-    Any arguments or keyword arguments other than ``response`` are passed
-    through to HTTPInternalServerError.
-
     :param response: The response from the HTTP request to the h API
     :type response: requests.Response
     """
 
-    def __init__(self, *args, response=None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, explanation=None, response=None):
+        super().__init__()
+        self.explanation = explanation
         self.response = response
 
     def __str__(self):
         if self.response is None:
-            return super().__str__()
+            return self.explanation
 
         # Log the details of the Canvas API response. This goes to both Sentry
         # and the application's logs. It's helpful for debugging to know how
