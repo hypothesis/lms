@@ -69,8 +69,6 @@ class TestOAuth2Redirect:
     def test_it_gets_an_access_token_from_canvas(
         self, canvas_api_client, pyramid_request
     ):
-        pyramid_request.parsed_params = {"code": "test_authorization_code"}
-
         CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
 
         canvas_api_client.get_token.assert_called_once_with("test_authorization_code")
@@ -78,8 +76,6 @@ class TestOAuth2Redirect:
     def test_it_saves_the_access_token_to_the_db(
         self, canvas_api_client, pyramid_request
     ):
-        pyramid_request.parsed_params = {"code": "test_authorization_code"}
-
         CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
 
         canvas_api_client.save_token.assert_called_once_with(
@@ -87,11 +83,15 @@ class TestOAuth2Redirect:
         )
 
     def test_it_500s_if_get_token_raises(self, canvas_api_client, pyramid_request):
-        pyramid_request.parsed_params = {"code": "test_authorization_code"}
         canvas_api_client.get_token.side_effect = CanvasAPIServerError()
 
         with pytest.raises(HTTPInternalServerError):
             CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {"code": "test_authorization_code"}
+        return pyramid_request
 
 
 class TestOAuth2RedirectError:
