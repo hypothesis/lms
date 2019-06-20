@@ -3,6 +3,7 @@ from lms.services.exceptions import LTILaunchVerificationError
 from lms.services.exceptions import NoConsumerKey
 from lms.services.exceptions import ConsumerKeyError
 from lms.services.exceptions import LTIOAuthError
+from lms.services.exceptions import ExternalRequestError
 from lms.services.exceptions import HAPIError
 from lms.services.exceptions import HAPINotFoundError
 from lms.services.exceptions import CanvasAPIError
@@ -13,6 +14,7 @@ __all__ = (
     "NoConsumerKey",
     "ConsumerKeyError",
     "LTIOAuthError",
+    "ExternalRequestError",
     "HAPIError",
     "HAPINotFoundError",
     "CanvasAPIError",
