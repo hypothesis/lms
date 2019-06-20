@@ -17,7 +17,7 @@ from lms.values import LTIUser
 __all__ = ("BearerTokenSchema",)
 
 
-class BearerTokenSchema(marshmallow.Schema):
+class BearerTokenSchema(_helpers.BaseSchema):
     """
     Schema for our bearer token-based LTI authentication.
 
@@ -62,19 +62,9 @@ class BearerTokenSchema(marshmallow.Schema):
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     roles = marshmallow.fields.Str(required=True)
 
-    class Meta:
-        """Marshmallow options for this schema."""
-
-        # Silence a strict=False deprecation warning from marshmallow.
-        # TODO: Remove this once we've upgraded to marshmallow 3.
-        strict = True
-
     def __init__(self, request):
-        super().__init__()
-        self._request = request
-        # Storing context needed for serialization or deserialization in
-        # self.context is a marshmallow convention.
-        self.context = {"secret": request.registry.settings["jwt_secret"]}
+        super().__init__(request)
+        self.context["secret"] = request.registry.settings["jwt_secret"]
 
     def authorization_param(self, lti_user):
         """
@@ -120,7 +110,9 @@ class BearerTokenSchema(marshmallow.Schema):
         """
         try:
             return parser.parse(
-                self, self._request, locations=["headers", "querystring", "form"]
+                self,
+                self.context["request"],
+                locations=["headers", "querystring", "form"],
             )
         except HTTPUnprocessableEntity as error:
             try:

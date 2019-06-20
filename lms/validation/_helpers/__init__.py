@@ -1,4 +1,5 @@
 """Private helpers for :mod:`lms.validation` code."""
+from lms.validation._helpers._base import BaseSchema
 from lms.validation._helpers._exceptions import (
     HelpersError,
     JWTError,
@@ -10,6 +11,7 @@ from lms.validation._helpers._schema import instantiate_schema
 
 
 __all__ = [
+    "BaseSchema",
     "HelpersError",
     "JWTError",
     "ExpiredJWTError",
