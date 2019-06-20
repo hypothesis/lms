@@ -2,8 +2,10 @@ from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
+from lms.services import CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
 
 
@@ -84,6 +86,36 @@ class TestOAuth2Redirect:
             *canvas_api_client.get_token.return_value
         )
 
+    def test_it_500s_if_get_token_raises(self, canvas_api_client, pyramid_request):
+        pyramid_request.parsed_params = {"code": "test_authorization_code"}
+        canvas_api_client.get_token.side_effect = CanvasAPIServerError()
+
+        with pytest.raises(HTTPInternalServerError):
+            CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
+
+
+class TestOAuth2RedirectError:
+    def test_it_sets_the_response_status_code_to_500(self, pyramid_request):
+        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect_error()
+
+        assert pyramid_request.response.status_code == 500
+
+    def test_it_passes_authorize_url_to_the_template(
+        self, BearerTokenSchema, bearer_token_schema, pyramid_request
+    ):
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        bearer_token_schema.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
+        )
+        assert (
+            template_variables["authorize_url"]
+            == "http://example.com/api/canvas/authorize?authorization=TEST_AUTHORIZATION_PARAM"
+        )
+
 
 @pytest.fixture(autouse=True)
 def canvas_api_client(pyramid_config):
@@ -97,6 +129,18 @@ def canvas_api_client(pyramid_config):
     )
     pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
     return canvas_api_client
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
+
+
+@pytest.fixture
+def bearer_token_schema(BearerTokenSchema):
+    schema = BearerTokenSchema.return_value
+    schema.authorization_param.return_value = "TEST_AUTHORIZATION_PARAM"
+    return schema
 
 
 @pytest.fixture(autouse=True)

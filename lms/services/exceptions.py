@@ -72,3 +72,12 @@ class CanvasAPIError(ExternalRequestError):
     Raised whenever a Canvas API request times out or when an unsuccessful,
     invalid or unexpected response is received from the Canvas API.
     """
+
+
+class CanvasAPIServerError(CanvasAPIError):
+    """
+    A server error during a Canvas API request.
+
+    Raised when a Canvas API request fails in an unexpected way: for example
+    the request times out, or we receive an unexpected response.
+    """

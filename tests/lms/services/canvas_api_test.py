@@ -10,7 +10,7 @@ from requests import Response
 from requests import TooManyRedirects
 
 from lms.models import ApplicationInstance, OAuth2Token
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
 
 
@@ -48,6 +48,50 @@ class TestCanvasAPIClient:
         token = canvas_api_client.get_token("test_authorization_code")
 
         assert token == ("test_access_token", "test_refresh_token", 3600)
+
+    @pytest.mark.parametrize(
+        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+    )
+    def test_get_token_raises_CanvasAPIServerError_if_the_canvas_api_request_fails(
+        self, exception, requests, canvas_api_client
+    ):
+        requests.Session.return_value.send.side_effect = exception
+
+        with pytest.raises(
+            CanvasAPIServerError, match="Authorizing with Canvas failed"
+        ) as exc_info:
+            canvas_api_client.get_token("test_authorization_code")
+
+        assert exc_info.value.__cause__ == exception
+
+    def test_get_token_raises_CanvasAPIServerError_if_it_receives_an_error_response(
+        self, pyramid_request, requests, canvas_api_client
+    ):
+        # The error response from the Canvas API / from the ``requests`` lib.
+        response = requests.Session.return_value.send.return_value
+        response.status_code = 400
+        response.reason = "Bad Request"
+        response.text = "You forgot a required parameter"
+
+        # The exception raised by the requests lib.
+        exception = HTTPError(response=response)
+
+        # Make ``raise_for_status()`` raise the exception containing the
+        # response.
+        requests.Session.return_value.send.return_value.raise_for_status.side_effect = (
+            exception
+        )
+
+        with pytest.raises(
+            CanvasAPIServerError,
+            match="400 Bad Request You forgot a required parameter",
+        ) as exc_info:
+            canvas_api_client.get_token("test_authorization_code")
+
+        assert exc_info.value.__cause__ == exception
+        assert (
+            exc_info.value.response == response
+        ), "It passes the Canvas API response to CanvasAPIError so that it gets logged"
 
     def test_save_token_updates_an_existing_token_in_the_db(
         self, before, canvas_api_client, db_session, pyramid_request

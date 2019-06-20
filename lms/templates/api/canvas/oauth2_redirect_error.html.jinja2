@@ -1,0 +1,33 @@
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block content %}
+  <div class="Dialog__background" style="z-index: 1;"></div>
+  <div class="Dialog__container" style="z-index: 2;">
+    <div class="Dialog__content LMSFilePicker__dialog">
+      <h1 class="Dialog__title">Authorization failed</h1>
+      <p>
+        Something went wrong when authorizing Hypothesis.
+      </p>
+      <div class="u-stretch"></div>
+      <div class="Dialog__actions">
+        <button class="Button Button--cancel"
+                type="button"
+                onclick="window.close()">
+          Cancel
+        </button>
+        <button class="Button"
+                type="button"
+                onclick="window.location.href = '{{ authorize_url }}'">
+          Try again
+        </button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block styles %}
+  {% for url in  asset_urls("file_picker_v2_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}

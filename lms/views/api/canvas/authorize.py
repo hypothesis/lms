@@ -1,19 +1,22 @@
 from urllib.parse import urlencode, urlparse, urlunparse
 
-from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config, view_defaults
+from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
+from pyramid.view import exception_view_config, view_config, view_defaults
 
-from lms.validation import CanvasOAuthCallbackSchema
+from lms.services import CanvasAPIServerError
+from lms.validation import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 
-@view_defaults(feature_flag="new_oauth", permission="canvas_api", request_method="GET")
+@view_defaults(
+    feature_flag="new_oauth", request_method="GET", route_name="canvas_oauth_callback"
+)
 class CanvasAPIAuthorizeViews:
     def __init__(self, request):
         self.request = request
         self.ai_getter = request.find_service(name="ai_getter")
         self.canvas_api_client = request.find_service(name="canvas_api_client")
 
-    @view_config(route_name="canvas_api.authorize")
+    @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
         consumer_key = self.request.lti_user.oauth_consumer_key
 
@@ -38,14 +41,35 @@ class CanvasAPIAuthorizeViews:
         return HTTPFound(location=authorize_url)
 
     @view_config(
-        route_name="canvas_oauth_callback",
+        permission="canvas_api",
         renderer="lms:templates/api/canvas/oauth2_redirect.html.jinja2",
         schema=CanvasOAuthCallbackSchema,
     )
     def oauth2_redirect(self):
         authorization_code = self.request.parsed_params["code"]
 
-        token = self.canvas_api_client.get_token(authorization_code)
+        try:
+            token = self.canvas_api_client.get_token(authorization_code)
+        except CanvasAPIServerError as err:
+            raise HTTPInternalServerError(
+                "Authorizing with the Canvas API failed"
+            ) from err
+
         self.canvas_api_client.save_token(*token)
 
         return {}
+
+    @exception_view_config(
+        renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2"
+    )
+    def oauth2_redirect_error(self):
+        self.request.response.status_code = 500
+
+        authorization_param = (
+            BearerTokenSchema(self.request).authorization_param(self.request.lti_user),
+        )
+        return {
+            "authorize_url": self.request.route_url(
+                "canvas_api.authorize", _query=[("authorization", authorization_param)]
+            )
+        }
