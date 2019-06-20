@@ -10,7 +10,7 @@ from lms.validation import (
     ExpiredStateParamError,
     InvalidStateParamError,
 )
-from lms.validation._helpers import ExpiredJWTError, InvalidJWTError, instantiate_schema
+from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.values import LTIUser
 
 
@@ -147,7 +147,7 @@ class TestCanvasOauthCallbackSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return instantiate_schema(CanvasOAuthCallbackSchema, pyramid_request)
+        return CanvasOAuthCallbackSchema(pyramid_request)
 
     @pytest.fixture
     def lti_user(self):

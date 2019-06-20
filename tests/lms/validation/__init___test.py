@@ -49,23 +49,21 @@ class TestValidatedView:
         assert _validated_view(view, info) == view
 
     def test_it_instantiates_the_views_schema(
-        self, context, info, instantiate_schema, pyramid_request, view, schema
+        self, context, info, pyramid_request, view, Schema
     ):
         # Derive and call the wrapper view.
         _validated_view(view, info)(context, pyramid_request)
 
-        instantiate_schema.assert_called_once_with(schema, pyramid_request)
+        Schema.assert_called_once_with(pyramid_request)
 
     def test_it_validates_the_request(
-        self, context, info, parser, pyramid_request, view, instantiate_schema
+        self, context, info, parser, pyramid_request, view, Schema
     ):
         # Derive and call the wrapper view.
         _validated_view(view, info)(context, pyramid_request)
 
         # It uses the schema dict to parse the request.
-        parser.parse.assert_called_once_with(
-            instantiate_schema.return_value, pyramid_request
-        )
+        parser.parse.assert_called_once_with(Schema.return_value, pyramid_request)
 
     def test_it_adds_the_parsed_params_to_the_request(
         self, context, info, pyramid_request, view, parsed_params
@@ -82,7 +80,7 @@ class TestValidatedView:
         assert returned == view.return_value
 
     def test_it_errors_if_validation_fails(
-        self, context, info, parser, pyramid_request, schema, view
+        self, context, info, parser, pyramid_request, view
     ):
         parser.parse.side_effect = ValidationError("error_messages")
         wrapper_view = _validated_view(view, info)
@@ -97,17 +95,13 @@ class TestValidatedView:
         """Return the Pyramid context object."""
         return mock.sentinel.context
 
-    @pytest.fixture(autouse=True)
-    def instantiate_schema(self, patch):
-        return patch("lms.validation.instantiate_schema")
-
     @pytest.fixture
-    def info(self):
+    def info(self, Schema):
         """Return the Pyramid view deriver info object.
 
         Pyramid passes one of these as an argument to every view deriver.
         """
-        return mock.MagicMock(options={"schema": mock.sentinel.schema})
+        return mock.MagicMock(options={"schema": Schema})
 
     @pytest.fixture()
     def parsed_params(self, parser):
@@ -120,9 +114,13 @@ class TestValidatedView:
         return patch("lms.validation.parser")
 
     @pytest.fixture
-    def schema(self):
+    def Schema(self):
         """Return the view's configured schema object."""
-        return mock.sentinel.schema
+
+        class TestSchema(marshmallow.Schema):
+            pass
+
+        return mock.create_autospec(TestSchema, spec_set=True)
 
     @pytest.fixture
     def view(self):

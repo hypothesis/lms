@@ -6,7 +6,6 @@ from lms.validation._helpers._exceptions import (
     InvalidJWTError,
 )
 from lms.validation._helpers._jwt import decode_jwt, encode_jwt
-from lms.validation._helpers._schema import instantiate_schema
 
 
 __all__ = [
@@ -16,5 +15,4 @@ __all__ = [
     "InvalidJWTError",
     "decode_jwt",
     "encode_jwt",
-    "instantiate_schema",
 ]
