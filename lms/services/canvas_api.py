@@ -29,6 +29,10 @@ class CanvasAPIClient:
 
         Posts to the Canvas API to get the access token and returns it.
 
+        :arg authorization_code: The Canvas API OAuth 2.0 authorization code to
+            exchange for an access token
+        :type authorization_code: str
+
         :raise lms.services.CanvasAPIServerError: if the Canvas API request
             fails for any reason
         """
