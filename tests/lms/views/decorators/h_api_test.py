@@ -1,7 +1,7 @@
 from unittest import mock
 import pytest
 
-from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from requests import Response
 
@@ -30,7 +30,7 @@ class TestUpsertHUser:
     ):
         hapi_svc.patch.side_effect = HAPIError("whatever")
 
-        with pytest.raises(HAPIError, match="whatever"):
+        with pytest.raises(HTTPInternalServerError, match="whatever"):
             upsert_h_user(context, pyramid_request)
 
     def test_it_raises_if_post_raises(
@@ -40,7 +40,7 @@ class TestUpsertHUser:
         hapi_svc.patch.side_effect = HAPINotFoundError("whatever")
         hapi_svc.post.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HAPIError, match="Oops"):
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
             upsert_h_user(context, pyramid_request)
 
     def test_it_continues_to_the_wrapped_func_if_feature_not_enabled(
@@ -125,7 +125,7 @@ class TestUpsertHUser:
 
 
 @pytest.mark.usefixtures("hapi_svc")
-class TestCreateCourseGroup:
+class TestUpsertCourseGroup:
     def test_it_does_nothing_if_the_feature_isnt_enabled(
         self, upsert_course_group, context, pyramid_request, wrapped, hapi_svc
     ):
@@ -157,7 +157,7 @@ class TestCreateCourseGroup:
         # view raises an exception and an error page is shown.
         hapi_svc.patch.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HAPIError, match="Oops"):
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
             upsert_course_group(context, pyramid_request)
 
     def test_if_the_group_doesnt_exist_it_creates_it(
@@ -177,6 +177,20 @@ class TestCreateCourseGroup:
             {"groupid": "test_groupid", "name": "test_group_name"},
             "acct:test_username@TEST_AUTHORITY",
         )
+
+    def test_it_raises_if_creating_the_group_fails(
+        self, upsert_course_group, context, pyramid_request, hapi_svc
+    ):
+        pyramid_request.lti_user = LTIUser(
+            user_id="TEST_USER_ID",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            roles="instructor",
+        )
+        hapi_svc.patch.side_effect = HAPINotFoundError()
+        hapi_svc.put.side_effect = HAPIError("Oops")
+
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
+            upsert_course_group(context, pyramid_request)
 
     def test_if_the_group_doesnt_exist_and_the_user_isnt_allowed_to_create_groups_it_400s(
         self, upsert_course_group, context, pyramid_request, hapi_svc
@@ -244,7 +258,7 @@ class TestAddUserToGroup:
     ):
         hapi_svc.post.side_effect = HAPIError("Oops")
 
-        with pytest.raises(HAPIError, match="Oops"):
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
             add_user_to_group(context, pyramid_request)
 
     def test_it_continues_to_the_wrapped_func(

@@ -1,6 +1,9 @@
 import pytest
 from unittest import mock
 
+from pyramid.httpexceptions import HTTPInternalServerError
+
+from lms.services import CanvasAPIError
 from lms.services.canvas_api import CanvasAPIClient
 from lms.views.api.canvas.files import FilesAPIViews
 
@@ -17,6 +20,12 @@ class TestListFiles:
         FilesAPIViews(
             pyramid_request
         ).list_files() == canvas_api_client.list_files.return_value
+
+    def test_if_list_files_raises_it_500s(self, canvas_api_client, pyramid_request):
+        canvas_api_client.list_files.side_effect = CanvasAPIError("Oops")
+
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
+            FilesAPIViews(pyramid_request).list_files()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -40,6 +49,12 @@ class TestViaURL:
         util.via_url.assert_called_once_with(
             pyramid_request, canvas_api_client.public_url.return_value
         )
+
+    def test_if_public_url_raises_it_500s(self, canvas_api_client, pyramid_request):
+        canvas_api_client.public_url.side_effect = CanvasAPIError("Oops")
+
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
+            FilesAPIViews(pyramid_request).via_url()
 
     def test_it_returns_the_via_url(self, pyramid_request, util):
         data = FilesAPIViews(pyramid_request).via_url()
