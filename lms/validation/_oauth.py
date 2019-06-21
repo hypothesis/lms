@@ -10,6 +10,9 @@ from lms.validation import _exceptions
 from lms.values import LTIUser
 
 
+__all__ = ["CanvasOAuthCallbackSchema", "CanvasAccessTokenResponseSchema"]
+
+
 class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
     """
     Schema for validating OAuth 2 redirect_uri requests from Canvas.
@@ -125,3 +128,16 @@ class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
             raise _exceptions.ExpiredStateParamError() from err
         except InvalidJWTError as err:
             raise _exceptions.InvalidStateParamError() from err
+
+
+class CanvasAccessTokenResponseSchema(_helpers.RequestsResponseSchema):
+    """Schema for validating OAuth 2 access token responses from Canvas."""
+
+    access_token = fields.Str(required=True)
+    refresh_token = fields.Str()
+    expires_in = fields.Integer()
+
+    @marshmallow.validates("expires_in")
+    def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
+        if not expires_in > 0:
+            raise marshmallow.ValidationError("expires_in must be greater than 0")

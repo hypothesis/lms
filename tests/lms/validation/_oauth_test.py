@@ -1,8 +1,11 @@
+from unittest import mock
+
 import jwt
 import pytest
 from pyramid import testing
+import requests
 
-from lms.validation import CanvasOAuthCallbackSchema
+from lms.validation import CanvasOAuthCallbackSchema, CanvasAccessTokenResponseSchema
 from lms.validation import (
     ValidationError,
     MissingStateParamError,
@@ -145,10 +148,6 @@ class TestCanvasOauthCallbackSchema:
         return CanvasOAuthCallbackSchema(pyramid_request)
 
     @pytest.fixture
-    def lti_user(self):
-        return LTIUser("test_user_id", "test_oauth_consumer_key", "test_roles")
-
-    @pytest.fixture
     def pyramid_request(self, lti_user):
         """Return a minimal valid OAuth 2 redirect request."""
         pyramid_request = testing.DummyRequest()
@@ -171,6 +170,73 @@ class TestCanvasOauthCallbackSchema:
             yield config
 
 
+class TestCanvasAccessTokenResponseSchema:
+    def test_it_returns_the_valid_parsed_params(self, schema, response):
+        parsed_params = schema.parse()
+
+        assert parsed_params == {
+            "access_token": "TEST_ACCESS_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "expires_in": 3600,
+        }
+
+    def test_access_token_is_required(self, schema, response):
+        del response.json.return_value["access_token"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.messages == {
+            "access_token": ["Missing data for required field."]
+        }
+
+    def test_refresh_token_is_optional(self, schema, response):
+        del response.json.return_value["refresh_token"]
+
+        parsed_params = schema.parse()
+
+        assert parsed_params == {
+            "access_token": "TEST_ACCESS_TOKEN",
+            "expires_in": 3600,
+        }
+
+    def test_expires_in_is_optional(self, schema, response):
+        del response.json.return_value["expires_in"]
+
+        parsed_params = schema.parse()
+
+        assert parsed_params == {
+            "access_token": "TEST_ACCESS_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+        }
+
+    @pytest.mark.parametrize("invalid_expires_in_value", ["foo", -16, False, None])
+    def test_expires_in_must_be_an_int_greater_than_0(
+        self, invalid_expires_in_value, schema, response
+    ):
+        response.json.return_value["expires_in"] = invalid_expires_in_value
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert list(exc_info.value.messages.keys()) == ["expires_in"]
+
+    @pytest.fixture
+    def response(self):
+        """The ``requests`` library response that's being validated."""
+        response = mock.create_autospec(requests.Response, instance=True, spec_set=True)
+        response.json.return_value = {
+            "access_token": "TEST_ACCESS_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "expires_in": 3600,
+        }
+        return response
+
+    @pytest.fixture
+    def schema(self, response):
+        return CanvasAccessTokenResponseSchema(response)
+
+
 @pytest.fixture(autouse=True)
 def secrets(patch):
     secrets = patch("lms.validation._oauth.secrets")
@@ -183,3 +249,8 @@ def _helpers(patch, lti_user):
     _helpers = patch("lms.validation._oauth._helpers")
     _helpers.decode_jwt.return_value = {"csrf": "test_csrf", "user": lti_user._asdict()}
     return _helpers
+
+
+@pytest.fixture
+def lti_user():
+    return LTIUser("test_user_id", "test_oauth_consumer_key", "test_roles")
