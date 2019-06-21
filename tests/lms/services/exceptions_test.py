@@ -24,10 +24,30 @@ class TestExternalRequestError:
     @pytest.mark.parametrize(
         "status_code,reason,text,expected",
         [
-            (400, "Bad Request", "Name too long", "400 Bad Request Name too long"),
-            (None, "Bad Request", "Name too long", "Bad Request Name too long"),
-            (400, None, "Name too long", "400 Name too long"),
-            (400, "Bad Request", "", "400 Bad Request"),
+            (
+                400,
+                "Bad Request",
+                "Name too long",
+                "Connecting to Hypothesis failed: 400 Bad Request Name too long",
+            ),
+            (
+                None,
+                "Bad Request",
+                "Name too long",
+                "Connecting to Hypothesis failed: Bad Request Name too long",
+            ),
+            (
+                400,
+                None,
+                "Name too long",
+                "Connecting to Hypothesis failed: 400 Name too long",
+            ),
+            (
+                400,
+                "Bad Request",
+                "",
+                "Connecting to Hypothesis failed: 400 Bad Request",
+            ),
         ],
     )
     def test_when_theres_a_response_it_uses_it_in_str(

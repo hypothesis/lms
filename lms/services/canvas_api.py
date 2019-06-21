@@ -8,6 +8,7 @@ from lms.models import OAuth2Token
 from lms.services import CanvasAPIError
 from lms.services.exceptions import CanvasAPIServerError
 from lms.services._helpers import CanvasAPIHelper
+from lms.validation import CanvasAccessTokenResponseSchema, ValidationError
 
 
 __all__ = ["CanvasAPIClient"]
@@ -47,12 +48,18 @@ class CanvasAPIClient:
                 response=getattr(err, "response", None),
             ) from err
 
-        # TODO: Validate access_token_response.
+        try:
+            parsed_params = CanvasAccessTokenResponseSchema(
+                access_token_response
+            ).parse()
+        except ValidationError as err:
+            raise CanvasAPIServerError(
+                explanation=str(err), response=access_token_response
+            ) from err
 
-        response_params = access_token_response.json()
-        access_token = response_params["access_token"]
-        refresh_token = response_params["refresh_token"]
-        expires_in = response_params["expires_in"]
+        access_token = parsed_params["access_token"]
+        refresh_token = parsed_params.get("refresh_token")
+        expires_in = parsed_params.get("expires_in")
 
         return (access_token, refresh_token, expires_in)
 
