@@ -5,7 +5,7 @@ from webargs import pyramidparser
 from lms.validation._exceptions import ValidationError
 
 
-__all__ = ["PyramidRequestSchema"]
+__all__ = ["PyramidRequestSchema", "RequestsResponseSchema"]
 
 
 _PYRAMID_PARSER = pyramidparser.PyramidParser()
@@ -27,9 +27,6 @@ class PyramidRequestSchema(_BaseSchema):
 
     def __init__(self, request):
         super().__init__()
-
-        # Storing context needed for serialization or deserialization in
-        # self.context is a marshmallow convention.
         self.context = {"request": request}
 
     def parse(self, *args, **kwargs):
@@ -43,6 +40,40 @@ class PyramidRequestSchema(_BaseSchema):
         :raise lms.validation.ValidationError: if the request isn't valid
         """
         return _PYRAMID_PARSER.parse(self, self.context["request"], *args, **kwargs)
+
+
+class RequestsResponseSchema(_BaseSchema):
+    """Base class for schemas that validate ``requests`` lib responses."""
+
+    def __init__(self, response):
+        super().__init__()
+        self.context = {"response": response}
+
+    def parse(self, *args, **kwargs):
+        """
+        Parse and validate the response.
+
+        Use this schema to parse and validate ``self.context["response"]`` and
+        either return the successfully parsed params or raise a validation
+        error.
+
+        :raise lms.validation.ValidationError: if the response isn't valid
+        """
+        response = self.context["response"]
+
+        try:
+            response_params = response.json()
+        except ValueError as err:
+            raise ValidationError(
+                {"_schema": "response doesn't have a valid JSON body"}
+            ) from err
+
+        try:
+            result = self.load(response_params, *args, **kwargs)
+        except marshmallow.ValidationError as err:
+            raise ValidationError(messages=err.messages) from err
+
+        return result.data
 
 
 @_PYRAMID_PARSER.error_handler
