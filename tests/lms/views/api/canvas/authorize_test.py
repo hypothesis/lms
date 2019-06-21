@@ -2,8 +2,10 @@ from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.views.api.canvas.authorize import authorize, oauth2_redirect
+from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
+from lms.services import CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
 
 
@@ -11,7 +13,7 @@ class TestAuthorize:
     def test_it_redirects_to_the_right_Canvas_endpoint(
         self, ai_getter, pyramid_request
     ):
-        response = authorize(pyramid_request)
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         assert response.status_code == 302
         ai_getter.lms_url.assert_called_once_with(
@@ -24,7 +26,7 @@ class TestAuthorize:
     def test_it_includes_the_client_id_in_a_query_param(
         self, ai_getter, pyramid_request
     ):
-        response = authorize(pyramid_request)
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         query_params = parse_qs(urlparse(response.location).query)
 
@@ -34,14 +36,14 @@ class TestAuthorize:
         assert query_params["client_id"] == [str(ai_getter.developer_key.return_value)]
 
     def test_it_includes_the_response_type_in_a_query_param(self, pyramid_request):
-        response = authorize(pyramid_request)
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         query_params = parse_qs(urlparse(response.location).query)
 
         assert query_params["response_type"] == ["code"]
 
     def test_it_includes_the_redirect_uri_in_a_query_param(self, pyramid_request):
-        response = authorize(pyramid_request)
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         query_params = parse_qs(urlparse(response.location).query)
 
@@ -52,7 +54,7 @@ class TestAuthorize:
     def test_it_includes_the_state_in_a_query_param(
         self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
     ):
-        response = authorize(pyramid_request)
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         query_params = parse_qs(urlparse(response.location).query)
 
@@ -67,35 +69,78 @@ class TestOAuth2Redirect:
     def test_it_gets_an_access_token_from_canvas(
         self, canvas_api_client, pyramid_request
     ):
-        pyramid_request.parsed_params = {"code": "test_authorization_code"}
-
-        oauth2_redirect(pyramid_request)
+        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
 
         canvas_api_client.get_token.assert_called_once_with("test_authorization_code")
 
     def test_it_saves_the_access_token_to_the_db(
         self, canvas_api_client, pyramid_request
     ):
-        pyramid_request.parsed_params = {"code": "test_authorization_code"}
-
-        oauth2_redirect(pyramid_request)
+        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
 
         canvas_api_client.save_token.assert_called_once_with(
             *canvas_api_client.get_token.return_value
         )
 
-    @pytest.fixture(autouse=True)
-    def canvas_api_client(self, pyramid_config):
-        canvas_api_client = mock.create_autospec(
-            CanvasAPIClient, spec_set=True, instance=True
+    def test_it_500s_if_get_token_raises(self, canvas_api_client, pyramid_request):
+        canvas_api_client.get_token.side_effect = CanvasAPIServerError()
+
+        with pytest.raises(HTTPInternalServerError):
+            CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {"code": "test_authorization_code"}
+        return pyramid_request
+
+
+class TestOAuth2RedirectError:
+    def test_it_sets_the_response_status_code_to_500(self, pyramid_request):
+        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect_error()
+
+        assert pyramid_request.response.status_code == 500
+
+    def test_it_passes_authorize_url_to_the_template(
+        self, BearerTokenSchema, bearer_token_schema, pyramid_request
+    ):
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        bearer_token_schema.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
         )
-        canvas_api_client.get_token.return_value = (
-            "test_access_token",
-            "test_refresh_token",
-            3600,
+        assert (
+            template_variables["authorize_url"]
+            == "http://example.com/api/canvas/authorize?authorization=TEST_AUTHORIZATION_PARAM"
         )
-        pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
-        return canvas_api_client
+
+
+@pytest.fixture(autouse=True)
+def canvas_api_client(pyramid_config):
+    canvas_api_client = mock.create_autospec(
+        CanvasAPIClient, spec_set=True, instance=True
+    )
+    canvas_api_client.get_token.return_value = (
+        "test_access_token",
+        "test_refresh_token",
+        3600,
+    )
+    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
+    return canvas_api_client
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
+
+
+@pytest.fixture
+def bearer_token_schema(BearerTokenSchema):
+    schema = BearerTokenSchema.return_value
+    schema.authorization_param.return_value = "TEST_AUTHORIZATION_PARAM"
+    return schema
 
 
 @pytest.fixture(autouse=True)

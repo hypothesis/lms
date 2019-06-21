@@ -6,6 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIError
+from lms.services.exceptions import CanvasAPIServerError
 from lms.services._helpers import CanvasAPIHelper
 
 
@@ -27,15 +28,24 @@ class CanvasAPIClient:
         Get an access token for the current LTI user.
 
         Posts to the Canvas API to get the access token and returns it.
+
+        :arg authorization_code: The Canvas API OAuth 2.0 authorization code to
+            exchange for an access token
+        :type authorization_code: str
+
+        :raise lms.services.CanvasAPIServerError: if the Canvas API request
+            fails for any reason
         """
         access_token_request = self._helper.access_token_request(authorization_code)
-        access_token_response = requests.Session().send(access_token_request)
 
-        # TODO: Handle access token error responses.
-        # These aren't documented in the Canvas docs as far as I can see.
-        # They are documented in the OAuth 2 spec but I don't yet know if Canvas's
-        # error responses follow this:
-        # https://tools.ietf.org/html/rfc6749#section-5.2
+        try:
+            access_token_response = requests.Session().send(access_token_request)
+            access_token_response.raise_for_status()
+        except RequestException as err:
+            raise CanvasAPIServerError(
+                explanation="Authorizing with Canvas failed",
+                response=getattr(err, "response", None),
+            ) from err
 
         # TODO: Validate access_token_response.
 

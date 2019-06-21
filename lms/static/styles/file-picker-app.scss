@@ -11,6 +11,8 @@
 @import 'components/label';
 
 // Generic React components.
+// Note: Some of these are also used by server-rendered HTML templates, not
+// just by React code.
 @import 'components/Button';
 @import 'components/Dialog';
 @import 'components/Table';
