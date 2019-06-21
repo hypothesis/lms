@@ -1,13 +1,13 @@
 from pyramid import testing
 import pytest
 
-from lms.validation import ConfigureModuleItemSchema, parser
+from lms.validation import ConfigureModuleItemSchema
 from lms.validation import ValidationError
 
 
 class TestConfigureModuleItemSchema:
     def test_that_validation_succeeds_for_valid_requests(self, pyramid_request, schema):
-        self.parse(schema, pyramid_request)
+        schema.parse()
 
     @pytest.mark.parametrize(
         "param", ["document_url", "resource_link_id", "tool_consumer_instance_guid"]
@@ -18,15 +18,11 @@ class TestConfigureModuleItemSchema:
         del pyramid_request.params[param]
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == dict(
             [(param, ["Missing data for required field."])]
         )
-
-    def parse(self, schema, request):
-        """Parse ``request`` with ``schema`` and return the parsed params."""
-        return parser.parse(schema, request, locations=["form"])
 
     @pytest.fixture
     def pyramid_request(self):

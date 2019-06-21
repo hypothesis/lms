@@ -3,7 +3,6 @@ import pytest
 from pyramid import testing
 
 from lms.validation import CanvasOAuthCallbackSchema
-from lms.validation import parser
 from lms.validation import (
     ValidationError,
     MissingStateParamError,
@@ -75,7 +74,7 @@ class TestCanvasOauthCallbackSchema:
         del pyramid_request.params["code"]
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {"code": ["Missing data for required field."]}
 
@@ -83,7 +82,7 @@ class TestCanvasOauthCallbackSchema:
         del pyramid_request.params["state"]
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {
             "state": ["Missing data for required field."]
@@ -95,7 +94,7 @@ class TestCanvasOauthCallbackSchema:
         _helpers.decode_jwt.side_effect = ExpiredJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {"state": ["Expired `state` parameter"]}
 
@@ -105,7 +104,7 @@ class TestCanvasOauthCallbackSchema:
         _helpers.decode_jwt.side_effect = InvalidJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {"state": ["Invalid `state` parameter"]}
 
@@ -115,7 +114,7 @@ class TestCanvasOauthCallbackSchema:
         pyramid_request.session["oauth2_csrf"] = "wrong"
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {"state": ["Invalid CSRF token"]}
 
@@ -125,25 +124,21 @@ class TestCanvasOauthCallbackSchema:
         del pyramid_request.session["oauth2_csrf"]
 
         with pytest.raises(ValidationError) as exc_info:
-            self.parse(schema, pyramid_request)
+            schema.parse()
 
         assert exc_info.value.messages == {"state": ["Invalid CSRF token"]}
 
     def test_it_removes_the_csrf_token_from_the_session(self, schema, pyramid_request):
-        self.parse(schema, pyramid_request)
+        schema.parse()
 
         assert "oauth2_csrf" not in pyramid_request.session
 
     def test_it_returns_the_valid_state_and_authorization_code(
         self, schema, pyramid_request
     ):
-        parsed_params = self.parse(schema, pyramid_request)
+        parsed_params = schema.parse()
 
         assert parsed_params == {"code": "test_code", "state": "test_state"}
-
-    def parse(self, schema, request):
-        """Parse ``request`` with ``schema`` and return the parsed params."""
-        return parser.parse(schema, request, locations=["querystring"])
 
     @pytest.fixture
     def schema(self, pyramid_request):

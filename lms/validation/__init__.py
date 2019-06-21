@@ -24,8 +24,6 @@ Note that we're using our own view deriver (the ``schema`` argument to
 ``@use_args()`` / ``@use_kwargs()`` decorators. For the reasons for this see
 commit message f61a5ff3cae6b983e24db809d8e4b4933aca1e92.
 """
-from webargs import pyramidparser
-
 from lms.validation._exceptions import (
     ValidationError,
     ExpiredSessionTokenError,
@@ -42,7 +40,6 @@ from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 
 
 __all__ = (
-    "parser",
     "CanvasOAuthCallbackSchema",
     "BearerTokenSchema",
     "LaunchParamsSchema",
@@ -55,14 +52,6 @@ __all__ = (
     "InvalidStateParamError",
     "ExpiredStateParamError",
 )
-
-
-parser = pyramidparser.PyramidParser()
-
-
-@parser.error_handler
-def _handle_error(error, _req, _schema, _status_code, _headers):
-    raise ValidationError(messages=error.messages) from error
 
 
 def _validated_view(view, info):
@@ -89,9 +78,7 @@ def _validated_view(view, info):
             # Use the view's configured schema to validate the request,
             # and make the validated and parsed request params available as
             # request.parsed_params.
-            request.parsed_params = parser.parse(
-                info.options["schema"](request), request
-            )
+            request.parsed_params = info.options["schema"](request).parse()
 
             # Call the view normally.
             return view(context, request)

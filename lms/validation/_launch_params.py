@@ -1,10 +1,7 @@
 """Schema for validating LTI launch params."""
 import marshmallow
-from webargs.pyramidparser import parser
-from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.services import LTILaunchVerificationError
-from lms.validation._exceptions import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 from lms.values import LTIUser
 
@@ -53,10 +50,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
 
         :rtype: LTIUser
         """
-        try:
-            kwargs = parser.parse(self, self.context["request"], locations=["form"])
-        except HTTPUnprocessableEntity as err:
-            raise ValidationError(err.json) from err
+        kwargs = self.parse(locations=["form"])
 
         return LTIUser(
             kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs.get("roles", "")

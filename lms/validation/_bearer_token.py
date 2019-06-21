@@ -1,7 +1,5 @@
 """Schema for our bearer token-based LTI authentication."""
-from webargs.pyramidparser import parser
 import marshmallow
-from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.validation import _helpers
 from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
@@ -109,14 +107,10 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
         :rtype: LTIUser
         """
         try:
-            return parser.parse(
-                self,
-                self.context["request"],
-                locations=["headers", "querystring", "form"],
-            )
-        except HTTPUnprocessableEntity as error:
+            return self.parse(locations=["headers", "querystring", "form"])
+        except ValidationError as error:
             try:
-                authorization_error_message = error.json["authorization"][0]
+                authorization_error_message = error.messages["authorization"][0]
             except KeyError:
                 exc_class = ValidationError
             else:
@@ -126,7 +120,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
                     exc_class = MissingSessionTokenError
                 else:
                     exc_class = InvalidSessionTokenError
-            raise exc_class(messages=error.json) from error
+            raise exc_class(messages=error.messages) from error
 
     @marshmallow.post_dump
     def _encode_jwt(self, data):
