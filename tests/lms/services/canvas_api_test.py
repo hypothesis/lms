@@ -14,8 +14,10 @@ from lms.services import CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
 
 
-class TestCanvasAPIClient:
-    def test_get_token_sends_an_access_token_request(
+class TestGetToken:
+    """Unit tests for CanvasAPIClient.get_token()."""
+
+    def test_it_sends_an_access_token_request(
         self,
         ai_getter,
         access_token_request,
@@ -44,7 +46,7 @@ class TestCanvasAPIClient:
         requests.Session.return_value.send.assert_called_once_with(access_token_request)
 
     @pytest.mark.usefixtures("access_token_response")
-    def test_get_token_returns_the_token_tuple(self, canvas_api_client):
+    def test_it_returns_the_token_tuple(self, canvas_api_client):
         token = canvas_api_client.get_token("test_authorization_code")
 
         assert token == ("test_access_token", "test_refresh_token", 3600)
@@ -52,7 +54,7 @@ class TestCanvasAPIClient:
     @pytest.mark.parametrize(
         "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
     )
-    def test_get_token_raises_CanvasAPIServerError_if_the_canvas_api_request_fails(
+    def test_it_raises_CanvasAPIServerError_if_the_canvas_api_request_fails(
         self, exception, requests, canvas_api_client
     ):
         requests.Session.return_value.send.side_effect = exception
@@ -64,7 +66,7 @@ class TestCanvasAPIClient:
 
         assert exc_info.value.__cause__ == exception
 
-    def test_get_token_raises_CanvasAPIServerError_if_it_receives_an_error_response(
+    def test_it_raises_CanvasAPIServerError_if_it_receives_an_error_response(
         self, pyramid_request, requests, canvas_api_client
     ):
         # The error response from the Canvas API / from the ``requests`` lib.
@@ -93,7 +95,28 @@ class TestCanvasAPIClient:
             exc_info.value.response == response
         ), "It passes the Canvas API response to CanvasAPIError so that it gets logged"
 
-    def test_save_token_updates_an_existing_token_in_the_db(
+    @pytest.fixture
+    def access_token_response(self, requests):
+        """Configure requests to send back access token responses."""
+        access_token_response = {
+            "access_token": "test_access_token",
+            "refresh_token": "test_refresh_token",
+            "expires_in": 3600,
+        }
+        requests.Session.return_value.send.return_value.json.return_value = (
+            access_token_response
+        )
+        return access_token_response
+
+    @pytest.fixture
+    def access_token_request(self, canvas_api_helper):
+        return canvas_api_helper.access_token_request.return_value
+
+
+class TestSaveToken:
+    """Unit tests for CanvasAPIClient.save_token()."""
+
+    def test_it_updates_an_existing_token_in_the_db(
         self, before, canvas_api_client, db_session, pyramid_request
     ):
         existing_token = OAuth2Token(
@@ -114,7 +137,7 @@ class TestCanvasAPIClient:
         assert existing_token.expires_in == 3600
         assert existing_token.received_at >= before
 
-    def test_save_token_adds_a_new_token_to_the_db_if_none_exists(
+    def test_it_adds_a_new_token_to_the_db_if_none_exists(
         self, before, canvas_api_client, db_session, pyramid_request
     ):
         canvas_api_client.save_token("new_access_token", "new_refresh_token", 3600)
@@ -127,8 +150,17 @@ class TestCanvasAPIClient:
         assert token.expires_in == 3600
         assert token.received_at >= before
 
+    @pytest.fixture
+    def before(self):
+        """A time before the test method was called."""
+        return datetime.datetime.utcnow()
+
+
+class TestListFiles:
+    """Unit tests for CanvasAPIClient.list_files()."""
+
     @pytest.mark.usefixtures("access_token", "list_files_response")
-    def test_list_files_sends_a_list_files_request_to_canvas(
+    def test_it_sends_a_list_files_request_to_canvas(
         self,
         ai_getter,
         canvas_api_client,
@@ -157,7 +189,7 @@ class TestCanvasAPIClient:
         requests.Session.return_value.send.assert_called_once_with(list_files_request)
 
     @pytest.mark.usefixtures("access_token", "list_files_response")
-    def test_list_files_returns_the_list_of_files(self, canvas_api_client):
+    def test_it_returns_the_list_of_files(self, canvas_api_client):
         files = canvas_api_client.list_files("test_course_id")
 
         assert files == [
@@ -178,117 +210,14 @@ class TestCanvasAPIClient:
             },
         ]
 
-    @pytest.mark.usefixtures("access_token", "public_url_response")
-    def test_public_url_sends_a_public_url_request_to_canvas(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        public_url_request,
-        pyramid_request,
-        requests,
-    ):
-        canvas_api_client.public_url("test_file_id")
-
-        # It initializes canvas_api_helper correctly.
-        CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
-        )
-
-        # It gets the public URL request from canvas_api_helper.
-        canvas_api_helper.public_url_request.assert_called_once_with(
-            "test_access_token", "test_file_id"
-        )
-
-        # It sends the public URL request.
-        requests.Session.assert_called_once_with()
-        requests.Session.return_value.send.assert_called_once_with(public_url_request)
-
-    @pytest.mark.usefixtures("access_token", "public_url_response")
-    def test_public_url_returns_the_public_url(self, canvas_api_client):
-        assert (
-            canvas_api_client.public_url("test_file_id")
-            == "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
-        )
-
-    @pytest.mark.usefixtures("access_token")
-    @pytest.mark.parametrize(
-        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
-    )
-    def test_public_url_raises_CanvasAPIError_if_the_Canvas_API_request_fails(
-        self, canvas_api_client, exception, requests
-    ):
-        requests.Session.return_value.send.side_effect = exception
-
-        with pytest.raises(CanvasAPIError, match="Connecting to the Canvas API failed"):
-            canvas_api_client.public_url("test_file_id")
-
-    @pytest.mark.usefixtures("access_token")
-    def test_public_url_raises_CanvasAPIError_if_the_Canvas_API_returns_an_error_response(
+    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
         self, canvas_api_client, requests
     ):
-        response = requests.Session.return_value.send.return_value
-        response.status_code = 401
-        response.reason = "Not authorized"
-        exception = HTTPError(response=response)
-        response.raise_for_status.side_effect = exception
-
-        with pytest.raises(CanvasAPIError, match="Not authorized"):
-            canvas_api_client.public_url("test_file_id")
-
-    @pytest.mark.parametrize("method_under_test", ["list_files", "public_url"])
-    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
-        self, canvas_api_client, method_under_test, requests
-    ):
-        method = getattr(canvas_api_client, method_under_test)
-
         with pytest.raises(
             CanvasAPIError,
             match="We don't have a Canvas API access token for this user",
         ):
-            method("test_file_or_course_id")
-
-    @pytest.fixture
-    def access_token(self, db_session, pyramid_request):
-        access_token = OAuth2Token(
-            user_id=pyramid_request.lti_user.user_id,
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            access_token="test_access_token",
-        )
-        db_session.add(access_token)
-        return access_token
-
-    @pytest.fixture
-    def canvas_api_client(self, pyramid_config, pyramid_request):
-        return CanvasAPIClient(mock.sentinel.context, pyramid_request)
-
-    @pytest.fixture(autouse=True)
-    def application_instance(self, db_session, pyramid_request):
-        """The ApplicationInstance that the test OAuth2Token's belong to."""
-        application_instance = ApplicationInstance(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            shared_secret="test_shared_secret",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-        db_session.add(application_instance)
-        return application_instance
-
-    @pytest.fixture
-    def access_token_response(self, requests):
-        """Configure requests to send back access token responses."""
-        access_token_response = {
-            "access_token": "test_access_token",
-            "refresh_token": "test_refresh_token",
-            "expires_in": 3600,
-        }
-        requests.Session.return_value.send.return_value.json.return_value = (
-            access_token_response
-        )
-        return access_token_response
+            canvas_api_client.list_files("test_file_or_course_id")
 
     @pytest.fixture
     def list_files_response(self, requests):
@@ -373,6 +302,84 @@ class TestCanvasAPIClient:
         return list_files_response
 
     @pytest.fixture
+    def list_files_request(self, canvas_api_helper):
+        return canvas_api_helper.list_files_request.return_value
+
+
+class TestPublicURL:
+    """Unit tests for CanvasAPIClient.public_url()."""
+
+    @pytest.mark.usefixtures("access_token", "public_url_response")
+    def test_it_sends_a_public_url_request_to_canvas(
+        self,
+        ai_getter,
+        canvas_api_client,
+        CanvasAPIHelper,
+        canvas_api_helper,
+        public_url_request,
+        pyramid_request,
+        requests,
+    ):
+        canvas_api_client.public_url("test_file_id")
+
+        # It initializes canvas_api_helper correctly.
+        CanvasAPIHelper.assert_called_once_with(
+            pyramid_request.lti_user.oauth_consumer_key,
+            ai_getter,
+            pyramid_request.route_url,
+        )
+
+        # It gets the public URL request from canvas_api_helper.
+        canvas_api_helper.public_url_request.assert_called_once_with(
+            "test_access_token", "test_file_id"
+        )
+
+        # It sends the public URL request.
+        requests.Session.assert_called_once_with()
+        requests.Session.return_value.send.assert_called_once_with(public_url_request)
+
+    @pytest.mark.usefixtures("access_token", "public_url_response")
+    def test_it_returns_the_public_url(self, canvas_api_client):
+        assert (
+            canvas_api_client.public_url("test_file_id")
+            == "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
+        )
+
+    @pytest.mark.usefixtures("access_token")
+    @pytest.mark.parametrize(
+        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+    )
+    def test_it_raises_CanvasAPIError_if_the_Canvas_API_request_fails(
+        self, canvas_api_client, exception, requests
+    ):
+        requests.Session.return_value.send.side_effect = exception
+
+        with pytest.raises(CanvasAPIError, match="Connecting to the Canvas API failed"):
+            canvas_api_client.public_url("test_file_id")
+
+    @pytest.mark.usefixtures("access_token")
+    def test_it_raises_CanvasAPIError_if_the_Canvas_API_returns_an_error_response(
+        self, canvas_api_client, requests
+    ):
+        response = requests.Session.return_value.send.return_value
+        response.status_code = 401
+        response.reason = "Not authorized"
+        exception = HTTPError(response=response)
+        response.raise_for_status.side_effect = exception
+
+        with pytest.raises(CanvasAPIError, match="Not authorized"):
+            canvas_api_client.public_url("test_file_id")
+
+    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
+        self, canvas_api_client, requests
+    ):
+        with pytest.raises(
+            CanvasAPIError,
+            match="We don't have a Canvas API access token for this user",
+        ):
+            canvas_api_client.public_url("test_file_or_course_id")
+
+    @pytest.fixture
     def public_url_response(self, requests):
         """Configure requests to send back public URL responses."""
         public_url_response = {
@@ -384,9 +391,37 @@ class TestCanvasAPIClient:
         return public_url_response
 
     @pytest.fixture
-    def before(self):
-        """A time before the test method was called."""
-        return datetime.datetime.utcnow()
+    def public_url_request(self, canvas_api_helper):
+        return canvas_api_helper.public_url_request.return_value
+
+
+@pytest.fixture(autouse=True)
+def application_instance(db_session, pyramid_request):
+    """The ApplicationInstance that the test OAuth2Token's belong to."""
+    application_instance = ApplicationInstance(
+        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+        shared_secret="test_shared_secret",
+        lms_url="test_lms_url",
+        requesters_email="test_requesters_email",
+    )
+    db_session.add(application_instance)
+    return application_instance
+
+
+@pytest.fixture
+def access_token(db_session, pyramid_request):
+    access_token = OAuth2Token(
+        user_id=pyramid_request.lti_user.user_id,
+        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+        access_token="test_access_token",
+    )
+    db_session.add(access_token)
+    return access_token
+
+
+@pytest.fixture
+def canvas_api_client(pyramid_config, pyramid_request):
+    return CanvasAPIClient(mock.sentinel.context, pyramid_request)
 
 
 @pytest.fixture(autouse=True)
@@ -397,21 +432,6 @@ def CanvasAPIHelper(patch):
 @pytest.fixture
 def canvas_api_helper(CanvasAPIHelper):
     return CanvasAPIHelper.return_value
-
-
-@pytest.fixture
-def access_token_request(canvas_api_helper):
-    return canvas_api_helper.access_token_request.return_value
-
-
-@pytest.fixture
-def list_files_request(canvas_api_helper):
-    return canvas_api_helper.list_files_request.return_value
-
-
-@pytest.fixture
-def public_url_request(canvas_api_helper):
-    return canvas_api_helper.public_url_request.return_value
 
 
 @pytest.fixture(autouse=True)
