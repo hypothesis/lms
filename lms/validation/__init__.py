@@ -39,7 +39,6 @@ from lms.validation._oauth import CanvasOAuthCallbackSchema
 from lms.validation._launch_params import LaunchParamsSchema
 from lms.validation._bearer_token import BearerTokenSchema
 from lms.validation._module_item_configuration import ConfigureModuleItemSchema
-from lms.validation._helpers import instantiate_schema
 
 
 __all__ = (
@@ -91,7 +90,7 @@ def _validated_view(view, info):
             # and make the validated and parsed request params available as
             # request.parsed_params.
             request.parsed_params = parser.parse(
-                instantiate_schema(info.options["schema"], request), request
+                info.options["schema"](request), request
             )
 
             # Call the view normally.
