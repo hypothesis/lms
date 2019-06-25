@@ -61,6 +61,10 @@ class CanvasAPIAuthorizeViews:
     @exception_view_config(
         renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2"
     )
+    @exception_view_config(
+        renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+        route_name="canvas_api.authorize",
+    )
     def oauth2_redirect_error(self):
         self.request.response.status_code = 500
 
