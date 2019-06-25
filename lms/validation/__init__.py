@@ -1,19 +1,22 @@
 """
-Schemas for parsing and validating requests.
+Schemas for parsing and validating things.
 
-This package contains schemas that views can use to validate and parse
-requests. The idea is that the request is validated before the view is called.
-If validation fails an error response is sent back and the view is never
-called. If validation succeeds the parsed and validated parameters are made
-available to the view as ``request.parsed_params``. The view's own code can
-assume that all the parsed params are valid and that all required params are
-present.
+This package contains schemas for parsing and validating things like Pyramid
+requests, or :mod:`requests`-library responses.
 
-Usage::
+Validating Pyramid Requests
+---------------------------
 
-    from lms.validation import FOO_SCHEMA
+When validating Pyramid requests the idea is that the request is validated
+before the view is called.  If validation fails an error response is sent back
+and the view is never called. If validation succeeds the parsed and validated
+parameters are made available to the view as ``request.parsed_params``. The
+view's own code can assume that all the parsed params are valid and that all
+required params are present. Example::
 
-    @view_config(..., schema=FOO_SCHEMA)
+    from lms.validation import FooSchema
+
+    @view_config(..., schema=FooSchema)
     def foo_view(request):
         validated_arg_1 = request.parsed_params["validated_arg_1"]
         validated_arg_2 = request.parsed_params["validated_arg_2"]
@@ -23,6 +26,22 @@ Note that we're using our own view deriver (the ``schema`` argument to
 ``view_config``) to integrate our schemas and views, rather than using webargs's
 ``@use_args()`` / ``@use_kwargs()`` decorators. For the reasons for this see
 commit message f61a5ff3cae6b983e24db809d8e4b4933aca1e92.
+
+Validating requests-Library Responses
+-------------------------------------
+
+To validate a :mod:`requests`-library response you pass the response object to a
+suitable validation schema's ``__init__()`` method and then call the schema's
+``parse()`` method::
+
+    import requests
+
+    response = requests.get(...)
+
+    try:
+        parsed_params = BarSchema(response).parse()
+    except lms.validation.ValidationError as err:
+        ...
 """
 from lms.validation._exceptions import (
     ValidationError,
