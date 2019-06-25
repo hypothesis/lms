@@ -22,6 +22,23 @@ class _BaseSchema(marshmallow.Schema):
 class PyramidRequestSchema(_BaseSchema):
     """Base class for schemas that validate Pyramid requests."""
 
+    locations = None
+    """
+    The locations where webargs should look for the parameters.
+
+    If this is ``None`` then webargs's default locations will be used.
+
+    Subclasses can override this to control where parameters are searched for::
+
+        class MySchema(PyramidRequestSchema):
+            locations = ["form"]
+
+            ...
+
+    For the list of available locations see:
+    https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations
+    """
+
     _parser = pyramidparser.PyramidParser()
 
     def __init__(self, request):
@@ -38,6 +55,7 @@ class PyramidRequestSchema(_BaseSchema):
 
         :raise lms.validation.ValidationError: if the request isn't valid
         """
+        kwargs.setdefault("locations", self.locations)
         return self._parser.parse(self, self.context["request"], *args, **kwargs)
 
     @staticmethod
