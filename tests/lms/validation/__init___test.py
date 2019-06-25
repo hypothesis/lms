@@ -5,37 +5,10 @@ import pytest
 import webargs
 from pyramid.interfaces import IViewDerivers
 
-from lms.validation import _handle_error
+from lms.validation._helpers import PyramidRequestSchema
 from lms.validation import _validated_view
 from lms.validation import includeme
 from lms.validation import ValidationError
-
-
-class TestHandleError:
-    def test(self):
-        webargs_exception = webargs.ValidationError(
-            message={
-                "field_name_1": ["Error message 1", "Error message 2"],
-                "field_name_2": ["Error message 3"],
-            }
-        )
-
-        # It wraps the webargs ValidationError in a custom ValidationError.
-        with pytest.raises(ValidationError) as exc_info:
-            _handle_error(
-                webargs_exception,
-                mock.sentinel.req,
-                mock.sentinel.schema,
-                mock.sentinel.status_code,
-                mock.sentinel.headers,
-            )
-
-        # It exposes the webargs exception's messages as .messages.
-        assert exc_info.value.messages == webargs_exception.messages
-
-        # It raises the new exception from the original exception, so that the
-        # original exception isn't lost.
-        assert exc_info.value.__cause__ == webargs_exception
 
 
 class TestValidatedView:
@@ -57,13 +30,14 @@ class TestValidatedView:
         Schema.assert_called_once_with(pyramid_request)
 
     def test_it_validates_the_request(
-        self, context, info, parser, pyramid_request, view, Schema
+        self, context, info, pyramid_request, view, Schema
     ):
         # Derive and call the wrapper view.
         _validated_view(view, info)(context, pyramid_request)
 
         # It uses the schema dict to parse the request.
-        parser.parse.assert_called_once_with(Schema.return_value, pyramid_request)
+        Schema.assert_called_once_with(pyramid_request)
+        Schema.return_value.parse.assert_called_once_with()
 
     def test_it_adds_the_parsed_params_to_the_request(
         self, context, info, pyramid_request, view, parsed_params
@@ -80,9 +54,9 @@ class TestValidatedView:
         assert returned == view.return_value
 
     def test_it_errors_if_validation_fails(
-        self, context, info, parser, pyramid_request, view
+        self, context, info, Schema, pyramid_request, view
     ):
-        parser.parse.side_effect = ValidationError("error_messages")
+        Schema.return_value.parse.side_effect = ValidationError("error_messages")
         wrapper_view = _validated_view(view, info)
 
         with pytest.raises(ValidationError):
@@ -104,23 +78,14 @@ class TestValidatedView:
         return mock.MagicMock(options={"schema": Schema})
 
     @pytest.fixture()
-    def parsed_params(self, parser):
-        """Return the parsed params as returned by the webargs parser."""
-        return parser.parse.return_value
-
-    @pytest.fixture(autouse=True)
-    def parser(self, patch):
-        """Return the webargs parser object."""
-        return patch("lms.validation.parser")
+    def parsed_params(self, Schema):
+        """Return the parsed params as returned by the schema."""
+        return Schema.return_value.parse.return_value
 
     @pytest.fixture
     def Schema(self):
         """Return the view's configured schema object."""
-
-        class TestSchema(marshmallow.Schema):
-            pass
-
-        return mock.create_autospec(TestSchema, spec_set=True)
+        return mock.create_autospec(PyramidRequestSchema, spec_set=True)
 
     @pytest.fixture
     def view(self):

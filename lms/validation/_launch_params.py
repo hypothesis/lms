@@ -1,17 +1,15 @@
 """Schema for validating LTI launch params."""
 import marshmallow
-from webargs.pyramidparser import parser
-from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.services import LTILaunchVerificationError
-from lms.validation._exceptions import ValidationError
+from lms.validation._helpers import PyramidRequestSchema
 from lms.values import LTIUser
 
 
 __all__ = ("LaunchParamsSchema",)
 
 
-class LaunchParamsSchema(marshmallow.Schema):
+class LaunchParamsSchema(PyramidRequestSchema):
     """
     Schema for LTI launch params.
 
@@ -40,16 +38,8 @@ class LaunchParamsSchema(marshmallow.Schema):
     oauth_timestamp = marshmallow.fields.Str(required=True)
     oauth_version = marshmallow.fields.Str(required=True)
 
-    class Meta:
-        """Marshmallow options for this schema."""
-
-        # Silence a strict=False deprecation warning from marshmallow.
-        # TODO: Remove this once we've upgraded to marshmallow 3.
-        strict = True
-
     def __init__(self, request):
-        super().__init__()
-        self._request = request
+        super().__init__(request)
         self._launch_verifier = request.find_service(name="launch_verifier")
 
     def lti_user(self):
@@ -60,10 +50,7 @@ class LaunchParamsSchema(marshmallow.Schema):
 
         :rtype: LTIUser
         """
-        try:
-            kwargs = parser.parse(self, self._request, locations=["form"])
-        except HTTPUnprocessableEntity as err:
-            raise ValidationError(err.json) from err
+        kwargs = self.parse(locations=["form"])
 
         return LTIUser(
             kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs.get("roles", "")

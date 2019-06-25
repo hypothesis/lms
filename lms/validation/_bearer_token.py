@@ -1,7 +1,5 @@
 """Schema for our bearer token-based LTI authentication."""
-from webargs.pyramidparser import parser
 import marshmallow
-from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.validation import _helpers
 from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
@@ -17,7 +15,7 @@ from lms.values import LTIUser
 __all__ = ("BearerTokenSchema",)
 
 
-class BearerTokenSchema(marshmallow.Schema):
+class BearerTokenSchema(_helpers.PyramidRequestSchema):
     """
     Schema for our bearer token-based LTI authentication.
 
@@ -62,19 +60,9 @@ class BearerTokenSchema(marshmallow.Schema):
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     roles = marshmallow.fields.Str(required=True)
 
-    class Meta:
-        """Marshmallow options for this schema."""
-
-        # Silence a strict=False deprecation warning from marshmallow.
-        # TODO: Remove this once we've upgraded to marshmallow 3.
-        strict = True
-
     def __init__(self, request):
-        super().__init__()
-        self._request = request
-        # Storing context needed for serialization or deserialization in
-        # self.context is a marshmallow convention.
-        self.context = {"secret": request.registry.settings["jwt_secret"]}
+        super().__init__(request)
+        self.context["secret"] = request.registry.settings["jwt_secret"]
 
     def authorization_param(self, lti_user):
         """
@@ -119,12 +107,10 @@ class BearerTokenSchema(marshmallow.Schema):
         :rtype: LTIUser
         """
         try:
-            return parser.parse(
-                self, self._request, locations=["headers", "querystring", "form"]
-            )
-        except HTTPUnprocessableEntity as error:
+            return self.parse(locations=["headers", "querystring", "form"])
+        except ValidationError as error:
             try:
-                authorization_error_message = error.json["authorization"][0]
+                authorization_error_message = error.messages["authorization"][0]
             except KeyError:
                 exc_class = ValidationError
             else:
@@ -134,7 +120,7 @@ class BearerTokenSchema(marshmallow.Schema):
                     exc_class = MissingSessionTokenError
                 else:
                     exc_class = InvalidSessionTokenError
-            raise exc_class(messages=error.json) from error
+            raise exc_class(messages=error.messages) from error
 
     @marshmallow.post_dump
     def _encode_jwt(self, data):
