@@ -14,12 +14,10 @@ class CanvasAPIAuthorizeViews:
     def __init__(self, request):
         self.request = request
         self.ai_getter = request.find_service(name="ai_getter")
-        self.canvas_api_client = request.find_service(name="canvas_api_client")
 
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
         consumer_key = self.request.lti_user.oauth_consumer_key
-
         authorize_url = urlunparse(
             (
                 "https",
@@ -47,20 +45,25 @@ class CanvasAPIAuthorizeViews:
     )
     def oauth2_redirect(self):
         authorization_code = self.request.parsed_params["code"]
+        canvas_api_client = self.request.find_service(name="canvas_api_client")
 
         try:
-            token = self.canvas_api_client.get_token(authorization_code)
+            token = canvas_api_client.get_token(authorization_code)
         except CanvasAPIServerError as err:
             raise HTTPInternalServerError(
                 "Authorizing with the Canvas API failed"
             ) from err
 
-        self.canvas_api_client.save_token(*token)
+        canvas_api_client.save_token(*token)
 
         return {}
 
     @exception_view_config(
         renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2"
+    )
+    @exception_view_config(
+        renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+        route_name="canvas_api.authorize",
     )
     def oauth2_redirect_error(self):
         self.request.response.status_code = 500
