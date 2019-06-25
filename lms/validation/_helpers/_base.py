@@ -63,18 +63,19 @@ class RequestsResponseSchema(_BaseSchema):
 
         :raise lms.validation.ValidationError: if the response isn't valid
         """
-        response = self.context["response"]
-
         try:
-            response_params = response.json()
-        except ValueError as err:
-            raise ValidationError(
-                {"_schema": "response doesn't have a valid JSON body"}
-            ) from err
-
-        try:
-            result = self.load(response_params, *args, **kwargs)
+            result = self.load(self.context["response"], *args, **kwargs)
         except marshmallow.ValidationError as err:
             raise ValidationError(messages=err.messages) from err
 
         return result.data
+
+    @staticmethod
+    @marshmallow.pre_load
+    def _pre_load(response):
+        try:
+            return response.json()
+        except ValueError as err:
+            raise marshmallow.ValidationError(
+                "response doesn't have a valid JSON body"
+            ) from err
