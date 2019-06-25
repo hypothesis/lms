@@ -8,9 +8,6 @@ from lms.validation._exceptions import ValidationError
 __all__ = ["PyramidRequestSchema", "RequestsResponseSchema"]
 
 
-_PYRAMID_PARSER = pyramidparser.PyramidParser()
-
-
 class _BaseSchema(marshmallow.Schema):
     """Base class for all schemas."""
 
@@ -24,6 +21,8 @@ class _BaseSchema(marshmallow.Schema):
 
 class PyramidRequestSchema(_BaseSchema):
     """Base class for schemas that validate Pyramid requests."""
+
+    _parser = pyramidparser.PyramidParser()
 
     def __init__(self, request):
         super().__init__()
@@ -39,7 +38,12 @@ class PyramidRequestSchema(_BaseSchema):
 
         :raise lms.validation.ValidationError: if the request isn't valid
         """
-        return _PYRAMID_PARSER.parse(self, self.context["request"], *args, **kwargs)
+        return self._parser.parse(self, self.context["request"], *args, **kwargs)
+
+    @staticmethod
+    @_parser.error_handler
+    def _handle_error(error, _req, _schema, _status_code, _headers):
+        raise ValidationError(messages=error.messages) from error
 
 
 class RequestsResponseSchema(_BaseSchema):
@@ -74,8 +78,3 @@ class RequestsResponseSchema(_BaseSchema):
             raise ValidationError(messages=err.messages) from err
 
         return result.data
-
-
-@_PYRAMID_PARSER.error_handler
-def _handle_error(error, _req, _schema, _status_code, _headers):
-    raise ValidationError(messages=error.messages) from error
