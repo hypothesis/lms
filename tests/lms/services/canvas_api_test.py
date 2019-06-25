@@ -12,6 +12,7 @@ from requests import TooManyRedirects
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
+from lms.validation import ValidationError
 
 
 class TestGetToken:
@@ -45,11 +46,22 @@ class TestGetToken:
         requests.Session.assert_called_once_with()
         requests.Session.return_value.send.assert_called_once_with(access_token_request)
 
-    @pytest.mark.usefixtures("access_token_response")
     def test_it_returns_the_token_tuple(self, canvas_api_client):
         token = canvas_api_client.get_token("test_authorization_code")
 
         assert token == ("test_access_token", "test_refresh_token", 3600)
+
+    def test_when_the_response_from_Canvas_omits_optional_parameters(
+        self, canvas_api_client, canvas_access_token_response_schema
+    ):
+        # refresh_token and expires_in are optional in OAuth 2.0, so we should
+        # be able to handle them being missing from the Canvas API's response.
+        del canvas_access_token_response_schema.parse.return_value["refresh_token"]
+        del canvas_access_token_response_schema.parse.return_value["expires_in"]
+
+        token = canvas_api_client.get_token("test_authorization_code")
+
+        assert token == ("test_access_token", None, None)
 
     @pytest.mark.parametrize(
         "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
@@ -95,22 +107,52 @@ class TestGetToken:
             exc_info.value.response == response
         ), "It passes the Canvas API response to CanvasAPIError so that it gets logged"
 
-    @pytest.fixture
-    def access_token_response(self, requests):
-        """Configure requests to send back access token responses."""
-        access_token_response = {
-            "access_token": "test_access_token",
-            "refresh_token": "test_refresh_token",
-            "expires_in": 3600,
-        }
-        requests.Session.return_value.send.return_value.json.return_value = (
-            access_token_response
-        )
-        return access_token_response
+    def test_it_validates_the_response_from_Canvas(
+        self,
+        CanvasAccessTokenResponseSchema,
+        canvas_access_token_response_schema,
+        canvas_api_client,
+        requests,
+    ):
+        response = requests.Session.return_value.send.return_value
+
+        canvas_api_client.get_token("test_authorization_code")
+
+        CanvasAccessTokenResponseSchema.assert_called_once_with(response)
+        canvas_access_token_response_schema.parse.assert_called_once_with()
+
+    def test_it_raises_CanvasAPIServerError_if_the_response_from_Canvas_is_invalid(
+        self, canvas_access_token_response_schema, canvas_api_client
+    ):
+        validation_error = ValidationError("Invalid")
+        canvas_access_token_response_schema.parse.side_effect = validation_error
+
+        with pytest.raises(
+            CanvasAPIServerError, match="Unable to process the contained instructions"
+        ) as exc_info:
+            canvas_api_client.get_token("test_authorization_code")
+
+        assert exc_info.value.__cause__ == validation_error
 
     @pytest.fixture
     def access_token_request(self, canvas_api_helper):
         return canvas_api_helper.access_token_request.return_value
+
+    @pytest.fixture
+    def CanvasAccessTokenResponseSchema(self, patch):
+        return patch("lms.services.canvas_api.CanvasAccessTokenResponseSchema")
+
+    @pytest.fixture(autouse=True)
+    def canvas_access_token_response_schema(self, CanvasAccessTokenResponseSchema):
+        canvas_access_token_response_schema = (
+            CanvasAccessTokenResponseSchema.return_value
+        )
+        canvas_access_token_response_schema.parse.return_value = {
+            "access_token": "test_access_token",
+            "refresh_token": "test_refresh_token",
+            "expires_in": 3600,
+        }
+        return canvas_access_token_response_schema
 
 
 class TestSaveToken:

@@ -45,6 +45,7 @@ class ExternalRequestError(ServiceError):
         # application's logs. It's helpful for debugging to know how the
         # external service responded.
         parts = [
+            self.explanation + ":",
             str(self.response.status_code or ""),
             self.response.reason,
             self.response.text,

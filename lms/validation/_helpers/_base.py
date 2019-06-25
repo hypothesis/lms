@@ -70,9 +70,8 @@ class RequestsResponseSchema(_BaseSchema):
 
         return result.data
 
-    @staticmethod
     @marshmallow.pre_load
-    def _pre_load(response):
+    def _pre_load(self, response):  # pylint: disable=no-self-use
         try:
             return response.json()
         except ValueError as err:
