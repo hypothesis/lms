@@ -6,9 +6,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIError
-from lms.services.exceptions import CanvasAPIServerError
 from lms.services._helpers import CanvasAPIHelper
-from lms.validation import CanvasAccessTokenResponseSchema, ValidationError
+from lms.validation import CanvasAccessTokenResponseSchema
 
 
 __all__ = ["CanvasAPIClient"]
@@ -37,31 +36,16 @@ class CanvasAPIClient:
         :raise lms.services.CanvasAPIServerError: if the Canvas API request
             fails for any reason
         """
-        access_token_request = self._helper.access_token_request(authorization_code)
+        response = self._helper.validated_response(
+            self._helper.access_token_request(authorization_code),
+            CanvasAccessTokenResponseSchema,
+        )
 
-        try:
-            access_token_response = requests.Session().send(access_token_request)
-            access_token_response.raise_for_status()
-        except RequestException as err:
-            raise CanvasAPIServerError(
-                explanation="Authorizing with Canvas failed",
-                response=getattr(err, "response", None),
-            ) from err
-
-        try:
-            parsed_params = CanvasAccessTokenResponseSchema(
-                access_token_response
-            ).parse()
-        except ValidationError as err:
-            raise CanvasAPIServerError(
-                explanation=str(err), response=access_token_response
-            ) from err
-
-        access_token = parsed_params["access_token"]
-        refresh_token = parsed_params.get("refresh_token")
-        expires_in = parsed_params.get("expires_in")
-
-        return (access_token, refresh_token, expires_in)
+        return (
+            response.parsed_params["access_token"],
+            response.parsed_params.get("refresh_token"),
+            response.parsed_params.get("expires_in"),
+        )
 
     def save_token(self, access_token, refresh_token=None, expires_in=None):
         # Find the existing token in the DB.
