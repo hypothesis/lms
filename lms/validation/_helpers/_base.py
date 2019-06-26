@@ -11,6 +11,33 @@ __all__ = ["PyramidRequestSchema", "RequestsResponseSchema"]
 class _BaseSchema(marshmallow.Schema):
     """Base class for all schemas."""
 
+    many = None
+    """
+    Whether or not this schema validates collections of objects by default.
+
+    If this is ``None`` then marshmallow's default behavior will be used -- the
+    schema will expect to validate a single object rather than a collection of
+    similar objects.
+
+    To validate a collection of objects where each object is expected to have
+    the same fields, create a schema whose fields are the fields that each
+    object is expected to have and set ``many = True``:
+
+        class MySchema(_BaseSchema):
+            many = True
+
+            field_1 = fields.Str(...)
+            field_2 = fields.Integer(...)
+            field_3 = fields.String(...)
+
+    For more documentation on validating lists of objects see:
+
+        https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#handling-collections-of-objects
+    """
+
+    def __init__(self):
+        super().__init__(many=self.many)
+
     class Meta:
         """Marshmallow options for all schemas."""
 
@@ -88,8 +115,8 @@ class RequestsResponseSchema(_BaseSchema):
 
         return result.data
 
-    @marshmallow.pre_load
-    def _pre_load(self, response):  # pylint: disable=no-self-use
+    @marshmallow.pre_load(pass_many=True)
+    def _pre_load(self, response, _many):  # pylint: disable=no-self-use
         try:
             return response.json()
         except ValueError as err:
