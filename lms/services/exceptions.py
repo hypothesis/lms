@@ -75,6 +75,19 @@ class CanvasAPIError(ExternalRequestError):
     """
 
 
+class CanvasAPIAccessTokenError(CanvasAPIError):
+    """
+    A problem with a Canvas API access token.
+
+    Raised when a Canvas API request fails because we don't have an access
+    token for the user, or our access token is expired and can't be refreshed,
+    or our access token is otherwise not working.
+
+    If we can put the user through the OAuth grant flow to get a new access
+    token and then re-try the request, it might succeed.
+    """
+
+
 class CanvasAPIServerError(CanvasAPIError):
     """
     A server error during a Canvas API request.
