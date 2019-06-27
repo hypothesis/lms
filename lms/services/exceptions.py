@@ -32,10 +32,11 @@ class ExternalRequestError(ServiceError):
     :type response: requests.Response
     """
 
-    def __init__(self, explanation=None, response=None):
+    def __init__(self, explanation=None, response=None, details=None):
         super().__init__()
         self.explanation = explanation
         self.response = response
+        self.details = details
 
     def __str__(self):
         if self.response is None:
@@ -73,6 +74,61 @@ class CanvasAPIError(ExternalRequestError):
     Raised whenever a Canvas API request times out or when an unsuccessful,
     invalid or unexpected response is received from the Canvas API.
     """
+
+    @staticmethod
+    def raise_from(cause):
+        """
+        Raise a :exc:`lms.services.CanvasAPIError` from the given ``cause``.
+
+        ``cause`` can be any kind of exception, for example any
+        :exc:`requests.RequestException` subclass, or a
+        :exc:`lms.validation.ValidationError` (used when a 2xx response was
+        received from Canvas, but the response body was invalid).
+
+        If ``cause`` is a :mod:`requests` exception corresponding to a 401
+        Unauthorized response from the Canvas API (indicating that the access token
+        we used was expired or has been deleted) then
+        :exc:`lms.services.CanvasAPIAccessTokenError` will be raised.
+
+        If ``cause`` indicates any other kind of unsuccessful or invalid response
+        from Canvas, or a network error etc, then
+        :exc:`lms.services.CanvasAPIServerError` will be raised.
+
+        The given ``cause`` will be set as the raised exception's ``__cause__``
+        attribute (standard Python exception chaining).
+
+        If ``cause`` has a ``response`` attribute then it will be set as the
+        ``response`` attribute of the raised exception. Otherwise
+        ``<raised_exception>.response`` will be ``None``.
+        """
+        response = getattr(cause, "response", None)
+        status_code = getattr(response, "status_code", None)
+
+        if status_code == 401:
+            exception_class = CanvasAPIAccessTokenError
+        else:
+            exception_class = CanvasAPIServerError
+
+        details = {
+            "exception": str(cause) or repr(cause),
+            "validation_errors": getattr(cause, "messages", None),
+        }
+
+        if response is None:
+            details["response"] = None
+        else:
+            details["response"] = {
+                "status": f"{response.status_code} {response.reason}"
+            }
+            details["response"]["body"] = response.text[:150]
+            if len(response.text) > 150:
+                details["response"]["body"] += "..."
+
+        raise exception_class(
+            explanation="Calling the Canvas API failed",
+            response=response,
+            details=details,
+        ) from cause
 
 
 class CanvasAPIAccessTokenError(CanvasAPIError):
