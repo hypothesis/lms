@@ -29,11 +29,9 @@ proxy API caller::
                       |Real Canvas API|
                       +---------------+
 """
-from pyramid.httpexceptions import HTTPInternalServerError
 from pyramid.view import view_config, view_defaults
 
 from lms import util
-from lms.services import CanvasAPIError
 
 
 @view_defaults(permission="canvas_api", renderer="json")
@@ -44,23 +42,24 @@ class FilesAPIViews:
 
     @view_config(request_method="GET", route_name="canvas_api.courses.files.list")
     def list_files(self):
-        """Return the list of files in the given course."""
-        try:
-            return self.canvas_api_client.list_files(
-                self.request.matchdict["course_id"]
-            )
-        except CanvasAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
+        """
+        Return the list of files in the given course.
+
+        :raise lms.services.CanvasAPIError: if the Canvas API request fails.
+            This exception is caught and handled by an exception view.
+        """
+        return self.canvas_api_client.list_files(self.request.matchdict["course_id"])
 
     @view_config(request_method="GET", route_name="canvas_api.files.via_url")
     def via_url(self):
-        """Return the Via URL for annotating the given Canvas file."""
-        try:
-            public_url = self.canvas_api_client.public_url(
-                self.request.matchdict["file_id"]
-            )
-        except CanvasAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
+        """
+        Return the Via URL for annotating the given Canvas file.
 
+        :raise lms.services.CanvasAPIError: if the Canvas API request fails.
+            This exception is caught and handled by an exception view.
+        """
+        public_url = self.canvas_api_client.public_url(
+            self.request.matchdict["file_id"]
+        )
         via_url = util.via_url(self.request, public_url)
         return {"via_url": via_url}
