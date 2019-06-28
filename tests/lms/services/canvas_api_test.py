@@ -168,9 +168,7 @@ class TestListFiles:
 
         # It uses the helper to send the PreparedRequest.
         canvas_api_helper.validated_response.assert_called_once_with(
-            prepared_request,
-            CanvasListFilesResponseSchema,
-            explanation="Getting the list of files from Canvas failed",
+            prepared_request, CanvasListFilesResponseSchema
         )
 
     @pytest.mark.usefixtures("access_token")
@@ -233,9 +231,7 @@ class TestPublicURL:
 
         # It uses the helper to send the PreparedRequest.
         canvas_api_helper.validated_response.assert_called_once_with(
-            prepared_request,
-            CanvasPublicURLResponseSchema,
-            explanation="Getting the file URL from Canvas failed",
+            prepared_request, CanvasPublicURLResponseSchema
         )
 
     @pytest.mark.usefixtures("access_token")
