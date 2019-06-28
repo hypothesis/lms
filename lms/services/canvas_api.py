@@ -9,7 +9,6 @@ from lms.validation import (
     CanvasAccessTokenResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
-    ValidationError
 )
 
 
