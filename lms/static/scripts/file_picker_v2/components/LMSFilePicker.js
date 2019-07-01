@@ -82,6 +82,7 @@ export default function LMSFilePicker({
       }
     } finally {
       authWindow.current.close();
+      // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
   }, [fetchFiles, authToken, authUrl, lmsName, onAuthorized]);
