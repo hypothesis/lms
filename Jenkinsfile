@@ -27,26 +27,12 @@ node {
 
     // Run each of the stages in parallel.
     parallel failFast: true,
-    "Formatting": {
-        stage("Formatting") {
-            testApp(image: img, runArgs: runArgs) {
-                installDeps()
-                run("make checkformatting")
-            }
-        }
-    },
-    "Docstrings": {
-        stage("Docstrings") {
-            testApp(image: img, runArgs: runArgs) {
-                installDeps()
-                run("make checkdocstrings")
-            }
-        }
-    },
     "Backend lint": {
         stage("Backend lint") {
             testApp(image: img, runArgs: runArgs) {
                 installDeps()
+                run("make checkformatting")
+                run("make checkdocstrings")
                 run("make backend-lint")
             }
         }
@@ -66,21 +52,13 @@ node {
             }
         }
     },
-    "Frontend lint": {
-        stage("Frontend lint") {
-            testApp(image: img, runArgs: runArgs) {
-                installDeps()
-                sh "apk add yarn"
-                run("make frontend-lint")
-            }
-        }
-    },
-    "Frontend tests": {
-        stage("Frontend tests") {
+    "Frontend lint + tests": {
+        stage("Frontend lint + tests") {
             workspace = pwd()
             // The frontend tests use a node Docker image because they're
             // incompatible with the hypothesis/lms image.
             docker.image("node:10-stretch").inside("${runArgs} -e HOME=${workspace}") {
+                sh "make frontend-lint"
                 sh "make frontend-tests"
             }
         }
