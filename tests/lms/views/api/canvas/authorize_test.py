@@ -73,15 +73,6 @@ class TestOAuth2Redirect:
 
         canvas_api_client.get_token.assert_called_once_with("test_authorization_code")
 
-    def test_it_saves_the_access_token_to_the_db(
-        self, canvas_api_client, pyramid_request
-    ):
-        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect()
-
-        canvas_api_client.save_token.assert_called_once_with(
-            *canvas_api_client.get_token.return_value
-        )
-
     def test_it_500s_if_get_token_raises(self, canvas_api_client, pyramid_request):
         canvas_api_client.get_token.side_effect = CanvasAPIServerError()
 
