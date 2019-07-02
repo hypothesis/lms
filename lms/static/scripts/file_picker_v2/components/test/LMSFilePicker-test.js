@@ -2,8 +2,10 @@ import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 
-import { AuthorizationError } from '../../utils/api';
+import { ApiError } from '../../utils/api';
+
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
+import ErrorDisplay from '../ErrorDisplay';
 
 describe('LMSFilePicker', () => {
   const FakeButton = () => null;
@@ -94,8 +96,8 @@ describe('LMSFilePicker', () => {
     assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the authorization prompt if fetching files fails with an AuthorizationError', async () => {
-    fakeListFiles.rejects(new AuthorizationError('Not authorized'));
+  it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
+    fakeListFiles.rejects(new ApiError('Not authorized', {}));
 
     const wrapper = renderFilePicker({ isAuthorized: true });
     assert.called(fakeListFiles);
@@ -108,6 +110,60 @@ describe('LMSFilePicker', () => {
 
     wrapper.update();
     assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
+  });
+
+  [
+    {
+      description: 'a server error with details',
+      error: new ApiError('Not authorized', {
+        error_message: 'Some error detail',
+      }),
+    },
+    {
+      description: 'a network or other error',
+      error: new Error('Failed to fetch'),
+    },
+  ].forEach(({ description, error }) => {
+    it(`shows error details and "Try again" button if fetching files fails with ${description}`, async () => {
+      fakeListFiles.rejects(error);
+
+      // When the dialog is initially displayed, it should try to fetch files.
+      const wrapper = renderFilePicker({ isAuthorized: true });
+      assert.called(fakeListFiles);
+
+      try {
+        await fakeListFiles.returnValues[0];
+      } catch (err) {
+        /* unused */
+      }
+      wrapper.update();
+
+      // The details of the error should be displayed, along with a "Try again"
+      // button.
+      const tryAgainButton = wrapper.find('FakeButton[label="Try again"]');
+      assert.isTrue(tryAgainButton.exists());
+
+      const errorDetails = wrapper.find(ErrorDisplay);
+      assert.include(errorDetails.props(), {
+        message: 'There was a problem fetching files',
+        error,
+      });
+
+      // Clicking the "Try again" button should re-try authorization.
+      fakeListFiles.reset();
+      fakeListFiles.resolves([]);
+      tryAgainButton.prop('onClick')();
+      assert.called(FakeAuthWindow);
+
+      // After authorization completes, files should be fetched and then the
+      // file list should be displayed.
+      await fakeListFiles.returnValues[0];
+      wrapper.update();
+      assert.isTrue(
+        wrapper.exists('FakeFileList'),
+        'File list was not displayed'
+      );
+    });
   });
 
   it('closes the authorization window when canceling the dialog', () => {
