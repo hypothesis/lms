@@ -2,6 +2,10 @@
 from urllib.parse import urlencode, urlparse, urlunparse
 
 import requests
+from requests import RequestException
+
+from lms.services.exceptions import CanvasAPIError
+from lms.validation import ValidationError
 
 
 __all__ = ["CanvasAPIHelper"]
@@ -124,6 +128,49 @@ class CanvasAPIHelper:
             self._public_url(file_id),
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
+
+    @staticmethod
+    def validated_response(request, schema=None):
+        """
+        Send a Canvas API request and validate and return the response.
+
+        If a validation schema is given then the parsed and validated response
+        params will be available on the returned response object as
+        ``response.parsed_params`` (a dict).
+
+        :arg request: a prepared request to some Canvas API endoint
+        :type request: requests.PreparedRequest
+
+        :arg schema: The schema class to validate the contents of the response
+          with. If this is ``None`` then the response contents won't be
+          validated and there'll be no ``response.parsed_params``, but it will
+          still test that a response was received (no network error or timeout)
+          and the response had a 2xx HTTP status.
+        :type schema: a subclass of :cls:`lms.validation._helpers.RequestsResponseSchema`
+
+        :raise lms.services.CanvasAPIAccessTokenError: if the request fails
+            because our Canvas API access token for the user is missing,
+            expired, or has been deleted
+
+        :raise lms.services.CanvasAPIServerError: if the request fails for any
+            other reason (network error or timeout, non-2xx response received,
+            2xx but invalid response received, etc)
+
+        :rtype: requests.Response
+        """
+        try:
+            response = requests.Session().send(request)
+            response.raise_for_status()
+        except RequestException as err:
+            CanvasAPIError.raise_from(err)
+
+        if schema:
+            try:
+                response.parsed_params = schema(response).parse()
+            except ValidationError as err:
+                CanvasAPIError.raise_from(err)
+
+        return response
 
     @property
     def _token_url(self):
