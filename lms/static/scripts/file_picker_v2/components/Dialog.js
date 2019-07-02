@@ -88,9 +88,11 @@ export default function Dialog({
           <h1 className="Dialog__title" id="Dialog__title">
             {title}
             <span className="u-stretch" />
-            <button className="Dialog__cancel-btn" onClick={onCancel}>
-              ✕
-            </button>
+            {onCancel && (
+              <button className="Dialog__cancel-btn" onClick={onCancel}>
+                ✕
+              </button>
+            )}
           </h1>
           {children}
           <div className="u-stretch" />
