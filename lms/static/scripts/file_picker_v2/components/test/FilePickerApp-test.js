@@ -41,6 +41,7 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
+      enableLmsFilePicker: true,
       formAction: 'https://www.shinylms.com/',
       formFields: { hidden_field: 'hidden_value' },
       lmsName: 'Shiny LMS',
@@ -81,6 +82,23 @@ describe('FilePickerApp', () => {
       assert.equal(field.length, 1);
       assert.equal(field.prop('value'), fakeConfig.formFields[fieldName]);
     });
+  });
+
+  it('renders buttons to choose assignment source', () => {
+    const wrapper = renderFilePicker();
+    assert.equal(wrapper.find(Button).length, 2);
+  });
+
+  it('renders LMS file picker button if `enableLmsFilePicker` is true', () => {
+    fakeConfig.enableLmsFilePicker = true;
+    const wrapper = renderFilePicker();
+    assert.isTrue(wrapper.exists('Button[label="Select PDF from Shiny LMS"]'));
+  });
+
+  it('does not render LMS file picker button if `enableLmsFilePicker` is false', () => {
+    fakeConfig.enableLmsFilePicker = false;
+    const wrapper = renderFilePicker();
+    assert.isFalse(wrapper.exists('Button[label="Select PDF from Shiny LMS"]'));
   });
 
   it('renders initial form with no dialog visible', () => {

@@ -47,24 +47,11 @@
 
 {% block scripts %}
 {% if request.feature("new_oauth") %}
+{{ super() }}
+
 {% for url in asset_urls("file_picker_v2_js") %}
 <script async defer src="{{ url }}"></script>
 {% endfor %}
-
-<script class="js-config" type="text/json">
-{
-  "authToken": "{{ context.js_config.authToken }}",
-  "authUrl": "{{ request.route_url('canvas_api.authorize') }}",
-  "courseId": "{{ course_id }}",
-  "formAction": "{{ content_item_return_url }}",
-  "formFields": {{ form_fields | tojson }},
-  "googleClientId": "{{ google_client_id }}",
-  "googleDeveloperKey": "{{ google_developer_key }}",
-  "lmsName" : "Canvas",
-  "lmsUrl": "{{ lms_url }}",
-  "ltiLaunchUrl": "{{ lti_launch_url }}"
-}
-</script>
 
 {% else %}
 <script type="text/javascript">

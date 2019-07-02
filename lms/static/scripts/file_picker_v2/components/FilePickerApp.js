@@ -32,6 +32,7 @@ export default function FilePickerApp({
     authToken,
     authUrl,
     courseId,
+    enableLmsFilePicker = false,
     formAction,
     formFields,
     googleClientId,
@@ -181,11 +182,13 @@ export default function FilePickerApp({
           label="Enter URL of web page or PDF"
           onClick={() => setActiveDialog('url')}
         />
-        <Button
-          className="FilePickerApp__source-button"
-          label={`Select PDF from ${lmsName}`}
-          onClick={() => setActiveDialog('lms')}
-        />
+        {enableLmsFilePicker && (
+          <Button
+            className="FilePickerApp__source-button"
+            label={`Select PDF from ${lmsName}`}
+            onClick={() => setActiveDialog('lms')}
+          />
+        )}
         {googlePicker && (
           <Button
             className="FilePickerApp__source-button"
