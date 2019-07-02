@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
 from lms.validation import (
     CanvasAccessTokenResponseSchema,
@@ -84,9 +84,9 @@ class CanvasAPIClient:
         :arg course_id: the Canvas course_id of the course to look in
         :type course_id: str
 
-        :raise lms.services.CanvasAPIError: if we can't get the list of files
-            because we don't have a working Canvas API access token for the
-            user
+        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
+            of files because we don't have a working Canvas API access token
+            for the user
         :raise lms.services.CanvasAPIServerError: if we do have an access token
             but the Canvas API request fails for any other reason
 
@@ -107,9 +107,9 @@ class CanvasAPIClient:
         :arg file_id: the ID of the Canvas file
         :type file_id: str
 
-        :raise lms.services.CanvasAPIError: if we can't get the public URL
-            because we don't have a working Canvas API access token for the
-            user
+        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the
+            public URL because we don't have a working Canvas API access token
+            for the user
         :raise lms.services.CanvasAPIServerError: if we do have an access token
             but the Canvas API request fails for any other reason
 
@@ -125,7 +125,7 @@ class CanvasAPIClient:
         """
         Return the user's saved access token from the DB.
 
-        :raise lms.services.CanvasAPIError: if we don't have an access token
+        :raise lms.services.CanvasAPIAccessTokenError: if we don't have an access token
             for the user
         """
         try:
@@ -139,7 +139,7 @@ class CanvasAPIClient:
                 .access_token
             )
         except NoResultFound as err:
-            raise CanvasAPIError(
+            raise CanvasAPIAccessTokenError(
                 explanation="We don't have a Canvas API access token for this user",
                 response=None,
             ) from err

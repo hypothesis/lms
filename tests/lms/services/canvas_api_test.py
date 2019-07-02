@@ -9,7 +9,7 @@ from requests import Response
 from requests import TooManyRedirects
 
 from lms.models import ApplicationInstance, OAuth2Token
-from lms.services import CanvasAPIError, CanvasAPIServerError
+from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
 from lms.validation import ValidationError
 
@@ -179,11 +179,11 @@ class TestListFiles:
 
         assert files == validated_response.parsed_params
 
-    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
+    def test_it_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token(
         self, canvas_api_client
     ):
         with pytest.raises(
-            CanvasAPIError,
+            CanvasAPIAccessTokenError,
             match="We don't have a Canvas API access token for this user",
         ):
             canvas_api_client.list_files("test_course_id")
@@ -244,11 +244,11 @@ class TestPublicURL:
 
         assert url == "test_public_url"
 
-    def test_it_raises_CanvasAPIError_if_we_dont_have_an_access_token(
+    def test_it_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token(
         self, canvas_api_client
     ):
         with pytest.raises(
-            CanvasAPIError,
+            CanvasAPIAccessTokenError,
             match="We don't have a Canvas API access token for this user",
         ):
             canvas_api_client.public_url("test_file_id")
