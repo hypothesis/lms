@@ -40,40 +40,17 @@ class TestCanvasListFilesResponseSchema:
 
         assert parsed_params == []
 
-    def test_it_raises_ValidationError_if_a_file_is_missing_its_display_name(
-        self, list_files_response
+    @pytest.mark.parametrize("field_name", ["display_name", "id", "updated_at"])
+    def test_it_raises_ValidationError_if_a_file_is_missing_a_required_field(
+        self, field_name, list_files_response
     ):
-        del list_files_response.json.return_value[1]["display_name"]
+        del list_files_response.json.return_value[1][field_name]
 
         with pytest.raises(ValidationError) as exc_info:
             CanvasListFilesResponseSchema(list_files_response).parse()
 
         assert exc_info.value.messages == {
-            1: {"display_name": ["Missing data for required field."]}
-        }
-
-    def test_it_raises_ValidationError_if_a_file_is_missing_its_id(
-        self, list_files_response
-    ):
-        del list_files_response.json.return_value[1]["id"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
-
-        assert exc_info.value.messages == {
-            1: {"id": ["Missing data for required field."]}
-        }
-
-    def test_it_raises_ValidationError_if_a_file_is_missing_its_updated_at(
-        self, list_files_response
-    ):
-        del list_files_response.json.return_value[1]["updated_at"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
-
-        assert exc_info.value.messages == {
-            1: {"updated_at": ["Missing data for required field."]}
+            1: {field_name: ["Missing data for required field."]}
         }
 
     def test_it_raises_ValidationError_if_the_response_json_has_the_wrong_format(
