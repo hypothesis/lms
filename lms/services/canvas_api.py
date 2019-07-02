@@ -1,13 +1,15 @@
 import datetime
 
-import requests
-from requests import RequestException
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIError
 from lms.services._helpers import CanvasAPIHelper
-from lms.validation import CanvasAccessTokenResponseSchema
+from lms.validation import (
+    CanvasAccessTokenResponseSchema,
+    CanvasListFilesResponseSchema,
+    CanvasPublicURLResponseSchema,
+)
 
 
 __all__ = ["CanvasAPIClient"]
@@ -82,26 +84,18 @@ class CanvasAPIClient:
         :arg course_id: the Canvas course_id of the course to look in
         :type course_id: str
 
+        :raise lms.services.CanvasAPIError: if we can't get the list of files
+            because we don't have a working Canvas API access token for the
+            user
+        :raise lms.services.CanvasAPIServerError: if we do have an access token
+            but the Canvas API request fails for any other reason
+
         :rtype: list(dict)
         """
-        list_files_request = self._helper.list_files_request(
-            self._access_token, course_id
-        )
-        list_files_response = requests.Session().send(list_files_request)
-
-        # TODO: Validate list_files_response
-        # TODO: Handle Canvas list files API error responses (for example an
-        #       authorization error might require us to refresh the access
-        #       token and try again)
-
-        def present_file(file_dict):
-            return {
-                "id": file_dict["id"],
-                "display_name": file_dict["display_name"],
-                "updated_at": file_dict["updated_at"],
-            }
-
-        return [present_file(file_dict) for file_dict in list_files_response.json()]
+        return self._helper.validated_response(
+            self._helper.list_files_request(self._access_token, course_id),
+            CanvasListFilesResponseSchema,
+        ).parsed_params
 
     def public_url(self, file_id):
         """
@@ -113,30 +107,27 @@ class CanvasAPIClient:
         :arg file_id: the ID of the Canvas file
         :type file_id: str
 
+        :raise lms.services.CanvasAPIError: if we can't get the public URL
+            because we don't have a working Canvas API access token for the
+            user
+        :raise lms.services.CanvasAPIServerError: if we do have an access token
+            but the Canvas API request fails for any other reason
+
         :rtype: str
         """
-        public_url_request = self._helper.public_url_request(
-            self._access_token, file_id
-        )
-
-        try:
-            public_url_response = requests.Session().send(public_url_request)
-            public_url_response.raise_for_status()
-        except RequestException as err:
-            # TODO: Try refreshing the access token and re-trying the response.
-            response = getattr(err, "response", None)
-
-            raise CanvasAPIError(
-                explanation="Connecting to the Canvas API failed", response=response
-            ) from err
-
-        # TODO: Validate public_url_response
-
-        return public_url_response.json()["public_url"]
+        return self._helper.validated_response(
+            self._helper.public_url_request(self._access_token, file_id),
+            CanvasPublicURLResponseSchema,
+        ).parsed_params["public_url"]
 
     @property
     def _access_token(self):
-        """Return the user's saved access token from the DB."""
+        """
+        Return the user's saved access token from the DB.
+
+        :raise lms.services.CanvasAPIError: if we don't have an access token
+            for the user
+        """
         try:
             return (
                 self._db.query(OAuth2Token)
