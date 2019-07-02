@@ -28,8 +28,14 @@ class ExternalRequestError(ServiceError):
     """
     A problem with a network request to an external service.
 
-    :param response: The response from the HTTP request to the h API
-    :type response: requests.Response
+    :arg explanation: A short error message for displaying to the user
+    :type explanation: str
+
+    :arg response: The external service's response to our HTTP request, if any
+    :type response: requests.Response or ``None``
+
+    :arg details: Additional details about what went wrong, for debugging
+    :type details: JSON-serializable dict or ``None``
     """
 
     def __init__(self, explanation=None, response=None, details=None):
