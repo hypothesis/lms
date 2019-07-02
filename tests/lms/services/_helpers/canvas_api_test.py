@@ -158,7 +158,7 @@ def raise_from(request):
 
     request.addfinalizer(finalizer)
 
-    # Replace CanvasAPIError.raise_from() with a mocl.
+    # Replace CanvasAPIError.raise_from() with a mock.
     # This is done manually because using the normal mock.patch() or even
     # mock.patch.object() to patch this static method didn't seem to work.
     CanvasAPIError.raise_from = mock.create_autospec(CanvasAPIError.raise_from)
