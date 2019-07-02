@@ -11,9 +11,37 @@ from lms.validation import (
 )
 
 
-class TestCanvasListFilesResponseSchema:
-    def test_it_returns_the_list_of_files(self, list_files_response):
-        parsed_params = CanvasListFilesResponseSchema(list_files_response).parse()
+class CommonResponseSchemaTests:
+    def test_it_raises_ValidationError_if_the_response_json_has_the_wrong_format(
+        self, response, schema
+    ):
+        # The decoded JSON value is a string rather than a list or object.
+        response.json.return_value = "wrong_format"
+        schema.context["response"] = response
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.messages == {"_schema": ["Invalid input type."]}
+
+    def test_it_raises_ValidationError_if_the_response_body_isnt_valid_json(
+        self, response, schema
+    ):
+        # Calling response.json() will raise JSONDecodeError.
+        response.json.side_effect = lambda: json.loads("invalid")
+        schema.context["response"] = response
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.messages == {
+            "_schema": ["response doesn't have a valid JSON body"]
+        }
+
+
+class TestCanvasListFilesResponseSchema(CommonResponseSchemaTests):
+    def test_it_returns_the_list_of_files(self, schema, list_files_response):
+        parsed_params = schema.parse()
 
         assert parsed_params == [
             {
@@ -33,38 +61,30 @@ class TestCanvasListFilesResponseSchema:
             },
         ]
 
-    def test_it_returns_an_empty_list_if_there_are_no_files(self, list_files_response):
+    def test_it_returns_an_empty_list_if_there_are_no_files(
+        self, schema, list_files_response
+    ):
         list_files_response.json.return_value = []
 
-        parsed_params = CanvasListFilesResponseSchema(list_files_response).parse()
+        parsed_params = schema.parse()
 
         assert parsed_params == []
 
     @pytest.mark.parametrize("field_name", ["display_name", "id", "updated_at"])
     def test_it_raises_ValidationError_if_a_file_is_missing_a_required_field(
-        self, field_name, list_files_response
+        self, field_name, schema, list_files_response
     ):
         del list_files_response.json.return_value[1][field_name]
 
         with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
+            schema.parse()
 
         assert exc_info.value.messages == {
             1: {field_name: ["Missing data for required field."]}
         }
 
-    def test_it_raises_ValidationError_if_the_response_json_has_the_wrong_format(
-        self, list_files_response
-    ):
-        list_files_response.json.return_value = {"foo": "bar"}
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
-
-        assert exc_info.value.messages == {"_schema": ["Invalid input type."]}
-
     def test_it_raises_ValidationError_if_one_of_the_objects_in_the_response_json_has_the_wrong_format(
-        self, list_files_response
+        self, schema, list_files_response
     ):
         # One item in the list is not an object.
         list_files_response.json.return_value = (
@@ -84,31 +104,21 @@ class TestCanvasListFilesResponseSchema:
         )
 
         with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
+            schema.parse()
 
         assert exc_info.value.messages == {0: {}, "_schema": ["Invalid input type."]}
 
-    def test_it_raises_ValidationError_if_the_response_body_isnt_valid_json(
-        self, list_files_response
-    ):
-        # Calling list_files_response.json() will raise JSONDecodeError.
-        list_files_response.json.side_effect = lambda: json.loads("invalid")
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasListFilesResponseSchema(list_files_response).parse()
-
-        assert exc_info.value.messages == {
-            "_schema": ["response doesn't have a valid JSON body"]
-        }
+    @pytest.fixture
+    def schema(self, list_files_response):
+        return CanvasListFilesResponseSchema(list_files_response)
 
     @pytest.fixture
-    def list_files_response(self):
+    def list_files_response(self, response):
         """
         Return a Canvas list files API response.
 
         Same fields and format as real Canvas list files API responses.
         """
-        response = mock.create_autospec(requests.Response, instance=True, spec_set=True)
         response.json.return_value = [
             {
                 "content-type": "application/pdf",
@@ -186,21 +196,21 @@ class TestCanvasListFilesResponseSchema:
         return response
 
 
-class TestCanvasPublicURLResponseSchema:
-    def test_it_returns_the_public_url(self, public_url_response):
-        parsed_params = CanvasPublicURLResponseSchema(public_url_response).parse()
+class TestCanvasPublicURLResponseSchema(CommonResponseSchemaTests):
+    def test_it_returns_the_public_url(self, schema, public_url_response):
+        parsed_params = schema.parse()
 
         assert parsed_params == {
             "public_url": "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
         }
 
     def test_it_raises_ValidationError_if_the_public_url_is_missing(
-        self, public_url_response
+        self, schema, public_url_response
     ):
         del public_url_response.json.return_value["public_url"]
 
         with pytest.raises(ValidationError) as exc_info:
-            CanvasPublicURLResponseSchema(public_url_response).parse()
+            schema.parse()
 
         assert exc_info.value.messages == {
             "public_url": ["Missing data for required field."]
@@ -208,42 +218,28 @@ class TestCanvasPublicURLResponseSchema:
 
     @pytest.mark.parametrize("invalid_url", [23, True, ["a", "b", "c"], {}])
     def test_it_raises_ValidationError_if_the_public_url_has_the_wrong_type(
-        self, public_url_response, invalid_url
+        self, schema, public_url_response, invalid_url
     ):
         public_url_response.json.return_value["public_url"] = invalid_url
 
         with pytest.raises(ValidationError) as exc_info:
-            CanvasPublicURLResponseSchema(public_url_response).parse()
+            schema.parse()
 
         assert exc_info.value.messages == {"public_url": ["Not a valid string."]}
 
-    def test_it_raises_ValidationError_if_the_response_has_the_wrong_format(
-        self, public_url_response
-    ):
-        public_url_response.json.return_value = ["foo", "bar"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasPublicURLResponseSchema(public_url_response).parse()
-
-        assert exc_info.value.messages == {"_schema": ["Invalid input type."]}
-
-    def test_it_raises_ValidationError_if_the_response_body_isnt_valid_json(
-        self, public_url_response
-    ):
-        # Calling public_url_response.json() will raise JSONDecodeError.
-        public_url_response.json.side_effect = lambda: json.loads("invalid")
-
-        with pytest.raises(ValidationError) as exc_info:
-            CanvasPublicURLResponseSchema(public_url_response).parse()
-
-        assert exc_info.value.messages == {
-            "_schema": ["response doesn't have a valid JSON body"]
-        }
+    @pytest.fixture
+    def schema(self, public_url_response):
+        return CanvasPublicURLResponseSchema(public_url_response)
 
     @pytest.fixture
-    def public_url_response(self):
-        response = mock.create_autospec(requests.Response, instance=True, spec_set=True)
+    def public_url_response(self, response):
         response.json.return_value = {
             "public_url": "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"
         }
         return response
+
+
+@pytest.fixture
+def response():
+    """Return a ``requests`` HTTP response object."""
+    return mock.create_autospec(requests.Response, instance=True, spec_set=True)
