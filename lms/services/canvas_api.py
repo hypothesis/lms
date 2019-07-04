@@ -44,33 +44,11 @@ class CanvasAPIClient:
             CanvasAccessTokenResponseSchema,
         )
 
-        return (
+        self._save(
             response.parsed_params["access_token"],
             response.parsed_params.get("refresh_token"),
             response.parsed_params.get("expires_in"),
         )
-
-    def save_token(self, access_token, refresh_token=None, expires_in=None):
-        # Find the existing token in the DB.
-        token = (
-            self._db.query(OAuth2Token)
-            .filter_by(consumer_key=self._consumer_key, user_id=self._user_id)
-            .one_or_none()
-        )
-
-        # If there's no existing token in the DB then create a new one.
-        if token is None:
-            token = OAuth2Token()
-            self._db.add(token)
-
-        # Either update the existing token, or set the attributes of the newly
-        # created one.
-        token.consumer_key = self._consumer_key
-        token.user_id = self._user_id
-        token.access_token = access_token
-        token.refresh_token = refresh_token
-        token.expires_in = expires_in
-        token.received_at = datetime.datetime.utcnow()
 
     def list_files(self, course_id):
         """
@@ -117,6 +95,28 @@ class CanvasAPIClient:
             self._helper.public_url_request(self._oauth2_token.access_token, file_id),
             CanvasPublicURLResponseSchema,
         ).parsed_params["public_url"]
+
+    def _save(self, access_token, refresh_token, expires_in):
+        """
+        Save an access token and refresh token to the DB.
+
+        If there's already an :class:`lms.models.OAuth2Token` for
+        ``self._consumer_key`` and ``self._user_id`` then overwrite its values.
+        Otherwise create a new :class:`lms.models.OAuth2Token` and add it to
+        the DB.
+        """
+        try:
+            oauth2_token = self._oauth2_token
+        except CanvasAPIAccessTokenError:
+            oauth2_token = OAuth2Token(
+                consumer_key=self._consumer_key, user_id=self._user_id
+            )
+            self._db.add(oauth2_token)
+
+        oauth2_token.access_token = access_token
+        oauth2_token.refresh_token = refresh_token
+        oauth2_token.expires_in = expires_in
+        oauth2_token.received_at = datetime.datetime.utcnow()
 
     @property
     def _oauth2_token(self):

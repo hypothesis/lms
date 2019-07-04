@@ -46,22 +46,32 @@ class TestGetToken:
             access_token_request, CanvasAccessTokenResponseSchema
         )
 
-    def test_it_returns_the_token_tuple(self, canvas_api_client):
-        token = canvas_api_client.get_token("test_authorization_code")
+    def test_it_saves_the_access_token_to_the_db(self, canvas_api_client, db_session):
+        canvas_api_client.get_token("test_authorization_code")
 
-        assert token == ("test_access_token", "test_refresh_token", 3600)
+        oauth2_token = db_session.query(OAuth2Token).one()
+        assert oauth2_token.user_id == "TEST_USER_ID"
+        assert oauth2_token.consumer_key == "TEST_OAUTH_CONSUMER_KEY"
+        assert oauth2_token.access_token == "test_access_token"
+        assert oauth2_token.refresh_token == "test_refresh_token"
+        assert oauth2_token.expires_in == 3600
 
     def test_when_the_response_from_Canvas_omits_optional_parameters(
-        self, canvas_api_client, access_token_response
+        self, canvas_api_client, access_token_response, db_session
     ):
         # refresh_token and expires_in are optional in OAuth 2.0, so we should
         # be able to handle them being missing from the Canvas API's response.
         del access_token_response.parsed_params["refresh_token"]
         del access_token_response.parsed_params["expires_in"]
 
-        token = canvas_api_client.get_token("test_authorization_code")
+        canvas_api_client.get_token("test_authorization_code")
 
-        assert token == ("test_access_token", None, None)
+        oauth2_token = db_session.query(OAuth2Token).one()
+        assert oauth2_token.user_id == "TEST_USER_ID"
+        assert oauth2_token.consumer_key == "TEST_OAUTH_CONSUMER_KEY"
+        assert oauth2_token.access_token == "test_access_token"
+        assert oauth2_token.refresh_token is None
+        assert oauth2_token.expires_in is None
 
     def test_it_raises_CanvasAPIServerError_if_it_receives_an_error_response(
         self, canvas_api_client, canvas_api_helper
@@ -92,49 +102,6 @@ class TestGetToken:
     @pytest.fixture
     def CanvasAccessTokenResponseSchema(self, patch):
         return patch("lms.services.canvas_api.CanvasAccessTokenResponseSchema")
-
-
-class TestSaveToken:
-    """Unit tests for CanvasAPIClient.save_token()."""
-
-    def test_it_updates_an_existing_token_in_the_db(
-        self, before, canvas_api_client, db_session, pyramid_request
-    ):
-        existing_token = OAuth2Token(
-            user_id=pyramid_request.lti_user.user_id,
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            access_token="old_access_token",
-        )
-        db_session.add(existing_token)
-
-        canvas_api_client.save_token("new_access_token", "new_refresh_token", 3600)
-
-        assert (
-            existing_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        )
-        assert existing_token.user_id == pyramid_request.lti_user.user_id
-        assert existing_token.access_token == "new_access_token"
-        assert existing_token.refresh_token == "new_refresh_token"
-        assert existing_token.expires_in == 3600
-        assert existing_token.received_at >= before
-
-    def test_it_adds_a_new_token_to_the_db_if_none_exists(
-        self, before, canvas_api_client, db_session, pyramid_request
-    ):
-        canvas_api_client.save_token("new_access_token", "new_refresh_token", 3600)
-
-        token = db_session.query(OAuth2Token).one()
-        assert token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        assert token.user_id == pyramid_request.lti_user.user_id
-        assert token.access_token == "new_access_token"
-        assert token.refresh_token == "new_refresh_token"
-        assert token.expires_in == 3600
-        assert token.received_at >= before
-
-    @pytest.fixture
-    def before(self):
-        """A time before the test method was called."""
-        return datetime.datetime.utcnow()
 
 
 class TestListFiles:

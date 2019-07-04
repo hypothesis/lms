@@ -48,13 +48,11 @@ class CanvasAPIAuthorizeViews:
         canvas_api_client = self.request.find_service(name="canvas_api_client")
 
         try:
-            token = canvas_api_client.get_token(authorization_code)
+            canvas_api_client.get_token(authorization_code)
         except CanvasAPIServerError as err:
             raise HTTPInternalServerError(
                 "Authorizing with the Canvas API failed"
             ) from err
-
-        canvas_api_client.save_token(*token)
 
         return {}
 
