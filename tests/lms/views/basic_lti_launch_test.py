@@ -9,6 +9,15 @@ from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
 class TestCanvasFileBasicLTILaunch:
+    def test_it_configures_frontend(self, context, pyramid_request):
+        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
+
+        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+
+        assert context.js_config["mode"] == "basic-lti-launch"
+        assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
+        assert context.js_config["lmsName"] == "Canvas"
+
     def test_it_adds_the_via_url_to_the_javascript_config(
         self, context, pyramid_request
     ):
@@ -20,6 +29,10 @@ class TestCanvasFileBasicLTILaunch:
             context.js_config["urls"]["via_url"]
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
+
+    @pytest.fixture(autouse=True)
+    def routes(self, pyramid_config):
+        pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
 
 
 class TestDBConfiguredBasicLTILaunch:

@@ -36,7 +36,7 @@ ${details}
 
   return (
     // nb. Wrapper `<div>` here exists to apply block layout to contents.
-    <div>
+    <div className="ErrorDisplay">
       <p>
         {message}: <i>{error.message}</i>
       </p>
