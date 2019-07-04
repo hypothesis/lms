@@ -79,6 +79,18 @@ class CanvasAPIHelper:
             },
         ).prepare()
 
+    def refresh_token_request(self, refresh_token):
+        return requests.Request(
+            "POST",
+            self._token_url,
+            params={
+                "grant_type": "refresh_token",
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+                "refresh_token": refresh_token,
+            },
+        ).prepare()
+
     def list_files_request(self, access_token, course_id):
         """
         Return a prepared list files request.

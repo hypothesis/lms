@@ -34,6 +34,21 @@ class TestCanvasAPIHelper:
             "&code=test_authorization_code"
         )
 
+    def test_refresh_token_request(self, ai_getter, helper, route_url):
+        request = helper.refresh_token_request("test_refresh_token")
+
+        ai_getter.developer_key.assert_called_once_with("test_consumer_key")
+        ai_getter.developer_secret.assert_called_once_with("test_consumer_key")
+        ai_getter.lms_url.assert_called_once_with("test_consumer_key")
+        assert request.method == "POST"
+        assert request.url == (
+            "https://my-canvas-instance.com/login/oauth2/token"
+            "?grant_type=refresh_token"
+            "&client_id=test_developer_key"
+            "&client_secret=test_developer_secret"
+            "&refresh_token=test_refresh_token"
+        )
+
     def test_list_files_request(self, ai_getter, helper, route_url):
         request = helper.list_files_request("test_access_token", "test_course_id")
 
