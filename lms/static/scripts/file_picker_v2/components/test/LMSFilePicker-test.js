@@ -2,8 +2,10 @@ import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 
-import { AuthorizationError } from '../../utils/api';
+import { ApiError } from '../../utils/api';
+
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
+import ErrorDisplay from '../ErrorDisplay';
 
 describe('LMSFilePicker', () => {
   const FakeButton = () => null;
@@ -55,38 +57,8 @@ describe('LMSFilePicker', () => {
     $imports.$restore();
   });
 
-  it('shows an LMS authorization window when mounted if the user has not authorized', () => {
-    const authorized = new Promise(() => {});
-    FakeAuthWindow.returns({
-      authorize: sinon.stub().callsFake(() => authorized),
-      close: () => {},
-    });
-
+  it('fetches files when the dialog first appears', async () => {
     const wrapper = renderFilePicker();
-    assert.called(FakeAuthWindow);
-    assert.called(FakeAuthWindow.returnValues[0].authorize);
-
-    const authMessage = wrapper
-      .find('p')
-      .filterWhere(el => el.text().match(/you must authorize/));
-    assert.equal(authMessage.length, 1);
-
-    const authBtn = wrapper.find('FakeButton[label="Authorize"]');
-    assert.equal(authBtn.length, 1);
-  });
-
-  it('calls `onAuthorized` when authorization completes', done => {
-    const onAuthorized = sinon.stub();
-    renderFilePicker({ isAuthorized: false, onAuthorized });
-    setTimeout(() => {
-      assert.called(onAuthorized);
-      done();
-    }, 0);
-  });
-
-  it('fetches files once authorization completes', async () => {
-    const wrapper = renderFilePicker();
-    await FakeAuthWindow.returnValues[0].authorize.returnValues[0];
     assert.called(fakeListFiles);
     const expectedFiles = await fakeListFiles.returnValues[0];
     wrapper.update();
@@ -94,10 +66,10 @@ describe('LMSFilePicker', () => {
     assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the authorization prompt if fetching files fails with an AuthorizationError', async () => {
-    fakeListFiles.rejects(new AuthorizationError('Not authorized'));
+  it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
+    fakeListFiles.rejects(new ApiError('Not authorized', {}));
 
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     assert.called(fakeListFiles);
 
     try {
@@ -110,14 +82,81 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
   });
 
-  it('closes the authorization window when canceling the dialog', () => {
+  [
+    {
+      description: 'a server error with details',
+      error: new ApiError('Not authorized', {
+        error_message: 'Some error detail',
+      }),
+    },
+    {
+      description: 'a network or other error',
+      error: new Error('Failed to fetch'),
+    },
+  ].forEach(({ description, error }) => {
+    it(`shows error details and "Try again" button if fetching files fails with ${description}`, async () => {
+      fakeListFiles.rejects(error);
+
+      // When the dialog is initially displayed, it should try to fetch files.
+      const wrapper = renderFilePicker();
+      assert.called(fakeListFiles);
+
+      try {
+        await fakeListFiles.returnValues[0];
+      } catch (err) {
+        /* unused */
+      }
+      wrapper.update();
+
+      // The details of the error should be displayed, along with a "Try again"
+      // button.
+      const tryAgainButton = wrapper.find('FakeButton[label="Try again"]');
+      assert.isTrue(tryAgainButton.exists());
+
+      const errorDetails = wrapper.find(ErrorDisplay);
+      assert.include(errorDetails.props(), {
+        message: 'There was a problem fetching files',
+        error,
+      });
+
+      // Clicking the "Try again" button should re-try authorization.
+      fakeListFiles.reset();
+      fakeListFiles.resolves([]);
+      tryAgainButton.prop('onClick')();
+      assert.called(FakeAuthWindow);
+
+      // After authorization completes, files should be fetched and then the
+      // file list should be displayed.
+      await fakeListFiles.returnValues[0];
+      wrapper.update();
+      assert.isTrue(
+        wrapper.exists('FakeFileList'),
+        'File list was not displayed'
+      );
+    });
+  });
+
+  it('closes the authorization window if open when canceling the dialog', async () => {
+    // Make the initial file list request fail, to trigger a prompt to authorize.
+    fakeListFiles.rejects(new ApiError('Not authorized', {}));
+
     const closePopup = sinon.stub();
     FakeAuthWindow.returns({
       authorize: sinon.stub().resolves(null),
       close: closePopup,
     });
 
+    // Click the "Authorize" button to show the authorization popup.
     const wrapper = renderFilePicker();
+    try {
+      await fakeListFiles.returnValues[0];
+    } catch (e) {
+      // Ignored
+    }
+    wrapper.update();
+    wrapper.find('FakeButton[label="Authorize"]').prop('onClick')();
+
+    // Dismiss the LMS file picker. This should close the auth popup.
     wrapper
       .find(FakeDialog)
       .props()
@@ -126,14 +165,14 @@ describe('LMSFilePicker', () => {
     assert.called(closePopup);
   });
 
-  it('does not show an authorization window when mounted if the user has authorized', () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+  it('does not show an authorization window when mounted', () => {
+    const wrapper = renderFilePicker();
     assert.notCalled(FakeAuthWindow);
-    assert.isFalse(wrapper.exists('Button[label="Authorize"]'));
+    assert.isFalse(wrapper.exists('FakeButton[label="Authorize"]'));
   });
 
   it('fetches and displays files from the LMS', async () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     assert.called(fakeListFiles);
 
     const expectedFiles = await fakeListFiles.returnValues[0];
@@ -144,7 +183,7 @@ describe('LMSFilePicker', () => {
   });
 
   it('shows a loading indicator while fetching files', async () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     assert.isTrue(wrapper.find(FakeFileList).prop('isLoading'));
 
     await fakeListFiles.returnValues[0];
@@ -154,7 +193,7 @@ describe('LMSFilePicker', () => {
   });
 
   it('maintains selected file state', () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     const file = { id: 123 };
 
     act(() => {
@@ -171,7 +210,7 @@ describe('LMSFilePicker', () => {
   it('invokes `onSelectFile` when user chooses a file', () => {
     const onSelectFile = sinon.stub();
     const file = { id: 123 };
-    const wrapper = renderFilePicker({ isAuthorized: true, onSelectFile });
+    const wrapper = renderFilePicker({ onSelectFile });
     wrapper
       .find(FakeFileList)
       .props()
@@ -180,7 +219,7 @@ describe('LMSFilePicker', () => {
   });
 
   it('shows disabled "Select" button when no file is selected', () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     assert.equal(
       wrapper.find('FakeButton[label="Select"]').prop('disabled'),
       true
@@ -188,7 +227,7 @@ describe('LMSFilePicker', () => {
   });
 
   it('shows enabled "Select" button when a file is selected', () => {
-    const wrapper = renderFilePicker({ isAuthorized: true });
+    const wrapper = renderFilePicker();
     act(() => {
       wrapper
         .find(FakeFileList)
@@ -205,7 +244,7 @@ describe('LMSFilePicker', () => {
   it('chooses selected file when uses clicks "Select" button', () => {
     const onSelectFile = sinon.stub();
     const file = { id: 123 };
-    const wrapper = renderFilePicker({ isAuthorized: true, onSelectFile });
+    const wrapper = renderFilePicker({ onSelectFile });
 
     act(() => {
       wrapper

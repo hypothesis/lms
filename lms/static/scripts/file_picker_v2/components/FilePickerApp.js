@@ -24,7 +24,6 @@ import URLPicker from './URLPicker';
  */
 export default function FilePickerApp({
   defaultActiveDialog = null,
-  isLmsFileAccessAuthorized: authorized,
   onSubmit,
 }) {
   const formEl = useRef();
@@ -45,7 +44,6 @@ export default function FilePickerApp({
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(null);
   const [lmsFile, setLmsFile] = useState(null);
-  const [lmsFilesAuthorized, setLmsFilesAuthorized] = useState(authorized);
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
@@ -77,8 +75,6 @@ export default function FilePickerApp({
     setLmsFile(file);
     submit(true);
   };
-
-  const lmsAuthorized = () => setLmsFilesAuthorized(true);
 
   const selectURL = url => {
     setActiveDialog(null);
@@ -133,9 +129,7 @@ export default function FilePickerApp({
           authToken={authToken}
           authUrl={authUrl}
           courseId={courseId}
-          isAuthorized={lmsFilesAuthorized}
           lmsName={lmsName}
-          onAuthorized={lmsAuthorized}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
         />
@@ -223,13 +217,4 @@ FilePickerApp.propTypes = {
 
   /** Callback invoked when the form is submitted. */
   onSubmit: propTypes.func,
-
-  /**
-   * A hint as to whether the user has authorized the Hypothesis LMS app to
-   * access their files in the LMS.
-   *
-   * If `false`, an authorization prompt will be shown in a popup window if
-   * the user clicks on the "Select file from {LMS name}" button.
-   */
-  isLmsFileAccessAuthorized: propTypes.bool,
 };
