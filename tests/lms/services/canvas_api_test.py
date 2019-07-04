@@ -99,10 +99,6 @@ class TestGetToken:
         }
         return access_token_response
 
-    @pytest.fixture
-    def CanvasAccessTokenResponseSchema(self, patch):
-        return patch("lms.services.canvas_api.CanvasAccessTokenResponseSchema")
-
 
 class TestListFiles:
     """Unit tests for CanvasAPIClient.list_files()."""
