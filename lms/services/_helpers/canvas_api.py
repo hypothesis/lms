@@ -130,7 +130,7 @@ class CanvasAPIHelper:
         ).prepare()
 
     @staticmethod
-    def validated_response(request, schema=None):
+    def validated_response(request, schema=None, access_token=None):
         """
         Send a Canvas API request and validate and return the response.
 
@@ -158,6 +158,9 @@ class CanvasAPIHelper:
 
         :rtype: requests.Response
         """
+        if access_token:
+            request.headers["Authorization"] = f"Bearer {access_token}"
+
         try:
             response = requests.Session().send(request)
             response.raise_for_status()

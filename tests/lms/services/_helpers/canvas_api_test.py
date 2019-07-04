@@ -4,6 +4,7 @@ import pytest
 from requests import ConnectionError
 from requests import HTTPError
 from requests import ReadTimeout
+from requests import Request
 from requests import TooManyRedirects
 
 from lms.services._helpers.canvas_api import CanvasAPIHelper
@@ -69,6 +70,23 @@ class TestValidatedResponse:
         requests.Session.assert_called_once_with()
         requests_session.send.assert_called_once_with(prepared_request)
 
+    def test_if_given_an_access_token_it_inserts_an_Authorization_header(
+        self, helper, prepared_request, requests_session
+    ):
+        helper.validated_response(prepared_request, access_token="TEST_ACCESS_TOKEN")
+
+        sent_request = requests_session.send.call_args[0][0]
+        assert sent_request.headers["Authorization"] == "Bearer TEST_ACCESS_TOKEN"
+
+    def test_if_given_an_access_token_it_replaces_an_existing_Authorization_header(
+        self, helper, prepared_request, requests_session
+    ):
+        prepared_request.headers["Authorization"] = "Bearer OLD_ACCESS_TOKEN"
+        helper.validated_response(prepared_request, access_token="NEW_ACCESS_TOKEN")
+
+        sent_request = requests_session.send.call_args[0][0]
+        assert sent_request.headers["Authorization"] == "Bearer NEW_ACCESS_TOKEN"
+
     @pytest.mark.parametrize(
         "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
     )
@@ -110,7 +128,7 @@ class TestValidatedResponse:
 
     @pytest.fixture
     def prepared_request(self):
-        return mock.sentinel.prepared_request
+        return Request("GET", "https://example.com").prepare()
 
     @pytest.fixture(autouse=True)
     def requests(self, patch):
