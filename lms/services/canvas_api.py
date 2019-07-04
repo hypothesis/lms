@@ -93,7 +93,7 @@ class CanvasAPIClient:
         :rtype: list(dict)
         """
         return self._helper.validated_response(
-            self._helper.list_files_request(self._access_token, course_id),
+            self._helper.list_files_request(self._oauth2_token.access_token, course_id),
             CanvasListFilesResponseSchema,
         ).parsed_params
 
@@ -116,14 +116,14 @@ class CanvasAPIClient:
         :rtype: str
         """
         return self._helper.validated_response(
-            self._helper.public_url_request(self._access_token, file_id),
+            self._helper.public_url_request(self._oauth2_token.access_token, file_id),
             CanvasPublicURLResponseSchema,
         ).parsed_params["public_url"]
 
     @property
-    def _access_token(self):
+    def _oauth2_token(self):
         """
-        Return the user's saved access token from the DB.
+        Return the user's saved access and refresh tokens from the DB.
 
         :raise lms.services.CanvasAPIAccessTokenError: if we don't have an access token
             for the user
@@ -136,7 +136,6 @@ class CanvasAPIClient:
                     user_id=self._lti_user.user_id,
                 )
                 .one()
-                .access_token
             )
         except NoResultFound as err:
             raise CanvasAPIAccessTokenError(
