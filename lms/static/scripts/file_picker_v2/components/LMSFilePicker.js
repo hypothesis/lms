@@ -21,9 +21,7 @@ export default function LMSFilePicker({
   authToken,
   authUrl,
   courseId,
-  isAuthorized,
   lmsName,
-  onAuthorized,
   onCancel,
   onSelectFile,
 }) {
@@ -31,7 +29,7 @@ export default function LMSFilePicker({
   const [{ state, files, error }, setState] = useState({
     // The current state of the dialog, one of:
     // "fetching", "fetched", "authorizing" or "error".
-    state: isAuthorized ? 'fetching' : 'authorizing',
+    state: 'fetching',
 
     // List of fetched files. Set when state is "fetched".
     files: null,
@@ -80,16 +78,12 @@ export default function LMSFilePicker({
     try {
       await authWindow.current.authorize();
       await fetchFiles();
-
-      if (onAuthorized) {
-        onAuthorized();
-      }
     } finally {
       authWindow.current.close();
       // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
-  }, [fetchFiles, authToken, authUrl, lmsName, onAuthorized]);
+  }, [fetchFiles, authToken, authUrl, lmsName]);
 
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
@@ -177,12 +171,6 @@ LMSFilePicker.propTypes = {
   courseId: propTypes.string.isRequired,
 
   /**
-   * A hint as to whether the backend believes the user has authorized our
-   * LMS app's access to the user's files in the LMS.
-   */
-  isAuthorized: propTypes.bool,
-
-  /**
    * The name of the LMS to display in API controls, eg. "Canvas".
    */
   lmsName: propTypes.string.isRequired,
@@ -195,11 +183,4 @@ LMSFilePicker.propTypes = {
    * a selection.
    */
   onSelectFile: propTypes.func.isRequired,
-
-  /**
-   * Callback invoked when authorization succeeds. The parent component can
-   * use this to update the `isAuthorized` hint if the dialog is closed and
-   * then later shown again.
-   */
-  onAuthorized: propTypes.func,
 };
