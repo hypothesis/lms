@@ -68,4 +68,4 @@ async function listFiles(authToken, courseId) {
 
 // Separate export from declaration to work around
 // https://github.com/robertknight/babel-plugin-mockable-imports/issues/9
-export { listFiles };
+export { apiCall, listFiles };

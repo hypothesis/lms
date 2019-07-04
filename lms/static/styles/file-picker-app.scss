@@ -8,6 +8,7 @@
 @import 'typography';
 
 // HTML components.
+@import 'components/heading';
 @import 'components/label';
 
 // Generic React components.
@@ -17,7 +18,8 @@
 @import 'components/Dialog';
 @import 'components/Table';
 
-// LMS file picker React components.
+// React components.
+@import 'components/BasicLtiLaunchApp';
 @import 'components/ErrorDisplay';
 @import 'components/FileList';
 @import 'components/FilePickerApp';

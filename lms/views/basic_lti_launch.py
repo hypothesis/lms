@@ -66,6 +66,18 @@ class BasicLTILaunchViews:
         """
         file_id = self.request.params["file_id"]
 
+        self.context.js_config.update(
+            {
+                # Configure the front-end mini-app to run.
+                "mode": "basic-lti-launch",
+                # The URL that the JavaScript code will open if it needs the user to
+                # authorize us to request a new access token.
+                "authUrl": self.request.route_url("canvas_api.authorize"),
+                # Set the LMS name to use in user-facing messages.
+                "lmsName": "Canvas",
+            }
+        )
+
         self.context.js_config["urls"].update(
             {
                 "via_url": self.request.route_url(
