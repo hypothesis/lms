@@ -25,8 +25,13 @@ export class ApiError extends Error {
     this.errorMessage = data.error_message || null;
 
     /**
+     * Server-provided details of the error.
      *
-     * @type {Object|undefined}
+     * If provided, this will contain technical information about what the
+     * problem was on the backend. This may be useful when handling eg.
+     * support requests.
+     *
+     * @type {any}
      */
     this.details = data.details;
   }
@@ -36,7 +41,7 @@ export class ApiError extends Error {
  * Make an API call to the LMS app backend.
  *
  * @param options
- * @param {string} options.path
+ * @param {string} options.path - The `/api/...` path of the endpoint to call
  * @param {string} options.authToken
  */
 async function apiCall({ path, authToken }) {
