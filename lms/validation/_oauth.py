@@ -10,7 +10,11 @@ from lms.validation import _exceptions
 from lms.values import LTIUser
 
 
-__all__ = ["CanvasOAuthCallbackSchema", "CanvasAccessTokenResponseSchema"]
+__all__ = [
+    "CanvasOAuthCallbackSchema",
+    "CanvasAccessTokenResponseSchema",
+    "CanvasRefreshTokenResponseSchema",
+]
 
 
 class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
@@ -141,3 +145,7 @@ class CanvasAccessTokenResponseSchema(_helpers.RequestsResponseSchema):
     def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
         if not expires_in > 0:
             raise marshmallow.ValidationError("expires_in must be greater than 0")
+
+
+class CanvasRefreshTokenResponseSchema(CanvasAccessTokenResponseSchema):
+    """Schema for validating OAuth 2 refresh token responses from Canvas."""

@@ -5,7 +5,11 @@ import pytest
 from pyramid import testing
 import requests
 
-from lms.validation import CanvasOAuthCallbackSchema, CanvasAccessTokenResponseSchema
+from lms.validation import (
+    CanvasOAuthCallbackSchema,
+    CanvasAccessTokenResponseSchema,
+    CanvasRefreshTokenResponseSchema,
+)
 from lms.validation import (
     ValidationError,
     MissingStateParamError,
@@ -235,6 +239,12 @@ class TestCanvasAccessTokenResponseSchema:
     @pytest.fixture
     def schema(self, response):
         return CanvasAccessTokenResponseSchema(response)
+
+
+class TestCanvasRefreshTokenResponseSchema(TestCanvasAccessTokenResponseSchema):
+    @pytest.fixture
+    def schema(self, response):
+        return CanvasRefreshTokenResponseSchema(response)
 
 
 @pytest.fixture(autouse=True)

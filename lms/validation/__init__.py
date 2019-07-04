@@ -55,6 +55,7 @@ from lms.validation._exceptions import (
 from lms.validation._oauth import (
     CanvasOAuthCallbackSchema,
     CanvasAccessTokenResponseSchema,
+    CanvasRefreshTokenResponseSchema,
 )
 from lms.validation._launch_params import LaunchParamsSchema
 from lms.validation._bearer_token import BearerTokenSchema
@@ -68,6 +69,7 @@ from lms.validation._canvas import (
 __all__ = (
     "CanvasOAuthCallbackSchema",
     "CanvasAccessTokenResponseSchema",
+    "CanvasRefreshTokenResponseSchema",
     "BearerTokenSchema",
     "LaunchParamsSchema",
     "ConfigureModuleItemSchema",
