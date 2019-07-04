@@ -7,6 +7,7 @@ from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
 from lms.validation import (
     CanvasAccessTokenResponseSchema,
+    CanvasRefreshTokenResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
 )
@@ -49,6 +50,22 @@ class CanvasAPIClient:
             response.parsed_params.get("refresh_token"),
             response.parsed_params.get("expires_in"),
         )
+
+    def get_refreshed_token(self, refresh_token):
+        response = self._helper.validated_response(
+            self._helper.refresh_token_request(refresh_token),
+            CanvasRefreshTokenResponseSchema,
+        )
+
+        new_access_token = response.parsed_params["access_token"]
+
+        self._save(
+            new_access_token,
+            response.parsed_params.get("refresh_token", refresh_token),
+            response.parsed_params.get("expires_in"),
+        )
+
+        return new_access_token
 
     def list_files(self, course_id):
         """
