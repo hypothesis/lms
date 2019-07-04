@@ -22,7 +22,8 @@ class CanvasAPIClient:
             request.find_service(name="ai_getter"),
             request.route_url,
         )
-        self._lti_user = request.lti_user
+        self._consumer_key = request.lti_user.oauth_consumer_key
+        self._user_id = request.lti_user.user_id
         self._db = request.db
 
     def get_token(self, authorization_code):
@@ -53,10 +54,7 @@ class CanvasAPIClient:
         # Find the existing token in the DB.
         token = (
             self._db.query(OAuth2Token)
-            .filter_by(
-                consumer_key=self._lti_user.oauth_consumer_key,
-                user_id=self._lti_user.user_id,
-            )
+            .filter_by(consumer_key=self._consumer_key, user_id=self._user_id)
             .one_or_none()
         )
 
@@ -67,8 +65,8 @@ class CanvasAPIClient:
 
         # Either update the existing token, or set the attributes of the newly
         # created one.
-        token.consumer_key = self._lti_user.oauth_consumer_key
-        token.user_id = self._lti_user.user_id
+        token.consumer_key = self._consumer_key
+        token.user_id = self._user_id
         token.access_token = access_token
         token.refresh_token = refresh_token
         token.expires_in = expires_in
@@ -131,10 +129,7 @@ class CanvasAPIClient:
         try:
             return (
                 self._db.query(OAuth2Token)
-                .filter_by(
-                    consumer_key=self._lti_user.oauth_consumer_key,
-                    user_id=self._lti_user.user_id,
-                )
+                .filter_by(consumer_key=self._consumer_key, user_id=self._user_id)
                 .one()
                 .access_token
             )
