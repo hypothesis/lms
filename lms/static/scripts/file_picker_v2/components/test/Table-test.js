@@ -77,15 +77,24 @@ describe('Table', () => {
       onSelectItem,
       onUseItem,
     });
+    const rows = wrapper.find('tbody > tr').map(n => n.getDOMNode());
+    rows.forEach(row => (row.focus = sinon.stub()));
+
+    const assertKeySelectsItem = (key, index) => {
+      rows[index].focus.reset();
+      onSelectItem.reset();
+
+      wrapper.find('table').simulate('keydown', { key });
+
+      assert.calledWith(onSelectItem, items[index]);
+      assert.called(rows[index].focus);
+    };
 
     // Down arrow should select item below selected item.
-    wrapper.find('table').simulate('keydown', { key: 'ArrowDown' });
-    assert.calledWith(onSelectItem, items[2]);
+    assertKeySelectsItem('ArrowDown', 2);
 
     // Up arrow should select item above selected item.
-    onSelectItem.reset();
-    wrapper.find('table').simulate('keydown', { key: 'ArrowUp' });
-    assert.calledWith(onSelectItem, items[0]);
+    assertKeySelectsItem('ArrowUp', 0);
 
     // Enter should use selected item.
     onSelectItem.reset();
@@ -94,15 +103,11 @@ describe('Table', () => {
 
     // Up arrow should not change selection if first item is selected.
     wrapper.setProps({ selectedItem: items[0] });
-    onSelectItem.reset();
-    wrapper.find('table').simulate('keydown', { key: 'ArrowUp' });
-    assert.calledWith(onSelectItem, items[0]);
+    assertKeySelectsItem('ArrowUp', 0);
 
     // Down arrow should not change selection if last item is selected.
     wrapper.setProps({ selectedItem: items[items.length - 1] });
-    onSelectItem.reset();
-    wrapper.find('table').simulate('keydown', { key: 'ArrowDown' });
-    assert.calledWith(onSelectItem, items[items.length - 1]);
+    assertKeySelectsItem('ArrowDown', items.length - 1);
 
     // Other keys should do nothing.
     onSelectItem.reset();
