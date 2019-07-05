@@ -63,7 +63,16 @@ class LaunchVerifier:
         try:
             valid = pylti.common.verify_request_common(
                 consumers,
-                self._request.url,
+                # We pass only the host + path of the URL (`request.path_url`)
+                # to `verify_request_common` in the `url` arg because:
+                #
+                # - Query params are also passed in `request.params` below
+                # - If query params are passed in both the URL and the `parameters`
+                #   dict, then the value from the URL is used
+                # - If values in the query param contain percent-encoded characters,
+                #   these are incorrectly _decoded_ in the result, whereas they
+                #   are handled correctly if passed in the `parameters` arg.
+                self._request.path_url,
                 self._request.method,
                 dict(self._request.headers),
                 dict(self._request.params),
