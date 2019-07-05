@@ -12,6 +12,8 @@ $table-icon-size: 24px;
 }
 
 .Table__table {
+  @include outline-on-keyboard-focus;
+
   border-collapse: collapse;
   width: 100%;
   font-size: $normal-font-size;
@@ -20,6 +22,10 @@ $table-icon-size: 24px;
 
 .Table__head {
   color: white;
+
+  &-cell {
+    border: none;
+  }
 }
 
 // Sticky header for the table. On browsers that do not support `position: sticky`,
@@ -47,8 +53,24 @@ $table-icon-size: 24px;
   padding-right: 10px;
 
   height: $table-item-height;
-}
 
-.Table__row.is-selected {
-  background-color: $grey-3;
+  &.is-selected {
+    // Add a border between the top item, when selected, and column headings to
+    // avoid them blending together.
+    &:first-child {
+      border-top: 1px solid white;
+    }
+
+    background-color: $grey-6;
+    color: white;
+  }
+
+  & > td {
+    border: none;
+    vertical-align: middle;
+  }
+
+  // Table rows provide their own selection indicator and rows are focused
+  // when selected.
+  outline: none;
 }

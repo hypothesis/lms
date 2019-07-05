@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import { Fragment, createElement } from 'preact';
 import propTypes from 'prop-types';
 
@@ -29,21 +30,23 @@ export default function FileList({
   return (
     <div className="FileList">
       <Table
+        accessibleLabel="File list"
         columns={columns}
         items={files}
         selectedItem={selectedFile}
         onSelectItem={onSelectFile}
         onUseItem={onUseFile}
-        renderItem={file => (
+        renderItem={(file, isSelected) => (
           <Fragment>
-            <td className="FileList__name-col">
+            <td aria-label={file.display_name} className="FileList__name-col">
               <img
-                className="FileList__icon"
+                className={classnames(
+                  'FileList__icon',
+                  isSelected && 'is-selected'
+                )}
                 src="/static/images/file-pdf.svg"
               />
-              <a href="#" className="FileList__name">
-                {file.display_name}
-              </a>
+              <span className="FileList__name">{file.display_name}</span>
             </td>
             <td className="FileList__date-col">
               {file.updated_at && formatDate(file.updated_at)}

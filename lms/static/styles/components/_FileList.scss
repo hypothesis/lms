@@ -27,6 +27,12 @@ $file-list-icon-size: 24px;
   width: $file-list-icon-size;
   height: $file-list-icon-size;
   vertical-align: middle;
+
+  &.is-selected {
+    // nb. Argument must be passed to `invert` even though "1" is the default
+    // to work around https://bugs.chromium.org/p/chromium/issues/detail?id=964696.
+    filter: #{"invert(1)"}; // Quoted to avoid conflict with SASS mixin.
+  }
 }
 
 .FileList__name-col {
@@ -38,7 +44,7 @@ $file-list-icon-size: 24px;
 .FileList__name {
   flex-grow: 1;
   text-decoration: none;
-  color: black;
+  color: inherit;
   vertical-align: middle;
 }
 

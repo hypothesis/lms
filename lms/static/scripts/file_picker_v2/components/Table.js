@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import { createElement } from 'preact';
+import { useRef } from 'preact/hooks';
 import propTypes from 'prop-types';
 
 /**
@@ -27,6 +28,7 @@ function nextItem(items, currentItem, step) {
  * An interactive table of items with a sticky header.
  */
 export default function Table({
+  accessibleLabel,
   columns,
   items,
   onSelectItem,
@@ -34,6 +36,17 @@ export default function Table({
   renderItem,
   selectedItem,
 }) {
+  const rowRefs = useRef([]);
+
+  const focusAndSelectItem = item => {
+    const itemIndex = items.indexOf(item);
+    const rowEl = rowRefs.current[itemIndex];
+    if (rowEl) {
+      rowEl.focus();
+    }
+    onSelectItem(item);
+  };
+
   const onKeyDown = event => {
     let handled = false;
     if (event.key === 'Enter') {
@@ -41,10 +54,10 @@ export default function Table({
       onUseItem(selectedItem);
     } else if (event.key === 'ArrowUp') {
       handled = true;
-      onSelectItem(nextItem(items, selectedItem, -1));
+      focusAndSelectItem(nextItem(items, selectedItem, -1));
     } else if (event.key === 'ArrowDown') {
       handled = true;
-      onSelectItem(nextItem(items, selectedItem, 1));
+      focusAndSelectItem(nextItem(items, selectedItem, 1));
     }
     if (handled) {
       event.preventDefault();
@@ -54,19 +67,30 @@ export default function Table({
 
   return (
     <div className="Table__wrapper">
-      <table className="Table__table" tabIndex="0" onKeyDown={onKeyDown}>
+      <table
+        aria-label={accessibleLabel}
+        className="Table__table"
+        tabIndex="0"
+        role="grid"
+        onKeyDown={onKeyDown}
+      >
         <thead className="Table__head">
           <tr>
             {columns.map(column => (
-              <th key={column.label} className={column.className} scope="col">
+              <th
+                key={column.label}
+                className={classnames('Table__head-cell', column.className)}
+                scope="col"
+              >
                 {column.label}
               </th>
             ))}
           </tr>
         </thead>
         <tbody className="Table__body">
-          {items.map(item => (
+          {items.map((item, index) => (
             <tr
+              aria-selected={selectedItem === item}
               key={item.name}
               className={classnames({
                 Table__row: true,
@@ -75,8 +99,10 @@ export default function Table({
               onMouseDown={() => onSelectItem(item)}
               onClick={() => onSelectItem(item)}
               onDblClick={() => onUseItem(item)}
+              ref={node => (rowRefs.current[index] = node)}
+              tabIndex="-1"
             >
-              {renderItem(item)}
+              {renderItem(item, selectedItem === item)}
             </tr>
           ))}
         </tbody>
@@ -86,6 +112,11 @@ export default function Table({
 }
 
 Table.propTypes = {
+  /**
+   * An accessible label for the table.
+   */
+  accessibleLabel: propTypes.string.isRequired,
+
   /**
    * The columns to display in this table.
    */
@@ -104,6 +135,9 @@ Table.propTypes = {
   /**
    * A function called to render each item. The result should be a list of
    * `<td>` elements (one per column) wrapped inside a Fragment.
+   *
+   * The function takes two arguments: The item to render and a boolean
+   * indicating whether the item is currently selected.
    */
   renderItem: propTypes.func.isRequired,
 

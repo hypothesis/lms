@@ -1,3 +1,7 @@
+// Polyfills.
+import 'focus-visible';
+
+// Setup app.
 import { createElement, render } from 'preact';
 
 import { Config } from './config';
