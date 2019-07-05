@@ -71,6 +71,7 @@ export default function Table({
         <tbody className="Table__body">
           {items.map(item => (
             <tr
+              aria-selected={selectedItem === item}
               key={item.name}
               className={classnames({
                 Table__row: true,
