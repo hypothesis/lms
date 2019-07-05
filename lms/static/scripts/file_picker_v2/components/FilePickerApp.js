@@ -59,7 +59,12 @@ export default function FilePickerApp({
     return new GooglePickerClient({
       developerKey: googleDeveloperKey,
       clientId: googleClientId,
-      origin: lmsUrl,
+
+      // If the form is being displayed inside an iframe, then the backend
+      // must provide the URL of the top-level frame to us so we can pass it
+      // to the Google Picker API. Otherwise we can use the URL of the current
+      // tab.
+      origin: window === window.top ? window.location.href : lmsUrl,
     });
   }, [googleDeveloperKey, googleClientId, lmsUrl]);
 
