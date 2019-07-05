@@ -85,10 +85,13 @@ class CanvasAPIClient:
 
         :rtype: list(dict)
         """
-        return self._helper.validated_response(
-            self._helper.list_files_request(self._oauth2_token.access_token, course_id),
+        oauth2_token = self._oauth2_token
+
+        return self.send_with_refresh_and_retry(
+            self._helper.list_files_request(oauth2_token.access_token, course_id),
             CanvasListFilesResponseSchema,
-        ).parsed_params
+            oauth2_token.refresh_token,
+        )
 
     def public_url(self, file_id):
         """
@@ -108,10 +111,25 @@ class CanvasAPIClient:
 
         :rtype: str
         """
-        return self._helper.validated_response(
-            self._helper.public_url_request(self._oauth2_token.access_token, file_id),
+        oauth2_token = self._oauth2_token
+
+        return self.send_with_refresh_and_retry(
+            self._helper.public_url_request(oauth2_token.access_token, file_id),
             CanvasPublicURLResponseSchema,
-        ).parsed_params["public_url"]
+            oauth2_token.refresh_token,
+        )["public_url"]
+
+    def send_with_refresh_and_retry(self, request, schema, refresh_token):
+        try:
+            return self._helper.validated_response(request, schema).parsed_params
+        except CanvasAPIAccessTokenError:
+            if not refresh_token:
+                raise
+
+            new_access_token = self.get_refreshed_token(refresh_token)
+            return self._helper.validated_response(
+                request, schema, new_access_token
+            ).parsed_params
 
     def _save(self, access_token, refresh_token, expires_in):
         """
