@@ -40,6 +40,7 @@ export default function FileList({
               <img
                 className="FileList__icon"
                 src="/static/images/file-pdf.svg"
+                alt="PDF icon"
               />
               <a href="#" className="FileList__name">
                 {file.display_name}

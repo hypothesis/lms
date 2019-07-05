@@ -89,7 +89,11 @@ export default function Dialog({
             {title}
             <span className="u-stretch" />
             {onCancel && (
-              <button className="Dialog__cancel-btn" onClick={onCancel}>
+              <button
+                aria-label="Close"
+                className="Dialog__cancel-btn"
+                onClick={onCancel}
+              >
                 ✕
               </button>
             )}
