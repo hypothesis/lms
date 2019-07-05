@@ -27,6 +27,10 @@ $file-list-icon-size: 24px;
   width: $file-list-icon-size;
   height: $file-list-icon-size;
   vertical-align: middle;
+
+  &.is-selected {
+    filter: #{"invert()"}; // Quoted to avoid conflict with SASS mixin.
+  }
 }
 
 .FileList__name-col {
@@ -38,7 +42,7 @@ $file-list-icon-size: 24px;
 .FileList__name {
   flex-grow: 1;
   text-decoration: none;
-  color: black;
+  color: inherit;
   vertical-align: middle;
 }
 

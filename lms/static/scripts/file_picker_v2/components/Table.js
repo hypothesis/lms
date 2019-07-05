@@ -58,7 +58,11 @@ export default function Table({
         <thead className="Table__head">
           <tr>
             {columns.map(column => (
-              <th key={column.label} className={column.className} scope="col">
+              <th
+                key={column.label}
+                className={classnames('Table__head-cell', column.className)}
+                scope="col"
+              >
                 {column.label}
               </th>
             ))}
@@ -76,7 +80,7 @@ export default function Table({
               onClick={() => onSelectItem(item)}
               onDblClick={() => onUseItem(item)}
             >
-              {renderItem(item)}
+              {renderItem(item, selectedItem === item)}
             </tr>
           ))}
         </tbody>
@@ -104,6 +108,9 @@ Table.propTypes = {
   /**
    * A function called to render each item. The result should be a list of
    * `<td>` elements (one per column) wrapped inside a Fragment.
+   *
+   * The function takes two arguments: The item to render and a boolean
+   * indicating whether the item is currently selected.
    */
   renderItem: propTypes.func.isRequired,
 

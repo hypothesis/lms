@@ -16,10 +16,16 @@ $table-icon-size: 24px;
   width: 100%;
   font-size: $normal-font-size;
   table-layout: fixed;
+
+  outline: none;
 }
 
 .Table__head {
   color: white;
+
+  &-cell {
+    border: none;
+  }
 }
 
 // Sticky header for the table. On browsers that do not support `position: sticky`,
@@ -47,8 +53,14 @@ $table-icon-size: 24px;
   padding-right: 10px;
 
   height: $table-item-height;
+
+  & > td {
+    border: none;
+    vertical-align: middle;
+  }
 }
 
 .Table__row.is-selected {
-  background-color: $grey-3;
+  background-color: $grey-6;
+  color: white;
 }
