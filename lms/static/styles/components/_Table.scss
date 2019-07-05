@@ -54,6 +54,17 @@ $table-icon-size: 24px;
 
   height: $table-item-height;
 
+  &.is-selected {
+    // Add a border between the top item, when selected, and column headings to
+    // avoid them blending together.
+    &:first-child {
+      border-top: 1px solid white;
+    }
+
+    background-color: $grey-6;
+    color: white;
+  }
+
   & > td {
     border: none;
     vertical-align: middle;
@@ -62,9 +73,4 @@ $table-icon-size: 24px;
   // Table rows provide their own selection indicator and rows are focused
   // when selected.
   outline: none;
-}
-
-.Table__row.is-selected {
-  background-color: $grey-6;
-  color: white;
 }
