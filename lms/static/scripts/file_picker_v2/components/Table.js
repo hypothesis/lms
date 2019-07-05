@@ -28,6 +28,7 @@ function nextItem(items, currentItem, step) {
  * An interactive table of items with a sticky header.
  */
 export default function Table({
+  accessibleLabel,
   columns,
   items,
   onSelectItem,
@@ -67,6 +68,7 @@ export default function Table({
   return (
     <div className="Table__wrapper">
       <table
+        aria-label={accessibleLabel}
         className="Table__table"
         tabIndex="0"
         role="grid"
@@ -110,6 +112,11 @@ export default function Table({
 }
 
 Table.propTypes = {
+  /**
+   * An accessible label for the table.
+   */
+  accessibleLabel: propTypes.string.isRequired,
+
   /**
    * The columns to display in this table.
    */

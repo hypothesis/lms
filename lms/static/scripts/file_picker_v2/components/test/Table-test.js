@@ -7,6 +7,7 @@ describe('Table', () => {
   const renderTable = (props = {}) =>
     mount(
       <Table
+        accessibleLabel="Test table"
         columns={[{ label: 'Item' }]}
         items={[]}
         renderItem={item => item}

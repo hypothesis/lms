@@ -30,6 +30,7 @@ export default function FileList({
   return (
     <div className="FileList">
       <Table
+        accessibleLabel="File list"
         columns={columns}
         items={files}
         selectedItem={selectedFile}
