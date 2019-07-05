@@ -29,7 +29,9 @@ $file-list-icon-size: 24px;
   vertical-align: middle;
 
   &.is-selected {
-    filter: #{"invert()"}; // Quoted to avoid conflict with SASS mixin.
+    // nb. Argument must be passed to `invert` even though "1" is the default
+    // to work around https://bugs.chromium.org/p/chromium/issues/detail?id=964696.
+    filter: #{"invert(1)"}; // Quoted to avoid conflict with SASS mixin.
   }
 }
 
