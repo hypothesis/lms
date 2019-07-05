@@ -37,18 +37,15 @@ export default function FileList({
         onUseItem={onUseFile}
         renderItem={(file, isSelected) => (
           <Fragment>
-            <td className="FileList__name-col">
+            <td aria-label={file.display_name} className="FileList__name-col">
               <img
                 className={classnames(
                   'FileList__icon',
                   isSelected && 'is-selected'
                 )}
                 src="/static/images/file-pdf.svg"
-                alt="PDF icon"
               />
-              <a href="#" className="FileList__name">
-                {file.display_name}
-              </a>
+              <span className="FileList__name">{file.display_name}</span>
             </td>
             <td className="FileList__date-col">
               {file.updated_at && formatDate(file.updated_at)}
