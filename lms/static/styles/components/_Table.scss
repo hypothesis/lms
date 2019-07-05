@@ -12,12 +12,12 @@ $table-icon-size: 24px;
 }
 
 .Table__table {
+  @include outline-on-keyboard-focus;
+
   border-collapse: collapse;
   width: 100%;
   font-size: $normal-font-size;
   table-layout: fixed;
-
-  outline: none;
 }
 
 .Table__head {
@@ -58,6 +58,10 @@ $table-icon-size: 24px;
     border: none;
     vertical-align: middle;
   }
+
+  // Table rows provide their own selection indicator and rows are focused
+  // when selected.
+  outline: none;
 }
 
 .Table__row.is-selected {

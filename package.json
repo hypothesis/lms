@@ -37,6 +37,7 @@
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-react-hooks": "^1.6.1",
     "exorcist": "^1.0.1",
+    "focus-visible": "^5.0.1",
     "gulp": "^4.0.2",
     "gulplog": "^1.0.0",
     "jquery": "^3.4.1",
