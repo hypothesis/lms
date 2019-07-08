@@ -10,7 +10,7 @@ RUN yarn install --frozen-lockfile
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.
-FROM alpine:3.9.4
+FROM alpine:3.10.0
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
