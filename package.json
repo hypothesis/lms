@@ -63,7 +63,7 @@
     "diff": "^4.0.1",
     "enzyme": "^3.10.0",
     "enzyme-adapter-preact-pure": "^2.0.0",
-    "eslint": "^5.16.0",
+    "eslint": "^6.0.1",
     "eslint-config-hypothesis": "^1.0.0",
     "gulp-eslint": "^6.0.0",
     "karma": "^4.1.0",
