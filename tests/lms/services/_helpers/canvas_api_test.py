@@ -32,6 +32,7 @@ class TestCanvasAPIHelper:
             "&client_secret=test_developer_secret"
             "&redirect_uri=http%3A%2F%2Fexample.com%2Fcanvas_oauth_callback"
             "&code=test_authorization_code"
+            "&replace_tokens=True"
         )
 
     def test_refresh_token_request(self, ai_getter, helper, route_url):
