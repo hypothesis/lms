@@ -76,6 +76,7 @@ class CanvasAPIHelper:
                 "client_secret": self._client_secret,
                 "redirect_uri": self._redirect_uri,
                 "code": authorization_code,
+                "replace_tokens": True,
             },
         ).prepare()
 
