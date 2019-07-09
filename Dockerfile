@@ -10,11 +10,12 @@ RUN yarn install --frozen-lockfile
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.
-FROM alpine:3.9.4
+FROM alpine:3.10.0
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk add ca-certificates python3 libpq collectd collectd-disk supervisor
+RUN apk add ca-certificates libpq collectd collectd-disk supervisor \
+  && apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.9/main/ 'python3<3.7' 
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
@@ -28,7 +29,7 @@ COPY requirements.txt ./
 RUN apk add --virtual build-deps \
     build-base \
     postgresql-dev \
-    python3-dev \
+  && apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.9/main/ 'python3-dev<3.7' \
   && pip3 install --no-cache-dir -U pip \
   && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
