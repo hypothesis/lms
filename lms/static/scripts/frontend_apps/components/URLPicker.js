@@ -29,7 +29,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       initialFocus={input}
     >
       <p>Enter the URL of any publicly available web page or PDF.</p>
-      <form ref={form} className="u-flex-row" onSubmit={submit}>
+      <form ref={form} className="URLPicker__form u-flex-row" onSubmit={submit}>
         <label className="label" htmlFor="url">
           URL:{' '}
         </label>
