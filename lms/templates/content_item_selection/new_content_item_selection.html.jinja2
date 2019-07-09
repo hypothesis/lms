@@ -37,7 +37,7 @@
 
 {% block styles %}
 {% if request.feature("new_oauth") %}
-{% for url in  asset_urls("file_picker_v2_css") %}
+{% for url in  asset_urls("frontend_apps_css") %}
 <link rel="stylesheet" href="{{ url }}">
 {% endfor %}
 {% else %}
@@ -49,7 +49,7 @@
 {% if request.feature("new_oauth") %}
 {{ super() }}
 
-{% for url in asset_urls("file_picker_v2_js") %}
+{% for url in asset_urls("frontend_apps_js") %}
 <script async defer src="{{ url }}"></script>
 {% endfor %}
 
