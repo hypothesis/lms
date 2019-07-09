@@ -17,10 +17,6 @@
     background-color: $brand;
   }
 
-  &:not(:first-child) {
-    margin-left: 5px;
-  }
-
   &[disabled] {
     color: $grey-6;
     background-color: $grey-2;
