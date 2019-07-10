@@ -64,7 +64,7 @@ class TestFeatureFlagsCookieHelper:
         jwt_cookie_helper.get.return_value = {"disallowed_flag": True}
         helper = FeatureFlagsCookieHelper(pyramid_request)
 
-        assert helper.get("disallowed_flag") is False
+        assert helper.get("disallowed_flag") is None
 
     def test_get_all_gets_all_the_flags_from_the_cookie(
         self, pyramid_request, JWTCookieHelper, jwt_cookie_helper
@@ -106,14 +106,14 @@ class TestFeatureFlagsCookieHelper:
 
         jwt_cookie_helper.set.assert_called_once_with(response, {})
 
-    def test_when_theres_no_flags_allowed_get_always_returns_False(
+    def test_when_theres_no_flags_allowed_get_always_returns_None(
         self, pyramid_request, jwt_cookie_helper
     ):
         pyramid_request.registry.settings["feature_flags_allowed_in_cookie"] = ""
         jwt_cookie_helper.get.return_value = {"test_flag_one": True}
         helper = FeatureFlagsCookieHelper(pyramid_request)
 
-        assert helper.get("test_flag_one") is False
+        assert helper.get("test_flag_one") is None
 
     def test_when_theres_no_flags_allowed_get_all_returns_an_empty_dict(
         self, pyramid_request, jwt_cookie_helper
