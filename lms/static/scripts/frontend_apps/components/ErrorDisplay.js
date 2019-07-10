@@ -45,7 +45,14 @@ ${details}
         <a href={supportLink} target="_blank" rel="noopener noreferrer">
           send us an email
         </a>{' '}
-        or <a href="https://web.hypothes.is/get-help/">open a support ticket</a>
+        or{' '}
+        <a
+          href="https://web.hypothes.is/get-help/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          open a support ticket
+        </a>
         . You can also visit our{' '}
         <a
           href="https://web.hypothes.is/help/"
