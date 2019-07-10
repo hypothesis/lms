@@ -25,7 +25,7 @@ class FeatureFlagsCookieHelper:
         self._jwt_cookie_helper.set(response, flags)
 
     def get(self, flag):
-        return self.get_all().get(flag, False)
+        return self.get_all().get(flag, None)
 
     def get_all(self):
         return self._parse_flags(self._jwt_cookie_helper.get())
