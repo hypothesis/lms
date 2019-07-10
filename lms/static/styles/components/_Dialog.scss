@@ -63,4 +63,10 @@
   flex-direction: row;
   justify-content: flex-end;
   margin-top: 10px;
+
+  .Button {
+    &:not(:first-child) {
+      margin-left: 5px;
+    }
+  }
 }

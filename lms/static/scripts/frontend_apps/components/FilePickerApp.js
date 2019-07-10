@@ -176,25 +176,27 @@ export default function FilePickerApp({
           sources:
         </p>
         <input name="document_url" type="hidden" value={url} />
-        <Button
-          className="FilePickerApp__source-button"
-          label="Enter URL of web page or PDF"
-          onClick={() => setActiveDialog('url')}
-        />
-        {enableLmsFilePicker && (
+        <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
-            label={`Select PDF from ${lmsName}`}
-            onClick={() => setActiveDialog('lms')}
+            label="Enter URL of web page or PDF"
+            onClick={() => setActiveDialog('url')}
           />
-        )}
-        {googlePicker && (
-          <Button
-            className="FilePickerApp__source-button"
-            label="Select PDF from Google Drive"
-            onClick={showGooglePicker}
-          />
-        )}
+          {enableLmsFilePicker && (
+            <Button
+              className="FilePickerApp__source-button"
+              label={`Select PDF from ${lmsName}`}
+              onClick={() => setActiveDialog('lms')}
+            />
+          )}
+          {googlePicker && (
+            <Button
+              className="FilePickerApp__source-button"
+              label="Select PDF from Google Drive"
+              onClick={showGooglePicker}
+            />
+          )}
+        </div>
         <input style={{ display: 'none' }} type="submit" />
       </form>
       {isLoadingIndicatorVisible && (

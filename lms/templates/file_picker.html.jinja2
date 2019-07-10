@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block styles %}
-  {% for url in  asset_urls("file_picker_v2_css") %}
+  {% for url in  asset_urls("frontend_apps_css") %}
     <link rel="stylesheet" href="{{ url }}">
   {% endfor %}
 {% endblock %}
 
 {% block scripts %}
   {{ super() }}
-  {% for url in asset_urls("file_picker_v2_js") %}
+  {% for url in asset_urls("frontend_apps_js") %}
     <script async defer src="{{ url }}"></script>
   {% endfor %}
 {% endblock %}

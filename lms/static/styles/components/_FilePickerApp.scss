@@ -3,9 +3,6 @@
   margin-left: auto;
   margin-right: auto;
   margin-top: 20vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
 }
 
 .FilePickerApp__source-button {
@@ -32,4 +29,11 @@
   height: $spinner-size;
   left: calc(50% - #{$spinner-size});
   top: calc(50% - #{$spinner-size});
+}
+
+.FilePickerApp__document-source-buttons {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  margin-top: 30px;
 }
