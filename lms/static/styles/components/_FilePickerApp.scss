@@ -32,8 +32,8 @@
 }
 
 .FilePickerApp__document-source-buttons {
-  align-items: flex-start;
-  display: flex;
+  align-items: stretch;
+  display: inline-flex;
   flex-direction: column;
   margin-top: 30px;
 }
