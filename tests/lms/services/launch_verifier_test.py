@@ -1,5 +1,6 @@
 import time
 from unittest import mock
+from urllib.parse import urlencode
 
 import oauthlib.oauth1
 import oauthlib.common
@@ -138,13 +139,40 @@ class TestVerifyLaunchRequest:
 
         assert pylti.common.verify_request_common.call_count == 1
 
+    # See https://github.com/hypothesis/lms/issues/689
+    def test_it_verifies_urls_with_percent_encoded_chars_in_params(
+        self, pyramid_request
+    ):
+        # Add a "url" query parameter where the value, after decoding the query
+        # string, contains percent-encoded chars.
+        params = {"url": "https://en.wikipedia.org/wiki/G%C3%B6reme_National_Park"}
+        pyramid_request.POST.update(params)
+
+        # Sign the pyramid_request using oauthlib.
+        sign(pyramid_request)
+
+        # Update `pyramid_request.url` to include the query string.
+        # We do this after signing because oauthlib will, correctly,
+        # include both the "url" param from `pyramid_request.params` and the "url"
+        # param from the query string. PyLTI however will only retain one copy
+        # when generating the signature for verification.
+        pyramid_request.url += "?" + urlencode(params)
+
+        launch_verifier = LaunchVerifier(mock.sentinel.context, pyramid_request)
+        launch_verifier.verify()
+
     @pytest.fixture
     def launch_verifier(self, pyramid_request):
         return LaunchVerifier(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.url = "http://example.com/"
+        # `pyramid.testing.DummyRequest` sets `url` and `path_url` attrs without
+        # a path by default. oauthlib however normalizes the URL to include a
+        # path when it generates the signature base string, whereas PyLTI does
+        # not. Add an empty path to both to match a real application.
+        pyramid_request.url += "/"
+        pyramid_request.path_url += "/"
 
         # Add the OAuth 1 params (version, nonce, timestamp, ...)
         oauthlib_client = oauthlib.oauth1.Client(
