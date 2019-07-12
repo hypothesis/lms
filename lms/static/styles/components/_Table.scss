@@ -39,6 +39,10 @@ $table-icon-size: 24px;
   font-weight: normal;
   padding-top: 5px;
   padding-bottom: 5px;
+
+  // Ensure the header is displayed above content in the table when it is
+  // scrolled, including any content which establishes a new stacking context.
+  z-index: 1;
 }
 
 .Table__body {
