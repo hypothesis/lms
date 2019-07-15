@@ -47,7 +47,7 @@
     "postcss": "^7.0.17",
     "preact": "10.0.0-beta.3",
     "query-string": "^5.0.0",
-    "sass": "^1.22.3",
+    "sass": "^1.22.4",
     "superagent": "^3.8.3",
     "through2": "^3.0.1",
     "uglifyify": "^5.0.1",
