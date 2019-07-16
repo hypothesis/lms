@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Requires python 3.6+
+#!/usr/bin/env python3
 
 import hashlib
 import os
