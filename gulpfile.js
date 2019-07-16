@@ -68,16 +68,8 @@ var bundleBaseConfig = {
 
 var bundles = [
   {
-    name: 'file_picker',
-    entry: './lms/static/scripts/file_picker/_file_picker',
-  },
-  {
     name: 'frontend_apps',
     entry: './lms/static/scripts/frontend_apps/index',
-  },
-  {
-    name: 'content_item_selection',
-    entry: './lms/static/scripts/content-item-selection.js',
   },
   {
     name: 'new_application_instance',
