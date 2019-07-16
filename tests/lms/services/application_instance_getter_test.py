@@ -5,8 +5,8 @@ import pytest
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services import ConsumerKeyError
 from lms.models import ApplicationInstance
-from lms.models.application_instance import build_aes_iv
-from lms.models.application_instance import encrypt_oauth_secret
+from lms.models.application_instance import _build_aes_iv
+from lms.models.application_instance import _encrypt_oauth_secret
 
 
 class TestApplicationInstanceGetter:
@@ -31,8 +31,8 @@ class TestApplicationInstanceGetter:
     def test_developer_secret_returns_the_decrypted_developer_secret(
         self, ai_getter, pyramid_request, test_application_instance
     ):
-        test_application_instance.aes_cipher_iv = build_aes_iv()
-        test_application_instance.developer_secret = encrypt_oauth_secret(
+        test_application_instance.aes_cipher_iv = _build_aes_iv()
+        test_application_instance.developer_secret = _encrypt_oauth_secret(
             b"TEST_DEVELOPER_SECRET",
             pyramid_request.registry.settings["aes_secret"],
             test_application_instance.aes_cipher_iv,
