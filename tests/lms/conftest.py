@@ -17,7 +17,6 @@ from lms.models import User
 from lms.models import Token
 from lms.models import OauthState
 from lms.models import ApplicationInstance
-from lms.util import GET
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
 from lms.values import LTIUser
@@ -294,7 +293,7 @@ def canvas_api_proxy(pyramid_request):
     pyramid_request.headers["Authorization"] = jwt_token
 
     pyramid_request.params["endpoint_url"] = "/test"
-    pyramid_request.params["method"] = GET
+    pyramid_request.params["method"] = "get"
     pyramid_request.params["params"] = {}
     yield {
         "request": pyramid_request,
