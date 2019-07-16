@@ -7,6 +7,9 @@ from lms.services import ConsumerKeyError
 from lms.services import LTIOAuthError
 
 
+__all__ = ["LaunchVerifier"]
+
+
 class LaunchVerifier:
     """LTI launch request verifier."""
 
