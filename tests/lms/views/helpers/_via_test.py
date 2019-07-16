@@ -1,6 +1,6 @@
 import pytest
 
-from lms.util import via_url
+from lms.views.helpers import via_url
 
 
 class TestViaURL:

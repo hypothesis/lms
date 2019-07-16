@@ -18,7 +18,7 @@ that're still used when the feature flag is off.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
-from lms.util import via_url
+from lms.views.helpers import via_url
 from lms.validation import BearerTokenSchema, ConfigureModuleItemSchema
 from lms.views.decorators import (
     upsert_h_user,

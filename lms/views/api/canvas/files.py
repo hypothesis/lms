@@ -31,7 +31,7 @@ proxy API caller::
 """
 from pyramid.view import view_config, view_defaults
 
-from lms import util
+from lms.views import helpers
 
 
 @view_defaults(permission="canvas_api", renderer="json")
@@ -61,5 +61,5 @@ class FilesAPIViews:
         public_url = self.canvas_api_client.public_url(
             self.request.matchdict["file_id"]
         )
-        via_url = util.via_url(self.request, public_url)
+        via_url = helpers.via_url(self.request, public_url)
         return {"via_url": via_url}
