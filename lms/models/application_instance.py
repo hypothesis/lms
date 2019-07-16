@@ -8,6 +8,9 @@ import sqlalchemy as sa
 from lms.db import BASE
 
 
+__all__ = ["ApplicationInstance"]
+
+
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
 
