@@ -207,7 +207,6 @@ In order to use the Canvas file picker, you need to generate a developer key and
     1. For the `Redirect URIs` field enter:
         ```
         http://localhost:8001/canvas_oauth_callback
-        http://localhost:8001/module_item_launch_oauth_callback
         ```
 
         *Note*: For QA, replace `localhost:8001` with `qa-lms.hypothes.is`; for production, replace it with `lms.hypothes.is`
