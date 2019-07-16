@@ -1,4 +1,4 @@
-from lms.util import get_password_hash
+from lms.scripts import get_hash
 
 
 class TestPasswordHash:
@@ -10,7 +10,7 @@ class TestPasswordHash:
         )
         salt = "fbe82ee0da72b77b"
 
-        actual_hash, _ = get_password_hash.get_hash(password, salt)
+        actual_hash, _ = get_hash(password, salt)
 
         assert expected_hashed == actual_hash
 
@@ -22,7 +22,7 @@ class TestPasswordHash:
         )
         salt = "wrooongSaaaaalt"
 
-        actual_hash, _ = get_password_hash.get_hash(password, salt)
+        actual_hash, _ = get_hash(password, salt)
 
         assert expected_hashed != actual_hash
 
@@ -34,7 +34,7 @@ class TestPasswordHash:
         )
         expected_salt = "fbe82ee0da72b77b"
 
-        actual_hash, _ = get_password_hash.get_hash(password, expected_salt)
+        actual_hash, _ = get_hash(password, expected_salt)
 
         assert expected_hashed != actual_hash
 
@@ -44,6 +44,6 @@ class TestPasswordHash:
 
         salts = list()
         for _ in range(cnt):
-            _, salt = get_password_hash.get_hash(password)
+            _, salt = get_hash(password)
             assert salt not in salts
             salts.append(salt)
