@@ -7,9 +7,7 @@ from lms.services import CanvasAPIServerError
 from lms.validation import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 
-@view_defaults(
-    feature_flag="new_oauth", request_method="GET", route_name="canvas_oauth_callback"
-)
+@view_defaults(request_method="GET", route_name="canvas_oauth_callback")
 class CanvasAPIAuthorizeViews:
     def __init__(self, request):
         self.request = request
