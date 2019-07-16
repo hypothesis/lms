@@ -7,7 +7,6 @@ import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
-from lms.util import lti_params_for
 from lms.validation import BearerTokenSchema
 
 
@@ -33,20 +32,14 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
-
-        # This will raise HTTPBadRequest if the request looks like an OAuth
-        # redirect request but no DB-stashed LTI params can be found for the
-        # request.
-        self._lti_params = lti_params_for(request)
-
         self._js_config = None
 
     @property
     def h_display_name(self):
         """Return the h user display name for the current request."""
-        full_name = (self._lti_params.get("lis_person_name_full") or "").strip()
-        given_name = (self._lti_params.get("lis_person_name_given") or "").strip()
-        family_name = (self._lti_params.get("lis_person_name_family") or "").strip()
+        full_name = (self._request.params.get("lis_person_name_full") or "").strip()
+        given_name = (self._request.params.get("lis_person_name_given") or "").strip()
+        family_name = (self._request.params.get("lis_person_name_family") or "").strip()
 
         if full_name:
             display_name = full_name
@@ -282,7 +275,7 @@ class LTILaunchResource:
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""
-        param = self._lti_params.get(param_name)
+        param = self._request.params.get(param_name)
         if not param:
             raise HTTPBadRequest(
                 f'Required parameter "{param_name}" missing from LTI params'

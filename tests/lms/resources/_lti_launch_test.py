@@ -34,14 +34,6 @@ class TestLTILaunchResource:
 
         assert not pyramid_request.has_permission("launch_lti_assignment", context)
 
-    def test_it_raises_if_no_lti_params_for_request(
-        self, pyramid_request, lti_params_for
-    ):
-        lti_params_for.side_effect = HTTPBadRequest()
-
-        with pytest.raises(HTTPBadRequest):
-            resources.LTILaunchResource(pyramid_request)
-
     @pytest.mark.parametrize(
         "request_params,expected_display_name",
         [
@@ -152,9 +144,9 @@ class TestLTILaunchResource:
         ],
     )
     def test_h_display_name(
-        self, request_params, expected_display_name, lti_params_for, pyramid_request
+        self, request_params, expected_display_name, pyramid_request
     ):
-        lti_params_for.return_value = request_params
+        pyramid_request.params = request_params
 
         assert (
             resources.LTILaunchResource(pyramid_request).h_display_name
@@ -162,19 +154,17 @@ class TestLTILaunchResource:
         )
 
     def test_h_groupid_raises_if_theres_no_tool_consumer_instance_guid(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {}
+        pyramid_request.params = {}
         with pytest.raises(
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
             resources.LTILaunchResource(pyramid_request).h_groupid
 
-    def test_h_groupid_raises_if_theres_no_context_id(
-        self, lti_params_for, pyramid_request
-    ):
-        lti_params_for.return_value = {"tool_consumer_instance_guid": "test_guid"}
+    def test_h_groupid_raises_if_theres_no_context_id(self, pyramid_request):
+        pyramid_request.params = {"tool_consumer_instance_guid": "test_guid"}
         with pytest.raises(
             HTTPBadRequest,
             match='Required parameter "context_id" missing from LTI params',
@@ -205,9 +195,9 @@ class TestLTILaunchResource:
         ),
     )
     def test_h_group_name_returns_group_names_based_on_context_titles(
-        self, context_title, expected_group_name, lti_params_for, pyramid_request
+        self, context_title, expected_group_name, pyramid_request
     ):
-        lti_params_for.return_value = {"context_title": context_title}
+        pyramid_request.params = {"context_title": context_title}
 
         assert (
             resources.LTILaunchResource(pyramid_request).h_group_name
@@ -215,11 +205,9 @@ class TestLTILaunchResource:
         )
 
     def test_h_provider_just_returns_the_tool_consumer_instance_guid(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
-        }
+        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
 
         provider = resources.LTILaunchResource(pyramid_request).h_provider
 
@@ -234,9 +222,9 @@ class TestLTILaunchResource:
         ],
     )
     def test_h_provider_raises_if_tool_consumer_instance_guid_is_missing(
-        self, request_params, lti_params_for, pyramid_request
+        self, request_params, pyramid_request
     ):
-        lti_params_for.return_value = request_params
+        pyramid_request.params = request_params
 
         with pytest.raises(
             HTTPBadRequest,
@@ -244,10 +232,8 @@ class TestLTILaunchResource:
         ):
             resources.LTILaunchResource(pyramid_request).h_provider
 
-    def test_h_provider_unique_id_just_returns_the_user_id(
-        self, lti_params_for, pyramid_request
-    ):
-        lti_params_for.return_value = {"user_id": "4533***70d9"}
+    def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
+        pyramid_request.params = {"user_id": "4533***70d9"}
 
         provider_unique_id = resources.LTILaunchResource(
             pyramid_request
@@ -257,17 +243,17 @@ class TestLTILaunchResource:
 
     @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
     def test_h_provider_unique_id_raises_if_user_id_is_missing(
-        self, request_params, lti_params_for, pyramid_request
+        self, request_params, pyramid_request
     ):
-        lti_params_for.return_value = request_params
+        pyramid_request.params = request_params
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
             resources.LTILaunchResource(pyramid_request).h_provider_unique_id
 
-    def test_h_username_returns_a_30_char_string(self, pyramid_request, lti_params_for):
-        lti_params_for.return_value = {
+    def test_h_username_returns_a_30_char_string(self, pyramid_request):
+        pyramid_request.params = {
             "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
             "user_id": "4533***70d9",
         }
@@ -278,9 +264,9 @@ class TestLTILaunchResource:
         assert len(username) == 30
 
     def test_h_username_raises_if_tool_consumer_instance_guid_is_missing(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {"user_id": "4533***70d9"}
+        pyramid_request.params = {"user_id": "4533***70d9"}
 
         with pytest.raises(
             HTTPBadRequest,
@@ -288,20 +274,16 @@ class TestLTILaunchResource:
         ):
             resources.LTILaunchResource(pyramid_request).h_username
 
-    def test_h_username_raises_if_user_id_is_missing(
-        self, lti_params_for, pyramid_request
-    ):
-        lti_params_for.return_value = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
-        }
+    def test_h_username_raises_if_user_id_is_missing(self, pyramid_request):
+        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
             resources.LTILaunchResource(pyramid_request).h_username
 
-    def test_h_userid(self, pyramid_request, lti_params_for):
-        lti_params_for.return_value = {
+    def test_h_userid(self, pyramid_request):
+        pyramid_request.params = {
             "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
             "user_id": "4533***70d9",
         }
@@ -311,9 +293,9 @@ class TestLTILaunchResource:
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
 
     def test_h_userid_raises_if_tool_consumer_instance_guid_is_missing(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {"user_id": "4533***70d9"}
+        pyramid_request.params = {"user_id": "4533***70d9"}
 
         with pytest.raises(
             HTTPBadRequest,
@@ -321,12 +303,8 @@ class TestLTILaunchResource:
         ):
             resources.LTILaunchResource(pyramid_request).h_userid
 
-    def test_h_userid_raises_if_user_id_is_missing(
-        self, lti_params_for, pyramid_request
-    ):
-        lti_params_for.return_value = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"
-        }
+    def test_h_userid_raises_if_user_id_is_missing(self, pyramid_request):
+        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
@@ -364,9 +342,9 @@ class TestLTILaunchResource:
         assert "authToken" not in js_config
 
     def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {}
+        pyramid_request.params = {}
 
         with pytest.raises(
             HTTPBadRequest,
@@ -375,9 +353,9 @@ class TestLTILaunchResource:
             resources.LTILaunchResource(pyramid_request).hypothesis_config
 
     def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        lti_params_for.return_value = {
+        pyramid_request.params = {
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         }
 
@@ -462,9 +440,9 @@ class TestLTILaunchResource:
         assert lti_launch.provisioning_enabled is False
 
     def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
-        self, lti_params_for, pyramid_request
+        self, pyramid_request
     ):
-        del lti_params_for.return_value["oauth_consumer_key"]
+        del pyramid_request.params["oauth_consumer_key"]
         lti_launch = resources.LTILaunchResource(pyramid_request)
 
         with pytest.raises(HTTPBadRequest):
@@ -485,7 +463,9 @@ class TestLTILaunchResource:
         lti_launch = resources.LTILaunchResource(pyramid_request)
 
         lms_url = lti_launch.lms_url
-        ai_getter.lms_url.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
+        ai_getter.lms_url.assert_called_once_with(
+            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
+        )
         assert lms_url == ai_getter.lms_url.return_value
 
     @pytest.fixture
@@ -493,15 +473,14 @@ class TestLTILaunchResource:
         return resources.LTILaunchResource(pyramid_request)
 
     @pytest.fixture(autouse=True)
-    def lti_params_for(self, patch):
-        lti_params_for = patch("lms.resources._lti_launch.lti_params_for")
-        lti_params_for.return_value = {
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
             "context_id": "test_context_id",
             "user_id": "test_user_id",
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
-        return lti_params_for
+        return pyramid_request
 
 
 @pytest.fixture(autouse=True)
