@@ -13,9 +13,6 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms import db
-from lms.models import User
-from lms.models import Token
-from lms.models import OauthState
 from lms.models import ApplicationInstance
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
@@ -280,11 +277,7 @@ def canvas_api_proxy(pyramid_request):
         "consumer_key": application_instance.consumer_key,
     }
     pyramid_request.db.add(application_instance)
-    user = User(lms_guid=user_id)
-    pyramid_request.db.add(user)
     pyramid_request.db.flush()
-    token = Token(access_token="test_token", user_id=user.id)
-    pyramid_request.db.add(token)
     pyramid_request.db.flush()
 
     jwt_secret = pyramid_request.registry.settings["jwt_secret"]
@@ -297,11 +290,9 @@ def canvas_api_proxy(pyramid_request):
     pyramid_request.params["params"] = {}
     yield {
         "request": pyramid_request,
-        "user": user,
         "application_instance": application_instance,
         "jwt_token": jwt_token,
         "decoded_jwt": data,
-        "token": token,
     }
 
 
@@ -323,7 +314,6 @@ def authenticated_request(pyramid_request):
     consumer_key = "test_application_instance"
     data = {"user_id": user_id, "roles": "Instructor", "consumer_key": consumer_key}
 
-    pyramid_request.db.add(User(lms_guid=user_id))
     pyramid_request.db.flush()
 
     jwt_secret = pyramid_request.registry.settings["jwt_secret"]
@@ -364,8 +354,6 @@ def oauth_response(monkeypatch, pyramid_request):
         pyramid_request.registry.settings["aes_secret"],
     )
     state_guid = "test_oauth_state"
-    user = User(lms_guid=user_id)
-    pyramid_request.db.add(user)
     pyramid_request.db.flush()
     lti_params = json.dumps(
         {
@@ -373,9 +361,6 @@ def oauth_response(monkeypatch, pyramid_request):
             "user_id": user_id,
             "roles": roles,
         }
-    )
-    pyramid_request.db.add(
-        OauthState(user_id=user.id, guid=state_guid, lti_params=lti_params)
     )
     pyramid_request.db.add(app_instance)
 
