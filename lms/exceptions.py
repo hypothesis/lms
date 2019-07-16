@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Exceptions raised by LTI launch code."""
 
 from pyramid.httpexceptions import HTTPBadRequest

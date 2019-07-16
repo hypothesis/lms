@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from lms.models.application_instance import ApplicationInstance, build_from_lms_url
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
