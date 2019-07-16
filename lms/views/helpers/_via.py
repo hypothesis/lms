@@ -1,4 +1,8 @@
+"""Via-related view helpers."""
 from urllib import parse
+
+
+__all__ = ["via_url"]
 
 
 def via_url(request, document_url):

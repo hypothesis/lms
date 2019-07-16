@@ -6,7 +6,6 @@ from lms.util.canvas_api import canvas_api, GET, POST
 from lms.util.jwt import jwt
 from lms.util._lti_launch import lti_launch
 from lms.util.lti import lti_params_for
-from lms.util.via import via_url
 from lms.util.view_renderer import view_renderer
 
 __all__ = (
@@ -18,7 +17,6 @@ __all__ = (
     "lti_launch",
     "lti_params_for",
     "save_token",
-    "via_url",
     "view_renderer",
     "GET",
     "POST",
