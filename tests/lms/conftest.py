@@ -16,7 +16,7 @@ from lms import db
 from lms.models import User
 from lms.models import Token
 from lms.models import OauthState
-from lms.models import build_from_lms_url
+from lms.models import ApplicationInstance
 from lms.util import GET
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
@@ -250,7 +250,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
     """
     from lms.models import application_instance as ai  # pylint:disable=relative-import
 
-    instance = ai.build_from_lms_url(
+    instance = ApplicationInstance.build_from_lms_url(
         "https://hypothesis.instructure.com",
         "address@)hypothes.is",
         "test",
@@ -272,7 +272,7 @@ def lti_launch_request(monkeypatch, pyramid_request):
 def canvas_api_proxy(pyramid_request):
 
     user_id = "asdf"
-    application_instance = build_from_lms_url(
+    application_instance = ApplicationInstance.build_from_lms_url(
         "https://example.com", "test@example.com", "test", b"test"
     )
     data = {
@@ -357,7 +357,7 @@ class MockOauth2Session:
 def oauth_response(monkeypatch, pyramid_request):
     user_id = "test_user_123"
     roles = "fake_lti_roles"
-    app_instance = build_from_lms_url(
+    app_instance = ApplicationInstance.build_from_lms_url(
         "https://example.com",
         "test@example.com",
         "test",

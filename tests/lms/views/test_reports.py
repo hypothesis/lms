@@ -1,5 +1,5 @@
 from lms.views.reports import list_application_instances
-from lms.models import build_from_lms_url
+from lms.models import ApplicationInstance
 from lms.models import LtiLaunches
 
 
@@ -26,7 +26,9 @@ class TestReports:
         test_emails = ["a@example.com", "b@sub.example.com", "c@another.example.com"]
 
         def build_ai_from_pair(pair):
-            return build_from_lms_url(pair[0], pair[1], None, None, None)
+            return ApplicationInstance.build_from_lms_url(
+                pair[0], pair[1], None, None, None
+            )
 
         app_instances = list(map(build_ai_from_pair, zip(test_urls, test_emails)))
         for app in app_instances:

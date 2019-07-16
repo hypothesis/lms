@@ -36,29 +36,29 @@ class ApplicationInstance(BASE):
         "OAuth2Token", back_populates="application_instance"
     )
 
+    @classmethod
+    def build_from_lms_url(  # pylint:disable=too-many-arguments
+        cls, lms_url, email, developer_key, developer_secret, encryption_key=None
+    ):
+        """Instantiate ApplicationInstance with lms_url."""
+        encrypted_secret = developer_secret
+        aes_iv = None
+        if encryption_key is not None and developer_secret and developer_key:
+            aes_iv = _build_aes_iv()
+            encrypted_secret = _encrypt_oauth_secret(
+                developer_secret, encryption_key, aes_iv
+            )
 
-def build_from_lms_url(
-    lms_url, email, developer_key, developer_secret, encryption_key=None
-):
-    """Instantiate ApplicationInstance with lms_url."""
-    encrypted_secret = developer_secret
-    aes_iv = None
-    if encryption_key is not None and developer_secret and developer_key:
-        aes_iv = _build_aes_iv()
-        encrypted_secret = _encrypt_oauth_secret(
-            developer_secret, encryption_key, aes_iv
+        return cls(
+            consumer_key=_build_unique_key(),
+            shared_secret=_build_shared_secret(),
+            lms_url=lms_url,
+            requesters_email=email,
+            developer_key=developer_key,
+            developer_secret=encrypted_secret,
+            aes_cipher_iv=aes_iv,
+            created=datetime.utcnow(),
         )
-
-    return ApplicationInstance(
-        consumer_key=_build_unique_key(),
-        shared_secret=_build_shared_secret(),
-        lms_url=lms_url,
-        requesters_email=email,
-        developer_key=developer_key,
-        developer_secret=encrypted_secret,
-        aes_cipher_iv=aes_iv,
-        created=datetime.utcnow(),
-    )
 
 
 def _build_aes_iv():
