@@ -6,9 +6,6 @@ from Crypto import Random
 import sqlalchemy as sa
 from lms.db import BASE
 
-# TODO we should figure out a more standard place to set this
-LTI_KEY_BASE = "Hypothesis"
-
 
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
@@ -75,7 +72,7 @@ def _build_shared_secret():
 
 def _build_unique_key():
     """Use the key base to generate lms key."""
-    return LTI_KEY_BASE + secrets.token_hex(16)
+    return "Hypothesis" + secrets.token_hex(16)
 
 
 def _encrypt_oauth_secret(oauth_secret, key, init_v):
