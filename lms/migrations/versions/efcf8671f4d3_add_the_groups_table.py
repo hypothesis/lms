@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Add the course_groups table."""
 
 from alembic import op

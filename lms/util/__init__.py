@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from lms.util.associate_user import associate_user
 from lms.util.authenticate import authenticate
 from lms.util.authorize_lms import authorize_lms, save_token

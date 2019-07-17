@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Functions for reading config settings."""
 
 import os
