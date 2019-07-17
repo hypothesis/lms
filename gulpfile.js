@@ -36,11 +36,12 @@ function parseCommandLine() {
 
 var taskArgs = parseCommandLine();
 
+// We do not currently generate any vendor JS bundles, but the infrastructure
+// is left here in case we decide to add them in future.
 var vendorBundles = {
-  // jquery: ['jquery'],
+  // bundleName: ['<import-name>'],
 };
-var vendorModules = ['jquery'];
-var vendorNoParseModules = ['jquery'];
+var vendorModules = [];
 
 // Builds the bundles containing vendor JS code
 gulp.task('build-vendor-js', function() {
@@ -52,7 +53,7 @@ gulp.task('build-vendor-js', function() {
         require: vendorBundles[name],
         minify: IS_PRODUCTION_BUILD,
         path: SCRIPT_DIR,
-        noParse: vendorNoParseModules,
+        noParse: [],
       })
     );
   });
@@ -63,7 +64,7 @@ var bundleBaseConfig = {
   path: SCRIPT_DIR,
   external: vendorModules,
   minify: IS_PRODUCTION_BUILD,
-  noParse: vendorNoParseModules,
+  noParse: [],
 };
 
 var bundles = [
