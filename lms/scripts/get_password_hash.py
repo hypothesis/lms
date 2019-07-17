@@ -1,9 +1,10 @@
-#!/usr/bin/env python
-# Requires python 3.6+
-
+#!/usr/bin/env python3
 import hashlib
 import os
 import binascii
+
+
+__all__ = ["get_hash"]
 
 
 def get_hash(pw_to_hash, salt_for_hash: str = ""):

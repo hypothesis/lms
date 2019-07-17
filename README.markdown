@@ -115,7 +115,7 @@ The Hypothesis LMS app is written for python 3 and uses Node.js and `yarn` for m
     export GOOGLE_APP_ID="Google Project Id"
 
     # For application instance reports access
-    # Use lms/util/get_password_hash.py to provide vaues for HASHED_PW and SALT
+    # Use lms/scripts/get_password_hash.py to provide vaues for HASHED_PW and SALT
     export HASHED_PW="my_hashed_password"
     export SALT="my_salt"
     export USERNAME="my_desired_report_username"
@@ -284,7 +284,7 @@ To enable a report of application instances in the DB, you'll need to define the
 
 #### Configuring a Username and Password
 
-* Run the command-line script `lms/util/get_password_hash.py`. It will generate a value for `HASHED_PW` and `SALT`
+* Run the command-line script `lms/scripts/get_password_hash.py`. It will generate a value for `HASHED_PW` and `SALT`
 * Set `USERNAME` to the desired username for accessing these reports
 * When the webserver is running, you can access the reports in a browser at [http://localhost:8001/reports](http://localhost:8001/reports)
 
