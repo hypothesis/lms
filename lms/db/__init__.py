@@ -1,7 +1,7 @@
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import zope.sqlalchemy  # pylint:disable=relative-import
+import zope.sqlalchemy
 
 
 __all__ = ("BASE", "init")
