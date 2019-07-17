@@ -8,6 +8,9 @@ from lms.services import HAPIError
 from lms.services import HAPINotFoundError
 
 
+__all__ = ["HypothesisAPIService"]
+
+
 class HypothesisAPIService:
     """
     Low-level API service.

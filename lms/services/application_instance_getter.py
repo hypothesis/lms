@@ -5,6 +5,9 @@ from lms.services import ConsumerKeyError
 from lms.models import ApplicationInstance
 
 
+__all__ = ["ApplicationInstanceGetter"]
+
+
 class ApplicationInstanceGetter:
     """Methods for getting properties from application instances."""
 
