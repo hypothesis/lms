@@ -10,6 +10,38 @@ class TestIncludeMe:
 
         routes.includeme(config)
 
-        expected_calls = []
-        for call in expected_calls:
-            assert call in config.mock_calls
+        assert config.mock_calls == [
+            mock.call.add_route("index", "/"),
+            mock.call.add_route("feature_flags_test", "/flags/test"),
+            mock.call.add_route("welcome", "/welcome"),
+            mock.call.add_route("assets", "/assets/*subpath"),
+            mock.call.add_route("status", "/_status"),
+            mock.call.add_route("favicon", "/favicon.ico"),
+            mock.call.add_route("login", "/login"),
+            mock.call.add_route("logout", "/logout"),
+            mock.call.add_route("reports", "/reports"),
+            mock.call.add_route("config_xml", "/config_xml"),
+            mock.call.add_route(
+                "module_item_configurations",
+                "/module_item_configurations",
+                factory="lms.resources.LTILaunchResource",
+            ),
+            mock.call.add_route(
+                "lti_launches",
+                "/lti_launches",
+                factory="lms.resources.LTILaunchResource",
+            ),
+            mock.call.add_route(
+                "content_item_selection",
+                "/content_item_selection",
+                factory="lms.resources.LTILaunchResource",
+            ),
+            mock.call.add_route("canvas_oauth_callback", "/canvas_oauth_callback"),
+            mock.call.add_route("canvas_api.authorize", "/api/canvas/authorize"),
+            mock.call.add_route(
+                "canvas_api.courses.files.list", "/api/canvas/courses/{course_id}/files"
+            ),
+            mock.call.add_route(
+                "canvas_api.files.via_url", "/api/canvas/files/{file_id}/via_url"
+            ),
+        ]
