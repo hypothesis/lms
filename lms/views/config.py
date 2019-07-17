@@ -2,7 +2,9 @@ from pyramid.view import view_config
 
 
 @view_config(
-    route_name="config_xml", renderer="config.xml.jinja2", request_method="GET"
+    route_name="config_xml",
+    renderer="lms:templates/config.xml.jinja2",
+    request_method="GET",
 )
 def config_xml(request):
     """Render the XML configuration as XML."""
