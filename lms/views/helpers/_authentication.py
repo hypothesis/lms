@@ -1,5 +1,10 @@
+"""Helpers for the login view."""
+
 import binascii
 import hashlib
+
+
+__all__ = ["check_password"]
 
 
 def check_password(password: str, expected_pw_hash: str, salt: str):
@@ -9,11 +14,3 @@ def check_password(password: str, expected_pw_hash: str, salt: str):
         )
     )
     return expected_pw_hash.encode("utf8") == pw_hash
-
-
-def groupfinder(userid, request):
-    allowed_groups = list()
-    settings = request.registry.settings
-    if userid == settings.get("username", None):
-        allowed_groups.append("report_viewers")
-    return allowed_groups

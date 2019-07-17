@@ -1,6 +1,6 @@
 import pytest
 
-from lms.authentication._helpers import authenticated_userid, get_lti_user
+from lms.authentication._helpers import authenticated_userid, get_lti_user, groupfinder
 from lms.validation import ValidationError
 from lms.values import LTIUser
 
@@ -110,6 +110,22 @@ class TestGetLTIUser:
         assert (
             get_lti_user(pyramid_request) == launch_params_schema.lti_user.return_value
         )
+
+
+class TestGroupFinder:
+    def test_find_group(self, pyramid_request):
+        userid = "report_viewer"
+        groups = groupfinder(userid, pyramid_request)
+
+        assert groups is not None
+        assert "report_viewers" in groups
+
+    def test_not_find_group(self, pyramid_request):
+        userid = "wrongid"
+
+        groups = groupfinder(userid, pyramid_request)
+
+        assert not groups
 
 
 @pytest.fixture(autouse=True)

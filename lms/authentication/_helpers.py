@@ -8,6 +8,9 @@ from lms.validation import (
 )
 
 
+__all__ = ["authenticated_userid", "get_lti_user", "groupfinder"]
+
+
 def authenticated_userid(lti_user):
     """Return a ``request.authenticated_userid`` string for ``lti_user``."""
     # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
@@ -48,6 +51,14 @@ def get_lti_user(request):
         return CanvasOAuthCallbackSchema(request).lti_user()
     except ValidationError:
         return None
+
+
+def groupfinder(userid, request):
+    allowed_groups = list()
+    settings = request.registry.settings
+    if userid == settings.get("username", None):
+        allowed_groups.append("report_viewers")
+    return allowed_groups
 
 
 def includeme(config):

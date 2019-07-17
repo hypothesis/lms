@@ -3,7 +3,7 @@ import functools
 from pyramid.authentication import AuthTktAuthenticationPolicy
 
 from lms.authentication._lti_policy import LTIAuthenticationPolicy
-from lms.security import groupfinder
+from lms.authentication._helpers import groupfinder
 
 
 __all__ = ("AuthenticationPolicy",)
