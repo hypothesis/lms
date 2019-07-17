@@ -33,12 +33,6 @@ https://www.imsglobal.org/specs/lticiv1p0/specification-3
 Canvas LMS's Content Item docs are also useful:
 
 https://canvas.instructure.com/doc/api/file.content_item.html
-
-.. note::
-
-   The views in this module are currently used only when the new_oauth feature
-   flag is on. They replace legacy views that're still used when the feature
-   flag is off.
 """
 from pyramid.view import view_config
 
@@ -49,7 +43,6 @@ from lms.views.decorators import upsert_h_user, upsert_course_group
 @view_config(
     authorized_to_configure_assignments=True,
     decorator=[upsert_h_user, upsert_course_group],
-    feature_flag="new_oauth",
     permission="launch_lti_assignment",
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",

@@ -10,10 +10,6 @@ The spec requires Basic LTI Launch requests to have an ``lti_message_type``
 parameter with the value ``basic-lti-launch-request`` to distinguish them
 from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
-
-Note: The views in this module are currently used only when the new_oauth
-feature flag is on. They replace legacy views from ``lti_launches.py``
-that're still used when the feature flag is off.
 """
 from pyramid.view import view_config, view_defaults
 
@@ -38,7 +34,6 @@ from lms.views.decorators import (
         # Report all LTI assignment launches to the /reports page.
         report_lti_launch,
     ],
-    feature_flag="new_oauth",
     permission="launch_lti_assignment",
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
