@@ -44,11 +44,11 @@ class TestViaURL:
         canvas_api_client.public_url.assert_called_once_with("test_file_id")
 
     def test_it_gets_the_via_url_for_the_public_url(
-        self, canvas_api_client, pyramid_request, util
+        self, canvas_api_client, pyramid_request, helpers
     ):
         FilesAPIViews(pyramid_request).via_url()
 
-        util.via_url.assert_called_once_with(
+        helpers.via_url.assert_called_once_with(
             pyramid_request, canvas_api_client.public_url.return_value
         )
 
@@ -62,10 +62,10 @@ class TestViaURL:
         with pytest.raises(CanvasAPIError, match="Oops"):
             FilesAPIViews(pyramid_request).via_url()
 
-    def test_it_returns_the_via_url(self, pyramid_request, util):
+    def test_it_returns_the_via_url(self, pyramid_request, helpers):
         data = FilesAPIViews(pyramid_request).via_url()
 
-        assert data["via_url"] == util.via_url.return_value
+        assert data["via_url"] == helpers.via_url.return_value
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -83,5 +83,5 @@ def canvas_api_client(pyramid_config):
 
 
 @pytest.fixture(autouse=True)
-def util(patch):
-    return patch("lms.views.api.canvas.files.util")
+def helpers(patch):
+    return patch("lms.views.api.canvas.files.helpers")
