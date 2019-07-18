@@ -201,4 +201,4 @@ class TestRaiseFrom:
         except requests.RequestException as err:
             return err
 
-        assert False, "We should never get here"
+        assert False, "We should never get here"  # pragma: no cover
