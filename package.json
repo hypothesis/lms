@@ -11,7 +11,7 @@
     "build": "gulp build",
     "checkformatting": "prettier --check lms/**/*.js scripts/**/*.js",
     "format": "prettier --list-different --write lms/**/*.js scripts/**/*.js",
-    "lint": "gulp lint",
+    "lint": "eslint lms/static/scripts",
     "test": "gulp test"
   },
   "repository": {
@@ -63,7 +63,6 @@
     "enzyme-adapter-preact-pure": "^2.0.0",
     "eslint": "^6.0.1",
     "eslint-config-hypothesis": "^2.0.0",
-    "gulp-eslint": "^6.0.0",
     "karma": "^4.2.0",
     "karma-browserify": "^6.0.0",
     "karma-chai": "^0.1.0",
