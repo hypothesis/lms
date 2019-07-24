@@ -1,6 +1,10 @@
 version: '3'
 services:
-  postgres:
+  lmspostgres:
     image: postgres:9.4-alpine
     ports:
       - '127.0.0.1:5433:5432'
+networks:
+  default:
+    external:
+      name: h_default 

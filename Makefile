@@ -19,7 +19,11 @@ help:
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
 	@echo "make docker            Make the app's Docker image"
+	@echo "make docker-dev        Make the app's Docker image applying the dev configuration"
 	@echo "make run-docker        Run the app's Docker image locally"
+	@echo "make run-docker-dev    Run the app's Docker image locally and interactively"
+	@echo "make run-docker-test   Run the unit tests via the app's Docker image locally"
+	@echo "make test-db           Make a test database
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
 
@@ -37,7 +41,7 @@ shell:
 
 .PHONY: sql
 sql:
-	docker-compose exec postgres psql --pset expanded=auto -U postgres
+	docker-compose exec lmspostgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
 lint: backend-lint frontend-lint
@@ -77,15 +81,22 @@ pip-compile:
 docker:
 	git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
 
+.PHONY: docker-dev
+docker-dev:
+	docker build -f Dockerfile-dev -t hypothesis/lms:$(DOCKER_TAG) .
+
 .PHONY: run-docker
 run-docker:
 	# To run the Docker container locally, first build the Docker image using
 	# `make docker` and then set the environment variables below to appropriate
 	# values (see conf/development.ini for non-production quality examples).
 	docker run \
-		--net lms_default \
-		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
-		-e FEATURE_FLAGS_COOKIE_SECRET \
+		--name lms \
+		--net h_default \
+		-e DATABASE_URL=postgresql://postgres@lmspostgres/postgres \
+		-e GOOGLE_CLIENT_ID \
+		-e GOOGLE_DEVELOPER_KEY \
+		-e GOOGLE_APP_ID \
 		-e H_API_URL_PRIVATE \
 		-e H_API_URL_PUBLIC \
 		-e H_AUTHORITY \
@@ -99,8 +110,81 @@ run-docker:
 		-e VIA_URL \
 		-e SESSION_COOKIE_SECRET \
 		-e OAUTH2_STATE_SECRET \
+		-e NEW_RELIC_LICENSE_KEY \
+        -e NEW_RELIC_APP_NAME="lms (dev)" \
+        -e SENTRY_ENVIRONMENT="dev" \
+        -e SENTRY_DSN \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)
+
+.PHONY: run-docker-dev
+run-docker-dev:
+	docker run \
+		--name lms \
+		--net h_default \
+		-v $(CURDIR)/lms:/var/lib/lms/lms \
+		-it \
+		--entrypoint '/bin/sh' \
+		-e DATABASE_URL=postgresql://postgres@lmspostgres/postgres \
+		-e GOOGLE_CLIENT_ID \
+		-e GOOGLE_DEVELOPER_KEY \
+		-e GOOGLE_APP_ID \
+		-e H_API_URL_PRIVATE \
+		-e H_API_URL_PUBLIC \
+		-e H_AUTHORITY \
+		-e H_CLIENT_ID \
+		-e H_CLIENT_SECRET  \
+		-e H_JWT_CLIENT_ID \
+		-e H_JWT_CLIENT_SECRET \
+		-e JWT_SECRET \
+		-e LMS_SECRET \
+		-e RPC_ALLOWED_ORIGINS \
+		-e VIA_URL \
+		-e SESSION_COOKIE_SECRET \
+		-e OAUTH2_STATE_SECRET \
+		-e NEW_RELIC_LICENSE_KEY \
+        -e NEW_RELIC_APP_NAME="lms (dev)" \
+        -e SENTRY_ENVIRONMENT="dev" \
+        -e SENTRY_DSN \
+        -e SENTRY_DSN_FRONTEND \
+		-p 8001:8001 \
+		hypothesis/lms:$(DOCKER_TAG) \
+	    -c "newrelic-admin run-program gunicorn --paste conf/development.ini"
+
+.PHONY: run-docker-test
+run-docker-test:
+	docker run \
+		--name lms \
+		--net h_default \
+		-v $(CURDIR)/lms:/var/lib/lms/lms \
+		-v $(CURDIR)/tests:/var/lib/lms/tests \
+		-it \
+		--entrypoint '/bin/sh' \
+		-e DATABASE_URL=postgresql://postgres@lmspostgres/postgres \
+		-e TEST_DATABASE_URL=postgresql://postgres@lmspostgres/lms_test \
+		-e GOOGLE_CLIENT_ID \
+		-e GOOGLE_DEVELOPER_KEY \
+		-e GOOGLE_APP_ID \
+		-e H_API_URL_PRIVATE \
+		-e H_API_URL_PUBLIC \
+		-e H_AUTHORITY \
+		-e H_CLIENT_ID \
+		-e H_CLIENT_SECRET  \
+		-e H_JWT_CLIENT_ID \
+		-e H_JWT_CLIENT_SECRET \
+		-e JWT_SECRET=test_secret \
+		-e LMS_SECRET \
+		-e RPC_ALLOWED_ORIGINS \
+		-e VIA_URL=https://example.com/ \
+		-e SESSION_COOKIE_SECRET \
+		-e OAUTH2_STATE_SECRET \
+		-p 8001:8001 \
+		hypothesis/lms:$(DOCKER_TAG) \
+	    -c "pytest -v -p no:cacheprovider tests/lms"
+
+.PHONY: test-db
+test-db:
+	docker-compose exec lmspostgres psql -U postgres -c "CREATE DATABASE lms_test;"
 
 .PHONY: clean
 clean:
