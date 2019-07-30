@@ -4,6 +4,14 @@
 
 # Hypothesis Canvas App
 
+## Overview and code design
+
+There are three presentations for developers that describe what the Hypothesis LMS app is and how it works. The **speaker notes** in these assignments also contain additional notes and links:
+
+1. [LMS App Demo & Architecture](https://docs.google.com/presentation/d/1eRMjS5B8Yja6Aupp8oKi-UztIJ9_8KRViSc6OMDLfMY/)
+2. [LMS App Code Design Patterns](https://docs.google.com/presentation/d/1AWcDoHaV9aAvInefR54SJepZiNM08Zou9jxNssccw3c/)
+3. [Speed Grader Workshop](https://docs.google.com/presentation/d/1TJF9SXRMbtHCPnkD9sy-TXe_u55--zYt6veVW0M6leA/) (about the design of the first version of our Canvas Speed Grader support)
+
 ## Installation and configuration
 
 **Q**: Whoa! This `README` is so long! Which steps do I actually need to take?
