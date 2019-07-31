@@ -51,6 +51,15 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
+    def test_it_includes_the_scope_in_a_query_param(self, pyramid_request):
+        response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
+
+        query_params = parse_qs(urlparse(response.location).query)
+
+        assert query_params["scope"] == [
+            "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
+        ]
+
     def test_it_includes_the_state_in_a_query_param(
         self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
     ):

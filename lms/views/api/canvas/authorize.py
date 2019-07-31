@@ -28,6 +28,7 @@ class CanvasAPIAuthorizeViews:
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
+                        "scope": "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url",
                     }
                 ),
                 "",
