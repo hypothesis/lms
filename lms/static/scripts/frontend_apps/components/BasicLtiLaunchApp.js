@@ -25,7 +25,10 @@ export default function BasicLtiLaunchApp() {
   const {
     authToken,
     authUrl,
+    lisResultSourcedId,
+    lisOutcomeServiceUrl,
     lmsName,
+    submissionParams,
     urls: {
       // Content URL to show in the iframe.
       via_url: viaUrl,
@@ -86,6 +89,34 @@ export default function BasicLtiLaunchApp() {
   useEffect(() => {
     fetchContentUrl();
   }, [fetchContentUrl]);
+
+  // Report a submission to the LMS. This is done asynchronously in the frontend
+  // when an assignment is launched as it may be slow.
+  //
+  // The submission is reported concurrently with fetching the document URL
+  // (if needed) and creating the content iframe. If reporting the submission
+  // fails, the iframe is replaced with an error page.
+  const reportSubmission = useCallback(async () => {
+    // If a teacher launches an assignment or the LMS does not support reporting
+    // outcomes or grading is not enabled for the assignment, then no submission
+    // URL will be available.
+    if (!submissionParams) {
+      return;
+    }
+
+    try {
+      await apiCall({
+        authToken,
+        path: '/api/lti/submissions',
+        data: submissionParams,
+      });
+    } catch (e) {
+      // TODO - Fix race condition with fetching document URL.
+      setState({ state: 'error', e });
+    }
+  }, [authToken, submissionParams]);
+
+  useEffect(reportSubmission, [reportSubmission]);
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.

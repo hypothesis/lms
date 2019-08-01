@@ -47,6 +47,18 @@ class BasicLTILaunchViews:
         # Configure the front-end mini-app to run.
         self.context.js_config.update({"mode": "basic-lti-launch"})
 
+        # Add fields for reporting grades/submission info to the LMS, if the
+        # LMS provided the necessary parameters to us.
+        params = self.request.params
+
+        self._set_submission_param("h_username", context.h_username)
+        self._set_submission_param(
+            "lis_result_sourcedid", params.get("lis_result_sourcedid")
+        )
+        self._set_submission_param(
+            "lis_outcome_service_url", params.get("lis_outcome_service_url")
+        )
+
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
@@ -80,6 +92,8 @@ class BasicLTILaunchViews:
                 )
             }
         )
+
+        self._set_submission_param("canvas_file_id", file_id)
 
         return {}
 
@@ -237,3 +251,17 @@ class BasicLTILaunchViews:
         self.context.js_config["urls"].update(
             {"via_url": via_url(self.request, document_url)}
         )
+        self._set_submission_param("document_url", document_url)
+
+    def _set_submission_param(self, name, value):
+        """
+        Add or update a parameter which the frontend should include when reporting
+        that the user has started an assignment.
+        """
+
+        if not self.request.feature("speedgrader"):
+            return
+
+        if "submissionParams" not in self.context.js_config:
+            self.context.js_config["submissionParams"] = {}
+        self.context.js_config["submissionParams"][name] = value
