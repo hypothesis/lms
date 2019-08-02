@@ -1,19 +1,6 @@
-.BasicLtiLaunchApp__form {
-  margin-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  position: relative;
-
-  margin-left: auto;
-  margin-right: auto;
+.BasicLtiLaunchApp__dialog {
+  width: 75%;
   max-width: 500px;
-  width: fit-content;
-}
-
-.BasicLtiLaunchApp__button {
-  margin-top: 20px;
-  align-self: flex-end;
 }
 
 .BasicLtiLaunchApp__spinner {
@@ -25,4 +12,3 @@
   left: calc(50% - #{$spinner-size / 2});
   top: 100px;
 }
-
