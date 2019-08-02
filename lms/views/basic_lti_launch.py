@@ -59,6 +59,12 @@ class BasicLTILaunchViews:
             "lis_outcome_service_url", params.get("lis_outcome_service_url")
         )
 
+        # If the launch has been configured to focus on the annotations from
+        # a particular user, pass
+        focused_user = self.request.params.get("focused_user")
+        if focused_user:
+            self.context.hypothesis_config.update({"query": f"user:{focused_user}"})
+
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
