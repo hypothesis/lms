@@ -32,6 +32,7 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
+        self._hypothesis_config = None
         self._js_config = None
 
     @property
@@ -184,6 +185,11 @@ class LTILaunchResource:
         log in to the Hypothesis account corresponding to the LTI user that the
         request comes from.
 
+        This is a mutable config dict. It can be accessed, for example by
+        views, as ``request.context.hypothesis_config``, and they can mutate it or add
+        their own view-specific config settings. The modified config object
+        will then be passed to the Hypothesis client.
+
         See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
 
         """
@@ -206,17 +212,20 @@ class LTILaunchResource:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        return {
-            "services": [
-                {
-                    "apiUrl": api_url,
-                    "authority": self._authority,
-                    "enableShareLinks": False,
-                    "grantToken": grant_token().decode("utf-8"),
-                    "groups": [self.h_groupid],
-                }
-            ]
-        }
+        if self._hypothesis_config is None:
+            self._hypothesis_config = {
+                "services": [
+                    {
+                        "apiUrl": api_url,
+                        "authority": self._authority,
+                        "enableShareLinks": False,
+                        "grantToken": grant_token().decode("utf-8"),
+                        "groups": [self.h_groupid],
+                    }
+                ]
+            }
+
+        return self._hypothesis_config
 
     @property
     def rpc_server_config(self):
