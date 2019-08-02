@@ -26,19 +26,26 @@ export default function BasicLtiLaunchApp() {
     authToken,
     authUrl,
     lmsName,
-    urls: { via_url: viaUrl },
+    urls: {
+      // Content URL to show in the iframe.
+      via_url: viaUrl,
+      // API callback to use to fetch the URL to show in the iframe. This is
+      // needed if resolving the content URL involves potentially slow calls
+      // to third party APIs (eg. the LMS's file storage).
+      via_url_callback: viaUrlCallback,
+    },
   } = useContext(Config);
 
   const [{ state, contentUrl, error }, setState] = useState({
     // The current state of the screen.
     // One of "fetching", "fetched-url", "authorizing" or "error".
     //
-    // When the app is initially displayed it will attempt to fetch the content
-    // URL.
-    state: 'fetching-url',
+    // When the app is initially displayed it will use the Via URL if given
+    // or invoke the API callback to fetch the URL otherwise.
+    state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
 
     // URL of assignment content. Set when state is "fetched-url".
-    contentUrl: null,
+    contentUrl: viaUrl ? viaUrl : null,
 
     // Details of last error. Set when state is "error".
     error: null,
@@ -50,11 +57,18 @@ export default function BasicLtiLaunchApp() {
    * This will typically be a PDF URL proxied through Via.
    */
   const fetchContentUrl = useCallback(async () => {
+    if (!viaUrlCallback) {
+      // If no "callback" URL was supplied for the frontend to use to fetch
+      // the URL, then the backend must have provided the Via URL in the
+      // initial request, which we'll just use directly.
+      return;
+    }
+
     try {
       setState({ state: 'fetching-url' });
       const { via_url: contentUrl } = await apiCall({
         authToken,
-        path: viaUrl,
+        path: viaUrlCallback,
       });
       setState({ state: 'fetched-url', contentUrl });
     } catch (e) {
@@ -64,7 +78,7 @@ export default function BasicLtiLaunchApp() {
         setState({ state: 'error', error: e });
       }
     }
-  }, [authToken, viaUrl]);
+  }, [authToken, viaUrlCallback]);
 
   /**
    * Fetch the assignment content URL when the app is initially displayed.

@@ -24,9 +24,7 @@ describe('BasicLtiLaunchApp', () => {
       authToken: 'dummyAuthToken',
       authUrl: 'https://lms.hypothes.is/authorize-lms',
       lmsName: 'Shiny LMS',
-      urls: {
-        via_url: 'https://lms.hypothes.is/api/files/1234',
-      },
+      urls: {},
     };
 
     fakeApiCall = sinon.stub();
@@ -56,82 +54,60 @@ describe('BasicLtiLaunchApp', () => {
     $imports.$restore();
   });
 
-  it('attempts to fetch the content URL when mounted', async () => {
-    const wrapper = renderLtiLaunchApp();
-
-    await fakeApiCall.returnValues[0];
-
-    assert.calledWith(fakeApiCall, {
-      authToken: 'dummyAuthToken',
-      path: 'https://lms.hypothes.is/api/files/1234',
-    });
-    assert.isTrue(wrapper.exists('FakeSpinner'));
-  });
-
-  it('displays the content URL in an iframe if successfully fetched', async () => {
-    fakeApiCall.resolves({
-      via_url: 'https://via.hypothes.is/123',
+  context('when a content URL is provided in the config', () => {
+    beforeEach(() => {
+      fakeConfig.urls.via_url = 'https://via.hypothes.is/123';
     });
 
-    const wrapper = renderLtiLaunchApp();
+    it('displays the content URL in an iframe', () => {
+      const wrapper = renderLtiLaunchApp();
 
-    await fakeApiCall.returnValues[0];
-    wrapper.update();
-
-    const iframe = wrapper.find('iframe');
-    assert.isTrue(iframe.exists());
-    assert.include(iframe.props(), {
-      src: 'https://via.hypothes.is/123',
+      const iframe = wrapper.find('iframe');
+      assert.isTrue(iframe.exists());
+      assert.include(iframe.props(), {
+        src: 'https://via.hypothes.is/123',
+      });
     });
   });
 
-  it('displays authorization prompt if content URL fetch fails with an `ApiError`', async () => {
-    // Make the initial URL fetch request reject with an unspecified `ApiError`.
-    fakeApiCall.rejects(new ApiError(400, {}));
+  context('when a content URL callback is provided in the config', () => {
+    beforeEach(() => {
+      fakeConfig.urls.via_url_callback =
+        'https://lms.hypothes.is/api/files/1234';
+    });
 
-    const wrapper = renderLtiLaunchApp();
-    try {
+    it('attempts to fetch the content URL when mounted', async () => {
+      const wrapper = renderLtiLaunchApp();
+
       await fakeApiCall.returnValues[0];
-    } catch (e) {
-      // Ignored
-    }
 
-    // Verify that an "Authorize" prompt is shown.
-    wrapper.update();
-    const authButton = wrapper.find('Button[label="Authorize"]');
-    assert.isTrue(authButton.exists());
-
-    // Click the "Authorize" button and verify that authorization is attempted.
-    fakeApiCall.reset();
-    fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
-    authButton.prop('onClick')();
-    assert.called(FakeAuthWindow);
-
-    // Check that files are fetched after authorization completes.
-    await new Promise(resolve => {
-      setTimeout(resolve, 0);
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: 'https://lms.hypothes.is/api/files/1234',
+      });
+      assert.isTrue(wrapper.exists('FakeSpinner'));
     });
-    wrapper.update();
 
-    assert.equal(
-      wrapper.find('iframe').prop('src'),
-      'https://via.hypothes.is/123'
-    );
-  });
+    it('displays the content URL in an iframe if successfully fetched', async () => {
+      fakeApiCall.resolves({
+        via_url: 'https://via.hypothes.is/123',
+      });
 
-  [
-    {
-      description: 'a specific server error',
-      error: new ApiError(400, { error_message: 'Server error' }),
-    },
-    {
-      description: 'a network or other generic error',
-      error: new Error('Failed to fetch'),
-    },
-  ].forEach(({ description, error }) => {
-    it(`displays error details if content URL fetch fails with ${description}`, async () => {
-      // Make the initial URL fetch request reject with the given error.
-      fakeApiCall.rejects(error);
+      const wrapper = renderLtiLaunchApp();
+
+      await fakeApiCall.returnValues[0];
+      wrapper.update();
+
+      const iframe = wrapper.find('iframe');
+      assert.isTrue(iframe.exists());
+      assert.include(iframe.props(), {
+        src: 'https://via.hypothes.is/123',
+      });
+    });
+
+    it('displays authorization prompt if content URL fetch fails with an `ApiError`', async () => {
+      // Make the initial URL fetch request reject with an unspecified `ApiError`.
+      fakeApiCall.rejects(new ApiError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
       try {
@@ -140,15 +116,15 @@ describe('BasicLtiLaunchApp', () => {
         // Ignored
       }
 
-      // Verify that a "Try again" prompt is shown.
+      // Verify that an "Authorize" prompt is shown.
       wrapper.update();
-      const tryAgainButton = wrapper.find('Button[label="Try again"]');
-      assert.isTrue(tryAgainButton.exists());
+      const authButton = wrapper.find('Button[label="Authorize"]');
+      assert.isTrue(authButton.exists());
 
-      // Click the "Try again" button and verify that authorization is attempted.
+      // Click the "Authorize" button and verify that authorization is attempted.
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
-      tryAgainButton.prop('onClick')();
+      authButton.prop('onClick')();
       assert.called(FakeAuthWindow);
 
       // Check that files are fetched after authorization completes.
@@ -156,10 +132,55 @@ describe('BasicLtiLaunchApp', () => {
         setTimeout(resolve, 0);
       });
       wrapper.update();
+
       assert.equal(
         wrapper.find('iframe').prop('src'),
         'https://via.hypothes.is/123'
       );
+    });
+
+    [
+      {
+        description: 'a specific server error',
+        error: new ApiError(400, { error_message: 'Server error' }),
+      },
+      {
+        description: 'a network or other generic error',
+        error: new Error('Failed to fetch'),
+      },
+    ].forEach(({ description, error }) => {
+      it(`displays error details if content URL fetch fails with ${description}`, async () => {
+        // Make the initial URL fetch request reject with the given error.
+        fakeApiCall.rejects(error);
+
+        const wrapper = renderLtiLaunchApp();
+        try {
+          await fakeApiCall.returnValues[0];
+        } catch (e) {
+          // Ignored
+        }
+
+        // Verify that a "Try again" prompt is shown.
+        wrapper.update();
+        const tryAgainButton = wrapper.find('Button[label="Try again"]');
+        assert.isTrue(tryAgainButton.exists());
+
+        // Click the "Try again" button and verify that authorization is attempted.
+        fakeApiCall.reset();
+        fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
+        tryAgainButton.prop('onClick')();
+        assert.called(FakeAuthWindow);
+
+        // Check that files are fetched after authorization completes.
+        await new Promise(resolve => {
+          setTimeout(resolve, 0);
+        });
+        wrapper.update();
+        assert.equal(
+          wrapper.find('iframe').prop('src'),
+          'https://via.hypothes.is/123'
+        );
+      });
     });
   });
 });

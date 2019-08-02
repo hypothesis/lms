@@ -3,9 +3,17 @@ from unittest import mock
 import pytest
 
 from lms.resources import LTILaunchResource
-from lms.services import CanvasAPIError
-from lms.services.canvas_api import CanvasAPIClient
 from lms.views.basic_lti_launch import BasicLTILaunchViews
+
+
+class TestBasicLTILaunch:
+    """
+    Test behavior common to all LTI launches.
+    """
+
+    def test_it_configures_frontend(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request)
+        assert context.js_config["mode"] == "basic-lti-launch"
 
 
 class TestCanvasFileBasicLTILaunch:
@@ -14,19 +22,16 @@ class TestCanvasFileBasicLTILaunch:
 
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
-        assert context.js_config["mode"] == "basic-lti-launch"
         assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
         assert context.js_config["lmsName"] == "Canvas"
 
-    def test_it_adds_the_via_url_to_the_javascript_config(
-        self, context, pyramid_request
-    ):
+    def test_it_configures_via_callback_url(self, context, pyramid_request):
         pyramid_request.params = {"file_id": "TEST_FILE_ID"}
 
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
         assert (
-            context.js_config["urls"]["via_url"]
+            context.js_config["urls"]["via_url_callback"]
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
@@ -36,7 +41,7 @@ class TestCanvasFileBasicLTILaunch:
 
 
 class TestDBConfiguredBasicLTILaunch:
-    def test_it_passes_the_right_via_url_to_the_template(
+    def test_it_configures_via_url(
         self, context, pyramid_request, via_url, ModuleItemConfiguration
     ):
         pyramid_request.params = {
@@ -45,9 +50,7 @@ class TestDBConfiguredBasicLTILaunch:
         }
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
-        data = BasicLTILaunchViews(
-            context, pyramid_request
-        ).db_configured_basic_lti_launch()
+        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
 
         ModuleItemConfiguration.get_document_url.assert_called_once_with(
             pyramid_request.db,
@@ -55,21 +58,17 @@ class TestDBConfiguredBasicLTILaunch:
             "TEST_RESOURCE_LINK_ID",
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert data["via_url"] == via_url.return_value
+        assert context.js_config["urls"]["via_url"] == via_url.return_value
 
 
 class TestURLConfiguredBasicLTILaunch:
-    def test_it_passes_the_right_via_url_to_the_template(
-        self, context, pyramid_request, via_url
-    ):
+    def test_it_configures_via_url(self, context, pyramid_request, via_url):
         pyramid_request.params = {"url": "TEST_URL"}
 
-        data = BasicLTILaunchViews(
-            context, pyramid_request
-        ).url_configured_basic_lti_launch()
+        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
-        assert data["via_url"] == via_url.return_value
+        assert context.js_config["urls"]["via_url"] == via_url.return_value
 
 
 class TestUnconfiguredBasicLTILaunch:
@@ -91,6 +90,7 @@ class TestUnconfiguredBasicLTILaunch:
             pyramid_request.lti_user
         )
         assert context.js_config == {
+            "mode": "content-item-selection",
             "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
             "formFields": {
@@ -145,19 +145,17 @@ class TestConfigureModuleItem:
             "TEST_DOCUMENT_URL",
         )
 
-    def test_it_passes_the_right_via_url_to_the_template(
-        self, context, pyramid_request, via_url
-    ):
+    def test_it_configures_via_url(self, context, pyramid_request, via_url):
         pyramid_request.parsed_params = {
             "document_url": "TEST_DOCUMENT_URL",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
         }
 
-        data = BasicLTILaunchViews(context, pyramid_request).configure_module_item()
+        BasicLTILaunchViews(context, pyramid_request).configure_module_item()
 
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert data["via_url"] == via_url.return_value
+        assert context.js_config["urls"]["via_url"] == via_url.return_value
 
 
 @pytest.fixture(autouse=True)

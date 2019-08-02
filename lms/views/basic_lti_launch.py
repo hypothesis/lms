@@ -44,10 +44,10 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
-    @view_config(
-        canvas_file=True,
-        renderer="lms:templates/basic_lti_launch/canvas_file_basic_lti_launch.html.jinja2",
-    )
+        # Configure the front-end mini-app to run.
+        self.context.js_config.update({"mode": "basic-lti-launch"})
+
+    @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
         Respond to a Canvas file assignment launch.
@@ -63,8 +63,6 @@ class BasicLTILaunchViews:
 
         self.context.js_config.update(
             {
-                # Configure the front-end mini-app to run.
-                "mode": "basic-lti-launch",
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new access token.
                 "authUrl": self.request.route_url("canvas_api.authorize"),
@@ -73,9 +71,11 @@ class BasicLTILaunchViews:
             }
         )
 
+        # Configure the frontend to make a callback to the API to fetch the
+        # Via URL.
         self.context.js_config["urls"].update(
             {
-                "via_url": self.request.route_url(
+                "via_url_callback": self.request.route_url(
                     "canvas_api.files.via_url", file_id=file_id
                 )
             }
@@ -106,7 +106,9 @@ class BasicLTILaunchViews:
             self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
-        return {"via_url": via_url(self.request, document_url)}
+        self._set_via_url(document_url)
+
+        return {}
 
     @view_config(url_configured=True)
     def url_configured_basic_lti_launch(self):
@@ -120,7 +122,9 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        return {"via_url": via_url(self.request, self.request.params["url"])}
+        self._set_via_url(self.request.params["url"])
+
+        return {}
 
     @view_config(
         authorized_to_configure_assignments=True,
@@ -149,6 +153,7 @@ class BasicLTILaunchViews:
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
             {
+                "mode": "content-item-selection",
                 # It is assumed that this view is only used by LMSes for which
                 # we do not have an integration with the LMS's file storage.
                 # (currently only Canvas supports this).
@@ -223,4 +228,12 @@ class BasicLTILaunchViews:
             document_url,
         )
 
-        return {"via_url": via_url(self.request, document_url)}
+        self._set_via_url(document_url)
+
+        return {}
+
+    def _set_via_url(self, document_url):
+        """Configure content URL which the frontend will render inside an iframe."""
+        self.context.js_config["urls"].update(
+            {"via_url": via_url(self.request, document_url)}
+        )
