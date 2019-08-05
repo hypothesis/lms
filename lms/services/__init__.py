@@ -39,3 +39,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
     )
+    config.register_service_factory(
+        "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
+    )
