@@ -43,20 +43,28 @@ export class ApiError extends Error {
  * @param options
  * @param {string} options.path - The `/api/...` path of the endpoint to call
  * @param {string} options.authToken
+ * @param {Object} [options.data] - JSON-serializable body of the request
  */
-async function apiCall({ path, authToken }) {
+async function apiCall({ path, authToken, data }) {
+  let body;
+  if (data !== undefined) {
+    body = JSON.stringify(data);
+  }
+
   const result = await fetch(path, {
+    method: data === undefined ? 'GET' : 'POST',
+    body,
     headers: {
       Authorization: authToken,
     },
   });
-  const data = await result.json();
+  const resultJson = await result.json();
 
   if (result.status >= 400 && result.status < 600) {
-    throw new ApiError(result.status, data);
+    throw new ApiError(result.status, resultJson);
   }
 
-  return data;
+  return resultJson;
 }
 
 async function listFiles(authToken, courseId) {

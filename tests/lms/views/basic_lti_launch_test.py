@@ -15,6 +15,59 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
         assert context.js_config["mode"] == "basic-lti-launch"
 
+    def test_it_adds_report_submission_config_if_required_params_present(
+        self, context, pyramid_request, lti_outcome_params
+    ):
+        pyramid_request.params.update(lti_outcome_params)
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        assert context.js_config["submissionParams"] == {
+            "h_username": context.h_username,
+            "lis_result_sourcedid": "modelstudent-assignment1",
+            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+        }
+
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "lis_result_sourcedid",
+            "lis_outcome_service_url",
+            "tool_consumer_info_product_family_code",
+        ],
+    )
+    def test_it_doesnt_add_report_submission_config_if_required_param_missing(
+        self, context, pyramid_request, lti_outcome_params, key
+    ):
+        pyramid_request.params.update(lti_outcome_params)
+        del pyramid_request.params[key]
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        assert "submissionParams" not in context.js_config
+
+    def test_it_adds_report_submission_config_if_lms_not_canvas(
+        self, context, pyramid_request, lti_outcome_params
+    ):
+        pyramid_request.params.update(lti_outcome_params)
+        pyramid_request.params.update(
+            {"tool_consumer_info_product_family_code": "whiteboard"}
+        )
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        assert "submissionParams" not in context.js_config
+
+    def test_it_doesnt_add_report_submission_config_if_speedgrader_flag_off(
+        self, context, pyramid_request, lti_outcome_params
+    ):
+        pyramid_request.feature = lambda _: False
+        pyramid_request.params.update(lti_outcome_params)
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        assert "submissionParams" not in context.js_config
+
 
 class TestCanvasFileBasicLTILaunch:
     def test_it_configures_frontend(self, context, pyramid_request):
@@ -35,6 +88,15 @@ class TestCanvasFileBasicLTILaunch:
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
+    def test_it_configures_submission_params(
+        self, context, pyramid_request, lti_outcome_params
+    ):
+        pyramid_request.params = {"file_id": "TEST_FILE_ID", **lti_outcome_params}
+
+        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+
+        assert context.js_config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
+
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
         pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
@@ -42,11 +104,17 @@ class TestCanvasFileBasicLTILaunch:
 
 class TestDBConfiguredBasicLTILaunch:
     def test_it_configures_via_url(
-        self, context, pyramid_request, via_url, ModuleItemConfiguration
+        self,
+        context,
+        pyramid_request,
+        lti_outcome_params,
+        via_url,
+        ModuleItemConfiguration,
     ):
         pyramid_request.params = {
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            **lti_outcome_params,
         }
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
@@ -59,16 +127,22 @@ class TestDBConfiguredBasicLTILaunch:
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config["urls"]["via_url"] == via_url.return_value
+        assert (
+            context.js_config["submissionParams"]["document_url"] == "TEST_DOCUMENT_URL"
+        )
 
 
 class TestURLConfiguredBasicLTILaunch:
-    def test_it_configures_via_url(self, context, pyramid_request, via_url):
-        pyramid_request.params = {"url": "TEST_URL"}
+    def test_it_configures_via_url(
+        self, context, pyramid_request, lti_outcome_params, via_url
+    ):
+        pyramid_request.params = {"url": "TEST_URL", **lti_outcome_params}
 
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config["urls"]["via_url"] == via_url.return_value
+        assert context.js_config["submissionParams"]["document_url"] == "TEST_URL"
 
 
 class TestUnconfiguredBasicLTILaunch:
@@ -183,3 +257,24 @@ def ModuleItemConfiguration(patch):
 @pytest.fixture(autouse=True)
 def via_url(patch):
     return patch("lms.views.basic_lti_launch.via_url")
+
+
+@pytest.fixture
+def lti_outcome_params():
+    # Request params needed for calls to the LMS's Outcome Management service,
+    # present when a student launches an assignment.
+    #
+    # These params are typically not present when a teacher launches an
+    # assignment.
+    return {
+        "lis_result_sourcedid": "modelstudent-assignment1",
+        "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+        "tool_consumer_info_product_family_code": "canvas",
+    }
+
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    features = {"speedgrader": True}
+    pyramid_request.feature = features.get
+    return pyramid_request

@@ -19,6 +19,7 @@ function nextTick() {
 describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;
   let FakeAuthWindow;
+  let FakeErrorDisplay;
   let fakeConfig;
 
   const renderLtiLaunchApp = (props = {}) => {
@@ -43,7 +44,7 @@ describe('BasicLtiLaunchApp', () => {
       authorize: sinon.stub().resolves(null),
     });
 
-    const FakeErrorDisplay = () => null;
+    FakeErrorDisplay = () => null;
     const FakeSpinner = () => null;
 
     // nb. We mock components manually rather than using Enzyme's
@@ -182,5 +183,61 @@ describe('BasicLtiLaunchApp', () => {
         );
       });
     });
+  });
+
+  it('reports the submission in the LMS when the content iframe starts loading', async () => {
+    fakeConfig.submissionParams = {
+      lis_result_sourcedid: 'modelstudent-assignment1',
+    };
+
+    const wrapper = renderLtiLaunchApp();
+    await nextTick();
+
+    assert.calledWith(fakeApiCall, {
+      authToken: 'dummyAuthToken',
+      path: '/api/lti/submissions',
+      data: fakeConfig.submissionParams,
+    });
+
+    // After the successful API call, the iframe should still be rendered.
+    wrapper.update();
+    assert.isTrue(wrapper.exists('iframe'));
+  });
+
+  it('displays an error if reporting the submission fails', async () => {
+    fakeConfig.submissionParams = {
+      lis_result_sourcedid: 'modelstudent-assignment1',
+    };
+    const error = new ApiError(400, {});
+    fakeApiCall.rejects(error);
+
+    // Wait for the API call to fail.
+    const wrapper = renderLtiLaunchApp();
+    await nextTick();
+
+    // Check that an error is displayed.
+    wrapper.update();
+    const errorDisplay = wrapper.find(FakeErrorDisplay);
+    assert.equal(errorDisplay.prop('error'), error);
+
+    // There should be no "Try again" button in this context, instead we just
+    // ask the user to reload the page.
+    const tryAgainButton = wrapper.find('Button[label="Try again"]');
+    assert.isFalse(tryAgainButton.exists());
+    assert.include(
+      wrapper.text(),
+      'To fix this problem, try reloading the page'
+    );
+  });
+
+  it('does not report a submission if teacher launches assignment', async () => {
+    // When a teacher launches the assignment, there will typically be no
+    // `submissionParams` config provided by the backend.
+    fakeConfig.submissionParams = undefined;
+
+    renderLtiLaunchApp();
+    await nextTick();
+
+    assert.notCalled(fakeApiCall);
   });
 });

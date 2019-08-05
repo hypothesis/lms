@@ -1,4 +1,4 @@
-import { ApiError, listFiles } from '../api';
+import { ApiError, apiCall, listFiles } from '../api';
 
 describe('api', () => {
   let fakeResponse;
@@ -17,10 +17,44 @@ describe('api', () => {
     window.fetch.restore();
   });
 
+  describe('apiCall', () => {
+    it('makes a GET request if no body is provided', async () => {
+      await apiCall({ path: '/api/test', authToken: 'auth' });
+
+      assert.calledWith(window.fetch, '/api/test', {
+        method: 'GET',
+        body: undefined,
+        headers: {
+          Authorization: 'auth',
+        },
+      });
+    });
+
+    it('makes a POST request if a body is provided', async () => {
+      const data = { param: 'value' };
+      await apiCall({ path: '/api/test', authToken: 'auth', data });
+
+      assert.calledWith(window.fetch, '/api/test', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          Authorization: 'auth',
+        },
+      });
+    });
+
+    it("returns the response's JSON content", async () => {
+      const result = await apiCall({ path: '/api/test', authToken: 'auth' });
+      assert.deepEqual(result, await fakeResponse.json());
+    });
+  });
+
   describe('listFiles', () => {
     it('fetches file data from the backend', async () => {
       const response = listFiles('auth-token', 'course-id');
       assert.calledWith(window.fetch, '/api/canvas/courses/course-id/files', {
+        method: 'GET',
+        body: undefined,
         headers: {
           Authorization: 'auth-token',
         },
