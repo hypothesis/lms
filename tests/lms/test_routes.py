@@ -44,4 +44,5 @@ class TestIncludeMe:
             mock.call.add_route(
                 "canvas_api.files.via_url", "/api/canvas/files/{file_id}/via_url"
             ),
+            mock.call.add_route("lti_api.submissions.record", "/api/lti/submissions"),
         ]
