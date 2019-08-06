@@ -6,6 +6,16 @@ import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 
+/**
+ * Return a Promise that resolves on the next turn of the event loop.
+ *
+ * This gives any pending async microtasks a chance to execute.
+ * See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/.
+ */
+function nextTick() {
+  return new Promise(resolve => setTimeout(resolve));
+}
+
 describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;
   let FakeAuthWindow;
@@ -79,7 +89,7 @@ describe('BasicLtiLaunchApp', () => {
     it('attempts to fetch the content URL when mounted', async () => {
       const wrapper = renderLtiLaunchApp();
 
-      await fakeApiCall.returnValues[0];
+      await nextTick();
 
       assert.calledWith(fakeApiCall, {
         authToken: 'dummyAuthToken',
@@ -95,7 +105,7 @@ describe('BasicLtiLaunchApp', () => {
 
       const wrapper = renderLtiLaunchApp();
 
-      await fakeApiCall.returnValues[0];
+      await nextTick();
       wrapper.update();
 
       const iframe = wrapper.find('iframe');
@@ -110,11 +120,7 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.rejects(new ApiError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
-      try {
-        await fakeApiCall.returnValues[0];
-      } catch (e) {
-        // Ignored
-      }
+      await nextTick();
 
       // Verify that an "Authorize" prompt is shown.
       wrapper.update();
@@ -154,11 +160,7 @@ describe('BasicLtiLaunchApp', () => {
         fakeApiCall.rejects(error);
 
         const wrapper = renderLtiLaunchApp();
-        try {
-          await fakeApiCall.returnValues[0];
-        } catch (e) {
-          // Ignored
-        }
+        await nextTick();
 
         // Verify that a "Try again" prompt is shown.
         wrapper.update();
@@ -172,9 +174,7 @@ describe('BasicLtiLaunchApp', () => {
         assert.called(FakeAuthWindow);
 
         // Check that files are fetched after authorization completes.
-        await new Promise(resolve => {
-          setTimeout(resolve, 0);
-        });
+        await nextTick();
         wrapper.update();
         assert.equal(
           wrapper.find('iframe').prop('src'),
