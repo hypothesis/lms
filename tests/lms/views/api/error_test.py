@@ -46,3 +46,13 @@ class TestForbidden:
         result = error.forbidden(pyramid_request)
 
         assert result["message"] == "You're not authorized to view this page"
+
+
+class TestApiError:
+    def test_it(self, pyramid_request):
+        json_data = error.api_error(pyramid_request)
+
+        assert pyramid_request.response.status_code == 500
+        assert json_data == {
+            "message": "A problem occurred while handling this request. Hypothesis has been notified."
+        }
