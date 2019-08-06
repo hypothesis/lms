@@ -82,6 +82,54 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
   });
 
+  it('shows the try again prompt with error details after a failed authorization attempt', async () => {
+    fakeListFiles.rejects(new ApiError('Not authorized', {}));
+
+    const wrapper = renderFilePicker({
+      lmsName: 'Canvas',
+      registeredLmsUrl: 'https://example.com',
+    });
+    assert.called(fakeListFiles);
+
+    try {
+      await fakeListFiles.returnValues[0];
+    } catch (err) {
+      /* unused */
+    }
+
+    wrapper.update();
+
+    // Make an authorization attempt.
+    act(() => {
+      wrapper
+        .find('FakeButton[label="Authorize"]')
+        .props()
+        .onClick();
+    });
+
+    wrapper.update();
+
+    // Close without granting authorization.
+    wrapper
+      .find(FakeDialog)
+      .props()
+      .onCancel();
+
+    wrapper.update();
+
+    assert.isTrue(wrapper.exists('FakeButton[label="Try again"]'));
+
+    const errorDetails = wrapper.find(ErrorDisplay);
+    assert.isTrue(
+      errorDetails
+        .text()
+        .includes(
+          'Failed to authorize with the Canvas instance at https://example.com'
+        )
+    );
+    assert.equal(errorDetails.props().error.message, '');
+  });
+
   [
     {
       description: 'a server error with details',

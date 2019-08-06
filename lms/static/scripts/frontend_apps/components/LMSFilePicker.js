@@ -1,4 +1,4 @@
-import { createElement } from 'preact';
+import { Fragment, createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import propTypes from 'prop-types';
 
@@ -34,11 +34,15 @@ export default function LMSFilePicker({
   authUrl,
   courseId,
   lmsName,
+  registeredLmsUrl,
   onCancel,
   onSelectFile,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
+
+  // Authorization attempt was made. Set after state transitions to "authorizing".
+  const [authorizationAttempted, setAuthorizationAttempted] = useState(false);
 
   // The file within `files` which is currently selected.
   const [selectedFile, selectFile] = useState(null);
@@ -69,6 +73,7 @@ export default function LMSFilePicker({
   // fetch files.
   const authorizeAndFetchFiles = useCallback(async () => {
     setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
+    setAuthorizationAttempted(true);
 
     if (authWindow.current) {
       authWindow.current.focus();
@@ -120,7 +125,12 @@ export default function LMSFilePicker({
           <Button
             key="showAuthWindow"
             onClick={authorizeAndFetchFiles}
-            label={dialogState.state === 'error' ? 'Try again' : 'Authorize'}
+            label={
+              dialogState.state === 'error' ||
+              (dialogState.state === 'authorizing' && authorizationAttempted)
+                ? 'Try again'
+                : 'Authorize'
+            }
           />
         ) : (
           <Button
@@ -138,7 +148,16 @@ export default function LMSFilePicker({
           error={dialogState.error}
         />
       )}
-      {dialogState.state === 'authorizing' && (
+      {dialogState.state === 'authorizing' && authorizationAttempted && (
+        <ErrorDisplay
+          message=<Fragment>
+            <a>{`Failed to authorize with the ${lmsName} instance at `}</a>
+            <a href={`${registeredLmsUrl}`}>{`${registeredLmsUrl}`}</a>
+          </Fragment>
+          error={new Error('')}
+        />
+      )}
+      {dialogState.state === 'authorizing' && !authorizationAttempted && (
         <p>
           To select a file, you must authorize Hypothesis to access your files
           in {lmsName}.
@@ -178,6 +197,11 @@ LMSFilePicker.propTypes = {
    * The name of the LMS to display in API controls, eg. "Canvas".
    */
   lmsName: propTypes.string.isRequired,
+
+  /**
+   * The url of the LMS, eg. "https://foobar.instructure.com".
+   */
+  registeredLmsUrl: propTypes.string.isRequired,
 
   /** Callback invoked if the user cancels file selection. */
   onCancel: propTypes.func.isRequired,

@@ -222,6 +222,9 @@ class BasicLTILaunchViews:
                     "google_developer_key"
                 ],
                 "lmsUrl": self.context.lms_url,
+                "registeredLmsUrl": self.request.find_service(name="ai_getter").lms_url(
+                    oauth_consumer_key
+                ),
             }
         )
 

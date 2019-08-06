@@ -38,6 +38,7 @@ export default function FilePickerApp({
     googleDeveloperKey,
     lmsName,
     lmsUrl,
+    registeredLmsUrl,
     ltiLaunchUrl,
   } = useContext(Config);
 
@@ -135,6 +136,7 @@ export default function FilePickerApp({
           authUrl={authUrl}
           courseId={courseId}
           lmsName={lmsName}
+          registeredLmsUrl={registeredLmsUrl}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
         />

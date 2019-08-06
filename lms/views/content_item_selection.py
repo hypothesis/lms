@@ -80,6 +80,9 @@ def content_item_selection(context, request):
             # needs to pass this URL (which is the URL of the top-most page) to Google
             # Picker, otherwise Picker refuses to launch inside an iframe.
             "lmsUrl": context.lms_url,
+            "registeredLmsUrl": request.find_service(name="ai_getter").lms_url(
+                request.lti_user.oauth_consumer_key
+            ),
         }
     )
 
