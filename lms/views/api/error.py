@@ -41,3 +41,14 @@ def forbidden(request):
 def notfound(request):
     request.response.status_int = 404
     return {"message": _("Endpoint not found")}
+
+
+@exception_view_config(path_info="/api/*", context=Exception, renderer="json")
+def api_error(request):
+    """Fallback error handler for frontend API requests."""
+    request.response.status_int = 500
+
+    # Exception details are not reported here to avoid leaking internal information.
+    return {
+        "message": "A problem occurred while handling this request. Hypothesis has been notified."
+    }
