@@ -3,14 +3,14 @@ import json
 import pytest
 
 from lms.validation import ValidationError
-from lms.validation._api import ApiRecordSubmissionSchema
+from lms.validation._api import APIRecordSubmissionSchema
 
 
-class TestApiRecordSubmissionSchema:
+class TestAPIRecordSubmissionSchema:
     def test_it_parses_request(self, pyramid_request, all_fields):
         pyramid_request.body = json.dumps(all_fields)
 
-        schema = ApiRecordSubmissionSchema(pyramid_request)
+        schema = APIRecordSubmissionSchema(pyramid_request)
         parsed_params = schema.parse()
 
         assert parsed_params == all_fields
@@ -24,7 +24,7 @@ class TestApiRecordSubmissionSchema:
         del all_fields[field]
         pyramid_request.body = json.dumps(all_fields)
 
-        schema = ApiRecordSubmissionSchema(pyramid_request)
+        schema = APIRecordSubmissionSchema(pyramid_request)
 
         with pytest.raises(ValidationError):
             schema.parse()
@@ -36,7 +36,7 @@ class TestApiRecordSubmissionSchema:
         del all_fields[field]
         pyramid_request.body = json.dumps(all_fields)
 
-        schema = ApiRecordSubmissionSchema(pyramid_request)
+        schema = APIRecordSubmissionSchema(pyramid_request)
         schema.parse()
 
     @pytest.fixture

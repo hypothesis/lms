@@ -3,7 +3,7 @@ from datetime import timezone
 
 from pyramid.view import view_config
 
-from lms.validation import ApiRecordSubmissionSchema
+from lms.validation import APIRecordSubmissionSchema
 from lms.services.lti_outcomes import LTIOutcomesRequestParams
 
 
@@ -11,7 +11,7 @@ from lms.services.lti_outcomes import LTIOutcomesRequestParams
     request_method="POST",
     route_name="lti_api.submissions.record",
     renderer="json",
-    schema=ApiRecordSubmissionSchema,
+    schema=APIRecordSubmissionSchema,
 )
 def record_submission(request):
     """
