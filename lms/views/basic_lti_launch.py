@@ -15,7 +15,11 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.views.helpers import via_url
-from lms.validation import BearerTokenSchema, ConfigureModuleItemSchema
+from lms.validation import (
+    BearerTokenSchema,
+    ConfigureModuleItemSchema,
+    URLConfiguredLaunchParamsSchema,
+)
 from lms.views.decorators import (
     upsert_h_user,
     upsert_course_group,
@@ -139,7 +143,7 @@ class BasicLTILaunchViews:
 
         return {}
 
-    @view_config(url_configured=True)
+    @view_config(url_configured=True, schema=URLConfiguredLaunchParamsSchema)
     def url_configured_basic_lti_launch(self):
         """
         Respond to a URL-configured assignment launch.
@@ -151,7 +155,8 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        self._set_via_url(self.request.params["url"])
+        url = self.request.parsed_params["url"]
+        self._set_via_url(url)
 
         return {}
 
