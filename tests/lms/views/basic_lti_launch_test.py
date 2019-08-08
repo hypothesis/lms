@@ -136,7 +136,8 @@ class TestURLConfiguredBasicLTILaunch:
     def test_it_configures_via_url(
         self, context, pyramid_request, lti_outcome_params, via_url
     ):
-        pyramid_request.params = {"url": "TEST_URL", **lti_outcome_params}
+        pyramid_request.params.update(**lti_outcome_params)
+        pyramid_request.parsed_params = {"url": "TEST_URL"}
 
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
 

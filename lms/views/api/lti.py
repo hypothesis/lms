@@ -55,6 +55,14 @@ def record_submission(request):
     # theory require a grade).
     current_score = lti_outcomes_client.read_result(outcome_request_params)
     if current_score is None:
+        # **WARNING**
+        #
+        # Canvas has a bug with handling of percent-encoded characters in the
+        # the SpeedGrader launch URL. Code that responds to the launch will
+        # need to handle this for fields that may contain such chars (eg.
+        # the "url" field).
+        #
+        # See https://github.com/instructure/canvas-lms/issues/1486
         speedgrader_launch_params = {"focused_user": parsed_params["h_username"]}
         if parsed_params.get("document_url"):
             speedgrader_launch_params["url"] = parsed_params.get("document_url")
