@@ -192,14 +192,13 @@ def _send_request(outcomes_request_params, pox_body):
     )
 
     # Execute request and check HTTP status.
-    response = requests.post(
-        url=outcomes_request_params.lis_outcome_service_url,
-        data=xml_body,
-        headers={"Content-Type": "application/xml"},
-        auth=oauth_client,
-    )
-
     try:
+        response = requests.post(
+            url=outcomes_request_params.lis_outcome_service_url,
+            data=xml_body,
+            headers={"Content-Type": "application/xml"},
+            auth=oauth_client,
+        )
         response.raise_for_status()
     except RequestException as err:
         raise ExternalRequestError(
