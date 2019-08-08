@@ -3,6 +3,7 @@ from xml.etree import ElementTree
 
 from jinja2 import Template
 import requests
+from requests import RequestException
 from requests_oauthlib import OAuth1
 
 from lms.services.exceptions import ExternalRequestError, ServiceError
@@ -84,19 +85,13 @@ class LTIOutcomesRequestParams(NamedTuple):
     """Common parameters used by all LTI Outcomes Management requests."""
 
     consumer_key: str
-    """
-    OAuth 1.0 consumer key used to sign the request.
-    """
+    """OAuth 1.0 consumer key used to sign the request."""
 
     shared_secret: str
-    """
-    OAuth 1.0 shared secret used to sign the request.
-    """
+    """OAuth 1.0 shared secret used to sign the request."""
 
     lis_outcome_service_url: str
-    """
-    URL to submit requests to, provided by the LMS during an LTI launch.
-    """
+    """URL to submit requests to, provided by the LMS during an LTI launch."""
 
     lis_result_sourcedid: str
     """
@@ -117,7 +112,7 @@ class LTIOutcomesClient:
     def __init__(self, _context, request):
         pass
 
-    def read_result(self, outcomes_request_params):  # noqa
+    def read_result(self, outcomes_request_params):  # pylint:disable=no-self-use
         """
         Return the last-submitted score for a given submission.
 
@@ -139,7 +134,7 @@ class LTIOutcomesClient:
         except (ValueError, TypeError):
             return None
 
-    def record_result(  # noqa
+    def record_result(  # pylint:disable=no-self-use
         self,
         outcomes_request_params,
         score=None,
@@ -149,14 +144,15 @@ class LTIOutcomesClient:
         """
         Record a score or grading view launch URL for an assignment in the LMS.
 
-        :param score:
+        :arg score:
             Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
-        :param lti_launch_url:
+        :arg lti_launch_url:
             A URL where the student's work on this submission can be viewed.
             This is only used in Canvas.
-        :param submitted_at:
+        :arg submitted_at:
+        :type datetime.datetime:
             A `datetime.datetime` that indicates when the submission was created.
             This is only used in Canvas and is displayed in the SpeedGrader
             as the submission date.
@@ -177,7 +173,7 @@ def _send_request(outcomes_request_params, pox_body):
     """
     Send a signed request to an LMS's Outcome Management Service endpoint.
 
-    :param pox_body: The content of the `imsx_POXBody` element in the request
+    :arg pox_body: The content of the `imsx_POXBody` element in the request
     :return: Parsed XML response
     :rtype: ElementTree.Element
     """
@@ -205,18 +201,18 @@ def _send_request(outcomes_request_params, pox_body):
 
     try:
         response.raise_for_status()
-    except Exception as e:
+    except RequestException as err:
         raise ExternalRequestError(
             "Error calling LTI Outcomes service", response
-        ) from e
+        ) from err
 
     # Parse response and check status code embedded in XML.
     try:
         xml = ElementTree.fromstring(response.text)
-    except ElementTree.ParseError as e:
+    except ElementTree.ParseError as err:
         raise ExternalRequestError(
             "Unable to parse XML response from LTI Outcomes service", response
-        ) from e
+        ) from err
 
     status = find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
     if status is None:
