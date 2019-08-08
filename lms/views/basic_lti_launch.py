@@ -47,6 +47,27 @@ class BasicLTILaunchViews:
         # Configure the front-end mini-app to run.
         self.context.js_config.update({"mode": "basic-lti-launch"})
 
+        # Add config used by frontend to call `record_submission` API.
+        params = self.request.params
+        if (
+            # The outcome reporting params are typically only available when
+            # students (not teachers) launch an assignment.
+            params.get("lis_result_sourcedid")
+            and params.get("lis_outcome_service_url")
+            # This feature is initially restricted to Canvas.
+            and params.get("tool_consumer_info_product_family_code") == "canvas"
+            and request.feature("speedgrader")
+        ):
+            self.context.js_config["submissionParams"] = {}
+
+            self._set_submission_param("h_username", context.h_username)
+            self._set_submission_param(
+                "lis_result_sourcedid", params.get("lis_result_sourcedid")
+            )
+            self._set_submission_param(
+                "lis_outcome_service_url", params.get("lis_outcome_service_url")
+            )
+
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
@@ -80,6 +101,8 @@ class BasicLTILaunchViews:
                 )
             }
         )
+
+        self._set_submission_param("canvas_file_id", file_id)
 
         return {}
 
@@ -237,3 +260,10 @@ class BasicLTILaunchViews:
         self.context.js_config["urls"].update(
             {"via_url": via_url(self.request, document_url)}
         )
+        self._set_submission_param("document_url", document_url)
+
+    def _set_submission_param(self, name, value):
+        """Update config for frontend's calls to `report_submisssion` API."""
+
+        if "submissionParams" in self.context.js_config:
+            self.context.js_config["submissionParams"][name] = value

@@ -26,6 +26,7 @@ export default function BasicLtiLaunchApp() {
     authToken,
     authUrl,
     lmsName,
+    submissionParams,
     urls: {
       // Content URL to show in the iframe.
       via_url: viaUrl,
@@ -36,7 +37,7 @@ export default function BasicLtiLaunchApp() {
     },
   } = useContext(Config);
 
-  const [{ state, contentUrl, error }, setState] = useState({
+  const [{ state, contentUrl, failedAction, error }, setState] = useState({
     // The current state of the screen.
     // One of "fetching", "fetched-url", "authorizing" or "error".
     //
@@ -49,6 +50,10 @@ export default function BasicLtiLaunchApp() {
 
     // Details of last error. Set when state is "error".
     error: null,
+
+    // The action that failed, leading to display of an error.
+    // Set when state is "error" and is one of "fetch-url" or "report-submission".
+    failedAction: null,
   });
 
   /**
@@ -75,7 +80,7 @@ export default function BasicLtiLaunchApp() {
       if (e instanceof ApiError && !e.errorMessage) {
         setState({ state: 'authorizing' });
       } else {
-        setState({ state: 'error', error: e });
+        setState({ state: 'error', error: e, failedAction: 'fetch-url' });
       }
     }
   }, [authToken, viaUrlCallback]);
@@ -86,6 +91,38 @@ export default function BasicLtiLaunchApp() {
   useEffect(() => {
     fetchContentUrl();
   }, [fetchContentUrl]);
+
+  // Report a submission to the LMS, with the LMS-provided metadata needed for
+  // later grading of the assignment.
+  const reportSubmission = useCallback(async () => {
+    // If a teacher launches an assignment or the LMS does not support reporting
+    // outcomes or grading is not enabled for the assignment, then no submission
+    // URL will be available.
+    if (!submissionParams) {
+      return;
+    }
+
+    // Don't report a submission until the URL has been successfully fetched.
+    if (state !== 'fetched-url') {
+      return;
+    }
+
+    try {
+      await apiCall({
+        authToken,
+        path: '/api/lti/submissions',
+        data: submissionParams,
+      });
+    } catch (e) {
+      // If reporting the submission failed, replace the content with an error.
+      // This avoids the student trying to complete the assignment without
+      // knowing that there was a problem, and the teacher then not seeing a
+      // submission.
+      setState({ state: 'error', error: e, failedAction: 'report-submission' });
+    }
+  }, [authToken, state, submissionParams]);
+
+  useEffect(reportSubmission, [reportSubmission]);
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
@@ -137,14 +174,18 @@ export default function BasicLtiLaunchApp() {
         <div className="BasicLtiLaunchApp__form">
           <h1 className="heading">Something went wrong</h1>
           <ErrorDisplay
-            message="There was a problem fetching this file"
+            message="There was a problem loading this Hypothesis assignment"
             error={error}
           />
-          <Button
-            onClick={authorizeAndFetchUrl}
-            className="BasicLtiLaunchApp__button"
-            label="Try again"
-          />
+          {failedAction === 'fetch-url' ? (
+            <Button
+              onClick={authorizeAndFetchUrl}
+              className="BasicLtiLaunchApp__button"
+              label="Try again"
+            />
+          ) : (
+            <b>To fix this problem, try reloading the page.</b>
+          )}
         </div>
       )}
     </Fragment>
