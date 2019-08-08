@@ -1,14 +1,11 @@
 import datetime
 import jwt
 
-from unittest import mock
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms import resources
-from lms import models
-from lms.services import ConsumerKeyError
 
 
 class TestLTILaunchResource:
@@ -341,6 +338,11 @@ class TestLTILaunchResource:
         BearerTokenSchema.assert_not_called()
         assert "authToken" not in js_config
 
+    def test_views_can_mutate_js_config(self, lti_launch):
+        lti_launch.js_config.update({"a_key": "a_value"})
+
+        assert lti_launch.js_config["a_key"] == "a_value"
+
     def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
         self, pyramid_request
     ):
@@ -412,6 +414,11 @@ class TestLTILaunchResource:
         ai_getter.provisioning_enabled.return_value = False
 
         assert lti_launch.hypothesis_config == {}
+
+    def test_views_can_mutate_hypothesis_config(self, lti_launch):
+        lti_launch.hypothesis_config.update({"a_key": "a_value"})
+
+        assert lti_launch.hypothesis_config["a_key"] == "a_value"
 
     def test_rpc_server_config(self, lti_launch):
         assert lti_launch.rpc_server_config == {

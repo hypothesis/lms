@@ -68,6 +68,16 @@ class TestBasicLTILaunch:
 
         assert "submissionParams" not in context.js_config
 
+    def test_it_configures_client_to_focus_on_user_if_param_set(
+        self, context, pyramid_request
+    ):
+        context.hypothesis_config = {}
+        pyramid_request.params.update({"focused_user": "user123"})
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        assert context.hypothesis_config["query"] == "user:user123"
+
 
 class TestCanvasFileBasicLTILaunch:
     def test_it_configures_frontend(self, context, pyramid_request):
