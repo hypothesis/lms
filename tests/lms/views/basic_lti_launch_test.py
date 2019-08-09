@@ -3,6 +3,8 @@ from unittest import mock
 import pytest
 
 from lms.resources import LTILaunchResource
+from lms.services import HAPIError
+from lms.services.hapi import HypothesisAPIService
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
@@ -69,14 +71,41 @@ class TestBasicLTILaunch:
         assert "submissionParams" not in context.js_config
 
     def test_it_configures_client_to_focus_on_user_if_param_set(
-        self, context, pyramid_request
+        self, context, pyramid_request, hapi_service
     ):
         context.hypothesis_config = {}
         pyramid_request.params.update({"focused_user": "user123"})
+        hapi_service.get().json.return_value = {"display_name": "Jim Smith"}
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        assert context.hypothesis_config["query"] == "user:user123"
+        hapi_service.get.assert_called_with(path="users/acct:user123@TEST_AUTHORITY")
+        assert context.hypothesis_config["focus"] == {
+            "user": {"username": "user123", "displayName": "Jim Smith"}
+        }
+
+    def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
+        self, context, pyramid_request, hapi_service
+    ):
+        context.hypothesis_config = {}
+        pyramid_request.params.update({"focused_user": "user123"})
+        hapi_service.get.side_effect = HAPIError("User does not exist")
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        hapi_service.get.assert_called_with(path="users/acct:user123@TEST_AUTHORITY")
+        assert context.hypothesis_config["focus"] == {
+            "user": {
+                "username": "user123",
+                "displayName": "(Couldn't fetch student name)",
+            }
+        }
+
+    @pytest.fixture
+    def hapi_service(self, pyramid_config):
+        svc = mock.create_autospec(HypothesisAPIService, instance=True)
+        pyramid_config.register_service(svc, name="hapi")
+        return svc
 
 
 class TestCanvasFileBasicLTILaunch:
