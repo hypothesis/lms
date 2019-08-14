@@ -4,3 +4,4 @@
 pip-tools
 pyramid_debugtoolbar
 pyramid_ipython
+honcho

@@ -6,7 +6,12 @@ help:
 	@echo "make help              Show this help message"
 	@echo 'make services          Run the services that `make dev` requires'
 	@echo "                       (Postgres) in Docker"
-	@echo "make dev               Run the app in the development server"
+	@echo "make dev               Run the entire app (web server and other processes)"
+	@echo "make web               Run the web server on its own (useful for debugging the "
+	@echo "                       Python code with pdb)"
+	@echo "make assets            Run the assets build on its own, with live reloading "
+	@echo '                       (goes well with `make web` and useful for debugging '
+	@echo "                       gulp)"
 	@echo "make shell             Launch a Python shell in the dev environment"
 	@echo "make sql               Connect to the dev database with a psql shell"
 	@echo "make lint              Run the code linter(s) and print any warnings"
@@ -29,7 +34,15 @@ services:
 
 .PHONY: dev
 dev: build/manifest.json
+	tox -q -e py36-dev -- honcho start ${processes}
+
+.PHONY: web
+web:
 	tox -q -e py36-dev
+
+.PHONY: assets
+assets:
+	$(GULP) watch
 
 .PHONY: shell
 shell:
