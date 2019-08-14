@@ -14,6 +14,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
+from lms.services import HAPIError
 from lms.views.helpers import via_url
 from lms.validation import (
     BearerTokenSchema,
@@ -76,7 +77,7 @@ class BasicLTILaunchViews:
         # a particular user, translate that into Hypothesis client configuration.
         focused_user = self.request.params.get("focused_user")
         if focused_user:
-            self.context.hypothesis_config.update({"query": f"user:{focused_user}"})
+            self._set_focused_user(focused_user)
 
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
@@ -278,3 +279,20 @@ class BasicLTILaunchViews:
 
         if "submissionParams" in self.context.js_config:
             self.context.js_config["submissionParams"][name] = value
+
+    def _set_focused_user(self, username):
+        """Configure the Hypothesis client to focus on a particular user."""
+
+        h_api_client = self.request.find_service(name="h_api_client")
+
+        try:
+            display_name = h_api_client.get_user(username).display_name
+        except HAPIError:
+            # If we couldn't fetch the student's name for any reason, fall back
+            # to a placeholder rather than giving up entirely, since the rest
+            # of the experience can still work.
+            display_name = "(Couldn't fetch student name)"
+
+        self.context.hypothesis_config.update(
+            {"focus": {"user": {"username": username, "displayName": display_name}}}
+        )
