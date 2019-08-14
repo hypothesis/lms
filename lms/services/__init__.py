@@ -30,6 +30,9 @@ def includeme(config):
         "lms.services.hapi.HypothesisAPIService", name="hapi"
     )
     config.register_service_factory(
+        "lms.services.h_operations.HypothesisOperationsService", name="h_ops"
+    )
+    config.register_service_factory(
         "lms.services.application_instance_getter.ApplicationInstanceGetter",
         name="ai_getter",
     )

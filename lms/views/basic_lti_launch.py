@@ -283,13 +283,10 @@ class BasicLTILaunchViews:
     def _set_focused_user(self, username):
         """Configure the Hypothesis client to focus on a particular user."""
 
-        authority = self.request.registry.settings["h_authority"]
-        focused_userid = f"acct:{username}@{authority}"
-        hapi_service = self.request.find_service(name="hapi")
+        hops_svc = self.request.find_service(name="h_ops")
 
         try:
-            user_info = hapi_service.get(path=f"users/{focused_userid}").json()
-            display_name = user_info["display_name"]
+            display_name = hops_svc.fetch_user(username).display_name
         except HAPIError:
             # If we couldn't fetch the student's name for any reason, fall back
             # to a placeholder rather than giving up entirely, since the rest
