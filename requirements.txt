@@ -17,7 +17,7 @@ markupsafe==1.0           # via jinja2, mako, pyramid-jinja2
 marshmallow==2.18.0       # via webargs
 newrelic==5.0.2.126
 oauth2==1.9.0.post1       # via pylti
-oauthlib==3.0.1           # via requests-oauthlib
+oauthlib==3.1.0           # via requests-oauthlib
 pastedeploy==1.5.2        # via plaster-pastedeploy
 plaster-pastedeploy==0.4.2  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
