@@ -8,9 +8,8 @@ class HAPIClient:
     """
     High-level h API service.
 
-    The ``hapi`` service provides a low-level client for the Hypothesis "h"
-    API. This service provides higher-level operations (eg. fetching a user)
-    on top of that client.
+    This service supports high-level operations (eg. fetching a user) on h
+    resources via the low-level "hapi" client.
     """
 
     def __init__(self, _context, request):
@@ -19,7 +18,7 @@ class HAPIClient:
 
     def get_user(self, username):
         """
-        Fetch an `HUser` given their username`.
+        Fetch an `HUser` given their username.
 
         :raise HAPIError: When the request to the h API fails for any reason
         :rtype: HUser
