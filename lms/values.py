@@ -34,15 +34,15 @@ class HUser(NamedTuple):
     This should always match ``settings["h_authority"]``
     """
 
-    display_name: str
-    """The display name for the user, generated from the LMS user's display name."""
-
     username: str
     """
     Generated username for h user.
 
     This is derived from the LMS userid.
     """
+
+    display_name: str = ""
+    """The display name for the user, generated from the LMS user's display name."""
 
     @property
     def userid(self):

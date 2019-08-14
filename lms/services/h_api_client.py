@@ -1,4 +1,3 @@
-from lms.services import HAPIError
 from lms.values import HUser
 
 
@@ -19,15 +18,20 @@ class HAPIClient:
         self._request = request
 
     def get_user(self, username):
-        authority = self._request.registry.settings["h_authority"]
-        userid = f"acct:{username}@{authority}"
+        """
+        Fetch an `HUser` given their username`.
 
-        try:
-            user_info = self._hapi_svc.get(path=f"users/{userid}").json()
-            return HUser(
-                authority=authority,
-                username=username,
-                display_name=user_info["display_name"],
-            )
-        except HAPIError as err:
-            raise err
+        :raise HAPIError: When the request to the h API fails for any reason
+        :rtype: HUser
+        """
+        authority = self._request.registry.settings["h_authority"]
+        userid = HUser(authority, username).userid
+
+        # nb. Raises `HAPIError` if the request fails for any reason.
+        user_info = self._hapi_svc.get(path=f"users/{userid}").json()
+
+        return HUser(
+            authority=authority,
+            username=username,
+            display_name=user_info["display_name"],
+        )
