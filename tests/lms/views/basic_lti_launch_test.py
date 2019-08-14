@@ -4,7 +4,7 @@ import pytest
 
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
-from lms.services.h_operations import HypothesisOperationsService
+from lms.services.h_api_client import HAPIClient
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 from lms.values import HUser
 
@@ -72,31 +72,31 @@ class TestBasicLTILaunch:
         assert "submissionParams" not in context.js_config
 
     def test_it_configures_client_to_focus_on_user_if_param_set(
-        self, context, pyramid_request, hops_service
+        self, context, pyramid_request, h_api_client
     ):
         context.hypothesis_config = {}
         pyramid_request.params.update({"focused_user": "user123"})
-        hops_service.fetch_user.return_value = HUser(
+        h_api_client.get_user.return_value = HUser(
             authority="TEST_AUTHORITY", username="user123", display_name="Jim Smith"
         )
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        hops_service.fetch_user.assert_called_once_with("user123")
+        h_api_client.get_user.assert_called_once_with("user123")
         assert context.hypothesis_config["focus"] == {
             "user": {"username": "user123", "displayName": "Jim Smith"}
         }
 
     def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
-        self, context, pyramid_request, hops_service
+        self, context, pyramid_request, h_api_client
     ):
         context.hypothesis_config = {}
         pyramid_request.params.update({"focused_user": "user123"})
-        hops_service.fetch_user.side_effect = HAPIError("User does not exist")
+        h_api_client.get_user.side_effect = HAPIError("User does not exist")
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        hops_service.fetch_user.assert_called_once_with("user123")
+        h_api_client.get_user.assert_called_once_with("user123")
         assert context.hypothesis_config["focus"] == {
             "user": {
                 "username": "user123",
@@ -105,9 +105,9 @@ class TestBasicLTILaunch:
         }
 
     @pytest.fixture
-    def hops_service(self, pyramid_config):
-        svc = mock.create_autospec(HypothesisOperationsService, instance=True)
-        pyramid_config.register_service(svc, name="h_ops")
+    def h_api_client(self, pyramid_config):
+        svc = mock.create_autospec(HAPIClient, instance=True)
+        pyramid_config.register_service(svc, name="h_api_client")
         return svc
 
 

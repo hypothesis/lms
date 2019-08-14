@@ -283,10 +283,10 @@ class BasicLTILaunchViews:
     def _set_focused_user(self, username):
         """Configure the Hypothesis client to focus on a particular user."""
 
-        hops_svc = self.request.find_service(name="h_ops")
+        h_api_client = self.request.find_service(name="h_api_client")
 
         try:
-            display_name = hops_svc.fetch_user(username).display_name
+            display_name = h_api_client.get_user(username).display_name
         except HAPIError:
             # If we couldn't fetch the student's name for any reason, fall back
             # to a placeholder rather than giving up entirely, since the rest

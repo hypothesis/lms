@@ -2,10 +2,10 @@ from lms.services import HAPIError
 from lms.values import HUser
 
 
-__all__ = ["HypothesisOperationsService"]
+__all__ = ["HAPIClient"]
 
 
-class HypothesisOperationsService:
+class HAPIClient:
     """
     High-level h API service.
 
@@ -15,15 +15,15 @@ class HypothesisOperationsService:
     """
 
     def __init__(self, _context, request):
-        self.hapi_svc = request.find_service(name="hapi")
-        self.request = request
+        self._hapi_svc = request.find_service(name="hapi")
+        self._request = request
 
-    def fetch_user(self, username):
-        authority = self.request.registry.settings["h_authority"]
+    def get_user(self, username):
+        authority = self._request.registry.settings["h_authority"]
         userid = f"acct:{username}@{authority}"
 
         try:
-            user_info = self.hapi_svc.get(path=f"users/{userid}").json()
+            user_info = self._hapi_svc.get(path=f"users/{userid}").json()
             return HUser(
                 authority=authority,
                 username=username,

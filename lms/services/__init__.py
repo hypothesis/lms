@@ -30,7 +30,7 @@ def includeme(config):
         "lms.services.hapi.HypothesisAPIService", name="hapi"
     )
     config.register_service_factory(
-        "lms.services.h_operations.HypothesisOperationsService", name="h_ops"
+        "lms.services.h_api_client.HAPIClient", name="h_api_client"
     )
     config.register_service_factory(
         "lms.services.application_instance_getter.ApplicationInstanceGetter",
