@@ -8,10 +8,10 @@ from lms.services import HAPIError
 from lms.services import HAPINotFoundError
 
 
-__all__ = ["HypothesisAPIService"]
+__all__ = ["HAPIRequests"]
 
 
-class HypothesisAPIService:
+class HAPIRequests:
     """
     Low-level API service.
 
@@ -24,7 +24,7 @@ class HypothesisAPIService:
 
     def __init__(self, _context, request):
         """
-        Return a new HypothesisAPIService object.
+        Return a new HAPIRequests object.
 
         :arg _context: the Pyramid context resource
         :arg request: the Pyramid request

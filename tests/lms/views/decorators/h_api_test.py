@@ -8,7 +8,7 @@ from requests import Response
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
 from lms.views.decorators import h_api
-from lms.services.hapi import HypothesisAPIService
+from lms.services.h_api_requests import HAPIRequests
 from lms.resources import LTILaunchResource
 from lms.values import LTIUser
 
@@ -322,12 +322,12 @@ def wrapped():
 
 @pytest.fixture
 def hapi_svc(patch, pyramid_config):
-    hapi_svc = mock.create_autospec(HypothesisAPIService, spec_set=True, instance=True)
+    hapi_svc = mock.create_autospec(HAPIRequests, spec_set=True, instance=True)
     hapi_svc.patch.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )
     hapi_svc.post.return_value = mock.create_autospec(
         Response, instance=True, status_code=200, reason="OK", text=""
     )
-    pyramid_config.register_service(hapi_svc, name="hapi")
+    pyramid_config.register_service(hapi_svc, name="h_api_requests")
     return hapi_svc

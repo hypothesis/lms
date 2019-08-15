@@ -13,7 +13,7 @@ class HAPIClient:
     """
 
     def __init__(self, _context, request):
-        self._hapi_svc = request.find_service(name="hapi")
+        self._h_api = request.find_service(name="h_api_requests")
         self._request = request
 
     def get_user(self, username):
@@ -27,7 +27,7 @@ class HAPIClient:
         userid = HUser(authority, username).userid
 
         # nb. Raises `HAPIError` if the request fails for any reason.
-        user_info = self._hapi_svc.get(path=f"users/{userid}").json()
+        user_info = self._h_api.get(path=f"users/{userid}").json()
 
         return HUser(
             authority=authority,
