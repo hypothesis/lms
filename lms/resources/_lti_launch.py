@@ -8,6 +8,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms.validation import BearerTokenSchema
+from lms.values import HUser
 
 
 __all__ = ["LTILaunchResource"]
@@ -36,7 +37,21 @@ class LTILaunchResource:
         self._js_config = None
 
     @property
-    def h_display_name(self):
+    def h_user(self):
+        """
+        Return the h user for the current request.
+
+        :raise HTTPBadRequest: if any LTI params needed for generating the
+          h user are missing
+        """
+        return HUser(
+            authority=self._authority,
+            username=self._h_username,
+            display_name=self._h_display_name,
+        )
+
+    @property
+    def _h_display_name(self):
         """Return the h user display name for the current request."""
         full_name = (self._request.params.get("lis_person_name_full") or "").strip()
         given_name = (self._request.params.get("lis_person_name_given") or "").strip()
@@ -129,7 +144,7 @@ class LTILaunchResource:
         return self._get_param("user_id")
 
     @property
-    def h_username(self):
+    def _h_username(self):
         """
         Return the h username for the current request.
 
@@ -140,16 +155,6 @@ class LTILaunchResource:
         hash_object.update(self.h_provider.encode())
         hash_object.update(self.h_provider_unique_id.encode())
         return hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
-
-    @property
-    def h_userid(self):
-        """
-        Return the h userid for the current request.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-          userid is missing
-        """
-        return f"acct:{self.h_username}@{self._authority}"
 
     @property
     def js_config(self):
@@ -206,7 +211,7 @@ class LTILaunchResource:
             claims = {
                 "aud": audience,
                 "iss": client_id,
-                "sub": self.h_userid,
+                "sub": self.h_user.userid,
                 "nbf": now,
                 "exp": now + datetime.timedelta(minutes=5),
             }

@@ -12,6 +12,7 @@ from lms.resources import LTILaunchResource
 from lms.services.hapi import HypothesisAPIService
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
+from lms.values import HUser
 
 
 class TestAPIRequest:
@@ -145,7 +146,7 @@ class TestAPIRequest:
             LTILaunchResource,
             spec_set=True,
             instance=True,
-            h_userid="acct:seanh@TEST_AUTHORITY",
+            h_user=HUser(authority="TEST_AUTHORITY", username="seanh"),
         )
         return context
 

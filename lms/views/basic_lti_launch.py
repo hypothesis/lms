@@ -65,7 +65,7 @@ class BasicLTILaunchViews:
         ):
             self.context.js_config["submissionParams"] = {}
 
-            self._set_submission_param("h_username", context.h_username)
+            self._set_submission_param("h_username", context.h_user.username)
             self._set_submission_param(
                 "lis_result_sourcedid", params.get("lis_result_sourcedid")
             )

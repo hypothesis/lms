@@ -10,7 +10,7 @@ from lms.services import HAPINotFoundError
 from lms.views.decorators import h_api
 from lms.services.hapi import HypothesisAPIService
 from lms.resources import LTILaunchResource
-from lms.values import LTIUser
+from lms.values import HUser, LTIUser
 
 
 @pytest.mark.usefixtures("hapi_svc")
@@ -62,10 +62,8 @@ class TestUpsertHUser:
 
         hapi_svc.post.assert_not_called()
 
-    def test_it_raises_if_h_username_raises(
-        self, upsert_h_user, context, pyramid_request
-    ):
-        type(context).h_username = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
+    def test_it_raises_if_h_user_raises(self, upsert_h_user, context, pyramid_request):
+        type(context).h_user = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
             upsert_h_user(context, pyramid_request)
@@ -289,11 +287,13 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_display_name="test_display_name",
+        h_user=HUser(
+            authority="TEST_AUTHORITY",
+            username="test_username",
+            display_name="test_display_name",
+        ),
         h_groupid="test_groupid",
         h_group_name="test_group_name",
-        h_username="test_username",
-        h_userid="acct:test_username@TEST_AUTHORITY",
         h_provider="test_provider",
         h_provider_unique_id="test_provider_unique_id",
         provisioning_enabled=True,

@@ -28,8 +28,8 @@ def upsert_h_user(wrapped):
         hapi_svc = request.find_service(name="hapi")
 
         user_data = {
-            "username": context.h_username,
-            "display_name": context.h_display_name,
+            "username": context.h_user.username,
+            "display_name": context.h_user.display_name,
             "authority": request.registry.settings["h_authority"],
             "identities": [
                 {
@@ -42,8 +42,8 @@ def upsert_h_user(wrapped):
         try:
             try:
                 hapi_svc.patch(
-                    f"users/{context.h_username}",
-                    {"display_name": context.h_display_name},
+                    f"users/{context.h_user.username}",
+                    {"display_name": context.h_user.display_name},
                 )
             except HAPINotFoundError:
                 # Call the h API to create the user in h if it doesn't exist already.
@@ -96,7 +96,7 @@ def upsert_course_group(wrapped):
                     hapi_svc.put(
                         f"groups/{context.h_groupid}",
                         {"groupid": context.h_groupid, "name": context.h_group_name},
-                        context.h_userid,
+                        context.h_user.userid,
                     )
                 else:
                     raise HTTPBadRequest("Instructor must launch assignment first.")
@@ -126,7 +126,7 @@ def add_user_to_group(wrapped):
 
         try:
             request.find_service(name="hapi").post(
-                f"groups/{context.h_groupid}/members/{context.h_userid}"
+                f"groups/{context.h_groupid}/members/{context.h_user.userid}"
             )
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
