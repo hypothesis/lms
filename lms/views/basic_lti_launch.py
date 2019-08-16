@@ -61,7 +61,6 @@ class BasicLTILaunchViews:
             and params.get("lis_outcome_service_url")
             # This feature is initially restricted to Canvas.
             and params.get("tool_consumer_info_product_family_code") == "canvas"
-            and request.feature("speedgrader")
         ):
             self.context.js_config["submissionParams"] = {}
 
