@@ -260,10 +260,6 @@ class LTILaunchResource:
         Google Picker within an iframe we need to pass it the top-level URL of
         the tab the iframe is within, otherwise Google Picker refuses to launch.
 
-        FIXME: This doesn't work with assignments that have been configured to
-        open in a new tab or window, when the top-level URL will be
-        https://lms.hypothes.is/... See https://github.com/hypothesis/lms/issues/421
-
         FIXME: Getting this from the custom_canvas_api_domain param isn't quite
         right. This is the domain of the Canvas API which isn't the same thing
         as the domain of the Canvas website (although in practice it always
