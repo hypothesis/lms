@@ -25,7 +25,7 @@ def upsert_h_user(wrapped):
         if not context.provisioning_enabled:
             return wrapped(context, request)
 
-        hapi_svc = request.find_service(name="hapi")
+        hapi_svc = request.find_service(name="h_api_requests")
 
         user_data = {
             "username": context.h_username,
@@ -77,7 +77,7 @@ def upsert_course_group(wrapped):
         if not context.provisioning_enabled:
             return wrapped(context, request)
 
-        hapi_svc = request.find_service(name="hapi")
+        hapi_svc = request.find_service(name="h_api_requests")
 
         is_instructor = any(
             role in request.lti_user.roles.lower()
@@ -125,7 +125,7 @@ def add_user_to_group(wrapped):
             return wrapped(context, request)
 
         try:
-            request.find_service(name="hapi").post(
+            request.find_service(name="h_api_requests").post(
                 f"groups/{context.h_groupid}/members/{context.h_userid}"
             )
         except HAPIError as err:

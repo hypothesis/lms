@@ -27,7 +27,7 @@ __all__ = (
 
 def includeme(config):
     config.register_service_factory(
-        "lms.services.hapi.HypothesisAPIService", name="hapi"
+        "lms.services.h_api_requests.HAPIRequests", name="h_api_requests"
     )
     config.register_service_factory(
         "lms.services.h_api_client.HAPIClient", name="h_api_client"

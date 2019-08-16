@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.services import HAPIError
-from lms.services.hapi import HypothesisAPIService
+from lms.services.h_api_requests import HAPIRequests
 from lms.services.h_api_client import HAPIClient
 from lms.values import HUser
 
@@ -35,6 +35,6 @@ class TestHAPIClient:
 
     @pytest.fixture
     def h_api(self, pyramid_config):
-        svc = mock.create_autospec(HypothesisAPIService, instance=True)
-        pyramid_config.register_service(svc, name="hapi")
+        svc = mock.create_autospec(HAPIRequests, instance=True)
+        pyramid_config.register_service(svc, name="h_api_requests")
         return svc
