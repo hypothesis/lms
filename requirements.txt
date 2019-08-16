@@ -43,7 +43,7 @@ urllib3==1.25.3           # via requests, sentry-sdk
 venusian==1.2.0           # via pyramid
 webargs==5.4.0
 webob==1.8.5              # via pyramid
-wired==0.2                # via pyramid-services
+wired==0.2.1              # via pyramid-services
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
 zope.interface==4.4.3     # via pyramid, pyramid-services, transaction, wired, zope.sqlalchemy
 zope.sqlalchemy==0.7.7
