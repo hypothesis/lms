@@ -9,7 +9,7 @@ from requests import Response
 from requests import TooManyRedirects
 
 from lms.resources import LTILaunchResource
-from lms.services.hapi import HypothesisAPIService
+from lms.services.h_api_requests import HAPIRequests
 from lms.services import HAPIError
 from lms.services import HAPINotFoundError
 from lms.values import HUser
@@ -26,11 +26,11 @@ class TestAPIRequest:
         del pyramid_request.registry.settings[setting]
 
         with pytest.raises(KeyError, match=setting):
-            HypothesisAPIService(None, pyramid_request)
+            HAPIRequests(None, pyramid_request)
 
     @pytest.mark.parametrize("verb", ["DELETE", "GET", "PATCH", "POST", "PUT"])
     def test_it_sends_requests_to_the_h_api(self, pyramid_request, requests, svc, verb):
-        # Retrieve the method to call, e.g. HypothesisAPIService.delete() or .get().
+        # Retrieve the method to call, e.g. HAPIRequests.delete() or .get().
         method = getattr(svc, verb.lower())
 
         method("path")
@@ -152,8 +152,8 @@ class TestAPIRequest:
 
     @pytest.fixture(autouse=True)
     def requests(self, patch):
-        return patch("lms.services.hapi.requests")
+        return patch("lms.services.h_api_requests.requests")
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
-        return HypothesisAPIService(context, pyramid_request)
+        return HAPIRequests(context, pyramid_request)

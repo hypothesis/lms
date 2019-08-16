@@ -61,16 +61,6 @@ class TestBasicLTILaunch:
 
         assert "submissionParams" not in context.js_config
 
-    def test_it_doesnt_add_report_submission_config_if_speedgrader_flag_off(
-        self, context, pyramid_request, lti_outcome_params
-    ):
-        pyramid_request.feature = lambda _: False
-        pyramid_request.params.update(lti_outcome_params)
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config
-
     def test_it_configures_client_to_focus_on_user_if_param_set(
         self, context, pyramid_request, h_api_client
     ):
@@ -314,10 +304,3 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
-
-
-@pytest.fixture
-def pyramid_request(pyramid_request):
-    features = {"speedgrader": True}
-    pyramid_request.feature = features.get
-    return pyramid_request
