@@ -26,7 +26,7 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
 
         assert context.js_config["submissionParams"] == {
-            "h_username": context.h_username,
+            "h_username": context.h_user.username,
             "lis_result_sourcedid": "modelstudent-assignment1",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         }
