@@ -6,6 +6,7 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms import resources
+from lms.values import LTIUser
 
 
 class TestLTILaunchResource:
@@ -230,24 +231,11 @@ class TestLTILaunchResource:
             resources.LTILaunchResource(pyramid_request).h_provider
 
     def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
-        pyramid_request.params = {"user_id": "4533***70d9"}
-
         provider_unique_id = resources.LTILaunchResource(
             pyramid_request
         ).h_provider_unique_id
 
-        assert provider_unique_id == "4533***70d9"
-
-    @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
-    def test_h_provider_unique_id_raises_if_user_id_is_missing(
-        self, request_params, pyramid_request
-    ):
-        pyramid_request.params = request_params
-
-        with pytest.raises(
-            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
-        ):
-            resources.LTILaunchResource(pyramid_request).h_provider_unique_id
+        assert provider_unique_id == pyramid_request.lti_user.user_id
 
     def test_h_user_username_is_a_30_char_string(self, pyramid_request):
         pyramid_request.params = {
@@ -271,19 +259,13 @@ class TestLTILaunchResource:
         ):
             resources.LTILaunchResource(pyramid_request).h_user
 
-    def test_h_user_raises_if_user_id_is_missing(self, pyramid_request):
-        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
-
-        with pytest.raises(
-            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
-        ):
-            resources.LTILaunchResource(pyramid_request).h_user
-
     def test_h_user_userid(self, pyramid_request):
-        pyramid_request.params = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-            "user_id": "4533***70d9",
-        }
+        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
+        pyramid_request.lti_user = LTIUser(
+            user_id="4533***70d9",
+            oauth_consumer_key="Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+            roles="student",
+        )
 
         userid = resources.LTILaunchResource(pyramid_request).h_user.userid
 
@@ -324,23 +306,10 @@ class TestLTILaunchResource:
 
         assert lti_launch.js_config["a_key"] == "a_value"
 
-    def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
-        self, pyramid_request
-    ):
-        pyramid_request.params = {}
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "oauth_consumer_key" missing from LTI params',
-        ):
-            resources.LTILaunchResource(pyramid_request).hypothesis_config
-
     def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
         self, pyramid_request
     ):
-        pyramid_request.params = {
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
-        }
+        del pyramid_request.params["tool_consumer_instance_guid"]
 
         with pytest.raises(
             HTTPBadRequest,
@@ -427,15 +396,6 @@ class TestLTILaunchResource:
 
         assert lti_launch.provisioning_enabled is False
 
-    def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
-        self, pyramid_request
-    ):
-        del pyramid_request.params["oauth_consumer_key"]
-        lti_launch = resources.LTILaunchResource(pyramid_request)
-
-        with pytest.raises(HTTPBadRequest):
-            lti_launch.provisioning_enabled
-
     def test_lms_url_returns_the_custom_canvas_api_domain(self, pyramid_request):
         pyramid_request.params[
             "custom_canvas_api_domain"
@@ -465,9 +425,12 @@ class TestLTILaunchResource:
         pyramid_request.params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
             "context_id": "test_context_id",
-            "user_id": "test_user_id",
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
+        pyramid_request.lti_user = LTIUser(
+            user_id="test_user_id",
+            oauth_consumer_key="Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+            roles="student",
+        )
         return pyramid_request
 
 

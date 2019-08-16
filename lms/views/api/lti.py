@@ -63,7 +63,15 @@ def record_submission(request):
         # the "url" field).
         #
         # See https://github.com/instructure/canvas-lms/issues/1486
-        speedgrader_launch_params = {"focused_user": parsed_params["h_username"]}
+        speedgrader_launch_params = {
+            "focused_user": parsed_params["h_username"],
+            # Add a query param to indicate which LMS app install was used when
+            # the student did the assignment. See comments in `LaunchParamsSchema`
+            # for an explanation.
+            #
+            # TODO - Add protection against spoofing here.
+            "assignment_oauth_consumer_key": lti_user.oauth_consumer_key,
+        }
         if parsed_params.get("document_url"):
             speedgrader_launch_params["url"] = parsed_params.get("document_url")
         elif parsed_params.get("canvas_file_id"):

@@ -53,10 +53,20 @@ class LaunchParamsSchema(PyramidRequestSchema):
         :rtype: LTIUser
         """
         kwargs = self.parse(locations=["form"])
+        consumer_key = kwargs["oauth_consumer_key"]
 
-        return LTIUser(
-            kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs.get("roles", "")
-        )
+        request = self.context["request"]
+        assignment_consumer_key = request.params.get("assignment_oauth_consumer_key")
+
+        if assignment_consumer_key:
+            # If this is a SpeedGrader LTI launch, use the LMS app install
+            # associated with the original assignment rather than the one used
+            # to launch the app in SpeedGrader. Note that when checking the OAuth 1.0
+            # *signature* on the request, we still have to check based on the
+            # `oauth_consumer_key` form param.
+            consumer_key = assignment_consumer_key
+
+        return LTIUser(kwargs["user_id"], consumer_key, kwargs.get("roles", ""))
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data):

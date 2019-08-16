@@ -135,13 +135,8 @@ class LTILaunchResource:
 
     @property
     def h_provider_unique_id(self):
-        """
-        Return the h provider_unique_id for the current request.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-          provider unique ID is missing
-        """
-        return self._get_param("user_id")
+        """Return the h provider_unique_id for the current request."""
+        return self._request.lti_user.user_id
 
     @property
     def _h_username(self):
@@ -245,12 +240,9 @@ class LTILaunchResource:
 
         Return True if the provisioning feature is enabled for the current
         request, False otherwise.
-
-        :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
-          params
         """
         return self._ai_getter.provisioning_enabled(
-            self._get_param("oauth_consumer_key")
+            self._request.lti_user.oauth_consumer_key
         )
 
     @property
@@ -278,7 +270,7 @@ class LTILaunchResource:
         lms_url = self._request.params.get("custom_canvas_api_domain")
 
         if not lms_url:
-            oauth_consumer_key = self._request.params.get("oauth_consumer_key")
+            oauth_consumer_key = self._request.lti_user.oauth_consumer_key
             lms_url = self._ai_getter.lms_url(oauth_consumer_key)
 
         return lms_url

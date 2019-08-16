@@ -64,7 +64,11 @@ class TestRecordSubmission:
         )
         expected_submitted_at = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
         expected_launch_url = "http://example.com/lti_launches?" + urlencode(
-            {"focused_user": "user123", **lti_launch_doc_params}
+            {
+                "focused_user": "user123",
+                "assignment_oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+                **lti_launch_doc_params,
+            }
         )
         lti_outcomes_client.record_result.assert_called_once_with(
             expected_outcome_params,

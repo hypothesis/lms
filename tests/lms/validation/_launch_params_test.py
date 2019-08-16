@@ -18,6 +18,16 @@ class TestLaunchParamsSchema:
             "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
         )
 
+    def test_it_uses_assignment_oauth_consumer_key(self, schema, pyramid_request):
+        # Specify a consumer key override for a SpeedGrader LTI launch.
+        pyramid_request.params.update(
+            {"assignment_oauth_consumer_key": "different_key"}
+        )
+
+        lti_user = schema.lti_user()
+
+        assert lti_user.oauth_consumer_key == "different_key"
+
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
         schema.lti_user()
 
