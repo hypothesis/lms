@@ -54,6 +54,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
+    "@types/enzyme": "^3.10.3",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-plugin-mockable-imports": "^1.5.1",
     "chai": "^4.2.0",

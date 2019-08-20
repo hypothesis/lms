@@ -6,15 +6,7 @@ import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 
-/**
- * Return a Promise that resolves on the next turn of the event loop.
- *
- * This gives any pending async microtasks a chance to execute.
- * See https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/.
- */
-function nextTick() {
-  return new Promise(resolve => setTimeout(resolve));
-}
+import { waitFor, waitForElement } from './util';
 
 describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;
@@ -90,7 +82,7 @@ describe('BasicLtiLaunchApp', () => {
     it('attempts to fetch the content URL when mounted', async () => {
       const wrapper = renderLtiLaunchApp();
 
-      await nextTick();
+      await waitFor(() => fakeApiCall.called);
 
       assert.calledWith(fakeApiCall, {
         authToken: 'dummyAuthToken',
@@ -106,11 +98,8 @@ describe('BasicLtiLaunchApp', () => {
 
       const wrapper = renderLtiLaunchApp();
 
-      await nextTick();
-      wrapper.update();
+      const iframe = await waitForElement(wrapper, 'iframe');
 
-      const iframe = wrapper.find('iframe');
-      assert.isTrue(iframe.exists());
       assert.include(iframe.props(), {
         src: 'https://via.hypothes.is/123',
       });
@@ -121,11 +110,12 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.rejects(new ApiError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
-      await nextTick();
 
       // Verify that an "Authorize" prompt is shown.
-      wrapper.update();
-      const authButton = wrapper.find('Button[label="Authorize"]');
+      const authButton = await waitForElement(
+        wrapper,
+        'Button[label="Authorize"]'
+      );
       assert.isTrue(authButton.exists());
 
       // Click the "Authorize" button and verify that authorization is attempted.
@@ -135,15 +125,9 @@ describe('BasicLtiLaunchApp', () => {
       assert.called(FakeAuthWindow);
 
       // Check that files are fetched after authorization completes.
-      await new Promise(resolve => {
-        setTimeout(resolve, 0);
-      });
-      wrapper.update();
+      const iframe = await waitForElement(wrapper, 'iframe');
 
-      assert.equal(
-        wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
-      );
+      assert.equal(iframe.prop('src'), 'https://via.hypothes.is/123');
     });
 
     [
@@ -161,11 +145,12 @@ describe('BasicLtiLaunchApp', () => {
         fakeApiCall.rejects(error);
 
         const wrapper = renderLtiLaunchApp();
-        await nextTick();
 
         // Verify that a "Try again" prompt is shown.
-        wrapper.update();
-        const tryAgainButton = wrapper.find('Button[label="Try again"]');
+        const tryAgainButton = await waitForElement(
+          wrapper,
+          'Button[label="Try again"]'
+        );
         assert.isTrue(tryAgainButton.exists());
 
         // Click the "Try again" button and verify that authorization is attempted.
@@ -175,12 +160,8 @@ describe('BasicLtiLaunchApp', () => {
         assert.called(FakeAuthWindow);
 
         // Check that files are fetched after authorization completes.
-        await nextTick();
-        wrapper.update();
-        assert.equal(
-          wrapper.find('iframe').prop('src'),
-          'https://via.hypothes.is/123'
-        );
+        const iframe = await waitForElement(wrapper, 'iframe');
+        assert.equal(iframe.prop('src'), 'https://via.hypothes.is/123');
       });
     });
   });
@@ -191,7 +172,7 @@ describe('BasicLtiLaunchApp', () => {
     };
 
     const wrapper = renderLtiLaunchApp();
-    await nextTick();
+    await waitFor(() => fakeApiCall.called);
 
     assert.calledWith(fakeApiCall, {
       authToken: 'dummyAuthToken',
@@ -211,13 +192,9 @@ describe('BasicLtiLaunchApp', () => {
     const error = new ApiError(400, {});
     fakeApiCall.rejects(error);
 
-    // Wait for the API call to fail.
+    // Wait for the API call to fail and check that an error is displayed.
     const wrapper = renderLtiLaunchApp();
-    await nextTick();
-
-    // Check that an error is displayed.
-    wrapper.update();
-    const errorDisplay = wrapper.find(FakeErrorDisplay);
+    const errorDisplay = await waitForElement(wrapper, FakeErrorDisplay);
     assert.equal(errorDisplay.prop('error'), error);
 
     // There should be no "Try again" button in this context, instead we just
@@ -236,7 +213,7 @@ describe('BasicLtiLaunchApp', () => {
     fakeConfig.submissionParams = undefined;
 
     renderLtiLaunchApp();
-    await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     assert.notCalled(fakeApiCall);
   });
