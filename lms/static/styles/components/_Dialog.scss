@@ -1,39 +1,41 @@
-.Dialog__container {
+.Dialog__background {
   display: flex;
   flex-direction: column;
+  /* Center vertically and horizontally. */
   justify-content: center;
   align-items: center;
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-}
 
-.Dialog__background {
-  background-color: black;
-  bottom: 0;
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.5);
+
+  /* Fill the space of the nearest positioned ancestor. */
+  position: absolute;
+  height: 100%;
+  width: 100%;
   left: 0;
-  opacity: 0.5;
-  position: fixed;
-  right: 0;
   top: 0;
 }
 
 .Dialog__content {
+  display: flex;
+  flex-direction: column;
   background-color: white;
   border-radius: 3px;
-  margin-left: auto;
-  margin-right: auto;
   padding: 20px;
+  /* Center the content horizontally in case it's width is overriden. */
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .Dialog__title {
   display: flex;
   align-items: center;
   font-size: $title-font-size;
+}
+
+.Dialog__fill {
+  /* Choose an arbitrarily large flex-grow priority. */
+  flex-grow: 6;
 }
 
 .Dialog__cancel-btn {
@@ -69,4 +71,12 @@
       margin-left: 5px;
     }
   }
+}
+
+.Dialog__dimension {
+  /* Prevent the top of the content from getting cut off */
+  /* when the content height exceeds its ancestor's. */
+  /* See https://css-tricks.com/flexbox-truncated-text/ */
+  min-height: 0;
+  width: 75%;
 }

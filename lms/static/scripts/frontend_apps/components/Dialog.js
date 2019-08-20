@@ -4,7 +4,6 @@ import propTypes from 'prop-types';
 import classNames from 'classnames';
 
 import Button from './Button';
-import { zIndexScale } from '../utils/style';
 
 /**
  * Accessibility notes:
@@ -68,17 +67,14 @@ export default function Dialog({
 
   return (
     <div
+      className="Dialog__background"
       role="dialog"
       aria-labelledby="Dialog__title"
       onKeyDown={handleKey}
       tabIndex="0"
       ref={rootEl}
     >
-      <div
-        className="Dialog__background"
-        style={{ zIndex: zIndexScale.dialogBackground }}
-      />
-      <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
+      <div className="Dialog__dimension">
         <div
           className={classNames({
             Dialog__content: true,
@@ -100,6 +96,7 @@ export default function Dialog({
           </h1>
           {children}
           <div className="u-stretch" />
+          <div className="Dialog__fill" />
           <div className="Dialog__actions">
             {onCancel && (
               <Button
