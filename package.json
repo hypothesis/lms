@@ -51,15 +51,13 @@
     "through2": "^3.0.1",
     "uglifyify": "^5.0.1",
     "vinyl": "^2.2.0",
-    "watchify": "^3.11.1",
-    "whatwg-fetch": "^3.0.0"
+    "watchify": "^3.11.1"
   },
   "devDependencies": {
     "@types/enzyme": "^3.10.3",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-plugin-mockable-imports": "^1.5.1",
     "chai": "^4.2.0",
-    "core-js": "^3.2.1",
     "diff": "^4.0.1",
     "enzyme": "^3.10.0",
     "enzyme-adapter-preact-pure": "^2.0.2",
