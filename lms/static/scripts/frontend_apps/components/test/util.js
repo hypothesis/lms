@@ -42,8 +42,8 @@ export async function waitFor(
 /**
  * Wait up to `timeout` ms for an element to be rendered.
  *
- * @param {CommonWrapper} - Root Enzyme wrapper
- * @param {string|Function} - Selector string or function to pass to `wrapper.find`
+ * @param {CommonWrapper} wrapper - Root Enzyme wrapper
+ * @param {string|Function} selector - Selector string or function to pass to `wrapper.find`
  * @param {number} timeout
  * @return {Promise<CommonWrapper>}
  */
