@@ -2,6 +2,16 @@
 
 const path = require('path');
 
+const chromeFlags = [];
+
+if (process.env.RUNNING_IN_DOCKER) {
+  // Use Chromium from Alpine packages.
+  process.env.CHROME_BIN = 'chromium-browser';
+
+  // In Docker, the tests run as root, so the sandbox must be disabled.
+  chromeFlags.push('--no-sandbox');
+}
+
 module.exports = function(config) {
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -13,9 +23,6 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      // Polyfills for PhantomJS
-      './polyfills.js',
-
       // Test setup
       './bootstrap.js',
 
@@ -31,7 +38,6 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      './polyfills.js': ['browserify'],
       './bootstrap.js': ['browserify'],
       './**/*-test.js': ['browserify'],
     },
@@ -92,8 +98,15 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['PhantomJS'],
+    browsers: ['ChromeHeadless_Custom'],
     browserNoActivityTimeout: 2000, // Travis is slow...
+
+    customLaunchers: {
+      ChromeHeadless_Custom: {
+        base: 'ChromeHeadless',
+        flags: chromeFlags,
+      },
+    },
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
