@@ -41,9 +41,8 @@ class _BaseSchema(marshmallow.Schema):
     class Meta:
         """Marshmallow options for all schemas."""
 
-        # Silence a strict=False deprecation warning from marshmallow.
-        # TODO: Remove this once we've upgraded to marshmallow 3.
-        strict = True
+        # Drop unknown keys, instead of raising an error.
+        unknown = marshmallow.EXCLUDE
 
 
 class PyramidRequestSchema(_BaseSchema):
@@ -113,10 +112,10 @@ class RequestsResponseSchema(_BaseSchema):
         except marshmallow.ValidationError as err:
             raise ValidationError(messages=err.messages) from err
 
-        return result.data
+        return result
 
     @marshmallow.pre_load(pass_many=True)
-    def _pre_load(self, response, _many):  # pylint: disable=no-self-use
+    def _pre_load(self, response, **_kwargs):  # pylint: disable=no-self-use
         try:
             return response.json()
         except ValueError as err:

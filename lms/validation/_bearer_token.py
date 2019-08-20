@@ -76,7 +76,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
 
         :rtype: str
         """
-        return self.dump(lti_user).data["authorization"]
+        return self.dump(lti_user)["authorization"]
 
     def lti_user(self):
         """
@@ -123,7 +123,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
             raise exc_class(messages=error.messages) from error
 
     @marshmallow.post_dump
-    def _encode_jwt(self, data):
+    def _encode_jwt(self, data, **_kwargs):
         """
         Return ``data`` encoded as a JWT enveloped in an authorization param.
 
@@ -136,7 +136,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
         }
 
     @marshmallow.pre_load
-    def _decode_jwt(self, data):
+    def _decode_jwt(self, data, **_kwargs):
         """
         Return the payload from the JWT in the authorization param in ``data``.
 
@@ -163,9 +163,9 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
             ) from err
 
     @marshmallow.post_load
-    def _make_user(self, kwargs):  # pylint:disable=no-self-use
+    def _make_user(self, data, **_kwargs):  # pylint:disable=no-self-use
         # See https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#deserializing-to-objects
-        return LTIUser(**kwargs)
+        return LTIUser(**data)
 
     # This is a hack to make Marshmallow enveloping work even when this schema
     # is used via webargs.
@@ -186,8 +186,11 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
     authorization = marshmallow.fields.Str()
 
     @marshmallow.post_load
-    def _delete_authorization_field(self, data):  # pylint:disable=no-self-use
+    def _delete_authorization_field(
+        self, data, **_kwargs
+    ):  # pylint:disable=no-self-use
         try:
             del data["authorization"]
         except KeyError:
             pass
+        return data

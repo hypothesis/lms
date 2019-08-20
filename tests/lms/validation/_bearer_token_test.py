@@ -106,9 +106,9 @@ class TestBearerTokenSchema:
 
     def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
         serialized = schema.dump(lti_user)
-        deserialized = schema.load(serialized.data)
+        deserialized = schema.load(serialized)
 
-        assert deserialized.data == lti_user
+        assert deserialized == lti_user
 
     def test_parse_via_webargs_api(self, lti_user, schema, pyramid_request):
         deserialized = parser.parse(schema, pyramid_request, locations=["headers"])

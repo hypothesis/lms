@@ -106,7 +106,7 @@ class TestCanvasListFilesResponseSchema(CommonResponseSchemaTests):
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == {0: {}, "_schema": ["Invalid input type."]}
+        assert exc_info.value.messages == {0: {"_schema": ["Invalid input type."]}}
 
     @pytest.fixture
     def schema(self, list_files_response):
