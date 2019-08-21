@@ -54,7 +54,9 @@ node {
     },
     "Frontend lint + tests": {
         stage("Frontend lint + tests") {
-            frontendTestContainer = docker.build("hypothesis/lms-frontend-test", "-f ./Dockerfile.frontend-test .")
+            frontendTestContainer = docker.build(
+              "hypothesis/lms-frontend-test", "-f ./jenkins/frontend-test.dockerfile jenkins/"
+            )
             workspace = pwd()
             frontendTestContainer.inside("${runArgs} -e HOME=${workspace}") {
                 sh "make frontend-lint"
