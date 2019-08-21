@@ -1,7 +1,4 @@
 .URLPicker__dialog {
-  display: flex;
-  flex-direction: column;
-  width: 80vw;
+  /* Avoid having the dialog be too wide. */
   max-width: 500px;
-  max-height: 300px;
 }

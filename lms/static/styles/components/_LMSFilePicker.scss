@@ -1,8 +1,6 @@
 .LMSFilePicker__dialog {
-  display: flex;
-  flex-direction: column;
-  max-height: 100vh;
+  /* Prevent the Dialog from jumping size when changing state from fetching to fetched. */
+  min-height: 400px;
+  /* Avoid having the dialog be too wide. */
   max-width: 500px;
-  width: 80vw;
-  height: 400px;
 }
