@@ -59,7 +59,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
         )
 
     @marshmallow.validates_schema
-    def _verify_oauth_1(self, _data):
+    def _verify_oauth_1(self, _data, **_kwargs):
         """
         Verify the request's OAuth 1 signature, timestamp, etc.
 
@@ -83,7 +83,7 @@ class URLConfiguredLaunchParamsSchema(PyramidRequestSchema):
     url = marshmallow.fields.Str(required=True)
 
     @marshmallow.post_load
-    def _decode_url(self, _data):  # pylint:disable=no-self-use
+    def _decode_url(self, _data, **_kwargs):  # pylint:disable=no-self-use
         # Work around a bug in Canvas's handling of LTI Launch URLs in
         # SpeedGrader launches. In that context, query params get
         # doubly-encoded. This is worked around by detecting when this has
