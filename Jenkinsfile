@@ -54,10 +54,11 @@ node {
     },
     "Frontend lint + tests": {
         stage("Frontend lint + tests") {
+            frontendTestContainer = docker.build(
+              "hypothesis/lms-frontend-test", "-f ./jenkins/frontend-test.dockerfile jenkins/"
+            )
             workspace = pwd()
-            // The frontend tests use a node Docker image because they're
-            // incompatible with the hypothesis/lms image.
-            docker.image("node:10-stretch").inside("${runArgs} -e HOME=${workspace}") {
+            frontendTestContainer.inside("${runArgs} -e HOME=${workspace}") {
                 sh "make frontend-lint"
                 sh "make frontend-tests"
             }

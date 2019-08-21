@@ -41,6 +41,7 @@
     "focus-visible": "^5.0.2",
     "gulp": "^4.0.2",
     "gulplog": "^1.0.0",
+    "karma-chrome-launcher": "^3.1.0",
     "mkdirp": "^0.5.1",
     "normalize.css": "^8.0.1",
     "postcss": "^7.0.17",
@@ -50,14 +51,13 @@
     "through2": "^3.0.1",
     "uglifyify": "^5.0.1",
     "vinyl": "^2.2.0",
-    "watchify": "^3.11.1",
-    "whatwg-fetch": "^3.0.0"
+    "watchify": "^3.11.1"
   },
   "devDependencies": {
+    "@types/enzyme": "^3.10.3",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-plugin-mockable-imports": "^1.5.1",
     "chai": "^4.2.0",
-    "core-js": "^3.2.1",
     "diff": "^4.0.1",
     "enzyme": "^3.10.0",
     "enzyme-adapter-preact-pure": "^2.0.2",
@@ -69,7 +69,6 @@
     "karma-coverage-istanbul-reporter": "^2.1.0",
     "karma-mocha": "^1.1.1",
     "karma-mocha-reporter": "^2.0.4",
-    "karma-phantomjs-launcher": "^1.0.1",
     "karma-sinon": "^1.0.5",
     "mocha": "^6.2.0",
     "prettier": "1.18.2",

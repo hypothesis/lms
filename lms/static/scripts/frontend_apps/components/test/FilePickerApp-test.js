@@ -24,6 +24,7 @@ describe('FilePickerApp', () => {
   const FakeSpinner = () => null;
   const FakeURLPicker = () => null;
 
+  let container;
   let fakeConfig;
   let FakeGooglePickerClient;
 
@@ -32,7 +33,10 @@ describe('FilePickerApp', () => {
     return mount(
       <Config.Provider value={fakeConfig}>
         <FilePickerApp onSubmit={preventFormSubmission} {...props} />
-      </Config.Provider>
+      </Config.Provider>,
+      {
+        attachTo: container,
+      }
     );
   };
 
@@ -47,6 +51,9 @@ describe('FilePickerApp', () => {
       lmsName: 'Shiny LMS',
       ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
     };
+
+    container = document.createElement('div');
+    document.body.appendChild(container);
 
     FakeGooglePickerClient = sinon.stub().returns({
       showPicker: sinon.stub(),
@@ -69,6 +76,7 @@ describe('FilePickerApp', () => {
 
   afterEach(() => {
     $imports.$restore();
+    container.remove();
   });
 
   it('renders form with correct action and hidden fields', () => {
