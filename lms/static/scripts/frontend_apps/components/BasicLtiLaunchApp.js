@@ -15,6 +15,24 @@ import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
 import Spinner from './Spinner';
 
+const INITIAL_LTI_LAUNCH_STATE = {
+  // The current state of the screen.
+  // One of "fetching", "fetched-url", "authorizing" or "error".
+  //
+  // When the app is initially displayed it will use the Via URL if given
+  // or invoke the API callback to fetch the URL otherwise.
+  state: 'fetching-url',
+
+  // URL of assignment content. Set when state is "fetched-url".
+  contentUrl: null,
+
+  // Details of last error. Set when state is "error".
+  error: null,
+
+  // The action that resulted in an error.
+  failedAction: null,
+};
+
 /**
  * Application displayed when an assignment is launched if the LMS backend
  * is unable to directly render the content in an iframe. This happens when
@@ -37,23 +55,10 @@ export default function BasicLtiLaunchApp() {
     },
   } = useContext(Config);
 
-  const [{ state, contentUrl, failedAction, error }, setState] = useState({
-    // The current state of the screen.
-    // One of "fetching", "fetched-url", "authorizing" or "error".
-    //
-    // When the app is initially displayed it will use the Via URL if given
-    // or invoke the API callback to fetch the URL otherwise.
+  const [ltiLaunchState, setLtiLaunchState] = useState({
+    ...INITIAL_LTI_LAUNCH_STATE,
     state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
-
-    // URL of assignment content. Set when state is "fetched-url".
     contentUrl: viaUrl ? viaUrl : null,
-
-    // Details of last error. Set when state is "error".
-    error: null,
-
-    // The action that failed, leading to display of an error.
-    // Set when state is "error" and is one of "fetch-url" or "report-submission".
-    failedAction: null,
   });
 
   /**
@@ -70,17 +75,32 @@ export default function BasicLtiLaunchApp() {
     }
 
     try {
-      setState({ state: 'fetching-url' });
+      setLtiLaunchState({
+        ...INITIAL_LTI_LAUNCH_STATE,
+        state: 'fetching-url',
+      });
       const { via_url: contentUrl } = await apiCall({
         authToken,
         path: viaUrlCallback,
       });
-      setState({ state: 'fetched-url', contentUrl });
+      setLtiLaunchState({
+        ...INITIAL_LTI_LAUNCH_STATE,
+        state: 'fetched-url',
+        contentUrl,
+      });
     } catch (e) {
       if (e instanceof ApiError && !e.errorMessage) {
-        setState({ state: 'authorizing' });
+        setLtiLaunchState({
+          ...INITIAL_LTI_LAUNCH_STATE,
+          state: 'authorizing',
+        });
       } else {
-        setState({ state: 'error', error: e, failedAction: 'fetch-url' });
+        setLtiLaunchState({
+          ...INITIAL_LTI_LAUNCH_STATE,
+          state: 'error',
+          error: e,
+          failedAction: 'fetch-url',
+        });
       }
     }
   }, [authToken, viaUrlCallback]);
@@ -103,7 +123,7 @@ export default function BasicLtiLaunchApp() {
     }
 
     // Don't report a submission until the URL has been successfully fetched.
-    if (state !== 'fetched-url') {
+    if (ltiLaunchState.state !== 'fetched-url') {
       return;
     }
 
@@ -118,9 +138,13 @@ export default function BasicLtiLaunchApp() {
       // This avoids the student trying to complete the assignment without
       // knowing that there was a problem, and the teacher then not seeing a
       // submission.
-      setState({ state: 'error', error: e, failedAction: 'report-submission' });
+      setLtiLaunchState({
+        state: 'error',
+        error: e,
+        failedAction: 'report-submission',
+      });
     }
-  }, [authToken, state, submissionParams]);
+  }, [authToken, ltiLaunchState.state, submissionParams]);
 
   useEffect(reportSubmission, [reportSubmission]);
 
@@ -133,7 +157,10 @@ export default function BasicLtiLaunchApp() {
    * the content URL again.
    */
   const authorizeAndFetchUrl = useCallback(async () => {
-    setState({ state: 'authorizing' });
+    setLtiLaunchState({
+      ...INITIAL_LTI_LAUNCH_STATE,
+      state: 'authorizing',
+    });
 
     if (authWindow.current) {
       authWindow.current.focus();
@@ -150,16 +177,18 @@ export default function BasicLtiLaunchApp() {
     }
   }, [authToken, authUrl, fetchContentUrl, lmsName]);
 
-  if (state === 'fetched-url') {
-    return <iframe width="100%" height="100%" src={contentUrl} />;
+  if (ltiLaunchState.state === 'fetched-url') {
+    return (
+      <iframe width="100%" height="100%" src={ltiLaunchState.contentUrl} />
+    );
   }
 
   return (
     <Fragment>
-      {state === 'fetching-url' && (
+      {ltiLaunchState.state === 'fetching-url' && (
         <Spinner className="BasicLtiLaunchApp__spinner" />
       )}
-      {state === 'authorizing' && (
+      {ltiLaunchState.state === 'authorizing' && (
         <div className="BasicLtiLaunchApp__form">
           <h1 className="heading">Authorize Hypothesis</h1>
           <p>Hypothesis needs your authorization to launch this assignment.</p>
@@ -170,14 +199,14 @@ export default function BasicLtiLaunchApp() {
           />
         </div>
       )}
-      {state === 'error' && (
+      {ltiLaunchState.state === 'error' && (
         <div className="BasicLtiLaunchApp__form">
           <h1 className="heading">Something went wrong</h1>
           <ErrorDisplay
             message="There was a problem loading this Hypothesis assignment"
-            error={error}
+            error={ltiLaunchState.error}
           />
-          {failedAction === 'fetch-url' ? (
+          {ltiLaunchState.failedAction === 'fetch-url' ? (
             <Button
               onClick={authorizeAndFetchUrl}
               className="BasicLtiLaunchApp__button"

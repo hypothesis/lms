@@ -10,6 +10,18 @@ import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
 
+const INITIAL_DIALOG_STATE = {
+  // The current state of the dialog, one of:
+  // "fetching", "fetched", "authorizing" or "error".
+  state: 'fetching',
+
+  // List of fetched files. Set when state is "fetched".
+  files: null,
+
+  // Fetch error details. Set when state is "error".
+  error: null,
+};
+
 /**
  * A file picker dialog that allows the user to choose files from their
  * LMS's file storage.
@@ -26,17 +38,7 @@ export default function LMSFilePicker({
   onSelectFile,
 }) {
   // The main state of the dialog and associated data.
-  const [{ state, files, error }, setState] = useState({
-    // The current state of the dialog, one of:
-    // "fetching", "fetched", "authorizing" or "error".
-    state: 'fetching',
-
-    // List of fetched files. Set when state is "fetched".
-    files: null,
-
-    // Fetch error details. Set when state is "error".
-    error: null,
-  });
+  const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
 
   // The file within `files` which is currently selected.
   const [selectedFile, selectFile] = useState(null);
@@ -48,17 +50,17 @@ export default function LMSFilePicker({
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
     try {
-      setState({ state: 'fetching' });
+      setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetching' });
       const files = await listFiles(authToken, courseId);
-      setState({ state: 'fetched', files });
+      setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
     } catch (e) {
       if (e instanceof ApiError && !e.errorMessage) {
         // If the server returned an error, but provided no details, assume
         // an authorization failure.
-        setState({ state: 'authorizing' });
+        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
       } else {
         // Otherwise, display the error to the user.
-        setState({ state: 'error', error: e });
+        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'error', error: e });
       }
     }
   }, [authToken, courseId]);
@@ -66,7 +68,7 @@ export default function LMSFilePicker({
   // Execute the authorization flow in a popup window and then attempt to
   // fetch files.
   const authorizeAndFetchFiles = useCallback(async () => {
-    setState({ state: 'authorizing' });
+    setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
 
     if (authWindow.current) {
       authWindow.current.focus();
@@ -88,7 +90,7 @@ export default function LMSFilePicker({
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
   useEffect(() => {
-    if (state === 'authorizing') {
+    if (dialogState.state === 'authorizing') {
       authorizeAndFetchFiles();
     } else {
       fetchFiles();
@@ -105,7 +107,8 @@ export default function LMSFilePicker({
 
   const useSelectedFile = () => onSelectFile(selectedFile);
 
-  const title = state === 'authorizing' ? 'Allow file access' : 'Select a file';
+  const title =
+    dialogState.state === 'authorizing' ? 'Allow file access' : 'Select a file';
 
   return (
     <Dialog
@@ -113,11 +116,11 @@ export default function LMSFilePicker({
       title={title}
       onCancel={cancel}
       buttons={[
-        state === 'authorizing' || state === 'error' ? (
+        dialogState.state === 'authorizing' || dialogState.state === 'error' ? (
           <Button
             key="showAuthWindow"
             onClick={authorizeAndFetchFiles}
-            label={state === 'error' ? 'Try again' : 'Authorize'}
+            label={dialogState.state === 'error' ? 'Try again' : 'Authorize'}
           />
         ) : (
           <Button
@@ -129,22 +132,23 @@ export default function LMSFilePicker({
         ),
       ]}
     >
-      {state === 'error' && (
+      {dialogState.state === 'error' && (
         <ErrorDisplay
           message="There was a problem fetching files"
-          error={error}
+          error={dialogState.error}
         />
       )}
-      {state === 'authorizing' && (
+      {dialogState.state === 'authorizing' && (
         <p>
           To select a file, you must authorize Hypothesis to access your files
           in {lmsName}.
         </p>
       )}
-      {(state === 'fetching' || state === 'fetched') && (
+      {(dialogState.state === 'fetching' ||
+        dialogState.state === 'fetched') && (
         <FileList
-          files={files || []}
-          isLoading={state === 'fetching'}
+          files={dialogState.files || []}
+          isLoading={dialogState.state === 'fetching'}
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
           onSelectFile={selectFile}
