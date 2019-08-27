@@ -1,6 +1,3 @@
-.PHONY: default
-default: help
-
 .PHONY: help
 help:
 	@echo "make help              Show this help message"
@@ -33,11 +30,11 @@ services:
 	docker-compose up -d
 
 .PHONY: dev
-dev: build/manifest.json
+dev: build/manifest.json python
 	tox -q -e py36-dev -- honcho start ${processes}
 
 .PHONY: web
-web:
+web: python
 	tox -q -e py36-dev
 
 .PHONY: assets
@@ -45,7 +42,7 @@ assets:
 	$(GULP) watch
 
 .PHONY: shell
-shell:
+shell: python
 	tox -q -e py36-dev -- pshell conf/development.ini
 
 .PHONY: sql
@@ -56,34 +53,34 @@ sql:
 lint: backend-lint frontend-lint
 
 .PHONY: format
-format:
+format: python
 	tox -q -e py36-format
 
 .PHONY: checkformatting
-checkformatting:
+checkformatting: python
 	tox -q -e py36-checkformatting
 
 .PHONY: test
 test: backend-tests frontend-tests
 
 .PHONY: coverage
-coverage:
+coverage: python
 	tox -q -e py36-coverage
 
 .PHONY: codecov
-codecov:
+codecov: python
 	tox -q -e py36-codecov
 
 .PHONY: docstrings
-docstrings:
+docstrings: python
 	tox -q -e py36-docstrings
 
 .PHONY: checkdocstrings
-checkdocstrings:
+checkdocstrings: python
 	tox -q -e py36-checkdocstrings
 
 .PHONY: pip-compile
-pip-compile:
+pip-compile: python
 	tox -q -e py36-dev -- pip-compile --output-file requirements.txt requirements.in
 
 .PHONY: docker
@@ -123,7 +120,7 @@ clean:
 	rm -rf build
 
 .PHONY: backend-lint
-backend-lint:
+backend-lint: python
 	tox -q -e py36-lint
 
 .PHONY: frontend-lint
@@ -134,7 +131,7 @@ frontend-lint: node_modules/.uptodate
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
 .PHONY: backend-tests
-backend-tests:
+backend-tests: python
 	tox -q -e py36-tests
 
 .PHONY: frontend-tests
@@ -152,3 +149,7 @@ node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
 	yarn install
 	@touch $@
+
+.PHONY: python
+python:
+	@./bin/install-python
