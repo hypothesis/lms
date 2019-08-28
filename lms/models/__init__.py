@@ -2,6 +2,7 @@ from lms.models.application_instance import ApplicationInstance
 from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.models.oauth2_token import OAuth2Token
+from lms.models.lis_result_sourcedid import LISResultSourceDID
 
 
 __all__ = (
@@ -9,6 +10,7 @@ __all__ = (
     "LtiLaunches",
     "ModuleItemConfiguration",
     "OAuth2Token",
+    "LISResultSourceDID",
 )
 
 

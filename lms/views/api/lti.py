@@ -81,3 +81,29 @@ def record_submission(request):
         )
 
     return {}
+
+
+@view_config(
+    request_method="POST",
+    route_name="lti_api.submissions.submit_grade",
+    renderer="json",
+)
+def submit_grade(request):
+    lti_user = request.lti_user
+
+    shared_secret = request.find_service(name="ai_getter").shared_secret(
+        lti_user.oauth_consumer_key
+    )
+
+    outcome_request_params = LTIOutcomesRequestParams(
+        consumer_key=lti_user.oauth_consumer_key,
+        shared_secret=shared_secret,
+        lis_outcome_service_url=request.json["lis_outcome_service_url"],
+        lis_result_sourcedid=request.json["lis_result_sourcedid"],
+    )
+
+    request.find_service(name="lti_outcomes_client").record_result(
+        outcome_request_params, score=request.json["score"]
+    )
+
+    return {}

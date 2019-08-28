@@ -78,6 +78,55 @@ class BasicLTILaunchViews:
         if focused_user:
             self._set_focused_user(focused_user)
 
+        from lms.models import LISResultSourceDID
+
+        self._template_variables = {}
+
+        if "instructor" in request.params["roles"].lower():
+            # User is a teacher.
+            students = request.db.query(
+                LISResultSourceDID
+            ).filter_by(
+                oauth_consumer_key=request.params["oauth_consumer_key"],
+                context_id=request.params["context_id"],
+                resource_link_id=request.params["resource_link_id"],
+            )
+            self._template_variables["students"] = students
+            try:
+                self._set_focused_user(students[0].username)
+            except IndexError:
+                pass
+        else:
+            # User is a student.
+            lis_result_sourcedid = (
+                request.db.query(LISResultSourceDID)
+                .filter_by(
+                    oauth_consumer_key=request.params["oauth_consumer_key"],
+                    user_id=request.params["user_id"],
+                    context_id=request.params["context_id"],
+                    resource_link_id=request.params["resource_link_id"],
+                )
+                .one_or_none()
+            )
+
+            if lis_result_sourcedid is None:
+                lis_result_sourcedid = LISResultSourceDID(
+                    oauth_consumer_key=request.params["oauth_consumer_key"],
+                    user_id=request.params["user_id"],
+                    context_id=request.params["context_id"],
+                    resource_link_id=request.params["resource_link_id"],
+                )
+                request.db.add(lis_result_sourcedid)
+
+            lis_result_sourcedid.lis_result_sourcedid = request.params[
+                "lis_result_sourcedid"
+            ]
+            lis_result_sourcedid.lis_outcome_service_url = request.params[
+                "lis_outcome_service_url"
+            ]
+            lis_result_sourcedid.username = context.h_user.username
+            lis_result_sourcedid.display_name = context.h_user.display_name
+
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
@@ -114,7 +163,7 @@ class BasicLTILaunchViews:
 
         self._set_submission_param("canvas_file_id", file_id)
 
-        return {}
+        return self._template_variables
 
     @view_config(db_configured=True)
     def db_configured_basic_lti_launch(self):
@@ -141,7 +190,7 @@ class BasicLTILaunchViews:
 
         self._set_via_url(document_url)
 
-        return {}
+        return self._template_variables
 
     @view_config(url_configured=True, schema=URLConfiguredLaunchParamsSchema)
     def url_configured_basic_lti_launch(self):
@@ -158,7 +207,7 @@ class BasicLTILaunchViews:
         url = self.request.parsed_params["url"]
         self._set_via_url(url)
 
-        return {}
+        return self._template_variables
 
     @view_config(
         authorized_to_configure_assignments=True,

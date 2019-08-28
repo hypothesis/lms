@@ -179,7 +179,7 @@ export default function BasicLtiLaunchApp() {
 
   if (ltiLaunchState.state === 'fetched-url') {
     return (
-      <iframe width="100%" height="100%" src={ltiLaunchState.contentUrl} />
+      <iframe width="100%" height="100%" class="js-via-iframe" src={ltiLaunchState.contentUrl} />
     );
   }
 

@@ -1,6 +1,75 @@
 {% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
+  {% if students %}
+    <script>
+      function onChange() {
+        document.querySelector(".js-grade").value = "";
+
+        const viaIframe = document.querySelector(".js-via-iframe");
+        const viaIframesParent = viaIframe.parentElement;
+        viaIframesParent.removeChild(viaIframe);
+
+        const studentMenu = document.querySelector(".js-student-menu");
+        const selectedOption = studentMenu.options[studentMenu.selectedIndex];
+        const userName = selectedOption.value;
+        const displayName = selectedOption.text;
+
+        const configEl = document.querySelector(".js-config");
+        const config = JSON.parse(configEl.text);
+        const viaUrl = config.urls.via_url;
+
+        const clientConfigEl = document.querySelector(".js-hypothesis-config");
+        const clientConfig = JSON.parse(clientConfigEl.text);
+        clientConfig["focus"]["user"] = {displayName: displayName, username: userName}
+        clientConfigEl.text = JSON.stringify(clientConfig);
+
+        newViaIframe = document.createElement("iframe");
+        newViaIframe.setAttribute("src", viaUrl);
+        newViaIframe.setAttribute("width", "100%");
+        newViaIframe.setAttribute("height", "100%");
+        newViaIframe.className = "js-via-iframe";
+        viaIframesParent.appendChild(newViaIframe);
+      }
+
+      function submitGrade() {
+        const grade = document.querySelector(".js-grade").value;
+        const config = JSON.parse(document.querySelector(".js-config").text);
+
+        const studentMenu = document.querySelector(".js-student-menu");
+        const selectedOption = studentMenu.options[studentMenu.selectedIndex];
+
+        fetch("http://localhost:8001/api/lti/submissions/submit_grade", {
+          method: 'POST',
+          headers: {
+            'Authorization': config.authToken,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lis_outcome_service_url: selectedOption.dataset.lisOutcomeServiceUrl,
+            lis_result_sourcedid: selectedOption.dataset.lisResultSourcedid,
+            score: grade,
+          }),
+        }).then(function() {
+          window.alert("Grade submitted successfully");
+        });
+      }
+    </script>
+
+    <label for="student-select">Student to grade:</label>
+    <select id="student-select" class="js-student-menu" onchange="onChange()">
+      {% for student in students %}
+      <option value="{{ student.username }}"
+              data-lis-outcome-service-url="{{ student.lis_outcome_service_url }}"
+              data-lis-result-sourcedid="{{ student.lis_result_sourcedid }}">
+        {{ student.display_name }}
+      </option>
+      {% endfor %}
+    </select>
+    <label for="grade">Grade (0.0-1.0):</label>
+    <input id="grade" class="js-grade" onchange="submitGrade()">
+  {% endif %}
+
   <div style="width: 100%; height: 100%;" id="app"></div>
 {% endblock %}
 
