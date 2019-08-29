@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import { createElement, createRef } from 'preact';
 
 import Dialog from '../Dialog';
+import { waitForElementToBeFocused } from './util';
 
 describe('Dialog', () => {
   it('renders content', () => {
@@ -53,23 +54,24 @@ describe('Dialog', () => {
     assert.called(onCancel);
   });
 
-  it('focuses the `initialFocus` ref if set', () => {
+  it('focuses the `initialFocus` ref if set', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
     const inputRef = createRef();
+
     mount(
       <Dialog initialFocus={inputRef}>
         <input ref={inputRef} />
       </Dialog>,
       { attachTo: container }
     );
-    assert.equal(document.activeElement, inputRef.current);
+    await waitForElementToBeFocused(inputRef.current);
 
     container.remove();
   });
 
-  it('focuses the root element of the dialog if no `initialFocus` is set', () => {
+  it('focuses the root element of the dialog if no `initialFocus` is set', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -79,10 +81,9 @@ describe('Dialog', () => {
       </Dialog>,
       { attachTo: container }
     );
-    assert.equal(
-      document.activeElement,
-      wrapper.find('[role="dialog"]').getDOMNode()
-    );
+
+    const dialogEl = wrapper.find('[role="dialog"]').getDOMNode();
+    await waitForElementToBeFocused(dialogEl);
 
     container.remove();
   });
