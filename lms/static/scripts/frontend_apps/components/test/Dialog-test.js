@@ -66,7 +66,7 @@ describe('Dialog', () => {
       </Dialog>,
       { attachTo: container }
     );
-    await waitForElementToBeFocused(inputRef.current);
+    assert.equal(document.activeElement, inputRef.current);
 
     container.remove();
   });
@@ -83,7 +83,7 @@ describe('Dialog', () => {
     );
 
     const dialogEl = wrapper.find('[role="dialog"]').getDOMNode();
-    await waitForElementToBeFocused(dialogEl);
+    assert.equal(document.activeElement, dialogEl);
 
     container.remove();
   });

@@ -76,7 +76,8 @@ module.exports = function(config) {
       // See https://www.npmjs.com/package/karma-mocha-reporter#showdiff
       showDiff: true,
       // Only show the total test counts and details for failed tests
-      output: 'minimal',
+      // TESTING
+      // output: 'minimal',
     },
 
     // Use https://www.npmjs.com/package/karma-mocha-reporter

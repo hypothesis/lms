@@ -52,19 +52,41 @@ export default function Dialog({
 
   const rootEl = useRef(null);
   useEffect(() => {
+    let target;
     if (initialFocus) {
-      initialFocus.current.focus();
+      target = initialFocus.current;
     } else {
       // Modern accessibility guidance is to focus the dialog itself rather than
       // trying to be smart about focusing a particular control within the
       // dialog. See resources above.
-      rootEl.current.focus();
+      target = rootEl.current;
     }
+
+    if (!document.body.contains(target)) {
+      console.log(`Not focusing ${target.tagName} because it is not in the document body`);
+      return;
+    }
+
+    const handler = event => {
+      console.log('Element received "focusin" event: ', event.target.tagName);
+    };
+
+    document.body.addEventListener('focusin', handler);
+
+    console.log(`Focusing element ${target.tagName} Active element is`, document.activeElement.tagName);
+    target.focus();
+    console.log(`Focused element ${target.tagName}. Active element is`, document.activeElement.tagName);
+
+    return () => {
+      document.body.removeEventListener('focusin', handler);
+    };
 
     // We only want to run this effect once when the dialog is mounted.
     //
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  console.log('Rendering dialog');
 
   return (
     <div
