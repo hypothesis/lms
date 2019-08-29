@@ -63,7 +63,9 @@ export default function Dialog({
     }
 
     if (!document.body.contains(target)) {
-      console.log(`Not focusing ${target.tagName} because it is not in the document body`);
+      console.log(
+        `Not focusing ${target.tagName} because it is not in the document body`
+      );
       return;
     }
 
@@ -73,9 +75,15 @@ export default function Dialog({
 
     document.body.addEventListener('focusin', handler);
 
-    console.log(`Focusing element ${target.tagName} Active element is`, document.activeElement.tagName);
+    console.log(
+      `Focusing element ${target.tagName} Active element is`,
+      document.activeElement.tagName
+    );
     target.focus();
-    console.log(`Focused element ${target.tagName}. Active element is`, document.activeElement.tagName);
+    console.log(
+      `Focused element ${target.tagName}. Active element is`,
+      document.activeElement.tagName
+    );
 
     return () => {
       document.body.removeEventListener('focusin', handler);
