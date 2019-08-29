@@ -2,7 +2,6 @@ import { mount } from 'enzyme';
 import { createElement, createRef } from 'preact';
 
 import Dialog from '../Dialog';
-import { waitForElementToBeFocused } from './util';
 
 describe('Dialog', () => {
   it('renders content', () => {

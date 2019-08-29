@@ -63,23 +63,27 @@ export default function Dialog({
     }
 
     if (!document.body.contains(target)) {
+      // eslint-disable-next-line
       console.log(
         `Not focusing ${target.tagName} because it is not in the document body`
       );
-      return;
+      return null;
     }
 
     const handler = event => {
+      // eslint-disable-next-line
       console.log('Element received "focusin" event: ', event.target.tagName);
     };
 
     document.body.addEventListener('focusin', handler);
 
+    // eslint-disable-next-line
     console.log(
       `Focusing element ${target.tagName} Active element is`,
       document.activeElement.tagName
     );
     target.focus();
+    // eslint-disable-next-line
     console.log(
       `Focused element ${target.tagName}. Active element is`,
       document.activeElement.tagName
@@ -94,6 +98,7 @@ export default function Dialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // eslint-disable-next-line
   console.log('Rendering dialog');
 
   return (
