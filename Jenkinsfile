@@ -27,31 +27,32 @@ node {
 
     // Run each of the stages in parallel.
     parallel failFast: true,
-    "Backend lint": {
-        stage("Backend lint") {
-            testApp(image: img, runArgs: runArgs) {
-                installDeps()
-                run("make checkformatting")
-                run("make checkdocstrings")
-                run("make backend-lint")
-            }
-        }
-    },
-    "Backend tests": {
-        stage("Backend tests") {
-            // Run the Postgres test DB in a Docker container.
-            postgresContainer = docker.image("postgres:9.4").run("-P -e POSTGRES_DB=lmstest")
+    // TESTING
+    /* "Backend lint": { */
+    /*     stage("Backend lint") { */
+    /*         testApp(image: img, runArgs: runArgs) { */
+    /*             installDeps() */
+    /*             run("make checkformatting") */
+    /*             run("make checkdocstrings") */
+    /*             run("make backend-lint") */
+    /*         } */
+    /*     } */
+    /* }, */
+    /* "Backend tests": { */
+    /*     stage("Backend tests") { */
+    /*         // Run the Postgres test DB in a Docker container. */
+    /*         postgresContainer = docker.image("postgres:9.4").run("-P -e POSTGRES_DB=lmstest") */
 
-            try {
-                testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") {
-                    installDeps()
-                    run("make backend-tests coverage codecov")
-                }
-            } finally {
-                postgresContainer.stop()
-            }
-        }
-    },
+    /*         try { */
+    /*             testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") { */
+    /*                 installDeps() */
+    /*                 run("make backend-tests coverage codecov") */
+    /*             } */
+    /*         } finally { */
+    /*             postgresContainer.stop() */
+    /*         } */
+    /*     } */
+    /* }, */
     "Frontend lint + tests": {
         stage("Frontend lint + tests") {
             frontendTestContainer = docker.build(
