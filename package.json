@@ -63,7 +63,7 @@
     "enzyme-adapter-preact-pure": "^2.0.2",
     "eslint": "^6.3.0",
     "eslint-config-hypothesis": "^2.0.0",
-    "karma": "^4.2.0",
+    "karma": "^4.3.0",
     "karma-browserify": "^6.1.0",
     "karma-chai": "^0.1.0",
     "karma-coverage-istanbul-reporter": "^2.1.0",
