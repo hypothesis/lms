@@ -99,7 +99,6 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['ChromeHeadless_Custom'],
-    browserNoActivityTimeout: 2000, // Travis is slow...
 
     customLaunchers: {
       ChromeHeadless_Custom: {
