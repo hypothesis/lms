@@ -27,20 +27,24 @@ __all__ = (
 
 def includeme(config):
     config.register_service_factory(
-        "lms.services.h_api_requests.HAPIRequests", name="h_api_requests"
+        "lms.services.application_instance_getter.ApplicationInstanceGetter",
+        name="ai_getter",
+    )
+    config.register_service_factory(
+        "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
     )
     config.register_service_factory(
         "lms.services.h_api_client.HAPIClient", name="h_api_client"
     )
     config.register_service_factory(
-        "lms.services.application_instance_getter.ApplicationInstanceGetter",
-        name="ai_getter",
+        "lms.services.h_api_requests.HAPIRequests", name="h_api_requests"
     )
     config.register_service_factory(
         "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
     )
     config.register_service_factory(
-        "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
+        "lms.services.lis_result_sourcedid.LISResultSourcedIdService",
+        name="lis_result_sourcedid",
     )
     config.register_service_factory(
         "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
