@@ -62,6 +62,7 @@ from lms.validation._launch_params import (
     URLConfiguredLaunchParamsSchema,
 )
 from lms.validation._bearer_token import BearerTokenSchema
+from lms.validation._lis_result_sourcedid import LISResultSourcedIdSchema
 from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 from lms.validation._canvas import (
     CanvasListFilesResponseSchema,
@@ -77,6 +78,7 @@ __all__ = (
     "CanvasRefreshTokenResponseSchema",
     "BearerTokenSchema",
     "LaunchParamsSchema",
+    "LISResultSourcedIdSchema",
     "URLConfiguredLaunchParamsSchema",
     "ConfigureModuleItemSchema",
     "CanvasListFilesResponseSchema",
