@@ -255,33 +255,22 @@ class LTILaunchResource:
 
     @property
     def lms_url(self):
+        """Return the ApplicationInstance.lms_url."""
+        oauth_consumer_key = self._request.params.get("oauth_consumer_key")
+        return self._ai_getter.lms_url(oauth_consumer_key)
+
+    @property
+    def custom_canvas_api_domain(self):
         """
-        Return a guess at the top-level URL of the LMS that's embedding us.
-
-        Return a guess at the URL of the top-level LMS page in which we're
-        embedded in an iframe.
-
-        This is used by our Google Picker integration: in order to launch
-        Google Picker within an iframe we need to pass it the top-level URL of
-        the tab the iframe is within, otherwise Google Picker refuses to launch.
+        Return the domain of the Canvas API.
 
         FIXME: Getting this from the custom_canvas_api_domain param isn't quite
         right. This is the domain of the Canvas API which isn't the same thing
         as the domain of the Canvas website (although in practice it always
         seems to match). And of course custom_canvas_api_domain only works in
         Canvas.
-
-        FIXME: Getting this from ApplicationInstance.lms_url isn't very good
-        because that URL is entered by users into our ``/welcome`` form and
-        isn't validated.
         """
-        lms_url = self._request.params.get("custom_canvas_api_domain")
-
-        if not lms_url:
-            oauth_consumer_key = self._request.params.get("oauth_consumer_key")
-            lms_url = self._ai_getter.lms_url(oauth_consumer_key)
-
-        return lms_url
+        return self._request.params.get("custom_canvas_api_domain")
 
     def _get_param(self, param_name):
         """Return the named param from the request or raise a 400."""

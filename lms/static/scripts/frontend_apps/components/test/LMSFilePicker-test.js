@@ -19,6 +19,7 @@ describe('LMSFilePicker', () => {
 
   let FakeAuthWindow;
   let fakeListFiles;
+  let fakeAuthWindowInstance;
 
   const renderFilePicker = (props = {}) => {
     return mount(
@@ -35,10 +36,11 @@ describe('LMSFilePicker', () => {
   };
 
   beforeEach(() => {
-    FakeAuthWindow = sinon.stub().returns({
+    fakeAuthWindowInstance = {
       authorize: sinon.stub().resolves(null),
       close: () => {},
-    });
+    };
+    FakeAuthWindow = sinon.stub().returns(fakeAuthWindowInstance);
 
     fakeListFiles = sinon.stub().resolves([]);
 
@@ -82,12 +84,16 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
   });
 
-  it('shows the try again prompt with error details after a failed authorization attempt', async () => {
+  it('shows the try again prompt with the `lmsUrl` after a failed authorization attempt', async () => {
     fakeListFiles.rejects(new ApiError('Not authorized', {}));
+
+    const authWindowClosed = new Promise(resolve => {
+      fakeAuthWindowInstance.close = resolve;
+    });
 
     const wrapper = renderFilePicker({
       lmsName: 'Canvas',
-      registeredLmsUrl: 'https://example.com',
+      lmsUrl: 'https://example.com',
     });
     assert.called(fakeListFiles);
 
@@ -99,21 +105,14 @@ describe('LMSFilePicker', () => {
 
     wrapper.update();
 
-    // Make an authorization attempt.
-    act(() => {
+    // Make an authorization attempt and wait for the auth window to close.
+    await act(async () => {
       wrapper
         .find('FakeButton[label="Authorize"]')
         .props()
         .onClick();
+      await authWindowClosed;
     });
-
-    wrapper.update();
-
-    // Close without granting authorization.
-    wrapper
-      .find(FakeDialog)
-      .props()
-      .onCancel();
 
     wrapper.update();
 

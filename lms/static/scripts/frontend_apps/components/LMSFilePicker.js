@@ -34,7 +34,7 @@ export default function LMSFilePicker({
   authUrl,
   courseId,
   lmsName,
-  registeredLmsUrl,
+  lmsUrl,
   onCancel,
   onSelectFile,
 }) {
@@ -73,7 +73,6 @@ export default function LMSFilePicker({
   // fetch files.
   const authorizeAndFetchFiles = useCallback(async () => {
     setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
-    setAuthorizationAttempted(true);
 
     if (authWindow.current) {
       authWindow.current.focus();
@@ -86,6 +85,7 @@ export default function LMSFilePicker({
       await authWindow.current.authorize();
       await fetchFiles();
     } finally {
+      setAuthorizationAttempted(true);
       authWindow.current.close();
       // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
@@ -150,10 +150,12 @@ export default function LMSFilePicker({
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
         <ErrorDisplay
-          message=<Fragment>
-            <a>{`Failed to authorize with the ${lmsName} instance at `}</a>
-            <a href={`${registeredLmsUrl}`}>{`${registeredLmsUrl}`}</a>
-          </Fragment>
+          message={
+            <Fragment>
+              <a>{`Failed to authorize with the ${lmsName} instance at `}</a>
+              <a href={`${lmsUrl}`}>{`${lmsUrl}`}</a>
+            </Fragment>
+          }
           error={new Error('')}
         />
       )}
@@ -201,7 +203,7 @@ LMSFilePicker.propTypes = {
   /**
    * The url of the LMS, eg. "https://foobar.instructure.com".
    */
-  registeredLmsUrl: propTypes.string.isRequired,
+  lmsUrl: propTypes.string.isRequired,
 
   /** Callback invoked if the user cancels file selection. */
   onCancel: propTypes.func.isRequired,

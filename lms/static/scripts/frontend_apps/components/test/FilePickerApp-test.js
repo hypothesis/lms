@@ -176,7 +176,7 @@ describe('FilePickerApp', () => {
     beforeEach(() => {
       fakeConfig.googleClientId = 'goog-client-id';
       fakeConfig.googleDeveloperKey = 'goog-developer-key';
-      fakeConfig.lmsUrl = 'https://test.chalkboard.com';
+      fakeConfig.customCanvasApiDomain = 'https://test.chalkboard.com';
 
       const picker = FakeGooglePickerClient();
       picker.showPicker.resolves({
@@ -202,6 +202,17 @@ describe('FilePickerApp', () => {
     }
 
     it('initializes Google Picker client when developer key is provided', () => {
+      renderFilePicker();
+      assert.calledWith(FakeGooglePickerClient, {
+        developerKey: fakeConfig.googleDeveloperKey,
+        clientId: fakeConfig.googleClientId,
+        origin: fakeConfig.customCanvasApiDomain,
+      });
+    });
+
+    it('Google Picker client origin falls back to lmsUrl if customCanvasApiDomain does not exist', () => {
+      fakeConfig.customCanvasApiDomain = null;
+      fakeConfig.lmsUrl = 'https://test.chalkboard2.com';
       renderFilePicker();
       assert.calledWith(FakeGooglePickerClient, {
         developerKey: fakeConfig.googleDeveloperKey,

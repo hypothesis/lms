@@ -221,10 +221,8 @@ class BasicLTILaunchViews:
                 "googleDeveloperKey": self.request.registry.settings[
                     "google_developer_key"
                 ],
+                "customCanvasApiDomain": self.context.custom_canvas_api_domain,
                 "lmsUrl": self.context.lms_url,
-                "registeredLmsUrl": self.request.find_service(name="ai_getter").lms_url(
-                    oauth_consumer_key
-                ),
             }
         )
 

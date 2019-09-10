@@ -79,10 +79,8 @@ def content_item_selection(context, request):
             # When we're being launched in an iframe within the LMS our JavaScript
             # needs to pass this URL (which is the URL of the top-most page) to Google
             # Picker, otherwise Picker refuses to launch inside an iframe.
+            "customCanvasApiDomain": context.custom_canvas_api_domain,
             "lmsUrl": context.lms_url,
-            "registeredLmsUrl": request.find_service(name="ai_getter").lms_url(
-                request.lti_user.oauth_consumer_key
-            ),
         }
     )
 

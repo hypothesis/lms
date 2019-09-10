@@ -259,8 +259,8 @@ class TestUnconfiguredBasicLTILaunch:
             },
             "googleClientId": "TEST_GOOGLE_CLIENT_ID",
             "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
+            "customCanvasApiDomain": context.custom_canvas_api_domain,
             "lmsUrl": context.lms_url,
-            "registeredLmsUrl": "https://example.com",
             "urls": {},
         }
 
