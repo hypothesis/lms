@@ -44,7 +44,7 @@
     "karma-chrome-launcher": "^3.1.0",
     "mkdirp": "^0.5.1",
     "normalize.css": "^8.0.1",
-    "postcss": "^7.0.17",
+    "postcss": "^7.0.18",
     "preact": "10.0.0-rc.1",
     "query-string": "^5.0.0",
     "sass": "^1.22.10",
