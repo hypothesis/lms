@@ -49,3 +49,8 @@ class TestViaURL:
         pyramid_request.params["oauth_consumer_key"] = "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         # fmt: on
         assert via_url(pyramid_request, document_url) == expected_via_url
+
+    def test_it_enables_via_features(self, pyramid_request):
+        pyramid_request.feature = lambda feature: feature == "pdfjs2"
+
+        assert "via.features=pdfjs2" in via_url(pyramid_request, "http://example.com")
