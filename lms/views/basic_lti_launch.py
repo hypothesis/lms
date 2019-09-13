@@ -56,6 +56,10 @@ class BasicLTILaunchViews:
         # Configure the front-end mini-app to run.
         self.context.js_config.update({"mode": "basic-lti-launch"})
 
+        # Configure front-end grading if feature is enabled
+        if request.feature("blackboard_grading"):
+            frontend_app.configure_grading(request, self.context.js_config)
+
         # Add config used by frontend to call `record_submission` API.
         params = self.request.params
         if (
