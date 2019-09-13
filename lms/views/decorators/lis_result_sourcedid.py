@@ -2,6 +2,7 @@
 
 import functools
 
+from lms.views.helpers import is_instructor
 from lms.validation import LISResultSourcedIdSchema, ValidationError
 
 __all__ = ["upsert_lis_result_sourcedid"]
