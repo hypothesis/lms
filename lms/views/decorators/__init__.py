@@ -21,6 +21,7 @@ https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/viewconfig.html#n
 from lms.views.decorators.h_api import upsert_h_user
 from lms.views.decorators.h_api import upsert_course_group
 from lms.views.decorators.h_api import add_user_to_group
+from lms.views.decorators.lis_result_sourcedid import upsert_lis_result_sourcedid
 from lms.views.decorators.reports import report_lti_launch
 
 __all__ = (
@@ -28,4 +29,5 @@ __all__ = (
     "upsert_course_group",
     "add_user_to_group",
     "report_lti_launch",
+    "upsert_lis_result_sourcedid",
 )

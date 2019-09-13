@@ -9,47 +9,47 @@ class LISResultSourcedIdService:
     def __init__(self, _context, request):
         self._db = request.db
 
-    def upsert(self, validated_attrs):
+    def upsert(self, lis_info, h_user, lti_user):
         """
         Update an existing record or create a new one if none exists.
 
-        :arg validated_attrs: Valid attributes for associated
-            :class:`lms.models.LISResultSourcedId` record.
+        :arg lis_info: LIS-specific attrs
+        :type lis_info: :class:`lms.values.LISResultSourcedId`
+        :arg h_user: The h user this record is associated with
+        :type h_user: :class:`lms.values.HUser`
+        :arg lti_user: The LTI-provided user that this record is associated with
+        :type lti_user: :class:`lms.values.LTIUser`
         :return: The new or updated record
         :rtype: :class:`~lms.models.LISResultSourcedId`
         """
         lis_result_sourcedid = (
             self._db.query(LISResultSourcedId)
             .filter_by(
-                oauth_consumer_key=validated_attrs["oauth_consumer_key"],
-                user_id=validated_attrs["user_id"],
-                context_id=validated_attrs["context_id"],
-                resource_link_id=validated_attrs["resource_link_id"],
+                oauth_consumer_key=lti_user.oauth_consumer_key,
+                user_id=lti_user.user_id,
+                context_id=lis_info.context_id,
+                resource_link_id=lis_info.resource_link_id,
             )
             .one_or_none()
         )
 
         if lis_result_sourcedid is None:
             lis_result_sourcedid = LISResultSourcedId(
-                oauth_consumer_key=validated_attrs["oauth_consumer_key"],
-                user_id=validated_attrs["user_id"],
-                context_id=validated_attrs["context_id"],
-                resource_link_id=validated_attrs["resource_link_id"],
+                oauth_consumer_key=lti_user.oauth_consumer_key,
+                user_id=lti_user.user_id,
+                context_id=lis_info.context_id,
+                resource_link_id=lis_info.resource_link_id,
             )
             self._db.add(lis_result_sourcedid)
 
-        lis_result_sourcedid.lis_result_sourcedid = validated_attrs[
-            "lis_result_sourcedid"
-        ]
-        lis_result_sourcedid.lis_outcome_service_url = validated_attrs[
-            "lis_outcome_service_url"
-        ]
-        lis_result_sourcedid.h_username = validated_attrs["h_username"]
-        lis_result_sourcedid.h_display_name = validated_attrs["h_display_name"]
+        lis_result_sourcedid.lis_result_sourcedid = lis_info.lis_result_sourcedid
+        lis_result_sourcedid.lis_outcome_service_url = lis_info.lis_outcome_service_url
 
-        if "tool_consumer_info_product_family_code" in validated_attrs:
-            lis_result_sourcedid.tool_consumer_info_product_family_code = validated_attrs[
-                "tool_consumer_info_product_family_code"
-            ]
+        lis_result_sourcedid.h_username = h_user.username
+        lis_result_sourcedid.h_display_name = h_user.display_name
+
+        lis_result_sourcedid.tool_consumer_info_product_family_code = (
+            lis_info.tool_consumer_info_product_family_code
+        )
 
         return lis_result_sourcedid

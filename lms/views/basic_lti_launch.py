@@ -26,6 +26,7 @@ from lms.views.decorators import (
     upsert_course_group,
     add_user_to_group,
     report_lti_launch,
+    upsert_lis_result_sourcedid,
 )
 
 
@@ -38,6 +39,8 @@ from lms.views.decorators import (
         add_user_to_group,
         # Report all LTI assignment launches to the /reports page.
         report_lti_launch,
+        # Create/update LIS Result SourcedId record for certain students
+        upsert_lis_result_sourcedid,
     ],
     permission="launch_lti_assignment",
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
