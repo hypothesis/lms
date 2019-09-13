@@ -1,4 +1,5 @@
 from lms.views.helpers._authentication import check_password
+from lms.views.helpers._authorization import is_instructor
 from lms.views.helpers._canvas_files import canvas_files_available
 from lms.views.helpers import frontend_app
 from lms.views.helpers._via import via_url
