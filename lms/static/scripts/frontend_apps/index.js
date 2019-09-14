@@ -9,9 +9,18 @@ import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import FilePickerApp from './components/FilePickerApp';
 
 const rootEl = document.querySelector('#app');
-const config = JSON.parse(document.querySelector('.js-config').textContent);
+const config = JSON.parse(document.querySelector('.js-lms-config').textContent);
 
 const mode = config.mode || 'content-item-selection';
+
+config.students = [
+  {
+    name: 'Student 1',
+  },
+  {
+    name: 'Student 2',
+  },
+]; // Temporary fix until we add this in python
 
 render(
   <Config.Provider value={config}>
