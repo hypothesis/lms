@@ -46,9 +46,9 @@ export default function BasicLtiLaunchApp() {
     authToken,
     authUrl,
     lmsName,
-    submissionParams,
-    students,
+    grading,
     lmsGrader,
+    submissionParams,
     urls: {
       // Content URL to show in the iframe.
       via_url: viaUrl,
@@ -64,6 +64,15 @@ export default function BasicLtiLaunchApp() {
     state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
     contentUrl: viaUrl ? viaUrl : null,
   });
+
+  let defaultFocusedUser;
+  if (grading) {
+    defaultFocusedUser =
+      grading.students && grading.students.length
+        ? grading.students[0].username
+        : '';
+  }
+  const [focusedUser, setFocusedUser] = useState(defaultFocusedUser);
 
   /**
    * Fetch the URL of the content to display in the iframe.
@@ -182,27 +191,29 @@ export default function BasicLtiLaunchApp() {
   }, [authToken, authUrl, fetchContentUrl, lmsName]);
 
   if (ltiLaunchState.state === 'fetched-url') {
+    const iFrame = (
+      <iframe
+        key={focusedUser}
+        width="100%"
+        height="100%"
+        className="js-via-iframe"
+        src={ltiLaunchState.contentUrl}
+      />
+    );
+
     if (lmsGrader) {
       // Use the LMS Grader
       return (
-        <LMSGrader>
-          <iframe
-            width="100%"
-            height="100%"
-            class="js-via-iframe"
-            src={ltiLaunchState.contentUrl}
-          />
+        <LMSGrader
+          onChangeUser={username => {
+            setFocusedUser(username);
+          }}
+        >
+          {iFrame}
         </LMSGrader>
       );
     } else {
-      return (
-        <iframe
-          width="100%"
-          height="100%"
-          class="js-via-iframe"
-          src={ltiLaunchState.contentUrl}
-        />
-      );
+      return iFrame;
     }
   }
 

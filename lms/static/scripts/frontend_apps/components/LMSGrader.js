@@ -9,31 +9,62 @@ import StudentsSelector from './StudentsSelector';
  * The LMS Grader menu that is fixed at the top of the page. This menu shows which assignment is currently
  * active as well as a list of students to both view and submit grades for.
  *
- * This is component is still a WIP.
+ * WIP component.
  */
 
-export default function LMSGrader({ children }) {
-  const {
-    students,
-    //course,
-    //assignment,
-  } = useContext(Config);
+export default function LMSGrader({ children, onChangeUser }) {
+  const { grading } = useContext(Config);
+  const students = grading.students;
 
-  const [currentStudent, set_currentStudent] = useState(0);
+  // Initial current student is the first in the list
+  const [currentStudent, setCurrentStudent] = useState(0);
 
-  const onNextStudent = () => {
-    if (currentStudent + 1 < students.length) {
-      set_currentStudent(currentStudent + 1);
+  // Reference to the sidebar config DOM node
+  const sidebarConfigEl = document.querySelector('.js-hypothesis-config');
+
+  // Editable sidebar config object
+  const sidebarConfig = JSON.parse(sidebarConfigEl.text);
+
+  /**
+   * Sets the focus mode config object to a target student.
+   *
+   * @param {*} student - Array of students
+   */
+
+  const setFocusedStudentConfig = student => {
+    if (student) {
+      if (!sidebarConfig.focus) {
+        sidebarConfig.focus = {};
+      }
+      sidebarConfig.focus = {
+        ...sidebarConfig.focus,
+        user: {
+          username: student.username,
+          displayName: student.displayName,
+        },
+      };
+      sidebarConfigEl.text = JSON.stringify(sidebarConfig);
     }
   };
-  const onPrevStudent = () => {
-    if (currentStudent > 0) {
-      set_currentStudent(currentStudent - 1);
-    }
+
+  // Initially set the focused student sidebar config
+  setFocusedStudentConfig(students[currentStudent]);
+
+  /**
+   * Main handler function to perform any state updates
+   * required change a focused user.
+   */
+  const onSelectStudent = studentIndex => {
+    setFocusedStudentConfig(students[studentIndex]);
+    setCurrentStudent(studentIndex);
+    onChangeUser(students[studentIndex].username);
   };
 
-  const hasNextStudent = currentStudent + 1 < students.length;
-  const hasPrevStudent = currentStudent > 0;
+  /*
+  function submitGrade(grade) {
+    // todo
+  }
+  */
 
   return (
     <header className="LMSGrader">
@@ -47,11 +78,9 @@ export default function LMSGrader({ children }) {
         </li>
         <li className="LMSGrader__student-picker">
           <StudentsSelector
-            onPrevStudent={onPrevStudent}
-            onNextStudent={onNextStudent}
-            hasNextStudent={hasNextStudent}
-            hasPrevStudent={hasPrevStudent}
-            student={students[currentStudent]}
+            onSelectStudent={onSelectStudent}
+            students={students}
+            selectedStudentIndex={currentStudent}
           />
         </li>
       </ul>
@@ -61,5 +90,9 @@ export default function LMSGrader({ children }) {
 }
 
 LMSGrader.propTypes = {
+  // Callback to alert the parent component that a change has occurred and re-rendering may be needed.
+  onChangeUser: propTypes.func.isRequired,
+
+  // <iframe> to pass along
   children: propTypes.node.isRequired,
 };

@@ -2,22 +2,65 @@ import { createElement } from 'preact';
 import propTypes from 'prop-types';
 
 /**
- * A student navigation tool which shows an active student and a previous and next button to
- * switch the student.
+ * A student navigation tool which shows an active student select list and a previous and next button to
+ * switch students.
  *
- * This is component is still a WIP.
+ * WIP component.
  */
 
 export default function StudentsSelector({
-  // booleans
-  hasPrevStudent,
-  hasNextStudent,
-  // onclick callbacks
-  onPrevStudent,
-  onNextStudent,
-  // student object
-  student,
+  onSelectStudent,
+  selectedStudentIndex,
+  students,
 }) {
+  // Disable the next button if at the end of the list
+  const hasNextStudent = selectedStudentIndex + 1 < students.length;
+  // Disable the previous button if at the start of the list
+  const hasPrevStudent = selectedStudentIndex > 0;
+
+  /**
+   * Select the next student in the list
+   */
+  const onNextStudent = () => {
+    if (selectedStudentIndex + 1 < students.length) {
+      onSelectStudent(selectedStudentIndex + 1);
+    }
+  };
+  /**
+   * Select the previous student in the list
+   */
+  const onPrevStudent = () => {
+    if (selectedStudentIndex > 0) {
+      onSelectStudent(selectedStudentIndex - 1);
+    }
+  };
+
+  /**
+   * Build the <select> list from the current array of students
+   */
+  const studentList = () => {
+    const options = students.map((student, i) => {
+      return (
+        <option
+          key={`student-${i}`}
+          selected={selectedStudentIndex === i}
+          value={i}
+        >
+          {student.displayName}
+        </option>
+      );
+    });
+    return (
+      <select
+        onChange={e => {
+          onSelectStudent(e.target.selectedIndex);
+        }}
+      >
+        {options}
+      </select>
+    );
+  };
+
   return (
     <div className="StudentsSelector">
       <button
@@ -27,9 +70,7 @@ export default function StudentsSelector({
       >
         <img src="/static/images/iconmonstr-arrow-left-thin.svg" />
       </button>
-      <div className="StudentsSelector__student">
-        <span>{student.name}</span>
-      </div>
+      <div className="StudentsSelector__student">{studentList()}</div>
       <button
         aria-label="next student"
         disabled={!hasNextStudent}
@@ -42,13 +83,10 @@ export default function StudentsSelector({
 }
 
 StudentsSelector.propTypes = {
-  onPrevStudent: propTypes.func.isRequired,
-  onNextStudent: propTypes.func.isRequired,
+  // Callback when the selected student changes
+  onSelectStudent: propTypes.func.isRequired,
 
-  /* Are we at the start of the list*/
-  hasPrevStudent: propTypes.boolean,
-  /* Are we at the emd of the list*/
-  hasNextStudent: propTypes.boolean,
-
-  student: propTypes.object.isRequired,
+  // Students array and selected index of that array
+  selectedStudentIndex: propTypes.number.isRequired,
+  students: propTypes.array.isRequired,
 };

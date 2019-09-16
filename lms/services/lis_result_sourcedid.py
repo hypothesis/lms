@@ -1,4 +1,5 @@
 from lms.models import LISResultSourcedId
+from lms.values import HUser
 
 __all__ = ["LISResultSourcedIdService"]
 

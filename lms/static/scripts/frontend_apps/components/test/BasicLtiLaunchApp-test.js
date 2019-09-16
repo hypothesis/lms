@@ -13,6 +13,7 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let FakeErrorDisplay;
   let fakeConfig;
+  let fakeHypothesisConfig;
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
     <Fragment>
@@ -58,10 +59,17 @@ describe('BasicLtiLaunchApp', () => {
         apiCall: fakeApiCall,
       },
     });
+
+    // fake js-hypothesis-config
+    fakeHypothesisConfig = sinon.stub(document, 'querySelector');
+    fakeHypothesisConfig
+      .withArgs('.js-hypothesis-config')
+      .returns({ text: JSON.stringify({}) });
   });
 
   afterEach(() => {
     $imports.$restore();
+    fakeHypothesisConfig.restore();
   });
 
   context('when a content URL is provided in the config', () => {
@@ -223,5 +231,34 @@ describe('BasicLtiLaunchApp', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     assert.notCalled(fakeApiCall);
+  });
+
+  context('when lmsGrader is mode is true', () => {
+    beforeEach(() => {
+      fakeConfig.lmsGrader = true;
+      fakeConfig.grading = {
+        students: [{ username: 'user1' }, { username: 'user2' }],
+      };
+    });
+
+    it('renders the LMSGrader component', () => {
+      const wrapper = renderLtiLaunchApp();
+      const LMSGrader = wrapper.find('.LMSGrader');
+      assert.isTrue(LMSGrader.exists());
+    });
+
+    it('initially creates an iframe key equal to the focused username', () => {
+      const wrapper = renderLtiLaunchApp();
+      assert.equal(wrapper.find('iframe').key(), 'user1');
+    });
+
+    it('creates an iframe key equal to the focused username after changing users', () => {
+      const wrapper = renderLtiLaunchApp();
+      wrapper
+        .find('button')
+        .last()
+        .simulate('click');
+      assert.equal(wrapper.find('iframe').key(), 'user2');
+    });
   });
 });

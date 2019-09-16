@@ -13,15 +13,6 @@ const config = JSON.parse(document.querySelector('.js-lms-config').textContent);
 
 const mode = config.mode || 'content-item-selection';
 
-config.students = [
-  {
-    name: 'Student 1',
-  },
-  {
-    name: 'Student 2',
-  },
-]; // Temporary fix until we add this in python
-
 render(
   <Config.Provider value={config}>
     {mode === 'basic-lti-launch' && <BasicLtiLaunchApp />}
