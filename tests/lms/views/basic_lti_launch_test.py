@@ -18,6 +18,12 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
         assert context.js_config["mode"] == "basic-lti-launch"
 
+    def test_it_does_not_configure_grading_if_request_unqualified(
+        self, context, pyramid_request
+    ):
+        BasicLTILaunchViews(context, pyramid_request)
+        assert "lmsGrader" not in context.js_config
+
     def test_it_adds_report_submission_config_if_required_params_present(
         self, context, pyramid_request, lti_outcome_params
     ):
@@ -163,6 +169,27 @@ class TestDBConfiguredBasicLTILaunch:
             context.js_config["submissionParams"]["document_url"] == "TEST_DOCUMENT_URL"
         )
 
+    def test_it_configures_frontend_grading_if_feature_enabled(
+        self,
+        context,
+        pyramid_request,
+        frontend_app,
+        lti_outcome_params,
+        via_url,
+        ModuleItemConfiguration,
+    ):
+        pyramid_request.params = {
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            **lti_outcome_params,
+        }
+        pyramid_request.feature = lambda feature: feature == "blackboard_grading"
+
+        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
+        frontend_app.configure_grading.assert_called_once_with(
+            pyramid_request, context.js_config
+        )
+
 
 class TestURLConfiguredBasicLTILaunch:
     def test_it_configures_via_url(
@@ -176,6 +203,28 @@ class TestURLConfiguredBasicLTILaunch:
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config["urls"]["via_url"] == via_url.return_value
         assert context.js_config["submissionParams"]["document_url"] == "TEST_URL"
+
+    def test_it_configures_frontend_grading_if_feature_enabled(
+        self,
+        context,
+        pyramid_request,
+        frontend_app,
+        lti_outcome_params,
+        via_url,
+        ModuleItemConfiguration,
+    ):
+        pyramid_request.params = {
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            **lti_outcome_params,
+        }
+        pyramid_request.parsed_params = {"url": "TEST_URL"}
+        pyramid_request.feature = lambda feature: feature == "blackboard_grading"
+
+        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+        frontend_app.configure_grading.assert_called_once_with(
+            pyramid_request, context.js_config
+        )
 
 
 class TestUnconfiguredBasicLTILaunch:
@@ -268,6 +317,11 @@ class TestConfigureModuleItem:
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
     return patch("lms.views.basic_lti_launch.BearerTokenSchema")
+
+
+@pytest.fixture
+def frontend_app(patch):
+    return patch("lms.views.basic_lti_launch.frontend_app")
 
 
 @pytest.fixture
