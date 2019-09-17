@@ -22,13 +22,8 @@ def upsert_lis_result_sourcedid(wrapped):
             # LIS data is not present on the request.
             return wrapped(context, request)
 
-        is_instructor = any(
-            role in request.lti_user.roles.lower()
-            for role in ("administrator", "instructor", "teachingassisstant")
-        )
-
         if (
-            is_instructor
+            request.lti_user.is_instructor
             or lis_result_sourcedid.tool_consumer_info_product_family_code
             != "BlackboardLearn"
         ):

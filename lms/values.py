@@ -17,6 +17,14 @@ class LTIUser(NamedTuple):
     roles: str
     """The user's LTI roles."""
 
+    @property
+    def is_instructor(self):
+        """Whether this user is an instructor."""
+        return any(
+            role in self.roles.lower()
+            for role in ("administrator", "instructor", "teachingassistant")
+        )
+
 
 class HUser(NamedTuple):
     """
