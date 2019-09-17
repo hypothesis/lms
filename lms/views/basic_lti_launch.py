@@ -28,6 +28,7 @@ from lms.views.decorators import (
     report_lti_launch,
     upsert_lis_result_sourcedid,
 )
+from lms.views.helpers import frontend_app
 
 
 @view_defaults(
@@ -131,6 +132,10 @@ class BasicLTILaunchViews:
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
+        # Configure front-end grading if feature is enabled
+        if self.request.feature("blackboard_grading"):
+            frontend_app.configure_grading(self.request, self.context.js_config)
+
         resource_link_id = self.request.params["resource_link_id"]
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
 
@@ -158,6 +163,10 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
+        # Configure front-end grading if feature is enabled
+        if self.request.feature("blackboard_grading"):
+            frontend_app.configure_grading(self.request, self.context.js_config)
+
         url = self.request.parsed_params["url"]
         self._set_via_url(url)
 

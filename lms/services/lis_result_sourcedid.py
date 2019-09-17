@@ -8,6 +8,38 @@ class LISResultSourcedIdService:
 
     def __init__(self, _context, request):
         self._db = request.db
+        self._authority = request.registry.settings["h_authority"]
+
+    def fetch_students_by_assignment(
+        self, oauth_consumer_key, context_id, resource_link_id
+    ):
+        """
+        Fetch data for students having LIS result records for an assignment.
+
+        Retrieve all :class:`~lms.models.LISResultSourcedId`s that match this
+        assignment (each unique combination of (``oauth_consumer_key``,
+        ``context_id``, ``resource_link_id``) corresponds to an assignment).
+        There should be one record per applicable student who has launched this
+        assignment (and had ``LISresultSourcedId`` data persisted for them).
+
+        :arg oauth_consumer_key: Which LMS application install the request
+                                 corresponds to.
+        :type oauth_consumer_key: str
+        :arg context_id: LTI parameter indicating the course
+        :type context_id: str
+        :arg resource_link_id: LTI parameter (roughly) equating to an assignment
+        :type resource_link_id: str
+        :rtype: list[:class:`lms.models.LISResultSourcedId`]
+        """
+        return (
+            self._db.query(LISResultSourcedId)
+            .filter_by(
+                oauth_consumer_key=oauth_consumer_key,
+                context_id=context_id,
+                resource_link_id=resource_link_id,
+            )
+            .all()
+        )
 
     def upsert(self, lis_info, h_user, lti_user):
         """

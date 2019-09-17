@@ -8,6 +8,42 @@ from lms.services.lis_result_sourcedid import LISResultSourcedIdService
 from lms import values
 
 
+class TestLISResultFetchStudentsByAssignment:
+    def test_it_retrieves_matching_records(
+        self, svc, lis_result_sourcedid, lis_result_sourcedid_info, lti_user, db_session
+    ):
+        h_user = values.HUser(
+            authority="TEST_AUTHORITY",
+            username="teststudent",
+            display_name="Another Test",
+        )
+        lti_user = values.LTIUser(
+            "TEST_USER_ID_2", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
+        )
+        _add_lis_result_sourcedid(
+            lis_result_sourcedid_info, h_user, lti_user, db_session
+        )
+
+        students = svc.fetch_students_by_assignment(
+            oauth_consumer_key=lti_user.oauth_consumer_key,
+            context_id=lis_result_sourcedid_info.context_id,
+            resource_link_id=lis_result_sourcedid_info.resource_link_id,
+        )
+
+        assert len(students) == 2
+
+    def test_it_returns_empty_list_if_no_matching_records(
+        self, svc, lti_user, lis_result_sourcedid_info
+    ):
+        students = svc.fetch_students_by_assignment(
+            oauth_consumer_key=lti_user.oauth_consumer_key,
+            context_id=lis_result_sourcedid_info.context_id,
+            resource_link_id=lis_result_sourcedid_info.resource_link_id,
+        )
+
+        assert not students
+
+
 class TestLISResultSourcedIdUpsert:
     def test_it_creates_new_record_if_no_matching_exists(
         self, svc, lis_result_sourcedid_info, h_user, lti_user, db_session
@@ -72,69 +108,80 @@ class TestLISResultSourcedIdUpsert:
         )
         assert lis_result_sourcedid.h_display_name == "Someone Else"
 
-    @pytest.fixture
-    def lti_user(self):
-        return values.LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES")
 
-    @pytest.fixture
-    def h_user(self):
-        return values.HUser(authority="TEST_AUTHORITY", username="seanh")
+def _add_lis_result_sourcedid(lis_result_sourcedid_info, h_user, lti_user, db_session):
+    lis_result_sourcedid_ = LISResultSourcedId()
+    lis_result_sourcedid_.lis_result_sourcedid = (
+        lis_result_sourcedid_info.lis_result_sourcedid
+    )
+    lis_result_sourcedid_.lis_outcome_service_url = (
+        lis_result_sourcedid_info.lis_outcome_service_url
+    )
+    lis_result_sourcedid_.context_id = lis_result_sourcedid_info.context_id
+    lis_result_sourcedid_.resource_link_id = lis_result_sourcedid_info.resource_link_id
+    lis_result_sourcedid_.tool_consumer_info_product_family_code = (
+        lis_result_sourcedid_info.tool_consumer_info_product_family_code
+    )
+    lis_result_sourcedid_.h_username = h_user.username
+    lis_result_sourcedid_.h_display_name = h_user.display_name
+    lis_result_sourcedid_.oauth_consumer_key = lti_user.oauth_consumer_key
+    lis_result_sourcedid_.user_id = lti_user.user_id
 
-    @pytest.fixture
-    def application_instance(self, db_session):
-        """The ApplicationInstance that the LISResultSourcedIds belong to"""
-        application_instance = ApplicationInstance(
-            consumer_key="test_consumer_key",
-            shared_secret="test_shared_secret",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-        db_session.add(application_instance)
-        return application_instance
+    db_session.add(lis_result_sourcedid_)
+    return lis_result_sourcedid_
 
-    @pytest.fixture
-    def context(self, h_user):
-        context = mock.create_autospec(
-            LTILaunchResource, spec_set=True, instance=True, h_user=h_user
-        )
-        return context
 
-    @pytest.fixture
-    def svc(self, context, pyramid_request):
-        return LISResultSourcedIdService(context, pyramid_request)
+@pytest.fixture
+def lti_user():
+    return values.LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES")
 
-    @pytest.fixture
-    def lis_result_sourcedid_info(self, application_instance):
-        return values.LISResultSourcedId(
-            lis_result_sourcedid="result_sourcedid",
-            lis_outcome_service_url="https://somewhere.else",
-            context_id="random context",
-            resource_link_id="random resource link id",
-            tool_consumer_info_product_family_code="BlackboardLearn",
-        )
 
-    @pytest.fixture
-    def lis_result_sourcedid(
-        self, lis_result_sourcedid_info, h_user, lti_user, db_session
-    ):
-        lis_result_sourcedid_ = LISResultSourcedId()
-        lis_result_sourcedid_.lis_result_sourcedid = (
-            lis_result_sourcedid_info.lis_result_sourcedid
-        )
-        lis_result_sourcedid_.lis_outcome_service_url = (
-            lis_result_sourcedid_info.lis_outcome_service_url
-        )
-        lis_result_sourcedid_.context_id = lis_result_sourcedid_info.context_id
-        lis_result_sourcedid_.resource_link_id = (
-            lis_result_sourcedid_info.resource_link_id
-        )
-        lis_result_sourcedid_.tool_consumer_info_product_family_code = (
-            lis_result_sourcedid_info.tool_consumer_info_product_family_code
-        )
-        lis_result_sourcedid_.h_username = h_user.username
-        lis_result_sourcedid_.h_display_name = h_user.display_name
-        lis_result_sourcedid_.oauth_consumer_key = lti_user.oauth_consumer_key
-        lis_result_sourcedid_.user_id = lti_user.user_id
+@pytest.fixture
+def h_user():
+    return values.HUser(
+        authority="TEST_AUTHORITY", username="seanh", display_name="Sample Student"
+    )
 
-        db_session.add(lis_result_sourcedid_)
-        return lis_result_sourcedid_
+
+@pytest.fixture
+def application_instance(db_session):
+    """The ApplicationInstance that the LISResultSourcedIds belong to"""
+    application_instance = ApplicationInstance(
+        consumer_key="test_consumer_key",
+        shared_secret="test_shared_secret",
+        lms_url="test_lms_url",
+        requesters_email="test_requesters_email",
+    )
+    db_session.add(application_instance)
+    return application_instance
+
+
+@pytest.fixture
+def context(h_user):
+    context = mock.create_autospec(
+        LTILaunchResource, spec_set=True, instance=True, h_user=h_user
+    )
+    return context
+
+
+@pytest.fixture
+def svc(context, pyramid_request):
+    return LISResultSourcedIdService(context, pyramid_request)
+
+
+@pytest.fixture
+def lis_result_sourcedid_info(application_instance):
+    return values.LISResultSourcedId(
+        lis_result_sourcedid="result_sourcedid",
+        lis_outcome_service_url="https://somewhere.else",
+        context_id="random context",
+        resource_link_id="random resource link id",
+        tool_consumer_info_product_family_code="BlackboardLearn",
+    )
+
+
+@pytest.fixture
+def lis_result_sourcedid(lis_result_sourcedid_info, h_user, lti_user, db_session):
+    return _add_lis_result_sourcedid(
+        lis_result_sourcedid_info, h_user, lti_user, db_session
+    )
