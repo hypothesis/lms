@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-from lms.views.api.lti import record_submission
+from lms.views.api.lti import LTIOutcomesViews
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 
@@ -14,7 +14,7 @@ class TestRecordSubmission:
     def test_it_passes_correct_params_to_read_current_score(
         self, pyramid_request, lti_outcomes_client
     ):
-        record_submission(pyramid_request)
+        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_outcomes_client.read_result.assert_called_once_with(
             LTIOutcomesRequestParams(
@@ -30,7 +30,7 @@ class TestRecordSubmission:
     ):
         lti_outcomes_client.read_result.return_value = 0.5
 
-        record_submission(pyramid_request)
+        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_outcomes_client.record_result.assert_not_called()
 
@@ -54,7 +54,7 @@ class TestRecordSubmission:
         )
         lti_outcomes_client.read_result.return_value = None
 
-        record_submission(pyramid_request)
+        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
         expected_outcome_params = LTIOutcomesRequestParams(
             consumer_key="TEST_OAUTH_CONSUMER_KEY",
