@@ -3,7 +3,7 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
-from lms.validation import APIRecordSpeedgraderSchema
+from lms.validation import APIRecordSpeedgraderSchema, APIRecordResultSchema
 from lms.services.lti_outcomes import LTIOutcomesRequestParams
 
 
@@ -27,6 +27,16 @@ class LTIOutcomesViews:
             lis_outcome_service_url=self.parsed_params["lis_outcome_service_url"],
             lis_result_sourcedid=self.parsed_params["lis_result_sourcedid"],
         )
+
+    @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
+    def record_result(self):
+        """Proxy result (grade/score) to LTI Outcomes Result API."""
+
+        self.request.find_service(name="lti_outcomes_client").record_result(
+            self.outcome_request_params, score=self.request.parsed_params["score"]
+        )
+
+        return {}
 
     @view_config(
         route_name="lti_api.submissions.record", schema=APIRecordSpeedgraderSchema
