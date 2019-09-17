@@ -3,7 +3,7 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
-from lms.validation import APIRecordSubmissionSchema
+from lms.validation import APIRecordSpeedgraderSchema
 from lms.services.lti_outcomes import LTIOutcomesRequestParams
 
 
@@ -29,7 +29,7 @@ class LTIOutcomesViews:
         )
 
     @view_config(
-        route_name="lti_api.submissions.record", schema=APIRecordSubmissionSchema
+        route_name="lti_api.submissions.record", schema=APIRecordSpeedgraderSchema
     )
     def record_canvas_speedgrader_submission(self):
         """

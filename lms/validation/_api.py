@@ -5,11 +5,11 @@ from webargs import fields
 from lms.validation._helpers import PyramidRequestSchema
 
 
-__all__ = ["APIRecordSubmissionSchema"]
+__all__ = ["APIRecordSpeedgraderSchema"]
 
 
-class APIRecordSubmissionSchema(PyramidRequestSchema):
-    """Schema for validating requests from the frontend to record submissions."""
+class APIRecordSpeedgraderSchema(PyramidRequestSchema):
+    """Schema for validating Canvas Speedgrader submissions from the front end."""
 
     locations = ["json"]
 
