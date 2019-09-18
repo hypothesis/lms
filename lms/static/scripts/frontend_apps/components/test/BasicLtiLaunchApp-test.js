@@ -1,3 +1,4 @@
+import { act } from 'preact/test-utils';
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
@@ -13,12 +14,19 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let FakeErrorDisplay;
   let fakeConfig;
+  let fakeHypothesisConfig;
+
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
     <Fragment>
       {buttons} {children}
     </Fragment>
   );
+
+  // eslint-disable-next-line react/prop-types
+  const FakeLMSGrader = ({ children }) => {
+    return <Fragment>{children}</Fragment>;
+  };
 
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
@@ -51,6 +59,7 @@ describe('BasicLtiLaunchApp', () => {
     $imports.$mock({
       './Dialog': FakeDialog,
       './ErrorDisplay': FakeErrorDisplay,
+      './LMSGrader': FakeLMSGrader,
       './Spinner': FakeSpinner,
 
       '../utils/AuthWindow': FakeAuthWindow,
@@ -58,10 +67,17 @@ describe('BasicLtiLaunchApp', () => {
         apiCall: fakeApiCall,
       },
     });
+
+    // fake js-hypothesis-config
+    fakeHypothesisConfig = sinon.stub(document, 'querySelector');
+    fakeHypothesisConfig
+      .withArgs('.js-hypothesis-config')
+      .returns({ text: JSON.stringify({}) });
   });
 
   afterEach(() => {
     $imports.$restore();
+    fakeHypothesisConfig.restore();
   });
 
   context('when a content URL is provided in the config', () => {
@@ -223,5 +239,32 @@ describe('BasicLtiLaunchApp', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     assert.notCalled(fakeApiCall);
+  });
+
+  context('when lmsGrader mode flag is true', () => {
+    beforeEach(() => {
+      fakeConfig.lmsGrader = true;
+      fakeConfig.grading = {
+        students: [{ userid: 'user1' }, { userid: 'user2' }],
+      };
+    });
+
+    it('renders the LMSGrader component', () => {
+      const wrapper = renderLtiLaunchApp();
+      const LMSGrader = wrapper.find('FakeLMSGrader');
+      assert.isTrue(LMSGrader.exists());
+    });
+
+    it('creates an iframe key equal to the focused userid', () => {
+      const wrapper = renderLtiLaunchApp();
+      act(() => {
+        wrapper
+          .find(FakeLMSGrader)
+          .props()
+          .onChangeSelectedUser('new_key');
+      });
+      wrapper.update();
+      assert.equal(wrapper.find('iframe').key(), 'new_key');
+    });
   });
 });
