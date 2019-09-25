@@ -1,5 +1,18 @@
 from lms.services import CanvasAPIError
 from lms.views.api import error
+from lms.validation import ValidationError
+
+
+class TestSchemaValidationError:
+    def test_it(self, pyramid_request):
+        json_data = error.validation_error(
+            ValidationError(messages="foobar"), pyramid_request
+        )
+        assert pyramid_request.response.status_code == 422
+        assert json_data == {
+            "error_message": "Unable to process the contained instructions",
+            "details": "foobar",
+        }
 
 
 class TestCanvasAPIAccessTokenError:

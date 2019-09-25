@@ -7,9 +7,17 @@ from pyramid.view import (
 )
 
 from lms.services import CanvasAPIError, CanvasAPIAccessTokenError
-
+from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
+
+
+@exception_view_config(context=ValidationError, renderer="json")
+def validation_error(context, request):
+    request.response.status_int = 422
+    # For frontend requests to proxy API endpoints, handle schema
+    # validation errors.
+    return {"error_message": context.explanation, "details": context.messages}
 
 
 @exception_view_config(context=CanvasAPIAccessTokenError, renderer="json")

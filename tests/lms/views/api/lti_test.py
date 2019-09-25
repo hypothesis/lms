@@ -10,7 +10,7 @@ from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParam
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 
 
-class TestRecordSubmission:
+class TestRecordCanvasSpeedgraderSubmission:
     def test_it_passes_correct_params_to_read_current_score(
         self, pyramid_request, lti_outcomes_client
     ):
@@ -86,6 +86,33 @@ class TestRecordSubmission:
             # service.
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
+        }
+        return pyramid_request
+
+
+class TestRecordResult:
+    def test_it_records_result(self, pyramid_request, lti_outcomes_client):
+
+        LTIOutcomesViews(pyramid_request).record_result()
+
+        expected_outcome_params = LTIOutcomesRequestParams(
+            consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            shared_secret="oauth-secret",
+            lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
+            lis_result_sourcedid="modelstudent-assignment1",
+        )
+        lti_outcomes_client.record_result.assert_called_once_with(
+            expected_outcome_params, score=pyramid_request.parsed_params["score"]
+        )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            # Metadata provided by LMS for requests to LTI Outcomes Management
+            # service.
+            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+            "lis_result_sourcedid": "modelstudent-assignment1",
+            "score": 0.5,
         }
         return pyramid_request
 
