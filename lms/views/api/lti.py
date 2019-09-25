@@ -7,7 +7,7 @@ from lms.validation import APIRecordSpeedgraderSchema, APIRecordResultSchema
 from lms.services.lti_outcomes import LTIOutcomesRequestParams
 
 
-@view_defaults(request_method="POST", renderer="json")
+@view_defaults(request_method="POST", renderer="json", permission="lti_outcomes")
 class LTIOutcomesViews:
     """Views for proxy APIs interacting with LTI Outcome Management APIs."""
 
