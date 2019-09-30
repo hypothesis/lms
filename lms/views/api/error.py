@@ -32,15 +32,8 @@ def canvas_api_access_token_error(request):
 
 
 @exception_view_config(context=CanvasAPIError, renderer="json")
-def canvas_api_error(context, request):
-    request.response.status_int = 400
-    # Send the frontend an error message and details to show to the user for
-    # debugging.
-    return {"error_message": context.explanation, "details": context.details}
-
-
 @exception_view_config(context=LTIOutcomesAPIError, renderer="json")
-def lti_outcomes_api_error(context, request):
+def proxy_api_error(context, request):
     request.response.status_int = 400
     # Send the frontend an error message and details to show to the user for
     # debugging.

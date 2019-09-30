@@ -25,7 +25,7 @@ class TestCanvasAPIAccessTokenError:
 
 class TestCanvasAPIError:
     def test_it(self, pyramid_request):
-        json_data = error.canvas_api_error(
+        json_data = error.proxy_api_error(
             CanvasAPIError(explanation="test_explanation", details={"foo": "bar"}),
             pyramid_request,
         )
@@ -39,7 +39,7 @@ class TestCanvasAPIError:
 
 class TestLTIOutcomesAPIError:
     def test_it(self, pyramid_request):
-        json_data = error.canvas_api_error(
+        json_data = error.proxy_api_error(
             LTIOutcomesAPIError(explanation="test_explanation", details={"foo": "bar"}),
             pyramid_request,
         )

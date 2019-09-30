@@ -46,6 +46,9 @@ class TestIncludeMe:
             ),
             mock.call.add_route("lti_api.submissions.record", "/api/lti/submissions"),
             mock.call.add_route(
+                "lti_api.result.read", "/api/lti/result", request_method="GET"
+            ),
+            mock.call.add_route(
                 "lti_api.result.record", "/api/lti/result", request_method="POST"
             ),
         ]

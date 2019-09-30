@@ -68,11 +68,16 @@ from lms.validation._canvas import (
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
 )
-from lms.validation._api import APIRecordSpeedgraderSchema, APIRecordResultSchema
+from lms.validation._api import (
+    APIRecordSpeedgraderSchema,
+    APIReadResultSchema,
+    APIRecordResultSchema,
+)
 
 
 __all__ = (
     "APIRecordSpeedgraderSchema",
+    "APIReadResultSchema",
     "APIRecordResultSchema",
     "CanvasOAuthCallbackSchema",
     "CanvasAccessTokenResponseSchema",
