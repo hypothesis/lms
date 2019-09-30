@@ -5,7 +5,7 @@ import httpretty
 from jinja2 import Template
 import pytest
 
-from lms.services.exceptions import ExternalRequestError, ServiceError
+from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import (
     LTIOutcomesClient,
     LTIOutcomesRequestParams,
@@ -180,7 +180,7 @@ class TestLTIOutcomesClient:
     ):
         configure_response({}, status=400)
 
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
     def test_requests_fail_if_body_not_xml(self, lti_outcomes_params, lti_outcomes_svc):
@@ -191,14 +191,14 @@ class TestLTIOutcomesClient:
             content_type="application/json",
             priority=1,
         )
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
     def test_requests_fail_if_no_status(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
         configure_response({"exclude_status": True})
-        with pytest.raises(ServiceError):
+        with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
     def test_requests_fail_if_status_is_not_success(
@@ -206,7 +206,7 @@ class TestLTIOutcomesClient:
     ):
         configure_response({"status_code": "failure"})
 
-        with pytest.raises(ServiceError):
+        with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
     @pytest.fixture

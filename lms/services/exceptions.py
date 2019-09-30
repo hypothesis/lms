@@ -10,6 +10,7 @@ __all__ = [
     "CanvasAPIError",
     "CanvasAPIAccessTokenError",
     "CanvasAPIServerError",
+    "LTIOutcomesAPIError",
 ]
 
 
@@ -171,4 +172,13 @@ class CanvasAPIServerError(CanvasAPIError):
 
     Raised when a Canvas API request fails in an unexpected way: for example
     the request times out, or we receive an unexpected response.
+    """
+
+
+class LTIOutcomesAPIError(ExternalRequestError):
+    """
+    A problem with a request to an LTI Outcomes-compliant API.
+
+    Raised whenever an LTI outcomes API request times out or when an
+    unsuccessful, invalid or unexpected response is received from the API.
     """

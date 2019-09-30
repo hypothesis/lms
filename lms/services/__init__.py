@@ -9,6 +9,7 @@ from lms.services.exceptions import HAPINotFoundError
 from lms.services.exceptions import CanvasAPIError
 from lms.services.exceptions import CanvasAPIAccessTokenError
 from lms.services.exceptions import CanvasAPIServerError
+from lms.services.exceptions import LTIOutcomesAPIError
 
 __all__ = (
     "ServiceError",
@@ -22,6 +23,7 @@ __all__ = (
     "CanvasAPIError",
     "CanvasAPIAccessTokenError",
     "CanvasAPIServerError",
+    "LTIOutcomesAPIError",
 )
 
 
