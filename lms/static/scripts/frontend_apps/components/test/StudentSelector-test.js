@@ -28,12 +28,9 @@ describe('StudentSelector', () => {
     );
   };
 
-  it('shall not have an initial selected option', () => {
+  it('shall have "All Students" as the default option', () => {
     const wrapper = renderSelector({ selectedStudentIndex: -1 });
-    assert.equal(
-      wrapper.find('select [selected=true]').text(),
-      'Select a student'
-    );
+    assert.equal(wrapper.find('select [selected=true]').text(), 'All Students');
   });
 
   it('sets the selected option should to the second user', () => {
@@ -71,26 +68,23 @@ describe('StudentSelector', () => {
     assert.isTrue(onChange.calledWith(0));
   });
 
-  it('should not trigger the callback when clicking the previous button when there are no previous students', () => {
-    const onChange = sinon.spy();
-    const wrapper = renderSelector({ onSelectStudent: onChange });
-    wrapper
-      .find('button')
-      .first()
-      .simulate('click');
-    assert.isFalse(onChange.called);
+  it('should disable the previous button when there are no previous options in the list', () => {
+    const wrapper = renderSelector({ selectedStudentIndex: -1 });
+    assert.isTrue(
+      wrapper
+        .find('button')
+        .first()
+        .prop('disabled')
+    );
   });
 
-  it('should not trigger the callback when clicking the next button when there are no next students', () => {
-    const onChange = sinon.spy();
-    const wrapper = renderSelector({
-      onSelectStudent: onChange,
-      selectedStudentIndex: 1,
-    });
-    wrapper
-      .find('button')
-      .last()
-      .simulate('click');
-    assert.isFalse(onChange.called);
+  it('should disable the next button when there are no next options in the list', () => {
+    const wrapper = renderSelector({ selectedStudentIndex: 1 });
+    assert.isTrue(
+      wrapper
+        .find('button')
+        .last()
+        .prop('disabled')
+    );
   });
 });

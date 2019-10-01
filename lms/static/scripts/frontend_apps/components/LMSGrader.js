@@ -20,6 +20,7 @@ export default function LMSGrader({
 
   useEffect(() => {
     if (students[currentStudentIndex]) {
+      // set focused user
       updateClientConfig({
         focus: {
           user: {
@@ -30,6 +31,10 @@ export default function LMSGrader({
       });
       // let the parent component know the index changed
       onChangeSelectedUser(students[currentStudentIndex].userid);
+    } else {
+      // clear focused user
+      updateClientConfig({ focus: {} });
+      onChangeSelectedUser('0'); // any non-real userid will work
     }
   }, [students, currentStudentIndex, onChangeSelectedUser]);
 

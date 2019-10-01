@@ -10,32 +10,30 @@ export default function StudentSelector({
   selectedStudentIndex,
   students,
 }) {
-  // Disable the next button if at the end of the list.
+  // Disable the next button if at the end of the list. The length is equal to
+  // the student list plus the default "All Students" option.
   const hasNextStudent = selectedStudentIndex + 1 < students.length;
-  // Disable the previous button if at the start of the list.
-  const hasPrevStudent = selectedStudentIndex > 0;
+  // Disable the previous button only if the selectedStudentIndex is less than 0
+  // indicating the "All Students" choice is selected.
+  const hasPrevStudent = selectedStudentIndex >= 0;
 
   /**
    * Select the next student in the list.
    */
   const onNextStudent = () => {
-    if (selectedStudentIndex + 1 < students.length) {
-      onSelectStudent(selectedStudentIndex + 1);
-    }
+    onSelectStudent(selectedStudentIndex + 1);
   };
   /**
    * Select the previous student in the list.
    */
   const onPrevStudent = () => {
-    if (selectedStudentIndex > 0) {
-      onSelectStudent(selectedStudentIndex - 1);
-    }
+    onSelectStudent(selectedStudentIndex - 1);
   };
 
   /**
    * Build the <select> list from the current array of students.
    */
-  const studentList = () => {
+  const buildStudentList = () => {
     const options = students.map((student, i) => (
       <option
         key={`student-${i}`}
@@ -45,20 +43,20 @@ export default function StudentSelector({
         {student.displayName}
       </option>
     ));
-
-    if (selectedStudentIndex < 0) {
-      // add the default option (no selection)
-      options.push(
-        <option hidden disabled selected>
-          Select a student
-        </option>
-      );
-    }
+    options.unshift(
+      <option
+        key={'all-students'}
+        selected={selectedStudentIndex === -1}
+        value={-1}
+      >
+        All Students
+      </option>
+    );
 
     return (
       <select
         onChange={e => {
-          onSelectStudent(e.target.selectedIndex);
+          onSelectStudent(parseInt(e.target.value));
         }}
       >
         {options}
@@ -75,7 +73,7 @@ export default function StudentSelector({
       >
         <img src="/static/images/arrow-left.svg" />
       </button>
-      <div className="StudentsSelector__student">{studentList()}</div>
+      <div className="StudentsSelector__student">{buildStudentList()}</div>
       <button
         aria-label="next student"
         disabled={!hasNextStudent}

@@ -43,9 +43,14 @@ describe('LMSGrader', () => {
     );
   };
 
-  it('does not have a focused user by default', () => {
+  it('does not set a focus user by default', () => {
     renderGrader();
-    sinon.assert.notCalled(fakeUpdateClientConfig);
+    sinon.assert.calledWith(
+      fakeUpdateClientConfig,
+      sinon.match({
+        focus: {},
+      })
+    );
   });
 
   it('changes the sidebar config to focus to the specified user when onSelectStudent is called with a valid user index', () => {
