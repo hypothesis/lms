@@ -6,7 +6,7 @@ from webargs import fields
 from lms.validation._helpers import PyramidRequestSchema
 
 
-__all__ = ["APIRecordSpeedgraderSchema", "APIRecordResultSchema"]
+__all__ = ["APIRecordSpeedgraderSchema", "APIReadResultSchema", "APIRecordResultSchema"]
 
 
 class APIRecordSpeedgraderSchema(PyramidRequestSchema):
@@ -22,6 +22,21 @@ class APIRecordSpeedgraderSchema(PyramidRequestSchema):
 
     h_username = fields.Str(required=True)
     """h username generated for the active user."""
+
+    lis_outcome_service_url = fields.Str(required=True)
+    """URL provided by the LMS to submit grades or other results to."""
+
+    lis_result_sourcedid = fields.Str(required=True)
+    """
+    Opaque identifier provided by the LMS to identify a submission. This
+    typically encodes the assignment context and LMS user.
+    """
+
+
+class APIReadResultSchema(PyramidRequestSchema):
+    """Schema for validating proxy requests to LTI Outcomes API for reading grades."""
+
+    locations = ["query"]
 
     lis_outcome_service_url = fields.Str(required=True)
     """URL provided by the LMS to submit grades or other results to."""

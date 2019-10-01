@@ -90,6 +90,37 @@ class TestRecordCanvasSpeedgraderSubmission:
         return pyramid_request
 
 
+class TestReadResult:
+    def test_it_proxies_to_read_result(self, pyramid_request, lti_outcomes_client):
+
+        LTIOutcomesViews(pyramid_request).read_result()
+
+        expected_outcome_params = LTIOutcomesRequestParams(
+            consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            shared_secret="oauth-secret",
+            lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
+            lis_result_sourcedid="modelstudent-assignment1",
+        )
+        lti_outcomes_client.read_result.assert_called_once_with(expected_outcome_params)
+
+    def test_it_returns_current_score(self, pyramid_request, lti_outcomes_client):
+        lti_outcomes_client.read_result.return_value = 0.5
+
+        current_score = LTIOutcomesViews(pyramid_request).read_result()
+
+        assert current_score == {"currentScore": 0.5}
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            # Metadata provided by LMS for requests to LTI Outcomes Management
+            # service.
+            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+            "lis_result_sourcedid": "modelstudent-assignment1",
+        }
+        return pyramid_request
+
+
 class TestRecordResult:
     def test_it_records_result(self, pyramid_request, lti_outcomes_client):
 

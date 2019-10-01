@@ -1,4 +1,4 @@
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, LTIOutcomesAPIError
 from lms.views.api import error
 from lms.validation import ValidationError
 
@@ -25,8 +25,22 @@ class TestCanvasAPIAccessTokenError:
 
 class TestCanvasAPIError:
     def test_it(self, pyramid_request):
-        json_data = error.canvas_api_error(
+        json_data = error.proxy_api_error(
             CanvasAPIError(explanation="test_explanation", details={"foo": "bar"}),
+            pyramid_request,
+        )
+
+        assert pyramid_request.response.status_code == 400
+        assert json_data == {
+            "error_message": "test_explanation",
+            "details": {"foo": "bar"},
+        }
+
+
+class TestLTIOutcomesAPIError:
+    def test_it(self, pyramid_request):
+        json_data = error.proxy_api_error(
+            LTIOutcomesAPIError(explanation="test_explanation", details={"foo": "bar"}),
             pyramid_request,
         )
 

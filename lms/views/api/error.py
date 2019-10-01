@@ -6,7 +6,7 @@ from pyramid.view import (
     notfound_view_config,
 )
 
-from lms.services import CanvasAPIError, CanvasAPIAccessTokenError
+from lms.services import CanvasAPIError, CanvasAPIAccessTokenError, LTIOutcomesAPIError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -32,7 +32,8 @@ def canvas_api_access_token_error(request):
 
 
 @exception_view_config(context=CanvasAPIError, renderer="json")
-def canvas_api_error(context, request):
+@exception_view_config(context=LTIOutcomesAPIError, renderer="json")
+def proxy_api_error(context, request):
     request.response.status_int = 400
     # Send the frontend an error message and details to show to the user for
     # debugging.

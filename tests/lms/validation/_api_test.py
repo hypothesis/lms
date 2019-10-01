@@ -3,7 +3,11 @@ import json
 import pytest
 
 from lms.validation import ValidationError
-from lms.validation._api import APIRecordSpeedgraderSchema, APIRecordResultSchema
+from lms.validation._api import (
+    APIRecordSpeedgraderSchema,
+    APIReadResultSchema,
+    APIRecordResultSchema,
+)
 
 
 class TestAPIRecordSpeedgraderSchema:
@@ -45,6 +49,45 @@ class TestAPIRecordSpeedgraderSchema:
             "document_url": "https://example.com",
             "canvas_file_id": "file123",
             "h_username": "user123",
+            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+            "lis_result_sourcedid": "modelstudent-assignment1",
+        }
+
+
+class TestAPIReadResultSchema:
+    def test_it_parses_fields_from_query_params(self, pyramid_request, all_fields):
+        for key in all_fields:
+            pyramid_request.GET[key] = all_fields[key]
+
+        schema = APIReadResultSchema(pyramid_request)
+        parsed_params = schema.parse()
+
+        assert parsed_params == all_fields
+
+    def test_it_ignores_fields_in_json_body(self, pyramid_request, all_fields):
+        pyramid_request.body = json.dumps(all_fields)
+
+        schema = APIReadResultSchema(pyramid_request)
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    @pytest.mark.parametrize(
+        "field", ["lis_outcome_service_url", "lis_result_sourcedid"]
+    )
+    def test_it_raises_if_required_fields_missing(
+        self, pyramid_request, all_fields, field
+    ):
+        del all_fields[field]
+        pyramid_request.body = json.dumps(all_fields)
+
+        schema = APIReadResultSchema(pyramid_request)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    @pytest.fixture
+    def all_fields(self):
+        return {
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
         }

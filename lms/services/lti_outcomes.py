@@ -6,7 +6,7 @@ import requests
 from requests import RequestException
 from requests_oauthlib import OAuth1
 
-from lms.services.exceptions import ExternalRequestError, ServiceError
+from lms.services.exceptions import LTIOutcomesAPIError
 
 
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
@@ -191,7 +191,6 @@ def _send_request(outcomes_request_params, pox_body):
         force_include_body=True,
     )
 
-    # Execute request and check HTTP status.
     try:
         response = requests.post(
             url=outcomes_request_params.lis_outcome_service_url,
@@ -199,9 +198,14 @@ def _send_request(outcomes_request_params, pox_body):
             headers={"Content-Type": "application/xml"},
             auth=oauth_client,
         )
+        # The following will raise ``requests.exceptions.HTTPError`` if
+        # there was an HTTP-related problem with the request. This exception
+        # is a subclass of ``requests.exceptions.RequestError``.
         response.raise_for_status()
     except RequestException as err:
-        raise ExternalRequestError(
+        # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
+        # flavor of ``RequestException``.
+        raise LTIOutcomesAPIError(
             "Error calling LTI Outcomes service", response
         ) from err
 
@@ -209,16 +213,16 @@ def _send_request(outcomes_request_params, pox_body):
     try:
         xml = ElementTree.fromstring(response.text)
     except ElementTree.ParseError as err:
-        raise ExternalRequestError(
+        raise LTIOutcomesAPIError(
             "Unable to parse XML response from LTI Outcomes service", response
         ) from err
 
     status = find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
     if status is None:
-        raise ServiceError("Failed to read status from LTI outcome response")
+        raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
 
     if status.text != "success":
-        raise ServiceError("LTI outcome request failed")
+        raise LTIOutcomesAPIError("LTI outcome request failed")
 
     return xml
 
