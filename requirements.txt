@@ -15,7 +15,7 @@ jinja2==2.10.1            # via pyramid-jinja2
 mako==1.1.0               # via alembic
 markupsafe==1.1.1         # via jinja2, mako, pyramid-jinja2
 marshmallow==3.2.1        # via webargs
-newrelic==5.0.2.126
+newrelic==5.2.0.127
 oauth2==1.9.0.post1       # via pylti
 oauthlib==3.1.0           # via requests-oauthlib
 pastedeploy==2.0.1        # via plaster-pastedeploy
@@ -28,8 +28,8 @@ pylti==0.7.0
 pyramid-exclog==1.0
 pyramid-jinja2==2.8
 pyramid-services==2.2
+pyramid-tm==2.3
 pyramid==1.10.4
-pyramid_tm==2.3
 python-dateutil==2.8.0    # via alembic
 python-editor==1.0.4      # via alembic
 requests-oauthlib==1.2.0
