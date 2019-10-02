@@ -12,21 +12,22 @@ export default function StudentSelector({
 }) {
   // Disable the next button if at the end of the list. The length is equal to
   // the student list plus the default "All Students" option.
-  const hasNextStudent = selectedStudentIndex + 1 < students.length;
+  const hasNextView = selectedStudentIndex + 1 < students.length;
   // Disable the previous button only if the selectedStudentIndex is less than 0
   // indicating the "All Students" choice is selected.
-  const hasPrevStudent = selectedStudentIndex >= 0;
+  const hasPrevView = selectedStudentIndex >= 0;
 
   /**
-   * Select the next student in the list.
+   * Select the next student index in the list.
    */
-  const onNextStudent = () => {
+  const onNextView = () => {
     onSelectStudent(selectedStudentIndex + 1);
   };
   /**
-   * Select the previous student in the list.
+   * Select the previous student index in the list. The 0 index
+   * represents "All Students."
    */
-  const onPrevStudent = () => {
+  const onPrevView = () => {
     onSelectStudent(selectedStudentIndex - 1);
   };
 
@@ -68,16 +69,16 @@ export default function StudentSelector({
     <div className="StudentSelector">
       <button
         aria-label="previous student"
-        disabled={!hasPrevStudent}
-        onClick={onPrevStudent}
+        disabled={!hasPrevView}
+        onClick={onPrevView}
       >
         <img src="/static/images/arrow-left.svg" />
       </button>
       <div className="StudentsSelector__student">{buildStudentList()}</div>
       <button
         aria-label="next student"
-        disabled={!hasNextStudent}
-        onClick={onNextStudent}
+        disabled={!hasNextView}
+        onClick={onNextView}
       >
         <img src="static/images/arrow-right.svg" />
       </button>

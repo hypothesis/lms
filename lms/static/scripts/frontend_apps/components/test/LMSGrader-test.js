@@ -15,6 +15,7 @@ describe('LMSGrader', () => {
     },
   ];
   const fakeUpdateClientConfig = sinon.spy();
+  const fakeRemoveClientConfig = sinon.spy();
   const fakeOnChange = sinon.stub();
 
   // eslint-disable-next-line react/prop-types
@@ -24,7 +25,10 @@ describe('LMSGrader', () => {
 
   beforeEach(() => {
     $imports.$mock({
-      '../utils/update-client-config': fakeUpdateClientConfig,
+      '../utils/update-client-config': {
+        updateClientConfig: fakeUpdateClientConfig,
+        removeClientConfig: fakeRemoveClientConfig,
+      },
       './StudentSelector': FakeStudentSelector,
     });
   });
@@ -45,12 +49,20 @@ describe('LMSGrader', () => {
 
   it('does not set a focus user by default', () => {
     renderGrader();
-    sinon.assert.calledWith(
-      fakeUpdateClientConfig,
-      sinon.match({
-        focus: {},
-      })
-    );
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
+  });
+
+  it('does not set a focus when the user index is invalid', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(-2); // invalid choice
+    });
+    wrapper.update();
+
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
   });
 
   it('changes the sidebar config to focus to the specified user when onSelectStudent is called with a valid user index', () => {

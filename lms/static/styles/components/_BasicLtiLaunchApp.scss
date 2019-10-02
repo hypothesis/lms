@@ -12,8 +12,3 @@
   left: calc(50% - #{$spinner-size / 2});
   top: 100px;
 }
-
-.js-via-iframe {
-  /* Fix to allow the sidebar to scroll to the bottom while we have fixed grader header. */
-  padding-bottom: 96px;
-}

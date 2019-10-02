@@ -9,12 +9,12 @@ describe('StudentSelector', () => {
     const fakeSelectedStudentIndex = 0;
     const fakeStudents = [
       {
-        username: 'user1',
-        displayName: 'User 1',
+        username: 'student1',
+        displayName: 'Student 1',
       },
       {
-        username: 'user2',
-        displayName: 'User 2',
+        username: 'student2',
+        displayName: 'Student 2',
       },
     ];
 
@@ -33,9 +33,9 @@ describe('StudentSelector', () => {
     assert.equal(wrapper.find('select [selected=true]').text(), 'All Students');
   });
 
-  it('sets the selected option should to the second user', () => {
+  it('sets the selected option to the second student when the student index is 1', () => {
     const wrapper = renderSelector({ selectedStudentIndex: 1 });
-    assert.equal(wrapper.find('select [selected=true]').text(), 'User 2');
+    assert.equal(wrapper.find('select [selected=true]').text(), 'Student 2');
   });
 
   it('calls the onSelectStudent callback when the select list is changed', () => {
@@ -45,7 +45,7 @@ describe('StudentSelector', () => {
     assert.isTrue(onChange.called);
   });
 
-  it('calls the callback with the next student index', () => {
+  it('calls onChange (with the next student index) when the next button is clicked', () => {
     const onChange = sinon.spy();
     const wrapper = renderSelector({ onSelectStudent: onChange });
     wrapper
@@ -55,7 +55,7 @@ describe('StudentSelector', () => {
     assert.isTrue(onChange.calledWith(1));
   });
 
-  it('calls the callback with the next student index when clicking the previous button', () => {
+  it('calls onChange (with the previous student index) when the previous button is clicked', () => {
     const onChange = sinon.spy();
     const wrapper = renderSelector({
       onSelectStudent: onChange,

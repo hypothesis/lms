@@ -1,6 +1,9 @@
-import updateClientConfig from '../update-client-config';
+import {
+  updateClientConfig,
+  removeClientConfig,
+} from '../update-client-config';
 
-describe('updateClientConfig', () => {
+describe('update-client-config', () => {
   let fakeHypothesisConfig;
   let fakeScriptNode;
 
@@ -20,6 +23,12 @@ describe('updateClientConfig', () => {
 
   it('sets the config', async () => {
     updateClientConfig({ test: true });
+    sinon.assert.match(JSON.parse(fakeScriptNode.text), { test: true });
+  });
+
+  it('removes specified keys from the config', async () => {
+    updateClientConfig({ test: true, foo: true, bar: true });
+    removeClientConfig(['foo', 'bar']);
     sinon.assert.match(JSON.parse(fakeScriptNode.text), { test: true });
   });
 

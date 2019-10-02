@@ -1,4 +1,6 @@
 .LMSGrader {
+  display: flex;
+  flex-direction: column;
   font-size: 18px;
   height: 100%;
   width: 100%;
@@ -10,6 +12,7 @@
     }
   }
 }
+
 .LMSGrader__grading-components {
   background-color: $grey-7;
   padding: 0;
@@ -21,6 +24,7 @@
 .LMSGrader__assignment {
   flex-grow: 1;
 }
+
 .LMSGrader__student-index {
   display: flex;
   flex-flow: column;
@@ -29,10 +33,7 @@
     margin: 10px;
   }
 }
+
 .LMSGrader__student-picker {
   display: flex;
 }
-
-
-
-

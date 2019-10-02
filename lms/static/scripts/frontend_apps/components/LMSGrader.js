@@ -3,7 +3,10 @@ import propTypes from 'prop-types';
 import { useEffect, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
-import updateClientConfig from '../utils/update-client-config';
+import {
+  updateClientConfig,
+  removeClientConfig,
+} from '../utils/update-client-config';
 
 /**
  * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
@@ -33,7 +36,7 @@ export default function LMSGrader({
       onChangeSelectedUser(students[currentStudentIndex].userid);
     } else {
       // clear focused user
-      updateClientConfig({ focus: {} });
+      removeClientConfig(['focus']);
       onChangeSelectedUser('0'); // any non-real userid will work
     }
   }, [students, currentStudentIndex, onChangeSelectedUser]);
@@ -62,8 +65,9 @@ export default function LMSGrader({
       <header>
         <ul className="LMSGrader__grading-components">
           <li className="LMSGrader__assignment">
-            <h2>Course Name</h2>
-            <h3>Assignment Name</h3>
+            {
+              // placeholder for course name and assignment
+            }
           </li>
           <li className="LMSGrader__student-index">{renderStudentCount()}</li>
           <li className="LMSGrader__student-picker">
