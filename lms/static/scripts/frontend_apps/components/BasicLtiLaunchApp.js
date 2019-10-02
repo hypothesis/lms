@@ -14,6 +14,7 @@ import { ApiError, apiCall } from '../utils/api';
 import Dialog from './Dialog';
 import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
+import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
 
 const INITIAL_LTI_LAUNCH_STATE = {
@@ -45,6 +46,8 @@ export default function BasicLtiLaunchApp() {
     authToken,
     authUrl,
     lmsName,
+    grading,
+    lmsGrader,
     submissionParams,
     urls: {
       // Content URL to show in the iframe.
@@ -179,9 +182,21 @@ export default function BasicLtiLaunchApp() {
   }, [authToken, authUrl, fetchContentUrl, lmsName]);
 
   if (ltiLaunchState.state === 'fetched-url') {
-    return (
-      <iframe width="100%" height="100%" src={ltiLaunchState.contentUrl} />
+    const iFrame = (
+      <iframe
+        width="100%"
+        height="100%"
+        className="js-via-iframe"
+        src={ltiLaunchState.contentUrl}
+      />
     );
+
+    if (lmsGrader) {
+      // Use the LMS Grader.
+      return <LMSGrader students={grading.students}>{iFrame}</LMSGrader>;
+    } else {
+      return iFrame;
+    }
   }
 
   return (

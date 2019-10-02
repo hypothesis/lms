@@ -1,0 +1,39 @@
+.LMSGrader {
+  display: flex;
+  flex-direction: column;
+  font-size: 18px;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  color: white;
+  .LMSGrader__course-assignment {
+    h2, h3 {
+      margin-left: 20px;
+    }
+  }
+}
+
+.LMSGrader__grading-components {
+  background-color: $grey-7;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+}
+
+.LMSGrader__assignment {
+  flex-grow: 1;
+}
+
+.LMSGrader__student-index {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-around;
+  span {
+    margin: 10px;
+  }
+}
+
+.LMSGrader__student-picker {
+  display: flex;
+}

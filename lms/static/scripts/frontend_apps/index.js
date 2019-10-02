@@ -9,7 +9,7 @@ import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import FilePickerApp from './components/FilePickerApp';
 
 const rootEl = document.querySelector('#app');
-const config = JSON.parse(document.querySelector('.js-config').textContent);
+const config = JSON.parse(document.querySelector('.js-lms-config').textContent);
 
 const mode = config.mode || 'content-item-selection';
 
