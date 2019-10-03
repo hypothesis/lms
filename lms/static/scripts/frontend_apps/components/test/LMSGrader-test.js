@@ -16,6 +16,7 @@ describe('LMSGrader', () => {
   ];
   const fakeUpdateClientConfig = sinon.spy();
   const fakeRemoveClientConfig = sinon.spy();
+  const fakeOnChange = sinon.stub();
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
@@ -37,7 +38,13 @@ describe('LMSGrader', () => {
   });
 
   const renderGrader = (props = {}) => {
-    return mount(<LMSGrader students={fakeStudents} {...props} />);
+    return mount(
+      <LMSGrader
+        onChangeSelectedUser={fakeOnChange}
+        students={fakeStudents}
+        {...props}
+      />
+    );
   };
 
   it('creates a valid component with 2 students', () => {
@@ -55,6 +62,23 @@ describe('LMSGrader', () => {
     });
     wrapper.update();
     assert.equal(wrapper.text(), '2/2');
+  });
+
+  it('passes a default value of "0" to onChangeSelectedUser when no a student is selected', () => {
+    renderGrader();
+    assert.isTrue(fakeOnChange.calledWithExactly('0'));
+  });
+
+  it('passes the unique userid to onChangeSelectedUser when a student is selected', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(1); // second student
+    });
+    wrapper.update();
+    assert.isTrue(fakeOnChange.calledWithExactly('student1'));
   });
 
   it('does not set a focus user by default', () => {

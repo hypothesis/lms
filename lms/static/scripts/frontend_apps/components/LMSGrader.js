@@ -7,12 +7,17 @@ import {
   updateClientConfig,
   removeClientConfig,
 } from '../utils/update-client-config';
+
 /**
  * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
  * active as well as a list of students to both view and submit grades for.
  */
 
-export default function LMSGrader({ children, students }) {
+export default function LMSGrader({
+  children,
+  students,
+  onChangeSelectedUser,
+}) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
@@ -27,11 +32,15 @@ export default function LMSGrader({ children, students }) {
           },
         },
       });
+      // let the parent component know the index changed
+      onChangeSelectedUser(students[currentStudentIndex].userid);
     } else {
       // clear focused user
       removeClientConfig(['focus']);
+      onChangeSelectedUser('0'); // any non-real userid will work
     }
-  }, [students, currentStudentIndex]);
+  }, [students, currentStudentIndex, onChangeSelectedUser]);
+
   /**
    * Shows the current student index if a user is selected, or the
    * total student count otherwise.
@@ -78,6 +87,8 @@ export default function LMSGrader({ children, students }) {
 LMSGrader.propTypes = {
   // iframe to pass along
   children: propTypes.node.isRequired,
+  // Callback to alert the parent component that a change has occurred and re-rendering may be needed.
+  onChangeSelectedUser: propTypes.func.isRequired,
   // List of students to grade
   students: propTypes.array.isRequired,
 };

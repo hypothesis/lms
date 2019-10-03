@@ -1,3 +1,4 @@
+import { act } from 'preact/test-utils';
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
@@ -252,6 +253,18 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       const LMSGrader = wrapper.find('FakeLMSGrader');
       assert.isTrue(LMSGrader.exists());
+    });
+
+    it('creates an iframe key equal to the focused userid', () => {
+      const wrapper = renderLtiLaunchApp();
+      act(() => {
+        wrapper
+          .find(FakeLMSGrader)
+          .props()
+          .onChangeSelectedUser('new_key');
+      });
+      wrapper.update();
+      assert.equal(wrapper.find('iframe').key(), 'new_key');
     });
   });
 });
