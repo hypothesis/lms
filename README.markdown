@@ -37,8 +37,6 @@ There are three presentations for developers that describe what the Hypothesis L
   Follow the [instructions on the Docker website](https://docs.docker.com/install/)
   to install "Docker Engine - Community".
 
-* [Docker Compose](https://docs.docker.com/compose/install/)
-
 * [pyenv](https://github.com/pyenv/pyenv)
   Follow the instructions in the pyenv README to install it.
   The Homebrew method works best on macOS.
@@ -179,7 +177,7 @@ linting, code formatting, Python and SQL shells, etc.
 
 Create the `lms_test` database by running:
 
-    docker-compose exec postgres psql -U postgres -c "CREATE DATABASE lms_test;"
+    make services args='exec postgres psql -U postgres -c "CREATE DATABASE lms_test;"'
 
 You should now be able to run the tests successfully by typing:
 
