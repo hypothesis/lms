@@ -34,7 +34,8 @@
 
     {% block scripts %}
       {% if context.js_config is defined %}
-        <script type="application/json" class="js-config">{{ context.js_config|tojson }}</script>
+        {# passes config to the preact LMS app #}
+        <script type="application/json" class="js-lms-config">{{ context.js_config|tojson }}</script>
       {% endif %}
 
       {% if context.rpc_server_config is defined %}
@@ -45,6 +46,7 @@
       {% endif %}
 
       {% if context.hypothesis_config is defined %}
+        {# passes config to the sidebar #}
         <script type="application/json" class="js-hypothesis-config">{{ context.hypothesis_config|tojson }}</script>
       {% endif %}
     {% endblock %}

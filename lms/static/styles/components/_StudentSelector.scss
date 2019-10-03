@@ -1,0 +1,29 @@
+.StudentSelector {
+  display: flex;
+  button {
+    background-color: transparent;
+    min-width: 80px;
+    border: none;
+    background-color: $grey-6;
+    transition: background-color 0.2s, opacity 0.2s;
+    outline: none;
+    &:hover {
+      cursor: pointer;
+      background-color: $grey-5;
+    }
+    &:disabled {
+      &:hover {
+        background-color: $grey-6;
+      }
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+}
+
+.StudentsSelector__student {
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-flow: column;
+}

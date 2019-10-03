@@ -14,6 +14,7 @@ import { ApiError, apiCall } from '../utils/api';
 import Dialog from './Dialog';
 import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
+import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
 
 const INITIAL_LTI_LAUNCH_STATE = {
@@ -45,6 +46,8 @@ export default function BasicLtiLaunchApp() {
     authToken,
     authUrl,
     lmsName,
+    grading,
+    lmsGrader,
     submissionParams,
     urls: {
       // Content URL to show in the iframe.
@@ -61,6 +64,9 @@ export default function BasicLtiLaunchApp() {
     state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
     contentUrl: viaUrl ? viaUrl : null,
   });
+
+  // Value for the key="" prop to rebuild the sidebar when it needs re-rendering
+  const [sidebarKey, setSidebarKey] = useState('');
 
   /**
    * Fetch the URL of the content to display in the iframe.
@@ -179,9 +185,37 @@ export default function BasicLtiLaunchApp() {
   }, [authToken, authUrl, fetchContentUrl, lmsName]);
 
   if (ltiLaunchState.state === 'fetched-url') {
-    return (
-      <iframe width="100%" height="100%" src={ltiLaunchState.contentUrl} />
+    const iFrame = (
+      <iframe
+        key={sidebarKey}
+        width="100%"
+        height="100%"
+        className="js-via-iframe"
+        src={ltiLaunchState.contentUrl}
+      />
     );
+
+    /**
+     * Callback when the selected student changes. This function
+     * changes the key on the iframe so it gets rebuilt.
+     */
+    const changeSelectedUserKey = userid => {
+      setSidebarKey(userid);
+    };
+
+    if (lmsGrader) {
+      // Use the LMS Grader.
+      return (
+        <LMSGrader
+          onChangeSelectedUser={changeSelectedUserKey}
+          students={grading.students}
+        >
+          {iFrame}
+        </LMSGrader>
+      );
+    } else {
+      return iFrame;
+    }
   }
 
   return (
