@@ -173,11 +173,7 @@ it crash for some reason.
 `make help` to see all the commands that're available for running the tests,
 linting, code formatting, Python and SQL shells, etc.
 
-### Create the test DB and run the tests
-
-Create the `lms_test` database by running:
-
-    make services args='exec postgres psql -U postgres -c "CREATE DATABASE lms_test;"'
+### Run the tests
 
 You should now be able to run the tests successfully by typing:
 
