@@ -14,6 +14,8 @@ describe('LMSGrader', () => {
       displayName: 'Student 2',
     },
   ];
+  const fakeUpdateClientConfig = sinon.spy();
+  const fakeRemoveClientConfig = sinon.spy();
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
@@ -22,6 +24,10 @@ describe('LMSGrader', () => {
 
   beforeEach(() => {
     $imports.$mock({
+      '../utils/update-client-config': {
+        updateClientConfig: fakeUpdateClientConfig,
+        removeClientConfig: fakeRemoveClientConfig,
+      },
       './StudentSelector': FakeStudentSelector,
     });
   });
@@ -49,5 +55,46 @@ describe('LMSGrader', () => {
     });
     wrapper.update();
     assert.equal(wrapper.text(), '2/2');
+  });
+
+  it('does not set a focus user by default', () => {
+    renderGrader();
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
+  });
+
+  it('does not set a focus user when the user index is invalid', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(-2); // invalid choice
+    });
+    wrapper.update();
+
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
+  });
+
+  it('changes the sidebar config to focus to the specified user when onSelectStudent is called with a valid user index', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(0); // initial index is -1
+    });
+    wrapper.update();
+
+    sinon.assert.calledWith(
+      fakeUpdateClientConfig,
+      sinon.match({
+        focus: {
+          user: {
+            username: fakeStudents[0].userid,
+            displayName: fakeStudents[0].displayName,
+          },
+        },
+      })
+    );
   });
 });

@@ -1,8 +1,12 @@
 import { createElement } from 'preact';
 import propTypes from 'prop-types';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
+import {
+  updateClientConfig,
+  removeClientConfig,
+} from '../utils/update-client-config';
 /**
  * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
  * active as well as a list of students to both view and submit grades for.
@@ -11,6 +15,23 @@ import StudentSelector from './StudentSelector';
 export default function LMSGrader({ children, students }) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
+
+  useEffect(() => {
+    if (students[currentStudentIndex]) {
+      // set focused user
+      updateClientConfig({
+        focus: {
+          user: {
+            username: students[currentStudentIndex].userid,
+            displayName: students[currentStudentIndex].displayName,
+          },
+        },
+      });
+    } else {
+      // clear focused user
+      removeClientConfig(['focus']);
+    }
+  }, [students, currentStudentIndex]);
   /**
    * Shows the current student index if a user is selected, or the
    * total student count otherwise.
