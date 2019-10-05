@@ -14,11 +14,11 @@ def configure(settings):
     env_settings = {
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
-        "via_url": sg.get("VIA_URL", required=True),
-        "jwt_secret": sg.get("JWT_SECRET", required=True),
-        "google_client_id": sg.get("GOOGLE_CLIENT_ID", required=True),
-        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY", required=True),
-        "google_app_id": sg.get("GOOGLE_APP_ID", required=True),
+        "via_url": sg.get("VIA_URL"),
+        "jwt_secret": sg.get("JWT_SECRET"),
+        "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
+        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
+        "google_app_id": sg.get("GOOGLE_APP_ID"),
         "lms_secret": sg.get("LMS_SECRET"),
         "hashed_pw": sg.get("HASHED_PW"),
         "salt": sg.get("SALT"),
@@ -28,40 +28,38 @@ def configure(settings):
         # For example you can generate one using Python 3 on the command line
         # like this:
         #     python3 -c 'import secrets; print(secrets.token_hex(nbytes=64))'
-        "session_cookie_secret": sg.get("SESSION_COOKIE_SECRET", required=True),
+        "session_cookie_secret": sg.get("SESSION_COOKIE_SECRET"),
         # We need to use a randomly generated 16 byte array to encrypt secrets.
         # For now we will use the first 16 bytes of the lms_secret
-        "aes_secret": sg.get("LMS_SECRET", required=True),
+        "aes_secret": sg.get("LMS_SECRET"),
         # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
-        "h_client_id": sg.get("H_CLIENT_ID", required=True),
-        "h_client_secret": sg.get("H_CLIENT_SECRET", required=True),
+        "h_client_id": sg.get("H_CLIENT_ID"),
+        "h_client_secret": sg.get("H_CLIENT_SECRET"),
         # The OAuth 2.0 client_id and client_secret for logging users in to h.
-        "h_jwt_client_id": sg.get("H_JWT_CLIENT_ID", required=True),
-        "h_jwt_client_secret": sg.get("H_JWT_CLIENT_SECRET", required=True),
+        "h_jwt_client_id": sg.get("H_JWT_CLIENT_ID"),
+        "h_jwt_client_secret": sg.get("H_JWT_CLIENT_SECRET"),
         # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
-        "h_authority": sg.get("H_AUTHORITY", required=True),
+        "h_authority": sg.get("H_AUTHORITY"),
         # The public base URL of the h API (e.g. "https://hypothes.is/api).
-        "h_api_url_public": sg.get("H_API_URL_PUBLIC", required=True),
+        "h_api_url_public": sg.get("H_API_URL_PUBLIC"),
         # A private (within-VPC) URL for the same h API. Faster and more secure
         # than the public one. This is used for internal server-to-server
         # comms.
-        "h_api_url_private": sg.get("H_API_URL_PRIVATE", required=True),
+        "h_api_url_private": sg.get("H_API_URL_PRIVATE"),
         # The postMessage origins from which to accept RPC requests.
-        "rpc_allowed_origins": sg.get("RPC_ALLOWED_ORIGINS", required=True),
+        "rpc_allowed_origins": sg.get("RPC_ALLOWED_ORIGINS"),
         # The secret string that's used to sign the feature flags cookie.
         # For example you can generate one using Python 3 on the command line
         # like this:
         #     python3 -c 'import secrets; print(secrets.token_hex())'
-        "feature_flags_cookie_secret": sg.get(
-            "FEATURE_FLAGS_COOKIE_SECRET", required=True
-        ),
+        "feature_flags_cookie_secret": sg.get("FEATURE_FLAGS_COOKIE_SECRET"),
         # The list of feature flags that are allowed to be set in the feature flags cookie.
         "feature_flags_allowed_in_cookie": sg.get("FEATURE_FLAGS_ALLOWED_IN_COOKIE"),
         # The secret string that's used to sign the OAuth 2 state param.
         # For example you can generate one using Python 3 on the command line
         # like this:
         #     python3 -c 'import secrets; print(secrets.token_hex())'
-        "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET", required=True),
+        "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET"),
     }
 
     database_url = sg.get("DATABASE_URL")
@@ -76,10 +74,13 @@ def configure(settings):
         env_settings["h_api_url_private"]
     )
 
-    try:
-        env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[0:16]
-    except UnicodeEncodeError:
-        raise SettingError("LMS_SECRET must contain only ASCII characters")
+    if env_settings.get("aes_secret"):
+        try:
+            env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[
+                0:16
+            ]
+        except UnicodeEncodeError:
+            raise SettingError("LMS_SECRET must contain only ASCII characters")
 
     env_settings["rpc_allowed_origins"] = aslist(env_settings["rpc_allowed_origins"])
 

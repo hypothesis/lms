@@ -58,7 +58,7 @@ pylint:
     #       a local variable or parameter, pylint will still complain that
     #       you're shadowing the builtin.
     #
-    good-names: _,i,j,k,v,e,db,fn,fp,log,parser,id,es
+    good-names: _,i,j,k,v,e,db,fn,fp,log,parser,id,es,tm
     function-rgx: "[a-z_][a-z0-9_]{2,40}$"
 pyroma:
   run: false
