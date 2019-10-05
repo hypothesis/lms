@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+#
+# Create the "lms_test" database in Postgres, if it doesn't exist already.
+make services args='exec postgres psql -U postgres -c "CREATE DATABASE lms_test;"' > /dev/null 2>&1 || true
