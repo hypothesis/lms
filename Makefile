@@ -27,7 +27,7 @@ help:
 
 .PHONY: services
 services: args?=up -d
-services:
+services: python
 	@tox -q -e docker-compose -- $(args)
 
 .PHONY: dev
