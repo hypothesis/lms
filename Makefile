@@ -34,6 +34,10 @@ services:
 dev: build/manifest.json python
 	tox -q -e py36-dev -- honcho start ${processes}
 
+.PHONY: devdata
+devdata: python
+	@tox -qe py36-dev -- devdata conf/development.ini
+
 .PHONY: web
 web: python
 	tox -q -e py36-dev

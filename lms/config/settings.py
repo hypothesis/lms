@@ -19,7 +19,7 @@ class SettingGetter:
         """
         self._settings = settings
 
-    def get(self, envvar_name, required=False, default=None):
+    def get(self, envvar_name, default=None):
         """
         Return the value for the named setting.
 
@@ -38,13 +38,7 @@ class SettingGetter:
 
         :arg envvar_name: the name of the environment variable to look for
         :type envvar_name: str
-        :arg required: whether this is a required setting
-        :type required: bool
         :arg default: the default value for this setting
-
-        :raise SettingError: if ``required`` is ``True`` and ``default`` is
-          ``None`` and neither the environment variable or config file setting
-          exists
 
         :return: the setting's value
         """
@@ -58,10 +52,5 @@ class SettingGetter:
             return self._settings[config_file_setting_name]
         except KeyError:
             pass
-
-        if required and default is None:
-            raise SettingError(
-                f"Required setting {envvar_name} / {config_file_setting_name} isn't set"
-            )
 
         return default

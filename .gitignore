@@ -21,3 +21,4 @@ include/
 secret_env.sh
 .autoenv
 docker.sh
+.devdata.env
