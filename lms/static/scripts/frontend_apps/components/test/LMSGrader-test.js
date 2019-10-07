@@ -49,7 +49,7 @@ describe('LMSGrader', () => {
 
   it('creates a valid component with 2 students', () => {
     const wrapper = renderGrader();
-    assert.equal(wrapper.text(), '2 students');
+    assert.equal(wrapper.text(), '2 Students');
   });
 
   it('set the selected student count to "2/2" when the index changers to 1', () => {
@@ -61,7 +61,7 @@ describe('LMSGrader', () => {
         .onSelectStudent(1); // second student
     });
     wrapper.update();
-    assert.equal(wrapper.text(), '2/2');
+    assert.equal(wrapper.text(), 'Student 2 of 2');
   });
 
   it('passes a default value of "0" to onChangeSelectedUser when no a student is selected', () => {
