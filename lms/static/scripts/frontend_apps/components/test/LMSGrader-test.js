@@ -8,28 +8,49 @@ describe('LMSGrader', () => {
     {
       userid: 'student1',
       displayName: 'Student 1',
+      LISResultSourcedId: 1,
+      LISOutcomeServiceUrl: '',
     },
     {
       userid: 'student1',
       displayName: 'Student 2',
+      LISResultSourcedId: 2,
+      LISOutcomeServiceUrl: '',
     },
   ];
   const fakeUpdateClientConfig = sinon.spy();
   const fakeRemoveClientConfig = sinon.spy();
   const fakeOnChange = sinon.stub();
+  let fakeApiCall = sinon.stub();
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
     return <Fragment>{children}</Fragment>;
   };
 
+  // eslint-disable-next-line react/prop-types
+  const FakeSubmitGradeForm = ({ children }) => {
+    return <Fragment>{children}</Fragment>;
+  };
+
+  // eslint-disable-next-line react/prop-types
+  const FakeErrorDialog = ({ children }) => {
+    return <Fragment>{children}</Fragment>;
+  };
+
   beforeEach(() => {
+    fakeApiCall = sinon.stub().resolves([]);
     $imports.$mock({
       '../utils/update-client-config': {
         updateClientConfig: fakeUpdateClientConfig,
         removeClientConfig: fakeRemoveClientConfig,
       },
+      './ErrorDialog': FakeErrorDialog,
       './StudentSelector': FakeStudentSelector,
+      './SubmitGradeForm': FakeSubmitGradeForm,
+      '../utils/api': {
+        apiCall: fakeApiCall,
+      },
     });
   });
 
@@ -120,5 +141,67 @@ describe('LMSGrader', () => {
         },
       })
     );
+  });
+
+  describe('api requests', () => {
+    it('shows the loading spinner when submitting a grade to apiCall', () => {
+      const wrapper = renderGrader();
+      act(() => {
+        wrapper
+          .find(FakeStudentSelector)
+          .props()
+          .onSelectStudent(0);
+      });
+      wrapper.update();
+
+      act(() => {
+        wrapper
+          .find(FakeSubmitGradeForm)
+          .props()
+          .onSubmitGrade(1);
+      });
+      wrapper.update();
+      assert.isTrue(wrapper.find('.LMSGrader__spinner').exists());
+    });
+
+    it('shows the error dialog when apiCall throws an error', () => {
+      const wrapper = renderGrader();
+      fakeApiCall.throws({ errorMessage: '' });
+      act(() => {
+        wrapper
+          .find(FakeStudentSelector)
+          .props()
+          .onSelectStudent(0);
+      });
+      wrapper.update();
+      act(() => {
+        wrapper
+          .find(FakeSubmitGradeForm)
+          .props()
+          .onSubmitGrade(1);
+      });
+      wrapper.update();
+      assert.isTrue(wrapper.find(FakeErrorDialog).exists());
+    });
+
+    it('sets the gradeSaved prop to `true` when the apiCall resolves', async () => {
+      const wrapper = renderGrader();
+      act(() => {
+        wrapper
+          .find(FakeStudentSelector)
+          .props()
+          .onSelectStudent(0);
+      });
+      wrapper.update();
+      act(() => {
+        wrapper
+          .find(FakeSubmitGradeForm)
+          .props()
+          .onSubmitGrade(1);
+      });
+      await fakeApiCall.resolves();
+      wrapper.update();
+      assert.isTrue(wrapper.find(FakeSubmitGradeForm).props().gradeSaved);
+    });
   });
 });
