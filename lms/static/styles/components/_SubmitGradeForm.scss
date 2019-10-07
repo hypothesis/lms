@@ -1,0 +1,107 @@
+@keyframes validationErrorOpen {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 300px;
+    opacity: 0.9;
+  }
+}
+
+@keyframes validationErrorClose {
+  from {
+    width: 300px;
+    opacity: 1;
+  }
+  to {
+    width: 0px;
+    opacity: 0;
+  }
+}
+
+@keyframes gradeSaved {
+  from {
+    background-color: #58bf4b;
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes modalFade {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 300px;
+    opacity: 0.9;
+  }
+}
+
+.SubmitGradeForm {
+  display: flex;
+  white-space: nowrap;
+  position: relative;
+
+  button {
+    height: 40px;
+    width: 150px;
+    font-weight: 500;
+    &:hover {
+      cursor: pointer;
+    }
+    &:disabled {
+      cursor: inherit;
+    }
+    border: 1px soild $grey-3;
+  }
+  label {
+    display: flex;
+    flex-flow: column;
+    justify-content: space-around;
+    margin: 10px;
+    font-weight: 500;
+  }
+  input {
+    text-align: center;
+    width: 60px;
+    height: 40px;
+    border: 1px solid $grey-3;
+    border-right: none;
+
+    // Animation for successful grade submit
+    animation-duration: 2.0s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+    &.SubmitGradeForm--grade-saved {
+      animation-name: gradeSaved;
+    }
+  }
+}
+
+.SubmitGradeForm__validation-error {
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  right: 210px;
+  position: absolute;
+  z-index: 10;
+  line-height: 40px;
+  background-color: #c2002d;
+  color: white;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  animation-duration: 0.3s;
+  animation-fill-mode: forwards;
+  &:hover {
+    cursor: pointer;
+  }
+}
+.SubmitGradeForm__validation-error--open {
+  animation-name: validationErrorOpen;
+}
+.SubmitGradeForm__validation-error--close {
+  animation-name: validationErrorClose;
+}

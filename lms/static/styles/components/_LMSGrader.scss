@@ -33,3 +33,23 @@
   align-items: center;
   margin-right: 20px;
 }
+
+
+.LMSGrader__loading-backdrop {
+  background-color: white;
+  bottom: 0;
+  left: 0;
+  opacity: 0.5;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.LMSGrader__spinner {
+  $spinner-size: 100px;
+  position: absolute;
+  width: $spinner-size;
+  height: $spinner-size;
+  left: calc(50% - #{$spinner-size});
+  top: calc(50% - #{$spinner-size});
+}
