@@ -1,0 +1,46 @@
+@keyframes validationErrorOpen {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 300px;
+    opacity: 0.9;
+  }
+}
+
+@keyframes validationErrorClose {
+  from {
+    width: 300px;
+    opacity: 1;
+  }
+  to {
+    width: 0px;
+    opacity: 0;
+  }
+}
+
+.ValidationMessage {
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  right: 210px;
+  position: absolute;
+  z-index: 10;
+  line-height: 40px;
+  background-color: #c2002d;
+  color: white;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  animation-duration: 0.3s;
+  animation-fill-mode: forwards;
+  &:hover {
+    cursor: pointer;
+  }
+}
+.ValidationMessage--open {
+  animation-name: validationErrorOpen;
+}
+.ValidationMessage--closed {
+  animation-name: validationErrorClose;
+}

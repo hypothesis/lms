@@ -1,0 +1,45 @@
+import { createElement } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
+import classNames from 'classnames';
+import propTypes from 'prop-types';
+
+/**
+ * Shows a single validation error message that can be open or closed.
+ * A user can also close the message by clicking on it.
+ */
+
+export default function ValidationMessage({ message, open, onClose }) {
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    setShowError(open);
+  }, [open]);
+
+  /**
+   * Closes the validation error message and notifies parent
+   */
+  const closeValidationError = () => {
+    setShowError(false);
+    onClose();
+  };
+
+  const errorClass = classNames('ValidationMessage', {
+    'ValidationMessage--open': showError,
+    'ValidationMessage--closed': !showError,
+  });
+
+  return (
+    <div onClick={closeValidationError} className={errorClass}>
+      {message}
+    </div>
+  );
+}
+
+ValidationMessage.propTypes = {
+  // Error message text
+  message: propTypes.string,
+  // Should this be open or closed
+  open: propTypes.bool,
+  // If the error message closes itself via click, notify parent
+  onClose: propTypes.function,
+};
