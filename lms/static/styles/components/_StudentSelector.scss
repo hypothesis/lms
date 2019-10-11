@@ -1,3 +1,4 @@
+@use "../mixins";
 @use "../variables" as var;
 
 
@@ -17,12 +18,8 @@
   border: 1px solid var.$grey-3;
   transition: background-color 0.2s, border-color 0.2s;
   
-  &:focus {
-    outline: 1px solid var.$grey-5;
-    outline-offset: -1px;
-    outline-style: solid
-  }
-
+  @include mixins.input-focus;
+  
   &:hover {
     cursor: pointer;
     background-color: var.$grey-2;
@@ -44,11 +41,7 @@
   height: 40px;
   padding: 5px 20px;
 
-  &:focus {
-    outline: 1px solid var.$grey-5;
-    outline-offset: -1px;
-    outline-style: solid
-  }
+  @include mixins.input-focus;
 
   &::-ms-expand {
     /* Remove default select arrow in IE11 */

@@ -32,3 +32,11 @@
     @content;
   }
 }
+// Used to apply standard outline focus state styling to buttons and input fields
+@mixin input-focus {
+  &:focus {
+    outline: 1px solid var.$grey-5;
+    outline-offset: -1px;
+    outline-style: solid
+  }
+}
