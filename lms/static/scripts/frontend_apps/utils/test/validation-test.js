@@ -1,17 +1,21 @@
-import { translateToNumber, validateGrade } from '../validation';
+import { formatToNumber, validateGrade } from '../validation';
 
 describe('validation', () => {
-  context('translateToNumber', () => {
+  context('formatToNumber', () => {
     it('translates the string to a number', async () => {
-      assert.isTrue(translateToNumber('1') === 1);
+      assert.isTrue(formatToNumber('1') === 1);
     });
 
     it('does not translate the empty string to a number', async () => {
-      assert.isTrue(typeof translateToNumber(' ') === 'string');
+      assert.isTrue(typeof formatToNumber(' ') === 'string');
     });
 
     it('does not translate a non numerical string to a number', async () => {
-      assert.isTrue(typeof translateToNumber('a') === 'string');
+      assert.isTrue(typeof formatToNumber('a') === 'string');
+    });
+
+    it('translates the string to a number with leading and trailing spaces', async () => {
+      assert.isTrue(formatToNumber(' 1 ') === 1);
     });
   });
 

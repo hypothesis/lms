@@ -5,14 +5,17 @@
  * @param {string} value - The value to attempt to translate
  * @return {number|string} - Translated value or original if not translated
  */
-function translateToNumber(value) {
-  if (value.toString().trim().length === 0) {
-    // don't translate a string with only tabs or spaces
-    return value;
+function formatToNumber(originalValue) {
+  // Remove any trailing or leading tabs or spaces
+  const value = originalValue.trim();
+  if (value.length === 0) {
+    // If its an empty string just return it so its
+    // not converted to a 0.
+    return originalValue;
   }
   const translated = Number(value);
   if (isNaN(translated)) {
-    return value;
+    return originalValue;
   } else {
     return translated;
   }
@@ -36,4 +39,4 @@ function validateGrade(value) {
   }
 }
 
-export { translateToNumber, validateGrade };
+export { formatToNumber, validateGrade };
