@@ -27,7 +27,7 @@
   "dependencies": {
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
-    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-react": "^7.6.3",
     "autoprefixer": "^9.6.4",
     "babel-plugin-transform-async-to-promises": "^0.8.14",
     "babelify": "^10.0.0",
