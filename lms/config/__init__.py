@@ -15,6 +15,7 @@ def configure(settings):
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         "via_url": sg.get("VIA_URL"),
+        "via2_url": sg.get("VIA2_URL"),
         "jwt_secret": sg.get("JWT_SECRET"),
         "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
         "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
@@ -67,6 +68,7 @@ def configure(settings):
         env_settings["sqlalchemy.url"] = database_url
 
     env_settings["via_url"] = _append_trailing_slash(env_settings["via_url"])
+    env_settings["via2_url"] = _append_trailing_slash(env_settings["via2_url"])
     env_settings["h_api_url_public"] = _append_trailing_slash(
         env_settings["h_api_url_public"]
     )

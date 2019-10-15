@@ -54,3 +54,12 @@ class TestViaURL:
         pyramid_request.feature = lambda feature: feature == "pdfjs2"
 
         assert "via.features=pdfjs2" in via_url(pyramid_request, "http://example.com")
+
+    def test_it_returns_via2_url_if_use_via2_service_feature_flag_is_set(
+        self, pyramid_request
+    ):
+        pyramid_request.feature = lambda feature: feature == "use_via2_service"
+
+        assert via_url(pyramid_request, "http://example.com").startswith(
+            "http://TEST_VIA2_SERVER.is/"
+        )
