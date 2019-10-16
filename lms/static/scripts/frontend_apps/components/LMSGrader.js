@@ -47,9 +47,13 @@ export default function LMSGrader({
    */
   const renderStudentCount = () => {
     if (currentStudentIndex >= 0) {
-      return <span>{`${currentStudentIndex + 1}/${students.length}`}</span>;
+      return (
+        <label>
+          Student {`${currentStudentIndex + 1} of ${students.length}`}
+        </label>
+      );
     } else {
-      return <span>{`${students.length} students`}</span>;
+      return <label>{`${students.length} Students`}</label>;
     }
   };
 
@@ -69,7 +73,7 @@ export default function LMSGrader({
               // placeholder for course name and assignment
             }
           </li>
-          <li className="LMSGrader__student-index">{renderStudentCount()}</li>
+          <li className="LMSGrader__student-count">{renderStudentCount()}</li>
           <li className="LMSGrader__student-picker">
             <StudentSelector
               onSelectStudent={onSelectStudent}
@@ -77,6 +81,7 @@ export default function LMSGrader({
               selectedStudentIndex={currentStudentIndex}
             />
           </li>
+          <li className="LMSGrader__student-grade" />
         </ul>
       </header>
       {children}

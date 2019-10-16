@@ -56,6 +56,7 @@ export default function StudentSelector({
 
     return (
       <select
+        className="StudentsSelector__students"
         onChange={e => {
           onSelectStudent(parseInt(e.target.value));
         }}
@@ -68,19 +69,27 @@ export default function StudentSelector({
   return (
     <div className="StudentSelector">
       <button
+        className="StudentSelector-change-student"
         aria-label="previous student"
         disabled={!hasPrevView}
         onClick={onPrevView}
       >
-        <img src="/static/images/arrow-left.svg" />
+        <img
+          className="StudentSelector-change-student-svg"
+          src="/static/images/arrow-left.svg"
+        />
       </button>
-      <div className="StudentsSelector__student">{buildStudentList()}</div>
+      {buildStudentList()}
       <button
+        className="StudentSelector-change-student"
         aria-label="next student"
         disabled={!hasNextView}
         onClick={onNextView}
       >
-        <img src="static/images/arrow-right.svg" />
+        <img
+          className="StudentSelector-change-student-svg"
+          src="static/images/arrow-right.svg"
+        />
       </button>
     </div>
   );
