@@ -1,8 +1,5 @@
-import os
-
 from pyramid import httpexceptions
 from pyramid import i18n
-from pyramid.settings import asbool
 from pyramid.view import forbidden_view_config, notfound_view_config
 import sentry_sdk
 
@@ -73,16 +70,6 @@ def error(request):
 
 
 def includeme(config):
-    debug = asbool(os.environ.get("DEBUG") or config.registry.settings.get("debug"))
-    if debug:
-        # Don't register the error pages in development environments.  Let
-        # pyramid_debugtoolbar show the traceback in the browser and terminal
-        # instead.
-        # If you want to test the error pages in your dev env you can set the
-        # environment variable DEBUG to false:
-        #     export DEBUG=false
-        return
-
     view_defaults = {"renderer": "lms:templates/error.html.jinja2"}
 
     config.add_exception_view(

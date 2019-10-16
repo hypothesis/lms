@@ -1,6 +1,5 @@
 -r requirements.txt
 -e .
 
-pyramid_debugtoolbar
 pyramid_ipython
 honcho
