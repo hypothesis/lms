@@ -1,35 +1,36 @@
-@import 'normalize.css/normalize';
+@use 'normalize.css/normalize';
 
-@import 'mixins';
-@import 'variables';
+@use 'mixins';
+@use 'variables' as *;
 
 // Additional mixins.
-@import 'mixins/focus';
+@use 'mixins/focus';
 
 // Shared classes.
-@import 'utils';
-@import 'typography';
+@use 'utils';
+@use 'typography';
 
 // HTML components.
-@import 'components/heading';
-@import 'components/label';
+@use 'components/heading';
+@use 'components/label';
 
 // Generic React components.
 // Note: Some of these are also used by server-rendered HTML templates, not
 // just by React code.
-@import 'components/Button';
-@import 'components/Dialog';
-@import 'components/Table';
+@use 'components/Button';
+@use 'components/Dialog';
+@use 'components/Table';
 
 // React components.
-@import 'components/BasicLtiLaunchApp';
-@import 'components/ErrorDisplay';
-@import 'components/FileList';
-@import 'components/FilePickerApp';
-@import 'components/LMSFilePicker';
-@import 'components/LMSGrader';
-@import 'components/StudentSelector';
-@import 'components/URLPicker';
+@use 'components/BasicLtiLaunchApp';
+@use 'components/ErrorDisplay';
+@use 'components/FileList';
+@use 'components/FilePickerApp';
+@use 'components/LMSFilePicker';
+@use 'components/LMSGrader';
+@use 'components/StudentSelector';
+@use 'components/URLPicker';
+
 
 // Element styles.
 body {

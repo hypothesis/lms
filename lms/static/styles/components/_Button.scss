@@ -1,5 +1,9 @@
+@use "../mixins";
+@use "../variables" as *;
+
+
 .Button {
-  @include font-normal;
+  @include mixins.font-normal;
 
   min-height: 30px;
 
@@ -44,7 +48,7 @@
   background-color: $brand;
 }
 
-@include touch-input {
+@include mixins.touch-input {
   .Button {
     min-height: $touch-target-size;
   }
