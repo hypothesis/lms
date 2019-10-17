@@ -1,3 +1,6 @@
+@use "../variables" as var;
+
+
 .LMSGrader {
   display: flex;
   flex-direction: column;
@@ -14,7 +17,7 @@
 }
 
 .LMSGrader__grading-components {
-  background-color: $grey-7;
+  background-color: var.$grey-7;
   padding: 0;
   margin: 0;
   list-style: none;

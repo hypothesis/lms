@@ -1,3 +1,6 @@
+@use "../variables" as var;
+
+
 .heading {
-  font-size: $title-font-size;
+  font-size: var.$title-font-size;
 }

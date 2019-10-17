@@ -1,3 +1,6 @@
+@use "../variables" as var;
+
+
 .Dialog__container {
   display: flex;
   flex-direction: column;
@@ -33,13 +36,13 @@
 .Dialog__title {
   display: flex;
   align-items: center;
-  font-size: $title-font-size;
+  font-size: var.$title-font-size;
 }
 
 .Dialog__cancel-btn {
   border: 0;
   background: none;
-  color: $grey-6;
+  color: var.$grey-6;
 
   // Given the button a large hit target and ensure the 'X' label is large
   // enough to see easily and aligned with the right edge of the dialog.
@@ -54,7 +57,7 @@
   text-align: right;
 
   &:hover {
-    color: $brand;
+    color: var.$brand;
   }
 }
 

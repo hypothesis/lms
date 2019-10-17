@@ -1,3 +1,7 @@
+@use "../mixins/focus";
+@use "../variables" as var;
+
+
 $table-item-height: 40px;
 $table-icon-size: 24px;
 
@@ -6,17 +10,17 @@ $table-icon-size: 24px;
 .Table__wrapper {
   height: 7 * $table-item-height;
   overflow: auto;
-  border: 1px solid $grey-6;
+  border: 1px solid var.$grey-6;
 
   margin-top: 10px;
 }
 
 .Table__table {
-  @include outline-on-keyboard-focus;
+  @include focus.outline-on-keyboard-focus;
 
   border-collapse: collapse;
   width: 100%;
-  font-size: $normal-font-size;
+  font-size: var.$normal-font-size;
   table-layout: fixed;
 }
 
@@ -33,7 +37,7 @@ $table-icon-size: 24px;
 // be applied to the `thead` element, but there are bugs in Chrome and Edge.
 // See https://caniuse.com/#feat=css-sticky.
 .Table__head th {
-  background-color: $grey-6;
+  background-color: var.$grey-6;
   position: sticky;
   top: 0;
   font-weight: normal;
@@ -65,7 +69,7 @@ $table-icon-size: 24px;
       border-top: 1px solid white;
     }
 
-    background-color: $grey-6;
+    background-color: var.$grey-6;
     color: white;
   }
 
