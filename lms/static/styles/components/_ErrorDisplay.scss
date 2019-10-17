@@ -1,4 +1,4 @@
-@use "../variables" as *;
+@use "../variables" as var;
 
 
 .ErrorDisplay {
@@ -7,8 +7,8 @@
 
 .ErrorDisplay__details {
   overflow: scroll;
-  background-color: $grey-1;
-  border: 1px solid $grey-3;
+  background-color: var.$grey-1;
+  border: 1px solid var.$grey-3;
 
   max-width: 100%;
 }

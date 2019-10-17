@@ -1,5 +1,5 @@
 @use "../mixins";
-@use "../variables" as *;
+@use "../variables" as var;
 
 
 .Button {
@@ -7,10 +7,10 @@
 
   min-height: 30px;
 
-  background-color: $grey-6;
+  background-color: var.$grey-6;
   border: none;
   border-radius: 2px;
-  color: $white;
+  color: var.$white;
   cursor: pointer;
   font-weight: bold;
   padding-left: 15px;
@@ -18,14 +18,14 @@
   white-space: nowrap;
 
   &:hover {
-    background-color: $brand;
+    background-color: var.$brand;
   }
 
   &[disabled] {
-    color: $grey-6;
-    background-color: $grey-2;
+    color: var.$grey-6;
+    background-color: var.$grey-2;
     &:hover {
-      background-color: $grey-2;
+      background-color: var.$grey-2;
     }
   }
 }
@@ -35,21 +35,21 @@
 }
 
 .Button--cancel {
-  color: $grey-6;
-  background-color: $grey-2;
+  color: var.$grey-6;
+  background-color: var.$grey-2;
 
   &:hover {
-    background-color: $grey-3;
-    color: $brand;
+    background-color: var.$grey-3;
+    color: var.$brand;
   }
 }
 
 .Button--danger {
-  background-color: $brand;
+  background-color: var.$brand;
 }
 
 @include mixins.touch-input {
   .Button {
-    min-height: $touch-target-size;
+    min-height: var.$touch-target-size;
   }
 }
