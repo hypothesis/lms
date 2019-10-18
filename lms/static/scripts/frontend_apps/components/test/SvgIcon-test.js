@@ -2,8 +2,14 @@ import { createElement, render } from 'preact';
 import SvgIcon from '../SvgIcon';
 
 describe('SvgIcon', () => {
-  const inlineSvg = '<svg />';
-  const inlineSvg2 = '<svg width="3" class="svg2" />';
+  const inlineSvg = {
+    trustedHTML: '<svg />',
+  };
+  const inlineSvg2 = {
+    trustedHTML: '<svg width="3" class="svg2" />',
+  };
+  const unTrustedSvg = '<svg />';
+
   // Tests here use DOM APIs rather than Enzyme because SvgIcon uses
   // `dangerouslySetInnerHTML` for its content, and that is not visible in the
   // Enzyme tree.
@@ -18,6 +24,13 @@ describe('SvgIcon', () => {
     assert.throws(() => {
       const container = document.createElement('div');
       render(<SvgIcon />, container);
+    });
+  });
+
+  it('throws an error if the icon is un-trusted svg', () => {
+    assert.throws(() => {
+      const container = document.createElement('div');
+      render(<SvgIcon src={unTrustedSvg} />, container);
     });
   });
 

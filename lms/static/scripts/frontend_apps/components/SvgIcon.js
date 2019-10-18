@@ -15,9 +15,15 @@ export default function SvgIcon({ className = '', inline = false, src }) {
   if (!src) {
     throw new Error(`Unknown svg supplied to src prop`);
   }
-  const markup = { __html: src };
+  if (!src.trustedHTML) {
+    throw new Error(
+      'Un-trusted resource passed to SvgIcon. If this is a valid svg, use the `trustMarkup` wrapper.'
+    );
+  }
 
+  const markup = { __html: src.trustedHTML };
   const element = useRef();
+
   useLayoutEffect(() => {
     const svg = element.current.querySelector('svg');
     svg.setAttribute('class', className);
@@ -44,6 +50,8 @@ SvgIcon.propTypes = {
   /** Apply a style allowing for inline display of icon wrapper */
   inline: propTypes.bool,
 
-  /** Imported SVG resource */
-  src: propTypes.string.isRequired,
+  /** Imported SVG resource with a trusted wrapper. */
+  src: propTypes.shape({
+    trustedHTML: propTypes.string,
+  }),
 };
