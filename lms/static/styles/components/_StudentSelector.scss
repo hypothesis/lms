@@ -3,30 +3,55 @@
 
 .StudentSelector {
   display: flex;
-  button {
-    background-color: transparent;
-    min-width: 80px;
-    border: none;
-    background-color: var.$grey-6;
-    transition: background-color 0.2s, opacity 0.2s;
-    outline: none;
-    &:hover {
-      cursor: pointer;
-      background-color: var.$grey-5;
-    }
-    &:disabled {
-      &:hover {
-        background-color: var.$grey-6;
-      }
-      cursor: default;
-      opacity: 0.5;
-    }
+}
+
+.StudentSelector-change-student-svg {
+  color: var.$grey-5;
+}
+
+.StudentSelector-change-student {
+  min-width: 60px;
+  height: 40px;
+  border: none;
+  background-color: var.$grey-1;
+  border: 1px solid var.$grey-3;
+  transition: background-color 0.2s, border-color 0.2s;
+  
+  &:focus {
+    outline: 1px solid var.$grey-5;
+    outline-offset: -1px;
+    outline-style: solid
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: var.$grey-2;
+  }
+
+  &:disabled {
+    background-color: var.$grey-1;
+    cursor: default;
+    opacity: 0.5;
   }
 }
 
-.StudentsSelector__student {
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-around;
-  flex-flow: column;
+.StudentsSelector__students {
+  appearance: none;
+  border: 1px solid var.$grey-3;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  height: 40px;
+  padding: 5px 20px;
+
+  &:focus {
+    outline: 1px solid var.$grey-5;
+    outline-offset: -1px;
+    outline-style: solid
+  }
+
+  &::-ms-expand {
+    /* Remove default select arrow in IE11 */
+    display: none;
+  }
 }
