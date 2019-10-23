@@ -10,6 +10,15 @@ def configure_jinja2_assets(config):
 def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
 
+    # Make sure that pyramid_exclog's tween runs under pyramid_tm's tween so
+    # that pyramid_exclog doesn't re-open the DB session after pyramid_tm has
+    # already closed it.
+    config.add_tween(
+        "pyramid_exclog.exclog_tween_factory", under="pyramid_tm.tm_tween_factory"
+    )
+    config.add_settings({"exclog.extra_info": True})
+    config.include("pyramid_exclog")
+
     config.include("pyramid_jinja2")
     config.include("pyramid_services")
     config.include("pyramid_tm")

@@ -127,7 +127,7 @@ class TestError:
         )
 
 
-@pytest.mark.usefixtures("os", "pyramid_config")
+@pytest.mark.usefixtures("pyramid_config")
 class TestIncludeMe:
     def test_it_adds_the_exception_views(self, pyramid_config):
         error.includeme(pyramid_config)
@@ -154,19 +154,6 @@ class TestIncludeMe:
                 renderer="lms:templates/validation_error.html.jinja2",
             ),
         ]
-
-    def test_it_doesnt_add_the_exception_views_in_debug_mode(self, os, pyramid_config):
-        os.environ["DEBUG"] = True
-
-        error.includeme(pyramid_config)
-
-        pyramid_config.add_exception_view.assert_not_called()
-
-    @pytest.fixture
-    def os(self, patch):
-        os = patch("lms.views.error.os")
-        os.environ = {"DEBUG": False}
-        return os
 
     @pytest.fixture
     def pyramid_config(self, pyramid_config):
