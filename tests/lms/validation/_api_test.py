@@ -4,9 +4,9 @@ import pytest
 
 from lms.validation import ValidationError
 from lms.validation._api import (
-    APIRecordSpeedgraderSchema,
     APIReadResultSchema,
     APIRecordResultSchema,
+    APIRecordSpeedgraderSchema,
 )
 
 

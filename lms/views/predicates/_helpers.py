@@ -1,7 +1,6 @@
 """Private helpers for view predicates."""
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-
 __all__ = ["Base"]
 
 

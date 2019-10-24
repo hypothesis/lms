@@ -1,15 +1,15 @@
 from unittest import mock
 
-from pyramid.testing import DummyRequest
 import pytest
+from pyramid.testing import DummyRequest
 
 from lms.values import LTIUser
 from lms.views.predicates import (
-    DBConfigured,
-    CanvasFile,
-    URLConfigured,
-    Configured,
     AuthorizedToConfigureAssignments,
+    CanvasFile,
+    Configured,
+    DBConfigured,
+    URLConfigured,
 )
 
 

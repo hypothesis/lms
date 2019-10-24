@@ -1,6 +1,6 @@
 import pytest
-from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid import testing
+from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.interfaces import IAuthenticationPolicy
 
 from lms.authentication import includeme

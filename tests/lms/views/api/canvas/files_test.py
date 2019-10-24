@@ -1,5 +1,6 @@
-import pytest
 from unittest import mock
+
+import pytest
 
 from lms.services import CanvasAPIError
 from lms.services.canvas_api import CanvasAPIClient

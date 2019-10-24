@@ -2,10 +2,10 @@ from unittest import mock
 
 import pytest
 
+from lms import values
 from lms.models import ApplicationInstance, LISResultSourcedId
 from lms.resources import LTILaunchResource
 from lms.services.lis_result_sourcedid import LISResultSourcedIdService
-from lms import values
 
 
 class TestLISResultFetchStudentsByAssignment:

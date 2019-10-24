@@ -6,13 +6,12 @@ See:
 https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-and-route-predicates
 """
 from lms.views.predicates._lti_launch import (
-    DBConfigured,
-    CanvasFile,
-    URLConfigured,
-    Configured,
     AuthorizedToConfigureAssignments,
+    CanvasFile,
+    Configured,
+    DBConfigured,
+    URLConfigured,
 )
-
 
 __all__ = [
     "DBConfigured",

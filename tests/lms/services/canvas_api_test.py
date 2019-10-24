@@ -2,11 +2,7 @@ import datetime
 from unittest import mock
 
 import pytest
-from requests import ConnectionError
-from requests import HTTPError
-from requests import ReadTimeout
-from requests import Response
-from requests import TooManyRedirects
+from requests import ConnectionError, HTTPError, ReadTimeout, Response, TooManyRedirects
 
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError

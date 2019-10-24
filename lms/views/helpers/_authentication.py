@@ -3,7 +3,6 @@
 import binascii
 import hashlib
 
-
 __all__ = ["check_password"]
 
 

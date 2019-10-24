@@ -6,8 +6,8 @@ Revises: 7000bb8673c5
 Create Date: 2019-05-15 13:26:41.905098
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = "f36f9a0aadf4"
 down_revision = "7000bb8673c5"

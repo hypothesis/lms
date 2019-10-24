@@ -1,13 +1,13 @@
 import json
 from unittest import mock
 
-import httpretty
 import pytest
 import requests
 
+import httpretty
 from lms.services import (
-    CanvasAPIError,
     CanvasAPIAccessTokenError,
+    CanvasAPIError,
     CanvasAPIServerError,
     ExternalRequestError,
 )

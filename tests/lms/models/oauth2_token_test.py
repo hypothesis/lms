@@ -3,7 +3,7 @@ import datetime
 import pytest
 import sqlalchemy.exc
 
-from lms.models import OAuth2Token, ApplicationInstance
+from lms.models import ApplicationInstance, OAuth2Token
 
 
 class TestOAuth2Token:

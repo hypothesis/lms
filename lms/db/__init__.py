@@ -1,8 +1,7 @@
 import sqlalchemy
+import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import zope.sqlalchemy
-
 
 __all__ = ("BASE", "init")
 

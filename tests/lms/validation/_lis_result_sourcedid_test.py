@@ -1,9 +1,7 @@
 import pytest
-
-from lms.validation import LISResultSourcedIdSchema
-
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
+from lms.validation import LISResultSourcedIdSchema
 from lms.values import LISResultSourcedId as LISResultSourcedIdValue
 
 

@@ -37,7 +37,7 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 from pyramid.view import view_config
 
 from lms.views import helpers
-from lms.views.decorators import upsert_h_user, upsert_course_group
+from lms.views.decorators import upsert_course_group, upsert_h_user
 
 
 @view_config(

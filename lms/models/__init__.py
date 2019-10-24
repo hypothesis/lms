@@ -4,7 +4,6 @@ from lms.models.lti_launches import LtiLaunches
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.models.oauth2_token import OAuth2Token
 
-
 __all__ = (
     "ApplicationInstance",
     "LISResultSourcedId",

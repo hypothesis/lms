@@ -1,6 +1,6 @@
 import datetime
-import jwt
 
+import jwt
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest

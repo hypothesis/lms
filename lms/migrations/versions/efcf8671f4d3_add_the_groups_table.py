@@ -1,8 +1,7 @@
 """Add the course_groups table."""
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "efcf8671f4d3"
 down_revision = "64d9eacab937"

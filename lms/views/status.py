@@ -3,7 +3,6 @@ import logging
 from pyramid.httpexceptions import HTTPInternalServerError
 from pyramid.view import view_config
 
-
 log = logging.getLogger(__name__)
 
 

@@ -1,6 +1,5 @@
 from lms.authentication._policy import AuthenticationPolicy
 
-
 __all__ = ()
 
 

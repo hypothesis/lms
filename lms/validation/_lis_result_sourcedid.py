@@ -4,7 +4,6 @@ import marshmallow
 from lms.validation._helpers import PyramidRequestSchema
 from lms.values import LISResultSourcedId
 
-
 __all__ = ["LISResultSourcedIdSchema"]
 
 

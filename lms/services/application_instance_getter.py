@@ -1,9 +1,8 @@
 from Crypto.Cipher import AES
 from sqlalchemy.orm.exc import NoResultFound
 
-from lms.services import ConsumerKeyError
 from lms.models import ApplicationInstance
-
+from lms.services import ConsumerKeyError
 
 __all__ = ["ApplicationInstanceGetter"]
 

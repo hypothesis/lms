@@ -2,19 +2,17 @@ from unittest import mock
 
 import jwt
 import pytest
-from pyramid import testing
 import requests
+from pyramid import testing
 
 from lms.validation import (
-    CanvasOAuthCallbackSchema,
     CanvasAccessTokenResponseSchema,
+    CanvasOAuthCallbackSchema,
     CanvasRefreshTokenResponseSchema,
-)
-from lms.validation import (
-    ValidationError,
-    MissingStateParamError,
     ExpiredStateParamError,
     InvalidStateParamError,
+    MissingStateParamError,
+    ValidationError,
 )
 from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.values import LTIUser

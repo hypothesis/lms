@@ -1,7 +1,7 @@
 import pytest
 
-from lms.views.helpers import canvas_files_available
 from lms.services import ConsumerKeyError
+from lms.views.helpers import canvas_files_available
 
 
 class TestCanvasFilesAvailable:

@@ -2,7 +2,6 @@
 from lms.models import ModuleItemConfiguration
 from lms.views.predicates._helpers import Base
 
-
 __all__ = [
     "DBConfigured",
     "CanvasFile",

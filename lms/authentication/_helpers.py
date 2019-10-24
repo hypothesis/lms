@@ -1,12 +1,11 @@
 import base64
 
 from lms.validation import (
-    LaunchParamsSchema,
     BearerTokenSchema,
     CanvasOAuthCallbackSchema,
+    LaunchParamsSchema,
     ValidationError,
 )
-
 
 __all__ = ["authenticated_userid", "get_lti_user", "groupfinder"]
 

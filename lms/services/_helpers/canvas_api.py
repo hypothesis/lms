@@ -7,7 +7,6 @@ from requests import RequestException
 from lms.services.exceptions import CanvasAPIError
 from lms.validation import ValidationError
 
-
 __all__ = ["CanvasAPIHelper"]
 
 

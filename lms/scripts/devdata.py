@@ -19,7 +19,6 @@ from pyramid.paster import bootstrap
 import lms
 from lms import models
 
-
 __all__ = ["devdata"]
 
 

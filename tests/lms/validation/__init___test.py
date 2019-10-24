@@ -5,10 +5,8 @@ import pytest
 import webargs
 from pyramid.interfaces import IViewDerivers
 
+from lms.validation import ValidationError, _validated_view, includeme
 from lms.validation._helpers import PyramidRequestSchema
-from lms.validation import _validated_view
-from lms.validation import includeme
-from lms.validation import ValidationError
 
 
 class TestValidatedView:

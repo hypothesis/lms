@@ -4,7 +4,6 @@ from pyramid.settings import asbool, aslist
 
 from ._exceptions import SettingError
 
-
 __all__ = ["FeatureFlagsCookieHelper", "JWTCookieHelper"]
 
 

@@ -1,7 +1,6 @@
 """Default traversal resources."""
 from pyramid.security import Allow
 
-
 __all__ = ["DefaultResource"]
 
 

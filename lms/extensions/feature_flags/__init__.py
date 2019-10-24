@@ -146,11 +146,10 @@ set by that source. For example::
 from ._exceptions import SettingError
 from ._feature_flags import FeatureFlags
 from ._providers import config_file_provider  # noqa
-from ._providers import envvar_provider  # noqa
 from ._providers import cookie_provider  # noqa
+from ._providers import envvar_provider  # noqa
 from ._providers import query_string_provider  # noqa
 from .views._predicates import FeatureFlagViewPredicate
-
 
 __all__ = ["SettingError"]
 

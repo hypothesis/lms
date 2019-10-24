@@ -1,8 +1,7 @@
-from pyramid import testing
 import pytest
+from pyramid import testing
 
-from lms.validation import ConfigureModuleItemSchema
-from lms.validation import ValidationError
+from lms.validation import ConfigureModuleItemSchema, ValidationError
 
 
 class TestConfigureModuleItemSchema:

@@ -1,12 +1,11 @@
 import secrets
 from datetime import datetime
 
-from Crypto.Cipher import AES
-from Crypto import Random
 import sqlalchemy as sa
+from Crypto import Random
+from Crypto.Cipher import AES
 
 from lms.db import BASE
-
 
 __all__ = ["ApplicationInstance"]
 

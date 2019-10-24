@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from unittest import mock
+
 from lms import routes
 
 

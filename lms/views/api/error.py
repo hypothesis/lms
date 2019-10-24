@@ -6,7 +6,7 @@ from pyramid.view import (
     notfound_view_config,
 )
 
-from lms.services import CanvasAPIError, CanvasAPIAccessTokenError, LTIOutcomesAPIError
+from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, LTIOutcomesAPIError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)

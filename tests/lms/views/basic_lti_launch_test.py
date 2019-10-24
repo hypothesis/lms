@@ -5,8 +5,8 @@ import pytest
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
 from lms.services.h_api_client import HAPIClient
-from lms.views.basic_lti_launch import BasicLTILaunchViews
 from lms.values import HUser
+from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
 class TestBasicLTILaunch:

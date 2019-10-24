@@ -5,9 +5,9 @@ from urllib.parse import urlencode
 
 import pytest
 
-from lms.views.api.lti import LTIOutcomesViews
-from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
+from lms.views.api.lti import LTIOutcomesViews
 
 
 class TestRecordCanvasSpeedgraderSubmission:
