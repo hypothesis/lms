@@ -2,10 +2,12 @@ from unittest import mock
 
 import pytest
 
-from lms.extensions.feature_flags import config_file_provider
-from lms.extensions.feature_flags import envvar_provider
-from lms.extensions.feature_flags import query_string_provider
-from lms.extensions.feature_flags import cookie_provider
+from lms.extensions.feature_flags import (
+    config_file_provider,
+    cookie_provider,
+    envvar_provider,
+    query_string_provider,
+)
 
 
 class TestConfigFileProvider:

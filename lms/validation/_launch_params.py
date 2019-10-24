@@ -7,7 +7,6 @@ from lms.services import LTILaunchVerificationError
 from lms.validation._helpers import PyramidRequestSchema
 from lms.values import LTIUser
 
-
 __all__ = ("LaunchParamsSchema", "URLConfiguredLaunchParamsSchema")
 
 

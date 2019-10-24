@@ -15,20 +15,19 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.services import HAPIError
-from lms.views.helpers import via_url
 from lms.validation import (
     BearerTokenSchema,
     ConfigureModuleItemSchema,
     URLConfiguredLaunchParamsSchema,
 )
 from lms.views.decorators import (
-    upsert_h_user,
-    upsert_course_group,
     add_user_to_group,
     report_lti_launch,
+    upsert_course_group,
+    upsert_h_user,
     upsert_lis_result_sourcedid,
 )
-from lms.views.helpers import frontend_app
+from lms.views.helpers import frontend_app, via_url
 
 
 @view_defaults(

@@ -1,13 +1,12 @@
 from typing import NamedTuple
 from xml.etree import ElementTree
 
-from jinja2 import Template
 import requests
+from jinja2 import Template
 from requests import RequestException
 from requests_oauthlib import OAuth1
 
 from lms.services.exceptions import LTIOutcomesAPIError
-
 
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
 

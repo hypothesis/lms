@@ -1,16 +1,12 @@
 from unittest import mock
 
 import pytest
-from requests import ConnectionError
-from requests import HTTPError
-from requests import ReadTimeout
-from requests import Request
-from requests import TooManyRedirects
+from requests import ConnectionError, HTTPError, ReadTimeout, Request, TooManyRedirects
 
 from lms.services._helpers.canvas_api import CanvasAPIHelper
 from lms.services.exceptions import (
-    CanvasAPIError,
     CanvasAPIAccessTokenError,
+    CanvasAPIError,
     CanvasAPIServerError,
 )
 from lms.validation import ValidationError

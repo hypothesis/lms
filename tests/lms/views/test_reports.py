@@ -1,6 +1,5 @@
+from lms.models import ApplicationInstance, LtiLaunches
 from lms.views.reports import list_application_instances
-from lms.models import ApplicationInstance
-from lms.models import LtiLaunches
 
 
 def setup_launches(pyramid_request, app_instances):

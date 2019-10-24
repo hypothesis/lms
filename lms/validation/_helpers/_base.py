@@ -4,7 +4,6 @@ from webargs import pyramidparser
 
 from lms.validation._exceptions import ValidationError
 
-
 __all__ = ["PyramidRequestSchema", "RequestsResponseSchema"]
 
 

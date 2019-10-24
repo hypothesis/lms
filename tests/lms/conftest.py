@@ -1,16 +1,16 @@
-import os
 import functools
 import json
+import os
 import re
+from unittest import mock
 
 import httpretty
-from unittest import mock
-import pytest
 import jwt
+import pytest
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
 from pyramid import testing
 from pyramid.request import apply_request_extensions
+from sqlalchemy.orm import sessionmaker
 
 from lms import db
 from lms.models import ApplicationInstance

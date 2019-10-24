@@ -7,11 +7,10 @@ from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
 from lms.validation import (
     CanvasAccessTokenResponseSchema,
-    CanvasRefreshTokenResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
+    CanvasRefreshTokenResponseSchema,
 )
-
 
 __all__ = ["CanvasAPIClient"]
 

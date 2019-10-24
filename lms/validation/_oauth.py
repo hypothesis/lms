@@ -4,11 +4,9 @@ import secrets
 import marshmallow
 from webargs import fields
 
-from lms.validation import _helpers
+from lms.validation import _exceptions, _helpers
 from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
-from lms.validation import _exceptions
 from lms.values import LTIUser
-
 
 __all__ = [
     "CanvasOAuthCallbackSchema",

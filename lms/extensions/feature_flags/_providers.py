@@ -10,7 +10,6 @@ from pyramid.settings import asbool
 
 from ._helpers import FeatureFlagsCookieHelper
 
-
 __all__ = [
     "config_file_provider",
     "envvar_provider",

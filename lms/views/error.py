@@ -1,7 +1,6 @@
-from pyramid import httpexceptions
-from pyramid import i18n
-from pyramid.view import forbidden_view_config, notfound_view_config
 import sentry_sdk
+from pyramid import httpexceptions, i18n
+from pyramid.view import forbidden_view_config, notfound_view_config
 
 from lms.validation import ValidationError
 

@@ -8,8 +8,8 @@ Create Date: 2017-11-20 16:40:26.060862
 """
 from datetime import datetime
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "58f2693de313"

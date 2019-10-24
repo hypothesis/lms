@@ -1,11 +1,12 @@
 """LTI launch request verifier service."""
 import pylti.common
 
-from lms.services import LTILaunchVerificationError
-from lms.services import NoConsumerKey
-from lms.services import ConsumerKeyError
-from lms.services import LTIOAuthError
-
+from lms.services import (
+    ConsumerKeyError,
+    LTILaunchVerificationError,
+    LTIOAuthError,
+    NoConsumerKey,
+)
 
 __all__ = ["LaunchVerifier"]
 

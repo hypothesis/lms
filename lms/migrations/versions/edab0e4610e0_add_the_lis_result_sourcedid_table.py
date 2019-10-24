@@ -11,9 +11,8 @@ Create Date: 2019-09-05 14:15:47.918403
 """
 import datetime
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "edab0e4610e0"

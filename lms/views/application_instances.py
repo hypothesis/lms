@@ -1,4 +1,5 @@
 from pyramid.view import view_config
+
 from lms.models import ApplicationInstance
 
 

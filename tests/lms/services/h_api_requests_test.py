@@ -1,17 +1,11 @@
 from unittest import mock
 
 import pytest
-
-from requests import ConnectionError
-from requests import HTTPError
-from requests import ReadTimeout
-from requests import Response
-from requests import TooManyRedirects
+from requests import ConnectionError, HTTPError, ReadTimeout, Response, TooManyRedirects
 
 from lms.resources import LTILaunchResource
+from lms.services import HAPIError, HAPINotFoundError
 from lms.services.h_api_requests import HAPIRequests
-from lms.services import HAPIError
-from lms.services import HAPINotFoundError
 from lms.values import HUser
 
 

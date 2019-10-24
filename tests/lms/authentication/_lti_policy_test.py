@@ -1,6 +1,6 @@
-import pytest
 from unittest import mock
 
+import pytest
 from pyramid import security
 
 from lms.authentication._lti_policy import LTIAuthenticationPolicy

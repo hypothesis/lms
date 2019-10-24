@@ -6,7 +6,6 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from lms.services import HAPIError, HAPINotFoundError
 
-
 __all__ = ["upsert_h_user", "upsert_course_group", "add_user_to_group"]
 
 

@@ -1,12 +1,12 @@
 from unittest import mock
+
 import pytest
 
-from lms.validation import ValidationError
-from lms.services.lis_result_sourcedid import LISResultSourcedIdService
-from lms.views import decorators
-
-from lms.resources import LTILaunchResource
 from lms import values
+from lms.resources import LTILaunchResource
+from lms.services.lis_result_sourcedid import LISResultSourcedIdService
+from lms.validation import ValidationError
+from lms.views import decorators
 
 
 @pytest.mark.usefixtures("lis_result_sourcedid_svc")

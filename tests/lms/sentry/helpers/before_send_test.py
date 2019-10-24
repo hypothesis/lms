@@ -3,8 +3,8 @@ from unittest import mock
 
 import pytest
 
-from lms.sentry.helpers.before_send import before_send
 from lms.sentry.helpers import filters
+from lms.sentry.helpers.before_send import before_send
 
 
 @pytest.mark.usefixtures("Event", "filters")

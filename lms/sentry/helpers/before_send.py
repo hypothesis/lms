@@ -1,8 +1,7 @@
 import logging
 
-from lms.sentry.helpers.event import Event
 from lms.sentry.helpers import filters
-
+from lms.sentry.helpers.event import Event
 
 log = logging.getLogger(__name__)
 

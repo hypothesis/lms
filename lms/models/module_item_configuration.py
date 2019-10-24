@@ -1,6 +1,6 @@
 import sqlalchemy as sa
-from lms.db import BASE
 
+from lms.db import BASE
 
 __all__ = ["ModuleItemConfiguration"]
 

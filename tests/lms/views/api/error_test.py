@@ -1,6 +1,6 @@
 from lms.services import CanvasAPIError, LTIOutcomesAPIError
-from lms.views.api import error
 from lms.validation import ValidationError
+from lms.views.api import error
 
 
 class TestSchemaValidationError:

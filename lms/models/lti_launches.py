@@ -1,5 +1,7 @@
 from datetime import datetime
+
 import sqlalchemy as sa
+
 from lms.db import BASE
 
 

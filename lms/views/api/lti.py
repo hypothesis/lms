@@ -3,12 +3,12 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
+from lms.services.lti_outcomes import LTIOutcomesRequestParams
 from lms.validation import (
-    APIRecordSpeedgraderSchema,
     APIReadResultSchema,
     APIRecordResultSchema,
+    APIRecordSpeedgraderSchema,
 )
-from lms.services.lti_outcomes import LTIOutcomesRequestParams
 
 
 @view_defaults(request_method="POST", renderer="json", permission="lti_outcomes")

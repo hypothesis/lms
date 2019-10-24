@@ -1,7 +1,6 @@
 """Immutable value objects for use throughout the app."""
 from typing import NamedTuple
 
-
 __all__ = ("LTIUser", "LISResultSourcedId")
 
 

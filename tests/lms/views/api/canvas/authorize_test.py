@@ -4,9 +4,9 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
 from lms.services import CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
+from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
 
 
 class TestAuthorize:

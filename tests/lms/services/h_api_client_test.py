@@ -3,8 +3,8 @@ from unittest import mock
 import pytest
 
 from lms.services import HAPIError
-from lms.services.h_api_requests import HAPIRequests
 from lms.services.h_api_client import HAPIClient
+from lms.services.h_api_requests import HAPIRequests
 from lms.values import HUser
 
 

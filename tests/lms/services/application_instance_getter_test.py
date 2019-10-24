@@ -2,11 +2,10 @@ from unittest import mock
 
 import pytest
 
-from lms.services.application_instance_getter import ApplicationInstanceGetter
-from lms.services import ConsumerKeyError
 from lms.models import ApplicationInstance
-from lms.models.application_instance import _build_aes_iv
-from lms.models.application_instance import _encrypt_oauth_secret
+from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
+from lms.services import ConsumerKeyError
+from lms.services.application_instance_getter import ApplicationInstanceGetter
 
 
 class TestApplicationInstanceGetter:

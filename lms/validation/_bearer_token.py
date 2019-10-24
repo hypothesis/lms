@@ -2,15 +2,14 @@
 import marshmallow
 
 from lms.validation import _helpers
-from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.validation._exceptions import (
-    ValidationError,
     ExpiredSessionTokenError,
-    MissingSessionTokenError,
     InvalidSessionTokenError,
+    MissingSessionTokenError,
+    ValidationError,
 )
+from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.values import LTIUser
-
 
 __all__ = ("BearerTokenSchema",)
 

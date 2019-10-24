@@ -6,7 +6,6 @@ import jwt
 
 from lms.validation._helpers import _exceptions
 
-
 __all__ = ["decode_jwt", "encode_jwt"]
 
 

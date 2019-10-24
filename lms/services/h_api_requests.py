@@ -4,9 +4,7 @@ import json
 import requests
 from requests import RequestException
 
-from lms.services import HAPIError
-from lms.services import HAPINotFoundError
-
+from lms.services import HAPIError, HAPINotFoundError
 
 __all__ = ["HAPIRequests"]
 

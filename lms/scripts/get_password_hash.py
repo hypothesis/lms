@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
+import binascii
 import hashlib
 import os
-import binascii
-
 
 __all__ = ["get_hash"]
 

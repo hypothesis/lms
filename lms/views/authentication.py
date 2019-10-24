@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPFound
-from pyramid.security import remember, forget
-from pyramid.view import view_config, forbidden_view_config
+from pyramid.security import forget, remember
+from pyramid.view import forbidden_view_config, view_config
 
 from lms.views.helpers import check_password
 

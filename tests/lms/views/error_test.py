@@ -1,7 +1,7 @@
 from unittest import mock
 
-from pyramid import httpexceptions
 import pytest
+from pyramid import httpexceptions
 
 from lms.validation import ValidationError
 from lms.views import error

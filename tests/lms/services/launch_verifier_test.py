@@ -2,16 +2,13 @@ import time
 from unittest import mock
 from urllib.parse import urlencode
 
-import oauthlib.oauth1
 import oauthlib.common
+import oauthlib.oauth1
 import pytest
 from pylti.common import LTIException
 
+from lms.services import ConsumerKeyError, LTIOAuthError, NoConsumerKey
 from lms.services.launch_verifier import LaunchVerifier
-from lms.services import NoConsumerKey
-from lms.services import ConsumerKeyError
-from lms.services import LTIOAuthError
-
 
 ONE_HOUR_AGO = str(int(time.time() - 60 * 60))
 

@@ -1,7 +1,6 @@
 from pyramid.view import view_config
 
-from lms.models import ApplicationInstance
-from lms.models import LtiLaunches
+from lms.models import ApplicationInstance, LtiLaunches
 
 
 @view_config(

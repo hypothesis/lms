@@ -1,6 +1,7 @@
 import configparser
 import json
 import os
+
 from pyramid.settings import aslist
 from pyramid.static import static_view
 

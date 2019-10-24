@@ -18,9 +18,11 @@ For documentation see:
 
 https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/viewconfig.html#non-predicate-arguments
 """
-from lms.views.decorators.h_api import upsert_h_user
-from lms.views.decorators.h_api import upsert_course_group
-from lms.views.decorators.h_api import add_user_to_group
+from lms.views.decorators.h_api import (
+    add_user_to_group,
+    upsert_course_group,
+    upsert_h_user,
+)
 from lms.views.decorators.lis_result_sourcedid import upsert_lis_result_sourcedid
 from lms.views.decorators.reports import report_lti_launch
 

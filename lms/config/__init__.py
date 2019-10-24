@@ -1,8 +1,7 @@
 """Configuration for the Pyramid application."""
 
 from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid.config import Configurator
-from pyramid.config import aslist
+from pyramid.config import Configurator, aslist
 
 from lms.config.settings import SettingError, SettingGetter
 

@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 from unittest import mock
-import pytest
-import pyramid.config
 
-from lms.config import configure
-from lms.config import SettingError
+import pyramid.config
+import pytest
+
+from lms.config import SettingError, configure
 
 
 @pytest.mark.usefixtures("SettingGetter", "ACLAuthorizationPolicy")

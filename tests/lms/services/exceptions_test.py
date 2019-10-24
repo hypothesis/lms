@@ -6,8 +6,8 @@ import pytest
 import requests
 
 from lms.services import (
-    CanvasAPIError,
     CanvasAPIAccessTokenError,
+    CanvasAPIError,
     CanvasAPIServerError,
     ExternalRequestError,
 )

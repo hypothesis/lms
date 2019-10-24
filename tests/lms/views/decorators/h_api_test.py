@@ -1,16 +1,14 @@
 from unittest import mock
+
 import pytest
-
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
-
 from requests import Response
 
-from lms.services import HAPIError
-from lms.services import HAPINotFoundError
-from lms.views.decorators import h_api
-from lms.services.h_api_requests import HAPIRequests
 from lms.resources import LTILaunchResource
+from lms.services import HAPIError, HAPINotFoundError
+from lms.services.h_api_requests import HAPIRequests
 from lms.values import HUser, LTIUser
+from lms.views.decorators import h_api
 
 
 @pytest.mark.usefixtures("hapi_svc")
