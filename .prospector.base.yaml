@@ -40,6 +40,7 @@ pylint:
     - missing-docstring  # The pep257 tool reports missing docstrings to us
                          # so we don't need pylint to do so.
     - too-few-public-methods
+    - ungrouped-imports  # Import grouping is automated via isort.
   options:
     # Some good names that pylint would otherwise reject:
     #
