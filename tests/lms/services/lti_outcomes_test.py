@@ -1,10 +1,10 @@
 import datetime
 from xml.etree import ElementTree
 
+import httpretty
 import pytest
 from jinja2 import Template
 
-import httpretty
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import (
     LTIOutcomesClient,
