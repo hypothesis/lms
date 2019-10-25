@@ -50,11 +50,6 @@ class TestViaURL:
         # fmt: on
         assert via_url(pyramid_request, document_url) == expected_via_url
 
-    def test_it_enables_via_features(self, pyramid_request):
-        pyramid_request.feature = lambda feature: feature == "pdfjs2"
-
-        assert "via.features=pdfjs2" in via_url(pyramid_request, "http://example.com")
-
     def test_it_returns_via2_url_if_use_via2_service_feature_flag_is_set(
         self, pyramid_request
     ):
