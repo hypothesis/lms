@@ -40,8 +40,6 @@ def via_url(request, document_url):
     query_string = parse.urlencode(query_string_as_list)
 
     via_service_url = request.registry.settings["via_url"]
-    if request.feature("use_via2_service"):
-        via_service_url = request.registry.settings["via2_url"]
 
     return via_service_url + parse.urlunparse(
         (
