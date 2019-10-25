@@ -1,6 +1,16 @@
 @use "../mixins";
 @use "../variables" as var;
 
+@keyframes fadeAway {
+  from {
+    opacity: 1;
+    visibility: inherit;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
 
 @keyframes gradeSaved {
   from {
@@ -57,6 +67,10 @@
     font-weight: 500;
   }
 
+  &__grade-wrapper {
+    position: relative;
+  }
+
   &__grade {
     text-align: center;
     width: 60px;
@@ -91,11 +105,19 @@
   top: 0;
 }
 
-.SubmitGradeForm__spinner {
-  $spinner-size: 100px;
-  position: absolute;
-  width: $spinner-size;
-  height: $spinner-size;
-  left: calc(50% - #{$spinner-size});
-  top: calc(50% - #{$spinner-size});
+.SubmitGradeForm__submit-spinner {
+  @include mixins.spinner(150px);
+}
+
+.SubmitGradeForm__fetch-spinner {
+  @include mixins.spinner(28px);
+  animation-duration: 0.5s;
+  visibility: hidden;
+  animation-fill-mode: forwards;
+  &--fade-away {
+    animation-name: fadeAway;
+  }
+  &--active {
+    visibility: inherit;
+  }
 }
