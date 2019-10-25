@@ -70,8 +70,11 @@ def _session(request):
     # See: https://github.com/Pylons/pyramid_tm/issues/40
     @request.add_finished_callback
     def close_the_sqlalchemy_session(_request):  # pylint: disable=unused-variable
-        if session.dirty:
-            log.warning("closing a dirty session")
+        connections = (
+            session.transaction._connections  # pylint:disable=protected-access
+        )
+        if len(connections) > 1:
+            log.warning("closing an unclosed DB session")
         session.close()
 
     return session
