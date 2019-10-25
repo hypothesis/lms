@@ -8,10 +8,14 @@ describe('LMSGrader', () => {
     {
       userid: 'student1',
       displayName: 'Student 1',
+      LISResultSourcedId: 1,
+      LISOutcomeServiceUrl: '',
     },
     {
       userid: 'student1',
       displayName: 'Student 2',
+      LISResultSourcedId: 2,
+      LISOutcomeServiceUrl: '',
     },
   ];
   const fakeUpdateClientConfig = sinon.spy();
@@ -49,7 +53,10 @@ describe('LMSGrader', () => {
 
   it('creates a valid component with 2 students', () => {
     const wrapper = renderGrader();
-    assert.equal(wrapper.text(), '2 Students');
+    assert.equal(
+      wrapper.find('.LMSGrader__student-count').text(),
+      '2 Students'
+    );
   });
 
   it('set the selected student count to "Student 2 of 2" when the index changers to 1', () => {
@@ -60,8 +67,10 @@ describe('LMSGrader', () => {
         .props()
         .onSelectStudent(1); // second student
     });
-    wrapper.update();
-    assert.equal(wrapper.text(), 'Student 2 of 2');
+    assert.equal(
+      wrapper.find('.LMSGrader__student-count').text(),
+      'Student 2 of 2'
+    );
   });
 
   it('passes a default value of "0" to onChangeSelectedUser when no a student is selected', () => {

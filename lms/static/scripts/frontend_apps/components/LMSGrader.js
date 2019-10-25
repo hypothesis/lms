@@ -3,6 +3,7 @@ import propTypes from 'prop-types';
 import { useEffect, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
+import SubmitGradeForm from './SubmitGradeForm';
 import {
   updateClientConfig,
   removeClientConfig,
@@ -64,6 +65,13 @@ export default function LMSGrader({
     setCurrentStudentIndex(studentIndex);
   };
 
+  /**
+   * Return the current student, or an empty object if there is none
+   */
+  const getCurrentStudent = () => {
+    return students[currentStudentIndex] ? students[currentStudentIndex] : {};
+  };
+
   return (
     <div className="LMSGrader">
       <header>
@@ -81,7 +89,12 @@ export default function LMSGrader({
               selectedStudentIndex={currentStudentIndex}
             />
           </li>
-          <li className="LMSGrader__student-grade" />
+          <li className="LMSGrader__student-grade">
+            <SubmitGradeForm
+              student={getCurrentStudent()}
+              disabled={currentStudentIndex < 0}
+            />
+          </li>
         </ul>
       </header>
       {children}
