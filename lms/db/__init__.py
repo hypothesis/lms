@@ -1,9 +1,14 @@
+import logging
+
 import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 __all__ = ("BASE", "init")
+
+
+log = logging.getLogger(__name__)
 
 
 BASE = declarative_base(
@@ -64,11 +69,9 @@ def _session(request):
     #
     # See: https://github.com/Pylons/pyramid_tm/issues/40
     @request.add_finished_callback
-    def close_the_sqlalchemy_session(request):  # pylint: disable=unused-variable
+    def close_the_sqlalchemy_session(_request):  # pylint: disable=unused-variable
         if session.dirty:
-            request.sentry.captureMessage(
-                "closing a dirty session", stack=True, extra={"dirty": session.dirty}
-            )
+            log.warning("closing a dirty session")
         session.close()
 
     return session
