@@ -37,7 +37,7 @@
     font-weight: 500;
     border: 1px solid var.$grey-3;
     background-color: var.$grey-1;
-    transition: 0.2s;
+    transition: background-color 0.2s;
 
     &:focus {
       border-color: var.$grey-5;
@@ -106,7 +106,7 @@
 }
 
 .SubmitGradeForm__submit-spinner {
-  @include mixins.spinner(150px);
+  @include mixins.spinner(100px);
 }
 
 .SubmitGradeForm__fetch-spinner {
