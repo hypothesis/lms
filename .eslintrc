@@ -4,6 +4,9 @@
   ],
   "rules": {
     "prefer-arrow-callback": "error",
-    "prefer-const": ["error", { "destructuring": "all" }]
+    "prefer-const": ["error", { "destructuring": "all" }],
+
+    // Handled by Prettier.
+    "comma-dangle": "off"
   }
 }
