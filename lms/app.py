@@ -1,4 +1,4 @@
-﻿from lms.config import configure
+from lms.config import configure
 
 
 def configure_jinja2_assets(config):
