@@ -8,10 +8,12 @@ from lms.views import error
 
 
 class TestNotFound:
-    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+    def test_it_does_not_report_exception_to_sentry(
+        self, pyramid_request, h_pyramid_sentry
+    ):
         error.notfound(pyramid_request)
 
-        sentry_sdk.capture_exception.assert_not_called()
+        h_pyramid_sentry.report_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
         error.notfound(pyramid_request)
@@ -25,10 +27,12 @@ class TestNotFound:
 
 
 class TestForbidden:
-    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+    def test_it_does_not_report_exception_to_sentry(
+        self, pyramid_request, h_pyramid_sentry
+    ):
         error.forbidden(pyramid_request)
 
-        sentry_sdk.capture_exception.assert_not_called()
+        h_pyramid_sentry.report_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
         error.forbidden(pyramid_request)
@@ -42,12 +46,14 @@ class TestForbidden:
 
 
 class TestHTTPClientError:
-    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+    def test_it_does_not_report_exception_to_sentry(
+        self, pyramid_request, h_pyramid_sentry
+    ):
         exc = httpexceptions.HTTPBadRequest()
 
         error.http_client_error(exc, pyramid_request)
 
-        sentry_sdk.capture_exception.assert_not_called()
+        h_pyramid_sentry.report_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
         exc = httpexceptions.HTTPBadRequest()
@@ -65,12 +71,12 @@ class TestHTTPClientError:
 
 
 class TestHTTPServerError:
-    def test_it_reports_exception_to_sentry(self, pyramid_request, sentry_sdk):
+    def test_it_reports_exception_to_sentry(self, pyramid_request, h_pyramid_sentry):
         exc = httpexceptions.HTTPServerError()
 
         error.http_server_error(exc, pyramid_request)
 
-        sentry_sdk.capture_exception.assert_called_once_with(exc)
+        h_pyramid_sentry.report_exception.assert_called_once_with()
 
     def test_it_sets_response_status(self, pyramid_request):
         exc = httpexceptions.HTTPServerError()
@@ -104,14 +110,16 @@ class TestValidationError:
 
 
 class TestError:
-    def test_it_does_not_report_exception_to_sentry(self, pyramid_request, sentry_sdk):
+    def test_it_does_not_report_exception_to_sentry(
+        self, pyramid_request, h_pyramid_sentry
+    ):
         error.error(pyramid_request)
 
         # Although I don't think it would do any harm (sentry_sdk seems smart
         # enough to not double report the exception to Sentry) we don't need to
-        # call capture_exception() in the case of a non-HTTPError exception
+        # call report_exception() in the case of a non-HTTPError exception
         # because Sentry's Pyramid integration does it for us automatically.
-        sentry_sdk.capture_exception.assert_not_called()
+        h_pyramid_sentry.report_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
         error.error(pyramid_request)
@@ -162,5 +170,5 @@ class TestIncludeMe:
 
 
 @pytest.fixture(autouse=True)
-def sentry_sdk(patch):
-    return patch("lms.views.error.sentry_sdk")
+def h_pyramid_sentry(patch):
+    return patch("lms.views.error.h_pyramid_sentry")
