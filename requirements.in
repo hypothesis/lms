@@ -1,4 +1,5 @@
 alembic
+h_pyramid_sentry
 newrelic
 pyramid
 pyramid_exclog
@@ -6,7 +7,6 @@ pyramid_tm
 pyramid_jinja2
 pyramid_services
 gunicorn
-sentry-sdk
 sqlalchemy
 psycopg2
 zope.sqlalchemy
