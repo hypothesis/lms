@@ -37,6 +37,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.registry.settings["tm.manager_hook"] = pyramid_tm.explicit_manager
 
     config.include("pyramid_tm")
+    config.include("pyramid_retry")
 
     config.include("lms.authentication")
     config.include("lms.extensions.feature_flags")
