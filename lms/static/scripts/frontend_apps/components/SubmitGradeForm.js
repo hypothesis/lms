@@ -26,7 +26,6 @@ const useFetchGrade = student => {
   const { authToken } = useContext(Config);
   const [grade, setGrade] = useState('');
   const [gradeLoading, setGradeLoading] = useState(false);
-  const [gradeError, setGradeError] = useState(false);
 
   useEffect(() => {
     if (Object.entries(student).length) {
@@ -35,21 +34,15 @@ const useFetchGrade = student => {
       // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
       const fetchData = async () => {
         setGradeLoading(true);
-        setGradeError(false);
         setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
-
-        try {
-          const response = await fetchGrade({ student, authToken });
-          setGrade(response.currentScore * GRADE_MULTIPLIER);
-        } catch (e) {
-          setGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
-        }
+        const response = await fetchGrade({ student, authToken });
+        setGrade(response.currentScore * GRADE_MULTIPLIER);
         setGradeLoading(false);
       };
       fetchData();
     }
   }, [student, authToken]);
-  return [{ grade, gradeLoading, gradeError }];
+  return [{ grade, gradeLoading }];
 };
 
 /**
