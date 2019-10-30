@@ -1,4 +1,6 @@
-﻿from lms.config import configure
+import pyramid_tm
+
+from lms.config import configure
 
 
 def configure_jinja2_assets(config):
@@ -21,6 +23,19 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
 
     config.include("pyramid_jinja2")
     config.include("pyramid_services")
+
+    # Use pyramid_tm's explicit transaction manager.
+    #
+    # This means that trying to access a request's transaction after pyramid_tm
+    # has closed the request's transaction will crash, rather than implicitly
+    # opening a new transaction that doesn't get closed (and potentially
+    # leaking open DB connections).
+    #
+    # This is recommended in the pyramid_tm docs:
+    #
+    # https://docs.pylonsproject.org/projects/pyramid_tm/en/latest/#custom-transaction-managers
+    config.registry.settings["tm.manager_hook"] = pyramid_tm.explicit_manager
+
     config.include("pyramid_tm")
 
     config.include("lms.authentication")
