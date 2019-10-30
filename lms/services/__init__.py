@@ -53,3 +53,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
     )
+    config.register_service_factory(
+        "lms.services.group_info_upsert.GroupInfoUpsert", name="group_info_upsert"
+    )
