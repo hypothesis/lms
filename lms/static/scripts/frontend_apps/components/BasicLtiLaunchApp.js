@@ -209,6 +209,8 @@ export default function BasicLtiLaunchApp() {
         <LMSGrader
           onChangeSelectedUser={changeSelectedUserKey}
           students={grading.students}
+          courseName={grading.courseName}
+          assignmentName={grading.assignmentName}
         >
           {iFrame}
         </LMSGrader>

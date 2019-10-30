@@ -12,26 +12,45 @@
 }
 
 .LMSGrader__grading-components {
-  padding: 15px 15px;
-  margin: 0;
-  list-style: none;
   display: flex;
+  flex-flow: wrap;
+  justify-content: flex-end;
+  margin: 15px 15px 0 15px;
+  padding: 0;
+  list-style: none;
+  > li {
+    margin-bottom: 15px;
+  }
 }
 
 .LMSGrader__student-count {
-  display: flex;
-  flex-flow: column;
-  justify-content: space-around;
   margin: 10px;
   font-weight: 500;
 }
 
-.LMSGrader__assignment {
+.LMSGrader__title {
   flex-grow: 1;
 }
 
+.LMSGrader__assignment {
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+.LMSGrader__name {
+  font-size: 16px;
+  margin: 0;
+}
+
+
 .LMSGrader__student-picker {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  margin-right: 20px;
+}
+
+.LMSGrader__student-grade {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }

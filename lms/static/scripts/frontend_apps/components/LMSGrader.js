@@ -16,6 +16,8 @@ import {
 
 export default function LMSGrader({
   children,
+  assignmentName,
+  courseName,
   students,
   onChangeSelectedUser,
 }) {
@@ -76,13 +78,14 @@ export default function LMSGrader({
     <div className="LMSGrader">
       <header>
         <ul className="LMSGrader__grading-components">
-          <li className="LMSGrader__assignment">
-            {
-              // placeholder for course name and assignment
-            }
+          <li className="LMSGrader__title">
+            <h1 className="LMSGrader__assignment">{assignmentName}</h1>
+            <h2 className="LMSGrader__name">{courseName}</h2>
           </li>
-          <li className="LMSGrader__student-count">{renderStudentCount()}</li>
           <li className="LMSGrader__student-picker">
+            <div className="LMSGrader__student-count">
+              {renderStudentCount()}
+            </div>
             <StudentSelector
               onSelectStudent={onSelectStudent}
               students={students}
@@ -105,8 +108,14 @@ export default function LMSGrader({
 LMSGrader.propTypes = {
   // iframe to pass along
   children: propTypes.node.isRequired,
+
+  // Assignment and course information
+  courseName: propTypes.string.isRequired,
+  assignmentName: propTypes.string.isRequired,
+
   // Callback to alert the parent component that a change has occurred and re-rendering may be needed.
   onChangeSelectedUser: propTypes.func.isRequired,
+
   // List of students to grade
   students: propTypes.array.isRequired,
 };
