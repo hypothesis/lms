@@ -1,4 +1,4 @@
-import sentry_sdk
+import h_pyramid_sentry
 from pyramid import httpexceptions, i18n
 from pyramid.view import forbidden_view_config, notfound_view_config
 
@@ -32,7 +32,7 @@ def http_client_error(exc, request):
 
 def http_server_error(exc, request):
     """Handle an HTTP 5xx (server error) exception."""
-    sentry_sdk.capture_exception(exc)
+    h_pyramid_sentry.report_exception()
     return _http_error(exc, request)
 
 
