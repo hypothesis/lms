@@ -1,9 +1,14 @@
+import logging
+
 import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 __all__ = ("BASE", "init")
+
+
+log = logging.getLogger(__name__)
 
 
 BASE = declarative_base(
@@ -52,23 +57,20 @@ def _session(request):
 
     # pyramid_tm doesn't always close the database session for us.
     #
-    # For example if an exception view accesses the session and causes a new
-    # transaction to be opened, pyramid_tm won't close this connection because
-    # pyramid_tm's transaction has already ended before exception views are
-    # executed.
+    # If anything that executes later in the Pyramid request processing cycle
+    # than pyramid_tm tween egress opens a new DB session (for example a tween
+    # above the pyramid_tm tween, a response callback, or a NewResponse
+    # subscriber) then pyramid_tm won't close that DB session for us.
     #
-    # Connections opened by NewResponse and finished callbacks aren't closed by
-    # pyramid_tm either.
-    #
-    # So add our own callback here to make sure db sessions are always closed.
-    #
-    # See: https://github.com/Pylons/pyramid_tm/issues/40
+    # So as a precaution add our own callback here to make sure db sessions are
+    # always closed.
     @request.add_finished_callback
-    def close_the_sqlalchemy_session(request):  # pylint: disable=unused-variable
-        if session.dirty:
-            request.sentry.captureMessage(
-                "closing a dirty session", stack=True, extra={"dirty": session.dirty}
-            )
+    def close_the_sqlalchemy_session(_request):  # pylint: disable=unused-variable
+        connections = (
+            session.transaction._connections  # pylint:disable=protected-access
+        )
+        if len(connections) > 1:
+            log.warning("closing an unclosed DB session")
         session.close()
 
     return session
