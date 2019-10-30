@@ -1,4 +1,6 @@
+import pyramid_retry
 import pyramid_tm
+from sqlalchemy.exc import IntegrityError
 
 from lms.config import configure
 
@@ -37,6 +39,33 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.registry.settings["tm.manager_hook"] = pyramid_tm.explicit_manager
 
     config.include("pyramid_tm")
+    config.include("pyramid_retry")
+
+    # Mark all sqlalchemy IntegrityError's as retryable.
+    #
+    # This means that if any request fails with any IntegrityError error then
+    # pyramid_retry will re-try the request up to two times. No error response
+    # will be sent back to the client, and no crash reported to Sentry, unless
+    # the request fails three times in a row (or one of the re-tries fails with
+    # a non-retryable error).
+    #
+    # This does mean that if a request is failing with a non-transient
+    # IntegrityError (so the request has no hope of succeeding on retry) then
+    # we will pointlessly retry the request twice before failing.
+    #
+    # But we shouldn't have too many non-transient IntegrityError's anyway
+    # (sounds like a bug) and marking all IntegrityError's as retryable means
+    # that in all cases when an IntegrityError *is* transient and the request
+    # *can* succeed on retry, it will be retried, without having to mark those
+    # IntegrityErrors as retryable on a case-by-case basis.
+    #
+    # Examples of transient/retryable IntegrityError's are when doing either
+    # upsert or create-if-not-exists logic when entering rows into the DB:
+    # concurrent requests can both see that the DB row doesn't exist yet and
+    # try to create the DB row at the same time and one of them will fail. If
+    # retried the failed request will now see that the DB row already exists
+    # and not try to create it, and the request will succeed.
+    pyramid_retry.mark_error_retryable(IntegrityError)
 
     config.include("lms.authentication")
     config.include("lms.extensions.feature_flags")

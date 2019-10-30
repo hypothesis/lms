@@ -9,6 +9,9 @@ def filter_canvas_api_access_token_error(event):
 
 def includeme(config):
     config.add_settings(
-        {"h_pyramid_sentry.filters": [filter_canvas_api_access_token_error]}
+        {
+            "h_pyramid_sentry.filters": [filter_canvas_api_access_token_error],
+            "h_pyramid_sentry.retry_support": True,
+        }
     )
     config.include("h_pyramid_sentry")
