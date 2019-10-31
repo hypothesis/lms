@@ -73,6 +73,32 @@ class LTILaunchResource:
         return display_name
 
     @property
+    def h_authority_provided_id(self):
+        """
+        Return a unique h authority_provided_id for the request's group.
+
+        The authority_provided_id is deterministic and is unique to the LTI
+        course. Calling this function again with params representing the same
+        LTI course will always return the same authority_provided_id. Calling
+        this function with different params will always return a different
+        authority_provided_id.
+
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+            authority_provided_id is missing
+        """
+        # Generate the authority_provided_id based on the LTI
+        # tool_consumer_instance_guid and context_id parameters.
+        # These are "recommended" LTI parameters (according to the spec) that in
+        # practice are provided by all of the major LMS's.
+        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        # and context_id uniquely identifies a course within an LMS. Together they
+        # globally uniquely identify a course.
+        hash_object = hashlib.sha1()
+        hash_object.update(self._get_param("tool_consumer_instance_guid").encode())
+        hash_object.update(self._get_param("context_id").encode())
+        return hash_object.hexdigest()
+
+    @property
     def h_groupid(self):
         """
         Return a unique h groupid for the current request.
@@ -84,20 +110,10 @@ class LTILaunchResource:
         return the same groupid. Calling this function with different params will
         always return a different groupid.
 
-        :raise HTTPBadRequest: if an LTI param needed for generating the group
-          name is missing
+        :raise HTTPBadRequest: if an LTI param needed for generating the
+            groupid is missing
         """
-        # Generate the groupid based on the LTI tool_consumer_instance_guid and
-        # context_id parameters.
-        # These are "recommended" LTI parameters (according to the spec) that in
-        # practice are provided by all of the major LMS's.
-        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
-        # and context_id uniquely identifies a course within an LMS. Together they
-        # globally uniquely identify a course.
-        hash_object = hashlib.sha1()
-        hash_object.update(self._get_param("tool_consumer_instance_guid").encode())
-        hash_object.update(self._get_param("context_id").encode())
-        return f"group:{hash_object.hexdigest()}@{self._authority}"
+        return f"group:{self.h_authority_provided_id}@{self._authority}"
 
     @property
     def h_group_name(self):

@@ -205,6 +205,26 @@ class TestUpsertCourseGroup:
 
         hapi_svc.put.assert_not_called()
 
+    def test_it_upserts_the_GroupInfo_into_the_db(
+        self, upsert_course_group, upsert_group_info, context, pyramid_request
+    ):
+        upsert_course_group(context, pyramid_request)
+
+        upsert_group_info.assert_called_once_with(context, pyramid_request)
+
+    def test_it_doesnt_upsert_GroupInfo_into_the_db_if_creating_the_group_fails(
+        self, upsert_course_group, upsert_group_info, context, pyramid_request, hapi_svc
+    ):
+        hapi_svc.patch.side_effect = HAPINotFoundError()
+        hapi_svc.put.side_effect = HAPIError("Oops")
+
+        try:
+            upsert_course_group(context, pyramid_request)
+        except:
+            pass
+
+        upsert_group_info.assert_not_called()
+
     def test_it_calls_and_returns_the_wrapped_view(
         self, upsert_course_group, context, pyramid_request, wrapped
     ):
@@ -329,3 +349,8 @@ def hapi_svc(patch, pyramid_config):
     )
     pyramid_config.register_service(hapi_svc, name="h_api_requests")
     return hapi_svc
+
+
+@pytest.fixture(autouse=True)
+def upsert_group_info(patch):
+    return patch("lms.views.decorators.h_api.upsert_group_info")

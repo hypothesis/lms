@@ -38,6 +38,11 @@ class ApplicationInstance(BASE):
         "OAuth2Token", back_populates="application_instance"
     )
 
+    #: A list of all the GroupInfo's for this application instance.
+    group_infos = sa.orm.relationship(
+        "GroupInfo", back_populates="application_instance"
+    )
+
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
         cls, lms_url, email, developer_key, developer_secret, encryption_key=None

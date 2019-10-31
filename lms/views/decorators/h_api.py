@@ -5,8 +5,13 @@ import functools
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from lms.services import HAPIError, HAPINotFoundError
+from lms.views.decorators._helpers import upsert_group_info
 
-__all__ = ["upsert_h_user", "upsert_course_group", "add_user_to_group"]
+__all__ = [
+    "upsert_h_user",
+    "upsert_course_group",
+    "add_user_to_group",
+]
 
 
 def upsert_h_user(wrapped):
@@ -72,7 +77,7 @@ def upsert_course_group(wrapped):
     """
 
     @functools.wraps(wrapped)
-    def wrapper(context, request):
+    def wrapper(context, request):  # pylint:disable=too-many-branches
         if not context.provisioning_enabled:
             return wrapped(context, request)
 
@@ -101,6 +106,8 @@ def upsert_course_group(wrapped):
                     raise HTTPBadRequest("Instructor must launch assignment first.")
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
+        else:
+            upsert_group_info(context, request)
         return wrapped(context, request)
 
     return wrapper
