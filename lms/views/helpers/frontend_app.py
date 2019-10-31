@@ -15,7 +15,10 @@ def configure_grading(request, js_config):
     if request.lti_user.is_instructor and _is_blackboard(request):
         js_config["lmsGrader"] = True
 
-    js_config["grading"] = {}
+    js_config["grading"] = {
+        "courseName": request.params.get("context_title"),
+        "assignmentName": request.params.get("resource_link_title"),
+    }
 
     lis_result_sourcedid_svc = request.find_service(name="lis_result_sourcedid")
     lis_result_sourcedids = lis_result_sourcedid_svc.fetch_students_by_assignment(

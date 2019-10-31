@@ -64,6 +64,13 @@ class TestConfigureGrading:
         ]:
             assert propName in js_config["grading"]["students"][0]
 
+    def test_it_sets_course_and_assignment_names(self, grading_request):
+        js_config = {}
+        frontend_app.configure_grading(grading_request, js_config)
+
+        assert js_config["grading"]["courseName"] == "Test Course 101"
+        assert js_config["grading"]["assignmentName"] == "How to use Hypothesis"
+
 
 @pytest.fixture
 def lis_result_sourcedid_svc(pyramid_config):
@@ -105,5 +112,7 @@ def grading_request(pyramid_request):
         "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "instructor"
     )
     pyramid_request.params["context_id"] = "unique_course_id"
+    pyramid_request.params["context_title"] = "Test Course 101"
     pyramid_request.params["resource_link_id"] = "unique_assignment_id"
+    pyramid_request.params["resource_link_title"] = "How to use Hypothesis"
     return pyramid_request
