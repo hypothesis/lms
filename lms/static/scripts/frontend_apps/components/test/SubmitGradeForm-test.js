@@ -30,7 +30,7 @@ describe('SubmitGradeForm', () => {
   };
 
   const fakeSubmitGrade = sinon.stub().resolves({});
-  const fakeFetchGrade = sinon.stub().resolves({});
+  const fakeFetchGrade = sinon.stub().resolves({ currentScore: 1 });
   const fakeValidateGrade = sinon.stub();
   const fakeFormatToNumber = sinon.stub();
 
@@ -67,6 +67,14 @@ describe('SubmitGradeForm', () => {
   it("sets the input key to the student's LISResultSourcedId", () => {
     const wrapper = renderForm();
     assert.equal(wrapper.find('input').key(), fakeStudent.LISResultSourcedId);
+  });
+
+  it('clears out the previous grade when changing students', async () => {
+    const wrapper = renderForm();
+    await fakeFetchGrade.resolves();
+    assert.equal(wrapper.find('input').prop('defaultValue'), 10);
+    wrapper.setProps({ student: {} });
+    assert.equal(wrapper.find('input').prop('defaultValue'), '');
   });
 
   context('validation messages', () => {
@@ -119,47 +127,49 @@ describe('SubmitGradeForm', () => {
       assert.isTrue(wrapper.find(FakeErrorDialog).exists());
     });
 
-    it('sets the `SubmitGradeForm__grade--saved` class when the grade has posted', async () => {
+    it('sets the `is-saved` class when the grade has posted', async () => {
       const wrapper = renderForm();
       wrapper.find('button').simulate('click');
-      try {
-        await fakeSubmitGrade.resolves();
-      } catch (e) {
-        // pass
-      }
-      assert.isTrue(
-        wrapper.find('input').hasClass('SubmitGradeForm__grade--saved')
-      );
+      await fakeSubmitGrade.resolves();
+      assert.isTrue(wrapper.find('input').hasClass('is-saved'));
     });
 
     it('removes the `SubmitGradeForm__grade--saved` class after the student prop changes', async () => {
       const wrapper = renderForm();
       wrapper.find('button').simulate('click');
-      try {
-        await fakeSubmitGrade.resolves();
-        wrapper.setProps({ student: {} });
-      } catch (e) {
-        // pass
-      }
+      await fakeSubmitGrade.resolves();
+      wrapper.setProps({ student: {} });
       assert.isFalse(
         wrapper.find('input').hasClass('SubmitGradeForm__grade--saved')
       );
     });
 
-    it('xx closes the spinner after the grade has posted', async () => {
+    it('closes the spinner after the grade has posted', async () => {
       const wrapper = renderForm();
       wrapper.find('button').simulate('click');
       try {
+        // this test fails unless we wrap it in a try/catch
         await fakeSubmitGrade.resolves();
         wrapper.update();
       } catch (e) {
-        // this test fails unless we wrap it in a try/catch
+        // pass
       }
       assert.isFalse(wrapper.find('.SubmitGradeForm__submit-spinner').exists());
     });
   });
 
   context('when fetching a grade', () => {
+    beforeEach(() => {
+      fakeFetchGrade.resolves({ currentScore: 1 });
+    });
+
+    it("sets the input defaultValue prop to the student's grade", async () => {
+      const wrapper = renderForm();
+      await fakeFetchGrade.resolves();
+      // note, grade is scaled by 10
+      assert.equal(wrapper.find('input').prop('defaultValue'), 10);
+    });
+
     it('sets the class on the <Spinner> component `active` while the grade is fetching', () => {
       const wrapper = renderForm();
       assert.isTrue(
@@ -167,39 +177,31 @@ describe('SubmitGradeForm', () => {
           .find('.SubmitGradeForm__grade-wrapper')
           .find(FakeSpinner)
           .props('classNames')
-          .className.includes('SubmitGradeForm__fetch-spinner--active')
+          .className.includes('is-active')
       );
     });
 
     it('removes the `active` class on the <Spinner> component after the grade has fetched', async () => {
       const wrapper = renderForm();
-      try {
-        await fakeFetchGrade.resolves({ currentScore: 1 });
-      } catch (e) {
-        // pass
-      }
+      await fakeFetchGrade.resolves({ currentScore: 1 });
       assert.isFalse(
         wrapper
           .find('.SubmitGradeForm__grade-wrapper')
           .find(FakeSpinner)
           .props('classNames')
-          .className.includes('SubmitGradeForm__fetch-spinner--active')
+          .className.includes('is-active')
       );
     });
 
     it('sets the class on the <Spinner> component to `fade-away` after the grade has fetched', async () => {
       const wrapper = renderForm();
-      try {
-        await fakeFetchGrade.resolves({ currentScore: 1 });
-      } catch (e) {
-        // pass
-      }
+      await fakeFetchGrade.resolves({ currentScore: 1 });
       assert.isTrue(
         wrapper
           .find('.SubmitGradeForm__grade-wrapper')
           .find(FakeSpinner)
           .props('classNames')
-          .className.includes('SubmitGradeForm__fetch-spinner--fade-away')
+          .className.includes('is-fade-away')
       );
     });
 

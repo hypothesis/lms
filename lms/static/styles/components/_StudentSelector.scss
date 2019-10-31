@@ -14,7 +14,7 @@
   min-width: 60px;
   height: 40px;
   border: none;
-  background-color: var.$grey-1;
+  background-color: var.$grey-2;
   border: 1px solid var.$grey-3;
   transition: background-color 0.2s, border-color 0.2s;
   
@@ -22,7 +22,7 @@
   
   &:hover {
     cursor: pointer;
-    background-color: var.$grey-2;
+    background-color: var.$grey-3;
   }
 
   &:disabled {
@@ -33,18 +33,30 @@
 }
 
 .StudentsSelector__students {
-  appearance: none;
-  border: 1px solid var.$grey-3;
-  border-left: none;
-  border-right: none;
-  border-radius: 0;
-  height: 40px;
-  padding: 5px 20px;
+  position: relative;
 
-  @include mixins.input-focus;
+  &-select {
+    appearance: none;
+    border: 1px solid var.$grey-3;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    height: 40px;
+    padding: 5px 25px 5px 20px;
 
-  &::-ms-expand {
-    /* Remove default select arrow in IE11 */
-    display: none;
+    @include mixins.input-focus;
+
+    &::-ms-expand {
+      /* Remove default select arrow in IE11 */
+      display: none;
+    }
+  }
+
+  &-icon {
+    position: absolute;
+    transform: translateY(-50%);
+    top: 50%;
+    right: 5px;
+    color: var.$grey-4;
   }
 }

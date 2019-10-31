@@ -42,7 +42,7 @@
 }
 
 // Creates a spinner style with a provided $size and $color. The spinner
-// will be posited in the center of its parent as long as that element is
+// will be positioned in the center of its parent as long as that element is
 // `position: relative`
 @mixin spinner($size, $color: var.$grey-5) {
   position: absolute;

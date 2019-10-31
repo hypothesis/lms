@@ -1,7 +1,7 @@
 @use "../mixins";
 @use "../variables" as var;
 
-@keyframes fadeAway {
+@keyframes SubmitGradeForm__fadeAway {
   from {
     opacity: 1;
     visibility: inherit;
@@ -12,7 +12,7 @@
   }
 }
 
-@keyframes gradeSaved {
+@keyframes SubmitGradeForm__gradeSaved {
   from {
     background-color: #58bf4b;
   }
@@ -36,7 +36,7 @@
     width: 150px;
     font-weight: 500;
     border: 1px solid var.$grey-3;
-    background-color: var.$grey-1;
+    background-color: var.$grey-2;
     transition: background-color 0.2s;
 
     &:focus {
@@ -45,7 +45,7 @@
 
     &:hover {
       cursor: pointer;
-      background-color: var.$grey-2;
+      background-color: var.$grey-3;
     }
 
     &:disabled {
@@ -83,8 +83,8 @@
     animation-timing-function: ease-out;
     animation-fill-mode: forwards;
     
-    &--saved {
-      animation-name: gradeSaved;
+    &.is-saved {
+      animation-name: SubmitGradeForm__gradeSaved;
     }
 
     &:disabled {
@@ -114,10 +114,10 @@
   animation-duration: 0.5s;
   visibility: hidden;
   animation-fill-mode: forwards;
-  &--fade-away {
-    animation-name: fadeAway;
+  &.is-fade-away {
+    animation-name: SubmitGradeForm__fadeAway;
   }
-  &--active {
+  &.is-active {
     visibility: inherit;
   }
 }
