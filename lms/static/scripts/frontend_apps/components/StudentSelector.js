@@ -58,14 +58,21 @@ export default function StudentSelector({
     );
 
     return (
-      <select
-        className="StudentsSelector__students"
-        onChange={e => {
-          onSelectStudent(parseInt(e.target.value));
-        }}
-      >
-        {options}
-      </select>
+      <span className="StudentsSelector__students">
+        <select
+          className="StudentsSelector__students-select"
+          onChange={e => {
+            onSelectStudent(parseInt(e.target.value));
+          }}
+        >
+          {options}
+        </select>
+        <SvgIcon
+          className="StudentsSelector__students-icon"
+          src={trustMarkup(require('../../../images/caret-down.svg'))}
+          inline="true"
+        />{' '}
+      </span>
     );
   };
 

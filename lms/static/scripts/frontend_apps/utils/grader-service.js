@@ -1,13 +1,25 @@
 import { apiCall } from './api';
 
 /**
- * Submits the grade to the LTI endpoint, waits for it to return, then updates the state with the
- * new grade
+ * @typedef {Object} Student
+ * @prop {string} LISResultSourcedId - Unique outcome identifier
+ * @prop {string} LISOutcomeServiceUrl - API URL for posting outcome results
+ */
+
+/**
+ * The fetched grade success result.
  *
- * @param {Object} student - Student object
- * @param {Number} grade - A number between 0 and 1
+ * @typedef {Object} FetchGradeResult
+ * @prop {number} currentScore - The fetched grade
+ */
+
+/**
+ * Submits a student's grade to the LTI endpoint.
+ *
+ * @param {Student} student - Student object
+ * @param {number} grade - A number between 0 and 1
  * @param {string} authToken - The auth token from the config
- * @return {Promise<Object>} - The posted result
+ * @return {Object} - An empty object
  *
  */
 function submitGrade({ student, grade, authToken }) {
@@ -22,4 +34,18 @@ function submitGrade({ student, grade, authToken }) {
   });
 }
 
-export { submitGrade };
+/**
+ * Fetches a student's grade from the LTI endpoint
+ *
+ * @param {Student} student - Student object
+ * @param {string} authToken - The auth token from the config
+ * @return {FetchGradeResult}
+ *
+ */
+function fetchGrade({ student, authToken }) {
+  return apiCall({
+    authToken,
+    path: `/api/lti/result?lis_result_sourcedid=${student.LISResultSourcedId}&lis_outcome_service_url=${student.LISOutcomeServiceUrl}`,
+  });
+}
+export { fetchGrade, submitGrade };

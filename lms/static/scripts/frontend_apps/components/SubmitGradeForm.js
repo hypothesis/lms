@@ -1,16 +1,62 @@
 import { createElement } from 'preact';
 import classNames from 'classnames';
-import propTypes from 'prop-types';
 import { useContext, useEffect, useState, useRef } from 'preact/hooks';
+import propTypes from 'prop-types';
 
 import { Config } from '../config';
-import { submitGrade } from '../utils/grader-service';
-import { formatToNumber, validateGrade } from '../utils/validation';
 import ErrorDialog from './ErrorDialog';
 import Spinner from './Spinner';
 import SvgIcon from './SvgIcon';
+import { fetchGrade, submitGrade } from '../utils/grader-service';
 import { trustMarkup } from '../utils/trusted';
+import { formatToNumber, validateGrade } from '../utils/validation';
 import ValidationMessage from './ValidationMessage';
+
+// Grades are always stored as a value between [0-1] on the service layer.
+// Scale the grade to [0-10] when loading it into the UI and scale it
+// back to [0-1] when saving it to the api service.
+const GRADE_MULTIPLIER = 10;
+
+/**
+ * Custom useEffect function that handles fetching a student's
+ * grade and returning the result of that grade and the loading
+ * and error status of that fetch request.
+ */
+const useFetchGrade = student => {
+  const { authToken } = useContext(Config);
+  const [grade, setGrade] = useState('');
+  const [gradeLoading, setGradeLoading] = useState(false);
+
+  useEffect(() => {
+    let didCancel;
+    // Don't bother fetching a grade if the student object is empty
+    if (Object.entries(student).length) {
+      // Fetch the grade from the service api
+      // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
+      const fetchData = async () => {
+        setGradeLoading(true);
+        setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
+
+        const response = await fetchGrade({ student, authToken });
+        if (!didCancel) {
+          // Only set these values if we didn't cancel this request
+          setGrade(response.currentScore * GRADE_MULTIPLIER);
+          setGradeLoading(false);
+        }
+      };
+      fetchData();
+    } else {
+      // If there is no valid student, don't show a grade
+      setGrade('');
+    }
+    // Called when unmounting the component
+    return () => {
+      // Set a flag to cancel the the fetchGrade response from saving to state
+      didCancel = true;
+    };
+  }, [student, authToken]);
+  return { grade, gradeLoading };
+};
 
 /**
  * A form with a single input field and submit button for an instructor to
@@ -18,43 +64,59 @@ import ValidationMessage from './ValidationMessage';
  */
 
 export default function SubmitGradeForm({ disabled = false, student }) {
-  const [showError, setShowError] = useState(false); // Is there a validation error message to show?
-  const [gradeErrorMessage, setGradeErrorMessage] = useState(''); // The actual validation error message.
+  // State for loading the grade
+  const { grade, gradeLoading } = useFetchGrade(student);
 
-  const [networkError, setNetworkError] = useState(''); // if there is an error when submitting grade
-  const [requestStatus, setRequestStatus] = useState(''); // ajax request state, one of ('', 'fetching', 'error', 'done')
+  // The following is state for saving the grade
+  //
+  // If there is an error when submitting a grade?
+  const [submitGradeError, setSubmitGradeError] = useState('');
+  // Is set to true when the grade is being currently posted to the service
+  const [gradeSaving, setGradeSaving] = useState(false);
+  // Changes the input field's background to green for a short duration when true
+  const [gradeSaved, setGradeSaved] = useState(false);
+
+  // The following is state for local validation errors
+  //
+  // Is there a validation error message to show?
+  const [showValidationError, setValidationError] = useState(false);
+  // The actual validation error message.
+  const [validationMessage, setValidationMessageMessage] = useState('');
 
   const { authToken } = useContext(Config);
 
-  useEffect(() => {
-    setRequestStatus(''); // clear out network status
-  }, [student]);
+  // Used to handle keyboard input changes for the grade input field.
+  const inputRef = useRef(null);
 
-  // Used to handle keyboard input effects.
-  const refInput = useRef(null);
+  // Clear the previous grade saved status when the user changes.
+  useEffect(() => {
+    setGradeSaved(false);
+  }, [student]);
 
   /**
    * Validate the grade and if it passes, then submit the grade to to `onSubmitGrade`
    */
   const onSubmitGrade = async event => {
     event.preventDefault();
-    const value = formatToNumber(refInput.current.value);
+    const value = formatToNumber(inputRef.current.value);
     const validationError = validateGrade(value);
 
     if (validationError) {
-      setGradeErrorMessage(validationError);
-      setShowError(true);
+      setValidationMessageMessage(validationError);
+      setValidationError(true);
     } else {
+      setGradeSaving(true);
       try {
-        setRequestStatus('fetching');
-        // Divide value by 10 because the lms service layer expects grade to be a value between [0-1] but
-        // we treat this on the UI to be between [0-10].
-        await submitGrade({ student, grade: value / 10, authToken });
-        setRequestStatus('done');
+        await submitGrade({
+          student,
+          grade: value / GRADE_MULTIPLIER,
+          authToken,
+        });
+        setGradeSaved(true);
       } catch (e) {
-        setRequestStatus('error');
-        setNetworkError(e.errorMessage ? e.errorMessage : 'Unknown error');
+        setSubmitGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
       }
+      setGradeSaving(false);
     }
   };
 
@@ -62,34 +124,42 @@ export default function SubmitGradeForm({ disabled = false, student }) {
    * If any input is detected, close the ValidationMessage.
    */
   const handleKeyDown = () => {
-    setShowError(false);
+    setValidationError(false);
   };
 
   return (
     <form className="SubmitGradeForm" autoComplete="off">
       <ValidationMessage
-        message={gradeErrorMessage}
-        open={showError}
+        message={validationMessage}
+        open={showValidationError}
         onClose={() => {
           // Sync up the state when the ValidationMessage is closed
-          setShowError(false);
+          setValidationError(false);
         }}
       />
       <label className="SubmitGradeForm__label" htmlFor="lms-grade">
         Grade (Out of 10)
       </label>
-      <input
-        className={classNames('SubmitGradeForm__grade', {
-          'SubmitGradeForm__grade--saved': requestStatus === 'done',
-        })}
-        disabled={disabled}
-        id="lms-grade"
-        ref={refInput}
-        onKeyDown={handleKeyDown}
-        type="input"
-        defaultValue={''} // TODO: stub until we pull the grade from the service
-        key={student.LISResultSourcedId}
-      />
+      <span className="SubmitGradeForm__grade-wrapper">
+        <input
+          className={classNames('SubmitGradeForm__grade', {
+            'is-saved': gradeSaved,
+          })}
+          disabled={disabled}
+          id="lms-grade"
+          ref={inputRef}
+          onKeyDown={handleKeyDown}
+          type="input"
+          defaultValue={grade}
+          key={student.LISResultSourcedId}
+        />
+        <Spinner
+          className={classNames('SubmitGradeForm__fetch-spinner', {
+            'is-active': gradeLoading,
+            'is-fade-away': !gradeLoading && student.LISResultSourcedId,
+          })}
+        />
+      </span>
       <button
         className="SubmitGradeForm__submit"
         disabled={disabled}
@@ -103,18 +173,18 @@ export default function SubmitGradeForm({ disabled = false, student }) {
         />{' '}
         Submit Grade
       </button>
-      {requestStatus === 'error' && (
+      {!!submitGradeError && (
         <ErrorDialog
           title="Error"
-          error={{ message: networkError }}
+          error={{ message: submitGradeError }}
           onCancel={() => {
-            setRequestStatus('');
+            setSubmitGradeError('');
           }}
         />
       )}
-      {requestStatus === 'fetching' && (
+      {gradeSaving && (
         <div className="SubmitGradeForm__loading-backdrop">
-          <Spinner className="SubmitGradeForm__spinner" />
+          <Spinner className="SubmitGradeForm__submit-spinner" />
         </div>
       )}
     </form>
@@ -125,6 +195,5 @@ SubmitGradeForm.propTypes = {
   // Disables the the entire form.
   disabled: propTypes.bool,
   // Grade for the current student.SubmitGradeForm.propTypes
-
   student: propTypes.object.isRequired,
 };
