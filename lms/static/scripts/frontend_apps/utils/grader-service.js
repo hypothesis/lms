@@ -2,21 +2,15 @@ import { apiCall } from './api';
 
 /**
  * @typedef {Object} Student
- * @prop {string} LISResultSourcedId - The unique student id
- * @prop {string} LISOutcomeServiceUrl - The student's service url
+ * @prop {string} LISResultSourcedId - Unique outcome identifier
+ * @prop {string} LISOutcomeServiceUrl - API URL for posting outcome results
  */
 
 /**
- * The fetched grade result
+ * The fetched grade success result.
  *
- * @typedef {Promise<Object>} FetchGradeResult
+ * @typedef {Object} FetchGradeResult
  * @prop {number} currentScore - The fetched grade
- */
-
-/**
- * The submitted grade result
- *
- * @typedef {Promise<Object>} SubmitGradeResult
  */
 
 /**
@@ -25,7 +19,7 @@ import { apiCall } from './api';
  * @param {Student} student - Student object
  * @param {number} grade - A number between 0 and 1
  * @param {string} authToken - The auth token from the config
- * @return {SubmitGradeResult}
+ * @return {Object} - An empty object
  *
  */
 function submitGrade({ student, grade, authToken }) {
@@ -45,7 +39,7 @@ function submitGrade({ student, grade, authToken }) {
  *
  * @param {Student} student - Student object
  * @param {string} authToken - The auth token from the config
- * @return {FetchGradeResult>} - The fetched result
+ * @return {FetchGradeResult}
  *
  */
 function fetchGrade({ student, authToken }) {

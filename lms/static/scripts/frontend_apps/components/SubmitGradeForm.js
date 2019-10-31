@@ -29,7 +29,7 @@ const useFetchGrade = student => {
 
   useEffect(() => {
     let didCancel;
-    // Don't bother fetching if the student object is empty
+    // Don't bother fetching a grade if the student object is empty
     if (Object.entries(student).length) {
       // Fetch the grade from the service api
       // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
@@ -51,7 +51,7 @@ const useFetchGrade = student => {
     }
     // Called when unmounting the component
     return () => {
-      // Set a flag to cancel the the fetchGrade response from saved to state
+      // Set a flag to cancel the the fetchGrade response from saving to state
       didCancel = true;
     };
   }, [student, authToken]);

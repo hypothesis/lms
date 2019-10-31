@@ -35,6 +35,11 @@ describe('SubmitGradeForm', () => {
   const fakeFormatToNumber = sinon.stub();
 
   beforeEach(() => {
+    // Reset the api grade stubs for each test because
+    // some tests below will change these for specific cases.
+    fakeSubmitGrade.resolves({});
+    fakeFetchGrade.resolves({ currentScore: 1 });
+
     $imports.$mock({
       './ErrorDialog': FakeErrorDialog,
       './Spinner': FakeSpinner,
@@ -109,9 +114,6 @@ describe('SubmitGradeForm', () => {
   });
 
   context('when submitting a grade', () => {
-    beforeEach(() => {
-      fakeSubmitGrade.resolves({});
-    });
     it('shows the loading spinner when submitting a grade', () => {
       const wrapper = renderForm();
       wrapper.find('button').simulate('click');
@@ -159,11 +161,8 @@ describe('SubmitGradeForm', () => {
   });
 
   context('when fetching a grade', () => {
-    beforeEach(() => {
-      fakeFetchGrade.resolves({ currentScore: 1 });
-    });
-
     it("sets the input defaultValue prop to the student's grade", async () => {
+      //fakeFetchGrade.resolves({ currentScore: 1 });
       const wrapper = renderForm();
       await fakeFetchGrade.resolves();
       // note, grade is scaled by 10
