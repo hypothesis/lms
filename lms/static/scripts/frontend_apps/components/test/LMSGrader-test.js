@@ -46,10 +46,21 @@ describe('LMSGrader', () => {
       <LMSGrader
         onChangeSelectedUser={fakeOnChange}
         students={fakeStudents}
+        courseName={'course name'}
+        assignmentName={'course assignment'}
         {...props}
       />
     );
   };
+
+  it('sets the assignment and course names', () => {
+    const wrapper = renderGrader();
+    assert.equal(
+      wrapper.find('.LMSGrader__assignment').text(),
+      'course assignment'
+    );
+    assert.equal(wrapper.find('.LMSGrader__name').text(), 'course name');
+  });
 
   it('creates a valid component with 2 students', () => {
     const wrapper = renderGrader();
