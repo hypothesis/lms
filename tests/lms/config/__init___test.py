@@ -133,20 +133,6 @@ class TestConfigure:
 
         assert configurator.registry.settings["via_url"] == "https://via.hypothes.is/"
 
-    def test_trailing_slashes_are_appended_to_via2_url(self, setting_getter):
-        def side_effect(
-            envvar_name, *args, **kwargs
-        ):  # pylint: disable=unused-argument
-            if envvar_name == "VIA2_URL":
-                return "https://via2.hypothes.is"
-            return mock.DEFAULT
-
-        setting_getter.get.side_effect = side_effect
-
-        configurator = configure({})
-
-        assert configurator.registry.settings["via2_url"] == "https://via2.hypothes.is/"
-
     def test_trailing_slashes_are_appended_to_h_api_url_public(self, setting_getter):
         def side_effect(
             envvar_name, *args, **kwargs
