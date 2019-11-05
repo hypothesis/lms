@@ -10,19 +10,38 @@ from lms.views.helpers import frontend_app
 
 @pytest.mark.usefixtures("lis_result_sourcedid_svc")
 class TestConfigureGrading:
-    def test_it_sets_grading_config_if_qualified_request(self, grading_request):
+    def test_it_enables_grading_if_criteria_met(self, grading_request):
         js_config = {}
 
         frontend_app.configure_grading(grading_request, js_config)
 
         assert "lmsGrader" in js_config
 
-    def test_it_does_not_set_grading_config_if_unqualified_request(
-        self, pyramid_request
+    def test_it_disables_grading_if_user_is_not_instructor(self, grading_request):
+        js_config = {}
+        grading_request.lti_user = LTIUser(
+            "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "student"
+        )
+
+        frontend_app.configure_grading(grading_request, js_config)
+
+        assert "lmsGrader" not in js_config
+
+    def test_it_disables_grading_if_lms_is_not_blackboard(self, grading_request):
+        js_config = {}
+        grading_request.params["tool_consumer_info_product_family_code"] = "Moodle"
+
+        frontend_app.configure_grading(grading_request, js_config)
+
+        assert "lmsGrader" not in js_config
+
+    def test_it_disables_grading_if_grading_is_disabled_for_assignment(
+        self, grading_request
     ):
         js_config = {}
+        del grading_request.params["lis_outcome_service_url"]
 
-        frontend_app.configure_grading(pyramid_request, js_config)
+        frontend_app.configure_grading(grading_request, js_config)
 
         assert "lmsGrader" not in js_config
 
@@ -108,6 +127,10 @@ def lis_result_sourcedids():
 @pytest.fixture
 def grading_request(pyramid_request):
     pyramid_request.params["tool_consumer_info_product_family_code"] = "BlackboardLearn"
+    pyramid_request.params[
+        "lis_outcome_service_url"
+    ] = "https://blackboard.hypothes.is/grades"
+
     pyramid_request.lti_user = LTIUser(
         "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "instructor"
     )
