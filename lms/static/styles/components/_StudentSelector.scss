@@ -55,6 +55,7 @@
   &-icon {
     position: absolute;
     transform: translateY(-50%);
+    pointer-events: none;
     top: 50%;
     right: 5px;
     color: var.$grey-4;
