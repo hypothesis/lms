@@ -1,15 +1,23 @@
 import { createElement } from 'preact';
-import ErrorDialog from '../ErrorDialog';
-import ErrorDisplay from '../ErrorDisplay';
+import { mount } from 'enzyme';
 
-import { shallow } from 'enzyme';
+import ErrorDialog, { $imports } from '../ErrorDialog';
+import mockImportedComponents from './mock-imported-components';
 
 describe('ErrorDialog', () => {
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
+
   it('displays details of the error', () => {
     const err = new Error('Something went wrong');
-    const wrapper = shallow(<ErrorDialog title="Oh no!" error={err} />);
+    const wrapper = mount(<ErrorDialog title="Oh no!" error={err} />);
 
-    assert.include(wrapper.find(ErrorDisplay).props(), {
+    assert.include(wrapper.find('ErrorDisplay').props(), {
       message: 'Oh no!',
       error: err,
     });

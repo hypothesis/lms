@@ -10,8 +10,8 @@ import {
   contentItemForUrl,
 } from '../../utils/content-item';
 import { PickerCanceledError } from '../../utils/google-picker-client';
-import Button from '../Button';
 import FilePickerApp, { $imports } from '../FilePickerApp';
+import mockImportedComponents from './mock-imported-components';
 
 function interact(wrapper, callback) {
   act(callback);
@@ -19,11 +19,6 @@ function interact(wrapper, callback) {
 }
 
 describe('FilePickerApp', () => {
-  const FakeErrorDialog = () => null;
-  const FakeLMSFilePicker = () => null;
-  const FakeSpinner = () => null;
-  const FakeURLPicker = () => null;
-
   let container;
   let fakeConfig;
   let FakeGooglePickerClient;
@@ -60,14 +55,8 @@ describe('FilePickerApp', () => {
       enablePublicViewing: sinon.stub(),
     });
 
-    // nb. We mock these components manually rather than using Enzyme's
-    // shallow rendering because the modern context API doesn't seem to work
-    // with shallow rendering yet
+    $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      './ErrorDialog': FakeErrorDialog,
-      './LMSFilePicker': FakeLMSFilePicker,
-      './URLPicker': FakeURLPicker,
-      './Spinner': FakeSpinner,
       '../utils/google-picker-client': {
         GooglePickerClient: FakeGooglePickerClient,
       },
@@ -94,7 +83,7 @@ describe('FilePickerApp', () => {
 
   it('renders buttons to choose assignment source', () => {
     const wrapper = renderFilePicker();
-    assert.equal(wrapper.find(Button).length, 2);
+    assert.equal(wrapper.find('Button').length, 2);
   });
 
   it('renders LMS file picker button if `enableLmsFilePicker` is true', () => {
@@ -112,9 +101,9 @@ describe('FilePickerApp', () => {
   it('renders initial form with no dialog visible', () => {
     const wrapper = renderFilePicker();
 
-    assert.isFalse(wrapper.exists(FakeLMSFilePicker));
-    assert.isFalse(wrapper.exists(FakeURLPicker));
-    assert.equal(wrapper.find(Button).length, 2);
+    assert.isFalse(wrapper.exists('LMSFilePicker'));
+    assert.isFalse(wrapper.exists('URLPicker'));
+    assert.equal(wrapper.find('Button').length, 2);
   });
 
   it('shows URL selection dialog when "Enter URL" button is clicked', () => {
@@ -125,14 +114,14 @@ describe('FilePickerApp', () => {
       btn.props().onClick();
     });
 
-    assert.isTrue(wrapper.exists(FakeURLPicker));
+    assert.isTrue(wrapper.exists('URLPicker'));
   });
 
   it('submits a URL when a URL is selected', () => {
     const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
     const wrapper = renderFilePicker({ defaultActiveDialog: 'url', onSubmit });
 
-    const picker = wrapper.find(FakeURLPicker);
+    const picker = wrapper.find('URLPicker');
     interact(wrapper, () => {
       picker.props().onSelectURL('https://example.com');
     });
@@ -152,7 +141,7 @@ describe('FilePickerApp', () => {
       btn.props().onClick();
     });
 
-    assert.isTrue(wrapper.exists(FakeLMSFilePicker));
+    assert.isTrue(wrapper.exists('LMSFilePicker'));
   });
 
   it('submits an LMS file when an LMS file is selected', () => {
@@ -160,7 +149,7 @@ describe('FilePickerApp', () => {
     const wrapper = renderFilePicker({ defaultActiveDialog: 'lms', onSubmit });
     const file = { id: 123 };
 
-    const picker = wrapper.find(FakeLMSFilePicker);
+    const picker = wrapper.find('LMSFilePicker');
     interact(wrapper, () => {
       picker.props().onSelectFile(file);
     });
@@ -263,9 +252,9 @@ describe('FilePickerApp', () => {
 
     it('shows loading indicator while waiting for user to pick file', () => {
       const wrapper = renderFilePicker();
-      assert.isFalse(wrapper.exists(FakeSpinner));
+      assert.isFalse(wrapper.exists('Spinner'));
       clickGoogleDriveButton(wrapper);
-      assert.isTrue(wrapper.exists(FakeSpinner));
+      assert.isTrue(wrapper.exists('Spinner'));
     });
 
     it('shows error message if Google Picker fails to load', async () => {
@@ -281,7 +270,7 @@ describe('FilePickerApp', () => {
       }
 
       wrapper.setProps({}); // Force re-render.
-      const errDialog = wrapper.find(FakeErrorDialog);
+      const errDialog = wrapper.find('ErrorDialog');
       assert.equal(errDialog.length, 1);
       assert.equal(errDialog.prop('error'), err);
     });
@@ -299,11 +288,11 @@ describe('FilePickerApp', () => {
       }
 
       wrapper.setProps({}); // Force re-render.
-      const errDialog = wrapper.find(FakeErrorDialog);
+      const errDialog = wrapper.find('ErrorDialog');
       const onCancel = errDialog.prop('onCancel');
       assert.isFunction(onCancel);
       interact(wrapper, onCancel);
-      assert.isFalse(wrapper.exists(FakeErrorDialog));
+      assert.isFalse(wrapper.exists('ErrorDialog'));
     });
 
     it('does not show error message if user cancels picker', async () => {
@@ -318,7 +307,7 @@ describe('FilePickerApp', () => {
       }
 
       wrapper.setProps({}); // Force re-render.
-      assert.isFalse(wrapper.exists(FakeErrorDialog));
+      assert.isFalse(wrapper.exists('ErrorDialog'));
     });
 
     it('hides loading indicator if user cancels picker', async () => {
@@ -333,7 +322,7 @@ describe('FilePickerApp', () => {
       }
 
       wrapper.setProps({}); // Force re-render.
-      assert.isFalse(wrapper.exists(FakeSpinner));
+      assert.isFalse(wrapper.exists('Spinner'));
     });
   });
 });

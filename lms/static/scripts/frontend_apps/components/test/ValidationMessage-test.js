@@ -1,12 +1,21 @@
 import { createElement } from 'preact';
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 
-import ValidationMessage from '../ValidationMessage';
+import ValidationMessage, { $imports } from '../ValidationMessage';
+import mockImportedComponents from './mock-imported-components';
 
 describe('ValidationMessage', () => {
   const renderMessage = (props = {}) => {
-    return shallow(<ValidationMessage {...props} />);
+    return mount(<ValidationMessage {...props} />);
   };
+
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
 
   it('renders closed by default', () => {
     const wrapper = renderMessage();
@@ -30,7 +39,7 @@ describe('ValidationMessage', () => {
       open: true,
       message: 'foo',
     });
-    wrapper.simulate('click');
+    wrapper.find('div').simulate('click');
     assert.isTrue(onCloseProp.calledOnce);
     assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
   });
