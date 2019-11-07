@@ -12,5 +12,6 @@ class TestBaseClass:
     @classmethod
     def json_fixture(cls, filename):
         path = os.path.join(cls.FIXTURE_DIR, filename)
+
         with resource_stream("tests", path) as handle:
             return json.load(handle)
