@@ -16,6 +16,7 @@ help:
 	@echo "make checkformatting   Crash if the code isn't correctly formatted"
 	@echo "make test              Run the unit tests"
 	@echo "make coverage          Print the unit test coverage report"
+	@echo "make functests         Run the functional tests"
 	@echo "make docstrings        View all the docstrings locally as HTML"
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
@@ -72,6 +73,10 @@ test: backend-tests frontend-tests
 .PHONY: coverage
 coverage: python
 	tox -q -e py36-coverage
+
+.PHONY: functests
+functests: build/manifest.json python
+	tox -q -e py36-functests
 
 .PHONY: docstrings
 docstrings: python
