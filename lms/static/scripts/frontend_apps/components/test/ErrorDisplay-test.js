@@ -1,14 +1,23 @@
 import { createElement } from 'preact';
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 
-import ErrorDisplay from '../ErrorDisplay';
+import ErrorDisplay, { $imports } from '../ErrorDisplay';
+import mockImportedComponents from './mock-imported-components';
 
 describe('ErrorDisplay', () => {
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
+
   it('displays a support link', () => {
     const error = new Error('Canvas says no');
     error.details = { someTechnicalDetail: 123 };
 
-    const wrapper = shallow(
+    const wrapper = mount(
       <ErrorDisplay message="Failed to fetch files" error={error} />
     );
 
@@ -27,7 +36,7 @@ describe('ErrorDisplay', () => {
   it('omits technical details if not provided', () => {
     const error = { message: '' };
 
-    const wrapper = shallow(
+    const wrapper = mount(
       <ErrorDisplay message="Something went wrong" error={error} />
     );
 
@@ -38,7 +47,7 @@ describe('ErrorDisplay', () => {
   it('displays technical details if provided', () => {
     const error = { message: '', details: 'Note from server' };
 
-    const wrapper = shallow(
+    const wrapper = mount(
       <ErrorDisplay message="Something went wrong" error={error} />
     );
 

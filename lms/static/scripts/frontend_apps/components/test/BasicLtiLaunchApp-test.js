@@ -8,11 +8,11 @@ import { ApiError } from '../../utils/api';
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 
 import { waitFor, waitForElement } from './util';
+import mockImportedComponents from './mock-imported-components';
 
 describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;
   let FakeAuthWindow;
-  let FakeErrorDisplay;
   let fakeConfig;
   let fakeHypothesisConfig;
 
@@ -22,11 +22,6 @@ describe('BasicLtiLaunchApp', () => {
       {buttons} {children}
     </Fragment>
   );
-
-  // eslint-disable-next-line react/prop-types
-  const FakeLMSGrader = ({ children }) => {
-    return <Fragment>{children}</Fragment>;
-  };
 
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
@@ -50,17 +45,9 @@ describe('BasicLtiLaunchApp', () => {
       authorize: sinon.stub().resolves(null),
     });
 
-    FakeErrorDisplay = () => null;
-    const FakeSpinner = () => null;
-
-    // nb. We mock components manually rather than using Enzyme's
-    // shallow rendering because the modern context API doesn't seem to work
-    // with shallow rendering yet
+    $imports.$mock(mockImportedComponents());
     $imports.$mock({
       './Dialog': FakeDialog,
-      './ErrorDisplay': FakeErrorDisplay,
-      './LMSGrader': FakeLMSGrader,
-      './Spinner': FakeSpinner,
 
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
@@ -111,7 +98,7 @@ describe('BasicLtiLaunchApp', () => {
         authToken: 'dummyAuthToken',
         path: 'https://lms.hypothes.is/api/files/1234',
       });
-      assert.isTrue(wrapper.exists('FakeSpinner'));
+      assert.isTrue(wrapper.exists('Spinner'));
     });
 
     it('displays the content URL in an iframe if successfully fetched', async () => {
@@ -217,7 +204,7 @@ describe('BasicLtiLaunchApp', () => {
 
     // Wait for the API call to fail and check that an error is displayed.
     const wrapper = renderLtiLaunchApp();
-    const errorDisplay = await waitForElement(wrapper, FakeErrorDisplay);
+    const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
     assert.equal(errorDisplay.prop('error'), error);
 
     // There should be no "Try again" button in this context, instead we just
@@ -251,7 +238,7 @@ describe('BasicLtiLaunchApp', () => {
 
     it('renders the LMSGrader component', () => {
       const wrapper = renderLtiLaunchApp();
-      const LMSGrader = wrapper.find('FakeLMSGrader');
+      const LMSGrader = wrapper.find('LMSGrader');
       assert.isTrue(LMSGrader.exists());
     });
 
@@ -259,7 +246,7 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       act(() => {
         wrapper
-          .find(FakeLMSGrader)
+          .find('LMSGrader')
           .props()
           .onChangeSelectedUser('new_key');
       });

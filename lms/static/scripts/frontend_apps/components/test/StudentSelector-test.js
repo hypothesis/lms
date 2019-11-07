@@ -1,7 +1,8 @@
 import { createElement } from 'preact';
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 
-import StudentSelector from '../StudentSelector';
+import StudentSelector, { $imports } from '../StudentSelector';
+import mockImportedComponents from './mock-imported-components';
 
 describe('StudentSelector', () => {
   const renderSelector = (props = {}) => {
@@ -18,7 +19,7 @@ describe('StudentSelector', () => {
       },
     ];
 
-    return shallow(
+    return mount(
       <StudentSelector
         onSelectStudent={fakeOnSelectStudent}
         selectedStudentIndex={fakeSelectedStudentIndex}
@@ -27,6 +28,14 @@ describe('StudentSelector', () => {
       />
     );
   };
+
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
 
   it('shall have "All Students" as the default option', () => {
     const wrapper = renderSelector({ selectedStudentIndex: -1 });

@@ -1,7 +1,8 @@
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 import { createElement } from 'preact';
 
-import FileList from '../FileList';
+import FileList, { $imports } from '../FileList';
+import mockImportedComponents from './mock-imported-components';
 
 describe('FileList', () => {
   const testFiles = [
@@ -13,7 +14,15 @@ describe('FileList', () => {
   ];
 
   const renderFileList = (props = {}) =>
-    shallow(<FileList files={testFiles} {...props} />);
+    mount(<FileList files={testFiles} {...props} />);
+
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
 
   it('renders a table with "Name" and "Last modified" columns', () => {
     const wrapper = renderFileList();
@@ -27,7 +36,7 @@ describe('FileList', () => {
   it('renders files with an icon, file name and date', () => {
     const wrapper = renderFileList();
     const renderItem = wrapper.find('Table').prop('renderItem');
-    const itemWrapper = shallow(<div>{renderItem(testFiles[0])}</div>);
+    const itemWrapper = mount(<div>{renderItem(testFiles[0])}</div>);
     const formattedDate = new Date(testFiles[0]).toLocaleDateString();
     assert.equal(
       itemWrapper
