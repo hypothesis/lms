@@ -28,6 +28,7 @@ class DevDataFactory:
     def __init__(self, request, devdata_):
         self.db = request.db
         self.tm = request.tm
+        request.tm.begin()
         self.devdata = devdata_
 
     def create_all(self):
