@@ -40,7 +40,7 @@ node {
     "Backend tests": {
         stage("Backend tests") {
             // Run the Postgres test DB in a Docker container.
-            postgresContainer = docker.image("postgres:9.4").run("-P -e POSTGRES_DB=lmstest")
+            postgresContainer = docker.image("postgres:11.5").run("-P -e POSTGRES_DB=lmstest")
 
             try {
                 testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") {
