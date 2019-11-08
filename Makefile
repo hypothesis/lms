@@ -44,6 +44,8 @@ devdata: python
 web: python
 	tox -q -e py36-dev
 
+GULP := node_modules/.bin/gulp
+
 .PHONY: assets
 assets:
 	$(GULP) watch
@@ -151,10 +153,8 @@ frontend-tests: node_modules/.uptodate
 
 DOCKER_TAG = dev
 
-GULP := node_modules/.bin/gulp
-
 build/manifest.json: node_modules/.uptodate
-	$(GULP) build
+	yarn build
 
 node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
