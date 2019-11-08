@@ -7,8 +7,6 @@ COPY scripts/gulp ./scripts/gulp
 COPY lms/static ./lms/static
 
 RUN yarn install --frozen-lockfile
-# Let make know we don't need to build these again during functests
-RUN touch node_modules/.uptodate
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.

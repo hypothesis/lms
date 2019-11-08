@@ -45,6 +45,8 @@ node {
             try {
                 testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)}") {
                     installDeps()
+                    // Convince make that we've already built the assets
+                    run("touch node_modules/.uptodate build/manifest.json")
                     run("make backend-tests coverage functests")
                 }
             } finally {
