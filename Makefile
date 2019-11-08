@@ -77,7 +77,10 @@ coverage: python
 	tox -q -e py36-coverage
 
 .PHONY: functests
-functests: build/manifest.json python
+functests: build/manifest.json functests-only
+
+.PHONY: functests-only
+functests-only: python
 	tox -q -e py36-functests
 
 .PHONY: docstrings
