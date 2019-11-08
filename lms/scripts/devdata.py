@@ -47,6 +47,8 @@ class DevDataFactory:
 
             if type_ == "application_instance":
                 self.upsert_application_instance(data_dict)
+            elif type_ == "module_item_configuration":
+                self.upsert_module_item_configuration(data_dict)
             else:
                 raise RuntimeError(f"Unrecognized type: {type_}")
 
@@ -80,6 +82,19 @@ class DevDataFactory:
             )
 
         self.setattrs(application_instance, data)
+
+    def upsert_module_item_configuration(self, data):
+        module_item_configuration = (
+            self.db.query(models.ModuleItemConfiguration)
+            .filter_by(resource_link_id=data["resource_link_id"])
+            .one_or_none()
+        )
+
+        if not module_item_configuration:
+            module_item_configuration = models.ModuleItemConfiguration()
+            self.db.add(module_item_configuration)
+
+        self.setattrs(module_item_configuration, data)
 
     @staticmethod
     def setattrs(object_, attrs):
