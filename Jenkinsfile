@@ -43,7 +43,7 @@ node {
             postgresContainer = docker.image("postgres:11.5").run("-P -e POSTGRES_DB=lmstest")
 
             try {
-                testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)} -e CODECOV_TOKEN=${credentials('LMS_CODECOV_TOKEN')}") {
+                testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)}") {
                     installDeps()
                     run("make backend-tests coverage")
                 }

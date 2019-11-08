@@ -5,11 +5,6 @@ source =
     lms
     tests/unit
 
-[paths]
-source =
-    src/
-    */site-packages/
-
 [report]
 show_missing = True
 precision = 2
