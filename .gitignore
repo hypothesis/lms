@@ -1,5 +1,6 @@
 .pydeps
-.coverage*
+.coverage
+.coverage.*
 .tox
 .cache
 *.pyc
