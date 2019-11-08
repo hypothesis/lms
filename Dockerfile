@@ -5,8 +5,8 @@ ENV NODE_ENV production
 COPY .babelrc gulpfile.js package.json yarn.lock ./
 COPY scripts/gulp ./scripts/gulp
 COPY lms/static ./lms/static
-RUN yarn install --frozen-lockfile
 
+RUN yarn install --frozen-lockfile
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.

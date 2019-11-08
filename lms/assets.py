@@ -2,6 +2,7 @@ import configparser
 import json
 import os
 
+from pkg_resources import resource_filename
 from pyramid.settings import aslist
 from pyramid.static import static_view
 
@@ -24,11 +25,21 @@ class _CachedFile:
         :param auto_reload: If True, the parsed content is discarded if the
                             mtime of the file changes.
         """
-        self.path = path
+
+        self.path = self._find_file(path)
         self.loader = loader
         self._mtime = None
         self._cached = None
         self._auto_reload = auto_reload
+
+    @classmethod
+    def _find_file(cls, path):
+        path = os.path.abspath(os.path.join(resource_filename("lms", "."), "..", path))
+
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"Expected to find a file at '{path}'")
+
+        return path
 
     def load(self):
         """

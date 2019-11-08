@@ -45,7 +45,7 @@ node {
             try {
                 testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)}") {
                     installDeps()
-                    run("make backend-tests coverage")
+                    run("make backend-tests coverage functests-only")
                 }
             } finally {
                 postgresContainer.stop()
