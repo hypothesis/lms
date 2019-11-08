@@ -1,0 +1,11 @@
+[run]
+branch = True
+parallel = True
+source =
+    lms
+    tests/unit
+
+[report]
+show_missing = True
+precision = 2
+fail_under = 96.11
