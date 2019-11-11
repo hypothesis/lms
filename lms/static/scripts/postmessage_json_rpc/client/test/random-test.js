@@ -1,0 +1,13 @@
+import { generateHexString } from '../random';
+
+describe('postmessage_json_rpc/client/random', () => {
+  describe('#generateHexString', () => {
+    [2, 4, 8, 16].forEach(len => {
+      it(`returns a ${len} digit hex string`, () => {
+        const re = new RegExp(`^[0-9a-fA-F]{${len}}$`);
+        const str = generateHexString(len);
+        assert.isTrue(re.test(str));
+      });
+    });
+  });
+});

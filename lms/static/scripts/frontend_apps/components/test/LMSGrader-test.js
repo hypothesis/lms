@@ -12,7 +12,7 @@ describe('LMSGrader', () => {
       LISOutcomeServiceUrl: '',
     },
     {
-      userid: 'student1',
+      userid: 'student2',
       displayName: 'Student 2',
       LISResultSourcedId: 2,
       LISOutcomeServiceUrl: '',
@@ -20,7 +20,7 @@ describe('LMSGrader', () => {
   ];
   const fakeUpdateClientConfig = sinon.spy();
   const fakeRemoveClientConfig = sinon.spy();
-  const fakeOnChange = sinon.stub();
+  const fakeOnChange = sinon.spy();
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
@@ -38,6 +38,9 @@ describe('LMSGrader', () => {
   });
 
   afterEach(() => {
+    fakeUpdateClientConfig.resetHistory();
+    fakeRemoveClientConfig.resetHistory();
+    fakeOnChange.resetHistory();
     $imports.$restore();
   });
 
@@ -84,12 +87,12 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('passes a default value of "0" to onChangeSelectedUser when no a student is selected', () => {
+  it('passes a default value of "{}" to onChangeSelectedUser when no a student is selected', () => {
     renderGrader();
-    assert.isTrue(fakeOnChange.calledWithExactly('0'));
+    assert.isTrue(fakeOnChange.calledWithExactly({}));
   });
 
-  it('passes the unique userid to onChangeSelectedUser when a student is selected', () => {
+  it('passes the unique user object to onChangeSelectedUser when a student is selected', () => {
     const wrapper = renderGrader();
     act(() => {
       wrapper
@@ -97,8 +100,13 @@ describe('LMSGrader', () => {
         .props()
         .onSelectStudent(1); // second student
     });
-    wrapper.update();
-    assert.isTrue(fakeOnChange.calledWithExactly('student1'));
+
+    assert.calledWith(fakeOnChange.secondCall, {
+      userid: 'student2',
+      displayName: 'Student 2',
+      LISResultSourcedId: 2,
+      LISOutcomeServiceUrl: '',
+    });
   });
 
   it('does not set a focus user by default', () => {

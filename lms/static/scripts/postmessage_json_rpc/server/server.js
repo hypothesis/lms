@@ -63,6 +63,12 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
+    // Save the last reference used to the sidebar window so we can
+    // send messages back at a later time in the lms app.
+    window._sidebarWindow = {
+      frame: event.source,
+      origin: event.origin,
+    };
 
     event.source.postMessage(this._jsonRPCResponse(event.data), event.origin);
   }
