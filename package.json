@@ -61,7 +61,7 @@
     "chai": "^4.2.0",
     "diff": "^4.0.1",
     "enzyme": "^3.10.0",
-    "enzyme-adapter-preact-pure": "^2.1.0",
+    "enzyme-adapter-preact-pure": "^2.2.0",
     "eslint": "^6.6.0",
     "eslint-config-hypothesis": "^2.0.0",
     "karma": "^4.4.1",
