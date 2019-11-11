@@ -46,8 +46,9 @@ class TestUpsertLISResultSourcedId:
 
         with pytest.raises(TypeError, match="foo"):
             upsert_lis_result_sourcedid(context, pyramid_request)
-            lis_result_sourcedid_svc.upsert.assert_not_called()
-            wrapped.assert_called_once_with(context, pyramid_request)
+
+        lis_result_sourcedid_svc.upsert.assert_not_called()
+        wrapped.assert_not_called()
 
     def test_it_continues_to_wrapped_fn_if_user_is_instructor(
         self,
@@ -134,12 +135,11 @@ class TestUpsertLISResultSourcedId:
             lis_result_sourcedid_value
         )
         lis_result_sourcedid_svc.upsert.side_effect = TypeError("service raised")
-
         with pytest.raises(TypeError, match="service raised"):
             upsert_lis_result_sourcedid(context, pyramid_request)
 
-            lis_result_sourcedid_svc.upsert.assert_not_called()
-            wrapped.assert_not_called()
+        wrapped.assert_not_called()
+        lis_result_sourcedid_svc.upsert.assert_called_once()
 
 
 @pytest.fixture

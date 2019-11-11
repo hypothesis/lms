@@ -38,7 +38,7 @@ def pyramid_request(db_session):
         }
     )
     pyramid_request.feature = mock.create_autospec(
-        lambda feature: False, return_value=False
+        lambda feature: False, return_value=False  # pragma: no cover
     )
     pyramid_request.lti_user = LTIUser(
         "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
@@ -50,7 +50,9 @@ def pyramid_request(db_session):
 def configure_jinja2_assets(config):
     jinja2_env = config.get_jinja2_environment()
     jinja2_env.globals["asset_url"] = "http://example.com"
-    jinja2_env.globals["asset_urls"] = lambda bundle: "http://example.com"
+    jinja2_env.globals[
+        "asset_urls"
+    ] = lambda bundle: "http://example.com"  # pragma: no cover
     jinja2_env.globals["js_config"] = {}
 
 
