@@ -23,11 +23,23 @@ class TestLTICertification(TestBaseClass):
         assert "tool_consumer_instance_guid" in result.text
         assert params["tool_consumer_instance_guid"] in result.text
 
+    def test_1_2_nice_message_when_res_link_id_and_return_url_missing(self, app):
+        result = self.lti_launch(
+            app,
+            remove=["resource_link_id", "launch_presentation_return_url"],
+            status=400,
+        )
+
+        # Check we mention the problem
+        assert "resource_link_id" in result
+        assert "launch_presentation_return_url" in result
+
     # ---------------------------------------------------------------------- #
     # Helper methods
 
     def lti_launch(self, app, remove=None, status=200, **extras):
         url = "/lti_launches"
+
         params = self._get_lti_params(remove=remove, **extras)
         params = self._oauth_sign_params(url, params)
 

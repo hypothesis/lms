@@ -3,9 +3,9 @@ from unittest import mock
 
 import httpretty
 import pytest
+import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
-from sentry_sdk.integrations import sqlalchemy
 
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
