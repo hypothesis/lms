@@ -41,7 +41,8 @@ class LTILaunchResource:
 
     @classmethod
     def _check_lti_params(cls, request):
-        """Checks that the LTI paramters could lead to a successful response.
+        """
+        Check that the LTI parameters could lead to a successful response.
 
         To meet the LTI certification process, we are expected to respond in
         various different ways when we are presented with malformed requests.
