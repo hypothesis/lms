@@ -13,6 +13,7 @@ import { ApiError, apiCall } from '../utils/api';
 
 import Dialog from './Dialog';
 import Button from './Button';
+import { call as rpcCall } from '../../postmessage_json_rpc/client';
 import ErrorDisplay from './ErrorDisplay';
 import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
@@ -64,9 +65,6 @@ export default function BasicLtiLaunchApp() {
     state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
     contentUrl: viaUrl ? viaUrl : null,
   });
-
-  // Value for the key="" prop to rebuild the sidebar when it needs re-rendering
-  const [sidebarKey, setSidebarKey] = useState('');
 
   /**
    * Fetch the URL of the content to display in the iframe.
@@ -187,7 +185,6 @@ export default function BasicLtiLaunchApp() {
   if (ltiLaunchState.state === 'fetched-url') {
     const iFrame = (
       <iframe
-        key={sidebarKey}
         width="100%"
         height="100%"
         className="js-via-iframe"
@@ -197,17 +194,29 @@ export default function BasicLtiLaunchApp() {
 
     /**
      * Callback when the selected student changes. This function
-     * changes the key on the iframe so it gets rebuilt.
+     * makes an rpc call to change to the focused user of the sidebar.
      */
-    const changeSelectedUserKey = userid => {
-      setSidebarKey(userid);
+    const changeSelectedUser = user => {
+      if (window._sidebarWindow) {
+        rpcCall(
+          window._sidebarWindow.frame,
+          window._sidebarWindow.origin,
+          'changeFocusModeUser',
+          [
+            {
+              username: user.userid,
+              displayName: user.displayName,
+            },
+          ]
+        );
+      }
     };
 
     if (lmsGrader) {
       // Use the LMS Grader.
       return (
         <LMSGrader
-          onChangeSelectedUser={changeSelectedUserKey}
+          onChangeSelectedUser={changeSelectedUser}
           students={grading.students}
           courseName={grading.courseName}
           assignmentName={grading.assignmentName}

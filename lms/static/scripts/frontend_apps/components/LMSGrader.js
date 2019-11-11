@@ -36,11 +36,11 @@ export default function LMSGrader({
         },
       });
       // let the parent component know the index changed
-      onChangeSelectedUser(students[currentStudentIndex].userid);
+      onChangeSelectedUser(students[currentStudentIndex]);
     } else {
       // clear focused user
       removeClientConfig(['focus']);
-      onChangeSelectedUser('0'); // any non-real userid will work
+      onChangeSelectedUser({}); // any non-real userid will clear out a previously focused user
     }
   }, [students, currentStudentIndex, onChangeSelectedUser]);
 

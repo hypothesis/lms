@@ -4,3 +4,7 @@ import { requestConfig } from './methods';
 
 const server = new Server();
 server.register('requestConfig', requestConfig);
+
+module.exports = {
+  server,
+};

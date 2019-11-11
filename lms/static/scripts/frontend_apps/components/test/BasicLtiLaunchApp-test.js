@@ -15,6 +15,7 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let fakeConfig;
   let fakeHypothesisConfig;
+  const fakeRpcCall = sinon.spy();
 
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
@@ -48,7 +49,9 @@ describe('BasicLtiLaunchApp', () => {
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       './Dialog': FakeDialog,
-
+      '../../postmessage_json_rpc/client': {
+        call: fakeRpcCall,
+      },
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
         apiCall: fakeApiCall,
@@ -64,6 +67,7 @@ describe('BasicLtiLaunchApp', () => {
 
   afterEach(() => {
     $imports.$restore();
+    fakeRpcCall.resetHistory();
     fakeHypothesisConfig.restore();
   });
 
@@ -242,16 +246,33 @@ describe('BasicLtiLaunchApp', () => {
       assert.isTrue(LMSGrader.exists());
     });
 
-    it('creates an iframe key equal to the focused userid', () => {
+    it('calls rpcCall with the provided user when the onChangeSelectedUser prop is fired', () => {
+      // fake global property
+      window._sidebarWindow = {
+        frame: 'fake',
+        origin: 'foo.com',
+      };
       const wrapper = renderLtiLaunchApp();
       act(() => {
         wrapper
           .find('LMSGrader')
           .props()
-          .onChangeSelectedUser('new_key');
+          .onChangeSelectedUser({
+            userid: 'new_user',
+            displayName: 'New User',
+          });
       });
-      wrapper.update();
-      assert.equal(wrapper.find('iframe').key(), 'new_key');
+
+      assert.isTrue(
+        fakeRpcCall.calledWith('fake', 'foo.com', 'changeFocusModeUser', [
+          {
+            username: 'new_user',
+            displayName: 'New User',
+          },
+        ])
+      );
+      // cleanup
+      delete window._sidebarWindow;
     });
   });
 });
