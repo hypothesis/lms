@@ -9,7 +9,7 @@ from pyramid.request import apply_request_extensions
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
 from lms.values import LTIUser
-from tests.conftests import *
+from tests.conftest import *
 
 
 @pytest.fixture

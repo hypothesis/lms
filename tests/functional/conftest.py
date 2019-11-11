@@ -4,7 +4,7 @@ import pytest
 from webtest import TestApp
 
 from lms import db
-from tests.conftests import *
+from tests.conftest import *
 
 TEST_SETTINGS["session_cookie_secret"] = "notasecret"
 
