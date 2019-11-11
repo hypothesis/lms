@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
 
 from lms.validation import ValidationError
 from lms.views import error
-from lms.views.exceptions import BadLTIRequest
+rom lms.views.exceptions import BadLTIRequest
 
 
 class ExceptionViewTest:
@@ -61,6 +61,7 @@ class TestForbidden(ExceptionViewTest):
     expected_result = {"message": "You're not authorized to view this page"}
 
 
+
 class TestHTTPClientError(ExceptionViewTest):
     view = error.http_client_error
     exception = HTTPBadRequest("This is the error message")
@@ -76,6 +77,24 @@ class TestHTTPServerError(ExceptionViewTest):
 
     response_status = 500
     report_to_sentry = True
+    expected_result = {"message": exception.args[0]}
+
+
+class TestHTTPServerError(ExceptionViewTest):
+    view = error.http_server_error
+    exception = HTTPServerError("This is the error message")
+
+    response_status = 500
+    report_to_sentry = True
+    expected_result = {"message": exception.args[0]}
+
+
+class TestUserFacingLTILaunchError(ExceptionViewTest):
+    view = error.user_facing_lti_launch_error
+    exception = BadLTIRequest("This is the error message")
+
+    response_status = 400
+    report_to_sentry = False
     expected_result = {"message": exception.args[0]}
 
 
