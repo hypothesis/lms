@@ -57,7 +57,7 @@
   "devDependencies": {
     "@types/enzyme": "^3.10.3",
     "babel-plugin-istanbul": "^5.2.0",
-    "babel-plugin-mockable-imports": "^1.5.1",
+    "babel-plugin-mockable-imports": "^1.5.2",
     "chai": "^4.2.0",
     "diff": "^4.0.1",
     "enzyme": "^3.10.0",
