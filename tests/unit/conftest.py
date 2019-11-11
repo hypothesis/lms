@@ -5,6 +5,7 @@ import httpretty
 import pytest
 from pyramid import testing
 from pyramid.request import apply_request_extensions
+from sentry_sdk.integrations import sqlalchemy
 
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
@@ -84,6 +85,41 @@ def pyramid_config(pyramid_request):
         apply_request_extensions(pyramid_request)
 
         yield config
+
+
+@pytest.yield_fixture
+def db_session(db_engine):
+    """
+    Yield the SQLAlchemy session object.
+
+    We enable fast repeatable database tests by setting up the database only
+    once per session (see :func:`db_engine`) and then wrapping each test
+    function in a transaction that is rolled back.
+
+    Additionally, we set a SAVEPOINT before entering the test, and if we
+    detect that the test has committed (i.e. released the savepoint) we
+    immediately open another. This has the effect of preventing test code from
+    committing the outer transaction.
+
+    """
+    conn = db_engine.connect()
+    trans = conn.begin()
+    session = SESSION(bind=conn)
+    session.begin_nested()
+
+    @sqlalchemy.event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(session, transaction):  # pylint:disable=unused-variable
+        if (
+            transaction.nested and not transaction._parent.nested
+        ):  # pylint:disable=protected-access
+            session.begin_nested()
+
+    try:
+        yield session
+    finally:
+        session.close()
+        trans.rollback()
+        conn.close()
 
 
 @pytest.fixture(autouse=True)
