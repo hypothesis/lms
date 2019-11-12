@@ -9,7 +9,6 @@ from pyramid.security import Allow
 
 from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
-from lms.views.exceptions import BadLTIRequest
 
 __all__ = ["LTILaunchResource"]
 
@@ -31,35 +30,10 @@ class LTILaunchResource:
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
-
-        self._check_lti_params(request)
-
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
         self._hypothesis_config = None
         self._js_config = None
-
-    @classmethod
-    def _check_lti_params(cls, request):
-        """Checks that the LTI paramters could lead to a successful response.
-
-        To meet the LTI certification process, we are expected to respond in
-        various different ways when we are presented with malformed requests.
-
-        :raises BadLTIRequest: When incompatible or missing paramters are found
-        """
-        params = request.params
-
-        # LTI Certification 1.1: Section 1.2 - Return a nice message when
-        # "resource_link_id" and "launch_presentation_return_url" are missing
-        if not params.get("resource_link_id") and not params.get(
-            "launch_presentation_return_url"
-        ):
-            raise BadLTIRequest(
-                "The request to launch this assignment was malformed. "
-                "Expected parameters 'resource_link_id' and "
-                "'launch_presentation_return_url' were both missing."
-            )
 
     @property
     def h_user(self):

@@ -1,7 +1,12 @@
 from urllib.parse import unquote
 
+<<<<<<< HEAD
 from marshmallow import fields, post_load
+=======
+from marshmallow import fields, post_load, validates_schema
+>>>>>>> Replacing the resource based approach with a validation schema approach
 
+from lms.validation import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 
 
