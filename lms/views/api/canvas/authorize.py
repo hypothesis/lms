@@ -4,7 +4,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config, view_defaults
 
 from lms.services import CanvasAPIServerError
-from lms.validation import BearerTokenSchema, CanvasOAuthCallbackSchema
+from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 
 @view_defaults(request_method="GET", route_name="canvas_oauth_callback")

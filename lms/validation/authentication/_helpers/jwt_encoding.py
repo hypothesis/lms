@@ -4,7 +4,7 @@ import datetime
 
 import jwt
 
-from lms.validation._helpers import _exceptions
+from lms.validation.authentication._exceptions import ExpiredJWTError, InvalidJWTError
 
 __all__ = ["decode_jwt", "encode_jwt"]
 
@@ -18,9 +18,9 @@ def decode_jwt(jwt_str, secret):
     :arg secret: the secret that ``jwt_str`` was signed with
     :type secret: str
 
-    :raise lms.validation._helpers.ExpiredJWTError: if decoding fails because
+    :raise lms.validation.authentication.ExpiredJWTError: if decoding fails because
         the JWT's timestamp has expired
-    :raise lms.validation._helpers.InvalidJWTError: if decoding fails for any
+    :raise lms.validation.authentication.InvalidJWTError: if decoding fails for any
         other reason (for example ``jwt_str`` is invalid, or ``secret`` is
         wrong)
 
@@ -32,9 +32,9 @@ def decode_jwt(jwt_str, secret):
             jwt_str, secret, algorithms=["HS256"], options={"require_exp": True}
         )
     except jwt.ExpiredSignatureError as err:
-        raise _exceptions.ExpiredJWTError() from err
+        raise ExpiredJWTError() from err
     except jwt.InvalidTokenError as err:
-        raise _exceptions.InvalidJWTError() from err
+        raise InvalidJWTError() from err
 
     del payload["exp"]
     return payload

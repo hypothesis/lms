@@ -5,10 +5,9 @@ from sqlalchemy.orm.exc import NoResultFound
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
-from lms.validation import (
+from lms.validation import CanvasListFilesResponseSchema, CanvasPublicURLResponseSchema
+from lms.validation.authentication import (
     CanvasAccessTokenResponseSchema,
-    CanvasListFilesResponseSchema,
-    CanvasPublicURLResponseSchema,
     CanvasRefreshTokenResponseSchema,
 )
 

@@ -15,9 +15,9 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.services import HAPIError
-from lms.validation import (
+from lms.validation import ConfigureModuleItemSchema
+from lms.validation.authentication import (
     BearerTokenSchema,
-    ConfigureModuleItemSchema,
     URLConfiguredLaunchParamsSchema,
 )
 from lms.views.decorators import (

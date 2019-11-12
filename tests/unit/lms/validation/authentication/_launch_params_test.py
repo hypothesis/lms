@@ -2,10 +2,10 @@ import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.services import LTILaunchVerificationError
-from lms.validation import (
+from lms.validation import ValidationError
+from lms.validation.authentication import (
     LaunchParamsSchema,
     URLConfiguredLaunchParamsSchema,
-    ValidationError,
 )
 from lms.values import LTIUser
 

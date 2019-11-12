@@ -4,8 +4,15 @@ import secrets
 import marshmallow
 from webargs import fields
 
-from lms.validation import _exceptions, _helpers
-from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
+from lms.validation._helpers import PyramidRequestSchema, RequestsResponseSchema
+from lms.validation.authentication._exceptions import (
+    ExpiredJWTError,
+    ExpiredStateParamError,
+    InvalidJWTError,
+    InvalidStateParamError,
+    MissingStateParamError,
+)
+from lms.validation.authentication._helpers import _jwt
 from lms.values import LTIUser
 
 __all__ = [
@@ -15,7 +22,7 @@ __all__ = [
 ]
 
 
-class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
+class CanvasOAuthCallbackSchema(PyramidRequestSchema):
     """
     Schema for validating OAuth 2 redirect_uri requests from Canvas.
 
@@ -80,7 +87,7 @@ class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
 
         data = {"user": request.lti_user._asdict(), "csrf": csrf}
 
-        jwt_str = _helpers.encode_jwt(data, secret)
+        jwt_str = _jwt.encode_jwt(data, secret)
 
         request.session["oauth2_csrf"] = csrf
 
@@ -106,7 +113,7 @@ class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
         try:
             state = request.params["state"]
         except KeyError as err:
-            raise _exceptions.MissingStateParamError() from err
+            raise MissingStateParamError() from err
 
         return LTIUser(**self._decode_state(state)["user"])
 
@@ -125,14 +132,14 @@ class CanvasOAuthCallbackSchema(_helpers.PyramidRequestSchema):
         secret = self.context["request"].registry.settings["oauth2_state_secret"]
 
         try:
-            return _helpers.decode_jwt(state, secret)
+            return _jwt.decode_jwt(state, secret)
         except ExpiredJWTError as err:
-            raise _exceptions.ExpiredStateParamError() from err
+            raise ExpiredStateParamError() from err
         except InvalidJWTError as err:
-            raise _exceptions.InvalidStateParamError() from err
+            raise InvalidStateParamError() from err
 
 
-class CanvasAccessTokenResponseSchema(_helpers.RequestsResponseSchema):
+class CanvasAccessTokenResponseSchema(RequestsResponseSchema):
     """Schema for validating OAuth 2 access token responses from Canvas."""
 
     access_token = fields.Str(required=True)
