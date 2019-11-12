@@ -22,7 +22,7 @@
   "oauth_callback": "about:blank",
   "oauth_consumer_key": "--overwritten-in-tests--",
   "oauth_nonce": "--overwritten-in-tests--",
-  "oauth_signature": "+Hwg1TQ9ntBKVEcm4kNOwo23VPk=",
+  "oauth_signature": "--overwritten-in-tests--",
   "oauth_signature_method": "HMAC-SHA1",
   "oauth_timestamp": "--overwritten-in-tests--",
   "oauth_version": "1.0",
