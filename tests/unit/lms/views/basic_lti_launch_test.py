@@ -169,7 +169,7 @@ class TestDBConfiguredBasicLTILaunch:
             context.js_config["submissionParams"]["document_url"] == "TEST_DOCUMENT_URL"
         )
 
-    def test_it_configures_frontend_grading_if_feature_enabled(
+    def test_it_configures_frontend_grading(
         self,
         context,
         pyramid_request,
@@ -183,7 +183,6 @@ class TestDBConfiguredBasicLTILaunch:
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             **lti_outcome_params,
         }
-        pyramid_request.feature = lambda feature: feature == "blackboard_grading"
 
         BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
         frontend_app.configure_grading.assert_called_once_with(
@@ -204,7 +203,7 @@ class TestURLConfiguredBasicLTILaunch:
         assert context.js_config["urls"]["via_url"] == via_url.return_value
         assert context.js_config["submissionParams"]["document_url"] == "TEST_URL"
 
-    def test_it_configures_frontend_grading_if_feature_enabled(
+    def test_it_configures_frontend_grading(
         self,
         context,
         pyramid_request,
@@ -219,7 +218,6 @@ class TestURLConfiguredBasicLTILaunch:
             **lti_outcome_params,
         }
         pyramid_request.parsed_params = {"url": "TEST_URL"}
-        pyramid_request.feature = lambda feature: feature == "blackboard_grading"
 
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
         frontend_app.configure_grading.assert_called_once_with(
