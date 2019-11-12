@@ -12,6 +12,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
     This *DOES NOT* contain all of the fields required for authentication.
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
+
     pass
 
 

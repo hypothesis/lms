@@ -68,5 +68,3 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
             self._launch_verifier.verify()
         except LTILaunchVerificationError as err:
             raise marshmallow.ValidationError("Invalid OAuth 1 signature.") from err
-
-

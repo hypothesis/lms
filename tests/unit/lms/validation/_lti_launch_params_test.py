@@ -1,6 +1,6 @@
 import pytest
 
-from lms.validation import ValidationError, LaunchParamsURLConfiguredSchema
+from lms.validation import LaunchParamsURLConfiguredSchema, ValidationError
 
 
 class TestURLConfiguredLaunchParamsSchema:

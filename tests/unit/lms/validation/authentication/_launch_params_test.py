@@ -3,9 +3,7 @@ from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.services import LTILaunchVerificationError
 from lms.validation import ValidationError
-from lms.validation.authentication import (
-    LaunchParamsAuthSchema,
-)
+from lms.validation.authentication import LaunchParamsAuthSchema
 from lms.values import LTIUser
 
 

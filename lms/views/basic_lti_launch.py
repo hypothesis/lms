@@ -15,11 +15,8 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.services import HAPIError
-from lms.validation import ConfigureModuleItemSchema
-from lms.validation.authentication import (
-    BearerTokenSchema,
-)
-from lms.validation import LaunchParamsURLConfiguredSchema
+from lms.validation import ConfigureModuleItemSchema, LaunchParamsURLConfiguredSchema
+from lms.validation.authentication import BearerTokenSchema
 from lms.views.decorators import (
     add_user_to_group,
     report_lti_launch,

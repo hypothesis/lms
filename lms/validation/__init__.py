@@ -47,8 +47,8 @@ from lms.validation._api import *
 from lms.validation._canvas import *
 from lms.validation._exceptions import *
 from lms.validation._lis_result_sourcedid import LISResultSourcedIdSchema
-from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 from lms.validation._lti_launch_params import *
+from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 
 __all__ = (
     "APIRecordSpeedgraderSchema",
