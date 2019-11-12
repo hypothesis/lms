@@ -61,7 +61,6 @@ class TestForbidden(ExceptionViewTest):
     expected_result = {"message": "You're not authorized to view this page"}
 
 
-
 class TestHTTPClientError(ExceptionViewTest):
     view = error.http_client_error
     exception = HTTPBadRequest("This is the error message")
