@@ -9,12 +9,13 @@ def configure_grading(request, js_config):
     """
     Insert any needed JS context to configure the front end for grading.
 
-    This is only enabled for instructors on BlackBoard for now. Note that this
-    is entirely distinct from Canvas Speedgrader, which provides its own UI.
+    This is only enabled for instructors on Blackboard or Moodle for now. Note
+    that this is entirely distinct from Canvas Speedgrader, which provides its
+    own UI.
     """
     if (
         request.lti_user.is_instructor
-        and _is_blackboard(request)
+        and _is_blackboard_or_moodle(request)
         and _is_assignment_gradable(request)
     ):
         js_config["lmsGrader"] = True
@@ -50,9 +51,9 @@ def configure_grading(request, js_config):
     js_config["grading"]["students"] = students
 
 
-def _is_blackboard(request):
+def _is_blackboard_or_moodle(request):
     family_code = request.params.get("tool_consumer_info_product_family_code", "")
-    return family_code == "BlackboardLearn"
+    return family_code in ("BlackboardLearn", "moodle")
 
 
 def _is_assignment_gradable(request):

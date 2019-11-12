@@ -75,7 +75,7 @@ class TestUpsertLISResultSourcedId:
         wrapped.assert_called_once_with(context, pyramid_request)
         lis_result_sourcedid_svc.upsert.assert_not_called()
 
-    def test_it_continues_to_wrapped_fn_if_LMS_not_blackboard(
+    def test_it_continues_to_wrapped_fn_if_LMS_not_blackboard_or_moodle(
         self,
         upsert_lis_result_sourcedid,
         pyramid_request,
@@ -86,7 +86,7 @@ class TestUpsertLISResultSourcedId:
         wrapped,
     ):
         lis_result_sourcedid_value = lis_result_sourcedid_value._replace(
-            tool_consumer_info_product_family_code="NOTBLACKBOARD"
+            tool_consumer_info_product_family_code="NOT_BLACKBOARD_OR_MOODLE"
         )
         LISResultSourcedIdSchema.return_value.lis_result_sourcedid_info.return_value = (
             lis_result_sourcedid_value
@@ -100,7 +100,8 @@ class TestUpsertLISResultSourcedId:
         wrapped.assert_called_once_with(context, pyramid_request)
         lis_result_sourcedid_svc.upsert.assert_not_called()
 
-    def test_it_upserts_lis_result_sourcedid(
+    @pytest.mark.parametrize("product_family_code", ["BlackboardLearn", "moodle"])
+    def test_it_upserts_lis_result_sourcedid_if_LMS_is_blackboard_or_moodle(
         self,
         upsert_lis_result_sourcedid,
         pyramid_request,
@@ -109,7 +110,11 @@ class TestUpsertLISResultSourcedId:
         LISResultSourcedIdSchema,
         lis_result_sourcedid_svc,
         lis_result_sourcedid_value,
+        product_family_code,
     ):
+        lis_result_sourcedid_value = lis_result_sourcedid_value._replace(
+            tool_consumer_info_product_family_code=product_family_code
+        )
         LISResultSourcedIdSchema.return_value.lis_result_sourcedid_info.return_value = (
             lis_result_sourcedid_value
         )
@@ -131,6 +136,9 @@ class TestUpsertLISResultSourcedId:
         lis_result_sourcedid_svc,
         lis_result_sourcedid_value,
     ):
+        lis_result_sourcedid_value = lis_result_sourcedid_value._replace(
+            tool_consumer_info_product_family_code="moodle"
+        )
         LISResultSourcedIdSchema.return_value.lis_result_sourcedid_info.return_value = (
             lis_result_sourcedid_value
         )
@@ -164,7 +172,7 @@ def lis_result_sourcedid_value():
         lis_outcome_service_url="TEST LIS OUTCOME SERVICE URL",
         context_id="TEST CONTEXT ID",
         resource_link_id="TEST RESOURCE LINK ID",
-        tool_consumer_info_product_family_code="BlackboardLearn",
+        tool_consumer_info_product_family_code="FooLMS",
     )
 
 
