@@ -4,8 +4,7 @@ from lms.validation.authentication._launch_params import *
 from lms.validation.authentication._oauth import *
 
 __all__ = (
-    "LaunchParamsSchema",
-    "URLConfiguredLaunchParamsSchema",
+    "LaunchParamsAuthSchema",
     "CanvasAccessTokenResponseSchema",
     "CanvasOAuthCallbackSchema",
     "CanvasRefreshTokenResponseSchema",

@@ -18,8 +18,8 @@ from lms.services import HAPIError
 from lms.validation import ConfigureModuleItemSchema
 from lms.validation.authentication import (
     BearerTokenSchema,
-    URLConfiguredLaunchParamsSchema,
 )
+from lms.validation import LaunchParamsURLConfiguredSchema
 from lms.views.decorators import (
     add_user_to_group,
     report_lti_launch,
@@ -148,7 +148,7 @@ class BasicLTILaunchViews:
 
         return {}
 
-    @view_config(url_configured=True, schema=URLConfiguredLaunchParamsSchema)
+    @view_config(url_configured=True, schema=LaunchParamsURLConfiguredSchema)
     def url_configured_basic_lti_launch(self):
         """
         Respond to a URL-configured assignment launch.

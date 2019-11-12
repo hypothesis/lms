@@ -4,7 +4,7 @@ from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
     CanvasOAuthCallbackSchema,
-    LaunchParamsSchema,
+    LaunchParamsAuthSchema,
 )
 
 __all__ = ["authenticated_userid", "get_lti_user", "groupfinder"]
@@ -37,7 +37,7 @@ def get_lti_user(request):
     :rtype: lms.values.LTIUser
     """
     try:
-        return LaunchParamsSchema(request).lti_user()
+        return LaunchParamsAuthSchema(request).lti_user()
     except ValidationError:
         pass
 
