@@ -8,7 +8,7 @@ alembic==1.2.1
 certifi==2019.9.11        # via requests, sentry-sdk
 chardet==3.0.4            # via requests
 gunicorn==19.9.0
-h-pyramid-sentry==1.1.20191029.175008
+h_pyramid_sentry==1.2.0
 httplib2==0.14.0          # via oauth2, pylti
 hupper==1.9               # via pyramid
 idna==2.8                 # via requests
