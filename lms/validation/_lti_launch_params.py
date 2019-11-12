@@ -1,7 +1,8 @@
 from urllib.parse import unquote
 
-import marshmallow
+from marshmallow import fields, post_load, validates_schema
 
+from lms.validation import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 
 
@@ -13,7 +14,21 @@ class LaunchParamsSchema(PyramidRequestSchema):
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
 
-    pass
+    resource_link_id = fields.Str()
+    launch_presentation_return_url = fields.Str()
+
+    locations = ["form"]
+
+    @validates_schema
+    def validate_lti_compliance(self, data, **kwargs):
+        if not data.get("resource_link_id") and not data.get(
+            "launch_presentation_return_url"
+        ):
+            raise ValidationError(
+                "The request to launch this assignment was malformed. "
+                "Expected parameters 'resource_link_id' and "
+                "'launch_presentation_return_url' were both missing."
+            )
 
 
 class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
@@ -24,9 +39,9 @@ class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
     launch param.
     """
 
-    url = marshmallow.fields.Str(required=True)
+    url = fields.Str(required=True)
 
-    @marshmallow.post_load
+    @post_load
     def _decode_url(self, _data, **_kwargs):  # pylint:disable=no-self-use
         # Work around a bug in Canvas's handling of LTI Launch URLs in
         # SpeedGrader launches. In that context, query params get
@@ -38,4 +53,5 @@ class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
         if url.lower().startswith("http%3a") or url.lower().startswith("https%3a"):
             url = unquote(url)
             _data["url"] = url
+
         return _data

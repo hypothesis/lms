@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
 
 from lms.validation import ValidationError
 from lms.views import error
-rom lms.views.exceptions import BadLTIRequest
+from lms.views.exceptions import BadLTIRequest
 
 
 class ExceptionViewTest:

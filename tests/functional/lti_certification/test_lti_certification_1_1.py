@@ -27,7 +27,7 @@ class TestLTICertification(TestBaseClass):
         result = self.lti_launch(
             app,
             remove=["resource_link_id", "launch_presentation_return_url"],
-            status=400,
+            status=422,
         )
 
         # Check we mention the problem
@@ -43,7 +43,12 @@ class TestLTICertification(TestBaseClass):
         params = self._get_lti_params(remove=remove, **extras)
         params = self._oauth_sign_params(url, params)
 
-        return app.post(url, params=params, status=status)
+        return app.post(
+            url,
+            params=params,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            status=status,
+        )
 
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session, app):

@@ -6,7 +6,6 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
-from lms.views.exceptions import BadLTIRequest
 
 
 class TestLTILaunchResource:
@@ -303,15 +302,6 @@ class TestLTILaunchResource:
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
-
-    def test_if_required_LTI_parameters_are_missing_it_raises_BadLTIRequest(
-        self, pyramid_request
-    ):
-        pyramid_request.params.pop("resource_link_id")
-        pyramid_request.params.pop("launch_presentation_return_url")
-
-        with pytest.raises(BadLTIRequest):
-            LTILaunchResource(pyramid_request)
 
     def test_js_config_includes_the_urls(self, pyramid_request):
         js_config = LTILaunchResource(pyramid_request).js_config

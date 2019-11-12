@@ -1,6 +1,35 @@
 import pytest
+from h_matchers import Any
 
-from lms.validation import LaunchParamsURLConfiguredSchema, ValidationError
+from lms.validation import (
+    LaunchParamsSchema,
+    LaunchParamsURLConfiguredSchema,
+    ValidationError,
+)
+
+
+class TestLaunchParamsSchema:
+    def test_it_works_with_good_params(self, pyramid_request):
+        schema = LaunchParamsSchema(pyramid_request)
+        params = schema.parse()
+
+        assert params == Any.dict.containing(
+            {
+                "resource_link_id": Any.string(),
+                "launch_presentation_return_url": Any.string(),
+            }
+        )
+
+    def test_ValidationError_raised_when_res_link_and_return_url_missing(
+        self, pyramid_request
+    ):
+        pyramid_request.params.pop("resource_link_id")
+        pyramid_request.params.pop("launch_presentation_return_url")
+
+        schema = LaunchParamsSchema(pyramid_request)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
 
 
 class TestURLConfiguredLaunchParamsSchema:
@@ -62,7 +91,15 @@ class TestURLConfiguredLaunchParamsSchema:
     def schema(self, pyramid_request):
         return LaunchParamsURLConfiguredSchema(pyramid_request)
 
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.content_type = "application/x-www-form-urlencoded"
-        return pyramid_request
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.content_type = "application/x-www-form-urlencoded"
+    pyramid_request.params.update(
+        {
+            "resource_link_id": "DUMMY-LINK",
+            "launch_presentation_return_url": "http://example.com",
+        }
+    )
+
+    return pyramid_request

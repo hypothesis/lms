@@ -7,7 +7,6 @@ from pyramid.view import (
 )
 
 from lms.validation import ValidationError
-from lms.views.exceptions import BadLTIRequest
 
 _ = i18n.TranslationStringFactory(__package__)
 
