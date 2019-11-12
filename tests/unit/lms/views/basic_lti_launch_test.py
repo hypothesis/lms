@@ -318,7 +318,7 @@ def BearerTokenSchema(patch):
     return patch("lms.views.basic_lti_launch.BearerTokenSchema")
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def frontend_app(patch):
     return patch("lms.views.basic_lti_launch.frontend_app")
 
