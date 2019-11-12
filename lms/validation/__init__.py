@@ -43,11 +43,18 @@ suitable validation schema's ``__init__()`` method and then call the schema's
     except lms.validation.ValidationError as err:
         ...
 """
-from lms.validation._api import *
-from lms.validation._canvas import *
-from lms.validation._exceptions import *
+from lms.validation._api import (
+    APIReadResultSchema,
+    APIRecordResultSchema,
+    APIRecordSpeedgraderSchema,
+)
+from lms.validation._canvas import (
+    CanvasListFilesResponseSchema,
+    CanvasPublicURLResponseSchema,
+)
+from lms.validation._exceptions import ValidationError
 from lms.validation._lis_result_sourcedid import LISResultSourcedIdSchema
-from lms.validation._lti_launch_params import *
+from lms.validation._lti_launch_params import LaunchParamsURLConfiguredSchema
 from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 
 __all__ = (
