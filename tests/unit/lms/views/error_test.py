@@ -1,138 +1,106 @@
 from unittest import mock
 
 import pytest
-from pyramid import httpexceptions
+from h_matchers import Any
+from pyramid.httpexceptions import HTTPBadRequest, HTTPClientError, HTTPServerError
 
 from lms.validation import ValidationError
 from lms.views import error
 
 
-class TestNotFound:
-    def test_it_does_not_report_exception_to_sentry(
+class ExceptionViewTest:
+    view = None
+    exception = None
+
+    expected_result = None
+    response_status = None
+    report_to_sentry = None
+
+    def handle(self, pyramid_request):
+        if self.exception is None:
+            return type(self).view(pyramid_request)
+
+        return type(self).view(self.exception, pyramid_request)
+
+    def test_it_reports_exception_to_sentry_as_appropriate(
         self, pyramid_request, h_pyramid_sentry
     ):
-        error.notfound(pyramid_request)
+        self.handle(pyramid_request)
 
-        h_pyramid_sentry.report_exception.assert_not_called()
-
-    def test_it_sets_response_status(self, pyramid_request):
-        error.notfound(pyramid_request)
-
-        assert pyramid_request.response.status_int == 404
-
-    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
-        result = error.notfound(pyramid_request)
-
-        assert result["message"] == "Page not found"
-
-
-class TestForbidden:
-    def test_it_does_not_report_exception_to_sentry(
-        self, pyramid_request, h_pyramid_sentry
-    ):
-        error.forbidden(pyramid_request)
-
-        h_pyramid_sentry.report_exception.assert_not_called()
+        if self.report_to_sentry:
+            h_pyramid_sentry.report_exception.assert_called_once()
+        else:
+            h_pyramid_sentry.report_exception.assert_not_called()
 
     def test_it_sets_response_status(self, pyramid_request):
-        error.forbidden(pyramid_request)
+        self.handle(pyramid_request)
 
-        assert pyramid_request.response.status_int == 403
+        assert pyramid_request.response.status_int == self.response_status
 
-    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
-        result = error.forbidden(pyramid_request)
+    def test_it_produces_the_expected_template_vars(self, pyramid_request):
+        result = self.handle(pyramid_request)
 
-        assert result["message"] == "You're not authorized to view this page"
-
-
-class TestHTTPClientError:
-    def test_it_does_not_report_exception_to_sentry(
-        self, pyramid_request, h_pyramid_sentry
-    ):
-        exc = httpexceptions.HTTPBadRequest()
-
-        error.http_client_error(exc, pyramid_request)
-
-        h_pyramid_sentry.report_exception.assert_not_called()
-
-    def test_it_sets_response_status(self, pyramid_request):
-        exc = httpexceptions.HTTPBadRequest()
-
-        error.http_client_error(exc, pyramid_request)
-
-        assert pyramid_request.response.status_int == 400
-
-    def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
-        exc = httpexceptions.HTTPBadRequest("This is the error message")
-
-        result = error.http_client_error(exc, pyramid_request)
-
-        assert result["message"] == "This is the error message"
+        assert result == self.expected_result
 
 
-class TestHTTPServerError:
-    def test_it_reports_exception_to_sentry(self, pyramid_request, h_pyramid_sentry):
-        exc = httpexceptions.HTTPServerError()
+class TestNotFound(ExceptionViewTest):
+    view = error.notfound
+    exception = None
 
-        error.http_server_error(exc, pyramid_request)
-
-        h_pyramid_sentry.report_exception.assert_called_once_with()
-
-    def test_it_sets_response_status(self, pyramid_request):
-        exc = httpexceptions.HTTPServerError()
-
-        error.http_server_error(exc, pyramid_request)
-
-        assert pyramid_request.response.status_int == 500
-
-    def test_it_shows_the_exception_message_to_the_user(self, pyramid_request):
-        exc = httpexceptions.HTTPServerError("This is the error message")
-
-        result = error.http_server_error(exc, pyramid_request)
-
-        assert result["message"] == "This is the error message"
+    response_status = 404
+    report_to_sentry = False
+    expected_result = {"message": "Page not found"}
 
 
-class TestValidationError:
-    def test_it_sets_response_status(self, pyramid_request):
-        exc = ValidationError(mock.sentinel.messages)
+class TestForbidden(ExceptionViewTest):
+    view = error.forbidden
+    exception = None
 
-        error.validation_error(exc, pyramid_request)
-
-        assert pyramid_request.response.status_int == 422
-
-    def test_it_passes_the_exception_to_the_template(self, pyramid_request):
-        exc = ValidationError(mock.sentinel.messages)
-
-        template_data = error.validation_error(exc, pyramid_request)
-
-        assert template_data["error"] == exc
+    response_status = 403
+    report_to_sentry = False
+    expected_result = {"message": "You're not authorized to view this page"}
 
 
-class TestError:
-    def test_it_does_not_report_exception_to_sentry(
-        self, pyramid_request, h_pyramid_sentry
-    ):
-        error.error(pyramid_request)
+class TestHTTPClientError(ExceptionViewTest):
+    view = error.http_client_error
+    exception = HTTPBadRequest("This is the error message")
 
-        # Although I don't think it would do any harm (sentry_sdk seems smart
-        # enough to not double report the exception to Sentry) we don't need to
-        # call report_exception() in the case of a non-HTTPError exception
-        # because Sentry's Pyramid integration does it for us automatically.
-        h_pyramid_sentry.report_exception.assert_not_called()
+    response_status = 400
+    report_to_sentry = False
+    expected_result = {"message": exception.args[0]}
 
-    def test_it_sets_response_status(self, pyramid_request):
-        error.error(pyramid_request)
 
-        assert pyramid_request.response.status_int == 500
+class TestHTTPServerError(ExceptionViewTest):
+    view = error.http_server_error
+    exception = HTTPServerError("This is the error message")
 
-    def test_it_shows_a_generic_error_message_to_the_user(self, pyramid_request):
-        result = error.error(pyramid_request)
+    response_status = 500
+    report_to_sentry = True
+    expected_result = {"message": exception.args[0]}
 
-        assert (
-            result["message"]
-            == "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
-        )
+
+class TestValidationError(ExceptionViewTest):
+    view = error.validation_error
+    exception = ValidationError(mock.sentinel.messages)
+
+    response_status = 422
+    report_to_sentry = False
+    expected_result = {"error": exception}
+
+
+class TestError(ExceptionViewTest):
+    view = error.error
+    exception = None
+
+    response_status = 500
+    # Although I don't think it would do any harm (sentry_sdk seems smart
+    # enough to not double report the exception to Sentry) we don't need to
+    # call report_exception() in the case of a non-HTTPError exception
+    # because Sentry's Pyramid integration does it for us automatically.
+    report_to_sentry = False
+    expected_result = {
+        "message": "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
+    }
 
 
 @pytest.mark.usefixtures("pyramid_config")
@@ -140,28 +108,33 @@ class TestIncludeMe:
     def test_it_adds_the_exception_views(self, pyramid_config):
         error.includeme(pyramid_config)
 
-        assert pyramid_config.add_exception_view.call_args_list == [
-            mock.call(
-                error.http_client_error,
-                context=httpexceptions.HTTPClientError,
-                renderer="lms:templates/error.html.jinja2",
-            ),
-            mock.call(
-                error.http_server_error,
-                context=httpexceptions.HTTPServerError,
-                renderer="lms:templates/error.html.jinja2",
-            ),
-            mock.call(
-                error.error,
-                context=Exception,
-                renderer="lms:templates/error.html.jinja2",
-            ),
-            mock.call(
-                error.validation_error,
-                context=ValidationError,
-                renderer="lms:templates/validation_error.html.jinja2",
-            ),
-        ]
+        assert (
+            pyramid_config.add_exception_view.call_args_list
+            == Any.list.containing(
+                [
+                    mock.call(
+                        error.http_client_error,
+                        context=HTTPClientError,
+                        renderer="lms:templates/error.html.jinja2",
+                    ),
+                    mock.call(
+                        error.http_server_error,
+                        context=HTTPServerError,
+                        renderer="lms:templates/error.html.jinja2",
+                    ),
+                    mock.call(
+                        error.error,
+                        context=Exception,
+                        renderer="lms:templates/error.html.jinja2",
+                    ),
+                    mock.call(
+                        error.validation_error,
+                        context=ValidationError,
+                        renderer="lms:templates/validation_error.html.jinja2",
+                    ),
+                ]
+            ).only()
+        )
 
     @pytest.fixture
     def pyramid_config(self, pyramid_config):

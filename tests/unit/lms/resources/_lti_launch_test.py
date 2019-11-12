@@ -5,7 +5,7 @@ import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms import resources
+from lms.resources import LTILaunchResource
 
 
 class TestLTILaunchResource:
@@ -16,7 +16,7 @@ class TestLTILaunchResource:
         pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["lti_user"])
         pyramid_config.set_authorization_policy(policy)
 
-        context = resources.LTILaunchResource(pyramid_request)
+        context = LTILaunchResource(pyramid_request)
 
         assert pyramid_request.has_permission("launch_lti_assignment", context)
 
@@ -27,7 +27,7 @@ class TestLTILaunchResource:
         pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["foo", "bar"])
         pyramid_config.set_authorization_policy(policy)
 
-        context = resources.LTILaunchResource(pyramid_request)
+        context = LTILaunchResource(pyramid_request)
 
         assert not pyramid_request.has_permission("launch_lti_assignment", context)
 
@@ -146,7 +146,7 @@ class TestLTILaunchResource:
         pyramid_request.params.update(request_params)
 
         assert (
-            resources.LTILaunchResource(pyramid_request).h_user.display_name
+            LTILaunchResource(pyramid_request).h_user.display_name
             == expected_display_name
         )
 
@@ -158,7 +158,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).h_authority_provided_id
+            LTILaunchResource(pyramid_request).h_authority_provided_id
 
     def test_h_authority_provided_id_raises_if_theres_no_context_id(
         self, pyramid_request
@@ -168,7 +168,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "context_id" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).h_authority_provided_id
+            LTILaunchResource(pyramid_request).h_authority_provided_id
 
     def test_h_authority_provided_id(self, lti_launch):
         assert (
@@ -204,17 +204,14 @@ class TestLTILaunchResource:
     ):
         pyramid_request.params = {"context_title": context_title}
 
-        assert (
-            resources.LTILaunchResource(pyramid_request).h_group_name
-            == expected_group_name
-        )
+        assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
     def test_h_provider_just_returns_the_tool_consumer_instance_guid(
         self, pyramid_request
     ):
         pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
 
-        provider = resources.LTILaunchResource(pyramid_request).h_provider
+        provider = LTILaunchResource(pyramid_request).h_provider
 
         assert provider == "VCSy*G1u3:canvas-lms"
 
@@ -235,14 +232,12 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).h_provider
+            LTILaunchResource(pyramid_request).h_provider
 
     def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
         pyramid_request.params = {"user_id": "4533***70d9"}
 
-        provider_unique_id = resources.LTILaunchResource(
-            pyramid_request
-        ).h_provider_unique_id
+        provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
 
         assert provider_unique_id == "4533***70d9"
 
@@ -255,7 +250,7 @@ class TestLTILaunchResource:
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
-            resources.LTILaunchResource(pyramid_request).h_provider_unique_id
+            LTILaunchResource(pyramid_request).h_provider_unique_id
 
     def test_h_user_username_is_a_30_char_string(self, pyramid_request):
         pyramid_request.params = {
@@ -263,7 +258,7 @@ class TestLTILaunchResource:
             "user_id": "4533***70d9",
         }
 
-        username = resources.LTILaunchResource(pyramid_request).h_user.username
+        username = LTILaunchResource(pyramid_request).h_user.username
 
         assert isinstance(username, str)
         assert len(username) == 30
@@ -277,7 +272,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).h_user
+            LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_raises_if_user_id_is_missing(self, pyramid_request):
         pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
@@ -285,7 +280,7 @@ class TestLTILaunchResource:
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
-            resources.LTILaunchResource(pyramid_request).h_user
+            LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_userid(self, pyramid_request):
         pyramid_request.params = {
@@ -293,12 +288,12 @@ class TestLTILaunchResource:
             "user_id": "4533***70d9",
         }
 
-        userid = resources.LTILaunchResource(pyramid_request).h_user.userid
+        userid = LTILaunchResource(pyramid_request).h_user.userid
 
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
 
     def test_js_config_includes_the_urls(self, pyramid_request):
-        js_config = resources.LTILaunchResource(pyramid_request).js_config
+        js_config = LTILaunchResource(pyramid_request).js_config
 
         # urls is an empty dict for now!
         assert js_config["urls"] == {}
@@ -306,7 +301,7 @@ class TestLTILaunchResource:
     def test_js_config_includes_the_authorization_param_for_lti_users(
         self, bearer_token_schema, BearerTokenSchema, pyramid_request
     ):
-        js_config = resources.LTILaunchResource(pyramid_request).js_config
+        js_config = LTILaunchResource(pyramid_request).js_config
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.authorization_param.assert_called_once_with(
@@ -322,7 +317,7 @@ class TestLTILaunchResource:
     ):
         pyramid_request.lti_user = None
 
-        js_config = resources.LTILaunchResource(pyramid_request).js_config
+        js_config = LTILaunchResource(pyramid_request).js_config
 
         BearerTokenSchema.assert_not_called()
         assert "authToken" not in js_config
@@ -341,7 +336,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "oauth_consumer_key" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).hypothesis_config
+            LTILaunchResource(pyramid_request).hypothesis_config
 
     def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
         self, pyramid_request
@@ -354,7 +349,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
-            resources.LTILaunchResource(pyramid_request).hypothesis_config
+            LTILaunchResource(pyramid_request).hypothesis_config
 
     def test_hypothesis_config_contains_one_service_config(self, lti_launch):
         assert len(lti_launch.hypothesis_config["services"]) == 1
@@ -439,7 +434,7 @@ class TestLTILaunchResource:
         self, pyramid_request
     ):
         del pyramid_request.params["oauth_consumer_key"]
-        lti_launch = resources.LTILaunchResource(pyramid_request)
+        lti_launch = LTILaunchResource(pyramid_request)
 
         with pytest.raises(HTTPBadRequest):
             lti_launch.provisioning_enabled
@@ -451,14 +446,14 @@ class TestLTILaunchResource:
             "custom_canvas_api_domain"
         ] = "test_custom_canvas_api_domain"
 
-        lti_launch = resources.LTILaunchResource(pyramid_request)
+        lti_launch = LTILaunchResource(pyramid_request)
 
         assert lti_launch.custom_canvas_api_domain == "test_custom_canvas_api_domain"
 
     def test_custom_canvas_api_url_returns_None_if_not_defined(
         self, ai_getter, pyramid_request
     ):
-        lti_launch = resources.LTILaunchResource(pyramid_request)
+        lti_launch = LTILaunchResource(pyramid_request)
 
         custom_canvas_api_url = lti_launch.custom_canvas_api_domain
         assert custom_canvas_api_url is None
@@ -466,7 +461,7 @@ class TestLTILaunchResource:
     def test_lms_url_return_the_ApplicationInstances_lms_url(
         self, ai_getter, pyramid_request
     ):
-        lti_launch = resources.LTILaunchResource(pyramid_request)
+        lti_launch = LTILaunchResource(pyramid_request)
 
         lms_url = lti_launch.lms_url
         ai_getter.lms_url.assert_called_once_with(
@@ -476,7 +471,7 @@ class TestLTILaunchResource:
 
     @pytest.fixture
     def lti_launch(self, pyramid_request):
-        return resources.LTILaunchResource(pyramid_request)
+        return LTILaunchResource(pyramid_request)
 
     @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
