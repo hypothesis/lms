@@ -103,45 +103,6 @@ class TestError(ExceptionViewTest):
     }
 
 
-@pytest.mark.usefixtures("pyramid_config")
-class TestIncludeMe:
-    def test_it_adds_the_exception_views(self, pyramid_config):
-        error.includeme(pyramid_config)
-
-        assert (
-            pyramid_config.add_exception_view.call_args_list
-            == Any.list.containing(
-                [
-                    mock.call(
-                        error.http_client_error,
-                        context=HTTPClientError,
-                        renderer="lms:templates/error.html.jinja2",
-                    ),
-                    mock.call(
-                        error.http_server_error,
-                        context=HTTPServerError,
-                        renderer="lms:templates/error.html.jinja2",
-                    ),
-                    mock.call(
-                        error.error,
-                        context=Exception,
-                        renderer="lms:templates/error.html.jinja2",
-                    ),
-                    mock.call(
-                        error.validation_error,
-                        context=ValidationError,
-                        renderer="lms:templates/validation_error.html.jinja2",
-                    ),
-                ]
-            ).only()
-        )
-
-    @pytest.fixture
-    def pyramid_config(self, pyramid_config):
-        pyramid_config.add_exception_view = mock.MagicMock()
-        return pyramid_config
-
-
 @pytest.fixture(autouse=True)
 def h_pyramid_sentry(patch):
     return patch("lms.views.error.h_pyramid_sentry")
