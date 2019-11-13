@@ -13,18 +13,10 @@ class TestLaunchParamsSchema:
         schema = LaunchParamsSchema(pyramid_request)
         params = schema.parse()
 
-        assert params == Any.dict.containing(
-            {
-                "resource_link_id": Any.string(),
-                "launch_presentation_return_url": Any.string(),
-            }
-        )
+        assert params == Any.dict.containing({"resource_link_id": Any.string()})
 
-    def test_ValidationError_raised_when_res_link_and_return_url_missing(
-        self, pyramid_request
-    ):
+    def test_ValidationError_raised_when_res_link_missing(self, pyramid_request):
         pyramid_request.params.pop("resource_link_id")
-        pyramid_request.params.pop("launch_presentation_return_url")
 
         schema = LaunchParamsSchema(pyramid_request)
 
@@ -95,11 +87,6 @@ class TestURLConfiguredLaunchParamsSchema:
 @pytest.fixture
 def pyramid_request(pyramid_request):
     pyramid_request.content_type = "application/x-www-form-urlencoded"
-    pyramid_request.params.update(
-        {
-            "resource_link_id": "DUMMY-LINK",
-            "launch_presentation_return_url": "http://example.com",
-        }
-    )
+    pyramid_request.params.update({"resource_link_id": "DUMMY-LINK"})
 
     return pyramid_request

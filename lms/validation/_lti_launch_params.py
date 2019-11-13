@@ -1,8 +1,7 @@
 from urllib.parse import unquote
 
-from marshmallow import fields, post_load, validates_schema
+from marshmallow import fields, post_load
 
-from lms.validation._exceptions import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 
 
@@ -14,23 +13,9 @@ class LaunchParamsSchema(PyramidRequestSchema):
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
 
-    resource_link_id = fields.Str()
-    launch_presentation_return_url = fields.Str()
+    resource_link_id = fields.Str(required=True)
 
     locations = ["form"]
-
-    @validates_schema
-    def validate_lti_compliance(
-        self, data, **kwargs
-    ):  # pylint: disable=unused-argument,no-self-use
-        if not data.get("resource_link_id") and not data.get(
-            "launch_presentation_return_url"
-        ):
-            raise ValidationError(
-                "The request to launch this assignment was malformed. "
-                "Expected parameters 'resource_link_id' and "
-                "'launch_presentation_return_url' were both missing."
-            )
 
 
 class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
