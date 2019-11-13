@@ -24,6 +24,13 @@ class TestLTICertification(TestBaseClass):
         assert "tool_consumer_instance_guid" in result.text
         assert lti_params["tool_consumer_instance_guid"] in result.text
 
+    def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(self, app):
+        self.lti_launch(
+            app,
+            remove=["resource_link_id"],
+            status=302,
+        )
+    
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
         self, app, lti_params
     ):
