@@ -22,14 +22,7 @@ def upsert_lis_result_sourcedid(wrapped):
             # LIS data is not present on the request.
             return wrapped(context, request)
 
-        # Whether or not we should upsert the lis_result_sourcedid.
-        should_upsert = True
-
-        # Don't upsert the lis_result_sourcedid if the user is an instructor.
-        if request.lti_user.is_instructor:
-            should_upsert = False
-
-        if should_upsert:
+        if not request.lti_user.is_instructor:
             lis_result_svc = request.find_service(name="lis_result_sourcedid")
             lis_result_svc.upsert(
                 lis_result_sourcedid, h_user=context.h_user, lti_user=request.lti_user
