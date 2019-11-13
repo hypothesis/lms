@@ -7,7 +7,7 @@ import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
-from lms.validation import BearerTokenSchema
+from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
 
 __all__ = ["LTILaunchResource"]

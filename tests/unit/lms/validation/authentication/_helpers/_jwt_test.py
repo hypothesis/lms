@@ -1,11 +1,10 @@
 import copy
 import datetime
-from unittest import mock
 
 import jwt
 import pytest
 
-from lms.validation import _helpers
+from lms.validation.authentication._helpers import _jwt
 
 
 class TestDecodeJWT:
@@ -13,21 +12,21 @@ class TestDecodeJWT:
         original_payload = {"TEST_KEY": "TEST_VALUE"}
         jwt_str = self.encode_jwt(original_payload)
 
-        decoded_payload = _helpers.decode_jwt(jwt_str, "test_secret")
+        decoded_payload = _jwt.decode_jwt(jwt_str, "test_secret")
 
         assert decoded_payload == original_payload
 
     def test_it_raises_if_the_jwt_is_encoded_with_the_wrong_secret(self):
         jwt_str = self.encode_jwt({"TEST_KEY": "TEST_VALUE"}, secret="wrong_secret")
 
-        with pytest.raises(_helpers.InvalidJWTError):
-            _helpers.decode_jwt(jwt_str, "test_secret")
+        with pytest.raises(_jwt.InvalidJWTError):
+            _jwt.decode_jwt(jwt_str, "test_secret")
 
     def test_it_raises_if_the_jwt_is_encoded_with_the_wrong_algorithm(self):
         jwt_str = self.encode_jwt({"TEST_KEY": "TEST_VALUE"}, algorithm="HS384")
 
-        with pytest.raises(_helpers.InvalidJWTError):
-            _helpers.decode_jwt(jwt_str, "test_secret")
+        with pytest.raises(_jwt.InvalidJWTError):
+            _jwt.decode_jwt(jwt_str, "test_secret")
 
     def test_it_raises_if_the_jwt_has_expired(self):
         jwt_str = self.encode_jwt(
@@ -37,20 +36,20 @@ class TestDecodeJWT:
             }
         )
 
-        with pytest.raises(_helpers.ExpiredJWTError):
-            _helpers.decode_jwt(jwt_str, "test_secret")
+        with pytest.raises(_jwt.ExpiredJWTError):
+            _jwt.decode_jwt(jwt_str, "test_secret")
 
     def test_it_raises_if_the_jwt_has_no_expiry_time(self):
         jwt_str = self.encode_jwt({"TEST_KEY": "TEST_VALUE"}, omit_exp=True)
 
-        with pytest.raises(_helpers.InvalidJWTError):
-            _helpers.decode_jwt(jwt_str, "test_secret")
+        with pytest.raises(_jwt.InvalidJWTError):
+            _jwt.decode_jwt(jwt_str, "test_secret")
 
     def test_it_can_decode_a_jwt_from_encode_jwt(self):
         original_payload = {"TEST_KEY": "TEST_VALUE"}
-        jwt_str = _helpers.encode_jwt(original_payload, "test_secret")
+        jwt_str = _jwt.encode_jwt(original_payload, "test_secret")
 
-        decoded_payload = _helpers.decode_jwt(jwt_str, "test_secret")
+        decoded_payload = _jwt.decode_jwt(jwt_str, "test_secret")
 
         assert decoded_payload == original_payload
 
@@ -82,7 +81,7 @@ class TestEncodeJWT:
     def test_it_returns_the_encoded_jwt(self):
         original_payload = {"TEST_KEY": "TEST_VALUE"}
 
-        jwt_str = _helpers.encode_jwt(original_payload, "test_secret")
+        jwt_str = _jwt.encode_jwt(original_payload, "test_secret")
 
         decoded_payload = jwt.decode(jwt_str, "test_secret", algorithms=["HS256"])
 
@@ -90,6 +89,6 @@ class TestEncodeJWT:
         assert decoded_payload == original_payload
 
     def test_it_returns_a_string_not_bytes(self):
-        jwt_str = _helpers.encode_jwt({"TEST_KEY": "TEST_VALUE"}, "test_secret")
+        jwt_str = _jwt.encode_jwt({"TEST_KEY": "TEST_VALUE"}, "test_secret")
 
         assert isinstance(jwt_str, str)

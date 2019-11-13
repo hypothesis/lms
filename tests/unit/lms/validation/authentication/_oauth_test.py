@@ -1,35 +1,37 @@
 from unittest import mock
 
-import jwt
 import pytest
 import requests
 from pyramid import testing
 
-from lms.validation import (
+from lms.validation import ValidationError
+from lms.validation.authentication import (
+    ExpiredJWTError,
+    ExpiredStateParamError,
+    InvalidJWTError,
+    InvalidStateParamError,
+    MissingStateParamError,
+)
+from lms.validation.authentication._oauth import (
     CanvasAccessTokenResponseSchema,
     CanvasOAuthCallbackSchema,
     CanvasRefreshTokenResponseSchema,
-    ExpiredStateParamError,
-    InvalidStateParamError,
-    MissingStateParamError,
-    ValidationError,
 )
-from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
 from lms.values import LTIUser
 
 
 class TestCanvasOauthCallbackSchema:
     def test_state_param_encodes_lti_user_and_csrf_token_into_state_jwt(
-        self, schema, secrets, _helpers, lti_user
+        self, schema, secrets, _jwt, lti_user
     ):
         state = schema.state_param()
 
         secrets.token_hex.assert_called_once_with()
-        _helpers.encode_jwt.assert_called_once_with(
+        _jwt.encode_jwt.assert_called_once_with(
             {"user": lti_user._asdict(), "csrf": secrets.token_hex.return_value},
             "test_oauth2_state_secret",
         )
-        assert state == _helpers.encode_jwt.return_value
+        assert state == _jwt.encode_jwt.return_value
 
     def test_state_param_also_stashes_csrf_token_in_session(
         self, schema, secrets, pyramid_request
@@ -40,10 +42,10 @@ class TestCanvasOauthCallbackSchema:
 
         assert pyramid_request.session["oauth2_csrf"] == secrets.token_hex.return_value
 
-    def test_lti_user_returns_the_lti_user_value(self, schema, _helpers, lti_user):
+    def test_lti_user_returns_the_lti_user_value(self, schema, _jwt, lti_user):
         returned = schema.lti_user()
 
-        _helpers.decode_jwt.assert_called_once_with(
+        _jwt.decode_jwt.assert_called_once_with(
             "test_state", "test_oauth2_state_secret"
         )
         assert returned == lti_user
@@ -54,14 +56,14 @@ class TestCanvasOauthCallbackSchema:
         with pytest.raises(MissingStateParamError):
             schema.lti_user()
 
-    def test_lti_user_raises_if_the_state_param_is_expired(self, schema, _helpers):
-        _helpers.decode_jwt.side_effect = ExpiredJWTError()
+    def test_lti_user_raises_if_the_state_param_is_expired(self, schema, _jwt):
+        _jwt.decode_jwt.side_effect = ExpiredJWTError()
 
         with pytest.raises(ExpiredStateParamError):
             schema.lti_user()
 
-    def test_lti_user_raises_if_the_state_param_is_invalid(self, schema, _helpers):
-        _helpers.decode_jwt.side_effect = InvalidJWTError()
+    def test_lti_user_raises_if_the_state_param_is_invalid(self, schema, _jwt):
+        _jwt.decode_jwt.side_effect = InvalidJWTError()
 
         with pytest.raises(InvalidStateParamError):
             schema.lti_user()
@@ -93,20 +95,16 @@ class TestCanvasOauthCallbackSchema:
             "state": ["Missing data for required field."]
         }
 
-    def test_it_raises_if_the_state_jwt_is_expired(
-        self, schema, pyramid_request, _helpers
-    ):
-        _helpers.decode_jwt.side_effect = ExpiredJWTError()
+    def test_it_raises_if_the_state_jwt_is_expired(self, schema, pyramid_request, _jwt):
+        _jwt.decode_jwt.side_effect = ExpiredJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
         assert exc_info.value.messages == {"state": ["Expired `state` parameter"]}
 
-    def test_it_raises_if_the_state_jwt_is_invalid(
-        self, schema, pyramid_request, _helpers
-    ):
-        _helpers.decode_jwt.side_effect = InvalidJWTError()
+    def test_it_raises_if_the_state_jwt_is_invalid(self, schema, pyramid_request, _jwt):
+        _jwt.decode_jwt.side_effect = InvalidJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
@@ -247,16 +245,16 @@ class TestCanvasRefreshTokenResponseSchema(TestCanvasAccessTokenResponseSchema):
 
 @pytest.fixture(autouse=True)
 def secrets(patch):
-    secrets = patch("lms.validation._oauth.secrets")
+    secrets = patch("lms.validation.authentication._oauth.secrets")
     secrets.token_hex.return_value = "test_csrf"
     return secrets
 
 
 @pytest.fixture(autouse=True)
-def _helpers(patch, lti_user):
-    _helpers = patch("lms.validation._oauth._helpers")
-    _helpers.decode_jwt.return_value = {"csrf": "test_csrf", "user": lti_user._asdict()}
-    return _helpers
+def _jwt(patch, lti_user):
+    _jwt = patch("lms.validation.authentication._oauth._jwt")
+    _jwt.decode_jwt.return_value = {"csrf": "test_csrf", "user": lti_user._asdict()}
+    return _jwt
 
 
 @pytest.fixture

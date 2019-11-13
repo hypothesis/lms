@@ -150,7 +150,7 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
 
 @pytest.fixture(autouse=True)
 def LaunchParamsSchema(patch):
-    return patch("lms.authentication._helpers.LaunchParamsSchema")
+    return patch("lms.authentication._helpers.LaunchParamsAuthSchema")
 
 
 @pytest.fixture

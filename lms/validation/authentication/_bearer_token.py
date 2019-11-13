@@ -1,20 +1,22 @@
 """Schema for our bearer token-based LTI authentication."""
 import marshmallow
 
-from lms.validation import _helpers
-from lms.validation._exceptions import (
+from lms.validation import ValidationError
+from lms.validation._helpers import PyramidRequestSchema
+from lms.validation.authentication._exceptions import (
+    ExpiredJWTError,
     ExpiredSessionTokenError,
+    InvalidJWTError,
     InvalidSessionTokenError,
     MissingSessionTokenError,
-    ValidationError,
 )
-from lms.validation._helpers import ExpiredJWTError, InvalidJWTError
+from lms.validation.authentication._helpers import _jwt
 from lms.values import LTIUser
 
 __all__ = ("BearerTokenSchema",)
 
 
-class BearerTokenSchema(_helpers.PyramidRequestSchema):
+class BearerTokenSchema(PyramidRequestSchema):
     """
     Schema for our bearer token-based LTI authentication.
 
@@ -131,7 +133,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
         return {
-            "authorization": f"Bearer {_helpers.encode_jwt(data, self.context['secret'])}"
+            "authorization": f"Bearer {_jwt.encode_jwt(data, self.context['secret'])}"
         }
 
     @marshmallow.pre_load
@@ -151,7 +153,7 @@ class BearerTokenSchema(_helpers.PyramidRequestSchema):
             )
 
         try:
-            return _helpers.decode_jwt(jwt, self.context["secret"])
+            return _jwt.decode_jwt(jwt, self.context["secret"])
         except ExpiredJWTError as err:
             raise marshmallow.ValidationError(
                 "Expired session token", "authorization"
