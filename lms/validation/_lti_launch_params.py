@@ -2,7 +2,7 @@ from urllib.parse import unquote
 
 from marshmallow import fields, post_load, validates_schema
 
-from lms.validation import ValidationError
+from lms.validation._exceptions import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 
 
@@ -20,7 +20,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
     locations = ["form"]
 
     @validates_schema
-    def validate_lti_compliance(self, data, **kwargs):
+    def validate_lti_compliance(self, data, **kwargs):  # pylint: disable=unused-argument,no-self-use
         if not data.get("resource_link_id") and not data.get(
             "launch_presentation_return_url"
         ):
