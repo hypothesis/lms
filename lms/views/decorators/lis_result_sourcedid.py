@@ -29,14 +29,6 @@ def upsert_lis_result_sourcedid(wrapped):
         if request.lti_user.is_instructor:
             should_upsert = False
 
-        # Don't upsert the lis_result_sourcedid if the LMS isn't either
-        # Blackboard Learn or Moodle.
-        if lis_result_sourcedid.tool_consumer_info_product_family_code not in (
-            "BlackboardLearn",
-            "moodle",
-        ):
-            should_upsert = False
-
         if should_upsert:
             lis_result_svc = request.find_service(name="lis_result_sourcedid")
             lis_result_svc.upsert(

@@ -10,13 +10,7 @@ from lms.views.helpers import frontend_app
 
 @pytest.mark.usefixtures("lis_result_sourcedid_svc")
 class TestConfigureGrading:
-    @pytest.mark.parametrize("product_family_code", ["BlackboardLearn", "moodle"])
-    def test_it_enables_grading_if_criteria_met(
-        self, grading_request, product_family_code
-    ):
-        grading_request.params[
-            "tool_consumer_info_product_family_code"
-        ] = product_family_code
+    def test_it_enables_grading_(self, grading_request):
         js_config = {}
 
         frontend_app.configure_grading(grading_request, js_config)
@@ -28,18 +22,6 @@ class TestConfigureGrading:
         grading_request.lti_user = LTIUser(
             "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "student"
         )
-
-        frontend_app.configure_grading(grading_request, js_config)
-
-        assert "lmsGrader" not in js_config
-
-    def test_it_disables_grading_if_lms_is_not_blackboard_or_moodle(
-        self, grading_request
-    ):
-        js_config = {}
-        grading_request.params[
-            "tool_consumer_info_product_family_code"
-        ] = "NOT_BLACKBOARD_OR_MOODLE"
 
         frontend_app.configure_grading(grading_request, js_config)
 
