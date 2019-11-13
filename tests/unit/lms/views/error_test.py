@@ -17,7 +17,7 @@ class ExceptionViewTest:
 
     def handle(self, pyramid_request):
         if self.exception is None:
-            return type(self).view(pyramid_request)
+            return type(self).view(mock.sentinel.exception, pyramid_request)
 
         return type(self).view(self.exception, pyramid_request)
 

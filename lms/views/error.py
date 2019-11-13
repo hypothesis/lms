@@ -20,13 +20,13 @@ def _http_error(exc, request):
 
 
 @notfound_view_config(renderer=DEFAULT_RENDERER)
-def notfound(request):
+def notfound(_, request):
     request.response.status_int = 404
     return {"message": _("Page not found")}
 
 
 @forbidden_view_config(renderer=DEFAULT_RENDERER)
-def forbidden(request):
+def forbidden(_, request):
     request.response.status_int = 403
     return {"message": _("You're not authorized to view this page")}
 
@@ -60,7 +60,7 @@ def validation_error(exc, request):
 
 
 @exception_view_config(context=Exception, renderer=DEFAULT_RENDERER)
-def error(request):
+def error(_, request):
     """
     Handle an unexpected exception.
 
