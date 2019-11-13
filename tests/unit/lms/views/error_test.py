@@ -1,8 +1,7 @@
 from unittest import mock
 
 import pytest
-from h_matchers import Any
-from pyramid.httpexceptions import HTTPBadRequest, HTTPClientError, HTTPServerError
+from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
 
 from lms.validation import ValidationError
 from lms.views import error

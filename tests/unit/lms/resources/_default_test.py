@@ -1,4 +1,3 @@
-import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
 from lms.resources import DefaultResource

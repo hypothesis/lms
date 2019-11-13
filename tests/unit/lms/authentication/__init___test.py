@@ -1,5 +1,4 @@
 import pytest
-from pyramid import testing
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.interfaces import IAuthenticationPolicy
 
