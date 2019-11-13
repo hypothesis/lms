@@ -1,10 +1,29 @@
-/** The entry point for the postmessage_json_rpc_server bundle. */
 import Server from './server';
 import { requestConfig } from './methods';
 
-const server = new Server();
-server.register('requestConfig', requestConfig);
+let server = {}; // Singleton rpc server reference
 
-module.exports = {
-  server,
-};
+/**
+ * Create a new RPC server and pass in a the requestConfig object
+ */
+function startRpcServer() {
+  server = new Server();
+  server.register('requestConfig', requestConfig);
+}
+
+/**
+ * @typedef {Object} SidebarFrame
+ * @prop {Object} frame - The reference to the sidebar window
+ * @prop {string} origin - The sidebar window's origin uri
+ */
+
+/**
+ * Gets the last used sidebar frame and origin.
+ *
+ * @returns {SidebarFrame}
+ */
+function getSidebarWindow() {
+  return server._sidebarWindow;
+}
+
+export { startRpcServer, getSidebarWindow };

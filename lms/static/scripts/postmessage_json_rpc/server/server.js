@@ -65,7 +65,7 @@ export default class Server {
     }
     // Save the last reference used to the sidebar window so we can
     // send messages back at a later time in the lms app.
-    window._sidebarWindow = {
+    this._sidebarWindow = {
       frame: event.source,
       origin: event.origin,
     };

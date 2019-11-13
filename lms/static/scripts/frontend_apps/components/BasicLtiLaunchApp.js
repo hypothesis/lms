@@ -14,6 +14,7 @@ import { ApiError, apiCall } from '../utils/api';
 import Dialog from './Dialog';
 import Button from './Button';
 import { call as rpcCall } from '../../postmessage_json_rpc/client';
+import { getSidebarWindow } from '../../postmessage_json_rpc/server';
 import ErrorDisplay from './ErrorDisplay';
 import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
@@ -197,18 +198,15 @@ export default function BasicLtiLaunchApp() {
      * makes an rpc call to change to the focused user of the sidebar.
      */
     const changeSelectedUser = user => {
-      if (window._sidebarWindow) {
-        rpcCall(
-          window._sidebarWindow.frame,
-          window._sidebarWindow.origin,
-          'changeFocusModeUser',
-          [
-            {
-              username: user.userid,
-              displayName: user.displayName,
-            },
-          ]
-        );
+      const sidebar = getSidebarWindow();
+
+      if (sidebar) {
+        rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
+          {
+            username: user.userid,
+            displayName: user.displayName,
+          },
+        ]);
       }
     };
 
