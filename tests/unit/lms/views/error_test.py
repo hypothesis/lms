@@ -78,6 +78,15 @@ class TestHTTPServerError(ExceptionViewTest):
     expected_result = {"message": exception.args[0]}
 
 
+class TestHTTPServerError(ExceptionViewTest):
+    view = error.http_server_error
+    exception = HTTPServerError("This is the error message")
+
+    response_status = 500
+    report_to_sentry = True
+    expected_result = {"message": exception.args[0]}
+
+
 class TestValidationError(ExceptionViewTest):
     view = error.validation_error
     exception = ValidationError(mock.sentinel.messages)

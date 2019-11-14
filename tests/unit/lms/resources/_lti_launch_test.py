@@ -153,7 +153,8 @@ class TestLTILaunchResource:
     def test_h_authority_provided_id_raises_if_theres_no_tool_consumer_instance_guid(
         self, pyramid_request
     ):
-        pyramid_request.params = {}
+        pyramid_request.params.pop("tool_consumer_instance_guid")
+
         with pytest.raises(
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
@@ -163,7 +164,9 @@ class TestLTILaunchResource:
     def test_h_authority_provided_id_raises_if_theres_no_context_id(
         self, pyramid_request
     ):
-        pyramid_request.params = {"tool_consumer_instance_guid": "test_guid"}
+        pyramid_request.params["tool_consumer_instance_guid"] = "test_guid"
+        pyramid_request.params.pop("context_id")
+
         with pytest.raises(
             HTTPBadRequest,
             match='Required parameter "context_id" missing from LTI params',
@@ -202,14 +205,14 @@ class TestLTILaunchResource:
     def test_h_group_name_returns_group_names_based_on_context_titles(
         self, context_title, expected_group_name, pyramid_request
     ):
-        pyramid_request.params = {"context_title": context_title}
+        pyramid_request.params["context_title"] = context_title
 
         assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
     def test_h_provider_just_returns_the_tool_consumer_instance_guid(
         self, pyramid_request
     ):
-        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
+        pyramid_request.params["tool_consumer_instance_guid"] = "VCSy*G1u3:canvas-lms"
 
         provider = LTILaunchResource(pyramid_request).h_provider
 
@@ -226,7 +229,8 @@ class TestLTILaunchResource:
     def test_h_provider_raises_if_tool_consumer_instance_guid_is_missing(
         self, request_params, pyramid_request
     ):
-        pyramid_request.params = request_params
+        pyramid_request.params.pop("tool_consumer_instance_guid")
+        pyramid_request.params.update(request_params)
 
         with pytest.raises(
             HTTPBadRequest,
@@ -235,7 +239,7 @@ class TestLTILaunchResource:
             LTILaunchResource(pyramid_request).h_provider
 
     def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
-        pyramid_request.params = {"user_id": "4533***70d9"}
+        pyramid_request.params["user_id"] = "4533***70d9"
 
         provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
 
@@ -245,7 +249,8 @@ class TestLTILaunchResource:
     def test_h_provider_unique_id_raises_if_user_id_is_missing(
         self, request_params, pyramid_request
     ):
-        pyramid_request.params = request_params
+        pyramid_request.params.pop("user_id")
+        pyramid_request.params.update(request_params)
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
@@ -253,10 +258,12 @@ class TestLTILaunchResource:
             LTILaunchResource(pyramid_request).h_provider_unique_id
 
     def test_h_user_username_is_a_30_char_string(self, pyramid_request):
-        pyramid_request.params = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-            "user_id": "4533***70d9",
-        }
+        pyramid_request.params.update(
+            {
+                "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
+                "user_id": "4533***70d9",
+            }
+        )
 
         username = LTILaunchResource(pyramid_request).h_user.username
 
@@ -266,7 +273,8 @@ class TestLTILaunchResource:
     def test_h_user_raises_if_tool_consumer_instance_guid_is_missing(
         self, pyramid_request
     ):
-        pyramid_request.params = {"user_id": "4533***70d9"}
+        pyramid_request.params.pop("tool_consumer_instance_guid")
+        pyramid_request.params["user_id"] = "4533***70d9"
 
         with pytest.raises(
             HTTPBadRequest,
@@ -275,7 +283,8 @@ class TestLTILaunchResource:
             LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_raises_if_user_id_is_missing(self, pyramid_request):
-        pyramid_request.params = {"tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms"}
+        pyramid_request.params.pop("user_id")
+        pyramid_request.params["tool_consumer_instance_guid"] = "VCSy*G1u3:canvas-lms"
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
@@ -283,10 +292,12 @@ class TestLTILaunchResource:
             LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_userid(self, pyramid_request):
-        pyramid_request.params = {
-            "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-            "user_id": "4533***70d9",
-        }
+        pyramid_request.params.update(
+            {
+                "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
+                "user_id": "4533***70d9",
+            }
+        )
 
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
@@ -330,7 +341,7 @@ class TestLTILaunchResource:
     def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
         self, pyramid_request
     ):
-        pyramid_request.params = {}
+        pyramid_request.params.pop("oauth_consumer_key")
 
         with pytest.raises(
             HTTPBadRequest,
@@ -341,9 +352,10 @@ class TestLTILaunchResource:
     def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
         self, pyramid_request
     ):
-        pyramid_request.params = {
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
-        }
+        pyramid_request.params.pop("tool_consumer_instance_guid")
+        pyramid_request.params[
+            "oauth_consumer_key"
+        ] = "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
 
         with pytest.raises(
             HTTPBadRequest,
@@ -480,6 +492,8 @@ class TestLTILaunchResource:
             "context_id": "test_context_id",
             "user_id": "test_user_id",
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+            # Mandatory parameters for an LTI request to succeed
+            "resource_link_id": "DUMMY-ID",
         }
         return pyramid_request
 
