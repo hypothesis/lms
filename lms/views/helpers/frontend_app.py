@@ -12,7 +12,11 @@ def configure_grading(request, js_config):
     Note that this is entirely distinct from Canvas Speedgrader, which provides
     its own UI.
     """
-    if request.lti_user.is_instructor and _is_assignment_gradable(request):
+    if (
+        request.lti_user.is_instructor
+        and _is_assignment_gradable(request)
+        and request.params.get("tool_consumer_info_product_family_code") != "canvas"
+    ):
         js_config["lmsGrader"] = True
 
     js_config["grading"] = {

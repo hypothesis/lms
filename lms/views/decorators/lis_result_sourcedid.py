@@ -22,7 +22,10 @@ def upsert_lis_result_sourcedid(wrapped):
             # LIS data is not present on the request.
             return wrapped(context, request)
 
-        if not request.lti_user.is_instructor:
+        if (
+            not request.lti_user.is_instructor
+            and request.params.get("tool_consumer_info_product_family_code") != "canvas"
+        ):
             lis_result_svc = request.find_service(name="lis_result_sourcedid")
             lis_result_svc.upsert(
                 lis_result_sourcedid, h_user=context.h_user, lti_user=request.lti_user
