@@ -1,5 +1,6 @@
 import h_pyramid_sentry
 from pyramid import httpexceptions, i18n
+from pyramid.config import not_
 from pyramid.view import (
     exception_view_config,
     forbidden_view_config,
@@ -50,7 +51,7 @@ def http_server_error(exc, request):
 
 @exception_view_config(
     context=ValidationError,
-    accept="text/html",
+    path_info=not_("^/api/.*"),
     renderer="lms:templates/validation_error.html.jinja2",
 )
 def validation_error(exc, request):
