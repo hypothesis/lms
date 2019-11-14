@@ -25,16 +25,24 @@ class LaunchParamsSchema(PyramidRequestSchema):
 
         launch_presentation_return_url = fields.URL()
 
-    resource_link_id = fields.Str(required=True)
+    context_id = fields.Str(required=True)
+    context_title = fields.Str(required=True)
     launch_presentation_return_url = fields.Str()
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
     lti_message_type = fields.Str(
         validate=OneOf(["basic-lti-launch-request"]), required=True
     )
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
+    resource_link_id = fields.Str(required=True)
 
     # If we have an error in one of these fields we should redirect back to
     # the calling LMS if possible
-    lti_redirect_fields = {"resource_link_id", "lti_version", "lti_message_type"}
+    lti_redirect_fields = {
+        "resource_link_id",
+        "lti_version",
+        "lti_message_type",
+        "context_id",
+        "context_title",
+    }
 
     locations = ["form"]
 

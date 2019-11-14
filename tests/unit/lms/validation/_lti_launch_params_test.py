@@ -125,6 +125,8 @@ def pyramid_request(pyramid_request):
             "resource_link_id": "DUMMY-LINK",
             "lti_version": "LTI-1p0",
             "lti_message_type": "basic-lti-launch-request",
+            "context_id": "DUMMY-CONTEXT-ID",
+            "context_title": "A context title",
         }
     )
 
