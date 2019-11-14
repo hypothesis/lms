@@ -49,7 +49,7 @@ class TestLTICertification(TestBaseClass):
     def lti_launch(self, app, params, status=200):
         url = "/lti_launches"
 
-        params = self._oauth_sign_params(url, params)
+        params = self.oauth_sign_params(url, params)
 
         return app.post(
             url,
