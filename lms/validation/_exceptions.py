@@ -47,7 +47,7 @@ class ValidationError(
 
 
 class LTIToolRedirect(HTTPFound):
-    """Something that the user needs to know about in the LTI tool."""
+    """An LTI validation error that should be returned to the tool consumer."""
 
     def __init__(self, location, messages):
         """
