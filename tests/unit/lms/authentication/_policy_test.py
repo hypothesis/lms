@@ -1,10 +1,8 @@
-import base64
 from unittest import mock
 
 import pytest
 
 from lms.authentication._policy import AuthenticationPolicy
-from lms.values import LTIUser
 
 
 class TestAuthenticationPolicy:

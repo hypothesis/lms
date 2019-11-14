@@ -4,11 +4,7 @@ import pytest
 from requests import ConnectionError, HTTPError, ReadTimeout, Request, TooManyRedirects
 
 from lms.services._helpers.canvas_api import CanvasAPIHelper
-from lms.services.exceptions import (
-    CanvasAPIAccessTokenError,
-    CanvasAPIError,
-    CanvasAPIServerError,
-)
+from lms.services.exceptions import CanvasAPIError
 from lms.validation import ValidationError
 from lms.validation._helpers import PyramidRequestSchema
 

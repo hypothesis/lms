@@ -1,13 +1,10 @@
-import datetime
 from unittest import mock
 
 import pytest
-from requests import ConnectionError, HTTPError, ReadTimeout, Response, TooManyRedirects
 
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
-from lms.validation import ValidationError
 
 
 class TestGetToken:

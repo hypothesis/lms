@@ -1,22 +1,17 @@
 import h_pyramid_sentry
 from pyramid import httpexceptions, i18n
-from pyramid.view import forbidden_view_config, notfound_view_config
+from pyramid.config import not_
+from pyramid.view import (
+    exception_view_config,
+    forbidden_view_config,
+    notfound_view_config,
+)
 
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
 
-
-@notfound_view_config(renderer="lms:templates/error.html.jinja2")
-def notfound(request):
-    request.response.status_int = 404
-    return {"message": _("Page not found")}
-
-
-@forbidden_view_config(renderer="lms:templates/error.html.jinja2")
-def forbidden(request):
-    request.response.status_int = 403
-    return {"message": _("You're not authorized to view this page")}
+DEFAULT_RENDERER = "lms:templates/error.html.jinja2"
 
 
 def _http_error(exc, request):
@@ -25,24 +20,48 @@ def _http_error(exc, request):
     return {"message": str(exc)}
 
 
+@notfound_view_config(renderer=DEFAULT_RENDERER)
+def notfound(_exc, request):
+    request.response.status_int = 404
+    return {"message": _("Page not found")}
+
+
+@forbidden_view_config(renderer=DEFAULT_RENDERER)
+def forbidden(_exc, request):
+    request.response.status_int = 403
+    return {"message": _("You're not authorized to view this page")}
+
+
+@exception_view_config(
+    context=httpexceptions.HTTPClientError, renderer=DEFAULT_RENDERER,
+)
 def http_client_error(exc, request):
     """Handle an HTTP 4xx (client error) exception."""
     return _http_error(exc, request)
 
 
+@exception_view_config(
+    context=httpexceptions.HTTPServerError, renderer=DEFAULT_RENDERER
+)
 def http_server_error(exc, request):
     """Handle an HTTP 5xx (server error) exception."""
     h_pyramid_sentry.report_exception()
     return _http_error(exc, request)
 
 
+@exception_view_config(
+    context=ValidationError,
+    path_info=not_("^/api/.*"),
+    renderer="lms:templates/validation_error.html.jinja2",
+)
 def validation_error(exc, request):
     """Handle a ValidationError."""
     request.response.status_int = exc.status_int
     return {"error": exc}
 
 
-def error(request):
+@exception_view_config(context=Exception, renderer=DEFAULT_RENDERER)
+def error(_exc, request):
     """
     Handle an unexpected exception.
 
@@ -66,22 +85,3 @@ def error(request):
             "fix it."
         )
     }
-
-
-def includeme(config):
-    view_defaults = {"renderer": "lms:templates/error.html.jinja2"}
-
-    config.add_exception_view(
-        http_client_error, context=httpexceptions.HTTPClientError, **view_defaults
-    )
-    config.add_exception_view(
-        http_server_error, context=httpexceptions.HTTPServerError, **view_defaults
-    )
-    config.add_exception_view(error, context=Exception, **view_defaults)
-
-    validation_view_defaults = dict(view_defaults)
-    validation_view_defaults["renderer"] = "lms:templates/validation_error.html.jinja2"
-
-    config.add_exception_view(
-        validation_error, context=ValidationError, **validation_view_defaults
-    )

@@ -1,6 +1,6 @@
 import pytest
 
-from lms.config.settings import SettingError, SettingGetter
+from lms.config.settings import SettingGetter
 
 
 @pytest.mark.usefixtures("os_fixture")

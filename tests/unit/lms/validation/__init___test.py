@@ -1,8 +1,6 @@
 from unittest import mock
 
-import marshmallow
 import pytest
-import webargs
 from pyramid.interfaces import IViewDerivers
 
 from lms.validation import ValidationError, _validated_view, includeme
