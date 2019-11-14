@@ -17,9 +17,9 @@ class TestLISResultSourcedId:
         assert lrs.user_id == "339483948"
         assert lrs.context_id == "random context"
         assert lrs.resource_link_id == "random resource link id"
-        assert lrs.tool_consumer_info_product_family_code == "BlackboardLearn"
-        assert lrs.h_username == "blackboarduser1"
-        assert lrs.h_display_name == "Black Board User"
+        assert lrs.tool_consumer_info_product_family_code == "MyFakeLTITool"
+        assert lrs.h_username == "ltiuser1"
+        assert lrs.h_display_name == "My Fake LTI User"
 
     @pytest.mark.parametrize(
         "non_nullable_field",
@@ -78,9 +78,9 @@ class TestLISResultSourcedId:
             user_id="339483948",
             context_id="random context",
             resource_link_id="random resource link id",
-            tool_consumer_info_product_family_code="BlackboardLearn",
-            h_username="blackboarduser1",
-            h_display_name="Black Board User",
+            tool_consumer_info_product_family_code="MyFakeLTITool",
+            h_username="ltiuser1",
+            h_display_name="My Fake LTI User",
         )
 
     @pytest.fixture
@@ -92,7 +92,7 @@ class TestLISResultSourcedId:
             user_id="339483948",
             context_id="random context",
             resource_link_id="random resource link id",
-            tool_consumer_info_product_family_code="BlackboardLearn",
-            h_username="blackboarduser1",
-            h_display_name="Black Board User",
+            tool_consumer_info_product_family_code="MyFakeLTITool",
+            h_username="ltiuser1",
+            h_display_name="My Fake LTI User",
         )

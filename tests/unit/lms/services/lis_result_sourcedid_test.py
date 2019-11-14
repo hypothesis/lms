@@ -176,7 +176,7 @@ def lis_result_sourcedid_info(application_instance):
         lis_outcome_service_url="https://somewhere.else",
         context_id="random context",
         resource_link_id="random resource link id",
-        tool_consumer_info_product_family_code="BlackboardLearn",
+        tool_consumer_info_product_family_code="MyFakeLTITool",
     )
 
 

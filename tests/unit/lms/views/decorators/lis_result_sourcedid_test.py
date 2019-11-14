@@ -75,31 +75,6 @@ class TestUpsertLISResultSourcedId:
         wrapped.assert_called_once_with(context, pyramid_request)
         lis_result_sourcedid_svc.upsert.assert_not_called()
 
-    def test_it_continues_to_wrapped_fn_if_LMS_not_blackboard(
-        self,
-        upsert_lis_result_sourcedid,
-        pyramid_request,
-        context,
-        lis_result_sourcedid_svc,
-        LISResultSourcedIdSchema,
-        lis_result_sourcedid_value,
-        wrapped,
-    ):
-        lis_result_sourcedid_value = lis_result_sourcedid_value._replace(
-            tool_consumer_info_product_family_code="NOTBLACKBOARD"
-        )
-        LISResultSourcedIdSchema.return_value.lis_result_sourcedid_info.return_value = (
-            lis_result_sourcedid_value
-        )
-
-        upsert_lis_result_sourcedid(context, pyramid_request)
-
-        LISResultSourcedIdSchema(
-            pyramid_request
-        ).lis_result_sourcedid_info.assert_called_once()
-        wrapped.assert_called_once_with(context, pyramid_request)
-        lis_result_sourcedid_svc.upsert.assert_not_called()
-
     def test_it_upserts_lis_result_sourcedid(
         self,
         upsert_lis_result_sourcedid,
@@ -164,7 +139,7 @@ def lis_result_sourcedid_value():
         lis_outcome_service_url="TEST LIS OUTCOME SERVICE URL",
         context_id="TEST CONTEXT ID",
         resource_link_id="TEST RESOURCE LINK ID",
-        tool_consumer_info_product_family_code="BlackboardLearn",
+        tool_consumer_info_product_family_code="FooLMS",
     )
 
 
