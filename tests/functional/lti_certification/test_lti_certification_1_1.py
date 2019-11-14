@@ -72,6 +72,24 @@ class TestLTICertification(TestBaseClass):
             app, lti_params, message=Any.string.containing("lti_version")
         )
 
+    def test_1_8_redirect_to_tool_consumer_when_lti_mesage_type_invalid(
+        self, app, lti_params
+    ):
+        lti_params["lti_message_type"] = "a-basic-lti-launch-request"
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_message_type")
+        )
+
+    def test_1_9_redirect_to_tool_consumer_when_lti_message_type_missing(
+        self, app, lti_params
+    ):
+        lti_params.pop("lti_message_type")
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_message_type")
+        )
+
     # ---------------------------------------------------------------------- #
     # Assertions
 

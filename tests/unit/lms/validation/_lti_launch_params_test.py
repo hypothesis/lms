@@ -121,7 +121,11 @@ class TestURLConfiguredLaunchParamsSchema:
 def pyramid_request(pyramid_request):
     pyramid_request.content_type = "application/x-www-form-urlencoded"
     pyramid_request.params.update(
-        {"resource_link_id": "DUMMY-LINK", "lti_version": "LTI-1p0"}
+        {
+            "resource_link_id": "DUMMY-LINK",
+            "lti_version": "LTI-1p0",
+            "lti_message_type": "basic-lti-launch-request",
+        }
     )
 
     return pyramid_request
