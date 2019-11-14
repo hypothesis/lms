@@ -18,13 +18,13 @@ class TestLaunchParamsSchema:
 
         assert params == Any.dict.containing({"resource_link_id": Any.string()})
 
-    def test_it_detects_bad_urls(self, pyramid_request):
+    def test_it_allows_bad_urls_if_there_are_no_other_errors(self, pyramid_request):
         pyramid_request.params["launch_presentation_return_url"] = "goofyurl"
 
         schema = LaunchParamsSchema(pyramid_request)
+        schema.parse()
 
-        with pytest.raises(ValidationError):
-            schema.parse()
+        # Still alive!
 
     def test_ValidationError_raised_when_res_link_missing(self, pyramid_request):
         pyramid_request.params.pop("resource_link_id")
