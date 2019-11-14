@@ -1,7 +1,8 @@
+from urllib.parse import urlencode, urlparse
+
 from pyramid import httpexceptions
-
 # pylint: disable=too-many-ancestors
-
+from pyramid.httpexceptions import HTTPFound
 
 __all__ = [
     "ValidationError",
@@ -42,3 +43,34 @@ class ValidationError(
         """
         super().__init__()
         self.messages = messages
+
+
+class LTIToolRedirect(HTTPFound):
+    """Something that the user needs to know about in the LTI tool."""
+
+    def __init__(self, location, messages):
+        message = self._messages_to_string(messages)
+        location = self._update_location(location, message)
+
+        super().__init__(location, message)
+
+    @classmethod
+    def _update_location(cls, location, message):
+        location = urlparse(location)
+        location = location._replace(
+            query=urlencode(dict(location.query, lti_msg=message))
+        )
+
+        try:
+            return location.geturl()
+        except Exception:
+            raise
+
+    @classmethod
+    def _messages_to_string(cls, messages):
+        parts = []
+        for field, errors in messages.items():
+            for error in errors:
+                parts.append(f"Field '{field}': {error}")
+
+        return ", ".join(parts)

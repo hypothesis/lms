@@ -1,4 +1,5 @@
 import time
+from urllib.parse import parse_qs, urlparse
 
 import oauthlib.common
 import oauthlib.oauth1
@@ -24,13 +25,17 @@ class TestLTICertification(TestBaseClass):
         assert "tool_consumer_instance_guid" in result.text
         assert lti_params["tool_consumer_instance_guid"] in result.text
 
-    def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(self, app):
-        self.lti_launch(
-            app,
-            remove=["resource_link_id"],
-            status=302,
+    def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(
+        self, app, lti_params
+    ):
+        lti_params.pop("resource_link_id")
+        response = self.lti_launch(app, lti_params, status=302)
+
+        self.assert_redirected_to_tool_with_message(
+            response, lti_params,
+            message=Any.string.containing("resource_link_id")
         )
-    
+
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
         self, app, lti_params
     ):
@@ -49,6 +54,15 @@ class TestLTICertification(TestBaseClass):
     def assert_response_is_html(cls, response):
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
+
+    def assert_redirected_to_tool_with_message(
+        self, response, lti_params, message=Any.string()
+    ):
+        expected_url = urlparse(lti_params["launch_presentation_return_url"])
+        url = urlparse(response.headers["Location"])
+
+        assert url._replace(query=None)
+        assert parse_qs(url.query) == Any.dict.containing({"lti_msg": [message]})
 
     # ---------------------------------------------------------------------- #
     # Helper methods
