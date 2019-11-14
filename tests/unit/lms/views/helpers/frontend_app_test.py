@@ -10,7 +10,7 @@ from lms.views.helpers import frontend_app
 
 @pytest.mark.usefixtures("lis_result_sourcedid_svc")
 class TestConfigureGrading:
-    def test_it_enables_grading_(self, grading_request):
+    def test_it_enables_grading(self, grading_request):
         js_config = {}
 
         frontend_app.configure_grading(grading_request, js_config)
