@@ -50,7 +50,8 @@ class LTIToolRedirect(HTTPFound):
     """Something that the user needs to know about in the LTI tool."""
 
     def __init__(self, location, messages):
-        """Create an exception with redirect information for an LTI tool.
+        """
+        Create an exception with redirect information for an LTI tool.
 
         :param location: The URL to redirect to
         :param messages: A dict of lists of validation messages where the keys

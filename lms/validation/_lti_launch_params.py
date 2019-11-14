@@ -23,7 +23,11 @@ class LaunchParamsSchema(PyramidRequestSchema):
 
     locations = ["form"]
 
-    def handle_error(self, error, data, **kwargs):
+    # The parent params are all specified with typing stuff and are pretty
+    # crazy, so we'll disable the warnings to get slightly easier to understand
+    # params
+    def handle_error(self, error, data, **kwargs):  # pylint: disable=arguments-differ
+
         messages = error.messages
         valid_data = error.valid_data
 
