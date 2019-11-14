@@ -58,10 +58,10 @@ class TestLTICertification(TestBaseClass):
     def assert_redirected_to_tool_with_message(
         self, response, lti_params, message=Any.string()
     ):
-        expected_url = urlparse(lti_params["launch_presentation_return_url"])
+        expected_url = lti_params["launch_presentation_return_url"]
         url = urlparse(response.headers["Location"])
 
-        assert url._replace(query=None)
+        assert url._replace(query=None).geturl() == expected_url
         assert parse_qs(url.query) == Any.dict.containing({"lti_msg": [message]})
 
     # ---------------------------------------------------------------------- #
