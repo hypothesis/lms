@@ -54,7 +54,10 @@ from lms.validation._canvas import (
 )
 from lms.validation._exceptions import ValidationError
 from lms.validation._lis_result_sourcedid import LISResultSourcedIdSchema
-from lms.validation._lti_launch_params import LaunchParamsURLConfiguredSchema
+from lms.validation._lti_launch_params import (
+    LaunchParamsSchema,
+    LaunchParamsURLConfiguredSchema,
+)
 from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 
 __all__ = (
@@ -65,6 +68,7 @@ __all__ = (
     "ConfigureModuleItemSchema",
     "CanvasListFilesResponseSchema",
     "CanvasPublicURLResponseSchema",
+    "LaunchParamsSchema",
     "LaunchParamsURLConfiguredSchema",
     "ValidationError",
 )

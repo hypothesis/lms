@@ -1,6 +1,6 @@
 from urllib.parse import unquote
 
-import marshmallow
+from marshmallow import fields, post_load
 
 from lms.validation._helpers import PyramidRequestSchema
 
@@ -13,7 +13,9 @@ class LaunchParamsSchema(PyramidRequestSchema):
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
 
-    pass
+    resource_link_id = fields.Str(required=True)
+
+    locations = ["form"]
 
 
 class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
@@ -24,9 +26,9 @@ class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
     launch param.
     """
 
-    url = marshmallow.fields.Str(required=True)
+    url = fields.Str(required=True)
 
-    @marshmallow.post_load
+    @post_load
     def _decode_url(self, _data, **_kwargs):  # pylint:disable=no-self-use
         # Work around a bug in Canvas's handling of LTI Launch URLs in
         # SpeedGrader launches. In that context, query params get
@@ -38,4 +40,5 @@ class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
         if url.lower().startswith("http%3a") or url.lower().startswith("https%3a"):
             url = unquote(url)
             _data["url"] = url
+
         return _data
