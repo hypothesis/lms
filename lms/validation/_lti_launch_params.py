@@ -6,11 +6,6 @@ from lms.validation._exceptions import LTIToolRedirect
 from lms.validation._helpers import PyramidRequestSchema
 
 
-class LaunchPresentationReturnURLSchema(Schema):
-    """Schema containing only validation for the return URL."""
-    launch_presentation_return_url = fields.URL()
-
-
 class LaunchParamsSchema(PyramidRequestSchema):
     """
     Schema describing the minimum requirements for LTI launch parameters.
@@ -18,6 +13,11 @@ class LaunchParamsSchema(PyramidRequestSchema):
     This *DOES NOT* contain all of the fields required for authentication.
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
+
+    class URLSchema(Schema):
+        """Schema containing only validation for the return URL."""
+
+        launch_presentation_return_url = fields.URL()
 
     resource_link_id = fields.Str(required=True)
     launch_presentation_return_url = fields.Str()
@@ -34,8 +34,11 @@ class LaunchParamsSchema(PyramidRequestSchema):
         try:
             # Extract the launch_presentation_return_url and check it's a real
             # URL
-            return_url = LaunchPresentationReturnURLSchema().load(data).get(
-                "launch_presentation_return_url")
+            return_url = (
+                LaunchParamsSchema.URLSchema()
+                .load(data)
+                .get("launch_presentation_return_url")
+            )
         except ValidationError:
             return_url = None
 
