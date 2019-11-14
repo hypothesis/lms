@@ -28,6 +28,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(
         self, app, lti_params
     ):
+        """
+        No resource_link_id provided.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
         lti_params.pop("resource_link_id")
 
         self.assert_redirected_to_tool_with_message(
@@ -37,6 +42,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
         self, app, lti_params
     ):
+        """
+        No resource_link_id or return URL provided.
+
+        Expected result: A user-friendly error message.
+        """
         lti_params.pop("resource_link_id")
         lti_params.pop("launch_presentation_return_url")
 
@@ -48,6 +58,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_5_redirect_to_tool_consumer_when_lti_version_invalid(
         self, app, lti_params
     ):
+        """
+        Invalid LTI version.
+
+        Return user to the Tool Consumer with an error message.
+        """
         lti_params["lti_version"] = "LTI-1"
 
         self.assert_redirected_to_tool_with_message(
@@ -57,6 +72,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_6_redirect_to_tool_consumer_when_lti_version_wrong(
         self, app, lti_params
     ):
+        """
+        Wrong LTI version.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+                """
         lti_params["lti_version"] = "LTI-2p0"
 
         self.assert_redirected_to_tool_with_message(
@@ -66,6 +86,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_7_redirect_to_tool_consumer_when_lti_version_missing(
         self, app, lti_params
     ):
+        """
+        Missing LTI version.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
         lti_params.pop("lti_version")
 
         self.assert_redirected_to_tool_with_message(
@@ -75,6 +100,11 @@ class TestLTICertification(TestBaseClass):
     def test_1_8_redirect_to_tool_consumer_when_lti_mesage_type_invalid(
         self, app, lti_params
     ):
+        """
+        Invalid LTI message type.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
         lti_params["lti_message_type"] = "a-basic-lti-launch-request"
 
         self.assert_redirected_to_tool_with_message(
@@ -84,10 +114,86 @@ class TestLTICertification(TestBaseClass):
     def test_1_9_redirect_to_tool_consumer_when_lti_message_type_missing(
         self, app, lti_params
     ):
+        """
+        Missing LTI message type
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
         lti_params.pop("lti_message_type")
 
         self.assert_redirected_to_tool_with_message(
             app, lti_params, message=Any.string.containing("lti_message_type")
+        )
+
+    def test_4_5_placeholder(self, app, lti_params):
+        """
+        Launch as an instructor with no context or personal information apart
+        from the context ID.
+
+        Expected result: User should have privileges appropriate to an
+        instructor (e.g. able to edit) unless context and/or personal information
+        is required in which case access should be denied and the user returned
+        to the Tool Consumer with a user-friendly message
+        """
+        lti_params = self.update_params(
+            lti_params,
+            remove={
+                "resource_link_title",
+                "context_label",
+                "lis_person_contact_email_primary",
+                "lis_course_section_sourcedid",
+                "context_type",
+                "lis_person_name_given",
+                "context_title",
+                "resourcelinkid",
+                "lis_person_name_full",
+                "lis_person_name_family",
+            },
+            add={
+                "custom_context_memberships_url": "https://apps.imsglobal.org/lti/cert/tp/tp_membership.php/context/con-182/membership?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+                "custom_context_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/lis/CourseSection/con-182/bindings/ims/cert/custom?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+                "custom_link_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/links/rli-1234/custom?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+                "custom_system_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/ToolProxy/Hypothesis4dd96539c449ca5c3d57cc3d778d6bf3/custom?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+                "custom_tc_profile_url": "https://apps.imsglobal.org/lti/cert/tp/tp_tcprofile.php?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+            },
+        )
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("_placeholder")
+        )
+
+    def test_4_6_placeholder(self, app, lti_params):
+        """
+        Launch as Instructor with no context information.
+
+        Expected result: User should have privileges appropriate to an
+        instructor (e.g. able to edit) unless context and/or personal
+        information is required in which case access should be denied and
+        the user returned to the Tool Consumer with a user-friendly message.
+        """
+
+        lti_params = self.update_params(
+            lti_params,
+            remove={
+                "resource_link_title",
+                "context_label",
+                "lis_course_section_sourcedid",
+                "custom_link_setting_url",
+                "context_type",
+                "context_title",
+                "custom_context_setting_url",
+                "resourcelinkid",
+                "context_id",
+            },
+            add={
+                "custom_context_memberships_url": "$ToolProxyBinding.memberships.url",
+                "custom_system_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/ToolProxy/Hypothesis4dd96539c449ca5c3d57cc3d778d6bf3/custom?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+                "custom_tc_profile_url": "https://apps.imsglobal.org/lti/cert/tp/tp_tcprofile.php?b64=a3BwZGwzZGhvdGRsdHBkcDV2dWh1aDQzYzE%3D",
+            },
+        )
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("_placeholder")
         )
 
     # ---------------------------------------------------------------------- #
@@ -112,6 +218,17 @@ class TestLTICertification(TestBaseClass):
 
     # ---------------------------------------------------------------------- #
     # Helper methods
+
+    @classmethod
+    def update_params(cls, params, remove=None, add=None):
+        if remove:
+            for item in remove:
+                params.pop(item)
+
+        if add:
+            params.update(add)
+
+        return params
 
     @classmethod
     def lti_launch(cls, app, params, status=200):
