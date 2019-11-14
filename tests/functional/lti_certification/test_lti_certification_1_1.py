@@ -16,78 +16,182 @@ class TestLTICertification(TestBaseClass):
     OAUTH_NONCE = "38d6db30e395417659d068164ca95169"
     OAUTH_CLIENT = oauthlib.oauth1.Client(OAUTH_CONSUMER_KEY, SHARED_SECRET)
 
-    def test_a_good_request_loads_fine(self, app, lti_params):
-        result = self.lti_launch(app, lti_params, status=200)
+    def test_a_good_request_loads_fine(self, app, lti_params_1x):
+        result = self.lti_launch(app, lti_params_1x, status=200)
 
         self.assert_response_is_html(result)
 
         # Check a random parameter to see it's passed to the body
         assert "tool_consumer_instance_guid" in result.text
-        assert lti_params["tool_consumer_instance_guid"] in result.text
+        assert lti_params_1x["tool_consumer_instance_guid"] in result.text
 
     def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params.pop("resource_link_id")
+        """
+        No resource_link_id provided.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
+        lti_params_1x.pop("resource_link_id")
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("resource_link_id")
+            app, lti_params_1x, message=Any.string.containing("resource_link_id")
         )
 
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params.pop("resource_link_id")
-        lti_params.pop("launch_presentation_return_url")
+        """
+        No resource_link_id or return URL provided.
 
-        result = self.lti_launch(app, lti_params, status=422)
+        Expected result: A user-friendly error message.
+        """
+        lti_params_1x.pop("resource_link_id")
+        lti_params_1x.pop("launch_presentation_return_url")
+
+        result = self.lti_launch(app, lti_params_1x, status=422)
 
         self.assert_response_is_html(result)
         assert "resource_link_id" in result
 
     def test_1_5_redirect_to_tool_consumer_when_lti_version_invalid(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params["lti_version"] = "LTI-1"
+        """
+        Invalid LTI version.
+
+        Return user to the Tool Consumer with an error message.
+        """
+        lti_params_1x["lti_version"] = "LTI-1"
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version")
+            app, lti_params_1x, message=Any.string.containing("lti_version")
         )
 
     def test_1_6_redirect_to_tool_consumer_when_lti_version_wrong(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params["lti_version"] = "LTI-2p0"
+        """
+        Wrong LTI version.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+                """
+        lti_params_1x["lti_version"] = "LTI-2p0"
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version")
+            app, lti_params_1x, message=Any.string.containing("lti_version")
         )
 
     def test_1_7_redirect_to_tool_consumer_when_lti_version_missing(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params.pop("lti_version")
+        """
+        Missing LTI version.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
+        lti_params_1x.pop("lti_version")
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version")
+            app, lti_params_1x, message=Any.string.containing("lti_version")
         )
 
     def test_1_8_redirect_to_tool_consumer_when_lti_mesage_type_invalid(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params["lti_message_type"] = "a-basic-lti-launch-request"
+        """
+        Invalid LTI message type.
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
+        lti_params_1x["lti_message_type"] = "a-basic-lti-launch-request"
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_message_type")
+            app, lti_params_1x, message=Any.string.containing("lti_message_type")
         )
 
     def test_1_9_redirect_to_tool_consumer_when_lti_message_type_missing(
-        self, app, lti_params
+        self, app, lti_params_1x
     ):
-        lti_params.pop("lti_message_type")
+        """
+        Missing LTI message type
+
+        Expected result: Return user to the Tool Consumer with an error message.
+        """
+        lti_params_1x.pop("lti_message_type")
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_message_type")
+            app, lti_params_1x, message=Any.string.containing("lti_message_type")
+        )
+
+    def test_4_5_redirect_to_tool_for_instructor_with_no_context_bar_id(
+        self, app, lti_params_4x
+    ):
+        """
+        Launch as an instructor with no context or personal information apart
+        from the context ID.
+
+        Expected result: User should have privileges appropriate to an
+        instructor (e.g. able to edit) unless context and/or personal information
+        is required in which case access should be denied and the user returned
+        to the Tool Consumer with a user-friendly message
+
+        Hypotheis note: context_title is required for us
+        See: See: https://github.com/hypothesis/lms/wiki/LTI-Parameters-Required-for-Hypothesis-LMS-App-Integration
+        """
+        lti_params_4x = self.update_params(
+            lti_params_4x,
+            remove=[
+                "context_label",
+                "context_title",
+                "context_type",
+                "lis_course_section_sourcedid",
+                "lis_person_contact_email_primary",
+                "lis_person_name_family",
+                "lis_person_name_full",
+                "lis_person_name_given",
+                "resource_link_title",
+            ],
+        )
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params_4x, message=Any.string.matching(".*")
+        )
+
+    def test_4_6_redirect_to_tool_for_instructor_with_no_context(
+        self, app, lti_params_4x
+    ):
+        """
+        Launch as Instructor with no context information.
+
+        Expected result: User should have privileges appropriate to an
+        instructor (e.g. able to edit) unless context and/or personal
+        information is required in which case access should be denied and
+        the user returned to the Tool Consumer with a user-friendly message.
+
+        Hypotheis note: context_id and context_title are required for us:
+        See: https://github.com/hypothesis/lms/wiki/LTI-Parameters-Required-for-Hypothesis-LMS-App-Integration
+        """
+
+        lti_params_4x = self.update_params(
+            lti_params_4x,
+            remove=[
+                "context_id",
+                "context_label",
+                "context_title",
+                "context_type",
+                "custom_context_setting_url",
+                "custom_link_setting_url",
+                "lis_course_section_sourcedid",
+                "resource_link_title",
+            ],
+            # I've no idea why this is different, but it's in the spec tests
+            add={"custom_context_memberships_url": "$ToolProxyBinding.memberships.url"},
+        )
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params_4x, message=Any.string.matching(".*")
         )
 
     # ---------------------------------------------------------------------- #
@@ -100,11 +204,11 @@ class TestLTICertification(TestBaseClass):
 
     @classmethod
     def assert_redirected_to_tool_with_message(
-        cls, app, lti_params, message=Any.string()
+        cls, app, lti_params_1x, message=Any.string()
     ):
-        response = cls.lti_launch(app, lti_params, status=302)
+        response = cls.lti_launch(app, lti_params_1x, status=302)
 
-        expected_url = lti_params["launch_presentation_return_url"]
+        expected_url = lti_params_1x["launch_presentation_return_url"]
         url = urlparse(response.headers["Location"])
 
         assert url._replace(query=None).geturl() == expected_url
@@ -112,6 +216,17 @@ class TestLTICertification(TestBaseClass):
 
     # ---------------------------------------------------------------------- #
     # Helper methods
+
+    @classmethod
+    def update_params(cls, params, remove=None, add=None):
+        if remove:
+            for item in remove:
+                params.pop(item)
+
+        if add:
+            params.update(add)
+
+        return params
 
     @classmethod
     def lti_launch(cls, app, params, status=200):
@@ -163,5 +278,11 @@ class TestLTICertification(TestBaseClass):
         return application_instance
 
     @pytest.fixture
-    def lti_params(self):
-        return self.json_fixture("lti_certification/all_params_v1.1.json")
+    def lti_params_1x(self):
+        """LTI launch params for testing section 1.x tests."""
+        return self.json_fixture("lti_certification/v1.1/section_1.json")
+
+    @pytest.fixture
+    def lti_params_4x(self):
+        """LTI launch params for testing section 4.x tests."""
+        return self.json_fixture("lti_certification/v1.1/section_4.json")
