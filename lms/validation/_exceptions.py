@@ -1,7 +1,9 @@
+from urllib.parse import parse_qs, urlencode, urlparse
+
 from pyramid import httpexceptions
+from pyramid.httpexceptions import HTTPFound
 
 # pylint: disable=too-many-ancestors
-
 
 __all__ = [
     "ValidationError",
@@ -42,3 +44,47 @@ class ValidationError(
         """
         super().__init__()
         self.messages = messages
+
+
+class LTIToolRedirect(HTTPFound):
+    """An LTI validation error that should be returned to the tool consumer."""
+
+    def __init__(self, location, messages):
+        """
+        Create an exception with redirect information for an LTI tool.
+
+        :param location: The URL to redirect to
+        :param messages: A dict of lists of validation messages where the keys
+                         are fields and the values are lists of descriptions of
+                         problems
+        :raises ValueError: If messages is malformed
+        """
+        message = self._messages_to_string(messages)
+
+        super().__init__(
+            location=self._add_lti_message_to_url(location, message), detail=message
+        )
+
+    @classmethod
+    def _add_lti_message_to_url(cls, location, message):
+        location = urlparse(location)
+        query = parse_qs(location.query)
+        query["lti_msg"] = message
+        query = urlencode(query, doseq=True)
+
+        return location._replace(query=query).geturl()
+
+    @classmethod
+    def _messages_to_string(cls, messages):
+        if not isinstance(messages, dict):
+            raise ValueError("Messages must be a dict of lists: field -> [errors]")
+
+        parts = []
+        for field, errors in messages.items():
+            if not isinstance(errors, list):
+                raise ValueError("Messages must be a dict of lists: field -> [errors]")
+
+            for error in errors:
+                parts.append(f"Field '{field}': {error}")
+
+        return ", ".join(parts)

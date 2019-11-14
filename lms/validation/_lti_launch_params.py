@@ -1,7 +1,8 @@
 from urllib.parse import unquote
 
-from marshmallow import fields, post_load
+from marshmallow import Schema, ValidationError, fields, post_load
 
+from lms.validation._exceptions import LTIToolRedirect
 from lms.validation._helpers import PyramidRequestSchema
 
 
@@ -13,9 +14,40 @@ class LaunchParamsSchema(PyramidRequestSchema):
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
 
+    class URLSchema(Schema):
+        """Schema containing only validation for the return URL."""
+
+        launch_presentation_return_url = fields.URL()
+
     resource_link_id = fields.Str(required=True)
+    launch_presentation_return_url = fields.Str()
+
+    # If we have an error in one of these fields we should redirect back to
+    # the calling LMS if possible
+    lti_redirect_fields = {"resource_link_id"}
 
     locations = ["form"]
+
+    def handle_error(self, error, data, *, many, **kwargs):
+        messages = error.messages
+
+        try:
+            # Extract the launch_presentation_return_url and check it's a real
+            # URL
+            return_url = (
+                LaunchParamsSchema.URLSchema()
+                .load(data)
+                .get("launch_presentation_return_url")
+            )
+        except ValidationError:
+            return_url = None
+
+        if return_url:
+            reportable_fields = set(messages.keys()) & self.lti_redirect_fields
+            if reportable_fields:
+                raise LTIToolRedirect(return_url, messages)
+
+        super().handle_error(error, data, many=many, **kwargs)
 
 
 class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
