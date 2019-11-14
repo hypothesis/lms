@@ -61,11 +61,11 @@ class LTIToolRedirect(HTTPFound):
         message = self._messages_to_string(messages)
 
         super().__init__(
-            location=self._update_location(location, message), detail=message
+            location=self._add_lti_message_to_url(location, message), detail=message
         )
 
     @classmethod
-    def _update_location(cls, location, message):
+    def _add_lti_message_to_url(cls, location, message):
         location = urlparse(location)
         query = parse_qs(location.query)
         query["lti_msg"] = message
