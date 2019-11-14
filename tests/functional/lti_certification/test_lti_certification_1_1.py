@@ -29,11 +29,9 @@ class TestLTICertification(TestBaseClass):
         self, app, lti_params
     ):
         lti_params.pop("resource_link_id")
-        response = self.lti_launch(app, lti_params, status=302)
 
         self.assert_redirected_to_tool_with_message(
-            response, lti_params, message=Any.string.containing("resource_link_id")
-        )
+            app, lti_params, message=Any.string.containing("resource_link_id"))
 
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
         self, app, lti_params
@@ -46,6 +44,24 @@ class TestLTICertification(TestBaseClass):
         self.assert_response_is_html(result)
         assert "resource_link_id" in result
 
+    def test_1_5_redirect_to_tool_consumer_when_lti_version_invalid(self, app, lti_params):
+        lti_params['lti_version'] = 'LTI-1'
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_version"))
+
+    def test_1_6_redirect_to_tool_consumer_when_lti_version_wrong(self, app, lti_params):
+        lti_params['lti_version'] = 'LTI-2p0'
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_version"))
+
+    def test_1_7_redirect_to_tool_consumer_when_lti_version_missing(self, app, lti_params):
+        lti_params.pop('lti_version')
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_version"))
+
     # ---------------------------------------------------------------------- #
     # Assertions
 
@@ -54,9 +70,12 @@ class TestLTICertification(TestBaseClass):
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
 
+    @classmethod
     def assert_redirected_to_tool_with_message(
-        self, response, lti_params, message=Any.string()
+        cls, app, lti_params, message=Any.string()
     ):
+        response = cls.lti_launch(app, lti_params, status=302)
+
         expected_url = lti_params["launch_presentation_return_url"]
         url = urlparse(response.headers["Location"])
 
@@ -66,10 +85,11 @@ class TestLTICertification(TestBaseClass):
     # ---------------------------------------------------------------------- #
     # Helper methods
 
-    def lti_launch(self, app, params, status=200):
+    @classmethod
+    def lti_launch(cls, app, params, status=200):
         url = "/lti_launches"
 
-        params = self.oauth_sign_params(url, params)
+        params = cls.oauth_sign_params(url, params)
 
         return app.post(
             url,
