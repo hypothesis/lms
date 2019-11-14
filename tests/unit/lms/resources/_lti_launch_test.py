@@ -494,7 +494,6 @@ class TestLTILaunchResource:
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
             # Mandatory parameters for an LTI request to succeed
             "resource_link_id": "DUMMY-ID",
-            "launch_presentation_return_url": "http://dummy_url",
         }
         return pyramid_request
 
