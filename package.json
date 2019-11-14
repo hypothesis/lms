@@ -50,6 +50,7 @@
     "sass": "^1.23.3",
     "stringify": "^5.2.0",
     "through2": "^3.0.1",
+    "tiny-emitter": "^2.1.0",
     "uglifyify": "^5.0.2",
     "vinyl": "^2.2.0",
     "watchify": "^3.11.1"

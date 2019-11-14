@@ -16,6 +16,7 @@ describe('BasicLtiLaunchApp', () => {
   let fakeConfig;
   let fakeHypothesisConfig;
   const fakeRpcCall = sinon.spy();
+  let fakeSidebarWindow;
 
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
@@ -40,6 +41,10 @@ describe('BasicLtiLaunchApp', () => {
       urls: {},
     };
 
+    fakeSidebarWindow = sinon.stub().returns({
+      frame: 'fake window',
+      origin: 'fake origin',
+    });
     fakeApiCall = sinon.stub();
 
     FakeAuthWindow = sinon.stub().returns({
@@ -51,6 +56,9 @@ describe('BasicLtiLaunchApp', () => {
       './Dialog': FakeDialog,
       '../../postmessage_json_rpc/client': {
         call: fakeRpcCall,
+      },
+      '../../postmessage_json_rpc/server': {
+        getSidebarWindow: fakeSidebarWindow,
       },
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
@@ -247,11 +255,6 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('calls rpcCall with the provided user when the onChangeSelectedUser prop is fired', () => {
-      // fake global property
-      window._sidebarWindow = {
-        frame: 'fake',
-        origin: 'foo.com',
-      };
       const wrapper = renderLtiLaunchApp();
       act(() => {
         wrapper
@@ -264,15 +267,18 @@ describe('BasicLtiLaunchApp', () => {
       });
 
       assert.isTrue(
-        fakeRpcCall.calledWith('fake', 'foo.com', 'changeFocusModeUser', [
-          {
-            username: 'new_user',
-            displayName: 'New User',
-          },
-        ])
+        fakeRpcCall.calledWith(
+          'fake window',
+          'fake origin',
+          'changeFocusModeUser',
+          [
+            {
+              username: 'new_user',
+              displayName: 'New User',
+            },
+          ]
+        )
       );
-      // cleanup
-      delete window._sidebarWindow;
     });
   });
 });

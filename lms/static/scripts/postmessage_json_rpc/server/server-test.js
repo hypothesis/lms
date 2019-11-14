@@ -128,7 +128,7 @@ describe('postmessage_json_rpc/server#Server', () => {
       return assertThatTheServerDidntRespond();
     });
 
-    it("responds with an error if there's no request identifier", () => {
+    it("xx responds with an error if there's no request identifier", () => {
       const request = validRequest();
       delete request.id;
 
