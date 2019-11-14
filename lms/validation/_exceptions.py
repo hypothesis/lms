@@ -1,8 +1,9 @@
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from pyramid import httpexceptions
-# pylint: disable=too-many-ancestors
 from pyramid.httpexceptions import HTTPFound
+
+# pylint: disable=too-many-ancestors
 
 __all__ = [
     "ValidationError",
