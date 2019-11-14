@@ -39,8 +39,7 @@
       {% endif %}
 
       {% if context.rpc_server_config is defined %}
-        <script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson }}
-        </script>
+        <script type="application/json" class="js-rpc-server-config">{{ context.rpc_server_config|tojson }}</script>
       {% endif %}
 
       {% if context.hypothesis_config is defined %}
