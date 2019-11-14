@@ -118,10 +118,10 @@ def lis_result_sourcedids():
 
 @pytest.fixture
 def grading_request(pyramid_request):
-    pyramid_request.params["tool_consumer_info_product_family_code"] = "BlackboardLearn"
+    pyramid_request.params["tool_consumer_info_product_family_code"] = "MyFakeLTITool"
     pyramid_request.params[
         "lis_outcome_service_url"
-    ] = "https://blackboard.hypothes.is/grades"
+    ] = "https://myfakeltitool.hypothes.is/grades"
 
     pyramid_request.lti_user = LTIUser(
         "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "instructor"
