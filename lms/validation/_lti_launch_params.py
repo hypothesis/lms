@@ -1,11 +1,7 @@
 from urllib.parse import unquote
 
-<<<<<<< HEAD
-from marshmallow import Schema, ValidationError, fields, post_load
-=======
-from marshmallow import fields, post_load
+from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
 from marshmallow.validate import OneOf
->>>>>>> Implementing the validation for lti_version
 
 from lms.validation._exceptions import LTIToolRedirect
 from lms.validation._helpers import PyramidRequestSchema
@@ -22,11 +18,16 @@ class LaunchParamsSchema(PyramidRequestSchema):
     class URLSchema(Schema):
         """Schema containing only validation for the return URL."""
 
+        class Meta:
+            """Allow other values, as we are only here to validate the URL."""
+
+            unknown = EXCLUDE
+
         launch_presentation_return_url = fields.URL()
 
     resource_link_id = fields.Str(required=True)
     launch_presentation_return_url = fields.Str()
-    lti_version = fields.Str(validate=OneOf(['LTI-1p0']), required=True)
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
 
     # If we have an error in one of these fields we should redirect back to
     # the calling LMS if possible

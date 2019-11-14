@@ -5,9 +5,7 @@ from pyramid.httpexceptions import HTTPFound
 
 # pylint: disable=too-many-ancestors
 
-__all__ = [
-    "ValidationError",
-]
+__all__ = ["ValidationError", "LTIToolRedirect"]
 
 
 class ValidationError(

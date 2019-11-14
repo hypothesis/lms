@@ -31,7 +31,8 @@ class TestLTICertification(TestBaseClass):
         lti_params.pop("resource_link_id")
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("resource_link_id"))
+            app, lti_params, message=Any.string.containing("resource_link_id")
+        )
 
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(
         self, app, lti_params
@@ -44,23 +45,32 @@ class TestLTICertification(TestBaseClass):
         self.assert_response_is_html(result)
         assert "resource_link_id" in result
 
-    def test_1_5_redirect_to_tool_consumer_when_lti_version_invalid(self, app, lti_params):
-        lti_params['lti_version'] = 'LTI-1'
+    def test_1_5_redirect_to_tool_consumer_when_lti_version_invalid(
+        self, app, lti_params
+    ):
+        lti_params["lti_version"] = "LTI-1"
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version"))
+            app, lti_params, message=Any.string.containing("lti_version")
+        )
 
-    def test_1_6_redirect_to_tool_consumer_when_lti_version_wrong(self, app, lti_params):
-        lti_params['lti_version'] = 'LTI-2p0'
-
-        self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version"))
-
-    def test_1_7_redirect_to_tool_consumer_when_lti_version_missing(self, app, lti_params):
-        lti_params.pop('lti_version')
+    def test_1_6_redirect_to_tool_consumer_when_lti_version_wrong(
+        self, app, lti_params
+    ):
+        lti_params["lti_version"] = "LTI-2p0"
 
         self.assert_redirected_to_tool_with_message(
-            app, lti_params, message=Any.string.containing("lti_version"))
+            app, lti_params, message=Any.string.containing("lti_version")
+        )
+
+    def test_1_7_redirect_to_tool_consumer_when_lti_version_missing(
+        self, app, lti_params
+    ):
+        lti_params.pop("lti_version")
+
+        self.assert_redirected_to_tool_with_message(
+            app, lti_params, message=Any.string.containing("lti_version")
+        )
 
     # ---------------------------------------------------------------------- #
     # Assertions

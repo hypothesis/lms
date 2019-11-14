@@ -34,7 +34,18 @@ class TestLaunchParamsSchema:
         with pytest.raises(ValidationError):
             schema.parse()
 
-    def test_LTIToolRedirect_raise_when_res_link_missing_with_return_url(
+    def test_ValidationError_raised_when_res_link_missing_with_bad_return_url(
+        self, pyramid_request
+    ):
+        pyramid_request.params.pop("resource_link_id")
+        pyramid_request.params["launch_presentation_return_url"] = "broken"
+
+        schema = LaunchParamsSchema(pyramid_request)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_LTIToolRedirect_raised_when_res_link_missing_with_return_url(
         self, pyramid_request
     ):
         pyramid_request.params.pop("resource_link_id")
@@ -109,6 +120,8 @@ class TestURLConfiguredLaunchParamsSchema:
 @pytest.fixture
 def pyramid_request(pyramid_request):
     pyramid_request.content_type = "application/x-www-form-urlencoded"
-    pyramid_request.params.update({"resource_link_id": "DUMMY-LINK"})
+    pyramid_request.params.update(
+        {"resource_link_id": "DUMMY-LINK", "lti_version": "LTI-1p0"}
+    )
 
     return pyramid_request
