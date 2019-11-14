@@ -62,7 +62,7 @@ class TestLTICertification(TestBaseClass):
         )
 
     @classmethod
-    def _oauth_sign_params(cls, url, params):
+    def oauth_sign_params(cls, url, params):
         params.update(
             {
                 "oauth_consumer_key": cls.OAUTH_CONSUMER_KEY,
