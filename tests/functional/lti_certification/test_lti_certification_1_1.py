@@ -32,8 +32,7 @@ class TestLTICertification(TestBaseClass):
         response = self.lti_launch(app, lti_params, status=302)
 
         self.assert_redirected_to_tool_with_message(
-            response, lti_params,
-            message=Any.string.containing("resource_link_id")
+            response, lti_params, message=Any.string.containing("resource_link_id")
         )
 
     def test_1_2_nice_message_when_res_link_id_and_return_url_missing(

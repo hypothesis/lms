@@ -56,15 +56,11 @@ class LTIToolRedirect(HTTPFound):
 
     @classmethod
     def _update_location(cls, location, message):
-        location = urlparse(location)
-        location = location._replace(
-            query=urlencode(dict(location.query, lti_msg=message))
+        return (
+            urlparse(location)
+            ._replace(query=urlencode(dict(location.query, lti_msg=message)))
+            .geturl()
         )
-
-        try:
-            return location.geturl()
-        except Exception:
-            raise
 
     @classmethod
     def _messages_to_string(cls, messages):
