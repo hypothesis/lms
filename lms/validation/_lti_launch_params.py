@@ -2,6 +2,7 @@ from urllib.parse import unquote
 
 from marshmallow import fields, post_load
 
+from lms.validation._exceptions import LTIToolRedirect
 from lms.validation._helpers import PyramidRequestSchema
 
 
@@ -14,8 +15,25 @@ class LaunchParamsSchema(PyramidRequestSchema):
     """
 
     resource_link_id = fields.Str(required=True)
+    launch_presentation_return_url = fields.URL()
+
+    # If we have an error in one of these fields we should redirect to the LTI
+    # app if possible
+    lti_redirect_fields = {"resource_link_id"}
 
     locations = ["form"]
+
+    def handle_error(self, error, data, **kwargs):
+        messages = error.messages
+        valid_data = error.valid_data
+
+        return_url = valid_data.get("launch_presentation_return_url")
+        if return_url:
+            reportable_fields = set(messages.keys()) & self.lti_redirect_fields
+            if reportable_fields:
+                raise LTIToolRedirect(return_url, messages)
+
+        super().handle_error(error, data, **kwargs)
 
 
 class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):

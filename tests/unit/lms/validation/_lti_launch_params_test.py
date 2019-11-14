@@ -4,16 +4,27 @@ from h_matchers import Any
 from lms.validation import (
     LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
+    LTIToolRedirect,
     ValidationError,
 )
 
 
 class TestLaunchParamsSchema:
     def test_it_works_with_good_params(self, pyramid_request):
+        pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
+
         schema = LaunchParamsSchema(pyramid_request)
         params = schema.parse()
 
         assert params == Any.dict.containing({"resource_link_id": Any.string()})
+
+    def test_it_detects_bad_urls(self, pyramid_request):
+        pyramid_request.params["launch_presentation_return_url"] = "goofyurl"
+
+        schema = LaunchParamsSchema(pyramid_request)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
 
     def test_ValidationError_raised_when_res_link_missing(self, pyramid_request):
         pyramid_request.params.pop("resource_link_id")
@@ -21,6 +32,17 @@ class TestLaunchParamsSchema:
         schema = LaunchParamsSchema(pyramid_request)
 
         with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_LTIToolRedirect_raise_when_res_link_missing_with_return_url(
+        self, pyramid_request
+    ):
+        pyramid_request.params.pop("resource_link_id")
+        pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
+
+        schema = LaunchParamsSchema(pyramid_request)
+
+        with pytest.raises(LTIToolRedirect):
             schema.parse()
 
 
