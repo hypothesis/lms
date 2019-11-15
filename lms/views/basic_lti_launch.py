@@ -46,8 +46,7 @@ from lms.views.helpers import frontend_app, via_url
     permission="launch_lti_assignment",
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
-    route_name="lti_launches",
-    schema=LaunchParamsSchema,
+    route_name="lti_launches"
 )
 class BasicLTILaunchViews:
     def __init__(self, context, request):
