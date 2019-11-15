@@ -57,7 +57,12 @@ class LaunchParamsSchema(PyramidRequestSchema):
                 .load(data)
                 .get("launch_presentation_return_url")
             )
-        except ValidationError:
+        except ValidationError as err:
+            # Update ``messages`` with the error messages from
+            # ``err.messages``, but without overwriting any of the existing
+            # error messages already present in ``messages``.
+            for field in err.messages:
+                messages.setdefault(field, []).extend(err.messages[field])
             return_url = None
 
         if return_url:
