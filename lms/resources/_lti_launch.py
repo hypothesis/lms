@@ -32,9 +32,19 @@ class LTILaunchResource:
         """Return the context resource for an LTI launch request."""
         self._request = request
 
-        # Apply the schema to ensure we are checking LTI compatibility etc.
-        # TODO - Change things to actually use the parsed stuff
-        LaunchParamsSchema(request).parse()
+        # *If* the "lti_launches" route is being requested then apply schema
+        # validation now, before the view decorators on the "lti_launches"
+        # route's views get called, because those view decorators call methods
+        # that assume that the request's params are valid.
+        #
+        # FIXME: We shouldn't be calling the schema here. It should be added to
+        # the "lti_launches" route's views with
+        # @view_config(..., schema=LaunchParamsSchema) instead. But before we
+        # can do that we need to get rid of the view decorators on those views,
+        # because the view decorators get called *before* the view schema and
+        # they assume the request params are already validated.
+        if request.matched_route.name == "lti_launches":
+            LaunchParamsSchema(request).parse()
 
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
