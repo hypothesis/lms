@@ -58,7 +58,13 @@ class LaunchParamsSchema(PyramidRequestSchema):
                 .get("launch_presentation_return_url")
             )
         except ValidationError:
+            messages["launch_presentation_return_url"] = ["Invalid URL"]
             return_url = None
+
+        # Debugging - Add all the params we were called with to the error
+        called_with = messages["_called_with"] = []
+        for field, value in self.context["request"].params.items():
+            called_with.append(f"{field}={value}")
 
         if return_url:
             reportable_fields = set(messages.keys()) & self.lti_redirect_fields
