@@ -42,8 +42,13 @@ class TestLaunchParamsSchema:
 
         schema = LaunchParamsSchema(pyramid_request)
 
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as exc_info:
             schema.parse()
+
+        assert exc_info.value.messages == {
+            "launch_presentation_return_url": ["Not a valid URL."],
+            "resource_link_id": ["Missing data for required field."],
+        }
 
     def test_LTIToolRedirect_raised_when_res_link_missing_with_return_url(
         self, pyramid_request
@@ -100,8 +105,8 @@ class TestURLConfiguredLaunchParamsSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == Any.dict.containing(
-            {"url": ["Missing data for required field."]}
+        assert exc_info.value.messages == dict(
+            [("url", ["Missing data for required field."])]
         )
 
     @pytest.fixture
