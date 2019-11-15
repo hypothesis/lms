@@ -7,17 +7,23 @@ import {
   useState,
 } from 'preact/hooks';
 
-import AuthWindow from '../utils/AuthWindow';
-import { Config } from '../config';
 import { ApiError, apiCall } from '../utils/api';
+import { call as rpcCall } from '../../postmessage_json_rpc/client';
+import { Config } from '../config';
+import { getSidebarWindow } from '../../postmessage_json_rpc/server';
 
+import AuthWindow from '../utils/AuthWindow';
 import Dialog from './Dialog';
 import Button from './Button';
-import { call as rpcCall } from '../../postmessage_json_rpc/client';
-import { getSidebarWindow } from '../../postmessage_json_rpc/server';
 import ErrorDisplay from './ErrorDisplay';
 import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
+
+/**
+ * @typedef User
+ * @property {string} userid - Unique user's id
+ * @property {string} displayName - User's display name
+ */
 
 const INITIAL_LTI_LAUNCH_STATE = {
   // The current state of the screen.
@@ -195,15 +201,19 @@ export default function BasicLtiLaunchApp() {
 
     /**
      * Callback when the selected student changes. This function
-     * makes an rpc call to change to the focused user of the sidebar.
+     * makes an RPC call to the sidebar to change to the focused user.
+     *
+     * @param {User} - The user to focus to in the sidebar
      */
-    const changeSelectedUser = user => {
+    const changeSelectedUser = async user => {
       const sidebar = getSidebarWindow();
 
       if (sidebar) {
+        // Calls the client sidebar to fire the `changeFocusModeUser` action
+        // to change the focused user.
         rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
           {
-            username: user.userid,
+            userid: user.userid,
             displayName: user.displayName,
           },
         ]);

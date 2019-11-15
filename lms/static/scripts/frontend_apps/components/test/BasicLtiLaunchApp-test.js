@@ -273,7 +273,7 @@ describe('BasicLtiLaunchApp', () => {
           'changeFocusModeUser',
           [
             {
-              username: 'new_user',
+              userid: 'new_user',
               displayName: 'New User',
             },
           ]

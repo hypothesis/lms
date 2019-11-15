@@ -1,7 +1,7 @@
 import Server from './server';
 import { requestConfig } from './methods';
 
-let server = {}; // Singleton rpc server reference
+let server = {}; // Singleton RPC server reference
 
 /**
  * Create a new RPC server and pass in a the requestConfig object
@@ -13,8 +13,8 @@ function startRpcServer() {
 
 /**
  * @typedef {Object} SidebarFrame
- * @prop {Object} frame - The reference to the sidebar window
- * @prop {string} origin - The sidebar window's origin uri
+ * @prop {Window} frame - A reference to the window containing the sidebar application
+ * @prop {string} origin - The sidebar window's origin
  */
 
 /**
@@ -23,7 +23,15 @@ function startRpcServer() {
  * @returns {SidebarFrame}
  */
 function getSidebarWindow() {
-  return server._sidebarWindow;
+  if(server._sidebarWindow) {
+    return Promise.resolve(server._sidebarWindow);
+  }
+  else {
+    return new Promise((resolve, reject) => {
+      _sidebarWindowLoaded
+    })
+  }
+  //return server._sidebarWindow;
 }
 
 export { startRpcServer, getSidebarWindow };
