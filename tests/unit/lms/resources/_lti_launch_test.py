@@ -1,5 +1,4 @@
 import datetime
-from unittest import mock
 
 import jwt
 import pytest
@@ -10,21 +9,6 @@ from lms.resources import LTILaunchResource
 
 
 class TestLTILaunchResource:
-    def test_it_validates_the_request_params(self, pyramid_request, LaunchParamsSchema):
-        LTILaunchResource(pyramid_request)
-
-        LaunchParamsSchema.assert_called_once_with(pyramid_request)
-        LaunchParamsSchema.return_value.parse.assert_called_once_with()
-
-    def test_it_doesnt_validate_if_route_isnt_lti_launches(
-        self, pyramid_request, LaunchParamsSchema
-    ):
-        pyramid_request.matched_route.name = "module_item_configurations"
-
-        LTILaunchResource(pyramid_request)
-
-        LaunchParamsSchema.assert_not_called()
-
     def test_it_allows_LTI_users_to_launch_LTI_assignments(
         self, pyramid_config, pyramid_request
     ):
@@ -511,8 +495,6 @@ class TestLTILaunchResource:
             # Mandatory parameters for an LTI request to succeed
             "resource_link_id": "DUMMY-ID",
         }
-        pyramid_request.matched_route = mock.Mock(spec_set=["name"])
-        pyramid_request.matched_route.name = "lti_launches"
         return pyramid_request
 
 
@@ -524,8 +506,3 @@ def BearerTokenSchema(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
-
-
-@pytest.fixture(autouse=True)
-def LaunchParamsSchema(patch):
-    return patch("lms.resources._lti_launch.LaunchParamsSchema")
