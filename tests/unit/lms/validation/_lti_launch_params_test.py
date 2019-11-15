@@ -100,9 +100,9 @@ class TestURLConfiguredLaunchParamsSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == Any.dict.containing({
-            "url": ["Missing data for required field."]
-        })
+        assert exc_info.value.messages == Any.dict.containing(
+            {"url": ["Missing data for required field."]}
+        )
 
     @pytest.fixture
     def set_url(self, pyramid_request):
