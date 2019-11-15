@@ -15,7 +15,11 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.services import HAPIError
-from lms.validation import ConfigureModuleItemSchema, LaunchParamsURLConfiguredSchema
+from lms.validation import (
+    ConfigureModuleItemSchema,
+    LaunchParamsSchema,
+    LaunchParamsURLConfiguredSchema,
+)
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.decorators import (
     add_user_to_group,
@@ -43,6 +47,7 @@ from lms.views.helpers import frontend_app, via_url
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
     route_name="lti_launches",
+    schema=LaunchParamsSchema,
 )
 class BasicLTILaunchViews:
     def __init__(self, context, request):

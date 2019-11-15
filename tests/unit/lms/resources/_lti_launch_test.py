@@ -9,12 +9,6 @@ from lms.resources import LTILaunchResource
 
 
 class TestLTILaunchResource:
-    def test_it_validates_the_request_params(self, pyramid_request, LaunchParamsSchema):
-        LTILaunchResource(pyramid_request)
-
-        LaunchParamsSchema.assert_called_once_with(pyramid_request)
-        LaunchParamsSchema.return_value.parse.assert_called_once_with()
-
     def test_it_allows_LTI_users_to_launch_LTI_assignments(
         self, pyramid_config, pyramid_request
     ):
@@ -512,8 +506,3 @@ def BearerTokenSchema(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
-
-
-@pytest.fixture(autouse=True)
-def LaunchParamsSchema(patch):
-    return patch("lms.resources._lti_launch.LaunchParamsSchema")
