@@ -7,7 +7,6 @@ import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
-from lms.validation import LaunchParamsSchema
 from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
 
@@ -31,11 +30,6 @@ class LTILaunchResource:
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
         self._request = request
-
-        # Apply the schema to ensure we are checking LTI compatibility etc.
-        # TODO - Change things to actually use the parsed stuff
-        LaunchParamsSchema(request).parse()
-
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
         self._hypothesis_config = None
