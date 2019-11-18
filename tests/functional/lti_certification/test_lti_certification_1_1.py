@@ -1,3 +1,4 @@
+import re
 import time
 from urllib.parse import parse_qs, urlparse
 
@@ -5,6 +6,7 @@ import oauthlib.common
 import oauthlib.oauth1
 import pytest
 from h_matchers import Any
+from httpretty import httpretty
 
 from lms.models import ApplicationInstance, ModuleItemConfiguration
 from tests.functional.base_class import TestBaseClass
@@ -298,3 +300,37 @@ class TestLTICertification(TestBaseClass):
     def lti_params_4x(self):
         """LTI launch params for testing section 4.x tests."""
         return self.json_fixture("lti_certification/v1.1/section_4.json")
+
+    @pytest.fixture(autouse=True)
+    def intercept_http(self):
+        """
+        Monkey-patch Python's socket core module to mock all HTTP responses.
+
+        We never want real HTTP requests to be sent by the tests so replace them
+        all with mock responses. This handles requests sent using the standard
+        urllib2 library and the third-party httplib2 and requests libraries.
+        """
+        httpretty.enable()
+
+        # Tell httpretty which HTTP requests we want it to mock (all of them).
+        for method in (
+            httpretty.GET,
+            httpretty.PUT,
+            httpretty.POST,
+            httpretty.DELETE,
+            httpretty.HEAD,
+            httpretty.PATCH,
+            httpretty.OPTIONS,
+            httpretty.CONNECT,
+        ):
+            httpretty.register_uri(
+                method=method,
+                uri=re.compile(r"http(s?)://.*"),
+                # Matches all http:// and https:// URLs.
+                body="",
+            )
+
+        yield
+
+        httpretty.disable()
+        httpretty.reset()

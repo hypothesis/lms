@@ -16,7 +16,11 @@ from lms.views.lti import LTIViewBaseClass
 
 
 @view_defaults(
-    route_name="lti_launches", schema=LaunchParamsSchema,
+    permission="launch_lti_assignment",
+    renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
+    request_method="POST",
+    route_name="lti_launches",
+    schema=LaunchParamsSchema,
 )
 class BasicLTILaunchViews(LTIViewBaseClass):
     @view_config(canvas_file=True)

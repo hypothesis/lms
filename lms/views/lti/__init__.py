@@ -12,17 +12,10 @@ from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
 
-from pyramid.view import view_config
-
 from lms.services import HAPIError
 from lms.views.helpers import via_url
 
 
-@view_config(
-    permission="launch_lti_assignment",
-    renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
-    request_method="POST",
-)
 class LTIViewBaseClass:
     def __init__(self, context, request):
         self.context = context

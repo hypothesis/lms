@@ -1,16 +1,19 @@
-from pyramid.view import view_config
+from pyramid.view import view_defaults
 
 from lms.models import ModuleItemConfiguration
 from lms.validation import ConfigureModuleItemSchema
 from lms.views.lti import LTIViewBaseClass
 
 
+@view_defaults(
+    permission="launch_lti_assignment",
+    renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
+    request_method="POST",
+    authorized_to_configure_assignments=True,
+    route_name="module_item_configurations",
+    schema=ConfigureModuleItemSchema,
+)
 class ConfigureModuleItemView(LTIViewBaseClass):
-    @view_config(
-        authorized_to_configure_assignments=True,
-        route_name="module_item_configurations",
-        schema=ConfigureModuleItemSchema,
-    )
     def configure_module_item(self):
         """
         Respond to a configure module item request.
