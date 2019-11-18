@@ -34,13 +34,13 @@ class TestUpsertCourseGroup:
 
         LTIHypothesisBridge.upsert_course_group(context, pyramid_request)
 
-        assert group_info_upsert.call_args_list == [
-            mock.call(
-                context.h_authority_provided_id,
-                "TEST_OAUTH_CONSUMER_KEY",
-                **{param: None for param in params.keys()}
-            )
-        ]
+        target_call = mock.call(
+            context.h_authority_provided_id,
+            "TEST_OAUTH_CONSUMER_KEY",
+            **{param: None for param in params.keys()}
+        )
+
+        assert group_info_upsert.call_args_list == [target_call]
 
     def test_it_calls_the_group_update_api(self, context, pyramid_request, hapi_svc):
         LTIHypothesisBridge.upsert_course_group(context, pyramid_request)
