@@ -5,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 from lms.models import LtiLaunches, ModuleItemConfiguration
 from lms.services.lti_hypothesis_bridge import LTIHypothesisBridge
 from lms.validation import (
+    LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
     LISResultSourcedIdSchema,
     ValidationError,
@@ -14,7 +15,9 @@ from lms.views.helpers import frontend_app
 from lms.views.lti import LTIViewBaseClass
 
 
-@view_defaults(route_name="lti_launches",)
+@view_defaults(
+    route_name="lti_launches", schema=LaunchParamsSchema,
+)
 class BasicLTILaunchViews(LTIViewBaseClass):
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):

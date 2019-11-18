@@ -6,7 +6,7 @@ import oauthlib.oauth1
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, ModuleItemConfiguration
 from tests.functional.base_class import TestBaseClass
 
 
@@ -20,10 +20,6 @@ class TestLTICertification(TestBaseClass):
         result = self.lti_launch(app, lti_params_1x, status=200)
 
         self.assert_response_is_html(result)
-
-        # Check a random parameter to see it's passed to the body
-        assert "tool_consumer_instance_guid" in result.text
-        assert lti_params_1x["tool_consumer_instance_guid"] in result.text
 
     def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(
         self, app, lti_params_1x
@@ -276,6 +272,22 @@ class TestLTICertification(TestBaseClass):
         db_session.commit()
 
         return application_instance
+
+    @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
+    def module_item_configuration(self, request, db_session, application_instance):
+        if request.param == "unconfigured":
+            return
+
+        module_item_configuration = ModuleItemConfiguration(
+            resource_link_id="rli-1234",
+            tool_consumer_instance_guid="IMS Testing",
+            document_url="http://example.com",
+        )
+
+        db_session.add(module_item_configuration)
+        db_session.commit()
+
+        return module_item_configuration
 
     @pytest.fixture
     def lti_params_1x(self):
