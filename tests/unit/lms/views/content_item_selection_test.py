@@ -118,3 +118,8 @@ def helpers(patch):
     helpers = patch("lms.views.content_item_selection.helpers")
     helpers.canvas_files_available.return_value = True
     return helpers
+
+
+@pytest.fixture(autouse=True)
+def LTIHypothesisBridge(patch):
+    return patch("lms.views.content_item_selection.LTIHypothesisBridge")

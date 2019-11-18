@@ -11,45 +11,29 @@ parameter with the value ``basic-lti-launch-request`` to distinguish them
 from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
+from datetime import datetime
+
 from pyramid.view import view_config, view_defaults
 
-from lms.models import ModuleItemConfiguration
+from lms.models import LtiLaunches, ModuleItemConfiguration
 from lms.services import HAPIError
+from lms.services.lti_hypothesis_bridge import LTIHypothesisBridge
 from lms.validation import (
     ConfigureModuleItemSchema,
-    LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
+    LISResultSourcedIdSchema,
+    ValidationError,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.decorators import (
-    add_user_to_group,
-    report_lti_launch,
-    upsert_course_group,
-    upsert_h_user,
-    upsert_lis_result_sourcedid,
-)
 from lms.views.helpers import frontend_app, via_url
 
 
-@view_defaults(
-    decorator=[
-        # Before any LTI assignment launch create or update the Hypothesis user
-        # and group corresponding to the LTI user and course.
-        upsert_h_user,
-        upsert_course_group,
-        add_user_to_group,
-        # Report all LTI assignment launches to the /reports page.
-        report_lti_launch,
-        # Create/update LIS Result SourcedId record for certain students
-        upsert_lis_result_sourcedid,
-    ],
+@view_config(
     permission="launch_lti_assignment",
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
-    route_name="lti_launches",
-    schema=LaunchParamsSchema,
 )
-class BasicLTILaunchViews:
+class LTILaunchViewBaseClass:
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -83,6 +67,73 @@ class BasicLTILaunchViews:
         if focused_user:
             self._set_focused_user(focused_user)
 
+    def _set_submission_param(self, name, value):
+        """Update config for frontend's calls to `report_submisssion` API."""
+
+        if "submissionParams" in self.context.js_config:
+            self.context.js_config["submissionParams"][name] = value
+
+    def _set_focused_user(self, username):
+        """Configure the Hypothesis client to focus on a particular user."""
+
+        h_api_client = self.request.find_service(name="h_api_client")
+
+        try:
+            display_name = h_api_client.get_user(username).display_name
+        except HAPIError:
+            # If we couldn't fetch the student's name for any reason, fall back
+            # to a placeholder rather than giving up entirely, since the rest
+            # of the experience can still work.
+            display_name = "(Couldn't fetch student name)"
+
+        self.context.hypothesis_config.update(
+            {"focus": {"user": {"username": username, "displayName": display_name}}}
+        )
+
+    def _set_via_url(self, document_url):
+        """Configure content URL which the frontend will render inside an iframe."""
+        self.context.js_config["urls"].update(
+            {"via_url": via_url(self.request, document_url)}
+        )
+        self._set_submission_param("document_url", document_url)
+
+
+class ConfigureModuleItemView(LTILaunchViewBaseClass):
+    @view_config(
+        authorized_to_configure_assignments=True,
+        route_name="module_item_configurations",
+        schema=ConfigureModuleItemSchema,
+    )
+    def configure_module_item(self):
+        """
+        Respond to a configure module item request.
+
+        This happens after an unconfigured assignment launch. We show the user
+        our document selection form instead of launching the assignment, and
+        when the user chooses a document and submits the form this is the view
+        that receives that form submission.
+
+        We save the chosen document in the DB so that subsequent launches of
+        this same assignment will be DB-configured rather than unconfigured.
+        And we also send back the assignment launch page, passing the chosen
+        URL to Via, as the direct response to the content item form submission.
+        """
+        document_url = self.request.parsed_params["document_url"]
+
+        ModuleItemConfiguration.set_document_url(
+            self.request.db,
+            self.request.parsed_params["tool_consumer_instance_guid"],
+            self.request.parsed_params["resource_link_id"],
+            document_url,
+        )
+
+        self._set_via_url(document_url)
+
+        return {}
+
+
+@view_defaults(route_name="lti_launches",)
+class BasicLTILaunchViews(LTILaunchViewBaseClass):
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
@@ -95,6 +146,9 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
+
+        self._report_to_h(self.context, self.request)
+
         file_id = self.request.params["file_id"]
 
         self.context.js_config.update(
@@ -133,6 +187,8 @@ class BasicLTILaunchViews:
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
+        self._report_to_h(self.context, self.request)
+
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         resource_link_id = self.request.params["resource_link_id"]
@@ -162,6 +218,8 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
+        self._report_to_h(self.context, self.request)
+
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         url = self.request.parsed_params["url"]
@@ -243,65 +301,55 @@ class BasicLTILaunchViews:
         """
         return {}
 
-    @view_config(
-        authorized_to_configure_assignments=True,
-        decorator=[],  # Disable the default decorators just for this view.
-        route_name="module_item_configurations",
-        schema=ConfigureModuleItemSchema,
-    )
-    def configure_module_item(self):
+    @classmethod
+    def _report_to_h(cls, context, request):
         """
-        Respond to a configure module item request.
+        Update H with all the required information.
 
-        This happens after an unconfigured assignment launch. We show the user
-        our document selection form instead of launching the assignment, and
-        when the user chooses a document and submits the form this is the view
-        that receives that form submission.
-
-        We save the chosen document in the DB so that subsequent launches of
-        this same assignment will be DB-configured rather than unconfigured.
-        And we also send back the assignment launch page, passing the chosen
-        URL to Via, as the direct response to the content item form submission.
+        TODO! - What is this really up to? All sorts. Think of a better name
         """
-        document_url = self.request.parsed_params["document_url"]
 
-        ModuleItemConfiguration.set_document_url(
-            self.request.db,
-            self.request.parsed_params["tool_consumer_instance_guid"],
-            self.request.parsed_params["resource_link_id"],
-            document_url,
+        # Before any LTI assignment launch create or update the Hypothesis user
+        # and group corresponding to the LTI user and course.
+        LTIHypothesisBridge.upsert_h_user(context, request)
+        LTIHypothesisBridge.upsert_course_group(context, request)
+        LTIHypothesisBridge.add_user_to_group(context, request)
+
+        cls._report_lti_launch(request)
+        cls._upsert_lis_result_sourcedid(context, request)
+
+    @classmethod
+    def _report_lti_launch(cls, request):
+        # Report an LTI launch to the /reports page.
+        request.db.add(
+            LtiLaunches(
+                context_id=request.params.get("context_id"),
+                lti_key=request.params.get("oauth_consumer_key"),
+                created=datetime.utcnow(),
+            )
         )
 
-        self._set_via_url(document_url)
+    @classmethod
+    def _upsert_lis_result_sourcedid(cls, context, request):
+        """Create or update a record of LIS result/outcome data for a student launch."""
 
-        return {}
-
-    def _set_via_url(self, document_url):
-        """Configure content URL which the frontend will render inside an iframe."""
-        self.context.js_config["urls"].update(
-            {"via_url": via_url(self.request, document_url)}
-        )
-        self._set_submission_param("document_url", document_url)
-
-    def _set_submission_param(self, name, value):
-        """Update config for frontend's calls to `report_submisssion` API."""
-
-        if "submissionParams" in self.context.js_config:
-            self.context.js_config["submissionParams"][name] = value
-
-    def _set_focused_user(self, username):
-        """Configure the Hypothesis client to focus on a particular user."""
-
-        h_api_client = self.request.find_service(name="h_api_client")
+        if (
+            request.lti_user.is_instructor
+            or request.params.get("tool_consumer_info_product_family_code") == "canvas"
+        ):
+            return
 
         try:
-            display_name = h_api_client.get_user(username).display_name
-        except HAPIError:
-            # If we couldn't fetch the student's name for any reason, fall back
-            # to a placeholder rather than giving up entirely, since the rest
-            # of the experience can still work.
-            display_name = "(Couldn't fetch student name)"
+            lis_result_sourcedid = LISResultSourcedIdSchema(
+                request
+            ).lis_result_sourcedid_info()
+        except ValidationError:
+            # We're missing something we need in the request.
+            # This can happen if the user is not a student, or if the needed
+            # LIS data is not present on the request.
+            return
 
-        self.context.hypothesis_config.update(
-            {"focus": {"user": {"username": username, "displayName": display_name}}}
+        lis_result_svc = request.find_service(name="lis_result_sourcedid")
+        lis_result_svc.upsert(
+            lis_result_sourcedid, h_user=context.h_user, lti_user=request.lti_user
         )

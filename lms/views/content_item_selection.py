@@ -36,19 +36,21 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 """
 from pyramid.view import view_config
 
+from lms.services.lti_hypothesis_bridge import LTIHypothesisBridge
 from lms.views import helpers
-from lms.views.decorators import upsert_course_group, upsert_h_user
 
 
 @view_config(
     authorized_to_configure_assignments=True,
-    decorator=[upsert_h_user, upsert_course_group],
     permission="launch_lti_assignment",
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",
 )
 def content_item_selection(context, request):
+    LTIHypothesisBridge.upsert_h_user(context, request)
+    LTIHypothesisBridge.upsert_course_group(context, request)
+
     context.js_config.update(
         {
             # The URL that the JavaScript code will open if it needs the user to
