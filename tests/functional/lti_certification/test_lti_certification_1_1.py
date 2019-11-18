@@ -18,6 +18,7 @@ class TestLTICertification(TestBaseClass):
     OAUTH_NONCE = "38d6db30e395417659d068164ca95169"
     OAUTH_CLIENT = oauthlib.oauth1.Client(OAUTH_CONSUMER_KEY, SHARED_SECRET)
 
+    @pytest.mark.usefixtures("http_intercept")
     def test_a_good_request_loads_fine(self, app, lti_params_1x):
         result = self.lti_launch(app, lti_params_1x, status=200)
 
@@ -301,16 +302,21 @@ class TestLTICertification(TestBaseClass):
         """LTI launch params for testing section 4.x tests."""
         return self.json_fixture("lti_certification/v1.1/section_4.json")
 
-    @pytest.yield_fixture(autouse=True)
-    def intercept_http(self):
+    @pytest.yield_fixture
+    def http_intercept(self, _http_intercept):
         """
         Monkey-patch Python's socket core module to mock all HTTP responses.
 
-        We never want real HTTP requests to be sent by the tests so replace them
-        all with mock responses. This handles requests sent using the standard
-        urllib2 library and the third-party httplib2 and requests libraries.
+        We will catch calls to H's API and return 200. All other calls will
+        raise an exception, allowing to you see who are are trying to call.
         """
+        # We only need to reset once per tests, all other setup can be done
+        # once in `_http_intercept()`
+        yield
+        httpretty.reset()
 
+    @pytest.yield_fixture(scope="session")
+    def _http_intercept(self):
         # Mock all calls to the H API
         httpretty.register_uri(
             method=Any(),
@@ -327,4 +333,3 @@ class TestLTICertification(TestBaseClass):
         httpretty.enable()
         yield
         httpretty.disable()
-        httpretty.reset()
