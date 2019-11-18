@@ -17,12 +17,6 @@ class TestLTIViewBaseClass:
         LTIViewBaseClass(context, pyramid_request)
         assert context.js_config["mode"] == "basic-lti-launch"
 
-    def test_it_does_not_configure_grading_if_request_unqualified(
-        self, context, pyramid_request
-    ):
-        LTIViewBaseClass(context, pyramid_request)
-        assert "lmsGrader" not in context.js_config
-
     def test_it_adds_report_submission_config_if_required_params_present(
         self, context, pyramid_request, lti_outcome_params
     ):
@@ -37,30 +31,23 @@ class TestLTIViewBaseClass:
         }
 
     @pytest.mark.parametrize(
-        "key",
+        "key,value",
         [
-            "lis_result_sourcedid",
-            "lis_outcome_service_url",
-            "tool_consumer_info_product_family_code",
+            ("lis_result_sourcedid", None),
+            ("lis_outcome_service_url", None),
+            ("tool_consumer_info_product_family_code", None),
+            # Anything non canvas should do here
+            ("tool_consumer_info_product_family_code", "whiteboard"),
         ],
     )
-    def test_it_doesnt_add_report_submission_config_if_required_param_missing(
-        self, context, pyramid_request, lti_outcome_params, key
+    def test_it_doesnt_add_report_submission_config_if_required_param_wrong(
+        self, context, pyramid_request, lti_outcome_params, key, value
     ):
         pyramid_request.params.update(lti_outcome_params)
-        del pyramid_request.params[key]
-
-        LTIViewBaseClass(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config
-
-    def test_it_adds_report_submission_config_if_lms_not_canvas(
-        self, context, pyramid_request, lti_outcome_params
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-        pyramid_request.params.update(
-            {"tool_consumer_info_product_family_code": "whiteboard"}
-        )
+        if value is None:
+            del pyramid_request.params[key]
+        else:
+            pyramid_request.params[key] = value
 
         LTIViewBaseClass(context, pyramid_request)
 
@@ -98,6 +85,42 @@ class TestLTIViewBaseClass:
                 "displayName": "(Couldn't fetch student name)",
             }
         }
+
+    def test_set_submission_param_adds_param_if_submissionParams_present(
+        self, context, pyramid_request
+    ):
+        context.js_config = {"submissionParams": {}}
+
+        base_class = LTIViewBaseClass(context, pyramid_request)
+        base_class.set_submission_param(mock.sentinel.key, mock.sentinel.value)
+
+        assert (
+            context.js_config["submissionParams"][mock.sentinel.key]
+            == mock.sentinel.value
+        )
+
+    def test_set_submission_param_does_not_add_param_if_submissionParams_missing(
+        self, context, pyramid_request
+    ):
+        context.js_config = {}
+        base_class = LTIViewBaseClass(context, pyramid_request)
+
+        base_class.set_submission_param(mock.sentinel.key, mock.sentinel.value)
+
+        assert context.js_config.get("submissionParams") is None
+
+    def test_set_via_url_configures_as_expected(
+        self, context, pyramid_request, via_url
+    ):
+        document_url = mock.sentinel.document_url
+        context.js_config = {"submissionParams": {}, "urls": {}}
+        base_class = LTIViewBaseClass(context, pyramid_request)
+
+        base_class.set_via_url(document_url)
+
+        via_url.assert_called_once_with(pyramid_request, document_url)
+        assert context.js_config["urls"]["via_url"] == via_url.return_value
+        assert context.js_config["submissionParams"]["document_url"] == document_url
 
     @pytest.fixture
     def h_api_client(self, pyramid_config):

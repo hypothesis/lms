@@ -1,3 +1,16 @@
+"""
+Views for handling what the LTI spec calls "Basic LTI Launches".
+
+A Basic LTI Launch is the form submission POST request that an LMS sends us
+when it wants our app to launch an assignment, as opposed to other kinds of
+LTI launches such as the Content Item Selection launches that some LMS's
+send us while *creating* a new assignment.
+
+The spec requires Basic LTI Launch requests to have an ``lti_message_type``
+parameter with the value ``basic-lti-launch-request`` to distinguish them
+from other types of launch request (other "message types").
+"""
+
 from datetime import datetime
 
 from pyramid.view import view_config, view_defaults
@@ -60,7 +73,7 @@ class BasicLTILaunchViews(LTIViewBaseClass):
             }
         )
 
-        self._set_submission_param("canvas_file_id", file_id)
+        self.set_submission_param("canvas_file_id", file_id)
 
         return {}
 
@@ -91,7 +104,7 @@ class BasicLTILaunchViews(LTIViewBaseClass):
             self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
-        self._set_via_url(document_url)
+        self.set_via_url(document_url)
 
         return {}
 
@@ -112,7 +125,7 @@ class BasicLTILaunchViews(LTIViewBaseClass):
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         url = self.request.parsed_params["url"]
-        self._set_via_url(url)
+        self.set_via_url(url)
 
         return {}
 
