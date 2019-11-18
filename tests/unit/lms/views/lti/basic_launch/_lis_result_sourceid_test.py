@@ -6,7 +6,7 @@ from lms import values
 from lms.resources import LTILaunchResource
 from lms.services.lis_result_sourcedid import LISResultSourcedIdService
 from lms.validation import ValidationError
-from lms.views.basic_lti_launch import BasicLTILaunchViews
+from lms.views.lti.basic_launch import BasicLTILaunchViews
 
 
 @pytest.mark.usefixtures("lis_result_sourcedid_svc")
@@ -135,4 +135,4 @@ class TestUpsertLISResultSourcedId:
 
     @pytest.fixture
     def LISResultSourcedIdSchema(self, patch):
-        return patch("lms.views.basic_lti_launch.LISResultSourcedIdSchema")
+        return patch("lms.views.lti.basic_launch.LISResultSourcedIdSchema")

@@ -5,11 +5,6 @@ import pytest
 from lms.resources import LTILaunchResource
 
 
-@pytest.fixture(autouse=True)
-def ModuleItemConfiguration(patch):
-    return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
-
-
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
@@ -19,7 +14,7 @@ def context():
 
 @pytest.fixture(autouse=True)
 def via_url(patch):
-    return patch("lms.views.basic_lti_launch.via_url")
+    return patch("lms.views.lti.via_url")
 
 
 @pytest.fixture

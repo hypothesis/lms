@@ -2,7 +2,7 @@ import pytest
 from pyramid.testing import DummyRequest
 
 from lms.models import LtiLaunches
-from lms.views.basic_lti_launch import BasicLTILaunchViews
+from lms.views.lti.basic_launch import BasicLTILaunchViews
 
 
 class TestReportLTILaunch:

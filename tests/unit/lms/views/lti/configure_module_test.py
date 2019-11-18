@@ -1,4 +1,6 @@
-from lms.views.basic_lti_launch import ConfigureModuleItemView
+import pytest
+
+from lms.views.lti.configure_module import ConfigureModuleItemView
 
 
 class TestConfigureModuleItem:
@@ -31,3 +33,7 @@ class TestConfigureModuleItem:
 
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config["urls"]["via_url"] == via_url.return_value
+
+    @pytest.fixture(autouse=True)
+    def ModuleItemConfiguration(self, patch):
+        return patch("lms.views.lti.configure_module.ModuleItemConfiguration")
