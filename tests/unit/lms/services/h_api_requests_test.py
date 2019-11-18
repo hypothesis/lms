@@ -42,7 +42,10 @@ class TestAPIRequest:
     ):
         svc.request("POST", "/path")
 
-        assert requests.request.call_args[1]["url"] == "https://example.com/private/api/path"
+        assert (
+            requests.request.call_args[1]["url"]
+            == "https://example.com/private/api/path"
+        )
 
     # Instead of calling get() or post() etc you can also call request()
     # directly and pass in the HTTP verb as a string.
