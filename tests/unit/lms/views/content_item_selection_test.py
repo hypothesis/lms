@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.resources import LTILaunchResource
+from lms.services.lti_h import LTIHService
 from lms.views.content_item_selection import content_item_selection
 
 
@@ -118,3 +119,10 @@ def helpers(patch):
     helpers = patch("lms.views.content_item_selection.helpers")
     helpers.canvas_files_available.return_value = True
     return helpers
+
+
+@pytest.fixture(autouse=True)
+def lti_h_service(pyramid_config):
+    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
+    pyramid_config.register_service(lti_h_service, name="lti_h")
+    return lti_h_service

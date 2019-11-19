@@ -5,6 +5,7 @@ import pytest
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
 from lms.services.h_api_client import HAPIClient
+from lms.services.lti_h import LTIHService
 from lms.values import HUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
@@ -357,3 +358,10 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
+
+
+@pytest.fixture(autouse=True)
+def lti_h_service(pyramid_config):
+    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
+    pyramid_config.register_service(lti_h_service, name="lti_h")
+    return lti_h_service

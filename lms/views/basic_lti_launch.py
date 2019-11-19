@@ -21,28 +21,11 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.decorators import (
-    add_user_to_group,
-    report_lti_launch,
-    upsert_course_group,
-    upsert_h_user,
-    upsert_lis_result_sourcedid,
-)
+from lms.views.decorators import report_lti_launch, upsert_lis_result_sourcedid
 from lms.views.helpers import frontend_app, via_url
 
 
 @view_defaults(
-    decorator=[
-        # Before any LTI assignment launch create or update the Hypothesis user
-        # and group corresponding to the LTI user and course.
-        upsert_h_user,
-        upsert_course_group,
-        add_user_to_group,
-        # Report all LTI assignment launches to the /reports page.
-        report_lti_launch,
-        # Create/update LIS Result SourcedId record for certain students
-        upsert_lis_result_sourcedid,
-    ],
     permission="launch_lti_assignment",
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
@@ -83,6 +66,31 @@ class BasicLTILaunchViews:
         if focused_user:
             self._set_focused_user(focused_user)
 
+    def sync_lti_data_to_h(self):
+        """
+        Sync LTI data to H.
+
+        Before any LTI assignment launch create or update the Hypothesis user
+        and group corresponding to the LTI user and course.
+        """
+
+        lti_h_service = self.request.find_service(name="lti_h")
+        lti_h_service.upsert_h_user()
+        lti_h_service.upsert_course_group()
+        lti_h_service.add_user_to_group()
+
+    def store_lti_data(self):
+        """Store LTI launch data in our LMS database."""
+
+        # A dummy function for the 'decorators' to work on
+        dummy = lambda *args, **kwargs: None
+
+        # Report all LTI assignment launches to the /reports page.
+        report_lti_launch(dummy)(self.context, self.request)
+
+        # Create/update LIS Result SourcedId record for certain students
+        upsert_lis_result_sourcedid(dummy)(self.context, self.request)
+
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
@@ -95,6 +103,9 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+
         file_id = self.request.params["file_id"]
 
         self.context.js_config.update(
@@ -133,6 +144,9 @@ class BasicLTILaunchViews:
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         resource_link_id = self.request.params["resource_link_id"]
@@ -162,6 +176,9 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         url = self.request.parsed_params["url"]
@@ -172,7 +189,6 @@ class BasicLTILaunchViews:
     @view_config(
         authorized_to_configure_assignments=True,
         configured=False,
-        decorator=[],  # Disable the class's default decorators just for this view.
         renderer="lms:templates/file_picker.html.jinja2",
     )
     def unconfigured_basic_lti_launch(self):
@@ -229,7 +245,6 @@ class BasicLTILaunchViews:
     @view_config(
         authorized_to_configure_assignments=False,
         configured=False,
-        decorator=[],  # Disable the class's default decorators just for this view.
         renderer="lms:templates/basic_lti_launch/unconfigured_basic_lti_launch_not_authorized.html.jinja2",
     )
     def unconfigured_basic_lti_launch_not_authorized(self):
@@ -245,7 +260,6 @@ class BasicLTILaunchViews:
 
     @view_config(
         authorized_to_configure_assignments=True,
-        decorator=[],  # Disable the default decorators just for this view.
         route_name="module_item_configurations",
         schema=ConfigureModuleItemSchema,
     )
