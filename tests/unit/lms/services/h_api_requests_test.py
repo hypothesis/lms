@@ -31,7 +31,7 @@ class TestAPIRequest:
 
         requests.request.assert_called_once_with(
             method=verb,
-            url="https://private.com/api/path",
+            url="https://example.com/private/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
             headers={"Hypothesis-Application": "lms"},
@@ -42,7 +42,10 @@ class TestAPIRequest:
     ):
         svc.request("POST", "/path")
 
-        assert requests.request.call_args[1]["url"] == "https://private.com/api/path"
+        assert (
+            requests.request.call_args[1]["url"]
+            == "https://example.com/private/api/path"
+        )
 
     # Instead of calling get() or post() etc you can also call request()
     # directly and pass in the HTTP verb as a string.
@@ -51,7 +54,7 @@ class TestAPIRequest:
 
         requests.request.assert_called_once_with(
             method="PUT",
-            url="https://private.com/api/path",
+            url="https://example.com/private/api/path",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             timeout=10,
             headers={"Hypothesis-Application": "lms"},

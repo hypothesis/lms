@@ -1,3 +1,4 @@
+import re
 import time
 from urllib.parse import parse_qs, urlparse
 
@@ -5,8 +6,9 @@ import oauthlib.common
 import oauthlib.oauth1
 import pytest
 from h_matchers import Any
+from httpretty import httpretty
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, ModuleItemConfiguration
 from tests.functional.base_class import TestBaseClass
 
 
@@ -16,14 +18,11 @@ class TestLTICertification(TestBaseClass):
     OAUTH_NONCE = "38d6db30e395417659d068164ca95169"
     OAUTH_CLIENT = oauthlib.oauth1.Client(OAUTH_CONSUMER_KEY, SHARED_SECRET)
 
+    @pytest.mark.usefixtures("http_intercept")
     def test_a_good_request_loads_fine(self, app, lti_params_1x):
         result = self.lti_launch(app, lti_params_1x, status=200)
 
         self.assert_response_is_html(result)
-
-        # Check a random parameter to see it's passed to the body
-        assert "tool_consumer_instance_guid" in result.text
-        assert lti_params_1x["tool_consumer_instance_guid"] in result.text
 
     def test_1_1_redirect_to_tool_consumer_when_resource_link_id_missing(
         self, app, lti_params_1x
@@ -277,6 +276,22 @@ class TestLTICertification(TestBaseClass):
 
         return application_instance
 
+    @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
+    def module_item_configuration(self, request, db_session, application_instance):
+        if request.param == "unconfigured":
+            return
+
+        module_item_configuration = ModuleItemConfiguration(
+            resource_link_id="rli-1234",
+            tool_consumer_instance_guid="IMS Testing",
+            document_url="http://example.com",
+        )
+
+        db_session.add(module_item_configuration)
+        db_session.commit()
+
+        return module_item_configuration
+
     @pytest.fixture
     def lti_params_1x(self):
         """LTI launch params for testing section 1.x tests."""
@@ -286,3 +301,35 @@ class TestLTICertification(TestBaseClass):
     def lti_params_4x(self):
         """LTI launch params for testing section 4.x tests."""
         return self.json_fixture("lti_certification/v1.1/section_4.json")
+
+    @pytest.yield_fixture
+    def http_intercept(self, _http_intercept):
+        """
+        Monkey-patch Python's socket core module to mock all HTTP responses.
+
+        We will catch calls to H's API and return 200. All other calls will
+        raise an exception, allowing to you see who are are trying to call.
+        """
+        # We only need to reset once per tests, all other setup can be done
+        # once in `_http_intercept()`
+        yield
+        httpretty.reset()
+
+    @pytest.yield_fixture(scope="session")
+    def _http_intercept(self):
+        # Mock all calls to the H API
+        httpretty.register_uri(
+            method=Any(),
+            uri=re.compile(r"^https://example.com/private/api/.*"),
+            body="",
+        )
+
+        # Catch URLs we aren't expecting or have failed to mock
+        def error_response(request, uri, response_headers):
+            raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
+
+        httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
+
+        httpretty.enable()
+        yield
+        httpretty.disable()

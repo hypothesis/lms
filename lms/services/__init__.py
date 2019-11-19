@@ -56,3 +56,4 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.group_info_upsert.GroupInfoUpsert", name="group_info_upsert"
     )
+    config.register_service_factory("lms.services.lti_h.LTIHService", name="lti_h")

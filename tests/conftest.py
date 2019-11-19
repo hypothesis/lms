@@ -44,7 +44,7 @@ TEST_SETTINGS = {
     "h_jwt_client_secret": "TEST_JWT_CLIENT_SECRET",
     "h_authority": "TEST_AUTHORITY",
     "h_api_url_public": "https://example.com/api/",
-    "h_api_url_private": "https://private.com/api/",
+    "h_api_url_private": "https://example.com/private/api/",
     "rpc_allowed_origins": ["http://localhost:5000"],
     "oauth2_state_secret": "test_oauth2_state_secret",
 }
