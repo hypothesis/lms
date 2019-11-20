@@ -1,4 +1,5 @@
-"""H API service for modifying users and groups."""
+"""The H API service."""
+
 import json
 
 import requests
@@ -12,7 +13,9 @@ __all__ = ["HAPI"]
 
 class HAPI:
     """
-    :raises HAPIError: On any unhandled exception during calls to the H API
+    H API service for modifying users and groups.
+
+    :raises HAPIError: On any unhandled exception during calls to the H API.
     """
 
     def __init__(self, _context, request):
