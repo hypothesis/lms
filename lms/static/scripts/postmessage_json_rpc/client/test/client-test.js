@@ -114,6 +114,7 @@ describe('postmessage_json_rpc/client/client', () => {
 
       try {
         await call;
+        throw new Error('should be unreachable');
       } catch (e) {
         assert.equal(e.message, 'Something went wrong');
       }

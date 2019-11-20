@@ -1,4 +1,3 @@
-import { act } from 'preact/test-utils';
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
@@ -15,8 +14,6 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let fakeConfig;
   let fakeHypothesisConfig;
-  const fakeRpcCall = sinon.spy();
-  let fakeSidebarWindow;
 
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
@@ -40,13 +37,7 @@ describe('BasicLtiLaunchApp', () => {
       lmsName: 'Shiny LMS',
       urls: {},
     };
-
-    fakeSidebarWindow = sinon.stub().returns({
-      frame: 'fake window',
-      origin: 'fake origin',
-    });
     fakeApiCall = sinon.stub();
-
     FakeAuthWindow = sinon.stub().returns({
       authorize: sinon.stub().resolves(null),
     });
@@ -54,12 +45,6 @@ describe('BasicLtiLaunchApp', () => {
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       './Dialog': FakeDialog,
-      '../../postmessage_json_rpc/client': {
-        call: fakeRpcCall,
-      },
-      '../../postmessage_json_rpc/server': {
-        getSidebarWindow: fakeSidebarWindow,
-      },
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
         apiCall: fakeApiCall,
@@ -75,7 +60,6 @@ describe('BasicLtiLaunchApp', () => {
 
   afterEach(() => {
     $imports.$restore();
-    fakeRpcCall.resetHistory();
     fakeHypothesisConfig.restore();
   });
 
@@ -252,33 +236,6 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       const LMSGrader = wrapper.find('LMSGrader');
       assert.isTrue(LMSGrader.exists());
-    });
-
-    it('calls rpcCall with the provided user when the onChangeSelectedUser prop is fired', () => {
-      const wrapper = renderLtiLaunchApp();
-      act(() => {
-        wrapper
-          .find('LMSGrader')
-          .props()
-          .onChangeSelectedUser({
-            userid: 'new_user',
-            displayName: 'New User',
-          });
-      });
-
-      assert.isTrue(
-        fakeRpcCall.calledWith(
-          'fake window',
-          'fake origin',
-          'changeFocusModeUser',
-          [
-            {
-              userid: 'new_user',
-              displayName: 'New User',
-            },
-          ]
-        )
-      );
     });
   });
 });

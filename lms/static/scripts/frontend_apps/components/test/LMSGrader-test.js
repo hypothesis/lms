@@ -18,9 +18,12 @@ describe('LMSGrader', () => {
       LISOutcomeServiceUrl: '',
     },
   ];
-  const fakeUpdateClientConfig = sinon.spy();
-  const fakeRemoveClientConfig = sinon.spy();
   const fakeOnChange = sinon.spy();
+  const fakeRpcCall = sinon.spy();
+  const fakeSidebarWindow = sinon.stub().resolves({
+    frame: 'fake window',
+    origin: 'fake origin',
+  });
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
@@ -29,17 +32,17 @@ describe('LMSGrader', () => {
 
   beforeEach(() => {
     $imports.$mock({
-      '../utils/update-client-config': {
-        updateClientConfig: fakeUpdateClientConfig,
-        removeClientConfig: fakeRemoveClientConfig,
-      },
       './StudentSelector': FakeStudentSelector,
+      '../../postmessage_json_rpc/client': {
+        call: fakeRpcCall,
+      },
+      '../../postmessage_json_rpc/server': {
+        getSidebarWindow: fakeSidebarWindow,
+      },
     });
   });
 
   afterEach(() => {
-    fakeUpdateClientConfig.resetHistory();
-    fakeRemoveClientConfig.resetHistory();
     fakeOnChange.resetHistory();
     $imports.$restore();
   });
@@ -87,66 +90,73 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('passes a default value of "{}" to onChangeSelectedUser when no a student is selected', () => {
+  it('does not set a focus user by default', async () => {
     renderGrader();
-    assert.isTrue(fakeOnChange.calledWithExactly({}));
+    await fakeSidebarWindow;
+    assert.isTrue(
+      fakeRpcCall.calledWith(
+        'fake window',
+        'fake origin',
+        'changeFocusModeUser',
+        [
+          {
+            username: undefined,
+            displayName: undefined,
+          },
+        ]
+      )
+    );
   });
-
-  it('passes the unique user object to onChangeSelectedUser when a student is selected', () => {
+  it('calls rpcCall to focus on that user when onSelectStudent is called with a valid student index', async () => {
     const wrapper = renderGrader();
+
     act(() => {
       wrapper
         .find(FakeStudentSelector)
         .props()
-        .onSelectStudent(1); // second student
+        .onSelectStudent(0); // note: initial index is -1
     });
 
-    assert.calledWith(fakeOnChange.secondCall, {
-      userid: 'student2',
-      displayName: 'Student 2',
-      LISResultSourcedId: 2,
-      LISOutcomeServiceUrl: '',
-    });
-  });
+    await fakeSidebarWindow;
 
-  it('does not set a focus user by default', () => {
-    renderGrader();
-    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
-  });
-
-  it('does not set a focus user when the user index is invalid', () => {
-    const wrapper = renderGrader();
-    act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(-2); // invalid choice
-    });
-    wrapper.update();
-
-    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
-  });
-
-  it('changes the sidebar config to focus to the specified user when onSelectStudent is called with a valid user index', () => {
-    const wrapper = renderGrader();
-    act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(0); // initial index is -1
-    });
-    wrapper.update();
-
-    sinon.assert.calledWith(
-      fakeUpdateClientConfig,
-      sinon.match({
-        focus: {
-          user: {
+    assert.isTrue(
+      fakeRpcCall.calledWith(
+        'fake window',
+        'fake origin',
+        'changeFocusModeUser',
+        [
+          {
             username: fakeStudents[0].userid,
             displayName: fakeStudents[0].displayName,
           },
-        },
-      })
+        ]
+      )
+    );
+  });
+
+  it('does not set a focus user when the user index is invalid', async () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(0); // invalid choice
+    });
+
+    await fakeSidebarWindow;
+
+    assert.isTrue(
+      fakeRpcCall.calledWith(
+        'fake window',
+        'fake origin',
+        'changeFocusModeUser',
+        [
+          {
+            username: undefined,
+            displayName: undefined,
+          },
+        ]
+      )
     );
   });
 });

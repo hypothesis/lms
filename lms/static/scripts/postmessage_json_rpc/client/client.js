@@ -42,12 +42,7 @@ async function call(
     params,
     id,
   };
-
-  try {
-    frame.postMessage(request, origin);
-  } catch (err) {
-    return Promise.reject(err);
-  }
+  frame.postMessage(request, origin);
 
   // Await response or timeout.
   let listener;
@@ -86,12 +81,9 @@ async function call(
 
   // Cleanup and return.
   try {
-    const result = await Promise.race([response, timeoutExpired]);
+    return await Promise.race([response, timeoutExpired]);
+  } finally {
     window_.removeEventListener('message', listener);
-    return result;
-  } catch (err) {
-    window_.removeEventListener('message', listener);
-    throw err;
   }
 }
 

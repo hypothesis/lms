@@ -8,9 +8,7 @@ import {
 } from 'preact/hooks';
 
 import { ApiError, apiCall } from '../utils/api';
-import { call as rpcCall } from '../../postmessage_json_rpc/client';
 import { Config } from '../config';
-import { getSidebarWindow } from '../../postmessage_json_rpc/server';
 
 import AuthWindow from '../utils/AuthWindow';
 import Dialog from './Dialog';
@@ -20,7 +18,7 @@ import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
 
 /**
- * @typedef User
+ * @typedef {Object} User
  * @property {string} userid - Unique user's id
  * @property {string} displayName - User's display name
  */
@@ -199,32 +197,10 @@ export default function BasicLtiLaunchApp() {
       />
     );
 
-    /**
-     * Callback when the selected student changes. This function
-     * makes an RPC call to the sidebar to change to the focused user.
-     *
-     * @param {User} - The user to focus to in the sidebar
-     */
-    const changeSelectedUser = async user => {
-      const sidebar = getSidebarWindow();
-
-      if (sidebar) {
-        // Calls the client sidebar to fire the `changeFocusModeUser` action
-        // to change the focused user.
-        rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
-          {
-            userid: user.userid,
-            displayName: user.displayName,
-          },
-        ]);
-      }
-    };
-
     if (lmsGrader) {
       // Use the LMS Grader.
       return (
         <LMSGrader
-          onChangeSelectedUser={changeSelectedUser}
           students={grading.students}
           courseName={grading.courseName}
           assignmentName={grading.assignmentName}
