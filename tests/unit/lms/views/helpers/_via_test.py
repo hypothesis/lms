@@ -49,3 +49,12 @@ class TestViaURL:
         pyramid_request.params["oauth_consumer_key"] = "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         # fmt: on
         assert via_url(pyramid_request, document_url) == expected_via_url
+
+    def test_it_returns_via2_html_rewriter_url_if_use_via2_html_rewriter_feature_flag_is_set(
+        self, pyramid_request
+    ):
+        pyramid_request.feature = lambda feature: feature == "use_via2_html_rewriter"
+
+        assert via_url(pyramid_request, "http://example.com").startswith(
+            "http://TEST_VIA_SERVER.is/html/"
+        )
