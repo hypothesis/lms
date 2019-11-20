@@ -1,6 +1,26 @@
+from functools import wraps
+
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from lms.services import HAPIError, HAPINotFoundError
+
+
+def lti_h_action(function):
+    """Disable an action if provisioning is not enabled and catch HAPIError."""
+
+    @wraps(function)
+    def wrapper(self, *args, **kwargs):
+        # Pylint doesn't understand that self is "us" in this context
+        if not self._context.provisioning_enabled:  # pylint: disable=protected-access
+            return None
+
+        try:
+            return function(self, *args, **kwargs)
+
+        except HAPIError as err:
+            raise HTTPInternalServerError(explanation=err.explanation) from err
+
+    return wrapper
 
 
 class LTIHService:
@@ -13,6 +33,7 @@ class LTIHService:
         self.h_api = request.find_service(name="h_api")
         self.group_info_upsert_service = request.find_service(name="group_info_upsert")
 
+    @lti_h_action
     def add_user_to_group(self):
         """
         Add the Hypothesis user to the course group.
@@ -25,16 +46,11 @@ class LTIHService:
         Assumes that it's only used on LTI launch views.
         """
 
-        if not self._context.provisioning_enabled:
-            return
+        self.h_api.add_user_to_group(
+            h_user=self._context.h_user, group_id=self._context.h_groupid
+        )
 
-        try:
-            self.h_api.add_user_to_group(
-                h_user=self._context.h_user, group_id=self._context.h_groupid
-            )
-        except HAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
-
+    @lti_h_action
     def upsert_h_user(self):
         """
         Create or update the Hypothesis user for the request's LTI user.
@@ -44,19 +60,14 @@ class LTIHService:
 
         Assumes that it's only used on LTI launch views.
         """
-        if not self._context.provisioning_enabled:
-            return
 
-        try:
-            self.h_api.upsert_user(
-                h_user=self._context.h_user,
-                provider=self._context.h_provider,
-                provider_unique_id=self._context.h_provider_unique_id,
-            )
+        self.h_api.upsert_user(
+            h_user=self._context.h_user,
+            provider=self._context.h_provider,
+            provider_unique_id=self._context.h_provider_unique_id,
+        )
 
-        except HAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
-
+    @lti_h_action
     def upsert_course_group(self):
         """
         Create or update the Hypothesis group for the request's LTI course.
@@ -73,40 +84,28 @@ class LTIHService:
         Assumes that it's only used on LTI launch views.
         """
 
-        if not self._context.provisioning_enabled:
-            return
+        self._upsert_h_group(
+            group_id=self._context.h_groupid,
+            group_name=self._context.h_group_name,
+            h_user=self._context.h_user,
+        )
+
+        self._upsert_group_info()
+
+    def _upsert_h_group(self, group_id, group_name, h_user):
+        """Update the group and create it if the user is an instructor."""
 
         try:
-            try:
-                self.h_api.update_group(
-                    group_id=self._context.h_groupid,
-                    group_name=self._context.h_group_name,
-                )
+            self.h_api.update_group(group_id=group_id, group_name=group_name)
 
-            except HAPINotFoundError:
-                # The group hasn't been created in h yet.
+        except HAPINotFoundError:
+            # The group hasn't been created in h yet.
 
-                if not self._is_instructor(self._request.lti_user):
-                    raise HTTPBadRequest("Instructor must launch assignment first.")
+            if not self._request.lti_user.is_instructor:
+                raise HTTPBadRequest("Instructor must launch assignment first.")
 
-                # Try to create the group with the current instructor as its creator.
-                self.h_api.create_group(
-                    group_id=self._context.h_groupid,
-                    group_name=self._context.h_group_name,
-                    h_user=self._context.h_user,
-                )
-
-        except HAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
-        else:
-            self._upsert_group_info()
-
-    @classmethod
-    def _is_instructor(cls, lti_user):
-        return any(
-            role in lti_user.roles.lower()
-            for role in ("administrator", "instructor", "teachingassisstant")
-        )
+        # Try to create the group with the current instructor as its creator.
+        self.h_api.create_group(group_id=group_id, group_name=group_name, h_user=h_user)
 
     def _upsert_group_info(self):
         """Create or update the GroupInfo for the given request."""
