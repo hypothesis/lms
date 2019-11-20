@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.services import HAPIError
-from lms.services.h_api import HAPIClient
+from lms.services.h_api import HAPI
 from lms.services.h_api_requests import HAPIRequests
 from lms.values import HUser
 
@@ -31,7 +31,7 @@ class TestHAPIClient:
 
     @pytest.fixture
     def h_api_client(self, h_api, pyramid_request):
-        return HAPIClient({}, pyramid_request)
+        return HAPI({}, pyramid_request)
 
     @pytest.fixture
     def h_api(self, pyramid_config):

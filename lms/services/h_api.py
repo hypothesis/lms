@@ -7,10 +7,10 @@ from requests import RequestException
 from lms.services import HAPIError, HAPINotFoundError
 from lms.values import HUser
 
-__all__ = ["HAPIClient"]
+__all__ = ["HAPI"]
 
 
-class HAPIClient:
+class HAPI:
     """
     :raises HAPIError: On any unhandled exception during calls to the H API
     """
