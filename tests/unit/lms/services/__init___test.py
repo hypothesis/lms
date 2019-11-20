@@ -1,5 +1,3 @@
-from unittest import mock
-
 from lms.services import includeme
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient

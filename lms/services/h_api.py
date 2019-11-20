@@ -47,7 +47,6 @@ class HAPI:
         :param h_user: An `HUser` object to send to H
         :param provider: The provider (hosting LMS)
         :param provider_unique_id: The id of the provider
-        :return:
         """
         user_data = {
             "username": h_user.username,
@@ -60,6 +59,20 @@ class HAPI:
 
         self._api_request("POST", "users", data=user_data)
 
+    def update_user(self, h_user):
+        """
+        Update details for a user in H.
+
+        Currently this only updates the display name.
+
+        :param h_user: An `HUser` object to update
+        """
+        self._api_request(
+            "PATCH",
+            f"users/{h_user.username}",
+            data={"display_name": h_user.display_name},
+        )
+
     def upsert_user(self, h_user, provider, provider_unique_id):
         """
         Create or update a user in H as appropriate.
@@ -70,25 +83,11 @@ class HAPI:
         :param h_user: An `HUser` object to send to H
         :param provider: The provider (hosting LMS)
         :param provider_unique_id: The id of the provider
-        :return:
         """
         try:
             self.update_user(h_user)
         except HAPINotFoundError:
             self.create_user(h_user, provider, provider_unique_id)
-
-    def update_user(self, h_user):
-        """
-        Update details for a user in H.
-
-        Currently this only updates the display name.
-
-        :param h_user: An `HUser` object to update
-        :return:
-        """
-        self._api_request(
-            "PATCH", f"users/{h_user.username}", {"display_name": h_user.display_name},
-        )
 
     def create_group(self, group_id, group_name, h_user):
         """
@@ -97,12 +96,11 @@ class HAPI:
         :param group_id: The id of the group
         :param group_name: The display name for the group
         :param h_user: An `HUser` to associate with the group
-        :return:
         """
         self._api_request(
             "PUT",
             f"groups/{group_id}",
-            {"groupid": group_id, "name": group_name,},
+            data={"groupid": group_id, "name": group_name},
             headers={"X-Forwarded-User": h_user.userid},
         )
 
@@ -114,10 +112,9 @@ class HAPI:
 
         :param group_id: The id of the group
         :param group_name: The display name for the group
-        :return:
         """
         self._api_request(
-            "PATCH", f"groups/{group_id}", {"name": group_name},
+            "PATCH", f"groups/{group_id}", data={"name": group_name},
         )
 
     def add_user_to_group(self, h_user, group_id):
@@ -126,7 +123,6 @@ class HAPI:
 
         :param h_user: An `HUser` to associate with the group
         :param group_id: The id of the group
-        :return:
         """
         self._api_request("POST", f"groups/{group_id}/members/{h_user.userid}")
 
@@ -155,7 +151,7 @@ class HAPI:
         request_args = {"headers": headers}
 
         if data is not None:
-            request_args["data"] = json.dumps(data)
+            request_args["data"] = json.dumps(data, separators=(",", ":"))
 
         try:
             response = requests.request(
