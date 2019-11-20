@@ -24,7 +24,13 @@ def lti_h_action(function):
 
 
 class LTIHService:
-    """Actions which import import data from LTI to H."""
+    """
+    Actions which import import data from LTI to H.
+
+    All of these functions require you to be in an LTILaunchResource context.
+
+    :raises HTTPInternalServerError: If any calls to the H API fail.
+    """
 
     def __init__(self, _context, request):
         self._context = request.context
@@ -38,12 +44,11 @@ class LTIHService:
         """
         Add the Hypothesis user to the course group.
 
-        Add the Hypothesis user corresponding to the current request's LTI user, to
-        the Hypothesis group corresponding to the current request's LTI course.
+        Add the Hypothesis user corresponding to the current request's LTI
+        user, to the Hypothesis group corresponding to the current request's
+        LTI course.
 
         Assumes that the Hypothesis user and group have already been created.
-
-        Assumes that it's only used on LTI launch views.
         """
 
         self.h_api.add_user_to_group(
@@ -55,10 +60,8 @@ class LTIHService:
         """
         Create or update the Hypothesis user for the request's LTI user.
 
-        Update the h user's information from LTI data. If the user doesn't exist
-        yet, call the h API to create one.
-
-        Assumes that it's only used on LTI launch views.
+        Update the h user's information from LTI data. If the user doesn't
+        exist yet, call the h API to create one.
         """
 
         self.h_api.upsert_user(
@@ -72,16 +75,16 @@ class LTIHService:
         """
         Create or update the Hypothesis group for the request's LTI course.
 
-        Call the h API to create a group for the LTI course, if one doesn't exist
-        already.
+        Call the h API to create a group for the LTI course, if one doesn't
+        exist already.
 
-        Groups can only be created if the LTI user is allowed to create Hypothesis
-        groups (for example instructors are allowed to create groups). If the group
-        for the course hasn't been created yet, and if the user isn't allowed to
-        create groups (e.g. if they're just a student) then show an error page
-        instead of continuing with the LTI launch.
+        Groups can only be created if the LTI user is allowed to create
+        Hypothesis groups (for example instructors are allowed to create
+        groups).
 
-        Assumes that it's only used on LTI launch views.
+        If the group for the course hasn't been created yet, and if the user
+        isn't allowed to create groups (e.g. if they're just a student) then
+        show an error page instead of continuing with the LTI launch.
         """
 
         self._upsert_h_group(
