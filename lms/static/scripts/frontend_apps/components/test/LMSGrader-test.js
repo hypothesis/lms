@@ -6,20 +6,20 @@ import LMSGrader, { $imports } from '../LMSGrader';
 describe('LMSGrader', () => {
   const fakeStudents = [
     {
-      userid: 'student1',
+      userid: 'acct:student1@authority',
       displayName: 'Student 1',
       LISResultSourcedId: 1,
       LISOutcomeServiceUrl: '',
     },
     {
-      userid: 'student2',
+      userid: 'acct:student2@authority',
       displayName: 'Student 2',
       LISResultSourcedId: 2,
       LISOutcomeServiceUrl: '',
     },
   ];
-  const fakeOnChange = sinon.spy();
-  const fakeRpcCall = sinon.spy();
+  let fakeOnChange;
+  let fakeRpcCall;
   const fakeSidebarWindow = sinon.stub().resolves({
     frame: 'fake window',
     origin: 'fake origin',
@@ -31,6 +31,8 @@ describe('LMSGrader', () => {
   };
 
   beforeEach(() => {
+    fakeOnChange = sinon.spy();
+    fakeRpcCall = sinon.spy();
     $imports.$mock({
       './StudentSelector': FakeStudentSelector,
       '../../postmessage_json_rpc/client': {
@@ -43,7 +45,6 @@ describe('LMSGrader', () => {
   });
 
   afterEach(() => {
-    fakeOnChange.resetHistory();
     $imports.$restore();
   });
 
@@ -76,7 +77,7 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('set the selected student count to "Student 2 of 2" when the index changers to 1', () => {
+  it('set the selected student count to "Student 2 of 2" when the index changers to 1', async () => {
     const wrapper = renderGrader();
     act(() => {
       wrapper
@@ -94,7 +95,7 @@ describe('LMSGrader', () => {
     renderGrader();
     await fakeSidebarWindow;
     assert.isTrue(
-      fakeRpcCall.calledWith(
+      fakeRpcCall.calledOnceWithExactly(
         'fake window',
         'fake origin',
         'changeFocusModeUser',
@@ -107,7 +108,7 @@ describe('LMSGrader', () => {
       )
     );
   });
-  it('calls rpcCall to focus on that user when onSelectStudent is called with a valid student index', async () => {
+  it('sets the focused user when a valid index is passed', async () => {
     const wrapper = renderGrader();
 
     act(() => {
@@ -120,7 +121,7 @@ describe('LMSGrader', () => {
     await fakeSidebarWindow;
 
     assert.isTrue(
-      fakeRpcCall.calledWith(
+      fakeRpcCall.secondCall.calledWithExactly(
         'fake window',
         'fake origin',
         'changeFocusModeUser',
@@ -140,13 +141,13 @@ describe('LMSGrader', () => {
       wrapper
         .find(FakeStudentSelector)
         .props()
-        .onSelectStudent(0); // invalid choice
+        .onSelectStudent(-1); // invalid choice
     });
 
     await fakeSidebarWindow;
 
     assert.isTrue(
-      fakeRpcCall.calledWith(
+      fakeRpcCall.calledOnceWithExactly(
         'fake window',
         'fake origin',
         'changeFocusModeUser',

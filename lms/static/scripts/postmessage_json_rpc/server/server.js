@@ -34,7 +34,6 @@ export default class Server {
     // The methods that can be called remotely via this server.
     this._registeredMethods = {};
 
-    // Public field which resolves when sidebar is loaded.
     this.sidebarWindow = new Promise(resolve => {
       this._resolveSidebarWindow = resolve;
     });
