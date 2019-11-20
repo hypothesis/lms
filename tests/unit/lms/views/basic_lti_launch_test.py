@@ -4,7 +4,7 @@ import pytest
 
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
-from lms.services.h_api_client import HAPIClient
+from lms.services.h_api import HAPIClient
 from lms.services.lti_h import LTIHService
 from lms.values import HUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews

@@ -4,7 +4,7 @@ from lms.services import includeme
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.group_info_upsert import GroupInfoUpsert
-from lms.services.h_api_client import HAPIClient
+from lms.services.h_api import HAPIClient
 from lms.services.h_api_requests import HAPIRequests
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lis_result_sourcedid import LISResultSourcedIdService

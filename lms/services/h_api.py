@@ -1,33 +1,27 @@
-"""Hypothesis API service."""
 import json
 
 import requests
 from requests import RequestException
 
 from lms.services import HAPIError, HAPINotFoundError
+from lms.values import HUser
 
-__all__ = ["HAPIRequests"]
+__all__ = ["HAPIClient"]
 
 
-class HAPIRequests:
+class HAPIClient:
     """
-    Low-level API service.
+    High-level h API service.
 
-    A service that provides low-level methods for calling the Hypothesis API
-    with builtin error handling. This service provides HTTP verb methods like
-    ``get()`` and ``post()``. Other services can be built on top of this one
-    and provide higher-level methods like ``create_user()`` or
-    ``update_group()``.
+    This service supports high-level operations (eg. fetching a user) on h
+    resources via the low-level "hapi" client.
+
+    :raises HAPIError: On any unhandled exception during calls to the H API
     """
 
     def __init__(self, _context, request):
-        """
-        Return a new HAPIRequests object.
+        self._request = request
 
-        :arg _context: the Pyramid context resource
-        :arg request: the Pyramid request
-        :type request: pyramid.request.Request
-        """
         settings = request.registry.settings
 
         self._client_id = settings["h_client_id"]
@@ -35,47 +29,79 @@ class HAPIRequests:
         self._authority = settings["h_authority"]
         self._base_url = settings["h_api_url_private"]
 
-    def delete(self, *args, **kwargs):
+    def get_user(self, username):
         """
-        Send a DELETE request to the h API and return the response.
+        Fetch an `HUser` given their username.
 
-        See :meth:`request` for details.
+        :rtype: HUser
         """
-        return self.request("DELETE", *args, **kwargs)
+        authority = self._request.registry.settings["h_authority"]
+        userid = HUser(authority, username).userid
+        user_info = self._request("GET", path=f"users/{userid}").json()
 
-    def get(self, *args, **kwargs):
+        return HUser(
+            authority=authority,
+            username=username,
+            display_name=user_info["display_name"],
+        )
+
+    def create_user(self, h_user, provider, provider_unique_id):
+        user_data = {
+            "username": h_user.username,
+            "display_name": h_user.display_name,
+            "authority": self._request.registry.settings["h_authority"],
+            "identities": [
+                {"provider": provider, "provider_unique_id": provider_unique_id,}
+            ],
+        }
+
+        self._request("POST", "users", user_data)
+
+    def update_user(self, h_user):
         """
-        Send a GET request to the h API and return the response.
 
-        See :meth:`request` for details.
+        :param h_user:
+        :return:
         """
-        return self.request("GET", *args, **kwargs)
+        self._request(
+            "PATCH", f"users/{h_user.username}", {"display_name": h_user.display_name},
+        )
 
-    def patch(self, *args, **kwargs):
+    def upsert_user(self, h_user, provider, provider_unique_id):
+        try:
+            self.update_user(h_user)
+        except HAPINotFoundError:
+            self.create_user(h_user, provider, provider_unique_id)
+
+    def create_group(self, group_id, group_name, h_user):
+        self._request(
+            "PUT",
+            f"groups/{group_id}",
+            {"groupid": group_id, "name": group_name,},
+            user_id=h_user.userid,
+        )
+
+    def update_group(self, group_id, group_name):
         """
-        Send a PATCH request to the h API and return the response.
 
-        See :meth:`request` for details.
+        :param group_id:
+        :param group_name:
+        :return:
         """
-        return self.request("PATCH", *args, **kwargs)
+        self._request(
+            "PATCH", f"groups/{group_id}", {"name": group_name},
+        )
 
-    def post(self, *args, **kwargs):
+    def add_user_to_group(self, h_user, group_id):
         """
-        Send a POST request to the h API and return the response.
 
-        See :meth:`request` for details.
+        :param h_user:
+        :param group_id:
+        :return:
         """
-        return self.request("POST", *args, **kwargs)
+        self._request("POST", f"groups/{group_id}/members/{h_user.userid}")
 
-    def put(self, *args, **kwargs):
-        """
-        Send a PUT request to the h API and return the response.
-
-        See :meth:`request` for details.
-        """
-        return self.request("PUT", *args, **kwargs)
-
-    def request(
+    def _request(
         self, method, path, data=None, userid=None, statuses=None
     ):  # pylint:disable=too-many-arguments
         """
@@ -132,14 +158,14 @@ class HAPIRequests:
                 **request_args,
             )
             response.raise_for_status()
+
         except RequestException as err:
             response = getattr(err, "response", None)
             status_code = getattr(response, "status_code", None)
-            if status_code == 404:
-                exception_class = HAPINotFoundError
-            else:
-                exception_class = HAPIError
+
             if status_code is None or status_code not in statuses:
+                exception_class = HAPINotFoundError if status_code == 404 else HAPIError
+
                 raise exception_class(
                     explanation="Connecting to Hypothesis failed", response=response
                 ) from err
