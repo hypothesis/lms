@@ -4,10 +4,8 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 from requests import Response
 
-from lms.resources import LTILaunchResource
 from lms.services import HAPIError, HAPINotFoundError
 from lms.services.group_info_upsert import GroupInfoUpsert
-from lms.services.h_api_requests import HAPIRequests
 from lms.services.lti_h import LTIHService
 from lms.values import HUser, LTIUser
 

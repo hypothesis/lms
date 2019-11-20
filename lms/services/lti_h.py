@@ -9,7 +9,8 @@ class LTIHService:
     def __init__(self, _context, request):
         self._context = request.context
         self._request = request
-        self.h_api_requests_service = request.find_service(name="h_api_requests")
+
+        self.h_api = request.find_service(name="h_api")
         self.group_info_upsert_service = request.find_service(name="group_info_upsert")
 
     def add_user_to_group(self):
@@ -28,8 +29,8 @@ class LTIHService:
             return
 
         try:
-            self.h_api_requests_service.post(
-                f"groups/{self._context.h_groupid}/members/{self._context.h_user.userid}"
+            self.h_api.add_user_to_group(
+                h_user=self._context.h_user, group_id=self._context.h_groupid
             )
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
@@ -46,29 +47,12 @@ class LTIHService:
         if not self._context.provisioning_enabled:
             return
 
-        hapi_svc = self.h_api_requests_service
-
-        user_data = {
-            "username": self._context.h_user.username,
-            "display_name": self._context.h_user.display_name,
-            "authority": self._request.registry.settings["h_authority"],
-            "identities": [
-                {
-                    "provider": self._context.h_provider,
-                    "provider_unique_id": self._context.h_provider_unique_id,
-                }
-            ],
-        }
-
         try:
-            try:
-                hapi_svc.patch(
-                    f"users/{self._context.h_user.username}",
-                    {"display_name": self._context.h_user.display_name},
-                )
-            except HAPINotFoundError:
-                # Call the h API to create the user in h if it doesn't exist already.
-                hapi_svc.post("users", user_data)
+            self.h_api.upsert_user(
+                h_user=self._context.h_user,
+                provider=self._context.h_provider,
+                provider_unique_id=self._context.h_provider_unique_id,
+            )
 
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
@@ -92,37 +76,37 @@ class LTIHService:
         if not self._context.provisioning_enabled:
             return
 
-        hapi_svc = self.h_api_requests_service
-
-        is_instructor = any(
-            role in self._request.lti_user.roles.lower()
-            for role in ("administrator", "instructor", "teachingassisstant")
-        )
-
         try:
             try:
-                hapi_svc.patch(
-                    f"groups/{self._context.h_groupid}",
-                    {"name": self._context.h_group_name},
+                self.h_api.update_group(
+                    group_id=self._context.h_groupid,
+                    group_name=self._context.h_group_name,
                 )
+
             except HAPINotFoundError:
                 # The group hasn't been created in h yet.
-                if is_instructor:
-                    # Try to create the group with the current instructor as its creator.
-                    hapi_svc.put(
-                        f"groups/{self._context.h_groupid}",
-                        {
-                            "groupid": self._context.h_groupid,
-                            "name": self._context.h_group_name,
-                        },
-                        self._context.h_user.userid,
-                    )
-                else:
+
+                if not self._is_instructor(self._request.lti_user):
                     raise HTTPBadRequest("Instructor must launch assignment first.")
+
+                # Try to create the group with the current instructor as its creator.
+                self.h_api.create_group(
+                    group_id=self._context.h_groupid,
+                    group_name=self._context.h_group_name,
+                    h_user=self._context.h_user,
+                )
+
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
         else:
             self._upsert_group_info()
+
+    @classmethod
+    def _is_instructor(cls, lti_user):
+        return any(
+            role in lti_user.roles.lower()
+            for role in ("administrator", "instructor", "teachingassisstant")
+        )
 
     def _upsert_group_info(self):
         """Create or update the GroupInfo for the given request."""
