@@ -87,7 +87,7 @@ class HAPI:
         :param h_user: the updated user value
         :type h_user: HUser
         :param provider: the "provider" string to send to h
-        :param provider_unique_id: The id of the provider
+        :param provider_unique_id:  the "provider_unique_id" string to send to h
         """
         try:
             self.update_user(h_user)
