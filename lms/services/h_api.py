@@ -132,9 +132,7 @@ class HAPI:
         """
         self._api_request("POST", f"groups/{group_id}/members/{h_user.userid}")
 
-    def _api_request(
-        self, method: str, path: str, data: dict = None, headers: dict = None
-    ):
+    def _api_request(self, method, path, data=None, headers=None):
         """
         Send any kind of HTTP request to the h API and return the response.
 
