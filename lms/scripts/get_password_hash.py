@@ -1,32 +1,12 @@
 #!/usr/bin/env python3
-import binascii
-import hashlib
-import os
-
-__all__ = ["get_hash"]
-
-
-def get_hash(pw_to_hash, salt_for_hash: str = ""):
-    if isinstance(pw_to_hash, str):
-        pw_to_hash = pw_to_hash.encode("utf8")
-    if salt_for_hash == "":
-        salt_for_hash = binascii.hexlify(os.urandom(8))
-    elif isinstance(salt_for_hash, str):
-        salt_for_hash = salt_for_hash.encode("utf8")
-
-    hash_pw = binascii.hexlify(
-        hashlib.pbkdf2_hmac("sha256", pw_to_hash, salt_for_hash, 1_000_000)
-    )
-
-    return hash_pw, salt_for_hash
-
+from lms.authentication.password_hash import hash_password
 
 if __name__ == "__main__":
     # pylint: disable=invalid-name
     password = input("Please enter a password: ").encode("utf8")
     salt = input("Please enter a salt (leave blank to have one created): ")
 
-    pw_hash, salt = get_hash(password, salt)
+    pw_hash, salt = hash_password(password, salt)
 
     print(f"password hash: {pw_hash}")
     print(f"salt: {salt}")

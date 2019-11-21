@@ -1,11 +1,15 @@
+import pytest
+
 from lms.views import authentication
 
 
 class TestAuthentication:
-    def test_login(self, pyramid_request):
+    good_password = "asdf"
+
+    def test_login(self, pyramid_request, check_password):
         pyramid_request.params = {
             "username": "report_viewer",
-            "password": "asdf",
+            "password": self.good_password,
             "form.submitted": True,
         }
         sut = authentication.AuthenticationViews(pyramid_request)
@@ -14,6 +18,12 @@ class TestAuthentication:
 
         assert response.status_code == 302
         assert response.location == "http://example.com"
+
+        check_password.assert_called_once_with(
+            self.good_password,
+            pyramid_request.registry.settings["hashed_pw"],
+            pyramid_request.registry.settings["salt"],
+        )
 
     def test_login_redirected_to_reports(self, pyramid_request):
         pyramid_request.params = {
@@ -54,7 +64,7 @@ class TestAuthentication:
     def test_logout(self, pyramid_request):
         pyramid_request.params = {
             "username": "report_viewer",
-            "password": "asdf",
+            "password": self.good_password,
             "form.submitted": True,
         }
         sut = authentication.AuthenticationViews(pyramid_request)
@@ -69,3 +79,11 @@ class TestAuthentication:
         response_logout = sut.logout()
         assert response_logout.status_code == 302
         assert response_logout.location == "http://example.com/login"
+
+    @pytest.fixture(autouse=True)
+    def check_password(self, patch):
+        check_password = patch("lms.views.authentication.check_password")
+        check_password.side_effect = (
+            lambda password, expected_hashed_pw, salt: password == self.good_password
+        )
+        return check_password
