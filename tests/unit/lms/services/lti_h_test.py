@@ -46,6 +46,7 @@ class TestUpsertCourseGroup:
         h_api.update_group.assert_called_once_with(
             group_id="test_groupid", group_name="test_group_name",
         )
+        h_api.create_group.assert_not_called()
 
     def test_it_raises_if_updating_the_group_fails(
         self, context, pyramid_request, h_api, lti_h_svc
