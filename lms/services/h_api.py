@@ -13,7 +13,7 @@ __all__ = ["HAPI"]
 
 class HAPI:
     """
-    H API service for modifying users and groups.
+    A client for the "h" API.
 
     :raises HAPIError: On any unhandled exception during calls to the H API.
     """
