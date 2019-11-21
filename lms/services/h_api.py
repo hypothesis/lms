@@ -84,7 +84,7 @@ class HAPI:
         that fails.
 
         :param h_user: An `HUser` object to send to H
-        :param provider: The provider (hosting LMS)
+        :param provider: the "provider" string to send to h
         :param provider_unique_id: The id of the provider
         """
         try:
