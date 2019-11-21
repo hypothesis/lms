@@ -34,7 +34,7 @@ class LTIHService:
 
     All of these functions require you to be in an LTILaunchResource context.
 
-    :raises HTTPInternalServerError: If any calls to the H API fail.
+    :raise HTTPInternalServerError: if any calls to the H API fail
     """
 
     def __init__(self, _context, request):
