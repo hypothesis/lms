@@ -25,7 +25,12 @@ def lti_h_action(function):
 
 class LTIHService:
     """
-    Actions which import import data from LTI to H.
+    Copy LTI users and courses to h users and groups.
+    
+    This service provides methods for synchronizing LTI users and courses (received by us in
+    LTI launch parameters) to corresponding h users and groups. LTI users are copied to h
+    by calling the h API to create corresponding h users, or to update the h users if they already
+    exist. Similarly, LTI _courses_ are copied to h groups.
 
     All of these functions require you to be in an LTILaunchResource context.
 
