@@ -26,7 +26,7 @@ def lti_h_action(function):
 class LTIHService:
     """
     Copy LTI users and courses to h users and groups.
-    
+
     This service provides methods for synchronizing LTI users and courses (received by us in
     LTI launch parameters) to corresponding h users and groups. LTI users are copied to h
     by calling the h API to create corresponding h users, or to update the h users if they already
@@ -95,12 +95,12 @@ class LTIHService:
         self._upsert_h_group(
             group_id=self._context.h_groupid,
             group_name=self._context.h_group_name,
-            h_user=self._context.h_user,
+            creator=self._context.h_user,
         )
 
         self._upsert_group_info()
 
-    def _upsert_h_group(self, group_id, group_name, h_user):
+    def _upsert_h_group(self, group_id, group_name, creator):
         """Update the group and create it if the user is an instructor."""
 
         try:
@@ -113,7 +113,9 @@ class LTIHService:
                 raise HTTPBadRequest("Instructor must launch assignment first.")
 
         # Try to create the group with the current instructor as its creator.
-        self.h_api.create_group(group_id=group_id, group_name=group_name, h_user=h_user)
+        self.h_api.create_group(
+            group_id=group_id, group_name=group_name, creator=creator
+        )
 
     def _upsert_group_info(self):
         """Create or update the GroupInfo for the given request."""

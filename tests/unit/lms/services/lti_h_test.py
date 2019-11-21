@@ -70,7 +70,7 @@ class TestUpsertCourseGroup:
         lti_h_svc.upsert_course_group()
 
         h_api.create_group.assert_called_once_with(
-            group_id="test_groupid", group_name="test_group_name", h_user=h_user,
+            group_id="test_groupid", group_name="test_group_name", creator=h_user,
         )
 
     def test_it_raises_if_creating_the_group_fails(

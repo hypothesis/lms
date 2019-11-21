@@ -94,19 +94,19 @@ class HAPI:
         except HAPINotFoundError:
             self.create_user(h_user, provider, provider_unique_id)
 
-    def create_group(self, group_id, group_name, h_user):
+    def create_group(self, group_id, group_name, creator):
         """
         Create a group in H.
 
         :param group_id: The id of the group
         :param group_name: The display name for the group
-        :param h_user: An `HUser` to associate with the group
+        :param creator: The user creating the group
         """
         self._api_request(
             "PUT",
             f"groups/{group_id}",
             data={"groupid": group_id, "name": group_name},
-            headers={"X-Forwarded-User": h_user.userid},
+            headers={"X-Forwarded-User": creator.userid},
         )
 
     def update_group(self, group_id, group_name):
