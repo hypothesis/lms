@@ -38,7 +38,6 @@ class LMSDBContext:
 
 @step("I create an LMS DB '{model_class}'")
 def create_row_from_fixture(context, model_class):
-    print(model_class)
     model_class = getattr(models, model_class)
     data = {row[0]: row[1] for row in context.table}
     model = model_class(**data)

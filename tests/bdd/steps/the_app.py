@@ -2,7 +2,7 @@ from behave import step
 from h_matchers import Any
 from webtest import TestApp
 
-from tests.bdd.steps import WebTestResponse
+from tests.bdd.steps.the_response import WebTestResponse
 
 
 class TheApp:
