@@ -48,7 +48,7 @@ class HAPI:
 
         :param h_user: An `HUser` object to send to H
         :param provider: the "provider" string to send to h
-        :param provider_unique_id: The id of the provider
+        :param provider_unique_id:  the "provider_unique_id" string to send to h
         """
         user_data = {
             "username": h_user.username,
