@@ -11,9 +11,11 @@ parameter with the value ``basic-lti-launch-request`` to distinguish them
 from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
+from datetime import datetime
+
 from pyramid.view import view_config, view_defaults
 
-from lms.models import ModuleItemConfiguration
+from lms.models import ModuleItemConfiguration, LtiLaunches
 from lms.services import HAPIError
 from lms.validation import (
     ConfigureModuleItemSchema,
@@ -21,7 +23,7 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.decorators import report_lti_launch, upsert_lis_result_sourcedid
+from lms.views.decorators import upsert_lis_result_sourcedid
 from lms.views.helpers import frontend_app, via_url
 
 
@@ -86,10 +88,21 @@ class BasicLTILaunchViews:
         dummy = lambda *args, **kwargs: None
 
         # Report all LTI assignment launches to the /reports page.
-        report_lti_launch(dummy)(self.context, self.request)
+        self._report_lti_launch(self.request)
 
         # Create/update LIS Result SourcedId record for certain students
         upsert_lis_result_sourcedid(dummy)(self.context, self.request)
+
+    @classmethod
+    def _report_lti_launch(cls, request):
+        # Report an LTI launch to the /reports page.
+        request.db.add(
+            LtiLaunches(
+                context_id=request.params.get("context_id"),
+                lti_key=request.params.get("oauth_consumer_key"),
+                created=datetime.utcnow(),
+            )
+        )
 
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
