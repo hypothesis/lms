@@ -105,6 +105,7 @@ class LTIHService:
 
         try:
             self.h_api.update_group(group_id=group_id, group_name=group_name)
+            return
 
         except HAPINotFoundError:
             # The group hasn't been created in h yet.
