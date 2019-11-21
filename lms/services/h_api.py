@@ -67,7 +67,8 @@ class HAPI:
 
         Currently this only updates the display name.
 
-        :param h_user: An `HUser` object to update
+        :param h_user: the updated user details to send to h
+        :type h_user: HUser
         """
         self._api_request(
             "PATCH",
