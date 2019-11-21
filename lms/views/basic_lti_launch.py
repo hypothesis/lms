@@ -21,9 +21,10 @@ from lms.validation import (
     ConfigureModuleItemSchema,
     LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
+    LISResultSourcedIdSchema,
+    ValidationError,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.decorators import upsert_lis_result_sourcedid
 from lms.views.helpers import frontend_app, via_url
 
 
@@ -50,7 +51,7 @@ class BasicLTILaunchViews:
             params.get("lis_result_sourcedid")
             and params.get("lis_outcome_service_url")
             # This feature is initially restricted to Canvas.
-            and params.get("tool_consumer_info_product_family_code") == "canvas"
+            and self._is_launched_by_canvas(request)
         ):
             self.context.js_config["submissionParams"] = {}
 
@@ -84,9 +85,6 @@ class BasicLTILaunchViews:
     def store_lti_data(self):
         """Store LTI launch data in our LMS database."""
 
-        # A dummy function for the 'decorators' to work on
-        dummy = lambda *args, **kwargs: None
-
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(
             self.request.db,
@@ -95,7 +93,7 @@ class BasicLTILaunchViews:
         )
 
         # Create/update LIS Result SourcedId record for certain students
-        upsert_lis_result_sourcedid(dummy)(self.context, self.request)
+        self._upsert_lis_result_sourcedid(self.context, self.request)
 
     @classmethod
     def _report_lti_launch(cls, request):
@@ -107,6 +105,32 @@ class BasicLTILaunchViews:
                 created=datetime.utcnow(),
             )
         )
+
+    @classmethod
+    def _upsert_lis_result_sourcedid(cls, context, request):
+        """Create or update a record of LIS result/outcome data for a student launch."""
+
+        if request.lti_user.is_instructor or cls._is_launched_by_canvas(request):
+            return
+
+        try:
+            lis_result_sourcedid = LISResultSourcedIdSchema(
+                request
+            ).lis_result_sourcedid_info()
+        except ValidationError:
+            # We're missing something we need in the request.
+            # This can happen if the user is not a student, or if the needed
+            # LIS data is not present on the request.
+            return
+
+        lis_result_svc = request.find_service(name="lis_result_sourcedid")
+        lis_result_svc.upsert(
+            lis_result_sourcedid, h_user=context.h_user, lti_user=request.lti_user
+        )
+
+    @classmethod
+    def _is_launched_by_canvas(cls, request):
+        return request.params.get("tool_consumer_info_product_family_code") == "canvas"
 
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
