@@ -2,6 +2,12 @@ Feature: Section 1 - Invalid Launch Requests
 
   This section comprises tests using invalid launch requests.
 
+  Background:
+    Given fixtures are located in '/lti_certification_1_1/section_1'
+
+    Given the OAuth 1 consumer key is 'Hypothesis4dd96539c449ca5c3d57cc3d778d6bf3'
+    And the OAuth 1 nonce is '03bbb457a6be8805761813e214a1045e'
+
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.1 - No resource_link_id provided
     # Expected result: Return user to the Tool Consumer with an error message
@@ -9,6 +15,21 @@ Feature: Section 1 - Invalid Launch Requests
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.2 - No resource_link_id or return URL provided
     # Expected result: A user-friendly error message
+
+    Given I load the fixture '1.2.ini' as 'params'
+    And I set the 'params' fixture value 'resource_link_id' to '*MISSING*'
+    And I set the 'params' fixture value 'launch_presentation_return_url' to '*MISSING*'
+
+    Given I start a 'POST' request to 'http://localhost/lti_launches'
+    And I set the request header 'Accept' to 'text/html'
+    And I set the request header 'Content-Type' to 'application/x-www-form-urlencoded'
+    And I OAuth 1 sign the fixture 'params'
+    And I set the form parameters from the fixture 'params'
+
+    When I send the request to the app
+
+    Then the response header 'Content-Type' matches '^text/html'
+    And the response status code is 422
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.3 - Invalid OAuth consumer key
