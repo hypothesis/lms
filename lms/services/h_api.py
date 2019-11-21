@@ -46,7 +46,8 @@ class HAPI:
         """
         Create a user in H.
 
-        :param h_user: An `HUser` object to send to H
+        :arg h_user: the user to be created in h
+        :type h_user: HUser
         :param provider: the "provider" string to send to h
         :param provider_unique_id:  the "provider_unique_id" string to send to h
         """
