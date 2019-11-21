@@ -103,7 +103,7 @@ class TestBasicLTILaunch:
 
     @pytest.fixture
     def h_api(self, pyramid_config):
-        svc = mock.create_autospec(HAPI, instance=True)
+        svc = mock.create_autospec(HAPI, instance=True, spec_set=True)
         pyramid_config.register_service(svc, name="h_api")
         return svc
 
