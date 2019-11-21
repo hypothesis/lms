@@ -15,7 +15,7 @@ class HAPI:
     """
     A client for the "h" API.
 
-    :raises HAPIError: On any unhandled exception during calls to the H API.
+    :raise HAPIError: if a call to the "h" API raises an unhandled exception
     """
 
     def __init__(self, _context, request):
