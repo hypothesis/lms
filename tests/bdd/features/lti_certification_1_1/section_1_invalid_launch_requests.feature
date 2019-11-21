@@ -6,7 +6,14 @@ Feature: Section 1 - Invalid Launch Requests
     Given fixtures are located in '/lti_certification_1_1/section_1'
 
     Given the OAuth 1 consumer key is 'Hypothesis4dd96539c449ca5c3d57cc3d778d6bf3'
-    And the OAuth 1 nonce is '03bbb457a6be8805761813e214a1045e'
+    And the OAuth 1 shared secret is 'TEST_SECRET'
+
+    Given I create an LMS DB 'ApplicationInstance'
+      | Field            | Value                                      |
+      | consumer_key     | Hypothesis4dd96539c449ca5c3d57cc3d778d6bf3 |
+      | shared_secret    | TEST_SECRET                                |
+      | lms_url          | test_lms_url                               |
+      | requesters_email | test_requesters_email                      |
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.1 - No resource_link_id provided

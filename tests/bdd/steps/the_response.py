@@ -1,5 +1,6 @@
-from behave import step
 import re
+
+from behave import step
 
 
 class WebTestResponse:
@@ -27,6 +28,7 @@ def the_response_header_matches(context, header, regex):
 @step("the response status code is {status_code}")
 def the_response_status_Code_is(context, status_code):
     found_code = context.the_response.status_code()
-    if found_code != status_code:
+    if found_code != int(status_code):
         raise AssertionError(
-            f"Expected status code '{status_code}' found '{found_code}'")
+            f"Expected status code '{status_code}' found '{found_code}'"
+        )

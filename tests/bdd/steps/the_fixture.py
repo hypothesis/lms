@@ -4,25 +4,26 @@
     And I set the fixture "params" value "resource_link_id" to "*MISSING*"
 
 """
-import os.path
 import json
+import os.path
+
 from behave import step
 from pkg_resources import resource_filename
 
 
 class TheFixture:
-    MISSING = '*MISSING*'
-    NONE = '*NONE*'
+    MISSING = "*MISSING*"
+    NONE = "*NONE*"
 
     def __init__(self):
         self.base_dir = None
         self.fixtures = {}
 
     def set_base_dir(self, base_dir):
-        base_dir = base_dir.lstrip('/')
-        path = os.path.join('bdd/fixtures', base_dir)
+        base_dir = base_dir.lstrip("/")
+        path = os.path.join("bdd/fixtures", base_dir)
 
-        self.base_dir = resource_filename('tests', path)
+        self.base_dir = resource_filename("tests", path)
 
     def teardown(self):
         self.fixtures = {}
@@ -38,10 +39,10 @@ class TheFixture:
         with open(self._get_path(filename)) as handle:
             for line in handle:
                 line = line.strip()
-                if not line or line.startswith('#'):
+                if not line or line.startswith("#"):
                     continue
 
-                key, value = line.split('=', 1)
+                key, value = line.split("=", 1)
                 values[key] = value
 
         self.set_fixture(fixture_name, values)
@@ -63,14 +64,22 @@ def fixture_location(context, location):
     context.the_fixture.set_base_dir(location)
 
 
+@step("I define the fixture '{fixture_name}' to be '{data}'")
+def define_fixture(context, fixture_name, data):
+    if data[0] in {"[", "{", '"'}:
+        data = json.loads(data)
+
+    context.the_fixture.set_fixture(fixture_name, data)
+
+
 @step("I load the fixture '{fixture_file}.json' as '{fixture_name}'")
 def load_json_fixture(context, fixture_file, fixture_name):
-    context.the_fixture.load_json(fixture_file + '.json', fixture_name)
+    context.the_fixture.load_json(fixture_file + ".json", fixture_name)
 
 
 @step("I load the fixture '{fixture_file}.ini' as '{fixture_name}'")
 def load_ini_fixture(context, fixture_file, fixture_name):
-    context.the_fixture.load_ini(fixture_file + '.ini', fixture_name)
+    context.the_fixture.load_ini(fixture_file + ".ini", fixture_name)
 
 
 @step("I set the '{fixture_name}' fixture value '{key}' to '{value}'")

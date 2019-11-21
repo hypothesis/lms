@@ -1,7 +1,6 @@
+from behave import step
 from h_matchers import Any
 from webtest import TestApp
-
-from behave import step
 
 from tests.bdd.steps import WebTestResponse
 
@@ -23,10 +22,11 @@ class TheApp:
             url=request.url,
             headers=request.headers,
             params=request.data,
-            status=Any.int()
+            status=Any.int(),
         )
 
-@step('I send the request to the app')
+
+@step("I send the request to the app")
 def sent_request_to_app(context):
     request = context.the_request.request
     response = context.the_app.send_request(request)
