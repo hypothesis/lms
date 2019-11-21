@@ -29,7 +29,7 @@ class HAPI:
 
     def get_user(self, username):
         """
-        Get an `HUser` given their username.
+        Return the h user for the given username.
 
         :rtype: HUser
         """
