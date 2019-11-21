@@ -126,7 +126,8 @@ class HAPI:
         """
         Add the user as a member of the group.
 
-        :param h_user: An `HUser` to associate with the group
+        :param h_user: the user to add to the group
+        :type h_user: HUser
         :param group_id: The id of the group
         """
         self._api_request("POST", f"groups/{group_id}/members/{h_user.userid}")
