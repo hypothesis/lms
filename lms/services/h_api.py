@@ -24,7 +24,6 @@ class HAPI:
         settings = request.registry.settings
 
         self._authority = settings["h_authority"]
-
         self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
         self._base_url = settings["h_api_url_private"]
 
