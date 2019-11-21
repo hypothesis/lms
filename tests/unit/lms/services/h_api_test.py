@@ -77,7 +77,7 @@ class TestHAPI:
             h_user, sentinel.provider, sentinel.provider_unique_id
         )
 
-    def test_create_groups_works(self, h_api, h_user):
+    def test_create_group_works(self, h_api, h_user):
         h_api.create_group(sentinel.group_id, sentinel.group_name, h_user)
 
         h_api._api_request.assert_called_once_with(
