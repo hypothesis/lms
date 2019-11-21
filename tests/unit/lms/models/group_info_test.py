@@ -47,6 +47,14 @@ class TestGroupInfo:
         ):
             db_session.flush()
 
+    def test_we_can_get_metadata_fields(self):
+        fields = set(GroupInfo.metadata_fields())
+
+        # We don't want to bake the exact fields, but check we have some and
+        # are excluding some
+        assert len(fields) > 5
+        assert "id" not in fields
+
     def test___str__(self, db_session, group_info):
         db_session.add(group_info)
         db_session.flush()

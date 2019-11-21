@@ -3,12 +3,32 @@ import logging
 import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.properties import ColumnProperty
 
 __all__ = ("BASE", "init")
 
 
 log = logging.getLogger(__name__)
+
+
+class BaseClass:
+    """Functions common to all SQL Alchemy models."""
+
+    @classmethod
+    def iter_properties(cls):
+        """Iterate over all declared SQL Alchemy properties."""
+        return inspect(cls).iterate_properties
+
+    @classmethod
+    def iter_columns(cls):
+        """Iterate over all declared SQL Alchemy columns."""
+        return (
+            property
+            for property in cls.iter_properties()
+            if isinstance(property, ColumnProperty)
+        )
 
 
 BASE = declarative_base(
@@ -18,6 +38,7 @@ BASE = declarative_base(
     #
     #   http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
     #
+    cls=BaseClass,
     metadata=sqlalchemy.MetaData(
         naming_convention={
             "ix": "ix__%(column_0_label)s",
@@ -26,7 +47,7 @@ BASE = declarative_base(
             "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
             "pk": "pk__%(table_name)s",
         }
-    )
+    ),
 )
 
 

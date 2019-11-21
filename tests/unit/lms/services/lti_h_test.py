@@ -3,8 +3,9 @@ from unittest import mock
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
+from lms.models import GroupInfo
 from lms.services import HAPIError, HAPINotFoundError
-from lms.services.group_info_upsert import GroupInfoUpsert
+from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.lti_h import LTIHService
 from lms.values import HUser, LTIUser
@@ -22,21 +23,6 @@ class TestUpsertCourseGroup:
         lti_h_svc.upsert_course_group()
 
         h_api.update_group.assert_not_called()
-
-    def test_it_defaults_to_None_if_request_params_are_missing(
-        self, context, group_info_upsert, params, pyramid_request, lti_h_svc
-    ):
-        pyramid_request.params = {}
-
-        lti_h_svc.upsert_course_group()
-
-        target_call = mock.call(
-            context.h_authority_provided_id,
-            "TEST_OAUTH_CONSUMER_KEY",
-            **{param: None for param in params.keys()}
-        )
-
-        assert group_info_upsert.call_args_list == [target_call]
 
     def test_it_calls_the_group_update_api(
         self, context, pyramid_request, h_api, lti_h_svc
@@ -105,18 +91,18 @@ class TestUpsertCourseGroup:
         h_api.create_group.assert_not_called()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
-        self, params, group_info_upsert, context, pyramid_request, lti_h_svc
+        self, params, group_info_svc, context, pyramid_request, lti_h_svc
     ):
         lti_h_svc.upsert_course_group()
 
-        assert group_info_upsert.call_args_list == [
-            mock.call(
-                context.h_authority_provided_id, "TEST_OAUTH_CONSUMER_KEY", **params
-            )
-        ]
+        group_info_svc.upsert.assert_called_once_with(
+            authority_provided_id=context.h_authority_provided_id,
+            consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            params=params,
+        )
 
     def test_it_doesnt_upsert_GroupInfo_into_the_db_if_creating_the_group_fails(
-        self, group_info_upsert, context, pyramid_request, h_api, lti_h_svc
+        self, group_info_svc, context, pyramid_request, h_api, lti_h_svc
     ):
         h_api.update_group.side_effect = HAPINotFoundError()
         h_api.create_group.side_effect = HAPIError("Oops")
@@ -126,24 +112,11 @@ class TestUpsertCourseGroup:
         except:
             pass
 
-        group_info_upsert.assert_not_called()
+        group_info_svc.assert_not_called()
 
     @pytest.fixture
     def params(self):
-        return dict(
-            context_id="test_context_id",
-            context_title="test_context_title",
-            context_label="test_context_label",
-            tool_consumer_info_product_family_code="test_tool_consumer_info_product_family_code",
-            tool_consumer_info_version="test_tool_consumer_info_version",
-            tool_consumer_instance_name="test_tool_consumer_instance_name",
-            tool_consumer_instance_description="test_tool_consumer_instance_description",
-            tool_consumer_instance_url="test_tool_consumer_instance_url",
-            tool_consumer_instance_contact_email="test_tool_consumer_instance_contact_email",
-            tool_consumer_instance_guid="test_tool_consumer_instance_guid",
-            custom_canvas_api_domain="test_custom_canvas_api_domain",
-            custom_canvas_course_id="test_custom_canvas_course_id",
-        )
+        return {field: field for field in GroupInfo.metadata_fields()}
 
     @pytest.fixture
     def pyramid_request(self, params, pyramid_request):
@@ -281,9 +254,9 @@ def h_api(patch, pyramid_config):
 
 
 @pytest.fixture(autouse=True)
-def group_info_upsert(pyramid_config):
-    group_info_upsert = mock.create_autospec(
-        GroupInfoUpsert, instance=True, spec_set=True
+def group_info_svc(pyramid_config):
+    group_info_svc = mock.create_autospec(
+        GroupInfoService, instance=True, spec_set=True
     )
-    pyramid_config.register_service(group_info_upsert, name="group_info_upsert")
-    return group_info_upsert
+    pyramid_config.register_service(group_info_svc, name="group_info")
+    return group_info_svc

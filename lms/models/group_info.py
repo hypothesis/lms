@@ -17,6 +17,8 @@ class GroupInfo(BASE):
 
     __tablename__ = "group_info"
 
+    NON_METADATA_FIELDS = {"id", "authority_provided_id", "consumer_key"}
+
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
     #: The authority_provided_id of the group in h.
@@ -88,3 +90,9 @@ class GroupInfo(BASE):
             f" authority_provided_id:'{self.authority_provided_id}'"
             f" consumer_key:'{self.consumer_key}'>"
         )
+
+    @classmethod
+    def metadata_fields(cls):
+        for column in cls.iter_columns():
+            if column.key not in cls.NON_METADATA_FIELDS:
+                yield column.key
