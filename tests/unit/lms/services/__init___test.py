@@ -1,7 +1,9 @@
+import pytest
+
 from lms.services import includeme
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
-from lms.services.group_info_upsert import GroupInfoUpsert
+from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lis_result_sourcedid import LISResultSourcedIdService
@@ -9,27 +11,21 @@ from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 
 
-def test_includeme(pyramid_config):
-    includeme(pyramid_config)
+class TestIncludeme:
+    @pytest.mark.parametrize(
+        "name,service_class",
+        (
+            ("ai_getter", ApplicationInstanceGetter),
+            ("canvas_api_client", CanvasAPIClient),
+            ("h_api", HAPI),
+            ("launch_verifier", LaunchVerifier),
+            ("lis_result_sourcedid", LISResultSourcedIdService),
+            ("lti_outcomes_client", LTIOutcomesClient),
+            ("group_info", GroupInfoService),
+            ("lti_h", LTIHService),
+        ),
+    )
+    def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
+        includeme(pyramid_config)
 
-    assert (
-        pyramid_config.find_service_factory(name="ai_getter")
-        == ApplicationInstanceGetter
-    )
-    assert (
-        pyramid_config.find_service_factory(name="canvas_api_client") == CanvasAPIClient
-    )
-    assert pyramid_config.find_service_factory(name="h_api") == HAPI
-    assert pyramid_config.find_service_factory(name="launch_verifier") == LaunchVerifier
-    assert (
-        pyramid_config.find_service_factory(name="lis_result_sourcedid")
-        == LISResultSourcedIdService
-    )
-    assert (
-        pyramid_config.find_service_factory(name="lti_outcomes_client")
-        == LTIOutcomesClient
-    )
-    assert (
-        pyramid_config.find_service_factory(name="group_info_upsert") == GroupInfoUpsert
-    )
-    assert pyramid_config.find_service_factory(name="lti_h") == LTIHService
+        assert pyramid_config.find_service_factory(name=name) == service_class

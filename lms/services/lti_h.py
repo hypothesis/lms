@@ -42,7 +42,7 @@ class LTIHService:
         self._request = request
 
         self.h_api = request.find_service(name="h_api")
-        self.group_info_upsert_service = request.find_service(name="group_info_upsert")
+        self.group_info_service = request.find_service(name="group_info")
 
     @lti_h_action
     def add_user_to_group(self):
@@ -98,7 +98,11 @@ class LTIHService:
             creator=self._context.h_user,
         )
 
-        self._upsert_group_info()
+        self.group_info_service.upsert(
+            authority_provided_id=self._context.h_authority_provided_id,
+            consumer_key=self._request.lti_user.oauth_consumer_key,
+            params=self._request.params,
+        )
 
     def _upsert_h_group(self, group_id, group_name, creator):
         """Update the group and create it if the user is an instructor."""
@@ -116,29 +120,4 @@ class LTIHService:
         # Try to create the group with the current instructor as its creator.
         self.h_api.create_group(
             group_id=group_id, group_name=group_name, creator=creator
-        )
-
-    def _upsert_group_info(self):
-        """Create or update the GroupInfo for the given request."""
-
-        self.group_info_upsert_service(
-            self._context.h_authority_provided_id,
-            self._request.lti_user.oauth_consumer_key,
-            **{
-                param: self._request.params.get(param)
-                for param in [
-                    "context_id",
-                    "context_title",
-                    "context_label",
-                    "tool_consumer_info_product_family_code",
-                    "tool_consumer_info_version",
-                    "tool_consumer_instance_name",
-                    "tool_consumer_instance_description",
-                    "tool_consumer_instance_url",
-                    "tool_consumer_instance_contact_email",
-                    "tool_consumer_instance_guid",
-                    "custom_canvas_api_domain",
-                    "custom_canvas_course_id",
-                ]
-            },
         )
