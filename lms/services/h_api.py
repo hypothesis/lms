@@ -84,7 +84,8 @@ class HAPI:
         This is equivalent to calling `update_user()` then `create_user()` if
         that fails.
 
-        :param h_user: An `HUser` object to send to H
+        :param h_user: the updated user value
+        :type h_user: HUser
         :param provider: the "provider" string to send to h
         :param provider_unique_id: The id of the provider
         """
