@@ -25,6 +25,7 @@ class TestHAPI:
         h_api._api_request.return_value.json.return_value = {
             "display_name": sentinel.display_name
         }
+
         user = h_api.get_user("username")
 
         h_api._api_request.assert_called_once_with(
