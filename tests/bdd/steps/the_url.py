@@ -1,0 +1,37 @@
+import re
+from urllib.parse import parse_qs, urlparse
+
+from behave import step
+
+
+class TheURL:
+    def __init__(self, url):
+        self.raw_url = url
+        self.url = urlparse(url)
+        self.query = parse_qs(self.url.query)
+
+    @classmethod
+    def register(cls, context, url):
+        context.the_url = TheURL(url)
+
+    def bare_url(self):
+        return self.url._replace(query=None).geturl()
+
+
+@step("the url matches '{bare_url}'")
+def the_url_matches(context, bare_url):
+    found_url = context.the_url.bare_url()
+
+    if found_url != bare_url:
+        raise AssertionError(f"Expected url '{bare_url}' found '{found_url}'")
+
+
+@step("the url query parameter '{param}' matches '{regex}'")
+def the_url_query_parameter_matches(context, param, regex):
+    value = context.the_url.query.get(param)
+    value = value[0]
+
+    if not re.compile(regex).match(value):
+        raise AssertionError(
+            f"Expected param '{param}' to match regex '{regex}', but found: '{value}'"
+        )

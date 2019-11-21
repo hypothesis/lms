@@ -39,6 +39,21 @@ def standard_setup_for_lti_section_section_(context, section):
     )
 
 
+@step("the app redirects to the LTI tool with message matching '{regex}'")
+def the_app_redirects_to_the_lti_tool_with_message_matching_regex_(context, regex):
+    # From: tests/bdd/feature_steps/lti.feature: line 6
+    context.execute_steps(
+        """
+     Then  the response status code is 302
+      And   the response header 'Location' is the URL
+      And   the url matches 'https://apps.imsglobal.org/lti/cert/tp/tp_return.php/basic-lti-launch-request'
+      And   the url query parameter 'lti_msg' matches '{regex}'
+    """.format(
+            regex=regex
+        )
+    )
+
+
 @step("I make an LTI launch request")
 def i_make_an_lti_launch_request(context):
     # From: tests/bdd/feature_steps/http.feature: line 1
