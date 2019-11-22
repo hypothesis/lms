@@ -1,3 +1,4 @@
+import { act } from 'preact/test-utils';
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
@@ -37,7 +38,9 @@ describe('BasicLtiLaunchApp', () => {
       lmsName: 'Shiny LMS',
       urls: {},
     };
+
     fakeApiCall = sinon.stub();
+
     FakeAuthWindow = sinon.stub().returns({
       authorize: sinon.stub().resolves(null),
     });
@@ -45,6 +48,7 @@ describe('BasicLtiLaunchApp', () => {
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       './Dialog': FakeDialog,
+
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
         apiCall: fakeApiCall,
@@ -236,6 +240,18 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       const LMSGrader = wrapper.find('LMSGrader');
       assert.isTrue(LMSGrader.exists());
+    });
+
+    it('creates an iframe key equal to the focused userid', () => {
+      const wrapper = renderLtiLaunchApp();
+      act(() => {
+        wrapper
+          .find('LMSGrader')
+          .props()
+          .onChangeSelectedUser('new_key');
+      });
+      wrapper.update();
+      assert.equal(wrapper.find('iframe').key(), 'new_key');
     });
   });
 });

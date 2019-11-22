@@ -6,24 +6,21 @@ import LMSGrader, { $imports } from '../LMSGrader';
 describe('LMSGrader', () => {
   const fakeStudents = [
     {
-      userid: 'acct:student1@authority',
+      userid: 'student1',
       displayName: 'Student 1',
       LISResultSourcedId: 1,
       LISOutcomeServiceUrl: '',
     },
     {
-      userid: 'acct:student2@authority',
+      userid: 'student1',
       displayName: 'Student 2',
       LISResultSourcedId: 2,
       LISOutcomeServiceUrl: '',
     },
   ];
-  let fakeOnChange;
-  let fakeRpcCall;
-  const fakeSidebarWindow = sinon.stub().resolves({
-    frame: 'fake window',
-    origin: 'fake origin',
-  });
+  const fakeUpdateClientConfig = sinon.spy();
+  const fakeRemoveClientConfig = sinon.spy();
+  const fakeOnChange = sinon.stub();
 
   // eslint-disable-next-line react/prop-types
   const FakeStudentSelector = ({ children }) => {
@@ -31,16 +28,12 @@ describe('LMSGrader', () => {
   };
 
   beforeEach(() => {
-    fakeOnChange = sinon.spy();
-    fakeRpcCall = sinon.spy();
     $imports.$mock({
+      '../utils/update-client-config': {
+        updateClientConfig: fakeUpdateClientConfig,
+        removeClientConfig: fakeRemoveClientConfig,
+      },
       './StudentSelector': FakeStudentSelector,
-      '../../postmessage_json_rpc/client': {
-        call: fakeRpcCall,
-      },
-      '../../postmessage_json_rpc/server': {
-        getSidebarWindow: fakeSidebarWindow,
-      },
     });
   });
 
@@ -77,7 +70,7 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('set the selected student count to "Student 2 of 2" when the index changers to 1', async () => {
+  it('set the selected student count to "Student 2 of 2" when the index changers to 1', () => {
     const wrapper = renderGrader();
     act(() => {
       wrapper
@@ -91,73 +84,61 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('does not set a focus user by default', async () => {
+  it('passes a default value of "0" to onChangeSelectedUser when no a student is selected', () => {
     renderGrader();
-    await fakeSidebarWindow;
-    assert.isTrue(
-      fakeRpcCall.calledOnceWithExactly(
-        'fake window',
-        'fake origin',
-        'changeFocusModeUser',
-        [
-          {
-            username: undefined,
-            displayName: undefined,
-          },
-        ]
-      )
-    );
+    assert.isTrue(fakeOnChange.calledWithExactly('0'));
   });
-  it('sets the focused user when a valid index is passed', async () => {
-    const wrapper = renderGrader();
 
+  it('passes the unique userid to onChangeSelectedUser when a student is selected', () => {
+    const wrapper = renderGrader();
     act(() => {
       wrapper
         .find(FakeStudentSelector)
         .props()
-        .onSelectStudent(0); // note: initial index is -1
+        .onSelectStudent(1); // second student
     });
+    wrapper.update();
+    assert.isTrue(fakeOnChange.calledWithExactly('student1'));
+  });
 
-    await fakeSidebarWindow;
+  it('does not set a focus user by default', () => {
+    renderGrader();
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
+  });
 
-    assert.isTrue(
-      fakeRpcCall.secondCall.calledWithExactly(
-        'fake window',
-        'fake origin',
-        'changeFocusModeUser',
-        [
-          {
+  it('does not set a focus user when the user index is invalid', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(-2); // invalid choice
+    });
+    wrapper.update();
+
+    sinon.assert.calledWith(fakeRemoveClientConfig, sinon.match(['focus']));
+  });
+
+  it('changes the sidebar config to focus to the specified user when onSelectStudent is called with a valid user index', () => {
+    const wrapper = renderGrader();
+    act(() => {
+      wrapper
+        .find(FakeStudentSelector)
+        .props()
+        .onSelectStudent(0); // initial index is -1
+    });
+    wrapper.update();
+
+    sinon.assert.calledWith(
+      fakeUpdateClientConfig,
+      sinon.match({
+        focus: {
+          user: {
             username: fakeStudents[0].userid,
             displayName: fakeStudents[0].displayName,
           },
-        ]
-      )
-    );
-  });
-
-  it('does not set a focus user when the user index is invalid', async () => {
-    const wrapper = renderGrader();
-    act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(-1); // invalid choice
-    });
-
-    await fakeSidebarWindow;
-
-    assert.isTrue(
-      fakeRpcCall.calledOnceWithExactly(
-        'fake window',
-        'fake origin',
-        'changeFocusModeUser',
-        [
-          {
-            username: undefined,
-            displayName: undefined,
-          },
-        ]
-      )
+        },
+      })
     );
   });
 });

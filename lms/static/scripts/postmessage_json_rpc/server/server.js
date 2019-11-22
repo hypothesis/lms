@@ -33,10 +33,6 @@ export default class Server {
 
     // The methods that can be called remotely via this server.
     this._registeredMethods = {};
-
-    this.sidebarWindow = new Promise(resolve => {
-      this._resolveSidebarWindow = resolve;
-    });
   }
 
   /**
@@ -67,12 +63,6 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
-    // Resolve the promise we created in the constructor with the saved
-    // sidebar frame and origin.
-    this._resolveSidebarWindow({
-      frame: event.source,
-      origin: event.origin,
-    });
 
     event.source.postMessage(this._jsonRPCResponse(event.data), event.origin);
   }
