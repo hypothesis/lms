@@ -39,9 +39,60 @@ def standard_setup_for_lti_section_section_(context, section):
     )
 
 
+@step("I start an LTI launch request")
+def i_start_an_lti_launch_request(context):
+    # From: tests/bdd/feature_steps/lti.feature: line 6
+    context.execute_steps(
+        """
+    Given I start a 'POST' request to 'http://localhost/lti_launches'
+      And I set the request header 'Accept' to 'text/html'
+      And I set the request header 'Content-Type' to 'application/x-www-form-urlencoded'
+    """.format()
+    )
+
+
+@step("I sign the LTI launch request")
+def i_sign_the_lti_launch_request(context):
+    # From: tests/bdd/feature_steps/lti.feature: line 11
+    context.execute_steps(
+        """
+    Given I OAuth 1 sign the fixture 'params'
+      And I set the form parameters from the fixture 'params'
+    """.format()
+    )
+
+
+@step("I make an LTI launch request")
+def i_make_an_lti_launch_request(context):
+    # From: tests/bdd/feature_steps/lti.feature: line 15
+    context.execute_steps(
+        """
+    Given I start an LTI launch request
+    And   I sign the LTI launch request
+
+    When I send the request to the app
+    """.format()
+    )
+
+
+@step("I start an LTI launch request with bad auth parameter '{key}'")
+def i_start_an_lti_launch_request_with_bad_auth_parameter_key_(context, key):
+    # From: tests/bdd/feature_steps/lti.feature: line 21
+    context.execute_steps(
+        """
+    Given I start an LTI launch request
+    And   I sign the LTI launch request
+    And   I set the fixture 'params' key '{key}' to 'nonsense'
+    And   I set the form parameters from the fixture 'params'
+    """.format(
+            key=key
+        )
+    )
+
+
 @step("the app redirects to the LTI tool with message matching '{regex}'")
 def the_app_redirects_to_the_lti_tool_with_message_matching_regex_(context, regex):
-    # From: tests/bdd/feature_steps/lti.feature: line 6
+    # From: tests/bdd/feature_steps/lti.feature: line 27
     context.execute_steps(
         """
      Then  the response status code is 302
@@ -55,25 +106,9 @@ def the_app_redirects_to_the_lti_tool_with_message_matching_regex_(context, rege
     )
 
 
-@step("I make an LTI launch request")
-def i_make_an_lti_launch_request(context):
-    # From: tests/bdd/feature_steps/http.feature: line 1
-    context.execute_steps(
-        """
-    Given I start a 'POST' request to 'http://localhost/lti_launches'
-      And I set the request header 'Accept' to 'text/html'
-      And I set the request header 'Content-Type' to 'application/x-www-form-urlencoded'
-      And I OAuth 1 sign the fixture 'params'
-      And I set the form parameters from the fixture 'params'
-
-      When I send the request to the app
-    """.format()
-    )
-
-
 @step("the response is HTML")
 def the_response_is_html(context):
-    # From: tests/bdd/feature_steps/http.feature: line 10
+    # From: tests/bdd/feature_steps/http.feature: line 1
     context.execute_steps(
         """
     Then  the response header 'Content-Type' matches '^text/html'

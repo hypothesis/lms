@@ -9,3 +9,4 @@ Feature: Authentication steps
         | shared_secret    | TEST_SECRET                                |
         | lms_url          | test_lms_url                               |
         | requesters_email | test_requesters_email                      |
+

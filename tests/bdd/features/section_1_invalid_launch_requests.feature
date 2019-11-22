@@ -38,9 +38,23 @@ Feature: Section 1 - Invalid Launch Requests
   Scenario: Test 1.3 - Invalid OAuth consumer key
     # Expected result: A user-friendly error message
 
+    Given I start an LTI launch request with bad auth parameter 'oauth_consumer_key'
+
+    When  I send the request to the app
+
+    Then  the response is HTML
+    And   the response status code is 403
+
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.4 - Invalid OAuth signature
     # Expected result: A user-friendly error message
+
+    Given I start an LTI launch request with bad auth parameter 'oauth_signature'
+
+    When  I send the request to the app
+
+    Then  the response is HTML
+    And   the response status code is 403
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.5 - Invalid LTI version

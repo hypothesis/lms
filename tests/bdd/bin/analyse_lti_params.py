@@ -86,9 +86,9 @@ def write_table(data):
     max_value = max(len(value) for value in data.values())
 
     print("\tGiven I update the fixture 'params' with")
-    print(f"\t  | {'Key':<{max_key}} | {'Value':<{max_value}} |")
+    print(f"      | {'Key':<{max_key}} | {'Value':<{max_value}} |")
     for key, value in sorted(data.items()):
-        print(f"\t  | {key:<{max_key}} | {value:<{max_value}} |")
+        print(f"      | {key:<{max_key}} | {value:<{max_value}} |")
 
 
 def generate_param_values(fixture):
@@ -108,7 +108,9 @@ def generate_param_values(fixture):
 
 
 if __name__ == "__main__":
+    section = 2
+
     fixture = TheFixture()
-    fixture.set_base_dir("/lti_certification_1_1/section_1")
+    fixture.set_base_dir(f"/lti_certification_1_1/section_{section}")
     average = write_average_file(fixture)
     generate_param_values(fixture)
