@@ -22,7 +22,7 @@ Feature: Section 2 - Valid Launch Requests
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      And the response body does not match 'An instructor needs to launch the assignment to configure it'
+      And the user has instructor privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 2.2 - Launch as an instructor from a different resource link
@@ -36,7 +36,7 @@ Feature: Section 2 - Valid Launch Requests
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      And the response body does not match 'An instructor needs to launch the assignment to configure it'
+      And the user has instructor privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 2.3 - Launch as a learner
@@ -49,7 +49,7 @@ Feature: Section 2 - Valid Launch Requests
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      And the response body matches 'An instructor needs to launch the assignment to configure it.'
+      And the user only has learner privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 2.4 - Launch as a learner from a different resource link
@@ -62,4 +62,4 @@ Feature: Section 2 - Valid Launch Requests
     When I make an LTI launch request
 
     Then the assigment opens successfully
-     And the response body matches 'An instructor needs to launch the assignment to configure it.'
+     And the user only has learner privileges

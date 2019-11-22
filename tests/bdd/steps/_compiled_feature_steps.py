@@ -25,16 +25,28 @@ def the_user_is_an_role_(context, role):
     # From: tests/bdd/feature_steps/fixture.feature: line 5
     context.execute_steps(
         """
-    Given  the user is a {role}
+    Given the user is a {role}
     """.format(
             role=role
         )
     )
 
 
+@step("the user is '{name}'")
+def the_user_is_name_(context, name):
+    # From: tests/bdd/feature_steps/fixture.feature: line 8
+    context.execute_steps(
+        """
+    Given the user is a {name}
+    """.format(
+            name=name
+        )
+    )
+
+
 @step("the request is for resource '{resource_id}'")
 def the_request_is_for_resource_resource_id_(context, resource_id):
-    # From: tests/bdd/feature_steps/fixture.feature: line 8
+    # From: tests/bdd/feature_steps/fixture.feature: line 11
     context.execute_steps(
         """
     Given I load the fixture 'resource_{resource_id}.ini' as 'resource'
@@ -186,5 +198,25 @@ def the_assigment_opens_successfully(context):
         """
     Then the response is HTML
     Then the response status code is 200
+    """.format()
+    )
+
+
+@step("the user has instructor privileges")
+def the_user_has_instructor_privileges(context):
+    # From: tests/bdd/feature_steps/lms.feature: line 5
+    context.execute_steps(
+        """
+    Then the response body does not match 'An instructor needs to launch the assignment to configure it.'
+    """.format()
+    )
+
+
+@step("the user only has learner privileges")
+def the_user_only_has_learner_privileges(context):
+    # From: tests/bdd/feature_steps/lms.feature: line 8
+    context.execute_steps(
+        """
+    Then the response body matches 'An instructor needs to launch the assignment to configure it.'
     """.format()
     )

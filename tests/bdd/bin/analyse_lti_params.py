@@ -59,6 +59,11 @@ def write_ini(filename, values):
             handle.write(f"{key}={value}\n")
 
 
+def dump_ini(values):
+    for key, value in values.items():
+        print(f"{key}={value}")
+
+
 def write_average_file(fixture):
     average = dict(generate_most_common_values(fixture))
     filename = fixture.get_path("average.ini")
@@ -103,12 +108,14 @@ def generate_param_values(fixture):
                 print(f"\tGiven I set the fixture 'params' key '{key}' to '{value}'")
             else:
                 write_table(diff)
+                print()
+                dump_ini(diff)
         else:
             print("No detectable difference! - Maybe OAuth params?")
 
 
 if __name__ == "__main__":
-    section = 2
+    section = 3
 
     fixture = TheFixture()
     fixture.set_base_dir(f"/lti_certification_1_1/section_{section}")
