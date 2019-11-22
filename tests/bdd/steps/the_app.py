@@ -1,4 +1,4 @@
-from behave import step
+from behave import when
 from h_matchers import Any
 from webtest import TestApp
 
@@ -26,7 +26,7 @@ class TheApp:
         )
 
 
-@step("I send the request to the app")
+@when("I send the request to the app")
 def sent_request_to_app(context):
     request = context.the_request.request
     response = context.the_app.send_request(request)

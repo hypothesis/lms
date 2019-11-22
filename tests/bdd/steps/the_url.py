@@ -1,7 +1,7 @@
 import re
 from urllib.parse import parse_qs, urlparse
 
-from behave import step
+from behave import then
 
 
 class TheURL:
@@ -18,7 +18,7 @@ class TheURL:
         return self.url._replace(query=None).geturl()
 
 
-@step("the url matches '{bare_url}'")
+@then("the url matches '{bare_url}'")
 def the_url_matches(context, bare_url):
     found_url = context.the_url.bare_url()
 
@@ -26,12 +26,12 @@ def the_url_matches(context, bare_url):
         raise AssertionError(f"Expected url '{bare_url}' found '{found_url}'")
 
 
-@step("the url matches the value")
+@then("the url matches the value")
 def the_url_matches_the_value(context):
     the_url_matches(context, context.the_value)
 
 
-@step("the url query parameter '{param}' matches '{regex}'")
+@then("the url query parameter '{param}' matches '{regex}'")
 def the_url_query_parameter_matches(context, param, regex):
     value = context.the_url.query.get(param)
     value = value[0]

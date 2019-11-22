@@ -1,3 +1,12 @@
+"""
+Analyse the params files for each section and make suggestions.
+
+This script will read all the ini files from the LTI specification tool and
+attempt to work out an 'average' baseline file to use for the section.
+
+It will then generate differences and make suggestions for configuring each
+test in that section.
+"""
 import os.path
 from collections import Counter, defaultdict
 from glob import glob

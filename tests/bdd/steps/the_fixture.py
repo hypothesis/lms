@@ -7,7 +7,7 @@
 import json
 import os.path
 
-from behave import step
+from behave import given, step, then
 from pkg_resources import resource_filename
 
 
@@ -61,22 +61,22 @@ class TheFixture:
         context.the_fixture = TheFixture()
 
 
-@step("fixtures are located in '{location}'")
+@given("fixtures are located in '{location}'")
 def fixture_location(context, location):
     context.the_fixture.set_base_dir(location)
 
 
-@step("I load the fixture '{fixture_file}.json' as '{fixture_name}'")
+@given("I load the fixture '{fixture_file}.json' as '{fixture_name}'")
 def load_json_fixture(context, fixture_file, fixture_name):
     context.the_fixture.load_json(fixture_file + ".json", fixture_name)
 
 
-@step("I load the fixture '{fixture_file}.ini' as '{fixture_name}'")
+@given("I load the fixture '{fixture_file}.ini' as '{fixture_name}'")
 def load_ini_fixture(context, fixture_file, fixture_name):
     context.the_fixture.load_ini(fixture_file + ".ini", fixture_name)
 
 
-@step("I define the fixture '{fixture_name}' to be '{data}'")
+@given("I define the fixture '{fixture_name}' to be '{data}'")
 def define_fixture(context, fixture_name, data):
     if data[0] in {"[", "{", '"'}:
         data = json.loads(data)
@@ -84,7 +84,7 @@ def define_fixture(context, fixture_name, data):
     context.the_fixture.set_fixture(fixture_name, data)
 
 
-@step("I set the fixture '{fixture_name}' key '{key}' to '{value}'")
+@given("I set the fixture '{fixture_name}' key '{key}' to '{value}'")
 def set_fixture_value(context, fixture_name, key, value):
     fixture = context.the_fixture.get_fixture(fixture_name)
 
@@ -95,19 +95,19 @@ def set_fixture_value(context, fixture_name, key, value):
     fixture[key] = None if value == TheFixture.NONE else value
 
 
-@step("I update the fixture '{fixture_name}' with")
+@given("I update the fixture '{fixture_name}' with")
 def update_fixture_from_table(context, fixture_name):
     for row in context.table:
         set_fixture_value(context, fixture_name, row[0].strip(), row[1].strip())
 
 
-@step("I update the fixture '{fixture_name}' from fixture '{other_fixture}'")
+@given("I update the fixture '{fixture_name}' from fixture '{other_fixture}'")
 def update_fixture_from_fixture(context, fixture_name, other_fixture):
     the_fixture = context.the_fixture
     the_fixture.get_fixture(fixture_name).update(the_fixture.get_fixture(other_fixture))
 
 
-@step("the fixture '{fixture_name}' key '{key}' is the value")
+@then("the fixture '{fixture_name}' key '{key}' is the value")
 def set_fixture_key_to_the_value(context, fixture_name, key):
     context.the_value = context.the_fixture.get_fixture(fixture_name)[key]
 

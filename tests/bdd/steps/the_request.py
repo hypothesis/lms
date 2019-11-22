@@ -1,4 +1,4 @@
-from behave import step
+from behave import given
 from requests import Request
 
 
@@ -26,17 +26,17 @@ class TheRequest:
         context.the_request = TheRequest()
 
 
-@step("I start a '{method}' request to '{url}'")
+@given("I start a '{method}' request to '{url}'")
 def start_request(context, method, url):
     context.the_request.new_request(method, url)
 
 
-@step("I set the request header '{header}' to '{value}'")
+@given("I set the request header '{header}' to '{value}'")
 def set_header(context, header, value):
     context.the_request.set_header(header, value)
 
 
-@step("I set the form parameters from the fixture '{fixture_name}'")
+@given("I set the form parameters from the fixture '{fixture_name}'")
 def set_form_parameters_from_fixture(context, fixture_name):
     context.the_request.set_form_parameters(
         context.the_fixture.get_fixture(fixture_name)
