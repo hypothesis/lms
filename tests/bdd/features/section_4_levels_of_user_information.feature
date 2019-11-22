@@ -21,6 +21,9 @@ Feature: Section 4 - Levels of User Information
 
      When I make an LTI launch request
 
+     Then the assigment opens successfully
+      And the user only has learner privileges
+
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.2 - Launch as a learner with given/family but no full name
     # Expected result: The tool should detect the user's name
@@ -35,6 +38,8 @@ Feature: Section 4 - Levels of User Information
 
      When I make an LTI launch request
 
+     Then the assigment opens successfully
+      And the user only has learner privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.3 - Launch as a learner with a full name but no given or family names
@@ -49,6 +54,9 @@ Feature: Section 4 - Levels of User Information
 
      When I make an LTI launch request
 
+     Then the assigment opens successfully
+      And the user only has learner privileges
+
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.4 - Launch as an instructor with no personal information
     # Expected result: User should have privileges appropriate to an instructor
@@ -59,6 +67,9 @@ Feature: Section 4 - Levels of User Information
     Given I set the fixture 'params' key 'roles' to 'Instructor'
 
      When I make an LTI launch request
+
+     Then the assigment opens successfully
+      And the user has instructor privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.5 - Launch as an instructor with no context or personal information apart from the context ID
@@ -129,3 +140,5 @@ Feature: Section 4 - Levels of User Information
       | user_id                        | *MISSING*                         |
 
      When I make an LTI launch request
+
+     Then we get an HTML error with status 403

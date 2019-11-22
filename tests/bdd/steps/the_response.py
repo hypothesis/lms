@@ -67,5 +67,6 @@ def the_response_header_is_the_url(context, header):
 def dump_the_response(context):
     response = context.the_response
 
+    print(f"Dump response: {response.status_code()}")
     print(response.get_headers())
     print(response.get_body())
