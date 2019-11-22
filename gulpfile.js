@@ -75,11 +75,7 @@ var bundles = [
   {
     name: 'new_application_instance',
     entry: './lms/static/scripts/new-application-instance.js',
-  },
-  {
-    name: 'postmessage_json_rpc_server',
-    entry: './lms/static/scripts/postmessage_json_rpc/server/index',
-  },
+  }
 ];
 
 var bundleConfigs = bundles.map(function(config) {

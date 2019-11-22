@@ -2,12 +2,11 @@ import { createElement } from 'preact';
 import propTypes from 'prop-types';
 import { useEffect, useState } from 'preact/hooks';
 
+import { call as rpcCall } from '../../postmessage_json_rpc/client';
+import { getSidebarWindow } from '../../postmessage_json_rpc/server';
+
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
-import {
-  updateClientConfig,
-  removeClientConfig,
-} from '../utils/update-client-config';
 
 /**
  * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
@@ -19,30 +18,34 @@ export default function LMSGrader({
   assignmentName,
   courseName,
   students,
-  onChangeSelectedUser,
 }) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
+  /**
+   * Makes an RPC call to the sidebar to change to the focused user.
+   *
+   * @param {User} user - The user to focus on in the sidebar
+   */
+  const changeFocusedUser = async user => {
+    const sidebar = await getSidebarWindow();
+    // Calls the client sidebar to fire the `changeFocusModeUser` action
+    // to change the focused user.
+    rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
+      {
+        username: user.userid, // change `username` key to `userid` once the client is ready
+        displayName: user.displayName,
+      },
+    ]);
+  };
+
   useEffect(() => {
     if (students[currentStudentIndex]) {
-      // set focused user
-      updateClientConfig({
-        focus: {
-          user: {
-            username: students[currentStudentIndex].userid,
-            displayName: students[currentStudentIndex].displayName,
-          },
-        },
-      });
-      // let the parent component know the index changed
-      onChangeSelectedUser(students[currentStudentIndex].userid);
+      changeFocusedUser(students[currentStudentIndex]);
     } else {
-      // clear focused user
-      removeClientConfig(['focus']);
-      onChangeSelectedUser('0'); // any non-real userid will work
+      changeFocusedUser({}); // any non-real userid will clear out a previously focused user
     }
-  }, [students, currentStudentIndex, onChangeSelectedUser]);
+  }, [students, currentStudentIndex]);
 
   /**
    * Shows the current student index if a user is selected, or the
@@ -108,14 +111,9 @@ export default function LMSGrader({
 LMSGrader.propTypes = {
   // iframe to pass along
   children: propTypes.node.isRequired,
-
   // Assignment and course information
   courseName: propTypes.string.isRequired,
   assignmentName: propTypes.string.isRequired,
-
-  // Callback to alert the parent component that a change has occurred and re-rendering may be needed.
-  onChangeSelectedUser: propTypes.func.isRequired,
-
   // List of students to grade
   students: propTypes.array.isRequired,
 };
