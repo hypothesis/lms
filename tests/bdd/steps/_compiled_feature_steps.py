@@ -32,7 +32,7 @@ def standard_setup_for_lti_section_section_(context, section):
         """
     Given fixtures are located in '/lti_certification_1_1/section_{section}'
       And standard authentication setup
-      And I load the fixture '{section}.1.ini' as 'params'
+      And I load the fixture 'average.ini' as 'params'
     """.format(
             section=section
         )
@@ -46,7 +46,8 @@ def the_app_redirects_to_the_lti_tool_with_message_matching_regex_(context, rege
         """
      Then  the response status code is 302
       And   the response header 'Location' is the URL
-      And   the url matches 'https://apps.imsglobal.org/lti/cert/tp/tp_return.php/basic-lti-launch-request'
+      And   the fixture 'params' key 'launch_presentation_return_url' is the value
+      And   the url matches the value
       And   the url query parameter 'lti_msg' matches '{regex}'
     """.format(
             regex=regex

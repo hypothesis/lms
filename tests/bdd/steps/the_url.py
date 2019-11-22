@@ -26,6 +26,11 @@ def the_url_matches(context, bare_url):
         raise AssertionError(f"Expected url '{bare_url}' found '{found_url}'")
 
 
+@step("the url matches the value")
+def the_url_matches_the_value(context):
+    the_url_matches(context, context.the_value)
+
+
 @step("the url query parameter '{param}' matches '{regex}'")
 def the_url_query_parameter_matches(context, param, regex):
     value = context.the_url.query.get(param)

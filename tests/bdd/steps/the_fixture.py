@@ -31,12 +31,14 @@ class TheFixture:
     def set_fixture(self, name, value):
         self.fixtures[name] = value
 
+        return value
+
     def get_fixture(self, name):
         return self.fixtures[name]
 
     def load_ini(self, filename, fixture_name):
         values = {}
-        with open(self._get_path(filename)) as handle:
+        with open(self.get_path(filename)) as handle:
             for line in handle:
                 line = line.strip()
                 if not line or line.startswith("#"):
@@ -45,13 +47,13 @@ class TheFixture:
                 key, value = line.split("=", 1)
                 values[key] = value
 
-        self.set_fixture(fixture_name, values)
+        return self.set_fixture(fixture_name, values)
 
     def load_json(self, filename, fixture_name):
-        with open(self._get_path(filename)) as handle:
+        with open(self.get_path(filename)) as handle:
             self.set_fixture(fixture_name, json.load(handle))
 
-    def _get_path(self, filename):
+    def get_path(self, filename):
         return os.path.join(self.base_dir, filename)
 
     @classmethod
@@ -64,14 +66,6 @@ def fixture_location(context, location):
     context.the_fixture.set_base_dir(location)
 
 
-@step("I define the fixture '{fixture_name}' to be '{data}'")
-def define_fixture(context, fixture_name, data):
-    if data[0] in {"[", "{", '"'}:
-        data = json.loads(data)
-
-    context.the_fixture.set_fixture(fixture_name, data)
-
-
 @step("I load the fixture '{fixture_file}.json' as '{fixture_name}'")
 def load_json_fixture(context, fixture_file, fixture_name):
     context.the_fixture.load_json(fixture_file + ".json", fixture_name)
@@ -82,7 +76,15 @@ def load_ini_fixture(context, fixture_file, fixture_name):
     context.the_fixture.load_ini(fixture_file + ".ini", fixture_name)
 
 
-@step("I set the fixture '{fixture_name}' value '{key}' to '{value}'")
+@step("I define the fixture '{fixture_name}' to be '{data}'")
+def define_fixture(context, fixture_name, data):
+    if data[0] in {"[", "{", '"'}:
+        data = json.loads(data)
+
+    context.the_fixture.set_fixture(fixture_name, data)
+
+
+@step("I set the fixture '{fixture_name}' key '{key}' to '{value}'")
 def set_fixture_value(context, fixture_name, key, value):
     fixture = context.the_fixture.get_fixture(fixture_name)
 
@@ -90,13 +92,18 @@ def set_fixture_value(context, fixture_name, key, value):
         fixture.pop(key, None)
         return
 
-    fixture[value] = None if value == TheFixture.NONE else value
+    fixture[key] = None if value == TheFixture.NONE else value
 
 
 @step("I update the fixture '{fixture_name}' with")
 def update_fixture_from_table(context, fixture_name):
     for row in context.table:
-        set_fixture_value(context, fixture_name, row[0], row[1])
+        set_fixture_value(context, fixture_name, row[0].strip(), row[1].strip())
+
+
+@step("the fixture '{fixture_name}' key '{key}' is the value")
+def set_fixture_key_to_the_value(context, fixture_name, key):
+    context.the_value = context.the_fixture.get_fixture(fixture_name)[key]
 
 
 @step("I dump the fixture '{fixture_name}'")
