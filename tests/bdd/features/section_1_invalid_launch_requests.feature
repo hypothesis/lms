@@ -89,5 +89,5 @@ Feature: Section 1 - Invalid Launch Requests
 	  | lti_message_type               | *MISSING*                                            |
 
     When  I make an LTI launch request
-    
+
     Then  the app redirects to the LTI tool with message matching '.*lti_message_type'

@@ -9,6 +9,12 @@ class WebTestResponse:
     def __init__(self, response):
         self.response = response
 
+    def get_body(self):
+        return self.response.text
+
+    def get_headers(self):
+        return dict(self.response.headers)
+
     def get_header(self, name):
         return self.response.headers[name]
 
@@ -36,8 +42,23 @@ def the_response_status_code_is(context, status_code):
         )
 
 
+@step("the response body matches '{regex}'")
+def the_response_body_matches(context, regex):
+    body = context.the_response.get_body()
+
+    assert re.compile(regex).match(body), f'The body matches "{regex}"'
+
+
 @step("the response header '{header}' is the URL")
 def the_response_header_is_the_url(context, header):
     value = context.the_response.get_header(header)
 
     TheURL.register(context, value)
+
+
+@step("I dump the response")
+def dump_the_response(context):
+    response = context.the_response
+
+    print(response.get_headers())
+    print(response.get_body())
