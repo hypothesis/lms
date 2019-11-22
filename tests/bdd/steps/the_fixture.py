@@ -101,6 +101,12 @@ def update_fixture_from_table(context, fixture_name):
         set_fixture_value(context, fixture_name, row[0].strip(), row[1].strip())
 
 
+@step("I update the fixture '{fixture_name}' from fixture '{other_fixture}'")
+def update_fixture_from_fixture(context, fixture_name, other_fixture):
+    the_fixture = context.the_fixture
+    the_fixture.get_fixture(fixture_name).update(the_fixture.get_fixture(other_fixture))
+
+
 @step("the fixture '{fixture_name}' key '{key}' is the value")
 def set_fixture_key_to_the_value(context, fixture_name, key):
     context.the_value = context.the_fixture.get_fixture(fixture_name)[key]

@@ -19,7 +19,7 @@ Feature: Section 4 - Levels of User Information
       | lis_person_sourcedid             | school.edu:sally |
       | user_id                          | 543216           |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.2 - Launch as a learner with given/family but no full name
@@ -33,7 +33,7 @@ Feature: Section 4 - Levels of User Information
       | lis_person_sourcedid             | school.edu:seven |
       | user_id                          | 777777           |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
 
   @v1.0 @v1.1 @v1.2 @required
@@ -47,7 +47,7 @@ Feature: Section 4 - Levels of User Information
       | lis_person_sourcedid             | school.edu:sally |
       | user_id                          | 543216           |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.4 - Launch as an instructor with no personal information
@@ -58,7 +58,7 @@ Feature: Section 4 - Levels of User Information
 
     Given I set the fixture 'params' key 'roles' to 'Instructor'
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.5 - Launch as an instructor with no context or personal information apart from the context ID
@@ -76,9 +76,9 @@ Feature: Section 4 - Levels of User Information
       | resource_link_title          | *MISSING*  |
       | roles                        | Instructor |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
-    Then  the app redirects to the LTI tool with message matching '.*'
+     Then the app redirects to the LTI tool with message matching '.*'
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.6 - Launch as Instructor with no context information
@@ -104,9 +104,9 @@ Feature: Section 4 - Levels of User Information
       | resource_link_title              | *MISSING*                         |
       | roles                            | Instructor                        |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request
 
-    Then  the app redirects to the LTI tool with message matching '.*'
+     Then the app redirects to the LTI tool with message matching '.*'
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.7 - Launch with only resource_link_id
@@ -128,4 +128,4 @@ Feature: Section 4 - Levels of User Information
       | roles                          | *MISSING*                         |
       | user_id                        | *MISSING*                         |
 
-    When  I make an LTI launch request
+     When I make an LTI launch request

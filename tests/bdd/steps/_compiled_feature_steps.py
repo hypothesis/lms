@@ -7,6 +7,44 @@ From /home/jon/projects/lms/tests/bdd/feature_steps/.
 from behave import step
 
 
+@step("the user is a {role}")
+def the_user_is_a_role_(context, role):
+    # From: tests/bdd/feature_steps/fixture.feature: line 1
+    context.execute_steps(
+        """
+    Given I load the fixture '{role}.ini' as 'role'
+      And I update the fixture 'params' from fixture 'role'
+    """.format(
+            role=role
+        )
+    )
+
+
+@step("the user is an {role}")
+def the_user_is_an_role_(context, role):
+    # From: tests/bdd/feature_steps/fixture.feature: line 5
+    context.execute_steps(
+        """
+    Given  the user is a {role}
+    """.format(
+            role=role
+        )
+    )
+
+
+@step("the request is for resource '{resource_id}'")
+def the_request_is_for_resource_resource_id_(context, resource_id):
+    # From: tests/bdd/feature_steps/fixture.feature: line 8
+    context.execute_steps(
+        """
+    Given I load the fixture 'resource_{resource_id}.ini' as 'resource'
+      And I update the fixture 'params' from fixture 'resource'
+    """.format(
+            resource_id=resource_id
+        )
+    )
+
+
 @step("standard authentication setup")
 def standard_authentication_setup(context):
     # From: tests/bdd/feature_steps/auth.feature: line 1
@@ -112,5 +150,41 @@ def the_response_is_html(context):
     context.execute_steps(
         """
     Then  the response header 'Content-Type' matches '^text/html'
+    """.format()
+    )
+
+
+@step("we get an HTML error with status {status_code}")
+def we_get_an_html_error_with_status_status_code_(context, status_code):
+    # From: tests/bdd/feature_steps/http.feature: line 4
+    context.execute_steps(
+        """
+    Then the response is an HTML page with status {status_code}
+    """.format(
+            status_code=status_code
+        )
+    )
+
+
+@step("the response is an HTML page with status {status_code}")
+def the_response_is_an_html_page_with_status_status_code_(context, status_code):
+    # From: tests/bdd/feature_steps/http.feature: line 7
+    context.execute_steps(
+        """
+    Then  the response is HTML
+    And   the response status code is {status_code}
+    """.format(
+            status_code=status_code
+        )
+    )
+
+
+@step("the assigment opens successfully")
+def the_assigment_opens_successfully(context):
+    # From: tests/bdd/feature_steps/lms.feature: line 1
+    context.execute_steps(
+        """
+    Then the response is HTML
+    Then the response status code is 200
     """.format()
     )

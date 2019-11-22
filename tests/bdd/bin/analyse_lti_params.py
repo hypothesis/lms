@@ -43,7 +43,7 @@ def generate_most_common_values(fixture):
         for key, value in values.items():
             value_counts[key].update({value: 1})
 
-    CUTOFF = files // 2
+    CUTOFF = files * 0.75
 
     for key, counts in value_counts.items():
         for value, count in counts.most_common(1):
