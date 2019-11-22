@@ -82,8 +82,8 @@ def load_ini_fixture(context, fixture_file, fixture_name):
     context.the_fixture.load_ini(fixture_file + ".ini", fixture_name)
 
 
-@step("I set the '{fixture_name}' fixture value '{key}' to '{value}'")
-def set_value(context, fixture_name, key, value):
+@step("I set the fixture '{fixture_name}' value '{key}' to '{value}'")
+def set_fixture_value(context, fixture_name, key, value):
     fixture = context.the_fixture.get_fixture(fixture_name)
 
     if value == TheFixture.MISSING:
@@ -91,6 +91,12 @@ def set_value(context, fixture_name, key, value):
         return
 
     fixture[value] = None if value == TheFixture.NONE else value
+
+
+@step("I update the fixture '{fixture_name}' with")
+def update_fixture_from_table(context, fixture_name):
+    for row in context.table:
+        set_fixture_value(context, fixture_name, row[0], row[1])
 
 
 @step("I dump the fixture '{fixture_name}'")
