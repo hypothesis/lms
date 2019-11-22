@@ -1,13 +1,6 @@
 from lms.app import create_app
 from tests.bdd.feature_steps import FeatureStepGenerator
-from tests.bdd.steps import (
-    LMSDBContext,
-    OAuth1Context,
-    TheApp,
-    TheFixture,
-    TheRequest,
-    resource_filename,
-)
+from tests.bdd.steps import *
 from tests.conftest import TEST_SETTINGS
 
 TEST_SETTINGS["session_cookie_secret"] = "notasecret"
@@ -23,18 +16,18 @@ def compile_feature_steps():
 def before_all(context):
     compile_feature_steps()
 
-    LMSDBContext.register(context)
+    arguments = {"app": create_app(None, **TEST_SETTINGS)}
 
-    TheApp.register(context, create_app(None, **TEST_SETTINGS))
-    OAuth1Context.register(context)
-    TheFixture.register(context)
-    TheRequest.register(context)
+    for step_context in STEP_CONTEXTS:
+        if step_context.singleton:
+            step_context.register(context, **arguments)
 
 
 def before_scenario(context, scenario):
-    context.db.setup()
+    for step_context in STEP_CONTEXTS:
+        step_context.setup(context)
 
 
 def after_scenario(context, scenario):
-    context.db.teardown()
-    context.the_fixture.teardown()
+    for step_context in STEP_CONTEXTS:
+        step_context.teardown(context)

@@ -10,12 +10,15 @@ import os.path
 from behave import given, step, then
 from pkg_resources import resource_filename
 
+from tests.bdd.step_context import StepContext
 
-class TheFixture:
+
+class TheFixture(StepContext):
     MISSING = "*MISSING*"
     NONE = "*NONE*"
+    context_key = "the_fixture"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.base_dir = None
         self.fixtures = {}
 
@@ -25,8 +28,8 @@ class TheFixture:
 
         self.base_dir = resource_filename("tests", path)
 
-    def teardown(self):
-        self.fixtures = {}
+        if not os.path.isdir(self.base_dir):
+            raise EnvironmentError(f"Cannot find fixture dir: {self.base_dir}")
 
     def set_fixture(self, name, value):
         self.fixtures[name] = value
@@ -56,9 +59,8 @@ class TheFixture:
     def get_path(self, filename):
         return os.path.join(self.base_dir, filename)
 
-    @classmethod
-    def register(cls, context):
-        context.the_fixture = TheFixture()
+    def do_teardown(self):
+        self.fixtures = {}
 
 
 @given("fixtures are located in '{location}'")

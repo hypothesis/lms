@@ -2,11 +2,15 @@ import re
 
 from behave import then
 
+from tests.bdd.step_context import StepContext
 from tests.bdd.steps.the_url import TheURL
 
 
-class WebTestResponse:
-    def __init__(self, response):
+class WebTestResponse(StepContext):
+    context_key = "the_response"
+    singleton = False
+
+    def __init__(self, response, **kwargs):
         self.response = response
 
     def get_body(self):
@@ -20,10 +24,6 @@ class WebTestResponse:
 
     def status_code(self):
         return self.response.status_code
-
-    @classmethod
-    def register(cls, context, response):
-        context.the_response = WebTestResponse(response)
 
 
 @then("the response header '{header}' matches '{regex}'")
@@ -60,7 +60,7 @@ def the_response_body_matches(context, regex):
 def the_response_header_is_the_url(context, header):
     value = context.the_response.get_header(header)
 
-    TheURL.register(context, value)
+    TheURL.register(context, url=value)
 
 
 @then("I dump the response")

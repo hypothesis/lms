@@ -5,18 +5,25 @@ from behave import step
 from sqlalchemy.orm import sessionmaker
 
 from lms import db, models
+from tests.bdd.step_context import StepContext
 from tests.conftest import TEST_DATABASE_URL
 
 
-class LMSDBContext:
+class LMSDBContext(StepContext):
     SESSION = sessionmaker()
+    context_key = "db"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session = None
         db.init(self.engine)
 
-    def teardown(self):
+    def do_teardown(self):
+        self.wipe()
+        if self.session:
+            self.session.close()
+
+    def wipe(self):
         tables = reversed(db.BASE.metadata.sorted_tables)
         with contextlib.closing(self.engine.connect()) as conn:
             tx = conn.begin()
@@ -24,16 +31,15 @@ class LMSDBContext:
             conn.execute("TRUNCATE {};".format(tnames))
             tx.commit()
 
-        self.session.close()
-
-    def setup(self):
+    def do_setup(self):
         self.session = self.SESSION(bind=self.engine.connect())
 
     @classmethod
-    def register(cls, context):
-        context.db = LMSDBContext()
+    def register(cls, context, **kwargs):
+        instance = super().register(context, **kwargs)
+        instance.do_teardown()
 
-        return context.db
+        return instance
 
 
 @step("I create an LMS DB '{model_class}'")

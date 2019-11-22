@@ -3,9 +3,13 @@ import time
 import oauthlib
 from behave import step
 
+from tests.bdd.step_context import StepContext
 
-class OAuth1Context:
-    def __init__(self):
+
+class OAuth1Context(StepContext):
+    context_key = "oath_context"
+
+    def __init__(self, **kwargs):
         self.consumer_key = None
         self.shared_secret = None
         self.client = None
@@ -19,6 +23,11 @@ class OAuth1Context:
         self.consumer_key = consumer_key
 
         self._make_client()
+
+    def do_teardown(self):
+        self.context_key = None
+        self.shared_secret = None
+        self.client = None
 
     def _make_client(self):
         if self.shared_secret is None or self.consumer_key is None:
@@ -43,10 +52,6 @@ class OAuth1Context:
         params["oauth_signature"] = self.client.get_oauth_signature(
             oauthlib.common.Request(url, method, body=params)
         )
-
-    @classmethod
-    def register(cls, context):
-        context.oath_context = OAuth1Context()
 
 
 @step("the OAuth 1 consumer key is '{consumer_key}'")

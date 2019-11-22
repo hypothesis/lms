@@ -3,16 +3,17 @@ from urllib.parse import parse_qs, urlparse
 
 from behave import then
 
+from tests.bdd.step_context import StepContext
 
-class TheURL:
-    def __init__(self, url):
+
+class TheURL(StepContext):
+    context_key = "the_url"
+    singleton = False
+
+    def __init__(self, url, **kwargs):
         self.raw_url = url
         self.url = urlparse(url)
         self.query = parse_qs(self.url.query)
-
-    @classmethod
-    def register(cls, context, url):
-        context.the_url = TheURL(url)
 
     def bare_url(self):
         return self.url._replace(query=None).geturl()

@@ -10,22 +10,22 @@ Feature: Section 6 - Outcomes 1.0 service
   contexts, for at least 2 different resource links within the same context,
   and for at least 2 different users for the same resource link.
 
-  @v1.1 @outcomes-1 @required
+  @v1.1 @outcomes-1 @required @skip
   Scenario: Test 6.1 - replaceResult requests
     # Expected result: All replaceResult requests for outcomes should be
     # properly formed.
-
-  @v1.1 @outcomes-1 @optional
+ 
+  @v1.1 @outcomes-1 @optional @skip
   Scenario: Test 6.2 - readResult requests
     # Expected result: If the tool sends any readResult requests for outcomes
     # they should be properly formed.
 
-  @v1.1 @outcomes-1 @optional
+  @v1.1 @outcomes-1 @optional @skip
   Scenario: Test 6.3 - deleteResult requests
     # Expected result: If the tool sends any deleteResult requests for outcomes
     # they should be properly formed.
 
-  @v1.1 @outcomes-1 @required
+  @v1.1 @outcomes-1 @required @skip
   Scenario: Test 6.4 - Processing of Gradebook entries
     # Expected result: This test is passed when all the required outcome values
     # listed below have been processed. You must have an outcome value set in

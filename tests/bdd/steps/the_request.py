@@ -1,9 +1,13 @@
 from behave import given
 from requests import Request
 
+from tests.bdd.step_context import StepContext
 
-class TheRequest:
-    def __init__(self):
+
+class TheRequest(StepContext):
+    context_key = "the_request"
+
+    def __init__(self, **kwargs):
         self.request = None
 
     def new_request(self, method, url):
@@ -21,9 +25,8 @@ class TheRequest:
     def set_form_parameters(self, params):
         self.request.data = params
 
-    @classmethod
-    def register(cls, context):
-        context.the_request = TheRequest()
+    def do_teardown(self):
+        self.request = None
 
 
 @given("I start a '{method}' request to '{url}'")
