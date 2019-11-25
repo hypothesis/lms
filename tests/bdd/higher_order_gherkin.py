@@ -16,6 +16,18 @@ class FeatureStep:
         self.params = params
         self.body = body
 
+    @property
+    def name(self):
+        return self.scenario.name
+
+    @property
+    def filename(self):
+        return self.scenario.feature.filename
+
+    @property
+    def line_no(self):
+        return self.scenario.line
+
 
 class Injector:
     """Inject feature generated steps into your code base."""
@@ -70,6 +82,7 @@ class Renderer:
     """Render steps into Python code."""
 
     NOT_LOWER_CASE = re.compile("[^a-z]+")
+    FORMAT_REMOVER = re.compile(r"\.format\(\s+\)", re.MULTILINE)
 
     @classmethod
     def render_steps(cls, feature_steps, source_dir):
@@ -89,19 +102,22 @@ class Renderer:
         subs = ", ".join(f"{param}={param}" for param in step.params)
         function_name = cls._function_name(step.name)
 
-        return f"""@step("{step.name}")
-        def {function_name}({signature}):
-            # From: {step.scenario.feature.filename}: line {step.scenario.line - 1}
-            context.execute_steps(
-                 \"\"\"
-        {step.body}
-            \"\"\".format(
-                    {subs}
-                )
-            )
-        """
+        python_code = f"""@step("{step.name}")
+def {function_name}({signature}):
+    # From: {step.filename}: line {step.line_no - 1}
+    context.execute_steps(
+        \"\"\"
+{step.body}
+    \"\"\".format(
+            {subs}
+        )
+    )
+"""
+        python_code = cls.FORMAT_REMOVER.sub("", python_code)
+
+        return python_code
 
     @classmethod
     def _function_name(cls, name):
         name = name.lower()
-        return cls.NOT_LOWER_CASE.sub("_", name)
+        return cls.NOT_LOWER_CASE.sub("_", name.strip()).strip("_")
