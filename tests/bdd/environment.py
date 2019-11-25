@@ -1,5 +1,5 @@
 from lms.app import create_app
-from tests.bdd.feature_steps import FeatureStepGenerator
+from tests.bdd.higher_order_gherkin import Injector
 from tests.bdd.steps import *
 from tests.conftest import TEST_SETTINGS
 
@@ -7,7 +7,7 @@ TEST_SETTINGS["session_cookie_secret"] = "notasecret"
 
 
 def compile_feature_steps():
-    FeatureStepGenerator.generate(
+    Injector.create_step_file(
         source_dir=resource_filename("tests", "bdd/feature_steps/"),
         target_file=resource_filename("tests", "bdd/steps/_compiled_feature_steps.py"),
     )
