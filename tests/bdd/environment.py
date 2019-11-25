@@ -8,7 +8,7 @@ TEST_SETTINGS["session_cookie_secret"] = "notasecret"
 
 def compile_feature_steps():
     Injector.create_step_file(
-        source_dir=resource_filename("tests", "bdd/feature_steps/"),
+        source_dir=resource_filename("tests", "bdd/steps/feature_steps/"),
         target_file=resource_filename("tests", "bdd/steps/_compiled_feature_steps.py"),
     )
 
