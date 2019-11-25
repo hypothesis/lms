@@ -65,7 +65,11 @@ class FeatureStep:
         return f"""@step("{name}")
 def {function_name}({signature}):
     # From: {self.scenario.feature.filename}: line {self.scenario.line - 1}
-    context.execute_steps(\"\"\"
+    context.execute_steps(
+         \"\"\"
 {self.body}
-    \"\"\".format({subs}))
+    \"\"\".format(
+            {subs}
+        )
+    )
 """
