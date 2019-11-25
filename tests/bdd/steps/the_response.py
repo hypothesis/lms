@@ -1,3 +1,5 @@
+"""Make assertions about HTTP responses."""
+
 import re
 
 from behave import then

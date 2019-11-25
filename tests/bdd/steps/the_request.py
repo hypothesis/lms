@@ -1,3 +1,5 @@
+"""Form and manipulate HTTP requests."""
+
 from behave import given
 from requests import Request
 

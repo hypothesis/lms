@@ -1,9 +1,5 @@
-"""
-    Given fixtures are located in "fixtures/lti_certification_1_1"
-    Given I load the fixture "wat.json" as "params"
-    And I set the fixture "params" value "resource_link_id" to "*MISSING*"
+"""Load and manipulate fixtures."""
 
-"""
 import json
 import os.path
 

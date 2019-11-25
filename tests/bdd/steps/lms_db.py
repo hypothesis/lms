@@ -1,3 +1,5 @@
+"""Insert LMS specific objects into the DB."""
+
 import contextlib
 
 import sqlalchemy

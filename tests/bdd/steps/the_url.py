@@ -1,3 +1,5 @@
+"""Create, manipulate and make assertions about URLs."""
+
 import re
 from urllib.parse import parse_qs, urlparse
 

@@ -1,3 +1,5 @@
+"""Deal with OAuth 1 signing."""
+
 import time
 
 import oauthlib

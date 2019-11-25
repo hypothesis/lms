@@ -1,3 +1,5 @@
+"""Make requests to a web-test application."""
+
 from behave import when
 from h_matchers import Any
 from webtest import TestApp
