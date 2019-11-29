@@ -19,6 +19,7 @@ class LMSDBContext(StepContext):
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session = None
         db.init(self.engine)
+        self.do_teardown()
 
     def do_teardown(self):
         self.wipe()
@@ -42,13 +43,6 @@ class LMSDBContext(StepContext):
 
         self.session.add(model)
         self.session.commit()
-
-    @classmethod
-    def register(cls, context, **kwargs):
-        instance = super().register(context, **kwargs)
-        instance.do_teardown()
-
-        return instance
 
 
 @step("I create an LMS DB '{model_class}'")
