@@ -12,13 +12,13 @@ from tests.conftest import TEST_DATABASE_URL
 
 
 class LMSDBContext(StepContext):
-    SESSION = sessionmaker()
+    SESSION_MAKER = sessionmaker()
     context_key = "db"
 
     def __init__(self, **kwargs):
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session = None
-        
+
         db.init(self.engine)
         self.wipe()
 
@@ -38,7 +38,7 @@ class LMSDBContext(StepContext):
             tx.commit()
 
     def do_setup(self):
-        self.session = self.SESSION(bind=self.engine.connect())
+        self.session = self.SESSION_MAKER(bind=self.engine.connect())
 
     def do_teardown(self):
         self.wipe()
