@@ -32,6 +32,15 @@ class TheFixture(StepContext):
 
         return value
 
+    def set_fixture_value(self, name, key, value):
+        fixture = self.get_fixture(name)
+
+        if value == self.MISSING:
+            fixture.pop(key, None)
+            return
+
+        fixture[key] = None if value == self.NONE else value
+
     def get_fixture(self, name):
         return self.fixtures[name]
 
@@ -84,13 +93,7 @@ def define_fixture(context, fixture_name, data):
 
 @given("I set the fixture '{fixture_name}' key '{key}' to '{value}'")
 def set_fixture_value(context, fixture_name, key, value):
-    fixture = context.the_fixture.get_fixture(fixture_name)
-
-    if value == TheFixture.MISSING:
-        fixture.pop(key, None)
-        return
-
-    fixture[key] = None if value == TheFixture.NONE else value
+    context.the_fixture.set_fixture_value(fixture_name, key, value)
 
 
 @given("I update the fixture '{fixture_name}' with")
