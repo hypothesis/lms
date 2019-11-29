@@ -110,16 +110,12 @@ class TestBasicLTILaunch:
 
 class TestCanvasFileBasicLTILaunch:
     def test_it_configures_frontend(self, context, pyramid_request):
-        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
-
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
         assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
         assert context.js_config["lmsName"] == "Canvas"
 
     def test_it_configures_via_callback_url(self, context, pyramid_request):
-        pyramid_request.params = {"file_id": "TEST_FILE_ID"}
-
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
         assert (
@@ -130,15 +126,39 @@ class TestCanvasFileBasicLTILaunch:
     def test_it_configures_submission_params(
         self, context, pyramid_request, lti_outcome_params
     ):
-        pyramid_request.params = {"file_id": "TEST_FILE_ID", **lti_outcome_params}
+        pyramid_request.params.update(lti_outcome_params)
 
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
         assert context.js_config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
 
+    def test_it_reports_lti_launches(self, context, pyramid_request, LtiLaunches):
+        pyramid_request.params.update(
+            {
+                "context_id": "TEST_CONTEXT_ID",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+            }
+        )
+
+        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+
+        LtiLaunches.add.assert_called_once_with(
+            pyramid_request.db,
+            pyramid_request.params["context_id"],
+            pyramid_request.params["oauth_consumer_key"],
+        )
+
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
         pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            # file_id is always required by canvas_file_basic_lti_launch.
+            "file_id": "TEST_FILE_ID",
+        }
+        return pyramid_request
 
 
 class TestDBConfiguredBasicLTILaunch:
@@ -150,11 +170,7 @@ class TestDBConfiguredBasicLTILaunch:
         via_url,
         ModuleItemConfiguration,
     ):
-        pyramid_request.params = {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            **lti_outcome_params,
-        }
+        pyramid_request.params.update(lti_outcome_params)
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
         BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
@@ -171,32 +187,45 @@ class TestDBConfiguredBasicLTILaunch:
         )
 
     def test_it_configures_frontend_grading(
-        self,
-        context,
-        pyramid_request,
-        frontend_app,
-        lti_outcome_params,
-        via_url,
-        ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
     ):
-        pyramid_request.params = {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            **lti_outcome_params,
-        }
-
         BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config
         )
+
+    def test_it_reports_lti_launches(self, context, pyramid_request, LtiLaunches):
+        pyramid_request.params.update(
+            {
+                "context_id": "TEST_CONTEXT_ID",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+            }
+        )
+
+        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
+
+        LtiLaunches.add.assert_called_once_with(
+            pyramid_request.db,
+            pyramid_request.params["context_id"],
+            pyramid_request.params["oauth_consumer_key"],
+        )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            # db_configured_basic_lti_launch() always needs resource_link_id
+            # and tool_consumer_instance_guid.
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+        }
+        return pyramid_request
 
 
 class TestURLConfiguredBasicLTILaunch:
     def test_it_configures_via_url(
         self, context, pyramid_request, lti_outcome_params, via_url
     ):
-        pyramid_request.params.update(**lti_outcome_params)
-        pyramid_request.parsed_params = {"url": "TEST_URL"}
+        pyramid_request.params.update(lti_outcome_params)
 
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
 
@@ -218,12 +247,33 @@ class TestURLConfiguredBasicLTILaunch:
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             **lti_outcome_params,
         }
-        pyramid_request.parsed_params = {"url": "TEST_URL"}
 
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config
         )
+
+    def test_it_reports_lti_launches(self, context, pyramid_request, LtiLaunches):
+        pyramid_request.params.update(
+            {
+                "context_id": "TEST_CONTEXT_ID",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+            }
+        )
+
+        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+
+        LtiLaunches.add.assert_called_once_with(
+            pyramid_request.db,
+            pyramid_request.params["context_id"],
+            pyramid_request.params["oauth_consumer_key"],
+        )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        # url_configured_basic_lti_launch() always needs url.
+        pyramid_request.parsed_params = {"url": "TEST_URL"}
+        return pyramid_request
 
 
 class TestUnconfiguredBasicLTILaunch:
@@ -365,3 +415,8 @@ def lti_h_service(pyramid_config):
     lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
     pyramid_config.register_service(lti_h_service, name="lti_h")
     return lti_h_service
+
+
+@pytest.fixture(autouse=True)
+def LtiLaunches(patch):
+    return patch("lms.views.basic_lti_launch.LtiLaunches")

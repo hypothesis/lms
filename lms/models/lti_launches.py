@@ -14,3 +14,8 @@ class LtiLaunches(BASE):
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
     context_id = sa.Column(sa.String)
     lti_key = sa.Column(sa.String)
+
+    @classmethod
+    def add(cls, db, context_id, oauth_consumer_key):
+        """Add a record of an LTI launch to the database."""
+        db.add(LtiLaunches(context_id=context_id, lti_key=oauth_consumer_key))

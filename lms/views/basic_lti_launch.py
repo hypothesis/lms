@@ -13,7 +13,7 @@ doesn't actually require basic launch requests to have this parameter.
 """
 from pyramid.view import view_config, view_defaults
 
-from lms.models import ModuleItemConfiguration
+from lms.models import LtiLaunches, ModuleItemConfiguration
 from lms.services import HAPIError
 from lms.validation import (
     ConfigureModuleItemSchema,
@@ -21,7 +21,7 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.decorators import report_lti_launch, upsert_lis_result_sourcedid
+from lms.views.decorators import upsert_lis_result_sourcedid
 from lms.views.helpers import frontend_app, via_url
 
 
@@ -86,7 +86,11 @@ class BasicLTILaunchViews:
         dummy = lambda *args, **kwargs: None
 
         # Report all LTI assignment launches to the /reports page.
-        report_lti_launch(dummy)(self.context, self.request)
+        LtiLaunches.add(
+            self.request.db,
+            self.request.params.get("context_id"),
+            self.request.params.get("oauth_consumer_key"),
+        )
 
         # Create/update LIS Result SourcedId record for certain students
         upsert_lis_result_sourcedid(dummy)(self.context, self.request)
