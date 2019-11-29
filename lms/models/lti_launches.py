@@ -11,7 +11,7 @@ class LtiLaunches(BASE):
     __tablename__ = "lti_launches"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
-    created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow())
+    created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
     context_id = sa.Column(sa.String)
     lti_key = sa.Column(sa.String)
 
