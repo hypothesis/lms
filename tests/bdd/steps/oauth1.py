@@ -26,11 +26,6 @@ class OAuth1Context(StepContext):
 
         self._make_client()
 
-    def do_teardown(self):
-        self.context_key = None
-        self.shared_secret = None
-        self.client = None
-
     def _make_client(self):
         if self.shared_secret is None or self.consumer_key is None:
             return
@@ -54,6 +49,11 @@ class OAuth1Context(StepContext):
         params["oauth_signature"] = self.client.get_oauth_signature(
             oauthlib.common.Request(url, method, body=params)
         )
+
+    def do_teardown(self):
+        self.context_key = None
+        self.shared_secret = None
+        self.client = None
 
 
 @step("the OAuth 1 consumer key is '{consumer_key}'")

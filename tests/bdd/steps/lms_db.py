@@ -21,10 +21,12 @@ class LMSDBContext(StepContext):
         db.init(self.engine)
         self.do_teardown()
 
-    def do_teardown(self):
-        self.wipe()
-        if self.session:
-            self.session.close()
+    def create_row(self, model_class, data):
+        model_class = getattr(models, model_class)
+        model = model_class(**data)
+
+        self.session.add(model)
+        self.session.commit()
 
     def wipe(self):
         tables = reversed(db.BASE.metadata.sorted_tables)
@@ -37,12 +39,10 @@ class LMSDBContext(StepContext):
     def do_setup(self):
         self.session = self.SESSION(bind=self.engine.connect())
 
-    def create_row(self, model_class, data):
-        model_class = getattr(models, model_class)
-        model = model_class(**data)
-
-        self.session.add(model)
-        self.session.commit()
+    def do_teardown(self):
+        self.wipe()
+        if self.session:
+            self.session.close()
 
 
 @step("I create an LMS DB '{model_class}'")
