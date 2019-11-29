@@ -36,6 +36,13 @@ class LMSDBContext(StepContext):
     def do_setup(self):
         self.session = self.SESSION(bind=self.engine.connect())
 
+    def create_row(self, model_class, data):
+        model_class = getattr(models, model_class)
+        model = model_class(**data)
+
+        self.session.add(model)
+        self.session.commit()
+
     @classmethod
     def register(cls, context, **kwargs):
         instance = super().register(context, **kwargs)
@@ -46,10 +53,4 @@ class LMSDBContext(StepContext):
 
 @step("I create an LMS DB '{model_class}'")
 def create_row_from_fixture(context, model_class):
-    model_class = getattr(models, model_class)
-    data = {row[0]: row[1] for row in context.table}
-    model = model_class(**data)
-
-    session = context.db.session
-    session.add(model)
-    session.commit()
+    context.db.create_row(model_class, data={row[0]: row[1] for row in context.table})
