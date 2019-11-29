@@ -7,9 +7,9 @@ __all__ = ["GroupInfoService"]
 
 class GroupInfoService:
     """
-    A service that upserts :class:`lms.models.GroupInfoService` records.
+    A service that upserts :class:`~lms.models.GroupInfo` records.
 
-    Usage:
+    Usage::
 
         group_info = request.find_service(name="group_info")
         group_info.upsert(authority_provided_id, consumer_key, request.params)
@@ -20,14 +20,24 @@ class GroupInfoService:
 
     def upsert(self, authority_provided_id, consumer_key, params):
         """
-        Upsert a row into the group_info DB table.
+        Upsert a row into the ``group_info`` DB table.
 
-        Finds a ``GroupInfoService`` row if available, and creates it if not, setting
-        the ``consumer_key`` and relevant values from ``params``.
+        Find the :class:`~lms.models.GroupInfo` with the given
+        ``authority_provided_id``, or create it if none exists.  Then update
+        the ``GroupInfo``'s ``consumer_key`` to the given ``consumer_key``, and
+        update its other columns from the items in ``params``.
 
-        :param authority_provided_id: The value to find the group by
-        :param consumer_key: The consumer key to update
-        :param params: A dict of values to pick relevant items from
+        ``params["id"]`` and ``params["authority_provided_id"]`` will be
+        ignored if present--these columns can't be updated.
+
+        Any keys in ``params`` that don't correspond to a ``GroupInfo`` column
+        name will be ignored.
+
+        :param authority_provided_id: the ``authority_provided_id`` of the
+            ``GroupInfo`` to create or update
+        :param consumer_key: the ``GroupInfo.consumer_key`` value to set
+        :param params: the other ``GroupInfo`` columns to set
+        :type params: dict
         """
         group_info = (
             self._db.query(GroupInfo)
