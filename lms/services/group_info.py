@@ -15,9 +15,6 @@ class GroupInfoService:
         group_info.upsert(authority_provided_id, consumer_key, request.params)
     """
 
-    # GroupInfo columns that upsert() *doesn't* update, even if they're in the given params.
-    SKIP_COLUMNS = {"authority_provided_id", "id"}
-
     def __init__(self, _context, request):
         self._db = request.db
 
@@ -45,4 +42,4 @@ class GroupInfoService:
             self._db.add(group_info)
 
         group_info.consumer_key = consumer_key
-        group_info.update_from_dict(params, skip_keys=self.SKIP_COLUMNS)
+        group_info.update_from_dict(params, skip_keys={"authority_provided_id", "id"})
