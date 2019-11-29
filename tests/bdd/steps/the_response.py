@@ -10,7 +10,7 @@ from tests.bdd.steps.the_url import TheURL
 
 class WebTestResponse(StepContext):
     context_key = "the_response"
-    singleton = False
+    ephemeral = True
 
     def __init__(self, response, **kwargs):
         self.response = response

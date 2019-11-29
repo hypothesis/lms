@@ -10,7 +10,7 @@ from tests.bdd.step_context import StepContext
 
 class TheURL(StepContext):
     context_key = "the_url"
-    singleton = False
+    ephemeral = True
 
     def __init__(self, url, **kwargs):
         self.raw_url = url
