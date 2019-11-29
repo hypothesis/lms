@@ -18,8 +18,9 @@ class LMSDBContext(StepContext):
     def __init__(self, **kwargs):
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session = None
+        
         db.init(self.engine)
-        self.do_teardown()
+        self.wipe()
 
     def create_row(self, model_class, data):
         model_class = getattr(models, model_class)
