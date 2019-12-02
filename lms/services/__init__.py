@@ -49,6 +49,6 @@ def includeme(config):
         "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
     )
     config.register_service_factory(
-        "lms.services.group_info_upsert.GroupInfoUpsert", name="group_info_upsert"
+        "lms.services.group_info.GroupInfoService", name="group_info"
     )
     config.register_service_factory("lms.services.lti_h.LTIHService", name="lti_h")

@@ -3,12 +3,59 @@ import logging
 import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.properties import ColumnProperty
 
 __all__ = ("BASE", "init")
 
 
 log = logging.getLogger(__name__)
+
+
+class BaseClass:
+    """Functions common to all SQLAlchemy models."""
+
+    @classmethod
+    def iter_properties(cls):
+        """Iterate over all declared SQLAlchemy properties."""
+        return inspect(cls).iterate_properties
+
+    @classmethod
+    def iter_columns(cls):
+        """Iterate over all declared SQLAlchemy columns."""
+        return (
+            property
+            for property in cls.iter_properties()
+            if isinstance(property, ColumnProperty)
+        )
+
+    def update_from_dict(self, data, skip_keys=None):
+        """
+        Update this model from the provided dict.
+
+        Any keys listed in ``skip_keys`` will *not* be updated, even if they are in ``data``.
+
+        :param data: The data to update
+        :param skip_keys: A set of keys to exclude from being updated (default: {"id"})
+        :type skip_keys: set[str]
+        """
+
+        if skip_keys is None:
+            skip_keys = {"id"}
+
+        columns = {col.key for col in self.iter_columns()}
+        if skip_keys:
+            if not isinstance(skip_keys, set):
+                raise TypeError(
+                    f"Expected a set of keys to skip but found '{type(skip_keys)}'"
+                )
+
+            columns -= skip_keys
+
+        for key in columns:
+            if key in data:
+                setattr(self, key, data[key])
 
 
 BASE = declarative_base(
@@ -18,6 +65,7 @@ BASE = declarative_base(
     #
     #   http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
     #
+    cls=BaseClass,
     metadata=sqlalchemy.MetaData(
         naming_convention={
             "ix": "ix__%(column_0_label)s",
@@ -26,7 +74,7 @@ BASE = declarative_base(
             "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
             "pk": "pk__%(table_name)s",
         }
-    )
+    ),
 )
 
 
