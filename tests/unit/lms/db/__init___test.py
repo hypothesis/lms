@@ -25,7 +25,7 @@ class TestBase:
     def test_we_can_get_columns(self):
         keys = {prop.key for prop in ModelClass.iter_columns()}
 
-        assert {"id", "column"} == keys
+        assert keys == {"id", "column"}
 
     def test_we_can_update_from_dict(self, model):
         model.update_from_dict(
@@ -49,13 +49,9 @@ class TestBase:
         assert model.column == "original_value"
 
     def test_we_fail_to_update_when_skip_keys_is_not_a_set(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             ModelClass().update_from_dict({}, skip_keys=["a"])
 
     @pytest.fixture
     def model(self):
-        model = ModelClass()
-        model.id = 1234
-        model.column = "original_value"
-
-        return model
+        return ModelClass(id=1234, column="original_value")

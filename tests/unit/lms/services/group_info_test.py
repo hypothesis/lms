@@ -19,7 +19,7 @@ class TestGroupInfoUpsert:
             params=params,
         )
 
-        group_info = self._get_inserted_group_info(db_session)
+        group_info = self.get_inserted_group_info(db_session)
 
         assert group_info.consumer_key == self.CONSUMER_KEY
         assert group_info.context_title == params["context_title"]
@@ -45,7 +45,7 @@ class TestGroupInfoUpsert:
             params=dict(params, context_title="NEW_TITLE"),
         )
 
-        group_info = self._get_inserted_group_info(db_session)
+        group_info = self.get_inserted_group_info(db_session)
 
         assert group_info.consumer_key == self.CONSUMER_KEY
         assert group_info.context_label == params["context_label"]
@@ -63,11 +63,12 @@ class TestGroupInfoUpsert:
             ),
         )
 
-        group_info = self._get_inserted_group_info(db_session)
+        group_info = self.get_inserted_group_info(db_session)
 
         assert group_info.authority_provided_id == self.AUTHORITY
+        assert group_info.id != "IGNORE ME 1"
 
-    def _get_inserted_group_info(self, db_session):
+    def get_inserted_group_info(self, db_session):
         return (
             db_session.query(GroupInfo)
             .filter_by(authority_provided_id=self.AUTHORITY)

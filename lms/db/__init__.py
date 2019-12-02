@@ -47,7 +47,7 @@ class BaseClass:
         columns = {col.key for col in self.iter_columns()}
         if skip_keys:
             if not isinstance(skip_keys, set):
-                raise ValueError(
+                raise TypeError(
                     f"Expected a set of keys to skip but found '{type(skip_keys)}'"
                 )
 
