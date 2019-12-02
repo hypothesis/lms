@@ -2,7 +2,7 @@
 Analyse the params files for each section and make suggestions.
 
 This script will read all the ini files from the LTI specification tool and
-attempt to work out an 'average' baseline file to use for the section.
+attempt to work out an 'most_common' baseline file to use for the section.
 
 It will then generate differences and make suggestions for configuring each
 test in that section.
@@ -15,8 +15,8 @@ from tests.bdd.steps.the_fixture import TheFixture
 
 
 def list_ini_files(fixture):
-    for file_name in sorted(glob(fixture.get_path("*.*.ini"))):
-        yield os.path.basename(file_name)
+    for file_name in sorted(glob(fixture.get_path("src/*.*.ini"))):
+        yield os.path.join("src", os.path.basename(file_name))
 
 
 def load_ini(fixture, filename):
@@ -40,7 +40,7 @@ def load_ini(fixture, filename):
     return final
 
 
-def generate_most_common_values(fixture):
+def generate_most_common_values(fixture, threshold):
     value_counts = defaultdict(Counter)
     files = 0
 
@@ -52,12 +52,14 @@ def generate_most_common_values(fixture):
         for key, value in values.items():
             value_counts[key].update({value: 1})
 
-    CUTOFF = files * 0.75
+    cutoff = files * threshold
 
     for key, counts in value_counts.items():
         for value, count in counts.most_common(1):
-            if count < CUTOFF:
-                print(f"Skipping {key}={value} as it has too few occurences: {count}")
+            if count < cutoff:
+                print(
+                    f"Skipping {key}={value} as it has too few occurences: {count}/{files}"
+                )
             else:
                 yield key, value
 
@@ -73,25 +75,25 @@ def dump_ini(values):
         print(f"{key}={value}")
 
 
-def write_average_file(fixture):
-    average = dict(generate_most_common_values(fixture))
-    filename = fixture.get_path("average.ini")
-    write_ini(filename, average)
+def write_most_common_file(fixture, threshold):
+    most_common = dict(generate_most_common_values(fixture, threshold))
+    filename = fixture.get_path("most_common.ini")
+    write_ini(filename, most_common)
 
-    return average
+    return most_common
 
 
-def generate_diff(fixture, average, filename):
+def generate_diff(fixture, most_common, filename):
     values = load_ini(fixture, filename)
 
-    average_keys = set(average.keys())
+    most_common_keys = set(most_common.keys())
     value_keys = set(values.keys())
 
-    for missing_key in average_keys - value_keys:
+    for missing_key in most_common_keys - value_keys:
         yield missing_key, "*MISSING*"
 
     for key, value in values.items():
-        if key not in average or average[key] != value:
+        if key not in most_common or most_common[key] != value:
             yield key, value
 
 
@@ -105,11 +107,11 @@ def write_table(data):
         print(f"      | {key:<{max_key}} | {value:<{max_value}} |")
 
 
-def generate_param_values(fixture):
+def generate_param_values(fixture, most_common):
     for filename in list_ini_files(fixture):
         print(f"\n# For {filename}\n")
 
-        diff = dict(generate_diff(fixture, average, filename))
+        diff = dict(generate_diff(fixture, most_common, filename))
         if diff:
             if len(diff) == 1:
                 key = list(diff.keys())[0]
@@ -124,9 +126,13 @@ def generate_param_values(fixture):
 
 
 if __name__ == "__main__":
-    section = 3
+    for section, threshold in {1: 0.5, 2: 0.75, 3: 0.75, 4: 0.5}.items():
+        fixture = TheFixture()
+        fixture.set_base_dir(f"/lti_certification_1_1/section_{section}")
 
-    fixture = TheFixture()
-    fixture.set_base_dir(f"/lti_certification_1_1/section_{section}")
-    average = write_average_file(fixture)
-    generate_param_values(fixture)
+        print(f"\nSection {section} --------------------------------------\n")
+        print("\nGenerating most_common fixture...\n")
+        most_common = write_most_common_file(fixture, threshold)
+
+        print("\nDifferences from the most_common...\n")
+        generate_param_values(fixture, most_common)

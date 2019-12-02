@@ -113,6 +113,30 @@ def set_fixture_key_to_the_value(context, fixture_name, key):
     context.the_value = context.the_fixture.get_fixture(fixture_name)[key]
 
 
+def diff_dicts(a, b, missing=KeyError):
+    return {
+        key: (a.get(key, missing), b.get(key, missing))
+        for key in dict(set(a.items()) ^ set(b.items())).keys()
+    }
+
+
+@then("the fixture '{fixture_name}' matches the fixture '{other_fixture}'")
+def compare_fixtures(context, fixture_name, other_fixture):
+    diff = diff_dicts(
+        context.the_fixture.get_fixture(fixture_name),
+        context.the_fixture.get_fixture(other_fixture),
+        missing=TheFixture.MISSING,
+    )
+
+    if not diff:
+        return
+
+    for key, (value_found, value_expected) in diff.items():
+        print(f"Key {key} is different. Found {value_found} expected {value_expected}")
+
+    assert diff == {}, "The fixtures differ"
+
+
 @step("I dump the fixture '{fixture_name}'")
 def dump_fixture(context, fixture_name):
     fixture = context.the_fixture.get_fixture(fixture_name)

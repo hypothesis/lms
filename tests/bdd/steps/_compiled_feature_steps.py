@@ -57,6 +57,27 @@ def the_request_is_for_resource_resource_id(context, resource_id):
     )
 
 
+@step("the params fixture matches the LTI example for section {test_name}")
+def the_params_fixture_matches_the_lti_example_for_section_test_name(
+    context, test_name
+):
+    # From: tests/bdd/steps/feature_steps/fixture.feature: line 15
+    context.execute_steps(
+        """
+    Given I load the fixture 'src/{test_name}.ini' as 'lti_params'
+      And I update the fixture 'lti_params' with
+      | Key                | Value     |
+      | oauth_consumer_key | *MISSING* |
+      | oauth_nonce        | *MISSING* |
+      | oauth_signature    | *MISSING* |
+      | oauth_timestamp    | *MISSING* |
+      Then the fixture 'params' matches the fixture 'lti_params'
+    """.format(
+            test_name=test_name
+        )
+    )
+
+
 @step("standard authentication setup")
 def standard_authentication_setup(context):
     # From: tests/bdd/steps/feature_steps/auth.feature: line 1
@@ -82,7 +103,7 @@ def standard_setup_for_lti_section_section(context, section):
         """
     Given fixtures are located in '/lti_certification_1_1/section_{section}'
       And standard authentication setup
-      And I load the fixture 'average.ini' as 'params'
+      And I load the fixture 'most_common.ini' as 'params'
     """.format(
             section=section
         )
