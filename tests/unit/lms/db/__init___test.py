@@ -20,7 +20,7 @@ class TestBase:
     def test_we_can_get_properties(self):
         keys = {prop.key for prop in ModelClass.iter_properties()}
 
-        assert {"id", "relationship", "column"} == keys
+        assert keys == {"id", "relationship", "column"}
 
     def test_we_can_get_columns(self):
         keys = {prop.key for prop in ModelClass.iter_columns()}
