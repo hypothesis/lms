@@ -19,4 +19,3 @@ def before_scenario(context, scenario):
 
 def after_scenario(context, scenario):
     StepContextManager.after_scenario(context)
-
