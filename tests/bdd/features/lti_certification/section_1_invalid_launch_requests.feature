@@ -10,9 +10,9 @@ Feature: Section 1 - Invalid Launch Requests
     # Expected result: Return user to the Tool Consumer with an error message
 
     Given I update the fixture 'params' with
-	  | Key                     | Value               |
-	  | resource_link_id        | *MISSING*           |
-      | custom_link_setting_url | $LtiLink.custom.url |
+          | Key                     | Value               |
+          | resource_link_id        | *MISSING*           |
+          | custom_link_setting_url | $LtiLink.custom.url |
 
      When I make an LTI launch request
 
