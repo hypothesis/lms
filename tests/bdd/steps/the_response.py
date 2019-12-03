@@ -28,6 +28,13 @@ class WebTestResponse(StepContext):
         return self.response.status_code
 
 
+@then("the response header '{header}' matches '{regex}'")
+def the_response_header_matches(context, header, regex):
+    value = context.the_response.get_header(header)
+
+    assert re.compile(regex).match(value), f'The header matches "{regex}"'
+
+
 @then("the response status code is {status_code}")
 def the_response_status_code_is(context, status_code):
     found_code = context.the_response.status_code()

@@ -75,9 +75,24 @@ def standard_setup_for_lti_section_section(context, section):
     )
 
 
+@step("I start an LTI launch request with bad auth parameter '{key}'")
+def i_start_an_lti_launch_request_with_bad_auth_parameter_key(context, key):
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 21
+    context.execute_steps(
+        """
+    Given I start an LTI launch request
+    And   I sign the LTI launch request
+    And   I set the fixture 'params' key '{key}' to 'nonsense'
+    And   I set the form parameters from the fixture 'params'
+    """.format(
+            key=key
+        )
+    )
+
+
 @step("the app redirects to the LTI tool with message matching '{regex}'")
 def the_app_redirects_to_the_lti_tool_with_message_matching_regex(context, regex):
-    # From: tests/bdd/steps/feature_steps/lti.feature: line 21
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 27
     context.execute_steps(
         """
      Then  the response status code is 302
@@ -87,5 +102,40 @@ def the_app_redirects_to_the_lti_tool_with_message_matching_regex(context, regex
       And   the url query parameter 'lti_msg' matches '{regex}'
     """.format(
             regex=regex
+        )
+    )
+
+
+@step("the response is HTML")
+def the_response_is_html(context):
+    # From: tests/bdd/steps/feature_steps/http.feature: line 1
+    context.execute_steps(
+        """
+    Then  the response header 'Content-Type' matches '^text/html'
+    """
+    )
+
+
+@step("we get an HTML error with status {status_code}")
+def we_get_an_html_error_with_status_status_code(context, status_code):
+    # From: tests/bdd/steps/feature_steps/http.feature: line 4
+    context.execute_steps(
+        """
+    Then the response is an HTML page with status {status_code}
+    """.format(
+            status_code=status_code
+        )
+    )
+
+
+@step("the response is an HTML page with status {status_code}")
+def the_response_is_an_html_page_with_status_status_code(context, status_code):
+    # From: tests/bdd/steps/feature_steps/http.feature: line 7
+    context.execute_steps(
+        """
+    Then  the response is HTML
+    And   the response status code is {status_code}
+    """.format(
+            status_code=status_code
         )
     )
