@@ -49,6 +49,8 @@ COPY --from=frontend-build /build build
 # Copy the rest of the application files.
 COPY . .
 
+ENV PYTHONPATH /var/lib/lms:$PYTHONPATH
+
 EXPOSE 8001
 USER lms
 CMD ["bin/init-env", "supervisord", "-c", "conf/supervisord.conf"]
