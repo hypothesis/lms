@@ -14,17 +14,9 @@ def before_all(context):
 
 
 def before_scenario(context, scenario):
-    try:
-        StepContextManager.before_scenario(context)
-    except Exception as e:
-        print('PUP', e)
-        raise
+    StepContextManager.before_scenario(context)
 
 
 def after_scenario(context, scenario):
-    try:
-        StepContextManager.after_scenario(context)
-    except Exception as e:
-        print('WUP', e)
-        raise
+    StepContextManager.after_scenario(context)
 
