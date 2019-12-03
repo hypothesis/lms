@@ -1,11 +1,17 @@
 """Load and manipulate fixtures."""
 
+import json
 import os.path
 
+from behave import given, step, then
 from pkg_resources import resource_filename
 
+from tests.bdd.step_context import StepContext
 
-class TheFixture:
+
+class TheFixture(StepContext):
+    MISSING = "*MISSING*"
+    NONE = "*NONE*"
     context_key = "the_fixture"
 
     def __init__(self, **kwargs):
@@ -26,6 +32,15 @@ class TheFixture:
 
         return value
 
+    def set_fixture_value(self, name, key, value):
+        fixture = self.get_fixture(name)
+
+        if value == self.MISSING:
+            fixture.pop(key, None)
+            return
+
+        fixture[key] = None if value == self.NONE else value
+
     def get_fixture(self, name):
         return self.fixtures[name]
 
@@ -44,3 +59,64 @@ class TheFixture:
 
     def get_path(self, filename):
         return os.path.join(self.base_dir, filename)
+
+    def do_teardown(self):
+        self.fixtures = {}
+
+
+@given("fixtures are located in '{location}'")
+def fixture_location(context, location):
+    context.the_fixture.set_base_dir(location)
+
+
+@given("I load the fixture '{fixture_file}.ini' as '{fixture_name}'")
+def load_ini_fixture(context, fixture_file, fixture_name):
+    context.the_fixture.load_ini(fixture_file + ".ini", fixture_name)
+
+
+@given("I set the fixture '{fixture_name}' key '{key}' to '{value}'")
+def set_fixture_value(context, fixture_name, key, value):
+    context.the_fixture.set_fixture_value(fixture_name, key, value)
+
+
+@given("I update the fixture '{fixture_name}' with")
+def update_fixture_from_table(context, fixture_name):
+    for row in context.table:
+        set_fixture_value(context, fixture_name, row[0].strip(), row[1].strip())
+
+
+@then("the fixture '{fixture_name}' key '{key}' is the value")
+def set_fixture_key_to_the_value(context, fixture_name, key):
+    context.the_value = context.the_fixture.get_fixture(fixture_name)[key]
+
+
+def diff_dicts(a, b, missing=KeyError):
+    return {
+        key: (a.get(key, missing), b.get(key, missing))
+        for key in dict(set(a.items()) ^ set(b.items())).keys()
+    }
+
+
+@then("the fixture '{fixture_name}' matches the fixture '{other_fixture}'")
+def compare_fixtures(context, fixture_name, other_fixture):
+    diff = diff_dicts(
+        context.the_fixture.get_fixture(fixture_name),
+        context.the_fixture.get_fixture(other_fixture),
+        missing=TheFixture.MISSING,
+    )
+
+    if not diff:
+        return
+
+    for key, (value_found, value_expected) in diff.items():
+        print(f"Key {key} is different. Found {value_found} expected {value_expected}")
+
+    assert diff == {}, "The fixtures differ"
+
+
+@step("I dump the fixture '{fixture_name}'")
+def dump_fixture(context, fixture_name):
+    fixture = context.the_fixture.get_fixture(fixture_name)
+
+    print(f"Fixture '{fixture_name}'")
+    print(json.dumps(fixture, indent=4))
