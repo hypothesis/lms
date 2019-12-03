@@ -14,9 +14,9 @@ Feature: Section 4 - Levels of User Information
     # a user-friendly manner, which could be that they are denied access
 
     Given the user is 'Sally'
+      And I set the fixture 'params' key 'roles' to 'Learner'
       And I update the fixture 'params' with
       | Key                              | Value            |
-      | roles                            | Learner          |
       | lis_person_name_full             | *MISSING*        |
       | lis_person_name_family           | *MISSING*        |
       | lis_person_name_given            | *MISSING*        |
@@ -31,9 +31,9 @@ Feature: Section 4 - Levels of User Information
     # Expected result: The tool should detect the user's name
 
     Given the user is 'Lucky'
+      And I set the fixture 'params' key 'roles' to 'Learner'
       And I update the fixture 'params' with
       | Key                              | Value            |
-      | roles                            | Learner          |
       | lis_person_name_full             | *MISSING*        |
 
      When I make an LTI launch request
@@ -46,9 +46,9 @@ Feature: Section 4 - Levels of User Information
     # Expected result: The tool should detect the user's name
 
     Given the user is 'Sally'
+      And I set the fixture 'params' key 'roles' to 'Learner'
       And I update the fixture 'params' with
       | Key                              | Value            |
-      | roles                            | Learner          |
       | lis_person_name_family           | *MISSING*        |
       | lis_person_name_given            | *MISSING*        |
 
@@ -87,19 +87,14 @@ Feature: Section 4 - Levels of User Information
 
     Given the user is 'Jane'
       And I set the fixture 'params' key 'roles' to 'Instructor'
+      And all context parameters are missing
+      And I set the fixture 'params' key 'context_id' to 'con-182'
       And I update the fixture 'params' with
       | Key                              | Value      |
       | lis_person_contact_email_primary | *MISSING*  |
       | lis_person_name_family           | *MISSING*  |
       | lis_person_name_given            | *MISSING*  |
       | lis_person_name_full             | *MISSING*  |
-      And I update the fixture 'params' with
-      | Key                              | Value      |
-      | context_label                    | *MISSING*  |
-      | context_title                    | *MISSING*  |
-      | context_type                     | *MISSING*  |
-      | resource_link_title              | *MISSING*  |
-      | lis_course_section_sourcedid     | *MISSING*  |
 
      When I make an LTI launch request
 
@@ -114,14 +109,7 @@ Feature: Section 4 - Levels of User Information
 
      Given the user is 'Jane'
       And I set the fixture 'params' key 'roles' to 'Instructor'
-      And I update the fixture 'params' with
-      | Key                              | Value      |
-      | context_id                       | *MISSING*  |
-      | context_label                    | *MISSING*  |
-      | context_title                    | *MISSING*  |
-      | context_type                     | *MISSING*  |
-      | resource_link_title              | *MISSING*  |
-      | lis_course_section_sourcedid     | *MISSING*  |
+      And all context parameters are missing
       And I update the fixture 'params' with
       | Key                              | Value                             |
       | custom_context_memberships_url   | $ToolProxyBinding.memberships.url |
@@ -138,14 +126,7 @@ Feature: Section 4 - Levels of User Information
     # a guest or respond with an error message
 
     Given I set the fixture 'params' key 'resource_link_id' to 'rli-1234'
-      And I update the fixture 'params' with
-      | Key                              | Value      |
-      | context_id                       | *MISSING*  |
-      | context_label                    | *MISSING*  |
-      | context_title                    | *MISSING*  |
-      | context_type                     | *MISSING*  |
-      | resource_link_title              | *MISSING*  |
-      | lis_course_section_sourcedid     | *MISSING*  |
+      And all context parameters are missing
       And I update the fixture 'params' with
       | Key                              | Value                             |
       | custom_context_memberships_url   | $ToolProxyBinding.memberships.url |
