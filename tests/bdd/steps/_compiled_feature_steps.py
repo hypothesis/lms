@@ -106,6 +106,51 @@ def the_app_redirects_to_the_lti_tool_with_message_matching_regex(context, regex
     )
 
 
+@step("the assigment opens successfully")
+def the_assigment_opens_successfully(context):
+    # From: tests/bdd/steps/feature_steps/lms.feature: line 1
+    context.execute_steps(
+        """
+    Then the response is HTML
+    Then the response status code is 200
+    """
+    )
+
+
+@step("the params fixture matches the LTI example for section {test_name}")
+def the_params_fixture_matches_the_lti_example_for_section_test_name(
+    context, test_name
+):
+    # From: tests/bdd/steps/feature_steps/fixture.feature: line 12
+    context.execute_steps(
+        """
+    Given I load the fixture 'src/{test_name}.ini' as 'lti_params'
+      And I update the fixture 'lti_params' with
+      | Key                | Value     |
+      | oauth_consumer_key | *MISSING* |
+      | oauth_nonce        | *MISSING* |
+      | oauth_signature    | *MISSING* |
+      | oauth_timestamp    | *MISSING* |
+      Then the fixture 'params' matches the fixture 'lti_params'
+    """.format(
+            test_name=test_name
+        )
+    )
+
+
+@step("the request is for resource '{resource_id}'")
+def the_request_is_for_resource_resource_id(context, resource_id):
+    # From: tests/bdd/steps/feature_steps/fixture.feature: line 8
+    context.execute_steps(
+        """
+    Given I load the fixture 'resource_{resource_id}.ini' as 'resource'
+      And I update the fixture 'params' from fixture 'resource'
+    """.format(
+            resource_id=resource_id
+        )
+    )
+
+
 @step("the response is HTML")
 def the_response_is_html(context):
     # From: tests/bdd/steps/feature_steps/http.feature: line 1
@@ -126,6 +171,51 @@ def the_response_is_an_html_page_with_status_status_code(context, status_code):
     """.format(
             status_code=status_code
         )
+    )
+
+
+@step("the user has instructor privileges")
+def the_user_has_instructor_privileges(context):
+    # From: tests/bdd/steps/feature_steps/lms.feature: line 5
+    context.execute_steps(
+        """
+    Then the response body does not match 'An instructor needs to launch the assignment to configure it.'
+    """
+    )
+
+
+@step("the user is a {role}")
+def the_user_is_a_role(context, role):
+    # From: tests/bdd/steps/feature_steps/fixture.feature: line 1
+    context.execute_steps(
+        """
+    Given I load the fixture '{role}.ini' as 'role'
+      And I update the fixture 'params' from fixture 'role'
+    """.format(
+            role=role
+        )
+    )
+
+
+@step("the user is an {role}")
+def the_user_is_an_role(context, role):
+    # From: tests/bdd/steps/feature_steps/fixture.feature: line 5
+    context.execute_steps(
+        """
+    Given the user is a {role}
+    """.format(
+            role=role
+        )
+    )
+
+
+@step("the user only has learner privileges")
+def the_user_only_has_learner_privileges(context):
+    # From: tests/bdd/steps/feature_steps/lms.feature: line 8
+    context.execute_steps(
+        """
+    Then the response body matches 'An instructor needs to launch the assignment to configure it.'
+    """
     )
 
 
