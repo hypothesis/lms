@@ -96,17 +96,6 @@ class BasicLTILaunchViews:
         self._upsert_lis_result_sourcedid(self.context, self.request)
 
     @classmethod
-    def _report_lti_launch(cls, request):
-        # Report an LTI launch to the /reports page.
-        request.db.add(
-            LtiLaunches(
-                context_id=request.params.get("context_id"),
-                lti_key=request.params.get("oauth_consumer_key"),
-                created=datetime.utcnow(),
-            )
-        )
-
-    @classmethod
     def _upsert_lis_result_sourcedid(cls, context, request):
         """Create or update a record of LIS result/outcome data for a student launch."""
 
