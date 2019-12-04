@@ -11,7 +11,6 @@ parameter with the value ``basic-lti-launch-request`` to distinguish them
 from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
-from datetime import datetime
 
 from pyramid.view import view_config, view_defaults
 
