@@ -174,10 +174,9 @@ class TestCanvasAPIError:
 
         raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
-        body = raised_exception.details['response']['body']
+        body = raised_exception.details["response"]["body"]
         assert len(body) == 153
-        assert body.endswith('...')
-
+        assert body.endswith("...")
 
     def assert_raises(self, cause, expected_exception_class):
         with pytest.raises(
@@ -191,8 +190,11 @@ class TestCanvasAPIError:
     def canvas_api_long_response(self):
         """Return a successful (200 OK) response with a long body."""
         httpretty.register_uri(
-            httpretty.GET, "https://example.com", priority=1, status=200,
-            body="x" * 2000
+            httpretty.GET,
+            "https://example.com",
+            priority=1,
+            status=200,
+            body="x" * 2000,
         )
         return requests.get("https://example.com")
 
