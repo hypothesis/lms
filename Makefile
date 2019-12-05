@@ -17,6 +17,7 @@ help:
 	@echo "make test              Run the unit tests"
 	@echo "make coverage          Print the unit test coverage report"
 	@echo "make functests         Run the functional tests"
+	@echo "make bddtests          Run the gherkin tests"
 	@echo "make docstrings        View all the docstrings locally as HTML"
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
@@ -149,6 +150,10 @@ frontend-lint: node_modules/.uptodate
 .PHONY: backend-tests
 backend-tests: python
 	tox -q -e py36-tests
+
+.PHONY: bddtests
+bddtests: python
+	tox -q -e py36-bddtests
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
