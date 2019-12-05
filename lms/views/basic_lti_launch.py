@@ -20,8 +20,6 @@ from lms.validation import (
     ConfigureModuleItemSchema,
     LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
-    LISResultSourcedIdSchema,
-    ValidationError,
 )
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import frontend_app, via_url
@@ -101,19 +99,9 @@ class BasicLTILaunchViews:
         if request.lti_user.is_instructor or cls._is_launched_by_canvas(request):
             return
 
-        try:
-            lis_result_sourcedid = LISResultSourcedIdSchema(
-                request
-            ).lis_result_sourcedid_info()
-        except ValidationError:
-            # We're missing something we need in the request.
-            # This can happen if the user is not a student, or if the needed
-            # LIS data is not present on the request.
-            return
-
         lis_result_svc = request.find_service(name="lis_result_sourcedid")
-        lis_result_svc.upsert(
-            lis_result_sourcedid, h_user=context.h_user, lti_user=request.lti_user
+        lis_result_svc.upsert_from_request(
+            request, h_user=context.h_user, lti_user=request.lti_user
         )
 
     @classmethod

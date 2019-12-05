@@ -1,4 +1,5 @@
 from lms.models import LISResultSourcedId
+from lms.validation import LISResultSourcedIdSchema, ValidationError
 
 __all__ = ["LISResultSourcedIdService"]
 
@@ -41,47 +42,50 @@ class LISResultSourcedIdService:
             .all()
         )
 
-    def upsert(self, lis_info, h_user, lti_user):
+    def upsert_from_request(self, request, h_user, lti_user):
         """
-        Update an existing record or create a new one if none exists.
+        Update or create a record based on the LTI params found in the request.
 
-        :arg lis_info: LIS-specific attrs
-        :type lis_info: :class:`lms.values.LISResultSourcedId`
+        This function will do nothing if the correct parameters cannot be
+        found in the request.
+
+        :arg request: A pyramid request
         :arg h_user: The h user this record is associated with
         :type h_user: :class:`lms.values.HUser`
         :arg lti_user: The LTI-provided user that this record is associated with
         :type lti_user: :class:`lms.values.LTIUser`
-        :return: The new or updated record
-        :rtype: :class:`~lms.models.LISResultSourcedId`
         """
-        lis_result_sourcedid = (
-            self._db.query(LISResultSourcedId)
-            .filter_by(
-                oauth_consumer_key=lti_user.oauth_consumer_key,
-                user_id=lti_user.user_id,
-                context_id=lis_info.context_id,
-                resource_link_id=lis_info.resource_link_id,
-            )
-            .one_or_none()
+        try:
+            lis_info = LISResultSourcedIdSchema(request).lis_result_sourcedid_info()
+
+        except ValidationError:
+            # We're missing something we need in the request.
+            # This can happen if the user is not a student, or if the needed
+            # LIS data is not present on the request.
+            return
+
+        lis_result_sourcedid = self._upsert(
+            LISResultSourcedId,
+            oauth_consumer_key=lti_user.oauth_consumer_key,
+            user_id=lti_user.user_id,
+            context_id=lis_info.context_id,
+            resource_link_id=lis_info.resource_link_id,
         )
-
-        if lis_result_sourcedid is None:
-            lis_result_sourcedid = LISResultSourcedId(
-                oauth_consumer_key=lti_user.oauth_consumer_key,
-                user_id=lti_user.user_id,
-                context_id=lis_info.context_id,
-                resource_link_id=lis_info.resource_link_id,
-            )
-            self._db.add(lis_result_sourcedid)
-
-        lis_result_sourcedid.lis_result_sourcedid = lis_info.lis_result_sourcedid
-        lis_result_sourcedid.lis_outcome_service_url = lis_info.lis_outcome_service_url
 
         lis_result_sourcedid.h_username = h_user.username
         lis_result_sourcedid.h_display_name = h_user.display_name
 
+        lis_result_sourcedid.lis_result_sourcedid = lis_info.lis_result_sourcedid
+        lis_result_sourcedid.lis_outcome_service_url = lis_info.lis_outcome_service_url
         lis_result_sourcedid.tool_consumer_info_product_family_code = (
             lis_info.tool_consumer_info_product_family_code
         )
 
-        return lis_result_sourcedid
+    def _upsert(self, model_class, **query):
+        result = self._db.query(model_class).filter_by(**query).one_or_none()
+
+        if result is None:
+            result = model_class(**query)
+            self._db.add(result)
+
+        return result
