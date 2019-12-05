@@ -53,7 +53,6 @@ from lms.validation._canvas import (
     CanvasPublicURLResponseSchema,
 )
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
-from lms.validation._lis_result_sourcedid import LISResultSourcedIdSchema
 from lms.validation._lti_launch_params import (
     LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
@@ -64,7 +63,6 @@ __all__ = (
     "APIRecordSpeedgraderSchema",
     "APIReadResultSchema",
     "APIRecordResultSchema",
-    "LISResultSourcedIdSchema",
     "ConfigureModuleItemSchema",
     "CanvasListFilesResponseSchema",
     "CanvasPublicURLResponseSchema",
