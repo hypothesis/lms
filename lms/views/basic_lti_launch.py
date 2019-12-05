@@ -48,7 +48,7 @@ class BasicLTILaunchViews:
             params.get("lis_result_sourcedid")
             and params.get("lis_outcome_service_url")
             # This feature is initially restricted to Canvas.
-            and self._is_launched_by_canvas(request)
+            and self._is_launched_by_canvas()
         ):
             self.context.js_config["submissionParams"] = {}
 
@@ -82,31 +82,28 @@ class BasicLTILaunchViews:
     def store_lti_data(self):
         """Store LTI launch data in our LMS database."""
 
+        request = self.request
+
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(
-            self.request.db,
-            self.request.params.get("context_id"),
-            self.request.params.get("oauth_consumer_key"),
+            request.db,
+            request.params.get("context_id"),
+            request.params.get("oauth_consumer_key"),
         )
 
-        # Create/update LIS Result SourcedId record for certain students
-        self._upsert_lis_result_sourcedid(self.context, self.request)
+        lti_user = request.lti_user
 
-    @classmethod
-    def _upsert_lis_result_sourcedid(cls, context, request):
-        """Create or update a record of LIS result/outcome data for a student launch."""
+        # Create or update a record of LIS result data for a student launch
+        if not lti_user.is_instructor and not self._is_launched_by_canvas():
+            request.find_service(name="lis_result_sourcedid").upsert_from_request(
+                request, h_user=self.context.h_user, lti_user=lti_user
+            )
 
-        if request.lti_user.is_instructor or cls._is_launched_by_canvas(request):
-            return
-
-        lis_result_svc = request.find_service(name="lis_result_sourcedid")
-        lis_result_svc.upsert_from_request(
-            request, h_user=context.h_user, lti_user=request.lti_user
+    def _is_launched_by_canvas(self):
+        return (
+            self.request.params.get("tool_consumer_info_product_family_code")
+            == "canvas"
         )
-
-    @classmethod
-    def _is_launched_by_canvas(cls, request):
-        return request.params.get("tool_consumer_info_product_family_code") == "canvas"
 
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
