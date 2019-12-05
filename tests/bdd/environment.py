@@ -17,9 +17,6 @@ Injector.create_step_file(
 
 
 def before_all(context):
-    # This will actually take effect the next time you run the tests, but it
-    # still keeps you mostly up to date when developing
-
     StepContextManager.before_all(context, app=create_app(None, **TEST_SETTINGS))
 
 
