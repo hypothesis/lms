@@ -1,11 +1,21 @@
 """
-Analyse the params files for each section and make suggestions.
+Make a file of the most common params for each section listing differences.
 
 This script will read all the ini files from the LTI specification tool and
-attempt to work out an 'most_common' baseline file to use for the section.
+attempt to work out an 'most_common' baseline file to use for the section and
+generate a file called ``most_common.ini`` for it.
 
 It will then generate differences and make suggestions for configuring each
-test in that section.
+test in that section and print them out in:
+
+ * A gherkin style: for direct inclusion in scenarios
+ * An ini style: for creating smaller fixture files
+
+Nothing will happen with this output: it's up to you to use it or not as you
+see fit.
+
+This is only used as a helper when writing the tests and doesn't form part of
+the final system.
 """
 import os.path
 from collections import Counter, defaultdict
@@ -41,6 +51,10 @@ def load_ini(fixture, filename):
 
 
 def generate_most_common_values(fixture, threshold):
+    # Create a dict which will automatically create a Counter object if you
+    # refer to a key. We will use this to store the param as the key, then
+    # store each different value we see along with how many times we have seen
+    # it for each param.
     value_counts = defaultdict(Counter)
     files = 0
 
@@ -55,6 +69,7 @@ def generate_most_common_values(fixture, threshold):
     cutoff = files * threshold
 
     for key, counts in value_counts.items():
+        # Pick out only the most common value for this param
         for value, count in counts.most_common(1):
             if count < cutoff:
                 print(
@@ -126,6 +141,10 @@ def generate_param_values(fixture, most_common):
 
 
 if __name__ == "__main__":
+    # These values for thresholds were arrived at by experimentation. Some of
+    # the sections are more similar than others. Basically I played with the
+    # numbers until I started seeing nice results.
+
     for section, threshold in {1: 0.5, 2: 0.75, 3: 0.75, 4: 0.5}.items():
         fixture = TheFixture()
         fixture.set_base_dir(f"/lti_certification_1_1/section_{section}")
