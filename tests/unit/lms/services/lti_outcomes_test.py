@@ -7,11 +7,7 @@ from jinja2 import Template
 from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
-from lms.services.lti_outcomes import (
-    LTIOutcomesClient,
-    LTIOutcomesRequestParams,
-    find_element,
-)
+from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 
 LTI_OUTCOME_RESPONSE_TEMPLATE = Template(
     """<?xml version="1.0" encoding="UTF-8"?>
@@ -58,8 +54,8 @@ class TestLTIOutcomesClient:
         lti_outcomes_svc.read_result(lti_outcomes_params)
 
         xml = request_xml()
-        check_header(xml)
-        sourcedid = element_text(
+        self.check_header(xml)
+        sourcedid = self.element_text(
             xml,
             [
                 "imsx_POXBody",
@@ -107,8 +103,8 @@ class TestLTIOutcomesClient:
         lti_outcomes_svc.record_result(lti_outcomes_params)
         xml = request_xml()
 
-        check_header(xml)
-        sourcedid = element_text(
+        self.check_header(xml)
+        sourcedid = self.element_text(
             xml, ["replaceResultRequest", "resultRecord", "sourcedGUID", "sourcedId"]
         )
         assert sourcedid == lti_outcomes_params.lis_result_sourcedid
@@ -235,7 +231,7 @@ class TestLTIOutcomesClient:
         def get_fields():
             xml = request_xml()
             fields = {}
-            score = element_text(
+            score = self.element_text(
                 xml,
                 [
                     "replaceResultRequest",
@@ -248,7 +244,7 @@ class TestLTIOutcomesClient:
             if score is not None:
                 fields["score"] = score
 
-            lti_launch_url = element_text(
+            lti_launch_url = self.element_text(
                 xml,
                 [
                     "replaceResultRequest",
@@ -261,7 +257,7 @@ class TestLTIOutcomesClient:
             if lti_launch_url is not None:
                 fields["lti_launch_url"] = lti_launch_url
 
-            submitted_at = element_text(
+            submitted_at = self.element_text(
                 xml, ["replaceResultRequest", "submissionDetails", "submittedAt"]
             )
             if submitted_at is not None:
@@ -303,26 +299,24 @@ class TestLTIOutcomesClient:
     def requests(self, patch):
         return patch("lms.services.lti_outcomes.requests")
 
+    @classmethod
+    def element_text(cls, xml, path):
+        element = LTIOutcomesClient.find_element(xml, path)
+        if element is None:
+            return None
+        return element.text
 
-def element_text(xml, path):
-    element = find_element(xml, path)
-    if element is None:
-        return None
-    return element.text
-
-
-def check_header(xml):
-    """Check standard header fields of an LTI Outcomes Management request body."""
-    assert (
-        element_text(
-            xml, ["imsx_POXHeader", "imsx_POXRequestHeaderInfo", "imsx_version"]
+    @classmethod
+    def check_header(cls, xml):
+        """Check standard header fields of an LTI Outcomes Management request body."""
+        assert (
+            cls.element_text(
+                xml,
+                [
+                    "imsx_POXHeader",
+                    "imsx_POXRequestHeaderInfo",
+                    "imsx_messageIdentifier",
+                ],
+            )
+            == "999999123"
         )
-        == "V1.0"
-    )
-    assert (
-        element_text(
-            xml,
-            ["imsx_POXHeader", "imsx_POXRequestHeaderInfo", "imsx_messageIdentifier"],
-        )
-        == "999999123"
-    )
