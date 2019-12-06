@@ -191,6 +191,7 @@ def _send_request(outcomes_request_params, pox_body):
     )
 
     try:
+        response = None  # Bind the variable so we can refer to it in the catch
         response = requests.post(
             url=outcomes_request_params.lis_outcome_service_url,
             data=xml_body,
@@ -201,6 +202,7 @@ def _send_request(outcomes_request_params, pox_body):
         # there was an HTTP-related problem with the request. This exception
         # is a subclass of ``requests.exceptions.RequestError``.
         response.raise_for_status()
+
     except RequestException as err:
         # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
         # flavor of ``RequestException``.
