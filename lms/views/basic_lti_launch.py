@@ -302,6 +302,8 @@ class BasicLTILaunchViews:
 
         self._set_via_url(document_url)
 
+        frontend_app.configure_grading(self.request, self.context.js_config)
+
         return {}
 
     def _set_via_url(self, document_url):
