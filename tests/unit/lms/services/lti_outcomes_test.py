@@ -4,6 +4,7 @@ from xml.etree import ElementTree
 import httpretty
 import pytest
 from jinja2 import Template
+from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import (
@@ -209,6 +210,14 @@ class TestLTIOutcomesClient:
         with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
+    def test_it_gracefully_handles_RequestException(
+        self, requests, lti_outcomes_svc, lti_outcomes_params
+    ):
+        requests.post.side_effect = RequestException
+
+        with pytest.raises(LTIOutcomesAPIError):
+            lti_outcomes_svc.read_result(lti_outcomes_params)
+
     @pytest.fixture
     def request_xml(self):
         """Return parsed XML of last request."""
@@ -289,6 +298,10 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def lti_outcomes_svc(self, pyramid_request):
         return LTIOutcomesClient({}, pyramid_request)
+
+    @pytest.fixture
+    def requests(self, patch):
+        return patch("lms.services.lti_outcomes.requests")
 
 
 def element_text(xml, path):
