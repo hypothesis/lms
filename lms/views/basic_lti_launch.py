@@ -222,7 +222,6 @@ class BasicLTILaunchViews:
         will then be DB-configured launches rather than unconfigured.
         """
 
-
         params = self._extract_lti_params(self.request)
 
         # Copy the Authorization header as a parameter
