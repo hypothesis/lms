@@ -56,7 +56,7 @@
     "watchify": "^3.11.1"
   },
   "devDependencies": {
-    "@types/enzyme": "^3.10.3",
+    "@types/enzyme": "^3.10.4",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-plugin-mockable-imports": "^1.5.2",
     "chai": "^4.2.0",
