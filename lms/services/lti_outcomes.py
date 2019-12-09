@@ -10,7 +10,6 @@ from lms.services.exceptions import LTIOutcomesAPIError
 
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
 
-LTI_OUTCOME_SERVICE_XML_NS = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0"
 
 # Envelope for LTI Outcome Service requests sent to the LMS
 #
@@ -108,6 +107,8 @@ class LTIOutcomesClient:
     See https://www.imsglobal.org/specs/ltiomv1p0/specification.
     """
 
+    XML_NS = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0"
+
     def __init__(self, _context, request):
         pass
 
@@ -121,10 +122,10 @@ class LTIOutcomesClient:
             lis_result_sourcedid=outcomes_request_params.lis_result_sourcedid
         )
 
-        result = _send_request(outcomes_request_params, body)
+        result = self._send_request(outcomes_request_params, body)
 
         try:
-            score = find_element(
+            score = self.find_element(
                 result, ["readResultResponse", "result", "resultScore", "textString"]
             )
             if score is None:
@@ -165,71 +166,70 @@ class LTIOutcomesClient:
             submitted_at=submitted_at,
         )
 
-        _send_request(outcomes_request_params, body)
+        self._send_request(outcomes_request_params, body)
 
+    @classmethod
+    def find_element(cls, xml_element, path):
+        """Extract element from LTI Outcomes Management XML response."""
+        xpath = "/".join([f"{{{cls.XML_NS}}}{name}" for name in path])
 
-def _send_request(outcomes_request_params, pox_body):
-    """
-    Send a signed request to an LMS's Outcome Management Service endpoint.
+        return xml_element.find(f".//{xpath}")
 
-    :arg pox_body: The content of the `imsx_POXBody` element in the request
-    :return: Parsed XML response
-    :rtype: ElementTree.Element
-    """
+    @classmethod
+    def _send_request(cls, outcomes_request_params, pox_body):
+        """
+        Send a signed request to an LMS's Outcome Management Service endpoint.
 
-    xml_body = LTI_OUTCOME_REQUEST_TEMPLATE.render(body=pox_body)
+        :arg pox_body: The content of the `imsx_POXBody` element in the request
+        :return: Parsed XML response
+        :rtype: ElementTree.Element
+        """
 
-    # Sign request using OAuth 1.0.
-    oauth_client = OAuth1(
-        client_key=outcomes_request_params.consumer_key,
-        client_secret=outcomes_request_params.shared_secret,
-        signature_method="HMAC-SHA1",
-        signature_type="auth_header",
-        # Include the body when signing the request, this defaults to `False`
-        # for non-form encoded bodies.
-        force_include_body=True,
-    )
+        xml_body = LTI_OUTCOME_REQUEST_TEMPLATE.render(body=pox_body)
 
-    try:
-        response = None  # Bind the variable so we can refer to it in the catch
-        response = requests.post(
-            url=outcomes_request_params.lis_outcome_service_url,
-            data=xml_body,
-            headers={"Content-Type": "application/xml"},
-            auth=oauth_client,
+        # Sign request using OAuth 1.0.
+        oauth_client = OAuth1(
+            client_key=outcomes_request_params.consumer_key,
+            client_secret=outcomes_request_params.shared_secret,
+            signature_method="HMAC-SHA1",
+            signature_type="auth_header",
+            # Include the body when signing the request, this defaults to `False`
+            # for non-form encoded bodies.
+            force_include_body=True,
         )
-        # The following will raise ``requests.exceptions.HTTPError`` if
-        # there was an HTTP-related problem with the request. This exception
-        # is a subclass of ``requests.exceptions.RequestError``.
-        response.raise_for_status()
 
-    except RequestException as err:
-        # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
-        # flavor of ``RequestException``.
-        raise LTIOutcomesAPIError(
-            "Error calling LTI Outcomes service", response
-        ) from err
+        try:
+            response = None  # Bind the variable so we can refer to it in the catch
+            response = requests.post(
+                url=outcomes_request_params.lis_outcome_service_url,
+                data=xml_body,
+                headers={"Content-Type": "application/xml"},
+                auth=oauth_client,
+            )
+            # The following will raise ``requests.exceptions.HTTPError`` if
+            # there was an HTTP-related problem with the request. This exception
+            # is a subclass of ``requests.exceptions.RequestError``.
+            response.raise_for_status()
+        except RequestException as err:
+            # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
+            # flavor of ``RequestException``.
+            raise LTIOutcomesAPIError(
+                "Error calling LTI Outcomes service", response
+            ) from err
 
-    # Parse response and check status code embedded in XML.
-    try:
-        xml = ElementTree.fromstring(response.text)
-    except ElementTree.ParseError as err:
-        raise LTIOutcomesAPIError(
-            "Unable to parse XML response from LTI Outcomes service", response
-        ) from err
+        # Parse response and check status code embedded in XML.
+        try:
+            xml = ElementTree.fromstring(response.text)
+        except ElementTree.ParseError as err:
+            raise LTIOutcomesAPIError(
+                "Unable to parse XML response from LTI Outcomes service", response
+            ) from err
 
-    status = find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
-    if status is None:
-        raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
+        status = cls.find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
+        if status is None:
+            raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
 
-    if status.text != "success":
-        raise LTIOutcomesAPIError("LTI outcome request failed")
+        if status.text != "success":
+            raise LTIOutcomesAPIError("LTI outcome request failed")
 
-    return xml
-
-
-def find_element(xml_element, path):
-    """Extract element from LTI Outcomes Management XML response."""
-    xml_ns = LTI_OUTCOME_SERVICE_XML_NS
-    xpath = "/".join([f"{{{xml_ns}}}{name}" for name in path])
-    return xml_element.find(f".//{xpath}")
+        return xml
