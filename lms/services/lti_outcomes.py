@@ -199,6 +199,7 @@ class LTIOutcomesClient:
         )
 
         try:
+            response = None  # Bind the variable so we can refer to it in the catch
             response = requests.post(
                 url=outcomes_request_params.lis_outcome_service_url,
                 data=xml_body,
