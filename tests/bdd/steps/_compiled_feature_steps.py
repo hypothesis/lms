@@ -1,10 +1,46 @@
 """
 This code is auto-generated.
 
-From /home/jon/projects/lms/tests/bdd/steps/feature_steps/.
+From tests/bdd/steps/feature_steps/.
 """
 
 from behave import step
+
+
+@step("I make an LTI launch request")
+def i_make_an_lti_launch_request(context):
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 15
+    context.execute_steps(
+        """
+    Given I start an LTI launch request
+    And   I sign the LTI launch request
+
+    When I send the request to the app
+    """
+    )
+
+
+@step("I sign the LTI launch request")
+def i_sign_the_lti_launch_request(context):
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 11
+    context.execute_steps(
+        """
+    Given I OAuth 1 sign the fixture 'params'
+      And I set the form parameters from the fixture 'params'
+    """
+    )
+
+
+@step("I start an LTI launch request")
+def i_start_an_lti_launch_request(context):
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 6
+    context.execute_steps(
+        """
+    Given I start a 'POST' request to 'http://localhost/lti_launches'
+      And I set the request header 'Accept' to 'text/html'
+      And I set the request header 'Content-Type' to 'application/x-www-form-urlencoded'
+    """
+    )
 
 
 @step("standard authentication setup")
@@ -36,42 +72,6 @@ def standard_setup_for_lti_section_section(context, section):
     """.format(
             section=section
         )
-    )
-
-
-@step("I start an LTI launch request")
-def i_start_an_lti_launch_request(context):
-    # From: tests/bdd/steps/feature_steps/lti.feature: line 6
-    context.execute_steps(
-        """
-    Given I start a 'POST' request to 'http://localhost/lti_launches'
-      And I set the request header 'Accept' to 'text/html'
-      And I set the request header 'Content-Type' to 'application/x-www-form-urlencoded'
-    """
-    )
-
-
-@step("I sign the LTI launch request")
-def i_sign_the_lti_launch_request(context):
-    # From: tests/bdd/steps/feature_steps/lti.feature: line 11
-    context.execute_steps(
-        """
-    Given I OAuth 1 sign the fixture 'params'
-      And I set the form parameters from the fixture 'params'
-    """
-    )
-
-
-@step("I make an LTI launch request")
-def i_make_an_lti_launch_request(context):
-    # From: tests/bdd/steps/feature_steps/lti.feature: line 15
-    context.execute_steps(
-        """
-    Given I start an LTI launch request
-    And   I sign the LTI launch request
-
-    When I send the request to the app
-    """
     )
 
 

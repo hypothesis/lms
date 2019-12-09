@@ -1,9 +1,11 @@
 """Creates step definitions from feature files."""
 
+import os
 import re
 from glob import glob
 
 from behave.parser import parse_file
+from pkg_resources import resource_filename
 
 __ALL__ = ["Injector"]
 
@@ -86,12 +88,16 @@ class Renderer:
 
     @classmethod
     def render_steps(cls, feature_steps, source_dir):
+        # Make the source_dir relative to the project to prevent us from adding
+        # local file layout details
+        source_dir = os.path.relpath(source_dir, resource_filename("tests", "../"))
+
         python_code = (
-            f'"""\nThis code is auto-generated.\n\nFrom {source_dir}.\n"""'
+            f'"""\nThis code is auto-generated.\n\nFrom {source_dir}/.\n"""'
             "\n\nfrom behave import step\n"
         )
 
-        for feature_step in feature_steps:
+        for feature_step in sorted(feature_steps, key=lambda step: step.name):
             python_code += "\n\n" + cls.render_step(feature_step)
 
         return python_code
