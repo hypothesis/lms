@@ -42,7 +42,7 @@ class TestFetchStudentsByAssignment:
     def another_lis_result_sourcedid(self, lti_params, db_session):
         another_lis_result_sourcedid = LISResultSourcedId(**lti_params)
 
-        _add_users(
+        add_users(
             another_lis_result_sourcedid,
             h_user=HUser(
                 authority="TEST_AUTHORITY",
@@ -62,7 +62,7 @@ class TestUpsertFromRequest:
     ):
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
-        result = self.get_inserted_row(db_session)
+        result = db_session.get_last_inserted()
         assert result == Any.instance_of(LISResultSourcedId)
 
         # Check the lti_params are there
@@ -93,7 +93,7 @@ class TestUpsertFromRequest:
 
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
-        result = self.get_inserted_row(db_session)
+        result = db_session.get_last_inserted()
         assert result == Any.instance_of(LISResultSourcedId)
         assert result.lis_result_sourcedid == "something different"
         assert result.h_display_name == "Someone Else"
@@ -114,7 +114,7 @@ class TestUpsertFromRequest:
 
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
-        assert self.get_inserted_row(db_session) is None
+        assert db_session.get_last_inserted() is None
 
     @pytest.mark.parametrize("param", ("tool_consumer_info_product_family_code",))
     def test_it_works_fine_with_optional_parameter_missing(
@@ -123,16 +123,18 @@ class TestUpsertFromRequest:
         del pyramid_request.POST[param]
 
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
-
-        assert self.get_inserted_row(db_session) == Any.instance_of(LISResultSourcedId)
+        assert db_session.get_last_inserted() == Any.instance_of(LISResultSourcedId)
 
     @classmethod
     def model_as_dict(cls, model):
         return {col.key: getattr(model, col.key) for col in model.iter_columns()}
 
-    @classmethod
-    def get_inserted_row(cls, db_session):
-        return db_session.query(LISResultSourcedId).one_or_none()
+    @pytest.fixture
+    def db_session(self, db_session):
+        db_session.get_last_inserted = lambda: db_session.query(
+            LISResultSourcedId
+        ).one_or_none()
+        return db_session
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, lti_params):
@@ -173,7 +175,7 @@ def lti_params():
     }
 
 
-def _add_users(lis_result_sourcedid, h_user, lti_user):
+def add_users(lis_result_sourcedid, h_user, lti_user):
     lis_result_sourcedid.h_username = h_user.username
     lis_result_sourcedid.h_display_name = h_user.display_name
 
@@ -185,7 +187,7 @@ def _add_users(lis_result_sourcedid, h_user, lti_user):
 def lis_result_sourcedid(lti_params, h_user, lti_user, db_session):
     lis_result_sourcedid = LISResultSourcedId(**lti_params)
 
-    _add_users(lis_result_sourcedid, h_user, lti_user)
+    add_users(lis_result_sourcedid, h_user, lti_user)
 
     db_session.add(lis_result_sourcedid)
     return lis_result_sourcedid

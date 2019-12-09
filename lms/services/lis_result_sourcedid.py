@@ -64,7 +64,7 @@ class LISResultSourcedIdService:
             # LIS data is not present on the request.
             return
 
-        lis_result_sourcedid = self._upsert(
+        lis_result_sourcedid = self._find_or_create(
             LISResultSourcedId,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
@@ -81,7 +81,7 @@ class LISResultSourcedIdService:
             lis_info.tool_consumer_info_product_family_code
         )
 
-    def _upsert(self, model_class, **query):
+    def _find_or_create(self, model_class, **query):
         result = self._db.query(model_class).filter_by(**query).one_or_none()
 
         if result is None:

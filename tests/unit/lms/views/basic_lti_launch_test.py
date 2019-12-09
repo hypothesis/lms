@@ -110,7 +110,8 @@ class TestBasicLTILaunch:
 
 
 class ConfiguredLaunch:
-    method_to_test = None
+    def make_request(self, context, pyramid_request):
+        raise NotImplementedError("Child tests must implement this function")
 
     def test_it_reports_lti_launches(self, context, pyramid_request, LtiLaunches):
         pyramid_request.params.update(
@@ -120,7 +121,7 @@ class ConfiguredLaunch:
             }
         )
 
-        self._call_method(context, pyramid_request)
+        self.make_request(context, pyramid_request)
 
         LtiLaunches.add.assert_called_once_with(
             pyramid_request.db,
@@ -131,7 +132,7 @@ class ConfiguredLaunch:
     def test_it_calls_lis_result_upsert(
         self, context, pyramid_request, lis_result_sourcedid_service
     ):
-        self._call_method(context, pyramid_request)
+        self.make_request(context, pyramid_request)
 
         lis_result_sourcedid_service.upsert_from_request.assert_called_once_with(
             pyramid_request, h_user=context.h_user, lti_user=pyramid_request.lti_user
@@ -142,7 +143,7 @@ class ConfiguredLaunch:
     ):
         pyramid_request.lti_user = LTIUser("USER_ID", "OAUTH_STUFF", roles="instructor")
 
-        self._call_method(context, pyramid_request)
+        self.make_request(context, pyramid_request)
 
         lis_result_sourcedid_service.upsert_from_request.assert_not_called()
 
@@ -151,27 +152,23 @@ class ConfiguredLaunch:
     ):
         pyramid_request.params["tool_consumer_info_product_family_code"] = "canvas"
 
-        self._call_method(context, pyramid_request)
+        self.make_request(context, pyramid_request)
 
         lis_result_sourcedid_service.upsert_from_request.assert_not_called()
 
-    def _call_method(self, context, pyramid_request):
-        view = BasicLTILaunchViews(context, pyramid_request)
-
-        return getattr(view, self.method_to_test.__name__)()
-
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
-    method_to_test = BasicLTILaunchViews.canvas_file_basic_lti_launch
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
     def test_it_configures_frontend(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+        self.make_request(context, pyramid_request)
 
         assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
         assert context.js_config["lmsName"] == "Canvas"
 
     def test_it_configures_via_callback_url(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+        self.make_request(context, pyramid_request)
 
         assert (
             context.js_config["urls"]["via_url_callback"]
@@ -183,7 +180,7 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
     ):
         pyramid_request.params.update(lti_outcome_params)
 
-        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+        self.make_request(context, pyramid_request)
 
         assert context.js_config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
 
@@ -201,7 +198,8 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
-    method_to_test = BasicLTILaunchViews.db_configured_basic_lti_launch
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
 
     def test_it_configures_via_url(
         self,
@@ -214,7 +212,7 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
         pyramid_request.params.update(lti_outcome_params)
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
-        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
+        self.make_request(context, pyramid_request)
 
         ModuleItemConfiguration.get_document_url.assert_called_once_with(
             pyramid_request.db,
@@ -230,7 +228,7 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
     ):
-        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
+        self.make_request(context, pyramid_request)
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config
         )
@@ -249,12 +247,15 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
     method_to_test = BasicLTILaunchViews.url_configured_basic_lti_launch
 
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+
     def test_it_configures_via_url(
         self, context, pyramid_request, lti_outcome_params, via_url
     ):
         pyramid_request.params.update(lti_outcome_params)
 
-        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+        self.make_request(context, pyramid_request)
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config["urls"]["via_url"] == via_url.return_value
@@ -275,7 +276,8 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
             **lti_outcome_params,
         }
 
-        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+        self.make_request(context, pyramid_request)
+
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config
         )
