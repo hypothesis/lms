@@ -221,30 +221,14 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        oauth_consumer_key = self.request.lti_user.oauth_consumer_key
 
-        lti_params = {
-            # TODO - This isn't really an LTI param
-            "authorization": BearerTokenSchema(
-                self.request).authorization_param(
-                self.request.lti_user
-            ),
-            # TODO - is this just read from a param in the first place?
-            "oauth_consumer_key": oauth_consumer_key,
-            "user_id": self.request.lti_user.user_id,
-        }
 
-        # Directly persist certain fields
-        for param in [
-                    "context_title",
-                    "resource_link_title",
-                    "lis_outcome_service_url",
-                    "resource_link_id",
-                    "tool_consumer_instance_guid",
-                    "context_id",
-                ]:
-            if param in self.request.params:
-                lti_params[param] = self.request.params[param]
+        params = self._extract_lti_params(self.request)
+
+        # Copy the Authorization header as a parameter
+        params["authorization"] = BearerTokenSchema(self.request).authorization_param(
+            self.request.lti_user
+        )
 
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
@@ -255,7 +239,7 @@ class BasicLTILaunchViews:
                 # (currently only Canvas supports this).
                 "enableLmsFilePicker": False,
                 "formAction": self.request.route_url("module_item_configurations"),
-                "formFields": lti_params,
+                "formFields": params,
                 "googleClientId": self.request.registry.settings["google_client_id"],
                 "googleDeveloperKey": self.request.registry.settings[
                     "google_developer_key"
@@ -266,6 +250,19 @@ class BasicLTILaunchViews:
         )
 
         return {}
+
+    @classmethod
+    def _extract_lti_params(cls, request):
+        """Copy all of the LTI params from a request minus OAuth 1 params."""
+
+        # Exclude OAuth 1 variable signing fields just so the client-side
+        # doesn't see these and think they are already done.
+
+        return {
+            param: value
+            for param, value in request.params.items()
+            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+        }
 
     # pylint:disable=no-self-use
     @view_config(

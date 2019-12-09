@@ -1,6 +1,7 @@
 from unittest import mock
 
 import pytest
+from h_matchers import Any
 
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
@@ -291,11 +292,10 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 class TestUnconfiguredBasicLTILaunch:
     def test_it_sets_the_right_javascript_config_settings(
-        self, BearerTokenSchema, bearer_token_schema, context, pyramid_request
+        self, bearer_token_schema, context, pyramid_request
     ):
-        pyramid_request.params[
-            "custom_canvas_api_domain"
-        ] = "TEST_CUSTOM_CANVAS_API_DOMAIN"
+        pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
+
         pyramid_request.registry.settings["google_client_id"] = "TEST_GOOGLE_CLIENT_ID"
         pyramid_request.registry.settings[
             "google_developer_key"
@@ -303,22 +303,11 @@ class TestUnconfiguredBasicLTILaunch:
 
         BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
 
-        BearerTokenSchema.assert_called_once_with(pyramid_request)
-        bearer_token_schema.authorization_param.assert_called_once_with(
-            pyramid_request.lti_user
-        )
         assert context.js_config == {
             "mode": "content-item-selection",
             "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
-            "formFields": {
-                "authorization": bearer_token_schema.authorization_param.return_value,
-                "resource_link_id": "TEST_RESOURCE_LINK_ID",
-                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "user_id": "TEST_USER_ID",
-                "context_id": "TEST_CONTEXT_ID",
-            },
+            "formFields": Any.dict(),
             "googleClientId": "TEST_GOOGLE_CLIENT_ID",
             "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
             "customCanvasApiDomain": context.custom_canvas_api_domain,
@@ -326,10 +315,29 @@ class TestUnconfiguredBasicLTILaunch:
             "urls": {},
         }
 
+        # Test param pass through
+        assert context.js_config["formFields"] == Any.dict.containing(
+            {
+                "authorization": bearer_token_schema.authorization_param.return_value,
+                "resource_link_id": "TEST_RESOURCE_LINK_ID",
+                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+                "user_id": "TEST_USER_ID",
+                "context_id": "TEST_CONTEXT_ID",
+                "some_random_rubbish": "SOME_RANDOM_RUBBISH",
+            }
+        )
+
+    @pytest.fixture
+    def bearer_token_schema(self, BearerTokenSchema):
+        return BearerTokenSchema.return_value
+
     @pytest.fixture
     def pyramid_request(self, context, pyramid_request):
         pyramid_request.params = {
+            "user_id": "TEST_USER_ID",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             "context_id": "TEST_CONTEXT_ID",
         }
@@ -392,11 +400,6 @@ def BearerTokenSchema(patch):
 @pytest.fixture(autouse=True)
 def frontend_app(patch):
     return patch("lms.views.basic_lti_launch.frontend_app")
-
-
-@pytest.fixture
-def bearer_token_schema(BearerTokenSchema):
-    return BearerTokenSchema.return_value
 
 
 @pytest.fixture
