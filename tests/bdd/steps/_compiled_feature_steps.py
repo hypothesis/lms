@@ -43,6 +43,21 @@ def i_start_an_lti_launch_request(context):
     )
 
 
+@step("I start an LTI launch request with bad auth parameter '{key}'")
+def i_start_an_lti_launch_request_with_bad_auth_parameter_key(context, key):
+    # From: tests/bdd/steps/feature_steps/lti.feature: line 21
+    context.execute_steps(
+        """
+    Given I start an LTI launch request
+    And   I sign the LTI launch request
+    And   I set the fixture 'params' key '{key}' to 'nonsense'
+    And   I set the form parameters from the fixture 'params'
+    """.format(
+            key=key
+        )
+    )
+
+
 @step("standard authentication setup")
 def standard_authentication_setup(context):
     # From: tests/bdd/steps/feature_steps/auth.feature: line 1
@@ -75,21 +90,6 @@ def standard_setup_for_lti_section_section(context, section):
     )
 
 
-@step("I start an LTI launch request with bad auth parameter '{key}'")
-def i_start_an_lti_launch_request_with_bad_auth_parameter_key(context, key):
-    # From: tests/bdd/steps/feature_steps/lti.feature: line 21
-    context.execute_steps(
-        """
-    Given I start an LTI launch request
-    And   I sign the LTI launch request
-    And   I set the fixture 'params' key '{key}' to 'nonsense'
-    And   I set the form parameters from the fixture 'params'
-    """.format(
-            key=key
-        )
-    )
-
-
 @step("the app redirects to the LTI tool with message matching '{regex}'")
 def the_app_redirects_to_the_lti_tool_with_message_matching_regex(context, regex):
     # From: tests/bdd/steps/feature_steps/lti.feature: line 27
@@ -116,18 +116,6 @@ def the_response_is_html(context):
     )
 
 
-@step("we get an HTML error with status {status_code}")
-def we_get_an_html_error_with_status_status_code(context, status_code):
-    # From: tests/bdd/steps/feature_steps/http.feature: line 4
-    context.execute_steps(
-        """
-    Then the response is an HTML page with status {status_code}
-    """.format(
-            status_code=status_code
-        )
-    )
-
-
 @step("the response is an HTML page with status {status_code}")
 def the_response_is_an_html_page_with_status_status_code(context, status_code):
     # From: tests/bdd/steps/feature_steps/http.feature: line 7
@@ -135,6 +123,18 @@ def the_response_is_an_html_page_with_status_status_code(context, status_code):
         """
     Then  the response is HTML
     And   the response status code is {status_code}
+    """.format(
+            status_code=status_code
+        )
+    )
+
+
+@step("we get an HTML error with status {status_code}")
+def we_get_an_html_error_with_status_status_code(context, status_code):
+    # From: tests/bdd/steps/feature_steps/http.feature: line 4
+    context.execute_steps(
+        """
+    Then the response is an HTML page with status {status_code}
     """.format(
             status_code=status_code
         )
