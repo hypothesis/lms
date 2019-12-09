@@ -223,6 +223,29 @@ class BasicLTILaunchViews:
         """
         oauth_consumer_key = self.request.lti_user.oauth_consumer_key
 
+        lti_params = {
+            # TODO - This isn't really an LTI param
+            "authorization": BearerTokenSchema(
+                self.request).authorization_param(
+                self.request.lti_user
+            ),
+            # TODO - is this just read from a param in the first place?
+            "oauth_consumer_key": oauth_consumer_key,
+            "user_id": self.request.lti_user.user_id,
+        }
+
+        # Directly persist certain fields
+        for param in [
+                    "context_title",
+                    "resource_link_title",
+                    "lis_outcome_service_url",
+                    "resource_link_id",
+                    "tool_consumer_instance_guid",
+                    "context_id",
+                ]:
+            if param in self.request.params:
+                lti_params[param] = self.request.params[param]
+
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
             {
@@ -232,18 +255,7 @@ class BasicLTILaunchViews:
                 # (currently only Canvas supports this).
                 "enableLmsFilePicker": False,
                 "formAction": self.request.route_url("module_item_configurations"),
-                "formFields": {
-                    "authorization": BearerTokenSchema(
-                        self.request
-                    ).authorization_param(self.request.lti_user),
-                    "resource_link_id": self.request.params["resource_link_id"],
-                    "tool_consumer_instance_guid": self.request.params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "oauth_consumer_key": oauth_consumer_key,
-                    "user_id": self.request.lti_user.user_id,
-                    "context_id": self.request.params["context_id"],
-                },
+                "formFields": lti_params,
                 "googleClientId": self.request.registry.settings["google_client_id"],
                 "googleDeveloperKey": self.request.registry.settings[
                     "google_developer_key"
