@@ -73,7 +73,7 @@ class TestExternalRequestError:
         assert str(err) == expected
 
 
-class TestRaiseFrom:
+class TestCanvasAPIError:
     @pytest.mark.parametrize(
         "status,expected_status,expected_exception_class,expected_exception_string",
         [
@@ -102,7 +102,7 @@ class TestRaiseFrom:
             ),
         ],
     )
-    def test_it_raises_the_right_CanvasAPIError_subclass_for_different_Canvas_responses(
+    def test_it_raises_the_right_subclass_for_different_Canvas_responses(
         self,
         status,
         expected_status,
@@ -111,12 +111,8 @@ class TestRaiseFrom:
     ):
         cause = self._requests_exception(status=status)
 
-        with pytest.raises(
-            expected_exception_class, match="Calling the Canvas API failed"
-        ) as exc_info:
-            CanvasAPIError.raise_from(cause)
+        raised_exception = self.assert_raises(cause, expected_exception_class)
 
-        raised_exception = exc_info.value
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == cause.response
         assert raised_exception.details == {
@@ -138,12 +134,8 @@ class TestRaiseFrom:
     def test_it_raises_CanvasAPIServerError_for_all_other_requests_errors(
         self, cause, expected_exception_string
     ):
-        with pytest.raises(
-            CanvasAPIServerError, match="Calling the Canvas API failed"
-        ) as exc_info:
-            CanvasAPIError.raise_from(cause)
+        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
-        raised_exception = exc_info.value
         assert raised_exception.__cause__ == cause
         # For these kinds of errors no response (either successful or
         # unsuccessful) was ever received from Canvas (for example: the network
@@ -161,13 +153,10 @@ class TestRaiseFrom:
     ):
         cause = ValidationError("The response was invalid.")
         cause.response = canvas_api_invalid_response
+        cause.response.body = "x" * 1000
 
-        with pytest.raises(
-            CanvasAPIServerError, match="Calling the Canvas API failed"
-        ) as exc_info:
-            CanvasAPIError.raise_from(cause)
+        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
-        raised_exception = exc_info.value
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == canvas_api_invalid_response
         assert raised_exception.details == {
@@ -175,6 +164,39 @@ class TestRaiseFrom:
             "response": {"body": "Invalid", "status": "200 OK"},
             "validation_errors": "The response was invalid.",
         }
+
+    def test_it_raises_truncates_the_body_if_it_is_very_long(
+        self, canvas_api_long_response
+    ):
+        # Make the response very long...
+        cause = CanvasAPIServerError("The response was invalid.")
+        cause.response = canvas_api_long_response
+
+        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
+
+        body = raised_exception.details["response"]["body"]
+        assert len(body) == 153
+        assert body.endswith("...")
+
+    def assert_raises(self, cause, expected_exception_class):
+        with pytest.raises(
+            expected_exception_class, match="Calling the Canvas API failed"
+        ) as exc_info:
+            CanvasAPIError.raise_from(cause)
+
+        return exc_info.value
+
+    @pytest.fixture
+    def canvas_api_long_response(self):
+        """Return a successful (200 OK) response with a long body."""
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://example.com",
+            priority=1,
+            status=200,
+            body="x" * 2000,
+        )
+        return requests.get("https://example.com")
 
     @pytest.fixture
     def canvas_api_invalid_response(self):
