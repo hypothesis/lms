@@ -31,85 +31,85 @@ help:
 .PHONY: services
 services: args?=up -d
 services: python
-	@tox -q -e docker-compose -- $(args)
+	@tox -qe docker-compose -- $(args)
 
 .PHONY: dev
 dev: build/manifest.json python
-	tox -q -e py36-dev -- honcho start ${processes}
+	@tox -qe dev -- honcho start ${processes}
 
 .PHONY: devdata
 devdata: python
-	@tox -qe py36-dev -- devdata conf/development.ini
+	@tox -qe dev -- devdata conf/development.ini
 
 .PHONY: web
 web: python
-	tox -q -e py36-dev
+	@tox -qe dev
 
 GULP := node_modules/.bin/gulp
 
 .PHONY: assets
 assets:
-	$(GULP) watch
+	@$(GULP) watch
 
 .PHONY: shell
 shell: python
-	tox -q -e py36-dev -- pshell conf/development.ini
+	@tox -qe dev -- pshell conf/development.ini
 
 .PHONY: sql
 sql: python
-	@tox -q -e docker-compose -- exec postgres psql --pset expanded=auto -U postgres
+	@tox -qe docker-compose -- exec postgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
 lint: backend-lint frontend-lint
 
 .PHONY: format
 format: python
-	tox -q -e py36-format
+	@tox -qe format
 
 .PHONY: checkformatting
 checkformatting: python
-	tox -q -e py36-checkformatting
+	@tox -qe checkformatting
 
 .PHONY: test
 test: backend-tests frontend-tests
 
 .PHONY: coverage
 coverage: python
-	tox -q -e py36-coverage
+	@tox -qe coverage
 
 .PHONY: functests
 functests: build/manifest.json functests-only
 
 .PHONY: functests-only
 functests-only: python
-	tox -q -e py36-functests
+	@tox -qe functests
 
 .PHONY: docstrings
 docstrings: python
-	tox -q -e py36-docstrings
+	@tox -qe docstrings
 
 .PHONY: checkdocstrings
 checkdocstrings: python
-	tox -q -e py36-checkdocstrings
+	@tox -qe checkdocstrings
 
 .PHONY: pip-compile
 pip-compile: python
-	tox -q -e py36-pip-compile
+	@tox -qe pip-compile
 
 .PHONY: upgrade-package
 upgrade-package: python
-	@tox -qe py36-pip-compile -- --upgrade-package $(name)
+	@tox -qe pip-compile -- --upgrade-package $(name)
 
 .PHONY: docker
 docker:
-	git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
+	@git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
 
 .PHONY: run-docker
 run-docker:
 	# To run the Docker container locally, first build the Docker image using
 	# `make docker` and then set the environment variables below to appropriate
 	# values (see conf/development.ini for non-production quality examples).
-	docker run \
+	@docker run \
 		--net lms_default \
 		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
 		-e FEATURE_FLAGS_COOKIE_SECRET \
@@ -131,42 +131,42 @@ run-docker:
 
 .PHONY: clean
 clean:
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
-	rm -f node_modules/.uptodate
-	rm -rf build
+	@find . -type f -name "*.py[co]" -delete
+	@find . -type d -name "__pycache__" -delete
+	@rm -f node_modules/.uptodate
+	@rm -rf build
 
 .PHONY: backend-lint
 backend-lint: python
-	tox -q -e py36-lint
+	@tox -qe lint
 
 .PHONY: frontend-lint
 frontend-lint: node_modules/.uptodate
-	yarn checkformatting
-	yarn lint
+	@yarn checkformatting
+	@yarn lint
 
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
 .PHONY: backend-tests
 backend-tests: python
-	tox -q -e py36-tests
+	@tox -qe tests
 
 .PHONY: bddtests
 bddtests: python
-	tox -q -e py36-bddtests
+	@tox -qe bddtests
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
-	$(GULP) test
+	@$(GULP) test
 
 DOCKER_TAG = dev
 
 build/manifest.json: node_modules/.uptodate
-	yarn build
+	@yarn build
 
 node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
-	yarn install
+	@yarn install
 	@touch $@
 
 .PHONY: python
