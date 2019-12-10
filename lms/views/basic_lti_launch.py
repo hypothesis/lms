@@ -310,6 +310,9 @@ class BasicLTILaunchViews:
 
         self._set_via_url(document_url)
 
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+
         frontend_app.configure_grading(self.request, self.context.js_config)
 
         return {}
