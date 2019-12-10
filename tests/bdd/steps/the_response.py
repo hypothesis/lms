@@ -44,6 +44,20 @@ def the_response_status_code_is(context, status_code):
         )
 
 
+@then("the response body matches '{regex}'")
+def the_response_body_matches(context, regex):
+    body = context.the_response.get_body()
+
+    assert re.compile(regex).search(body), f'The body matches "{regex}"'
+
+
+@then("the response body does not match '{regex}'")
+def the_response_body_matches(context, regex):
+    body = context.the_response.get_body()
+
+    assert not re.compile(regex).search(body), f'The body does not match "{regex}"'
+
+
 @then("the response header '{header}' is the URL")
 def the_response_header_is_the_url(context, header):
     value = context.the_response.get_header(header)
