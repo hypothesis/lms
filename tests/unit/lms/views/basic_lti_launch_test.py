@@ -110,7 +110,7 @@ class TestBasicLTILaunch:
 
 
 class ConfiguredLaunch:
-    def make_request(self, context, pyramid_request):
+    def make_request(self, context, pyramid_request):  # pragma: no cover
         raise NotImplementedError("Child tests must implement this function")
 
     def test_it_reports_lti_launches(self, context, pyramid_request, LtiLaunches):
