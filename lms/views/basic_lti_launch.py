@@ -99,6 +99,23 @@ class BasicLTILaunchViews:
                 request, h_user=self.context.h_user, lti_user=lti_user
             )
 
+    def configure_grading(self):
+        if not self.request.lti_user.is_instructor:
+            return
+
+        tool_consumer = self.request.find_service(name="tool_consumer")
+        resource_link_id = self.request.params["resource_link_id"]
+
+        if not tool_consumer.assignment_is_gradable(resource_link_id):
+            return
+
+        if tool_consumer.requires_grading_ui(resource_link_id):
+            grading_config = tool_consumer.grading_type(resource_link_id)
+
+            frontend_app.configure_grading(
+                self.request, self.context.js_config, grading_config
+            )
+
     def _is_launched_by_canvas(self):
         return (
             self.request.params.get("tool_consumer_info_product_family_code")
@@ -160,8 +177,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-
-        frontend_app.configure_grading(self.request, self.context.js_config)
+        self.configure_grading()
 
         resource_link_id = self.request.params["resource_link_id"]
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
@@ -192,8 +208,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-
-        frontend_app.configure_grading(self.request, self.context.js_config)
+        self.configure_grading()
 
         url = self.request.parsed_params["url"]
         self._set_via_url(url)

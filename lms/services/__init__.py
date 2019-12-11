@@ -52,3 +52,8 @@ def includeme(config):
         "lms.services.group_info.GroupInfoService", name="group_info"
     )
     config.register_service_factory("lms.services.lti_h.LTIHService", name="lti_h")
+
+    config.register_service_factory(
+        "lms.services.tool_consumer.generic_service.ToolConsumerService.factory",
+        name="tool_consumer",
+    )
