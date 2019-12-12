@@ -24,7 +24,7 @@ Feature: Section 4 - Levels of User Information
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      But the user only has learner privileges
+      And the user only has learner privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.2 - Launch as a learner with given/family but no full name
@@ -39,7 +39,7 @@ Feature: Section 4 - Levels of User Information
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      But the user only has learner privileges
+      And the user only has learner privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.3 - Launch as a learner with a full name but no given or family names
@@ -55,7 +55,7 @@ Feature: Section 4 - Levels of User Information
      When I make an LTI launch request
 
      Then the assigment opens successfully
-      But the user only has learner privileges
+      And the user only has learner privileges
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.4 - Launch as an instructor with no personal information
