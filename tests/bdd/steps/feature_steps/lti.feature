@@ -31,3 +31,13 @@ Feature: Standard LTI setup
       And   the fixture 'params' key 'launch_presentation_return_url' is the value
       And   the url matches the value
       And   the url query parameter 'lti_msg' matches '{regex}'
+
+  Scenario: all context parameters are missing
+    Given I update the fixture 'params' with
+      | Key                              | Value      |
+      | context_id                       | *MISSING*  |
+      | context_label                    | *MISSING*  |
+      | context_title                    | *MISSING*  |
+      | context_type                     | *MISSING*  |
+      | resource_link_title              | *MISSING*  |
+      | lis_course_section_sourcedid     | *MISSING*  |
