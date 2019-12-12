@@ -12,8 +12,19 @@ describe('SubmitGradeForm', () => {
     LISResultSourcedId: 1,
     LISOutcomeServiceUrl: '',
   };
+
+  const fakeStudentAlt = {
+    userid: 'student2',
+    displayName: 'Student 2',
+    LISResultSourcedId: 2,
+    LISOutcomeServiceUrl: '',
+  };
+
+  let container;
   const renderForm = (props = {}) => {
-    return mount(<SubmitGradeForm student={fakeStudent} {...props} />);
+    return mount(<SubmitGradeForm student={fakeStudent} {...props} />, {
+      attachTo: container,
+    });
   };
 
   const fakeSubmitGrade = sinon.stub().resolves({});
@@ -30,6 +41,11 @@ describe('SubmitGradeForm', () => {
   };
 
   beforeEach(() => {
+    // This extra element is necessary to test automatic `focus`-ing
+    // of the component's `input` element
+    container = document.createElement('div');
+    document.body.appendChild(container);
+
     // Reset the api grade stubs for each test because
     // some tests below will change these for specific cases.
     fakeSubmitGrade.resolves({});
@@ -74,6 +90,33 @@ describe('SubmitGradeForm', () => {
     assert.equal(wrapper.find('input').prop('defaultValue'), 10);
     wrapper.setProps({ student: {} });
     assert.equal(wrapper.find('input').prop('defaultValue'), '');
+  });
+
+  [
+    {
+      text: 'focuses the input field when changing students',
+      run: () => {
+        assert.equal(
+          document.activeElement.className,
+          'SubmitGradeForm__grade'
+        );
+      },
+    },
+    {
+      text: "selects the input field's text when changing students",
+      run: () => {
+        assert.equal(document.getSelection().toString(), '10');
+      },
+    },
+  ].forEach(test => {
+    it(test.text, async () => {
+      document.body.focus();
+      const wrapper = renderForm();
+      await waitFor(() => !isFetchingGrade(wrapper));
+      wrapper.setProps({ student: fakeStudentAlt });
+      await waitFor(() => !isFetchingGrade(wrapper));
+      test.run();
+    });
   });
 
   context('validation messages', () => {
