@@ -1,11 +1,21 @@
+from marshmallow import ValidationError, fields
+
 from lms.models import LISResultSourcedId
-from lms.validation import LISResultSourcedIdSchema, ValidationError
+from lms.validation import PlainSchema
 
 __all__ = ["LISResultSourcedIdService"]
 
 
 class LISResultSourcedIdService:
     """Methods for interacting with LISResultSourcedId records."""
+
+    # The relevant parameters from a request
+    class _ParamsSchema(PlainSchema):
+        lis_result_sourcedid = fields.Str(required=True)
+        lis_outcome_service_url = fields.Str(required=True)
+        context_id = fields.Str(required=True)
+        resource_link_id = fields.Str(required=True)
+        tool_consumer_info_product_family_code = fields.Str(missing="")
 
     def __init__(self, _context, request):
         self._db = request.db
@@ -56,7 +66,7 @@ class LISResultSourcedIdService:
         :type lti_user: :class:`lms.values.LTIUser`
         """
         try:
-            params = LISResultSourcedIdSchema(request).parse()
+            params = self._ParamsSchema().load(request.POST)
 
         except ValidationError:
             # We're missing something we need in the request.
