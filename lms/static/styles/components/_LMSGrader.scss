@@ -26,6 +26,13 @@
 .LMSGrader__student-count {
   margin: 10px;
   font-weight: 500;
+  /**
+   * Fixed width prevents this element from changing size 
+   * when the student index is changed. This prevents a 
+   * potential re-flow onto the next line.
+   */
+  width: 150px; 
+  text-align: right;
 }
 
 .LMSGrader__title {
