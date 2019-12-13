@@ -221,7 +221,13 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        oauth_consumer_key = self.request.lti_user.oauth_consumer_key
+
+        params = self._extract_lti_params(self.request)
+
+        # Copy the Authorization header as a parameter
+        params["authorization"] = BearerTokenSchema(self.request).authorization_param(
+            self.request.lti_user
+        )
 
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.update(
@@ -232,18 +238,7 @@ class BasicLTILaunchViews:
                 # (currently only Canvas supports this).
                 "enableLmsFilePicker": False,
                 "formAction": self.request.route_url("module_item_configurations"),
-                "formFields": {
-                    "authorization": BearerTokenSchema(
-                        self.request
-                    ).authorization_param(self.request.lti_user),
-                    "resource_link_id": self.request.params["resource_link_id"],
-                    "tool_consumer_instance_guid": self.request.params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "oauth_consumer_key": oauth_consumer_key,
-                    "user_id": self.request.lti_user.user_id,
-                    "context_id": self.request.params["context_id"],
-                },
+                "formFields": params,
                 "googleClientId": self.request.registry.settings["google_client_id"],
                 "googleDeveloperKey": self.request.registry.settings[
                     "google_developer_key"
@@ -254,6 +249,20 @@ class BasicLTILaunchViews:
         )
 
         return {}
+
+    @classmethod
+    def _extract_lti_params(cls, request):
+        """Copy all of the LTI params from a request minus OAuth 1 params."""
+
+        # Exclude OAuth 1 variable signing fields as they should not be
+        # re-used. If this request needs to be signed, it needs to be signed
+        # again.
+
+        return {
+            param: value
+            for param, value in request.params.items()
+            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+        }
 
     # pylint:disable=no-self-use
     @view_config(
@@ -301,6 +310,11 @@ class BasicLTILaunchViews:
         )
 
         self._set_via_url(document_url)
+
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+
+        frontend_app.configure_grading(self.request, self.context.js_config)
 
         return {}
 
