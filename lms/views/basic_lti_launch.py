@@ -254,8 +254,9 @@ class BasicLTILaunchViews:
     def _extract_lti_params(cls, request):
         """Copy all of the LTI params from a request minus OAuth 1 params."""
 
-        # Exclude OAuth 1 variable signing fields just so the client-side
-        # doesn't see these and think they are already done.
+        # Exclude OAuth 1 variable signing fields as they should not be
+        # re-used. If this request needs to be signed, it needs to be signed
+        # again.
 
         return {
             param: value

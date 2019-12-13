@@ -8,6 +8,7 @@ from lms.services import HAPIError
 from lms.services.h_api import HAPI
 from lms.services.lis_result_sourcedid import LISResultSourcedIdService
 from lms.services.lti_h import LTIHService
+from lms.validation.authentication._helpers._jwt import decode_jwt
 from lms.values import HUser, LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
@@ -157,11 +158,40 @@ class ConfiguredLaunch:
 
         lis_result_sourcedid_service.upsert_from_request.assert_not_called()
 
+    @pytest.fixture
+    def frontend_app(self, patch):
+        return patch("lms.views.basic_lti_launch.frontend_app")
+
+    @pytest.fixture(autouse=True)
+    def via_url(self, patch):
+        return patch("lms.views.basic_lti_launch.via_url")
+
+    @pytest.fixture(autouse=True)
+    def lis_result_sourcedid_service(self, pyramid_config):
+        lis_result_sourcedid_service = mock.create_autospec(
+            LISResultSourcedIdService, instance=True, spec_set=True
+        )
+        pyramid_config.register_service(
+            lis_result_sourcedid_service, name="lis_result_sourcedid"
+        )
+        return lis_result_sourcedid_service
+
+    @pytest.fixture(autouse=True)
+    def lti_h_service(self, pyramid_config):
+        lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
+        pyramid_config.register_service(lti_h_service, name="lti_h")
+        return lti_h_service
+
+    @pytest.fixture
+    def LtiLaunches(self, patch):
+        return patch("lms.views.basic_lti_launch.LtiLaunches")
+
+    @pytest.fixture(autouse=True)
+    def ModuleItemConfiguration(self, patch):
+        return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
+
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
-    def make_request(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
-
     def test_it_configures_frontend(self, context, pyramid_request):
         self.make_request(context, pyramid_request)
 
@@ -185,6 +215,9 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
         assert context.js_config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
 
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
+
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
         pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
@@ -199,9 +232,6 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
-    def make_request(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
-
     def test_it_configures_via_url(
         self,
         context,
@@ -234,6 +264,9 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
             pyramid_request, context.js_config
         )
 
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
@@ -246,11 +279,6 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
-    method_to_test = BasicLTILaunchViews.url_configured_basic_lti_launch
-
-    def make_request(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
-
     def test_it_configures_via_url(
         self, context, pyramid_request, lti_outcome_params, via_url
     ):
@@ -283,6 +311,9 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
             pyramid_request, context.js_config
         )
 
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         # url_configured_basic_lti_launch() always needs url.
@@ -291,9 +322,6 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestConfigureModuleItem(ConfiguredLaunch):
-    def make_request(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).configure_module_item()
-
     def test_it_saves_the_assignments_document_url_to_the_db(
         self, context, pyramid_request, ModuleItemConfiguration
     ):
@@ -321,6 +349,9 @@ class TestConfigureModuleItem(ConfiguredLaunch):
             pyramid_request, context.js_config
         )
 
+    def make_request(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).configure_module_item()
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
@@ -334,7 +365,7 @@ class TestConfigureModuleItem(ConfiguredLaunch):
 
 class TestUnconfiguredBasicLTILaunch:
     def test_it_sets_the_right_javascript_config_settings(
-        self, bearer_token_schema, context, pyramid_request
+        self, context, pyramid_request
     ):
         pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
 
@@ -357,10 +388,13 @@ class TestUnconfiguredBasicLTILaunch:
             "urls": {},
         }
 
-        # Test param pass through
-        assert context.js_config["formFields"] == Any.dict.containing(
+        form_fields = context.js_config["formFields"]
+
+        # Test that we pass through parameters from the request made to us
+        # onto the configure module item call
+        assert form_fields == Any.dict.containing(
             {
-                "authorization": bearer_token_schema.authorization_param.return_value,
+                "authorization": Any.string(),
                 "resource_link_id": "TEST_RESOURCE_LINK_ID",
                 "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
                 "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
@@ -370,9 +404,21 @@ class TestUnconfiguredBasicLTILaunch:
             }
         )
 
-    @pytest.fixture
-    def bearer_token_schema(self, BearerTokenSchema):
-        return BearerTokenSchema.return_value
+        self._assert_authorization_valid_jwt(
+            form_fields["authorization"],
+            {
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+                "roles": "TEST_ROLES",
+                "user_id": "TEST_USER_ID",
+            },
+        )
+
+    def _assert_authorization_valid_jwt(self, authorization, expected_values):
+        assert authorization.startswith("Bearer ")
+        assert (
+            decode_jwt(authorization[len("Bearer ") :], "test_secret")
+            == expected_values
+        )
 
     @pytest.fixture
     def pyramid_request(self, context, pyramid_request):
@@ -395,31 +441,11 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
         assert data == {}
 
 
-@pytest.fixture(autouse=True)
-def BearerTokenSchema(patch):
-    return patch("lms.views.basic_lti_launch.BearerTokenSchema")
-
-
-@pytest.fixture(autouse=True)
-def frontend_app(patch):
-    return patch("lms.views.basic_lti_launch.frontend_app")
-
-
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
     context.js_config = {"urls": {}}
     return context
-
-
-@pytest.fixture(autouse=True)
-def ModuleItemConfiguration(patch):
-    return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
-
-
-@pytest.fixture(autouse=True)
-def via_url(patch):
-    return patch("lms.views.basic_lti_launch.via_url")
 
 
 @pytest.fixture
@@ -434,26 +460,3 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
-
-
-@pytest.fixture(autouse=True)
-def lti_h_service(pyramid_config):
-    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
-    pyramid_config.register_service(lti_h_service, name="lti_h")
-    return lti_h_service
-
-
-@pytest.fixture(autouse=True)
-def lis_result_sourcedid_service(pyramid_config):
-    lis_result_sourcedid_service = mock.create_autospec(
-        LISResultSourcedIdService, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(
-        lis_result_sourcedid_service, name="lis_result_sourcedid"
-    )
-    return lis_result_sourcedid_service
-
-
-@pytest.fixture(autouse=True)
-def LtiLaunches(patch):
-    return patch("lms.views.basic_lti_launch.LtiLaunches")
