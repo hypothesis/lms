@@ -3,7 +3,7 @@
 import marshmallow
 
 from lms.services import LTILaunchVerificationError
-from lms.validation._helpers import PyramidRequestSchema
+from lms.validation.base import PyramidRequestSchema
 from lms.values import LTIUser
 
 __all__ = ("LaunchParamsAuthSchema",)

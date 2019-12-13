@@ -2,12 +2,12 @@
 import marshmallow
 from webargs import pyramidparser
 
-from lms.validation._exceptions import ValidationError
+from lms.validation.exceptions import ValidationError
 
-__all__ = ["PyramidRequestSchema", "RequestsResponseSchema"]
+__all__ = ["PlainSchema", "PyramidRequestSchema", "RequestsResponseSchema"]
 
 
-class _BaseSchema(marshmallow.Schema):
+class PlainSchema(marshmallow.Schema):
     """Base class for all schemas."""
 
     many = None
@@ -22,7 +22,7 @@ class _BaseSchema(marshmallow.Schema):
     the same fields, create a schema whose fields are the fields that each
     object is expected to have and set ``many = True``:
 
-        class MySchema(_BaseSchema):
+        class MySchema(PlainSchema):
             many = True
 
             field_1 = fields.Str(...)
@@ -44,7 +44,7 @@ class _BaseSchema(marshmallow.Schema):
         unknown = marshmallow.EXCLUDE
 
 
-class PyramidRequestSchema(_BaseSchema):
+class PyramidRequestSchema(PlainSchema):
     """Base class for schemas that validate Pyramid requests."""
 
     locations = None
@@ -89,7 +89,7 @@ class PyramidRequestSchema(_BaseSchema):
         raise ValidationError(messages=error.messages) from error
 
 
-class RequestsResponseSchema(_BaseSchema):
+class RequestsResponseSchema(PlainSchema):
     """Base class for schemas that validate ``requests`` lib responses."""
 
     def __init__(self, response):

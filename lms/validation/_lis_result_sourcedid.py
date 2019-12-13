@@ -1,7 +1,7 @@
 """Schema for validating params required for LIS Outcomes."""
 import marshmallow
 
-from lms.validation._helpers import PyramidRequestSchema
+from lms.validation.base import PyramidRequestSchema
 
 __all__ = ["LISResultSourcedIdSchema"]
 

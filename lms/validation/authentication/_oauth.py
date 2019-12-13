@@ -4,7 +4,6 @@ import secrets
 import marshmallow
 from webargs import fields
 
-from lms.validation._helpers import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredStateParamError,
@@ -13,6 +12,7 @@ from lms.validation.authentication._exceptions import (
     MissingStateParamError,
 )
 from lms.validation.authentication._helpers import _jwt
+from lms.validation.base import PyramidRequestSchema, RequestsResponseSchema
 from lms.values import LTIUser
 
 __all__ = [
