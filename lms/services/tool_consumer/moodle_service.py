@@ -17,10 +17,7 @@ class MoodleInterface(ToolConsumerService):
         super().__init__(context, request)
 
         self.moodle_api = None
-
-        LOG.info(request.params)
         self.moodle_api = self._get_moodle_api(request)
-        LOG.info(self.moodle_api)
 
     @classmethod
     def _get_moodle_api(cls, request):
@@ -39,12 +36,10 @@ class MoodleInterface(ToolConsumerService):
         grade_type = module.grade_type
 
         if grade_type == GradeType.SCALE:
-            scale = self.moodle_api.competency.get_scale_values(module.scale_id)
-
-            return grading_types.EnumeratedGrading(scale.values_as_dict())
+            return grading_types.EnumeratedGrading(module.scale.values_as_dict())
 
         if grade_type == GradeType.POINT:
-            return grading_types.IntegerGrading(min=1, max=module.max_grade, step=1)
+            return grading_types.FloatGrading(min=0, max=module.max_grade)
 
         return None
 

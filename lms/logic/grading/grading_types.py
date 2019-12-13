@@ -3,23 +3,20 @@ from typing import NamedTuple
 
 class FloatGrading(NamedTuple):
     min: float = 0
-    max: float = 1
-    min_increment: float = 0
-    type = "float"
+    max: float = 10
 
+    def as_dict(self):
+        data = self._asdict()
+        data['type'] = 'float'
 
-class IntegerGrading(NamedTuple):
-    min: int = 0
-    max: int = 10
-    step: int = 1
-    type = "integer"
+        return data
 
 
 class EnumeratedGrading:
     def __init__(self, value_labels):
         self.value_labels = value_labels
 
-    def _asdict(self):
+    def as_dict(self):
         return {
             "type": "enumerated",
             "enum": [

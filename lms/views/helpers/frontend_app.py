@@ -4,8 +4,12 @@ from lms.values import HUser
 
 __all__ = ("configure_grading",)
 
+from logging import getLogger
 
-def configure_grading(request, js_config, grading_config):
+LOG = getLogger(__name__)
+
+
+def configure_grading(request, js_config, grading_type):
     """
     Insert any needed JS context to configure the front end for grading.
 
@@ -13,12 +17,14 @@ def configure_grading(request, js_config, grading_config):
     its own UI.
     """
 
+    LOG.debug("Grading config %s", grading_type.as_dict())
+
     js_config["lmsGrader"] = True
     js_config["grading"] = {
         "courseName": request.params.get("context_title"),
         "assignmentName": request.params.get("resource_link_title"),
         # TODO: Is this a good name?
-        "range": grading_config._asdict(),
+        "type": grading_type.as_dict(),
     }
 
     lis_result_sourcedid_svc = request.find_service(name="lis_result_sourcedid")

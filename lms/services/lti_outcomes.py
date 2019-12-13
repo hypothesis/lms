@@ -8,6 +8,9 @@ from requests_oauthlib import OAuth1
 
 from lms.services.exceptions import LTIOutcomesAPIError
 
+from logging import getLogger
+LOG = getLogger(__name__)
+
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
 
 
@@ -216,6 +219,10 @@ class LTIOutcomesClient:
             raise LTIOutcomesAPIError(
                 "Error calling LTI Outcomes service", response
             ) from err
+
+
+        LOG.debug("RAW RESULT")
+        LOG.debug(response.text)
 
         # Parse response and check status code embedded in XML.
         try:

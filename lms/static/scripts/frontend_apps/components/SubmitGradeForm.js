@@ -1,4 +1,4 @@
-import { createElement } from 'preact';
+import { createElement, Component, Fragment, createRef } from 'preact';
 import classNames from 'classnames';
 import { useContext, useEffect, useState, useRef } from 'preact/hooks';
 import propTypes from 'prop-types';
@@ -63,7 +63,7 @@ const useFetchGrade = student => {
  * save a students grade.
  */
 
-export default function SubmitGradeForm({ disabled = false, student }) {
+export default function SubmitGradeForm({ disabled = false, student, gradeType }) {
   // State for loading the grade
   const { grade, gradeLoading } = useFetchGrade(student);
 
@@ -129,6 +129,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
 
   return (
     <form className="SubmitGradeForm" autoComplete="off">
+      GRADTIEP: {gradeType.type}
       <ValidationMessage
         message={validationMessage}
         open={showValidationError}
@@ -196,4 +197,6 @@ SubmitGradeForm.propTypes = {
   disabled: propTypes.bool,
   // Grade for the current student.SubmitGradeForm.propTypes
   student: propTypes.object.isRequired,
+  // Configuration for the grade style (dropdown, number etc.)
+  gradeType: propTypes.object.isRequired,
 };

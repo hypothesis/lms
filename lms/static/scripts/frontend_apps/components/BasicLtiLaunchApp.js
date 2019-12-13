@@ -204,6 +204,7 @@ export default function BasicLtiLaunchApp() {
           students={grading.students}
           courseName={grading.courseName}
           assignmentName={grading.assignmentName}
+          gradeType={grading.type}
         >
           {iFrame}
         </LMSGrader>

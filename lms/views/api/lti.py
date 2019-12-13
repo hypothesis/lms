@@ -10,6 +10,9 @@ from lms.validation import (
     APIRecordSpeedgraderSchema,
 )
 
+from logging import getLogger
+LOG = getLogger(__name__)
+
 
 @view_defaults(request_method="POST", renderer="json", permission="lti_outcomes")
 class LTIOutcomesViews:
@@ -53,6 +56,8 @@ class LTIOutcomesViews:
         current_score = self.request.find_service(
             name="lti_outcomes_client"
         ).read_result(self.outcome_request_params)
+
+        LOG.debug('RAW GRADD IS %s', current_score)
 
         return {"currentScore": current_score}
 

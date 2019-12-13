@@ -110,10 +110,10 @@ class BasicLTILaunchViews:
             return
 
         if tool_consumer.requires_grading_ui(resource_link_id):
-            grading_config = tool_consumer.grading_type(resource_link_id)
+            grading_type = tool_consumer.grading_type(resource_link_id)
 
             frontend_app.configure_grading(
-                self.request, self.context.js_config, grading_config
+                self.request, self.context.js_config, grading_type
             )
 
     def _is_launched_by_canvas(self):

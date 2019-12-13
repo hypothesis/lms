@@ -14,8 +14,22 @@ class ScaleValue(IdentifiedModel):
 
 class Scale(IdentifiedModel):
     @classmethod
-    def from_values(cls, id, values):
-        return Scale({"id": id, "_values": values})
+    def from_values(cls, _id, values):
+        return Scale({"id": _id, "_values": values})
+
+    @classmethod
+    def from_string(cls, _id, value_string):
+        scale_values = {item.strip() for item in value_string.split(',')}
+
+        return Scale.from_values(
+            _id,
+            [
+                {
+                    "id": pos + 1,
+                    "name": value
+                } for pos, value in enumerate(scale_values)
+            ]
+        )
 
     @property
     def values(self):

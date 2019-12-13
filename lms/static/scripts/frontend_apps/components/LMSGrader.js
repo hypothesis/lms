@@ -18,6 +18,7 @@ export default function LMSGrader({
   assignmentName,
   courseName,
   students,
+  gradeType
 }) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
@@ -99,6 +100,7 @@ export default function LMSGrader({
             <SubmitGradeForm
               student={getCurrentStudent()}
               disabled={currentStudentIndex < 0}
+              gradeType={gradeType}
             />
           </li>
         </ul>
@@ -116,4 +118,6 @@ LMSGrader.propTypes = {
   assignmentName: propTypes.string.isRequired,
   // List of students to grade
   students: propTypes.array.isRequired,
+  // Configuration for the grade style (dropdown, number etc.)
+  gradeType: propTypes.object.isRequired,
 };
