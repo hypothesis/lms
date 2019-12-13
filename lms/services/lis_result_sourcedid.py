@@ -56,7 +56,7 @@ class LISResultSourcedIdService:
         :type lti_user: :class:`lms.values.LTIUser`
         """
         try:
-            lis_info = LISResultSourcedIdSchema(request).lis_result_sourcedid_info()
+            params = LISResultSourcedIdSchema(request).parse()
 
         except ValidationError:
             # We're missing something we need in the request.
@@ -68,18 +68,14 @@ class LISResultSourcedIdService:
             LISResultSourcedId,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
-            context_id=lis_info.context_id,
-            resource_link_id=lis_info.resource_link_id,
+            context_id=params["context_id"],
+            resource_link_id=params["resource_link_id"],
         )
 
         lis_result_sourcedid.h_username = h_user.username
         lis_result_sourcedid.h_display_name = h_user.display_name
 
-        lis_result_sourcedid.lis_result_sourcedid = lis_info.lis_result_sourcedid
-        lis_result_sourcedid.lis_outcome_service_url = lis_info.lis_outcome_service_url
-        lis_result_sourcedid.tool_consumer_info_product_family_code = (
-            lis_info.tool_consumer_info_product_family_code
-        )
+        lis_result_sourcedid.update_from_dict(params)
 
     def _find_or_create(self, model_class, **query):
         result = self._db.query(model_class).filter_by(**query).one_or_none()

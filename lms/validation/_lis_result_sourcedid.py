@@ -2,7 +2,6 @@
 import marshmallow
 
 from lms.validation._helpers import PyramidRequestSchema
-from lms.values import LISResultSourcedId
 
 __all__ = ["LISResultSourcedIdSchema"]
 
@@ -31,23 +30,3 @@ class LISResultSourcedIdSchema(PyramidRequestSchema):
     context_id = marshmallow.fields.Str(required=True)
     resource_link_id = marshmallow.fields.Str(required=True)
     tool_consumer_info_product_family_code = marshmallow.fields.Str(missing="")
-
-    def lis_result_sourcedid_info(self):
-        """
-        Return an :class:`~lms.values.LISResultSourcedId`.
-
-        :raise ValidationError: if the request isn't a valid LIS Outcome launch
-        :rtype: LISResultSourcedId
-        """
-
-        parsed_params = self.parse(locations=["form"])
-
-        return LISResultSourcedId(
-            lis_result_sourcedid=parsed_params["lis_result_sourcedid"],
-            lis_outcome_service_url=parsed_params["lis_outcome_service_url"],
-            context_id=parsed_params["context_id"],
-            resource_link_id=parsed_params["resource_link_id"],
-            tool_consumer_info_product_family_code=parsed_params[
-                "tool_consumer_info_product_family_code"
-            ],
-        )
