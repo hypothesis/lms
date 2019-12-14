@@ -3,8 +3,8 @@ from urllib.parse import unquote
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
 from marshmallow.validate import OneOf
 
+from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
-from lms.validation._helpers import PyramidRequestSchema
 
 
 class LaunchParamsSchema(PyramidRequestSchema):

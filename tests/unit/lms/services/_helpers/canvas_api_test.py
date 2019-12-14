@@ -6,7 +6,7 @@ from requests import ConnectionError, HTTPError, ReadTimeout, Request, TooManyRe
 from lms.services._helpers.canvas_api import CanvasAPIHelper
 from lms.services.exceptions import CanvasAPIError
 from lms.validation import ValidationError
-from lms.validation._helpers import PyramidRequestSchema
+from lms.validation._base import PyramidRequestSchema
 
 
 class TestCanvasAPIHelper:

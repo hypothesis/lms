@@ -2,7 +2,7 @@
 
 from webargs import fields
 
-from lms.validation._helpers import PyramidRequestSchema
+from lms.validation._base import PyramidRequestSchema
 
 __all__ = ["ConfigureModuleItemSchema"]
 

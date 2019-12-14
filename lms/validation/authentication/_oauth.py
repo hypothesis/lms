@@ -4,7 +4,7 @@ import secrets
 import marshmallow
 from webargs import fields
 
-from lms.validation._helpers import PyramidRequestSchema, RequestsResponseSchema
+from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredStateParamError,

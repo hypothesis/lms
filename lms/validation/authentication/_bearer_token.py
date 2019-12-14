@@ -2,7 +2,7 @@
 import marshmallow
 
 from lms.validation import ValidationError
-from lms.validation._helpers import PyramidRequestSchema
+from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredSessionTokenError,
