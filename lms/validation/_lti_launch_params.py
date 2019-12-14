@@ -47,6 +47,18 @@ class LaunchParamsSchema(PyramidRequestSchema):
     locations = ["form"]
 
     def handle_error(self, error, data, *, many, **kwargs):
+        """
+        Handle validation errors including LTI redirects.
+
+        Certain validation errors require us to redirect back to the tool
+        consumer (the LMS calling us) when we detect them.
+
+        This function is called by marshmallow as part of it's error
+        processing.
+
+        :raise LTIToolRedirect: If a redirect is possible
+        :raise ValidationError: If other validation errors
+        """
         messages = error.messages
 
         try:
