@@ -67,7 +67,7 @@ class LISResultSourcedIdService:
         :type lti_user: :class:`lms.values.LTIUser`
         """
         try:
-            params = self._ParamsSchema(request).parse()
+            parsed_params = self._ParamsSchema(request).parse()
         except ValidationError:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
@@ -78,14 +78,14 @@ class LISResultSourcedIdService:
             LISResultSourcedId,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
-            context_id=params["context_id"],
-            resource_link_id=params["resource_link_id"],
+            context_id=parsed_params["context_id"],
+            resource_link_id=parsed_params["resource_link_id"],
         )
 
         lis_result_sourcedid.h_username = h_user.username
         lis_result_sourcedid.h_display_name = h_user.display_name
 
-        lis_result_sourcedid.update_from_dict(params)
+        lis_result_sourcedid.update_from_dict(parsed_params)
 
     def _find_or_create(self, model_class, **query):
         result = self._db.query(model_class).filter_by(**query).one_or_none()
