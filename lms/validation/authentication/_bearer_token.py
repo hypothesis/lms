@@ -2,6 +2,7 @@
 import marshmallow
 
 from lms.validation import ValidationError
+from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredSessionTokenError,
@@ -10,7 +11,6 @@ from lms.validation.authentication._exceptions import (
     MissingSessionTokenError,
 )
 from lms.validation.authentication._helpers import _jwt
-from lms.validation.base import PyramidRequestSchema
 from lms.values import LTIUser
 
 __all__ = ("BearerTokenSchema",)

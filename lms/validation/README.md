@@ -26,7 +26,7 @@ error responses.
 
 ### 3. Base classes and other helpers for validation schemas
 
-[lms.validation.base](base.py) contains base classes for validation schemas.
+[`lms.validation._base`](_base.py) contains base classes for validation schemas.
 You are encouraged to use these base classes where you need to, even when
 implementing schemas outside of this package.
 

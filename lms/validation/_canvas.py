@@ -1,7 +1,7 @@
 """Schemas for Canvas API responses."""
 from webargs import fields
 
-from lms.validation.base import RequestsResponseSchema
+from lms.validation._base import RequestsResponseSchema
 
 __all__ = ["CanvasListFilesResponseSchema", "CanvasPublicURLResponseSchema"]
 

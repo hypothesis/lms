@@ -158,7 +158,7 @@ class CanvasAPIHelper:
           validated and there'll be no ``response.parsed_params``, but it will
           still test that a response was received (no network error or timeout)
           and the response had a 2xx HTTP status.
-        :type schema: a subclass of :cls:`lms.validation._helpers.RequestsResponseSchema`
+        :type schema: a subclass of :cls:`lms.validation.RequestsResponseSchema`
 
         :raise lms.services.CanvasAPIAccessTokenError: if the request fails
             because our Canvas API access token for the user is missing,
