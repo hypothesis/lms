@@ -2,7 +2,7 @@
 import marshmallow
 from webargs import pyramidparser
 
-from lms.validation.exceptions import ValidationError
+from lms.validation._exceptions import ValidationError
 
 __all__ = ["PlainSchema", "PyramidRequestSchema", "RequestsResponseSchema"]
 

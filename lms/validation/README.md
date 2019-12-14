@@ -19,7 +19,7 @@ See [`__init__.py`](__init__.py)'s docstring for usage.
 
 ### 2. Exceptions raised by guard schemas
 
-[lms.validation.exceptions](exceptions.py) contains exceptions classes that
+[`lms.validation._exceptions`](_exceptions.py) contains exceptions classes that
 guard schemas might raise if the request is invalid.
 These exceptions are caught by exception views that render the appropriate
 error responses.
