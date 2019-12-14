@@ -9,8 +9,9 @@ __all__ = ["LISResultSourcedIdService"]
 class LISResultSourcedIdService:
     """Methods for interacting with LISResultSourcedId records."""
 
-    # The relevant parameters from a request
     class _ParamsSchema(PyramidRequestSchema):
+        """Schema for the relevant parameters from the request."""
+
         locations = ["form"]
         lis_result_sourcedid = fields.Str(required=True)
         lis_outcome_service_url = fields.Str(required=True)
