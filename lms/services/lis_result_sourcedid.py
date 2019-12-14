@@ -1,11 +1,23 @@
+from marshmallow import fields
+
 from lms.models import LISResultSourcedId
-from lms.validation import LISResultSourcedIdSchema, ValidationError
+from lms.validation import PyramidRequestSchema, ValidationError
 
 __all__ = ["LISResultSourcedIdService"]
 
 
 class LISResultSourcedIdService:
     """Methods for interacting with LISResultSourcedId records."""
+
+    class _ParamsSchema(PyramidRequestSchema):
+        """Schema for the relevant parameters from the request."""
+
+        locations = ["form"]
+        lis_result_sourcedid = fields.Str(required=True)
+        lis_outcome_service_url = fields.Str(required=True)
+        context_id = fields.Str(required=True)
+        resource_link_id = fields.Str(required=True)
+        tool_consumer_info_product_family_code = fields.Str(missing="")
 
     def __init__(self, _context, request):
         self._db = request.db
@@ -56,8 +68,7 @@ class LISResultSourcedIdService:
         :type lti_user: :class:`lms.values.LTIUser`
         """
         try:
-            params = LISResultSourcedIdSchema(request).parse()
-
+            parsed_params = self._ParamsSchema(request).parse()
         except ValidationError:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
@@ -68,14 +79,14 @@ class LISResultSourcedIdService:
             LISResultSourcedId,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
-            context_id=params["context_id"],
-            resource_link_id=params["resource_link_id"],
+            context_id=parsed_params["context_id"],
+            resource_link_id=parsed_params["resource_link_id"],
         )
 
         lis_result_sourcedid.h_username = h_user.username
         lis_result_sourcedid.h_display_name = h_user.display_name
 
-        lis_result_sourcedid.update_from_dict(params)
+        lis_result_sourcedid.update_from_dict(parsed_params)
 
     def _find_or_create(self, model_class, **query):
         result = self._db.query(model_class).filter_by(**query).one_or_none()
