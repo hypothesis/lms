@@ -1,7 +1,7 @@
-from marshmallow import ValidationError, fields
+from marshmallow import fields
 
 from lms.models import LISResultSourcedId
-from lms.validation import PlainSchema
+from lms.validation import PyramidRequestSchema, ValidationError
 
 __all__ = ["LISResultSourcedIdService"]
 
@@ -10,7 +10,8 @@ class LISResultSourcedIdService:
     """Methods for interacting with LISResultSourcedId records."""
 
     # The relevant parameters from a request
-    class _ParamsSchema(PlainSchema):
+    class _ParamsSchema(PyramidRequestSchema):
+        locations = ["form"]
         lis_result_sourcedid = fields.Str(required=True)
         lis_outcome_service_url = fields.Str(required=True)
         context_id = fields.Str(required=True)
@@ -66,8 +67,7 @@ class LISResultSourcedIdService:
         :type lti_user: :class:`lms.values.LTIUser`
         """
         try:
-            params = self._ParamsSchema().load(request.POST)
-
+            params = self._ParamsSchema(request).parse()
         except ValidationError:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
