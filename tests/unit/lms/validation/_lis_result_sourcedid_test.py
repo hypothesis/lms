@@ -2,7 +2,6 @@ import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.validation import LISResultSourcedIdSchema
-from lms.values import LISResultSourcedId as LISResultSourcedIdValue
 
 
 class TestLISResultSourcedIdSchema:
@@ -54,19 +53,14 @@ class TestLISResultSourcedIdSchema:
             [(missing_param, ["Missing data for required field."])]
         )
 
-    def test_it_returns_lis_result_sourcedid_info(self, schema):
-        lis_result_sourcedid = schema.lis_result_sourcedid_info()
-
-        assert isinstance(lis_result_sourcedid, LISResultSourcedIdValue)
-
     def test_it_lis_result_sourcedid_info_does_not_raise_with_missing_optional_field(
         self, schema, pyramid_outcome_request
     ):
         del pyramid_outcome_request.POST["tool_consumer_info_product_family_code"]
 
-        lis_result_sourcedid = schema.lis_result_sourcedid_info()
+        lis_result_sourcedid = schema.parse()
 
-        assert isinstance(lis_result_sourcedid, LISResultSourcedIdValue)
+        assert isinstance(lis_result_sourcedid, dict)
 
     @pytest.fixture
     def pyramid_outcome_request(self, pyramid_request):
