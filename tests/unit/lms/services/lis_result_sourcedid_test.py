@@ -143,6 +143,22 @@ class TestUpsertFromRequest:
         return pyramid_request
 
 
+class TestAssignmentIsGradable:
+    def test_it_returns_False_if_not_gradable(self, svc, pyramid_request):
+        result = svc.is_assignment_gradable(pyramid_request)
+
+        assert result is False
+
+    def test_it_returns_True_if_assignment_is_gradable(
+        self, svc, pyramid_request, lti_params
+    ):
+        pyramid_request.POST.update(lti_params)
+
+        result = svc.is_assignment_gradable(pyramid_request)
+
+        assert result is True
+
+
 @pytest.fixture
 def lti_user():
     return LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES")
