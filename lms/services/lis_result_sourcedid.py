@@ -56,7 +56,7 @@ class LISResultSourcedIdService:
 
     def is_assignment_gradable(self, request):
         """
-        Does this request have the parameters required to enable grading?
+        Determine if the request has the parameters required to enable grading.
 
         :param request: A pyramid request
         :rtype: bool
@@ -74,11 +74,12 @@ class LISResultSourcedIdService:
 
         try:
             return self._ParamsSchema(request).parse()
+
         except ValidationError:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
             # LIS data is not present on the request.
-            return
+            return None
 
     def upsert_from_request(self, request, h_user, lti_user):
         """
