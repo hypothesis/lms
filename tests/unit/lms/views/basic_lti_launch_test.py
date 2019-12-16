@@ -29,31 +29,27 @@ class TestBasicLTILaunch:
         assert "lmsGrader" not in context.js_config
 
     def test_it_adds_report_submission_config_if_required_params_present(
-        self, context, pyramid_request, lti_outcome_params
+        self, context, pyramid_request, lti_outcome_params, lis_result_sourcedid_service
     ):
         pyramid_request.params.update(lti_outcome_params)
+        lis_result_sourcedid_service.get_grading_parameters.return_value = {
+            "lis_result_sourcedid": mock.sentinel.result_id,
+            "lis_outcome_service_url": mock.sentinel.service_url,
+        }
 
         BasicLTILaunchViews(context, pyramid_request)
 
         assert context.js_config["submissionParams"] == {
             "h_username": context.h_user.username,
-            "lis_result_sourcedid": "modelstudent-assignment1",
-            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
+            "lis_result_sourcedid": mock.sentinel.result_id,
+            "lis_outcome_service_url": mock.sentinel.service_url,
         }
 
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "lis_result_sourcedid",
-            "lis_outcome_service_url",
-            "tool_consumer_info_product_family_code",
-        ],
-    )
-    def test_it_doesnt_add_report_submission_config_if_required_param_missing(
-        self, context, pyramid_request, lti_outcome_params, key
+    def test_it_doesnt_add_report_submission_config_if_grading_disabled(
+        self, context, pyramid_request, lti_outcome_params, lis_result_sourcedid_service
     ):
         pyramid_request.params.update(lti_outcome_params)
-        del pyramid_request.params[key]
+        lis_result_sourcedid_service.get_grading_parameters.return_value = None
 
         BasicLTILaunchViews(context, pyramid_request)
 
@@ -165,16 +161,6 @@ class ConfiguredLaunch:
     @pytest.fixture(autouse=True)
     def via_url(self, patch):
         return patch("lms.views.basic_lti_launch.via_url")
-
-    @pytest.fixture(autouse=True)
-    def lis_result_sourcedid_service(self, pyramid_config):
-        lis_result_sourcedid_service = mock.create_autospec(
-            LISResultSourcedIdService, instance=True, spec_set=True
-        )
-        pyramid_config.register_service(
-            lis_result_sourcedid_service, name="lis_result_sourcedid"
-        )
-        return lis_result_sourcedid_service
 
     @pytest.fixture(autouse=True)
     def lti_h_service(self, pyramid_config):
@@ -447,6 +433,17 @@ def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
     context.js_config = {"urls": {}}
     return context
+
+
+@pytest.fixture(autouse=True)
+def lis_result_sourcedid_service(pyramid_config):
+    lis_result_sourcedid_service = mock.create_autospec(
+        LISResultSourcedIdService, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(
+        lis_result_sourcedid_service, name="lis_result_sourcedid"
+    )
+    return lis_result_sourcedid_service
 
 
 @pytest.fixture

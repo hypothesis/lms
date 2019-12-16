@@ -36,6 +36,7 @@ class BasicLTILaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.lis_result_service = request.find_service(name="lis_result_sourcedid")
 
         self.context.js_config.update(
             {
@@ -52,31 +53,35 @@ class BasicLTILaunchViews:
             }
         )
 
-        # Add config used by frontend to call `record_submission` API.
-        params = self.request.params
-        if (
-            # The outcome reporting params are typically only available when
-            # students (not teachers) launch an assignment.
-            params.get("lis_result_sourcedid")
-            and params.get("lis_outcome_service_url")
-            # This feature is initially restricted to Canvas.
-            and self._is_launched_by_canvas()
-        ):
-            self.context.js_config["submissionParams"] = {}
-
-            self._set_submission_param("h_username", context.h_user.username)
-            self._set_submission_param(
-                "lis_result_sourcedid", params.get("lis_result_sourcedid")
-            )
-            self._set_submission_param(
-                "lis_outcome_service_url", params.get("lis_outcome_service_url")
-            )
+        self._add_canvas_submission_params()
 
         # If the launch has been configured to focus on the annotations from
         # a particular user, translate that into Hypothesis client configuration.
         focused_user = self.request.params.get("focused_user")
         if focused_user:
             self._set_focused_user(focused_user)
+
+    def _add_canvas_submission_params(self):
+        """
+        Add config used by frontend to call Canvas `record_submission` API.
+
+        The outcome reporting params are typically only available when
+        students (not teachers) launch an assignment.
+        """
+
+        if not self._is_launched_by_canvas():
+            return
+
+        lis_params = self.lis_result_service.get_grading_parameters(self.request)
+
+        if not lis_params:
+            return
+
+        self.context.js_config["submissionParams"] = {
+            "h_username": self.context.h_user.username,
+            "lis_result_sourcedid": lis_params.get("lis_result_sourcedid"),
+            "lis_outcome_service_url": lis_params.get("lis_outcome_service_url"),
+        }
 
     def sync_lti_data_to_h(self):
         """

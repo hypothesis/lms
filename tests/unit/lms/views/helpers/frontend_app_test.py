@@ -27,11 +27,11 @@ class TestConfigureGrading:
 
         assert "lmsGrader" not in js_config
 
-    def test_it_disables_grading_if_grading_is_disabled_for_assignment(
-        self, grading_request
+    def test_it_disables_grading_if_assignment_is_not_gradable(
+        self, grading_request, lis_result_sourcedid_svc
     ):
         js_config = {}
-        del grading_request.params["lis_outcome_service_url"]
+        lis_result_sourcedid_svc.is_assignment_gradable.return_value = False
 
         frontend_app.configure_grading(grading_request, js_config)
 

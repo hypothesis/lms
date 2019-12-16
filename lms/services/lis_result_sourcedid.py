@@ -54,6 +54,32 @@ class LISResultSourcedIdService:
             .all()
         )
 
+    def is_assignment_gradable(self, request):
+        """
+        Does this request have the parameters required to enable grading?
+
+        :param request: A pyramid request
+        :rtype: bool
+        """
+
+        return self.get_grading_parameters(request) is not None
+
+    def get_grading_parameters(self, request):
+        """
+        Get the parameters for grading, if present.
+
+        :param request: A pyramid request
+        :return: A dict of parsed parameters for grading or None
+        """
+
+        try:
+            return self._ParamsSchema(request).parse()
+        except ValidationError:
+            # We're missing something we need in the request.
+            # This can happen if the user is not a student, or if the needed
+            # LIS data is not present on the request.
+            return
+
     def upsert_from_request(self, request, h_user, lti_user):
         """
         Update or create a record based on the LTI params found in the request.
@@ -67,12 +93,9 @@ class LISResultSourcedIdService:
         :arg lti_user: The LTI-provided user that this record is associated with
         :type lti_user: :class:`lms.values.LTIUser`
         """
-        try:
-            parsed_params = self._ParamsSchema(request).parse()
-        except ValidationError:
-            # We're missing something we need in the request.
-            # This can happen if the user is not a student, or if the needed
-            # LIS data is not present on the request.
+
+        parsed_params = self.get_grading_parameters(request)
+        if parsed_params is None:
             return
 
         lis_result_sourcedid = self._find_or_create(
