@@ -5,6 +5,7 @@ Feature: Section 3 - Types of User Roles
 
   Background:
     Given standard setup for LTI section 3
+      And the assignment has been launched before
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 3.1 - Launch as an instructor using a fully-qualified URN
