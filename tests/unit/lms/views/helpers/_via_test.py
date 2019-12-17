@@ -50,6 +50,15 @@ class TestViaURL:
         # fmt: on
         assert via_url(pyramid_request, document_url) == expected_via_url
 
+    def test_it_returns_via3_url_if_use_via3_url_feature_flag_is_set(
+        self, pyramid_request
+    ):
+        pyramid_request.feature = lambda feature: feature == "use_via3_url"
+
+        assert via_url(pyramid_request, "http://example.com").startswith(
+            "http://TEST_VIA3_SERVER.is/"
+        )
+
     def test_it_returns_via2_html_rewriter_url_if_use_via2_html_rewriter_feature_flag_is_set(
         self, pyramid_request
     ):
