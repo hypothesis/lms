@@ -15,7 +15,7 @@ import Spinner from './Spinner';
 import SvgIcon from './SvgIcon';
 import { fetchGrade, submitGrade } from '../utils/grader-service';
 import { trustMarkup } from '../utils/trusted';
-import { formatToNumber, validateGrade } from '../utils/validation';
+import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 import ValidationMessage from './ValidationMessage';
 
 // Grades are always stored as a value between [0-1] on the service layer.
@@ -46,7 +46,7 @@ const useFetchGrade = student => {
         const response = await fetchGrade({ student, authToken });
         if (!didCancel) {
           // Only set these values if we didn't cancel this request
-          setGrade(response.currentScore * GRADE_MULTIPLIER);
+          setGrade(scaleGrade(response.currentScore, GRADE_MULTIPLIER));
           setGradeLoading(false);
         }
       };

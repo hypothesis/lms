@@ -39,4 +39,28 @@ function validateGrade(value) {
   }
 }
 
-export { formatToNumber, validateGrade };
+/**
+ * Return a scaled grade rounded to the same precision
+ * as the original grade. This method eliminates precision
+ * errors with floating point scaling.
+ *
+ * e.g. 0.66 will scale to 6.6 with a multiplier of 10
+ *      0.667 will scale to 6.67  with a multiplier of 10
+ *
+ * @param {number} grade
+ * @param {number} multiplier
+ * @return {number}
+ */
+function scaleGrade(grade, multiplier) {
+  const sGrade = grade.toString();
+  if (sGrade.indexOf('.') < 0) {
+    // no decimal value, just returns the scaled value
+    return grade * multiplier;
+  } else {
+    const decimalDigitsLength = sGrade.split('.')[1].length;
+    // scale and round to one less the number of decimal digits the grade had
+    return (grade * multiplier).toFixed(decimalDigitsLength - 1);
+  }
+}
+
+export { formatToNumber, scaleGrade, validateGrade };
