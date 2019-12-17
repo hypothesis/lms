@@ -32,7 +32,7 @@ def configure_grading(request, js_config):
                 "LISResultSourcedId": student.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": student.lis_outcome_service_url,
             }
-            for student, h_user in _find_students_for_assignment(
+            for student, h_user in _students_for_assignment(
                 context_id=request.params.get("context_id"),
                 resource_link_id=request.params.get("resource_link_id"),
                 request=request,
