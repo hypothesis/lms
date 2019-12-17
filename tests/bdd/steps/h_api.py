@@ -10,8 +10,11 @@ class HAPIContext(StepContext):
     context_key = "h_api"
 
     def do_setup(self):
+        """Setup HTTPretty to intercept HTTP calls to the H API."""
+
         httpretty.reset()
 
+        # This is the URL we expect all H API calls to go to
         httpretty.register_uri(
             method=Any(),
             uri=re.compile(r"^https://example.com/private/api/.*"),
@@ -24,7 +27,9 @@ class HAPIContext(StepContext):
 
         httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
 
+        # Start interception
         httpretty.enable()
 
     def do_teardown(self):
+        # Stop interception
         httpretty.disable()
