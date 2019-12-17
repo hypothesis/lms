@@ -88,35 +88,26 @@ describe('SubmitGradeForm', () => {
     await waitFor(() => !isFetchingGrade(wrapper));
 
     assert.equal(wrapper.find('input').prop('defaultValue'), 10);
-    wrapper.setProps({ student: {} });
+    wrapper.setProps({ student: fakeStudentAlt });
     assert.equal(wrapper.find('input').prop('defaultValue'), '');
   });
 
-  [
-    {
-      text: 'focuses the input field when changing students',
-      run: () => {
-        assert.equal(
-          document.activeElement.className,
-          'SubmitGradeForm__grade'
-        );
-      },
-    },
-    {
-      text: "selects the input field's text when changing students",
-      run: () => {
-        assert.equal(document.getSelection().toString(), '10');
-      },
-    },
-  ].forEach(test => {
-    it(test.text, async () => {
-      document.body.focus();
-      const wrapper = renderForm();
-      await waitFor(() => !isFetchingGrade(wrapper));
-      wrapper.setProps({ student: fakeStudentAlt });
-      await waitFor(() => !isFetchingGrade(wrapper));
-      test.run();
-    });
+  it('focuses the input field when changing students and fetching the grade', async () => {
+    document.body.focus();
+    const wrapper = renderForm();
+    await waitFor(() => !isFetchingGrade(wrapper));
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitFor(() => !isFetchingGrade(wrapper));
+    assert.equal(document.activeElement.className, 'SubmitGradeForm__grade');
+  });
+
+  it("selects the input field's text when changing students and fetching the grade", async () => {
+    document.body.focus();
+    const wrapper = renderForm();
+    await waitFor(() => !isFetchingGrade(wrapper));
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitFor(() => !isFetchingGrade(wrapper));
+    assert.equal(document.getSelection().toString(), '10');
   });
 
   context('validation messages', () => {
@@ -179,7 +170,7 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
 
       wrapper.find('button').simulate('click');
-      wrapper.setProps({ student: {} });
+      wrapper.setProps({ student: fakeStudentAlt });
 
       assert.isFalse(
         wrapper.find('input').hasClass('SubmitGradeForm__grade--saved')
