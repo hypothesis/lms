@@ -53,53 +53,8 @@ class BasicLTILaunchViews:
         )
 
         if self.is_launched_by_canvas():
-            self.add_canvas_submission_params()
+            self.initialise_canvas_submission_params()
             self.set_canvas_focused_user()
-
-    def add_canvas_submission_params(self):
-        """
-        Add config used by frontend to call Canvas `record_submission` API.
-
-        The outcome reporting params are typically only available when
-        students (not teachers) launch an assignment.
-        """
-
-        lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
-        lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
-
-        if lis_result_sourcedid and lis_outcome_service_url:
-            self.context.js_config["submissionParams"] = {
-                "h_username": self.context.h_user.username,
-                "lis_result_sourcedid": lis_result_sourcedid,
-                "lis_outcome_service_url": lis_outcome_service_url,
-            }
-
-    def set_canvas_focused_user(self):
-        """Configure the Hypothesis client to focus on a particular user."""
-
-        # If the launch has been configured to focus on the annotations from
-        # a particular user, translate that into Hypothesis client configuration.
-
-        # This parameter is only passed as a part of Canvas Speedgrader config
-        # and is passed as a parameter to a URL which they call us back on.
-        focused_user = self.request.params.get("focused_user")
-        if not focused_user:
-            return
-
-        h_api = self.request.find_service(name="h_api")
-
-        try:
-            display_name = h_api.get_user(focused_user).display_name
-        except HAPIError:
-            # If we couldn't fetch the student's name for any reason, fall back
-            # to a placeholder rather than giving up entirely, since the rest
-            # of the experience can still work.
-            display_name = "(Couldn't fetch student name)"
-
-        # TODO! - Could/should this be replaced with a LISSourcedId lookup?
-        self.context.hypothesis_config.update(
-            {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
-        )
 
     def sync_lti_data_to_h(self):
         """
@@ -128,17 +83,14 @@ class BasicLTILaunchViews:
 
         lti_user = request.lti_user
 
-        # Create or update a record of LIS result data for a student launch
+        # TODO! - The real reason we test for Canvas here is because canvas
+        # does not require us to provide student navigation. So we don't need
+        # to store this data in the first place.
         if not lti_user.is_instructor and not self.is_launched_by_canvas():
+            # Create or update a record of LIS result data for a student launch
             request.find_service(name="lis_result_sourcedid").upsert_from_request(
                 request, h_user=self.context.h_user, lti_user=lti_user
             )
-
-    def is_launched_by_canvas(self):
-        return (
-            self.request.params.get("tool_consumer_info_product_family_code")
-            == "canvas"
-        )
 
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
@@ -177,7 +129,7 @@ class BasicLTILaunchViews:
             }
         )
 
-        self._set_submission_param("canvas_file_id", file_id)
+        self.set_canvas_submission_param("canvas_file_id", file_id)
 
         return {}
 
@@ -358,10 +310,64 @@ class BasicLTILaunchViews:
         self.context.js_config["urls"].update(
             {"via_url": via_url(self.request, document_url)}
         )
-        self._set_submission_param("document_url", document_url)
+        self.set_canvas_submission_param("document_url", document_url)
 
-    def _set_submission_param(self, name, value):
+    # ---------------------------------------------------------------------- #
+    # Canvas specific functions
+
+    def is_launched_by_canvas(self):
+        return (
+            self.request.params.get("tool_consumer_info_product_family_code")
+            == "canvas"
+        )
+
+    def initialise_canvas_submission_params(self):
+        """
+        Add config used by frontend to call Canvas `record_submission` API.
+
+        The outcome reporting params are typically only available when
+        students (not teachers) launch an assignment.
+        """
+
+        lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
+        lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
+
+        if lis_result_sourcedid and lis_outcome_service_url:
+            self.context.js_config["submissionParams"] = {
+                "h_username": self.context.h_user.username,
+                "lis_result_sourcedid": lis_result_sourcedid,
+                "lis_outcome_service_url": lis_outcome_service_url,
+            }
+
+    def set_canvas_submission_param(self, name, value):
         """Update config for frontend's calls to `report_submisssion` API."""
 
         if "submissionParams" in self.context.js_config:
             self.context.js_config["submissionParams"][name] = value
+
+    def set_canvas_focused_user(self):
+        """Configure the Hypothesis client to focus on a particular user."""
+
+        # If the launch has been configured to focus on the annotations from
+        # a particular user, translate that into Hypothesis client configuration.
+
+        # This parameter is only passed as a part of Canvas Speedgrader config
+        # and is passed as a parameter to a URL which they call us back on.
+        focused_user = self.request.params.get("focused_user")
+        if not focused_user:
+            return
+
+        h_api = self.request.find_service(name="h_api")
+
+        try:
+            display_name = h_api.get_user(focused_user).display_name
+        except HAPIError:
+            # If we couldn't fetch the student's name for any reason, fall back
+            # to a placeholder rather than giving up entirely, since the rest
+            # of the experience can still work.
+            display_name = "(Couldn't fetch student name)"
+
+        # TODO! - Could/should this be replaced with a LISSourcedId lookup?
+        self.context.hypothesis_config.update(
+            {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
+        )
