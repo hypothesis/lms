@@ -7,6 +7,7 @@ Feature: Section 4 - Levels of User Information
 
   Background:
     Given standard setup for LTI section 4
+      And the assignment has been launched before
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 4.1 - Launch as a learner with email but no name

@@ -37,8 +37,20 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
-        # Configure the front-end mini-app to run.
-        self.context.js_config.update({"mode": "basic-lti-launch"})
+        self.context.js_config.update(
+            {
+                # Configure the front-end mini-app to run.
+                "mode": "basic-lti-launch",
+                # Add debug information (currently used in the gherkin tests)
+                "debug": {
+                    "tags": [
+                        "role:instructor"
+                        if request.lti_user.is_instructor
+                        else "role:learner"
+                    ]
+                },
+            }
+        )
 
         # Add config used by frontend to call `record_submission` API.
         params = self.request.params

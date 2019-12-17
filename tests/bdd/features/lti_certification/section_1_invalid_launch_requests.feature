@@ -4,6 +4,7 @@ Feature: Section 1 - Invalid Launch Requests
 
   Background:
     Given standard setup for LTI section 1
+      And the assignment has been launched before
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 1.1 - No resource_link_id provided

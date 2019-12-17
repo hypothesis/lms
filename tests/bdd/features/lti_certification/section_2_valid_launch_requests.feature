@@ -11,6 +11,7 @@ Feature: Section 2 - Valid Launch Requests
 
   Background:
     Given standard setup for LTI section 2
+      And the assignment has been launched before
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 2.1 - Launch as an instructor
