@@ -41,7 +41,7 @@ def configure_grading(request, js_config):
     }
 
 
-def _find_students_for_assignment(context_id, resource_link_id, request):
+def _students_for_assignment(context_id, resource_link_id, request):
     service = request.find_service(name="lis_result_sourcedid")
 
     for student in service.fetch_students_by_assignment(
