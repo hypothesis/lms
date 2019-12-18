@@ -1,11 +1,11 @@
+from pyexpat import ExpatError
 from typing import NamedTuple
 from xml.etree import ElementTree
-
+import xmltodict
 import requests
 from requests import RequestException
 from requests_oauthlib import OAuth1
 
-from lms.logic.simple_xml import POX
 from lms.services.exceptions import LTIOutcomesAPIError
 
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
@@ -54,7 +54,7 @@ class LTIOutcomesClient:
         """
         return {
             "imsx_POXEnvelopeRequest": {
-                "_attrs": {"xmlns": cls.XML_NS},
+                "@xmlns": cls.XML_NS,
                 "imsx_POXHeader": {
                     "imsx_POXRequestHeaderInfo": {
                         "imsx_version": "V1.0",
@@ -157,7 +157,7 @@ class LTIOutcomesClient:
         """
 
         xml_data = cls._pox_wrapper(body)
-        xml_body = POX.to_bytes(xml_data)
+        xml_body = xmltodict.unparse(xml_data)
 
         # Sign request using OAuth 1.0.
         oauth_client = OAuth1(
@@ -191,8 +191,8 @@ class LTIOutcomesClient:
 
         # Parse response and check status code embedded in XML.
         try:
-            xml_data = POX.to_dict(response.text)
-        except ElementTree.ParseError as err:
+            xml_data = xmltodict.parse(response.text)
+        except ExpatError as err:
             raise LTIOutcomesAPIError(
                 "Unable to parse XML response from LTI Outcomes service", response
             ) from err

@@ -4,7 +4,7 @@ import httpretty
 import pytest
 from requests import RequestException
 
-from lms.logic.simple_xml import POX
+import xmltodict
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 
@@ -188,7 +188,7 @@ class TestLTIOutcomesClient:
         if score:
             result_score["textString"] = score
 
-        return POX.to_bytes(
+        return xmltodict.unparse(
             {
                 "imsx_POXEnvelopeResponse": {
                     "_attrs": {"xmlns": cls.XML_NS},
@@ -202,7 +202,7 @@ class TestLTIOutcomesClient:
 
     @classmethod
     def sent_body(cls):
-        return POX.to_dict(httpretty.last_request().body)
+        return xmltodict.parse(httpretty.last_request().body)
 
     @classmethod
     def sent_pox_body(cls):
