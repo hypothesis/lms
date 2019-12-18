@@ -193,9 +193,6 @@ class LTIOutcomesClient:
         except KeyError as e:
             raise LTIOutcomesAPIError("Malformed LTI outcome response") from e
 
-        if status is None:
-            raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
-
         if status != "success":
             raise LTIOutcomesAPIError("LTI outcome request failed")
 
