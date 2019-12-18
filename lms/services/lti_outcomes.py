@@ -2,81 +2,13 @@ from typing import NamedTuple
 from xml.etree import ElementTree
 
 import requests
-from jinja2 import Template
 from requests import RequestException
 from requests_oauthlib import OAuth1
 
+from lms.logic.simple_xml import POX
 from lms.services.exceptions import LTIOutcomesAPIError
 
 __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
-
-
-# Envelope for LTI Outcome Service requests sent to the LMS
-#
-# See https://www.imsglobal.org/specs/ltiomv1p0/specification for specs for all
-# messages.
-#
-# nb. To be a valid XML document it is important that the template has no
-# whitespace at the start.
-LTI_OUTCOME_REQUEST_TEMPLATE = Template(
-    """<?xml version="1.0" encoding="UTF-8"?>
-<imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-  <imsx_POXHeader>
-    <imsx_POXRequestHeaderInfo>
-      <imsx_version>V1.0</imsx_version>
-      <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
-    </imsx_POXRequestHeaderInfo>
-  </imsx_POXHeader>
-  <imsx_POXBody>
-    {{ body }}
-  </imsx_POXBody>
-</imsx_POXEnvelopeRequest>
-"""
-)
-
-# Template for a `replaceResult` XML message to send to the LMS.
-REPLACE_RESULT_REQUEST_TEMPLATE = Template(
-    """
-<replaceResultRequest>
-  <resultRecord>
-    <sourcedGUID>
-      <sourcedId>{{ lis_result_sourcedid | e }}</sourcedId>
-    </sourcedGUID>
-    <result>
-      {% if score %}
-      <resultScore>
-        <language>en</language>
-        <textString>{{ score | e }}</textString>
-      </resultScore>
-      {% endif %}
-      {% if lti_launch_url %}
-      <resultData>
-        <ltiLaunchUrl>{{ lti_launch_url | e }}</ltiLaunchUrl>
-      </resultData>
-      {% endif %}
-    </result>
-  </resultRecord>
-  {% if submitted_at %}
-  <submissionDetails>
-    <submittedAt>{{ submitted_at.isoformat() }}</submittedAt>
-  </submissionDetails>
-  {% endif %}
-</replaceResultRequest>
-"""
-)
-
-# Template for a `readResult` XML message to send to the LMS.
-READ_RESULT_REQUEST_TEMPLATE = Template(
-    """
-<readResultRequest>
-  <resultRecord>
-    <sourcedGUID>
-      <sourcedId>{{ lis_result_sourcedid | e }}</sourcedId>
-    </sourcedGUID>
-  </resultRecord>
-</readResultRequest>
-"""
-)
 
 
 class LTIOutcomesRequestParams(NamedTuple):
@@ -112,34 +44,56 @@ class LTIOutcomesClient:
     def __init__(self, _context, request):
         pass
 
+    @classmethod
+    def _pox_wrapper(cls, body):
+        """Envelope for LTI Outcome Service requests sent to the LMS.
+
+        See https://www.imsglobal.org/specs/ltiomv1p0/specification for
+        specs for all messages.
+        """
+        return {
+            "imsx_POXEnvelopeRequest": {
+                "_attrs": {"xmlns": cls.XML_NS},
+                "imsx_POXHeader": {
+                    "imsx_POXRequestHeaderInfo": {
+                        "imsx_version": "V1.0",
+                        "imsx_messageIdentifier": "999999123",
+                    }
+                },
+                "imsx_POXBody": body,
+            }
+        }
+
     def read_result(self, outcomes_request_params):  # pylint:disable=no-self-use
         """
         Return the last-submitted score for a given submission.
 
-        :return: The last-submitted score or `None` if no score has been submitted.
+        :return: The last-submitted score or `None` if no score has been
+                 submitted.
         """
-        body = READ_RESULT_REQUEST_TEMPLATE.render(
-            lis_result_sourcedid=outcomes_request_params.lis_result_sourcedid
+
+        result = self._send_request(
+            outcomes_request_params,
+            body={
+                "readResultRequest": {
+                    "resultRecord": {
+                        "sourcedGUID": {
+                            "sourcedId": outcomes_request_params.lis_result_sourcedid
+                        }
+                    }
+                }
+            },
         )
 
-        result = self._send_request(outcomes_request_params, body)
-
         try:
-            score = self.find_element(
-                result, ["readResultResponse", "result", "resultScore", "textString"]
+            return float(
+                result["readResultResponse"]["result"]["resultScore"]["textString"]
             )
-            if score is None:
-                return None
-            return float(score.text)
-        except (ValueError, TypeError):
+        except (KeyError, ValueError, TypeError):
             return None
 
     def record_result(  # pylint:disable=no-self-use
-        self,
-        outcomes_request_params,
-        score=None,
-        lti_launch_url=None,
-        submitted_at=None,
+        self, outcomes_request_params, score=None, **kwargs,
     ):
         """
         Record a score or grading view launch URL for an assignment in the LMS.
@@ -153,30 +107,46 @@ class LTIOutcomesClient:
             This is only used in Canvas.
         :arg submitted_at:
         :type datetime.datetime:
-            A `datetime.datetime` that indicates when the submission was created.
-            This is only used in Canvas and is displayed in the SpeedGrader
-            as the submission date.
-            If the submission date matches an existing submission then the
-            existing submission is updated rather than creating a new submission.
+            A `datetime.datetime` that indicates when the submission was
+            created. This is only used in Canvas and is displayed in the
+            SpeedGrader as the submission date. If the submission date matches
+            an existing submission then the existing submission is updated
+            rather than creating a new submission.
         """
-        body = REPLACE_RESULT_REQUEST_TEMPLATE.render(
-            lis_result_sourcedid=outcomes_request_params.lis_result_sourcedid,
-            score=score,
-            lti_launch_url=lti_launch_url,
-            submitted_at=submitted_at,
+
+        request = {
+            "resultRecord": {
+                "sourcedGUID": {
+                    "sourcedId": outcomes_request_params.lis_result_sourcedid
+                }
+            }
+        }
+
+        if score:
+            request["resultRecord"]["result"] = {
+                "resultScore": {"language": "en", "textString": score}
+            }
+
+        # Canvas specific adaptations
+        self._canvas_request_modification(request, **kwargs)
+
+        self._send_request(
+            outcomes_request_params, body={"replaceResultRequest": request}
         )
 
-        self._send_request(outcomes_request_params, body)
+    @classmethod
+    def _canvas_request_modification(
+        cls, request, lti_launch_url=None, submitted_at=None, **kwargs
+    ):
+
+        if lti_launch_url:
+            request["resultRecord"]["resultData"] = {"ltiLaunchUrl": lti_launch_url}
+
+        if submitted_at:
+            request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
     @classmethod
-    def find_element(cls, xml_element, path):
-        """Extract element from LTI Outcomes Management XML response."""
-        xpath = "/".join([f"{{{cls.XML_NS}}}{name}" for name in path])
-
-        return xml_element.find(f".//{xpath}")
-
-    @classmethod
-    def _send_request(cls, outcomes_request_params, pox_body):
+    def _send_request(cls, outcomes_request_params, body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -185,7 +155,8 @@ class LTIOutcomesClient:
         :rtype: ElementTree.Element
         """
 
-        xml_body = LTI_OUTCOME_REQUEST_TEMPLATE.render(body=pox_body)
+        xml_data = cls._pox_wrapper(body)
+        xml_body = POX.to_bytes(xml_data)
 
         # Sign request using OAuth 1.0.
         oauth_client = OAuth1(
@@ -207,29 +178,38 @@ class LTIOutcomesClient:
                 auth=oauth_client,
             )
             # The following will raise ``requests.exceptions.HTTPError`` if
-            # there was an HTTP-related problem with the request. This exception
-            # is a subclass of ``requests.exceptions.RequestError``.
+            # there was an HTTP-related problem with the request. This
+            # exception is a subclass of ``requests.exceptions.RequestError``.
             response.raise_for_status()
         except RequestException as err:
-            # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
-            # flavor of ``RequestException``.
+            # Handle any kind of ``RequestException``, be it an ``HTTPError``
+            # or other flavor of ``RequestException``.
             raise LTIOutcomesAPIError(
                 "Error calling LTI Outcomes service", response
             ) from err
 
         # Parse response and check status code embedded in XML.
         try:
-            xml = ElementTree.fromstring(response.text)
+            xml_data = POX.to_dict(response.text)
         except ElementTree.ParseError as err:
             raise LTIOutcomesAPIError(
                 "Unable to parse XML response from LTI Outcomes service", response
             ) from err
 
-        status = cls.find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
+        try:
+            pox_body = xml_data["imsx_POXEnvelopeResponse"]["imsx_POXBody"]
+            pox_header = xml_data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
+            status = pox_header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
+                "imsx_codeMajor"
+            ]
+
+        except KeyError:
+            raise LTIOutcomesAPIError("Failed to parse LTI outcome response")
+
         if status is None:
             raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
 
-        if status.text != "success":
+        if status != "success":
             raise LTIOutcomesAPIError("LTI outcome request failed")
 
-        return xml
+        return pox_body
