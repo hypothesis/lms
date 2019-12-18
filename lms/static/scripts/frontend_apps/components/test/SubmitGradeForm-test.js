@@ -12,8 +12,19 @@ describe('SubmitGradeForm', () => {
     LISResultSourcedId: 1,
     LISOutcomeServiceUrl: '',
   };
+
+  const fakeStudentAlt = {
+    userid: 'student2',
+    displayName: 'Student 2',
+    LISResultSourcedId: 2,
+    LISOutcomeServiceUrl: '',
+  };
+
+  let container;
   const renderForm = (props = {}) => {
-    return mount(<SubmitGradeForm student={fakeStudent} {...props} />);
+    return mount(<SubmitGradeForm student={fakeStudent} {...props} />, {
+      attachTo: container,
+    });
   };
 
   const fakeSubmitGrade = sinon.stub().resolves({});
@@ -30,6 +41,11 @@ describe('SubmitGradeForm', () => {
   };
 
   beforeEach(() => {
+    // This extra element is necessary to test automatic `focus`-ing
+    // of the component's `input` element
+    container = document.createElement('div');
+    document.body.appendChild(container);
+
     // Reset the api grade stubs for each test because
     // some tests below will change these for specific cases.
     fakeSubmitGrade.resolves({});
@@ -72,8 +88,26 @@ describe('SubmitGradeForm', () => {
     await waitFor(() => !isFetchingGrade(wrapper));
 
     assert.equal(wrapper.find('input').prop('defaultValue'), 10);
-    wrapper.setProps({ student: {} });
+    wrapper.setProps({ student: fakeStudentAlt });
     assert.equal(wrapper.find('input').prop('defaultValue'), '');
+  });
+
+  it('focuses the input field when changing students and fetching the grade', async () => {
+    document.body.focus();
+    const wrapper = renderForm();
+    await waitFor(() => !isFetchingGrade(wrapper));
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitFor(() => !isFetchingGrade(wrapper));
+    assert.equal(document.activeElement.className, 'SubmitGradeForm__grade');
+  });
+
+  it("selects the input field's text when changing students and fetching the grade", async () => {
+    document.body.focus();
+    const wrapper = renderForm();
+    await waitFor(() => !isFetchingGrade(wrapper));
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitFor(() => !isFetchingGrade(wrapper));
+    assert.equal(document.getSelection().toString(), '10');
   });
 
   context('validation messages', () => {
@@ -136,7 +170,7 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
 
       wrapper.find('button').simulate('click');
-      wrapper.setProps({ student: {} });
+      wrapper.setProps({ student: fakeStudentAlt });
 
       assert.isFalse(
         wrapper.find('input').hasClass('SubmitGradeForm__grade--saved')

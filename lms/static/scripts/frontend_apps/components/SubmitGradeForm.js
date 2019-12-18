@@ -1,6 +1,12 @@
 import { createElement } from 'preact';
 import classNames from 'classnames';
-import { useContext, useEffect, useState, useRef } from 'preact/hooks';
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+} from 'preact/hooks';
 import propTypes from 'prop-types';
 
 import { Config } from '../config';
@@ -92,6 +98,11 @@ export default function SubmitGradeForm({ disabled = false, student }) {
   useEffect(() => {
     setGradeSaved(false);
   }, [student]);
+
+  useLayoutEffect(() => {
+    inputRef.current.focus();
+    inputRef.current.select();
+  }, [grade]);
 
   /**
    * Validate the grade and if it passes, then submit the grade to to `onSubmitGrade`
