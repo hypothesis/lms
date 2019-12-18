@@ -31,10 +31,8 @@ class Transform:
         return out.getvalue()
 
     @classmethod
-    def bytes_to_tree(cls, bytes):
-        file = BytesIO(bytes)
-
-        return parse(file)
+    def bytes_to_tree(cls, bytes_in):
+        return parse(BytesIO(bytes_in))
 
     @classmethod
     def namespace_to_attr(cls, element, namespace=None):

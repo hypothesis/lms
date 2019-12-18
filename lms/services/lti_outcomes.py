@@ -46,7 +46,8 @@ class LTIOutcomesClient:
 
     @classmethod
     def _pox_wrapper(cls, body):
-        """Envelope for LTI Outcome Service requests sent to the LMS.
+        """
+        Envelope for LTI Outcome Service requests sent to the LMS.
 
         See https://www.imsglobal.org/specs/ltiomv1p0/specification for
         specs for all messages.
@@ -136,7 +137,7 @@ class LTIOutcomesClient:
 
     @classmethod
     def _canvas_request_modification(
-        cls, request, lti_launch_url=None, submitted_at=None, **kwargs
+        cls, request, lti_launch_url=None, submitted_at=None, **_
     ):
 
         if lti_launch_url:
