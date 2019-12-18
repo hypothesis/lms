@@ -1,8 +1,8 @@
-from pyexpat import ExpatError
 from typing import NamedTuple
-from xml.etree import ElementTree
-import xmltodict
+from xml.parsers.expat import ExpatError
+
 import requests
+import xmltodict
 from requests import RequestException
 from requests_oauthlib import OAuth1
 
@@ -39,31 +39,8 @@ class LTIOutcomesClient:
     See https://www.imsglobal.org/specs/ltiomv1p0/specification.
     """
 
-    XML_NS = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0"
-
     def __init__(self, _context, request):
         pass
-
-    @classmethod
-    def _pox_wrapper(cls, body):
-        """
-        Envelope for LTI Outcome Service requests sent to the LMS.
-
-        See https://www.imsglobal.org/specs/ltiomv1p0/specification for
-        specs for all messages.
-        """
-        return {
-            "imsx_POXEnvelopeRequest": {
-                "@xmlns": cls.XML_NS,
-                "imsx_POXHeader": {
-                    "imsx_POXRequestHeaderInfo": {
-                        "imsx_version": "V1.0",
-                        "imsx_messageIdentifier": "999999123",
-                    }
-                },
-                "imsx_POXBody": body,
-            }
-        }
 
     def read_result(self, outcomes_request_params):  # pylint:disable=no-self-use
         """
@@ -75,7 +52,7 @@ class LTIOutcomesClient:
 
         result = self._send_request(
             outcomes_request_params,
-            body={
+            request_body={
                 "readResultRequest": {
                     "resultRecord": {
                         "sourcedGUID": {
@@ -132,7 +109,7 @@ class LTIOutcomesClient:
         self._canvas_request_modification(request, **kwargs)
 
         self._send_request(
-            outcomes_request_params, body={"replaceResultRequest": request}
+            outcomes_request_params, request_body={"replaceResultRequest": request}
         )
 
     @classmethod
@@ -147,65 +124,74 @@ class LTIOutcomesClient:
             request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
     @classmethod
-    def _send_request(cls, outcomes_request_params, body):
+    def _send_request(cls, outcomes_request_params, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
-        :arg pox_body: The content of the `imsx_POXBody` element in the request
-        :return: Parsed XML response
-        :rtype: ElementTree.Element
+        :arg request_body: The content of the `imsx_POXBody` to send
+        :return: The returned POX body element
+        :rtype: dict
         """
 
-        xml_data = cls._pox_wrapper(body)
-        xml_body = xmltodict.unparse(xml_data)
+        xml_body = xmltodict.unparse(cls._pox_wrapper(request_body))
 
-        # Sign request using OAuth 1.0.
-        oauth_client = OAuth1(
-            client_key=outcomes_request_params.consumer_key,
-            client_secret=outcomes_request_params.shared_secret,
-            signature_method="HMAC-SHA1",
-            signature_type="auth_header",
-            # Include the body when signing the request, this defaults to `False`
-            # for non-form encoded bodies.
-            force_include_body=True,
-        )
+        # Bind the variable so we can refer to it in the catch
+        response = None
 
         try:
-            response = None  # Bind the variable so we can refer to it in the catch
             response = requests.post(
                 url=outcomes_request_params.lis_outcome_service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
-                auth=oauth_client,
+                # Sign request using OAuth 1.0
+                auth=cls._get_oauth_client(
+                    consumer_key=outcomes_request_params.consumer_key,
+                    shared_secret=outcomes_request_params.shared_secret,
+                ),
             )
-            # The following will raise ``requests.exceptions.HTTPError`` if
-            # there was an HTTP-related problem with the request. This
-            # exception is a subclass of ``requests.exceptions.RequestError``.
+
+            # Raise an exception if the status is bad
             response.raise_for_status()
-        except RequestException as err:
-            # Handle any kind of ``RequestException``, be it an ``HTTPError``
-            # or other flavor of ``RequestException``.
+
+        except RequestException as e:
             raise LTIOutcomesAPIError(
                 "Error calling LTI Outcomes service", response
-            ) from err
+            ) from e
 
-        # Parse response and check status code embedded in XML.
         try:
-            xml_data = xmltodict.parse(response.text)
-        except ExpatError as err:
+            data = xmltodict.parse(response.text)
+        except ExpatError as e:
             raise LTIOutcomesAPIError(
                 "Unable to parse XML response from LTI Outcomes service", response
-            ) from err
+            ) from e
+
+        return cls._get_body(data)
+
+    @classmethod
+    def _get_oauth_client(cls, consumer_key, shared_secret):
+        return OAuth1(
+            client_key=consumer_key,
+            client_secret=shared_secret,
+            signature_method="HMAC-SHA1",
+            signature_type="auth_header",
+            # Include the body when signing the request, this defaults to
+            # `False` for non-form encoded bodies.
+            force_include_body=True,
+        )
+
+    @classmethod
+    def _get_body(cls, data):
+        """Return the POX body element, checking for errors."""
 
         try:
-            pox_body = xml_data["imsx_POXEnvelopeResponse"]["imsx_POXBody"]
-            pox_header = xml_data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
-            status = pox_header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
+            body = data["imsx_POXEnvelopeResponse"]["imsx_POXBody"]
+            header = data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
+            status = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
                 "imsx_codeMajor"
             ]
 
-        except KeyError:
-            raise LTIOutcomesAPIError("Failed to parse LTI outcome response")
+        except KeyError as e:
+            raise LTIOutcomesAPIError("Malformed LTI outcome response") from e
 
         if status is None:
             raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
@@ -213,4 +199,25 @@ class LTIOutcomesClient:
         if status != "success":
             raise LTIOutcomesAPIError("LTI outcome request failed")
 
-        return pox_body
+        return body
+
+    @classmethod
+    def _pox_wrapper(cls, body):
+        """
+        Envelope for LTI Outcome Service requests sent to the LMS.
+
+        See https://www.imsglobal.org/specs/ltiomv1p0/specification for
+        specs for all messages.
+        """
+        return {
+            "imsx_POXEnvelopeRequest": {
+                "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
+                "imsx_POXHeader": {
+                    "imsx_POXRequestHeaderInfo": {
+                        "imsx_version": "V1.0",
+                        "imsx_messageIdentifier": "999999123",
+                    }
+                },
+                "imsx_POXBody": body,
+            }
+        }

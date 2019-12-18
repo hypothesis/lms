@@ -2,9 +2,9 @@ import datetime
 
 import httpretty
 import pytest
+import xmltodict
 from requests import RequestException
 
-import xmltodict
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 
