@@ -367,7 +367,7 @@ class BasicLTILaunchViews:
             # of the experience can still work.
             display_name = "(Couldn't fetch student name)"
 
-        # TODO! - Could/should this be replaced with a LISSourcedId lookup?
+        # TODO! - Could/should this be replaced with a LISResultSourcedId lookup?
         self.context.hypothesis_config.update(
             {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
         )
