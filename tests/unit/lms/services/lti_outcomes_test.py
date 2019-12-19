@@ -3,53 +3,18 @@ from xml.etree import ElementTree
 
 import httpretty
 import pytest
-from jinja2 import Template
+import xmltodict
 from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
-
-LTI_OUTCOME_RESPONSE_TEMPLATE = Template(
-    """<?xml version="1.0" encoding="UTF-8"?>
-<imsx_POXEnvelopeResponse
-  xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0"
->
-  <imsx_POXHeader>
-    <imsx_POXResponseHeaderInfo>
-      <imsx_version>V1.0</imsx_version>
-      <imsx_messageIdentifier>1313355158804</imsx_messageIdentifier>
-      {% if not exclude_status %}
-      <imsx_statusInfo>
-        <imsx_codeMajor>{{ status_code|default('success') }}</imsx_codeMajor>
-        <imsx_severity>status</imsx_severity>
-        <imsx_description>Result read</imsx_description>
-        <imsx_messageRefIdentifier>999999123</imsx_messageRefIdentifier>
-        <imsx_operationRefIdentifier>readResult</imsx_operationRefIdentifier>
-      </imsx_statusInfo>
-      {% endif %}
-    </imsx_POXResponseHeaderInfo>
-  </imsx_POXHeader>
-  <imsx_POXBody>
-    <readResultResponse>
-      <result>
-        <resultScore>
-          <language>en</language>
-          {% if not exclude_score %}
-          <textString>{{ score }}</textString>
-          {% endif %}
-        </resultScore>
-      </result>
-    </readResultResponse>
-  </imsx_POXBody>
-</imsx_POXEnvelopeResponse>"""
-)
 
 
 class TestLTIOutcomesClient:
     def test_read_result_sends_expected_request(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response, request_xml
     ):
-        configure_response({"score": 0.95})
+        configure_response(score=0.95)
 
         lti_outcomes_svc.read_result(lti_outcomes_params)
 
@@ -70,7 +35,7 @@ class TestLTIOutcomesClient:
     def test_read_result_returns_float_score(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({"score": 0.95})
+        configure_response(score=0.95)
 
         score = lti_outcomes_svc.read_result(lti_outcomes_params)
 
@@ -79,7 +44,7 @@ class TestLTIOutcomesClient:
     def test_read_result_returns_none_if_no_score(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({"exclude_score": True})
+        configure_response(score=None)
 
         score = lti_outcomes_svc.read_result(lti_outcomes_params)
 
@@ -89,7 +54,7 @@ class TestLTIOutcomesClient:
     def test_read_result_returns_none_if_score_not_a_float(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response, score_text
     ):
-        configure_response({"score": score_text})
+        configure_response(score=score_text)
 
         score = lti_outcomes_svc.read_result(lti_outcomes_params)
 
@@ -98,7 +63,7 @@ class TestLTIOutcomesClient:
     def test_record_result_sends_sourcedid(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response, request_xml
     ):
-        configure_response({})
+        configure_response()
 
         lti_outcomes_svc.record_result(lti_outcomes_params)
         xml = request_xml()
@@ -116,7 +81,7 @@ class TestLTIOutcomesClient:
         configure_response,
         record_result_request_fields,
     ):
-        configure_response({})
+        configure_response()
 
         lti_outcomes_svc.record_result(lti_outcomes_params, score=0.5)
 
@@ -129,7 +94,7 @@ class TestLTIOutcomesClient:
         configure_response,
         record_result_request_fields,
     ):
-        configure_response({})
+        configure_response()
         lti_launch_url = "https://lms.hypothes.is/lti_launches"
 
         lti_outcomes_svc.record_result(
@@ -145,7 +110,7 @@ class TestLTIOutcomesClient:
         configure_response,
         record_result_request_fields,
     ):
-        configure_response({})
+        configure_response()
         submitted_at = datetime.datetime(2010, 1, 1)
 
         lti_outcomes_svc.record_result(lti_outcomes_params, submitted_at=submitted_at)
@@ -157,7 +122,7 @@ class TestLTIOutcomesClient:
     def test_it_signs_request_with_oauth1(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({})
+        configure_response()
 
         lti_outcomes_svc.record_result(lti_outcomes_params)
 
@@ -175,7 +140,7 @@ class TestLTIOutcomesClient:
     def test_requests_fail_if_http_status_is_error(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({}, status=400)
+        configure_response(status=400)
 
         with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
@@ -194,14 +159,14 @@ class TestLTIOutcomesClient:
     def test_requests_fail_if_no_status(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({"exclude_status": True})
+        configure_response(include_status=False)
         with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
     def test_requests_fail_if_status_is_not_success(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response({"status_code": "failure"})
+        configure_response(status_code="failure")
 
         with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
@@ -267,10 +232,42 @@ class TestLTIOutcomesClient:
 
         return get_fields
 
+    @classmethod
+    def make_response(cls, score, include_status, status_code):
+        header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
+
+        if include_status:
+            header_info["imsx_statusInfo"] = {
+                "imsx_codeMajor": status_code,
+                "imsx_severity": "status",
+                "imsx_description": "Result read",
+                "imsx_messageRefIdentifier": "999999123",
+                "imsx_operationRefIdentifier": "readResult",
+            }
+
+        result_score = {"language": "en"}
+        if score:
+            result_score["textString"] = score
+
+        return xmltodict.unparse(
+            {
+                "imsx_POXEnvelopeResponse": {
+                    "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
+                    "imsx_POXHeader": {"imsx_POXResponseHeaderInfo": header_info},
+                    "imsx_POXBody": {
+                        "readResultResponse": {"result": {"resultScore": result_score}}
+                    },
+                }
+            }
+        )
+
     @pytest.fixture
     def configure_response(self, lti_outcomes_params):
-        def configure(template_params, status=200):
-            response_body = LTI_OUTCOME_RESPONSE_TEMPLATE.render(**template_params)
+        def configure(
+            score=None, include_status=True, status_code="success", status=200
+        ):
+            response_body = self.make_response(score, include_status, status_code)
+
             httpretty.register_uri(
                 httpretty.POST,
                 lti_outcomes_params.lis_outcome_service_url,

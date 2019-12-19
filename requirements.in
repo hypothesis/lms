@@ -17,3 +17,4 @@ requests_oauthlib
 requests
 pycrypto==2.6.1
 webargs
+xmltodict
