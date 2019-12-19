@@ -39,7 +39,8 @@ class LTIOutcomesClient:
         """
         Return the last-submitted score for a given submission.
 
-        :return: The last-submitted score or `None` if no score has been submitted.
+        :return: The last-submitted score or `None` if no score has been
+                 submitted.
         """
 
         result = self._send_request(
@@ -77,11 +78,11 @@ class LTIOutcomesClient:
             This is only used in Canvas.
         :arg submitted_at:
         :type datetime.datetime:
-            A `datetime.datetime` that indicates when the submission was created.
-            This is only used in Canvas and is displayed in the SpeedGrader
-            as the submission date.
-            If the submission date matches an existing submission then the
-            existing submission is updated rather than creating a new submission.
+            A `datetime.datetime` that indicates when the submission was
+            created. This is only used in Canvas and is displayed in the
+            SpeedGrader as the submission date. If the submission date matches
+            an existing submission then the existing submission is updated
+            rather than creating a new submission.
         """
 
         request = {
@@ -131,21 +132,21 @@ class LTIOutcomesClient:
 
         xml_body = xmltodict.unparse(self._pox_envelope(request_body))
 
+        # Bind the variable so we can refer to it in the catch
+        response = None
+
         try:
-            response = None  # Bind the variable so we can refer to it in the catch
             response = requests.post(
                 url=outcomes_request_params.lis_outcome_service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
             )
-            # The following will raise ``requests.exceptions.HTTPError`` if
-            # there was an HTTP-related problem with the request. This exception
-            # is a subclass of ``requests.exceptions.RequestError``.
+
+            # Raise an exception if the status is bad
             response.raise_for_status()
+
         except RequestException as err:
-            # Handle any kind of ``RequestException``, be it an ``HTTPError`` or other
-            # flavor of ``RequestException``.
             raise LTIOutcomesAPIError(
                 "Error calling LTI Outcomes service", response
             ) from err
