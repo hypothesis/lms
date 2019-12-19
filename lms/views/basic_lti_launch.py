@@ -351,7 +351,7 @@ class BasicLTILaunchViews:
         # If the launch has been configured to focus on the annotations from
         # a particular user, translate that into Hypothesis client configuration.
 
-        # This parameter is only passed as a part of Canvas Speedgrader config
+        # This parameter is only passed as a part of Canvas SpeedGrader config
         # and is passed as a parameter to a URL which they call us back on.
         focused_user = self.request.params.get("focused_user")
         if not focused_user:
