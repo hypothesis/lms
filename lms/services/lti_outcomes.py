@@ -4,7 +4,6 @@ from xml.parsers.expat import ExpatError
 import requests
 import xmltodict
 from requests import RequestException
-from requests_oauthlib import OAuth1
 
 from lms.services.exceptions import LTIOutcomesAPIError
 
@@ -13,12 +12,6 @@ __all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
 
 class LTIOutcomesRequestParams(NamedTuple):
     """Common parameters used by all LTI Outcomes Management requests."""
-
-    consumer_key: str
-    """OAuth 1.0 consumer key used to sign the request."""
-
-    shared_secret: str
-    """OAuth 1.0 shared secret used to sign the request."""
 
     lis_outcome_service_url: str
     """URL to submit requests to, provided by the LMS during an LTI launch."""
@@ -40,7 +33,7 @@ class LTIOutcomesClient:
     """
 
     def __init__(self, _context, request):
-        pass
+        self.oauth1_service = request.find_service(name="oauth1")
 
     def read_result(self, outcomes_request_params):  # pylint:disable=no-self-use
         """
@@ -126,8 +119,7 @@ class LTIOutcomesClient:
         if submitted_at:
             request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
-    @classmethod
-    def _send_request(cls, outcomes_request_params, request_body):
+    def _send_request(self, outcomes_request_params, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -137,18 +129,7 @@ class LTIOutcomesClient:
         :rtype: dict
         """
 
-        xml_body = xmltodict.unparse(cls._pox_envelope(request_body))
-
-        # Sign request using OAuth 1.0.
-        oauth_client = OAuth1(
-            client_key=outcomes_request_params.consumer_key,
-            client_secret=outcomes_request_params.shared_secret,
-            signature_method="HMAC-SHA1",
-            signature_type="auth_header",
-            # Include the body when signing the request, this defaults to `False`
-            # for non-form encoded bodies.
-            force_include_body=True,
-        )
+        xml_body = xmltodict.unparse(self._pox_envelope(request_body))
 
         try:
             response = None  # Bind the variable so we can refer to it in the catch
@@ -156,7 +137,7 @@ class LTIOutcomesClient:
                 url=outcomes_request_params.lis_outcome_service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
-                auth=oauth_client,
+                auth=self.oauth1_service.get_client(),
             )
             # The following will raise ``requests.exceptions.HTTPError`` if
             # there was an HTTP-related problem with the request. This exception
@@ -176,7 +157,7 @@ class LTIOutcomesClient:
                 "Unable to parse XML response from LTI Outcomes service", response
             ) from e
 
-        return cls._get_body(data)
+        return self._get_body(data)
 
     @classmethod
     def _get_body(cls, data):

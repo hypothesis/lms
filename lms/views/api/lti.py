@@ -20,14 +20,7 @@ class LTIOutcomesViews:
         self.parsed_params = self.request.parsed_params
         self.lti_outcomes_client = self.request.find_service(name="lti_outcomes_client")
 
-        lti_user = self.request.lti_user
-
-        shared_secret = self.request.find_service(name="ai_getter").shared_secret(
-            lti_user.oauth_consumer_key
-        )
         self.outcome_request_params = LTIOutcomesRequestParams(
-            consumer_key=lti_user.oauth_consumer_key,
-            shared_secret=shared_secret,
             lis_outcome_service_url=self.parsed_params["lis_outcome_service_url"],
             lis_result_sourcedid=self.parsed_params["lis_result_sourcedid"],
         )
