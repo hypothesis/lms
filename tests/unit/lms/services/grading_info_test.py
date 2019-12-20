@@ -3,47 +3,42 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import LISResultSourcedId
+from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
-from lms.services.lis_result_sourcedid import LISResultSourcedIdService
+from lms.services.grading_info import GradingInfoService
 from lms.values import HUser, LTIUser
 
 
-class TestFetchStudentsByAssignment:
+class TestGetByAssignment:
     def test_it_retrieves_matching_records(
-        self,
-        svc,
-        lti_params,
-        lis_result_sourcedid,
-        another_lis_result_sourcedid,
-        lti_user,
+        self, svc, lti_params, grading_info, another_grading_info, lti_user,
     ):
 
-        students = svc.fetch_students_by_assignment(
+        grading_infos = svc.get_by_assignment(
             oauth_consumer_key=lti_user.oauth_consumer_key,
             context_id=lti_params["context_id"],
             resource_link_id=lti_params["resource_link_id"],
         )
 
-        assert len(students) == 2
+        assert len(grading_infos) == 2
 
     def test_it_returns_empty_list_if_no_matching_records(
         self, svc, lti_params, lti_user
     ):
-        students = svc.fetch_students_by_assignment(
+        grading_infos = svc.get_by_assignment(
             oauth_consumer_key=lti_user.oauth_consumer_key,
             context_id=lti_params["context_id"],
             resource_link_id=lti_params["resource_link_id"],
         )
 
-        assert not students
+        assert not grading_infos
 
     @pytest.fixture
-    def another_lis_result_sourcedid(self, lti_params, db_session):
-        another_lis_result_sourcedid = LISResultSourcedId(**lti_params)
+    def another_grading_info(self, lti_params, db_session):
+        another_grading_info = GradingInfo(**lti_params)
 
         add_users(
-            another_lis_result_sourcedid,
+            another_grading_info,
             h_user=HUser(
                 authority="TEST_AUTHORITY",
                 username="teststudent",
@@ -52,8 +47,8 @@ class TestFetchStudentsByAssignment:
             lti_user=LTIUser("TEST_USER_ID_2", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"),
         )
 
-        db_session.add(another_lis_result_sourcedid)
-        return another_lis_result_sourcedid
+        db_session.add(another_grading_info)
+        return another_grading_info
 
 
 class TestUpsertFromRequest:
@@ -63,7 +58,7 @@ class TestUpsertFromRequest:
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
         result = db_session.get_last_inserted()
-        assert result == Any.instance_of(LISResultSourcedId)
+        assert result == Any.instance_of(GradingInfo)
 
         # Check the lti_params are there
         assert self.model_as_dict(result) == Any.dict.containing(lti_params)
@@ -82,7 +77,7 @@ class TestUpsertFromRequest:
         pyramid_request,
         h_user,
         lti_user,
-        lis_result_sourcedid,
+        grading_info,
         db_session,
         lti_params,
     ):
@@ -94,7 +89,7 @@ class TestUpsertFromRequest:
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
         result = db_session.get_last_inserted()
-        assert result == Any.instance_of(LISResultSourcedId)
+        assert result == Any.instance_of(GradingInfo)
         assert result.lis_result_sourcedid == "something different"
         assert result.h_display_name == "Someone Else"
 
@@ -123,7 +118,7 @@ class TestUpsertFromRequest:
         del pyramid_request.POST[param]
 
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
-        assert db_session.get_last_inserted() == Any.instance_of(LISResultSourcedId)
+        assert db_session.get_last_inserted() == Any.instance_of(GradingInfo)
 
     @classmethod
     def model_as_dict(cls, model):
@@ -132,7 +127,7 @@ class TestUpsertFromRequest:
     @pytest.fixture
     def db_session(self, db_session):
         db_session.get_last_inserted = lambda: db_session.query(
-            LISResultSourcedId
+            GradingInfo
         ).one_or_none()
         return db_session
 
@@ -161,7 +156,7 @@ def svc(pyramid_request):
         LTILaunchResource, spec_set=True, instance=True, h_user=h_user
     )
 
-    return LISResultSourcedIdService(context, pyramid_request)
+    return GradingInfoService(context, pyramid_request)
 
 
 @pytest.fixture
@@ -175,19 +170,19 @@ def lti_params():
     }
 
 
-def add_users(lis_result_sourcedid, h_user, lti_user):
-    lis_result_sourcedid.h_username = h_user.username
-    lis_result_sourcedid.h_display_name = h_user.display_name
+def add_users(grading_info, h_user, lti_user):
+    grading_info.h_username = h_user.username
+    grading_info.h_display_name = h_user.display_name
 
-    lis_result_sourcedid.oauth_consumer_key = lti_user.oauth_consumer_key
-    lis_result_sourcedid.user_id = lti_user.user_id
+    grading_info.oauth_consumer_key = lti_user.oauth_consumer_key
+    grading_info.user_id = lti_user.user_id
 
 
 @pytest.fixture
-def lis_result_sourcedid(lti_params, h_user, lti_user, db_session):
-    lis_result_sourcedid = LISResultSourcedId(**lti_params)
+def grading_info(lti_params, h_user, lti_user, db_session):
+    grading_info = GradingInfo(**lti_params)
 
-    add_users(lis_result_sourcedid, h_user, lti_user)
+    add_users(grading_info, h_user, lti_user)
 
-    db_session.add(lis_result_sourcedid)
-    return lis_result_sourcedid
+    db_session.add(grading_info)
+    return grading_info

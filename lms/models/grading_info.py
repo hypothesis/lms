@@ -4,10 +4,10 @@ import sqlalchemy as sa
 
 from lms.db import BASE
 
-__all__ = ["LISResultSourcedId"]
+__all__ = ["GradingInfo"]
 
 
-class LISResultSourcedId(BASE):
+class GradingInfo(BASE):
     """
     A record of a student's launch of a Hypothesis-configured LMS assignment.
 

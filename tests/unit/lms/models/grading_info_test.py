@@ -1,15 +1,15 @@
 import pytest
 import sqlalchemy.exc
 
-from lms.models import ApplicationInstance, LISResultSourcedId
+from lms.models import ApplicationInstance, GradingInfo
 
 
-class TestLISResultSourcedId:
+class TestGradingInfo:
     def test_it_persists_and_returns_attrs(
-        self, application_instance, db_session, lis_result_sourcedid
+        self, application_instance, db_session, grading_info
     ):
-        db_session.add(lis_result_sourcedid)
-        lrs = db_session.query(LISResultSourcedId).one()
+        db_session.add(grading_info)
+        lrs = db_session.query(GradingInfo).one()
 
         assert lrs.lis_result_sourcedid == "result_sourcedid"
         assert lrs.lis_outcome_service_url == "https://somewhere.else"
@@ -35,10 +35,10 @@ class TestLISResultSourcedId:
         ],
     )
     def test_it_enforces_non_nullable_field_presence(
-        self, db_session, lis_result_sourcedid, non_nullable_field
+        self, db_session, grading_info, non_nullable_field
     ):
-        setattr(lis_result_sourcedid, non_nullable_field, None)
-        db_session.add(lis_result_sourcedid)
+        setattr(grading_info, non_nullable_field, None)
+        db_session.add(grading_info)
         with pytest.raises(
             sqlalchemy.exc.IntegrityError,
             match=f'null value in column "{non_nullable_field}" violates not-null constraint',
@@ -46,10 +46,10 @@ class TestLISResultSourcedId:
             db_session.flush()
 
     def test_it_enforces_uniqueness_constraint(
-        self, lis_result_sourcedid, lis_result_duplicate_sourcedid, db_session
+        self, grading_info, grading_info_duplicate, db_session
     ):
-        db_session.add(lis_result_sourcedid)
-        db_session.add(lis_result_duplicate_sourcedid)
+        db_session.add(grading_info)
+        db_session.add(grading_info_duplicate)
 
         with pytest.raises(
             sqlalchemy.exc.IntegrityError,
@@ -59,7 +59,7 @@ class TestLISResultSourcedId:
 
     @pytest.fixture
     def application_instance(self, db_session):
-        """The ApplicationInstance that the LISResultSourcedIds belong to"""
+        """The ApplicationInstance that the GradingInfos belong to"""
         application_instance = ApplicationInstance(
             consumer_key="test_consumer_key",
             shared_secret="test_shared_secret",
@@ -70,29 +70,29 @@ class TestLISResultSourcedId:
         return application_instance
 
     @pytest.fixture
-    def lis_result_sourcedid(self, application_instance):
-        return LISResultSourcedId(
-            lis_result_sourcedid="result_sourcedid",
-            lis_outcome_service_url="https://somewhere.else",
-            oauth_consumer_key=application_instance.consumer_key,
-            user_id="339483948",
-            context_id="random context",
-            resource_link_id="random resource link id",
-            tool_consumer_info_product_family_code="MyFakeLTITool",
-            h_username="ltiuser1",
-            h_display_name="My Fake LTI User",
+    def grading_info(self, grading_info_params):
+        return GradingInfo(**grading_info_params)
+
+    @pytest.fixture
+    def grading_info_duplicate(self, grading_info_params):
+        return GradingInfo(
+            **dict(
+                grading_info_params,
+                lis_result_sourcedid="result_sourcedid_another",
+                lis_outcome_service_url="https://somewhere.else_yet",
+            )
         )
 
     @pytest.fixture
-    def lis_result_duplicate_sourcedid(self, application_instance):
-        return LISResultSourcedId(
-            lis_result_sourcedid="result_sourcedid_another",
-            lis_outcome_service_url="https://somewhere.else_yet",
-            oauth_consumer_key=application_instance.consumer_key,
-            user_id="339483948",
-            context_id="random context",
-            resource_link_id="random resource link id",
-            tool_consumer_info_product_family_code="MyFakeLTITool",
-            h_username="ltiuser1",
-            h_display_name="My Fake LTI User",
-        )
+    def grading_info_params(self, application_instance):
+        return {
+            "lis_result_sourcedid": "result_sourcedid",
+            "lis_outcome_service_url": "https://somewhere.else",
+            "oauth_consumer_key": application_instance.consumer_key,
+            "user_id": "339483948",
+            "context_id": "random context",
+            "resource_link_id": "random resource link id",
+            "tool_consumer_info_product_family_code": "MyFakeLTITool",
+            "h_username": "ltiuser1",
+            "h_display_name": "My Fake LTI User",
+        }

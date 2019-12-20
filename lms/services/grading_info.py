@@ -1,13 +1,13 @@
 from marshmallow import fields
 
-from lms.models import LISResultSourcedId
+from lms.models import GradingInfo
 from lms.validation import PyramidRequestSchema, ValidationError
 
-__all__ = ["LISResultSourcedIdService"]
+__all__ = ["GradingInfoService"]
 
 
-class LISResultSourcedIdService:
-    """Methods for interacting with LISResultSourcedId records."""
+class GradingInfoService:
+    """Methods for interacting with GradingInfo records."""
 
     class _ParamsSchema(PyramidRequestSchema):
         """Schema for the relevant parameters from the request."""
@@ -23,17 +23,15 @@ class LISResultSourcedIdService:
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
 
-    def fetch_students_by_assignment(
-        self, oauth_consumer_key, context_id, resource_link_id
-    ):
+    def get_by_assignment(self, oauth_consumer_key, context_id, resource_link_id):
         """
-        Fetch data for students having LIS result records for an assignment.
+        Get available grading data for students for an assignment.
 
-        Retrieve all :class:`~lms.models.LISResultSourcedId`s that match this
+        Retrieve all :class:`~lms.models.GradingInfo`s that match this
         assignment (each unique combination of (``oauth_consumer_key``,
         ``context_id``, ``resource_link_id``) corresponds to an assignment).
         There should be one record per applicable student who has launched this
-        assignment (and had ``LISresultSourcedId`` data persisted for them).
+        assignment (and had ``GradingInfo`` data persisted for them).
 
         :arg oauth_consumer_key: Which LMS application install the request
                                  corresponds to.
@@ -42,10 +40,10 @@ class LISResultSourcedIdService:
         :type context_id: str
         :arg resource_link_id: LTI parameter (roughly) equating to an assignment
         :type resource_link_id: str
-        :rtype: list[:class:`lms.models.LISResultSourcedId`]
+        :rtype: list[:class:`lms.models.GradingInfo`]
         """
         return (
-            self._db.query(LISResultSourcedId)
+            self._db.query(GradingInfo)
             .filter_by(
                 oauth_consumer_key=oauth_consumer_key,
                 context_id=context_id,
@@ -75,18 +73,18 @@ class LISResultSourcedIdService:
             # LIS data is not present on the request.
             return
 
-        lis_result_sourcedid = self._find_or_create(
-            LISResultSourcedId,
+        grading_info = self._find_or_create(
+            GradingInfo,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],
         )
 
-        lis_result_sourcedid.h_username = h_user.username
-        lis_result_sourcedid.h_display_name = h_user.display_name
+        grading_info.h_username = h_user.username
+        grading_info.h_display_name = h_user.display_name
 
-        lis_result_sourcedid.update_from_dict(parsed_params)
+        grading_info.update_from_dict(parsed_params)
 
     def _find_or_create(self, model_class, **query):
         result = self._db.query(model_class).filter_by(**query).one_or_none()

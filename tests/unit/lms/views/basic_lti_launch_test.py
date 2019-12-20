@@ -5,8 +5,8 @@ from h_matchers import Any
 
 from lms.resources import LTILaunchResource
 from lms.services import HAPIError
+from lms.services.grading_info import GradingInfoService
 from lms.services.h_api import HAPI
-from lms.services.lis_result_sourcedid import LISResultSourcedIdService
 from lms.services.lti_h import LTIHService
 from lms.validation.authentication._helpers._jwt import decode_jwt
 from lms.values import HUser, LTIUser
@@ -141,32 +141,32 @@ class ConfiguredLaunch:
             pyramid_request.params["oauth_consumer_key"],
         )
 
-    def test_it_calls_lis_result_upsert(
-        self, context, pyramid_request, lis_result_sourcedid_service
+    def test_it_calls_grading_info_upsert(
+        self, context, pyramid_request, grading_info_service
     ):
         self.make_request(context, pyramid_request)
 
-        lis_result_sourcedid_service.upsert_from_request.assert_called_once_with(
+        grading_info_service.upsert_from_request.assert_called_once_with(
             pyramid_request, h_user=context.h_user, lti_user=pyramid_request.lti_user
         )
 
-    def test_it_does_not_call_list_result_upsert_if_instructor(
-        self, context, pyramid_request, lis_result_sourcedid_service
+    def test_it_does_not_call_grading_info_upsert_if_instructor(
+        self, context, pyramid_request, grading_info_service
     ):
         pyramid_request.lti_user = LTIUser("USER_ID", "OAUTH_STUFF", roles="instructor")
 
         self.make_request(context, pyramid_request)
 
-        lis_result_sourcedid_service.upsert_from_request.assert_not_called()
+        grading_info_service.upsert_from_request.assert_not_called()
 
-    def test_it_does_not_call_list_result_upsert_if_canvas(
-        self, context, pyramid_request, lis_result_sourcedid_service
+    def test_it_does_not_call_grading_info_upsert_if_canvas(
+        self, context, pyramid_request, grading_info_service
     ):
         pyramid_request.params["tool_consumer_info_product_family_code"] = "canvas"
 
         self.make_request(context, pyramid_request)
 
-        lis_result_sourcedid_service.upsert_from_request.assert_not_called()
+        grading_info_service.upsert_from_request.assert_not_called()
 
     @pytest.fixture
     def frontend_app(self, patch):
@@ -177,14 +177,12 @@ class ConfiguredLaunch:
         return patch("lms.views.basic_lti_launch.via_url")
 
     @pytest.fixture(autouse=True)
-    def lis_result_sourcedid_service(self, pyramid_config):
-        lis_result_sourcedid_service = mock.create_autospec(
-            LISResultSourcedIdService, instance=True, spec_set=True
+    def grading_info_service(self, pyramid_config):
+        grading_info_service = mock.create_autospec(
+            GradingInfoService, instance=True, spec_set=True
         )
-        pyramid_config.register_service(
-            lis_result_sourcedid_service, name="lis_result_sourcedid"
-        )
-        return lis_result_sourcedid_service
+        pyramid_config.register_service(grading_info_service, name="grading_info")
+        return grading_info_service
 
     @pytest.fixture(autouse=True)
     def lti_h_service(self, pyramid_config):
