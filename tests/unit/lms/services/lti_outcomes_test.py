@@ -42,7 +42,9 @@ class TestLTIOutcomesClient:
         assert score is None
 
     @pytest.mark.parametrize("score_text", [None, "", "not-a-float"])
-    def test_read_result_returns_none_if_score_not_a_float(self, svc, respond_with, score_text):
+    def test_read_result_returns_none_if_score_not_a_float(
+        self, svc, respond_with, score_text
+    ):
         respond_with(score=score_text)
 
         score = svc.read_result(self.GRADING_ID)
@@ -67,26 +69,23 @@ class TestLTIOutcomesClient:
 
         assert score == "0.5"
 
-    def test_record_result_sends_launch_url(self, svc, response):
-        lti_launch_url = "https://lms.hypothes.is/lti_launches"
+    def test_record_result_calls_hook(self, svc, response):
+        def my_hook(score, request_body):
+            request_body["foo"] = score
 
-        svc.record_result(self.GRADING_ID, lti_launch_url=lti_launch_url)
+            return request_body
 
-        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
-        found_launch_url = result_record["result"]["resultData"]["ltiLaunchUrl"]
+        svc.record_result(self.GRADING_ID, score=1.5, pre_record_hook=my_hook)
 
-        assert found_launch_url == lti_launch_url
+        result_record = self.sent_pox_body()["replaceResultRequest"]
+        assert result_record["foo"] == "1.5"
 
-    def test_record_result_sends_submitted_at(self, svc, response):
-        submitted_at = datetime.datetime(2010, 1, 1)
-
-        svc.record_result(self.GRADING_ID, submitted_at=submitted_at)
-
-        found_submitted_at = self.sent_pox_body()["replaceResultRequest"][
-            "submissionDetails"
-        ]["submittedAt"]
-
-        assert found_submitted_at == submitted_at.isoformat()
+    @pytest.mark.parametrize("hook_result", [None, [], "foo"])
+    def test_record_result_requires_dict_result(self, svc, response, hook_result):
+        with pytest.raises(TypeError):
+            svc.record_result(
+                self.GRADING_ID, pre_record_hook=lambda *args, **kwargs: hook_result
+            )
 
     def test_it_signs_request_with_oauth1(self, svc, requests, oauth1_svc):
         requests.post.side_effect = OSError()

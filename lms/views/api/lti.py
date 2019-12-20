@@ -76,7 +76,7 @@ class LTIOutcomesViews:
 
         # If we already have a score, then we've already recorded this info
         if self.lti_outcomes_client.read_result(lis_result_sourcedid):
-            return
+            return None
 
         self.lti_outcomes_client.record_result(
             lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)

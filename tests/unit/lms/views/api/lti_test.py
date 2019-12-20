@@ -1,23 +1,24 @@
 import datetime
 from datetime import timezone
 from unittest import mock
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlparse
 
 import pytest
+from h_matchers import Any
 
 from lms.services.lti_outcomes import LTIOutcomesClient
-from lms.views.api.lti import LTIOutcomesViews
+from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
 
 
 class TestRecordCanvasSpeedgraderSubmission:
+    GRADING_ID = "lis_result_sourcedid"
+
     def test_it_passes_correct_params_to_read_current_score(
         self, pyramid_request, lti_outcomes_client
     ):
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        lti_outcomes_client.read_result.assert_called_once_with(
-            "modelstudent-assignment1"
-        )
+        lti_outcomes_client.read_result.assert_called_once_with(self.GRADING_ID)
 
     def test_it_does_not_record_result_if_score_already_exists(
         self, pyramid_request, lti_outcomes_client
@@ -28,36 +29,18 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         lti_outcomes_client.record_result.assert_not_called()
 
-    @pytest.mark.parametrize(
-        "document_url,canvas_file_id,lti_launch_doc_params",
-        [
-            ("https://example.com", None, {"url": "https://example.com"}),
-            (None, "file123", {"canvas_file": "true", "file_id": "file123"}),
-        ],
-    )
-    def test_it_records_result_if_no_score_exists(
-        self,
-        pyramid_request,
-        lti_outcomes_client,
-        document_url,
-        canvas_file_id,
-        lti_launch_doc_params,
+    def test_it_passes_the_callback_if_there_is_no_score(
+        self, pyramid_request, lti_outcomes_client
     ):
-        pyramid_request.parsed_params.update(
-            {"document_url": document_url, "canvas_file_id": canvas_file_id}
-        )
         lti_outcomes_client.read_result.return_value = None
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        expected_submitted_at = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
-        expected_launch_url = "http://example.com/lti_launches?" + urlencode(
-            {"focused_user": "user123", **lti_launch_doc_params}
-        )
         lti_outcomes_client.record_result.assert_called_once_with(
-            "modelstudent-assignment1",
-            lti_launch_url=expected_launch_url,
-            submitted_at=expected_submitted_at,
+            self.GRADING_ID,
+            pre_record_hook=Any.instance_of(CanvasPreRecordHook),
+            # lti_launch_url=expected_launch_url,
+            # submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
         )
 
     @pytest.fixture
@@ -73,9 +56,42 @@ class TestRecordCanvasSpeedgraderSubmission:
             # Metadata provided by LMS for requests to LTI Outcomes Management
             # service.
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
-            "lis_result_sourcedid": "modelstudent-assignment1",
+            "lis_result_sourcedid": self.GRADING_ID,
         }
         return pyramid_request
+
+
+class TestCanvasPreRecordHook:
+    @pytest.mark.parametrize(
+        "parsed_params,url_params",
+        [
+            [{"document_url": "https://example.com"}, {"url": ["https://example.com"]}],
+            [
+                {"canvas_file_id": "file123"},
+                {"canvas_file": ["true"], "file_id": ["file123"]},
+            ],
+        ],
+    )
+    def test_it_sets_expected_fields(self, pyramid_request, parsed_params, url_params):
+        parsed_params["h_username"] = "h_username"
+        pyramid_request.parsed_params = parsed_params
+
+        result = CanvasPreRecordHook(pyramid_request)(
+            score=None, request_body={"resultRecord": {}}
+        )
+
+        assert result == {
+            "resultRecord": {"result": {"resultData": {"ltiLaunchUrl": Any.string()}}},
+            "submissionDetails": {
+                "submittedAt": datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+            },
+        }
+
+        launch_url = result["resultRecord"]["result"]["resultData"]["ltiLaunchUrl"]
+        assert launch_url.startswith("http://example.com/lti_launches?")
+
+        query_string = parse_qs(urlparse(launch_url).query)
+        assert query_string == dict(url_params, focused_user=["h_username"])
 
 
 class TestReadResult:
