@@ -177,6 +177,17 @@ class TestLTIOutcomesClient:
         return cls.sent_body()["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
 
     @classmethod
+    def assert_sent_header_ok(cls):
+        """Check standard header fields of the request body."""
+
+        body = cls.sent_body()
+
+        header = body["imsx_POXEnvelopeRequest"]["imsx_POXHeader"]
+        message_id = header["imsx_POXRequestHeaderInfo"]["imsx_messageIdentifier"]
+
+        assert message_id == "999999123"
+
+    @classmethod
     def make_response(cls, score, include_status, status_code):
         header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
 
@@ -243,14 +254,3 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def requests(self, patch):
         return patch("lms.services.lti_outcomes.requests")
-
-    @classmethod
-    def assert_sent_header_ok(cls):
-        """Check standard header fields of the request body."""
-
-        body = cls.sent_body()
-
-        header = body["imsx_POXEnvelopeRequest"]["imsx_POXHeader"]
-        message_id = header["imsx_POXRequestHeaderInfo"]["imsx_messageIdentifier"]
-
-        assert message_id == "999999123"
