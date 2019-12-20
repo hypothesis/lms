@@ -71,11 +71,16 @@ class TestBasicLTILaunch:
 
         assert "submissionParams" not in context.js_config
 
-    def test_it_configures_client_to_focus_on_user_if_param_set(
+    def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
         self, context, pyramid_request, h_api
     ):
         context.hypothesis_config = {}
-        pyramid_request.params.update({"focused_user": "user123"})
+        pyramid_request.params.update(
+            {
+                "tool_consumer_info_product_family_code": "canvas",
+                "focused_user": "user123",
+            }
+        )
         h_api.get_user.return_value = HUser(
             authority="TEST_AUTHORITY", username="user123", display_name="Jim Smith"
         )
@@ -91,7 +96,12 @@ class TestBasicLTILaunch:
         self, context, pyramid_request, h_api
     ):
         context.hypothesis_config = {}
-        pyramid_request.params.update({"focused_user": "user123"})
+        pyramid_request.params.update(
+            {
+                "focused_user": "user123",
+                "tool_consumer_info_product_family_code": "canvas",
+            }
+        )
         h_api.get_user.side_effect = HAPIError("User does not exist")
 
         BasicLTILaunchViews(context, pyramid_request)
