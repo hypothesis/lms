@@ -9,6 +9,7 @@ from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
+from lms.services.oauth1 import OAuth1Service
 
 
 class TestIncludeme:
@@ -23,6 +24,7 @@ class TestIncludeme:
             ("lti_outcomes_client", LTIOutcomesClient),
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
+            ("oauth1", OAuth1Service),
         ),
     )
     def test_it_has_the_expected_service(self, name, service_class, pyramid_config):

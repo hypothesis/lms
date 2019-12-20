@@ -5,22 +5,18 @@ from urllib.parse import urlencode
 
 import pytest
 
-from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
 from lms.views.api.lti import LTIOutcomesViews
 
 
 class TestRecordCanvasSpeedgraderSubmission:
     def test_it_passes_correct_params_to_read_current_score(
-        self, ai_getter, pyramid_request, lti_outcomes_client
+        self, pyramid_request, lti_outcomes_client
     ):
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        ai_getter.shared_secret.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
         lti_outcomes_client.read_result.assert_called_once_with(
             LTIOutcomesRequestParams(
-                consumer_key="TEST_OAUTH_CONSUMER_KEY",
-                shared_secret=ai_getter.shared_secret.return_value,
                 lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
                 lis_result_sourcedid="modelstudent-assignment1",
             )
@@ -44,7 +40,6 @@ class TestRecordCanvasSpeedgraderSubmission:
     )
     def test_it_records_result_if_no_score_exists(
         self,
-        ai_getter,
         pyramid_request,
         lti_outcomes_client,
         document_url,
@@ -58,10 +53,7 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        ai_getter.shared_secret.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
         expected_outcome_params = LTIOutcomesRequestParams(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            shared_secret=ai_getter.shared_secret.return_value,
             lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
             lis_result_sourcedid="modelstudent-assignment1",
         )
@@ -94,16 +86,10 @@ class TestRecordCanvasSpeedgraderSubmission:
 
 
 class TestReadResult:
-    def test_it_proxies_to_read_result(
-        self, ai_getter, pyramid_request, lti_outcomes_client
-    ):
-
+    def test_it_proxies_to_read_result(self, pyramid_request, lti_outcomes_client):
         LTIOutcomesViews(pyramid_request).read_result()
 
-        ai_getter.shared_secret.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
         expected_outcome_params = LTIOutcomesRequestParams(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            shared_secret=ai_getter.shared_secret.return_value,
             lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
             lis_result_sourcedid="modelstudent-assignment1",
         )
@@ -128,14 +114,10 @@ class TestReadResult:
 
 
 class TestRecordResult:
-    def test_it_records_result(self, ai_getter, pyramid_request, lti_outcomes_client):
-
+    def test_it_records_result(self, pyramid_request, lti_outcomes_client):
         LTIOutcomesViews(pyramid_request).record_result()
 
-        ai_getter.shared_secret.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
         expected_outcome_params = LTIOutcomesRequestParams(
-            consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            shared_secret=ai_getter.shared_secret.return_value,
             lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
             lis_result_sourcedid="modelstudent-assignment1",
         )
@@ -159,11 +141,4 @@ class TestRecordResult:
 def lti_outcomes_client(pyramid_config):
     svc = mock.create_autospec(LTIOutcomesClient, instance=True, spec_set=True)
     pyramid_config.register_service(svc, name="lti_outcomes_client")
-    return svc
-
-
-@pytest.fixture(autouse=True)
-def ai_getter(pyramid_config):
-    svc = mock.create_autospec(ApplicationInstanceGetter, instance=True, spec_set=True)
-    pyramid_config.register_service(svc, name="ai_getter")
     return svc

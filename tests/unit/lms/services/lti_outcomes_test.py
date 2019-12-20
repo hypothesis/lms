@@ -1,12 +1,15 @@
 import datetime
+from unittest import mock
 
 import httpretty
 import pytest
 import xmltodict
+from h_matchers import Any
 from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
+from lms.services.oauth1 import OAuth1Service
 
 
 class TestLTIOutcomesClient:
@@ -107,22 +110,21 @@ class TestLTIOutcomesClient:
         assert found_submitted_at == submitted_at.isoformat()
 
     def test_it_signs_request_with_oauth1(
-        self, lti_outcomes_params, lti_outcomes_svc, configure_response
+        self, lti_outcomes_params, lti_outcomes_svc, requests, oauth1_svc
     ):
-        configure_response()
+        requests.post.side_effect = OSError()
 
-        lti_outcomes_svc.record_result(lti_outcomes_params)
+        # We don't care if this actually does anything afterwards, so just
+        # fail here so we can see how we were called
+        with pytest.raises(OSError):
+            lti_outcomes_svc.record_result(lti_outcomes_params)
 
-        request = httpretty.last_request()
-        auth_header = request.headers["Authorization"]
-
-        # nb. This currently doesn't verify the signature, it only checks that
-        # one is present.
-        assert auth_header.startswith("OAuth")
-        assert 'oauth_version="1.0"' in auth_header
-        assert 'oauth_consumer_key="lms_consumer_key"' in auth_header
-        assert 'oauth_signature_method="HMAC-SHA1"' in auth_header
-        assert "oauth_signature=" in auth_header
+        requests.post.assert_called_with(
+            url=Any(),
+            data=Any(),
+            headers=Any(),
+            auth=oauth1_svc.get_client.return_value,
+        )
 
     def test_requests_fail_if_http_status_is_error(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
@@ -224,8 +226,6 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def lti_outcomes_params(self):
         return LTIOutcomesRequestParams(
-            consumer_key="lms_consumer_key",
-            shared_secret="lms_shared_secret",
             lis_outcome_service_url="https://hypothesis.foolms.com/lti/outcomes",
             lis_result_sourcedid="modelstudent-assignment123",
         )
@@ -233,6 +233,12 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def lti_outcomes_svc(self, pyramid_request):
         return LTIOutcomesClient({}, pyramid_request)
+
+    @pytest.fixture(autouse=True)
+    def oauth1_svc(self, pyramid_config):
+        svc = mock.create_autospec(OAuth1Service, instance=True, spec_set=True)
+        pyramid_config.register_service(svc, name="oauth1")
+        return svc
 
     @pytest.fixture
     def requests(self, patch):
