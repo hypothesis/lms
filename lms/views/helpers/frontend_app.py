@@ -25,14 +25,15 @@ def configure_grading(request, js_config):
     js_config["grading"] = {
         "courseName": request.params.get("context_title"),
         "assignmentName": request.params.get("resource_link_title"),
+        # TODO! - Rename this in the front end?
         "students": [
             {
                 "userid": h_user.userid,
                 "displayName": h_user.display_name,
-                "LISResultSourcedId": student.lis_result_sourcedid,
-                "LISOutcomeServiceUrl": student.lis_outcome_service_url,
+                "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
             }
-            for student, h_user in _students_for_assignment(
+            for grading_info, h_user in _grading_info_for_assignment(
                 context_id=request.params.get("context_id"),
                 resource_link_id=request.params.get("resource_link_id"),
                 request=request,
@@ -41,18 +42,18 @@ def configure_grading(request, js_config):
     }
 
 
-def _students_for_assignment(context_id, resource_link_id, request):
-    service = request.find_service(name="lis_result_sourcedid")
+def _grading_info_for_assignment(context_id, resource_link_id, request):
+    service = request.find_service(name="grading_info")
 
-    for student in service.fetch_students_by_assignment(
+    for grading_info in service.get_by_assignment(
         oauth_consumer_key=request.lti_user.oauth_consumer_key,
         context_id=context_id,
         resource_link_id=resource_link_id,
     ):
-        yield student, HUser(
+        yield grading_info, HUser(
             authority=request.registry.settings["h_authority"],
-            username=student.h_username,
-            display_name=student.h_display_name,
+            username=grading_info.h_username,
+            display_name=grading_info.h_display_name,
         )
 
 

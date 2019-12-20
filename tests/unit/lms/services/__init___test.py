@@ -3,10 +3,10 @@ import pytest
 from lms.services import includeme
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
+from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
-from lms.services.lis_result_sourcedid import LISResultSourcedIdService
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 
@@ -19,7 +19,7 @@ class TestIncludeme:
             ("canvas_api_client", CanvasAPIClient),
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),
-            ("lis_result_sourcedid", LISResultSourcedIdService),
+            ("grading_info", GradingInfoService),
             ("lti_outcomes_client", LTIOutcomesClient),
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),

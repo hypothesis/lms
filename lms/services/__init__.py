@@ -42,8 +42,7 @@ def includeme(config):
         "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
     )
     config.register_service_factory(
-        "lms.services.lis_result_sourcedid.LISResultSourcedIdService",
-        name="lis_result_sourcedid",
+        "lms.services.grading_info.GradingInfoService", name="grading_info",
     )
     config.register_service_factory(
         "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"

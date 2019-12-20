@@ -2,13 +2,13 @@ from unittest import mock
 
 import pytest
 
-from lms.models import LISResultSourcedId
-from lms.services.lis_result_sourcedid import LISResultSourcedIdService
+from lms.models import GradingInfo
+from lms.services.grading_info import GradingInfoService
 from lms.values import LTIUser
 from lms.views.helpers import frontend_app
 
 
-@pytest.mark.usefixtures("lis_result_sourcedid_svc")
+@pytest.mark.usefixtures("grading_info_svc")
 class TestConfigureGrading:
     def test_it_enables_grading(self, grading_request):
         js_config = {}
@@ -37,18 +37,16 @@ class TestConfigureGrading:
 
         assert "lmsGrader" not in js_config
 
-    def test_it_fetches_lis_student_records(
-        self, grading_request, lis_result_sourcedid_svc
-    ):
+    def test_it_fetches_grading_info_records(self, grading_request, grading_info_svc):
         frontend_app.configure_grading(grading_request, {})
 
-        lis_result_sourcedid_svc.fetch_students_by_assignment.assert_called_once_with(
+        grading_info_svc.get_by_assignment.assert_called_once_with(
             oauth_consumer_key=grading_request.lti_user.oauth_consumer_key,
             context_id=grading_request.params["context_id"],
             resource_link_id=grading_request.params["resource_link_id"],
         )
 
-    def test_it_sets_list_of_students_on_config(self, grading_request):
+    def test_it_sets_list_of_grading_info_on_config(self, grading_request):
         js_config = {}
 
         frontend_app.configure_grading(grading_request, js_config)
@@ -56,13 +54,11 @@ class TestConfigureGrading:
         assert "students" in js_config["grading"]
         assert js_config["grading"]["students"] == []
 
-    def test_it_sets_js_properties_for_each_student_record(
-        self, lis_result_sourcedid_svc, lis_result_sourcedids, grading_request
+    def test_it_sets_js_properties_for_each_grading_info_record(
+        self, grading_info_svc, grading_infos, grading_request
     ):
         js_config = {}
-        lis_result_sourcedid_svc.fetch_students_by_assignment.return_value = (
-            lis_result_sourcedids
-        )
+        grading_info_svc.get_by_assignment.return_value = grading_infos
 
         frontend_app.configure_grading(grading_request, js_config)
 
@@ -84,36 +80,24 @@ class TestConfigureGrading:
 
 
 @pytest.fixture
-def lis_result_sourcedid_svc(pyramid_config):
-    svc = mock.create_autospec(LISResultSourcedIdService, instance=True)
-    pyramid_config.register_service(svc, name="lis_result_sourcedid")
-    svc.fetch_students_by_assignment.return_value = []
+def grading_info_svc(pyramid_config):
+    svc = mock.create_autospec(GradingInfoService, instance=True)
+    pyramid_config.register_service(svc, name="grading_info")
+    svc.get_by_assignment.return_value = []
     return svc
 
 
 @pytest.fixture
-def lis_result_sourcedids():
-    lis_result_1 = LISResultSourcedId(
-        h_username="foobar",
-        h_display_name="A Student",
-        lis_result_sourcedid="sourcedid_1",
-        lis_outcome_service_url="http://fakeo",
-    )
-
-    lis_result_2 = LISResultSourcedId(
-        h_username="deadbeef",
-        h_display_name="Another Student",
-        lis_result_sourcedid="sourcedid_2",
-        lis_outcome_service_url="http://fakeo",
-    )
-
-    lis_result_3 = LISResultSourcedId(
-        h_username="feedbee",
-        h_display_name="Yet More Student",
-        lis_result_sourcedid="sourcedid_3",
-        lis_outcome_service_url="http://fakeo",
-    )
-    return [lis_result_1, lis_result_2, lis_result_3]
+def grading_infos():
+    return [
+        GradingInfo(
+            h_username=f"username_{index}",
+            h_display_name=f"Student {index}",
+            lis_result_sourcedid=f"lis_result_sourcedid_{index}",
+            lis_outcome_service_url="http://example.com/service_url",
+        )
+        for index in range(3)
+    ]
 
 
 @pytest.fixture
