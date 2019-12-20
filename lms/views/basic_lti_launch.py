@@ -83,9 +83,9 @@ class BasicLTILaunchViews:
 
         lti_user = request.lti_user
 
-        # TODO! - The real reason we test for Canvas here is because canvas
-        # does not require us to provide student navigation. So we don't need
-        # to store this data in the first place.
+        # TODO! - Change this test to `requires_student_navigation` rather than
+        # `is_launched_by_canvas`. LISResultSourcedId objects are stored to
+        # enable student navigation, which Canvas happens not to require.
         if not lti_user.is_instructor and not self.is_launched_by_canvas():
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="lis_result_sourcedid").upsert_from_request(
@@ -312,9 +312,6 @@ class BasicLTILaunchViews:
         )
         self.set_canvas_submission_param("document_url", document_url)
 
-    # ---------------------------------------------------------------------- #
-    # Canvas specific functions
-
     def is_launched_by_canvas(self):
         return (
             self.request.params.get("tool_consumer_info_product_family_code")
@@ -322,16 +319,13 @@ class BasicLTILaunchViews:
         )
 
     def initialise_canvas_submission_params(self):
-        """
-        Add config used by frontend to call Canvas `record_submission` API.
-
-        The outcome reporting params are typically only available when
-        students (not teachers) launch an assignment.
-        """
-
+        """ Add config used by UI to call Canvas `record_submission` API."""
         lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
 
+        # Don't try to submit assignments to Canvas when the assignment is
+        # launched by a teacher, or when the submission-related params are
+        # missing for some other reason.
         if lis_result_sourcedid and lis_outcome_service_url:
             self.context.js_config["submissionParams"] = {
                 "h_username": self.context.h_user.username,
