@@ -199,7 +199,16 @@ class LTIOutcomesClient:
     @classmethod
     def _pox_wrapper(cls, body):
         """
-        Envelope for LTI Outcome Service requests sent to the LMS.
+        Return ``body`` wrapped in an imsx_POXEnvelopeRequest envelope.
+        
+        Return an xmltodict-format XML dict - an XML document represented as a dict,
+        suitable for converting into an XML string by passing it to
+        ``xmltodict.unparse()``.
+        
+        The returned dict renders to an ``<imsx_POXEnvelopeRequest>`` document with
+        the given ``body`` as the contents of the ``<imsx_POXBody>`` tag.
+
+        :rtype: dict
 
         See https://www.imsglobal.org/specs/ltiomv1p0/specification for
         specs for all messages.
