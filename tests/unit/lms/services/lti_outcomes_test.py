@@ -16,12 +16,10 @@ class TestLTIOutcomesClient:
     SERVICE_URL = "http://example.com/service_url"
     GRADING_ID = "lis_result_sourcedid"
 
-    def test_read_result_sends_expected_request(
-        self, lti_outcomes_svc, configure_response
-    ):
-        configure_response(score=0.95)
+    def test_read_result_sends_expected_request(self, svc, respond_with):
+        respond_with(score=0.95)
 
-        lti_outcomes_svc.read_result(self.GRADING_ID)
+        svc.read_result(self.GRADING_ID)
 
         self.assert_sent_header_ok()
 
@@ -29,38 +27,30 @@ class TestLTIOutcomesClient:
         sourced_id = result_record["sourcedGUID"]["sourcedId"]
         assert sourced_id == self.GRADING_ID
 
-    def test_read_result_returns_float_score(
-        self, lti_outcomes_svc, configure_response
-    ):
-        configure_response(score=0.95)
+    def test_read_result_returns_float_score(self, svc, respond_with):
+        respond_with(score=0.95)
 
-        score = lti_outcomes_svc.read_result(self.GRADING_ID)
+        score = svc.read_result(self.GRADING_ID)
 
         assert score == 0.95
 
-    def test_read_result_returns_none_if_no_score(
-        self, lti_outcomes_svc, configure_response
-    ):
-        configure_response(include_score=False)
+    def test_read_result_returns_none_if_no_score(self, svc, respond_with):
+        respond_with(include_score=None)
 
-        score = lti_outcomes_svc.read_result(self.GRADING_ID)
+        score = svc.read_result(self.GRADING_ID)
 
         assert score is None
 
     @pytest.mark.parametrize("score_text", [None, "", "not-a-float"])
-    def test_read_result_returns_none_if_score_not_a_float(
-        self, lti_outcomes_svc, configure_response, score_text
-    ):
-        configure_response(score=score_text)
+    def test_read_result_returns_none_if_score_not_a_float(self, svc, respond_with, score_text):
+        respond_with(score=score_text)
 
-        score = lti_outcomes_svc.read_result(self.GRADING_ID)
+        score = svc.read_result(self.GRADING_ID)
 
         assert score is None
 
-    def test_record_result_sends_sourcedid(self, lti_outcomes_svc, configure_response):
-        configure_response()
-
-        lti_outcomes_svc.record_result(self.GRADING_ID)
+    def test_record_result_sends_sourcedid(self, svc, response):
+        svc.record_result(self.GRADING_ID)
 
         self.assert_sent_header_ok()
 
@@ -69,38 +59,28 @@ class TestLTIOutcomesClient:
 
         assert sourced_id == self.GRADING_ID
 
-    def test_record_result_sends_score(
-        self, lti_outcomes_svc, configure_response,
-    ):
-        configure_response()
-
-        lti_outcomes_svc.record_result(self.GRADING_ID, score=0.5)
+    def test_record_result_sends_score(self, svc, response):
+        svc.record_result(self.GRADING_ID, score=0.5)
 
         result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
         score = result_record["result"]["resultScore"]["textString"]
 
         assert score == "0.5"
 
-    def test_record_result_sends_launch_url(
-        self, lti_outcomes_svc, configure_response,
-    ):
-        configure_response()
+    def test_record_result_sends_launch_url(self, svc, response):
         lti_launch_url = "https://lms.hypothes.is/lti_launches"
 
-        lti_outcomes_svc.record_result(self.GRADING_ID, lti_launch_url=lti_launch_url)
+        svc.record_result(self.GRADING_ID, lti_launch_url=lti_launch_url)
 
         result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
         found_launch_url = result_record["result"]["resultData"]["ltiLaunchUrl"]
 
         assert found_launch_url == lti_launch_url
 
-    def test_record_result_sends_submitted_at(
-        self, lti_outcomes_svc, configure_response,
-    ):
-        configure_response()
+    def test_record_result_sends_submitted_at(self, svc, response):
         submitted_at = datetime.datetime(2010, 1, 1)
 
-        lti_outcomes_svc.record_result(self.GRADING_ID, submitted_at=submitted_at)
+        svc.record_result(self.GRADING_ID, submitted_at=submitted_at)
 
         found_submitted_at = self.sent_pox_body()["replaceResultRequest"][
             "submissionDetails"
@@ -108,13 +88,13 @@ class TestLTIOutcomesClient:
 
         assert found_submitted_at == submitted_at.isoformat()
 
-    def test_it_signs_request_with_oauth1(self, lti_outcomes_svc, requests, oauth1_svc):
+    def test_it_signs_request_with_oauth1(self, svc, requests, oauth1_svc):
         requests.post.side_effect = OSError()
 
         # We don't care if this actually does anything afterwards, so just
         # fail here so we can see how we were called
         with pytest.raises(OSError):
-            lti_outcomes_svc.record_result(self.GRADING_ID)
+            svc.record_result(self.GRADING_ID)
 
         requests.post.assert_called_with(
             url=Any(),
@@ -123,15 +103,13 @@ class TestLTIOutcomesClient:
             auth=oauth1_svc.get_client.return_value,
         )
 
-    def test_requests_fail_if_http_status_is_error(
-        self, lti_outcomes_svc, configure_response
-    ):
-        configure_response(status=400)
+    def test_requests_fail_if_http_status_is_error(self, svc, respond_with):
+        respond_with(status=400)
 
         with pytest.raises(LTIOutcomesAPIError):
-            lti_outcomes_svc.read_result(self.GRADING_ID)
+            svc.read_result(self.GRADING_ID)
 
-    def test_requests_fail_if_body_not_xml(self, lti_outcomes_svc):
+    def test_requests_fail_if_body_not_xml(self, svc):
         httpretty.register_uri(
             httpretty.POST,
             self.SERVICE_URL,
@@ -140,26 +118,24 @@ class TestLTIOutcomesClient:
             priority=1,
         )
         with pytest.raises(LTIOutcomesAPIError):
-            lti_outcomes_svc.read_result(self.GRADING_ID)
+            svc.read_result(self.GRADING_ID)
 
-    def test_requests_fail_if_no_status(self, lti_outcomes_svc, configure_response):
-        configure_response(include_status=False)
+    def test_requests_fail_if_no_status(self, svc, respond_with):
+        respond_with(include_status=False)
         with pytest.raises(LTIOutcomesAPIError):
-            lti_outcomes_svc.read_result(self.GRADING_ID)
+            svc.read_result(self.GRADING_ID)
 
-    def test_requests_fail_if_status_is_not_success(
-        self, lti_outcomes_svc, configure_response
-    ):
-        configure_response(status_code="failure")
+    def test_requests_fail_if_status_is_not_success(self, svc, respond_with):
+        respond_with(status_code="failure")
 
         with pytest.raises(LTIOutcomesAPIError):
-            lti_outcomes_svc.read_result(self.GRADING_ID)
+            svc.read_result(self.GRADING_ID)
 
-    def test_it_gracefully_handles_RequestException(self, requests, lti_outcomes_svc):
+    def test_it_gracefully_handles_RequestException(self, requests, svc):
         requests.post.side_effect = RequestException
 
         with pytest.raises(LTIOutcomesAPIError):
-            lti_outcomes_svc.read_result(self.GRADING_ID)
+            svc.read_result(self.GRADING_ID)
 
     @classmethod
     def sent_body(cls):
@@ -210,7 +186,11 @@ class TestLTIOutcomesClient:
         )
 
     @pytest.fixture
-    def configure_response(self):
+    def response(self, respond_with):
+        respond_with()
+
+    @pytest.fixture
+    def respond_with(self):
         def configure(
             score=None,
             include_score=True,
@@ -240,7 +220,7 @@ class TestLTIOutcomesClient:
         return pyramid_request
 
     @pytest.fixture
-    def lti_outcomes_svc(self, pyramid_request):
+    def svc(self, pyramid_request):
         return LTIOutcomesClient({}, pyramid_request)
 
     @pytest.fixture(autouse=True)

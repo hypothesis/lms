@@ -74,38 +74,58 @@ class LTIOutcomesViews:
 
         lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
 
-        current_score = self.lti_outcomes_client.read_result(lis_result_sourcedid)
+        # If we already have a score, then we've already recorded this info
+        if self.lti_outcomes_client.read_result(lis_result_sourcedid):
+            return
 
-        if current_score is None:
-            # **WARNING**
-            #
-            # Canvas has a bug with handling of percent-encoded characters in the
-            # the SpeedGrader launch URL. Code that responds to the launch will
-            # need to handle this for fields that may contain such chars (eg.
-            # the "url" field).
-            #
-            # See https://github.com/instructure/canvas-lms/issues/1486
-            speedgrader_launch_params = {
-                "focused_user": self.parsed_params["h_username"]
-            }
-            if self.parsed_params.get("document_url"):
-                speedgrader_launch_params["url"] = self.parsed_params.get(
-                    "document_url"
-                )
-            elif self.parsed_params.get("canvas_file_id"):
-                speedgrader_launch_params["canvas_file"] = "true"
-                speedgrader_launch_params["file_id"] = self.parsed_params[
-                    "canvas_file_id"
-                ]
-
-            speedgrader_launch_url = self.request.route_url(
-                "lti_launches", _query=speedgrader_launch_params
-            )
-
-            self.lti_outcomes_client.record_result(
-                lis_result_sourcedid,
-                lti_launch_url=speedgrader_launch_url,
-                submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
-            )
+        self.lti_outcomes_client.record_result(
+            lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
+        )
 
         return {}
+
+
+class CanvasPreRecordHook:
+    # For details of Canvas extensions to the standard LTI Outcomes request see:
+    # https://erau.instructure.com/doc/api/file.assignment_tools.html
+
+    def __init__(self, request):
+        self.request = request
+
+    def __call__(self, score=None, request_body=None):
+        request_body["resultRecord"].setdefault("result", {})["resultData"] = {
+            "ltiLaunchUrl": self.get_speedgrader_launch_url()
+        }
+
+        #  A `datetime.datetime` that indicates when the submission was
+        # created. This is only used in Canvas and is displayed in the
+        # SpeedGrader as the submission date. If the submission date matches
+        # an existing submission then the existing submission is updated
+        # rather than creating a new submission.
+        request_body["submissionDetails"] = {
+            "submittedAt": datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+        }
+
+        return request_body
+
+    def get_speedgrader_launch_url(self):
+        parsed_params = self.request.parsed_params
+        params = {"focused_user": parsed_params["h_username"]}
+
+        if parsed_params.get("document_url"):
+            params["url"] = parsed_params.get("document_url")
+
+        elif parsed_params.get("canvas_file_id"):
+            params["canvas_file"] = "true"
+            params["file_id"] = parsed_params["canvas_file_id"]
+
+        # **WARNING**
+        #
+        # Canvas has a bug with handling of percent-encoded characters in the
+        # the SpeedGrader launch URL. Code that responds to the launch will
+        # need to handle this for fields that may contain such chars (eg.
+        # the "url" field).
+        #
+        # See https://github.com/instructure/canvas-lms/issues/1486
+
+        return self.request.route_url("lti_launches", _query=params)
