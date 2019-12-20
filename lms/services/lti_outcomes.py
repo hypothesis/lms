@@ -75,7 +75,7 @@ class LTIOutcomesClient:
             return None
 
     def record_result(  # pylint:disable=no-self-use
-        self, outcomes_request_params, score=None, **kwargs,
+        self, outcomes_request_params, score=None, **canvas_extras,
     ):
         """
         Record a score or grading view launch URL for an assignment in the LMS.
@@ -110,7 +110,7 @@ class LTIOutcomesClient:
             }
 
         # Canvas specific adaptations
-        self._canvas_request_modification(request, **kwargs)
+        self._canvas_request_modification(request, **canvas_extras)
 
         self._send_request(
             outcomes_request_params, request_body={"replaceResultRequest": request}
@@ -120,6 +120,8 @@ class LTIOutcomesClient:
     def _canvas_request_modification(
         cls, request, lti_launch_url=None, submitted_at=None, **_
     ):
+        # For details of Canvas extensions see:
+        # https://erau.instructure.com/doc/api/file.assignment_tools.html
 
         if lti_launch_url:
             request["resultRecord"].setdefault("result", {})["resultData"] = {
@@ -147,7 +149,7 @@ class LTIOutcomesClient:
         :rtype: ElementTree.Element
         """
 
-        xml_body = xmltodict.unparse(cls._pox_wrapper(request_body))
+        xml_body = xmltodict.unparse(cls._pox_envelope(request_body))
 
         # Sign request using OAuth 1.0.
         oauth_client = OAuth1(
@@ -196,22 +198,19 @@ class LTIOutcomesClient:
 
         return xml
 
-    @classmethod
-    def _pox_wrapper(cls, body):
+    @staticmethod
+    def _pox_envelope(body):
         """
         Return ``body`` wrapped in an imsx_POXEnvelopeRequest envelope.
-        
-        Return an xmltodict-format XML dict - an XML document represented as a dict,
-        suitable for converting into an XML string by passing it to
+
+        Return an xmltodict-format XML dict - an XML document represented as
+        a dict, suitable for converting into an XML string by passing it to
         ``xmltodict.unparse()``.
-        
-        The returned dict renders to an ``<imsx_POXEnvelopeRequest>`` document with
-        the given ``body`` as the contents of the ``<imsx_POXBody>`` tag.
+
+        The returned dict renders to an ``<imsx_POXEnvelopeRequest>`` document
+        with the given ``body`` as the contents of the ``<imsx_POXBody>`` tag.
 
         :rtype: dict
-
-        See https://www.imsglobal.org/specs/ltiomv1p0/specification for
-        specs for all messages.
         """
         return {
             "imsx_POXEnvelopeRequest": {
