@@ -1,5 +1,4 @@
 import datetime
-from xml.etree import ElementTree
 
 import httpretty
 import pytest
@@ -12,25 +11,17 @@ from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParam
 
 class TestLTIOutcomesClient:
     def test_read_result_sends_expected_request(
-        self, lti_outcomes_params, lti_outcomes_svc, configure_response, request_xml
+        self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
         configure_response(score=0.95)
 
         lti_outcomes_svc.read_result(lti_outcomes_params)
 
-        xml = request_xml()
-        self.check_header(xml)
-        sourcedid = self.element_text(
-            xml,
-            [
-                "imsx_POXBody",
-                "readResultRequest",
-                "resultRecord",
-                "sourcedGUID",
-                "sourcedId",
-            ],
-        )
-        assert sourcedid == lti_outcomes_params.lis_result_sourcedid
+        self.assert_sent_header_ok()
+
+        result_record = self.sent_pox_body()["readResultRequest"]["resultRecord"]
+        sourced_id = result_record["sourcedGUID"]["sourcedId"]
+        assert sourced_id == lti_outcomes_params.lis_result_sourcedid
 
     def test_read_result_returns_float_score(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
@@ -61,38 +52,33 @@ class TestLTIOutcomesClient:
         assert score is None
 
     def test_record_result_sends_sourcedid(
-        self, lti_outcomes_params, lti_outcomes_svc, configure_response, request_xml
+        self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
         configure_response()
 
         lti_outcomes_svc.record_result(lti_outcomes_params)
-        xml = request_xml()
 
-        self.check_header(xml)
-        sourcedid = self.element_text(
-            xml, ["replaceResultRequest", "resultRecord", "sourcedGUID", "sourcedId"]
-        )
-        assert sourcedid == lti_outcomes_params.lis_result_sourcedid
+        self.assert_sent_header_ok()
+
+        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
+        sourced_id = result_record["sourcedGUID"]["sourcedId"]
+
+        assert sourced_id == lti_outcomes_params.lis_result_sourcedid
 
     def test_record_result_sends_score(
-        self,
-        lti_outcomes_params,
-        lti_outcomes_svc,
-        configure_response,
-        record_result_request_fields,
+        self, lti_outcomes_params, lti_outcomes_svc, configure_response,
     ):
         configure_response()
 
         lti_outcomes_svc.record_result(lti_outcomes_params, score=0.5)
 
-        assert record_result_request_fields() == {"score": "0.5"}
+        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
+        score = result_record["result"]["resultScore"]["textString"]
+
+        assert score == "0.5"
 
     def test_record_result_sends_launch_url(
-        self,
-        lti_outcomes_params,
-        lti_outcomes_svc,
-        configure_response,
-        record_result_request_fields,
+        self, lti_outcomes_params, lti_outcomes_svc, configure_response,
     ):
         configure_response()
         lti_launch_url = "https://lms.hypothes.is/lti_launches"
@@ -101,23 +87,24 @@ class TestLTIOutcomesClient:
             lti_outcomes_params, lti_launch_url=lti_launch_url
         )
 
-        assert record_result_request_fields() == {"lti_launch_url": lti_launch_url}
+        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
+        found_launch_url = result_record["result"]["resultData"]["ltiLaunchUrl"]
+
+        assert found_launch_url == lti_launch_url
 
     def test_record_result_sends_submitted_at(
-        self,
-        lti_outcomes_params,
-        lti_outcomes_svc,
-        configure_response,
-        record_result_request_fields,
+        self, lti_outcomes_params, lti_outcomes_svc, configure_response,
     ):
         configure_response()
         submitted_at = datetime.datetime(2010, 1, 1)
 
         lti_outcomes_svc.record_result(lti_outcomes_params, submitted_at=submitted_at)
 
-        assert record_result_request_fields() == {
-            "submitted_at": submitted_at.isoformat()
-        }
+        found_submitted_at = self.sent_pox_body()["replaceResultRequest"][
+            "submissionDetails"
+        ]["submittedAt"]
+
+        assert found_submitted_at == submitted_at.isoformat()
 
     def test_it_signs_request_with_oauth1(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
@@ -179,58 +166,13 @@ class TestLTIOutcomesClient:
         with pytest.raises(LTIOutcomesAPIError):
             lti_outcomes_svc.read_result(lti_outcomes_params)
 
-    @pytest.fixture
-    def request_xml(self):
-        """Return parsed XML of last request."""
+    @classmethod
+    def sent_body(cls):
+        return xmltodict.parse(httpretty.last_request().body)
 
-        def xml():
-            request = httpretty.last_request()
-            return ElementTree.fromstring(request.body)
-
-        return xml
-
-    @pytest.fixture
-    def record_result_request_fields(self, request_xml):
-        """Return a dict of fields that were set in the last-sent `replaceResult` request."""
-
-        def get_fields():
-            xml = request_xml()
-            fields = {}
-            score = self.element_text(
-                xml,
-                [
-                    "replaceResultRequest",
-                    "resultRecord",
-                    "result",
-                    "resultScore",
-                    "textString",
-                ],
-            )
-            if score is not None:
-                fields["score"] = score
-
-            lti_launch_url = self.element_text(
-                xml,
-                [
-                    "replaceResultRequest",
-                    "resultRecord",
-                    "result",
-                    "resultData",
-                    "ltiLaunchUrl",
-                ],
-            )
-            if lti_launch_url is not None:
-                fields["lti_launch_url"] = lti_launch_url
-
-            submitted_at = self.element_text(
-                xml, ["replaceResultRequest", "submissionDetails", "submittedAt"]
-            )
-            if submitted_at is not None:
-                fields["submitted_at"] = submitted_at
-
-            return fields
-
-        return get_fields
+    @classmethod
+    def sent_pox_body(cls):
+        return cls.sent_body()["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
 
     @classmethod
     def make_response(cls, score, include_status, status_code):
@@ -297,23 +239,12 @@ class TestLTIOutcomesClient:
         return patch("lms.services.lti_outcomes.requests")
 
     @classmethod
-    def element_text(cls, xml, path):
-        element = LTIOutcomesClient.find_element(xml, path)
-        if element is None:
-            return None
-        return element.text
+    def assert_sent_header_ok(cls):
+        """Check standard header fields of the request body."""
 
-    @classmethod
-    def check_header(cls, xml):
-        """Check standard header fields of an LTI Outcomes Management request body."""
-        assert (
-            cls.element_text(
-                xml,
-                [
-                    "imsx_POXHeader",
-                    "imsx_POXRequestHeaderInfo",
-                    "imsx_messageIdentifier",
-                ],
-            )
-            == "999999123"
-        )
+        body = cls.sent_body()
+
+        header = body["imsx_POXEnvelopeRequest"]["imsx_POXHeader"]
+        message_id = header["imsx_POXRequestHeaderInfo"]["imsx_messageIdentifier"]
+
+        assert message_id == "999999123"

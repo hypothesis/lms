@@ -1,5 +1,5 @@
 from typing import NamedTuple
-from xml.etree import ElementTree
+from xml.parsers.expat import ExpatError
 
 import requests
 import xmltodict
@@ -39,8 +39,6 @@ class LTIOutcomesClient:
     See https://www.imsglobal.org/specs/ltiomv1p0/specification.
     """
 
-    XML_NS = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0"
-
     def __init__(self, _context, request):
         pass
 
@@ -65,13 +63,10 @@ class LTIOutcomesClient:
         )
 
         try:
-            score = self.find_element(
-                result, ["readResultResponse", "result", "resultScore", "textString"]
+            return float(
+                result["readResultResponse"]["result"]["resultScore"]["textString"]
             )
-            if score is None:
-                return None
-            return float(score.text)
-        except (ValueError, TypeError):
+        except (KeyError, ValueError):
             return None
 
     def record_result(  # pylint:disable=no-self-use
@@ -132,21 +127,14 @@ class LTIOutcomesClient:
             request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
     @classmethod
-    def find_element(cls, xml_element, path):
-        """Extract element from LTI Outcomes Management XML response."""
-        xpath = "/".join([f"{{{cls.XML_NS}}}{name}" for name in path])
-
-        return xml_element.find(f".//{xpath}")
-
-    @classmethod
     def _send_request(cls, outcomes_request_params, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
-        :arg request_body: The content to send as the body element of the
+        :arg request_body: The content to send as the POX body element of the
                            request
-        :return: Parsed XML response
-        :rtype: ElementTree.Element
+        :return: The returned POX body element
+        :rtype: dict
         """
 
         xml_body = xmltodict.unparse(cls._pox_envelope(request_body))
@@ -181,22 +169,33 @@ class LTIOutcomesClient:
                 "Error calling LTI Outcomes service", response
             ) from err
 
-        # Parse response and check status code embedded in XML.
         try:
-            xml = ElementTree.fromstring(response.text)
-        except ElementTree.ParseError as err:
+            data = xmltodict.parse(response.text)
+        except ExpatError as e:
             raise LTIOutcomesAPIError(
                 "Unable to parse XML response from LTI Outcomes service", response
-            ) from err
+            ) from e
 
-        status = cls.find_element(xml, ["imsx_statusInfo", "imsx_codeMajor"])
-        if status is None:
-            raise LTIOutcomesAPIError("Failed to read status from LTI outcome response")
+        return cls._get_body(data)
 
-        if status.text != "success":
+    @classmethod
+    def _get_body(cls, data):
+        """Return the POX body element, checking for errors."""
+
+        try:
+            body = data["imsx_POXEnvelopeResponse"]["imsx_POXBody"]
+            header = data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
+            status = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
+                "imsx_codeMajor"
+            ]
+
+        except KeyError as e:
+            raise LTIOutcomesAPIError("Malformed LTI outcome response") from e
+
+        if status != "success":
             raise LTIOutcomesAPIError("LTI outcome request failed")
 
-        return xml
+        return body
 
     @staticmethod
     def _pox_envelope(body):
