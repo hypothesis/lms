@@ -319,7 +319,7 @@ class BasicLTILaunchViews:
         )
 
     def initialise_canvas_submission_params(self):
-        """ Add config used by UI to call Canvas `record_submission` API."""
+        """Add config used by UI to call Canvas `record_submission` API."""
         lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
 
