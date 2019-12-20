@@ -38,13 +38,13 @@ class TestLTIOutcomesClient:
     def test_read_result_returns_none_if_no_score(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response
     ):
-        configure_response(score=None)
+        configure_response(include_score=False)
 
         score = lti_outcomes_svc.read_result(lti_outcomes_params)
 
         assert score is None
 
-    @pytest.mark.parametrize("score_text", ["", "not-a-float"])
+    @pytest.mark.parametrize("score_text", [None, "", "not-a-float"])
     def test_read_result_returns_none_if_score_not_a_float(
         self, lti_outcomes_params, lti_outcomes_svc, configure_response, score_text
     ):
@@ -188,7 +188,7 @@ class TestLTIOutcomesClient:
         assert message_id == "999999123"
 
     @classmethod
-    def make_response(cls, score, include_status, status_code):
+    def make_response(cls, score, include_score, include_status, status_code):
         header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
 
         if include_status:
@@ -201,7 +201,7 @@ class TestLTIOutcomesClient:
             }
 
         result_score = {"language": "en"}
-        if score:
+        if include_score:
             result_score["textString"] = score
 
         return xmltodict.unparse(
@@ -219,9 +219,15 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def configure_response(self, lti_outcomes_params):
         def configure(
-            score=None, include_status=True, status_code="success", status=200
+            score=None,
+            include_score=True,
+            include_status=True,
+            status_code="success",
+            status=200,
         ):
-            response_body = self.make_response(score, include_status, status_code)
+            response_body = self.make_response(
+                score, include_score, include_status, status_code
+            )
 
             httpretty.register_uri(
                 httpretty.POST,

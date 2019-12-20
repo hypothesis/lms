@@ -60,7 +60,7 @@ class LTIOutcomesClient:
             return float(
                 result["readResultResponse"]["result"]["resultScore"]["textString"]
             )
-        except (KeyError, ValueError):
+        except (TypeError, KeyError, ValueError):
             return None
 
     def record_result(  # pylint:disable=no-self-use
