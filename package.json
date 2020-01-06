@@ -72,7 +72,7 @@
     "karma-mocha": "^1.1.1",
     "karma-mocha-reporter": "^2.0.4",
     "karma-sinon": "^1.0.5",
-    "mocha": "^6.2.2",
+    "mocha": "^7.0.0",
     "prettier": "1.19.1",
     "sinon": "^8.0.2"
   },
