@@ -72,9 +72,9 @@ class LTIOutcomesViews:
         # absence of a submission from an ungraded submission. Non-Canvas LMSes in
         # theory require a grade).
 
-        lis_result_sourced_id = self.parsed_params["lis_result_sourcedid"]
+        lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
 
-        current_score = self.lti_outcomes_client.read_result(lis_result_sourced_id)
+        current_score = self.lti_outcomes_client.read_result(lis_result_sourcedid)
 
         if current_score is None:
             # **WARNING**
@@ -103,7 +103,7 @@ class LTIOutcomesViews:
             )
 
             self.lti_outcomes_client.record_result(
-                lis_result_sourced_id,
+                lis_result_sourcedid,
                 lti_launch_url=speedgrader_launch_url,
                 submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
             )

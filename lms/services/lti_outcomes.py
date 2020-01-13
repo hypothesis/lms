@@ -20,11 +20,11 @@ class LTIOutcomesClient:
         self.oauth1_service = request.find_service(name="oauth1")
         self.service_url = request.parsed_params["lis_outcome_service_url"]
 
-    def read_result(self, lis_result_sourced_id):  # pylint:disable=no-self-use
+    def read_result(self, lis_result_sourcedid):  # pylint:disable=no-self-use
         """
         Return the last-submitted score for a given submission.
 
-        :param lis_result_sourced_id: The submission id
+        :param lis_result_sourcedid: The submission id
         :return: The last-submitted score or `None` if no score has been
                  submitted.
         """
@@ -32,9 +32,7 @@ class LTIOutcomesClient:
         result = self._send_request(
             {
                 "readResultRequest": {
-                    "resultRecord": {
-                        "sourcedGUID": {"sourcedId": lis_result_sourced_id}
-                    }
+                    "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}
                 }
             }
         )
@@ -47,12 +45,12 @@ class LTIOutcomesClient:
             return None
 
     def record_result(  # pylint:disable=no-self-use
-        self, lis_result_sourced_id, score=None, **canvas_extras,
+        self, lis_result_sourcedid, score=None, **canvas_extras,
     ):
         """
         Set the score or content URL for a student submission to an assignment.
 
-        :param lis_result_sourced_id: The submission id
+        :param lis_result_sourcedid: The submission id
         :param score:
             Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
@@ -69,9 +67,7 @@ class LTIOutcomesClient:
             rather than creating a new submission.
         """
 
-        request = {
-            "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourced_id}}
-        }
+        request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
 
         if score:
             request["resultRecord"]["result"] = {
