@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-from lms.services.lti_outcomes import LTIOutcomesClient, LTIOutcomesRequestParams
+from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.views.api.lti import LTIOutcomesViews
 
 
@@ -16,10 +16,7 @@ class TestRecordCanvasSpeedgraderSubmission:
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_outcomes_client.read_result.assert_called_once_with(
-            LTIOutcomesRequestParams(
-                lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
-                lis_result_sourcedid="modelstudent-assignment1",
-            )
+            "modelstudent-assignment1"
         )
 
     def test_it_does_not_record_result_if_score_already_exists(
@@ -53,16 +50,12 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        expected_outcome_params = LTIOutcomesRequestParams(
-            lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
-            lis_result_sourcedid="modelstudent-assignment1",
-        )
         expected_submitted_at = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
         expected_launch_url = "http://example.com/lti_launches?" + urlencode(
             {"focused_user": "user123", **lti_launch_doc_params}
         )
         lti_outcomes_client.record_result.assert_called_once_with(
-            expected_outcome_params,
+            "modelstudent-assignment1",
             lti_launch_url=expected_launch_url,
             submitted_at=expected_submitted_at,
         )
@@ -89,11 +82,9 @@ class TestReadResult:
     def test_it_proxies_to_read_result(self, pyramid_request, lti_outcomes_client):
         LTIOutcomesViews(pyramid_request).read_result()
 
-        expected_outcome_params = LTIOutcomesRequestParams(
-            lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
-            lis_result_sourcedid="modelstudent-assignment1",
+        lti_outcomes_client.read_result.assert_called_once_with(
+            "modelstudent-assignment1"
         )
-        lti_outcomes_client.read_result.assert_called_once_with(expected_outcome_params)
 
     def test_it_returns_current_score(self, pyramid_request, lti_outcomes_client):
         lti_outcomes_client.read_result.return_value = 0.5
@@ -117,12 +108,8 @@ class TestRecordResult:
     def test_it_records_result(self, pyramid_request, lti_outcomes_client):
         LTIOutcomesViews(pyramid_request).record_result()
 
-        expected_outcome_params = LTIOutcomesRequestParams(
-            lis_outcome_service_url="https://hypothesis.shinylms.com/outcomes",
-            lis_result_sourcedid="modelstudent-assignment1",
-        )
         lti_outcomes_client.record_result.assert_called_once_with(
-            expected_outcome_params, score=pyramid_request.parsed_params["score"]
+            "modelstudent-assignment1", score=pyramid_request.parsed_params["score"]
         )
 
     @pytest.fixture

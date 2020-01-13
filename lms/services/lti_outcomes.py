@@ -1,4 +1,3 @@
-from typing import NamedTuple
 from xml.parsers.expat import ExpatError
 
 import requests
@@ -7,22 +6,7 @@ from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
 
-__all__ = ["LTIOutcomesClient", "LTIOutcomesRequestParams"]
-
-
-class LTIOutcomesRequestParams(NamedTuple):
-    """Common parameters used by all LTI Outcomes Management requests."""
-
-    lis_outcome_service_url: str
-    """URL to submit requests to, provided by the LMS during an LTI launch."""
-
-    lis_result_sourcedid: str
-    """
-    Opaque identifier for a particular submission.
-
-    This is provided by the LMS during an LTI launch and identifies the user
-    and assignment that the launch refers to.
-    """
+__all__ = ["LTIOutcomesClient"]
 
 
 class LTIOutcomesClient:
@@ -34,26 +18,23 @@ class LTIOutcomesClient:
 
     def __init__(self, _context, request):
         self.oauth1_service = request.find_service(name="oauth1")
+        self.service_url = request.parsed_params["lis_outcome_service_url"]
 
-    def read_result(self, outcomes_request_params):  # pylint:disable=no-self-use
+    def read_result(self, lis_result_sourcedid):  # pylint:disable=no-self-use
         """
         Return the last-submitted score for a given submission.
 
+        :param lis_result_sourcedid: The submission id
         :return: The last-submitted score or `None` if no score has been
                  submitted.
         """
 
         result = self._send_request(
-            outcomes_request_params,
-            request_body={
+            {
                 "readResultRequest": {
-                    "resultRecord": {
-                        "sourcedGUID": {
-                            "sourcedId": outcomes_request_params.lis_result_sourcedid
-                        }
-                    }
+                    "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}
                 }
-            },
+            }
         )
 
         try:
@@ -64,19 +45,20 @@ class LTIOutcomesClient:
             return None
 
     def record_result(  # pylint:disable=no-self-use
-        self, outcomes_request_params, score=None, **canvas_extras,
+        self, lis_result_sourcedid, score=None, **canvas_extras,
     ):
         """
-        Record a score or grading view launch URL for an assignment in the LMS.
+        Set the score or content URL for a student submission to an assignment.
 
-        :arg score:
+        :param lis_result_sourcedid: The submission id
+        :param score:
             Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
-        :arg lti_launch_url:
+        :param lti_launch_url:
             A URL where the student's work on this submission can be viewed.
             This is only used in Canvas.
-        :arg submitted_at:
+        :param submitted_at:
         :type datetime.datetime:
             A `datetime.datetime` that indicates when the submission was
             created. This is only used in Canvas and is displayed in the
@@ -85,13 +67,7 @@ class LTIOutcomesClient:
             rather than creating a new submission.
         """
 
-        request = {
-            "resultRecord": {
-                "sourcedGUID": {
-                    "sourcedId": outcomes_request_params.lis_result_sourcedid
-                }
-            }
-        }
+        request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
 
         if score:
             request["resultRecord"]["result"] = {
@@ -101,9 +77,7 @@ class LTIOutcomesClient:
         # Canvas specific adaptations
         self._canvas_request_modification(request, **canvas_extras)
 
-        self._send_request(
-            outcomes_request_params, request_body={"replaceResultRequest": request}
-        )
+        self._send_request({"replaceResultRequest": request})
 
     @classmethod
     def _canvas_request_modification(
@@ -120,7 +94,7 @@ class LTIOutcomesClient:
         if submitted_at:
             request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
-    def _send_request(self, outcomes_request_params, request_body):
+    def _send_request(self, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -137,7 +111,7 @@ class LTIOutcomesClient:
 
         try:
             response = requests.post(
-                url=outcomes_request_params.lis_outcome_service_url,
+                url=self.service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),

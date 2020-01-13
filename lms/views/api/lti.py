@@ -3,7 +3,6 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
-from lms.services.lti_outcomes import LTIOutcomesRequestParams
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -20,17 +19,13 @@ class LTIOutcomesViews:
         self.parsed_params = self.request.parsed_params
         self.lti_outcomes_client = self.request.find_service(name="lti_outcomes_client")
 
-        self.outcome_request_params = LTIOutcomesRequestParams(
-            lis_outcome_service_url=self.parsed_params["lis_outcome_service_url"],
-            lis_result_sourcedid=self.parsed_params["lis_result_sourcedid"],
-        )
-
     @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
     def record_result(self):
         """Proxy result (grade/score) to LTI Outcomes Result API."""
 
-        self.request.find_service(name="lti_outcomes_client").record_result(
-            self.outcome_request_params, score=self.request.parsed_params["score"]
+        self.lti_outcomes_client.record_result(
+            self.parsed_params["lis_result_sourcedid"],
+            score=self.parsed_params["score"],
         )
 
         return {}
@@ -43,9 +38,9 @@ class LTIOutcomesViews:
     def read_result(self):
         """Proxy request for current result (grade/score) to LTI Outcomes Result API."""
 
-        current_score = self.request.find_service(
-            name="lti_outcomes_client"
-        ).read_result(self.outcome_request_params)
+        current_score = self.lti_outcomes_client.read_result(
+            self.parsed_params["lis_result_sourcedid"]
+        )
 
         return {"currentScore": current_score}
 
@@ -76,9 +71,11 @@ class LTIOutcomesViews:
         # graded (Canvas's result-reading API doesn't allow us to distinguish
         # absence of a submission from an ungraded submission. Non-Canvas LMSes in
         # theory require a grade).
-        current_score = self.lti_outcomes_client.read_result(
-            self.outcome_request_params
-        )
+
+        lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
+
+        current_score = self.lti_outcomes_client.read_result(lis_result_sourcedid)
+
         if current_score is None:
             # **WARNING**
             #
@@ -106,7 +103,7 @@ class LTIOutcomesViews:
             )
 
             self.lti_outcomes_client.record_result(
-                self.outcome_request_params,
+                lis_result_sourcedid,
                 lti_launch_url=speedgrader_launch_url,
                 submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
             )
