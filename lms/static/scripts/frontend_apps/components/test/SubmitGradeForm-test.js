@@ -189,6 +189,13 @@ describe('SubmitGradeForm', () => {
   });
 
   context('when fetching a grade', () => {
+    it('sets the defaultValue prop to an empty string if the grade is falsey', async () => {
+      fakeFetchGrade.resolves({ currentScore: null });
+      const wrapper = renderForm();
+      await waitFor(() => !isFetchingGrade(wrapper));
+      assert.equal(wrapper.find('input').prop('defaultValue'), '');
+    });
+
     it("sets the input defaultValue prop to the student's grade", async () => {
       const wrapper = renderForm();
       await waitFor(() => !isFetchingGrade(wrapper));
