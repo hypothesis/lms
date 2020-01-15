@@ -23,6 +23,7 @@ setup(
     zip_safe=False,
     entry_points="""\
     [console_scripts]
+    canvasapi = lms.scripts:canvasapi
     devdata = lms.scripts:devdata
     """,
 )
