@@ -46,7 +46,9 @@ const useFetchGrade = student => {
         const response = await fetchGrade({ student, authToken });
         if (!didCancel) {
           // Only set these values if we didn't cancel this request
-          setGrade(scaleGrade(response.currentScore, GRADE_MULTIPLIER));
+          if (response.currentScore) {
+            setGrade(scaleGrade(response.currentScore, GRADE_MULTIPLIER));
+          }
           setGradeLoading(false);
         }
       };
