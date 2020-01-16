@@ -1,14 +1,20 @@
+from contextlib import contextmanager
+
 from lms.api_client.generic_http.retriable import retriable
 
 
 class OAuth2Manager:
-    def __init__(self, ws, client_id, client_secret, redirect_uri, refresh_token=None):
+    access_token = None
+    refresh_token = None
+    in_session = False
+
+    def __init__(self, ws, client_id, client_secret, redirect_uri, token_callback=None):
         self.ws = ws
 
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
-        self.refresh_token = refresh_token
+        self.token_callback = token_callback
 
     def get_authorize_code_url(self):
         return self.ws.get_authorize_code_url(
@@ -19,7 +25,7 @@ class OAuth2Manager:
         if self.refresh_token is None:
             raise TypeError("Cannot refresh without refresh_token")
 
-        return self._store_tokens(
+        return self._update_tokens(
             self.ws.refresh_tokens(
                 self.refresh_token,
                 client_id=self.client_id,
@@ -29,7 +35,7 @@ class OAuth2Manager:
         )
 
     def get_tokens(self, code):
-        return self._store_tokens(
+        return self._update_tokens(
             self.ws.get_tokens(
                 code,
                 client_id=self.client_id,
@@ -38,24 +44,42 @@ class OAuth2Manager:
             )
         )
 
-    def retry(self, retriable_exception):
+    def set_tokens(self, access_token, refresh_token):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+
+        # TODO! - This seems grotty
+        if self.in_session:
+            self.ws.set_access_token(self.access_token)
+
+        return self
+
+    @contextmanager
+    def session(self):
+        self.in_session = True
+
+        # Add an HTTP session so we are nice and fast for multiple calls
+        with self.ws.session():
+            self.ws.set_access_token(self.access_token)
+
+            # Return a context manager enabling retries
+            with retriable.retry_handler(self._retry_handler):
+                yield
+
+        self.in_session = False
+
+    def _retry_handler(self, retriable_exception):
         """Context manager."""
 
         self.refresh_tokens()
 
         # Attempt the call again
-        return self.ws.oauth2_call(**retriable_exception.kwargs)
+        return self.ws.call(**retriable_exception.kwargs)
 
-    def _store_tokens(self, tokens):
-        print("NEW TOKENS", tokens)
+    def _update_tokens(self, token_response):
+        self.set_tokens(token_response["access_token"], token_response["refresh_token"])
 
-        # Update the web service access token
-        self.ws.access_token = tokens["access_token"]
+        if self.token_callback:
+            self.token_callback(token_response)
 
-        # Update our refresh token
-        self.refresh_token = tokens["refresh_token"]
-
-        return tokens
-
-    def retry_session(self):
-        return retriable.retry_handler(self.retry)
+        return token_response

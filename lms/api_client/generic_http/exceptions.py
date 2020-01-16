@@ -4,5 +4,5 @@ class RetriableHTTPException(Exception):
         self.kwargs = kwargs
 
 
-class BadBearerToken(RetriableHTTPException):
+class AuthenticationFailure(RetriableHTTPException):
     pass

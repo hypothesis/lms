@@ -2,7 +2,7 @@ from base64 import b64encode
 
 from requests import HTTPError
 
-from lms.api_client.generic_http.exceptions import BadBearerToken
+from lms.api_client.generic_http.exceptions import AuthenticationFailure
 from lms.api_client.generic_http.json_client import JSONHTTPClient
 
 
@@ -10,35 +10,40 @@ class OAuth2Client(JSONHTTPClient):
     authorization_code_endpoint = None
     access_token_endpoint = None
 
-    def __init__(self, host, scheme="https", url_stub=None, access_token=None):
-        self.access_token = access_token
+    def set_access_token(self, access_token):
+        self._session.headers["Authorization"] = f"Bearer {access_token}"
 
-        super().__init__(host, scheme, url_stub)
-
-    def oauth2_call(self, method, path, query=None, headers=None):
-        if not self.access_token:
-            raise TypeError("Access token required")
-
-        if headers is None:
-            headers = {}
-
-        headers["Authorization"] = f"Bearer {self.access_token}"
-
+    def call(self, method, path, query=None, headers=None, **options):
         try:
-            return self.call(method, path, query, headers)
+            return super().call(method, path, query, headers, **options)
+
         except HTTPError as e:
             if e.response.status_code != 401:
                 raise
 
-            raise BadBearerToken(
+            raise AuthenticationFailure(
                 e.args[0],
                 kwargs={
                     "method": method,
                     "path": path,
                     "query": query,
                     "headers": headers,
+                    **options,
                 },
             ) from e
+
+    def get_authorize_code_url(self, client_id, redirect_uri):
+        if self.authorization_code_endpoint is None:
+            raise NotImplementedError()
+
+        return self.get_url(
+            self.authorization_code_endpoint,
+            query={
+                "response_type": "code",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+            },
+        )
 
     def get_tokens(self, code, client_id, client_secret, redirect_uri):
         return self._get_tokens(
@@ -72,25 +77,12 @@ class OAuth2Client(JSONHTTPClient):
             query=query,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": self.basic_auth_header(client_id, client_secret),
-            },
-        )
-
-    def get_authorize_code_url(self, client_id, redirect_uri):
-        if self.authorization_code_endpoint is None:
-            raise NotImplementedError()
-
-        return self.get_url(
-            self.authorization_code_endpoint,
-            query={
-                "response_type": "code",
-                "client_id": client_id,
-                "redirect_uri": redirect_uri,
+                "Authorization": self._basic_auth_header(client_id, client_secret),
             },
         )
 
     @classmethod
-    def basic_auth_header(self, client_id, client_secret):
+    def _basic_auth_header(self, client_id, client_secret):
         # TODO! Will requests do this for us?
         return "Basic ".encode("ascii") + b64encode(
             f"{client_id}:{client_secret}".encode("ascii")
