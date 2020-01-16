@@ -18,7 +18,7 @@ class APIModule:
         return ancestors
 
     def path(self, suffix=None):
-        path = ''.join(module.path_part for module in self.ancestry())
+        path = "".join(module.path_part for module in self.ancestry())
 
         if suffix:
             path += "/" + suffix.lstrip("/")
