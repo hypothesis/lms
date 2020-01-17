@@ -10,15 +10,15 @@ class Attachment(APIModel):
     def mime_type(self):
         return self["mimeType"]
 
-    @property
-    def download_url(self):
-        return self.api.download_url()
-
 
 class Content(APIModel):
     @property
     def title(self):
         return self["title"]
+
+    @property
+    def parent_id(self):
+        return self.get("parentId")
 
     @staticmethod
     def _content_type(data):
@@ -37,18 +37,15 @@ class Content(APIModel):
         ]
 
 
-class Folder(Content):
+class BBFolder(Content):
     bb_type = "resource/x-bb-folder"
 
     @property
     def has_children(self):
         return self["hasChildren"]
 
-    def children(self):
-        return self.api.list_children()
 
-
-class File(Content):
+class BBFile(Content):
     bb_type = "resource/x-bb-file"
 
     @property

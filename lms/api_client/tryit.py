@@ -1,12 +1,16 @@
 import json
 import os
 from contextlib import contextmanager
-from datetime import datetime
-from pprint import pprint
+from datetime import datetime, timedelta
 
 from lms.api_client.blackboard_classic import BlackboardClassicClient
-from lms.api_client.blackboard_classic.model import File, Folder
-from lms.api_client.generic_http.oauth2.manager import OAuth2Manager
+from lms.api_client.blackboard_classic.model import BBFile, BBFolder
+from lms.logic.file_tree import Folder, File, TreeBuilder
+
+from lms.api_client.generic_http.client.oauth2_client import (
+    OAuth2Settings,
+    OAuth2Tokens,
+)
 
 
 @contextmanager
@@ -18,118 +22,117 @@ def timeit():
     print(diff.microseconds / 1000 + diff.seconds * 1000, "ms")
 
 
-def load_tokens():
-    with open("tryit.json") as fh:
-        data = json.load(fh)
-
-        return data["access_token"], data["refresh_token"]
-
-
 def save_tokens(token_response):
     print("Saving new tokens...")
     with open("tryit.json", "w") as fh:
         json.dump(token_response, fh, indent=4)
 
 
-if __name__ == "__main__":
-    access_token, refresh_token = load_tokens()
+class ItemStream:
+    @classmethod
+    def list_all_items(cls, api, max_iterations=5, max_seconds=10):
+        max_seconds = timedelta(seconds=max_seconds)
 
-    ws = BlackboardClassicClient(host="blackboard.hypothes.is")
-    auth = OAuth2Manager(
-        ws,
-        client_id="e90b19eb-61c5-4a21-95ed-7afefcea273e",
-        client_secret=os.environ["CLIENT_SECRET"],
-        redirect_uri="https://httpbin.org/get",
-        token_callback=save_tokens,
-    ).set_tokens(access_token=access_token, refresh_token=refresh_token)
+        items = []
+        offset = 0
+        limit = 200  # 200 is the max
+        complete = False
+
+        start = datetime.utcnow()
+
+        for _ in range(max_iterations):
+            with timeit():
+                new_items = api.course(course_id).list_contents(
+                    recursive=True, offset=offset, limit=limit,
+                    # The fewer fields we ask for the faster this is
+                    fields=[
+                        'id', 'parentId',       # To build tree
+                        'contentHandler.id',    # To tell content types apart
+                        'contentHandler.file',  # To get the filename / ext
+                        'title'                 # The main label
+                    ]
+                )
+
+            items.extend(cls._create_file_tree_items(new_items))
+            offset += len(new_items)
+
+            if len(new_items) < limit:
+                complete = True
+                break
+
+            if (datetime.utcnow() - start) > max_seconds:
+                complete = False
+                break
+
+        return items, complete
+
+    @classmethod
+    def _create_file_tree_items(cls, items):
+        for item in items:
+            if not isinstance(item, (BBFolder, BBFile)):
+                continue
+
+            args = {
+                "label": item.title,
+                "node_id": item.id,
+                "parent_id": item.parent_id,
+                "retrieval_id": item.retrieval_id
+            }
+
+            if isinstance(item, BBFile):
+                if item.extension != 'pdf':
+                    continue
+
+                yield File(file_type=item.extension, **args, )
+
+            elif isinstance(item, BBFolder):
+                yield Folder(**args)
+
+
+if __name__ == "__main__":
+    with open("tryit.json") as fh:
+        data = json.load(fh)
+
+    access_token, refresh_token = data["access_token"], data["refresh_token"]
+
+    ws = BlackboardClassicClient(
+        settings=OAuth2Settings(
+            client_id="e90b19eb-61c5-4a21-95ed-7afefcea273e",
+            client_secret=os.environ["CLIENT_SECRET"],
+            redirect_uri="https://httpbin.org/get",
+        ),
+        tokens=OAuth2Tokens(access_token, refresh_token, update_callback=save_tokens),
+        host="blackboard.hypothes.is",
+    )
 
     api = ws.api()
 
     course_id = "07c0a521976e43b68616ad516adaab91"
 
-    course = api.course(course_id)
-    print(course.get_retrieval_id())
-    print(course.parse_retreival_id(course.get_retrieval_id()))
+    with ws.session():
+        print("Auth URL:", ws.get_authorize_code_url())
+        # print(ws.get_tokens("mR2A233SlqueAFjrGxGQqq0N503d3JNg"))
 
-    from urllib.parse import urlencode
-
-    wat = urlencode(api.course(course_id).content("_258_1").get_arguments())
-    print(wat)
-
-    with auth.session():
-        print("Auth URL:", auth.get_authorize_code_url())
-        # print(auth.get_tokens("ifCaJ4oglLIDOnqT7Ie69QfSNEqsZ0zL"))
-
-        # pprint(api.course(course_id).content("root").get())
-
+        # Get all results
         with timeit():
-            items = []
-            offset = 0
-            while True:
-                with timeit():
-                    new_items = api.course(course_id).list_contents(
-                        recursive=True,
-                        fields=[
-                            "title",
-                            "hasChildren",
-                            "id",
-                            "parentId",
-                            "contentHandler.id",
-                            "createdDate",
-                        ],
-                        offset=offset,
-                        limit=1,
-                    )
+            items, complete = ItemStream.list_all_items(api)
 
-                items.extend(new_items)
-                offset += len(new_items)
+        print(f"Found {len(items)} item(s): {['MORE TO COME', 'COMPLETE'][complete]}")
 
-                break
-                if len(new_items) < 200:
-                    break
+        tree = TreeBuilder.create(
+            node_stream=items,
+            complete=complete,
+            ordering='dfs',
+            prune_empty=True,
+            prune_leading_singletons=True
+        )
 
-        print("ALL THINGS", len(items))
-        # items = [item for item in items if isinstance(item, (Folder, File))]
-        print("FILE THINGS", len(items))
+        import json
+        print(json.dumps(tree.as_dict(), indent=4))
 
-        tree_items = {None: {"children": []}}
-        for item in items:
-            item["children"] = []
-            tree_items[item["id"]] = item
 
-            tree_items[item.get("parentId")]["children"].append(item)
+        # with timeit():
+        #     tree = FileTree.build_tree(items)
 
-        # pprint(tree_items[None])
+        #pprint(tree)
 
-        def dump_tree(items, indent=0):
-            for item in items:
-                if isinstance(item, Folder):
-                    print(("     " * indent) + f">{indent} {item.title}/")
-                    dump_tree(item["children"], indent + 1)
-                else:
-                    print(("     " * indent) + f">{indent} * {item.title}")
-
-        tree = tree_items[None]["children"]
-
-        dump_tree(tree)
-
-        exit()
-
-        while stack:
-            item = stack.pop()
-
-            if isinstance(item, Folder) and item.has_children:
-                print(f"Folder: {item.title}/ #{item.id}")
-                with timeit():
-                    stack.extend(item.children())
-
-            elif isinstance(item, File):
-                print(f"{item.filename} #{item.id}, Retrieval id {item.retrieval_id}")
-
-                # with timeit():
-                #     attachment = retrieve_attachment(api, item.retrieval_id)
-                #
-                # with timeit():
-                #     print(attachment.download_url)
-
-                # print("ATT_ID", attachment.id)

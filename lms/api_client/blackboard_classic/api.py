@@ -18,7 +18,7 @@ def since(version):
 class QueryBuilder(APIModule):
     @classmethod
     def clean_query(cls, query):
-        return {k: v for k, v in query.items if v is not None}
+        return {k: v for k, v in query.items() if v is not None}
 
     @classmethod
     def format_fields(cls, fields=None):
@@ -136,7 +136,7 @@ class AttachmentModule(APIModule):
 
     @since("3200.8.0")
     def url(self):
-        return self.path("download")
+        return self._path("download")
 
     @since("3200.8.0")
     @retriable
