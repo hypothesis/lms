@@ -22,6 +22,9 @@ class Content(APIModel):
 
     @staticmethod
     def _content_type(data):
+        if not "contentHandler" in data:
+            return None
+
         return data["contentHandler"]["id"]
 
     @classmethod
@@ -59,7 +62,3 @@ class File(Content):
             return None
 
         return self.filename.rsplit(".", 1)[1].lower()
-
-    @property
-    def retrieval_id(self):
-        return "{course_id}/{content_id}".format(**self.api.get_arguments())

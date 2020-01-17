@@ -12,6 +12,10 @@ class APIModel(dict):
     def api(self):
         return self.api_getter(self.id)
 
+    @property
+    def retrieval_id(self):
+        return self.api.get_retrieval_id()
+
     @classmethod
     def wrap(cls, api_getter, items):
         return [cls(api_getter, item) for item in items]

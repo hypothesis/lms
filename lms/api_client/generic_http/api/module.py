@@ -1,4 +1,5 @@
 from collections import deque
+from urllib.parse import parse_qsl, urlencode
 
 
 class APIModule:
@@ -24,6 +25,13 @@ class APIModule:
             arguments.update(ancestor.arguments)
 
         return arguments
+
+    def get_retrieval_id(self):
+        return urlencode(self.get_arguments())
+
+    @staticmethod
+    def parse_retreival_id(retrieval_id):
+        return dict(parse_qsl(retrieval_id))
 
     def template(self, suffix=None):
         template = "".join(module.template_part for module in self.ancestry())

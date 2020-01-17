@@ -15,6 +15,33 @@ def since(version):
     return deco
 
 
+class QueryBuilder(APIModule):
+    @classmethod
+    def clean_query(cls, query):
+        return {k: v for k, v in query.items if v is not None}
+
+    @classmethod
+    def format_fields(cls, fields=None):
+        return None if fields is None else ",".join(list(fields))
+
+    @classmethod
+    def content_query(
+        cls, recursive=False, content_hander=None, limit=None, offset=None, fields=None,
+    ):
+        if limit is not None and limit > 200:
+            raise ValueError("Maximum limit is 200")
+
+        return cls.clean_query(
+            {
+                "recursive": recursive,
+                "contentHandler": content_hander,
+                "limit": limit,
+                "offset": offset,
+                "fields": cls.format_fields(fields),
+            }
+        )
+
+
 class APIRoot(APIModule):
     def course(self, course_id):
         return self.extend(CourseModule, course_id)
@@ -35,8 +62,18 @@ class CourseModule(APIModule):
 
     @since("3000.1.0")
     @retriable
-    def list_contents(self):
-        return Content.wrap(self.content, self.call("GET", "contents")["results"])
+    def list_contents(
+        self, recursive=False, content_hander=None, limit=None, offset=None, fields=None
+    ):
+        results = self.call(
+            "GET",
+            "contents",
+            query=QueryBuilder.content_query(
+                recursive, content_hander, limit, offset, fields
+            ),
+        )["results"]
+
+        return Content.wrap(self.content, results)
 
     def content(self, content_id):
         return self.extend(CourseContentsModule, content_id)
@@ -55,10 +92,18 @@ class CourseContentsModule(APIModule):
 
     @since("3000.1.0")
     @retriable
-    def list_children(self):
-        return Content.wrap(
-            self.parent.content, self.call("GET", "children")["results"]
-        )
+    def list_children(
+        self, recursive=False, content_hander=None, limit=None, offset=None, fields=None
+    ):
+        results = self.call(
+            "GET",
+            "children",
+            query=QueryBuilder.content_query(
+                recursive, content_hander, limit, offset, fields
+            ),
+        )["results"]
+
+        return Content.wrap(self.parent.content, results)
 
     @since("3200.8.0")
     @retriable
