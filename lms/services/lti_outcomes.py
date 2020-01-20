@@ -50,15 +50,17 @@ class LTIOutcomesClient:
         """
         Set the score or content URL for a student submission to an assignment.
 
-        This method also accepts a callback hook which will be passed the
-        `score` and the `request_body` which it can modify and must return.
+        This method also accepts an optional callable hook which will be passed
+        the `score` and the `request_body` which it can modify and must return.
+        This allows support for extensions (or custom replacements) to the
+        standard LTI outcomes body.
 
         :param lis_result_sourcedid: The submission id
         :param score:
             Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
-        :param pre_record_hook: The call back
+        :param pre_record_hook: Hook to allow modification of the request
         """
 
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}

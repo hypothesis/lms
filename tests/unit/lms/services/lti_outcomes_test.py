@@ -1,5 +1,7 @@
 import datetime
+from collections import OrderedDict
 from unittest import mock
+from unittest.mock import Mock
 
 import httpretty
 import pytest
@@ -70,15 +72,14 @@ class TestLTIOutcomesClient:
         assert score == "0.5"
 
     def test_record_result_calls_hook(self, svc, response):
-        def my_hook(score, request_body):
-            request_body["foo"] = score
-
-            return request_body
+        my_hook = Mock(return_value={"my_dict": 1})
 
         svc.record_result(self.GRADING_ID, score=1.5, pre_record_hook=my_hook)
 
-        result_record = self.sent_pox_body()["replaceResultRequest"]
-        assert result_record["foo"] == "1.5"
+        my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
+        assert self.sent_pox_body()["replaceResultRequest"] == OrderedDict(
+            {"my_dict": "1"}
+        )
 
     @pytest.mark.parametrize("hook_result", [None, [], "foo"])
     def test_record_result_requires_dict_result(self, svc, response, hook_result):
