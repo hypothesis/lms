@@ -5,12 +5,11 @@ from datetime import datetime, timedelta
 
 from lms.api_client.blackboard_classic import BlackboardClassicClient
 from lms.api_client.blackboard_classic.model import BBFile, BBFolder
-from lms.logic.file_tree import Folder, File, TreeBuilder
-
 from lms.api_client.generic_http.client.oauth2_client import (
     OAuth2Settings,
     OAuth2Tokens,
 )
+from lms.logic.file_tree import File, Folder, TreeBuilder
 
 
 @contextmanager
@@ -43,14 +42,17 @@ class ItemStream:
         for _ in range(max_iterations):
             with timeit():
                 new_items = api.course(course_id).list_contents(
-                    recursive=True, offset=offset, limit=limit,
+                    recursive=True,
+                    offset=offset,
+                    limit=limit,
                     # The fewer fields we ask for the faster this is
                     fields=[
-                        'id', 'parentId',       # To build tree
-                        'contentHandler.id',    # To tell content types apart
-                        'contentHandler.file',  # To get the filename / ext
-                        'title'                 # The main label
-                    ]
+                        "id",
+                        "parentId",  # To build tree
+                        "contentHandler.id",  # To tell content types apart
+                        "contentHandler.file",  # To get the filename / ext
+                        "title",  # The main label
+                    ],
                 )
 
             items.extend(cls._create_file_tree_items(new_items))
@@ -76,14 +78,16 @@ class ItemStream:
                 "label": item.title,
                 "node_id": item.id,
                 "parent_id": item.parent_id,
-                "retrieval_id": item.retrieval_id
+                "retrieval_id": item.retrieval_id,
             }
 
             if isinstance(item, BBFile):
-                if item.extension != 'pdf':
+                if item.extension != "pdf":
                     continue
 
-                yield File(file_type=item.extension, **args, )
+                yield File(
+                    file_type=item.extension, **args,
+                )
 
             elif isinstance(item, BBFolder):
                 yield Folder(**args)
@@ -119,20 +123,6 @@ if __name__ == "__main__":
 
         print(f"Found {len(items)} item(s): {['MORE TO COME', 'COMPLETE'][complete]}")
 
-        tree = TreeBuilder.create(
-            node_stream=items,
-            complete=complete,
-            ordering='dfs',
-            prune_empty=True,
-            prune_leading_singletons=True
-        )
+        tree = TreeBuilder.create(node_stream=items, complete=complete)
 
-        import json
         print(json.dumps(tree.as_dict(), indent=4))
-
-
-        # with timeit():
-        #     tree = FileTree.build_tree(items)
-
-        #pprint(tree)
-
