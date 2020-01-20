@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Node:
     def __init__(self, label, node_id, retrieval_id, parent_id=None, parent=None):
         self.id = node_id
@@ -33,7 +36,7 @@ class Folder(Node):
         super().__init__(label, node_id, retrieval_id, parent_id)
 
         self.children = []
-        self.complete = False
+        self.complete = True
 
     def add_child(self, node):
         self.children.append(node)
@@ -53,6 +56,11 @@ class Folder(Node):
         return data
 
 
+class Traversal(Enum):
+    BFS = "breadth_first_search"
+    DFS = "depth_first_search"
+
+
 class TreeBuilder:
     # TODO! - Loads of this could be more efficient by rendering a guaranteed
     # parent first flat ordering (basically DFS or BFS). This would allow many
@@ -63,18 +71,21 @@ class TreeBuilder:
         cls,
         node_stream,
         complete=True,
-        ordering="dfs",
-        prune_empty=True,
-        prune_leading_singletons=True,
+        traversal=Traversal.DFS,
+        remove_empty_folders=True,
+        remove_leading_folders=True,
     ):
 
         tree = cls.build_tree(node_stream)
-        cls.mark_complete(tree, complete, ordering)
-        if prune_empty:
-            cls.prune_empty(tree)
 
-        if prune_leading_singletons:
-            tree = cls.prune_leading_singletons(tree)
+        if not complete:
+            cls.mark_complete(tree, traversal)
+
+        if remove_empty_folders:
+            cls.remove_empty_folders(tree)
+
+        if remove_leading_folders:
+            tree = cls.remove_leading_folders(tree)
 
         return tree
 
@@ -95,32 +106,47 @@ class TreeBuilder:
         return root
 
     @classmethod
-    def mark_complete(cls, tree, complete=True, ordering="dfs"):
-        if complete:
-            cls._mark_all_complete(tree)
-        elif ordering == "dfs":
+    def mark_complete(cls, tree, traversal=Traversal.DFS):
+        """
+        Mark the folder nodes as either complete or not depending on traversal.
+
+        When a large tree of files and folders is traversed and the traversal
+        stops before all files are folders are reached, some folders will be
+        incomplete. This discovers and marks these folders.
+
+        :param tree: Tree to mark
+        :param traversal: The traversal order the nodes were found in
+        """
+
+        # There's only one traversal method available, but we should force the
+        # caller to specify it to make them think about whether their tree was
+        # traversed in DFS or BFS or something else (random?)
+        if traversal == Traversal.DFS:
             cls._mark_rhs_incomplete(tree)
-        elif ordering == "bfs":
-            cls._mark_all_complete(tree)
-            cls._mark_last_incomplete(tree)
+
         else:
+            # To implement BFS we should find and mark the last folder we
+            # found as not complete.
             raise NotImplementedError(
                 "I don't know how to tell if your tree is finished"
             )
 
     @classmethod
-    def prune_empty(cls, node):
+    def remove_empty_folders(cls, node):
+        """Remove empty folders or folders only containing empty folders."""
         if not isinstance(node, Folder):
             return
 
         for child in list(node.children):
-            cls.prune_empty(child)
+            cls.remove_empty_folders(child)
 
         if not node.children:
             node.parent.remove_child(node)
 
     @classmethod
-    def prune_leading_singletons(cls, root):
+    def remove_leading_folders(cls, root):
+        """Remove root folders containing only a single folder."""
+
         while isinstance(root, Folder) and len(root.children) == 1:
             root = root.children[0]
             root.parent = None
@@ -129,35 +155,15 @@ class TreeBuilder:
         return root
 
     @classmethod
-    def _mark_all_complete(cls, node):
-        if not isinstance(node, Folder):
-            return
-
-        node.complete = True
-        for child in node.children:
-            cls._mark_all_complete(child)
-
-    @classmethod
     def _mark_rhs_incomplete(cls, node):
-        if not isinstance(node, Folder) or not node.children:
+        # In a DFS traversal the last folder, and all of it's parents are
+        # potentially incomplete. We therefore should recurse along the RHS
+        # Of the tree marking each folder as incomplete
+
+        if not isinstance(node, Folder):
             return
 
         node.complete = False
 
-        cls._mark_rhs_incomplete(node.children[-1])
-
-        for child in node.children[:-1]:
-            cls._mark_all_complete(child)
-
-    @classmethod
-    def _mark_last_incomplete(cls, node):
-        if not isinstance(node, Folder):
-            raise TypeError("This must be called on a folder")
-
-        # Find last folder
-        for child in reversed(node.children):
-            if isinstance(child, Folder):
-                return cls._mark_last_incomplete(child)
-
-        # We are the last one!
-        node.complete = False
+        if node.children:
+            cls._mark_rhs_incomplete(node.children[-1])
