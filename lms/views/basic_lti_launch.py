@@ -66,7 +66,7 @@ class BasicLTILaunchViews:
 
         lti_h_service = self.request.find_service(name="lti_h")
         lti_h_service.upsert_h_user()
-        lti_h_service.upsert_course_group()
+        lti_h_service.upsert_course_groups()
         lti_h_service.add_user_to_groups()
 
     def store_lti_data(self):

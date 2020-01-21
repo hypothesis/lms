@@ -75,7 +75,7 @@ class LTIHService:
         )
 
     @lti_h_action
-    def upsert_course_group(self):
+    def upsert_course_groups(self):
         """
         Create or update the Hypothesis group for the request's LTI course.
 

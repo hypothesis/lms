@@ -16,18 +16,18 @@ class TestUpsertCourseGroup:
         self, context, pyramid_request, h_api, lti_h_svc
     ):
         # If the auto provisioning feature isn't enabled for this application
-        # instance then upsert_course_group() doesn't do anything - just calls the
+        # instance then upsert_course_groups() doesn't do anything - just calls the
         # wrapped view.
         context.provisioning_enabled = False
 
-        lti_h_svc.upsert_course_group()
+        lti_h_svc.upsert_course_groups()
 
         h_api.update_group.assert_not_called()
 
     def test_it_calls_the_group_update_api(
         self, context, pyramid_request, h_api, lti_h_svc
     ):
-        lti_h_svc.upsert_course_group()
+        lti_h_svc.upsert_course_groups()
 
         h_api.update_group.assert_called_once_with(
             group_id="test_groupid", group_name="test_group_name",
@@ -42,7 +42,7 @@ class TestUpsertCourseGroup:
         h_api.update_group.side_effect = HAPIError("Oops")
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.upsert_course_group()
+            lti_h_svc.upsert_course_groups()
 
     def test_it_creates_the_group_if_it_doesnt_exist(
         self, context, pyramid_request, h_api, lti_h_svc, h_user
@@ -54,7 +54,7 @@ class TestUpsertCourseGroup:
         )
         h_api.update_group.side_effect = HAPINotFoundError()
 
-        lti_h_svc.upsert_course_group()
+        lti_h_svc.upsert_course_groups()
 
         h_api.create_group.assert_called_once_with(
             group_id="test_groupid", group_name="test_group_name", creator=h_user,
@@ -72,7 +72,7 @@ class TestUpsertCourseGroup:
         h_api.create_group.side_effect = HAPIError("Oops")
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.upsert_course_group()
+            lti_h_svc.upsert_course_groups()
 
     def test_it_400s_with_missing_group_and_unpriviledged_user(
         self, context, pyramid_request, h_api, lti_h_svc
@@ -87,14 +87,14 @@ class TestUpsertCourseGroup:
         with pytest.raises(
             HTTPBadRequest, match="Instructor must launch assignment first"
         ):
-            lti_h_svc.upsert_course_group()
+            lti_h_svc.upsert_course_groups()
 
         h_api.create_group.assert_not_called()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
         self, params, group_info_svc, context, pyramid_request, lti_h_svc
     ):
-        lti_h_svc.upsert_course_group()
+        lti_h_svc.upsert_course_groups()
 
         group_info_svc.upsert.assert_called_once_with(
             authority_provided_id=context.h_authority_provided_id,
@@ -109,7 +109,7 @@ class TestUpsertCourseGroup:
         h_api.create_group.side_effect = HAPIError("Oops")
 
         try:
-            lti_h_svc.upsert_course_group()
+            lti_h_svc.upsert_course_groups()
         except:
             pass
 
