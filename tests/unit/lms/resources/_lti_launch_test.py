@@ -179,11 +179,10 @@ class TestLTILaunchResource:
             == "d55a3c86dd79d390ec8dc6a8096d0943044ea268"
         )
 
-    def test_h_groupid(self, lti_launch):
-        assert (
-            lti_launch.h_groupid
-            == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
-        )
+    def test_h_groupids(self, lti_launch):
+        assert lti_launch.h_groupids == [
+            "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
+        ]
 
     def test_h_group_name_raises_if_theres_no_context_title(self, lti_launch):
         with pytest.raises(HTTPBadRequest):

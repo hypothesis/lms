@@ -56,9 +56,8 @@ class LTIHService:
         Assumes that the Hypothesis user and group have already been created.
         """
 
-        self.h_api.add_user_to_group(
-            h_user=self._context.h_user, group_id=self._context.h_groupid
-        )
+        for groupid in self._context.h_groupids:
+            self.h_api.add_user_to_group(h_user=self._context.h_user, group_id=groupid)
 
     @lti_h_action
     def upsert_h_user(self):
@@ -92,11 +91,12 @@ class LTIHService:
         show an error page instead of continuing with the LTI launch.
         """
 
-        self._upsert_h_group(
-            group_id=self._context.h_groupid,
-            group_name=self._context.h_group_name,
-            creator=self._context.h_user,
-        )
+        for groupid in self._context.h_groupids:
+            self._upsert_h_group(
+                group_id=groupid,
+                group_name=self._context.h_group_name,
+                creator=self._context.h_user,
+            )
 
         self.group_info_service.upsert(
             authority_provided_id=self._context.h_authority_provided_id,

@@ -99,21 +99,23 @@ class LTILaunchResource:
         return hash_object.hexdigest()
 
     @property
-    def h_groupid(self):
+    def h_groupids(self):
         """
-        Return a unique h groupid for the current request.
+        Return the list of h groupids for the current request.
 
-        The returned ID is suitable for use with the h API's ``groupid`` parameter.
+        The returned IDs are suitable for use with the h API's ``groupid``
+        parameter.
 
-        The groupid is deterministic and is unique to the LTI course. Calling this
+        The groupids are deterministic and each is unique to the LTI course. Calling this
         function again with params representing the same LTI course will always
-        return the same groupid. Calling this function with different params will
-        always return a different groupid.
+        return the same groupids. Calling this function with params
+        representing a different LTI course will always return different
+        groupids.
 
         :raise HTTPBadRequest: if an LTI param needed for generating the
-            groupid is missing
+            groupids is missing
         """
-        return f"group:{self.h_authority_provided_id}@{self._authority}"
+        return [f"group:{self.h_authority_provided_id}@{self._authority}"]
 
     @property
     def h_group_name(self):
@@ -240,7 +242,7 @@ class LTILaunchResource:
                         "authority": self._authority,
                         "enableShareLinks": False,
                         "grantToken": grant_token().decode("utf-8"),
-                        "groups": [self.h_groupid],
+                        "groups": self.h_groupids,
                     }
                 ]
             }

@@ -230,7 +230,7 @@ def h_user():
 @pytest.fixture
 def context(h_user):
     class TestContext:
-        h_groupid = "test_groupid"
+        h_groupids = ["test_groupid"]
         h_group_name = "test_group_name"
         h_provider = "test_provider"
         h_provider_unique_id = "test_provider_unique_id"
