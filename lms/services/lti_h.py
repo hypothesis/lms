@@ -45,7 +45,7 @@ class LTIHService:
         self.group_info_service = request.find_service(name="group_info")
 
     @lti_h_action
-    def add_user_to_group(self):
+    def add_user_to_groups(self):
         """
         Add the Hypothesis user to the course group.
 
@@ -57,7 +57,7 @@ class LTIHService:
         """
 
         for groupid in self._context.h_groupids:
-            self.h_api.add_user_to_group(h_user=self._context.h_user, group_id=groupid)
+            self.h_api.add_user_to_groups(h_user=self._context.h_user, group_id=groupid)
 
     @lti_h_action
     def upsert_h_user(self):

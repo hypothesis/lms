@@ -95,8 +95,8 @@ class TestHAPI:
             "PATCH", "groups/sentinel.group_id", data={"name": sentinel.group_name}
         )
 
-    def test_add_user_to_group(self, h_api, h_user):
-        h_api.add_user_to_group(h_user, sentinel.group_id)
+    def test_add_user_to_groups(self, h_api, h_user):
+        h_api.add_user_to_groups(h_user, sentinel.group_id)
 
         h_api._api_request.assert_called_once_with(
             "POST",

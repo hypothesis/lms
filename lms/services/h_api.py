@@ -122,7 +122,7 @@ class HAPI:
             "PATCH", f"groups/{group_id}", data={"name": group_name},
         )
 
-    def add_user_to_group(self, h_user, group_id):
+    def add_user_to_groups(self, h_user, group_id):
         """
         Add the user as a member of the group.
 

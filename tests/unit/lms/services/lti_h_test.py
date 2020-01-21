@@ -179,30 +179,30 @@ class TestUpsertHUser:
             lti_h_svc.upsert_h_user()
 
 
-class TestAddUserToGroup:
+class TestAddUserToGroups:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
         self, context, pyramid_request, h_api, lti_h_svc
     ):
         context.provisioning_enabled = False
 
-        lti_h_svc.add_user_to_group()
+        lti_h_svc.add_user_to_groups()
 
-        h_api.add_user_to_group.assert_not_called()
+        h_api.add_user_to_groups.assert_not_called()
 
     def test_it_adds_the_user_to_the_group(
         self, context, pyramid_request, h_api, lti_h_svc, h_user
     ):
-        lti_h_svc.add_user_to_group()
+        lti_h_svc.add_user_to_groups()
 
-        h_api.add_user_to_group.assert_called_once_with(
+        h_api.add_user_to_groups.assert_called_once_with(
             h_user=h_user, group_id="test_groupid"
         )
 
     def test_it_raises_if_post_raises(self, context, pyramid_request, h_api, lti_h_svc):
-        h_api.add_user_to_group.side_effect = HAPIError("Oops")
+        h_api.add_user_to_groups.side_effect = HAPIError("Oops")
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.add_user_to_group()
+            lti_h_svc.add_user_to_groups()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
