@@ -1,4 +1,5 @@
 import datetime
+from unittest import mock
 
 import jwt
 import pytest
@@ -6,6 +7,7 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
+from lms.services.canvas_api import CanvasAPIClient
 
 
 class TestLTILaunchResource:
@@ -505,3 +507,12 @@ def BearerTokenSchema(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
+
+
+@pytest.fixture(autouse=True)
+def canvas_api_client(pyramid_config):
+    canvas_api_client = mock.create_autospec(
+        CanvasAPIClient, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
+    return canvas_api_client
