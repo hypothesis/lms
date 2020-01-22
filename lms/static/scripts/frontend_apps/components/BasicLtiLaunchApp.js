@@ -93,6 +93,15 @@ export default function BasicLtiLaunchApp() {
         authToken,
         path: viaUrlCallback,
       });
+
+      // HERE
+      debugger;
+      await apiCall({
+        authToken,
+        path: '/api/h/sync',
+        data: {'foo': 'bar'}
+      });
+
       setLtiLaunchState({
         ...INITIAL_LTI_LAUNCH_STATE,
         state: 'fetched-url',
