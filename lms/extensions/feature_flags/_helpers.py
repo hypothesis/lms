@@ -55,7 +55,12 @@ class JWTCookieHelper:
             jwt_bytes,
             max_age=31536000,  # One year in seconds.
             overwrite=True,
-            secure=not self._request.registry.settings.get("debug", False),
+            # We want this cookie to be sent when the LMS app is loaded inside
+            # an iframe, and thus in a third-party context, from within the LMS.
+            samesite="None",
+            # Setting `SameSite="None"` requires that we also set the `Secure`
+            # flag per https://tools.ietf.org/html/draft-west-cookie-incrementalism-00#section-3.2.
+            secure=True,
         )
 
     def get(self):
