@@ -21,7 +21,7 @@ There are three presentations for developers that describe what the Hypothesis L
 
   * https://h.readthedocs.io/en/latest/developing/install/
   * https://h.readthedocs.io/projects/client/en/latest/developers/developing/
-  * https://github.com/hypothesis/proxy-server (Via2 redirects to Via for non-PDF content.)
+  * https://github.com/hypothesis/py-proxy (Via3 redirects to Via for non-PDF content.)
   * https://github.com/hypothesis/via
 
 * [Git](https://git-scm.com/)
