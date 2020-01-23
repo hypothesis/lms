@@ -63,6 +63,12 @@ export default function BasicLtiLaunchApp() {
       // to third party APIs (eg. the LMS's file storage).
       via_url_callback: viaUrlCallback,
     },
+    tool_consumer_instance_guid,
+    lis_person_name_full,
+    lis_person_name_given,
+    lis_person_name_family,
+    context_id,
+    context_title,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
@@ -95,11 +101,17 @@ export default function BasicLtiLaunchApp() {
       });
 
       // HERE
-      debugger;
       await apiCall({
         authToken,
         path: '/api/h/sync',
-        data: {'foo': 'bar'}
+        data: {
+          'tool_consumer_instance_guid': tool_consumer_instance_guid,
+          'lis_person_name_full': lis_person_name_full,
+          'lis_person_name_given': lis_person_name_given,
+          'lis_person_name_family': lis_person_name_family,
+          'context_id': context_id,
+          'context_title': context_title,
+        }
       });
 
       setLtiLaunchState({
