@@ -65,6 +65,16 @@ class CanvasAPIClient:
 
         return new_access_token
 
+    def user_course_sections(self, course_id):
+        """Return all the user's sections for the given course."""
+        return self.send_with_refresh_and_retry(
+            self._helper.user_course_sections_request(
+                self._oauth2_token.access_token, course_id
+            ),
+            None,  # CanvasUserCourseSectionsResponseSchema,
+            self._oauth2_token.refresh_token,
+        )
+
     def list_files(self, course_id):
         """
         Return the list of files for the given ``course_id``.
