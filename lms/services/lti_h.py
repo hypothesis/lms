@@ -68,8 +68,8 @@ class LTIHService:
         Assumes that the Hypothesis user and group have already been created.
         """
 
-        for groupid in self._h_groupids:
-            self.h_api.add_user_to_groups(h_user=self._h_user, group_id=groupid)
+        for group in self._h_groups:
+            self.h_api.add_user_to_groups(h_user=self._h_user, group_id=group["id"])
 
     @lti_h_action
     def upsert_h_user(self):
@@ -103,11 +103,9 @@ class LTIHService:
         show an error page instead of continuing with the LTI launch.
         """
 
-        for groupid, group_name in zip(self._h_groupids, self._h_group_names):
+        for group in self._h_groups:
             self._upsert_h_group(
-                group_id=groupid,
-                group_name=group_name,
-                creator=self._h_user,
+                group_id=group["id"], group_name=group["name"], creator=self._h_user,
             )
 
     def _upsert_h_group(self, group_id, group_name, creator):
@@ -212,17 +210,21 @@ class LTIHService:
         return display_name
 
     @property
-    def _h_groupids(self):
-        return [f"group:{self._h_authority_provided_id}@{self._authority}"]
+    def _h_groups(self):
+        def name():
+            name = self._request.json["context_title"].strip()
 
-    @property
-    def _h_group_names(self):
-        name = self._request.json["context_title"].strip()
+            if len(name) > self.GROUP_NAME_MAX_LENGTH:
+                name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
-        if len(name) > self.GROUP_NAME_MAX_LENGTH:
-            name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
+            return name
 
-        return [name]
+        return [
+            {
+                "id": f"group:{self._h_authority_provided_id}@{self._authority}",
+                "name": name(),
+            }
+        ]
 
     @property
     def _h_authority_provided_id(self):
