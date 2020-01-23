@@ -194,6 +194,15 @@ class LTILaunchResource:
                     self._request
                 ).authorization_param(self._request.lti_user)
 
+            self.js_config.update(**{
+                "tool_consumer_instance_guid": self._get_param("tool_consumer_instance_guid"),
+                "lis_person_name_full": self._get_param("lis_person_name_full"),
+                "lis_person_name_given": self._get_param("lis_person_name_given"),
+                "lis_person_name_family": self._get_param("lis_person_name_family"),
+                "context_id": self._get_param("context_id"),
+                "context_title": self._get_param("context_title"),
+            })
+
         return self._js_config
 
     @property
