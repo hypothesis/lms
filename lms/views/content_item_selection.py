@@ -47,10 +47,6 @@ from lms.views import helpers
     route_name="content_item_selection",
 )
 def content_item_selection(context, request):
-    lti_h_service = request.find_service(name="lti_h")
-    lti_h_service.upsert_h_user()
-    lti_h_service.upsert_course_groups()
-
     context.js_config.update(
         {
             # The URL that the JavaScript code will open if it needs the user to

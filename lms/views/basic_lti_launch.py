@@ -56,19 +56,6 @@ class BasicLTILaunchViews:
             self.initialise_canvas_submission_params()
             self.set_canvas_focused_user()
 
-    def sync_lti_data_to_h(self):
-        """
-        Sync LTI data to H.
-
-        Before any LTI assignment launch create or update the Hypothesis user
-        and group corresponding to the LTI user and course.
-        """
-
-        lti_h_service = self.request.find_service(name="lti_h")
-        lti_h_service.upsert_h_user()
-        lti_h_service.upsert_course_groups()
-        lti_h_service.add_user_to_groups()
-
     def store_lti_data(self):
         """Store LTI launch data in our LMS database."""
 
@@ -104,7 +91,6 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
-        self.sync_lti_data_to_h()
         self.store_lti_data()
 
         file_id = self.request.params["file_id"]
@@ -145,7 +131,6 @@ class BasicLTILaunchViews:
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
-        self.sync_lti_data_to_h()
         self.store_lti_data()
 
         frontend_app.configure_grading(self.request, self.context.js_config)
@@ -177,7 +162,6 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        self.sync_lti_data_to_h()
         self.store_lti_data()
 
         frontend_app.configure_grading(self.request, self.context.js_config)
@@ -298,7 +282,6 @@ class BasicLTILaunchViews:
 
         self._set_via_url(document_url)
 
-        self.sync_lti_data_to_h()
         self.store_lti_data()
 
         frontend_app.configure_grading(self.request, self.context.js_config)
