@@ -17,7 +17,7 @@ class retriable:
                 return self.function(instance, *args, **kwargs)
 
             except RetriableHTTPException as e:
-                # If we are in the retry context manager call the handler
+                # If we are in the _retry_handler context manager call the handler
                 if self._retry_handler:
                     return self._retry_handler(e)
 
