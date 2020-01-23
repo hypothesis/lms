@@ -45,26 +45,22 @@ class LTIOutcomesClient:
             return None
 
     def record_result(  # pylint:disable=no-self-use
-        self, lis_result_sourcedid, score=None, **canvas_extras,
+        self, lis_result_sourcedid, score=None, pre_record_hook=None,
     ):
         """
         Set the score or content URL for a student submission to an assignment.
+
+        This method also accepts an optional callable hook which will be passed
+        the `score` and the `request_body` which it can modify and must return.
+        This allows support for extensions (or custom replacements) to the
+        standard LTI outcomes body.
 
         :param lis_result_sourcedid: The submission id
         :param score:
             Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
-        :param lti_launch_url:
-            A URL where the student's work on this submission can be viewed.
-            This is only used in Canvas.
-        :param submitted_at:
-        :type datetime.datetime:
-            A `datetime.datetime` that indicates when the submission was
-            created. This is only used in Canvas and is displayed in the
-            SpeedGrader as the submission date. If the submission date matches
-            an existing submission then the existing submission is updated
-            rather than creating a new submission.
+        :param pre_record_hook: Hook to allow modification of the request
         """
 
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
@@ -74,25 +70,15 @@ class LTIOutcomesClient:
                 "resultScore": {"language": "en", "textString": score}
             }
 
-        # Canvas specific adaptations
-        self._canvas_request_modification(request, **canvas_extras)
+        if pre_record_hook:
+            request = pre_record_hook(score=score, request_body=request)
+
+            if not isinstance(request, dict):
+                raise TypeError(
+                    "The pre-record hook must return the request body as a dict"
+                )
 
         self._send_request({"replaceResultRequest": request})
-
-    @classmethod
-    def _canvas_request_modification(
-        cls, request, lti_launch_url=None, submitted_at=None, **_
-    ):
-        # For details of Canvas extensions see:
-        # https://erau.instructure.com/doc/api/file.assignment_tools.html
-
-        if lti_launch_url:
-            request["resultRecord"].setdefault("result", {})["resultData"] = {
-                "ltiLaunchUrl": lti_launch_url
-            }
-
-        if submitted_at:
-            request["submissionDetails"] = {"submittedAt": submitted_at.isoformat()}
 
     def _send_request(self, request_body):
         """
