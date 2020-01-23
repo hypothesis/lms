@@ -44,7 +44,7 @@ class LTIHService:
 
     GROUP_NAME_MAX_LENGTH = 25
     """The maximum length of an h group name."""
-    
+
     USERNAME_MAX_LENGTH = 30
     """The maximum length of an h username."""
 
@@ -187,6 +187,7 @@ class LTIHService:
         hash_object.update(self._h_provider.encode())
         hash_object.update(self._h_provider_unique_id.encode())
         return hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+
     @property
     def _h_display_name(self):
         """Return the h user display name for the current request."""
