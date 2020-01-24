@@ -69,6 +69,7 @@ export default function BasicLtiLaunchApp() {
     lis_person_name_family,
     context_id,
     context_title,
+    custom_canvas_course_id,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
@@ -111,6 +112,7 @@ export default function BasicLtiLaunchApp() {
           'lis_person_name_family': lis_person_name_family,
           'context_id': context_id,
           'context_title': context_title,
+          'custom_canvas_course_id': custom_canvas_course_id,
         }
       });
 
