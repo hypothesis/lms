@@ -103,10 +103,12 @@ class LTIHService:
         show an error page instead of continuing with the LTI launch.
         """
 
-        for group in self._h_groups:
+        groups = self._h_groups
+        for group in groups:
             self._upsert_h_group(
                 group_id=group["id"], group_name=group["name"], creator=self._h_user,
             )
+        return groups
 
     def _upsert_h_group(self, group_id, group_name, creator):
         """Update the group and create it if the user is an instructor."""
@@ -211,24 +213,29 @@ class LTIHService:
 
     @property
     def _h_groups(self):
-        def name():
-            name = self._request.json["context_title"].strip()
+        canvas_api_client = self._request.find_service(name="canvas_api_client")
+
+        sections = canvas_api_client.user_course_sections(
+            self._request.json["custom_canvas_course_id"]
+        )["sections"]
+
+        def id_(section):
+            hash_object = hashlib.sha1()
+            hash_object.update(
+                self._request.json["tool_consumer_instance_guid"].encode()
+            )
+            hash_object.update(self._request.json["context_id"].encode())
+            hash_object.update(str(section["id"]).encode())
+            authority_provided_id = hash_object.hexdigest()
+            return f"group:{authority_provided_id}@{self._authority}"
+
+        def name(section):
+            name = section["name"].strip()
 
             if len(name) > self.GROUP_NAME_MAX_LENGTH:
                 name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
             return name
 
-        return [
-            {
-                "id": f"group:{self._h_authority_provided_id}@{self._authority}",
-                "name": name(),
-            }
-        ]
-
-    @property
-    def _h_authority_provided_id(self):
-        hash_object = hashlib.sha1()
-        hash_object.update(self._request.json["tool_consumer_instance_guid"].encode())
-        hash_object.update(self._request.json["context_id"].encode())
-        return hash_object.hexdigest()
+        sections = [{"id": id_(section), "name": name(section)} for section in sections]
+        return sections
