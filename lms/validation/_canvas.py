@@ -1,4 +1,5 @@
 """Schemas for Canvas API responses."""
+import marshmallow
 from webargs import fields
 
 from lms.validation._base import RequestsResponseSchema
@@ -28,3 +29,8 @@ class CanvasPublicURLResponseSchema(RequestsResponseSchema):
     """
 
     public_url = fields.Str(required=True)
+
+
+class CanvasUserCourseSectionsResponseSchema(RequestsResponseSchema):
+    class Meta:
+        unknown = marshmallow.INCLUDE

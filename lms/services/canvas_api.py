@@ -5,7 +5,11 @@ from sqlalchemy.orm.exc import NoResultFound
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
-from lms.validation import CanvasListFilesResponseSchema, CanvasPublicURLResponseSchema
+from lms.validation import (
+    CanvasListFilesResponseSchema,
+    CanvasPublicURLResponseSchema,
+    CanvasUserCourseSectionsResponseSchema,
+)
 from lms.validation.authentication import (
     CanvasAccessTokenResponseSchema,
     CanvasRefreshTokenResponseSchema,
@@ -71,7 +75,7 @@ class CanvasAPIClient:
             self._helper.user_course_sections_request(
                 self._oauth2_token.access_token, course_id
             ),
-            None,  # CanvasUserCourseSectionsResponseSchema,
+            CanvasUserCourseSectionsResponseSchema,
             self._oauth2_token.refresh_token,
         )
 
