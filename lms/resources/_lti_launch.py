@@ -204,6 +204,7 @@ class LTILaunchResource:
                     "lis_person_name_family": self._get_param("lis_person_name_family"),
                     "context_id": self._get_param("context_id"),
                     "context_title": self._get_param("context_title"),
+                    "custom_canvas_course_id": self._get_param("custom_canvas_course_id"),
                 }
             )
 
