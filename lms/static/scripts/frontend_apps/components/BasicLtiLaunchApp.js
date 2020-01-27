@@ -101,8 +101,7 @@ export default function BasicLtiLaunchApp() {
         path: viaUrlCallback,
       });
 
-      // HERE
-      await apiCall({
+      const group_ids = await apiCall({
         authToken,
         path: '/api/h/sync',
         data: {
@@ -115,6 +114,11 @@ export default function BasicLtiLaunchApp() {
           'custom_canvas_course_id': custom_canvas_course_id,
         }
       });
+
+      const configEl = document.querySelector('.js-hypothesis-config');
+      const config = JSON.parse(configEl.textContent);
+      config['services'][0]['groups'] = group_ids;
+      configEl.textContent = JSON.stringify(config);
 
       setLtiLaunchState({
         ...INITIAL_LTI_LAUNCH_STATE,
