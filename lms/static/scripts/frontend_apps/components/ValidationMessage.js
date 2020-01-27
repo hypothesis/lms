@@ -33,6 +33,8 @@ export default function ValidationMessage({
   });
 
   return (
+    // FIXME-A11Y
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <div onClick={closeValidationError} className={errorClass}>
       {message}
     </div>

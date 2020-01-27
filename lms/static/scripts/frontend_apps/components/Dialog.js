@@ -67,10 +67,14 @@ export default function Dialog({
   }, []);
 
   return (
+    // FIXME-A11Y
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       role="dialog"
       aria-labelledby="Dialog__title"
       onKeyDown={handleKey}
+      // FIXME-A11Y
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex="0"
       ref={rootEl}
     >
