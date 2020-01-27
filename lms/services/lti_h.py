@@ -108,7 +108,7 @@ class LTIHService:
             self._upsert_h_group(
                 group_id=group["id"], group_name=group["name"], creator=self._h_user,
             )
-        return groups
+        return [group["id"] for group in groups]
 
     def _upsert_h_group(self, group_id, group_name, creator):
         """Update the group and create it if the user is an instructor."""
