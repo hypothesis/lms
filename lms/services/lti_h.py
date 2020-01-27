@@ -215,9 +215,9 @@ class LTIHService:
     def _h_groups(self):
         canvas_api_client = self._request.find_service(name="canvas_api_client")
 
-        #sections = canvas_api_client.user_course_sections(
+        # sections = canvas_api_client.user_course_sections(
         #    self._request.json["custom_canvas_course_id"]
-        #)["sections"]
+        # )["sections"]
 
         # Teacher version.
         sections = canvas_api_client.course_sections(

@@ -6,10 +6,10 @@ from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services._helpers import CanvasAPIHelper
 from lms.validation import (
+    CanvasCourseSectionsResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
     CanvasUserCourseSectionsResponseSchema,
-    CanvasCourseSectionsResponseSchema,
 )
 from lms.validation.authentication import (
     CanvasAccessTokenResponseSchema,
