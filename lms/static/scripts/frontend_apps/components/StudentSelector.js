@@ -59,6 +59,8 @@ export default function StudentSelector({
 
     return (
       <span className="StudentsSelector__students">
+        {/* FIXME-A11Y */}
+        {/* eslint-disable-next-line jsx-a11y/no-onchange */}
         <select
           className="StudentsSelector__students-select"
           onChange={e => {

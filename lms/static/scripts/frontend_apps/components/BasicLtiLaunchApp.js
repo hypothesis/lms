@@ -189,6 +189,8 @@ export default function BasicLtiLaunchApp() {
 
   if (ltiLaunchState.state === 'fetched-url') {
     const iFrame = (
+      // FIXME-A11Y
+      // eslint-disable-next-line jsx-a11y/iframe-has-title
       <iframe
         width="100%"
         height="100%"

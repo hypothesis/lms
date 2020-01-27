@@ -152,6 +152,8 @@ export default function LMSFilePicker({
         <ErrorDisplay
           message={
             <Fragment>
+              {/* FIXME-A11Y */}
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <a>{`Failed to authorize with the ${lmsName} instance at `}</a>
               <a href={`${lmsUrl}`}>{`${lmsUrl}`}</a>
             </Fragment>

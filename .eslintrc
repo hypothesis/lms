@@ -1,6 +1,7 @@
 {
   "extends": [
-    "hypothesis"
+    "hypothesis",
+    "plugin:jsx-a11y/recommended"
   ],
   "rules": {
     "prefer-arrow-callback": "error",
