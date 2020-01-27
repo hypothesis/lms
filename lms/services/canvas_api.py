@@ -9,6 +9,7 @@ from lms.validation import (
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
     CanvasUserCourseSectionsResponseSchema,
+    CanvasCourseSectionsResponseSchema,
 )
 from lms.validation.authentication import (
     CanvasAccessTokenResponseSchema,
@@ -76,6 +77,16 @@ class CanvasAPIClient:
                 self._oauth2_token.access_token, course_id
             ),
             CanvasUserCourseSectionsResponseSchema,
+            self._oauth2_token.refresh_token,
+        )
+
+    def course_sections(self, course_id):
+        """Return all the given course's sections."""
+        return self.send_with_refresh_and_retry(
+            self._helper.course_sections_request(
+                self._oauth2_token.access_token, course_id
+            ),
+            CanvasCourseSectionsResponseSchema,
             self._oauth2_token.refresh_token,
         )
 

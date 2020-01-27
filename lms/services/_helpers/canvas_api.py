@@ -99,6 +99,14 @@ class CanvasAPIHelper:
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
+    def course_sections_request(self, access_token, course_id):
+        """Return a prepared course sections request."""
+        return requests.Request(
+            "GET",
+            self._course_sections_url(course_id),
+            headers={"Authorization": f"Bearer {access_token}"},
+        ).prepare()
+
     def list_files_request(self, access_token, course_id):
         """
         Return a prepared list files request.
@@ -199,6 +207,19 @@ class CanvasAPIHelper:
     def _token_url(self):
         """Return the URL of the Canvas API's token endpoint."""
         return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
+
+    def _course_sections_url(self, course_id):
+        """Return the Canvas course sections API URL for ``course_id``."""
+        return urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/sections",
+                "",
+                "",
+                "",
+            )
+        )
 
     def _user_course_sections_url(self, course_id):
         """Return the Canvas user course sections API URL for ``course_id``."""

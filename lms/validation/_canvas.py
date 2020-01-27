@@ -34,3 +34,10 @@ class CanvasPublicURLResponseSchema(RequestsResponseSchema):
 class CanvasUserCourseSectionsResponseSchema(RequestsResponseSchema):
     class Meta:
         unknown = marshmallow.INCLUDE
+
+
+class CanvasCourseSectionsResponseSchema(RequestsResponseSchema):
+    many = True
+
+    class Meta:
+        unknown = marshmallow.INCLUDE

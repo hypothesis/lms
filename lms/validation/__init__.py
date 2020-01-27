@@ -57,6 +57,7 @@ from lms.validation._canvas import (
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
     CanvasUserCourseSectionsResponseSchema,
+    CanvasCourseSectionsResponseSchema,
 )
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
 from lms.validation._lti_launch_params import (
@@ -76,6 +77,7 @@ __all__ = (
     "CanvasListFilesResponseSchema",
     "CanvasPublicURLResponseSchema",
     "CanvasUserCourseSectionsResponseSchema",
+    "CanvasCourseSectionsResponseSchema",
     "LaunchParamsSchema",
     "LaunchParamsURLConfiguredSchema",
     "ValidationError",
