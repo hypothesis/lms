@@ -52,6 +52,10 @@ class BasicLTILaunchViews:
             }
         )
 
+        self.context.js_config.update(
+            {"authUrl": self.request.route_url("canvas_api.authorize"),}
+        )
+
         if self.is_launched_by_canvas():
             self.initialise_canvas_submission_params()
             self.set_canvas_focused_user()
@@ -305,6 +309,7 @@ class BasicLTILaunchViews:
         """Add config used by UI to call Canvas `record_submission` API."""
         lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
+        custom_canvas_user_id = self.request.params.get("custom_canvas_user_id")
 
         # Don't try to submit assignments to Canvas when the assignment is
         # launched by a teacher, or when the submission-related params are
@@ -314,6 +319,7 @@ class BasicLTILaunchViews:
                 "h_username": self.context.h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
+                "custom_canvas_user_id": custom_canvas_user_id,
             }
 
     def set_canvas_submission_param(self, name, value):

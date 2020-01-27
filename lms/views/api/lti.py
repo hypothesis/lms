@@ -86,7 +86,10 @@ class LTIOutcomesViews:
             #
             # See https://github.com/instructure/canvas-lms/issues/1486
             speedgrader_launch_params = {
-                "focused_user": self.parsed_params["h_username"]
+                "focused_user": self.parsed_params["h_username"],
+                #"student_custom_canvas_user_id": self.parsed_params[
+                #    "custom_canvas_user_id"
+                #],
             }
             if self.parsed_params.get("document_url"):
                 speedgrader_launch_params["url"] = self.parsed_params.get(
