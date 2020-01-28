@@ -99,6 +99,13 @@ class CanvasAPIHelper:
             headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
+    def other_user_course_sections_request(self, access_token, course_id, user_id):
+        return requests.Request(
+            "GET",
+            self._other_user_course_sections_url(course_id, user_id),
+            headers={"Authorization": f"Bearer {access_token}"},
+        ).prepare()
+
     def course_sections_request(self, access_token, course_id):
         """Return a prepared course sections request."""
         return requests.Request(
@@ -228,6 +235,19 @@ class CanvasAPIHelper:
                 "https",
                 self._canvas_url,
                 f"/api/v1/courses/{course_id}?include[]=sections",
+                "",
+                "",
+                "",
+            )
+        )
+
+    def _other_user_course_sections_url(self, course_id, user_id):
+        """Return the Canvas course sections API URL for ``course_id`` and ``user_id``."""
+        return urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/users/{user_id}?include[]=enrollments",
                 "",
                 "",
                 "",

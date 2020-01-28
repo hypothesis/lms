@@ -36,6 +36,11 @@ class CanvasUserCourseSectionsResponseSchema(RequestsResponseSchema):
         unknown = marshmallow.INCLUDE
 
 
+class CanvasOtherUserCourseSectionsResponseSchema(RequestsResponseSchema):
+    class Meta:
+        unknown = marshmallow.INCLUDE
+
+
 class CanvasCourseSectionsResponseSchema(RequestsResponseSchema):
     many = True
 
