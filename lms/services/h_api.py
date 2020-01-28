@@ -62,6 +62,13 @@ class HAPI:
 
         self._api_request("POST", "users", data=user_data)
 
+    def create_lms_user(self):
+        self.create_user(
+            HUser(authority=self._authority, username="lms"),
+            provider="lms",
+            provider_unique_id="lms",
+        )
+
     def update_user(self, h_user):
         """
         Update details for a user in H.

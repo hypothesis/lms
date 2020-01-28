@@ -23,6 +23,7 @@ setup(
     zip_safe=False,
     entry_points="""\
     [console_scripts]
+    create_lms_user = lms.scripts:create_lms_user
     devdata = lms.scripts:devdata
     """,
 )
