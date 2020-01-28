@@ -105,6 +105,8 @@ class LTIHService:
 
         groups = self._h_groups
         for group in groups:
+            if not group["name"]:
+                continue
             self._upsert_h_group(group_id=group["id"], group_name=group["name"])
         return [group["id"] for group in groups]
 
@@ -205,14 +207,28 @@ class LTIHService:
     def _h_groups(self):
         canvas_api_client = self._request.find_service(name="canvas_api_client")
 
-        # sections = canvas_api_client.user_course_sections(
-        #    self._request.json["custom_canvas_course_id"]
-        # )["sections"]
+        is_student = "learner" in self._request.lti_user.roles.lower()
 
-        # Teacher version.
-        sections = canvas_api_client.course_sections(
-            self._request.json["custom_canvas_course_id"]
-        )
+        if "student_custom_canvas_user_id" in self._request.json:
+            # Get all sections for a particular student.
+            response = canvas_api_client.other_user_course_sections(
+                self._request.json["custom_canvas_course_id"],
+                self._request.json["student_custom_canvas_user_id"],
+            )
+            sections = [
+                {"id": enrollment["course_section_id"], "name": None}
+                for enrollment in response["enrollments"]
+            ]
+        elif is_student:
+            # Get all sections for the authenticated student.
+            sections = canvas_api_client.user_course_sections(
+                self._request.json["custom_canvas_course_id"]
+            )["sections"]
+        else:
+            # Get all sections for the course.
+            sections = canvas_api_client.course_sections(
+                self._request.json["custom_canvas_course_id"]
+            )
 
         def id_(section):
             hash_object = hashlib.sha1()
@@ -225,6 +241,8 @@ class LTIHService:
             return f"group:{authority_provided_id}@{self._authority}"
 
         def name(section):
+            if section["name"] is None:
+                return None
             name = section["name"].strip()
 
             if len(name) > self.GROUP_NAME_MAX_LENGTH:
