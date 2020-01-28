@@ -336,7 +336,10 @@ class BasicLTILaunchViews:
 
         # This parameter is only passed as a part of Canvas SpeedGrader config
         # and is passed as a parameter to a URL which they call us back on.
-        focused_user = self.request.params.get("focused_user")
+        focused_user = self.request.params.get(
+            "student_custom_canvas_user_id", self.request.params.get("focused_user")
+        )
+
         if not focused_user:
             return
 
