@@ -90,6 +90,7 @@ class LTIOutcomesViews:
                 "student_custom_canvas_user_id": self.request.json[
                     "custom_canvas_user_id"
                 ],
+                "student_lti_user_id": self.request.lti_user.user_id,
             }
             if self.parsed_params.get("document_url"):
                 speedgrader_launch_params["url"] = self.parsed_params.get(
