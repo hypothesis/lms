@@ -90,23 +90,29 @@ export default function BasicLtiLaunchApp() {
         ...INITIAL_LTI_LAUNCH_STATE,
         state: 'fetching-url',
       });
-      const { via_url: contentUrl } = await apiCall({
-        authToken,
-        path: viaUrlCallback,
-      });
+      let contentUrl = null;
+      if (viaUrlCallback) {
+        ({ via_url: contentUrl } = await apiCall({
+          authToken,
+          path: viaUrlCallback,
+        }));
+      } else {
+        contentUrl = viaUrl;
+      }
 
-      const group_ids = await apiCall({
-        authToken,
-        path: '/api/h/sync',
-        data: {
+      let data = {
           'tool_consumer_instance_guid': tool_consumer_instance_guid,
           'lis_person_name_full': lis_person_name_full,
           'lis_person_name_given': lis_person_name_given,
           'lis_person_name_family': lis_person_name_family,
           'context_id': context_id,
           'context_title': context_title,
-          'custom_canvas_course_id': custom_canvas_course_id,
-        }
+          'custom_canvas_course_id': custom_canvas_course_id
+      }
+      const group_ids = await apiCall({
+        authToken,
+        path: '/api/h/sync',
+        data: data
       });
 
       const configEl = document.querySelector('.js-hypothesis-config');
