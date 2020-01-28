@@ -112,7 +112,7 @@ class HAPI:
             "PUT",
             f"groups/{group_id}",
             data={"groupid": group_id, "name": group_name},
-            headers={"X-Forwarded-User": "lms"},
+            headers={"X-Forwarded-User": "acct:lms@lms.hypothes.is"},
         )
 
     def update_group(self, group_id, group_name):
