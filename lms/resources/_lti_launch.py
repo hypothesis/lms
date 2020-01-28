@@ -210,6 +210,9 @@ class LTILaunchResource:
                 }
             )
 
+            if "student_custom_canvas_user_id" in self._request.params:
+                self.js_config["student_custom_canvas_user_id"] = self._request.params["student_custom_canvas_user_id"]
+
         return self._js_config
 
     @property
