@@ -2,6 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import ValidationMessage, { $imports } from '../ValidationMessage';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ValidationMessage', () => {
@@ -43,4 +44,18 @@ describe('ValidationMessage', () => {
     assert.isTrue(onCloseProp.calledOnce);
     assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility([
+      {
+        name: 'closed',
+        content: () => renderMessage(),
+      },
+      {
+        name: 'open',
+        content: () => renderMessage({ open: true }),
+      },
+    ])
+  );
 });

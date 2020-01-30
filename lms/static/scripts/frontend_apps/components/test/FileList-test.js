@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import { createElement } from 'preact';
 
 import FileList, { $imports } from '../FileList';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('FileList', () => {
@@ -63,4 +64,18 @@ describe('FileList', () => {
     const wrapper = renderFileList({ isLoading: false });
     assert.isFalse(wrapper.exists('.FileList__spinner'));
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility([
+      {
+        name: 'files loaded',
+        content: () => renderFileList({ isLoading: false }),
+      },
+      {
+        name: 'loading',
+        content: () => renderFileList({ isLoading: true }),
+      },
+    ])
+  );
 });

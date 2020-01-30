@@ -2,6 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import Table from '../Table';
+import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('Table', () => {
   const renderTable = (props = {}) =>
@@ -115,4 +116,12 @@ describe('Table', () => {
     wrapper.find('table').simulate('keydown', { key: 'Tab' });
     assert.notCalled(onSelectItem);
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () =>
+        renderTable({ items: ['One', 'Two', 'Three'], selectedItem: 'One' }),
+    })
+  );
 });

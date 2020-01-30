@@ -1,7 +1,9 @@
 import { act } from 'preact/test-utils';
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
+
 import LMSGrader, { $imports } from '../LMSGrader';
+import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('LMSGrader', () => {
   const fakeStudents = [
@@ -160,4 +162,11 @@ describe('LMSGrader', () => {
       )
     );
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderGrader(),
+    })
+  );
 });

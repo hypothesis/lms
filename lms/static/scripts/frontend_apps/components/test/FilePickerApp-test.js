@@ -11,6 +11,7 @@ import {
 } from '../../utils/content-item';
 import { PickerCanceledError } from '../../utils/google-picker-client';
 import FilePickerApp, { $imports } from '../FilePickerApp';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 function interact(wrapper, callback) {
@@ -325,4 +326,11 @@ describe('FilePickerApp', () => {
       assert.isFalse(wrapper.exists('Spinner'));
     });
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderFilePicker(),
+    })
+  );
 });
