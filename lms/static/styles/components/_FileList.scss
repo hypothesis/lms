@@ -3,6 +3,13 @@ $file-list-icon-size: 24px;
 
 .FileList {
   position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  // Override the default minimum height of the table so that the file list
+  // is fully visible even if available height is very small.
+  min-height: 100px;
 }
 
 .FileList__spinner {

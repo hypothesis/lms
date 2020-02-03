@@ -8,7 +8,6 @@ $table-icon-size: 24px;
 // Wrapper around the table. This is used because table elements do not support
 // setting the `height` or `overflow` properties directly.
 .Table__wrapper {
-  height: 7 * $table-item-height;
   overflow: auto;
   border: 1px solid var.$grey-6;
 
