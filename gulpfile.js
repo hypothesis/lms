@@ -75,7 +75,7 @@ var bundles = [
   {
     name: 'new_application_instance',
     entry: './lms/static/scripts/new-application-instance.js',
-  }
+  },
 ];
 
 var bundleConfigs = bundles.map(function(config) {
@@ -184,14 +184,23 @@ function runKarma(baseConfig, opts, done) {
   ).start();
 }
 
-gulp.task('test', function(callback) {
-  runKarma(
-    './lms/static/scripts/karma.config.js',
-    { singleRun: true, autoWatch: false },
-    callback
-  );
-});
+// Unit/integration tests. Some tests (eg. a11y) depend on having CSS available,
+// so build those bundles first.
 
-gulp.task('test-watch', function(callback) {
-  runKarma('./lms/static/scripts/karma.config.js', {}, callback);
-});
+gulp.task(
+  'test',
+  gulp.series('build-css', callback => {
+    runKarma(
+      './lms/static/scripts/karma.config.js',
+      { singleRun: true, autoWatch: false },
+      callback
+    );
+  })
+);
+
+gulp.task(
+  'test-watch',
+  gulp.series('build-css', callback => {
+    runKarma('./lms/static/scripts/karma.config.js', {}, callback);
+  })
+);
