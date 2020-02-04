@@ -6,8 +6,8 @@ import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 
-import { waitFor, waitForElement } from './util';
-import mockImportedComponents from './mock-imported-components';
+import { waitFor, waitForElement } from '../../../test-util/wait';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;

@@ -2,7 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import ValidationMessage, { $imports } from '../ValidationMessage';
-import mockImportedComponents from './mock-imported-components';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ValidationMessage', () => {
   const renderMessage = (props = {}) => {

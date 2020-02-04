@@ -11,7 +11,7 @@ import {
 } from '../../utils/content-item';
 import { PickerCanceledError } from '../../utils/google-picker-client';
 import FilePickerApp, { $imports } from '../FilePickerApp';
-import mockImportedComponents from './mock-imported-components';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 function interact(wrapper, callback) {
   act(callback);

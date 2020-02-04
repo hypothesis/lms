@@ -2,7 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import StudentSelector, { $imports } from '../StudentSelector';
-import mockImportedComponents from './mock-imported-components';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('StudentSelector', () => {
   const renderSelector = (props = {}) => {
