@@ -2,8 +2,8 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
-import mockImportedComponents from './mock-imported-components';
-import { waitFor } from './util';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { waitFor } from '../../../test-util/wait';
 
 describe('SubmitGradeForm', () => {
   const fakeStudent = {

@@ -2,7 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import ErrorDialog, { $imports } from '../ErrorDialog';
-import mockImportedComponents from './mock-imported-components';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ErrorDialog', () => {
   beforeEach(() => {

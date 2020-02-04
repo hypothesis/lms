@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import { createElement } from 'preact';
 
 import FileList, { $imports } from '../FileList';
-import mockImportedComponents from './mock-imported-components';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('FileList', () => {
   const testFiles = [
