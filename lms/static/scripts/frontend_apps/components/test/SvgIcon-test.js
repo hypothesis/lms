@@ -1,5 +1,7 @@
 import { createElement, render } from 'preact';
+
 import SvgIcon from '../SvgIcon';
+import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('SvgIcon', () => {
   const inlineSvg = {
@@ -71,4 +73,12 @@ describe('SvgIcon', () => {
     assert.isTrue(wrapper.classList.contains('svg-icon'));
     assert.isTrue(wrapper.classList.contains('svg-icon--inline'));
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      // eslint-disable-next-line react/display-name
+      content: () => <SvgIcon src={inlineSvg} />,
+    })
+  );
 });

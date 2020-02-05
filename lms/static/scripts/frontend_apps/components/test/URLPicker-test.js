@@ -3,6 +3,7 @@ import { mount } from 'enzyme';
 
 import Button from '../Button';
 import URLPicker, { $imports } from '../URLPicker';
+import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('URLPicker', () => {
   // eslint-disable-next-line react/prop-types
@@ -36,4 +37,11 @@ describe('URLPicker', () => {
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderUrlPicker(),
+    })
+  );
 });

@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import { createElement, createRef } from 'preact';
 
 import Dialog from '../Dialog';
+import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('Dialog', () => {
   it('renders content', () => {
@@ -86,4 +87,16 @@ describe('Dialog', () => {
 
     container.remove();
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      // eslint-disable-next-line react/display-name
+      content: () => (
+        <Dialog title="Test dialog">
+          <div>test</div>
+        </Dialog>
+      ),
+    })
+  );
 });

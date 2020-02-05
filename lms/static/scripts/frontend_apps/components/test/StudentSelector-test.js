@@ -2,6 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import StudentSelector, { $imports } from '../StudentSelector';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('StudentSelector', () => {
@@ -96,4 +97,12 @@ describe('StudentSelector', () => {
         .prop('disabled')
     );
   });
+
+  // FIXME-A11Y
+  it.skip(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderSelector(),
+    })
+  );
 });

@@ -5,7 +5,7 @@ import { Config } from '../../config';
 import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
-
+import { checkAccessibility } from '../../../test-util/accessibility';
 import { waitFor, waitForElement } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
@@ -238,4 +238,12 @@ describe('BasicLtiLaunchApp', () => {
       assert.isTrue(LMSGrader.exists());
     });
   });
+
+  // FIXME-A11Y
+  it.skip(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderLtiLaunchApp(),
+    })
+  );
 });

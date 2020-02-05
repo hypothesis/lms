@@ -2,6 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitFor } from '../../../test-util/wait';
 
@@ -237,4 +238,12 @@ describe('SubmitGradeForm', () => {
       );
     });
   });
+
+  // FIXME-A11Y
+  it.skip(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => renderForm(),
+    })
+  );
 });

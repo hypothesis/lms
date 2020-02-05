@@ -30,6 +30,10 @@ module.exports = function(config) {
       // bundled with karma-browserify which handles watching itself via
       // watchify
       { pattern: '**/*-test.js', watched: false, included: true, served: true },
+
+      // CSS bundles.
+      // Accessibility tests rely on having styles available.
+      '../../../build/styles/*.css',
     ],
 
     // list of files to exclude

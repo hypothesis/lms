@@ -2,6 +2,7 @@ import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import ErrorDisplay, { $imports } from '../ErrorDisplay';
+import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ErrorDisplay', () => {
@@ -55,4 +56,17 @@ describe('ErrorDisplay', () => {
     assert.isTrue(details.exists());
     assert.include(details.text(), 'Note from server');
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      // eslint-disable-next-line react/display-name
+      content: () => (
+        <ErrorDisplay
+          message="Something went wrong"
+          error={new Error('Oh no')}
+        />
+      ),
+    })
+  );
 });
