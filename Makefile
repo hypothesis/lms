@@ -20,6 +20,7 @@ help:
 	@echo "make bddtests          Run the gherkin tests"
 	@echo "make docstrings        View all the docstrings locally as HTML"
 	@echo "make checkdocstrings   Crash if building the docstrings fails"
+	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
 	@echo "make upgrade-package   Upgrade the version of a package in requirements.txt."
 	@echo '                       Usage: `make upgrade-package name=some-package`.'
@@ -154,6 +155,9 @@ backend-tests: python
 .PHONY: bddtests
 bddtests: python
 	@tox -qe bddtests
+
+.PHONY: sure
+sure: checkformatting lint test coverage functests bddtests
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
