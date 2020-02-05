@@ -303,6 +303,11 @@ class TestLTILaunchResource:
 
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
 
+    def test_js_config_includes_the_rpc_server_config(self, lti_launch):
+        assert lti_launch.js_config["rpcServer"] == {
+            "allowedOrigins": ["http://localhost:5000"]
+        }
+
     def test_js_config_includes_the_urls(self, pyramid_request):
         js_config = LTILaunchResource(pyramid_request).js_config
 
@@ -415,11 +420,6 @@ class TestLTILaunchResource:
         lti_launch.hypothesis_config.update({"a_key": "a_value"})
 
         assert lti_launch.hypothesis_config["a_key"] == "a_value"
-
-    def test_rpc_server_config(self, lti_launch):
-        assert lti_launch.rpc_server_config == {
-            "allowedOrigins": ["http://localhost:5000"]
-        }
 
     def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
         self, ai_getter, lti_launch, pyramid_request

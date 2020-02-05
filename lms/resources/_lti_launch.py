@@ -185,7 +185,16 @@ class LTILaunchResource:
         """
         if self._js_config is None:
             # Initialize self._js_config for the first time.
-            self._js_config = {"urls": {}}
+            self._js_config = {
+                # The config object for the postMessage-JSON-RPC server.
+                "rpcServer": {
+                    "allowedOrigins": self._request.registry.settings[
+                        "rpc_allowed_origins"
+                    ],
+                },
+                # URLs for the frontend to use (e.g. API endpoints for it to call).
+                "urls": {},
+            }
 
             if self._request.lti_user:
                 self._js_config["authToken"] = BearerTokenSchema(
@@ -246,12 +255,6 @@ class LTILaunchResource:
             }
 
         return self._hypothesis_config
-
-    @property
-    def rpc_server_config(self):
-        """Return the config object for the JSON-RPC server."""
-        allowed_origins = self._request.registry.settings["rpc_allowed_origins"]
-        return {"allowedOrigins": allowed_origins}
 
     @property
     def provisioning_enabled(self):
