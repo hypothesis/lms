@@ -4,8 +4,10 @@
  * On creation the server automatically finds and reads its config settings
  * from a JSON config object in the document. For example:
  *
- *     <script type="application/json" class="js-rpc-server-config">
- *       { allowedOrigins: ["https://hypothes.is"] }
+ *     <script type="application/json" class="js-lms-config">
+ *       {
+ *         rpcServer: { allowedOrigins: ["https://hypothes.is"] }
+ *       }
  *     </script>
  *
  * After constructing a server you have to call its register() method to
@@ -20,8 +22,8 @@
  */
 export default class Server {
   constructor() {
-    const configEl = document.getElementsByClassName('js-rpc-server-config')[0];
-    const configObj = JSON.parse(configEl.textContent);
+    const configEl = document.getElementsByClassName('js-lms-config')[0];
+    const configObj = JSON.parse(configEl.textContent).rpcServer;
 
     // JSON-RPC messages that don't come from one of these allowed window
     // origins will be ignored.
