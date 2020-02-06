@@ -23,7 +23,6 @@ def pyramid_request(db_session):
 
     """
     pyramid_request = testing.DummyRequest(db=db_session)
-    pyramid_request.content_type = "application/json"
     pyramid_request.POST.update(
         {
             "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
