@@ -26,3 +26,6 @@ secret_env.sh
 .autoenv
 docker.sh
 .devdata.env
+
+# lms uses Yarn rather than npm to manage the lockfile.
+package-lock.json
