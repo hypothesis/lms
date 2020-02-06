@@ -151,7 +151,6 @@ class TestCanvasOauthCallbackSchema:
     def pyramid_request(self, lti_user):
         """Return a minimal valid OAuth 2 redirect request."""
         pyramid_request = testing.DummyRequest()
-        pyramid_request.content_type = None
         pyramid_request.params["code"] = "test_code"
         pyramid_request.params["state"] = "test_state"
         pyramid_request.session["oauth2_csrf"] = "test_csrf"
