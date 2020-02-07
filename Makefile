@@ -63,8 +63,15 @@ sql: python
 lint: backend-lint frontend-lint
 
 .PHONY: format
-format: python
+format: backend-format frontend-format
+
+.PHONY: backend-format
+backend-format: python
 	@tox -qe format
+
+.PHONY: frontend-format
+frontend-format: node_modules/.uptodate
+	@yarn format
 
 .PHONY: checkformatting
 checkformatting: python
