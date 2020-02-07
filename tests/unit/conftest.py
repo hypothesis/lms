@@ -45,6 +45,10 @@ def pyramid_request(db_session):
         "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
     )
 
+    # The DummyRequest request lacks a content_type property which the real
+    # request has
+    pyramid_request.content_type = None
+
     return pyramid_request
 
 
