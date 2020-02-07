@@ -58,7 +58,7 @@ async function apiCall({ path, authToken, data }) {
   const result = await fetch(path, {
     method: data === undefined ? 'GET' : 'POST',
     body,
-    headers: headers,
+    headers,
   });
   const resultJson = await result.json();
 
