@@ -47,16 +47,18 @@ export class ApiError extends Error {
  */
 async function apiCall({ path, authToken, data }) {
   let body;
+  const headers = {
+    Authorization: authToken,
+  };
   if (data !== undefined) {
     body = JSON.stringify(data);
+    headers['Content-Type'] = 'application/json; charset=UTF-8';
   }
 
   const result = await fetch(path, {
     method: data === undefined ? 'GET' : 'POST',
     body,
-    headers: {
-      Authorization: authToken,
-    },
+    headers: headers,
   });
   const resultJson = await result.json();
 
