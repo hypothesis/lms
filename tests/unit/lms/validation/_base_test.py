@@ -9,7 +9,7 @@ from lms.validation._base import JSONPyramidRequestSchema
 
 
 class TestJSONPyramidRequestSchema:
-    class TestingSchema(JSONPyramidRequestSchema):
+    class ExampleSchema(JSONPyramidRequestSchema):
         key = fields.Str()
 
     def test_it_reads_from_json_content(self):
@@ -21,7 +21,7 @@ class TestJSONPyramidRequestSchema:
         )
         request.content_type = "application/json"
 
-        assert self.TestingSchema(request).parse() == data
+        assert self.ExampleSchema(request).parse() == data
 
     @pytest.mark.parametrize("content_type", (None, "text/html"))
     def test_it_fails_without_json_content_type_header(self, content_type):
@@ -29,4 +29,4 @@ class TestJSONPyramidRequestSchema:
         request.content_type = content_type
 
         with pytest.raises(HTTPUnsupportedMediaType):
-            self.TestingSchema(request).parse()
+            self.ExampleSchema(request).parse()
