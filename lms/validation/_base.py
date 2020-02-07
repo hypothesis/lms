@@ -110,7 +110,7 @@ class JSONPyramidRequestSchema(PyramidRequestSchema):
 
         if content_type != "application/json":
             raise HTTPUnsupportedMediaType(
-                f"Require Content-Type=application/json, found {content_type}"
+                f"Unexpected content type. Expected 'application/json' but found '{content_type}'",
             )
 
         return data
