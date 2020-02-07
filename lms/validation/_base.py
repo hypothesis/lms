@@ -101,7 +101,8 @@ class JSONPyramidRequestSchema(PyramidRequestSchema):
 
     @pre_load
     def check_content_type(self, data, **_):
-        """Check the request has content type 'application/json'.
+        """
+        Check the request has content type 'application/json'.
 
         :raise HTTPUnsupportedMediaType: If the content type is wrong
         """
