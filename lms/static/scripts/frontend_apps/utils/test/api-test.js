@@ -39,6 +39,7 @@ describe('api', () => {
         body: JSON.stringify(data),
         headers: {
           Authorization: 'auth',
+          'Content-Type': 'application/json; charset=UTF-8',
         },
       });
     });
