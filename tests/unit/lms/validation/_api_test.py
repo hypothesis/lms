@@ -11,11 +11,10 @@ from lms.validation._api import (
 
 
 class TestAPIRecordSpeedgraderSchema:
-    def test_it_parses_request(self, pyramid_request, all_fields):
-        pyramid_request.body = json.dumps(all_fields)
+    def test_it_parses_request(self, json_request, all_fields):
+        request = json_request(all_fields)
 
-        schema = APIRecordSpeedgraderSchema(pyramid_request)
-        parsed_params = schema.parse()
+        parsed_params = APIRecordSpeedgraderSchema(request).parse()
 
         assert parsed_params == all_fields
 
@@ -23,25 +22,22 @@ class TestAPIRecordSpeedgraderSchema:
         "field", ["h_username", "lis_outcome_service_url", "lis_result_sourcedid"]
     )
     def test_it_raises_if_required_fields_missing(
-        self, pyramid_request, all_fields, field
+        self, json_request, all_fields, field
     ):
-        del all_fields[field]
-        pyramid_request.body = json.dumps(all_fields)
+        request = json_request(all_fields, exclude=[field])
 
-        schema = APIRecordSpeedgraderSchema(pyramid_request)
+        schema = APIRecordSpeedgraderSchema(request)
 
         with pytest.raises(ValidationError):
             schema.parse()
 
     @pytest.mark.parametrize("field", ["document_url", "canvas_file_id"])
     def test_it_doesnt_raise_if_optional_fields_missing(
-        self, pyramid_request, all_fields, field
+        self, json_request, all_fields, field
     ):
-        del all_fields[field]
-        pyramid_request.body = json.dumps(all_fields)
+        request = json_request(all_fields, exclude=[field])
 
-        schema = APIRecordSpeedgraderSchema(pyramid_request)
-        schema.parse()
+        APIRecordSpeedgraderSchema(request).parse()
 
     @pytest.fixture
     def all_fields(self):
@@ -94,11 +90,10 @@ class TestAPIReadResultSchema:
 
 
 class TestAPIRecordResultSchema:
-    def test_it_parses_request(self, pyramid_request, all_fields):
-        pyramid_request.body = json.dumps(all_fields)
+    def test_it_parses_request(self, json_request, all_fields):
+        request = json_request(all_fields)
 
-        schema = APIRecordResultSchema(pyramid_request)
-        parsed_params = schema.parse()
+        parsed_params = APIRecordResultSchema(request).parse()
 
         assert parsed_params == all_fields
 
@@ -106,36 +101,31 @@ class TestAPIRecordResultSchema:
         "field", ["lis_outcome_service_url", "lis_result_sourcedid", "score"]
     )
     def test_it_raises_if_required_fields_missing(
-        self, pyramid_request, all_fields, field
+        self, json_request, all_fields, field
     ):
-        del all_fields[field]
-        pyramid_request.body = json.dumps(all_fields)
+        request = json_request(all_fields, exclude=[field])
 
-        schema = APIRecordResultSchema(pyramid_request)
+        schema = APIRecordResultSchema(request)
 
         with pytest.raises(ValidationError):
             schema.parse()
 
     @pytest.mark.parametrize("bad_score", ["5", 5.0, 5, -1, 1.2, "fingers"])
-    def test_it_raises_if_score_invalid(self, pyramid_request, all_fields, bad_score):
-        all_fields["score"] = bad_score
-        pyramid_request.body = json.dumps(all_fields)
+    def test_it_raises_if_score_invalid(self, json_request, all_fields, bad_score):
+        request = json_request(dict(all_fields, score=bad_score))
 
-        schema = APIRecordResultSchema(pyramid_request)
+        schema = APIRecordResultSchema(request)
 
         with pytest.raises(ValidationError):
             schema.parse()
 
     @pytest.mark.parametrize("good_score", ["0", "0.5", "1", "1.0", "0.0", 0.5, 1, 0])
     def test_it_does_not_raise_with_valid_score_value(
-        self, pyramid_request, all_fields, good_score
+        self, json_request, all_fields, good_score
     ):
-        all_fields["score"] = good_score
-        pyramid_request.body = json.dumps(all_fields)
+        request = json_request(dict(all_fields, score=good_score))
 
-        schema = APIRecordResultSchema(pyramid_request)
-
-        schema.parse()
+        APIRecordResultSchema(request).parse()
 
     @pytest.fixture
     def all_fields(self):
@@ -144,3 +134,18 @@ class TestAPIRecordResultSchema:
             "lis_result_sourcedid": "modelstudent-assignment1",
             "score": 0.5,
         }
+
+
+@pytest.fixture
+def json_request(pyramid_request):
+    def _make_json_request(data, exclude=None):
+        pyramid_request.content_type = "application/json"
+
+        if exclude:
+            for field in exclude:
+                data.pop(field, None)
+
+        pyramid_request.body = json.dumps(data)
+        return pyramid_request
+
+    return _make_json_request

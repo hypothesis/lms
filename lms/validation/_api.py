@@ -3,15 +3,13 @@
 import marshmallow
 from webargs import fields
 
-from lms.validation._base import PyramidRequestSchema
+from lms.validation._base import JSONPyramidRequestSchema, PyramidRequestSchema
 
 __all__ = ["APIRecordSpeedgraderSchema", "APIReadResultSchema", "APIRecordResultSchema"]
 
 
-class APIRecordSpeedgraderSchema(PyramidRequestSchema):
+class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     """Schema for validating Canvas Speedgrader submissions from the front end."""
-
-    locations = ["json"]
 
     document_url = fields.Str()
     """URL of the document for this assignment."""
@@ -47,10 +45,8 @@ class APIReadResultSchema(PyramidRequestSchema):
     """
 
 
-class APIRecordResultSchema(PyramidRequestSchema):
+class APIRecordResultSchema(JSONPyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for recording grades."""
-
-    locations = ["json"]
 
     lis_outcome_service_url = fields.Str(required=True)
     """URL provided by the LMS to submit grades or other results to."""

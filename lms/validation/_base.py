@@ -1,5 +1,7 @@
 """Base classes for validation schemas."""
 import marshmallow
+from marshmallow import pre_load
+from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
 from lms.validation._exceptions import ValidationError
@@ -87,6 +89,30 @@ class PyramidRequestSchema(PlainSchema):
     @_parser.error_handler
     def _handle_error(error, _req, _schema, _status_code, _headers):
         raise ValidationError(messages=error.messages) from error
+
+
+class JSONPyramidRequestSchema(PyramidRequestSchema):
+    """A schema which expects JSON content only in a Pyramid request."""
+
+    def __init__(self, request):
+        super().__init__(request)
+
+        self.locations = ["json"]
+
+    @pre_load
+    def check_content_type(self, data, **_):
+        """Check the request has content type 'application/json'.
+
+        :raise HTTPUnsupportedMediaType: If the content type is wrong
+        """
+        content_type = self.context["request"].content_type
+
+        if content_type != "application/json":
+            raise HTTPUnsupportedMediaType(
+                f"Require Content-Type=application/json, found {content_type}"
+            )
+
+        return data
 
 
 class RequestsResponseSchema(PlainSchema):
