@@ -25,7 +25,6 @@ TEST_DATABASE_URL = os.environ.get(
 TEST_SETTINGS = {
     "sqlalchemy.url": TEST_DATABASE_URL,
     "via_url": "http://TEST_VIA_SERVER.is/",
-    "via3_url": "http://TEST_VIA3_SERVER.is/",
     "jwt_secret": "test_secret",
     "google_client_id": "fake_client_id",
     "google_developer_key": "fake_developer_key",
