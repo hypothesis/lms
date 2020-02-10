@@ -343,18 +343,16 @@ class TestLTILaunchResource:
 
         assert lti_launch.js_config["a_key"] == "a_value"
 
-    def test_hypothesis_config_raises_if_theres_no_oauth_consumer_key(
-        self, pyramid_request
-    ):
+    def test_js_config_raises_if_theres_no_oauth_consumer_key(self, pyramid_request):
         pyramid_request.params.pop("oauth_consumer_key")
 
         with pytest.raises(
             HTTPBadRequest,
             match='Required parameter "oauth_consumer_key" missing from LTI params',
         ):
-            LTILaunchResource(pyramid_request).hypothesis_config
+            LTILaunchResource(pyramid_request).js_config
 
-    def test_hypothesis_config_raises_if_theres_no_tool_consumer_instance_guid(
+    def test_js_config_raises_if_theres_no_tool_consumer_instance_guid(
         self, pyramid_request
     ):
         pyramid_request.params.pop("tool_consumer_instance_guid")
@@ -366,29 +364,35 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
-            LTILaunchResource(pyramid_request).hypothesis_config
+            LTILaunchResource(pyramid_request).js_config
 
-    def test_hypothesis_config_contains_one_service_config(self, lti_launch):
-        assert len(lti_launch.hypothesis_config["services"]) == 1
+    def test_js_config_contains_one_service_config_for_the_client(self, lti_launch):
+        assert len(lti_launch.js_config["hypothesisClient"]["services"]) == 1
 
-    def test_hypothesis_config_includes_the_api_url(self, lti_launch):
+    def test_js_config_includes_the_api_url_for_the_client(self, lti_launch):
         assert (
-            lti_launch.hypothesis_config["services"][0]["apiUrl"]
+            lti_launch.js_config["hypothesisClient"]["services"][0]["apiUrl"]
             == "https://example.com/api/"
         )
 
-    def test_hypothesis_config_includes_the_authority(self, lti_launch):
+    def test_js_config_includes_the_authority_for_the_client(self, lti_launch):
         assert (
-            lti_launch.hypothesis_config["services"][0]["authority"] == "TEST_AUTHORITY"
+            lti_launch.js_config["hypothesisClient"]["services"][0]["authority"]
+            == "TEST_AUTHORITY"
         )
 
-    def test_hypothesis_config_disables_share_links(self, lti_launch):
-        assert lti_launch.hypothesis_config["services"][0]["enableShareLinks"] is False
+    def test_js_config_disables_share_links_in_client(self, lti_launch):
+        assert (
+            lti_launch.js_config["hypothesisClient"]["services"][0]["enableShareLinks"]
+            is False
+        )
 
-    def test_hypothesis_config_includes_grant_token(self, lti_launch):
+    def test_js_config_includes_grant_token_for_client(self, lti_launch):
         before = int(datetime.datetime.now().timestamp())
 
-        grant_token = lti_launch.hypothesis_config["services"][0]["grantToken"]
+        grant_token = lti_launch.js_config["hypothesisClient"]["services"][0][
+            "grantToken"
+        ]
 
         claims = jwt.decode(
             grant_token,
@@ -402,24 +406,26 @@ class TestLTILaunchResource:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
-    def test_hypothesis_config_includes_the_group(self, lti_launch, pyramid_request):
-        groups = lti_launch.hypothesis_config["services"][0]["groups"]
+    def test_js_config_includes_the_group_for_the_client(
+        self, lti_launch, pyramid_request
+    ):
+        groups = lti_launch.js_config["hypothesisClient"]["services"][0]["groups"]
 
         assert groups == [
             "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
         ]
 
-    def test_hypothesis_config_is_empty_if_provisioning_feature_is_disabled(
+    def test_js_config_hypothesisClient_config_is_empty_if_provisioning_feature_is_disabled(
         self, lti_launch, ai_getter
     ):
         ai_getter.provisioning_enabled.return_value = False
 
-        assert lti_launch.hypothesis_config == {}
+        assert lti_launch.js_config["hypothesisClient"] == {}
 
-    def test_views_can_mutate_hypothesis_config(self, lti_launch):
-        lti_launch.hypothesis_config.update({"a_key": "a_value"})
+    def test_views_can_mutate_js_config_hypothesisClient_config(self, lti_launch):
+        lti_launch.js_config["hypothesisClient"].update({"a_key": "a_value"})
 
-        assert lti_launch.hypothesis_config["a_key"] == "a_value"
+        assert lti_launch.js_config["hypothesisClient"]["a_key"] == "a_value"
 
     def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
         self, ai_getter, lti_launch, pyramid_request

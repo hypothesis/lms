@@ -6,8 +6,10 @@ describe('postmessage_json_rpc/methods#requestConfig', () => {
   beforeEach('inject the client config into the document', () => {
     configEl = document.createElement('script');
     configEl.setAttribute('type', 'application/json');
-    configEl.classList.add('js-hypothesis-config');
-    configEl.textContent = JSON.stringify({ foo: 'bar' });
+    configEl.classList.add('js-config');
+    configEl.textContent = JSON.stringify({
+      hypothesisClient: { foo: 'bar' },
+    });
     document.body.appendChild(configEl);
   });
 

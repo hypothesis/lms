@@ -51,10 +51,10 @@ describe('BasicLtiLaunchApp', () => {
       },
     });
 
-    // fake js-hypothesis-config
+    // fake js-config
     fakeHypothesisConfig = sinon.stub(document, 'querySelector');
     fakeHypothesisConfig
-      .withArgs('.js-hypothesis-config')
+      .withArgs('.js-config')
       .returns({ text: JSON.stringify({}) });
   });
 
