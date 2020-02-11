@@ -13,7 +13,7 @@ import { startRpcServer } from '../postmessage_json_rpc/server';
 startRpcServer();
 
 const rootEl = document.querySelector('#app');
-const config = JSON.parse(document.querySelector('.js-lms-config').textContent);
+const config = JSON.parse(document.querySelector('.js-config').textContent);
 
 const mode = config.mode || 'content-item-selection';
 
