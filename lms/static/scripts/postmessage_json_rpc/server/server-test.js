@@ -15,7 +15,7 @@ describe('postmessage_json_rpc/server#Server', () => {
   beforeEach('inject the server config into the document', () => {
     configEl = document.createElement('script');
     configEl.setAttribute('type', 'application/json');
-    configEl.classList.add('js-lms-config');
+    configEl.classList.add('js-config');
     configEl.textContent = JSON.stringify({
       rpcServer: {
         allowedOrigins: ['http://localhost:9876'],
