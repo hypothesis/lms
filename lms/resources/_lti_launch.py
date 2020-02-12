@@ -192,7 +192,7 @@ class LTILaunchResource:
                     ],
                 },
                 # The config object for the Hypothesis client server.
-                "hypothesisClient": self._hypothesis_config,
+                "hypothesisClient": self._get_hypothesis_config(),
                 # URLs for the frontend to use (e.g. API endpoints for it to call).
                 "urls": {},
             }
@@ -204,8 +204,7 @@ class LTILaunchResource:
 
         return self._js_config
 
-    @property
-    def _hypothesis_config(self):
+    def _get_hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
 
