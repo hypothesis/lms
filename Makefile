@@ -15,7 +15,6 @@ help:
 	@echo "make format            Correctly format the code"
 	@echo "make checkformatting   Crash if the code isn't correctly formatted"
 	@echo "make test              Run the unit tests"
-	@echo "make coverage          Print the unit test coverage report"
 	@echo "make functests         Run the functional tests"
 	@echo "make bddtests          Run the gherkin tests"
 	@echo "make docstrings        View all the docstrings locally as HTML"
@@ -80,10 +79,6 @@ checkformatting: python
 
 .PHONY: test
 test: backend-tests frontend-tests
-
-.PHONY: coverage
-coverage: python
-	@tox -qe coverage
 
 .PHONY: functests
 functests: build/manifest.json functests-only
@@ -164,7 +159,7 @@ bddtests: python
 	@tox -qe bddtests
 
 .PHONY: sure
-sure: checkformatting lint test coverage functests bddtests
+sure: checkformatting lint test functests bddtests
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
