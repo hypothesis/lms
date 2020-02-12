@@ -10,7 +10,11 @@ from pyramid.request import apply_request_extensions
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.launch_verifier import LaunchVerifier
 from lms.values import LTIUser
-from tests.conftest import *
+from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
+
+TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
+    default="postgresql://postgres@localhost:5433/lms_test"
+)
 
 
 @pytest.fixture

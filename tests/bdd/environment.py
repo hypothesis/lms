@@ -5,9 +5,11 @@ from pkg_resources import resource_filename
 from lms.app import create_app
 from tests.bdd.higher_order_gherkin import Injector
 from tests.bdd.step_context import StepContextManager
+from tests.bdd.steps.lms_db import test_database_url
 from tests.conftest import TEST_SETTINGS
 
-TEST_SETTINGS["session_cookie_secret"] = "notasecret"
+TEST_SETTINGS["sqlalchemy.url"] = test_database_url
+
 
 # Create the compiled step file before steps are read
 Injector.create_step_file(

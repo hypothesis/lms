@@ -8,22 +8,14 @@ from sqlalchemy.orm import sessionmaker
 
 from lms import db
 
-__all__ = [
-    "patch",
-    "db_engine",
-    "SESSION",
-    "TEST_DATABASE_URL",
-    "TEST_SETTINGS",
-]
-
 SESSION = sessionmaker()
-TEST_DATABASE_URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql://postgres@localhost:5433/lms_test"
-)
 
-# Settings that will end up in pyramid_request.registry.settings.
+
+def get_test_database_url(default):
+    return os.environ.get("TEST_DATABASE_URL", default)
+
+
 TEST_SETTINGS = {
-    "sqlalchemy.url": TEST_DATABASE_URL,
     "via_url": "http://TEST_VIA_SERVER.is/",
     "via3_url": "http://TEST_VIA3_SERVER.is/",
     "jwt_secret": "test_secret",
@@ -48,12 +40,13 @@ TEST_SETTINGS = {
     "h_api_url_private": "https://example.com/private/api/",
     "rpc_allowed_origins": ["http://localhost:5000"],
     "oauth2_state_secret": "test_oauth2_state_secret",
+    "session_cookie_secret": "notasecret",
 }
 
 
 @pytest.fixture(scope="session")
 def db_engine():
-    engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
+    engine = sqlalchemy.create_engine(TEST_SETTINGS["sqlalchemy.url"])
     db.init(engine)
     return engine
 
