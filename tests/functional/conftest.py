@@ -4,9 +4,11 @@ import pytest
 from webtest import TestApp
 
 from lms import db
-from tests.conftest import *
+from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
-TEST_SETTINGS["session_cookie_secret"] = "notasecret"
+TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
+    default="postgresql://postgres@localhost:5433/lms_functests"
+)
 
 
 @pytest.fixture(scope="session", autouse=True)

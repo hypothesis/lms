@@ -1,4 +1,5 @@
 """Insert LMS specific objects into the DB."""
+import os
 
 import sqlalchemy
 from behave import step
@@ -6,14 +7,18 @@ from sqlalchemy.orm import sessionmaker
 
 from lms import db, models
 from tests.bdd.step_context import StepContext
-from tests.conftest import TEST_DATABASE_URL
+from tests.conftest import get_test_database_url
+
+test_database_url = get_test_database_url(
+    default="postgresql://postgres@localhost:5433/lms_bddtests"
+)
 
 
 class LMSDBContext(StepContext):
     context_key = "db"
 
     def __init__(self, **kwargs):
-        self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
+        self.engine = sqlalchemy.create_engine(test_database_url)
         self.session_maker = sessionmaker(bind=self.engine.connect())
         db.init(self.engine)
 
