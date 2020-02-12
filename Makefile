@@ -159,7 +159,7 @@ bddtests: python
 	@tox -qe bddtests
 
 .PHONY: sure
-sure: checkformatting lint test functests bddtests
+sure: checkformatting backend-lint frontend-lint backend-tests frontend-tests functests bddtests
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
