@@ -74,7 +74,7 @@ class TestBasicLTILaunch:
     def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
         self, context, pyramid_request, h_api
     ):
-        context.hypothesis_config = {}
+        context.js_config["hypothesisClient"] = {}
         pyramid_request.params.update(
             {
                 "tool_consumer_info_product_family_code": "canvas",
@@ -88,14 +88,14 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
-        assert context.hypothesis_config["focus"] == {
+        assert context.js_config["hypothesisClient"]["focus"] == {
             "user": {"username": "user123", "displayName": "Jim Smith"}
         }
 
     def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
         self, context, pyramid_request, h_api
     ):
-        context.hypothesis_config = {}
+        context.js_config["hypothesisClient"] = {}
         pyramid_request.params.update(
             {
                 "focused_user": "user123",
@@ -107,7 +107,7 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
-        assert context.hypothesis_config["focus"] == {
+        assert context.js_config["hypothesisClient"]["focus"] == {
             "user": {
                 "username": "user123",
                 "displayName": "(Couldn't fetch student name)",

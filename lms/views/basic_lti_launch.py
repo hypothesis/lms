@@ -362,6 +362,6 @@ class BasicLTILaunchViews:
             display_name = "(Couldn't fetch student name)"
 
         # TODO! - Could/should this be replaced with a GradingInfo lookup?
-        self.context.hypothesis_config.update(
+        self.context.js_config["hypothesisClient"].update(
             {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
         )

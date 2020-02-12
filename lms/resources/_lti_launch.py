@@ -32,7 +32,6 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
-        self._hypothesis_config = None
         self._js_config = None
 
     @property
@@ -192,6 +191,8 @@ class LTILaunchResource:
                         "rpc_allowed_origins"
                     ],
                 },
+                # The config object for the Hypothesis client server.
+                "hypothesisClient": self._get_hypothesis_config(),
                 # URLs for the frontend to use (e.g. API endpoints for it to call).
                 "urls": {},
             }
@@ -203,8 +204,7 @@ class LTILaunchResource:
 
         return self._js_config
 
-    @property
-    def hypothesis_config(self):
+    def _get_hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
 
@@ -213,11 +213,6 @@ class LTILaunchResource:
         request, such as an authorization grant token for the client to use to
         log in to the Hypothesis account corresponding to the LTI user that the
         request comes from.
-
-        This is a mutable config dict. It can be accessed, for example by
-        views, as ``request.context.hypothesis_config``, and they can mutate it or add
-        their own view-specific config settings. The modified config object
-        will then be passed to the Hypothesis client.
 
         See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
 
@@ -241,20 +236,17 @@ class LTILaunchResource:
             }
             return jwt.encode(claims, client_secret, algorithm="HS256")
 
-        if self._hypothesis_config is None:
-            self._hypothesis_config = {
-                "services": [
-                    {
-                        "apiUrl": api_url,
-                        "authority": self._authority,
-                        "enableShareLinks": False,
-                        "grantToken": grant_token().decode("utf-8"),
-                        "groups": [self.h_groupid],
-                    }
-                ]
-            }
-
-        return self._hypothesis_config
+        return {
+            "services": [
+                {
+                    "apiUrl": api_url,
+                    "authority": self._authority,
+                    "enableShareLinks": False,
+                    "grantToken": grant_token().decode("utf-8"),
+                    "groups": [self.h_groupid],
+                }
+            ]
+        }
 
     @property
     def provisioning_enabled(self):
