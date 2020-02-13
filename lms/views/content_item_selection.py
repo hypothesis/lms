@@ -50,8 +50,9 @@ def content_item_selection(context, request):
     lti_h_service = request.find_service(name="lti_h")
     lti_h_service.upsert_h_user()
     lti_h_service.upsert_course_group()
+    js_config = request.find_service(name="js_config").config
 
-    context.js_config.update(
+    js_config.update(
         {
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new access token.
@@ -90,9 +91,9 @@ def content_item_selection(context, request):
     # course, as this is a required param of the API it'll call to get the list
     # of files in the course.
     if helpers.canvas_files_available(request):
-        context.js_config["enableLmsFilePicker"] = True
-        context.js_config["courseId"] = request.params["custom_canvas_course_id"]
+        js_config["enableLmsFilePicker"] = True
+        js_config["courseId"] = request.params["custom_canvas_course_id"]
     else:
-        context.js_config["enableLmsFilePicker"] = False
+        js_config["enableLmsFilePicker"] = False
 
     return {}

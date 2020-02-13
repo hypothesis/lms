@@ -8,6 +8,7 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.js_config import JSConfig
 from lms.services.launch_verifier import LaunchVerifier
 from lms.values import LTIUser
 from tests.conftest import *
@@ -143,6 +144,14 @@ def launch_verifier(pyramid_config):
     launch_verifier = mock.create_autospec(LaunchVerifier, spec_set=True, instance=True)
     pyramid_config.register_service(launch_verifier, name="launch_verifier")
     return launch_verifier
+
+
+@pytest.fixture(autouse=True)
+def js_config(pyramid_config):
+    js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
+    js_config.config = {"urls": {}}
+    pyramid_config.register_service(js_config, name="js_config")
+    return js_config
 
 
 @pytest.fixture(autouse=True)

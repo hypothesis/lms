@@ -36,8 +36,9 @@ class BasicLTILaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.js_config = request.find_service(name="js_config").config
 
-        self.context.js_config.update(
+        self.js_config.update(
             {
                 # Configure the front-end mini-app to run.
                 "mode": "basic-lti-launch",
@@ -109,7 +110,7 @@ class BasicLTILaunchViews:
 
         file_id = self.request.params["file_id"]
 
-        self.context.js_config.update(
+        self.js_config.update(
             {
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new access token.
@@ -121,7 +122,7 @@ class BasicLTILaunchViews:
 
         # Configure the frontend to make a callback to the API to fetch the
         # Via URL.
-        self.context.js_config["urls"].update(
+        self.js_config["urls"].update(
             {
                 "via_url_callback": self.request.route_url(
                     "canvas_api.files.via_url", file_id=file_id
@@ -148,7 +149,7 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config)
+        frontend_app.configure_grading(self.request, self.js_config)
 
         resource_link_id = self.request.params["resource_link_id"]
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
@@ -180,7 +181,7 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config)
+        frontend_app.configure_grading(self.request, self.js_config)
 
         url = self.request.parsed_params["url"]
         self._set_via_url(url)
@@ -217,7 +218,7 @@ class BasicLTILaunchViews:
         )
 
         # Add the config needed by the JavaScript document selection code.
-        self.context.js_config.update(
+        self.js_config.update(
             {
                 "mode": "content-item-selection",
                 # It is assumed that this view is only used by LMSes for which
@@ -301,15 +302,13 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config)
+        frontend_app.configure_grading(self.request, self.js_config)
 
         return {}
 
     def _set_via_url(self, document_url):
         """Configure content URL which the frontend will render inside an iframe."""
-        self.context.js_config["urls"].update(
-            {"via_url": via_url(self.request, document_url)}
-        )
+        self.js_config["urls"].update({"via_url": via_url(self.request, document_url)})
         self.set_canvas_submission_param("document_url", document_url)
 
     def is_launched_by_canvas(self):
@@ -327,7 +326,7 @@ class BasicLTILaunchViews:
         # launched by a teacher, or when the submission-related params are
         # missing for some other reason.
         if lis_result_sourcedid and lis_outcome_service_url:
-            self.context.js_config["submissionParams"] = {
+            self.js_config["submissionParams"] = {
                 "h_username": self.context.h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
@@ -336,8 +335,8 @@ class BasicLTILaunchViews:
     def set_canvas_submission_param(self, name, value):
         """Update config for frontend's calls to `report_submisssion` API."""
 
-        if "submissionParams" in self.context.js_config:
-            self.context.js_config["submissionParams"][name] = value
+        if "submissionParams" in self.js_config:
+            self.js_config["submissionParams"][name] = value
 
     def set_canvas_focused_user(self):
         """Configure the Hypothesis client to focus on a particular user."""
@@ -362,6 +361,6 @@ class BasicLTILaunchViews:
             display_name = "(Couldn't fetch student name)"
 
         # TODO! - Could/should this be replaced with a GradingInfo lookup?
-        self.context.js_config["hypothesisClient"].update(
+        self.js_config["hypothesisClient"].update(
             {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
         )

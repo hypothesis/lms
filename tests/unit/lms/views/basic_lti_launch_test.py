@@ -18,24 +18,24 @@ class TestBasicLTILaunch:
     Test behavior common to all LTI launches.
     """
 
-    def test_it_configures_frontend(self, context, pyramid_request):
+    def test_it_configures_frontend(self, context, pyramid_request, js_config):
         BasicLTILaunchViews(context, pyramid_request)
-        assert context.js_config["mode"] == "basic-lti-launch"
+        assert js_config.config["mode"] == "basic-lti-launch"
 
     def test_it_does_not_configure_grading_if_request_unqualified(
-        self, context, pyramid_request
+        self, context, pyramid_request, js_config
     ):
         BasicLTILaunchViews(context, pyramid_request)
-        assert "lmsGrader" not in context.js_config
+        assert "lmsGrader" not in js_config.config
 
     def test_it_adds_report_submission_config_if_required_params_present(
-        self, context, pyramid_request, lti_outcome_params
+        self, context, pyramid_request, lti_outcome_params, js_config
     ):
         pyramid_request.params.update(lti_outcome_params)
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        assert context.js_config["submissionParams"] == {
+        assert js_config.config["submissionParams"] == {
             "h_username": context.h_user.username,
             "lis_result_sourcedid": "modelstudent-assignment1",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
@@ -50,17 +50,17 @@ class TestBasicLTILaunch:
         ],
     )
     def test_it_doesnt_add_report_submission_config_if_required_param_missing(
-        self, context, pyramid_request, lti_outcome_params, key
+        self, context, pyramid_request, lti_outcome_params, key, js_config
     ):
         pyramid_request.params.update(lti_outcome_params)
         del pyramid_request.params[key]
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        assert "submissionParams" not in context.js_config
+        assert "submissionParams" not in js_config.config
 
     def test_it_adds_report_submission_config_if_lms_not_canvas(
-        self, context, pyramid_request, lti_outcome_params
+        self, context, pyramid_request, lti_outcome_params, js_config
     ):
         pyramid_request.params.update(lti_outcome_params)
         pyramid_request.params.update(
@@ -69,12 +69,12 @@ class TestBasicLTILaunch:
 
         BasicLTILaunchViews(context, pyramid_request)
 
-        assert "submissionParams" not in context.js_config
+        assert "submissionParams" not in js_config.config
 
     def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
-        self, context, pyramid_request, h_api
+        self, context, pyramid_request, h_api, js_config
     ):
-        context.js_config["hypothesisClient"] = {}
+        js_config.config["hypothesisClient"] = {}
         pyramid_request.params.update(
             {
                 "tool_consumer_info_product_family_code": "canvas",
@@ -88,14 +88,14 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config["hypothesisClient"]["focus"] == {
+        assert js_config.config["hypothesisClient"]["focus"] == {
             "user": {"username": "user123", "displayName": "Jim Smith"}
         }
 
     def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
-        self, context, pyramid_request, h_api
+        self, context, pyramid_request, h_api, js_config
     ):
-        context.js_config["hypothesisClient"] = {}
+        js_config.config["hypothesisClient"] = {}
         pyramid_request.params.update(
             {
                 "focused_user": "user123",
@@ -107,7 +107,7 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config["hypothesisClient"]["focus"] == {
+        assert js_config.config["hypothesisClient"]["focus"] == {
             "user": {
                 "username": "user123",
                 "displayName": "(Couldn't fetch student name)",
@@ -173,10 +173,6 @@ class ConfiguredLaunch:
         return patch("lms.views.basic_lti_launch.frontend_app")
 
     @pytest.fixture(autouse=True)
-    def via_url(self, patch):
-        return patch("lms.views.basic_lti_launch.via_url")
-
-    @pytest.fixture(autouse=True)
     def grading_info_service(self, pyramid_config):
         grading_info_service = mock.create_autospec(
             GradingInfoService, instance=True, spec_set=True
@@ -200,28 +196,28 @@ class ConfiguredLaunch:
 
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_frontend(self, context, pyramid_request):
+    def test_it_configures_frontend(self, context, pyramid_request, js_config):
         self.make_request(context, pyramid_request)
 
-        assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
-        assert context.js_config["lmsName"] == "Canvas"
+        assert js_config.config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
+        assert js_config.config["lmsName"] == "Canvas"
 
-    def test_it_configures_via_callback_url(self, context, pyramid_request):
+    def test_it_configures_via_callback_url(self, context, pyramid_request, js_config):
         self.make_request(context, pyramid_request)
 
         assert (
-            context.js_config["urls"]["via_url_callback"]
+            js_config.config["urls"]["via_url_callback"]
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
     def test_it_configures_submission_params(
-        self, context, pyramid_request, lti_outcome_params
+        self, context, pyramid_request, lti_outcome_params, js_config
     ):
         pyramid_request.params.update(lti_outcome_params)
 
         self.make_request(context, pyramid_request)
 
-        assert context.js_config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
+        assert js_config.config["submissionParams"]["canvas_file_id"] == "TEST_FILE_ID"
 
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
@@ -247,6 +243,7 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
         lti_outcome_params,
         via_url,
         ModuleItemConfiguration,
+        js_config,
     ):
         pyramid_request.params.update(lti_outcome_params)
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
@@ -259,17 +256,23 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
             "TEST_RESOURCE_LINK_ID",
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config["urls"]["via_url"] == via_url.return_value
+        assert js_config.config["urls"]["via_url"] == via_url.return_value
         assert (
-            context.js_config["submissionParams"]["document_url"] == "TEST_DOCUMENT_URL"
+            js_config.config["submissionParams"]["document_url"] == "TEST_DOCUMENT_URL"
         )
 
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self,
+        context,
+        pyramid_request,
+        frontend_app,
+        via_url,
+        ModuleItemConfiguration,
+        js_config,
     ):
         self.make_request(context, pyramid_request)
         frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config
+            pyramid_request, js_config.config
         )
 
     def make_request(self, context, pyramid_request):
@@ -288,15 +291,15 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
     def test_it_configures_via_url(
-        self, context, pyramid_request, lti_outcome_params, via_url
+        self, context, pyramid_request, lti_outcome_params, via_url, js_config
     ):
         pyramid_request.params.update(lti_outcome_params)
 
         self.make_request(context, pyramid_request)
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
-        assert context.js_config["urls"]["via_url"] == via_url.return_value
-        assert context.js_config["submissionParams"]["document_url"] == "TEST_URL"
+        assert js_config.config["urls"]["via_url"] == via_url.return_value
+        assert js_config.config["submissionParams"]["document_url"] == "TEST_URL"
 
     def test_it_configures_frontend_grading(
         self,
@@ -306,6 +309,7 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
         lti_outcome_params,
         via_url,
         ModuleItemConfiguration,
+        js_config,
     ):
         pyramid_request.params = {
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
@@ -316,7 +320,7 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
         self.make_request(context, pyramid_request)
 
         frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config
+            pyramid_request, js_config.config
         )
 
     def make_request(self, context, pyramid_request):
@@ -331,7 +335,7 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 class TestConfigureModuleItem(ConfiguredLaunch):
     def test_it_saves_the_assignments_document_url_to_the_db(
-        self, context, pyramid_request, ModuleItemConfiguration
+        self, context, pyramid_request, ModuleItemConfiguration, via_url, js_config
     ):
         self.make_request(context, pyramid_request)
 
@@ -342,19 +346,22 @@ class TestConfigureModuleItem(ConfiguredLaunch):
             "TEST_DOCUMENT_URL",
         )
 
-    def test_it_configures_via_url(self, context, pyramid_request, via_url):
-        self.make_request(context, pyramid_request)
-
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config["urls"]["via_url"] == via_url.return_value
+        assert js_config.config["urls"]["via_url"] == via_url.return_value
 
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self,
+        context,
+        pyramid_request,
+        frontend_app,
+        via_url,
+        ModuleItemConfiguration,
+        js_config,
     ):
         self.make_request(context, pyramid_request)
 
         frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config
+            pyramid_request, js_config.config
         )
 
     def make_request(self, context, pyramid_request):
@@ -373,7 +380,7 @@ class TestConfigureModuleItem(ConfiguredLaunch):
 
 class TestUnconfiguredBasicLTILaunch:
     def test_it_sets_the_right_javascript_config_settings(
-        self, context, pyramid_request
+        self, context, pyramid_request, js_config
     ):
         pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
 
@@ -384,7 +391,7 @@ class TestUnconfiguredBasicLTILaunch:
 
         BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
 
-        assert context.js_config == {
+        assert js_config.config == {
             "mode": "content-item-selection",
             "debug": Any.dict(),
             "enableLmsFilePicker": False,
@@ -397,7 +404,7 @@ class TestUnconfiguredBasicLTILaunch:
             "urls": {},
         }
 
-        form_fields = context.js_config["formFields"]
+        form_fields = js_config.config["formFields"]
 
         # Test that we pass through parameters from the request made to us
         # onto the configure module item call
@@ -453,7 +460,6 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-    context.js_config = {"urls": {}}
     return context
 
 
@@ -469,3 +475,8 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
+
+
+@pytest.fixture(autouse=True)
+def via_url(patch):
+    return patch("lms.views.basic_lti_launch.via_url")

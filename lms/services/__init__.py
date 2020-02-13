@@ -1,3 +1,4 @@
+from lms.resources import LTILaunchResource
 from lms.services.exceptions import (
     CanvasAPIAccessTokenError,
     CanvasAPIError,
@@ -52,3 +53,6 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.lti_h.LTIHService", name="lti_h")
     config.register_service_factory("lms.services.oauth1.OAuth1Service", name="oauth1")
+    config.register_service_factory(
+        "lms.services.js_config.JSConfig", name="js_config", context=LTILaunchResource,
+    )

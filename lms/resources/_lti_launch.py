@@ -1,13 +1,9 @@
 """Traversal resources for LTI launch views."""
-import datetime
 import hashlib
-import urllib
 
-import jwt
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
-from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
 
 __all__ = ["LTILaunchResource"]
@@ -32,7 +28,6 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
         self._ai_getter = self._request.find_service(name="ai_getter")
-        self._js_config = None
 
     @property
     def h_user(self):
@@ -162,84 +157,6 @@ class LTILaunchResource:
           provider unique ID is missing
         """
         return self._get_param("user_id")
-
-    @property
-    def js_config(self):
-        """
-        Return the configuration for the app's JavaScript code.
-
-        This is a mutable config dict. It can be accessed, for example by
-        views, as ``request.context.js_config``, and they can mutate it or add
-        their own view-specific config settings. The modified config object
-        will then be passed to the JavaScript code in the response page.
-
-        :rtype: dict
-        """
-        if self._js_config is None:
-            # Initialize self._js_config for the first time.
-            self._js_config = {
-                # The config object for the postMessage-JSON-RPC server.
-                "rpcServer": {
-                    "allowedOrigins": self._request.registry.settings[
-                        "rpc_allowed_origins"
-                    ],
-                },
-                # The config object for the Hypothesis client server.
-                "hypothesisClient": self._get_hypothesis_config(),
-                # URLs for the frontend to use (e.g. API endpoints for it to call).
-                "urls": {},
-            }
-
-            if self._request.lti_user:
-                self._js_config["authToken"] = BearerTokenSchema(
-                    self._request
-                ).authorization_param(self._request.lti_user)
-
-        return self._js_config
-
-    def _get_hypothesis_config(self):
-        """
-        Return the Hypothesis client config object for the current request.
-
-        Return a dict suitable for dumping to JSON and using as a Hypothesis
-        client config object. Includes settings specific to the current LTI
-        request, such as an authorization grant token for the client to use to
-        log in to the Hypothesis account corresponding to the LTI user that the
-        request comes from.
-
-        See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
-
-        """
-        if not self.provisioning_enabled:
-            return {}
-
-        client_id = self._request.registry.settings["h_jwt_client_id"]
-        client_secret = self._request.registry.settings["h_jwt_client_secret"]
-        api_url = self._request.registry.settings["h_api_url_public"]
-        audience = urllib.parse.urlparse(api_url).hostname
-
-        def grant_token():
-            now = datetime.datetime.utcnow()
-            claims = {
-                "aud": audience,
-                "iss": client_id,
-                "sub": self.h_user.userid,
-                "nbf": now,
-                "exp": now + datetime.timedelta(minutes=5),
-            }
-            return jwt.encode(claims, client_secret, algorithm="HS256")
-
-        return {
-            "services": [
-                {
-                    "apiUrl": api_url,
-                    "authority": self._authority,
-                    "enableShareLinks": False,
-                    "grantToken": grant_token().decode("utf-8"),
-                    "groups": [self.h_groupid],
-                }
-            ]
-        }
 
     @property
     def provisioning_enabled(self):
