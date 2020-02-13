@@ -42,9 +42,15 @@ class LTILaunchResource:
         :raise HTTPBadRequest: if any LTI params needed for generating the
           h user are missing
         """
+        # Generate the h username for the current request.
+        h_username_hash_object = hashlib.sha1()
+        h_username_hash_object.update(self.h_provider.encode())
+        h_username_hash_object.update(self.h_provider_unique_id.encode())
+        h_username = h_username_hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+
         return HUser(
             authority=self._authority,
-            username=self._h_username,
+            username=h_username,
             display_name=self._h_display_name,
         )
 
@@ -156,19 +162,6 @@ class LTILaunchResource:
           provider unique ID is missing
         """
         return self._get_param("user_id")
-
-    @property
-    def _h_username(self):
-        """
-        Return the h username for the current request.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-          username is missing
-        """
-        hash_object = hashlib.sha1()
-        hash_object.update(self.h_provider.encode())
-        hash_object.update(self.h_provider_unique_id.encode())
-        return hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
 
     @property
     def js_config(self):
