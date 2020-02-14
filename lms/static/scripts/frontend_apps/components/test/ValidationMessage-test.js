@@ -7,7 +7,7 @@ import mockImportedComponents from '../../../test-util/mock-imported-components'
 
 describe('ValidationMessage', () => {
   const renderMessage = (props = {}) => {
-    return mount(<ValidationMessage {...props} />);
+    return mount(<ValidationMessage message="Test message" {...props} />);
   };
 
   beforeEach(() => {
