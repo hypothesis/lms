@@ -68,7 +68,7 @@ describe('SvgIcon', () => {
 
   it('appends an inline class to wrapper if `inline` prop is `true`', () => {
     const container = document.createElement('div');
-    render(<SvgIcon inline="true" src={inlineSvg} />, container);
+    render(<SvgIcon inline={true} src={inlineSvg} />, container);
     const wrapper = container.querySelector('span');
     assert.isTrue(wrapper.classList.contains('svg-icon'));
     assert.isTrue(wrapper.classList.contains('svg-icon--inline'));

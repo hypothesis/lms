@@ -11,7 +11,7 @@ export default function Spinner({ className }) {
     <SvgIcon
       className={className}
       src={trustMarkup(require('../../../images/spinner.svg'))}
-      inline="true"
+      inline={true}
     />
   );
 }
