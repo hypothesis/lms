@@ -16,6 +16,16 @@ describe('SvgIcon', () => {
   // `dangerouslySetInnerHTML` for its content, and that is not visible in the
   // Enzyme tree.
 
+  // Some of the tests below intentionally pass arguments of invalid types
+  // as the `src` prop. Ignore the `console.error` that this triggers.
+  beforeEach(() => {
+    sinon.stub(console, 'error');
+  });
+
+  afterEach(() => {
+    console.error.restore();
+  });
+
   it("sets the element's content to the content of the SVG", () => {
     const container = document.createElement('div');
     render(<SvgIcon src={inlineSvg} />, container);
