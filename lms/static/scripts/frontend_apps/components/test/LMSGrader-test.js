@@ -58,7 +58,9 @@ describe('LMSGrader', () => {
         courseName={'course name'}
         assignmentName={'course assignment'}
         {...props}
-      />
+      >
+        <div title="The assignment content iframe" />
+      </LMSGrader>
     );
   };
 
