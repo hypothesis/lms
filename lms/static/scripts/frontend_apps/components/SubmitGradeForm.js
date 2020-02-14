@@ -182,7 +182,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
         <SvgIcon
           className="SubmitGradeForm__check-icon"
           src={trustMarkup(require('../../../images/check.svg'))}
-          inline="true"
+          inline={true}
         />{' '}
         Submit Grade
       </button>

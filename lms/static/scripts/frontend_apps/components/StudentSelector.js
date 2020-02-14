@@ -72,7 +72,7 @@ export default function StudentSelector({
         <SvgIcon
           className="StudentsSelector__students-icon"
           src={trustMarkup(require('../../../images/caret-down.svg'))}
-          inline="true"
+          inline={true}
         />{' '}
       </span>
     );
@@ -89,7 +89,7 @@ export default function StudentSelector({
         <SvgIcon
           className="StudentSelector-change-student-svg"
           src={trustMarkup(require('../../../images/arrow-left.svg'))}
-          inline="true"
+          inline={true}
         />
       </button>
       {buildStudentList()}
@@ -102,7 +102,7 @@ export default function StudentSelector({
         <SvgIcon
           className="StudentSelector-change-student-svg"
           src={trustMarkup(require('../../../images/arrow-right.svg'))}
-          inline="true"
+          inline={true}
         />
       </button>
     </div>
