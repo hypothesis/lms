@@ -47,5 +47,5 @@ ValidationMessage.propTypes = {
   // Should this be open or closed
   open: propTypes.bool,
   // Optional callback when the error message closes itself via onClick
-  onClose: propTypes.function,
+  onClose: propTypes.func,
 };
