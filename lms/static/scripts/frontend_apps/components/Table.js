@@ -130,7 +130,7 @@ Table.propTypes = {
   /**
    * The items to display in this table.
    */
-  items: propTypes.arrayOf(propTypes.object).isRequired,
+  items: propTypes.arrayOf(propTypes.any).isRequired,
 
   /**
    * A function called to render each item. The result should be a list of
@@ -145,7 +145,7 @@ Table.propTypes = {
    * The currently selected item from `items` or `null` if no item is
    * selected.
    */
-  selectedItem: propTypes.object,
+  selectedItem: propTypes.any,
 
   /**
    * Callback invoked when the user changes the selected item.
