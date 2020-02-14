@@ -76,7 +76,8 @@ ErrorDisplay.propTypes = {
   /**
    * A short message explaining that a problem happened.
    */
-  message: propTypes.string.isRequired,
+  message: propTypes.oneOfType([propTypes.string, propTypes.element])
+    .isRequired,
 
   /**
    * An `Error`-like object with details of the problem.
