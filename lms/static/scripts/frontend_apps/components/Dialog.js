@@ -122,7 +122,7 @@ export default function Dialog({
 
 Dialog.propTypes = {
   /** The content of the dialog. */
-  children: propTypes.arrayOf(propTypes.element),
+  children: propTypes.any,
 
   /**
    * A ref associated with the child element to focus when the dialog is
