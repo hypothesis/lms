@@ -37,7 +37,11 @@ describe('FileList', () => {
   it('renders files with an icon, file name and date', () => {
     const wrapper = renderFileList();
     const renderItem = wrapper.find('Table').prop('renderItem');
-    const itemWrapper = mount(<div>{renderItem(testFiles[0])}</div>);
+    const itemWrapper = mount(
+      <table>
+        <tr>{renderItem(testFiles[0])}</tr>
+      </table>
+    );
     const formattedDate = new Date(testFiles[0]).toLocaleDateString();
     assert.equal(
       itemWrapper
