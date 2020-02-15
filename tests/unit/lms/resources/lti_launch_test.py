@@ -303,130 +303,6 @@ class TestLTILaunchResource:
 
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
 
-    def test_js_config_includes_the_rpc_server_config(self, lti_launch):
-        assert lti_launch.js_config["rpcServer"] == {
-            "allowedOrigins": ["http://localhost:5000"]
-        }
-
-    def test_js_config_includes_the_urls(self, pyramid_request):
-        js_config = LTILaunchResource(pyramid_request).js_config
-
-        # urls is an empty dict for now!
-        assert js_config["urls"] == {}
-
-    def test_js_config_includes_the_authorization_param_for_lti_users(
-        self, bearer_token_schema, BearerTokenSchema, pyramid_request
-    ):
-        js_config = LTILaunchResource(pyramid_request).js_config
-
-        BearerTokenSchema.assert_called_once_with(pyramid_request)
-        bearer_token_schema.authorization_param.assert_called_once_with(
-            pyramid_request.lti_user
-        )
-        assert (
-            js_config["authToken"]
-            == bearer_token_schema.authorization_param.return_value
-        )
-
-    def test_js_config_doesnt_include_the_authorization_param_for_non_lti_users(
-        self, BearerTokenSchema, pyramid_request
-    ):
-        pyramid_request.lti_user = None
-
-        js_config = LTILaunchResource(pyramid_request).js_config
-
-        BearerTokenSchema.assert_not_called()
-        assert "authToken" not in js_config
-
-    def test_views_can_mutate_js_config(self, lti_launch):
-        lti_launch.js_config.update({"a_key": "a_value"})
-
-        assert lti_launch.js_config["a_key"] == "a_value"
-
-    def test_js_config_raises_if_theres_no_oauth_consumer_key(self, pyramid_request):
-        pyramid_request.params.pop("oauth_consumer_key")
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "oauth_consumer_key" missing from LTI params',
-        ):
-            LTILaunchResource(pyramid_request).js_config
-
-    def test_js_config_raises_if_theres_no_tool_consumer_instance_guid(
-        self, pyramid_request
-    ):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
-        pyramid_request.params[
-            "oauth_consumer_key"
-        ] = "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            LTILaunchResource(pyramid_request).js_config
-
-    def test_js_config_contains_one_service_config_for_the_client(self, lti_launch):
-        assert len(lti_launch.js_config["hypothesisClient"]["services"]) == 1
-
-    def test_js_config_includes_the_api_url_for_the_client(self, lti_launch):
-        assert (
-            lti_launch.js_config["hypothesisClient"]["services"][0]["apiUrl"]
-            == "https://example.com/api/"
-        )
-
-    def test_js_config_includes_the_authority_for_the_client(self, lti_launch):
-        assert (
-            lti_launch.js_config["hypothesisClient"]["services"][0]["authority"]
-            == "TEST_AUTHORITY"
-        )
-
-    def test_js_config_disables_share_links_in_client(self, lti_launch):
-        assert (
-            lti_launch.js_config["hypothesisClient"]["services"][0]["enableShareLinks"]
-            is False
-        )
-
-    def test_js_config_includes_grant_token_for_client(self, lti_launch):
-        before = int(datetime.datetime.now().timestamp())
-
-        grant_token = lti_launch.js_config["hypothesisClient"]["services"][0][
-            "grantToken"
-        ]
-
-        claims = jwt.decode(
-            grant_token,
-            algorithms=["HS256"],
-            key="TEST_JWT_CLIENT_SECRET",
-            audience="example.com",
-        )
-        after = int(datetime.datetime.now().timestamp())
-        assert claims["iss"] == "TEST_JWT_CLIENT_ID"
-        assert claims["sub"] == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
-        assert before <= claims["nbf"] <= after
-        assert claims["exp"] > before
-
-    def test_js_config_includes_the_group_for_the_client(
-        self, lti_launch, pyramid_request
-    ):
-        groups = lti_launch.js_config["hypothesisClient"]["services"][0]["groups"]
-
-        assert groups == [
-            "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
-        ]
-
-    def test_js_config_hypothesisClient_config_is_empty_if_provisioning_feature_is_disabled(
-        self, lti_launch, ai_getter
-    ):
-        ai_getter.provisioning_enabled.return_value = False
-
-        assert lti_launch.js_config["hypothesisClient"] == {}
-
-    def test_views_can_mutate_js_config_hypothesisClient_config(self, lti_launch):
-        lti_launch.js_config["hypothesisClient"].update({"a_key": "a_value"})
-
-        assert lti_launch.js_config["hypothesisClient"]["a_key"] == "a_value"
-
     def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
         self, ai_getter, lti_launch, pyramid_request
     ):
@@ -476,6 +352,14 @@ class TestLTILaunchResource:
         custom_canvas_api_url = lti_launch.custom_canvas_api_domain
         assert custom_canvas_api_url is None
 
+    def test_js_config_returns_the_js_config(self, pyramid_request, JSConfig):
+        lti_launch = LTILaunchResource(pyramid_request)
+
+        js_config = lti_launch.js_config
+
+        JSConfig.assert_called_once_with(lti_launch, pyramid_request)
+        assert js_config == JSConfig.return_value.config
+
     def test_lms_url_return_the_ApplicationInstances_lms_url(
         self, ai_getter, pyramid_request
     ):
@@ -505,10 +389,5 @@ class TestLTILaunchResource:
 
 
 @pytest.fixture(autouse=True)
-def BearerTokenSchema(patch):
-    return patch("lms.resources.lti_launch.BearerTokenSchema")
-
-
-@pytest.fixture
-def bearer_token_schema(BearerTokenSchema):
-    return BearerTokenSchema.return_value
+def JSConfig(patch):
+    return patch("lms.resources.lti_launch.JSConfig")
