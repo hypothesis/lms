@@ -40,40 +40,41 @@ class LTILaunchResource:
         :raise HTTPBadRequest: if any LTI params needed for generating the
           h user are missing
         """
-        # Generate the h username for the current request.
-        h_username_hash_object = hashlib.sha1()
-        h_username_hash_object.update(self.h_provider.encode())
-        h_username_hash_object.update(self.h_provider_unique_id.encode())
-        h_username = h_username_hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+
+        def username():
+            """Return the h username for the current request."""
+            username_hash_object = hashlib.sha1()
+            username_hash_object.update(self.h_provider.encode())
+            username_hash_object.update(self.h_provider_unique_id.encode())
+            return username_hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+
+        def display_name():
+            """Return the h display name for the current request."""
+            params = self._request.params
+
+            full_name = (params.get("lis_person_name_full") or "").strip()
+            given_name = (params.get("lis_person_name_given") or "").strip()
+            family_name = (params.get("lis_person_name_family") or "").strip()
+
+            if full_name:
+                display_name = full_name
+            else:
+                display_name = " ".join((given_name, family_name))
+
+            display_name = display_name.strip()
+
+            display_name = display_name or "Anonymous"
+
+            if len(display_name) > self.DISPLAY_NAME_MAX_LENGTH:
+                display_name = (
+                    display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
+                )
+
+            return display_name
 
         return HUser(
-            authority=self._authority,
-            username=h_username,
-            display_name=self._h_display_name,
+            authority=self._authority, username=username(), display_name=display_name()
         )
-
-    @property
-    def _h_display_name(self):
-        """Return the h user display name for the current request."""
-        full_name = (self._request.params.get("lis_person_name_full") or "").strip()
-        given_name = (self._request.params.get("lis_person_name_given") or "").strip()
-        family_name = (self._request.params.get("lis_person_name_family") or "").strip()
-
-        if full_name:
-            display_name = full_name
-        else:
-            display_name = " ".join((given_name, family_name))
-
-        display_name = display_name.strip()
-
-        display_name = display_name or "Anonymous"
-
-        if len(display_name) > self.DISPLAY_NAME_MAX_LENGTH:
-            display_name = (
-                display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
-            )
-
-        return display_name
 
     @property
     def h_authority_provided_id(self):
