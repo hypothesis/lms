@@ -41,14 +41,6 @@ class BasicLTILaunchViews:
             {
                 # Configure the front-end mini-app to run.
                 "mode": "basic-lti-launch",
-                # Add debug information (currently used in the gherkin tests)
-                "debug": {
-                    "tags": [
-                        "role:instructor"
-                        if request.lti_user.is_instructor
-                        else "role:learner"
-                    ]
-                },
             }
         )
 

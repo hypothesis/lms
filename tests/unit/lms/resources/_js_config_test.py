@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.values import HUser
+from lms.values import HUser, LTIUser
 
 
 class TestJSConfig:
@@ -47,14 +47,28 @@ class TestJSConfigAuthToken:
         )
         assert authToken == bearer_token_schema.authorization_param.return_value
 
-    def test_it_is_None_for_non_lti_users(self, context, pyramid_request):
-        pyramid_request.lti_user = None
-
-        assert JSConfig(context, pyramid_request).config["authToken"] is None
+    @pytest.mark.usefixtures("no_lti_user")
+    def test_it_is_None_for_non_lti_users(self, authToken):
+        assert authToken is None
 
     @pytest.fixture
     def authToken(self, config):
         return config["authToken"]
+
+
+class TestJSConfigDebug:
+    """Unit tests for the "debug" sub-dict of JSConfig."""
+
+    def test_it_contains_debugging_info_about_the_users_role(self, config):
+        assert "role:learner" in config["tags"]
+
+    @pytest.mark.usefixtures("no_lti_user")
+    def test_its_empty_if_theres_no_lti_user(self, config):
+        assert config == {}
+
+    @pytest.fixture
+    def config(self, config):
+        return config["debug"]
 
 
 class TestJSConfigHypothesisClient:
@@ -94,12 +108,9 @@ class TestJSConfigHypothesisClient:
 
         assert groups == ["example_groupid"]
 
-    def test_it_is_empty_if_provisioning_feature_is_disabled(
-        self, context, pyramid_request
-    ):
-        context.provisioning_enabled = False
-
-        assert JSConfig(context, pyramid_request).config["hypothesisClient"] == {}
+    @pytest.mark.usefixtures("provisioning_disabled")
+    def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
+        assert config == {}
 
     def test_it_is_mutable(self, config):
         config.update({"a_key": "a_value"})
@@ -157,3 +168,15 @@ def context():
         h_user=HUser("TEST_AUTHORITY", "example_username"),
         h_groupid="example_groupid",
     )
+
+
+@pytest.fixture
+def no_lti_user(pyramid_request):
+    """Modify the pyramid_request fixture so that request.lti_user is None."""
+    pyramid_request.lti_user = None
+
+
+@pytest.fixture
+def provisioning_disabled(context):
+    """Modify context so that context.provisioning_enabled is False."""
+    context.provisioning_enabled = False

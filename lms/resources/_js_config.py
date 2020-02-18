@@ -27,6 +27,7 @@ class JSConfig:
         """
         return {
             "authToken": self._auth_token,
+            "debug": self._debug,
             "hypothesisClient": self._hypothesis_config,
             "rpcServer": self._rpc_server_config,
             "urls": self._urls,
@@ -41,6 +42,24 @@ class JSConfig:
         return BearerTokenSchema(self._request).authorization_param(
             self._request.lti_user
         )
+
+    @property
+    def _debug(self):
+        """
+        Return some debug information.
+
+        Currently used in the Gherkin tests.
+        """
+        debug_info = {}
+
+        if self._request.lti_user:
+            debug_info["tags"] = [
+                "role:instructor"
+                if self._request.lti_user.is_instructor
+                else "role:learner"
+            ]
+
+        return debug_info
 
     @property
     def _hypothesis_config(self):
