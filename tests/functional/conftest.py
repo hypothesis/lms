@@ -11,15 +11,11 @@ TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
 )
 
 
-@pytest.fixture(scope="session", autouse=True)
-def auto_use_dn(db_engine):
-    # TODO - Is this right?
-    return db_engine
-
-
-def _clean_database(engine):
+@pytest.fixture(autouse=True)
+def clean_database(db_engine):
+    """Delete any data added by the previous test."""
     tables = reversed(db.BASE.metadata.sorted_tables)
-    with contextlib.closing(engine.connect()) as conn:
+    with contextlib.closing(db_engine.connect()) as conn:
         tx = conn.begin()
         tnames = ", ".join('"' + t.name + '"' for t in tables)
         conn.execute("TRUNCATE {};".format(tnames))
@@ -35,7 +31,6 @@ def pyramid_app():
 
 @pytest.fixture
 def app(pyramid_app, db_engine):
-    _clean_database(db_engine)
     db.init(db_engine)
 
     return TestApp(pyramid_app)

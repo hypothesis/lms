@@ -47,7 +47,13 @@ TEST_SETTINGS = {
 @pytest.fixture(scope="session")
 def db_engine():
     engine = sqlalchemy.create_engine(TEST_SETTINGS["sqlalchemy.url"])
-    db.init(engine)
+
+    # Delete all database tables and re-initialize the database schema based on
+    # the current models. Doing this at the beginning of each test run ensures
+    # that any schema changes made to the models since the last test run will
+    # be applied to the test DB schema before running the tests again.
+    db.init(engine, drop=True)
+
     return engine
 
 
