@@ -506,7 +506,7 @@ class TestLTILaunchResource:
 
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
-    return patch("lms.resources._lti_launch.BearerTokenSchema")
+    return patch("lms.resources.lti_launch.BearerTokenSchema")
 
 
 @pytest.fixture
