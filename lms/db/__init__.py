@@ -81,8 +81,19 @@ BASE = declarative_base(
 SESSION = sessionmaker()
 
 
-def init(engine):
-    """Initialise the database tables."""
+def init(engine, drop=False):
+    """
+    Create all the database tables if they don't already exist.
+
+    If `drop=True` is given then delete all existing tables first and then
+    re-create them. Tests use this. If `drop=False` existing tables won't be
+    touched.
+
+    :param engine: the sqlalchemy Engine object
+    :param drop: whether or not to delete existing tables
+    """
+    if drop:
+        BASE.metadata.drop_all(engine)
     BASE.metadata.create_all(engine)
 
 
