@@ -386,7 +386,6 @@ class TestUnconfiguredBasicLTILaunch:
 
         assert context.js_config == {
             "mode": "content-item-selection",
-            "debug": Any.dict(),
             "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
             "formFields": Any.dict(),
