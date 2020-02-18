@@ -10,8 +10,6 @@ from pyramid.security import Allow
 from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
 
-__all__ = ["LTILaunchResource"]
-
 
 class LTILaunchResource:
     """Context resource for LTI launch requests."""

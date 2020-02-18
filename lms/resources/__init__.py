@@ -10,5 +10,3 @@ See the traversal-related sections in the Pyramid docs:
 """
 from lms.resources._default import DefaultResource
 from lms.resources._lti_launch import LTILaunchResource
-
-__all__ = ["DefaultResource", "LTILaunchResource"]
