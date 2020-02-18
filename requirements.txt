@@ -10,7 +10,7 @@ chardet==3.0.4            # via requests
 gunicorn==20.0.4
 h-pyramid-sentry==1.2.0
 httplib2==0.17.0          # via oauth2, pylti
-hupper==1.9.1             # via pyramid
+hupper==1.10              # via pyramid
 idna==2.8                 # via requests
 jinja2==2.11.1            # via pyramid-jinja2
 mako==1.1.1               # via alembic
