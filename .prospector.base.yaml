@@ -31,6 +31,10 @@ pep257:
             # "Multi-line docstring summary should start at the second line".
 pyflakes:
   run: true
+  disable:
+      - F401  # Unused import. We don't need pyflakes to detect these because
+              # pylint detects them, and pylint's unused import detection
+              # generates fewer false positives than pyflakes's.
 pylint:
   enable:
     - relative-import
