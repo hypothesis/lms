@@ -202,11 +202,6 @@ class ConfiguredLaunch:
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
     def test_it_configures_frontend(self, context, pyramid_request):
         self.make_request(context, pyramid_request)
-
-        assert (
-            context.js_config.config["authUrl"]
-            == "http://example.com/TEST_AUTHORIZE_URL"
-        )
         assert context.js_config.config["lmsName"] == "Canvas"
 
     def test_it_configures_via_callback_url(self, context, pyramid_request):

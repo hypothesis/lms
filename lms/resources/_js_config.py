@@ -35,6 +35,9 @@ class JSConfig:
         """
         return {
             "authToken": self._auth_token,
+            # The URL that the JavaScript code will open if it needs the user to
+            # authorize us to request a new access token.
+            "authUrl": self._request.route_url("canvas_api.authorize"),
             "debug": self._debug,
             "hypothesisClient": self._hypothesis_config,
             # The LMS name to use in user-facing messages.

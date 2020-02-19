@@ -9,16 +9,6 @@ from lms.views.content_item_selection import content_item_selection
 
 
 class TestContentItemSelection:
-    def test_it_sets_the_authUrl_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert (
-            context.js_config.config["authUrl"]
-            == "http://example.com/TEST_AUTHORIZE_URL"
-        )
-
     def test_it_sets_the_formAction_javascript_config_setting(
         self, context, pyramid_request
     ):
