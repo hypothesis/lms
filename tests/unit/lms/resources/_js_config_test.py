@@ -47,9 +47,7 @@ class TestJSConfigAuthToken:
         )
         assert authToken == bearer_token_schema.authorization_param.return_value
 
-    def test_it_is_None_for_non_lti_users(
-        self, authToken, BearerTokenSchema, context, pyramid_request
-    ):
+    def test_it_is_None_for_non_lti_users(self, context, pyramid_request):
         pyramid_request.lti_user = None
 
         assert JSConfig(context, pyramid_request).config["authToken"] is None
@@ -91,7 +89,7 @@ class TestJSConfigHypothesisClient:
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
-    def test_it_includes_the_group(self, pyramid_request, config):
+    def test_it_includes_the_group(self, config):
         groups = config["services"][0]["groups"]
 
         assert groups == ["example_groupid"]
