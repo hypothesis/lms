@@ -40,7 +40,7 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_basic_lti_launch_mode()
 
         if self.is_launched_by_canvas():
-            self.initialise_canvas_submission_params()
+            self.context.js_config.add_canvas_submission_params()
             self.set_canvas_focused_user()
 
     def sync_lti_data_to_h(self):
@@ -296,21 +296,6 @@ class BasicLTILaunchViews:
             self.request.params.get("tool_consumer_info_product_family_code")
             == "canvas"
         )
-
-    def initialise_canvas_submission_params(self):
-        """Add config used by UI to call Canvas `record_submission` API."""
-        lis_result_sourcedid = self.request.params.get("lis_result_sourcedid")
-        lis_outcome_service_url = self.request.params.get("lis_outcome_service_url")
-
-        # Don't try to submit assignments to Canvas when the assignment is
-        # launched by a teacher, or when the submission-related params are
-        # missing for some other reason.
-        if lis_result_sourcedid and lis_outcome_service_url:
-            self.context.js_config.config["submissionParams"] = {
-                "h_username": self.context.h_user.username,
-                "lis_result_sourcedid": lis_result_sourcedid,
-                "lis_outcome_service_url": lis_outcome_service_url,
-            }
 
     def set_canvas_submission_param(self, name, value):
         """Update config for frontend's calls to `report_submisssion` API."""

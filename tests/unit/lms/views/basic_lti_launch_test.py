@@ -28,49 +28,6 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
         assert "lmsGrader" not in context.js_config.config
 
-    def test_it_adds_report_submission_config_if_required_params_present(
-        self, context, pyramid_request, lti_outcome_params
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert context.js_config.config["submissionParams"] == {
-            "h_username": context.h_user.username,
-            "lis_result_sourcedid": "modelstudent-assignment1",
-            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
-        }
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "lis_result_sourcedid",
-            "lis_outcome_service_url",
-            "tool_consumer_info_product_family_code",
-        ],
-    )
-    def test_it_doesnt_add_report_submission_config_if_required_param_missing(
-        self, context, pyramid_request, lti_outcome_params, key
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-        del pyramid_request.params[key]
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config.config
-
-    def test_it_adds_report_submission_config_if_lms_not_canvas(
-        self, context, pyramid_request, lti_outcome_params
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-        pyramid_request.params.update(
-            {"tool_consumer_info_product_family_code": "whiteboard"}
-        )
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config.config
-
     def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
         self, context, pyramid_request, h_api
     ):
@@ -208,18 +165,6 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
-    def test_it_configures_submission_params(
-        self, context, pyramid_request, lti_outcome_params
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-
-        self.make_request(context, pyramid_request)
-
-        assert (
-            context.js_config.config["submissionParams"]["canvas_file_id"]
-            == "TEST_FILE_ID"
-        )
-
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 
@@ -257,10 +202,6 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-        assert (
-            context.js_config.config["submissionParams"]["document_url"]
-            == "TEST_DOCUMENT_URL"
-        )
 
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
@@ -294,9 +235,6 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-        assert (
-            context.js_config.config["submissionParams"]["document_url"] == "TEST_URL"
-        )
 
     def test_it_configures_frontend_grading(
         self,

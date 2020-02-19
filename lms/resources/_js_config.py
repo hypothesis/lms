@@ -20,6 +20,36 @@ class JSConfig:
     def enable_content_item_selection_mode(self):
         self.config["mode"] = "content-item-selection"
 
+    def add_canvas_submission_params(self):
+        """Add config used by UI to call Canvas's `record_submission` API."""
+        lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
+        lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
+
+        def should_post_submission_to_canvas():
+            # When a Canvas assignment is launched by a teacher or other
+            # non-gradeable user there's no lis_result_sourcedid in the LTI
+            # launch params.
+            # Don't post submission to Canvas for these cases.
+            if not lis_result_sourcedid:
+                return False
+
+            # When a Canvas assignment isn't gradeable there's no
+            # lis_outcome_service_url.
+            # Don't post submission to Canvas for these cases.
+            if not lis_outcome_service_url:
+                return False
+
+            return True
+
+        if should_post_submission_to_canvas():
+            self.config.setdefault("submissionParams", {}).update(
+                {
+                    "h_username": self._context.h_user.username,
+                    "lis_result_sourcedid": lis_result_sourcedid,
+                    "lis_outcome_service_url": lis_outcome_service_url,
+                }
+            )
+
     @property
     @functools.lru_cache()
     def config(self):
