@@ -14,6 +14,12 @@ class JSConfig:
         self._context = context
         self._request = request
 
+    def enable_basic_lti_launch_mode(self):
+        self.config["mode"] = "basic-lti-launch"
+
+    def enable_content_item_selection_mode(self):
+        self.config["mode"] = "content-item-selection"
+
     @property
     @functools.lru_cache()
     def config(self):
@@ -31,6 +37,10 @@ class JSConfig:
             "authToken": self._auth_token,
             "debug": self._debug,
             "hypothesisClient": self._hypothesis_config,
+            # The LMS name to use in user-facing messages.
+            # Shown on the "Select PDF from Canvas" button label.
+            "lmsName": "Canvas",
+            "mode": "content-item-selection",
             "rpcServer": self._rpc_server_config,
             "urls": self._urls,
         }

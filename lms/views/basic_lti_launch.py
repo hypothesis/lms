@@ -37,12 +37,7 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
-        self.context.js_config.config.update(
-            {
-                # Configure the front-end mini-app to run.
-                "mode": "basic-lti-launch",
-            }
-        )
+        self.context.js_config.enable_basic_lti_launch_mode()
 
         if self.is_launched_by_canvas():
             self.initialise_canvas_submission_params()
@@ -200,6 +195,7 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
+        self.context.js_config.enable_content_item_selection_mode()
 
         params = self._extract_lti_params(self.request)
 
@@ -208,10 +204,11 @@ class BasicLTILaunchViews:
             self.request.lti_user
         )
 
+        self.context.js_config_enable_content_item_selection_mode()
+
         # Add the config needed by the JavaScript document selection code.
         self.context.js_config.config.update(
             {
-                "mode": "content-item-selection",
                 # It is assumed that this view is only used by LMSes for which
                 # we do not have an integration with the LMS's file storage.
                 # (currently only Canvas supports this).

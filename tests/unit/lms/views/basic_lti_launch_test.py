@@ -21,7 +21,6 @@ class TestBasicLTILaunch:
 
     def test_it_configures_frontend(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
-        assert context.js_config.config["mode"] == "basic-lti-launch"
 
     def test_it_does_not_configure_grading_if_request_unqualified(
         self, context, pyramid_request
@@ -395,7 +394,6 @@ class TestUnconfiguredBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
 
         assert context.js_config.config == {
-            "mode": "content-item-selection",
             "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
             "formFields": Any.dict(),
