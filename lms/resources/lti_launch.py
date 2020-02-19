@@ -17,9 +17,6 @@ class LTILaunchResource:
     GROUP_NAME_MAX_LENGTH = 25
     """The maximum length of an h group name."""
 
-    USERNAME_MAX_LENGTH = 30
-    """The maximum length of an h username."""
-
     __acl__ = [(Allow, "lti_user", "launch_lti_assignment")]
 
     def __init__(self, request):
@@ -43,7 +40,7 @@ class LTILaunchResource:
             username_hash_object = hashlib.sha1()
             username_hash_object.update(self.h_provider.encode())
             username_hash_object.update(self.h_provider_unique_id.encode())
-            return username_hash_object.hexdigest()[: self.USERNAME_MAX_LENGTH]
+            return username_hash_object.hexdigest()[:30]
 
         def display_name():
             """Return the h display name for the current request."""
