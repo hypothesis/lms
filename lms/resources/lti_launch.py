@@ -14,9 +14,6 @@ from lms.values import HUser
 class LTILaunchResource:
     """Context resource for LTI launch requests."""
 
-    DISPLAY_NAME_MAX_LENGTH = 30
-    """The maximum length of an h display name."""
-
     GROUP_NAME_MAX_LENGTH = 25
     """The maximum length of an h group name."""
 
@@ -63,10 +60,13 @@ class LTILaunchResource:
             if not display_name:
                 return "Anonymous"
 
-            if len(display_name) <= self.DISPLAY_NAME_MAX_LENGTH:
+            # The maximum length of an h display name.
+            display_name_max_length = 30
+
+            if len(display_name) <= display_name_max_length:
                 return display_name
 
-            return display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
+            return display_name[: display_name_max_length - 1].rstrip() + "…"
 
         return HUser(
             authority=self._authority, username=username(), display_name=display_name()
