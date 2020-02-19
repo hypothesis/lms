@@ -1,5 +1,5 @@
 import datetime
-import urllib
+from urllib.parse import urlparse
 
 import jwt
 
@@ -53,21 +53,7 @@ class JSConfig:
         if not self._context.provisioning_enabled:
             return {}
 
-        client_id = self._request.registry.settings["h_jwt_client_id"]
-        client_secret = self._request.registry.settings["h_jwt_client_secret"]
         api_url = self._request.registry.settings["h_api_url_public"]
-        audience = urllib.parse.urlparse(api_url).hostname
-
-        def grant_token():
-            now = datetime.datetime.utcnow()
-            claims = {
-                "aud": audience,
-                "iss": client_id,
-                "sub": self._context.h_user.userid,
-                "nbf": now,
-                "exp": now + datetime.timedelta(minutes=5),
-            }
-            return jwt.encode(claims, client_secret, algorithm="HS256")
 
         return {
             "services": [
@@ -75,11 +61,29 @@ class JSConfig:
                     "apiUrl": api_url,
                     "authority": self._request.registry.settings["h_authority"],
                     "enableShareLinks": False,
-                    "grantToken": grant_token().decode("utf-8"),
+                    "grantToken": self._grant_token(api_url),
                     "groups": [self._context.h_groupid],
                 }
             ]
         }
+
+    def _grant_token(self, api_url):
+        """Return an OAuth 2 the client can use to log in to h."""
+        now = datetime.datetime.utcnow()
+
+        claims = {
+            "aud": urlparse(api_url).hostname,
+            "iss": self._request.registry.settings["h_jwt_client_id"],
+            "sub": self._context.h_user.userid,
+            "nbf": now,
+            "exp": now + datetime.timedelta(minutes=5),
+        }
+
+        return jwt.encode(
+            claims,
+            self._request.registry.settings["h_jwt_client_secret"],
+            algorithm="HS256",
+        ).decode("utf-8")
 
     @property
     def _rpc_server_config(self):
