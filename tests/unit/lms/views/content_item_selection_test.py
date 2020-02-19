@@ -34,13 +34,6 @@ class TestContentItemSelection:
         assert context.js_config.config["googleClientId"] == "fake_client_id"
         assert context.js_config.config["googleDeveloperKey"] == "fake_developer_key"
 
-    def test_it_sets_the_lmsName_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["lmsName"] == "Canvas"
-
     def test_it_sets_the_ltiLaunchUrl_javascript_config_setting(
         self, context, pyramid_request
     ):
