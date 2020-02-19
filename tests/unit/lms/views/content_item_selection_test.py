@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.resources import LTILaunchResource
+from lms.resources._js_config import JSConfig
 from lms.services.lti_h import LTIHService
 from lms.views.content_item_selection import content_item_selection
 
@@ -13,21 +14,24 @@ class TestContentItemSelection:
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["authUrl"] == "http://example.com/TEST_AUTHORIZE_URL"
+        assert (
+            context.js_config.config["authUrl"]
+            == "http://example.com/TEST_AUTHORIZE_URL"
+        )
 
     def test_it_sets_the_formAction_javascript_config_setting(
         self, context, pyramid_request
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["formAction"] == "TEST_CONTENT_ITEM_RETURN_URL"
+        assert context.js_config.config["formAction"] == "TEST_CONTENT_ITEM_RETURN_URL"
 
     def test_it_sets_the_formFields_javascript_config_setting(
         self, context, pyramid_request
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["formFields"] == {
+        assert context.js_config.config["formFields"] == {
             "lti_message_type": "ContentItemSelection",
             "lti_version": "TEST_LTI_VERSION",
         }
@@ -37,15 +41,15 @@ class TestContentItemSelection:
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["googleClientId"] == "fake_client_id"
-        assert context.js_config["googleDeveloperKey"] == "fake_developer_key"
+        assert context.js_config.config["googleClientId"] == "fake_client_id"
+        assert context.js_config.config["googleDeveloperKey"] == "fake_developer_key"
 
     def test_it_sets_the_lmsName_javascript_config_setting(
         self, context, pyramid_request
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["lmsName"] == "Canvas"
+        assert context.js_config.config["lmsName"] == "Canvas"
 
     def test_it_sets_the_ltiLaunchUrl_javascript_config_setting(
         self, context, pyramid_request
@@ -53,7 +57,7 @@ class TestContentItemSelection:
         content_item_selection(context, pyramid_request)
 
         assert (
-            context.js_config["ltiLaunchUrl"]
+            context.js_config.config["ltiLaunchUrl"]
             == "http://example.com/TEST_LTI_LAUNCH_URL"
         )
 
@@ -63,7 +67,7 @@ class TestContentItemSelection:
         content_item_selection(context, pyramid_request)
 
         helpers.canvas_files_available.assert_called_once_with(pyramid_request)
-        assert context.js_config["courseId"] == "TEST_CUSTOM_CANVAS_COURSE_ID"
+        assert context.js_config.config["courseId"] == "TEST_CUSTOM_CANVAS_COURSE_ID"
 
     @pytest.mark.parametrize("enable_picker", (True, False))
     def test_it_enables_lms_file_picker_if_canvas_files_available(
@@ -73,7 +77,7 @@ class TestContentItemSelection:
 
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["enableLmsFilePicker"] is enable_picker
+        assert context.js_config.config["enableLmsFilePicker"] is enable_picker
 
     def test_if_canvas_files_arent_available_for_this_application_instance_then_it_omits_course_id(
         self, context, helpers, pyramid_request
@@ -83,14 +87,14 @@ class TestContentItemSelection:
         content_item_selection(context, pyramid_request)
 
         helpers.canvas_files_available.assert_called_once_with(pyramid_request)
-        assert "courseId" not in context.js_config
+        assert "courseId" not in context.js_config.config
 
     def test_it_sets_the_lmsUrl_javascript_config_setting(
         self, context, pyramid_request
     ):
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config["lmsUrl"] == context.lms_url
+        assert context.js_config.config["lmsUrl"] == context.lms_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -110,7 +114,9 @@ class TestContentItemSelection:
     @pytest.fixture
     def context(self):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-        context.js_config = {}
+        context.js_config = mock.create_autospec(
+            JSConfig, spec_set=True, instance=True, config={}
+        )
         return context
 
 

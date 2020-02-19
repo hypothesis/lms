@@ -34,7 +34,7 @@
 
     {% block scripts %}
       {% if context.js_config is defined %}
-        <script type="application/json" class="js-config">{{ context.js_config|tojson }}</script>
+        <script type="application/json" class="js-config">{{ context.js_config.config|tojson }}</script>
       {% endif %}
     {% endblock %}
   </body>

@@ -1,4 +1,5 @@
 import datetime
+import functools
 from urllib.parse import urlparse
 
 import jwt
@@ -14,6 +15,7 @@ class JSConfig:
         self._request = request
 
     @property
+    @functools.lru_cache()
     def config(self):
         """
         Return the configuration for the app's JavaScript code.
