@@ -35,7 +35,10 @@ describe('BasicLtiLaunchApp', () => {
       authToken: 'dummyAuthToken',
       authUrl: 'https://lms.hypothes.is/authorize-lms',
       lmsName: 'Shiny LMS',
-      urls: {},
+      urls: {
+        via_url: 'https://via.hypothes.is/',
+        via_url_callback: 'https://lms.hypothes.is/api/files/1234',
+      },
     };
     fakeApiCall = sinon.stub();
     FakeAuthWindow = sinon.stub().returns({
@@ -79,10 +82,9 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
-  context('when a content URL callback is provided in the config', () => {
+  context('when no content URL is provided in the config', () => {
     beforeEach(() => {
-      fakeConfig.urls.via_url_callback =
-        'https://lms.hypothes.is/api/files/1234';
+      delete fakeConfig.urls.via_url;
     });
 
     it('attempts to fetch the content URL when mounted', async () => {

@@ -67,7 +67,7 @@ export default function BasicLtiLaunchApp() {
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
     ...INITIAL_LTI_LAUNCH_STATE,
-    state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
+    state: viaUrl ? 'fetched-url' : 'fetching-url',
     contentUrl: viaUrl ? viaUrl : null,
   });
 
@@ -77,10 +77,8 @@ export default function BasicLtiLaunchApp() {
    * This will typically be a PDF URL proxied through Via.
    */
   const fetchContentUrl = useCallback(async () => {
-    if (!viaUrlCallback) {
-      // If no "callback" URL was supplied for the frontend to use to fetch
-      // the URL, then the backend must have provided the Via URL in the
-      // initial request, which we'll just use directly.
+    if (viaUrl) {
+      // We already have it.
       return;
     }
 
@@ -113,7 +111,7 @@ export default function BasicLtiLaunchApp() {
         });
       }
     }
-  }, [authToken, viaUrlCallback]);
+  }, [authToken, viaUrl, viaUrlCallback]);
 
   /**
    * Fetch the assignment content URL when the app is initially displayed.
