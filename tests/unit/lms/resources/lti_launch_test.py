@@ -358,7 +358,7 @@ class TestLTILaunchResource:
         js_config = lti_launch.js_config
 
         JSConfig.assert_called_once_with(lti_launch, pyramid_request)
-        assert js_config == JSConfig.return_value.config
+        assert js_config == JSConfig.return_value
 
     def test_lms_url_return_the_ApplicationInstances_lms_url(
         self, ai_getter, pyramid_request

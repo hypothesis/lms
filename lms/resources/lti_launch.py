@@ -155,7 +155,7 @@ class LTILaunchResource:
     @property
     @functools.lru_cache()
     def js_config(self):
-        return JSConfig(self, self._request).config
+        return JSConfig(self, self._request)
 
     @property
     def provisioning_enabled(self):
