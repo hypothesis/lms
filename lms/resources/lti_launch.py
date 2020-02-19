@@ -52,25 +52,21 @@ class LTILaunchResource:
             """Return the h display name for the current request."""
             params = self._request.params
 
-            full_name = (params.get("lis_person_name_full") or "").strip()
-            given_name = (params.get("lis_person_name_given") or "").strip()
-            family_name = (params.get("lis_person_name_family") or "").strip()
+            display_name = params.get("lis_person_name_full", "").strip()
 
-            if full_name:
-                display_name = full_name
-            else:
-                display_name = " ".join((given_name, family_name))
+            if not display_name:
+                given_name = params.get("lis_person_name_given", "").strip()
+                family_name = params.get("lis_person_name_family", "").strip()
 
-            display_name = display_name.strip()
+                display_name = " ".join((given_name, family_name)).strip()
 
-            display_name = display_name or "Anonymous"
+            if not display_name:
+                return "Anonymous"
 
-            if len(display_name) > self.DISPLAY_NAME_MAX_LENGTH:
-                display_name = (
-                    display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
-                )
+            if len(display_name) <= self.DISPLAY_NAME_MAX_LENGTH:
+                return display_name
 
-            return display_name
+            return display_name[: self.DISPLAY_NAME_MAX_LENGTH - 1].rstrip() + "…"
 
         return HUser(
             authority=self._authority, username=username(), display_name=display_name()
