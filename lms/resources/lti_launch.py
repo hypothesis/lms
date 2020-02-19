@@ -14,9 +14,6 @@ from lms.values import HUser
 class LTILaunchResource:
     """Context resource for LTI launch requests."""
 
-    GROUP_NAME_MAX_LENGTH = 25
-    """The maximum length of an h group name."""
-
     __acl__ = [(Allow, "lti_user", "launch_lti_assignment")]
 
     def __init__(self, request):
@@ -130,8 +127,11 @@ class LTILaunchResource:
         """
         name = self._get_param("context_title").strip()
 
-        if len(name) > self.GROUP_NAME_MAX_LENGTH:
-            name = name[: self.GROUP_NAME_MAX_LENGTH - 1].rstrip() + "…"
+        # The maximum length of an h group name.
+        group_name_max_length = 25
+
+        if len(name) > group_name_max_length:
+            name = name[: group_name_max_length - 1].rstrip() + "…"
 
         return name
 
