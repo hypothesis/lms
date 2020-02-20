@@ -91,17 +91,7 @@ class BasicLTILaunchViews:
         self.store_lti_data()
 
         file_id = self.request.params["file_id"]
-
-        # Configure the frontend to make a callback to the API to fetch the
-        # Via URL.
-        self.context.js_config.config["urls"].update(
-            {
-                "via_url_callback": self.request.route_url(
-                    "canvas_api.files.via_url", file_id=file_id
-                )
-            }
-        )
-
+        self.context.js_config.set_via_url_callback(canvas_file_id=file_id)
         self.context.js_config.add_canvas_submission_params(canvas_file_id=file_id)
 
         return {}

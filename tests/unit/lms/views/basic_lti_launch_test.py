@@ -114,14 +114,6 @@ class ConfiguredLaunch:
 
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_via_callback_url(self, context, pyramid_request):
-        self.make_request(context, pyramid_request)
-
-        assert (
-            context.js_config.config["urls"]["via_url_callback"]
-            == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
-        )
-
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
 

@@ -94,6 +94,12 @@ class JSConfig:
             "user": {"username": focused_user, "displayName": display_name}
         }
 
+    # Only used for Canvas Files assignment launches.
+    def set_via_url_callback(self, canvas_file_id):
+        self._urls["via_url_callback"] = self._request.route_url(
+            "canvas_api.files.via_url", file_id=canvas_file_id
+        )
+
     @property
     @functools.lru_cache()
     def config(self):
@@ -202,6 +208,7 @@ class JSConfig:
         }
 
     @property
+    @functools.lru_cache()
     def _urls(self):
         """
         Return a dict of URLs for the frontend to use.
