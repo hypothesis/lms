@@ -100,6 +100,34 @@ class JSConfig:
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
 
+    def add_file_picker_config(self):
+        params = {
+            param: value
+            for param, value in self._request.params.items()
+            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+        }
+
+        params["authorization"] = BearerTokenSchema(self._request).authorization_param(
+            self._request.lti_user
+        )
+
+        self.config.update(
+            {
+                # It is assumed that this view is only used by LMSes for which
+                # we do not have an integration with the LMS's file storage.
+                # (currently only Canvas supports this).
+                "enableLmsFilePicker": False,
+                "formAction": self._request.route_url("module_item_configurations"),
+                "formFields": params,
+                "googleClientId": self._request.registry.settings["google_client_id"],
+                "googleDeveloperKey": self._request.registry.settings[
+                    "google_developer_key"
+                ],
+                "customCanvasApiDomain": self._context.custom_canvas_api_domain,
+                "lmsUrl": self._context.lms_url,
+            }
+        )
+
     @property
     @functools.lru_cache()
     def config(self):

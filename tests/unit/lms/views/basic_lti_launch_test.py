@@ -259,54 +259,6 @@ class TestConfigureModuleItem(ConfiguredLaunch):
 
 
 class TestUnconfiguredBasicLTILaunch:
-    def test_it_sets_the_right_javascript_config_settings(
-        self, context, pyramid_request
-    ):
-        pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
-
-        pyramid_request.registry.settings["google_client_id"] = "TEST_GOOGLE_CLIENT_ID"
-        pyramid_request.registry.settings[
-            "google_developer_key"
-        ] = "TEST_GOOGLE_DEVELOPER_KEY"
-
-        BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
-
-        assert context.js_config.config == {
-            "enableLmsFilePicker": False,
-            "formAction": "http://example.com/module_item_configurations",
-            "formFields": Any.dict(),
-            "googleClientId": "TEST_GOOGLE_CLIENT_ID",
-            "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
-            "customCanvasApiDomain": context.custom_canvas_api_domain,
-            "lmsUrl": context.lms_url,
-            "urls": {},
-        }
-
-        form_fields = context.js_config.config["formFields"]
-
-        # Test that we pass through parameters from the request made to us
-        # onto the configure module item call
-        assert form_fields == Any.dict.containing(
-            {
-                "authorization": Any.string(),
-                "resource_link_id": "TEST_RESOURCE_LINK_ID",
-                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "user_id": "TEST_USER_ID",
-                "context_id": "TEST_CONTEXT_ID",
-                "some_random_rubbish": "SOME_RANDOM_RUBBISH",
-            }
-        )
-
-        self._assert_authorization_valid_jwt(
-            form_fields["authorization"],
-            {
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "roles": "TEST_ROLES",
-                "user_id": "TEST_USER_ID",
-            },
-        )
-
     def _assert_authorization_valid_jwt(self, authorization, expected_values):
         assert authorization.startswith("Bearer ")
         assert (

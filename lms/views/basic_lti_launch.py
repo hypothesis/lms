@@ -174,49 +174,8 @@ class BasicLTILaunchViews:
         will then be DB-configured launches rather than unconfigured.
         """
         self.context.js_config.enable_content_item_selection_mode()
-
-        params = self._extract_lti_params(self.request)
-
-        # Copy the Authorization header as a parameter
-        params["authorization"] = BearerTokenSchema(self.request).authorization_param(
-            self.request.lti_user
-        )
-
-        self.context.js_config_enable_content_item_selection_mode()
-
-        # Add the config needed by the JavaScript document selection code.
-        self.context.js_config.config.update(
-            {
-                # It is assumed that this view is only used by LMSes for which
-                # we do not have an integration with the LMS's file storage.
-                # (currently only Canvas supports this).
-                "enableLmsFilePicker": False,
-                "formAction": self.request.route_url("module_item_configurations"),
-                "formFields": params,
-                "googleClientId": self.request.registry.settings["google_client_id"],
-                "googleDeveloperKey": self.request.registry.settings[
-                    "google_developer_key"
-                ],
-                "customCanvasApiDomain": self.context.custom_canvas_api_domain,
-                "lmsUrl": self.context.lms_url,
-            }
-        )
-
+        self.context.js_config.add_file_picker_config()
         return {}
-
-    @classmethod
-    def _extract_lti_params(cls, request):
-        """Copy all of the LTI params from a request minus OAuth 1 params."""
-
-        # Exclude OAuth 1 variable signing fields as they should not be
-        # re-used. If this request needs to be signed, it needs to be signed
-        # again.
-
-        return {
-            param: value
-            for param, value in request.params.items()
-            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
-        }
 
     # pylint:disable=no-self-use
     @view_config(
