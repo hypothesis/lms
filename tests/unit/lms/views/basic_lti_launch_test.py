@@ -28,49 +28,6 @@ class TestBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request)
         assert "lmsGrader" not in context.js_config.config
 
-    def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
-        self, context, pyramid_request, h_api
-    ):
-        context.js_config.config["hypothesisClient"] = {}
-        pyramid_request.params.update(
-            {
-                "tool_consumer_info_product_family_code": "canvas",
-                "focused_user": "user123",
-            }
-        )
-        h_api.get_user.return_value = HUser(
-            authority="TEST_AUTHORITY", username="user123", display_name="Jim Smith"
-        )
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config.config["hypothesisClient"]["focus"] == {
-            "user": {"username": "user123", "displayName": "Jim Smith"}
-        }
-
-    def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
-        self, context, pyramid_request, h_api
-    ):
-        context.js_config.config["hypothesisClient"] = {}
-        pyramid_request.params.update(
-            {
-                "focused_user": "user123",
-                "tool_consumer_info_product_family_code": "canvas",
-            }
-        )
-        h_api.get_user.side_effect = HAPIError("User does not exist")
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config.config["hypothesisClient"]["focus"] == {
-            "user": {
-                "username": "user123",
-                "displayName": "(Couldn't fetch student name)",
-            }
-        }
-
     @pytest.fixture
     def h_api(self, pyramid_config):
         svc = mock.create_autospec(HAPI, instance=True, spec_set=True)

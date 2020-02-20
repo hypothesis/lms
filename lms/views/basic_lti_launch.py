@@ -15,7 +15,6 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches, ModuleItemConfiguration
-from lms.services import HAPIError
 from lms.validation import (
     ConfigureModuleItemSchema,
     LaunchParamsSchema,
@@ -38,9 +37,7 @@ class BasicLTILaunchViews:
         self.request = request
 
         self.context.js_config.enable_basic_lti_launch_mode()
-
-        if self.is_launched_by_canvas():
-            self.set_canvas_focused_user()
+        self.context.js_config.set_canvas_focused_user()
 
     def sync_lti_data_to_h(self):
         """
@@ -296,31 +293,4 @@ class BasicLTILaunchViews:
         return (
             self.request.params.get("tool_consumer_info_product_family_code")
             == "canvas"
-        )
-
-    def set_canvas_focused_user(self):
-        """Configure the Hypothesis client to focus on a particular user."""
-
-        # If the launch has been configured to focus on the annotations from
-        # a particular user, translate that into Hypothesis client configuration.
-
-        # This parameter is only passed as a part of Canvas SpeedGrader config
-        # and is passed as a parameter to a URL which they call us back on.
-        focused_user = self.request.params.get("focused_user")
-        if not focused_user:
-            return
-
-        h_api = self.request.find_service(name="h_api")
-
-        try:
-            display_name = h_api.get_user(focused_user).display_name
-        except HAPIError:
-            # If we couldn't fetch the student's name for any reason, fall back
-            # to a placeholder rather than giving up entirely, since the rest
-            # of the experience can still work.
-            display_name = "(Couldn't fetch student name)"
-
-        # TODO! - Could/should this be replaced with a GradingInfo lookup?
-        self.context.js_config.config["hypothesisClient"].update(
-            {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
         )

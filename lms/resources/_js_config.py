@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import jwt
 
+from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
 
 
@@ -63,6 +64,36 @@ class JSConfig:
         elif canvas_file_id is not None:
             self.config["submissionParams"]["canvas_file_id"] = canvas_file_id
 
+    def set_canvas_focused_user(self):
+        """Configure the Hypothesis client to focus on a particular user."""
+
+        if not self._is_canvas:
+            return
+
+        # If the launch has been configured to focus on the annotations from
+        # a particular user, translate that into Hypothesis client configuration.
+
+        # This parameter is only passed as a part of Canvas SpeedGrader config
+        # and is passed as a parameter to a URL which they call us back on.
+        focused_user = self._request.params.get("focused_user")
+        if not focused_user:
+            return
+
+        h_api = self._request.find_service(name="h_api")
+
+        try:
+            display_name = h_api.get_user(focused_user).display_name
+        except HAPIError:
+            # If we couldn't fetch the student's name for any reason, fall back
+            # to a placeholder rather than giving up entirely, since the rest
+            # of the experience can still work.
+            display_name = "(Couldn't fetch student name)"
+
+        # TODO! - Could/should this be replaced with a GradingInfo lookup?
+        self._hypothesis_config["focus"] = {
+            "user": {"username": focused_user, "displayName": display_name}
+        }
+
     @property
     @functools.lru_cache()
     def config(self):
@@ -120,6 +151,7 @@ class JSConfig:
         return debug_info
 
     @property
+    @functools.lru_cache()
     def _hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
