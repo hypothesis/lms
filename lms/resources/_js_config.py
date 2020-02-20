@@ -100,33 +100,30 @@ class JSConfig:
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
 
-    def add_file_picker_config(self):
-        params = {
-            param: value
-            for param, value in self._request.params.items()
-            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
-        }
-
-        params["authorization"] = BearerTokenSchema(self._request).authorization_param(
-            self._request.lti_user
-        )
-
+    def add_file_picker_config(self, form_action, form_fields, lti_launch_url=None):
         self.config.update(
             {
                 # It is assumed that this view is only used by LMSes for which
                 # we do not have an integration with the LMS's file storage.
                 # (currently only Canvas supports this).
                 "enableLmsFilePicker": False,
-                "formAction": self._request.route_url("module_item_configurations"),
-                "formFields": params,
+                "formAction": form_action,
+                "formFields": form_fields,
                 "googleClientId": self._request.registry.settings["google_client_id"],
                 "googleDeveloperKey": self._request.registry.settings[
                     "google_developer_key"
                 ],
+                # Pass the URL of the LMS that is launching us to our JavaScript code.
+                # When we're being launched in an iframe within the LMS our JavaScript
+                # needs to pass this URL (which is the URL of the top-most page) to Google
+                # Picker, otherwise Picker refuses to launch inside an iframe.
                 "customCanvasApiDomain": self._context.custom_canvas_api_domain,
                 "lmsUrl": self._context.lms_url,
             }
         )
+
+        if lti_launch_url:
+            self.config["ltiLaunchUrl"] = lti_launch_url
 
     @property
     @functools.lru_cache()

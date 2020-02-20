@@ -51,34 +51,18 @@ def content_item_selection(context, request):
     lti_h_service.upsert_h_user()
     lti_h_service.upsert_course_group()
 
-    context.js_config.config.update(
-        {
-            # The URL that we'll POST the ContentItemSelection form submission
-            # (containing the user's selected document) to.
-            "formAction": request.params["content_item_return_url"],
-            # The fields of the form that we'll POST to the content_item_return_url.
-            # (The JavaScript also adds the content item selection itself to the
-            # form as another field, in addition to the ones here.)
-            "formFields": {
-                "lti_message_type": "ContentItemSelection",
-                "lti_version": request.params["lti_version"],
-            },
-            # Variables needed for initializing Google Picker.
-            "googleClientId": request.registry.settings["google_client_id"],
-            "googleDeveloperKey": request.registry.settings["google_developer_key"],
-            # The "content item selection" that we submit to the
-            # content_item_return_url is actually an LTI launch URL with the
-            # selected document URL or file_id as a query parameter. To construct
-            # these launch URLs our JavaScript code needs the base URL of our LTI
-            # launch endpoint.
-            "ltiLaunchUrl": request.route_url("lti_launches"),
-            # Pass the URL of the LMS that is launching us to our JavaScript code.
-            # When we're being launched in an iframe within the LMS our JavaScript
-            # needs to pass this URL (which is the URL of the top-most page) to Google
-            # Picker, otherwise Picker refuses to launch inside an iframe.
-            "customCanvasApiDomain": context.custom_canvas_api_domain,
-            "lmsUrl": context.lms_url,
-        }
+    context.js_config.add_file_picker_config(
+        form_action=request.params["content_item_return_url"],
+        form_fields={
+            "lti_message_type": "ContentItemSelection",
+            "lti_version": request.params["lti_version"],
+        },
+        # The "content item selection" that we submit to the
+        # content_item_return_url is actually an LTI launch URL with the
+        # selected document URL or file_id as a query parameter. To construct
+        # these launch URLs our JavaScript code needs the base URL of our LTI
+        # launch endpoint.
+        lti_launch_url=request.route_url("lti_launches"),
     )
 
     # For Canvas Picker support our JavaScript needs the ID of the Canvas

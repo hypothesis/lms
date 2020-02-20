@@ -174,7 +174,22 @@ class BasicLTILaunchViews:
         will then be DB-configured launches rather than unconfigured.
         """
         self.context.js_config.enable_content_item_selection_mode()
-        self.context.js_config.add_file_picker_config()
+
+        form_fields = {
+            param: value
+            for param, value in self.request.params.items()
+            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+        }
+
+        form_fields["authorization"] = BearerTokenSchema(
+            self.request
+        ).authorization_param(self.request.lti_user)
+
+        self.context.js_config.add_file_picker_config(
+            form_action=self.request.route_url("module_item_configurations"),
+            form_fields=form_fields,
+        )
+
         return {}
 
     # pylint:disable=no-self-use

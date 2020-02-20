@@ -9,41 +9,6 @@ from lms.views.content_item_selection import content_item_selection
 
 
 class TestContentItemSelection:
-    def test_it_sets_the_formAction_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["formAction"] == "TEST_CONTENT_ITEM_RETURN_URL"
-
-    def test_it_sets_the_formFields_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["formFields"] == {
-            "lti_message_type": "ContentItemSelection",
-            "lti_version": "TEST_LTI_VERSION",
-        }
-
-    def test_it_sets_the_google_javascript_config_settings(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["googleClientId"] == "fake_client_id"
-        assert context.js_config.config["googleDeveloperKey"] == "fake_developer_key"
-
-    def test_it_sets_the_ltiLaunchUrl_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert (
-            context.js_config.config["ltiLaunchUrl"]
-            == "http://example.com/TEST_LTI_LAUNCH_URL"
-        )
-
     def test_it_sets_the_courseId_javascript_config_setting(
         self, context, helpers, pyramid_request
     ):
@@ -71,13 +36,6 @@ class TestContentItemSelection:
 
         helpers.canvas_files_available.assert_called_once_with(pyramid_request)
         assert "courseId" not in context.js_config.config
-
-    def test_it_sets_the_lmsUrl_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["lmsUrl"] == context.lms_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
