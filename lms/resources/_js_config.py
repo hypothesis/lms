@@ -20,8 +20,16 @@ class JSConfig:
     def enable_content_item_selection_mode(self):
         self.config["mode"] = "content-item-selection"
 
-    def add_canvas_submission_params(self):
+    def add_canvas_submission_params(self, document_url=None, canvas_file_id=None):
         """Add config used by UI to call Canvas's `record_submission` API."""
+
+        # One of document_url or canvas_file_id must be given but not both.
+        assert any((document_url is not None, canvas_file_id is not None))
+        assert not all((document_url is not None, canvas_file_id is not None))
+
+        if not self._is_canvas:
+            return
+
         lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
 
@@ -41,14 +49,19 @@ class JSConfig:
 
             return True
 
-        if should_post_submission_to_canvas():
-            self.config.setdefault("submissionParams", {}).update(
-                {
-                    "h_username": self._context.h_user.username,
-                    "lis_result_sourcedid": lis_result_sourcedid,
-                    "lis_outcome_service_url": lis_outcome_service_url,
-                }
-            )
+        if not should_post_submission_to_canvas():
+            return
+
+        self.config["submissionParams"] = {
+            "h_username": self._context.h_user.username,
+            "lis_result_sourcedid": lis_result_sourcedid,
+            "lis_outcome_service_url": lis_outcome_service_url,
+        }
+
+        if document_url is not None:
+            self.config["submissionParams"]["document_url"] = document_url
+        elif canvas_file_id is not None:
+            self.config["submissionParams"]["canvas_file_id"] = canvas_file_id
 
     @property
     @functools.lru_cache()
@@ -166,3 +179,11 @@ class JSConfig:
 
         """
         return {}
+
+    @property
+    def _is_canvas(self):
+        """Return True if Canvas is the LMS that launched us."""
+        return (
+            self._request.params.get("tool_consumer_info_product_family_code")
+            == "canvas"
+        )

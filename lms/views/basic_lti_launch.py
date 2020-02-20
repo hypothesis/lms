@@ -40,7 +40,6 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_basic_lti_launch_mode()
 
         if self.is_launched_by_canvas():
-            self.context.js_config.add_canvas_submission_params()
             self.set_canvas_focused_user()
 
     def sync_lti_data_to_h(self):
@@ -106,7 +105,7 @@ class BasicLTILaunchViews:
             }
         )
 
-        self.set_canvas_submission_param("canvas_file_id", file_id)
+        self.context.js_config.add_canvas_submission_params(canvas_file_id=file_id)
 
         return {}
 
@@ -139,6 +138,7 @@ class BasicLTILaunchViews:
         )
 
         self._set_via_url(document_url)
+        self.context.js_config.add_canvas_submission_params(document_url=document_url)
 
         return {}
 
@@ -161,6 +161,7 @@ class BasicLTILaunchViews:
 
         url = self.request.parsed_params["url"]
         self._set_via_url(url)
+        self.context.js_config.add_canvas_submission_params(document_url=url)
 
         return {}
 
@@ -276,6 +277,7 @@ class BasicLTILaunchViews:
         )
 
         self._set_via_url(document_url)
+        self.context.js_config.add_canvas_submission_params(document_url=document_url)
 
         self.sync_lti_data_to_h()
         self.store_lti_data()
@@ -289,19 +291,12 @@ class BasicLTILaunchViews:
         self.context.js_config.config["urls"].update(
             {"via_url": via_url(self.request, document_url)}
         )
-        self.set_canvas_submission_param("document_url", document_url)
 
     def is_launched_by_canvas(self):
         return (
             self.request.params.get("tool_consumer_info_product_family_code")
             == "canvas"
         )
-
-    def set_canvas_submission_param(self, name, value):
-        """Update config for frontend's calls to `report_submisssion` API."""
-
-        if "submissionParams" in self.context.js_config.config:
-            self.context.js_config.config["submissionParams"][name] = value
 
     def set_canvas_focused_user(self):
         """Configure the Hypothesis client to focus on a particular user."""
