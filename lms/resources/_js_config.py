@@ -22,6 +22,49 @@ class JSConfig:
     def enable_content_item_selection_mode(self):
         self.config["mode"] = "content-item-selection"
 
+    def enable_grading(self):
+        """Enable our LMS app's built-in assignment grading UI."""
+
+        if not self._request.lti_user.is_instructor:
+            # Only instructors can grade assignments.
+            return
+
+        if "lis_outcome_service_url" not in self._request.params:
+            # Only "gradeable" assignments can be graded.
+            # Assignments that don't have the lis_outcome_service_url param
+            # aren't set as gradeable in the LMS.
+            return
+
+        if self._is_canvas:
+            # Don't show our built-in grader in Canvas because it has its own
+            # "SpeedGrader" and we support that instead.
+            return
+
+        self.config["lmsGrader"] = True
+
+        grading_infos = self._request.find_service(
+            name="grading_info"
+        ).get_by_assignment(
+            oauth_consumer_key=self._request.lti_user.oauth_consumer_key,
+            context_id=self._request.params.get("context_id"),
+            resource_link_id=self._request.params.get("resource_link_id"),
+        )
+
+        self.config["grading"] = {
+            "courseName": self._request.params.get("context_title"),
+            "assignmentName": self._request.params.get("resource_link_title"),
+            # TODO! - Rename this in the front end?
+            "students": [
+                {
+                    "userid": h_user.userid,
+                    "displayName": h_user.display_name,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                }
+                for (grading_info, h_user) in grading_infos
+            ],
+        }
+
     def _enable_lms_file_picker(self):
         def canvas_files_available():
             """Return True if the Canvas Files API is available to this request."""

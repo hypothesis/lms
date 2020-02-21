@@ -82,10 +82,6 @@ class ConfiguredLaunch:
 
         grading_info_service.upsert_from_request.assert_not_called()
 
-    @pytest.fixture
-    def frontend_app(self, patch):
-        return patch("lms.views.basic_lti_launch.frontend_app")
-
     @pytest.fixture(autouse=True)
     def grading_info_service(self, pyramid_config):
         grading_info_service = mock.create_autospec(
@@ -127,14 +123,6 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, ModuleItemConfiguration,
-    ):
-        self.make_request(context, pyramid_request)
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
-        )
-
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
 
@@ -150,26 +138,6 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_frontend_grading(
-        self,
-        context,
-        pyramid_request,
-        frontend_app,
-        lti_outcome_params,
-        ModuleItemConfiguration,
-    ):
-        pyramid_request.params = {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            **lti_outcome_params,
-        }
-
-        self.make_request(context, pyramid_request)
-
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
-        )
-
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).url_configured_basic_lti_launch()
 
@@ -191,15 +159,6 @@ class TestConfigureModuleItem(ConfiguredLaunch):
             "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             "TEST_RESOURCE_LINK_ID",
             "TEST_DOCUMENT_URL",
-        )
-
-    def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, ModuleItemConfiguration,
-    ):
-        self.make_request(context, pyramid_request)
-
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
         )
 
     def make_request(self, context, pyramid_request):

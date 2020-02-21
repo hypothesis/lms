@@ -21,7 +21,6 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.helpers import frontend_app
 
 
 @view_defaults(
@@ -110,7 +109,7 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config.config)
+        self.context.js_config.enable_grading()
 
         resource_link_id = self.request.params["resource_link_id"]
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
@@ -142,7 +141,7 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config.config)
+        self.context.js_config.enable_grading()
 
         url = self.request.parsed_params["url"]
         self.context.js_config.add_document_url(url)
@@ -239,7 +238,7 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
-        frontend_app.configure_grading(self.request, self.context.js_config.config)
+        self.context.js_config.enable_grading()
 
         return {}
 
