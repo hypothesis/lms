@@ -17,15 +17,14 @@ class TestContentItemSelection:
         helpers.canvas_files_available.assert_called_once_with(pyramid_request)
         assert context.js_config.config["courseId"] == "TEST_CUSTOM_CANVAS_COURSE_ID"
 
-    @pytest.mark.parametrize("enable_picker", (True, False))
     def test_it_enables_lms_file_picker_if_canvas_files_available(
-        self, context, helpers, pyramid_request, enable_picker
+        self, context, helpers, pyramid_request
     ):
-        helpers.canvas_files_available.return_value = enable_picker
+        helpers.canvas_files_available.return_value = True
 
         content_item_selection(context, pyramid_request)
 
-        assert context.js_config.config["enableLmsFilePicker"] is enable_picker
+        assert context.js_config.config["enableLmsFilePicker"] is True
 
     def test_if_canvas_files_arent_available_for_this_application_instance_then_it_omits_course_id(
         self, context, helpers, pyramid_request

@@ -71,7 +71,5 @@ def content_item_selection(context, request):
     if helpers.canvas_files_available(request):
         context.js_config.config["enableLmsFilePicker"] = True
         context.js_config.config["courseId"] = request.params["custom_canvas_course_id"]
-    else:
-        context.js_config.config["enableLmsFilePicker"] = False
 
     return {}
