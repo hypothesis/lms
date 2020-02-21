@@ -2,6 +2,7 @@ from marshmallow import fields
 
 from lms.models import GradingInfo
 from lms.validation import PyramidRequestSchema, ValidationError
+from lms.values import HUser
 
 __all__ = ["GradingInfoService"]
 
@@ -25,32 +26,44 @@ class GradingInfoService:
 
     def get_by_assignment(self, oauth_consumer_key, context_id, resource_link_id):
         """
-        Get available grading data for students for an assignment.
+        Return all the (GradingInfo, HUser) tuples for a given assignment.
 
-        Retrieve all :class:`~lms.models.GradingInfo`s that match this
-        assignment (each unique combination of (``oauth_consumer_key``,
-        ``context_id``, ``resource_link_id``) corresponds to an assignment).
-        There should be one record per applicable student who has launched this
-        assignment (and had ``GradingInfo`` data persisted for them).
+        The returned list will contain one (GradingInfo, HUser) tuple for each
+        student who has launched this assignment (and had GradingInfo data
+        persisted for them).
 
-        :arg oauth_consumer_key: Which LMS application install the request
-                                 corresponds to.
+        :param oauth_consumer_key: the assignment's oauth_consumer_key
+            (identifies a deployment of our app in an LMS)
         :type oauth_consumer_key: str
-        :arg context_id: LTI parameter indicating the course
+
+        :param context_id: the assignment's context_id
+            (identifies the course within the LMS)
         :type context_id: str
-        :arg resource_link_id: LTI parameter (roughly) equating to an assignment
+
+        :param resource_link_id: the assignment's resource_link_id
+            (identifies the assignment within the LMS course)
         :type resource_link_id: str
-        :rtype: list[:class:`lms.models.GradingInfo`]
+
+        :return: a list of all the (GradingInfo, HUser) tuples for the assignment
+        :rtype: list[(GradingInfo, HUser)]
         """
-        return (
-            self._db.query(GradingInfo)
-            .filter_by(
-                oauth_consumer_key=oauth_consumer_key,
-                context_id=context_id,
-                resource_link_id=resource_link_id,
-            )
-            .all()
+        grading_infos = self._db.query(GradingInfo).filter_by(
+            oauth_consumer_key=oauth_consumer_key,
+            context_id=context_id,
+            resource_link_id=resource_link_id,
         )
+
+        return [
+            (
+                grading_info,
+                HUser(
+                    authority=self._authority,
+                    username=grading_info.h_username,
+                    display_name=grading_info.h_display_name,
+                ),
+            )
+            for grading_info in grading_infos
+        ]
 
     def upsert_from_request(self, request, h_user, lti_user):
         """
