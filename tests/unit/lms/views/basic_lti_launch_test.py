@@ -87,10 +87,6 @@ class ConfiguredLaunch:
         return patch("lms.views.basic_lti_launch.frontend_app")
 
     @pytest.fixture(autouse=True)
-    def via_url(self, patch):
-        return patch("lms.views.basic_lti_launch.via_url")
-
-    @pytest.fixture(autouse=True)
     def grading_info_service(self, pyramid_config):
         grading_info_service = mock.create_autospec(
             GradingInfoService, instance=True, spec_set=True
@@ -131,29 +127,8 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_via_url(
-        self,
-        context,
-        pyramid_request,
-        lti_outcome_params,
-        via_url,
-        ModuleItemConfiguration,
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-        ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
-
-        self.make_request(context, pyramid_request)
-
-        ModuleItemConfiguration.get_document_url.assert_called_once_with(
-            pyramid_request.db,
-            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "TEST_RESOURCE_LINK_ID",
-        )
-        via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app, ModuleItemConfiguration,
     ):
         self.make_request(context, pyramid_request)
         frontend_app.configure_grading.assert_called_once_with(
@@ -175,23 +150,12 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 
 
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
-    def test_it_configures_via_url(
-        self, context, pyramid_request, lti_outcome_params, via_url
-    ):
-        pyramid_request.params.update(lti_outcome_params)
-
-        self.make_request(context, pyramid_request)
-
-        via_url.assert_called_once_with(pyramid_request, "TEST_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
         self,
         context,
         pyramid_request,
         frontend_app,
         lti_outcome_params,
-        via_url,
         ModuleItemConfiguration,
     ):
         pyramid_request.params = {
@@ -229,14 +193,8 @@ class TestConfigureModuleItem(ConfiguredLaunch):
             "TEST_DOCUMENT_URL",
         )
 
-    def test_it_configures_via_url(self, context, pyramid_request, via_url):
-        self.make_request(context, pyramid_request)
-
-        via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app, ModuleItemConfiguration,
     ):
         self.make_request(context, pyramid_request)
 

@@ -21,7 +21,7 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.helpers import frontend_app, via_url
+from lms.views.helpers import frontend_app
 
 
 @view_defaults(
@@ -91,8 +91,7 @@ class BasicLTILaunchViews:
         self.store_lti_data()
 
         file_id = self.request.params["file_id"]
-        self.context.js_config.set_via_url_callback(canvas_file_id=file_id)
-        self.context.js_config.add_canvas_submission_params(canvas_file_id=file_id)
+        self.context.js_config.add_canvas_file_id(file_id)
 
         return {}
 
@@ -124,8 +123,7 @@ class BasicLTILaunchViews:
             self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
-        self._set_via_url(document_url)
-        self.context.js_config.add_canvas_submission_params(document_url=document_url)
+        self.context.js_config.add_document_url(document_url)
 
         return {}
 
@@ -147,8 +145,7 @@ class BasicLTILaunchViews:
         frontend_app.configure_grading(self.request, self.context.js_config.config)
 
         url = self.request.parsed_params["url"]
-        self._set_via_url(url)
-        self.context.js_config.add_canvas_submission_params(document_url=url)
+        self.context.js_config.add_document_url(url)
 
         return {}
 
@@ -237,8 +234,7 @@ class BasicLTILaunchViews:
             document_url,
         )
 
-        self._set_via_url(document_url)
-        self.context.js_config.add_canvas_submission_params(document_url=document_url)
+        self.context.js_config.add_document_url(document_url)
 
         self.sync_lti_data_to_h()
         self.store_lti_data()
@@ -246,12 +242,6 @@ class BasicLTILaunchViews:
         frontend_app.configure_grading(self.request, self.context.js_config.config)
 
         return {}
-
-    def _set_via_url(self, document_url):
-        """Configure content URL which the frontend will render inside an iframe."""
-        self.context.js_config.config["urls"].update(
-            {"via_url": via_url(self.request, document_url)}
-        )
 
     def is_launched_by_canvas(self):
         return (

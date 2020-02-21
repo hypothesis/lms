@@ -6,6 +6,7 @@ import jwt
 
 from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
+from lms.views.helpers import via_url
 
 
 class JSConfig:
@@ -21,36 +22,34 @@ class JSConfig:
     def enable_content_item_selection_mode(self):
         self.config["mode"] = "content-item-selection"
 
-    def add_canvas_submission_params(self, document_url=None, canvas_file_id=None):
-        """Add config used by UI to call Canvas's `record_submission` API."""
+    def add_document_url(self, document_url):
+        self.config["urls"]["via_url"] = via_url(self._request, document_url)
+        self._add_canvas_submission_params(document_url=document_url)
 
-        # One of document_url or canvas_file_id must be given but not both.
-        assert any((document_url is not None, canvas_file_id is not None))
-        assert not all((document_url is not None, canvas_file_id is not None))
+    def add_canvas_file_id(self, canvas_file_id):
+        self.config["urls"]["via_url_callback"] = self._request.route_url(
+            "canvas_api.files.via_url", file_id=canvas_file_id
+        )
+        self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
 
+    def _add_canvas_submission_params(self, **kwargs):
         if not self._is_canvas:
             return
 
         lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
 
-        def should_post_submission_to_canvas():
-            # When a Canvas assignment is launched by a teacher or other
-            # non-gradeable user there's no lis_result_sourcedid in the LTI
-            # launch params.
-            # Don't post submission to Canvas for these cases.
-            if not lis_result_sourcedid:
-                return False
+        # When a Canvas assignment is launched by a teacher or other
+        # non-gradeable user there's no lis_result_sourcedid in the LTI
+        # launch params.
+        # Don't post submission to Canvas for these cases.
+        if not lis_result_sourcedid:
+            return
 
-            # When a Canvas assignment isn't gradeable there's no
-            # lis_outcome_service_url.
-            # Don't post submission to Canvas for these cases.
-            if not lis_outcome_service_url:
-                return False
-
-            return True
-
-        if not should_post_submission_to_canvas():
+        # When a Canvas assignment isn't gradeable there's no
+        # lis_outcome_service_url.
+        # Don't post submission to Canvas for these cases.
+        if not lis_outcome_service_url:
             return
 
         self.config["submissionParams"] = {
@@ -59,10 +58,8 @@ class JSConfig:
             "lis_outcome_service_url": lis_outcome_service_url,
         }
 
-        if document_url is not None:
-            self.config["submissionParams"]["document_url"] = document_url
-        elif canvas_file_id is not None:
-            self.config["submissionParams"]["canvas_file_id"] = canvas_file_id
+        # Add the given document_url or canvas_file_id.
+        self.config["submissionParams"].update(kwargs)
 
     def set_canvas_focused_user(self):
         """Configure the Hypothesis client to focus on a particular user."""
@@ -93,12 +90,6 @@ class JSConfig:
         self._hypothesis_config["focus"] = {
             "user": {"username": focused_user, "displayName": display_name}
         }
-
-    # Only used for Canvas Files assignment launches.
-    def set_via_url_callback(self, canvas_file_id):
-        self._urls["via_url_callback"] = self._request.route_url(
-            "canvas_api.files.via_url", file_id=canvas_file_id
-        )
 
     def add_file_picker_config(self, form_action, form_fields, lti_launch_url=None):
         self.config.update(
