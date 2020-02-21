@@ -239,11 +239,32 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
-  // FIXME-A11Y
-  it.skip(
+  it(
     'should pass a11y checks',
-    checkAccessibility({
-      content: () => renderLtiLaunchApp(),
-    })
+    checkAccessibility([
+      {
+        content: () => renderLtiLaunchApp(),
+      },
+      {
+        name: 'LMS grader mode',
+        content: () => {
+          // Turn on `lmsGrader` for this test. Note: fakeConfig won't
+          // reset for a successive axe test, so its important that this
+          // test is the last one run in the test list. Otherwise
+          // fakeConfig will need to be restored again as done in the
+          // root level beforeEach() at the top of the file.
+          fakeConfig = {
+            ...fakeConfig,
+            lmsGrader: true,
+            grading: {
+              students: [],
+              courseName: 'courseName',
+              assignmentName: 'assignmentName',
+            },
+          };
+          return renderLtiLaunchApp();
+        },
+      },
+    ])
   );
 });
