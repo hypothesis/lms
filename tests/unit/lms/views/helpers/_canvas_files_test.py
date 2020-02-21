@@ -66,12 +66,3 @@ class TestCanvasFilesAvailable:
         }
 
         assert canvas_files_available(pyramid_request) is False
-
-    def test_it_supports_passing_in_custom_params(self, pyramid_request):
-        pyramid_request.params = {}
-        params = {
-            "oauth_consumer_key": "TEST_CONSUMER_KEY",
-            "custom_canvas_course_id": "FOO",
-        }
-
-        assert canvas_files_available(pyramid_request, params=params) is True
