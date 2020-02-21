@@ -4,7 +4,7 @@ import pytest
 
 from lms.models import GradingInfo
 from lms.services.grading_info import GradingInfoService
-from lms.values import LTIUser
+from lms.values import HUser, LTIUser
 from lms.views.helpers import frontend_app
 
 
@@ -89,15 +89,26 @@ def grading_info_svc(pyramid_config):
 
 @pytest.fixture
 def grading_infos():
-    return [
-        GradingInfo(
-            h_username=f"username_{index}",
-            h_display_name=f"Student {index}",
-            lis_result_sourcedid=f"lis_result_sourcedid_{index}",
-            lis_outcome_service_url="http://example.com/service_url",
+    grading_infos = []
+
+    for index in range(3):
+        h_username = f"username_{index}"
+        h_display_name = f"Student {index}"
+        lis_result_sourcedid = f"lis_result_sourcedid_{index}"
+
+        grading_infos.append(
+            (
+                GradingInfo(
+                    h_username=h_username,
+                    h_display_name=h_display_name,
+                    lis_result_sourcedid=lis_result_sourcedid,
+                    lis_outcome_service_url="http://example.com/service_url",
+                ),
+                HUser("test_authority", h_username, h_display_name),
+            )
         )
-        for index in range(3)
-    ]
+
+    return grading_infos
 
 
 @pytest.fixture

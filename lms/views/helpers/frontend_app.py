@@ -1,7 +1,5 @@
 """Helpers for configuring the front-end JavaScript application."""
 
-from lms.values import HUser
-
 __all__ = ("configure_grading",)
 
 
@@ -22,6 +20,12 @@ def configure_grading(request, js_config):
 
     js_config["lmsGrader"] = True
 
+    grading_infos = request.find_service(name="grading_info").get_by_assignment(
+        oauth_consumer_key=request.lti_user.oauth_consumer_key,
+        context_id=request.params.get("context_id"),
+        resource_link_id=request.params.get("resource_link_id"),
+    )
+
     js_config["grading"] = {
         "courseName": request.params.get("context_title"),
         "assignmentName": request.params.get("resource_link_title"),
@@ -33,28 +37,9 @@ def configure_grading(request, js_config):
                 "LISResultSourcedId": grading_info.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
             }
-            for grading_info, h_user in _grading_info_for_assignment(
-                context_id=request.params.get("context_id"),
-                resource_link_id=request.params.get("resource_link_id"),
-                request=request,
-            )
+            for (grading_info, h_user) in grading_infos
         ],
     }
-
-
-def _grading_info_for_assignment(context_id, resource_link_id, request):
-    service = request.find_service(name="grading_info")
-
-    for grading_info in service.get_by_assignment(
-        oauth_consumer_key=request.lti_user.oauth_consumer_key,
-        context_id=context_id,
-        resource_link_id=resource_link_id,
-    ):
-        yield grading_info, HUser(
-            authority=request.registry.settings["h_authority"],
-            username=grading_info.h_username,
-            display_name=grading_info.h_display_name,
-        )
 
 
 def _is_assignment_gradable(request):
