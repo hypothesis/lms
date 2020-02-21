@@ -36,8 +36,6 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 """
 from pyramid.view import view_config
 
-from lms.views import helpers
-
 
 @view_config(
     authorized_to_configure_assignments=True,
@@ -64,12 +62,5 @@ def content_item_selection(context, request):
         # launch endpoint.
         lti_launch_url=request.route_url("lti_launches"),
     )
-
-    # For Canvas Picker support our JavaScript needs the ID of the Canvas
-    # course, as this is a required param of the API it'll call to get the list
-    # of files in the course.
-    if helpers.canvas_files_available(request):
-        context.js_config.config["enableLmsFilePicker"] = True
-        context.js_config.config["courseId"] = request.params["custom_canvas_course_id"]
 
     return {}

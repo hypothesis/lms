@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import jwt
 
-from lms.services import HAPIError
+from lms.services import ConsumerKeyError, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -21,6 +21,31 @@ class JSConfig:
 
     def enable_content_item_selection_mode(self):
         self.config["mode"] = "content-item-selection"
+
+    def _enable_lms_file_picker(self):
+        def canvas_files_available():
+            """Return True if the Canvas Files API is available to this request."""
+
+            if not self._is_canvas:
+                return False
+
+            try:
+                developer_key = self._request.find_service(
+                    name="ai_getter"
+                ).developer_key(self._request.params.get("oauth_consumer_key"))
+            except ConsumerKeyError:
+                return False
+
+            return (
+                "custom_canvas_course_id" in self._request.params
+                and developer_key is not None
+            )
+
+        if not canvas_files_available():
+            return
+
+        self.config["enableLmsFilePicker"] = True
+        self.config["courseId"] = self._request.params["custom_canvas_course_id"]
 
     def add_document_url(self, document_url):
         self.config["urls"]["via_url"] = via_url(self._request, document_url)
@@ -115,6 +140,8 @@ class JSConfig:
 
         if lti_launch_url:
             self.config["ltiLaunchUrl"] = lti_launch_url
+
+        self._enable_lms_file_picker()
 
     @property
     @functools.lru_cache()
@@ -238,7 +265,14 @@ class JSConfig:
     @property
     def _is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
-        return (
+        if (
             self._request.params.get("tool_consumer_info_product_family_code")
             == "canvas"
-        )
+        ):
+            return True
+
+        for param in self._request.params:
+            if param.startswith("custom_canvas_"):
+                return True
+
+        return False
