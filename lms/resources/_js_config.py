@@ -207,7 +207,7 @@ class JSConfig:
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new access token.
             "authUrl": self._request.route_url("canvas_api.authorize"),
-            "debug": self._debug,
+            "debug": self._debug(),
             "hypothesisClient": self._hypothesis_config,
             # The LMS name to use in user-facing messages.
             # Shown on the "Select PDF from Canvas" button label.
@@ -226,7 +226,6 @@ class JSConfig:
             self._request.lti_user
         )
 
-    @property
     def _debug(self):
         """
         Return some debug information.
