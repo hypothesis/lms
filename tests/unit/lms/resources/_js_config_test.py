@@ -18,22 +18,6 @@ class TestJSConfig:
 
         assert config["a_key"] == "a_value"
 
-    @pytest.mark.parametrize(
-        "context_property", ["provisioning_enabled", "h_user", "h_groupid"]
-    )
-    def test_it_raises_if_a_context_property_raises(
-        self, context, context_property, pyramid_request
-    ):
-        # Make reading context.<context_property> raise HTTPBadRequest.
-        setattr(
-            type(context),
-            context_property,
-            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
-        )
-
-        with pytest.raises(HTTPBadRequest, match="example error message"):
-            JSConfig(context, pyramid_request).config
-
 
 class TestJSConfigAuthToken:
     """Unit tests for the "authToken" sub-dict of JSConfig."""
@@ -116,6 +100,22 @@ class TestJSConfigHypothesisClient:
         config.update({"a_key": "a_value"})
 
         assert config["a_key"] == "a_value"
+
+    @pytest.mark.parametrize(
+        "context_property", ["provisioning_enabled", "h_user", "h_groupid"]
+    )
+    def test_it_raises_if_a_context_property_raises(
+        self, context, context_property, pyramid_request
+    ):
+        # Make reading context.<context_property> raise HTTPBadRequest.
+        setattr(
+            type(context),
+            context_property,
+            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
+        )
+
+        with pytest.raises(HTTPBadRequest, match="example error message"):
+            JSConfig(context, pyramid_request)._hypothesis_client
 
     @pytest.fixture
     def config(self, config):
