@@ -22,12 +22,6 @@ class TestBasicLTILaunch:
     def test_it_configures_frontend(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
 
-    def test_it_does_not_configure_grading_if_request_unqualified(
-        self, context, pyramid_request
-    ):
-        BasicLTILaunchViews(context, pyramid_request)
-        assert "lmsGrader" not in context.js_config.config
-
     @pytest.fixture
     def h_api(self, pyramid_config):
         svc = mock.create_autospec(HAPI, instance=True, spec_set=True)
