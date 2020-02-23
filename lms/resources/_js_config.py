@@ -28,14 +28,27 @@ class JSConfig:
         :rtype: dict
         """
         return {
-            "authToken": self._auth_token,
-            "debug": self._debug,
+            # The auth token that the JavaScript code will use to authenticate
+            # itself to our own backend's APIs.
+            "authToken": self._auth_token(),
+            # Some debug information, currently used in the Gherkin tests.
+            "debug": self._debug(),
+            # The config object for the Hypothesis client.
+            # Our JSON-RPC server passes this to the Hypothesis client over
+            # postMessage.
             "hypothesisClient": self._hypothesis_config,
-            "rpcServer": self._rpc_server_config,
+            # The config object for our JSON-RPC server.
+            "rpcServer": {
+                "allowedOrigins": self._request.registry.settings[
+                    "rpc_allowed_origins"
+                ],
+            },
+            # A dict of URLs for the frontend to use.
+            # For example: API endpoints for the frontend to call would go in
+            # here.
             "urls": self._urls,
         }
 
-    @property
     def _auth_token(self):
         """Return the authToken setting."""
         if not self._request.lti_user:
@@ -45,7 +58,6 @@ class JSConfig:
             self._request.lti_user
         )
 
-    @property
     def _debug(self):
         """
         Return some debug information.
@@ -77,6 +89,8 @@ class JSConfig:
         api_url = self._request.registry.settings["h_api_url_public"]
 
         return {
+            # For documentation of these Hypothesis client settings see:
+            # https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
             "services": [
                 {
                     "apiUrl": api_url,
@@ -105,13 +119,6 @@ class JSConfig:
             self._request.registry.settings["h_jwt_client_secret"],
             algorithm="HS256",
         ).decode("utf-8")
-
-    @property
-    def _rpc_server_config(self):
-        """Return the config for the postMessage-JSON-RPC server."""
-        return {
-            "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"],
-        }
 
     @property
     def _urls(self):
