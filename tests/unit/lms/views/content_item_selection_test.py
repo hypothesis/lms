@@ -13,16 +13,6 @@ class TestContentItemSelection:
 
         context.js_config.enable_content_item_selection_mode.assert_called_once_with()
 
-    def test_it_sets_the_authUrl_javascript_config_setting(
-        self, context, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        assert (
-            context.js_config.config["authUrl"]
-            == "http://example.com/TEST_AUTHORIZE_URL"
-        )
-
     def test_it_sets_the_formAction_javascript_config_setting(
         self, context, pyramid_request
     ):

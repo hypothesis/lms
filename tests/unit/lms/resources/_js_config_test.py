@@ -13,6 +13,9 @@ from lms.values import HUser
 class TestJSConfig:
     """General unit tests for JSConfig."""
 
+    def test_auth_url(self, config):
+        assert config["authUrl"] == "http://example.com/api/canvas/authorize"
+
     def test_it_is_mutable(self, config):
         config.update({"a_key": "a_value"})
 
