@@ -203,7 +203,7 @@ class JSConfig:
         :rtype: dict
         """
         return {
-            "authToken": self._auth_token,
+            "authToken": self._auth_token(),
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new access token.
             "authUrl": self._request.route_url("canvas_api.authorize"),
@@ -217,7 +217,6 @@ class JSConfig:
             "urls": self._urls,
         }
 
-    @property
     def _auth_token(self):
         """Return the authToken setting."""
         if not self._request.lti_user:
