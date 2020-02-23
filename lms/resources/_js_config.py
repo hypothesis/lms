@@ -23,6 +23,9 @@ class JSConfig:
         """
         Return the configuration for the app's JavaScript code.
 
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+
         :rtype: dict
         """
         # This is a lazy-computed property so that if it's going to raise an
@@ -86,7 +89,12 @@ class JSConfig:
     @property
     @functools.lru_cache()
     def _hypothesis_client(self):
-        """Return the config object for the Hypothesis client."""
+        """
+        Return the config object for the Hypothesis client.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+        """
         # This is a lazy-computed property so that if it's going to raise an
         # exception that doesn't happen until someone actually reads it.
         # If it instead crashed in JSConfig.__init__() that would happen
