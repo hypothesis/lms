@@ -70,6 +70,37 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             "urls": self._urls,
         }
 
+    def add_canvas_submission_params(self):
+        """
+        Add config used by the JS to call our record_canvas_speedgrader_submission API.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+        """
+        lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
+        lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
+
+        # When a Canvas assignment is launched by a teacher or other
+        # non-gradeable user there's no lis_result_sourcedid in the LTI
+        # launch params.
+        # Don't post submission to Canvas for these cases.
+        if not lis_result_sourcedid:
+            return
+
+        # When a Canvas assignment isn't gradeable there's no
+        # lis_outcome_service_url.
+        # Don't post submission to Canvas for these cases.
+        if not lis_outcome_service_url:
+            return
+
+        self.config.setdefault("submissionParams", {}).update(
+            {
+                "h_username": self._context.h_user.username,
+                "lis_result_sourcedid": lis_result_sourcedid,
+                "lis_outcome_service_url": lis_outcome_service_url,
+            }
+        )
+
     def enable_content_item_selection_mode(self):
         """
         Put the JavaScript code into "content item selection" mode.

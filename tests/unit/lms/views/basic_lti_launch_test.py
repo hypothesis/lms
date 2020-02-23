@@ -82,40 +82,18 @@ class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
     @pytest.mark.usefixtures("is_canvas")
-    def test_it_adds_report_submission_config_if_the_LMS_is_Canvas(
+    def test_it_adds_the_Canvas_submission_params(self, context, pyramid_request):
+
+        BasicLTILaunchViews(context, pyramid_request)
+
+        context.js_config.add_canvas_submission_params.assert_called_once_with()
+
+    def test_it_doesnt_add_the_Canvas_submission_params_if_not_Canvas(
         self, context, pyramid_request
     ):
         BasicLTILaunchViews(context, pyramid_request)
 
-        assert context.js_config.config["submissionParams"] == {
-            "h_username": context.h_user.username,
-            "lis_result_sourcedid": "modelstudent-assignment1",
-            "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
-        }
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "lis_result_sourcedid",
-            "lis_outcome_service_url",
-            "tool_consumer_info_product_family_code",
-        ],
-    )
-    def test_it_doesnt_add_report_submission_config_if_required_param_missing(
-        self, context, pyramid_request, key
-    ):
-        del pyramid_request.params[key]
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config.config
-
-    def test_it_doesnt_add_report_submission_config_if_lms_not_canvas(
-        self, context, pyramid_request
-    ):
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert "submissionParams" not in context.js_config.config
+        context.js_config.add_canvas_submission_params.assert_not_called()
 
     def test_it_sets_the_focused_user(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
@@ -205,14 +183,6 @@ class TestCanvasFileBasicLTILaunch:
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
-    def test_it_configures_submission_params(self, context, pyramid_request):
-        canvas_file_basic_lti_launch_caller(context, pyramid_request)
-
-        assert (
-            context.js_config.config["submissionParams"]["canvas_file_id"]
-            == "TEST_FILE_ID"
-        )
-
 
 class TestDBConfiguredBasicLTILaunch:
     @pytest.mark.usefixtures("is_canvas")
@@ -228,10 +198,6 @@ class TestDBConfiguredBasicLTILaunch:
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-        assert (
-            context.js_config.config["submissionParams"]["document_url"]
-            == "TEST_DOCUMENT_URL"
-        )
 
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app
@@ -249,9 +215,6 @@ class TestURLConfiguredBasicLTILaunch:
 
         via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-        assert (
-            context.js_config.config["submissionParams"]["document_url"] == "TEST_URL"
-        )
 
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app
