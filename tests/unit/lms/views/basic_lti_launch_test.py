@@ -201,9 +201,7 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-    context.js_config = mock.create_autospec(
-        JSConfig, spec_set=True, instance=True, config={"urls": {}}
-    )
+    context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
     return context
 
 

@@ -16,11 +16,14 @@ class JSConfig:
         self._context = context
         self._request = request
 
+    def asdict(self):
+        return self._config
+
     def enable_basic_lti_launch_mode(self):
-        self.config["mode"] = "basic-lti-launch"
+        self._config["mode"] = "basic-lti-launch"
 
     def enable_content_item_selection_mode(self):
-        self.config["mode"] = "content-item-selection"
+        self._config["mode"] = "content-item-selection"
 
     def enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI."""
@@ -40,7 +43,7 @@ class JSConfig:
             # "SpeedGrader" and we support that instead.
             return
 
-        self.config["lmsGrader"] = True
+        self._config["lmsGrader"] = True
 
         grading_infos = self._request.find_service(
             name="grading_info"
@@ -50,7 +53,7 @@ class JSConfig:
             resource_link_id=self._request.params.get("resource_link_id"),
         )
 
-        self.config["grading"] = {
+        self._config["grading"] = {
             "courseName": self._request.params.get("context_title"),
             "assignmentName": self._request.params.get("resource_link_title"),
             # TODO! - Rename this in the front end?
@@ -87,15 +90,15 @@ class JSConfig:
         if not canvas_files_available():
             return
 
-        self.config["enableLmsFilePicker"] = True
-        self.config["courseId"] = self._request.params["custom_canvas_course_id"]
+        self._config["enableLmsFilePicker"] = True
+        self._config["courseId"] = self._request.params["custom_canvas_course_id"]
 
     def add_document_url(self, document_url):
-        self.config["urls"]["via_url"] = via_url(self._request, document_url)
+        self._config["urls"]["via_url"] = via_url(self._request, document_url)
         self._add_canvas_submission_params(document_url=document_url)
 
     def add_canvas_file_id(self, canvas_file_id):
-        self.config["urls"]["via_url_callback"] = self._request.route_url(
+        self._config["urls"]["via_url_callback"] = self._request.route_url(
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
         self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
@@ -120,14 +123,14 @@ class JSConfig:
         if not lis_outcome_service_url:
             return
 
-        self.config["submissionParams"] = {
+        self._config["submissionParams"] = {
             "h_username": self._context.h_user.username,
             "lis_result_sourcedid": lis_result_sourcedid,
             "lis_outcome_service_url": lis_outcome_service_url,
         }
 
         # Add the given document_url or canvas_file_id.
-        self.config["submissionParams"].update(kwargs)
+        self._config["submissionParams"].update(kwargs)
 
     def set_canvas_focused_user(self):
         """Configure the Hypothesis client to focus on a particular user."""
@@ -160,7 +163,7 @@ class JSConfig:
         }
 
     def add_file_picker_config(self, form_action, form_fields, lti_launch_url=None):
-        self.config.update(
+        self._config.update(
             {
                 # It is assumed that this view is only used by LMSes for which
                 # we do not have an integration with the LMS's file storage.
@@ -182,13 +185,13 @@ class JSConfig:
         )
 
         if lti_launch_url:
-            self.config["ltiLaunchUrl"] = lti_launch_url
+            self._config["ltiLaunchUrl"] = lti_launch_url
 
         self._enable_lms_file_picker()
 
     @property
     @functools.lru_cache()
-    def config(self):
+    def _config(self):
         """
         Return the configuration for the app's JavaScript code.
 

@@ -13,11 +13,6 @@ from lms.values import HUser, LTIUser
 class TestJSConfig:
     """General unit tests for JSConfig."""
 
-    def test_it_is_mutable(self, config):
-        config.update({"a_key": "a_value"})
-
-        assert config["a_key"] == "a_value"
-
     @pytest.mark.parametrize(
         "context_property", ["provisioning_enabled", "h_user", "h_groupid"]
     )
@@ -32,7 +27,7 @@ class TestJSConfig:
         )
 
         with pytest.raises(HTTPBadRequest, match="example error message"):
-            JSConfig(context, pyramid_request).config
+            JSConfig(context, pyramid_request).asdict()
 
 
 class TestJSConfigAuthToken:
@@ -112,11 +107,6 @@ class TestJSConfigHypothesisClient:
     def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
         assert config == {}
 
-    def test_it_is_mutable(self, config):
-        config.update({"a_key": "a_value"})
-
-        assert config["a_key"] == "a_value"
-
     @pytest.fixture
     def config(self, config):
         return config["hypothesisClient"]
@@ -156,7 +146,7 @@ def bearer_token_schema(BearerTokenSchema):
 
 @pytest.fixture
 def config(context, pyramid_request):
-    return JSConfig(context, pyramid_request).config
+    return JSConfig(context, pyramid_request).asdict()
 
 
 @pytest.fixture
