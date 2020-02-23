@@ -55,9 +55,6 @@ def content_item_selection(context, request):
 
     context.js_config.config.update(
         {
-            # The URL that the JavaScript code will open if it needs the user to
-            # authorize us to request a new access token.
-            "authUrl": request.route_url("canvas_api.authorize"),
             # The URL that we'll POST the ContentItemSelection form submission
             # (containing the user's selected document) to.
             "formAction": request.params["content_item_return_url"],

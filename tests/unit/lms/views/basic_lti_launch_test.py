@@ -226,10 +226,6 @@ class TestCanvasFileBasicLTILaunch:
     def test_it_configures_frontend(self, context, canvas_request):
         canvas_file_basic_lti_launch_caller(context, canvas_request)
 
-        assert (
-            context.js_config.config["authUrl"]
-            == "http://example.com/api/canvas/authorize"
-        )
         assert context.js_config.config["lmsName"] == "Canvas"
 
     def test_it_configures_via_callback_url(self, context, canvas_request):
