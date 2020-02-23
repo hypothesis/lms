@@ -79,6 +79,7 @@ class JSConfig:
         return debug_info
 
     @property
+    @functools.lru_cache()
     def _hypothesis_config(self):
         """
         Return the Hypothesis client config object for the current request.
