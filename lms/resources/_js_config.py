@@ -86,6 +86,24 @@ class JSConfig:
 
         return debug_info
 
+    def _grant_token(self, api_url):
+        """Return an OAuth 2 grant token the client can use to log in to h."""
+        now = datetime.datetime.utcnow()
+
+        claims = {
+            "aud": urlparse(api_url).hostname,
+            "iss": self._request.registry.settings["h_jwt_client_id"],
+            "sub": self._context.h_user.userid,
+            "nbf": now,
+            "exp": now + datetime.timedelta(minutes=5),
+        }
+
+        return jwt.encode(
+            claims,
+            self._request.registry.settings["h_jwt_client_secret"],
+            algorithm="HS256",
+        ).decode("utf-8")
+
     @property
     @functools.lru_cache()
     def _hypothesis_client(self):
@@ -123,21 +141,3 @@ class JSConfig:
                 }
             ]
         }
-
-    def _grant_token(self, api_url):
-        """Return an OAuth 2 grant token the client can use to log in to h."""
-        now = datetime.datetime.utcnow()
-
-        claims = {
-            "aud": urlparse(api_url).hostname,
-            "iss": self._request.registry.settings["h_jwt_client_id"],
-            "sub": self._context.h_user.userid,
-            "nbf": now,
-            "exp": now + datetime.timedelta(minutes=5),
-        }
-
-        return jwt.encode(
-            claims,
-            self._request.registry.settings["h_jwt_client_secret"],
-            algorithm="HS256",
-        ).decode("utf-8")
