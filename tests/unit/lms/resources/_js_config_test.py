@@ -28,6 +28,54 @@ class TestJSConfig:
         assert js_config.config["mode"] == "content-item-selection"
 
 
+class TestAddCanvasSubmissionParams:
+    def test_it_adds_the_Canvas_submission_params(self, js_config):
+        js_config.add_canvas_submission_params()
+
+        assert js_config.config["submissionParams"] == {
+            "h_username": "example_username",
+            "lis_outcome_service_url": "example_lis_outcome_service_url",
+            "lis_result_sourcedid": "example_lis_result_sourcedid",
+        }
+
+    def test_it_raises_if_context_h_user_raises(self, context, js_config):
+        # Make reading context.h_user raise HTTPBadRequest.
+        setattr(
+            type(context),
+            "h_user",
+            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
+        )
+
+        with pytest.raises(HTTPBadRequest, match="example error message"):
+            js_config.add_canvas_submission_params()
+
+    def test_it_does_nothing_if_theres_no_lis_result_sourcedid(
+        self, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_result_sourcedid"]
+
+        js_config.add_canvas_submission_params()
+
+        assert "submissionParams" not in js_config.config
+
+    def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
+        self, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_outcome_service_url"]
+
+        js_config.add_canvas_submission_params()
+
+        assert "submissionParams" not in js_config.config
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params["lis_result_sourcedid"] = "example_lis_result_sourcedid"
+        pyramid_request.params[
+            "lis_outcome_service_url"
+        ] = "example_lis_outcome_service_url"
+        return pyramid_request
+
+
 class TestMaybeSetFocusedUser:
     def test_it_does_nothing_if_theres_no_focused_user_param(
         self, js_config, pyramid_request
