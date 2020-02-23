@@ -14,6 +14,9 @@ class JSConfig:
         self._context = context
         self._request = request
 
+        # A dict of URLs for the frontend to use.
+        self._urls = {}
+
     @property
     @functools.lru_cache()
     def config(self):
@@ -119,14 +122,3 @@ class JSConfig:
             self._request.registry.settings["h_jwt_client_secret"],
             algorithm="HS256",
         ).decode("utf-8")
-
-    @property
-    def _urls(self):
-        """
-        Return a dict of URLs for the frontend to use.
-
-        For example: API endpoints for the frontend to call would go in
-        here.
-
-        """
-        return {}
