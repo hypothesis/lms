@@ -23,13 +23,18 @@ class JSConfig:
         """
         Return the configuration for the app's JavaScript code.
 
-        This is a mutable config dict. It can be accessed, for example by
-        views, and they can mutate it or add their own view-specific config
-        settings. The modified config object will then be passed to the
-        JavaScript code in the response page.
-
         :rtype: dict
         """
+        # This is a lazy-computed property so that if it's going to raise an
+        # exception that doesn't happen until someone actually reads it.
+        # If it instead crashed in JSConfig.__init__() that would happen
+        # earlier in the request processing pipeline and could change the error
+        # response.
+        #
+        # We cache this property (@functools.lru_cache()) so that it's
+        # mutable. You can do self.config["foo"] = "bar" and the mutation will
+        # be preserved.
+
         return {
             # The auth token that the JavaScript code will use to authenticate
             # itself to our own backend's APIs.
@@ -81,12 +86,17 @@ class JSConfig:
     @property
     @functools.lru_cache()
     def _hypothesis_client(self):
-        """
-        Return the Hypothesis client config object for the current request.
+        """Return the config object for the Hypothesis client."""
+        # This is a lazy-computed property so that if it's going to raise an
+        # exception that doesn't happen until someone actually reads it.
+        # If it instead crashed in JSConfig.__init__() that would happen
+        # earlier in the request processing pipeline and could change the error
+        # response.
+        #
+        # We cache this property (@functools.lru_cache()) so that it's
+        # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
+        # mutation will be preserved.
 
-        See: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
-
-        """
         if not self._context.provisioning_enabled:
             return {}
 
