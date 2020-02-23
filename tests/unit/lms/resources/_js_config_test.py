@@ -13,7 +13,10 @@ from lms.values import HUser
 class TestJSConfig:
     """General unit tests for JSConfig."""
 
-    def test_it_is_mutable(self, config):
+    def test_config(self, config):
+        assert config["lmsName"] == "Canvas"
+
+    def test_config_is_mutable(self, config):
         config.update({"a_key": "a_value"})
 
         assert config["a_key"] == "a_value"

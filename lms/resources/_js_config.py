@@ -48,6 +48,9 @@ class JSConfig:
             # Our JSON-RPC server passes this to the Hypothesis client over
             # postMessage.
             "hypothesisClient": self._hypothesis_client,
+            # The LMS name to use in user-facing messages.
+            # Shown on the "Select PDF from Canvas" button label.
+            "lmsName": "Canvas",
             # The config object for our JSON-RPC server.
             "rpcServer": {
                 "allowedOrigins": self._request.registry.settings[

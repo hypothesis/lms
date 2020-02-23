@@ -106,8 +106,6 @@ class BasicLTILaunchViews:
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new access token.
                 "authUrl": self.request.route_url("canvas_api.authorize"),
-                # Set the LMS name to use in user-facing messages.
-                "lmsName": "Canvas",
             }
         )
 

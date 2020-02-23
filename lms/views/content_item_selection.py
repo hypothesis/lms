@@ -69,8 +69,6 @@ def content_item_selection(context, request):
             # Variables needed for initializing Google Picker.
             "googleClientId": request.registry.settings["google_client_id"],
             "googleDeveloperKey": request.registry.settings["google_developer_key"],
-            # Shown on the "Select PDF from Canvas" button label.
-            "lmsName": "Canvas",
             # The "content item selection" that we submit to the
             # content_item_return_url is actually an LTI launch URL with the
             # selected document URL or file_id as a query parameter. To construct
