@@ -103,7 +103,7 @@ class JSConfig:
         }
 
     def _grant_token(self, api_url):
-        """Return an OAuth 2 the client can use to log in to h."""
+        """Return an OAuth 2 grant token the client can use to log in to h."""
         now = datetime.datetime.utcnow()
 
         claims = {
