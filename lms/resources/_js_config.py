@@ -39,7 +39,7 @@ class JSConfig:
             # The config object for the Hypothesis client.
             # Our JSON-RPC server passes this to the Hypothesis client over
             # postMessage.
-            "hypothesisClient": self._hypothesis_config,
+            "hypothesisClient": self._hypothesis_client,
             # The config object for our JSON-RPC server.
             "rpcServer": {
                 "allowedOrigins": self._request.registry.settings[
@@ -80,7 +80,7 @@ class JSConfig:
 
     @property
     @functools.lru_cache()
-    def _hypothesis_config(self):
+    def _hypothesis_client(self):
         """
         Return the Hypothesis client config object for the current request.
 
