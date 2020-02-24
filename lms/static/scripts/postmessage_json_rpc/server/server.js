@@ -69,6 +69,10 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
+
+    const result = await this._jsonRPCResponse(event.data);
+    event.source.postMessage(result, event.origin);
+
     // Resolve the promise we created in the constructor with the saved
     // sidebar frame and origin.
     this._resolveSidebarWindow({

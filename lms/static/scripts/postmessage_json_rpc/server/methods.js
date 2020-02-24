@@ -9,8 +9,22 @@
 /**
  * Return a Hypothesis client config object for the current LTI request.
  */
-export function requestConfig() {
+export async function requestConfig() {
   const configEl = document.querySelector('.js-config');
   const clientConfigObj = JSON.parse(configEl.textContent).hypothesisClient;
-  return clientConfigObj;
+  return Promise.resolve(clientConfigObj);
+}
+
+/**
+ * Temporary method that blocks for a little while to simulate
+ * waiting for canvas groups to be ready.
+ *
+ * TODO: replace this with a real request to lms/
+ */
+export async function groupsAsync() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve('groupsAsync resolved!');
+    }, 500);
+  });
 }
