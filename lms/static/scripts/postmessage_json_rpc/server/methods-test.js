@@ -17,7 +17,8 @@ describe('postmessage_json_rpc/methods#requestConfig', () => {
     configEl.parentNode.removeChild(configEl);
   });
 
-  it('returns the config object', () => {
-    assert.deepEqual(requestConfig(), { foo: 'bar' });
+  it('returns the config object', async () => {
+    const result = await requestConfig();
+    assert.deepEqual(result, { foo: 'bar' });
   });
 });

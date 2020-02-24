@@ -61,7 +61,7 @@ export default class Server {
    * Receive a postMessage event and, if it's a JSON-RPC request from an
    * allowed origin, post back either a result or an error response.
    */
-  _receiveMessage(event) {
+  async _receiveMessage(event) {
     if (!this._allowedOrigins.includes(event.origin)) {
       return;
     }
@@ -69,14 +69,16 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
+
+    const result = await this._jsonRPCResponse(event.data);
+    event.source.postMessage(result, event.origin);
+
     // Resolve the promise we created in the constructor with the saved
     // sidebar frame and origin.
     this._resolveSidebarWindow({
       frame: event.source,
       origin: event.origin,
     });
-
-    event.source.postMessage(this._jsonRPCResponse(event.data), event.origin);
   }
 
   /**
@@ -99,30 +101,39 @@ export default class Server {
   /**
    * Return a JSON-RPC response object for the given JSON-RPC request object.
    */
-  _jsonRPCResponse(request) {
+  async _jsonRPCResponse(request) {
     // Return an error response if the request id is invalid.
     // id must be a string, number or null.
     const id = request.id;
     if (!(['string', 'number'].includes(typeof id) || id === null)) {
-      return {
+      return Promise.resolve({
         jsonrpc: '2.0',
         id: null,
         error: { code: -32600, message: 'request id invalid' },
-      };
+      });
     }
 
     const method = this._registeredMethods[request.method];
 
     // Return an error response if the method name is invalid.
     if (method === undefined) {
-      return {
+      return Promise.resolve({
         jsonrpc: '2.0',
         id: request.id,
         error: { code: -32600, message: 'method name not recognized' },
-      };
+      });
     }
 
     // Call the method and return the result response.
-    return { jsonrpc: '2.0', result: method(), id: request.id };
+    try {
+      const result = await method();
+      return { jsonrpc: '2.0', result: result, id: request.id };
+    } catch (e) {
+      return Promise.resolve({
+        jsonrpc: '2.0',
+        id: request.id,
+        error: { code: -32600, message: e.message },
+      });
+    }
   }
 }
