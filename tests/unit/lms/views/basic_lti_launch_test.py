@@ -375,7 +375,7 @@ class TestConfigureModuleItem(ConfiguredLaunch):
 
 class TestUnconfiguredBasicLTILaunch:
     def test_it_sets_the_right_javascript_config_settings(
-        self, context, pyramid_request
+        self, BearerTokenSchema, bearer_token_schema, context, pyramid_request
     ):
         pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
 
@@ -402,9 +402,13 @@ class TestUnconfiguredBasicLTILaunch:
 
         # Test that we pass through parameters from the request made to us
         # onto the configure module item call
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        bearer_token_schema.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
+        )
         assert form_fields == Any.dict.containing(
             {
-                "authorization": Any.string(),
+                "authorization": bearer_token_schema.authorization_param.return_value,
                 "resource_link_id": "TEST_RESOURCE_LINK_ID",
                 "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
                 "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
@@ -412,22 +416,6 @@ class TestUnconfiguredBasicLTILaunch:
                 "context_id": "TEST_CONTEXT_ID",
                 "some_random_rubbish": "SOME_RANDOM_RUBBISH",
             }
-        )
-
-        self._assert_authorization_valid_jwt(
-            form_fields["authorization"],
-            {
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "roles": "TEST_ROLES",
-                "user_id": "TEST_USER_ID",
-            },
-        )
-
-    def _assert_authorization_valid_jwt(self, authorization, expected_values):
-        assert authorization.startswith("Bearer ")
-        assert (
-            decode_jwt(authorization[len("Bearer ") :], "test_secret")
-            == expected_values
         )
 
     @pytest.fixture
@@ -472,6 +460,16 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.views.basic_lti_launch.BearerTokenSchema")
+
+
+@pytest.fixture
+def bearer_token_schema(BearerTokenSchema):
+    return BearerTokenSchema.return_value
 
 
 @pytest.fixture(autouse=True)
