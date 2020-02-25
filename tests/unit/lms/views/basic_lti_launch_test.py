@@ -174,10 +174,6 @@ class ConfiguredLaunch:
         return patch("lms.views.basic_lti_launch.frontend_app")
 
     @pytest.fixture(autouse=True)
-    def via_url(self, patch):
-        return patch("lms.views.basic_lti_launch.via_url")
-
-    @pytest.fixture(autouse=True)
     def grading_info_service(self, pyramid_config):
         grading_info_service = mock.create_autospec(
             GradingInfoService, instance=True, spec_set=True
@@ -480,3 +476,8 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
+
+
+@pytest.fixture(autouse=True)
+def via_url(patch):
+    return patch("lms.views.basic_lti_launch.via_url")
