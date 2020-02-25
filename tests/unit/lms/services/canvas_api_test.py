@@ -475,6 +475,9 @@ class TestSendWithRefreshAndRetry:
         return patch("lms.services.canvas_api.CanvasAPIClient.get_refreshed_token")
 
 
+pytestmark = pytest.mark.usefixtures("ai_getter")
+
+
 @pytest.fixture(autouse=True)
 def application_instance(db_session, pyramid_request):
     """The ApplicationInstance that the test OAuth2Token's belong to."""
@@ -515,7 +518,7 @@ def CanvasPublicURLResponseSchema(patch):
 
 
 @pytest.fixture
-def canvas_api_client(pyramid_config, pyramid_request):
+def canvas_api_client(CanvasAPIHelper, pyramid_config, pyramid_request):
     return CanvasAPIClient(mock.sentinel.context, pyramid_request)
 
 

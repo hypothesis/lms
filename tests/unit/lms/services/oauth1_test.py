@@ -51,3 +51,6 @@ class TestOAuth1Service:
     @pytest.fixture
     def OAuth1(self, patch):
         return patch("lms.services.oauth1.OAuth1")
+
+
+pytestmark = pytest.mark.usefixtures("ai_getter")

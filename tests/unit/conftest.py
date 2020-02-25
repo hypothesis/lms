@@ -8,7 +8,14 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.canvas_api import CanvasAPIClient
+from lms.services.grading_info import GradingInfoService
+from lms.services.group_info import GroupInfoService
+from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
+from lms.services.lti_h import LTIHService
+from lms.services.lti_outcomes import LTIOutcomesClient
+from lms.services.oauth1 import OAuth1Service
 from lms.values import LTIUser
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
@@ -130,7 +137,7 @@ def db_session(db_engine):
         conn.close()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def ai_getter(pyramid_config):
     ai_getter = mock.create_autospec(
         ApplicationInstanceGetter, spec_set=True, instance=True
@@ -142,11 +149,74 @@ def ai_getter(pyramid_config):
     return ai_getter
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
+def canvas_api_client(pyramid_config):
+    canvas_api_client = mock.create_autospec(
+        CanvasAPIClient, spec_set=True, instance=True
+    )
+    canvas_api_client.get_token.return_value = (
+        "test_access_token",
+        "test_refresh_token",
+        3600,
+    )
+    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
+    return canvas_api_client
+
+
+@pytest.fixture
 def launch_verifier(pyramid_config):
     launch_verifier = mock.create_autospec(LaunchVerifier, spec_set=True, instance=True)
     pyramid_config.register_service(launch_verifier, name="launch_verifier")
     return launch_verifier
+
+
+@pytest.fixture
+def grading_info_service(pyramid_config):
+    grading_info_service = mock.create_autospec(
+        GradingInfoService, instance=True, spec_set=True
+    )
+    grading_info_service.get_by_assignment.return_value = []
+    pyramid_config.register_service(grading_info_service, name="grading_info")
+    return grading_info_service
+
+
+@pytest.fixture
+def group_info_service(pyramid_config):
+    group_info_service = mock.create_autospec(
+        GroupInfoService, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(group_info_service, name="group_info")
+    return group_info_service
+
+
+@pytest.fixture
+def h_api(patch, pyramid_config):
+    h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
+    pyramid_config.register_service(h_api, name="h_api")
+    return h_api
+
+
+@pytest.fixture
+def lti_h_service(pyramid_config):
+    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
+    pyramid_config.register_service(lti_h_service, name="lti_h")
+    return lti_h_service
+
+
+@pytest.fixture
+def lti_outcomes_client(pyramid_config):
+    lti_outcomes_client = mock.create_autospec(
+        LTIOutcomesClient, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(lti_outcomes_client, name="lti_outcomes_client")
+    return lti_outcomes_client
+
+
+@pytest.fixture
+def oauth1_service(pyramid_config):
+    oauth1_service = mock.create_autospec(OAuth1Service, instance=True, spec_set=True)
+    pyramid_config.register_service(oauth1_service, name="oauth1")
+    return oauth1_service
 
 
 @pytest.fixture(autouse=True)

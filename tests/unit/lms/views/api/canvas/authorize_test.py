@@ -5,7 +5,6 @@ import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.services import CanvasAPIServerError
-from lms.services.canvas_api import CanvasAPIClient
 from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
 
 
@@ -118,20 +117,6 @@ class TestOAuth2RedirectError:
 
 
 @pytest.fixture(autouse=True)
-def canvas_api_client(pyramid_config):
-    canvas_api_client = mock.create_autospec(
-        CanvasAPIClient, spec_set=True, instance=True
-    )
-    canvas_api_client.get_token.return_value = (
-        "test_access_token",
-        "test_refresh_token",
-        3600,
-    )
-    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
-    return canvas_api_client
-
-
-@pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
     return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
 
@@ -153,3 +138,6 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
     schema = CanvasOAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema
+
+
+pytestmark = pytest.mark.usefixtures("ai_getter", "canvas_api_client")

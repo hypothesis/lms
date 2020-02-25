@@ -204,3 +204,6 @@ def sign(pyramid_request):
     pyramid_request.params["oauth_signature"] = oauthlib_client.get_oauth_signature(
         oauthlib_request
     )
+
+
+pytestmark = pytest.mark.usefixtures("ai_getter")
