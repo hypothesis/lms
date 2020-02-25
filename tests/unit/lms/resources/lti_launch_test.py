@@ -388,6 +388,9 @@ class TestLTILaunchResource:
         return pyramid_request
 
 
+pytestmark = pytest.mark.usefixtures("ai_getter")
+
+
 @pytest.fixture(autouse=True)
 def JSConfig(patch):
     return patch("lms.resources.lti_launch.JSConfig")

@@ -6,9 +6,7 @@ from h_matchers import Any
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
-from lms.services.grading_info import GradingInfoService
 from lms.services.h_api import HAPI
-from lms.services.lti_h import LTIHService
 from lms.validation.authentication._helpers._jwt import decode_jwt
 from lms.values import HUser, LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
@@ -115,12 +113,6 @@ class TestBasicLTILaunch:
             }
         }
 
-    @pytest.fixture
-    def h_api(self, pyramid_config):
-        svc = mock.create_autospec(HAPI, instance=True, spec_set=True)
-        pyramid_config.register_service(svc, name="h_api")
-        return svc
-
 
 class ConfiguredLaunch:
     def make_request(self, context, pyramid_request):  # pragma: no cover
@@ -168,20 +160,6 @@ class ConfiguredLaunch:
         self.make_request(context, pyramid_request)
 
         grading_info_service.upsert_from_request.assert_not_called()
-
-    @pytest.fixture(autouse=True)
-    def grading_info_service(self, pyramid_config):
-        grading_info_service = mock.create_autospec(
-            GradingInfoService, instance=True, spec_set=True
-        )
-        pyramid_config.register_service(grading_info_service, name="grading_info")
-        return grading_info_service
-
-    @pytest.fixture(autouse=True)
-    def lti_h_service(self, pyramid_config):
-        lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
-        pyramid_config.register_service(lti_h_service, name="lti_h")
-        return lti_h_service
 
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
@@ -429,6 +407,9 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
         ).unconfigured_basic_lti_launch_not_authorized()
 
         assert data == {}
+
+
+pytestmark = pytest.mark.usefixtures("h_api", "grading_info_service", "lti_h_service")
 
 
 @pytest.fixture

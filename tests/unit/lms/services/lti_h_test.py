@@ -5,8 +5,6 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from lms.models import GroupInfo
 from lms.services import HAPIError, HAPINotFoundError
-from lms.services.group_info import GroupInfoService
-from lms.services.h_api import HAPI
 from lms.services.lti_h import LTIHService
 from lms.values import HUser, LTIUser
 
@@ -92,18 +90,18 @@ class TestUpsertCourseGroup:
         h_api.create_group.assert_not_called()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
-        self, params, group_info_svc, context, pyramid_request, lti_h_svc
+        self, params, group_info_service, context, pyramid_request, lti_h_svc
     ):
         lti_h_svc.upsert_course_group()
 
-        group_info_svc.upsert.assert_called_once_with(
+        group_info_service.upsert.assert_called_once_with(
             authority_provided_id=context.h_authority_provided_id,
             consumer_key="TEST_OAUTH_CONSUMER_KEY",
             params=params,
         )
 
     def test_it_doesnt_upsert_GroupInfo_into_the_db_if_creating_the_group_fails(
-        self, group_info_svc, context, pyramid_request, h_api, lti_h_svc
+        self, group_info_service, context, pyramid_request, h_api, lti_h_svc
     ):
         h_api.update_group.side_effect = HAPINotFoundError()
         h_api.create_group.side_effect = HAPIError("Oops")
@@ -113,7 +111,7 @@ class TestUpsertCourseGroup:
         except:
             pass
 
-        group_info_svc.assert_not_called()
+        group_info_service.assert_not_called()
 
     @pytest.fixture
     def params(self):
@@ -213,6 +211,9 @@ class TestAddUserToGroup:
         return pyramid_request
 
 
+pytestmark = pytest.mark.usefixtures("h_api", "group_info_service")
+
+
 @pytest.fixture
 def lti_h_svc(pyramid_request):
     return LTIHService(None, pyramid_request)
@@ -246,20 +247,3 @@ def context(h_user):
 def pyramid_request(context, pyramid_request):
     pyramid_request.context = context
     return pyramid_request
-
-
-@pytest.fixture(autouse=True)
-def h_api(patch, pyramid_config):
-    h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
-
-    pyramid_config.register_service(h_api, name="h_api")
-    return h_api
-
-
-@pytest.fixture(autouse=True)
-def group_info_svc(pyramid_config):
-    group_info_svc = mock.create_autospec(
-        GroupInfoService, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(group_info_svc, name="group_info")
-    return group_info_svc

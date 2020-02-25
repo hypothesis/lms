@@ -6,7 +6,6 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from h_matchers import Any
 
-from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
 
 
@@ -140,8 +139,4 @@ class TestRecordResult:
         return pyramid_request
 
 
-@pytest.fixture(autouse=True)
-def lti_outcomes_client(pyramid_config):
-    svc = mock.create_autospec(LTIOutcomesClient, instance=True, spec_set=True)
-    pyramid_config.register_service(svc, name="lti_outcomes_client")
-    return svc
+pytestmark = pytest.mark.usefixtures("lti_outcomes_client")

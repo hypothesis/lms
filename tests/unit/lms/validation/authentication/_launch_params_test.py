@@ -71,3 +71,6 @@ class TestLaunchParamsSchema:
             "roles": "TEST_ROLES",
         }
         return pyramid_request
+
+
+pytestmark = pytest.mark.usefixtures("launch_verifier")

@@ -11,7 +11,6 @@ from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient
-from lms.services.oauth1 import OAuth1Service
 
 
 class TestLTIOutcomesClient:
@@ -88,7 +87,7 @@ class TestLTIOutcomesClient:
                 self.GRADING_ID, pre_record_hook=lambda *args, **kwargs: hook_result
             )
 
-    def test_it_signs_request_with_oauth1(self, svc, requests, oauth1_svc):
+    def test_it_signs_request_with_oauth1(self, svc, requests, oauth1_service):
         requests.post.side_effect = OSError()
 
         # We don't care if this actually does anything afterwards, so just
@@ -100,7 +99,7 @@ class TestLTIOutcomesClient:
             url=Any(),
             data=Any(),
             headers=Any(),
-            auth=oauth1_svc.get_client.return_value,
+            auth=oauth1_service.get_client.return_value,
         )
 
     def test_requests_fail_if_http_status_is_error(self, svc, respond_with):
@@ -223,12 +222,9 @@ class TestLTIOutcomesClient:
     def svc(self, pyramid_request):
         return LTIOutcomesClient({}, pyramid_request)
 
-    @pytest.fixture(autouse=True)
-    def oauth1_svc(self, pyramid_config):
-        svc = mock.create_autospec(OAuth1Service, instance=True, spec_set=True)
-        pyramid_config.register_service(svc, name="oauth1")
-        return svc
-
     @pytest.fixture
     def requests(self, patch):
         return patch("lms.services.lti_outcomes.requests")
+
+
+pytestmark = pytest.mark.usefixtures("oauth1_service")

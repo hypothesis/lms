@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 
 from lms.services import CanvasAPIError
-from lms.services.canvas_api import CanvasAPIClient
 from lms.views.api.canvas.files import FilesAPIViews
 
 
@@ -75,14 +74,8 @@ class TestViaURL:
 
 
 @pytest.fixture(autouse=True)
-def canvas_api_client(pyramid_config):
-    canvas_api_client = mock.create_autospec(
-        CanvasAPIClient, spec_set=True, instance=True
-    )
-    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
-    return canvas_api_client
-
-
-@pytest.fixture(autouse=True)
 def helpers(patch):
     return patch("lms.views.api.canvas.files.helpers")
+
+
+pytestmark = pytest.mark.usefixtures("canvas_api_client")
