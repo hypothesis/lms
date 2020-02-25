@@ -1,5 +1,5 @@
 import Server from './server';
-import { requestConfig, groupsAsync } from './methods';
+import { groupsAsync, requestConfig, requestFrame } from './methods';
 
 let server = {}; // Singleton RPC server reference
 
@@ -10,6 +10,7 @@ function startRpcServer() {
   server = new Server();
   server.register('requestConfig', requestConfig);
   server.register('groupsAsync', groupsAsync);
+  server.register('requestFrame', requestFrame);
 }
 
 /**
