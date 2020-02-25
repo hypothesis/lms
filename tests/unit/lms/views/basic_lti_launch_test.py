@@ -183,10 +183,6 @@ class ConfiguredLaunch:
         pyramid_config.register_service(lti_h_service, name="lti_h")
         return lti_h_service
 
-    @pytest.fixture(autouse=True)
-    def ModuleItemConfiguration(self, patch):
-        return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
-
 
 class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
     def test_it_configures_frontend(self, context, pyramid_request):
@@ -466,6 +462,11 @@ def BearerTokenSchema(patch):
 @pytest.fixture(autouse=True)
 def LtiLaunches(patch):
     return patch("lms.views.basic_lti_launch.LtiLaunches")
+
+
+@pytest.fixture(autouse=True)
+def ModuleItemConfiguration(patch):
+    return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
 
 
 @pytest.fixture
