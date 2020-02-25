@@ -169,10 +169,6 @@ class ConfiguredLaunch:
 
         grading_info_service.upsert_from_request.assert_not_called()
 
-    @pytest.fixture
-    def frontend_app(self, patch):
-        return patch("lms.views.basic_lti_launch.frontend_app")
-
     @pytest.fixture(autouse=True)
     def grading_info_service(self, pyramid_config):
         grading_info_service = mock.create_autospec(
@@ -476,6 +472,11 @@ def lti_outcome_params():
         "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         "tool_consumer_info_product_family_code": "canvas",
     }
+
+
+@pytest.fixture(autouse=True)
+def frontend_app(patch):
+    return patch("lms.views.basic_lti_launch.frontend_app")
 
 
 @pytest.fixture(autouse=True)
