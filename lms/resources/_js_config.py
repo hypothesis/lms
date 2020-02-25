@@ -6,6 +6,7 @@ import jwt
 
 from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
+from lms.views.helpers import via_url
 
 
 class JSConfig:  # pylint:disable=too-few-public-methods
@@ -70,7 +71,38 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             "urls": self._urls,
         }
 
-    def add_canvas_submission_params(self):
+    def add_canvas_file_id(self, canvas_file_id):
+        """
+        Set the document to the Canvas file with the given canvas_file_id.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+        """
+        self.config["urls"]["via_url_callback"] = self._request.route_url(
+            "canvas_api.files.via_url", file_id=canvas_file_id
+        )
+        self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
+
+    def add_document_url(self, document_url):
+        """
+        Set the document to the document at the given document_url.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+        """
+        self.config["urls"]["via_url"] = via_url(self._request, document_url)
+        self._add_canvas_submission_params(document_url=document_url)
+
+    def enable_content_item_selection_mode(self):
+        """
+        Put the JavaScript code into "content item selection" mode.
+
+        This mode shows teachers an assignment configuration UI where they can
+        choose the document to be annotated for the assignment.
+        """
+        self.config["mode"] = "content-item-selection"
+
+    def _add_canvas_submission_params(self, **kwargs):
         """
         Add config used by the JS to call our record_canvas_speedgrader_submission API.
 
@@ -101,14 +133,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             }
         )
 
-    def enable_content_item_selection_mode(self):
-        """
-        Put the JavaScript code into "content item selection" mode.
-
-        This mode shows teachers an assignment configuration UI where they can
-        choose the document to be annotated for the assignment.
-        """
-        self.config["mode"] = "content-item-selection"
+        # Add the given document_url or canvas_file_id.
+        self.config["submissionParams"].update(kwargs)
 
     def maybe_set_focused_user(self):
         """

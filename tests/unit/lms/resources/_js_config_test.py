@@ -28,17 +28,81 @@ class TestJSConfig:
         assert js_config.config["mode"] == "content-item-selection"
 
 
-class TestAddCanvasSubmissionParams:
-    def test_it_adds_the_Canvas_submission_params(self, js_config):
-        js_config.add_canvas_submission_params()
+class TestAddCanvasFileID:
+    """Unit tests for JSConfig.add_canvas_file_id()."""
 
-        assert js_config.config["submissionParams"] == {
-            "h_username": "example_username",
-            "lis_outcome_service_url": "example_lis_outcome_service_url",
-            "lis_result_sourcedid": "example_lis_result_sourcedid",
-        }
+    def test_it_adds_the_via_url_callback_url(self, js_config):
+        js_config.add_canvas_file_id("example_canvas_file_id")
 
-    def test_it_raises_if_context_h_user_raises(self, context, js_config):
+        assert (
+            js_config.config["urls"]["via_url_callback"]
+            == "http://example.com/api/canvas/files/example_canvas_file_id/via_url"
+        )
+
+    def test_it_sets_the_canvas_file_id(self, js_config):
+        js_config.add_canvas_file_id("example_canvas_file_id")
+
+        assert (
+            js_config.config["submissionParams"]["canvas_file_id"]
+            == "example_canvas_file_id"
+        )
+
+
+class TestAddDocumentURL:
+    """Unit tests for JSConfig.add_document_url()."""
+
+    def test_it_adds_the_via_url(self, js_config):
+        js_config.add_document_url("example_document_url")
+
+        assert (
+            js_config.config["urls"]["via_url"]
+            == "http://TEST_VIA_SERVER.is/example_document_url?via.open_sidebar=1&via.request_config_from_frame=http%3A%2F%2Fexample.com"
+        )
+
+    def test_it_sets_the_document_url(self, js_config):
+        js_config.add_document_url("example_document_url")
+
+        assert (
+            js_config.config["submissionParams"]["document_url"]
+            == "example_document_url"
+        )
+
+
+class TestAddCanvasFileIDAddDocumentURLCommon:
+    """Tests commont to both add_canvas_file_id() and add_document_url()."""
+
+    def test_it_sets_the_canvas_submission_params(self, method, js_config):
+        method("canvas_file_id_or_document_url")
+
+        assert js_config.config["submissionParams"]["h_username"] == "example_username"
+        assert (
+            js_config.config["submissionParams"]["lis_outcome_service_url"]
+            == "example_lis_outcome_service_url"
+        )
+        assert (
+            js_config.config["submissionParams"]["lis_result_sourcedid"]
+            == "example_lis_result_sourcedid"
+        )
+
+    def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_result_sourcedid(
+        self, method, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_result_sourcedid"]
+
+        method("canvas_file_id_or_document_url")
+
+        assert "submissionParams" not in js_config.config
+
+    def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_outcome_service_url(
+        self, method, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_outcome_service_url"]
+
+        method("canvas_file_id_or_document_url")
+
+        assert "submissionParams" not in js_config.config
+
+    def test_it_raises_if_context_h_user_raises(self, context, method):
         # Make reading context.h_user raise HTTPBadRequest.
         setattr(
             type(context),
@@ -47,33 +111,12 @@ class TestAddCanvasSubmissionParams:
         )
 
         with pytest.raises(HTTPBadRequest, match="example error message"):
-            js_config.add_canvas_submission_params()
+            method("canvas_file_id_or_document_url")
 
-    def test_it_does_nothing_if_theres_no_lis_result_sourcedid(
-        self, js_config, pyramid_request
-    ):
-        del pyramid_request.params["lis_result_sourcedid"]
-
-        js_config.add_canvas_submission_params()
-
-        assert "submissionParams" not in js_config.config
-
-    def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
-        self, js_config, pyramid_request
-    ):
-        del pyramid_request.params["lis_outcome_service_url"]
-
-        js_config.add_canvas_submission_params()
-
-        assert "submissionParams" not in js_config.config
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params["lis_result_sourcedid"] = "example_lis_result_sourcedid"
-        pyramid_request.params[
-            "lis_outcome_service_url"
-        ] = "example_lis_outcome_service_url"
-        return pyramid_request
+    @pytest.fixture(params=["add_canvas_file_id", "add_document_url"])
+    def method(self, js_config, request):
+        """Return the method to be tested."""
+        return getattr(js_config, request.param)
 
 
 class TestMaybeSetFocusedUser:
@@ -281,6 +324,15 @@ def context():
 def no_lti_user(pyramid_request):
     """Modify the pyramid_request fixture so that request.lti_user is None."""
     pyramid_request.lti_user = None
+
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.params["lis_result_sourcedid"] = "example_lis_result_sourcedid"
+    pyramid_request.params[
+        "lis_outcome_service_url"
+    ] = "example_lis_outcome_service_url"
+    return pyramid_request
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ from lms.validation import (
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.helpers import frontend_app, via_url
+from lms.views.helpers import frontend_app
 
 
 @view_defaults(
@@ -35,9 +35,6 @@ class BasicLTILaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
-
-        if self.context.is_canvas:
-            self.context.js_config.add_canvas_submission_params()
 
         self.context.js_config.maybe_set_focused_user()
 
@@ -88,21 +85,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-
-        file_id = self.request.params["file_id"]
-
-        # Configure the frontend to make a callback to the API to fetch the
-        # Via URL.
-        self.context.js_config.config["urls"].update(
-            {
-                "via_url_callback": self.request.route_url(
-                    "canvas_api.files.via_url", file_id=file_id
-                )
-            }
-        )
-
-        self.set_canvas_submission_param("canvas_file_id", file_id)
-
+        self.context.js_config.add_canvas_file_id(self.request.params["file_id"])
         return {}
 
     @view_config(db_configured=True)
@@ -133,7 +116,7 @@ class BasicLTILaunchViews:
             self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
-        self._set_via_url(document_url)
+        self.context.js_config.add_document_url(document_url)
 
         return {}
 
@@ -151,12 +134,8 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-
         frontend_app.configure_grading(self.request, self.context.js_config.config)
-
-        url = self.request.parsed_params["url"]
-        self._set_via_url(url)
-
+        self.context.js_config.add_document_url(self.request.parsed_params["url"])
         return {}
 
     @view_config(
@@ -268,7 +247,7 @@ class BasicLTILaunchViews:
             document_url,
         )
 
-        self._set_via_url(document_url)
+        self.context.js_config.add_document_url(document_url)
 
         self.sync_lti_data_to_h()
         self.store_lti_data()
@@ -276,16 +255,3 @@ class BasicLTILaunchViews:
         frontend_app.configure_grading(self.request, self.context.js_config.config)
 
         return {}
-
-    def _set_via_url(self, document_url):
-        """Configure content URL which the frontend will render inside an iframe."""
-        self.context.js_config.config["urls"].update(
-            {"via_url": via_url(self.request, document_url)}
-        )
-        self.set_canvas_submission_param("document_url", document_url)
-
-    def set_canvas_submission_param(self, name, value):
-        """Update config for frontend's calls to `report_submisssion` API."""
-
-        if "submissionParams" in self.context.js_config.config:
-            self.context.js_config.config["submissionParams"][name] = value
