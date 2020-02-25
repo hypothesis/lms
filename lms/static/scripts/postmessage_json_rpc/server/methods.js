@@ -16,6 +16,21 @@ export async function requestConfig() {
 }
 
 /**
+ * Method that is used to trace back to the sender which frame
+ * is the embedding ancestor frame. An acknowledgment of this
+ * request tells the sender that this frame is the controlling
+ * embedder frame.
+ *
+ * @param {Object} params - Parameter object to round trip. Use this
+ *  to store a unique index when performing discovery.
+ * @return {Promise<Object>} Successful promise returning the
+ *  passed in parameter object.
+ */
+export async function requestFrame(params) {
+  return Promise.resolve(params);
+}
+
+/**
  * Temporary method that blocks for a little while to simulate
  * waiting for canvas groups to be ready.
  *

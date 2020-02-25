@@ -1,4 +1,4 @@
-import { requestConfig } from './methods';
+import { requestConfig, requestFrame } from './methods';
 
 describe('postmessage_json_rpc/methods#requestConfig', () => {
   let configEl;
@@ -20,5 +20,10 @@ describe('postmessage_json_rpc/methods#requestConfig', () => {
   it('returns the config object', async () => {
     const result = await requestConfig();
     assert.deepEqual(result, { foo: 'bar' });
+  });
+
+  it('returns the parameters passed to requestFrame', async () => {
+    const result = await requestFrame({ bar: 1 });
+    assert.deepEqual(result, { bar: 1 });
   });
 });
