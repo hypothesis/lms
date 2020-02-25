@@ -81,20 +81,6 @@ def configure_module_item_caller(context, pyramid_request):
 class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_adds_the_Canvas_submission_params(self, context, pyramid_request):
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        context.js_config.add_canvas_submission_params.assert_called_once_with()
-
-    def test_it_doesnt_add_the_Canvas_submission_params_if_not_Canvas(
-        self, context, pyramid_request
-    ):
-        BasicLTILaunchViews(context, pyramid_request)
-
-        context.js_config.add_canvas_submission_params.assert_not_called()
-
     def test_it_sets_the_focused_user(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
 
@@ -175,47 +161,38 @@ class TestCommon:
 
 @pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
-    def test_it_configures_via_callback_url(self, context, pyramid_request):
+    @pytest.mark.usefixtures("is_canvas")
+    def test_it_adds_the_canvas_file_id(self, context, pyramid_request):
         canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
-        assert (
-            context.js_config.config["urls"]["via_url_callback"]
-            == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
+        context.js_config.add_canvas_file_id.assert_called_once_with(
+            pyramid_request.params["file_id"]
         )
 
 
 class TestDBConfiguredBasicLTILaunch:
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_configures_via_url(
-        self, context, pyramid_request, via_url, ModuleItemConfiguration,
-    ):
-        ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
-
-        db_configured_basic_lti_launch_caller(context, pyramid_request)
-
-        ModuleItemConfiguration.get_document_url.assert_called_once_with(
-            pyramid_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID",
-        )
-        via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app
     ):
         db_configured_basic_lti_launch_caller(context, pyramid_request)
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config.config
+        )
+
+    def test_it_adds_the_document_url(
+        self, context, pyramid_request, ModuleItemConfiguration
+    ):
+        db_configured_basic_lti_launch_caller(context, pyramid_request)
+
+        ModuleItemConfiguration.get_document_url.assert_called_once_with(
+            pyramid_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID"
+        )
+        context.js_config.add_document_url.assert_called_once_with(
+            ModuleItemConfiguration.get_document_url.return_value
         )
 
 
 class TestURLConfiguredBasicLTILaunch:
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_configures_via_url(self, context, pyramid_request, via_url):
-        url_configured_basic_lti_launch_caller(context, pyramid_request)
-
-        via_url.assert_called_once_with(pyramid_request, "TEST_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app
     ):
@@ -223,6 +200,13 @@ class TestURLConfiguredBasicLTILaunch:
 
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config.config
+        )
+
+    def test_it_adds_the_document_url(self, context, pyramid_request):
+        url_configured_basic_lti_launch_caller(context, pyramid_request)
+
+        context.js_config.add_document_url.assert_called_once_with(
+            pyramid_request.parsed_params["url"]
         )
 
 
@@ -239,12 +223,6 @@ class TestConfigureModuleItem:
             "TEST_DOCUMENT_URL",
         )
 
-    def test_it_configures_via_url(self, context, pyramid_request, via_url):
-        configure_module_item_caller(context, pyramid_request)
-
-        via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
-        assert context.js_config.config["urls"]["via_url"] == via_url.return_value
-
     def test_it_configures_frontend_grading(
         self, context, pyramid_request, frontend_app
     ):
@@ -252,6 +230,13 @@ class TestConfigureModuleItem:
 
         frontend_app.configure_grading.assert_called_once_with(
             pyramid_request, context.js_config.config
+        )
+
+    def test_it_adds_the_document_url(self, context, pyramid_request):
+        configure_module_item_caller(context, pyramid_request)
+
+        context.js_config.add_document_url.assert_called_once_with(
+            pyramid_request.parsed_params["document_url"]
         )
 
 
@@ -378,8 +363,3 @@ def bearer_token_schema(BearerTokenSchema):
 @pytest.fixture(autouse=True)
 def frontend_app(patch):
     return patch("lms.views.basic_lti_launch.frontend_app")
-
-
-@pytest.fixture(autouse=True)
-def via_url(patch):
-    return patch("lms.views.basic_lti_launch.via_url")
