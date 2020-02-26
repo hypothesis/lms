@@ -29,7 +29,7 @@ export default class Server {
     // origins will be ignored.
     this._allowedOrigins = configObj.allowedOrigins;
 
-    // Add a postMessage event listener so we can recieve JSON-RPC requests.
+    // Add a postMessage event listener so we can receive JSON-RPC requests.
     this._boundReceiveMessage = this._receiveMessage.bind(this);
     window.addEventListener('message', this._boundReceiveMessage);
 
@@ -126,8 +126,13 @@ export default class Server {
 
     // Call the method and return the result response.
     try {
-      const result = await method();
-      return { jsonrpc: '2.0', result: result, id: request.id };
+      let result;
+      if (request.params && Array.isArray(request.params)) {
+        result = await method(...request.params);
+      } else {
+        result = await method();
+      }
+      return Promise.resolve({ jsonrpc: '2.0', result, id: request.id });
     } catch (e) {
       return Promise.resolve({
         jsonrpc: '2.0',

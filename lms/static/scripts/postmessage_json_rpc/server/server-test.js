@@ -99,6 +99,42 @@ describe('postmessage_json_rpc/server#Server', () => {
       ]);
     });
 
+    it('calls the registered method with the provided params', () => {
+      window.postMessage(
+        validRequest('registeredMethodName', ['one', { two: 'two' }]),
+        serversOrigin
+      );
+      return Promise.race([
+        new Promise(resolve => {
+          receiveMessage.callsFake(() => {
+            assert.isTrue(registeredMethod.calledOnce);
+            assert.isTrue(
+              registeredMethod.calledWithExactly('one', { two: 'two' })
+            );
+            resolve();
+          });
+        }),
+        rejectAfterDelay("Server's response wasn't received"),
+      ]);
+    });
+
+    it('calls the registered method with no params if they are not in an array', () => {
+      window.postMessage(
+        validRequest('registeredMethodName', { one: 'one' }),
+        serversOrigin
+      );
+      return Promise.race([
+        new Promise(resolve => {
+          receiveMessage.callsFake(() => {
+            assert.isTrue(registeredMethod.calledOnce);
+            assert.isTrue(registeredMethod.calledWithExactly());
+            resolve();
+          });
+        }),
+        rejectAfterDelay("Server's response wasn't received"),
+      ]);
+    });
+
     [null, 'test_id'].forEach(id => {
       it('sends a response message', () => {
         const request = validRequest();
@@ -258,11 +294,12 @@ describe('postmessage_json_rpc/server#Server', () => {
    * window.postMessage(message, serversOrigin) in order to make an RPC request
    * to the server.
    */
-  function validRequest(method = 'registeredMethodName') {
+  function validRequest(method = 'registeredMethodName', params = []) {
     return {
       jsonrpc: '2.0',
       id: 'test_id',
       method,
+      params,
     };
   }
 });
