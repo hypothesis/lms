@@ -45,6 +45,7 @@ def pyramid_request(db_session):
             "user_id": "TEST_USER_ID",
             "roles": "Instructor",
             "tool_consumer_instance_guid": "TEST_GUID",
+            "tool_consumer_info_product_family_code": "whiteboard",
             "content_item_return_url": "https://www.example.com",
             "lti_version": "TEST",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
