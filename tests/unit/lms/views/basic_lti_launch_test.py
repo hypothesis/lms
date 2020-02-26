@@ -12,20 +12,13 @@ from lms.values import HUser, LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
-class TestBasicLTILaunch:
-    """
-    Test behavior common to all LTI launches.
-    """
+class TestBasicLTILaunchViewsInit:
+    """Unit tests for BasicLTILaunchViews.__init__()."""
 
     def test_it_configures_frontend(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
-        assert context.js_config.config["mode"] == "basic-lti-launch"
 
-    def test_it_does_not_configure_grading_if_request_unqualified(
-        self, context, pyramid_request
-    ):
-        BasicLTILaunchViews(context, pyramid_request)
-        assert "lmsGrader" not in context.js_config.config
+        assert context.js_config.config["mode"] == "basic-lti-launch"
 
     def test_it_adds_report_submission_config_if_required_params_present(
         self, context, pyramid_request, lti_outcome_params
@@ -58,7 +51,7 @@ class TestBasicLTILaunch:
 
         assert "submissionParams" not in context.js_config.config
 
-    def test_it_adds_report_submission_config_if_lms_not_canvas(
+    def test_it_doesnt_add_report_submission_config_if_lms_not_canvas(
         self, context, pyramid_request, lti_outcome_params
     ):
         pyramid_request.params.update(lti_outcome_params)
