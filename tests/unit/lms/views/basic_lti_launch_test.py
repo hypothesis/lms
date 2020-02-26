@@ -212,9 +212,7 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
         self.make_request(context, pyramid_request)
 
         ModuleItemConfiguration.get_document_url.assert_called_once_with(
-            pyramid_request.db,
-            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "TEST_RESOURCE_LINK_ID",
+            pyramid_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID",
         )
         via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
@@ -233,16 +231,6 @@ class TestDBConfiguredBasicLTILaunch(ConfiguredLaunch):
 
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).db_configured_basic_lti_launch()
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
-            # db_configured_basic_lti_launch() always needs resource_link_id
-            # and tool_consumer_instance_guid.
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-        }
-        return pyramid_request
 
 
 class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
@@ -268,11 +256,7 @@ class TestURLConfiguredBasicLTILaunch(ConfiguredLaunch):
         via_url,
         ModuleItemConfiguration,
     ):
-        pyramid_request.params = {
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            **lti_outcome_params,
-        }
+        pyramid_request.params = lti_outcome_params
 
         self.make_request(context, pyramid_request)
 

@@ -47,6 +47,7 @@ def pyramid_request(db_session):
             "tool_consumer_instance_guid": "TEST_GUID",
             "content_item_return_url": "https://www.example.com",
             "lti_version": "TEST",
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
         }
     )
     pyramid_request.feature = mock.create_autospec(
