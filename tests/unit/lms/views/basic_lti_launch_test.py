@@ -6,8 +6,6 @@ from h_matchers import Any
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
-from lms.services.h_api import HAPI
-from lms.validation.authentication._helpers._jwt import decode_jwt
 from lms.values import HUser, LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
@@ -305,7 +303,7 @@ class TestDBConfiguredBasicLTILaunch:
         )
 
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app
     ):
         db_configured_basic_lti_launch_caller(context, pyramid_request)
         frontend_app.configure_grading.assert_called_once_with(
@@ -328,13 +326,7 @@ class TestURLConfiguredBasicLTILaunch:
         )
 
     def test_it_configures_frontend_grading(
-        self,
-        context,
-        pyramid_request,
-        frontend_app,
-        lti_outcome_params,
-        via_url,
-        ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app, lti_outcome_params,
     ):
         pyramid_request.params = lti_outcome_params
 
@@ -365,7 +357,7 @@ class TestConfigureModuleItem:
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
 
     def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app, via_url, ModuleItemConfiguration,
+        self, context, pyramid_request, frontend_app
     ):
         configure_module_item_caller(context, pyramid_request)
 
@@ -420,7 +412,7 @@ class TestUnconfiguredBasicLTILaunch:
         )
 
     @pytest.fixture
-    def pyramid_request(self, context, pyramid_request):
+    def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
             "user_id": "TEST_USER_ID",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
