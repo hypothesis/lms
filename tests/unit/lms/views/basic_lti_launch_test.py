@@ -168,7 +168,7 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
         assert (
             context.js_config.config["authUrl"]
-            == "http://example.com/TEST_AUTHORIZE_URL"
+            == "http://example.com/api/canvas/authorize"
         )
         assert context.js_config.config["lmsName"] == "Canvas"
 
@@ -194,10 +194,6 @@ class TestCanvasFileBasicLTILaunch(ConfiguredLaunch):
 
     def make_request(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request).canvas_file_basic_lti_launch()
-
-    @pytest.fixture(autouse=True)
-    def routes(self, pyramid_config):
-        pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
