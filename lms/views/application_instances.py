@@ -10,15 +10,14 @@ from lms.models import ApplicationInstance
 )
 def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
-    # Check to make sure that both developer key and secret are present. If not set to None.
+
+    # Default developer_key and developer_secret to None rather than letting
+    # them be empty strings.
     developer_key = request.params["developer_key"].strip()
     developer_secret = request.params["developer_secret"].strip()
-    if developer_key == "":
-        developer_key = None
 
-    if developer_secret == "":
-        developer_secret = None
-
+    # If either one of developer_key or developer_secret is missing, then we
+    # don't save the other one either.
     if not developer_key or not developer_secret:
         developer_key = None
         developer_secret = None
