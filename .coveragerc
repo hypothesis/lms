@@ -7,8 +7,13 @@ source =
 omit =
     lms/scripts/*
 
+    # Don't bother covering these files as they just contain feature flags test
+    # views, not really user-facing code.
+    lms/extensions/feature_flags/views/test.py
+    lms/views/feature_flags_test.py
+
 [report]
 show_missing = True
 precision = 2
-fail_under = 98.68
+fail_under = 99.16
 skip_covered = True
