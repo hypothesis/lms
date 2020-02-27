@@ -96,14 +96,45 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self.config["urls"]["via_url"] = via_url(self._request, document_url)
         self._add_canvas_submission_params(document_url=document_url)
 
-    def enable_content_item_selection_mode(self):
+    def enable_content_item_selection_mode(
+        self, form_action, form_fields, lti_launch_url=None
+    ):
         """
         Put the JavaScript code into "content item selection" mode.
 
         This mode shows teachers an assignment configuration UI where they can
         choose the document to be annotated for the assignment.
+
+        :param form_action: the HTML `action` attribute for the form that we'll
+            use to submit the user's chosen document (the `action` is the URL
+            that the form gets submitted to)
+        :type form_action: str
+
+        :param form_fields: the fields (keys and values) to include in the
+            HTML form that we'll use to submit the user's chosen document
+        :type form_fields: dict
         """
-        self.config["mode"] = "content-item-selection"
+        self.config.update(
+            {
+                "mode": "content-item-selection",
+                "enableLmsFilePicker": False,
+                "formAction": form_action,
+                "formFields": form_fields,
+                "googleClientId": self._request.registry.settings["google_client_id"],
+                "googleDeveloperKey": self._request.registry.settings[
+                    "google_developer_key"
+                ],
+                # Pass the URL of the LMS that is launching us to our JavaScript code.
+                # When we're being launched in an iframe within the LMS our JavaScript
+                # needs to pass this URL (which is the URL of the top-most page) to Google
+                # Picker, otherwise Picker refuses to launch inside an iframe.
+                "customCanvasApiDomain": self._context.custom_canvas_api_domain,
+                "lmsUrl": self._context.lms_url,
+            }
+        )
+
+        if lti_launch_url:
+            self.config["ltiLaunchUrl"] = lti_launch_url
 
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
