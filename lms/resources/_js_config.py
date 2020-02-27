@@ -6,6 +6,7 @@ import jwt
 
 from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
+from lms.values import HUser
 from lms.views.helpers import via_url
 
 
@@ -18,6 +19,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         # A dict of URLs for the frontend to use.
         self._urls = {}
+
+        self._grading_info_service = request.find_service(name="grading_info")
         self._h_api = request.find_service(name="h_api")
 
     @property
@@ -140,6 +143,31 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         # Add the given document_url or canvas_file_id.
         self.config["submissionParams"].update(kwargs)
 
+    def maybe_enable_grading(self):
+        """Enable our LMS app's built-in assignment grading UI, if appropriate."""
+
+        if not self._request.lti_user.is_instructor:
+            # Only instructors can grade assignments.
+            return
+
+        if "lis_outcome_service_url" not in self._request.params:
+            # Only "gradeable" assignments can be graded.
+            # Assignments that don't have the lis_outcome_service_url param
+            # aren't set as gradeable in the LMS.
+            return
+
+        if self._context.is_canvas:
+            # Don't show our built-in grader in Canvas because it has its own
+            # "SpeedGrader" and we support that instead.
+            return
+
+        self.config["lmsGrader"] = True
+        self.config["grading"] = {
+            "courseName": self._request.params.get("context_title"),
+            "assignmentName": self._request.params.get("resource_link_title"),
+            "students": self._get_students(),
+        }
+
     def maybe_set_focused_user(self):
         """
         Configure the Hypothesis client to focus on a particular user.
@@ -201,6 +229,40 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             ]
 
         return debug_info
+
+    def _get_students(self):
+        """
+        Return the list of student dicts for the request.
+
+        Returns one student dict for each student who has launched the
+        assignment and had grading info recorded for them.
+        """
+        grading_infos = self._grading_info_service.get_by_assignment(
+            oauth_consumer_key=self._request.lti_user.oauth_consumer_key,
+            context_id=self._request.params.get("context_id"),
+            resource_link_id=self._request.params.get("resource_link_id"),
+        )
+
+        # The list of "student" dicts that we'll return.
+        students = []
+
+        # Create a "student" dict for each GradingInfo.
+        for grading_info in grading_infos:
+            h_user = HUser(
+                authority=self._request.registry.settings["h_authority"],
+                username=grading_info.h_username,
+                display_name=grading_info.h_display_name,
+            )
+            students.append(
+                {
+                    "userid": h_user.userid,
+                    "displayName": h_user.display_name,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                }
+            )
+
+        return students
 
     def _grant_token(self, api_url):
         """Return an OAuth 2 grant token the client can use to log in to h."""

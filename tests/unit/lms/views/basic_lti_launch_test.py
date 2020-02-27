@@ -171,13 +171,10 @@ class TestCanvasFileBasicLTILaunch:
 
 
 class TestDBConfiguredBasicLTILaunch:
-    def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app
-    ):
+    def test_it_enables_frontend_grading(self, context, pyramid_request):
         db_configured_basic_lti_launch_caller(context, pyramid_request)
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
-        )
+
+        context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(
         self, context, pyramid_request, ModuleItemConfiguration
@@ -193,14 +190,10 @@ class TestDBConfiguredBasicLTILaunch:
 
 
 class TestURLConfiguredBasicLTILaunch:
-    def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app
-    ):
+    def test_it_enables_frontend_grading(self, context, pyramid_request):
         url_configured_basic_lti_launch_caller(context, pyramid_request)
 
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
-        )
+        context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(self, context, pyramid_request):
         url_configured_basic_lti_launch_caller(context, pyramid_request)
@@ -223,14 +216,10 @@ class TestConfigureModuleItem:
             "TEST_DOCUMENT_URL",
         )
 
-    def test_it_configures_frontend_grading(
-        self, context, pyramid_request, frontend_app
-    ):
+    def test_it_enables_frontend_grading(self, context, pyramid_request):
         configure_module_item_caller(context, pyramid_request)
 
-        frontend_app.configure_grading.assert_called_once_with(
-            pyramid_request, context.js_config.config
-        )
+        context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(self, context, pyramid_request):
         configure_module_item_caller(context, pyramid_request)
@@ -358,8 +347,3 @@ def ModuleItemConfiguration(patch):
 @pytest.fixture
 def bearer_token_schema(BearerTokenSchema):
     return BearerTokenSchema.return_value
-
-
-@pytest.fixture(autouse=True)
-def frontend_app(patch):
-    return patch("lms.views.basic_lti_launch.frontend_app")
