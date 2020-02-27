@@ -8,7 +8,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.services import HAPIError
+from lms.services import ConsumerKeyError, HAPIError
 from lms.values import HUser
 
 
@@ -23,7 +23,9 @@ class TestJSConfig:
 
         assert config["a_key"] == "a_value"
 
-    def test_enable_content_item_selection_mode(self, context, js_config):
+
+class TestEnableContentItemSelectionMode:
+    def test_it(self, context, js_config):
         js_config.config["mode"] = "foo"
 
         js_config.enable_content_item_selection_mode(
@@ -31,7 +33,6 @@ class TestJSConfig:
         )
 
         assert js_config.config["mode"] == "content-item-selection"
-        assert not js_config.config["enableLmsFilePicker"]
         assert js_config.config["formAction"] == "test_form_action"
         assert js_config.config["formFields"] == "test_form_fields"
         assert js_config.config["googleClientId"] == "fake_client_id"
@@ -43,9 +44,7 @@ class TestJSConfig:
         assert js_config.config["lmsUrl"] == context.lms_url
         assert "ltiLaunchUrl" not in js_config.config
 
-    def test_enable_content_item_selection_mode_sets_ltiLaunchUrl_if_given(
-        self, js_config
-    ):
+    def test_it_sets_ltiLaunchUrl_if_given(self, js_config):
         js_config.config["mode"] = "foo"
 
         js_config.enable_content_item_selection_mode(
@@ -53,6 +52,68 @@ class TestJSConfig:
         )
 
         assert js_config.config["ltiLaunchUrl"] == "test_lti_launch_url"
+
+    def test_it_enables_the_lms_file_picker(self, js_config):
+        js_config.enable_content_item_selection_mode(
+            "test_form_action", "test_form_fields"
+        )
+
+        assert js_config.config["enableLmsFilePicker"] is True
+        assert js_config.config["courseId"] == "test_course_id"
+
+    def test_it_doesnt_enable_the_lms_file_picker_if_the_lms_isnt_Canvas(
+        self, context, js_config
+    ):
+        context.is_canvas = False
+
+        js_config.enable_content_item_selection_mode(
+            "test_form_action", "test_form_fields"
+        )
+
+        assert not js_config.config["enableLmsFilePicker"]
+        assert "courseId" not in js_config.config
+
+    def test_it_doesnt_enable_the_lms_file_picker_if_the_consumer_key_isnt_found_in_the_db(
+        self, ai_getter, js_config
+    ):
+        ai_getter.developer_key.side_effect = ConsumerKeyError()
+
+        js_config.enable_content_item_selection_mode(
+            "test_form_action", "test_form_fields"
+        )
+
+        assert not js_config.config["enableLmsFilePicker"]
+        assert "courseId" not in js_config.config
+
+    def test_it_doesnt_enable_the_lms_file_picker_if_we_dont_have_a_developer_key(
+        self, ai_getter, js_config
+    ):
+        ai_getter.developer_key.return_value = None
+
+        js_config.enable_content_item_selection_mode(
+            "test_form_action", "test_form_fields"
+        )
+
+        assert not js_config.config["enableLmsFilePicker"]
+        assert "courseId" not in js_config.config
+
+    def test_it_doesnt_enable_the_lms_file_picker_if_theres_no_custom_canvas_course_id(
+        self, js_config, pyramid_request
+    ):
+        del pyramid_request.params["custom_canvas_course_id"]
+
+        js_config.enable_content_item_selection_mode(
+            "test_form_action", "test_form_fields"
+        )
+
+        assert not js_config.config["enableLmsFilePicker"]
+        assert "courseId" not in js_config.config
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params["tool_consumer_info_product_family_code"] = "canvas"
+        pyramid_request.params["custom_canvas_course_id"] = "test_course_id"
+        return pyramid_request
 
 
 class TestAddCanvasFileID:
@@ -402,7 +463,7 @@ class TestJSConfigURLs:
         return config["urls"]
 
 
-pytestmark = pytest.mark.usefixtures("grading_info_service", "h_api")
+pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
 
 
 @pytest.fixture(autouse=True)

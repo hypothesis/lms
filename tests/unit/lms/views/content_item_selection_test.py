@@ -20,33 +20,6 @@ class TestContentItemSelection:
             lti_launch_url="http://example.com/TEST_LTI_LAUNCH_URL",
         )
 
-    def test_it_sets_the_courseId_javascript_config_setting(
-        self, context, helpers, pyramid_request
-    ):
-        content_item_selection(context, pyramid_request)
-
-        helpers.canvas_files_available.assert_called_once_with(pyramid_request)
-        assert context.js_config.config["courseId"] == "TEST_CUSTOM_CANVAS_COURSE_ID"
-
-    def test_it_enables_lms_file_picker_if_canvas_files_available(
-        self, context, helpers, pyramid_request
-    ):
-        helpers.canvas_files_available.return_value = True
-
-        content_item_selection(context, pyramid_request)
-
-        assert context.js_config.config["enableLmsFilePicker"] is True
-
-    def test_if_canvas_files_arent_available_for_this_application_instance_then_it_omits_course_id(
-        self, context, helpers, pyramid_request
-    ):
-        helpers.canvas_files_available.return_value = False
-
-        content_item_selection(context, pyramid_request)
-
-        helpers.canvas_files_available.assert_called_once_with(pyramid_request)
-        assert "courseId" not in context.js_config.config
-
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
@@ -72,10 +45,3 @@ class TestContentItemSelection:
 
 
 pytestmark = pytest.mark.usefixtures("lti_h_service")
-
-
-@pytest.fixture(autouse=True)
-def helpers(patch):
-    helpers = patch("lms.views.content_item_selection.helpers")
-    helpers.canvas_files_available.return_value = True
-    return helpers

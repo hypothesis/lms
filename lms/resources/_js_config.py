@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import jwt
 
-from lms.services import HAPIError
+from lms.services import ConsumerKeyError, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.values import HUser
 from lms.views.helpers import via_url
@@ -21,6 +21,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._urls = {}
 
         self._grading_info_service = request.find_service(name="grading_info")
+        self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
 
     @property
@@ -136,6 +137,11 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         if lti_launch_url:
             self.config["ltiLaunchUrl"] = lti_launch_url
 
+        # Enable the "LMS file picker" (Canvas file picker) if it's available.
+        if self._canvas_files_available():
+            self.config["enableLmsFilePicker"] = True
+            self.config["courseId"] = self._request.params["custom_canvas_course_id"]
+
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
 
@@ -242,6 +248,24 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         return BearerTokenSchema(self._request).authorization_param(
             self._request.lti_user
+        )
+
+    def _canvas_files_available(self):
+        """Return True if the Canvas Files API is available to this request."""
+
+        if not self._context.is_canvas:
+            return False
+
+        try:
+            developer_key = self._ai_getter.developer_key(
+                self._request.params.get("oauth_consumer_key")
+            )
+        except ConsumerKeyError:
+            return False
+
+        return (
+            "custom_canvas_course_id" in self._request.params
+            and developer_key is not None
         )
 
     def _debug(self):
