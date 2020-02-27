@@ -5,6 +5,7 @@ import jwt
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
+from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
@@ -124,6 +125,88 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
     def method(self, js_config, request):
         """Return the method to be tested."""
         return getattr(js_config, request.param)
+
+
+class TestMaybeEnableGrading:
+    def test_it_adds_the_grading_settings(self, js_config, grading_info_service):
+        js_config.maybe_enable_grading()
+
+        assert js_config.config["lmsGrader"] is True
+        grading_info_service.get_by_assignment.assert_called_once_with(
+            context_id="test_course_id",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            resource_link_id="TEST_RESOURCE_LINK_ID",
+        )
+        assert js_config.config["grading"] == {
+            "assignmentName": "test_assignment_name",
+            "courseName": "test_course_name",
+            "students": [
+                {
+                    "LISOutcomeServiceUrl": f"test_lis_outcomes_service_url_{i}",
+                    "LISResultSourcedId": f"test_lis_result_sourcedid_{i}",
+                    "displayName": f"test_h_display_name_{i}",
+                    "userid": f"acct:test_h_username_{i}@TEST_AUTHORITY",
+                }
+                for i in range(3)
+            ],
+        }
+
+    def test_it_does_nothing_if_the_user_isnt_an_instructor(
+        self, js_config, pyramid_request
+    ):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
+
+        js_config.maybe_enable_grading()
+
+        assert not js_config.config.get("lmsGrader")
+        assert not js_config.config.get("grading")
+
+    def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
+        self, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_outcome_service_url"]
+
+        js_config.maybe_enable_grading()
+
+        assert not js_config.config.get("lmsGrader")
+        assert not js_config.config.get("grading")
+
+    def test_it_does_nothing_in_Canvas(self, context, js_config):
+        context.is_canvas = True
+
+        js_config.maybe_enable_grading()
+
+        assert not js_config.config.get("lmsGrader")
+        assert not js_config.config.get("grading")
+
+    @pytest.fixture
+    def grading_info_service(self, grading_info_service):
+        grading_info_service.get_by_assignment.return_value = [
+            mock.create_autospec(
+                GradingInfo,
+                instance=True,
+                spec_set=True,
+                lis_result_sourcedid=f"test_lis_result_sourcedid_{i}",
+                lis_outcome_service_url=f"test_lis_outcomes_service_url_{i}",
+                h_username=f"test_h_username_{i}",
+                h_display_name=f"test_h_display_name_{i}",
+            )
+            for i in range(3)
+        ]
+        return grading_info_service
+
+    @pytest.fixture
+    def context(self, context):
+        context.is_canvas = False
+        return context
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+        pyramid_request.params["context_id"] = "test_course_id"
+        pyramid_request.params["context_title"] = "test_course_name"
+        pyramid_request.params["resource_link_title"] = "test_assignment_name"
+        return pyramid_request
 
 
 class TestMaybeSetFocusedUser:
@@ -293,7 +376,7 @@ class TestJSConfigURLs:
         return config["urls"]
 
 
-pytestmark = pytest.mark.usefixtures("h_api")
+pytestmark = pytest.mark.usefixtures("grading_info_service", "h_api")
 
 
 @pytest.fixture(autouse=True)
