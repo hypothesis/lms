@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pytest
-from h_matchers import Any
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
@@ -230,53 +229,28 @@ class TestConfigureModuleItem:
 
 
 class TestUnconfiguredBasicLTILaunch:
-    def test_it_sets_the_right_javascript_config_settings(
+    def test_it_enables_content_item_selection_mode(
         self, BearerTokenSchema, bearer_token_schema, context, pyramid_request
     ):
-        pyramid_request.params.update({"some_random_rubbish": "SOME_RANDOM_RUBBISH"})
-
-        pyramid_request.registry.settings["google_client_id"] = "TEST_GOOGLE_CLIENT_ID"
-        pyramid_request.registry.settings[
-            "google_developer_key"
-        ] = "TEST_GOOGLE_DEVELOPER_KEY"
-
         BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
 
-        assert context.js_config.config == {
-            "enableLmsFilePicker": False,
-            "formAction": "http://example.com/module_item_configurations",
-            "formFields": Any.dict(),
-            "googleClientId": "TEST_GOOGLE_CLIENT_ID",
-            "googleDeveloperKey": "TEST_GOOGLE_DEVELOPER_KEY",
-            "customCanvasApiDomain": context.custom_canvas_api_domain,
-            "lmsUrl": context.lms_url,
-            "urls": {},
-        }
-
-        form_fields = context.js_config.config["formFields"]
-
-        # Test that we pass through parameters from the request made to us
-        # onto the configure module item call
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.authorization_param.assert_called_once_with(
             pyramid_request.lti_user
         )
-        assert form_fields == Any.dict.containing(
-            {
+        context.js_config.enable_content_item_selection_mode.assert_called_once_with(
+            form_action="http://example.com/module_item_configurations",
+            form_fields={
+                "user_id": pyramid_request.params["user_id"],
+                "resource_link_id": pyramid_request.params["resource_link_id"],
+                "oauth_consumer_key": pyramid_request.params["oauth_consumer_key"],
+                "tool_consumer_instance_guid": pyramid_request.params[
+                    "tool_consumer_instance_guid"
+                ],
+                "context_id": pyramid_request.params["context_id"],
                 "authorization": bearer_token_schema.authorization_param.return_value,
-                "resource_link_id": "TEST_RESOURCE_LINK_ID",
-                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "user_id": "TEST_USER_ID",
-                "context_id": "TEST_CONTEXT_ID",
-                "some_random_rubbish": "SOME_RANDOM_RUBBISH",
-            }
+            },
         )
-
-    def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
-
-        context.js_config.enable_content_item_selection_mode.assert_called_once_with()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -286,6 +260,9 @@ class TestUnconfiguredBasicLTILaunch:
             "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             "context_id": "TEST_CONTEXT_ID",
+            "oauth_nonce": "TEST_OAUTH_NONCE",
+            "oauth_timestamp": "TEST_OAUTH_TIMESTAMP",
+            "oauth_signature": "TEST_OAUTH_SIGNATURE",
         }
         return pyramid_request
 
