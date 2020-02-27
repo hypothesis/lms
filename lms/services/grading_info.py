@@ -24,13 +24,17 @@ class GradingInfoService:
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
 
-    def get_by_assignment(self, oauth_consumer_key, context_id, resource_link_id):
+    def get_students_by_assignment(
+        self, oauth_consumer_key, context_id, resource_link_id
+    ):
         """
-        Return all the (GradingInfo, HUser) tuples for a given assignment.
+        Return all JavaScript config student dicts for a given assignment.
 
-        The returned list will contain one (GradingInfo, HUser) tuple for each
-        student who has launched this assignment (and had GradingInfo data
-        persisted for them).
+        The returned list will contain one student dict for each student who
+        has launched this assignment (and had GradingInfo data persisted for
+        them). The student dicts are in a format suitable for passing to our
+        JavaScript code in the JavaScript config object, to be used by our
+        frontend grading UX.
 
         :param oauth_consumer_key: the assignment's oauth_consumer_key
             (identifies a deployment of our app in an LMS)
@@ -43,9 +47,6 @@ class GradingInfoService:
         :param resource_link_id: the assignment's resource_link_id
             (identifies the assignment within the LMS course)
         :type resource_link_id: str
-
-        :return: a list of all the (GradingInfo, HUser) tuples for the assignment
-        :rtype: list[(GradingInfo, HUser)]
         """
         grading_infos = self._db.query(GradingInfo).filter_by(
             oauth_consumer_key=oauth_consumer_key,
@@ -53,17 +54,28 @@ class GradingInfoService:
             resource_link_id=resource_link_id,
         )
 
-        return [
-            (
-                grading_info,
-                HUser(
-                    authority=self._authority,
-                    username=grading_info.h_username,
-                    display_name=grading_info.h_display_name,
-                ),
+        # The list of "student" dicts that we'll return.
+        students = []
+
+        # Create a "student" dict for each GradingInfo.
+        for grading_info in grading_infos:
+            h_user = HUser(
+                authority=self._authority,
+                username=grading_info.h_username,
+                display_name=grading_info.h_display_name,
             )
-            for grading_info in grading_infos
-        ]
+            students.append(
+                {
+                    # The keys here end up in the JavaScript config object,
+                    # hence the JavaScript casingStyle.
+                    "userid": h_user.userid,
+                    "displayName": h_user.display_name,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                }
+            )
+
+        return students
 
     def upsert_from_request(self, request, h_user, lti_user):
         """

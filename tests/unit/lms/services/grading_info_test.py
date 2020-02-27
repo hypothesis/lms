@@ -10,45 +10,64 @@ from lms.values import HUser, LTIUser
 
 
 class TestGetByAssignment:
-    def test_it_retrieves_matching_records(
-        self, svc, lti_params, grading_info, another_grading_info, lti_user,
+    def test_it(self, svc):
+        assert svc.get_students_by_assignment(
+            "test_oauth_consumer_key", "test_context_id", "test_resource_link_id"
+        ) == [
+            {
+                "LISOutcomeServiceUrl": f"test_lis_outcomes_service_url_{i}",
+                "LISResultSourcedId": f"test_lis_result_sourcedid_{i}",
+                "displayName": f"test_h_display_name_{i}",
+                "userid": f"acct:test_h_username_{i}@TEST_AUTHORITY",
+            }
+            for i in range(3)
+        ]
+
+    @pytest.mark.parametrize(
+        "oauth_consumer_key,context_id,resource_link_id",
+        [
+            ("other_oauth_consumer_key", "test_context_id", "test_resource_link_id"),
+            ("test_oauth_consumer_key", "other_context_id", "test_resource_link_id"),
+            ("test_oauth_consumer_key", "test_context_id", "other_resource_link_id"),
+            ("other_oauth_consumer_key", "other_context_id", "other_resource_link_id"),
+        ],
+    )
+    def test_it_returns_an_empty_list_if_there_are_no_matching_GradingInfos(
+        self, svc, oauth_consumer_key, context_id, resource_link_id
     ):
-
-        grading_infos = svc.get_by_assignment(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
-            context_id=lti_params["context_id"],
-            resource_link_id=lti_params["resource_link_id"],
+        assert (
+            svc.get_students_by_assignment(
+                oauth_consumer_key, context_id, resource_link_id
+            )
+            == []
         )
 
-        assert len(grading_infos) == 2
+    @pytest.fixture(autouse=True)
+    def matching_grading_infos(self, db_session):
+        """Some GradingInfo's that should match the DB query in the test above."""
+        test_grading_infos = [self.grading_info("test", i) for i in range(3)]
+        db_session.add_all(test_grading_infos)
+        return test_grading_infos
 
-    def test_it_returns_empty_list_if_no_matching_records(
-        self, svc, lti_params, lti_user
-    ):
-        grading_infos = svc.get_by_assignment(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
-            context_id=lti_params["context_id"],
-            resource_link_id=lti_params["resource_link_id"],
+    @pytest.fixture(autouse=True)
+    def noise_grading_infos(self, db_session):
+        """Some GradingInfo's that should *not* match the test query."""
+        noise_grading_infos = [self.grading_info("noise", i) for i in range(3)]
+        db_session.add_all(noise_grading_infos)
+        return noise_grading_infos
+
+    def grading_info(self, prefix, index):
+        return GradingInfo(
+            lis_result_sourcedid=f"{prefix}_lis_result_sourcedid_{index}",
+            lis_outcome_service_url=f"{prefix}_lis_outcomes_service_url_{index}",
+            oauth_consumer_key=f"{prefix}_oauth_consumer_key",
+            user_id=f"{prefix}_user_id_{index}",
+            context_id=f"{prefix}_context_id",
+            resource_link_id=f"{prefix}_resource_link_id",
+            tool_consumer_info_product_family_code=f"{prefix}_tool_consumer_info_product_family_code_{index}",
+            h_username=f"{prefix}_h_username_{index}",
+            h_display_name=f"{prefix}_h_display_name_{index}",
         )
-
-        assert not grading_infos
-
-    @pytest.fixture
-    def another_grading_info(self, lti_params, db_session):
-        another_grading_info = GradingInfo(**lti_params)
-
-        add_users(
-            another_grading_info,
-            h_user=HUser(
-                authority="TEST_AUTHORITY",
-                username="teststudent",
-                display_name="Another Test",
-            ),
-            lti_user=LTIUser("TEST_USER_ID_2", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"),
-        )
-
-        db_session.add(another_grading_info)
-        return another_grading_info
 
 
 class TestUpsertFromRequest:
@@ -72,14 +91,7 @@ class TestUpsertFromRequest:
         assert result.user_id == lti_user.user_id
 
     def test_it_updates_existing_record_if_matching_exists(
-        self,
-        svc,
-        pyramid_request,
-        h_user,
-        lti_user,
-        grading_info,
-        db_session,
-        lti_params,
+        self, svc, pyramid_request, h_user, lti_user, db_session,
     ):
         # Update a couple of attributes on the model...
         h_user = h_user._replace(display_name="Someone Else")
@@ -140,13 +152,13 @@ class TestUpsertFromRequest:
 
 @pytest.fixture
 def lti_user():
-    return LTIUser("TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES")
+    return LTIUser("test_user_id", "test_oauth_consumer_key", "test_roles")
 
 
 @pytest.fixture
 def h_user():
     return HUser(
-        authority="TEST_AUTHORITY", username="seanh", display_name="Sample Student"
+        authority="test_authority", username="seanh", display_name="Sample Student"
     )
 
 
@@ -168,21 +180,3 @@ def lti_params():
         "resource_link_id": "random resource link id",
         "tool_consumer_info_product_family_code": "MyFakeLTITool",
     }
-
-
-def add_users(grading_info, h_user, lti_user):
-    grading_info.h_username = h_user.username
-    grading_info.h_display_name = h_user.display_name
-
-    grading_info.oauth_consumer_key = lti_user.oauth_consumer_key
-    grading_info.user_id = lti_user.user_id
-
-
-@pytest.fixture
-def grading_info(lti_params, h_user, lti_user, db_session):
-    grading_info = GradingInfo(**lti_params)
-
-    add_users(grading_info, h_user, lti_user)
-
-    db_session.add(grading_info)
-    return grading_info

@@ -20,7 +20,7 @@ def configure_grading(request, js_config):
 
     js_config["lmsGrader"] = True
 
-    grading_infos = request.find_service(name="grading_info").get_by_assignment(
+    students = request.find_service(name="grading_info").get_students_by_assignment(
         oauth_consumer_key=request.lti_user.oauth_consumer_key,
         context_id=request.params.get("context_id"),
         resource_link_id=request.params.get("resource_link_id"),
@@ -30,15 +30,7 @@ def configure_grading(request, js_config):
         "courseName": request.params.get("context_title"),
         "assignmentName": request.params.get("resource_link_title"),
         # TODO! - Rename this in the front end?
-        "students": [
-            {
-                "userid": h_user.userid,
-                "displayName": h_user.display_name,
-                "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
-            }
-            for (grading_info, h_user) in grading_infos
-        ],
+        "students": students,
     }
 
 

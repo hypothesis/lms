@@ -177,7 +177,7 @@ def grading_info_service(pyramid_config):
     grading_info_service = mock.create_autospec(
         GradingInfoService, instance=True, spec_set=True
     )
-    grading_info_service.get_by_assignment.return_value = []
+    grading_info_service.get_students_by_assignment.return_value = []
     pyramid_config.register_service(grading_info_service, name="grading_info")
     return grading_info_service
 
