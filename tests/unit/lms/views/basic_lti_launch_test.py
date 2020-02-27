@@ -5,8 +5,7 @@ from h_matchers import Any
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.services import HAPIError
-from lms.values import HUser, LTIUser
+from lms.values import LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 
@@ -118,40 +117,10 @@ class TestBasicLTILaunchViewsInit:
 
         assert "submissionParams" not in context.js_config.config
 
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
-        self, context, pyramid_request, h_api
-    ):
-        context.js_config.config["hypothesisClient"] = {}
-        pyramid_request.params["focused_user"] = "user123"
-        h_api.get_user.return_value = HUser(
-            authority="TEST_AUTHORITY", username="user123", display_name="Jim Smith"
-        )
-
+    def test_it_sets_the_focused_user(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
 
-        h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config.config["hypothesisClient"]["focus"] == {
-            "user": {"username": "user123", "displayName": "Jim Smith"}
-        }
-
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
-        self, context, pyramid_request, h_api
-    ):
-        context.js_config.config["hypothesisClient"] = {}
-        pyramid_request.params["focused_user"] = "user123"
-        h_api.get_user.side_effect = HAPIError("User does not exist")
-
-        BasicLTILaunchViews(context, pyramid_request)
-
-        h_api.get_user.assert_called_once_with("user123")
-        assert context.js_config.config["hypothesisClient"]["focus"] == {
-            "user": {
-                "username": "user123",
-                "displayName": "(Couldn't fetch student name)",
-            }
-        }
+        context.js_config.maybe_set_focused_user.assert_called_once_with()
 
 
 class TestCommon:

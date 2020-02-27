@@ -16,7 +16,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
-from lms.values import LTIUser
+from lms.values import HUser, LTIUser
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
@@ -195,6 +195,11 @@ def group_info_service(pyramid_config):
 @pytest.fixture
 def h_api(pyramid_config):
     h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
+    h_api.get_user.return_value = HUser(
+        authority="lms.hypothes.is",
+        username="example_h_username",
+        display_name="example_h_display_name",
+    )
     pyramid_config.register_service(h_api, name="h_api")
     return h_api
 

@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import jwt
 
+from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
 
 
@@ -16,6 +17,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         # A dict of URLs for the frontend to use.
         self._urls = {}
+        self._h_api = request.find_service(name="h_api")
 
     @property
     @functools.lru_cache()
@@ -76,6 +78,42 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         choose the document to be annotated for the assignment.
         """
         self.config["mode"] = "content-item-selection"
+
+    def maybe_set_focused_user(self):
+        """
+        Configure the Hypothesis client to focus on a particular user.
+
+        If there is a focused_user request param then add the necessary
+        Hypothesis client config to get the client to focus on the particular
+        user identified by the focused_user param, showing only that user's
+        annotations and not others.
+
+        In practice the focused_user param is only ever present in Canvas
+        SpeedGrader launches. We add a focused_user query param to the
+        SpeedGrader LTI launch URLs that we submit to Canvas for each student
+        when the student launches an assignment. Later, Canvas uses these URLs
+        to launch us when a teacher grades the assignment in SpeedGrader.
+
+        In theory, though, the focused_user param could work outside of Canvas
+        as well if we ever want it to.
+
+        """
+        focused_user = self._request.params.get("focused_user")
+
+        if not focused_user:
+            return
+
+        self._hypothesis_client["focus"] = {"user": {"username": focused_user}}
+
+        # Unfortunately we need to pass the user's current display name to the
+        # Hypothesis client, and we need to make a request to the h API to
+        # retrieve that display name.
+        try:
+            display_name = self._h_api.get_user(focused_user).display_name
+        except HAPIError:
+            display_name = "(Couldn't fetch student name)"
+
+        self._hypothesis_client["focus"]["user"]["displayName"] = display_name
 
     def _auth_token(self):
         """Return the authToken setting."""

@@ -15,7 +15,6 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches, ModuleItemConfiguration
-from lms.services import HAPIError
 from lms.validation import (
     ConfigureModuleItemSchema,
     LaunchParamsSchema,
@@ -39,7 +38,8 @@ class BasicLTILaunchViews:
 
         if self.context.is_canvas:
             self.initialise_canvas_submission_params()
-            self.set_canvas_focused_user()
+
+        self.context.js_config.maybe_set_focused_user()
 
     def sync_lti_data_to_h(self):
         """
@@ -304,29 +304,3 @@ class BasicLTILaunchViews:
 
         if "submissionParams" in self.context.js_config.config:
             self.context.js_config.config["submissionParams"][name] = value
-
-    def set_canvas_focused_user(self):
-        """Configure the Hypothesis client to focus on a particular user."""
-
-        # If the launch has been configured to focus on the annotations from
-        # a particular user, translate that into Hypothesis client configuration.
-
-        # This parameter is only passed as a part of Canvas SpeedGrader config
-        # and is passed as a parameter to a URL which they call us back on.
-        focused_user = self.request.params.get("focused_user")
-        if not focused_user:
-            return
-
-        h_api = self.request.find_service(name="h_api")
-
-        try:
-            display_name = h_api.get_user(focused_user).display_name
-        except HAPIError:
-            # If we couldn't fetch the student's name for any reason, fall back
-            # to a placeholder rather than giving up entirely, since the rest
-            # of the experience can still work.
-            display_name = "(Couldn't fetch student name)"
-
-        self.context.js_config.config["hypothesisClient"].update(
-            {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
-        )

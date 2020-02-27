@@ -7,6 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
+from lms.services import HAPIError
 from lms.values import HUser
 
 
@@ -25,6 +26,47 @@ class TestJSConfig:
         js_config.enable_content_item_selection_mode()
 
         assert js_config.config["mode"] == "content-item-selection"
+
+
+class TestMaybeSetFocusedUser:
+    def test_it_does_nothing_if_theres_no_focused_user_param(
+        self, js_config, pyramid_request
+    ):
+        del pyramid_request.params["focused_user"]
+
+        js_config.maybe_set_focused_user()
+
+        assert "focus" not in js_config.config["hypothesisClient"]
+
+    def test_it_sets_the_focused_user_if_theres_a_focused_user_param(
+        self, h_api, js_config
+    ):
+        js_config.maybe_set_focused_user()
+
+        # It gets the display name from the h API.
+        h_api.get_user.assert_called_once_with("example_h_username")
+        # It sets the focused user.
+        assert js_config.config["hypothesisClient"]["focus"] == {
+            "user": {
+                "username": "example_h_username",
+                "displayName": "example_h_display_name",
+            },
+        }
+
+    def test_display_name_falls_back_to_a_default_value(self, h_api, js_config):
+        h_api.get_user.side_effect = HAPIError()
+
+        js_config.maybe_set_focused_user()
+
+        assert (
+            js_config.config["hypothesisClient"]["focus"]["user"]["displayName"]
+            == "(Couldn't fetch student name)"
+        )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params["focused_user"] = "example_h_username"
+        return pyramid_request
 
 
 class TestJSConfigAuthToken:
@@ -151,6 +193,9 @@ class TestJSConfigURLs:
     @pytest.fixture
     def config(self, config):
         return config["urls"]
+
+
+pytestmark = pytest.mark.usefixtures("h_api")
 
 
 @pytest.fixture(autouse=True)
