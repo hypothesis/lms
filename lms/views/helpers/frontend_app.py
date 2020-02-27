@@ -1,4 +1,5 @@
 """Helpers for configuring the front-end JavaScript application."""
+from lms.values import HUser
 
 __all__ = ("configure_grading",)
 
@@ -19,27 +20,41 @@ def configure_grading(request, js_config):
         return
 
     js_config["lmsGrader"] = True
+    js_config["grading"] = {
+        "courseName": request.params.get("context_title"),
+        "assignmentName": request.params.get("resource_link_title"),
+        "students": _get_students(request),
+    }
 
+
+def _get_students(request):
+    """Return the list of student dicts for the request."""
     grading_infos = request.find_service(name="grading_info").get_by_assignment(
         oauth_consumer_key=request.lti_user.oauth_consumer_key,
         context_id=request.params.get("context_id"),
         resource_link_id=request.params.get("resource_link_id"),
     )
 
-    js_config["grading"] = {
-        "courseName": request.params.get("context_title"),
-        "assignmentName": request.params.get("resource_link_title"),
-        # TODO! - Rename this in the front end?
-        "students": [
+    # The list of "student" dicts that we'll return.
+    students = []
+
+    # Create a "student" dict for each GradingInfo.
+    for grading_info in grading_infos:
+        h_user = HUser(
+            authority=request.registry.settings["h_authority"],
+            username=grading_info.h_username,
+            display_name=grading_info.h_display_name,
+        )
+        students.append(
             {
                 "userid": h_user.userid,
                 "displayName": h_user.display_name,
                 "LISResultSourcedId": grading_info.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
             }
-            for (grading_info, h_user) in grading_infos
-        ],
-    }
+        )
+
+    return students
 
 
 def _is_assignment_gradable(request):
