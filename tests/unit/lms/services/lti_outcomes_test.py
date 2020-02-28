@@ -1,6 +1,4 @@
-import datetime
 from collections import OrderedDict
-from unittest import mock
 from unittest.mock import Mock
 
 import httpretty
