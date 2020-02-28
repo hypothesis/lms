@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.values import HUser, LTIUser
+from lms.values import HUser
 
 
 class TestJSConfig:

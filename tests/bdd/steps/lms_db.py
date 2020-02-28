@@ -1,5 +1,4 @@
 """Insert LMS specific objects into the DB."""
-import os
 
 import sqlalchemy
 from behave import step
