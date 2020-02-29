@@ -15,12 +15,10 @@ startRpcServer();
 const rootEl = document.querySelector('#app');
 const config = JSON.parse(document.querySelector('.js-config').textContent);
 
-const mode = config.mode || 'content-item-selection';
-
 render(
   <Config.Provider value={config}>
-    {mode === 'basic-lti-launch' && <BasicLtiLaunchApp />}
-    {mode === 'content-item-selection' && <FilePickerApp />}
+    {config.mode === 'basic-lti-launch' && <BasicLtiLaunchApp />}
+    {config.mode === 'content-item-selection' && <FilePickerApp />}
   </Config.Provider>,
   rootEl
 );

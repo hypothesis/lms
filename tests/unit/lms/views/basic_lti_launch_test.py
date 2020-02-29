@@ -82,11 +82,6 @@ def configure_module_item_caller(context, pyramid_request):
 class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
-    def test_it_configures_frontend(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request)
-
-        assert context.js_config.config["mode"] == "basic-lti-launch"
-
     def test_it_adds_report_submission_config_if_the_LMS_is_Canvas(
         self, context, canvas_request
     ):
@@ -344,7 +339,6 @@ class TestUnconfiguredBasicLTILaunch:
         BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
 
         assert context.js_config.config == {
-            "mode": "content-item-selection",
             "enableLmsFilePicker": False,
             "formAction": "http://example.com/module_item_configurations",
             "formFields": Any.dict(),
@@ -374,6 +368,11 @@ class TestUnconfiguredBasicLTILaunch:
                 "some_random_rubbish": "SOME_RANDOM_RUBBISH",
             }
         )
+
+    def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
+
+        context.js_config.enable_content_item_selection_mode.assert_called_once_with()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

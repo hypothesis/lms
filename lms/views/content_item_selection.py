@@ -51,6 +51,8 @@ def content_item_selection(context, request):
     lti_h_service.upsert_h_user()
     lti_h_service.upsert_course_group()
 
+    context.js_config.enable_content_item_selection_mode()
+
     context.js_config.config.update(
         {
             # The URL that the JavaScript code will open if it needs the user to
