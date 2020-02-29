@@ -37,7 +37,7 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
-        if self.is_launched_by_canvas():
+        if self.context.is_canvas:
             self.initialise_canvas_submission_params()
             self.set_canvas_focused_user()
 
@@ -68,7 +68,7 @@ class BasicLTILaunchViews:
 
         lti_user = request.lti_user
 
-        if not lti_user.is_instructor and not self.is_launched_by_canvas():
+        if not lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="grading_info").upsert_from_request(
                 request, h_user=self.context.h_user, lti_user=lti_user
@@ -290,12 +290,6 @@ class BasicLTILaunchViews:
             {"via_url": via_url(self.request, document_url)}
         )
         self.set_canvas_submission_param("document_url", document_url)
-
-    def is_launched_by_canvas(self):
-        return (
-            self.request.params.get("tool_consumer_info_product_family_code")
-            == "canvas"
-        )
 
     def initialise_canvas_submission_params(self):
         """Add config used by UI to call Canvas `record_submission` API."""
