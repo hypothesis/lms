@@ -112,6 +112,10 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
 
+        # Don't set the Canvas submission params in non-Canvas LMS's.
+        if not self._context.is_canvas:
+            return
+
         # When a Canvas assignment is launched by a teacher or other
         # non-gradeable user there's no lis_result_sourcedid in the LTI
         # launch params.

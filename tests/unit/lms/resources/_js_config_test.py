@@ -84,6 +84,15 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
             == "example_lis_result_sourcedid"
         )
 
+    def test_it_doesnt_set_the_canvas_submission_params_if_the_LMS_isnt_Canvas(
+        self, context, method, js_config
+    ):
+        context.is_canvas = False
+
+        method("canvas_file_id_or_document_url")
+
+        assert "submissionParams" not in js_config.config
+
     def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_result_sourcedid(
         self, method, js_config, pyramid_request
     ):
@@ -317,6 +326,7 @@ def context():
         instance=True,
         h_user=HUser("TEST_AUTHORITY", "example_username"),
         h_groupid="example_groupid",
+        is_canvas=True,
     )
 
 
