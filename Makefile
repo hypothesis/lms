@@ -17,8 +17,6 @@ help:
 	@echo "make test              Run the unit tests"
 	@echo "make functests         Run the functional tests"
 	@echo "make bddtests          Run the gherkin tests"
-	@echo "make docstrings        View all the docstrings locally as HTML"
-	@echo "make checkdocstrings   Crash if building the docstrings fails"
 	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
 	@echo "make pip-compile       Compile requirements.in to requirements.txt"
 	@echo "make upgrade-package   Upgrade the version of a package in requirements.txt."
@@ -86,14 +84,6 @@ functests: build/manifest.json functests-only
 .PHONY: functests-only
 functests-only: python
 	@tox -qe functests
-
-.PHONY: docstrings
-docstrings: python
-	@tox -qe docstrings
-
-.PHONY: checkdocstrings
-checkdocstrings: python
-	@tox -qe checkdocstrings
 
 .PHONY: pip-compile
 pip-compile: python

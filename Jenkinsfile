@@ -32,7 +32,6 @@ node {
             testApp(image: img, runArgs: runArgs) {
                 installDeps()
                 run("make checkformatting")
-                run("make checkdocstrings")
                 run("make backend-lint")
             }
         }
