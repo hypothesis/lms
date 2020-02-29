@@ -1,3 +1,0 @@
-# Default prospector config file.
-inherits:
-    - .prospector.base
