@@ -18,6 +18,11 @@ class TestJSConfig:
 
         assert config["a_key"] == "a_value"
 
+    def test_enable_content_item_selection_mode(self, js_config):
+        js_config.enable_content_item_selection_mode()
+
+        assert js_config.config["mode"] == "content-item-selection"
+
 
 class TestJSConfigAuthToken:
     """Unit tests for the "authToken" sub-dict of JSConfig."""

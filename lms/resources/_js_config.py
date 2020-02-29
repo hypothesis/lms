@@ -48,6 +48,11 @@ class JSConfig:
             # Our JSON-RPC server passes this to the Hypothesis client over
             # postMessage.
             "hypothesisClient": self._hypothesis_client,
+            # What "mode" to put the JavaScript code in.
+            # For example in "basic-lti-launch" mode the JavaScript code
+            # launches its BasicLtiLaunchApp, whereas in
+            # "content-item-selection" mode it launches its FilePickerApp.
+            "mode": "basic-lti-launch",
             # The config object for our JSON-RPC server.
             "rpcServer": {
                 "allowedOrigins": self._request.registry.settings[
@@ -59,6 +64,15 @@ class JSConfig:
             # here.
             "urls": self._urls,
         }
+
+    def enable_content_item_selection_mode(self):
+        """
+        Put the JavaScript code into "content item selection" mode.
+
+        This mode shows teachers an assignment configuration UI where they can
+        choose the document to be annotated for the assignment.
+        """
+        self.config["mode"] = "content-item-selection"
 
     def _auth_token(self):
         """Return the authToken setting."""

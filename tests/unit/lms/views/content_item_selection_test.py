@@ -8,6 +8,11 @@ from lms.views.content_item_selection import content_item_selection
 
 
 class TestContentItemSelection:
+    def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
+        content_item_selection(context, pyramid_request)
+
+        context.js_config.enable_content_item_selection_mode.assert_called_once_with()
+
     def test_it_sets_the_authUrl_javascript_config_setting(
         self, context, pyramid_request
     ):
