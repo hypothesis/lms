@@ -14,7 +14,7 @@ FROM python:3.6.9-alpine3.10
 MAINTAINER Hypothes.is Project and contributors
 
 # Install system build and runtime dependencies.
-RUN apk add libpq collectd collectd-disk supervisor
+RUN apk add libpq supervisor
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
@@ -32,16 +32,6 @@ RUN apk add --virtual build-deps \
   && pip3 install --no-cache-dir -U pip \
   && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
-
-# Copy collectd config
-COPY conf/collectd.conf /etc/collectd/collectd.conf
-RUN mkdir /etc/collectd/collectd.conf.d \
-  && chown lms:lms /etc/collectd/collectd.conf.d
-
-# collectd always tries to write to this immediately after enabling the logfile plugin.
-# Even though we later configure it to write to stdout. So we do have to make sure it's
-# writeable.
-RUN touch /var/log/collectd.log && chown lms:lms /var/log/collectd.log
 
 # Copy frontend assets.
 COPY --from=frontend-build /build build
