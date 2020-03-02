@@ -155,8 +155,13 @@ def bearer_token_schema(BearerTokenSchema):
 
 
 @pytest.fixture
-def config(context, pyramid_request):
-    return JSConfig(context, pyramid_request).config
+def js_config(context, pyramid_request):
+    return JSConfig(context, pyramid_request)
+
+
+@pytest.fixture
+def config(js_config):
+    return js_config.config
 
 
 @pytest.fixture
