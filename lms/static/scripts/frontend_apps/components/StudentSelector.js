@@ -59,8 +59,12 @@ export default function StudentSelector({
 
     return (
       <span className="StudentsSelector__students">
-        {/* FIXME-A11Y */}
-        {/* eslint-disable-next-line jsx-a11y/no-onchange */}
+        {/* 
+        This lint issue may have arisen from browser inconsistency issues with 
+        `onChange` which have since been fixed. See browser compatibility note here:
+        https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event#annotations:xeC6ClQsEequhUdih2lXzw
+        */}
+        {/* eslint-disable-next-line jsx-a11y/no-onchange*/}
         <select
           className="StudentsSelector__students-select"
           onChange={e => {

@@ -137,7 +137,7 @@ describe('SubmitGradeForm', () => {
       });
       const wrapper = renderForm();
       wrapper.find('button').simulate('click');
-      wrapper.find('input').simulate('keydown', { key: 'k' });
+      wrapper.find('input').simulate('input');
       assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
     });
   });
@@ -239,11 +239,16 @@ describe('SubmitGradeForm', () => {
     });
   });
 
-  // FIXME-A11Y
-  it.skip(
+  it(
     'should pass a11y checks',
-    checkAccessibility({
-      content: () => renderForm(),
-    })
+    checkAccessibility(
+      {
+        content: () => renderForm(),
+      },
+      {
+        name: 'when disabled',
+        content: () => renderForm({ disabled: true }),
+      }
+    )
   );
 });

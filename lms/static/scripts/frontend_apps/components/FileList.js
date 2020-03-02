@@ -39,14 +39,13 @@ export default function FileList({
         renderItem={(file, isSelected) => (
           <Fragment>
             <td aria-label={file.display_name} className="FileList__name-col">
-              {/* FIXME-A11Y */}
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <img
                 className={classnames(
                   'FileList__icon',
                   isSelected && 'is-selected'
                 )}
                 src="/static/images/file-pdf.svg"
+                alt="PDF icon"
               />
               <span className="FileList__name">{file.display_name}</span>
             </td>
