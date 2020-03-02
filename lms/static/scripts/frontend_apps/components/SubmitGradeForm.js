@@ -14,6 +14,7 @@ import ErrorDialog from './ErrorDialog';
 import Spinner from './Spinner';
 import SvgIcon from './SvgIcon';
 import { fetchGrade, submitGrade } from '../utils/grader-service';
+import { useUniqueId } from '../utils/hooks';
 import { trustMarkup } from '../utils/trusted';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 import ValidationMessage from './ValidationMessage';
@@ -90,6 +91,8 @@ export default function SubmitGradeForm({ disabled = false, student }) {
   const [showValidationError, setValidationError] = useState(false);
   // The actual validation error message.
   const [validationMessage, setValidationMessageMessage] = useState('');
+  // Unique id attribute for <input>
+  const gradeId = useUniqueId('SubmitGradeForm__grade:');
 
   const { authToken } = useContext(Config);
 
@@ -150,7 +153,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           setValidationError(false);
         }}
       />
-      <label className="SubmitGradeForm__label" htmlFor="lms-grade">
+      <label className="SubmitGradeForm__label" htmlFor={gradeId}>
         Grade (Out of 10)
       </label>
       <span className="SubmitGradeForm__grade-wrapper">
@@ -159,9 +162,9 @@ export default function SubmitGradeForm({ disabled = false, student }) {
             'is-saved': gradeSaved,
           })}
           disabled={disabled}
-          id="lms-grade"
+          id={gradeId}
           ref={inputRef}
-          onKeyDown={handleKeyDown}
+          onInput={handleKeyDown}
           type="input"
           defaultValue={grade}
           key={student.LISResultSourcedId}

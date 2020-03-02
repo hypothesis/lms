@@ -11,14 +11,13 @@
 }
 
 .StudentSelector-change-student {
+  @include mixins.input-focus;
   min-width: 60px;
   height: 40px;
   border: none;
   background-color: var.$grey-2;
   border: 1px solid var.$grey-3;
   transition: background-color 0.2s, border-color 0.2s;
-  
-  @include mixins.input-focus;
   
   &:hover {
     cursor: pointer;
@@ -33,6 +32,7 @@
 }
 
 .StudentsSelector__students {
+  @include mixins.input-focus;
   position: relative;
 
   &-select {
@@ -43,8 +43,6 @@
     border-radius: 0;
     height: 40px;
     padding: 5px 35px 5px 20px;
-
-    @include mixins.input-focus;
 
     &::-ms-expand {
       /* Remove default select arrow in IE11 */

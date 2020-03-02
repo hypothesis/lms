@@ -72,6 +72,7 @@
   }
 
   &__grade {
+    @include mixins.input-focus;
     text-align: center;
     width: 60px;
     height: 40px;
@@ -90,8 +91,6 @@
     &:disabled {
       opacity: 0.5;
     }
-
-    @include mixins.input-focus;
   }
 }
 
