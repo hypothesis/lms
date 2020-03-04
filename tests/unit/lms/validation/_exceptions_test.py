@@ -34,10 +34,9 @@ class TestLTIToolRedirect:
         assert redirect.detail == Any.string.matching(".*field_name.*error_name.*")
 
     @pytest.mark.parametrize(
-        "description,messages",
-        [("string", "a string"), ("list", []), ("dict of string", {"a": "b"})],
+        "messages", ["a string", [], {"a": "b"}],
     )
-    def test_is_requires_well_formatted_messages(self, description, messages):
+    def test_it_requires_well_formatted_messages(self, messages):
         with pytest.raises(ValueError):
             LTIToolRedirect("http://example.com", messages)
 

@@ -5,10 +5,10 @@ from pkg_resources import resource_filename
 from lms.app import create_app
 from tests.bdd.higher_order_gherkin import Injector
 from tests.bdd.step_context import StepContextManager
-from tests.bdd.steps.lms_db import test_database_url
+from tests.bdd.steps.lms_db import TEST_DATABASE_URL
 from tests.conftest import TEST_SETTINGS
 
-TEST_SETTINGS["sqlalchemy.url"] = test_database_url
+TEST_SETTINGS["sqlalchemy.url"] = TEST_DATABASE_URL
 
 
 # Create the compiled step file before steps are read
@@ -22,9 +22,9 @@ def before_all(context):
     StepContextManager.before_all(context, app=create_app(None, **TEST_SETTINGS))
 
 
-def before_scenario(context, scenario):
+def before_scenario(context, _scenario):
     StepContextManager.before_scenario(context)
 
 
-def after_scenario(context, scenario):
+def after_scenario(context, _scenario):
     StepContextManager.after_scenario(context)

@@ -144,12 +144,12 @@ class TestValidatedResponse:
 
     @pytest.fixture
     def requests_session(self, requests):
-        """The requests.Session object."""
+        """Return the requests.Session object."""
         return requests.Session.return_value
 
     @pytest.fixture(autouse=True)
     def requests_response(self, requests_session):
-        """The requests.Response object returned by requests's send() method."""
+        """Return the requests.Response object returned by requests's send() method."""
         requests_response = requests_session.send.return_value
         requests_response.status_code = 200
         requests_response.reason = "OK"

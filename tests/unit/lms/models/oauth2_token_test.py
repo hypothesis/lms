@@ -81,9 +81,7 @@ class TestOAuth2Token:
         ):
             db_session.flush()
 
-    def test_refresh_token_defaults_to_None(
-        self, application_instance, db_session, init_kwargs
-    ):
+    def test_refresh_token_defaults_to_None(self, db_session, init_kwargs):
         token = OAuth2Token(**init_kwargs)
         db_session.add(token)
 
@@ -91,9 +89,7 @@ class TestOAuth2Token:
 
         assert token.refresh_token is None
 
-    def test_expires_in_defaults_to_None(
-        self, application_instance, db_session, init_kwargs
-    ):
+    def test_expires_in_defaults_to_None(self, db_session, init_kwargs):
         token = OAuth2Token(**init_kwargs)
         db_session.add(token)
 
@@ -101,9 +97,7 @@ class TestOAuth2Token:
 
         assert token.expires_in is None
 
-    def test_received_at_defaults_to_now(
-        self, application_instance, db_session, init_kwargs
-    ):
+    def test_received_at_defaults_to_now(self, db_session, init_kwargs):
         token = OAuth2Token(**init_kwargs)
         db_session.add(token)
 
@@ -133,9 +127,9 @@ class TestOAuth2Token:
             == "<lms.models.OAuth2Token user_id:'test_user_id' consumer_key:'test_consumer_key' access_token:'test_access_token' refresh_token:'test_refresh_token' expires_in:3600' received_at:'2019-05-15 11:11:09'>"
         )
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def application_instance(self, db_session):
-        """The ApplicationInstance that the test OAuth2Token's belong to."""
+        """Return the ApplicationInstance that the test OAuth2Token's belong to."""
         application_instance = ApplicationInstance(
             consumer_key="test_consumer_key",
             shared_secret="test_shared_secret",
@@ -148,7 +142,7 @@ class TestOAuth2Token:
     @pytest.fixture
     def init_kwargs(self, application_instance):
         """
-        The **minimum** kwargs needed to init a valid OAuth2Token.
+        Return the **minimum** kwargs needed to init a valid OAuth2Token.
 
         No optional kwargs or kwargs with default values are included here.
         """

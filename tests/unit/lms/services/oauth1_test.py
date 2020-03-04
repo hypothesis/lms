@@ -26,9 +26,9 @@ class TestOAuth1Service:
             auth=service.get_client(),
         )
 
-        request = request.prepare()
+        prepared_request = request.prepare()
 
-        auth_header = request.headers["Authorization"].decode("iso-8859-1")
+        auth_header = prepared_request.headers["Authorization"].decode("iso-8859-1")
 
         assert auth_header.startswith("OAuth")
         assert 'oauth_version="1.0"' in auth_header

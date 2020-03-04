@@ -52,7 +52,8 @@ class TestHashPassword:
 
         assert returned_salt == expected_salt
 
-    def test_it_generates_random_salt_with_no_salt(self, pbkdf2_hmac):
+    @pytest.mark.usefixtures("pbkdf2_hmac")
+    def test_it_generates_random_salt_with_no_salt(self):
         _, salt_1 = hash_password(sentinel.password)
         _, salt_2 = hash_password(sentinel.password)
 

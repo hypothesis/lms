@@ -50,7 +50,8 @@ class TestLTIOutcomesClient:
 
         assert score is None
 
-    def test_record_result_sends_sourcedid(self, svc, response):
+    @pytest.mark.usefixtures("response")
+    def test_record_result_sends_sourcedid(self, svc):
         svc.record_result(self.GRADING_ID)
 
         self.assert_sent_header_ok()
@@ -60,7 +61,8 @@ class TestLTIOutcomesClient:
 
         assert sourced_id == self.GRADING_ID
 
-    def test_record_result_sends_score(self, svc, response):
+    @pytest.mark.usefixtures("response")
+    def test_record_result_sends_score(self, svc):
         svc.record_result(self.GRADING_ID, score=0.5)
 
         result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
@@ -68,7 +70,8 @@ class TestLTIOutcomesClient:
 
         assert score == "0.5"
 
-    def test_record_result_calls_hook(self, svc, response):
+    @pytest.mark.usefixtures("response")
+    def test_record_result_calls_hook(self, svc):
         my_hook = Mock(return_value={"my_dict": 1})
 
         svc.record_result(self.GRADING_ID, score=1.5, pre_record_hook=my_hook)
@@ -79,7 +82,7 @@ class TestLTIOutcomesClient:
         )
 
     @pytest.mark.parametrize("hook_result", [None, [], "foo"])
-    def test_record_result_requires_dict_result(self, svc, response, hook_result):
+    def test_record_result_requires_dict_result(self, svc, hook_result):
         with pytest.raises(TypeError):
             svc.record_result(
                 self.GRADING_ID, pre_record_hook=lambda *args, **kwargs: hook_result

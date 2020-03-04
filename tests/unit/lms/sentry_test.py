@@ -7,7 +7,7 @@ from lms.sentry import filter_canvas_api_access_token_error
 from lms.services import CanvasAPIAccessTokenError
 
 
-class TestFilterCanvasAPIAccessTokenError(object):
+class TestFilterCanvasAPIAccessTokenError:
     def test_it_filters_canvas_api_access_token_error(self):
         event = exception_event(
             CanvasAPIAccessTokenError(

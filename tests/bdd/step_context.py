@@ -11,12 +11,10 @@ class StepContext:
         pass
 
     def do_setup(self):
-        """Setup the class for work before the scenario."""
-        pass
+        """Set up the class for work before the scenario."""
 
     def do_teardown(self):
         """Clean up the class for work after the scenario."""
-        pass
 
     @classmethod
     def register(cls, context, **kwargs):

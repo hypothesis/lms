@@ -7,7 +7,7 @@ class SettingError(Exception):
     pass
 
 
-class SettingGetter:
+class SettingGetter:  # pylint:disable=too-few-public-methods
     """Helper for getting values of settings from envvars or config file."""
 
     def __init__(self, settings):

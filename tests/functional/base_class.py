@@ -5,7 +5,7 @@ from pkg_resources import resource_stream
 
 
 class TestBaseClass:
-    """A base class for handy test fixture functions"""
+    """A base class for handy test fixture functions."""
 
     FIXTURE_DIR = "functional/fixtures"
 

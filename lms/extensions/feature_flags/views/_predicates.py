@@ -20,8 +20,8 @@ class FeatureFlagViewPredicate:
         :arg feature_flag: the feature flag that this predicate requires,
             for example ``"my_feature"``
         :type feature_flag: str
-        :arg config: the Pyramid config object
-        :type config: pyramid.config.Configurator
+        :arg _config: the Pyramid config object
+        :type _config: pyramid.config.Configurator
         """
         self._feature_flag = feature_flag
 

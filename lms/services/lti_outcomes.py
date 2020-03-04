@@ -61,6 +61,8 @@ class LTIOutcomesClient:
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
         :param pre_record_hook: Hook to allow modification of the request
+
+        :raise TypeError: if the given pre_record_hook returns a non-dict
         """
 
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
@@ -86,6 +88,9 @@ class LTIOutcomesClient:
 
         :arg request_body: The content to send as the POX body element of the
                            request
+
+        :raise LTIOutcomesAPIError: if the request fails for any reason
+
         :return: The returned POX body element
         :rtype: dict
         """
@@ -113,10 +118,10 @@ class LTIOutcomesClient:
 
         try:
             data = xmltodict.parse(response.text)
-        except ExpatError as e:
+        except ExpatError as err:
             raise LTIOutcomesAPIError(
                 "Unable to parse XML response from LTI Outcomes service", response
-            ) from e
+            ) from err
 
         return self._get_body(data)
 
@@ -131,8 +136,8 @@ class LTIOutcomesClient:
                 "imsx_codeMajor"
             ]
 
-        except KeyError as e:
-            raise LTIOutcomesAPIError("Malformed LTI outcome response") from e
+        except KeyError as err:
+            raise LTIOutcomesAPIError("Malformed LTI outcome response") from err
 
         if status != "success":
             raise LTIOutcomesAPIError("LTI outcome request failed")

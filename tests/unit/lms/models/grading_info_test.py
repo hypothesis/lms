@@ -59,7 +59,7 @@ class TestGradingInfo:
 
     @pytest.fixture
     def application_instance(self, db_session):
-        """The ApplicationInstance that the GradingInfos belong to"""
+        """Return the ApplicationInstance that the GradingInfos belong to."""
         application_instance = ApplicationInstance(
             consumer_key="test_consumer_key",
             shared_secret="test_shared_secret",

@@ -73,9 +73,7 @@ class TestGetToken:
             "Test error message"
         )
 
-        with pytest.raises(
-            CanvasAPIServerError, match="Test error message"
-        ) as exc_info:
+        with pytest.raises(CanvasAPIServerError, match="Test error message"):
             canvas_api_client.get_token("test_authorization_code")
 
     @pytest.fixture
@@ -166,9 +164,7 @@ class TestGetRefreshedToken:
             "Test error message"
         )
 
-        with pytest.raises(
-            CanvasAPIServerError, match="Test error message"
-        ) as exc_info:
+        with pytest.raises(CanvasAPIServerError, match="Test error message"):
             canvas_api_client.get_refreshed_token("test_refresh_token")
 
     @pytest.fixture
@@ -369,12 +365,7 @@ class TestSendWithRefreshAndRetry:
             )
 
     def test_if_the_request_raises_CanvasAPIAccessTokenError_and_theres_no_refresh_token_it_raises(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
+        self, canvas_api_client, canvas_api_helper, prepared_request, Schema,
     ):
         canvas_api_helper.validated_response.side_effect = CanvasAPIAccessTokenError(
             "test_error"
@@ -457,17 +448,17 @@ class TestSendWithRefreshAndRetry:
 
     @pytest.fixture
     def prepared_request(self):
-        """The PreparedRequest that we're sending."""
+        """Return the PreparedRequest that we're sending."""
         return mock.sentinel.request
 
     @pytest.fixture
     def Schema(self):
-        """The schema class we're using to validate the responses."""
+        """Return the schema class we're using to validate the responses."""
         return mock.sentinel.Schema
 
     @pytest.fixture
     def refresh_token(self):
-        """The refresh token we're using if our access token has expired."""
+        """Return the refresh token we're using if our access token has expired."""
         return mock.sentinel.refresh_token
 
     @pytest.fixture(autouse=True)
@@ -480,7 +471,7 @@ pytestmark = pytest.mark.usefixtures("ai_getter")
 
 @pytest.fixture(autouse=True)
 def application_instance(db_session, pyramid_request):
-    """The ApplicationInstance that the test OAuth2Token's belong to."""
+    """Return the ApplicationInstance that the test OAuth2Token's belong to."""
     application_instance = ApplicationInstance(
         consumer_key=pyramid_request.lti_user.oauth_consumer_key,
         shared_secret="test_shared_secret",
@@ -518,7 +509,7 @@ def CanvasPublicURLResponseSchema(patch):
 
 
 @pytest.fixture
-def canvas_api_client(CanvasAPIHelper, pyramid_config, pyramid_request):
+def canvas_api_client(pyramid_request):
     return CanvasAPIClient(mock.sentinel.context, pyramid_request)
 
 

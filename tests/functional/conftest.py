@@ -4,6 +4,7 @@ import pytest
 from webtest import TestApp
 
 from lms import db
+from lms.app import create_app
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
@@ -16,16 +17,14 @@ def clean_database(db_engine):
     """Delete any data added by the previous test."""
     tables = reversed(db.BASE.metadata.sorted_tables)
     with contextlib.closing(db_engine.connect()) as conn:
-        tx = conn.begin()
+        transaction = conn.begin()  # pylint:disable=no-member
         tnames = ", ".join('"' + t.name + '"' for t in tables)
-        conn.execute("TRUNCATE {};".format(tnames))
-        tx.commit()
+        conn.execute("TRUNCATE {};".format(tnames))  # pylint:disable=no-member
+        transaction.commit()
 
 
 @pytest.fixture(scope="session")
 def pyramid_app():
-    from lms.app import create_app
-
     return create_app(None, **TEST_SETTINGS)
 
 

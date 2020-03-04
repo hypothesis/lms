@@ -5,7 +5,7 @@ from lms.models import GroupInfo
 __all__ = ["GroupInfoService"]
 
 
-class GroupInfoService:
+class GroupInfoService:  # pylint:disable=too-few-public-methods
     """
     A service that upserts :class:`~lms.models.GroupInfo` records.
 

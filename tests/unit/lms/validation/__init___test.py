@@ -67,7 +67,8 @@ class TestValidatedView:
 
     @pytest.fixture
     def info(self, Schema):
-        """Return the Pyramid view deriver info object.
+        """
+        Return the Pyramid view deriver info object.
 
         Pyramid passes one of these as an argument to every view deriver.
         """

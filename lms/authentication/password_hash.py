@@ -22,7 +22,7 @@ def check_password(password: str, expected_hash: str, salt: str):
     return calculated_hash == expected_hash.encode("utf8")
 
 
-def hash_password(password: str, salt: str = ""):
+def hash_password(password: str, salt: str = None):
     """
     Create a hash and possibly salt for a password.
 
@@ -34,7 +34,7 @@ def hash_password(password: str, salt: str = ""):
     if isinstance(password, str):
         password = password.encode("utf8")
 
-    if salt == "":
+    if not salt:
         salt = binascii.hexlify(os.urandom(8))
 
     elif isinstance(salt, str):

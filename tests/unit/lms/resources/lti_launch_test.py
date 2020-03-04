@@ -156,6 +156,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
 
     def test_h_authority_provided_id_raises_if_theres_no_context_id(
@@ -168,6 +169,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "context_id" missing from LTI params',
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
 
     def test_h_authority_provided_id(self, lti_launch):
@@ -184,7 +186,7 @@ class TestLTILaunchResource:
 
     def test_h_group_name_raises_if_theres_no_context_title(self, lti_launch):
         with pytest.raises(HTTPBadRequest):
-            lti_launch.h_group_name
+            lti_launch.h_group_name  # pylint:disable=pointless-statement
 
     @pytest.mark.parametrize(
         "context_title,expected_group_name",
@@ -233,6 +235,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_provider
 
     def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
@@ -252,6 +255,7 @@ class TestLTILaunchResource:
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_provider_unique_id
 
     def test_h_user_username_is_a_30_char_string(self, pyramid_request):
@@ -277,6 +281,7 @@ class TestLTILaunchResource:
             HTTPBadRequest,
             match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_raises_if_user_id_is_missing(self, pyramid_request):
@@ -286,6 +291,7 @@ class TestLTILaunchResource:
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
         ):
+            # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
 
     def test_h_user_userid(self, pyramid_request):
@@ -301,9 +307,9 @@ class TestLTILaunchResource:
         assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
 
     def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
-        self, ai_getter, lti_launch, pyramid_request
+        self, ai_getter, lti_launch
     ):
-        lti_launch.provisioning_enabled
+        lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
 
         ai_getter.provisioning_enabled.assert_called_once_with(
             "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
@@ -319,7 +325,7 @@ class TestLTILaunchResource:
     ):
         ai_getter.provisioning_enabled.return_value = False
 
-        assert lti_launch.provisioning_enabled is False
+        assert not lti_launch.provisioning_enabled
 
     def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
         self, pyramid_request
@@ -328,7 +334,7 @@ class TestLTILaunchResource:
         lti_launch = LTILaunchResource(pyramid_request)
 
         with pytest.raises(HTTPBadRequest):
-            lti_launch.provisioning_enabled
+            lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
 
     def test_custom_canvas_api_domain_returns_the_custom_canvas_api_domain(
         self, pyramid_request
@@ -341,9 +347,7 @@ class TestLTILaunchResource:
 
         assert lti_launch.custom_canvas_api_domain == "test_custom_canvas_api_domain"
 
-    def test_custom_canvas_api_url_returns_None_if_not_defined(
-        self, ai_getter, pyramid_request
-    ):
+    def test_custom_canvas_api_url_returns_None_if_not_defined(self, pyramid_request):
         lti_launch = LTILaunchResource(pyramid_request)
 
         custom_canvas_api_url = lti_launch.custom_canvas_api_domain

@@ -4,10 +4,12 @@ from lms.views.predicates._helpers import Base
 
 
 class TestBase:
+    # pylint:disable=abstract-method,abstract-class-instantiated
+
     def test_subclasses_must_have_name(self):
         class CustomPredicateFactory(Base):
             def __call__(self, context, request):
-                """Does nothing."""
+                """Do nothing."""
 
         with pytest.raises(
             TypeError,
@@ -56,7 +58,7 @@ class CustomPredicateFactory(Base):
     name = "custom_predicate_factory"
 
     def __call__(self, context, request):
-        """Does nothing."""
+        """Do nothing."""
 
     def get_value(self):
         return self.value

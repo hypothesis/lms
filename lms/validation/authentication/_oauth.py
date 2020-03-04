@@ -101,12 +101,12 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
         Return the :class:`lms.values.LTIUser` authenticated by the current
         request's ``state`` query parameter.
 
-        :raise lms.validation.MissingStateParamError: if the request has no
-            ``state`` query parameter
-        :raise lms.validation.ExpiredStateParamError: if the request's
-            ``state`` param has expired
-        :raise lms.validation.InvalidStateParamError: if the request's
-            ``state`` param is invalid
+        :raise MissingStateParamError: if the request has no ``state`` query
+            parameter
+        :raise ExpiredStateParamError: if the request's ``state`` param has
+            expired
+        :raise InvalidStateParamError: if the request's ``state`` param is
+            invalid
         :rtype: str
         """
         request = self.context["request"]
@@ -149,7 +149,7 @@ class CanvasAccessTokenResponseSchema(RequestsResponseSchema):
 
     @marshmallow.validates("expires_in")
     def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if not expires_in > 0:
+        if expires_in <= 0:
             raise marshmallow.ValidationError("expires_in must be greater than 0")
 
 

@@ -95,7 +95,7 @@ class TestCanvasOauthCallbackSchema:
             "state": ["Missing data for required field."]
         }
 
-    def test_it_raises_if_the_state_jwt_is_expired(self, schema, pyramid_request, _jwt):
+    def test_it_raises_if_the_state_jwt_is_expired(self, schema, _jwt):
         _jwt.decode_jwt.side_effect = ExpiredJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
@@ -103,7 +103,7 @@ class TestCanvasOauthCallbackSchema:
 
         assert exc_info.value.messages == {"state": ["Expired `state` parameter"]}
 
-    def test_it_raises_if_the_state_jwt_is_invalid(self, schema, pyramid_request, _jwt):
+    def test_it_raises_if_the_state_jwt_is_invalid(self, schema, _jwt):
         _jwt.decode_jwt.side_effect = InvalidJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
@@ -136,9 +136,7 @@ class TestCanvasOauthCallbackSchema:
 
         assert "oauth2_csrf" not in pyramid_request.session
 
-    def test_it_returns_the_valid_state_and_authorization_code(
-        self, schema, pyramid_request
-    ):
+    def test_it_returns_the_valid_state_and_authorization_code(self, schema):
         parsed_params = schema.parse()
 
         assert parsed_params == {"code": "test_code", "state": "test_state"}
@@ -171,7 +169,7 @@ class TestCanvasOauthCallbackSchema:
 
 
 class TestCanvasAccessTokenResponseSchema:
-    def test_it_returns_the_valid_parsed_params(self, schema, response):
+    def test_it_returns_the_valid_parsed_params(self, schema):
         parsed_params = schema.parse()
 
         assert parsed_params == {
@@ -223,7 +221,7 @@ class TestCanvasAccessTokenResponseSchema:
 
     @pytest.fixture
     def response(self):
-        """The ``requests`` library response that's being validated."""
+        """Return the ``requests`` library response that's being validated."""
         response = mock.create_autospec(requests.Response, instance=True, spec_set=True)
         response.json.return_value = {
             "access_token": "TEST_ACCESS_TOKEN",

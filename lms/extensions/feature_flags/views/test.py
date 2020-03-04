@@ -6,7 +6,7 @@ from pyramid.view import view_config, view_defaults
     renderer="string",
     request_method="GET",
 )
-class ViewPredicateTestViews:
+class ViewPredicateTestViews:  # pylint:disable=no-self-use
     def __init__(self, request):
         self._request = request
 

@@ -76,8 +76,8 @@ class TestGroupInfoUpsert:
         )
 
     @pytest.fixture
-    def group_info_svc(self, pyramid_config, pyramid_request):
-        """The group_info_svc service that is being tested."""
+    def group_info_svc(self, pyramid_request):
+        """Return the group_info_svc service that is being tested."""
         return GroupInfoService(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture
@@ -88,7 +88,7 @@ class TestGroupInfoUpsert:
 
     @pytest.fixture
     def application_instance(self, pyramid_request):
-        """The application instance that the test group infos belong to."""
+        """Return the application instance that the test group infos belong to."""
         application_instance = ApplicationInstance(
             consumer_key=self.CONSUMER_KEY,
             developer_key="TEST_DEVELOPER_KEY",

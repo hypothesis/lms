@@ -18,11 +18,10 @@ def decode_jwt(jwt_str, secret):
     :arg secret: the secret that ``jwt_str`` was signed with
     :type secret: str
 
-    :raise lms.validation.authentication.ExpiredJWTError: if decoding fails because
-        the JWT's timestamp has expired
-    :raise lms.validation.authentication.InvalidJWTError: if decoding fails for any
-        other reason (for example ``jwt_str`` is invalid, or ``secret`` is
-        wrong)
+    :raise ExpiredJWTError: if decoding fails because the JWT's timestamp has
+        expired
+    :raise InvalidJWTError: if decoding fails for any other reason (for example
+        ``jwt_str`` is invalid, or ``secret`` is wrong)
 
     :return: ``jwt_str``'s payload, decoded
     :rtype: dict

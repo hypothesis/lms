@@ -10,7 +10,7 @@ class HAPIContext(StepContext):
     context_key = "h_api"
 
     def do_setup(self):
-        """Setup HTTPretty to intercept HTTP calls to the H API."""
+        """Set up HTTPretty to intercept HTTP calls to the H API."""
 
         httpretty.reset()
 

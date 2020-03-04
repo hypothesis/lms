@@ -27,7 +27,7 @@ class TestFeatureFlagsCookieHelper:
     def test_set_cookie_omits_disallowed_feature_flags(
         self, pyramid_request, jwt_cookie_helper
     ):
-        flags = pyramid_request.params = {
+        pyramid_request.params = {
             "test_flag_one": "on",
             "disallowed_flag": "on",
         }
@@ -53,12 +53,12 @@ class TestFeatureFlagsCookieHelper:
         assert flag is True
 
     def test_get_returns_False_if_flag_is_toggled_off_in_cookie(
-        self, pyramid_request, JWTCookieHelper, jwt_cookie_helper
+        self, pyramid_request, jwt_cookie_helper
     ):
         jwt_cookie_helper.get.return_value = {"test_flag_one": False}
         helper = FeatureFlagsCookieHelper(pyramid_request)
 
-        assert helper.get("test_flag_one") is False
+        assert not helper.get("test_flag_one")
 
     def test_get_omits_disallowed_flags(self, jwt_cookie_helper, pyramid_request):
         jwt_cookie_helper.get.return_value = {"disallowed_flag": True}

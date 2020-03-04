@@ -6,17 +6,17 @@ from lms.extensions.feature_flags._feature_flags import FeatureFlags
 
 
 def true_provider(_request, _feature_flag_name):
-    """A test provider that turns every feature flag on."""
+    """Return True for any given feature flag name."""
     return True
 
 
 def false_provider(_request, _feature_flag_name):
-    """A test provider that turns every feature flag off."""
+    """Return False for any given feature flag name."""
     return False
 
 
 def none_provider(_request, _feature_flag_name):
-    """A test provider that doesn't turn any flags on or off."""
+    """Return None for any given feature flag name."""
     return None
 
 

@@ -10,7 +10,7 @@ from sqlalchemy.orm.properties import ColumnProperty
 __all__ = ("BASE", "init")
 
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class BaseClass:
@@ -39,6 +39,8 @@ class BaseClass:
         :param data: The data to update
         :param skip_keys: A set of keys to exclude from being updated (default: {"id"})
         :type skip_keys: set[str]
+
+        :raise TypeError: if skip_keys isn't a set
         """
 
         if skip_keys is None:
@@ -129,7 +131,7 @@ def _session(request):
             session.transaction._connections  # pylint:disable=protected-access
         )
         if len(connections) > 1:
-            log.warning("closing an unclosed DB session")
+            LOG.warning("closing an unclosed DB session")
         session.close()
 
     return session

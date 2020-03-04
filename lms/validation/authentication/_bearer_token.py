@@ -182,7 +182,7 @@ class BearerTokenSchema(PyramidRequestSchema):
     # params to show up in deserialized session dicts from the schema, we add a
     # post_load method to delete them.
     #
-    # TODO: Remove this hack once https://github.com/marshmallow-code/webargs/issues/267
+    # Remove this hack once https://github.com/marshmallow-code/webargs/issues/267
     # is fixed.
     authorization = marshmallow.fields.Str()
 

@@ -75,9 +75,6 @@ class BasicLTILaunchViews:
 
         lti_user = request.lti_user
 
-        # TODO! - Change this test to `requires_student_navigation` rather than
-        # `is_launched_by_canvas`. GradingInfo objects are stored to
-        # enable student navigation, which Canvas happens not to require.
         if not lti_user.is_instructor and not self.is_launched_by_canvas():
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="grading_info").upsert_from_request(
@@ -353,7 +350,6 @@ class BasicLTILaunchViews:
             # of the experience can still work.
             display_name = "(Couldn't fetch student name)"
 
-        # TODO! - Could/should this be replaced with a GradingInfo lookup?
         self.context.js_config.config["hypothesisClient"].update(
             {"focus": {"user": {"username": focused_user, "displayName": display_name}}}
         )

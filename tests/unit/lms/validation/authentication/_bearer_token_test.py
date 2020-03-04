@@ -110,7 +110,7 @@ class TestBearerTokenSchema:
 
     @pytest.fixture
     def lti_user(self):
-        """The original LTIUser that was encoded as a JWT in the request."""
+        """Return the original LTIUser that was encoded as a JWT in the request."""
         return LTIUser(
             user_id="TEST_USER_ID",
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
@@ -119,7 +119,7 @@ class TestBearerTokenSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        """A BearerTokenSchema configured with the right secret."""
+        """Return a BearerTokenSchema configured with the right secret."""
         return BearerTokenSchema(pyramid_request)
 
     @pytest.fixture

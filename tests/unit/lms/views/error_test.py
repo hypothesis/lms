@@ -17,9 +17,13 @@ class ExceptionViewTest:
 
     def handle(self, pyramid_request):
         if self.exception is None:
-            return type(self).view(mock.sentinel.exception, pyramid_request)
+            return type(self).view(  # pylint:disable=not-callable
+                mock.sentinel.exception, pyramid_request
+            )
 
-        return type(self).view(self.exception, pyramid_request)
+        return type(self).view(  # pylint:disable=not-callable
+            self.exception, pyramid_request
+        )
 
     def test_it_reports_exception_to_sentry_as_appropriate(
         self, pyramid_request, h_pyramid_sentry
@@ -66,7 +70,9 @@ class TestHTTPClientError(ExceptionViewTest):
 
     response_status = 400
     report_to_sentry = False
-    expected_result = {"message": exception.args[0]}
+    expected_result = {
+        "message": exception.args[0]  # pylint:disable=unsubscriptable-object
+    }
 
 
 class TestHTTPServerError(ExceptionViewTest):
@@ -75,16 +81,9 @@ class TestHTTPServerError(ExceptionViewTest):
 
     response_status = 500
     report_to_sentry = True
-    expected_result = {"message": exception.args[0]}
-
-
-class TestHTTPServerError(ExceptionViewTest):
-    view = error.http_server_error
-    exception = HTTPServerError("This is the error message")
-
-    response_status = 500
-    report_to_sentry = True
-    expected_result = {"message": exception.args[0]}
+    expected_result = {
+        "message": exception.args[0]  # pylint:disable=unsubscriptable-object
+    }
 
 
 class TestValidationError(ExceptionViewTest):

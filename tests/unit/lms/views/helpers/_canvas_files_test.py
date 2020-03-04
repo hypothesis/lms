@@ -65,4 +65,4 @@ class TestCanvasFilesAvailable:
             "custom_canvas_course_id": "FOO",
         }
 
-        assert canvas_files_available(pyramid_request) is False
+        assert not canvas_files_available(pyramid_request)
