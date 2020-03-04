@@ -11,7 +11,7 @@ from lms.values import HUser, LTIUser
 
 class TestUpsertCourseGroup:
     def test_it_does_nothing_if_the_feature_isnt_enabled(
-        self, context, pyramid_request, h_api, lti_h_svc
+        self, context, h_api, lti_h_svc
     ):
         # If the auto provisioning feature isn't enabled for this application
         # instance then upsert_course_group() doesn't do anything - just calls the
@@ -22,9 +22,7 @@ class TestUpsertCourseGroup:
 
         h_api.update_group.assert_not_called()
 
-    def test_it_calls_the_group_update_api(
-        self, context, pyramid_request, h_api, lti_h_svc
-    ):
+    def test_it_calls_the_group_update_api(self, h_api, lti_h_svc):
         lti_h_svc.upsert_course_group()
 
         h_api.update_group.assert_called_once_with(
@@ -32,9 +30,7 @@ class TestUpsertCourseGroup:
         )
         h_api.create_group.assert_not_called()
 
-    def test_it_raises_if_updating_the_group_fails(
-        self, context, pyramid_request, h_api, lti_h_svc
-    ):
+    def test_it_raises_if_updating_the_group_fails(self, h_api, lti_h_svc):
         # If the group update API call fails for any non-404 reason then the
         # view raises an exception and an error page is shown.
         h_api.update_group.side_effect = HAPIError("Oops")
@@ -43,7 +39,7 @@ class TestUpsertCourseGroup:
             lti_h_svc.upsert_course_group()
 
     def test_it_creates_the_group_if_it_doesnt_exist(
-        self, context, pyramid_request, h_api, lti_h_svc, h_user
+        self, pyramid_request, h_api, lti_h_svc, h_user
     ):
         pyramid_request.lti_user = LTIUser(
             user_id="TEST_USER_ID",
@@ -59,7 +55,7 @@ class TestUpsertCourseGroup:
         )
 
     def test_it_raises_if_creating_the_group_fails(
-        self, context, pyramid_request, h_api, lti_h_svc
+        self, pyramid_request, h_api, lti_h_svc
     ):
         pyramid_request.lti_user = LTIUser(
             user_id="TEST_USER_ID",
@@ -73,7 +69,7 @@ class TestUpsertCourseGroup:
             lti_h_svc.upsert_course_group()
 
     def test_it_400s_with_missing_group_and_unpriviledged_user(
-        self, context, pyramid_request, h_api, lti_h_svc
+        self, pyramid_request, h_api, lti_h_svc
     ):
         pyramid_request.lti_user = LTIUser(
             user_id="TEST_USER_ID",
@@ -90,7 +86,7 @@ class TestUpsertCourseGroup:
         h_api.create_group.assert_not_called()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
-        self, params, group_info_service, context, pyramid_request, lti_h_svc
+        self, params, group_info_service, context, lti_h_svc
     ):
         lti_h_svc.upsert_course_group()
 
@@ -101,14 +97,14 @@ class TestUpsertCourseGroup:
         )
 
     def test_it_doesnt_upsert_GroupInfo_into_the_db_if_creating_the_group_fails(
-        self, group_info_service, context, pyramid_request, h_api, lti_h_svc
+        self, group_info_service, h_api, lti_h_svc
     ):
         h_api.update_group.side_effect = HAPINotFoundError()
         h_api.create_group.side_effect = HAPIError("Oops")
 
         try:
             lti_h_svc.upsert_course_group()
-        except:
+        except:  # pylint: disable=bare-except
             pass
 
         group_info_service.assert_not_called()
@@ -126,9 +122,7 @@ class TestUpsertCourseGroup:
 
 
 class TestUpsertHUser:
-    def test_it_calls_h_api_for_user_update(
-        self, context, pyramid_request, h_api, lti_h_svc, h_user
-    ):
+    def test_it_calls_h_api_for_user_update(self, h_api, lti_h_svc, h_user):
         lti_h_svc.upsert_h_user()
 
         h_api.upsert_user.assert_called_once_with(
@@ -137,16 +131,14 @@ class TestUpsertHUser:
             provider_unique_id="test_provider_unique_id",
         )
 
-    def test_it_raises_if_upsert_user_raises_unexpected_error(
-        self, context, pyramid_request, h_api, lti_h_svc
-    ):
+    def test_it_raises_if_upsert_user_raises_unexpected_error(self, h_api, lti_h_svc):
         h_api.upsert_user.side_effect = HAPIError("whatever")
 
         with pytest.raises(HTTPInternalServerError, match="whatever"):
             lti_h_svc.upsert_h_user()
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, context, h_api, pyramid_request, lti_h_svc
+        self, context, h_api, lti_h_svc
     ):
         context.provisioning_enabled = False
 
@@ -154,21 +146,19 @@ class TestUpsertHUser:
 
         h_api.upsert_user.assert_not_called()
 
-    def test_it_raises_if_h_user_raises(self, context, pyramid_request, lti_h_svc):
+    def test_it_raises_if_h_user_raises(self, context, lti_h_svc):
         type(context).h_user = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
             lti_h_svc.upsert_h_user()
 
-    def test_it_raises_if_h_provider_raises(self, context, pyramid_request, lti_h_svc):
+    def test_it_raises_if_h_provider_raises(self, context, lti_h_svc):
         type(context).h_provider = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
             lti_h_svc.upsert_h_user()
 
-    def test_it_raises_if_provider_unique_id_raises(
-        self, context, pyramid_request, lti_h_svc
-    ):
+    def test_it_raises_if_provider_unique_id_raises(self, context, lti_h_svc):
         type(context).h_provider_unique_id = mock.PropertyMock(
             side_effect=HTTPBadRequest("Oops")
         )
@@ -179,7 +169,7 @@ class TestUpsertHUser:
 
 class TestAddUserToGroup:
     def test_it_doesnt_post_to_the_api_if_feature_not_enabled(
-        self, context, pyramid_request, h_api, lti_h_svc
+        self, context, h_api, lti_h_svc
     ):
         context.provisioning_enabled = False
 
@@ -187,16 +177,14 @@ class TestAddUserToGroup:
 
         h_api.add_user_to_group.assert_not_called()
 
-    def test_it_adds_the_user_to_the_group(
-        self, context, pyramid_request, h_api, lti_h_svc, h_user
-    ):
+    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, h_user):
         lti_h_svc.add_user_to_group()
 
         h_api.add_user_to_group.assert_called_once_with(
             h_user=h_user, group_id="test_groupid"
         )
 
-    def test_it_raises_if_post_raises(self, context, pyramid_request, h_api, lti_h_svc):
+    def test_it_raises_if_post_raises(self, h_api, lti_h_svc):
         h_api.add_user_to_group.side_effect = HAPIError("Oops")
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
@@ -239,7 +227,7 @@ def context(h_user):
         h_authority_provided_id = "test_authority_provided_id"
 
     context = TestContext()
-    context.h_user = h_user
+    context.h_user = h_user  # pylint:disable=attribute-defined-outside-init
     return context
 
 

@@ -70,7 +70,8 @@ class Test_CachedFile:
 
     @pytest.fixture
     def loader(self):
-        reader = lambda handle: handle.read()
+        def reader(handle):
+            return handle.read()
 
         loader = mock.create_autospec(spec=reader)
         loader.side_effect = reader

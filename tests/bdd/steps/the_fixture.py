@@ -3,7 +3,7 @@
 import json
 import os.path
 
-from behave import given, step, then
+from behave import given, step, then  # pylint:disable=no-name-in-module
 from pkg_resources import resource_filename
 
 from tests.bdd.step_context import StepContext
@@ -15,6 +15,7 @@ class TheFixture(StepContext):
     context_key = "the_fixture"
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.base_dir = None
         self.fixtures = {}
 

@@ -160,6 +160,11 @@ class CanvasAPIHelper:
           and the response had a 2xx HTTP status.
         :type schema: a subclass of :cls:`lms.validation.RequestsResponseSchema`
 
+        :arg access_token: the access token to use in the
+            "Authorization: Bearer <ACCESS_TOKEN>" header to authorize the
+            request
+        :type access_token: str
+
         :raise lms.services.CanvasAPIAccessTokenError: if the request fails
             because our Canvas API access token for the user is missing,
             expired, or has been deleted

@@ -4,7 +4,7 @@ from typing import NamedTuple
 __all__ = ("LTIUser", "HUser")
 
 
-class LTIUser(NamedTuple):
+class LTIUser(NamedTuple):  # pylint:disable=too-few-public-methods
     """An LTI user."""
 
     user_id: str
@@ -25,7 +25,7 @@ class LTIUser(NamedTuple):
         )
 
 
-class HUser(NamedTuple):
+class HUser(NamedTuple):  # pylint:disable=too-few-public-methods
     """
     An 'h' user.
 

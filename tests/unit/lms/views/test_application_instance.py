@@ -11,11 +11,11 @@ class TestCreateApplicationInstance:
     def test_it_creates_an_application_instance(self, pyramid_request):
         create_application_instance(pyramid_request)
 
-        ai = pyramid_request.db.query(ApplicationInstance).one()
-        assert ai.lms_url == "canvas.example.com"
-        assert ai.requesters_email == "email@example.com"
-        assert ai.developer_key is None
-        assert ai.developer_secret is None
+        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        assert application_instance.lms_url == "canvas.example.com"
+        assert application_instance.requesters_email == "email@example.com"
+        assert application_instance.developer_key is None
+        assert application_instance.developer_secret is None
 
     def test_it_saves_the_Canvas_developer_key_and_secret_if_given(
         self, pyramid_request
@@ -25,9 +25,9 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        ai = pyramid_request.db.query(ApplicationInstance).one()
-        assert ai.developer_key == "example_key"
-        assert ai.developer_secret
+        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        assert application_instance.developer_key == "example_key"
+        assert application_instance.developer_secret
 
     @pytest.mark.parametrize(
         "developer_key,developer_secret",
@@ -46,9 +46,9 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        ai = pyramid_request.db.query(ApplicationInstance).one()
-        assert ai.developer_key is None
-        assert ai.developer_secret is None
+        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        assert application_instance.developer_key is None
+        assert application_instance.developer_secret is None
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

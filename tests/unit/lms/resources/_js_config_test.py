@@ -76,7 +76,7 @@ class TestJSConfigHypothesisClient:
         assert config["services"][0]["authority"] == "TEST_AUTHORITY"
 
     def test_it_disables_share_links(self, config):
-        assert config["services"][0]["enableShareLinks"] is False
+        assert not config["services"][0]["enableShareLinks"]
 
     def test_it_includes_grant_token(self, config):
         before = int(datetime.datetime.now().timestamp())
@@ -123,6 +123,7 @@ class TestJSConfigHypothesisClient:
         )
 
         with pytest.raises(HTTPBadRequest, match="example error message"):
+            # pylint:disable=expression-not-assigned,protected-access
             JSConfig(context, pyramid_request)._hypothesis_client
 
     @pytest.fixture

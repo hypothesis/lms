@@ -127,7 +127,8 @@ def db_session(db_engine):
     @sqlalchemy.event.listens_for(session, "after_transaction_end")
     def restart_savepoint(session, transaction):  # pylint:disable=unused-variable
         if (
-            transaction.nested and not transaction._parent.nested
+            transaction.nested
+            and not transaction._parent.nested  # pylint: disable=protected-access
         ):  # pylint:disable=protected-access
             session.begin_nested()
 
@@ -192,7 +193,7 @@ def group_info_service(pyramid_config):
 
 
 @pytest.fixture
-def h_api(patch, pyramid_config):
+def h_api(pyramid_config):
     h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
     pyramid_config.register_service(h_api, name="h_api")
     return h_api

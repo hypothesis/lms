@@ -1,6 +1,6 @@
 """Make requests to a web-test application."""
 
-from behave import when
+from behave import when  # pylint:disable=no-name-in-module
 from h_matchers import Any
 from webtest import TestApp
 
@@ -12,6 +12,7 @@ class TheApp(StepContext):
     context_key = "the_app"
 
     def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
         self.app = TestApp(app)
 
     def send_request(self, request):

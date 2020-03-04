@@ -7,7 +7,7 @@ import jwt
 from lms.validation.authentication import BearerTokenSchema
 
 
-class JSConfig:
+class JSConfig:  # pylint:disable=too-few-public-methods
     """The config for the app's JavaScript code."""
 
     def __init__(self, context, request):

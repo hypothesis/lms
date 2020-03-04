@@ -93,8 +93,8 @@ class Renderer:
         source_dir = os.path.relpath(source_dir, resource_filename("tests", "../"))
 
         python_code = (
-            f'"""\nThis code is auto-generated.\n\nFrom {source_dir}/.\n"""'
-            "\n\nfrom behave import step\n"
+            f'"""\nAuto-generated.\n\nFrom {source_dir}/.\n"""'
+            "\n\nfrom behave import step  # pylint:disable=no-name-in-module\n"
         )
 
         for feature_step in sorted(feature_steps, key=lambda step: step.name):

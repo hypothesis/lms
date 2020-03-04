@@ -14,7 +14,7 @@ class TestLTIAuthenticationPolicy:
         policy = LTIAuthenticationPolicy()
         method = getattr(policy, method_name)
 
-        userid = policy.authenticated_userid(pyramid_request)
+        userid = method(pyramid_request)
 
         _helpers.authenticated_userid.assert_called_once_with(pyramid_request.lti_user)
         assert userid == _helpers.authenticated_userid.return_value
@@ -27,7 +27,7 @@ class TestLTIAuthenticationPolicy:
         policy = LTIAuthenticationPolicy()
         method = getattr(policy, method_name)
 
-        assert policy.authenticated_userid(pyramid_request) is None
+        assert method(pyramid_request) is None
 
     def test_effective_principals_when_theres_an_lti_user(
         self, pyramid_request, _helpers

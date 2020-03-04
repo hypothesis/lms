@@ -5,7 +5,7 @@ from lms.validation import ConfigureModuleItemSchema, ValidationError
 
 
 class TestConfigureModuleItemSchema:
-    def test_that_validation_succeeds_for_valid_requests(self, pyramid_request, schema):
+    def test_that_validation_succeeds_for_valid_requests(self, schema):
         schema.parse()
 
     @pytest.mark.parametrize(

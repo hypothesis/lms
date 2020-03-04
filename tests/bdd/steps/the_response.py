@@ -2,7 +2,7 @@
 
 import re
 
-from behave import then
+from behave import then  # pylint:disable=no-name-in-module
 
 from tests.bdd.step_context import StepContext
 from tests.bdd.steps.the_url import TheURL
@@ -13,6 +13,7 @@ class WebTestResponse(StepContext):
     ephemeral = True
 
     def __init__(self, response, **kwargs):
+        super().__init__(**kwargs)
         self.response = response
 
     def get_body(self):
@@ -52,7 +53,7 @@ def the_response_body_matches(context, regex):
 
 
 @then("the response body does not match '{regex}'")
-def the_response_body_matches(context, regex):
+def the_response_body_does_not_match(context, regex):
     body = context.the_response.get_body()
 
     assert not re.compile(regex).search(body), f'The body does not match "{regex}"'

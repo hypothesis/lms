@@ -68,7 +68,7 @@ class TestBasicLTILaunch(TestBaseClass):
     # Fixtures ------------------------------------------------------------- #
 
     @pytest.fixture(autouse=True)
-    def application_instance(self, db_session, app):
+    def application_instance(self, db_session):
         # Load app so we create the instance after the DB has been truncated
 
         application_instance = ApplicationInstance(
@@ -84,7 +84,7 @@ class TestBasicLTILaunch(TestBaseClass):
         return application_instance
 
     @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
-    def module_item_configuration(self, request, db_session, application_instance):
+    def module_item_configuration(self, request, db_session):
         if request.param == "unconfigured":
             return
 
@@ -96,8 +96,6 @@ class TestBasicLTILaunch(TestBaseClass):
 
         db_session.add(module_item_configuration)
         db_session.commit()
-
-        return module_item_configuration
 
     @pytest.fixture
     def lti_params(self):
@@ -126,7 +124,7 @@ class TestBasicLTILaunch(TestBaseClass):
         )
 
         # Catch URLs we aren't expecting or have failed to mock
-        def error_response(request, uri, response_headers):
+        def error_response(request, uri, _response_headers):
             raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
 
         httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)

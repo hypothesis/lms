@@ -63,9 +63,9 @@ class TestSettingGetter:
     )
     def test_it(self, os_fixture, environ, settings, envvar_name, default, expected):
         os_fixture.environ = environ
-        sg = SettingGetter(settings)
+        settings_getter = SettingGetter(settings)
 
-        assert sg.get(envvar_name, default=default) == expected
+        assert settings_getter.get(envvar_name, default=default) == expected
 
     @pytest.fixture
     def os_fixture(self, patch):

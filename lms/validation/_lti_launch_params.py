@@ -18,7 +18,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
     class URLSchema(Schema):
         """Schema containing only validation for the return URL."""
 
-        class Meta:
+        class Meta:  # pylint:disable=too-few-public-methods
             """Allow other values, as we are only here to validate the URL."""
 
             unknown = EXCLUDE

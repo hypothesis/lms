@@ -8,4 +8,4 @@ def test_includeme(pyramid_config):
 
     session_factory = pyramid_config.registry.queryUtility(ISessionFactory)
     assert session_factory is not None
-    assert session_factory._cookie_secure is True
+    assert session_factory._cookie_secure is True  # pylint:disable=protected-access

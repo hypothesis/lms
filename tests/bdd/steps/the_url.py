@@ -3,7 +3,7 @@
 import re
 from urllib.parse import parse_qs, urlparse
 
-from behave import then
+from behave import then  # pylint:disable=no-name-in-module
 
 from tests.bdd.step_context import StepContext
 
@@ -13,6 +13,7 @@ class TheURL(StepContext):
     ephemeral = True
 
     def __init__(self, url, **kwargs):
+        super().__init__(**kwargs)
         self.raw_url = url
         self.url = urlparse(url)
         self.query = parse_qs(self.url.query)

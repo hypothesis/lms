@@ -23,7 +23,7 @@ class TestApplicationInstance:
         db_session.add(application_instance)
         db_session.flush()
 
-        assert application_instance.provisioning is False
+        assert not application_instance.provisioning
 
     def test_provisioning_is_not_nullable(self, db_session, application_instance):
         application_instance.provisioning = None

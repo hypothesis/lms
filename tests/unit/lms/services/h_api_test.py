@@ -1,10 +1,10 @@
 from unittest.mock import patch, sentinel
 
 import pytest
+import requests as requests_
 from h_matchers import Any
 from pyramid.testing import DummyRequest
 from requests import (
-    ConnectionError,
     HTTPError,
     ReadTimeout,
     RequestException,
@@ -21,6 +21,11 @@ AUTHORITY = "test-authority"
 
 
 class TestHAPI:
+
+    # We're accessing h_api._api_request a lot in this test class, so disable
+    # protected-access messages.
+    # pylint: disable=protected-access
+
     def test_get_user_works(self, h_api):
         h_api._api_request.return_value.json.return_value = {
             "display_name": sentinel.display_name
@@ -120,6 +125,11 @@ class TestHAPI:
 
 
 class TestHAPIRequest:
+
+    # We're accessing h_api._api_request a lot in this test class, so disable
+    # protected-access messages.
+    # pylint: disable=protected-access
+
     def test_it_passes_expected_defaults(self, h_api, requests):
         h_api._api_request(sentinel.method, "dummy-path")
 
@@ -162,7 +172,8 @@ class TestHAPIRequest:
         assert exc_info.value.__cause__ == exception
 
     @pytest.mark.parametrize(
-        "exception_class", [ConnectionError, HTTPError, ReadTimeout, TooManyRedirects]
+        "exception_class",
+        [requests_.ConnectionError, HTTPError, ReadTimeout, TooManyRedirects],
     )
     def test_it_raises_HAPIError_for_other_http_errors(
         self, h_api, requests, exception_class

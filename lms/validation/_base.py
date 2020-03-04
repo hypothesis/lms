@@ -39,7 +39,7 @@ class PlainSchema(marshmallow.Schema):
     def __init__(self):
         super().__init__(many=self.many)
 
-    class Meta:
+    class Meta:  # pylint:disable=too-few-public-methods
         """Marshmallow options for all schemas."""
 
         # Drop unknown keys, instead of raising an error.

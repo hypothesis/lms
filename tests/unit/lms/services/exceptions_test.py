@@ -153,7 +153,7 @@ class TestCanvasAPIError:
     ):
         cause = ValidationError("The response was invalid.")
         cause.response = canvas_api_invalid_response
-        cause.response.body = "x" * 1000
+        cause.response.body = "x" * 1000  # pylint:disable=no-member
 
         raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
@@ -207,7 +207,8 @@ class TestCanvasAPIError:
         return requests.get("https://example.com")
 
     @staticmethod
-    def _requests_exception(**kwargs):
+    def _requests_exception(**kwargs):  # pylint:disable=inconsistent-return-statements
+
         httpretty.register_uri(
             httpretty.GET,
             "https://example.com",
@@ -222,5 +223,3 @@ class TestCanvasAPIError:
             response.raise_for_status()
         except requests.RequestException as err:
             return err
-
-        assert False, "We should never get here"  # pragma: no cover

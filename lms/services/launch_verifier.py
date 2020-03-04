@@ -11,7 +11,7 @@ from lms.services import (
 __all__ = ["LaunchVerifier"]
 
 
-class LaunchVerifier:
+class LaunchVerifier:  # pylint:disable=too-few-public-methods
     """LTI launch request verifier."""
 
     def __init__(self, _context, request):

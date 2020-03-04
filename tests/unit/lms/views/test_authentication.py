@@ -57,9 +57,9 @@ class TestAuthentication:
 
         response = sut.login()
 
-        assert response["message"] == ""
+        assert not response["message"]
         assert response["url"] == "http://example.com/login"
-        assert response["username"] == ""
+        assert not response["username"]
 
     def test_logout(self, pyramid_request):
         pyramid_request.params = {

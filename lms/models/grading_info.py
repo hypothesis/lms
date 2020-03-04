@@ -7,7 +7,7 @@ from lms.db import BASE
 __all__ = ["GradingInfo"]
 
 
-class GradingInfo(BASE):
+class GradingInfo(BASE):  # pylint:disable=too-few-public-methods
     """
     A record of a student's launch of a Hypothesis-configured LMS assignment.
 

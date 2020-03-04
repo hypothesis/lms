@@ -3,7 +3,7 @@
 import time
 
 import oauthlib
-from behave import step
+from behave import step  # pylint:disable=no-name-in-module
 
 from tests.bdd.step_context import StepContext
 
@@ -12,6 +12,7 @@ class OAuth1Context(StepContext):
     context_key = "oath_context"
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.consumer_key = None
         self.shared_secret = None
         self.client = None

@@ -40,7 +40,7 @@ class CommonResponseSchemaTests:
 
 
 class TestCanvasListFilesResponseSchema(CommonResponseSchemaTests):
-    def test_it_returns_the_list_of_files(self, schema, list_files_response):
+    def test_it_returns_the_list_of_files(self, schema):
         parsed_params = schema.parse()
 
         assert parsed_params == [
@@ -112,7 +112,7 @@ class TestCanvasListFilesResponseSchema(CommonResponseSchemaTests):
     def schema(self, list_files_response):
         return CanvasListFilesResponseSchema(list_files_response)
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def list_files_response(self, response):
         """
         Return a Canvas list files API response.
@@ -197,7 +197,7 @@ class TestCanvasListFilesResponseSchema(CommonResponseSchemaTests):
 
 
 class TestCanvasPublicURLResponseSchema(CommonResponseSchemaTests):
-    def test_it_returns_the_public_url(self, schema, public_url_response):
+    def test_it_returns_the_public_url(self, schema):
         parsed_params = schema.parse()
 
         assert parsed_params == {
@@ -231,7 +231,7 @@ class TestCanvasPublicURLResponseSchema(CommonResponseSchemaTests):
     def schema(self, public_url_response):
         return CanvasPublicURLResponseSchema(public_url_response)
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def public_url_response(self, response):
         response.json.return_value = {
             "public_url": "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature"

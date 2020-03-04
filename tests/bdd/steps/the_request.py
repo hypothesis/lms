@@ -1,6 +1,6 @@
 """Form and manipulate HTTP requests."""
 
-from behave import given
+from behave import given  # pylint:disable=no-name-in-module
 from requests import Request
 
 from tests.bdd.step_context import StepContext
@@ -10,6 +10,7 @@ class TheRequest(StepContext):
     context_key = "the_request"
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.request = None
 
     def new_request(self, method, url):

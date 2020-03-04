@@ -51,14 +51,14 @@ class TestGetByAssignment:
 
     @pytest.fixture(autouse=True)
     def matching_grading_infos(self, db_session):
-        """Some GradingInfo's that should match the DB query in the test above."""
+        """Add some GradingInfo's that should match the DB query in the test above."""
         matching_grading_infos = [self.grading_info("matching", i) for i in range(3)]
         db_session.add_all(matching_grading_infos)
         return matching_grading_infos
 
     @pytest.fixture(autouse=True)
     def noise_grading_infos(self, db_session):
-        """Some GradingInfo's that should *not* match the test query."""
+        """Add some GradingInfo's that should *not* match the test query."""
         noise_grading_infos = [self.grading_info("noise", i) for i in range(3)]
         db_session.add_all(noise_grading_infos)
         return noise_grading_infos

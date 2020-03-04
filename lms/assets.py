@@ -7,7 +7,7 @@ from pyramid.settings import aslist
 from pyramid.static import static_view
 
 
-class _CachedFile:
+class _CachedFile:  # pylint:disable=too-few-public-methods
     """
     Parses content from a file and caches the result.
 
@@ -133,20 +133,20 @@ def _add_cors_header(wrapped):
     return wrapper
 
 
-def _load_bundles(fp):
+def _load_bundles(file_):
     """Read an asset bundle config from a file object."""
     parser = configparser.ConfigParser()
-    parser.read_file(fp)
+    parser.read_file(file_)
     return {k: aslist(v) for k, v in parser.items("bundles")}
 
 
 # Site assets
-ASSETS_VIEW = static_view("lms:../build", cache_max_age=None, use_subpath=True)
-ASSETS_VIEW = _add_cors_header(ASSETS_VIEW)
+ASSETS_VIEW = _add_cors_header(
+    static_view("lms:../build", cache_max_age=None, use_subpath=True)
+)
 
 
 def includeme(config):
-    # TODO: figure out auto reload if we want it
     config.add_view(route_name="assets", view=ASSETS_VIEW)
 
     assets_env = Environment(
