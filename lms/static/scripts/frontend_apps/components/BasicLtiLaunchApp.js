@@ -51,7 +51,6 @@ export default function BasicLtiLaunchApp() {
   const {
     authToken,
     authUrl,
-    lmsName,
     grading,
     lmsGrader,
     submissionParams,
@@ -176,7 +175,7 @@ export default function BasicLtiLaunchApp() {
       authWindow.current.focus();
       return;
     }
-    authWindow.current = new AuthWindow({ authToken, authUrl, lmsName });
+    authWindow.current = new AuthWindow({ authToken, authUrl });
 
     try {
       await authWindow.current.authorize();
@@ -185,7 +184,7 @@ export default function BasicLtiLaunchApp() {
       // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
-  }, [authToken, authUrl, fetchContentUrl, lmsName]);
+  }, [authToken, authUrl, fetchContentUrl]);
 
   if (ltiLaunchState.state === 'fetched-url') {
     const iFrame = (

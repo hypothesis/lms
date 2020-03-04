@@ -4,10 +4,9 @@ import queryString from 'query-string';
  * Manages an LMS authentication popup window.
  */
 export default class AuthWindow {
-  constructor({ authToken, authUrl, lmsName }) {
+  constructor({ authToken, authUrl }) {
     this._authToken = authToken;
     this._authUrl = authUrl;
-    this._lmsName = lmsName;
   }
 
   close() {
@@ -43,7 +42,7 @@ export default class AuthWindow {
     const authUrl = `${this._authUrl}?${authQuery}`;
     this._authWin = window.open(
       authUrl,
-      `Allow access to ${this._lmsName} files`,
+      `Allow access to Canvas files`,
       settings
     );
 

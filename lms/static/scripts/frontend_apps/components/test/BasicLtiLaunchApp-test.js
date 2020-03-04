@@ -34,7 +34,6 @@ describe('BasicLtiLaunchApp', () => {
     fakeConfig = {
       authToken: 'dummyAuthToken',
       authUrl: 'https://lms.hypothes.is/authorize-lms',
-      lmsName: 'Shiny LMS',
       urls: {},
     };
     fakeApiCall = sinon.stub();
