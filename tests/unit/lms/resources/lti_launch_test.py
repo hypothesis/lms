@@ -258,6 +258,19 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_provider_unique_id
 
+    @pytest.mark.parametrize(
+        "tool_consumer_info_product_family_code,is_canvas",
+        [("canvas", True), ("whiteboard", False)],
+    )
+    def test_is_canvas(
+        self, pyramid_request, tool_consumer_info_product_family_code, is_canvas
+    ):
+        pyramid_request.params[
+            "tool_consumer_info_product_family_code"
+        ] = tool_consumer_info_product_family_code
+
+        assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
+
     def test_h_user_username_is_a_30_char_string(self, pyramid_request):
         pyramid_request.params.update(
             {

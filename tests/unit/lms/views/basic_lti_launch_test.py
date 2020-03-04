@@ -82,10 +82,11 @@ def configure_module_item_caller(context, pyramid_request):
 class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
+    @pytest.mark.usefixtures("is_canvas")
     def test_it_adds_report_submission_config_if_the_LMS_is_Canvas(
-        self, context, canvas_request
+        self, context, pyramid_request
     ):
-        BasicLTILaunchViews(context, canvas_request)
+        BasicLTILaunchViews(context, pyramid_request)
 
         assert context.js_config.config["submissionParams"] == {
             "h_username": context.h_user.username,
@@ -117,30 +118,32 @@ class TestBasicLTILaunchViewsInit:
 
         assert "submissionParams" not in context.js_config.config
 
+    @pytest.mark.usefixtures("is_canvas")
     def test_it_configures_client_to_focus_on_user_if_in_canvas_and_param_set(
-        self, context, canvas_request, h_api
+        self, context, pyramid_request, h_api
     ):
         context.js_config.config["hypothesisClient"] = {}
-        canvas_request.params["focused_user"] = "user123"
+        pyramid_request.params["focused_user"] = "user123"
         h_api.get_user.return_value = HUser(
             authority="TEST_AUTHORITY", username="user123", display_name="Jim Smith"
         )
 
-        BasicLTILaunchViews(context, canvas_request)
+        BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
         assert context.js_config.config["hypothesisClient"]["focus"] == {
             "user": {"username": "user123", "displayName": "Jim Smith"}
         }
 
+    @pytest.mark.usefixtures("is_canvas")
     def test_it_uses_placeholder_display_name_for_focused_user_if_api_call_fails(
-        self, context, canvas_request, h_api
+        self, context, pyramid_request, h_api
     ):
         context.js_config.config["hypothesisClient"] = {}
-        canvas_request.params["focused_user"] = "user123"
+        pyramid_request.params["focused_user"] = "user123"
         h_api.get_user.side_effect = HAPIError("User does not exist")
 
-        BasicLTILaunchViews(context, canvas_request)
+        BasicLTILaunchViews(context, pyramid_request)
 
         h_api.get_user.assert_called_once_with("user123")
         assert context.js_config.config["hypothesisClient"]["focus"] == {
@@ -195,10 +198,11 @@ class TestCommon:
 
         grading_info_service.upsert_from_request.assert_not_called()
 
+    @pytest.mark.usefixtures("is_canvas")
     def test_it_does_not_call_grading_info_upsert_if_canvas(
-        self, context, canvas_request, grading_info_service, view_caller
+        self, context, pyramid_request, grading_info_service, view_caller
     ):
-        view_caller(context, canvas_request)
+        view_caller(context, pyramid_request)
 
         grading_info_service.upsert_from_request.assert_not_called()
 
@@ -222,22 +226,23 @@ class TestCommon:
         return request.param
 
 
+@pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
-    def test_it_configures_frontend(self, context, canvas_request):
-        canvas_file_basic_lti_launch_caller(context, canvas_request)
+    def test_it_configures_frontend(self, context, pyramid_request):
+        canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         assert context.js_config.config["lmsName"] == "Canvas"
 
-    def test_it_configures_via_callback_url(self, context, canvas_request):
-        canvas_file_basic_lti_launch_caller(context, canvas_request)
+    def test_it_configures_via_callback_url(self, context, pyramid_request):
+        canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         assert (
             context.js_config.config["urls"]["via_url_callback"]
             == "http://example.com/api/canvas/files/TEST_FILE_ID/via_url"
         )
 
-    def test_it_configures_submission_params(self, context, canvas_request):
-        canvas_file_basic_lti_launch_caller(context, canvas_request)
+    def test_it_configures_submission_params(self, context, pyramid_request):
+        canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         assert (
             context.js_config.config["submissionParams"]["canvas_file_id"]
@@ -246,17 +251,18 @@ class TestCanvasFileBasicLTILaunch:
 
 
 class TestDBConfiguredBasicLTILaunch:
+    @pytest.mark.usefixtures("is_canvas")
     def test_it_configures_via_url(
-        self, context, canvas_request, via_url, ModuleItemConfiguration,
+        self, context, pyramid_request, via_url, ModuleItemConfiguration,
     ):
         ModuleItemConfiguration.get_document_url.return_value = "TEST_DOCUMENT_URL"
 
-        db_configured_basic_lti_launch_caller(context, canvas_request)
+        db_configured_basic_lti_launch_caller(context, pyramid_request)
 
         ModuleItemConfiguration.get_document_url.assert_called_once_with(
-            canvas_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID",
+            pyramid_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID",
         )
-        via_url.assert_called_once_with(canvas_request, "TEST_DOCUMENT_URL")
+        via_url.assert_called_once_with(pyramid_request, "TEST_DOCUMENT_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
         assert (
             context.js_config.config["submissionParams"]["document_url"]
@@ -273,10 +279,11 @@ class TestDBConfiguredBasicLTILaunch:
 
 
 class TestURLConfiguredBasicLTILaunch:
-    def test_it_configures_via_url(self, context, canvas_request, via_url):
-        url_configured_basic_lti_launch_caller(context, canvas_request)
+    @pytest.mark.usefixtures("is_canvas")
+    def test_it_configures_via_url(self, context, pyramid_request, via_url):
+        url_configured_basic_lti_launch_caller(context, pyramid_request)
 
-        via_url.assert_called_once_with(canvas_request, "TEST_URL")
+        via_url.assert_called_once_with(pyramid_request, "TEST_URL")
         assert context.js_config.config["urls"]["via_url"] == via_url.return_value
         assert (
             context.js_config.config["submissionParams"]["document_url"] == "TEST_URL"
@@ -400,7 +407,14 @@ def context():
     context.js_config = mock.create_autospec(
         JSConfig, spec_set=True, instance=True, config={"urls": {}}
     )
+    context.is_canvas = False
     return context
+
+
+@pytest.fixture
+def is_canvas(context):
+    """Set the LMS that launched us to Canvas."""
+    context.is_canvas = True
 
 
 @pytest.fixture
@@ -411,12 +425,6 @@ def pyramid_request(pyramid_request):
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         }
     )
-    return pyramid_request
-
-
-@pytest.fixture
-def canvas_request(pyramid_request):
-    pyramid_request.params["tool_consumer_info_product_family_code"] = "canvas"
     return pyramid_request
 
 
