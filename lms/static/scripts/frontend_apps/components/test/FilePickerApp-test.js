@@ -44,7 +44,6 @@ describe('FilePickerApp', () => {
       enableLmsFilePicker: true,
       formAction: 'https://www.shinylms.com/',
       formFields: { hidden_field: 'hidden_value' },
-      lmsName: 'Shiny LMS',
       ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
     };
 
@@ -90,13 +89,13 @@ describe('FilePickerApp', () => {
   it('renders LMS file picker button if `enableLmsFilePicker` is true', () => {
     fakeConfig.enableLmsFilePicker = true;
     const wrapper = renderFilePicker();
-    assert.isTrue(wrapper.exists('Button[label="Select PDF from Shiny LMS"]'));
+    assert.isTrue(wrapper.exists('Button[label="Select PDF from Canvas"]'));
   });
 
   it('does not render LMS file picker button if `enableLmsFilePicker` is false', () => {
     fakeConfig.enableLmsFilePicker = false;
     const wrapper = renderFilePicker();
-    assert.isFalse(wrapper.exists('Button[label="Select PDF from Shiny LMS"]'));
+    assert.isFalse(wrapper.exists('Button[label="Select PDF from Canvas"]'));
   });
 
   it('renders initial form with no dialog visible', () => {
@@ -134,10 +133,10 @@ describe('FilePickerApp', () => {
     );
   });
 
-  it('shows LMS file dialog when "Select PDF from <LMS Name>" is clicked', () => {
+  it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
     const wrapper = renderFilePicker();
 
-    const btn = wrapper.find('Button[label="Select PDF from Shiny LMS"]');
+    const btn = wrapper.find('Button[label="Select PDF from Canvas"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });

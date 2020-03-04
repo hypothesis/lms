@@ -228,11 +228,6 @@ class TestCommon:
 
 @pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
-    def test_it_configures_frontend(self, context, pyramid_request):
-        canvas_file_basic_lti_launch_caller(context, pyramid_request)
-
-        assert context.js_config.config["lmsName"] == "Canvas"
-
     def test_it_configures_via_callback_url(self, context, pyramid_request):
         canvas_file_basic_lti_launch_caller(context, pyramid_request)
 

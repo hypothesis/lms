@@ -91,13 +91,6 @@ class BasicLTILaunchViews:
 
         file_id = self.request.params["file_id"]
 
-        self.context.js_config.config.update(
-            {
-                # Set the LMS name to use in user-facing messages.
-                "lmsName": "Canvas",
-            }
-        )
-
         # Configure the frontend to make a callback to the API to fetch the
         # Via URL.
         self.context.js_config.config["urls"].update(

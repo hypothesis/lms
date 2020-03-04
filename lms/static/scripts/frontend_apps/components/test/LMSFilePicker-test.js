@@ -27,7 +27,6 @@ describe('LMSFilePicker', () => {
         authToken="auth-token"
         authUrl="https://lms.anno.co/authorize-lms"
         courseId="test-course"
-        lmsName="Dummy LMS"
         lmsUrl="https://hypothesis.dummylms.com"
         onAuthorized={sinon.stub()}
         onSelectFile={sinon.stub()}
@@ -94,7 +93,6 @@ describe('LMSFilePicker', () => {
     });
 
     const wrapper = renderFilePicker({
-      lmsName: 'Canvas',
       lmsUrl: 'https://example.com',
     });
     assert.called(fakeListFiles);

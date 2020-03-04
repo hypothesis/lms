@@ -19,7 +19,6 @@ describe('AuthWindow', () => {
     return new AuthWindow({
       authToken: 'auth-token',
       authUrl: 'https://lms.anno.co/authorize',
-      lmsName: 'Shiny LMS',
     });
   }
 
@@ -30,7 +29,7 @@ describe('AuthWindow', () => {
       assert.calledWith(
         window.open,
         'https://lms.anno.co/authorize?authorization=auth-token',
-        'Allow access to Shiny LMS files'
+        'Allow access to Canvas files'
       );
     });
 

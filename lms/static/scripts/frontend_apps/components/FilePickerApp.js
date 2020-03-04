@@ -36,7 +36,6 @@ export default function FilePickerApp({
     formFields,
     googleClientId,
     googleDeveloperKey,
-    lmsName,
     customCanvasApiDomain,
     lmsUrl,
     ltiLaunchUrl,
@@ -122,13 +121,7 @@ export default function FilePickerApp({
   let dialog;
   switch (activeDialog) {
     case 'url':
-      dialog = (
-        <URLPicker
-          lmsName={lmsName}
-          onCancel={cancelDialog}
-          onSelectURL={selectURL}
-        />
-      );
+      dialog = <URLPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
       break;
     case 'lms':
       dialog = (
@@ -136,7 +129,6 @@ export default function FilePickerApp({
           authToken={authToken}
           authUrl={authUrl}
           courseId={courseId}
-          lmsName={lmsName}
           lmsUrl={lmsUrl}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
@@ -188,7 +180,7 @@ export default function FilePickerApp({
           {enableLmsFilePicker && (
             <Button
               className="FilePickerApp__source-button"
-              label={`Select PDF from ${lmsName}`}
+              label={`Select PDF from Canvas`}
               onClick={() => setActiveDialog('lms')}
             />
           )}

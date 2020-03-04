@@ -33,7 +33,6 @@ export default function LMSFilePicker({
   authToken,
   authUrl,
   courseId,
-  lmsName,
   lmsUrl,
   onCancel,
   onSelectFile,
@@ -79,7 +78,7 @@ export default function LMSFilePicker({
       return;
     }
 
-    authWindow.current = new AuthWindow({ authToken, authUrl, lmsName });
+    authWindow.current = new AuthWindow({ authToken, authUrl });
 
     try {
       await authWindow.current.authorize();
@@ -90,7 +89,7 @@ export default function LMSFilePicker({
       // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
-  }, [fetchFiles, authToken, authUrl, lmsName]);
+  }, [fetchFiles, authToken, authUrl]);
 
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
@@ -152,7 +151,7 @@ export default function LMSFilePicker({
         <ErrorDisplay
           message={
             <Fragment>
-              {`Failed to authorize with the ${lmsName} instance at `}
+              {`Failed to authorize with the Canvas instance at `}
               <a href={`${lmsUrl}`}>{`${lmsUrl}`}</a>
             </Fragment>
           }
@@ -162,7 +161,7 @@ export default function LMSFilePicker({
       {dialogState.state === 'authorizing' && !authorizationAttempted && (
         <p>
           To select a file, you must authorize Hypothesis to access your files
-          in {lmsName}.
+          in Canvas.
         </p>
       )}
       {(dialogState.state === 'fetching' ||
@@ -194,11 +193,6 @@ LMSFilePicker.propTypes = {
    * ID of the course that the user is choosing a file for.
    */
   courseId: propTypes.string.isRequired,
-
-  /**
-   * The name of the LMS to display in API controls, eg. "Canvas".
-   */
-  lmsName: propTypes.string.isRequired,
 
   /**
    * The url of the LMS, eg. "https://foobar.instructure.com".
