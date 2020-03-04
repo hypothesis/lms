@@ -62,6 +62,10 @@ sql: python
 .PHONY: lint
 lint: backend-lint frontend-lint
 
+.PHONY: pylint
+pylint:
+	@tox -qe pylint
+
 .PHONY: format
 format: backend-format frontend-format
 
