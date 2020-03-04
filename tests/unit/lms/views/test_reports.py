@@ -29,11 +29,9 @@ class TestReports:
                 pair[0], pair[1], None, None, None
             )
 
-        app_instances = list(
-            map(  # pylint:disable=bad-builtin
-                build_ai_from_pair, zip(test_urls, test_emails)
-            )
-        )
+        app_instances = [
+            build_ai_from_pair(pair) for pair in zip(test_urls, test_emails)
+        ]
         for app in app_instances:
             pyramid_request.db.add(app)
 
