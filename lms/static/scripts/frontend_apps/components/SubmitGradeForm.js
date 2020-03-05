@@ -145,14 +145,16 @@ export default function SubmitGradeForm({ disabled = false, student }) {
 
   return (
     <form className="SubmitGradeForm" autoComplete="off">
-      <ValidationMessage
-        message={validationMessage}
-        open={showValidationError}
-        onClose={() => {
-          // Sync up the state when the ValidationMessage is closed
-          setValidationError(false);
-        }}
-      />
+      {validationMessage && (
+        <ValidationMessage
+          message={validationMessage}
+          open={showValidationError}
+          onClose={() => {
+            // Sync up the state when the ValidationMessage is closed
+            setValidationError(false);
+          }}
+        />
+      )}
       <label className="SubmitGradeForm__label" htmlFor={gradeId}>
         Grade (Out of 10)
       </label>

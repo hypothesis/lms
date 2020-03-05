@@ -112,9 +112,9 @@ describe('SubmitGradeForm', () => {
   });
 
   context('validation messages', () => {
-    it('hides the validation message by default', () => {
+    it('does not render the validation message by default', () => {
       const wrapper = renderForm();
-      assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
+      assert.isFalse(wrapper.find('ValidationMessage').exists());
     });
 
     it('shows the validation message when the validator returns an error', () => {

@@ -40,7 +40,7 @@ describe('ValidationMessage', () => {
       open: true,
       message: 'foo',
     });
-    wrapper.find('div').simulate('click');
+    wrapper.find('button').simulate('click');
     assert.isTrue(onCloseProp.calledOnce);
     assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
   });

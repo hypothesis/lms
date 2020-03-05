@@ -1,3 +1,6 @@
+@use "../mixins";
+
+
 @keyframes validationErrorOpen {
   from {
     width: 0;
@@ -21,6 +24,7 @@
 }
 
 .ValidationMessage {
+  @include mixins.input-focus;
   display: inline-block;
   position: absolute;
   z-index: 10;
