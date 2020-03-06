@@ -9,6 +9,7 @@ describe('postmessage_json_rpc/server#Server', () => {
   let configEl;
   let server;
   let registeredMethod;
+  let registeredMethodError;
   let listener;
   let receiveMessage;
 
@@ -30,8 +31,13 @@ describe('postmessage_json_rpc/server#Server', () => {
 
   beforeEach('set up the test server', () => {
     server = new Server();
-    registeredMethod = sinon.stub().returns('test_result');
+    registeredMethod = sinon.stub().resolves('test_result');
     server.register('registeredMethodName', registeredMethod);
+
+    registeredMethodError = sinon
+      .stub()
+      .rejects(new Error('method threw an error'));
+    server.register('registeredMethodErrorName', registeredMethodError);
   });
 
   afterEach('tear down the test server', () => {
@@ -69,6 +75,23 @@ describe('postmessage_json_rpc/server#Server', () => {
           receiveMessage.callsFake(() => {
             assert.isTrue(registeredMethod.calledOnce);
             assert.isTrue(registeredMethod.calledWithExactly());
+            resolve();
+          });
+        }),
+        rejectAfterDelay("Server's response wasn't received"),
+      ]);
+    });
+
+    it('calls the registered method that throws an error', () => {
+      window.postMessage(
+        validRequest('registeredMethodErrorName'),
+        serversOrigin
+      );
+      return Promise.race([
+        new Promise(resolve => {
+          receiveMessage.callsFake(() => {
+            assert.isTrue(registeredMethodError.calledOnce);
+            assert.isTrue(registeredMethodError.calledWithExactly());
             resolve();
           });
         }),
@@ -235,11 +258,11 @@ describe('postmessage_json_rpc/server#Server', () => {
    * window.postMessage(message, serversOrigin) in order to make an RPC request
    * to the server.
    */
-  function validRequest() {
+  function validRequest(method = 'registeredMethodName') {
     return {
       jsonrpc: '2.0',
       id: 'test_id',
-      method: 'registeredMethodName',
+      method,
     };
   }
 });
