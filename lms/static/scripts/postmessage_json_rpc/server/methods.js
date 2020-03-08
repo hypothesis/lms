@@ -1,3 +1,5 @@
+import { setSidebarResolved } from './index';
+
 /**
  * Methods that're remotely callable by JSON-RPC over postMessage.
  *
@@ -13,4 +15,13 @@ export function requestConfig() {
   const configEl = document.querySelector('.js-config');
   const clientConfigObj = JSON.parse(configEl.textContent).hypothesisClient;
   return clientConfigObj;
+}
+
+/**
+ * The client sends this request when it's ready to receive incoming RPC
+ * requests.
+ */
+export function readyToReceive() {
+  setSidebarResolved();
+  return {};
 }

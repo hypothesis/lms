@@ -1,5 +1,5 @@
 import Server from './server';
-import { requestConfig } from './methods';
+import { readyToReceive, requestConfig } from './methods';
 
 let server = {}; // Singleton RPC server reference
 
@@ -9,6 +9,7 @@ let server = {}; // Singleton RPC server reference
 function startRpcServer() {
   server = new Server();
   server.register('requestConfig', requestConfig);
+  server.register('readyToReceive', readyToReceive);
 }
 
 /**
@@ -26,4 +27,15 @@ function getSidebarWindow() {
   return server.sidebarWindow;
 }
 
-export { startRpcServer, getSidebarWindow };
+/**
+ * Resolve the promise we created in the constructor with the saved
+ * sidebar frame and origin.
+ */
+function setSidebarResolved() {
+  server.resolveSidebarWindow({
+    frame: server.currentFrameEvent.source,
+    origin: server.currentFrameEvent.origin,
+  });
+}
+
+export { startRpcServer, getSidebarWindow, setSidebarResolved };

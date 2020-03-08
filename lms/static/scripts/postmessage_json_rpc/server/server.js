@@ -29,6 +29,10 @@ export default class Server {
     // origins will be ignored.
     this._allowedOrigins = configObj.allowedOrigins;
 
+    // Reference to the incoming RCP event so we can later use it to
+    // send RCP requests back to the client.
+    this.currentFrameEvent = null;
+
     // Add a postMessage event listener so we can recieve JSON-RPC requests.
     this._boundReceiveMessage = this._receiveMessage.bind(this);
     window.addEventListener('message', this._boundReceiveMessage);
@@ -37,7 +41,7 @@ export default class Server {
     this._registeredMethods = {};
 
     this.sidebarWindow = new Promise(resolve => {
-      this._resolveSidebarWindow = resolve;
+      this.resolveSidebarWindow = resolve;
     });
   }
 
@@ -69,12 +73,8 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
-    // Resolve the promise we created in the constructor with the saved
-    // sidebar frame and origin.
-    this._resolveSidebarWindow({
-      frame: event.source,
-      origin: event.origin,
-    });
+    // Save the event reference.
+    this.currentFrameEvent = event;
 
     const result = await this._jsonRPCResponse(event.data);
     event.source.postMessage(result, event.origin);
