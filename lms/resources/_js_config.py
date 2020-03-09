@@ -97,9 +97,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self.config["urls"]["via_url"] = via_url(self._request, document_url)
         self._add_canvas_submission_params(document_url=document_url)
 
-    def enable_content_item_selection_mode(
-        self, form_action, form_fields, lti_launch_url=None
-    ):
+    def enable_content_item_selection_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "content item selection" mode.
 
@@ -131,11 +129,14 @@ class JSConfig:  # pylint:disable=too-few-public-methods
                 # Picker, otherwise Picker refuses to launch inside an iframe.
                 "customCanvasApiDomain": self._context.custom_canvas_api_domain,
                 "lmsUrl": self._context.lms_url,
+                # The "content item selection" that we submit to Canvas's
+                # content_item_return_url is actually an LTI launch URL with
+                # the selected document URL or file_id as a query parameter. To
+                # construct these launch URLs our JavaScript code needs the
+                # base URL of our LTI launch endpoint.
+                "ltiLaunchUrl": self._request.route_url("lti_launches"),
             }
         )
-
-        if lti_launch_url:
-            self.config["ltiLaunchUrl"] = lti_launch_url
 
         # Enable the "LMS file picker" (Canvas file picker) if it's available.
         if self._canvas_files_available():
