@@ -51,13 +51,11 @@ class TestAddCanvasFileID:
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
-    def test_it_adds_the_via_url(self, js_config):
+    def test_it_adds_the_via_url(self, js_config, pyramid_request, via_url):
         js_config.add_document_url("example_document_url")
 
-        assert (
-            js_config.config["urls"]["via_url"]
-            == "http://TEST_VIA_SERVER.is/example_document_url?via.open_sidebar=1&via.request_config_from_frame=http%3A%2F%2Fexample.com"
-        )
+        via_url.assert_called_once_with(pyramid_request, "example_document_url")
+        assert js_config.config["urls"]["via_url"] == via_url.return_value
 
     def test_it_sets_the_document_url(self, js_config):
         js_config.add_document_url("example_document_url")
@@ -349,3 +347,8 @@ def pyramid_request(pyramid_request):
 def provisioning_disabled(context):
     """Modify context so that context.provisioning_enabled is False."""
     context.provisioning_enabled = False
+
+
+@pytest.fixture(autouse=True)
+def via_url(patch):
+    return patch("lms.resources._js_config.via_url")
