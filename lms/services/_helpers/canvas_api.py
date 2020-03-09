@@ -179,7 +179,7 @@ class CanvasAPIHelper:
             request.headers["Authorization"] = f"Bearer {access_token}"
 
         try:
-            response = requests.Session().send(request)
+            response = requests.Session().send(request, timeout=3)
             response.raise_for_status()
         except RequestException as err:
             CanvasAPIError.raise_from(err)

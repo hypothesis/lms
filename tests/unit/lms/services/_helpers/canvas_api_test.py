@@ -76,7 +76,7 @@ class TestValidatedResponse:
         helper.validated_response(prepared_request)
 
         requests.Session.assert_called_once_with()
-        requests_session.send.assert_called_once_with(prepared_request)
+        requests_session.send.assert_called_once_with(prepared_request, timeout=3)
 
     def test_if_given_an_access_token_it_inserts_an_Authorization_header(
         self, helper, prepared_request, requests_session
