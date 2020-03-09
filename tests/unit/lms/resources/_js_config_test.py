@@ -69,7 +69,7 @@ class TestAddDocumentURL:
 
 
 class TestAddCanvasFileIDAddDocumentURLCommon:
-    """Tests commont to both add_canvas_file_id() and add_document_url()."""
+    """Tests common to both add_canvas_file_id() and add_document_url()."""
 
     def test_it_sets_the_canvas_submission_params(self, method, js_config):
         method("canvas_file_id_or_document_url")
