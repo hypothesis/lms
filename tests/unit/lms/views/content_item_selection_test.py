@@ -17,7 +17,6 @@ class TestContentItemSelection:
                 "lti_message_type": "ContentItemSelection",
                 "lti_version": "TEST_LTI_VERSION",
             },
-            lti_launch_url="http://example.com/TEST_LTI_LAUNCH_URL",
         )
 
     @pytest.fixture

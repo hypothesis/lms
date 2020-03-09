@@ -55,12 +55,6 @@ def content_item_selection(context, request):
             "lti_message_type": "ContentItemSelection",
             "lti_version": request.params["lti_version"],
         },
-        # The "content item selection" that we submit to the
-        # content_item_return_url is actually an LTI launch URL with the
-        # selected document URL or file_id as a query parameter. To construct
-        # these launch URLs our JavaScript code needs the base URL of our LTI
-        # launch endpoint.
-        lti_launch_url=request.route_url("lti_launches"),
     )
 
     return {}

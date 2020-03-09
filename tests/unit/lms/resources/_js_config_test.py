@@ -42,16 +42,7 @@ class TestEnableContentItemSelectionMode:
             == context.custom_canvas_api_domain
         )
         assert js_config.config["lmsUrl"] == context.lms_url
-        assert "ltiLaunchUrl" not in js_config.config
-
-    def test_it_sets_ltiLaunchUrl_if_given(self, js_config):
-        js_config.config["mode"] = "foo"
-
-        js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields", "test_lti_launch_url"
-        )
-
-        assert js_config.config["ltiLaunchUrl"] == "test_lti_launch_url"
+        assert js_config.config["ltiLaunchUrl"] == "http://example.com/lti_launches"
 
     def test_it_enables_the_lms_file_picker(self, js_config):
         js_config.enable_content_item_selection_mode(
