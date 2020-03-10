@@ -29,12 +29,12 @@ class TestEnableContentItemSelectionMode:
         js_config.config["mode"] = "foo"
 
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert js_config.config["mode"] == "content-item-selection"
-        assert js_config.config["formAction"] == "test_form_action"
-        assert js_config.config["formFields"] == "test_form_fields"
+        assert js_config.config["formAction"] == mock.sentinel.form_action
+        assert js_config.config["formFields"] == mock.sentinel.form_fields
         assert js_config.config["googleClientId"] == "fake_client_id"
         assert js_config.config["googleDeveloperKey"] == "fake_developer_key"
         assert (
@@ -55,7 +55,7 @@ class TestEnableContentItemSelectionMode:
 
     def test_it_enables_the_lms_file_picker(self, js_config):
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert js_config.config["enableLmsFilePicker"] is True
@@ -67,7 +67,7 @@ class TestEnableContentItemSelectionMode:
         context.is_canvas = False
 
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert not js_config.config["enableLmsFilePicker"]
@@ -79,7 +79,7 @@ class TestEnableContentItemSelectionMode:
         ai_getter.developer_key.side_effect = ConsumerKeyError()
 
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert not js_config.config["enableLmsFilePicker"]
@@ -91,7 +91,7 @@ class TestEnableContentItemSelectionMode:
         ai_getter.developer_key.return_value = None
 
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert not js_config.config["enableLmsFilePicker"]
@@ -103,7 +103,7 @@ class TestEnableContentItemSelectionMode:
         del pyramid_request.params["custom_canvas_course_id"]
 
         js_config.enable_content_item_selection_mode(
-            "test_form_action", "test_form_fields"
+            mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
         assert not js_config.config["enableLmsFilePicker"]
