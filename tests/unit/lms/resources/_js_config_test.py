@@ -117,7 +117,6 @@ class TestEnableContentItemSelectionMode:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params["tool_consumer_info_product_family_code"] = "canvas"
         pyramid_request.params["custom_canvas_course_id"] = "test_course_id"
         return pyramid_request
 
