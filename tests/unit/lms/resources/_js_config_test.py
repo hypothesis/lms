@@ -41,12 +41,6 @@ class TestEnableContentItemSelectionMode:
         )
         assert js_config.config["lmsUrl"] == context.lms_url
         assert js_config.config["ltiLaunchUrl"] == "http://example.com/lti_launches"
-
-    def test_it_enables_the_lms_file_picker(
-        self, js_config, enable_content_item_selection_mode
-    ):
-        enable_content_item_selection_mode()
-
         assert js_config.config["enableLmsFilePicker"] is True
         assert js_config.config["courseId"] == "test_course_id"
 
