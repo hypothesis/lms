@@ -25,12 +25,10 @@ class TestJSConfig:
 
 
 class TestEnableContentItemSelectionMode:
-    def test_it(self, context, js_config):
+    def test_it(self, context, js_config, enable_content_item_selection_mode):
         js_config.config["mode"] = "foo"
 
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        enable_content_item_selection_mode()
 
         assert js_config.config["mode"] == "content-item-selection"
         assert js_config.config["formAction"] == mock.sentinel.form_action
@@ -44,61 +42,68 @@ class TestEnableContentItemSelectionMode:
         assert js_config.config["lmsUrl"] == context.lms_url
         assert js_config.config["ltiLaunchUrl"] == "http://example.com/lti_launches"
 
-    def test_it_enables_the_lms_file_picker(self, js_config):
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+    def test_it_enables_the_lms_file_picker(
+        self, js_config, enable_content_item_selection_mode
+    ):
+        enable_content_item_selection_mode()
 
         assert js_config.config["enableLmsFilePicker"] is True
         assert js_config.config["courseId"] == "test_course_id"
 
     def test_it_doesnt_enable_the_lms_file_picker_if_the_lms_isnt_Canvas(
-        self, context, js_config
+        self, context, js_config, enable_content_item_selection_mode
     ):
         context.is_canvas = False
 
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        enable_content_item_selection_mode()
 
         assert not js_config.config["enableLmsFilePicker"]
         assert "courseId" not in js_config.config
 
     def test_it_doesnt_enable_the_lms_file_picker_if_the_consumer_key_isnt_found_in_the_db(
-        self, ai_getter, js_config
+        self, ai_getter, js_config, enable_content_item_selection_mode
     ):
         ai_getter.developer_key.side_effect = ConsumerKeyError()
 
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        enable_content_item_selection_mode()
 
         assert not js_config.config["enableLmsFilePicker"]
         assert "courseId" not in js_config.config
 
     def test_it_doesnt_enable_the_lms_file_picker_if_we_dont_have_a_developer_key(
-        self, ai_getter, js_config
+        self, ai_getter, js_config, enable_content_item_selection_mode
     ):
         ai_getter.developer_key.return_value = None
 
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        enable_content_item_selection_mode()
 
         assert not js_config.config["enableLmsFilePicker"]
         assert "courseId" not in js_config.config
 
     def test_it_doesnt_enable_the_lms_file_picker_if_theres_no_custom_canvas_course_id(
-        self, js_config, pyramid_request
+        self, js_config, pyramid_request, enable_content_item_selection_mode
     ):
         del pyramid_request.params["custom_canvas_course_id"]
 
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        enable_content_item_selection_mode()
 
         assert not js_config.config["enableLmsFilePicker"]
         assert "courseId" not in js_config.config
+
+    @pytest.fixture
+    def enable_content_item_selection_mode(self, js_config):
+        """
+        Return a wrapper method for enable_content_item_selection_mode.
+
+        Passing standard test arguments to the method.
+        """
+
+        def enable_content_item_selection_mode():
+            js_config.enable_content_item_selection_mode(
+                mock.sentinel.form_action, mock.sentinel.form_fields
+            )
+
+        return enable_content_item_selection_mode
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
