@@ -51,44 +51,60 @@ class TestEnableContentItemSelectionMode:
         assert js_config.config["courseId"] == "test_course_id"
 
     def test_it_doesnt_enable_the_lms_file_picker_if_the_lms_isnt_Canvas(
-        self, context, js_config, enable_content_item_selection_mode
+        self,
+        context,
+        enable_content_item_selection_mode,
+        assert_lms_file_picker_not_enabled,
     ):
         context.is_canvas = False
 
         enable_content_item_selection_mode()
 
-        assert not js_config.config["enableLmsFilePicker"]
-        assert "courseId" not in js_config.config
+        assert_lms_file_picker_not_enabled()
 
     def test_it_doesnt_enable_the_lms_file_picker_if_the_consumer_key_isnt_found_in_the_db(
-        self, ai_getter, js_config, enable_content_item_selection_mode
+        self,
+        ai_getter,
+        enable_content_item_selection_mode,
+        assert_lms_file_picker_not_enabled,
     ):
         ai_getter.developer_key.side_effect = ConsumerKeyError()
 
         enable_content_item_selection_mode()
 
-        assert not js_config.config["enableLmsFilePicker"]
-        assert "courseId" not in js_config.config
+        assert_lms_file_picker_not_enabled()
 
     def test_it_doesnt_enable_the_lms_file_picker_if_we_dont_have_a_developer_key(
-        self, ai_getter, js_config, enable_content_item_selection_mode
+        self,
+        ai_getter,
+        enable_content_item_selection_mode,
+        assert_lms_file_picker_not_enabled,
     ):
         ai_getter.developer_key.return_value = None
 
         enable_content_item_selection_mode()
 
-        assert not js_config.config["enableLmsFilePicker"]
-        assert "courseId" not in js_config.config
+        assert_lms_file_picker_not_enabled()
 
     def test_it_doesnt_enable_the_lms_file_picker_if_theres_no_custom_canvas_course_id(
-        self, js_config, pyramid_request, enable_content_item_selection_mode
+        self,
+        pyramid_request,
+        enable_content_item_selection_mode,
+        assert_lms_file_picker_not_enabled,
     ):
         del pyramid_request.params["custom_canvas_course_id"]
 
         enable_content_item_selection_mode()
 
-        assert not js_config.config["enableLmsFilePicker"]
-        assert "courseId" not in js_config.config
+        assert_lms_file_picker_not_enabled()
+
+    @pytest.fixture
+    def assert_lms_file_picker_not_enabled(self, js_config):
+        def assert_lms_file_picker_not_enabled():
+            assert not js_config.config["enableLmsFilePicker"]
+            assert "courseId" not in js_config.config
+
+        return assert_lms_file_picker_not_enabled
 
     @pytest.fixture
     def enable_content_item_selection_mode(self, js_config):
