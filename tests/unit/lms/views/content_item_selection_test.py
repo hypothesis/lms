@@ -24,8 +24,6 @@ class TestContentItemSelection:
         pyramid_request.params = {
             "content_item_return_url": "TEST_CONTENT_ITEM_RETURN_URL",
             "lti_version": "TEST_LTI_VERSION",
-            "custom_canvas_api_domain": "TEST_CUSTOM_CANVAS_API_DOMAIN",
-            "custom_canvas_course_id": "TEST_CUSTOM_CANVAS_COURSE_ID",
         }
         return pyramid_request
 
