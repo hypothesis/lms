@@ -29,11 +29,6 @@ class TestContentItemSelection:
         }
         return pyramid_request
 
-    @pytest.fixture(autouse=True)
-    def routes(self, pyramid_config):
-        pyramid_config.add_route("lti_launches", "/TEST_LTI_LAUNCH_URL")
-        pyramid_config.add_route("canvas_api.authorize", "/TEST_AUTHORIZE_URL")
-
     @pytest.fixture
     def context(self):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
