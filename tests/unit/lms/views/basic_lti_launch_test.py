@@ -240,30 +240,29 @@ class TestUnconfiguredBasicLTILaunch:
         )
         context.js_config.enable_content_item_selection_mode.assert_called_once_with(
             form_action="http://example.com/module_item_configurations",
-            form_fields={
-                "user_id": pyramid_request.params["user_id"],
-                "resource_link_id": pyramid_request.params["resource_link_id"],
-                "oauth_consumer_key": pyramid_request.params["oauth_consumer_key"],
-                "tool_consumer_instance_guid": pyramid_request.params[
-                    "tool_consumer_instance_guid"
-                ],
-                "context_id": pyramid_request.params["context_id"],
-                "authorization": bearer_token_schema.authorization_param.return_value,
-            },
+            form_fields=dict(
+                self.form_fields(),
+                authorization=bearer_token_schema.authorization_param.return_value,
+            ),
         )
 
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+    def form_fields(self):
+        return {
             "user_id": "TEST_USER_ID",
             "resource_link_id": "TEST_RESOURCE_LINK_ID",
             "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
             "context_id": "TEST_CONTEXT_ID",
-            "oauth_nonce": "TEST_OAUTH_NONCE",
-            "oauth_timestamp": "TEST_OAUTH_TIMESTAMP",
-            "oauth_signature": "TEST_OAUTH_SIGNATURE",
         }
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = dict(
+            self.form_fields(),
+            oauth_nonce="TEST_OAUTH_NONCE",
+            oauth_timestamp="TEST_OAUTH_TIMESTAMP",
+            oauth_signature="TEST_OAUTH_SIGNATURE",
+        )
         return pyramid_request
 
 
