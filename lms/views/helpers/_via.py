@@ -37,6 +37,7 @@ def via_url(request, document_url):
     ]
     query_string_as_list.append(("via.open_sidebar", "1"))
     query_string_as_list.append(("via.request_config_from_frame", request.host_url))
+    query_string_as_list.append(("via.config_frame_ancestor_level", 2))
     query_string = parse.urlencode(query_string_as_list)
 
     via_service_url = request.registry.settings["via_url"]

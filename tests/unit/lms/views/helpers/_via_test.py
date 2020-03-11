@@ -13,13 +13,15 @@ class TestViaURL:
                 "https://example.com",
                 "http://TEST_VIA_SERVER.is/https://example.com"
                 "?via.open_sidebar=1"
-                "&via.request_config_from_frame=http%3A%2F%2Fexample.com",
+                "&via.request_config_from_frame=http%3A%2F%2Fexample.com"
+                "&via.config_frame_ancestor_level=2",
             ),
             (
                 "http://example.com",
                 "http://TEST_VIA_SERVER.is/http://example.com"
                 "?via.open_sidebar=1"
-                "&via.request_config_from_frame=http%3A%2F%2Fexample.com",
+                "&via.request_config_from_frame=http%3A%2F%2Fexample.com"
+                "&via.config_frame_ancestor_level=2",
             ),
             # If the document URL already has query params it appends the Via
             # params and preserves the existing ones.
@@ -27,7 +29,8 @@ class TestViaURL:
                 "http://example.com?foo=FOO&bar=BAR",
                 "http://TEST_VIA_SERVER.is/http://example.com"
                 "?foo=FOO&bar=BAR&via.open_sidebar=1"
-                "&via.request_config_from_frame=http%3A%2F%2Fexample.com",
+                "&via.request_config_from_frame=http%3A%2F%2Fexample.com"
+                "&via.config_frame_ancestor_level=2",
             ),
             # If the document URL already has via.open_sidebar or
             # via.request_config_from_frame query params it replaces them with
@@ -36,7 +39,8 @@ class TestViaURL:
                 "http://example.com?thing=blah&via.open_sidebar=FOO&via.request_config_from_frame=BAR",
                 "http://TEST_VIA_SERVER.is/http://example.com"
                 "?thing=blah&via.open_sidebar=1"
-                "&via.request_config_from_frame=http%3A%2F%2Fexample.com",
+                "&via.request_config_from_frame=http%3A%2F%2Fexample.com"
+                "&via.config_frame_ancestor_level=2",
             ),
         ],
     )
