@@ -127,7 +127,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self.config["grading"] = {
             "courseName": self._request.params.get("context_title"),
             "assignmentName": self._request.params.get("resource_link_title"),
-            "students": self._get_students(),
+            "students": list(self._get_students()),
         }
 
     def maybe_set_focused_user(self):
@@ -232,10 +232,10 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
     def _get_students(self):
         """
-        Return the list of student dicts for the request.
+        Yield the student dicts for the request.
 
-        Returns one student dict for each student who has launched the
-        assignment and had grading info recorded for them.
+        Yield one student dict for each student who has launched the assignment
+        and had grading info recorded for them.
         """
         grading_infos = self._grading_info_service.get_by_assignment(
             oauth_consumer_key=self._request.lti_user.oauth_consumer_key,
@@ -243,26 +243,19 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             resource_link_id=self._request.params.get("resource_link_id"),
         )
 
-        # The list of "student" dicts that we'll return.
-        students = []
-
-        # Create a "student" dict for each GradingInfo.
+        # Yield a "student" dict for each GradingInfo.
         for grading_info in grading_infos:
             h_user = HUser(
                 authority=self._request.registry.settings["h_authority"],
                 username=grading_info.h_username,
                 display_name=grading_info.h_display_name,
             )
-            students.append(
-                {
-                    "userid": h_user.userid,
-                    "displayName": h_user.display_name,
-                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
-                }
-            )
-
-        return students
+            yield {
+                "userid": h_user.userid,
+                "displayName": h_user.display_name,
+                "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+            }
 
     def _grant_token(self, api_url):
         """Return an OAuth 2 grant token the client can use to log in to h."""
