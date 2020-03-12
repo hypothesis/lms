@@ -24,57 +24,6 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
 
-    @property
-    @functools.lru_cache()
-    def config(self):
-        """
-        Return the configuration for the app's JavaScript code.
-
-        :raise HTTPBadRequest: if a request param needed to generate the config
-            is missing
-
-        :rtype: dict
-        """
-        # This is a lazy-computed property so that if it's going to raise an
-        # exception that doesn't happen until someone actually reads it.
-        # If it instead crashed in JSConfig.__init__() that would happen
-        # earlier in the request processing pipeline and could change the error
-        # response.
-        #
-        # We cache this property (@functools.lru_cache()) so that it's
-        # mutable. You can do self.config["foo"] = "bar" and the mutation will
-        # be preserved.
-
-        return {
-            # The auth token that the JavaScript code will use to authenticate
-            # itself to our own backend's APIs.
-            "authToken": self._auth_token(),
-            # The URL that the JavaScript code will open if it needs the user to
-            # authorize us to request a new Canvas access token.
-            "authUrl": self._request.route_url("canvas_api.authorize"),
-            # Some debug information, currently used in the Gherkin tests.
-            "debug": self._debug(),
-            # The config object for the Hypothesis client.
-            # Our JSON-RPC server passes this to the Hypothesis client over
-            # postMessage.
-            "hypothesisClient": self._hypothesis_client,
-            # What "mode" to put the JavaScript code in.
-            # For example in "basic-lti-launch" mode the JavaScript code
-            # launches its BasicLtiLaunchApp, whereas in
-            # "content-item-selection" mode it launches its FilePickerApp.
-            "mode": "basic-lti-launch",
-            # The config object for our JSON-RPC server.
-            "rpcServer": {
-                "allowedOrigins": self._request.registry.settings[
-                    "rpc_allowed_origins"
-                ],
-            },
-            # A dict of URLs for the frontend to use.
-            # For example: API endpoints for the frontend to call would go in
-            # here.
-            "urls": self._urls,
-        }
-
     def add_canvas_file_id(self, canvas_file_id):
         """
         Set the document to the Canvas file with the given canvas_file_id.
@@ -82,7 +31,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self.config["urls"]["via_url_callback"] = self._request.route_url(
+        self._config["urls"]["via_url_callback"] = self._request.route_url(
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
         self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
@@ -94,8 +43,19 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self.config["urls"]["via_url"] = via_url(self._request, document_url)
+        self._config["urls"]["via_url"] = via_url(self._request, document_url)
         self._add_canvas_submission_params(document_url=document_url)
+
+    def asdict(self):
+        """
+        Return the configuration for the app's JavaScript code.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+
+        :rtype: dict
+        """
+        return self._config
 
     def enable_content_item_selection_mode(self, form_action, form_fields):
         """
@@ -113,7 +73,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             HTML form that we'll use to submit the user's chosen document
         :type form_fields: dict
         """
-        self.config.update(
+        self._config.update(
             {
                 "mode": "content-item-selection",
                 "enableLmsFilePicker": False,
@@ -140,8 +100,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         # Enable the "LMS file picker" (Canvas file picker) if it's available.
         if self._canvas_files_available():
-            self.config["enableLmsFilePicker"] = True
-            self.config["courseId"] = self._request.params["custom_canvas_course_id"]
+            self._config["enableLmsFilePicker"] = True
+            self._config["courseId"] = self._request.params["custom_canvas_course_id"]
 
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
@@ -161,8 +121,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             # "SpeedGrader" and we support that instead.
             return
 
-        self.config["lmsGrader"] = True
-        self.config["grading"] = {
+        self._config["lmsGrader"] = True
+        self._config["grading"] = {
             "courseName": self._request.params.get("context_title"),
             "assignmentName": self._request.params.get("resource_link_title"),
             "students": list(self._get_students()),
@@ -231,7 +191,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         if not lis_outcome_service_url:
             return
 
-        self.config["submissionParams"] = {
+        self._config["submissionParams"] = {
             "h_username": self._context.h_user.username,
             "lis_result_sourcedid": lis_result_sourcedid,
             "lis_outcome_service_url": lis_outcome_service_url,
@@ -264,6 +224,57 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             "custom_canvas_course_id" in self._request.params
             and developer_key is not None
         )
+
+    @property
+    @functools.lru_cache()
+    def _config(self):
+        """
+        Return the current configuration dict.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+
+        :rtype: dict
+        """
+        # This is a lazy-computed property so that if it's going to raise an
+        # exception that doesn't happen until someone actually reads it.
+        # If it instead crashed in JSConfig.__init__() that would happen
+        # earlier in the request processing pipeline and could change the error
+        # response.
+        #
+        # We cache this property (@functools.lru_cache()) so that it's
+        # mutable. You can do self._config["foo"] = "bar" and the mutation will
+        # be preserved.
+
+        return {
+            # The auth token that the JavaScript code will use to authenticate
+            # itself to our own backend's APIs.
+            "authToken": self._auth_token(),
+            # The URL that the JavaScript code will open if it needs the user to
+            # authorize us to request a new Canvas access token.
+            "authUrl": self._request.route_url("canvas_api.authorize"),
+            # Some debug information, currently used in the Gherkin tests.
+            "debug": self._debug(),
+            # The config object for the Hypothesis client.
+            # Our JSON-RPC server passes this to the Hypothesis client over
+            # postMessage.
+            "hypothesisClient": self._hypothesis_client,
+            # What "mode" to put the JavaScript code in.
+            # For example in "basic-lti-launch" mode the JavaScript code
+            # launches its BasicLtiLaunchApp, whereas in
+            # "content-item-selection" mode it launches its FilePickerApp.
+            "mode": "basic-lti-launch",
+            # The config object for our JSON-RPC server.
+            "rpcServer": {
+                "allowedOrigins": self._request.registry.settings[
+                    "rpc_allowed_origins"
+                ],
+            },
+            # A dict of URLs for the frontend to use.
+            # For example: API endpoints for the frontend to call would go in
+            # here.
+            "urls": self._urls,
+        }
 
     def _debug(self):
         """

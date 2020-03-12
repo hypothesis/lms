@@ -30,9 +30,7 @@ class TestContentItemSelection:
     @pytest.fixture
     def context(self):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-        context.js_config = mock.create_autospec(
-            JSConfig, spec_set=True, instance=True, config={}
-        )
+        context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         return context
 
 
