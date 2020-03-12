@@ -231,16 +231,12 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         if not lis_outcome_service_url:
             return
 
-        self.config.setdefault("submissionParams", {}).update(
-            {
-                "h_username": self._context.h_user.username,
-                "lis_result_sourcedid": lis_result_sourcedid,
-                "lis_outcome_service_url": lis_outcome_service_url,
-            }
-        )
-
-        # Add the given document_url or canvas_file_id.
-        self.config["submissionParams"].update(kwargs)
+        self.config["submissionParams"] = {
+            "h_username": self._context.h_user.username,
+            "lis_result_sourcedid": lis_result_sourcedid,
+            "lis_outcome_service_url": lis_outcome_service_url,
+            **kwargs,
+        }
 
     def _auth_token(self):
         """Return the authToken setting."""
