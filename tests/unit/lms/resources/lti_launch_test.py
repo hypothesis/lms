@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPBadRequest
@@ -259,15 +261,28 @@ class TestLTILaunchResource:
             LTILaunchResource(pyramid_request).h_provider_unique_id
 
     @pytest.mark.parametrize(
-        "tool_consumer_info_product_family_code,is_canvas",
-        [("canvas", True), ("whiteboard", False)],
+        "params,is_canvas",
+        [
+            # For *some* launches Canvas includes a
+            # `tool_consumer_info_product_family_code: canvas` and you can
+            # detect Canvas that way.
+            ({"tool_consumer_info_product_family_code": "canvas"}, True),
+            # Some Canvas launches, e.g. content item selection launches, do
+            # not have a tool_consumer_info_product_family_code param. In these
+            # cases we can instead detect Canvas by the presence of its
+            # custom_canvas_course_id param.
+            ({"custom_canvas_course_id": mock.sentinel.whatever}, True),
+            # Non-Canvas LMS's do also sometimes use
+            # tool_consumer_info_product_family_code but they don't set it to
+            # "canvas".
+            ({"tool_consumer_info_product_family_code": "whiteboard"}, False),
+            # If none of the recognized request params are present it should
+            # fall back on "not Canvas".
+            ({}, False),
+        ],
     )
-    def test_is_canvas(
-        self, pyramid_request, tool_consumer_info_product_family_code, is_canvas
-    ):
-        pyramid_request.params[
-            "tool_consumer_info_product_family_code"
-        ] = tool_consumer_info_product_family_code
+    def test_is_canvas(self, pyramid_request, params, is_canvas):
+        pyramid_request.params = params
 
         assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
 
