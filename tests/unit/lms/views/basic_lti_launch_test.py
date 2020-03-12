@@ -281,9 +281,7 @@ pytestmark = pytest.mark.usefixtures("h_api", "grading_info_service", "lti_h_ser
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-    context.js_config = mock.create_autospec(
-        JSConfig, spec_set=True, instance=True, config={"urls": {}}
-    )
+    context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
     context.is_canvas = False
     return context
 

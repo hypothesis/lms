@@ -18,33 +18,26 @@ class TestJSConfig:
     def test_auth_url(self, config):
         assert config["authUrl"] == "http://example.com/api/canvas/authorize"
 
-    def test_it_is_mutable(self, config):
-        config.update({"a_key": "a_value"})
-
-        assert config["a_key"] == "a_value"
-
 
 class TestEnableContentItemSelectionMode:
     def test_it(self, context, js_config):
-        js_config.config["mode"] = "foo"
-
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        assert js_config.config["mode"] == "content-item-selection"
-        assert js_config.config["formAction"] == mock.sentinel.form_action
-        assert js_config.config["formFields"] == mock.sentinel.form_fields
-        assert js_config.config["googleClientId"] == "fake_client_id"
-        assert js_config.config["googleDeveloperKey"] == "fake_developer_key"
+        assert js_config.asdict()["mode"] == "content-item-selection"
+        assert js_config.asdict()["formAction"] == mock.sentinel.form_action
+        assert js_config.asdict()["formFields"] == mock.sentinel.form_fields
+        assert js_config.asdict()["googleClientId"] == "fake_client_id"
+        assert js_config.asdict()["googleDeveloperKey"] == "fake_developer_key"
         assert (
-            js_config.config["customCanvasApiDomain"]
+            js_config.asdict()["customCanvasApiDomain"]
             == context.custom_canvas_api_domain
         )
-        assert js_config.config["lmsUrl"] == context.lms_url
-        assert js_config.config["ltiLaunchUrl"] == "http://example.com/lti_launches"
-        assert js_config.config["enableLmsFilePicker"] is True
-        assert js_config.config["courseId"] == "test_course_id"
+        assert js_config.asdict()["lmsUrl"] == context.lms_url
+        assert js_config.asdict()["ltiLaunchUrl"] == "http://example.com/lti_launches"
+        assert js_config.asdict()["enableLmsFilePicker"] is True
+        assert js_config.asdict()["courseId"] == "test_course_id"
 
     def test_it_doesnt_enable_the_lms_file_picker_if_the_lms_isnt_Canvas(
         self, context, js_config,
@@ -91,8 +84,8 @@ class TestEnableContentItemSelectionMode:
         self.assert_lms_file_picker_not_enabled(js_config)
 
     def assert_lms_file_picker_not_enabled(self, js_config):
-        assert not js_config.config["enableLmsFilePicker"]
-        assert "courseId" not in js_config.config
+        assert not js_config.asdict()["enableLmsFilePicker"]
+        assert "courseId" not in js_config.asdict()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -107,7 +100,7 @@ class TestAddCanvasFileID:
         js_config.add_canvas_file_id("example_canvas_file_id")
 
         assert (
-            js_config.config["urls"]["via_url_callback"]
+            js_config.asdict()["urls"]["via_url_callback"]
             == "http://example.com/api/canvas/files/example_canvas_file_id/via_url"
         )
 
@@ -115,7 +108,7 @@ class TestAddCanvasFileID:
         js_config.add_canvas_file_id("example_canvas_file_id")
 
         assert (
-            js_config.config["submissionParams"]["canvas_file_id"]
+            js_config.asdict()["submissionParams"]["canvas_file_id"]
             == "example_canvas_file_id"
         )
 
@@ -127,13 +120,13 @@ class TestAddDocumentURL:
         js_config.add_document_url("example_document_url")
 
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
-        assert js_config.config["urls"]["via_url"] == via_url.return_value
+        assert js_config.asdict()["urls"]["via_url"] == via_url.return_value
 
     def test_it_sets_the_document_url(self, js_config):
         js_config.add_document_url("example_document_url")
 
         assert (
-            js_config.config["submissionParams"]["document_url"]
+            js_config.asdict()["submissionParams"]["document_url"]
             == "example_document_url"
         )
 
@@ -144,13 +137,15 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
     def test_it_sets_the_canvas_submission_params(self, method, js_config):
         method("canvas_file_id_or_document_url")
 
-        assert js_config.config["submissionParams"]["h_username"] == "example_username"
         assert (
-            js_config.config["submissionParams"]["lis_outcome_service_url"]
+            js_config.asdict()["submissionParams"]["h_username"] == "example_username"
+        )
+        assert (
+            js_config.asdict()["submissionParams"]["lis_outcome_service_url"]
             == "example_lis_outcome_service_url"
         )
         assert (
-            js_config.config["submissionParams"]["lis_result_sourcedid"]
+            js_config.asdict()["submissionParams"]["lis_result_sourcedid"]
             == "example_lis_result_sourcedid"
         )
 
@@ -161,7 +156,7 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.config
+        assert "submissionParams" not in js_config.asdict()
 
     def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_result_sourcedid(
         self, method, js_config, pyramid_request
@@ -170,7 +165,7 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.config
+        assert "submissionParams" not in js_config.asdict()
 
     def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_outcome_service_url(
         self, method, js_config, pyramid_request
@@ -179,7 +174,7 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.config
+        assert "submissionParams" not in js_config.asdict()
 
     def test_it_raises_if_context_h_user_raises(self, context, method):
         # Make reading context.h_user raise HTTPBadRequest.
@@ -202,13 +197,13 @@ class TestMaybeEnableGrading:
     def test_it_adds_the_grading_settings(self, js_config, grading_info_service):
         js_config.maybe_enable_grading()
 
-        assert js_config.config["lmsGrader"] is True
+        assert js_config.asdict()["lmsGrader"] is True
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
-        assert js_config.config["grading"] == {
+        assert js_config.asdict()["grading"] == {
             "assignmentName": "test_assignment_name",
             "courseName": "test_course_name",
             "students": [
@@ -229,8 +224,8 @@ class TestMaybeEnableGrading:
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.config.get("lmsGrader")
-        assert not js_config.config.get("grading")
+        assert not js_config.asdict().get("lmsGrader")
+        assert not js_config.asdict().get("grading")
 
     def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
         self, js_config, pyramid_request
@@ -239,16 +234,16 @@ class TestMaybeEnableGrading:
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.config.get("lmsGrader")
-        assert not js_config.config.get("grading")
+        assert not js_config.asdict().get("lmsGrader")
+        assert not js_config.asdict().get("grading")
 
     def test_it_does_nothing_in_Canvas(self, context, js_config):
         context.is_canvas = True
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.config.get("lmsGrader")
-        assert not js_config.config.get("grading")
+        assert not js_config.asdict().get("lmsGrader")
+        assert not js_config.asdict().get("grading")
 
     @pytest.fixture
     def grading_info_service(self, grading_info_service):
@@ -288,7 +283,7 @@ class TestMaybeSetFocusedUser:
 
         js_config.maybe_set_focused_user()
 
-        assert "focus" not in js_config.config["hypothesisClient"]
+        assert "focus" not in js_config.asdict()["hypothesisClient"]
 
     def test_it_sets_the_focused_user_if_theres_a_focused_user_param(
         self, h_api, js_config
@@ -298,7 +293,7 @@ class TestMaybeSetFocusedUser:
         # It gets the display name from the h API.
         h_api.get_user.assert_called_once_with("example_h_username")
         # It sets the focused user.
-        assert js_config.config["hypothesisClient"]["focus"] == {
+        assert js_config.asdict()["hypothesisClient"]["focus"] == {
             "user": {
                 "username": "example_h_username",
                 "displayName": "example_h_display_name",
@@ -311,7 +306,7 @@ class TestMaybeSetFocusedUser:
         js_config.maybe_set_focused_user()
 
         assert (
-            js_config.config["hypothesisClient"]["focus"]["user"]["displayName"]
+            js_config.asdict()["hypothesisClient"]["focus"]["user"]["displayName"]
             == "(Couldn't fetch student name)"
         )
 
@@ -467,7 +462,7 @@ def js_config(context, pyramid_request):
 
 @pytest.fixture
 def config(js_config):
-    return js_config.config
+    return js_config.asdict()
 
 
 @pytest.fixture
