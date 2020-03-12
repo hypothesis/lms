@@ -221,6 +221,7 @@ export default function BasicLtiLaunchApp() {
       {ltiLaunchState.state === 'authorizing' && (
         <Dialog
           title="Authorize Hypothesis"
+          role="alertdialog"
           buttons={[
             <Button
               onClick={authorizeAndFetchUrl}
@@ -238,6 +239,7 @@ export default function BasicLtiLaunchApp() {
           <Dialog
             title="Something went wrong"
             contentClass="BasicLtiLaunchApp__dialog"
+            role="alertdialog"
             buttons={[
               <Button
                 onClick={authorizeAndFetchUrl}
@@ -258,6 +260,7 @@ export default function BasicLtiLaunchApp() {
           <Dialog
             title="Something went wrong"
             contentClass="BasicLtiLaunchApp__dialog"
+            role="alertdialog"
           >
             <ErrorDisplay
               message="There was a problem submitting this Hypothesis assignment"

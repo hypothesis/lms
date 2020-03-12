@@ -4,53 +4,45 @@ import propTypes from 'prop-types';
 import classNames from 'classnames';
 
 import Button from './Button';
+import useElementShouldClose from '../common/use-element-should-close';
 import { zIndexScale } from '../utils/style';
+import { useUniqueId } from '../utils/hooks';
 
 /**
- * Accessibility notes:
+ * A modal dialog wrapper with a title. The wrapper sets initial focus to itself
+ * unless an element inside of it is specified with the `initialFocus` ref.
+ * Optional action buttons may be passed in with the `buttons` prop but the
+ * cancel button is automatically generated when the on `onCancel` function is
+ * passed.
  *
- * Dialog accessibility is not trivial. We may want to use something like
- * https://github.com/reactjs/react-modal instead or as the basis of this
- * component.
+ * Canonical resources:
  *
- * Resources:
- *
- * 1. https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/dialog_role
- * 2. https://developer.paciellogroup.com/blog/2018/06/the-current-state-of-modal-dialog-accessibility/
- * 3. https://www.marcozehe.de/2015/02/05/advanced-aria-tip-2-accessible-modal-dialogs/
- *
- * [3] is the most useful resource IMO as it highlights the essentials from
- * the perspective of a blind engineer.
+ * https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/dialog.html
+ * https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/alertdialog.html
  *
  * Things that are not implemented here yet:
  *
  * - A description which is reliably read out when the dialog is opened, in
  *   addition to the title.
- * - Saving and restoring keyboard focus when dialog is mounted and unmounted.
- * - Keeping tab focus within the dialog when shown.
- * - Hiding content underneath the dialog from screen readers.
- */
-
-/**
- * A modal dialog with a title and a row of action buttons at the bottom.
  */
 export default function Dialog({
   children,
   contentClass,
   initialFocus,
   onCancel,
+  role = 'dialog',
   title,
   buttons,
 }) {
-  const handleKey = event => {
-    event.stopPropagation();
+  const dialogTitleId = useUniqueId('dialog');
+  const rootEl = useRef();
 
-    if (event.key === 'Escape' && typeof onCancel === 'function') {
+  useElementShouldClose(rootEl, true, () => {
+    if (typeof onCancel === 'function') {
       onCancel();
     }
-  };
+  });
 
-  const rootEl = useRef(null);
   useEffect(() => {
     if (initialFocus) {
       initialFocus.current.focus();
@@ -60,23 +52,18 @@ export default function Dialog({
       // dialog. See resources above.
       rootEl.current.focus();
     }
-
     // We only want to run this effect once when the dialog is mounted.
     //
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    // FIXME-A11Y
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
-      role="dialog"
-      aria-labelledby="Dialog__title"
-      onKeyDown={handleKey}
-      // FIXME-A11Y
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-      tabIndex="0"
+      role={role}
+      aria-labelledby={dialogTitleId}
+      aria-modal="true"
       ref={rootEl}
+      tabIndex="-1"
     >
       <div
         className="Dialog__background"
@@ -89,7 +76,7 @@ export default function Dialog({
             [contentClass]: true,
           })}
         >
-          <h1 className="Dialog__title" id="Dialog__title">
+          <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />
             {onCancel && (
@@ -135,7 +122,9 @@ Dialog.propTypes = {
    *
    * The "Cancel" button is added automatically if the `onCancel` prop is set.
    */
-  buttons: propTypes.arrayOf(propTypes.element),
+  buttons: propTypes.arrayOf(
+    propTypes.oneOf([propTypes.instanceOf(Button), propTypes.element])
+  ), // e.g. <button>
 
   /**
    * Class applied to the content of the dialog.
@@ -143,6 +132,11 @@ Dialog.propTypes = {
    * The primary role of this class is to set the size of the dialog.
    */
   contentClass: propTypes.string,
+
+  /**
+   * The aria role for the dialog (defaults to" dialog")
+   */
+  role: propTypes.oneOf(['alertdialog', 'dialog']),
 
   /** The title of the dialog. */
   title: propTypes.string,

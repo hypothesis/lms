@@ -10,7 +10,11 @@ import Dialog from './Dialog';
  */
 export default function ErrorDialog({ onCancel, title, error }) {
   return (
-    <Dialog title="Something went wrong :(" onCancel={onCancel}>
+    <Dialog
+      role="alertdialog"
+      title="Something went wrong :("
+      onCancel={onCancel}
+    >
       <ErrorDisplay message={title} error={error} />
     </Dialog>
   );

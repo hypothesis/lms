@@ -35,14 +35,17 @@ describe('Dialog', () => {
 
   it('closes when Escape key is pressed', () => {
     const onCancel = sinon.stub();
-    const wrapper = mount(<Dialog title="Test dialog" onCancel={onCancel} />);
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    mount(<Dialog title="Test dialog" onCancel={onCancel} />, {
+      attachTo: container,
+    });
 
-    wrapper
-      .find('div')
-      .first()
-      .simulate('keydown', { key: 'Escape' });
-
+    const event = new Event('keydown');
+    event.key = 'Escape';
+    document.body.dispatchEvent(event);
     assert.called(onCancel);
+    container.remove();
   });
 
   it('closes when close button is clicked', () => {
@@ -80,6 +83,7 @@ describe('Dialog', () => {
       </Dialog>,
       { attachTo: container }
     );
+
     assert.equal(
       document.activeElement,
       wrapper.find('[role="dialog"]').getDOMNode()
