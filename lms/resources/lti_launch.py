@@ -155,10 +155,16 @@ class LTILaunchResource:
     @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
-        return (
+        if (
             self._request.params.get("tool_consumer_info_product_family_code")
             == "canvas"
-        )
+        ):
+            return True
+
+        if "custom_canvas_course_id" in self._request.params:
+            return True
+
+        return False
 
     @property
     @functools.lru_cache()
