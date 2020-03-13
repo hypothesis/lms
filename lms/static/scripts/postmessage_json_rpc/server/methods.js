@@ -14,3 +14,12 @@ export function requestConfig() {
   const clientConfigObj = JSON.parse(configEl.textContent).hypothesisClient;
   return clientConfigObj;
 }
+
+/**
+ * Return the groups for the Hypothesis client to show.
+ */
+export function requestGroups() {
+  const configEl = document.querySelector('.js-config');
+  const clientConfigObj = JSON.parse(configEl.textContent).hypothesisClient;
+  return clientConfigObj.services[0].groups;
+}
