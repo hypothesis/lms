@@ -39,7 +39,7 @@ describe('postmessage_json_rpc/methods#requestGroups', () => {
     configEl.parentNode.removeChild(configEl);
   });
 
-  it('returns the list of groups', () => {
-    assert.deepEqual(requestGroups(), ['groupid1', 'groupid2']);
+  it('returns the list of groups', async () => {
+    assert.deepEqual(await requestGroups(), ['groupid1', 'groupid2']);
   });
 });
