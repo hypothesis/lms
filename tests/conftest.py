@@ -16,6 +16,7 @@ def get_test_database_url(default):
 
 
 TEST_SETTINGS = {
+    "dev": False,
     "via_url": "http://TEST_VIA_SERVER.is/",
     "via3_url": "http://TEST_VIA3_SERVER.is/",
     "jwt_secret": "test_secret",

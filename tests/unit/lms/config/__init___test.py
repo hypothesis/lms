@@ -47,6 +47,30 @@ class TestConfigure:
         with pytest.raises(SettingError, match="error message"):
             configure({})
 
+    def test_dev_defaults_to_False(self, setting_getter):
+        def get(envvar_name, *_args, **_kwargs):
+            if envvar_name == "DEV":
+                return None
+            return mock.DEFAULT
+
+        setting_getter.get.side_effect = get
+
+        configurator = configure({})
+
+        assert not configurator.registry.settings["dev"]
+
+    def test_dev_can_be_set_to_True(self, setting_getter):
+        def get(envvar_name, *_args, **_kwargs):
+            if envvar_name == "DEV":
+                return "true"
+            return mock.DEFAULT
+
+        setting_getter.get.side_effect = get
+
+        configurator = configure({})
+
+        assert configurator.registry.settings["dev"] is True
+
     def test_the_aes_secret_setting_is_the_LMS_SECRET_env_var_as_a_byte_string(
         self, setting_getter
     ):
