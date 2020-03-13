@@ -255,6 +255,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             "authUrl": self._request.route_url("canvas_api.authorize"),
             # Some debug information, currently used in the Gherkin tests.
             "debug": self._debug(),
+            # Tell the JavaScript code whether we're in "dev" mode.
+            "dev": self._request.registry.settings["dev"],
             # The config object for the Hypothesis client.
             # Our JSON-RPC server passes this to the Hypothesis client over
             # postMessage.

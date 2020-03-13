@@ -2,6 +2,7 @@
 
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator, aslist
+from pyramid.settings import asbool
 
 from lms.config.settings import SettingError, SettingGetter
 
@@ -11,6 +12,8 @@ def configure(settings):
     sg = SettingGetter(settings)  # pylint:disable=invalid-name
 
     env_settings = {
+        # Whether or not we're in "dev" mode (as opposed to QA, production or tests).
+        "dev": sg.get("DEV", default=False),
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         "via_url": sg.get("VIA_URL"),
@@ -61,6 +64,8 @@ def configure(settings):
         #     python3 -c 'import secrets; print(secrets.token_hex())'
         "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET"),
     }
+
+    env_settings["dev"] = asbool(env_settings["dev"])
 
     database_url = sg.get("DATABASE_URL")
     if database_url:
