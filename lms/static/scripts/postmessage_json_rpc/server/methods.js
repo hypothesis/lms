@@ -33,7 +33,7 @@ export async function requestGroups() {
     // The artificial delay is only inserted 50% of the time (at random) so we
     // don't somehow accidentally end up relying on the slowness.
     if (Math.random() < 0.5) {
-      await sleep(1900);
+      await sleep(4000);
     }
   }
 
