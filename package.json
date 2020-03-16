@@ -76,7 +76,7 @@
     "karma-sinon": "^1.0.5",
     "mocha": "^7.1.0",
     "prettier": "1.19.1",
-    "sinon": "^9.0.0"
+    "sinon": "^9.0.1"
   },
   "browserify": {
     "transform": [
