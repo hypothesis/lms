@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@types/enzyme": "^3.10.5",
-    "axe-core": "^3.5.1",
+    "axe-core": "^3.5.2",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-mockable-imports": "^1.7.1",
     "chai": "^4.2.0",
