@@ -28,7 +28,7 @@ export default function FilePickerApp({
 }) {
   const formEl = useRef();
   const {
-    authToken,
+    api: { authToken },
     authUrl,
     courseId,
     enableLmsFilePicker = false,

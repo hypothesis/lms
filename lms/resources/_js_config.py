@@ -247,9 +247,13 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         # be preserved.
 
         return {
-            # The auth token that the JavaScript code will use to authenticate
-            # itself to our own backend's APIs.
-            "authToken": self._auth_token(),
+            # Settings to do with the API that the backend provides for the
+            # frontend to call.
+            "api": {
+                # The auth token that the JavaScript code will use to
+                # authenticate itself to the API.
+                "authToken": self._auth_token(),
+            },
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new Canvas access token.
             "authUrl": self._request.route_url("canvas_api.authorize"),

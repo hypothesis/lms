@@ -334,7 +334,7 @@ class TestJSConfigAuthToken:
 
     @pytest.fixture
     def authToken(self, config):
-        return config["authToken"]
+        return config["api"]["authToken"]
 
 
 class TestJSConfigDebug:
