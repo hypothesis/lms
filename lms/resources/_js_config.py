@@ -43,7 +43,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self._config["urls"]["via_url"] = via_url(self._request, document_url)
+        self._config["via_url"] = via_url(self._request, document_url)
         self._add_canvas_submission_params(document_url=document_url)
 
     def asdict(self):

@@ -55,13 +55,13 @@ export default function BasicLtiLaunchApp() {
     lmsGrader,
     submissionParams,
     urls: {
-      // Content URL to show in the iframe.
-      via_url: viaUrl,
       // API callback to use to fetch the URL to show in the iframe. This is
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
       via_url_callback: viaUrlCallback,
     },
+    // Content URL to show in the iframe.
+    via_url: viaUrl,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
