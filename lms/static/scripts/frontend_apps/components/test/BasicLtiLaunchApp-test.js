@@ -64,7 +64,7 @@ describe('BasicLtiLaunchApp', () => {
 
   context('when a content URL is provided in the config', () => {
     beforeEach(() => {
-      fakeConfig.urls.via_url = 'https://via.hypothes.is/123';
+      fakeConfig.via_url = 'https://via.hypothes.is/123';
     });
 
     it('displays the content URL in an iframe', () => {
