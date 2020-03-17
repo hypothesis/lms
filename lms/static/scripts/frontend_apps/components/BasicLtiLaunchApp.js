@@ -49,24 +49,24 @@ const INITIAL_LTI_LAUNCH_STATE = {
  */
 export default function BasicLtiLaunchApp() {
   const {
-    api: { authToken },
+    api: {
+      authToken,
+      // API callback to use to fetch the URL to show in the iframe. This is
+      // needed if resolving the content URL involves potentially slow calls
+      // to third party APIs (eg. the LMS's file storage).
+      viaCallbackUrl,
+    },
     authUrl,
     grading,
     lmsGrader,
     submissionParams,
-    urls: {
-      // API callback to use to fetch the URL to show in the iframe. This is
-      // needed if resolving the content URL involves potentially slow calls
-      // to third party APIs (eg. the LMS's file storage).
-      via_url_callback: viaUrlCallback,
-    },
     // Content URL to show in the iframe.
     viaUrl,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
     ...INITIAL_LTI_LAUNCH_STATE,
-    state: viaUrlCallback ? 'fetching-url' : 'fetched-url',
+    state: viaCallbackUrl ? 'fetching-url' : 'fetched-url',
     contentUrl: viaUrl ? viaUrl : null,
   });
 
@@ -76,7 +76,7 @@ export default function BasicLtiLaunchApp() {
    * This will typically be a PDF URL proxied through Via.
    */
   const fetchContentUrl = useCallback(async () => {
-    if (!viaUrlCallback) {
+    if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
@@ -90,7 +90,7 @@ export default function BasicLtiLaunchApp() {
       });
       const { via_url: contentUrl } = await apiCall({
         authToken,
-        path: viaUrlCallback,
+        path: viaCallbackUrl,
       });
       setLtiLaunchState({
         ...INITIAL_LTI_LAUNCH_STATE,
@@ -112,7 +112,7 @@ export default function BasicLtiLaunchApp() {
         });
       }
     }
-  }, [authToken, viaUrlCallback]);
+  }, [authToken, viaCallbackUrl]);
 
   /**
    * Fetch the assignment content URL when the app is initially displayed.

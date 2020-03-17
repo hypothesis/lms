@@ -17,9 +17,6 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._context = context
         self._request = request
 
-        # A dict of URLs for the frontend to use.
-        self._urls = {}
-
         self._grading_info_service = request.find_service(name="grading_info")
         self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
@@ -31,7 +28,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self._config["urls"]["via_url_callback"] = self._request.route_url(
+        self._config["api"]["viaCallbackUrl"] = self._request.route_url(
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
         self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
@@ -276,10 +273,6 @@ class JSConfig:  # pylint:disable=too-few-public-methods
                     "rpc_allowed_origins"
                 ],
             },
-            # A dict of URLs for the frontend to use.
-            # For example: API endpoints for the frontend to call would go in
-            # here.
-            "urls": self._urls,
         }
 
     def _debug(self):

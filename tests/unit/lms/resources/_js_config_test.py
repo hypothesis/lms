@@ -96,11 +96,11 @@ class TestEnableContentItemSelectionMode:
 class TestAddCanvasFileID:
     """Unit tests for JSConfig.add_canvas_file_id()."""
 
-    def test_it_adds_the_via_url_callback_url(self, js_config):
+    def test_it_adds_the_viaCallbackUrl(self, js_config):
         js_config.add_canvas_file_id("example_canvas_file_id")
 
         assert (
-            js_config.asdict()["urls"]["via_url_callback"]
+            js_config.asdict()["api"]["viaCallbackUrl"]
             == "http://example.com/api/canvas/files/example_canvas_file_id/via_url"
         )
 
@@ -429,17 +429,6 @@ class TestJSConfigRPCServer:
     @pytest.fixture
     def config(self, config):
         return config["rpcServer"]
-
-
-class TestJSConfigURLs:
-    """Unit tests for the "urls" sub-dict of JSConfig."""
-
-    def test_it(self, config):
-        assert config == {}
-
-    @pytest.fixture
-    def config(self, config):
-        return config["urls"]
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
