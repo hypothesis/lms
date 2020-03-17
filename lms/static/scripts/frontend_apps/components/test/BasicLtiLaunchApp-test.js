@@ -82,8 +82,7 @@ describe('BasicLtiLaunchApp', () => {
 
   context('when a content URL callback is provided in the config', () => {
     beforeEach(() => {
-      fakeConfig.urls.via_url_callback =
-        'https://lms.hypothes.is/api/files/1234';
+      fakeConfig.api.viaCallbackUrl = 'https://lms.hypothes.is/api/files/1234';
     });
 
     it('attempts to fetch the content URL when mounted', async () => {
