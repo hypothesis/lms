@@ -32,7 +32,9 @@ describe('BasicLtiLaunchApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
-      authToken: 'dummyAuthToken',
+      api: {
+        authToken: 'dummyAuthToken',
+      },
       authUrl: 'https://lms.hypothes.is/authorize-lms',
       urls: {},
     };

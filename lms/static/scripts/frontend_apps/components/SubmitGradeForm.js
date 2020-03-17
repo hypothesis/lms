@@ -30,7 +30,9 @@ const GRADE_MULTIPLIER = 10;
  * and error status of that fetch request.
  */
 const useFetchGrade = student => {
-  const { authToken } = useContext(Config);
+  const {
+    api: { authToken },
+  } = useContext(Config);
   const [grade, setGrade] = useState('');
   const [gradeLoading, setGradeLoading] = useState(false);
 
@@ -94,7 +96,9 @@ export default function SubmitGradeForm({ disabled = false, student }) {
   // Unique id attribute for <input>
   const gradeId = useUniqueId('SubmitGradeForm__grade:');
 
-  const { authToken } = useContext(Config);
+  const {
+    api: { authToken },
+  } = useContext(Config);
 
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = useRef(null);

@@ -49,7 +49,7 @@ const INITIAL_LTI_LAUNCH_STATE = {
  */
 export default function BasicLtiLaunchApp() {
   const {
-    authToken,
+    api: { authToken },
     authUrl,
     grading,
     lmsGrader,

@@ -41,6 +41,7 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
+      api: {},
       enableLmsFilePicker: true,
       formAction: 'https://www.shinylms.com/',
       formFields: { hidden_field: 'hidden_value' },
