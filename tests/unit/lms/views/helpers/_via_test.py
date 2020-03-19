@@ -14,6 +14,16 @@ class TestViaURL:
         "via.config_frame_ancestor_level": "2",
     }
 
+    def test_if_creates_the_correct_via_url(self, pyramid_request):
+        url = "http://example.com"
+
+        final_url = via_url(pyramid_request, url)
+
+        assert final_url == Any.url.matching(
+            "http://test_via3_server.is/route"
+        ).with_query(dict(self.DEFAULT_OPTIONS, url=url))
+
+    @pytest.mark.usefixtures("legacy_via_feature_flag")
     @pytest.mark.parametrize(
         "params,expected_extras",
         (
@@ -43,24 +53,17 @@ class TestViaURL:
         if expected_extras:
             assert final_url == Any.url.containing_query(expected_extras)
 
+    @pytest.mark.usefixtures("legacy_via_feature_flag")
     @pytest.mark.parametrize(
         "url", ("http://doc.example.com", "https://doc.example.com",)
     )
     def test_it_passes_through_the_url(self, pyramid_request, url):
         final_url = via_url(pyramid_request, url)
 
-        assert final_url == Any.url.with_host("test_via_server.is").with_path(url)
-
-    @pytest.mark.usefixtures("via3_feature_flag")
-    def test_it_returns_via3_url_if_feature_flag_is_set(self, pyramid_request):
-        url = "http://example.com"
-
-        final_url = via_url(pyramid_request, url)
-
-        assert final_url == Any.url.matching(
-            "http://test_via3_server.is/route"
-        ).with_query(dict(self.DEFAULT_OPTIONS, url=url))
+        assert final_url == Any.url.with_host("test_legacy_via_server.is").with_path(
+            url
+        )
 
     @pytest.fixture
-    def via3_feature_flag(self, pyramid_request):
-        pyramid_request.feature = lambda feature: feature == "use_via3"
+    def legacy_via_feature_flag(self, pyramid_request):
+        pyramid_request.feature = lambda feature: feature == "use_legacy_via"
