@@ -72,7 +72,8 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.add_feature_flag_providers(
         "lms.extensions.feature_flags.config_file_provider",
         "lms.extensions.feature_flags.envvar_provider",
-        "lms.extensions.feature_flags.cookie_provider",
+        # Cookie provision is currently broken. Disable until fixed
+        # "lms.extensions.feature_flags.cookie_provider",
         "lms.extensions.feature_flags.query_string_provider",
     )
 
