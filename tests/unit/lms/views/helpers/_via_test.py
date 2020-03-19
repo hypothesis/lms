@@ -57,10 +57,10 @@ class TestViaURL:
 
         final_url = via_url(pyramid_request, url)
 
-        assert final_url == Any.url.with_host("test_via3_server.is").with_query(
+        assert final_url == Any.url.matching('http://test_via3_server.is/route').with_query(
             dict(self.DEFAULT_OPTIONS, url=url)
         )
 
     @pytest.fixture
     def via3_feature_flag(self, pyramid_request):
-        pyramid_request.feature = lambda feature: feature == "use_via3_url"
+        pyramid_request.feature = lambda feature: feature == "use_via3"
