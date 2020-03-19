@@ -29,7 +29,7 @@ def via_url(request, document_url):
         options["url"] = document_url
         via3_url = urlparse(request.registry.settings["via3_url"])
 
-        return via3_url._replace(path='/route', query=urlencode(options)).geturl()
+        return via3_url._replace(path="/route", query=urlencode(options)).geturl()
 
     return _legacy_via_url(request.registry.settings["via_url"], document_url, options)
 
