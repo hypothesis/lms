@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-alembic==1.4.1            # via -r requirements.in
+alembic==1.4.2            # via -r requirements.in
 certifi==2019.11.28       # via requests, sentry-sdk
 chardet==3.0.4            # via requests
 gunicorn==20.0.4          # via -r requirements.in
