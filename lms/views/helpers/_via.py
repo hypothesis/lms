@@ -25,21 +25,21 @@ def via_url(request, document_url):
         "via.config_frame_ancestor_level": "2",
     }
 
-    if request.feature("use_via3"):
-        options["url"] = document_url
-        via3_url = urlparse(request.registry.settings["via3_url"])
+    if request.feature("use_legacy_via"):
+        return _legacy_via_url(
+            request.registry.settings["legacy_via_url"], document_url, options
+        )
 
-        return via3_url._replace(path="/route", query=urlencode(options)).geturl()
+    options["url"] = document_url
+    via_service_url = urlparse(request.registry.settings["via_url"])
 
-    return _legacy_via_url(request.registry.settings["via_url"], document_url, options)
+    return via_service_url._replace(path="/route", query=urlencode(options)).geturl()
 
 
 def _legacy_via_url(via_service_url, document_url, options):
-    parsed_query = urlparse(document_url)
+    parsed_url = urlparse(document_url)
 
-    params = [
-        kv for kv in parse_qsl(parsed_query.query) if not kv[0].startswith("via.")
-    ]
+    params = [kv for kv in parse_qsl(parsed_url.query) if not kv[0].startswith("via.")]
     params.extend(options.items())
 
-    return via_service_url + parsed_query._replace(query=urlencode(params)).geturl()
+    return via_service_url + parsed_url._replace(query=urlencode(params)).geturl()
