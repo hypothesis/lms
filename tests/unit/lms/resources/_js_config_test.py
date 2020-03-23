@@ -26,20 +26,33 @@ class TestEnableContentItemSelectionMode:
         )
 
         assert js_config.asdict()["mode"] == "content-item-selection"
-        assert js_config.asdict()["formAction"] == mock.sentinel.form_action
-        assert js_config.asdict()["formFields"] == mock.sentinel.form_fields
-        assert js_config.asdict()["googleClientId"] == "fake_client_id"
-        assert js_config.asdict()["googleDeveloperKey"] == "fake_developer_key"
-        assert (
-            js_config.asdict()["customCanvasApiDomain"]
-            == context.custom_canvas_api_domain
-        )
-        assert js_config.asdict()["lmsUrl"] == context.lms_url
-        assert js_config.asdict()["ltiLaunchUrl"] == "http://example.com/lti_launches"
-        assert js_config.asdict()["enableLmsFilePicker"] is True
-        assert js_config.asdict()["courseId"] == "test_course_id"
+        assert js_config.asdict()["filePicker"] == {
+            "formAction": mock.sentinel.form_action,
+            "formFields": mock.sentinel.form_fields,
+            "google": {
+                "clientId": "fake_client_id",
+                "developerKey": "fake_developer_key",
+                "origin": context.custom_canvas_api_domain,
+            },
+            "canvas": {
+                "enabled": True,
+                "ltiLaunchUrl": "http://example.com/lti_launches",
+                "courseId": "test_course_id",
+            },
+        }
 
-    def test_it_doesnt_enable_the_lms_file_picker_if_the_lms_isnt_Canvas(
+    def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
+        self, context, js_config
+    ):
+        context.custom_canvas_api_domain = None
+
+        js_config.enable_content_item_selection_mode(
+            mock.sentinel.form_action, mock.sentinel.form_fields
+        )
+
+        assert js_config.asdict()["filePicker"]["google"]["origin"] == context.lms_url
+
+    def test_it_doesnt_enable_the_canvas_file_picker_if_the_lms_isnt_Canvas(
         self, context, js_config,
     ):
         context.is_canvas = False
@@ -48,9 +61,9 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        self.assert_lms_file_picker_not_enabled(js_config)
+        self.assert_canvas_file_picker_not_enabled(js_config)
 
-    def test_it_doesnt_enable_the_lms_file_picker_if_the_consumer_key_isnt_found_in_the_db(
+    def test_it_doesnt_enable_the_canvas_file_picker_if_the_consumer_key_isnt_found_in_the_db(
         self, ai_getter, js_config,
     ):
         ai_getter.developer_key.side_effect = ConsumerKeyError()
@@ -59,9 +72,9 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        self.assert_lms_file_picker_not_enabled(js_config)
+        self.assert_canvas_file_picker_not_enabled(js_config)
 
-    def test_it_doesnt_enable_the_lms_file_picker_if_we_dont_have_a_developer_key(
+    def test_it_doesnt_enable_the_canvas_file_picker_if_we_dont_have_a_developer_key(
         self, ai_getter, js_config,
     ):
         ai_getter.developer_key.return_value = None
@@ -70,9 +83,9 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        self.assert_lms_file_picker_not_enabled(js_config)
+        self.assert_canvas_file_picker_not_enabled(js_config)
 
-    def test_it_doesnt_enable_the_lms_file_picker_if_theres_no_custom_canvas_course_id(
+    def test_it_doesnt_enable_the_canvas_file_picker_if_theres_no_custom_canvas_course_id(
         self, pyramid_request, js_config,
     ):
         del pyramid_request.params["custom_canvas_course_id"]
@@ -81,10 +94,10 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        self.assert_lms_file_picker_not_enabled(js_config)
+        self.assert_canvas_file_picker_not_enabled(js_config)
 
-    def assert_lms_file_picker_not_enabled(self, js_config):
-        assert not js_config.asdict()["enableLmsFilePicker"]
+    def assert_canvas_file_picker_not_enabled(self, js_config):
+        assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
         assert "courseId" not in js_config.asdict()
 
     @pytest.fixture
