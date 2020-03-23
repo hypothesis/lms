@@ -120,7 +120,7 @@ class TestAddDocumentURL:
         js_config.add_document_url("example_document_url")
 
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
-        assert js_config.asdict()["via_url"] == via_url.return_value
+        assert js_config.asdict()["viaUrl"] == via_url.return_value
 
     def test_it_sets_the_document_url(self, js_config):
         js_config.add_document_url("example_document_url")

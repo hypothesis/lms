@@ -61,7 +61,7 @@ export default function BasicLtiLaunchApp() {
       via_url_callback: viaUrlCallback,
     },
     // Content URL to show in the iframe.
-    via_url: viaUrl,
+    viaUrl,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
