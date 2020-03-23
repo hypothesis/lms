@@ -37,6 +37,7 @@ describe('BasicLtiLaunchApp', () => {
       },
       authUrl: 'https://lms.hypothes.is/authorize-lms',
       urls: {},
+      grading: {},
     };
     fakeApiCall = sinon.stub();
     FakeAuthWindow = sinon.stub().returns({
@@ -224,10 +225,10 @@ describe('BasicLtiLaunchApp', () => {
     assert.notCalled(fakeApiCall);
   });
 
-  context('when lmsGrader mode flag is true', () => {
+  context('when grading is enabled', () => {
     beforeEach(() => {
-      fakeConfig.lmsGrader = true;
       fakeConfig.grading = {
+        enabled: true,
         students: [{ userid: 'user1' }, { userid: 'user2' }],
       };
     });
@@ -248,15 +249,15 @@ describe('BasicLtiLaunchApp', () => {
       {
         name: 'LMS grader mode',
         content: () => {
-          // Turn on `lmsGrader` for this test. Note: fakeConfig won't
+          // Turn on grading for this test. Note: fakeConfig won't
           // reset for a successive axe test, so its important that this
           // test is the last one run in the test list. Otherwise
           // fakeConfig will need to be restored again as done in the
           // root level beforeEach() at the top of the file.
           fakeConfig = {
             ...fakeConfig,
-            lmsGrader: true,
             grading: {
+              enabled: true,
               students: [],
               courseName: 'courseName',
               assignmentName: 'assignmentName',

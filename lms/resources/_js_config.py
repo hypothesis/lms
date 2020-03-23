@@ -117,8 +117,8 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             # "SpeedGrader" and we support that instead.
             return
 
-        self._config["lmsGrader"] = True
         self._config["grading"] = {
+            "enabled": True,
             "courseName": self._request.params.get("context_title"),
             "assignmentName": self._request.params.get("resource_link_title"),
             "students": list(self._get_students()),
