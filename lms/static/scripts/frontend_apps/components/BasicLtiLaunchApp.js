@@ -57,10 +57,9 @@ export default function BasicLtiLaunchApp() {
       viaCallbackUrl,
     },
     grading,
-    submissionParams,
     // Content URL to show in the iframe.
     viaUrl,
-    canvas: { authUrl },
+    canvas: { authUrl, speedGrader },
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
@@ -126,7 +125,7 @@ export default function BasicLtiLaunchApp() {
     // If a teacher launches an assignment or the LMS does not support reporting
     // outcomes or grading is not enabled for the assignment, then no submission
     // URL will be available.
-    if (!submissionParams) {
+    if (!speedGrader.submissionParams) {
       return;
     }
 
@@ -139,7 +138,7 @@ export default function BasicLtiLaunchApp() {
       await apiCall({
         authToken,
         path: '/api/lti/submissions',
-        data: submissionParams,
+        data: speedGrader.submissionParams,
       });
     } catch (e) {
       // If reporting the submission failed, replace the content with an error.
@@ -152,7 +151,7 @@ export default function BasicLtiLaunchApp() {
         failedAction: 'report-submission',
       });
     }
-  }, [authToken, ltiLaunchState.state, submissionParams]);
+  }, [authToken, ltiLaunchState.state, speedGrader]);
 
   useEffect(reportSubmission, [reportSubmission]);
 

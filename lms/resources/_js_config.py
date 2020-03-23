@@ -31,7 +31,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._config["api"]["viaCallbackUrl"] = self._request.route_url(
             "canvas_api.files.via_url", file_id=canvas_file_id
         )
-        self._add_canvas_submission_params(canvas_file_id=canvas_file_id)
+        self._add_canvas_speedgrader_settings(canvas_file_id=canvas_file_id)
 
     def add_document_url(self, document_url):
         """
@@ -41,7 +41,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             is missing
         """
         self._config["viaUrl"] = via_url(self._request, document_url)
-        self._add_canvas_submission_params(document_url=document_url)
+        self._add_canvas_speedgrader_settings(document_url=document_url)
 
     def asdict(self):
         """
@@ -160,7 +160,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         self._hypothesis_client["focus"]["user"]["displayName"] = display_name
 
-    def _add_canvas_submission_params(self, **kwargs):
+    def _add_canvas_speedgrader_settings(self, **kwargs):
         """
         Add config used by the JS to call our record_canvas_speedgrader_submission API.
 
@@ -187,11 +187,13 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         if not lis_outcome_service_url:
             return
 
-        self._config["submissionParams"] = {
-            "h_username": self._context.h_user.username,
-            "lis_result_sourcedid": lis_result_sourcedid,
-            "lis_outcome_service_url": lis_outcome_service_url,
-            **kwargs,
+        self._config["canvas"]["speedGrader"] = {
+            "submissionParams": {
+                "h_username": self._context.h_user.username,
+                "lis_result_sourcedid": lis_result_sourcedid,
+                "lis_outcome_service_url": lis_outcome_service_url,
+                **kwargs,
+            },
         }
 
     def _auth_token(self):

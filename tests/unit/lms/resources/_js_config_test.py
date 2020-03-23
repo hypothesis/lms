@@ -117,13 +117,10 @@ class TestAddCanvasFileID:
             == "http://example.com/api/canvas/files/example_canvas_file_id/via_url"
         )
 
-    def test_it_sets_the_canvas_file_id(self, js_config):
+    def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
         js_config.add_canvas_file_id("example_canvas_file_id")
 
-        assert (
-            js_config.asdict()["submissionParams"]["canvas_file_id"]
-            == "example_canvas_file_id"
-        )
+        assert submission_params()["canvas_file_id"] == "example_canvas_file_id"
 
 
 class TestAddDocumentURL:
@@ -135,59 +132,54 @@ class TestAddDocumentURL:
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
-    def test_it_sets_the_document_url(self, js_config):
+    def test_it_sets_the_document_url(self, js_config, submission_params):
         js_config.add_document_url("example_document_url")
 
-        assert (
-            js_config.asdict()["submissionParams"]["document_url"]
-            == "example_document_url"
-        )
+        assert submission_params()["document_url"] == "example_document_url"
 
 
 class TestAddCanvasFileIDAddDocumentURLCommon:
     """Tests common to both add_canvas_file_id() and add_document_url()."""
 
-    def test_it_sets_the_canvas_submission_params(self, method, js_config):
+    def test_it_sets_the_canvas_submission_params(self, method, submission_params):
         method("canvas_file_id_or_document_url")
 
+        assert submission_params()["h_username"] == "example_username"
         assert (
-            js_config.asdict()["submissionParams"]["h_username"] == "example_username"
-        )
-        assert (
-            js_config.asdict()["submissionParams"]["lis_outcome_service_url"]
+            submission_params()["lis_outcome_service_url"]
             == "example_lis_outcome_service_url"
         )
         assert (
-            js_config.asdict()["submissionParams"]["lis_result_sourcedid"]
+            submission_params()["lis_result_sourcedid"]
             == "example_lis_result_sourcedid"
         )
 
-    def test_it_doesnt_set_the_canvas_submission_params_if_the_LMS_isnt_Canvas(
+    def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
         self, context, method, js_config
     ):
         context.is_canvas = False
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.asdict()
+        assert "speedGrader" not in js_config.asdict()["canvas"]
 
-    def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_result_sourcedid(
+    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
         self, method, js_config, pyramid_request
     ):
         del pyramid_request.params["lis_result_sourcedid"]
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.asdict()
+        assert "speedGrader" not in js_config.asdict()["canvas"]
 
-    def test_it_doesnt_set_the_canvas_submission_params_if_theres_no_lis_outcome_service_url(
+    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
         self, method, js_config, pyramid_request
     ):
         del pyramid_request.params["lis_outcome_service_url"]
 
         method("canvas_file_id_or_document_url")
 
-        assert "submissionParams" not in js_config.asdict()
+        assert "speedGrader" not in js_config.asdict()["canvas"]
 
     def test_it_raises_if_context_h_user_raises(self, context, method):
         # Make reading context.h_user raise HTTPBadRequest.
@@ -462,6 +454,11 @@ def js_config(context, pyramid_request):
 @pytest.fixture
 def config(js_config):
     return js_config.asdict()
+
+
+@pytest.fixture
+def submission_params(config):
+    return lambda: config["canvas"]["speedGrader"]["submissionParams"]
 
 
 @pytest.fixture
