@@ -75,7 +75,7 @@
     "karma-mocha-reporter": "^2.0.4",
     "karma-sinon": "^1.0.5",
     "mocha": "^7.1.0",
-    "prettier": "1.19.1",
+    "prettier": "2.0.1",
     "sinon": "^9.0.1"
   },
   "browserify": {
