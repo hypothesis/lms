@@ -129,7 +129,6 @@ export default function FilePickerApp({
           authToken={authToken}
           authUrl={authUrl}
           courseId={courseId}
-          lmsUrl={lmsUrl}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
         />

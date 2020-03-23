@@ -27,7 +27,6 @@ describe('LMSFilePicker', () => {
         authToken="auth-token"
         authUrl="https://lms.anno.co/authorize-lms"
         courseId="test-course"
-        lmsUrl="https://hypothesis.dummylms.com"
         onAuthorized={sinon.stub()}
         onSelectFile={sinon.stub()}
         onCancel={sinon.stub()}
@@ -85,16 +84,14 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
   });
 
-  it('shows the try again prompt with the `lmsUrl` after a failed authorization attempt', async () => {
+  it('shows the try again prompt after a failed authorization attempt', async () => {
     fakeListFiles.rejects(new ApiError('Not authorized', {}));
 
     const authWindowClosed = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
     });
 
-    const wrapper = renderFilePicker({
-      lmsUrl: 'https://example.com',
-    });
+    const wrapper = renderFilePicker();
     assert.called(fakeListFiles);
 
     try {
@@ -120,11 +117,7 @@ describe('LMSFilePicker', () => {
 
     const errorDetails = wrapper.find(ErrorDisplay);
     assert.isTrue(
-      errorDetails
-        .text()
-        .includes(
-          'Failed to authorize with the Canvas instance at https://example.com'
-        )
+      errorDetails.text().includes('Failed to authorize with Canvas')
     );
     assert.equal(errorDetails.props().error.message, '');
   });

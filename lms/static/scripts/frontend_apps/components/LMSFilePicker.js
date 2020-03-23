@@ -33,7 +33,6 @@ export default function LMSFilePicker({
   authToken,
   authUrl,
   courseId,
-  lmsUrl,
   onCancel,
   onSelectFile,
 }) {
@@ -149,12 +148,7 @@ export default function LMSFilePicker({
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
         <ErrorDisplay
-          message={
-            <Fragment>
-              {`Failed to authorize with the Canvas instance at `}
-              <a href={`${lmsUrl}`}>{`${lmsUrl}`}</a>
-            </Fragment>
-          }
+          message={<Fragment>{`Failed to authorize with Canvas`}</Fragment>}
           error={new Error('')}
         />
       )}
@@ -193,11 +187,6 @@ LMSFilePicker.propTypes = {
    * ID of the course that the user is choosing a file for.
    */
   courseId: propTypes.string.isRequired,
-
-  /**
-   * The url of the LMS, eg. "https://foobar.instructure.com".
-   */
-  lmsUrl: propTypes.string.isRequired,
 
   /** Callback invoked if the user cancels file selection. */
   onCancel: propTypes.func.isRequired,
