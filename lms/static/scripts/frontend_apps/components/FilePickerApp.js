@@ -30,18 +30,18 @@ export default function FilePickerApp({
   const {
     api: { authToken },
     authUrl,
-    courseId,
-    enableLmsFilePicker = false,
-    formAction,
-    formFields,
-    googleClientId,
-    googleDeveloperKey,
-    customCanvasApiDomain,
-    lmsUrl,
-    ltiLaunchUrl,
+    filePicker: {
+      formAction,
+      formFields,
+      canvas: { enabled: enableCanvasFilePicker, ltiLaunchUrl, courseId },
+      google: {
+        clientId: googleClientId,
+        developerKey: googleDeveloperKey,
+        origin: topLevelLmsUrl,
+      },
+    },
   } = useContext(Config);
 
-  const topLevelLmsUrl = customCanvasApiDomain || lmsUrl;
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(null);
   const [lmsFile, setLmsFile] = useState(null);
@@ -176,7 +176,7 @@ export default function FilePickerApp({
             label="Enter URL of web page or PDF"
             onClick={() => setActiveDialog('url')}
           />
-          {enableLmsFilePicker && (
+          {enableCanvasFilePicker && (
             <Button
               className="FilePickerApp__source-button"
               label={`Select PDF from Canvas`}

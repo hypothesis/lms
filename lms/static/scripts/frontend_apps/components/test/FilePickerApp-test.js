@@ -42,10 +42,15 @@ describe('FilePickerApp', () => {
   beforeEach(() => {
     fakeConfig = {
       api: {},
-      enableLmsFilePicker: true,
-      formAction: 'https://www.shinylms.com/',
-      formFields: { hidden_field: 'hidden_value' },
-      ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
+      filePicker: {
+        formAction: 'https://www.shinylms.com/',
+        formFields: { hidden_field: 'hidden_value' },
+        canvas: {
+          enabled: true,
+          ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
+        },
+        google: {},
+      },
     };
 
     container = document.createElement('div');
@@ -75,10 +80,13 @@ describe('FilePickerApp', () => {
 
     assert.equal(form.prop('action'), 'https://www.shinylms.com/');
 
-    Object.keys(fakeConfig.formFields).forEach(fieldName => {
+    Object.keys(fakeConfig.filePicker.formFields).forEach(fieldName => {
       const field = form.find(`input[name="${fieldName}"]`);
       assert.equal(field.length, 1);
-      assert.equal(field.prop('value'), fakeConfig.formFields[fieldName]);
+      assert.equal(
+        field.prop('value'),
+        fakeConfig.filePicker.formFields[fieldName]
+      );
     });
   });
 
@@ -87,14 +95,14 @@ describe('FilePickerApp', () => {
     assert.equal(wrapper.find('Button').length, 2);
   });
 
-  it('renders LMS file picker button if `enableLmsFilePicker` is true', () => {
-    fakeConfig.enableLmsFilePicker = true;
+  it('renders Canvas file picker button if Canvas file picker enabled', () => {
+    fakeConfig.filePicker.canvas.enabled = true;
     const wrapper = renderFilePicker();
     assert.isTrue(wrapper.exists('Button[label="Select PDF from Canvas"]'));
   });
 
-  it('does not render LMS file picker button if `enableLmsFilePicker` is false', () => {
-    fakeConfig.enableLmsFilePicker = false;
+  it('does not render Canvas file picker button if Canvas file picker not enabled', () => {
+    fakeConfig.filePicker.canvas.enabled = false;
     const wrapper = renderFilePicker();
     assert.isFalse(wrapper.exists('Button[label="Select PDF from Canvas"]'));
   });
@@ -130,7 +138,10 @@ describe('FilePickerApp', () => {
     assert.called(onSubmit);
     assert.deepEqual(
       getContentItem(wrapper),
-      contentItemForUrl(fakeConfig.ltiLaunchUrl, 'https://example.com')
+      contentItemForUrl(
+        fakeConfig.filePicker.canvas.ltiLaunchUrl,
+        'https://example.com'
+      )
     );
   });
 
@@ -158,15 +169,15 @@ describe('FilePickerApp', () => {
     assert.called(onSubmit);
     assert.deepEqual(
       getContentItem(wrapper),
-      contentItemForLmsFile(fakeConfig.ltiLaunchUrl, file)
+      contentItemForLmsFile(fakeConfig.filePicker.canvas.ltiLaunchUrl, file)
     );
   });
 
   describe('Google picker', () => {
     beforeEach(() => {
-      fakeConfig.googleClientId = 'goog-client-id';
-      fakeConfig.googleDeveloperKey = 'goog-developer-key';
-      fakeConfig.customCanvasApiDomain = 'https://test.chalkboard.com';
+      fakeConfig.filePicker.google.clientId = 'goog-client-id';
+      fakeConfig.filePicker.google.developerKey = 'goog-developer-key';
+      fakeConfig.filePicker.google.origin = 'https://test.chalkboard.com';
 
       const picker = FakeGooglePickerClient();
       picker.showPicker.resolves({
@@ -194,20 +205,9 @@ describe('FilePickerApp', () => {
     it('initializes Google Picker client when developer key is provided', () => {
       renderFilePicker();
       assert.calledWith(FakeGooglePickerClient, {
-        developerKey: fakeConfig.googleDeveloperKey,
-        clientId: fakeConfig.googleClientId,
-        origin: fakeConfig.customCanvasApiDomain,
-      });
-    });
-
-    it('Google Picker client origin falls back to lmsUrl if customCanvasApiDomain does not exist', () => {
-      fakeConfig.customCanvasApiDomain = null;
-      fakeConfig.lmsUrl = 'https://test.chalkboard2.com';
-      renderFilePicker();
-      assert.calledWith(FakeGooglePickerClient, {
-        developerKey: fakeConfig.googleDeveloperKey,
-        clientId: fakeConfig.googleClientId,
-        origin: fakeConfig.lmsUrl,
+        developerKey: fakeConfig.filePicker.google.developerKey,
+        clientId: fakeConfig.filePicker.google.clientId,
+        origin: fakeConfig.filePicker.google.origin,
       });
     });
 
@@ -245,7 +245,7 @@ describe('FilePickerApp', () => {
       assert.deepEqual(
         getContentItem(wrapper),
         contentItemForUrl(
-          fakeConfig.ltiLaunchUrl,
+          fakeConfig.filePicker.canvas.ltiLaunchUrl,
           'https://files.google.com/doc1'
         )
       );

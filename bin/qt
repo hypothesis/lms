@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import subprocess
+
+
+def get_files():
+    files = (
+        subprocess.run(
+            ["git", "diff", "origin/master", "--name-only"],
+            check=True,
+            stdout=subprocess.PIPE,
+        )
+        .stdout.decode("utf8")
+        .split()
+    )
+
+    files = [f for f in files if f.endswith(".py")]
+
+    for f in files:
+        if f.startswith("tests/"):
+            continue
+
+        test_file = "tests/unit/" + os.path.splitext(f)[0] + "_test.py"
+
+        if test_file not in files:
+            files.append(test_file)
+
+    files = [f for f in files if os.path.isfile(f)]
+
+    test_files = [f for f in files if f.startswith("tests/unit/")]
+    functest_files = [f for f in files if f.startswith("tests/functional/")]
+    all_test_files = test_files + functest_files
+    src_files = [f for f in files if f not in all_test_files]
+
+    return files, src_files, test_files, functest_files, all_test_files
+
+
+class Run:
+    def __init__(self, tox, verbose):
+        self._tox = tox
+        self._verbose = verbose
+
+    def __call__(self, env, cmd, files, options=""):
+        files = " ".join(files)
+
+        cmd_fmt = ".tox/{env}/bin/{cmd} {args}"
+        tox_fmt = "tox -qqe {env} --run-command '{cmd} {args}'"
+
+        if self._tox:
+            fmt = tox_fmt
+        else:
+            fmt = cmd_fmt
+
+        if options:
+            args = [options, files]
+        else:
+            args = [files]
+
+        cmd = fmt.format(env=env, cmd=cmd, args=" ".join(args))
+
+        if self._verbose:
+            print(cmd)
+
+        subprocess.run(cmd, shell=True, check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Format, lint and test only the files that have changed on this branch.",
+        epilog="By default commands are run directly rather than with tox. "
+        "This is faster but it can fail because it doesn't allow tox to "
+        "create virtualenvs and install and update dependencies. If you run "
+        "into a problem try running `%(prog)s -t` once to run the commands in "
+        "tox and see if that fixes it, then go back to running `%(prog)s` "
+        "without -t.",
+    )
+    parser.add_argument(
+        "-t",
+        "--tox",
+        action="store_true",
+        help="run commands in tox instead of directly",
+    )
+    parser.add_argument("-v", "--verbose", action="store_true")
+
+    args = parser.parse_args()
+
+    files, src_files, test_files, functest_files, all_test_files = get_files()
+
+    if files:
+        run = Run(args.tox, args.verbose)
+
+        run("format", "black", files)
+
+        if src_files:
+            run("lint", "pylint", src_files)
+            run("lint", "pycodestyle", src_files)
+            run("lint", "pydocstyle", src_files)
+
+        if all_test_files:
+            run("lint", "pylint", all_test_files, "--rcfile=tests/.pylintrc")
+
+        if test_files:
+            run("tests", "pytest", test_files)
+
+        if functest_files:
+            run("functests", "pytest", functest_files)
+
+
+if __name__ == "__main__":
+    main()

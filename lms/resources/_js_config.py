@@ -70,35 +70,34 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             HTML form that we'll use to submit the user's chosen document
         :type form_fields: dict
         """
-        self._config.update(
-            {
-                "mode": "content-item-selection",
-                "enableLmsFilePicker": False,
-                "formAction": form_action,
-                "formFields": form_fields,
-                "googleClientId": self._request.registry.settings["google_client_id"],
-                "googleDeveloperKey": self._request.registry.settings[
-                    "google_developer_key"
-                ],
-                # Pass the URL of the LMS that is launching us to our JavaScript code.
-                # When we're being launched in an iframe within the LMS our JavaScript
-                # needs to pass this URL (which is the URL of the top-most page) to Google
-                # Picker, otherwise Picker refuses to launch inside an iframe.
-                "customCanvasApiDomain": self._context.custom_canvas_api_domain,
-                "lmsUrl": self._context.lms_url,
+        self._config["mode"] = "content-item-selection"
+
+        def google_picker_origin():
+            # Pass the URL of the LMS that is launching us to our JavaScript code.
+            # When we're being launched in an iframe within the LMS our JavaScript
+            # needs to pass this URL (which is the URL of the top-most page) to Google
+            # Picker, otherwise Picker refuses to launch inside an iframe.
+            return self._context.custom_canvas_api_domain or self._context.lms_url
+
+        self._config["filePicker"] = {
+            "formAction": form_action,
+            "formFields": form_fields,
+            "canvas": {
+                "enabled": self._canvas_files_available(),
                 # The "content item selection" that we submit to Canvas's
                 # content_item_return_url is actually an LTI launch URL with
                 # the selected document URL or file_id as a query parameter. To
                 # construct these launch URLs our JavaScript code needs the
                 # base URL of our LTI launch endpoint.
                 "ltiLaunchUrl": self._request.route_url("lti_launches"),
-            }
-        )
-
-        # Enable the "LMS file picker" (Canvas file picker) if it's available.
-        if self._canvas_files_available():
-            self._config["enableLmsFilePicker"] = True
-            self._config["courseId"] = self._request.params["custom_canvas_course_id"]
+                "courseId": self._request.params.get("custom_canvas_course_id"),
+            },
+            "google": {
+                "clientId": self._request.registry.settings["google_client_id"],
+                "developerKey": self._request.registry.settings["google_developer_key"],
+                "origin": google_picker_origin(),
+            },
+        }
 
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
