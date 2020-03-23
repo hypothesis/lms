@@ -35,7 +35,7 @@ describe('BasicLtiLaunchApp', () => {
       api: {
         authToken: 'dummyAuthToken',
       },
-      authUrl: 'https://lms.hypothes.is/authorize-lms',
+      canvas: { authUrl: 'https://lms.hypothes.is/authorize-lms' },
       urls: {},
       grading: {},
     };

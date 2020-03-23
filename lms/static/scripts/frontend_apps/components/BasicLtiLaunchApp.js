@@ -56,11 +56,11 @@ export default function BasicLtiLaunchApp() {
       // to third party APIs (eg. the LMS's file storage).
       viaCallbackUrl,
     },
-    authUrl,
     grading,
     submissionParams,
     // Content URL to show in the iframe.
     viaUrl,
+    canvas: { authUrl },
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
