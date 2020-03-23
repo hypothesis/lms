@@ -51,6 +51,7 @@ describe('FilePickerApp', () => {
         },
         google: {},
       },
+      canvas: {},
     };
 
     container = document.createElement('div');

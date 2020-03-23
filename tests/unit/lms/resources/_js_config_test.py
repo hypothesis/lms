@@ -16,7 +16,7 @@ class TestJSConfig:
     """General unit tests for JSConfig."""
 
     def test_auth_url(self, config):
-        assert config["authUrl"] == "http://example.com/api/canvas/authorize"
+        assert config["canvas"]["authUrl"] == "http://example.com/api/canvas/authorize"
 
 
 class TestEnableContentItemSelectionMode:

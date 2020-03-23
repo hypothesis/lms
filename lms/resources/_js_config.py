@@ -253,6 +253,11 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new Canvas access token.
             "authUrl": self._request.route_url("canvas_api.authorize"),
+            "canvas": {
+                # The URL that the JavaScript code will open if it needs the user to
+                # authorize us to request a new Canvas access token.
+                "authUrl": self._request.route_url("canvas_api.authorize"),
+            },
             # Some debug information, currently used in the Gherkin tests.
             "debug": self._debug(),
             # Tell the JavaScript code whether we're in "dev" mode.

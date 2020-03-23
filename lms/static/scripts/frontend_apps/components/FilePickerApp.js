@@ -29,7 +29,6 @@ export default function FilePickerApp({
   const formEl = useRef();
   const {
     api: { authToken },
-    authUrl,
     filePicker: {
       formAction,
       formFields,
@@ -40,6 +39,7 @@ export default function FilePickerApp({
         origin: googleOrigin,
       },
     },
+    canvas: { authUrl },
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
