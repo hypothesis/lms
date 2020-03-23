@@ -58,7 +58,6 @@ export default function BasicLtiLaunchApp() {
     },
     authUrl,
     grading,
-    lmsGrader,
     submissionParams,
     // Content URL to show in the iframe.
     viaUrl,
@@ -197,7 +196,7 @@ export default function BasicLtiLaunchApp() {
       />
     );
 
-    if (lmsGrader) {
+    if (grading && grading.enabled) {
       // Use the LMS Grader.
       return (
         <LMSGrader

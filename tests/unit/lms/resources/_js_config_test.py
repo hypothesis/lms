@@ -210,13 +210,13 @@ class TestMaybeEnableGrading:
     def test_it_adds_the_grading_settings(self, js_config, grading_info_service):
         js_config.maybe_enable_grading()
 
-        assert js_config.asdict()["lmsGrader"] is True
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assert js_config.asdict()["grading"] == {
+            "enabled": True,
             "assignmentName": "test_assignment_name",
             "courseName": "test_course_name",
             "students": [
@@ -237,7 +237,6 @@ class TestMaybeEnableGrading:
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.asdict().get("lmsGrader")
         assert not js_config.asdict().get("grading")
 
     def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
@@ -247,7 +246,6 @@ class TestMaybeEnableGrading:
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.asdict().get("lmsGrader")
         assert not js_config.asdict().get("grading")
 
     def test_it_does_nothing_in_Canvas(self, context, js_config):
@@ -255,7 +253,6 @@ class TestMaybeEnableGrading:
 
         js_config.maybe_enable_grading()
 
-        assert not js_config.asdict().get("lmsGrader")
         assert not js_config.asdict().get("grading")
 
     @pytest.fixture
