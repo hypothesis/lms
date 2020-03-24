@@ -37,7 +37,7 @@ export default function FilePickerApp({
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
-        origin: topLevelLmsUrl,
+        origin: googleOrigin,
       },
     },
   } = useContext(Config);
@@ -54,7 +54,7 @@ export default function FilePickerApp({
   // We do this eagerly to make the picker load faster if the user does click
   // on the "Select from Google Drive" button.
   const googlePicker = useMemo(() => {
-    if (!googleClientId || !googleDeveloperKey || !topLevelLmsUrl) {
+    if (!googleClientId || !googleDeveloperKey || !googleOrigin) {
       return null;
     }
     return new GooglePickerClient({
@@ -65,9 +65,9 @@ export default function FilePickerApp({
       // must provide the URL of the top-level frame to us so we can pass it
       // to the Google Picker API. Otherwise we can use the URL of the current
       // tab.
-      origin: window === window.top ? window.location.href : topLevelLmsUrl,
+      origin: window === window.top ? window.location.href : googleOrigin,
     });
-  }, [googleDeveloperKey, googleClientId, topLevelLmsUrl]);
+  }, [googleDeveloperKey, googleClientId, googleOrigin]);
 
   /**
    * Flag indicating whether the form should be auto-submitted on the next
