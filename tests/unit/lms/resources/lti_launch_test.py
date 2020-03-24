@@ -233,6 +233,25 @@ class TestHGroupName:
         assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
 
+class TestHSectionGroupName:
+    @pytest.mark.parametrize(
+        "section_name,group_name",
+        [
+            ("Test Section", "Test Section"),
+            (" Test Section ", "Test Section"),
+            ("Test   Section", "Test   Section"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
+        ],
+    )
+    def test_it(self, lti_launch, section_name, group_name):
+        # A section dict as received from the Canvas API (except this one only
+        # has the keys that we actually use).
+        section = {"name": section_name}
+
+        assert lti_launch.h_section_group_name(section) == group_name
+
+
 class TestHProvider:
     def test_it_just_returns_the_tool_consumer_instance_guid(self, pyramid_request):
         provider = LTILaunchResource(pyramid_request).h_provider
