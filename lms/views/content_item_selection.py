@@ -45,9 +45,7 @@ from pyramid.view import view_config
     route_name="content_item_selection",
 )
 def content_item_selection(context, request):
-    lti_h_service = request.find_service(name="lti_h")
-    lti_h_service.upsert_h_user()
-    lti_h_service.upsert_course_group()
+    request.find_service(name="lti_h").single_group_sync()
 
     context.js_config.enable_content_item_selection_mode(
         form_action=request.params["content_item_return_url"],
