@@ -47,10 +47,7 @@ describe('Table', () => {
         onSelectItem,
       });
 
-      wrapper
-        .find('tbody > tr')
-        .first()
-        .simulate(event);
+      wrapper.find('tbody > tr').first().simulate(event);
 
       assert.calledWith(onSelectItem, 'One');
     });
@@ -61,10 +58,7 @@ describe('Table', () => {
     const onUseItem = sinon.stub();
     const wrapper = renderTable({ items: [item], onUseItem });
 
-    wrapper
-      .find('tbody > tr')
-      .first()
-      .simulate('dblclick');
+    wrapper.find('tbody > tr').first().simulate('dblclick');
 
     assert.calledWith(onUseItem, item);
   });

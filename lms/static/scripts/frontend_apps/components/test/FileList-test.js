@@ -44,19 +44,10 @@ describe('FileList', () => {
     );
     const formattedDate = new Date(testFiles[0]).toLocaleDateString();
     assert.equal(
-      itemWrapper
-        .find('td')
-        .at(0)
-        .text(),
+      itemWrapper.find('td').at(0).text(),
       testFiles[0].display_name
     );
-    assert.equal(
-      itemWrapper
-        .find('td')
-        .at(1)
-        .text(),
-      formattedDate
-    );
+    assert.equal(itemWrapper.find('td').at(1).text(), formattedDate);
   });
 
   it('shows a loading indicator if `isLoading` is true', () => {

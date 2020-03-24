@@ -58,10 +58,7 @@ describe('StudentSelector', () => {
   it('calls onChange (with the next student index) when the next button is clicked', () => {
     const onChange = sinon.spy();
     const wrapper = renderSelector({ onSelectStudent: onChange });
-    wrapper
-      .find('button')
-      .last()
-      .simulate('click');
+    wrapper.find('button').last().simulate('click');
     assert.isTrue(onChange.calledWith(1));
   });
 
@@ -71,31 +68,18 @@ describe('StudentSelector', () => {
       onSelectStudent: onChange,
       selectedStudentIndex: 1,
     });
-    wrapper
-      .find('button')
-      .first()
-      .simulate('click');
+    wrapper.find('button').first().simulate('click');
     assert.isTrue(onChange.calledWith(0));
   });
 
   it('should disable the previous button when there are no previous options in the list', () => {
     const wrapper = renderSelector({ selectedStudentIndex: -1 });
-    assert.isTrue(
-      wrapper
-        .find('button')
-        .first()
-        .prop('disabled')
-    );
+    assert.isTrue(wrapper.find('button').first().prop('disabled'));
   });
 
   it('should disable the next button when there are no next options in the list', () => {
     const wrapper = renderSelector({ selectedStudentIndex: 1 });
-    assert.isTrue(
-      wrapper
-        .find('button')
-        .last()
-        .prop('disabled')
-    );
+    assert.isTrue(wrapper.find('button').last().prop('disabled'));
   });
 
   it.skip(

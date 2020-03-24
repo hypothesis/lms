@@ -30,10 +30,7 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'https://example.com/foo';
 
-    wrapper
-      .find(Button)
-      .props()
-      .onClick(new Event('click'));
+    wrapper.find(Button).props().onClick(new Event('click'));
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
