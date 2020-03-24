@@ -219,11 +219,8 @@ class TestHGroupName:
         "context_title,expected_group_name",
         (
             ("Test Course", "Test Course"),
-            (" Test Course", "Test Course"),
-            ("Test Course ", "Test Course"),
             (" Test Course ", "Test Course"),
             ("Test   Course", "Test   Course"),
-            ("Object Oriented Programming 101", "Object Oriented Programm…"),
             ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
             ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
         ),
