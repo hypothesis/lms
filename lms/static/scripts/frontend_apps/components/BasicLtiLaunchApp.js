@@ -59,7 +59,7 @@ export default function BasicLtiLaunchApp() {
     grading,
     // Content URL to show in the iframe.
     viaUrl,
-    canvas: { authUrl, speedGrader },
+    canvas,
   } = useContext(Config);
 
   const [ltiLaunchState, setLtiLaunchState] = useState({
@@ -125,7 +125,7 @@ export default function BasicLtiLaunchApp() {
     // If a teacher launches an assignment or the LMS does not support reporting
     // outcomes or grading is not enabled for the assignment, then no submission
     // URL will be available.
-    if (!speedGrader.submissionParams) {
+    if (!canvas.speedGrader.submissionParams) {
       return;
     }
 
@@ -138,7 +138,7 @@ export default function BasicLtiLaunchApp() {
       await apiCall({
         authToken,
         path: '/api/lti/submissions',
-        data: speedGrader.submissionParams,
+        data: canvas.speedGrader.submissionParams,
       });
     } catch (e) {
       // If reporting the submission failed, replace the content with an error.
@@ -151,7 +151,7 @@ export default function BasicLtiLaunchApp() {
         failedAction: 'report-submission',
       });
     }
-  }, [authToken, ltiLaunchState.state, speedGrader]);
+  }, [authToken, ltiLaunchState.state, canvas]);
 
   useEffect(reportSubmission, [reportSubmission]);
 
@@ -173,7 +173,7 @@ export default function BasicLtiLaunchApp() {
       authWindow.current.focus();
       return;
     }
-    authWindow.current = new AuthWindow({ authToken, authUrl });
+    authWindow.current = new AuthWindow({ authToken, canvas.authUrl });
 
     try {
       await authWindow.current.authorize();
@@ -182,7 +182,7 @@ export default function BasicLtiLaunchApp() {
       // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
-  }, [authToken, authUrl, fetchContentUrl]);
+  }, [authToken, canvas, fetchContentUrl]);
 
   if (ltiLaunchState.state === 'fetched-url') {
     const iFrame = (
