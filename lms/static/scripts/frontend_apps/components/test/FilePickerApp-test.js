@@ -175,9 +175,11 @@ describe('FilePickerApp', () => {
 
   describe('Google picker', () => {
     beforeEach(() => {
-      fakeConfig.filePicker.google.clientId = 'goog-client-id';
-      fakeConfig.filePicker.google.developerKey = 'goog-developer-key';
-      fakeConfig.filePicker.google.origin = 'https://test.chalkboard.com';
+      fakeConfig.filePicker.google = {
+        clientId: 'goog-client-id',
+        developerKey: 'goog-developer-key',
+        origin: 'https://test.chalkboard.com',
+      };
 
       const picker = FakeGooglePickerClient();
       picker.showPicker.resolves({
