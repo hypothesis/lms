@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from lms.resources import LTILaunchResource
 
 
-class TestLTILaunchResource:
+class TestACL:
     def test_it_allows_LTI_users_to_launch_LTI_assignments(
         self, pyramid_config, pyramid_request
     ):
@@ -30,6 +30,8 @@ class TestLTILaunchResource:
 
         assert not pyramid_request.has_permission("launch_lti_assignment", context)
 
+
+class TestHDisplayName:
     @pytest.mark.parametrize(
         "request_params,expected_display_name",
         [
@@ -139,9 +141,7 @@ class TestLTILaunchResource:
             ),
         ],
     )
-    def test_h_display_name(
-        self, request_params, expected_display_name, pyramid_request
-    ):
+    def test_it(self, request_params, expected_display_name, pyramid_request):
         pyramid_request.params.update(request_params)
 
         assert (
@@ -149,9 +149,17 @@ class TestLTILaunchResource:
             == expected_display_name
         )
 
-    def test_h_authority_provided_id_raises_if_theres_no_tool_consumer_instance_guid(
-        self, pyramid_request
-    ):
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+            "user_id": "test_user_id",
+        }
+        return pyramid_request
+
+
+class TestHAuthorityProvidedID:
+    def test_it_raises_if_theres_no_tool_consumer_instance_guid(self, pyramid_request):
         pyramid_request.params.pop("tool_consumer_instance_guid")
 
         with pytest.raises(
@@ -161,10 +169,7 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
 
-    def test_h_authority_provided_id_raises_if_theres_no_context_id(
-        self, pyramid_request
-    ):
-        pyramid_request.params["tool_consumer_instance_guid"] = "test_guid"
+    def test_it_raises_if_theres_no_context_id(self, pyramid_request):
         pyramid_request.params.pop("context_id")
 
         with pytest.raises(
@@ -174,19 +179,39 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
 
-    def test_h_authority_provided_id(self, lti_launch):
+    def test_it(self, lti_launch):
         assert (
             lti_launch.h_authority_provided_id
             == "d55a3c86dd79d390ec8dc6a8096d0943044ea268"
         )
 
-    def test_h_groupid(self, lti_launch):
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "context_id": "test_context_id",
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+        }
+        return pyramid_request
+
+
+class TestHGroupID:
+    def test_it(self, lti_launch):
         assert (
             lti_launch.h_groupid
             == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
         )
 
-    def test_h_group_name_raises_if_theres_no_context_title(self, lti_launch):
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "context_id": "test_context_id",
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+        }
+        return pyramid_request
+
+
+class TestHGroupName:
+    def test_it_raises_if_theres_no_context_title(self, lti_launch):
         with pytest.raises(HTTPBadRequest):
             lti_launch.h_group_name  # pylint:disable=pointless-statement
 
@@ -203,21 +228,19 @@ class TestLTILaunchResource:
             ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
         ),
     )
-    def test_h_group_name_returns_group_names_based_on_context_titles(
+    def test_it_returns_group_names_based_on_context_titles(
         self, context_title, expected_group_name, pyramid_request
     ):
         pyramid_request.params["context_title"] = context_title
 
         assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
-    def test_h_provider_just_returns_the_tool_consumer_instance_guid(
-        self, pyramid_request
-    ):
-        pyramid_request.params["tool_consumer_instance_guid"] = "VCSy*G1u3:canvas-lms"
 
+class TestHProvider:
+    def test_it_just_returns_the_tool_consumer_instance_guid(self, pyramid_request):
         provider = LTILaunchResource(pyramid_request).h_provider
 
-        assert provider == "VCSy*G1u3:canvas-lms"
+        assert provider == "test_tool_consumer_instance_guid"
 
     @pytest.mark.parametrize(
         "request_params",
@@ -227,7 +250,7 @@ class TestLTILaunchResource:
             {"tool_consumer_instance_guid": None},
         ],
     )
-    def test_h_provider_raises_if_tool_consumer_instance_guid_is_missing(
+    def test_it_raises_if_tool_consumer_instance_guid_is_missing(
         self, request_params, pyramid_request
     ):
         pyramid_request.params.pop("tool_consumer_instance_guid")
@@ -240,17 +263,22 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_provider
 
-    def test_h_provider_unique_id_just_returns_the_user_id(self, pyramid_request):
-        pyramid_request.params["user_id"] = "4533***70d9"
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+        }
+        return pyramid_request
 
+
+class TestHProviderUniqueID:
+    def test_it_just_returns_the_user_id(self, pyramid_request):
         provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
 
-        assert provider_unique_id == "4533***70d9"
+        assert provider_unique_id == "test_user_id"
 
     @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
-    def test_h_provider_unique_id_raises_if_user_id_is_missing(
-        self, request_params, pyramid_request
-    ):
+    def test_it_raises_if_user_id_is_missing(self, request_params, pyramid_request):
         pyramid_request.params.pop("user_id")
         pyramid_request.params.update(request_params)
 
@@ -260,6 +288,15 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_provider_unique_id
 
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "user_id": "test_user_id",
+        }
+        return pyramid_request
+
+
+class TestIsCanvas:
     @pytest.mark.parametrize(
         "params,is_canvas",
         [
@@ -281,29 +318,21 @@ class TestLTILaunchResource:
             ({}, False),
         ],
     )
-    def test_is_canvas(self, pyramid_request, params, is_canvas):
+    def test_it(self, pyramid_request, params, is_canvas):
         pyramid_request.params = params
 
         assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
 
-    def test_h_user_username_is_a_30_char_string(self, pyramid_request):
-        pyramid_request.params.update(
-            {
-                "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-                "user_id": "4533***70d9",
-            }
-        )
 
+class TestHUser:
+    def test_username_is_a_30_char_string(self, pyramid_request):
         username = LTILaunchResource(pyramid_request).h_user.username
 
         assert isinstance(username, str)
         assert len(username) == 30
 
-    def test_h_user_raises_if_tool_consumer_instance_guid_is_missing(
-        self, pyramid_request
-    ):
+    def test_it_raises_if_tool_consumer_instance_guid_is_missing(self, pyramid_request):
         pyramid_request.params.pop("tool_consumer_instance_guid")
-        pyramid_request.params["user_id"] = "4533***70d9"
 
         with pytest.raises(
             HTTPBadRequest,
@@ -312,9 +341,8 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
 
-    def test_h_user_raises_if_user_id_is_missing(self, pyramid_request):
+    def test_it_raises_if_user_id_is_missing(self, pyramid_request):
         pyramid_request.params.pop("user_id")
-        pyramid_request.params["tool_consumer_instance_guid"] = "VCSy*G1u3:canvas-lms"
 
         with pytest.raises(
             HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
@@ -322,19 +350,22 @@ class TestLTILaunchResource:
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
 
-    def test_h_user_userid(self, pyramid_request):
-        pyramid_request.params.update(
-            {
-                "tool_consumer_instance_guid": "VCSy*G1u3:canvas-lms",
-                "user_id": "4533***70d9",
-            }
-        )
-
+    def test_userid(self, pyramid_request):
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
-        assert userid == "acct:2569ad7b99f316ecc7dfee5c0c801c@TEST_AUTHORITY"
+        assert userid == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
 
-    def test_provisioning_enabled_checks_whether_provisioning_is_enabled_for_the_request(
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+            "user_id": "test_user_id",
+        }
+        return pyramid_request
+
+
+class TestProvisioningEnabled:
+    def test_it_checks_whether_provisioning_is_enabled_for_the_request(
         self, ai_getter, lti_launch
     ):
         lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
@@ -343,45 +374,57 @@ class TestLTILaunchResource:
             "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
 
-    def test_provisioning_enabled_returns_True_if_provisioning_enabled_for_application_instance(
+    def test_it_returns_True_if_provisioning_enabled_for_application_instance(
         self, lti_launch
     ):
         assert lti_launch.provisioning_enabled is True
 
-    def test_provisioning_enabled_returns_False_if_provisioning_disabled_for_application_instance(
+    def test_it_returns_False_if_provisioning_disabled_for_application_instance(
         self, ai_getter, lti_launch
     ):
         ai_getter.provisioning_enabled.return_value = False
 
         assert not lti_launch.provisioning_enabled
 
-    def test_provisioning_enabled_raises_if_no_oauth_consumer_key_in_params(
-        self, pyramid_request
-    ):
+    def test_it_raises_if_no_oauth_consumer_key_in_params(self, pyramid_request):
         del pyramid_request.params["oauth_consumer_key"]
         lti_launch = LTILaunchResource(pyramid_request)
 
         with pytest.raises(HTTPBadRequest):
             lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
 
-    def test_custom_canvas_api_domain_returns_the_custom_canvas_api_domain(
-        self, pyramid_request
-    ):
-        pyramid_request.params[
-            "custom_canvas_api_domain"
-        ] = "test_custom_canvas_api_domain"
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
+        }
+        return pyramid_request
 
+
+class TestCustomCanvasAPIDomain:
+    def test_it_returns_the_custom_canvas_api_domain(self, pyramid_request):
         lti_launch = LTILaunchResource(pyramid_request)
 
         assert lti_launch.custom_canvas_api_domain == "test_custom_canvas_api_domain"
 
-    def test_custom_canvas_api_url_returns_None_if_not_defined(self, pyramid_request):
+    def test_it_returns_None_if_not_defined(self, pyramid_request):
+        del pyramid_request.params["custom_canvas_api_domain"]
+
         lti_launch = LTILaunchResource(pyramid_request)
 
         custom_canvas_api_url = lti_launch.custom_canvas_api_domain
         assert custom_canvas_api_url is None
 
-    def test_js_config_returns_the_js_config(self, pyramid_request, JSConfig):
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {
+            "custom_canvas_api_domain": "test_custom_canvas_api_domain",
+        }
+        return pyramid_request
+
+
+class TestJSConfig:
+    def test_it_returns_the_js_config(self, pyramid_request, JSConfig):
         lti_launch = LTILaunchResource(pyramid_request)
 
         js_config = lti_launch.js_config
@@ -389,7 +432,9 @@ class TestLTILaunchResource:
         JSConfig.assert_called_once_with(lti_launch, pyramid_request)
         assert js_config == JSConfig.return_value
 
-    def test_lms_url_return_the_ApplicationInstances_lms_url(
+
+class TestLMSURL:
+    def test_it_returns_the_ApplicationInstances_lms_url(
         self, ai_getter, pyramid_request
     ):
         lti_launch = LTILaunchResource(pyramid_request)
@@ -401,23 +446,19 @@ class TestLTILaunchResource:
         assert lms_url == ai_getter.lms_url.return_value
 
     @pytest.fixture
-    def lti_launch(self, pyramid_request):
-        return LTILaunchResource(pyramid_request)
-
-    @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-            "context_id": "test_context_id",
-            "user_id": "test_user_id",
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-            # Mandatory parameters for an LTI request to succeed
-            "resource_link_id": "DUMMY-ID",
         }
         return pyramid_request
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")
+
+
+@pytest.fixture
+def lti_launch(pyramid_request):
+    return LTILaunchResource(pyramid_request)
 
 
 @pytest.fixture(autouse=True)
