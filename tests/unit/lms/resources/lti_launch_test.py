@@ -210,6 +210,53 @@ class TestHGroupID:
         return pyramid_request
 
 
+class TestHSectionGroupID:
+    @pytest.mark.parametrize(
+        "settings,args,expected_groupid",
+        (
+            (
+                {},
+                {},
+                "group:section-298e68dd4befff42f9a9ff7edffc542b2ba1f782@TEST_AUTHORITY",
+            ),
+            (
+                {},
+                {
+                    "tool_consumer_instance_guid": "DIFFERENT_tool_consumer_instance_guid"
+                },
+                "group:section-e690bef466ef1d42587ae88b6b76f553d5e718e7@TEST_AUTHORITY",
+            ),
+            (
+                {},
+                {"context_id": "DIFFERENT_context_id"},
+                "group:section-1ca5d17b0eab0e02784964c21aca33d99167402f@TEST_AUTHORITY",
+            ),
+            (
+                {},
+                {"section": {"id": "DIFFERENT_section_id"}},
+                "group:section-15348ff2dbeb6e250d029c363007b8357bde7eea@TEST_AUTHORITY",
+            ),
+            (
+                {"h_authority": "DIFFERENT_authority"},
+                {},
+                "group:section-298e68dd4befff42f9a9ff7edffc542b2ba1f782@DIFFERENT_authority",
+            ),
+        ),
+    )
+    def test_it(
+        self, settings, args, expected_groupid, pyramid_request,
+    ):
+        pyramid_request.registry.settings.update(**settings)
+        lti_launch_resource = LTILaunchResource(pyramid_request)
+        args.setdefault("tool_consumer_instance_guid", "tool_consumer_instance_guid")
+        args.setdefault("context_id", "context_id")
+        args.setdefault("section", {"id": "section_id"})
+
+        groupid = lti_launch_resource.h_section_groupid(**args)
+
+        assert groupid == expected_groupid
+
+
 class TestHGroupName:
     def test_it_raises_if_theres_no_context_title(self, lti_launch):
         with pytest.raises(HTTPBadRequest):
