@@ -155,7 +155,9 @@ class TestHDisplayName:
 
 class TestHAuthorityProvidedID:
     @pytest.mark.parametrize("parameter", ("tool_consumer_instance_guid", "context_id"))
-    def test_it_raises_if_a_required_parameter_is_missing(self, pyramid_request, parameter):
+    def test_it_raises_if_a_required_parameter_is_missing(
+        self, pyramid_request, parameter
+    ):
         pyramid_request.params.pop(parameter)
 
         with pytest.raises(
