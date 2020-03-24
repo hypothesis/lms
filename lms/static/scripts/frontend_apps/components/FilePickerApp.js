@@ -33,7 +33,7 @@ export default function FilePickerApp({
     filePicker: {
       formAction,
       formFields,
-      canvas: { enabled: enableCanvasFilePicker, ltiLaunchUrl, courseId },
+      canvas: { enabled: canvasEnabled, ltiLaunchUrl, courseId },
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
@@ -176,7 +176,7 @@ export default function FilePickerApp({
             label="Enter URL of web page or PDF"
             onClick={() => setActiveDialog('url')}
           />
-          {enableCanvasFilePicker && (
+          {canvasEnabled && (
             <Button
               className="FilePickerApp__source-button"
               label={`Select PDF from Canvas`}
