@@ -33,121 +33,45 @@ class TestACL:
 
 class TestHDisplayName:
     @pytest.mark.parametrize(
-        "request_params,expected_display_name",
+        "name_parts,expected",
         [
             # It returns the full name if there is one.
-            (
-                {
-                    "lis_person_name_full": "Test Full",
-                    # Add given and family names too. These should be ignored.
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Full",
-            ),
-            # It strips leading and trailing whitespace from the full name.
-            ({"lis_person_name_full": " Test Full  "}, "Test Full"),
-            # If theres no full name it concatenates given and family names.
-            (
-                {
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            # If full name is empty it concatenates given and family names.
-            (
-                {
-                    "lis_person_name_full": "",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            # It strips leading and trailing whitespace from the concatenated
-            # given name and family name.
-            (
-                {
-                    "lis_person_name_given": "  Test Given  ",
-                    "lis_person_name_family": "  Test Family  ",
-                },
-                "Test Given Test Family",
-            ),
-            # If theres no full name or given name it uses just the family name.
-            ({"lis_person_name_family": "Test Family"}, "Test Family"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Family",
-            ),
-            # It strips leading and trailing whitespace from just the family name.
-            ({"lis_person_name_family": "  Test Family "}, "Test Family"),
-            # If theres no full name or family name it uses just the given name.
-            ({"lis_person_name_given": "Test Given"}, "Test Given"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "",
-                },
-                "Test Given",
-            ),
-            # It strips leading and trailing whitespace from just the given name.
-            ({"lis_person_name_given": "  Test Given "}, "Test Given"),
+            (["full", "given", "family"], "full"),
+            # If there's no full name it concatenates given and family names.
+            ([None, "given", "family"], "given family"),
+            (["", "given", "family"], "given family"),
+            ([" ", "given", "family"], "given family"),
+            # If there's no full name or given name it uses just the family name.
+            ([None, None, "family"], "family"),
+            ([" ", "", "family"], "family"),
+            # If there's no full name or family name it uses just the given name.
+            ([None, "given", None], "given"),
+            ([" ", "given", ""], "given"),
             # If there's nothing else it just returns "Anonymous".
-            ({}, "Anonymous"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": " ",
-                    "lis_person_name_family": "",
-                },
-                "Anonymous",
-            ),
-            # If the full name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_full": "Test Very Very Looong Full Name"},
-                "Test Very Very Looong Full Na…",
-            ),
-            # If the given name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_given": "Test Very Very Looong Given Name"},
-                "Test Very Very Looong Given N…",
-            ),
-            # If the family name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_family": "Test Very Very Looong Family Name"},
-                "Test Very Very Looong Family…",
-            ),
-            # If the concatenated given name + family name is more than 30
-            # characters long it truncates it.
-            (
-                {
-                    "lis_person_name_given": "Test Very Very",
-                    "lis_person_name_family": "Looong Concatenated Name",
-                },
-                "Test Very Very Looong Concate…",
-            ),
+            ([None, None, None], "Anonymous"),
+            ([" ", " ", ""], "Anonymous"),
+            # Test white space stripping
+            ([" full  ", None, None], "full"),
+            ([None, "  given ", None], "given"),
+            ([None, None, "  family "], "family"),
+            ([None, "  given  ", "  family  "], "given family"),
+            # Test truncation
+            (["x" * 100, None, None], "x" * 29 + "…"),
+            ([None, "x" * 100, None], "x" * 29 + "…"),
+            ([None, None, "x" * 100], "x" * 29 + "…"),
+            ([None, "given" * 3, "family" * 3], "givengivengiven familyfamilyf…"),
         ],
     )
-    def test_it(self, request_params, expected_display_name, pyramid_request):
-        pyramid_request.params.update(request_params)
+    def test_it(self, name_parts, expected, pyramid_request):
+        params = {
+            f"lis_person_name_{field}": part
+            for field, part in zip(["full", "given", "family"], name_parts)
+            if part is not None
+        }
 
-        assert (
-            LTILaunchResource(pyramid_request).h_user.display_name
-            == expected_display_name
-        )
+        pyramid_request.params.update(params)
+
+        assert LTILaunchResource(pyramid_request).h_user.display_name == expected
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
