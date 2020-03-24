@@ -8,27 +8,22 @@ from lms.resources import LTILaunchResource
 
 
 class TestACL:
-    def test_it_allows_LTI_users_to_launch_LTI_assignments(
-        self, pyramid_config, pyramid_request
+    @pytest.mark.parametrize(
+        "principals,expected", ((["lti_user"], True), (["foo", "bar"], False))
+    )
+    def test_it_allows_the_correct_users_to_launch_LTI_assignments(
+        self, pyramid_config, pyramid_request, principals, expected
     ):
         policy = ACLAuthorizationPolicy()
-        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["lti_user"])
+        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=principals)
         pyramid_config.set_authorization_policy(policy)
 
         context = LTILaunchResource(pyramid_request)
+        has_permission = pyramid_request.has_permission(
+            "launch_lti_assignment", context
+        )
 
-        assert pyramid_request.has_permission("launch_lti_assignment", context)
-
-    def test_it_doesnt_allow_non_LTI_users_to_launch_LTI_assignments(
-        self, pyramid_config, pyramid_request
-    ):
-        policy = ACLAuthorizationPolicy()
-        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["foo", "bar"])
-        pyramid_config.set_authorization_policy(policy)
-
-        context = LTILaunchResource(pyramid_request)
-
-        assert not pyramid_request.has_permission("launch_lti_assignment", context)
+        assert bool(has_permission) is expected
 
 
 class TestHDisplayName:
@@ -159,22 +154,13 @@ class TestHDisplayName:
 
 
 class TestHAuthorityProvidedID:
-    def test_it_raises_if_theres_no_tool_consumer_instance_guid(self, pyramid_request):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
+    @pytest.mark.parametrize("parameter", ("tool_consumer_instance_guid", "context_id"))
+    def test_it_raises_if_mandatory_parameter_missing(self, pyramid_request, parameter):
+        pyramid_request.params.pop(parameter)
 
         with pytest.raises(
             HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_authority_provided_id
-
-    def test_it_raises_if_theres_no_context_id(self, pyramid_request):
-        pyramid_request.params.pop("context_id")
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "context_id" missing from LTI params',
+            match=f'Required parameter "{parameter}" missing from LTI params',
         ):
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
@@ -331,21 +317,15 @@ class TestHUser:
         assert isinstance(username, str)
         assert len(username) == 30
 
-    def test_it_raises_if_tool_consumer_instance_guid_is_missing(self, pyramid_request):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
+    @pytest.mark.parametrize("parameter", ["tool_consumer_instance_guid", "user_id"])
+    def test_it_raises_if_tool_consumer_instance_guid_is_missing(
+        self, pyramid_request, parameter
+    ):
+        pyramid_request.params.pop(parameter)
 
         with pytest.raises(
             HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_user
-
-    def test_it_raises_if_user_id_is_missing(self, pyramid_request):
-        pyramid_request.params.pop("user_id")
-
-        with pytest.raises(
-            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
+            match=f'Required parameter "{parameter}" missing from LTI params',
         ):
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
@@ -374,17 +354,13 @@ class TestProvisioningEnabled:
             "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
 
-    def test_it_returns_True_if_provisioning_enabled_for_application_instance(
-        self, lti_launch
+    @pytest.mark.parametrize("expected", [True, False])
+    def test_it_returns_based_on_ai_getter_provisiioning(
+        self, expected, ai_getter, lti_launch
     ):
-        assert lti_launch.provisioning_enabled is True
+        ai_getter.provisioning_enabled.return_value = expected
 
-    def test_it_returns_False_if_provisioning_disabled_for_application_instance(
-        self, ai_getter, lti_launch
-    ):
-        ai_getter.provisioning_enabled.return_value = False
-
-        assert not lti_launch.provisioning_enabled
+        assert lti_launch.provisioning_enabled is expected
 
     def test_it_raises_if_no_oauth_consumer_key_in_params(self, pyramid_request):
         del pyramid_request.params["oauth_consumer_key"]
