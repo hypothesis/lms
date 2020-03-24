@@ -39,7 +39,7 @@ export default function FilePickerApp({
         origin: googleOrigin,
       },
     },
-    canvas: { authUrl },
+    canvas,
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
@@ -127,7 +127,7 @@ export default function FilePickerApp({
       dialog = (
         <LMSFilePicker
           authToken={authToken}
-          authUrl={authUrl}
+          authUrl={canvas.authUrl}
           courseId={courseId}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}

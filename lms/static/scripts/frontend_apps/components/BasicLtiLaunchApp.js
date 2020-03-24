@@ -173,7 +173,7 @@ export default function BasicLtiLaunchApp() {
       authWindow.current.focus();
       return;
     }
-    authWindow.current = new AuthWindow({ authToken, canvas.authUrl });
+    authWindow.current = new AuthWindow({ authToken, authUrl: canvas.authUrl });
 
     try {
       await authWindow.current.authorize();
