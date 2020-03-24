@@ -84,10 +84,7 @@ describe('LMSGrader', () => {
   it('set the selected student count to "Student 2 of 2" when the index changers to 1', async () => {
     const wrapper = renderGrader();
     act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(1); // second student
+      wrapper.find(FakeStudentSelector).props().onSelectStudent(1); // second student
     });
     assert.equal(
       wrapper.find('.LMSGrader__student-count').text(),
@@ -116,10 +113,7 @@ describe('LMSGrader', () => {
     const wrapper = renderGrader();
 
     act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(0); // note: initial index is -1
+      wrapper.find(FakeStudentSelector).props().onSelectStudent(0); // note: initial index is -1
     });
 
     await fakeSidebarWindow;
@@ -142,10 +136,7 @@ describe('LMSGrader', () => {
   it('does not set a focus user when the user index is invalid', async () => {
     const wrapper = renderGrader();
     act(() => {
-      wrapper
-        .find(FakeStudentSelector)
-        .props()
-        .onSelectStudent(-1); // invalid choice
+      wrapper.find(FakeStudentSelector).props().onSelectStudent(-1); // invalid choice
     });
 
     await fakeSidebarWindow;

@@ -107,10 +107,7 @@ describe('LMSFilePicker', () => {
 
     // Make an authorization attempt and wait for the auth window to close.
     await act(async () => {
-      wrapper
-        .find('FakeButton[label="Authorize"]')
-        .props()
-        .onClick();
+      wrapper.find('FakeButton[label="Authorize"]').props().onClick();
       await authWindowClosed;
     });
 
@@ -204,10 +201,7 @@ describe('LMSFilePicker', () => {
     wrapper.find('FakeButton[label="Authorize"]').prop('onClick')();
 
     // Dismiss the LMS file picker. This should close the auth popup.
-    wrapper
-      .find(FakeDialog)
-      .props()
-      .onCancel();
+    wrapper.find(FakeDialog).props().onCancel();
 
     assert.called(closePopup);
   });
@@ -244,10 +238,7 @@ describe('LMSFilePicker', () => {
     const file = { id: 123 };
 
     act(() => {
-      wrapper
-        .find(FakeFileList)
-        .props()
-        .onSelectFile(file);
+      wrapper.find(FakeFileList).props().onSelectFile(file);
     });
     wrapper.update();
 
@@ -258,10 +249,7 @@ describe('LMSFilePicker', () => {
     const onSelectFile = sinon.stub();
     const file = { id: 123 };
     const wrapper = renderFilePicker({ onSelectFile });
-    wrapper
-      .find(FakeFileList)
-      .props()
-      .onUseFile(file);
+    wrapper.find(FakeFileList).props().onUseFile(file);
     assert.calledWith(onSelectFile, file);
   });
 
@@ -276,10 +264,7 @@ describe('LMSFilePicker', () => {
   it('shows enabled "Select" button when a file is selected', () => {
     const wrapper = renderFilePicker();
     act(() => {
-      wrapper
-        .find(FakeFileList)
-        .props()
-        .onSelectFile({ id: 123 });
+      wrapper.find(FakeFileList).props().onSelectFile({ id: 123 });
     });
     wrapper.update();
     assert.equal(
@@ -294,18 +279,12 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ onSelectFile });
 
     act(() => {
-      wrapper
-        .find(FakeFileList)
-        .props()
-        .onSelectFile(file);
+      wrapper.find(FakeFileList).props().onSelectFile(file);
     });
     wrapper.update();
 
     act(() => {
-      wrapper
-        .find('FakeButton[label="Select"]')
-        .props()
-        .onClick();
+      wrapper.find('FakeButton[label="Select"]').props().onClick();
     });
 
     assert.calledWith(onSelectFile, file);
