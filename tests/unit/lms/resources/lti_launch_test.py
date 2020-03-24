@@ -8,146 +8,65 @@ from lms.resources import LTILaunchResource
 
 
 class TestACL:
-    def test_it_allows_LTI_users_to_launch_LTI_assignments(
-        self, pyramid_config, pyramid_request
+    @pytest.mark.parametrize(
+        "principals,expected", ((["lti_user"], True), (["foo", "bar"], False))
+    )
+    def test_it_allows_the_correct_users_to_launch_LTI_assignments(
+        self, pyramid_config, pyramid_request, principals, expected
     ):
         policy = ACLAuthorizationPolicy()
-        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["lti_user"])
+        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=principals)
         pyramid_config.set_authorization_policy(policy)
 
         context = LTILaunchResource(pyramid_request)
+        has_permission = pyramid_request.has_permission(
+            "launch_lti_assignment", context
+        )
 
-        assert pyramid_request.has_permission("launch_lti_assignment", context)
-
-    def test_it_doesnt_allow_non_LTI_users_to_launch_LTI_assignments(
-        self, pyramid_config, pyramid_request
-    ):
-        policy = ACLAuthorizationPolicy()
-        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=["foo", "bar"])
-        pyramid_config.set_authorization_policy(policy)
-
-        context = LTILaunchResource(pyramid_request)
-
-        assert not pyramid_request.has_permission("launch_lti_assignment", context)
+        assert bool(has_permission) is expected
 
 
 class TestHDisplayName:
     @pytest.mark.parametrize(
-        "request_params,expected_display_name",
+        "name_parts,expected",
         [
             # It returns the full name if there is one.
-            (
-                {
-                    "lis_person_name_full": "Test Full",
-                    # Add given and family names too. These should be ignored.
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Full",
-            ),
-            # It strips leading and trailing whitespace from the full name.
-            ({"lis_person_name_full": " Test Full  "}, "Test Full"),
-            # If theres no full name it concatenates given and family names.
-            (
-                {
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            # If full name is empty it concatenates given and family names.
-            (
-                {
-                    "lis_person_name_full": "",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Given Test Family",
-            ),
-            # It strips leading and trailing whitespace from the concatenated
-            # given name and family name.
-            (
-                {
-                    "lis_person_name_given": "  Test Given  ",
-                    "lis_person_name_family": "  Test Family  ",
-                },
-                "Test Given Test Family",
-            ),
-            # If theres no full name or given name it uses just the family name.
-            ({"lis_person_name_family": "Test Family"}, "Test Family"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "",
-                    "lis_person_name_family": "Test Family",
-                },
-                "Test Family",
-            ),
-            # It strips leading and trailing whitespace from just the family name.
-            ({"lis_person_name_family": "  Test Family "}, "Test Family"),
-            # If theres no full name or family name it uses just the given name.
-            ({"lis_person_name_given": "Test Given"}, "Test Given"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": "Test Given",
-                    "lis_person_name_family": "",
-                },
-                "Test Given",
-            ),
-            # It strips leading and trailing whitespace from just the given name.
-            ({"lis_person_name_given": "  Test Given "}, "Test Given"),
+            (["full", "given", "family"], "full"),
+            # If there's no full name it concatenates given and family names.
+            ([None, "given", "family"], "given family"),
+            (["", "given", "family"], "given family"),
+            ([" ", "given", "family"], "given family"),
+            # If there's no full name or given name it uses just the family name.
+            ([None, None, "family"], "family"),
+            ([" ", "", "family"], "family"),
+            # If there's no full name or family name it uses just the given name.
+            ([None, "given", None], "given"),
+            ([" ", "given", ""], "given"),
             # If there's nothing else it just returns "Anonymous".
-            ({}, "Anonymous"),
-            (
-                {
-                    "lis_person_name_full": "   ",
-                    "lis_person_name_given": " ",
-                    "lis_person_name_family": "",
-                },
-                "Anonymous",
-            ),
-            # If the full name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_full": "Test Very Very Looong Full Name"},
-                "Test Very Very Looong Full Na…",
-            ),
-            # If the given name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_given": "Test Very Very Looong Given Name"},
-                "Test Very Very Looong Given N…",
-            ),
-            # If the family name is more than 30 characters long it truncates it.
-            (
-                {"lis_person_name_family": "Test Very Very Looong Family Name"},
-                "Test Very Very Looong Family…",
-            ),
-            # If the concatenated given name + family name is more than 30
-            # characters long it truncates it.
-            (
-                {
-                    "lis_person_name_given": "Test Very Very",
-                    "lis_person_name_family": "Looong Concatenated Name",
-                },
-                "Test Very Very Looong Concate…",
-            ),
+            ([None, None, None], "Anonymous"),
+            ([" ", " ", ""], "Anonymous"),
+            # Test white space stripping
+            ([" full  ", None, None], "full"),
+            ([None, "  given ", None], "given"),
+            ([None, None, "  family "], "family"),
+            ([None, "  given  ", "  family  "], "given family"),
+            # Test truncation
+            (["x" * 100, None, None], "x" * 29 + "…"),
+            ([None, "x" * 100, None], "x" * 29 + "…"),
+            ([None, None, "x" * 100], "x" * 29 + "…"),
+            ([None, "given" * 3, "family" * 3], "givengivengiven familyfamilyf…"),
         ],
     )
-    def test_it(self, request_params, expected_display_name, pyramid_request):
-        pyramid_request.params.update(request_params)
+    def test_it(self, name_parts, expected, pyramid_request):
+        params = {
+            f"lis_person_name_{field}": part
+            for field, part in zip(["full", "given", "family"], name_parts)
+            if part is not None
+        }
 
-        assert (
-            LTILaunchResource(pyramid_request).h_user.display_name
-            == expected_display_name
-        )
+        pyramid_request.params.update(params)
+
+        assert LTILaunchResource(pyramid_request).h_user.display_name == expected
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -159,22 +78,15 @@ class TestHDisplayName:
 
 
 class TestHAuthorityProvidedID:
-    def test_it_raises_if_theres_no_tool_consumer_instance_guid(self, pyramid_request):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
+    @pytest.mark.parametrize("parameter", ("tool_consumer_instance_guid", "context_id"))
+    def test_it_raises_if_a_required_parameter_is_missing(
+        self, pyramid_request, parameter
+    ):
+        pyramid_request.params.pop(parameter)
 
         with pytest.raises(
             HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_authority_provided_id
-
-    def test_it_raises_if_theres_no_context_id(self, pyramid_request):
-        pyramid_request.params.pop("context_id")
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "context_id" missing from LTI params',
+            match=f'Required parameter "{parameter}" missing from LTI params',
         ):
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_authority_provided_id
@@ -328,21 +240,15 @@ class TestHUser:
         assert isinstance(username, str)
         assert len(username) == 30
 
-    def test_it_raises_if_tool_consumer_instance_guid_is_missing(self, pyramid_request):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
+    @pytest.mark.parametrize("parameter", ["tool_consumer_instance_guid", "user_id"])
+    def test_it_raises_if_a_required_parameter_is_missing(
+        self, pyramid_request, parameter
+    ):
+        pyramid_request.params.pop(parameter)
 
         with pytest.raises(
             HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_user
-
-    def test_it_raises_if_user_id_is_missing(self, pyramid_request):
-        pyramid_request.params.pop("user_id")
-
-        with pytest.raises(
-            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
+            match=f'Required parameter "{parameter}" missing from LTI params',
         ):
             # pylint:disable=expression-not-assigned
             LTILaunchResource(pyramid_request).h_user
@@ -371,17 +277,13 @@ class TestProvisioningEnabled:
             "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
         )
 
-    def test_it_returns_True_if_provisioning_enabled_for_application_instance(
-        self, lti_launch
+    @pytest.mark.parametrize("expected", [True, False])
+    def test_it_returns_based_on_ai_getter_provisiioning(
+        self, expected, ai_getter, lti_launch
     ):
-        assert lti_launch.provisioning_enabled is True
+        ai_getter.provisioning_enabled.return_value = expected
 
-    def test_it_returns_False_if_provisioning_disabled_for_application_instance(
-        self, ai_getter, lti_launch
-    ):
-        ai_getter.provisioning_enabled.return_value = False
-
-        assert not lti_launch.provisioning_enabled
+        assert lti_launch.provisioning_enabled is expected
 
     def test_it_raises_if_no_oauth_consumer_key_in_params(self, pyramid_request):
         del pyramid_request.params["oauth_consumer_key"]
