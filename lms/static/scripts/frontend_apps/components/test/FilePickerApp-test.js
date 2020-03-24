@@ -206,11 +206,7 @@ describe('FilePickerApp', () => {
 
     it('initializes Google Picker client when developer key is provided', () => {
       renderFilePicker();
-      assert.calledWith(FakeGooglePickerClient, {
-        developerKey: fakeConfig.filePicker.google.developerKey,
-        clientId: fakeConfig.filePicker.google.clientId,
-        origin: fakeConfig.filePicker.google.origin,
-      });
+      assert.calledWith(FakeGooglePickerClient, fakeConfig.filePicker.google);
     });
 
     it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
