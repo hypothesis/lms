@@ -150,8 +150,19 @@ class LTILaunchResource:
         :raise HTTPBadRequest: if an LTI param needed for generating the group
           name is missing
         """
-        name = self._get_param("context_title").strip()
+        return self._group_name(self._get_param("context_title").strip())
 
+    def h_section_group_name(self, section):
+        """
+        Return the h group name for the given Canvas course section.
+
+        :param section: a section dict as received from the Canvas API
+        """
+        return self._group_name(section["name"].strip())
+
+    @staticmethod
+    def _group_name(name):
+        """Return an h group name from the given course or section name."""
         # The maximum length of an h group name.
         group_name_max_length = 25
 
