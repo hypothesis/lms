@@ -24,6 +24,11 @@ class LTIUser(NamedTuple):  # pylint:disable=too-few-public-methods
             for role in ("administrator", "instructor", "teachingassistant")
         )
 
+    @property
+    def is_learner(self):
+        """Whether this user is a learner."""
+        return "learner" in self.roles.lower()
+
 
 class HUser(NamedTuple):  # pylint:disable=too-few-public-methods
     """
