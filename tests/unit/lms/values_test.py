@@ -22,6 +22,22 @@ class TestLTIUser:
 
         assert lti_user.is_instructor == is_instructor
 
+    @pytest.mark.parametrize(
+        "roles,is_learner",
+        [
+            ("Administrator", False),
+            ("Instructor", False),
+            ("TeachingAssistant", False),
+            ("Learner", True),
+        ],
+    )
+    def test_is_learner(self, roles, is_learner):
+        lti_user = LTIUser(
+            mock.sentinel.userid, mock.sentinel.oauth_consumer_key, roles
+        )
+
+        assert lti_user.is_learner == is_learner
+
 
 class TestHUser:
     def test_userid(self):
