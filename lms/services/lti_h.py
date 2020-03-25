@@ -57,7 +57,8 @@ class LTIHService:
         """
 
         self.h_api.add_user_to_group(
-            h_user=self._context.h_user, group_id=self._context.h_groupid
+            h_user=self._context.h_user,
+            group_id=self._context.h_course_group["groupid"],
         )
 
     @lti_h_action
@@ -93,8 +94,8 @@ class LTIHService:
         """
 
         self._upsert_h_group(
-            group_id=self._context.h_groupid,
-            group_name=self._context.h_group_name,
+            group_id=self._context.h_course_group["groupid"],
+            group_name=self._context.h_course_group["name"],
             creator=self._context.h_user,
         )
 

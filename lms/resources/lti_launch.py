@@ -90,30 +90,37 @@ class LTILaunchResource:
         return hash_object.hexdigest()
 
     @property
-    def h_groupid(self):
+    def h_course_group(self):
         """
-        Return a unique h groupid for the current request.
+        Return an h group for the current request's LTI course.
 
-        The returned ID is suitable for use with the h API's ``groupid`` parameter.
+        The returned groupid is deterministic and is unique to the LTI course.
+        Calling this function again with params representing the same LTI
+        course will always return the same groupid. Calling this function with
+        different params will always return a different groupid.
 
-        The groupid is deterministic and is unique to the LTI course. Calling this
-        function again with params representing the same LTI course will always
-        return the same groupid. Calling this function with different params will
-        always return a different groupid.
+        :return: an h group for the course
+        :rtype: dict
 
         :raise HTTPBadRequest: if an LTI param needed for generating the
             groupid is missing
         """
-        return f"group:{self.h_authority_provided_id}@{self._authority}"
+        groupid = f"group:{self.h_authority_provided_id}@{self._authority}"
+        name = self._group_name(self._get_param("context_title").strip())
 
-    def h_section_groupid(self, tool_consumer_instance_guid, context_id, section):
+        return {
+            "groupid": groupid,
+            "name": name,
+        }
+
+    def h_section_group(self, tool_consumer_instance_guid, context_id, section):
         """
-        Return a unique h groupid for a given Canvas course section.
+        Return an h group for the given Canvas course section.
 
-        The groupid is deterministic and is unique to the course section.
-        Calling this function again with params representing the same course
-        section will always return the same groupid. Calling this function with
-        different params will always return a different groupid.
+        The returned groupid is deterministic and is unique to the course
+        section.  Calling this function again with params representing the same
+        course section will always return the same groupid. Calling this
+        function with different params will always return a different groupid.
 
         :param tool_consumer_instance_guid: the tool_consumer_instance_guid LTI
             launch param from the Canvas instance that the section belongs to.
@@ -127,49 +134,19 @@ class LTILaunchResource:
 
         :param section: a section dict as received from the Canvas API
         :type section: dict
+
+        :return: an h group for the section
+        :rtype: dict
         """
         hash_object = hashlib.sha1()
         hash_object.update(tool_consumer_instance_guid.encode())
         hash_object.update(context_id.encode())
         hash_object.update(section["id"].encode())
-        return f"group:section-{hash_object.hexdigest()}@{self._authority}"
+        groupid = f"group:section-{hash_object.hexdigest()}@{self._authority}"
 
-    @property
-    def h_group_name(self):
-        """
-        Return the h group name for the current request.
+        name = section["name"].strip()
 
-        This will usually generate a valid Hypothesis group name from the LTI
-        params. For example if the LTI course's title is too long for a Hypothesis
-        group name it'll be truncated. But this doesn't currently handle LTI course
-        names that are *too short* to be Hypothesis group names (shorter than 3
-        chars) - in that case if you try to create a Hypothesis group using the
-        generated name you'll get back an unsuccessful response from the Hypothesis
-        API.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the group
-          name is missing
-        """
-        return self._group_name(self._get_param("context_title").strip())
-
-    def h_section_group_name(self, section):
-        """
-        Return the h group name for the given Canvas course section.
-
-        :param section: a section dict as received from the Canvas API
-        """
-        return self._group_name(section["name"].strip())
-
-    @staticmethod
-    def _group_name(name):
-        """Return an h group name from the given course or section name."""
-        # The maximum length of an h group name.
-        group_name_max_length = 25
-
-        if len(name) > group_name_max_length:
-            name = name[: group_name_max_length - 1].rstrip() + "…"
-
-        return name
+        return {"groupid": groupid, "name": self._group_name(name)}
 
     @property
     def h_provider(self):
@@ -252,3 +229,14 @@ class LTILaunchResource:
                 f'Required parameter "{param_name}" missing from LTI params'
             )
         return param
+
+    @staticmethod
+    def _group_name(name):
+        """Return an h group name from the given course or section name."""
+        # The maximum length of an h group name.
+        group_name_max_length = 25
+
+        if len(name) > group_name_max_length:
+            name = name[: group_name_max_length - 1].rstrip() + "…"
+
+        return name

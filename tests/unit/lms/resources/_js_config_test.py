@@ -401,7 +401,7 @@ class TestJSConfigHypothesisClient:
         assert config["a_key"] == "a_value"
 
     @pytest.mark.parametrize(
-        "context_property", ["provisioning_enabled", "h_user", "h_groupid"]
+        "context_property", ["provisioning_enabled", "h_user", "h_course_group"]
     )
     def test_it_raises_if_a_context_property_raises(
         self, context, context_property, pyramid_request
@@ -468,7 +468,7 @@ def context():
         spec_set=True,
         instance=True,
         h_user=HUser("TEST_AUTHORITY", "example_username"),
-        h_groupid="example_groupid",
+        h_course_group={"groupid": "example_groupid", "name": "example_group_name"},
         is_canvas=True,
     )
 

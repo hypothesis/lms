@@ -106,23 +106,48 @@ class TestHAuthorityProvidedID:
         return pyramid_request
 
 
-class TestHGroupID:
-    def test_it(self, lti_launch):
+class TestHCourseGroup:
+    def test_groupid(self, lti_launch):
+        groupid = lti_launch.h_course_group["groupid"]
+
         assert (
-            lti_launch.h_groupid
-            == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
+            groupid == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
         )
+
+    @pytest.mark.parametrize(
+        "context_title,expected_group_name",
+        (
+            ("Test Course", "Test Course"),
+            (" Test Course ", "Test Course"),
+            ("Test   Course", "Test   Course"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
+        ),
+    )
+    def test_name(self, context_title, expected_group_name, pyramid_request):
+        pyramid_request.params["context_title"] = context_title
+
+        group = LTILaunchResource(pyramid_request).h_course_group
+
+        assert group["name"] == expected_group_name
+
+    def test_it_raises_if_theres_no_context_title(self, lti_launch, pyramid_request):
+        del pyramid_request.params["context_title"]
+
+        with pytest.raises(HTTPBadRequest):
+            lti_launch.h_course_group  # pylint:disable=pointless-statement
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
             "context_id": "test_context_id",
+            "context_title": "test_context_title",
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
         return pyramid_request
 
 
-class TestHSectionGroupID:
+class TestHSectionGroup:
     @pytest.mark.parametrize(
         "settings,args,expected_groupid",
         (
@@ -145,7 +170,7 @@ class TestHSectionGroupID:
             ),
             (
                 {},
-                {"section": {"id": "DIFFERENT_section_id"}},
+                {"section": {"id": "DIFFERENT_section_id", "name": "section_name"}},
                 "group:section-15348ff2dbeb6e250d029c363007b8357bde7eea@TEST_AUTHORITY",
             ),
             (
@@ -155,44 +180,19 @@ class TestHSectionGroupID:
             ),
         ),
     )
-    def test_it(
+    def test_groupid(
         self, settings, args, expected_groupid, pyramid_request,
     ):
         pyramid_request.registry.settings.update(**settings)
         lti_launch_resource = LTILaunchResource(pyramid_request)
         args.setdefault("tool_consumer_instance_guid", "tool_consumer_instance_guid")
         args.setdefault("context_id", "context_id")
-        args.setdefault("section", {"id": "section_id"})
+        args.setdefault("section", {"id": "section_id", "name": "section_name"})
 
-        groupid = lti_launch_resource.h_section_groupid(**args)
+        groupid = lti_launch_resource.h_section_group(**args)["groupid"]
 
         assert groupid == expected_groupid
 
-
-class TestHGroupName:
-    def test_it_raises_if_theres_no_context_title(self, lti_launch):
-        with pytest.raises(HTTPBadRequest):
-            lti_launch.h_group_name  # pylint:disable=pointless-statement
-
-    @pytest.mark.parametrize(
-        "context_title,expected_group_name",
-        (
-            ("Test Course", "Test Course"),
-            (" Test Course ", "Test Course"),
-            ("Test   Course", "Test   Course"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
-        ),
-    )
-    def test_it_returns_group_names_based_on_context_titles(
-        self, context_title, expected_group_name, pyramid_request
-    ):
-        pyramid_request.params["context_title"] = context_title
-
-        assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
-
-
-class TestHSectionGroupName:
     @pytest.mark.parametrize(
         "section_name,group_name",
         [
@@ -203,12 +203,16 @@ class TestHSectionGroupName:
             ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
         ],
     )
-    def test_it(self, lti_launch, section_name, group_name):
+    def test_name(self, lti_launch, section_name, group_name):
         # A section dict as received from the Canvas API (except this one only
         # has the keys that we actually use).
-        section = {"name": section_name}
+        section = {"id": "section_id", "name": section_name}
 
-        assert lti_launch.h_section_group_name(section) == group_name
+        group = lti_launch.h_section_group(
+            "tool_consumer_instance_guid", "context_title", section
+        )
+
+        assert group["name"] == group_name
 
 
 class TestHProvider:

@@ -376,7 +376,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
                     "authority": self._request.registry.settings["h_authority"],
                     "enableShareLinks": False,
                     "grantToken": self._grant_token(api_url),
-                    "groups": [self._context.h_groupid],
+                    "groups": [self._context.h_course_group["groupid"]],
                 }
             ]
         }
