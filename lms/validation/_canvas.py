@@ -3,8 +3,6 @@ from webargs import fields
 
 from lms.validation._base import RequestsResponseSchema
 
-__all__ = ["CanvasListFilesResponseSchema", "CanvasPublicURLResponseSchema"]
-
 
 class CanvasListFilesResponseSchema(RequestsResponseSchema):
     """
