@@ -105,7 +105,7 @@ class TestValidatedResponse:
     ):
         requests_session.send.side_effect = exception
 
-        with pytest.raises(CanvasAPIError, match="test_error_message") as exc_info:
+        with pytest.raises(CanvasAPIError, match="test_error_message"):
             helper.validated_response(prepared_request)
 
         raise_from.assert_called_once_with(exception)
@@ -124,7 +124,7 @@ class TestValidatedResponse:
     ):
         Schema.return_value.parse.side_effect = ValidationError("error message")
 
-        with pytest.raises(CanvasAPIError, match="test_error_message") as exc_info:
+        with pytest.raises(CanvasAPIError, match="test_error_message"):
             helper.validated_response(prepared_request, Schema)
 
         raise_from.assert_called_once_with(Schema.return_value.parse.side_effect)
