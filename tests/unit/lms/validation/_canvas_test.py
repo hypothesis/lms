@@ -131,7 +131,7 @@ class TestCommon:
         }
 
     @pytest.fixture(
-        params=[canvas_list_files_response_schema, canvas_public_url_response_schema,]
+        params=[canvas_list_files_response_schema, canvas_public_url_response_schema]
     )
     def schema(self, request):
         return request.param()
