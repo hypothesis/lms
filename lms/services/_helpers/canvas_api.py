@@ -110,10 +110,19 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
+        url = urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/files",
+                "",
+                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
+                "",
+            )
+        )
+
         return requests.Request(
-            "GET",
-            self._list_files_url(course_id),
-            headers={"Authorization": f"Bearer {access_token}"},
+            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     def public_url_request(self, access_token, file_id):
@@ -135,10 +144,19 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
+        url = urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/files/{file_id}/public_url",
+                "",
+                "",
+                "",
+            )
+        )
+
         return requests.Request(
-            "GET",
-            self._public_url(file_id),
-            headers={"Authorization": f"Bearer {access_token}"},
+            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     @staticmethod
@@ -196,29 +214,3 @@ class CanvasAPIHelper:
     def _token_url(self):
         """Return the URL of the Canvas API's token endpoint."""
         return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
-
-    def _list_files_url(self, course_id):
-        """Return the Canvas list files API URL for ``course_id``."""
-        return urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}/files",
-                "",
-                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
-                "",
-            )
-        )
-
-    def _public_url(self, file_id):
-        """Return a URL for Canvas's file public URL API."""
-        return urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/files/{file_id}/public_url",
-                "",
-                "",
-                "",
-            )
-        )
