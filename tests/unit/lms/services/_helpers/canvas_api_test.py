@@ -11,7 +11,7 @@ from lms.validation._base import PyramidRequestSchema
 
 
 class TestCanvasAPIHelper:
-    def test_access_token_request(self, ai_getter, helper, route_url):
+    def test_access_token_request(self, ai_getter, helper):
         request = helper.access_token_request("test_authorization_code")
 
         ai_getter.developer_key.assert_called_once_with("test_consumer_key")
@@ -28,7 +28,7 @@ class TestCanvasAPIHelper:
             "&replace_tokens=True"
         )
 
-    def test_refresh_token_request(self, ai_getter, helper, route_url):
+    def test_refresh_token_request(self, ai_getter, helper):
         request = helper.refresh_token_request("test_refresh_token")
 
         ai_getter.developer_key.assert_called_once_with("test_consumer_key")
@@ -43,7 +43,7 @@ class TestCanvasAPIHelper:
             "&refresh_token=test_refresh_token"
         )
 
-    def test_list_files_request(self, ai_getter, helper, route_url):
+    def test_list_files_request(self, ai_getter, helper):
         request = helper.list_files_request("test_access_token", "test_course_id")
 
         ai_getter.lms_url.assert_called_once_with("test_consumer_key")
@@ -55,7 +55,7 @@ class TestCanvasAPIHelper:
             "&per_page=100"
         )
 
-    def test_public_url_request(self, ai_getter, helper, route_url):
+    def test_public_url_request(self, ai_getter, helper):
         request = helper.public_url_request("test_access_token", "test_file_id")
 
         ai_getter.lms_url.assert_called_once_with("test_consumer_key")
