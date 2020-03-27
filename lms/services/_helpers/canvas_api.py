@@ -91,6 +91,72 @@ class CanvasAPIHelper:
             },
         ).prepare()
 
+    def authenticated_users_sections_request(self, access_token, course_id):
+        """
+        Return a prepared "authenticated users sections" request.
+
+        Return a server-to-server request to the Canvas API that gets a list of
+        the authenticated user's sections for the given course (course_id).
+
+        For documentation of this request see:
+
+        https://canvas.instructure.com/doc/api/courses.html#method.courses.index
+
+        :arg access_token: the access token to authenticate the request with
+        :type access_token: str
+
+        :arg course_id: the Canvas course_id of the course to look in
+        :type course_id: str
+
+        :rtype: requests.PreparedRequest
+        """
+        # Canvas's sections API
+        # (https://canvas.instructure.com/doc/api/sections.html) only allows
+        # you to get _all_ of a course's sections, it doesn't provide a way to
+        # get only the sections that the authenticated user belongs to. So we
+        # have to get the authenticated user's sections from part of the
+        # response from a courses API endpoint instead.
+        #
+        # Canvas's "Get a single course" API is capable of doing this if the
+        # ?include[]=sections query param is given:
+        #
+        #    https://canvas.instructure.com/doc/api/courses.html#method.courses.show
+        #
+        # The ?include[]=sections query param is documented elsewhere (in the
+        # "List your courses" API:
+        # https://canvas.instructure.com/doc/api/courses.html#method.courses.index)
+        # as:
+        #
+        #    "Section enrollment information to include with each Course.
+        #    Returns an array of hashes containing the section ID (id), section
+        #    name (name), start and end dates (start_at, end_at), as well as the
+        #    enrollment type (enrollment_role, e.g. 'StudentEnrollment')."
+        #
+        # In practice ?include[]=sections seems to add a "sections" key to the
+        # API response that is a list of section dicts, one for each section
+        # the authenticated user is currently enrolled in, each with the
+        # section's "id" and "name" among other fields.
+        #
+        # **We don't know what happens if the user belongs to a really large
+        # number of sections**. Does the list of sections embedded within the
+        # get course API response just get really long? Does it get truncated?
+        # Can you paginate through it somehow? This seems edge-casey enough
+        # that we're ignoring it for now.
+        url = urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}" "",
+                "",
+                "include[]=sections",
+                "",
+            )
+        )
+
+        return requests.Request(
+            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+        ).prepare()
+
     def list_files_request(self, access_token, course_id):
         """
         Return a prepared list files request.

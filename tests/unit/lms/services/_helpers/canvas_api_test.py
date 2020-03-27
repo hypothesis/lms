@@ -43,6 +43,18 @@ class TestCanvasAPIHelper:
             "&refresh_token=test_refresh_token"
         )
 
+    def test_authenticated_users_sections_request(self, helper):
+        request = helper.authenticated_users_sections_request(
+            "test_access_token", "test_course_id"
+        )
+
+        assert request.method == "GET"
+        assert request.headers["Authorization"] == "Bearer test_access_token"
+        assert request.url == (
+            "https://my-canvas-instance.com/api/v1/courses/test_course_id"
+            "?include%5B%5D=sections"
+        )
+
     def test_list_files_request(self, ai_getter, helper):
         request = helper.list_files_request("test_access_token", "test_course_id")
 
