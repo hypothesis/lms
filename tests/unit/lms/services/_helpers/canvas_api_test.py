@@ -1,7 +1,8 @@
 from unittest import mock
 
 import pytest
-from requests import ConnectionError, HTTPError, ReadTimeout, Request, TooManyRedirects
+from requests import ConnectionError as requests_ConnectionError
+from requests import HTTPError, ReadTimeout, Request, TooManyRedirects
 
 from lms.services._helpers.canvas_api import CanvasAPIHelper
 from lms.services.exceptions import CanvasAPIError
@@ -96,7 +97,8 @@ class TestValidatedResponse:
         assert sent_request.headers["Authorization"] == "Bearer NEW_ACCESS_TOKEN"
 
     @pytest.mark.parametrize(
-        "exception", [ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()]
+        "exception",
+        [requests_ConnectionError(), HTTPError(), ReadTimeout(), TooManyRedirects()],
     )
     def test_it_raises_CanvasAPIError_if_the_request_fails(
         self, exception, helper, prepared_request, raise_from, requests_session
