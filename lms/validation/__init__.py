@@ -55,6 +55,7 @@ from lms.validation._base import (
 )
 from lms.validation._canvas import (
     CanvasAuthenticatedUsersSectionsResponseSchema,
+    CanvasCourseSectionsResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
 )

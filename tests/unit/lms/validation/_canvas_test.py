@@ -6,6 +6,7 @@ import requests
 
 from lms.validation import (
     CanvasAuthenticatedUsersSectionsResponseSchema,
+    CanvasCourseSectionsResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
     ValidationError,
@@ -28,6 +29,17 @@ def canvas_authenticated_users_sections_response_schema():
         ]
     }
     return CanvasAuthenticatedUsersSectionsResponseSchema(response_)
+
+
+def canvas_course_sections_response_schema():
+    """Return a CanvasCourseSectionsResponseSchema."""
+    response_ = response()
+    response_.json.return_value = [
+        {"id": 101, "name": "section_name_1"},
+        {"id": 102, "name": "section_name_2"},
+        {"id": 103, "name": "section_name_3"},
+    ]
+    return CanvasCourseSectionsResponseSchema(response_)
 
 
 def canvas_list_files_response_schema():
@@ -147,6 +159,7 @@ class TestCommon:
     @pytest.fixture(
         params=[
             canvas_authenticated_users_sections_response_schema,
+            canvas_course_sections_response_schema,
             canvas_list_files_response_schema,
             canvas_public_url_response_schema,
         ]
@@ -227,6 +240,73 @@ class TestCanvasAuthenticatedUsersSectionsResponseSchema:
     @pytest.fixture
     def schema(self):
         return canvas_authenticated_users_sections_response_schema()
+
+
+class TestCanvasCourseSectionsResponseSchema:
+    def test_it_returns_a_list_of_valid_section_dicts(self, schema):
+        parsed_params = schema.parse()
+
+        assert parsed_params == [
+            {"id": 101, "name": "section_name_1"},
+            {"id": 102, "name": "section_name_2"},
+            {"id": 103, "name": "section_name_3"},
+        ]
+
+    @pytest.mark.parametrize(
+        "invalid_body,error_messages",
+        [
+            pytest.param(
+                [],
+                {"_schema": ["Shorter than minimum length 1."]},
+                id="There must be at least one section",
+            ),
+            pytest.param(
+                {"this is": "not a list"},
+                {"_schema": ["Invalid input type."]},
+                id="Sections must be a list",
+            ),
+            pytest.param(
+                ["not a dict", 1, False],
+                {
+                    0: {"_schema": ["Invalid input type."]},
+                    1: {"_schema": ["Invalid input type."]},
+                    2: {"_schema": ["Invalid input type."]},
+                },
+                id="Each section must be a dict",
+            ),
+            pytest.param(
+                [{"name": "Test Section"}],
+                {0: {"id": ["Missing data for required field."]}},
+                id="Each section dict must have an ID",
+            ),
+            pytest.param(
+                [{"id": "not an int", "name": "Test Section"}],
+                {0: {"id": ["Not a valid integer."]}},
+                id="IDs must be ints",
+            ),
+            pytest.param(
+                [{"id": 101}],
+                {0: {"name": ["Missing data for required field."]}},
+                id="Each section dict must have a name",
+            ),
+            pytest.param(
+                [{"id": 101, "name": 26}],
+                {0: {"name": ["Not a valid string."]}},
+                id="Names must be strings",
+            ),
+        ],
+    )
+    def test_invalid(self, schema, invalid_body, error_messages):
+        schema.context["response"].json.return_value = invalid_body
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.messages == error_messages
+
+    @pytest.fixture
+    def schema(self):
+        return canvas_course_sections_response_schema()
 
 
 class TestCanvasListFilesResponseSchema:
