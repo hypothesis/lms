@@ -320,6 +320,67 @@ class TestCourseSections:
             canvas_api_client.course_sections("test_course_id")
 
 
+@pytest.mark.usefixtures("send_with_refresh_and_retry")
+class TestUsersSections:
+    """Unit tests for CanvasAPIClient.users_sections()."""
+
+    @pytest.mark.usefixtures("access_token")
+    def test_it(
+        self,
+        ai_getter,
+        canvas_api_client,
+        CanvasAPIHelper,
+        canvas_api_helper,
+        send_with_refresh_and_retry,
+        CanvasUsersSectionsResponseSchema,
+        pyramid_request,
+    ):
+        sections = canvas_api_client.users_sections("test_user_id", "test_course_id")
+
+        # It initializes canvas_api_helper.
+        CanvasAPIHelper.assert_called_once_with(
+            pyramid_request.lti_user.oauth_consumer_key,
+            ai_getter,
+            pyramid_request.route_url,
+        )
+
+        # It gets the prepared request.
+        canvas_api_helper.users_sections_request.assert_called_once_with(
+            "test_access_token", "test_user_id", "test_course_id"
+        )
+
+        # It sends the prepared request.
+        send_with_refresh_and_retry.assert_called_once_with(
+            canvas_api_helper.users_sections_request.return_value,
+            CanvasUsersSectionsResponseSchema,
+            "test_refresh_token",
+        )
+
+        # It returns the sections.
+        assert sections == send_with_refresh_and_retry.return_value
+
+    def test_it_raises_if_we_dont_have_an_access_token(self, canvas_api_client):
+        with pytest.raises(
+            CanvasAPIAccessTokenError,
+            match="We don't have a Canvas API access token for this user",
+        ):
+            canvas_api_client.authenticated_users_sections("test_course_id")
+
+    @pytest.mark.usefixtures("access_token")
+    @pytest.mark.parametrize(
+        "ExceptionClass", [CanvasAPIAccessTokenError, CanvasAPIServerError]
+    )
+    def test_it_raises_if_the_request_fails(
+        self, canvas_api_client, send_with_refresh_and_retry, ExceptionClass,
+    ):
+        send_with_refresh_and_retry.side_effect = ExceptionClass("test_error_message")
+
+        with pytest.raises(
+            ExceptionClass, match="test_error_message",
+        ):
+            canvas_api_client.authenticated_users_sections("test_course_id")
+
+
 class TestListFiles:
     """Unit tests for CanvasAPIClient.list_files()."""
 
@@ -631,6 +692,11 @@ def CanvasAuthenticatedUsersSectionsResponseSchema(patch):
 @pytest.fixture
 def CanvasCourseSectionsResponseSchema(patch):
     return patch("lms.services.canvas_api.CanvasCourseSectionsResponseSchema")
+
+
+@pytest.fixture
+def CanvasUsersSectionsResponseSchema(patch):
+    return patch("lms.services.canvas_api.CanvasUsersSectionsResponseSchema")
 
 
 @pytest.fixture

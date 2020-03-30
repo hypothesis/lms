@@ -191,6 +191,44 @@ class CanvasAPIHelper:
             "GET", url, headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
+    def users_sections_request(self, access_token, user_id, course_id):
+        """
+        Return a prepared "user's course sections" request.
+
+        Return a server-to-server request to the Canvas API that gets a list of
+        all the given user's (user_id) sections for the given course
+        (course_id).
+
+        For documentation of this request see:
+
+        https://canvas.instructure.com/doc/api/courses.html#method.courses.user
+
+        :arg access_token: the access token to authenticate the request with
+        :type access_token: str
+
+        :arg user_id: the Canvas user_id of the user whose sections you want
+        :type user_id: str
+
+        :arg course_id: the Canvas course_id of the course to look in
+        :type course_id: str
+
+        :rtype: requests.PreparedRequest
+        """
+        url = urlunparse(
+            (
+                "https",
+                self._canvas_url,
+                f"/api/v1/courses/{course_id}/users/{user_id}",
+                "",
+                "include[]=enrollments",
+                "",
+            )
+        )
+
+        return requests.Request(
+            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+        ).prepare()
+
     def list_files_request(self, access_token, course_id):
         """
         Return a prepared list files request.
