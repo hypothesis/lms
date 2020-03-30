@@ -1,5 +1,6 @@
 """Schemas for Canvas API responses."""
 from marshmallow import (
+    EXCLUDE,
     Schema,
     ValidationError,
     fields,
@@ -65,6 +66,35 @@ class CanvasCourseSectionsResponseSchema(RequestsResponseSchema, _SectionSchema)
         # so the only way it can be falsey is if it's an empty list.
         if not data:
             raise ValidationError("Shorter than minimum length 1.")
+
+
+class CanvasUsersSectionsResponseSchema(RequestsResponseSchema):
+    """Schema for the Canvas API's "user's course sections" responses."""
+
+    class _EnrollmentSchema(Schema):
+        """Schema for extracting a section ID from an enrollment dict."""
+
+        class Meta:  # pylint:disable=too-few-public-methods
+            unknown = EXCLUDE
+
+        course_section_id = fields.Int(required=True)
+
+    enrollments = fields.List(
+        fields.Nested(_EnrollmentSchema), validate=validate.Length(min=1), required=True
+    )
+
+    @post_load
+    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        # Return the section IDs as a list of section dicts (albeit with ids
+        # only no names).
+        #
+        # If we get as far as this method then data["enrollments"] is
+        # guaranteed to be a list of one-or-more valid enrollment dicts, so we
+        # don't need to code defensively here.
+        return [
+            {"id": enrollment["course_section_id"]}
+            for enrollment in data["enrollments"]
+        ]
 
 
 class CanvasListFilesResponseSchema(RequestsResponseSchema):

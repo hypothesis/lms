@@ -10,6 +10,7 @@ from lms.validation import (
     CanvasCourseSectionsResponseSchema,
     CanvasListFilesResponseSchema,
     CanvasPublicURLResponseSchema,
+    CanvasUsersSectionsResponseSchema,
 )
 from lms.validation.authentication import (
     CanvasAccessTokenResponseSchema,
@@ -123,6 +124,38 @@ class CanvasAPIClient:
         return self.send_with_refresh_and_retry(
             self._helper.course_sections_request(oauth2_token.access_token, course_id),
             CanvasCourseSectionsResponseSchema,
+            oauth2_token.refresh_token,
+        )
+
+    def users_sections(self, user_id, course_id):
+        """
+        Return all the given user's sections for the given course_id.
+
+        Send an HTTP request to the Canvas API to get the list of sections and
+        return it.
+
+        :arg user_id: the Canvas user_id of the user whose sections you want
+        :type user_id: str
+
+        :arg course_id: the Canvas course_id of the course to look in
+        :type course_id: str
+
+        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
+            of sections because we don't have a working Canvas API access token
+            for the user
+        :raise lms.services.CanvasAPIServerError: if we do have an access token
+            but the Canvas API request fails for any other reason
+
+        :return: a list of raw section dicts as received from the Canvas API
+        :rtype: list(dict)
+        """
+        oauth2_token = self._oauth2_token
+
+        return self.send_with_refresh_and_retry(
+            self._helper.users_sections_request(
+                oauth2_token.access_token, user_id, course_id
+            ),
+            CanvasUsersSectionsResponseSchema,
             oauth2_token.refresh_token,
         )
 
