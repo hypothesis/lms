@@ -13,9 +13,10 @@ class TestListFiles:
         canvas_api_client.list_files.assert_called_once_with("test_course_id")
 
     def test_it_returns_the_list_of_files(self, canvas_api_client, pyramid_request):
-        FilesAPIViews(
-            pyramid_request
-        ).list_files() == canvas_api_client.list_files.return_value
+        assert (
+            FilesAPIViews(pyramid_request).list_files()
+            == canvas_api_client.list_files.return_value
+        )
 
     # CanvasAPIError's are caught and handled by an exception view, so the
     # normal view just lets them raise.
