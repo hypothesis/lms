@@ -55,6 +55,15 @@ class TestCanvasAPIHelper:
             "?include%5B%5D=sections"
         )
 
+    def test_course_sections_request(self, helper):
+        request = helper.course_sections_request("test_access_token", "test_course_id")
+
+        assert request.method == "GET"
+        assert request.headers["Authorization"] == "Bearer test_access_token"
+        assert request.url == (
+            "https://my-canvas-instance.com/api/v1/courses/test_course_id" "/sections"
+        )
+
     def test_list_files_request(self, ai_getter, helper):
         request = helper.list_files_request("test_access_token", "test_course_id")
 

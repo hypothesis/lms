@@ -1,7 +1,27 @@
 """Schemas for Canvas API responses."""
-from marshmallow import Schema, fields, post_load, validate
+from marshmallow import (
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    validate,
+    validates_schema,
+)
 
 from lms.validation._base import RequestsResponseSchema
+
+
+class _SectionSchema(Schema):
+    """
+    Schema for an individual course section dict.
+
+    These course section dicts appear in various different Canvas API responses.
+    This _SectionSchema class is used as a base class or nested schema by
+    various schemas below for Canvas API responses that contain section dicts.
+    """
+
+    id = fields.Int(required=True)
+    name = fields.String(required=True)
 
 
 class CanvasAuthenticatedUsersSectionsResponseSchema(RequestsResponseSchema):
@@ -14,12 +34,6 @@ class CanvasAuthenticatedUsersSectionsResponseSchema(RequestsResponseSchema):
     with the ?include[]=sections query param and then extract only the part of
     the response that we want (the list of sections with their names and IDs).
     """
-
-    # A private nested schema for validating each individual section dict
-    # within the "sections" list in the Canvas API's response.
-    class _SectionSchema(Schema):
-        id = fields.Int(required=True)
-        name = fields.String(required=True)
 
     sections = fields.List(
         fields.Nested(_SectionSchema), validate=validate.Length(min=1), required=True
@@ -34,6 +48,23 @@ class CanvasAuthenticatedUsersSectionsResponseSchema(RequestsResponseSchema):
         # to be a list of one-or-more valid section dicts, so we don't need to
         # code defensively here.
         return data["sections"]
+
+
+class CanvasCourseSectionsResponseSchema(RequestsResponseSchema, _SectionSchema):
+    """
+    Schema for the Canvas API's "list course sections" responses.
+
+    https://canvas.instructure.com/doc/api/sections.html#method.sections.index
+    """
+
+    many = True
+
+    @validates_schema(pass_many=True)
+    def _validate_length(self, data, **kwargs):  # pylint:disable=no-self-use
+        # If we get as far as this method then data is guaranteed to be a list
+        # so the only way it can be falsey is if it's an empty list.
+        if not data:
+            raise ValidationError("Shorter than minimum length 1.")
 
 
 class CanvasListFilesResponseSchema(RequestsResponseSchema):
