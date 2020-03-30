@@ -1,34 +1,4 @@
-"""
-Proxy API for Canvas's Files API.
-
-Gives our frontend code access to Canvas's Files API:
-https://canvas.instructure.com/doc/api/files.html
-
-Requests to this proxy API are authenticated using this app's authentication
-policies (for example: a JWT in an ``Authorization`` header) and this API
-therefore knows what LTI user is making the request. This API then makes
-server-to-server requests, authenticated using OAuth 2 access tokens, to the
-appropriate Canvas instance's files API and returns the results to the original
-proxy API caller::
-
-                         +---------+
-                         | Browser |
-                         +---------+
-                         |         ↑
-    1. List files request|         |
-       (JWT auth)        |         |4. Proxied list files response
-                         ↓         |
-                        +-----------+
-                        | Proxy API |
-                        +-----------+
-                         |         ↑
-    2. Proxied list files|         |
-       request (OAuth 2) |         |3. List files response
-                         ↓         |
-                      +---------------+
-                      |Real Canvas API|
-                      +---------------+
-"""
+"""Proxy API views for files-related Canvas API endpoints."""
 from pyramid.view import view_config, view_defaults
 
 from lms.views import helpers

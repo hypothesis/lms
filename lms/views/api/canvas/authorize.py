@@ -1,3 +1,14 @@
+"""
+Views for getting OAuth 2 access tokens for the Canvas API.
+
+This module provides views for doing an OAuth 2 flow to get a Canvas API access
+token for the current user:
+
+https://canvas.instructure.com/doc/api/file.oauth.html
+
+The received access tokens are saved to the DB and used by proxy API views to
+authenticated server-to-server requests to Canvas.
+"""
 from urllib.parse import urlencode, urlparse, urlunparse
 
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
