@@ -146,7 +146,7 @@ class CanvasAPIHelper:
             (
                 "https",
                 self._canvas_url,
-                f"/api/v1/courses/{course_id}" "",
+                f"/api/v1/courses/{course_id}",
                 "",
                 "include[]=sections",
                 "",
@@ -180,7 +180,7 @@ class CanvasAPIHelper:
             (
                 "https",
                 self._canvas_url,
-                f"/api/v1/courses/{course_id}/sections" "",
+                f"/api/v1/courses/{course_id}/sections",
                 "",
                 "",
                 "",
