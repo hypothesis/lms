@@ -3,7 +3,6 @@ from unittest.mock import call, patch, sentinel
 import pytest
 import requests as requests_
 from h_matchers import Any
-from pyramid.testing import DummyRequest
 from requests import (
     HTTPError,
     ReadTimeout,
@@ -15,9 +14,6 @@ from requests import (
 from lms.services import HAPIError, HAPINotFoundError
 from lms.services.h_api import HAPI
 from lms.values import HUser
-
-BASE_URL = "http://example.com/base/"
-AUTHORITY = "test-authority"
 
 
 class TestHAPI:
@@ -34,11 +30,11 @@ class TestHAPI:
         user = h_api.get_user("username")
 
         h_api._api_request.assert_called_once_with(
-            "GET", path="users/acct:username@test-authority"
+            "GET", path="users/acct:username@TEST_AUTHORITY"
         )
 
         assert user == Any.instance_of(HUser)
-        assert user.authority == AUTHORITY
+        assert user.authority == "TEST_AUTHORITY"
         assert user.username == "username"
         assert user.display_name == sentinel.display_name
 
@@ -51,7 +47,7 @@ class TestHAPI:
             data={
                 "username": h_user.username,
                 "display_name": h_user.display_name,
-                "authority": AUTHORITY,
+                "authority": "TEST_AUTHORITY",
                 "identities": [
                     {
                         "provider": sentinel.provider,
@@ -105,7 +101,7 @@ class TestHAPI:
 
         h_api._api_request.assert_called_once_with(
             "POST",
-            "groups/sentinel.group_id/members/acct:sentinel.username@test-authority",
+            "groups/sentinel.group_id/members/acct:sentinel.username@TEST_AUTHORITY",
         )
 
     @pytest.fixture
@@ -113,12 +109,12 @@ class TestHAPI:
         return HUser(
             username=sentinel.username,
             display_name=sentinel.display_name,
-            authority=AUTHORITY,
+            authority="TEST_AUTHORITY",
         )
 
     @pytest.yield_fixture
-    def h_api(self, p_request):
-        h_api = HAPI(sentinel.context, p_request)
+    def h_api(self, pyramid_request):
+        h_api = HAPI(sentinel.context, pyramid_request)
 
         with patch.object(HAPI, "_api_request"):
             yield h_api
@@ -138,9 +134,9 @@ class TestHAPIRequest:
                 # It uses the given HTTP request method.
                 method=sentinel.method,
                 # It requests the given URL.
-                url="http://example.com/base/dummy-path",
+                url="https://example.com/private/api/dummy-path",
                 # It adds the authentication headers.
-                auth=(sentinel.client_id, sentinel.client_secret),
+                auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
                 # Requests time out after 10 seconds.
                 timeout=10,
                 # It adds the Hypothesis-Application header.
@@ -195,24 +191,10 @@ class TestHAPIRequest:
             h_api._api_request(sentinel.method, "dummy-path")
 
     @pytest.fixture
-    def h_api(self, p_request):
-        return HAPI(sentinel.context, p_request)
+    def h_api(self, pyramid_request):
+        return HAPI(sentinel.context, pyramid_request)
 
 
 @pytest.fixture(autouse=True)
 def requests(patch):
     return patch("lms.services.h_api.requests")
-
-
-@pytest.fixture
-def p_request():
-    pyramid_request = DummyRequest()
-
-    pyramid_request.registry.settings = {
-        "h_client_id": sentinel.client_id,
-        "h_client_secret": sentinel.client_secret,
-        "h_api_url_private": BASE_URL,
-        "h_authority": AUTHORITY,
-    }
-
-    return pyramid_request
