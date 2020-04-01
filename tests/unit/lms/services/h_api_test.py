@@ -1,4 +1,4 @@
-from unittest.mock import patch, sentinel
+from unittest.mock import call, patch, sentinel
 
 import pytest
 import requests as requests_
@@ -130,34 +130,35 @@ class TestHAPIRequest:
     # protected-access messages.
     # pylint: disable=protected-access
 
-    def test_it_passes_expected_defaults(self, h_api, requests):
+    def test_it(self, h_api, requests):
         h_api._api_request(sentinel.method, "dummy-path")
 
-        self._assert_called_requests_with(
-            requests, auth=(sentinel.client_id, sentinel.client_secret), timeout=10
-        )
+        assert requests.request.call_args_list == [
+            call(
+                # It uses the given HTTP request method.
+                method=sentinel.method,
+                # It requests the given URL.
+                url="http://example.com/base/dummy-path",
+                # It adds the authentication headers.
+                auth=(sentinel.client_id, sentinel.client_secret),
+                # Requests time out after 10 seconds.
+                timeout=10,
+                # It adds the Hypothesis-Application header.
+                headers={"Hypothesis-Application": "lms"},
+            )
+        ]
 
-    def test_it_passes_method_and_path(self, h_api, requests):
-        h_api._api_request(sentinel.method, "/path")
-
-        self._assert_called_requests_with(
-            requests, method=sentinel.method, url=BASE_URL + "path",
-        )
-
-    def test_id_dumps_json_body(self, h_api, requests):
+    def test_if_given_a_data_dict_it_dumps_it_to_a_json_string(self, h_api, requests):
         h_api._api_request(sentinel.method, "dummy-path", {"a": 1, "b": [2]})
 
-        self._assert_called_requests_with(requests, data='{"a":1,"b":[2]}')
+        assert requests.request.call_args[1]["data"] == '{"a":1,"b":[2]}'
 
-    def test_it_adds_expected_headers(self, h_api, requests):
+    def test_if_given_custom_headers_it_adds_them(self, h_api, requests):
         h_api._api_request(
             sentinel.method, "dummy-path", headers={"X-Header": sentinel.header}
         )
 
-        self._assert_called_requests_with(
-            requests,
-            headers={"X-Header": sentinel.header, "Hypothesis-Application": "lms"},
-        )
+        assert requests.request.call_args[1]["headers"]["X-Header"] == sentinel.header
 
     def test_it_raises_HAPINotFoundError_for_404(self, h_api, requests):
         response = Response()
@@ -192,19 +193,6 @@ class TestHAPIRequest:
 
         with pytest.raises(OSError):
             h_api._api_request(sentinel.method, "dummy-path")
-
-    def _assert_called_requests_with(self, requests, **extras):
-        values = {
-            "method": Any(),
-            "url": Any(),
-            "auth": Any(),
-            "timeout": Any(),
-            "headers": Any(),
-        }
-
-        values.update(extras)
-
-        requests.request.assert_called_once_with(**values)
 
     @pytest.fixture
     def h_api(self, p_request):
