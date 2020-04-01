@@ -71,7 +71,19 @@ class LTIHService:
         )
 
         for group in groups:
-            self._upsert_h_group(group, creator=self._context.h_user)
+            try:
+                self.h_api.update_group(group_id=group.groupid, group_name=group.name)
+            except HAPINotFoundError:
+                # The group hasn't been created in h yet.
+                if not self._request.lti_user.is_instructor:
+                    raise HTTPBadRequest("Instructor must launch assignment first.")
+
+                # Try to create the group with the current instructor as its creator.
+                self.h_api.upsert_group(
+                    group_id=group.groupid,
+                    group_name=group.name,
+                    creator=self._context.h_user,
+                )
 
             self.group_info_service.upsert(
                 authority_provided_id=self._context.h_authority_provided_id,
@@ -81,18 +93,3 @@ class LTIHService:
 
         for group in groups:
             self.h_api.add_user_to_group(h_user=h_user, group_id=group.groupid)
-
-    def _upsert_h_group(self, group, creator):
-        """Update the group and create it if the user is an instructor."""
-
-        try:
-            self.h_api.update_group(group_id=group.groupid, group_name=group.name)
-        except HAPINotFoundError:
-            # The group hasn't been created in h yet.
-            if not self._request.lti_user.is_instructor:
-                raise HTTPBadRequest("Instructor must launch assignment first.")
-
-            # Try to create the group with the current instructor as its creator.
-            self.h_api.upsert_group(
-                group_id=group.groupid, group_name=group.name, creator=creator
-            )
