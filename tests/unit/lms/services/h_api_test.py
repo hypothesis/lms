@@ -77,14 +77,16 @@ class TestHAPI:
             h_user, sentinel.provider, sentinel.provider_unique_id
         )
 
-    def test_upsert_group_works(self, h_api, h_user, _api_request):
-        h_api.upsert_group(sentinel.group_id, sentinel.group_name, h_user)
+    def test_upsert_group_works(self, h_api, _api_request):
+        h_api.upsert_group(sentinel.group_id, sentinel.group_name)
 
         _api_request.assert_called_once_with(
             "PUT",
             "groups/sentinel.group_id",
             data={"groupid": sentinel.group_id, "name": sentinel.group_name},
-            headers=Any.dict.containing({"X-Forwarded-User": h_user.userid}),
+            headers=Any.dict.containing(
+                {"X-Forwarded-User": "acct:lms@TEST_AUTHORITY"}
+            ),
         )
 
     def test_update_group_works(self, h_api, _api_request):
