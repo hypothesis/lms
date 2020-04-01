@@ -101,12 +101,25 @@ class HAPI:
         :param group_id: The id of the group
         :param group_name: The display name for the group
         """
-        self._api_request(
-            "PUT",
-            f"groups/{group_id}",
-            data={"groupid": group_id, "name": group_name},
-            headers={"X-Forwarded-User": f"acct:lms@{self._authority}"},
-        )
+
+        def do_upsert_group():
+            """Send an upsert group request to h."""
+            self._api_request(
+                "PUT",
+                f"groups/{group_id}",
+                data={"groupid": group_id, "name": group_name},
+                headers={"X-Forwarded-User": f"acct:lms@{self._authority}"},
+            )
+
+        try:
+            do_upsert_group()
+        except HAPINotFoundError:
+            # If we get a 404 when trying to upsert a group that must mean
+            # that the lms user doesn't exist in h yet.
+            self.create_user(
+                HUser(self._authority, "lms"), provider="lms", provider_unique_id="lms",
+            )
+            do_upsert_group()
 
     def update_group(self, group_id, group_name):
         """
