@@ -101,7 +101,7 @@ class TestBasicLTILaunch(TestBaseClass):
     def lti_params(self):
         return self.json_fixture("lti_params/good_params.json")
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def http_intercept(self, _http_intercept):
         """
         Monkey-patch Python's socket core module to mock all HTTP responses.
@@ -114,7 +114,7 @@ class TestBasicLTILaunch(TestBaseClass):
         yield
         httpretty.reset()
 
-    @pytest.yield_fixture(scope="session")
+    @pytest.fixture(scope="session")
     def _http_intercept(self):
         # Mock all calls to the H API
         httpretty.register_uri(
