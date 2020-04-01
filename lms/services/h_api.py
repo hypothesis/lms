@@ -94,19 +94,18 @@ class HAPI:
         except HAPINotFoundError:
             self.create_user(h_user, provider, provider_unique_id)
 
-    def upsert_group(self, group_id, group_name, creator):
+    def upsert_group(self, group_id, group_name):
         """
         Update or create a group in H.
 
         :param group_id: The id of the group
         :param group_name: The display name for the group
-        :param creator: The user creating the group
         """
         self._api_request(
             "PUT",
             f"groups/{group_id}",
             data={"groupid": group_id, "name": group_name},
-            headers={"X-Forwarded-User": creator.userid},
+            headers={"X-Forwarded-User": f"acct:lms@{self._authority}"},
         )
 
     def update_group(self, group_id, group_name):

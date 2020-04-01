@@ -56,7 +56,7 @@ class TestGroupUpdating:
             lti_h_svc.single_group_sync()
 
     def test_it_creates_the_group_if_it_doesnt_exist(
-        self, pyramid_request, h_api, lti_h_svc, h_user
+        self, pyramid_request, h_api, lti_h_svc
     ):
         pyramid_request.lti_user = LTIUser(
             user_id="TEST_USER_ID",
@@ -68,7 +68,7 @@ class TestGroupUpdating:
         lti_h_svc.single_group_sync()
 
         h_api.upsert_group.assert_called_once_with(
-            group_id="test_groupid", group_name="test_group_name", creator=h_user,
+            group_id="test_groupid", group_name="test_group_name"
         )
 
     def test_it_raises_if_creating_the_group_fails(
@@ -84,23 +84,6 @@ class TestGroupUpdating:
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
             lti_h_svc.single_group_sync()
-
-    def test_it_400s_with_missing_group_and_unpriviledged_user(
-        self, pyramid_request, h_api, lti_h_svc
-    ):
-        pyramid_request.lti_user = LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="learner",
-        )
-        h_api.update_group.side_effect = HAPINotFoundError()
-
-        with pytest.raises(
-            HTTPBadRequest, match="Instructor must launch assignment first"
-        ):
-            lti_h_svc.single_group_sync()
-
-        h_api.upsert_group.assert_not_called()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
         self, params, group_info_service, context, lti_h_svc

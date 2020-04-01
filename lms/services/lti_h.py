@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
+from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.services import HAPIError, HAPINotFoundError
 
@@ -75,14 +75,8 @@ class LTIHService:
                 self.h_api.update_group(group_id=group.groupid, group_name=group.name)
             except HAPINotFoundError:
                 # The group hasn't been created in h yet.
-                if not self._request.lti_user.is_instructor:
-                    raise HTTPBadRequest("Instructor must launch assignment first.")
-
-                # Try to create the group with the current instructor as its creator.
                 self.h_api.upsert_group(
-                    group_id=group.groupid,
-                    group_name=group.name,
-                    creator=self._context.h_user,
+                    group_id=group.groupid, group_name=group.name,
                 )
 
             self.group_info_service.upsert(
