@@ -74,7 +74,7 @@ def configure_jinja2_assets(config):
     jinja2_env.globals["js_config"] = {}
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def pyramid_config(pyramid_request):
     """
     Return a test Pyramid config (Configurator) object.
@@ -104,7 +104,7 @@ def pyramid_config(pyramid_request):
         yield config
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def db_session(db_engine):
     """
     Yield the SQLAlchemy session object.
