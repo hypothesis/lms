@@ -55,7 +55,7 @@ class TestGroupUpdating:
         with pytest.raises(HTTPInternalServerError, match="Oops"):
             lti_h_svc.single_group_sync()
 
-    def test_it_creates_the_group_if_it_doesnt_exist(
+    def test_it_upserts_the_group_if_it_doesnt_exist(
         self, pyramid_request, h_api, lti_h_svc
     ):
         pyramid_request.lti_user = LTIUser(
@@ -71,7 +71,7 @@ class TestGroupUpdating:
             group_id="test_groupid", group_name="test_group_name"
         )
 
-    def test_it_raises_if_creating_the_group_fails(
+    def test_it_raises_if_upserting_the_group_fails(
         self, pyramid_request, h_api, lti_h_svc
     ):
         pyramid_request.lti_user = LTIUser(
@@ -96,7 +96,7 @@ class TestGroupUpdating:
             params=params,
         )
 
-    def test_it_doesnt_upsert_GroupInfo_into_the_db_if_creating_the_group_fails(
+    def test_it_doesnt_upsert_GroupInfo_into_the_db_if_upserting_the_group_fails(
         self, group_info_service, h_api, lti_h_svc
     ):
         h_api.update_group.side_effect = HAPINotFoundError()
