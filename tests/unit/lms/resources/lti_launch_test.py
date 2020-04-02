@@ -57,19 +57,19 @@ class TestHDisplayName:
         ],
     )
     def test_it(self, name_parts, expected, pyramid_request):
-        params = {
+        parsed_params = {
             f"lis_person_name_{field}": part
             for field, part in zip(["full", "given", "family"], name_parts)
             if part is not None
         }
 
-        pyramid_request.params.update(params)
+        pyramid_request.parsed_params.update(parsed_params)
 
         assert LTILaunchResource(pyramid_request).h_user.display_name == expected
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
             "user_id": "test_user_id",
         }
@@ -85,7 +85,7 @@ class TestHAuthorityProvidedID:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "context_id": "test_context_id",
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
@@ -101,7 +101,7 @@ class TestHGroupID:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "context_id": "test_context_id",
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
@@ -169,7 +169,7 @@ class TestHGroupName:
     def test_it_returns_group_names_based_on_context_titles(
         self, context_title, expected_group_name, pyramid_request
     ):
-        pyramid_request.params["context_title"] = context_title
+        pyramid_request.parsed_params["context_title"] = context_title
 
         assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
@@ -201,7 +201,7 @@ class TestHProvider:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
         return pyramid_request
@@ -215,7 +215,7 @@ class TestHProviderUniqueID:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "user_id": "test_user_id",
         }
         return pyramid_request
@@ -223,7 +223,7 @@ class TestHProviderUniqueID:
 
 class TestIsCanvas:
     @pytest.mark.parametrize(
-        "params,is_canvas",
+        "parsed_params,is_canvas",
         [
             # For *some* launches Canvas includes a
             # `tool_consumer_info_product_family_code: canvas` and you can
@@ -243,8 +243,8 @@ class TestIsCanvas:
             ({}, False),
         ],
     )
-    def test_it(self, pyramid_request, params, is_canvas):
-        pyramid_request.params = params
+    def test_it(self, pyramid_request, parsed_params, is_canvas):
+        pyramid_request.parsed_params = parsed_params
 
         assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
 
@@ -260,7 +260,7 @@ class TestHUser:
     def test_it_raises_if_a_required_parameter_is_missing(
         self, pyramid_request, parameter
     ):
-        pyramid_request.params.pop(parameter)
+        pyramid_request.parsed_params.pop(parameter)
 
     def test_userid(self, pyramid_request):
         userid = LTILaunchResource(pyramid_request).h_user.userid
@@ -269,7 +269,7 @@ class TestHUser:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
             "user_id": "test_user_id",
         }
@@ -296,7 +296,7 @@ class TestProvisioningEnabled:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return pyramid_request
@@ -309,7 +309,7 @@ class TestCustomCanvasAPIDomain:
         assert lti_launch.custom_canvas_api_domain == "test_custom_canvas_api_domain"
 
     def test_it_returns_None_if_not_defined(self, pyramid_request):
-        del pyramid_request.params["custom_canvas_api_domain"]
+        del pyramid_request.parsed_params["custom_canvas_api_domain"]
 
         lti_launch = LTILaunchResource(pyramid_request)
 
@@ -318,7 +318,7 @@ class TestCustomCanvasAPIDomain:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "custom_canvas_api_domain": "test_custom_canvas_api_domain",
         }
         return pyramid_request
@@ -348,7 +348,7 @@ class TestLMSURL:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {
+        pyramid_request.parsed_params = {
             "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
         }
         return pyramid_request
@@ -365,3 +365,9 @@ def lti_launch(pyramid_request):
 @pytest.fixture(autouse=True)
 def JSConfig(patch):
     return patch("lms.resources.lti_launch.JSConfig")
+
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.parsed_params = {}
+    return pyramid_request
