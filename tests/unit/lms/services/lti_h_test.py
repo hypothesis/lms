@@ -5,9 +5,9 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
 from lms.models import GroupInfo
-from lms.services import HAPIError, HAPINotFoundError
+from lms.services import HAPIError
 from lms.services.lti_h import Group, LTIHService
-from lms.values import HUser, LTIUser
+from lms.values import HUser
 
 
 class TestSync:
@@ -39,47 +39,14 @@ class TestSync:
 
 
 class TestGroupUpdating:
-    def test_it_calls_the_group_update_api(self, h_api, lti_h_svc):
-        lti_h_svc.single_group_sync()
-
-        h_api.update_group.assert_called_once_with(
-            group_id="test_groupid", group_name="test_group_name",
-        )
-        h_api.upsert_group.assert_not_called()
-
-    def test_it_raises_if_updating_the_group_fails(self, h_api, lti_h_svc):
-        # If the group update API call fails for any non-404 reason then the
-        # view raises an exception and an error page is shown.
-        h_api.update_group.side_effect = HAPIError("Oops")
-
-        with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.single_group_sync()
-
-    def test_it_upserts_the_group_if_it_doesnt_exist(
-        self, pyramid_request, h_api, lti_h_svc
-    ):
-        pyramid_request.lti_user = LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="instructor",
-        )
-        h_api.update_group.side_effect = HAPINotFoundError()
-
+    def test_it_upserts_the_group(self, h_api, lti_h_svc):
         lti_h_svc.single_group_sync()
 
         h_api.upsert_group.assert_called_once_with(
             group_id="test_groupid", group_name="test_group_name"
         )
 
-    def test_it_raises_if_upserting_the_group_fails(
-        self, pyramid_request, h_api, lti_h_svc
-    ):
-        pyramid_request.lti_user = LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="instructor",
-        )
-        h_api.update_group.side_effect = HAPINotFoundError()
+    def test_it_raises_if_upserting_the_group_fails(self, h_api, lti_h_svc):
         h_api.upsert_group.side_effect = HAPIError("Oops")
 
         with pytest.raises(HTTPInternalServerError, match="Oops"):
@@ -99,7 +66,6 @@ class TestGroupUpdating:
     def test_it_doesnt_upsert_GroupInfo_into_the_db_if_upserting_the_group_fails(
         self, group_info_service, h_api, lti_h_svc
     ):
-        h_api.update_group.side_effect = HAPINotFoundError()
         h_api.upsert_group.side_effect = HAPIError("Oops")
 
         try:
