@@ -94,9 +94,9 @@ class HAPI:
         except HAPINotFoundError:
             self.create_user(h_user, provider, provider_unique_id)
 
-    def create_group(self, group_id, group_name, creator):
+    def upsert_group(self, group_id, group_name, creator):
         """
-        Create a group in H.
+        Update or create a group in H.
 
         :param group_id: The id of the group
         :param group_name: The display name for the group

@@ -77,8 +77,8 @@ class TestHAPI:
             h_user, sentinel.provider, sentinel.provider_unique_id
         )
 
-    def test_create_group_works(self, h_api, h_user, _api_request):
-        h_api.create_group(sentinel.group_id, sentinel.group_name, h_user)
+    def test_upsert_group_works(self, h_api, h_user, _api_request):
+        h_api.upsert_group(sentinel.group_id, sentinel.group_name, h_user)
 
         _api_request.assert_called_once_with(
             "PUT",

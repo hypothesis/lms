@@ -45,10 +45,7 @@ class BasicLTILaunchViews:
         and group corresponding to the LTI user and course.
         """
 
-        lti_h_service = self.request.find_service(name="lti_h")
-        lti_h_service.upsert_h_user()
-        lti_h_service.upsert_course_group()
-        lti_h_service.add_user_to_group()
+        self.request.find_service(name="lti_h").single_group_sync()
 
     def store_lti_data(self):
         """Store LTI launch data in our LMS database."""
