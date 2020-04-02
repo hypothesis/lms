@@ -32,7 +32,7 @@ class LTILaunchResource:
 
         def display_name():
             """Return the h display name for the current request."""
-            params = self._request.params
+            params = self._request.parsed_params
 
             display_name = params.get("lis_person_name_full", "").strip()
 
@@ -76,8 +76,10 @@ class LTILaunchResource:
         # and context_id uniquely identifies a course within an LMS. Together they
         # globally uniquely identify a course.
         hash_object = hashlib.sha1()
-        hash_object.update(self._request.params["tool_consumer_instance_guid"].encode())
-        hash_object.update(self._request.params["context_id"].encode())
+        hash_object.update(
+            self._request.parsed_params["tool_consumer_instance_guid"].encode()
+        )
+        hash_object.update(self._request.parsed_params["context_id"].encode())
         return hash_object.hexdigest()
 
     @property
@@ -135,7 +137,7 @@ class LTILaunchResource:
         generated name you'll get back an unsuccessful response from the Hypothesis
         API.
         """
-        return self._group_name(self._request.params["context_title"].strip())
+        return self._group_name(self._request.parsed_params["context_title"].strip())
 
     def h_section_group_name(self, section):
         """
@@ -159,23 +161,23 @@ class LTILaunchResource:
     @property
     def h_provider(self):
         """Return the h "provider" string for the current request."""
-        return self._request.params["tool_consumer_instance_guid"]
+        return self._request.parsed_params["tool_consumer_instance_guid"]
 
     @property
     def h_provider_unique_id(self):
         """Return the h provider_unique_id for the current request."""
-        return self._request.params["user_id"]
+        return self._request.parsed_params["user_id"]
 
     @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         if (
-            self._request.params.get("tool_consumer_info_product_family_code")
+            self._request.parsed_params.get("tool_consumer_info_product_family_code")
             == "canvas"
         ):
             return True
 
-        if "custom_canvas_course_id" in self._request.params:
+        if "custom_canvas_course_id" in self._request.parsed_params:
             return True
 
         return False
@@ -189,13 +191,13 @@ class LTILaunchResource:
     def provisioning_enabled(self):
         """Return True if provisioning is enabled for this request."""
         return self._ai_getter.provisioning_enabled(
-            self._request.params["oauth_consumer_key"]
+            self._request.parsed_params["oauth_consumer_key"]
         )
 
     @property
     def lms_url(self):
         """Return the ApplicationInstance.lms_url."""
-        oauth_consumer_key = self._request.params.get("oauth_consumer_key")
+        oauth_consumer_key = self._request.parsed_params.get("oauth_consumer_key")
         return self._ai_getter.lms_url(oauth_consumer_key)
 
     @property
@@ -209,4 +211,4 @@ class LTILaunchResource:
         seems to match). And of course custom_canvas_api_domain only works in
         Canvas.
         """
-        return self._request.params.get("custom_canvas_api_domain")
+        return self._request.parsed_params.get("custom_canvas_api_domain")
