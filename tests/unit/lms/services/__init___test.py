@@ -1,7 +1,9 @@
 import pytest
 
 from lms.services import includeme
-from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.application_instance_getter import (
+    application_instance_getter_service_factory,
+)
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
@@ -16,7 +18,7 @@ class TestIncludeme:
     @pytest.mark.parametrize(
         "name,service_class",
         (
-            ("ai_getter", ApplicationInstanceGetter),
+            ("ai_getter", application_instance_getter_service_factory),
             ("canvas_api_client", CanvasAPIClient),
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),

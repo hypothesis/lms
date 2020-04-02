@@ -10,9 +10,9 @@ __all__ = ["ApplicationInstanceGetter"]
 class ApplicationInstanceGetter:
     """Methods for getting properties from application instances."""
 
-    def __init__(self, _context, request):
-        self._db = request.db
-        self._aes_secret = request.registry.settings["aes_secret"]
+    def __init__(self, db, aes_secret):
+        self._db = db
+        self._aes_secret = aes_secret
 
     def developer_key(self, consumer_key):
         """
@@ -116,3 +116,9 @@ class ApplicationInstanceGetter:
             )
         except NoResultFound as err:
             raise ConsumerKeyError() from err
+
+
+def application_instance_getter_service_factory(_context, request):
+    return ApplicationInstanceGetter(
+        request.db, request.registry.settings["aes_secret"]
+    )
