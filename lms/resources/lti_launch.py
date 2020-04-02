@@ -9,7 +9,15 @@ from lms.values import HUser
 
 
 class LTILaunchResource:
-    """Context resource for LTI launch requests."""
+    """
+    Context resource for LTI launch requests.
+
+    Many methods and properties of this class are only meant to be called when
+    request.parsed_params holds validated params from an LTI launch request and
+    might crash otherwise. So you should only call these methods after the
+    request has been validated with LaunchParamsSchema (for example from views
+    that have schema=LaunchParamsSchema in their view config).
+    """
 
     __acl__ = [(Allow, "lti_user", "launch_lti_assignment")]
 
