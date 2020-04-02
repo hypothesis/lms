@@ -31,7 +31,7 @@ __all__ = (
 
 def includeme(config):
     config.register_service_factory(
-        "lms.services.application_instance_getter.ApplicationInstanceGetter",
+        "lms.services.application_instance_getter.application_instance_getter_service_factory",
         name="ai_getter",
     )
     config.register_service_factory(

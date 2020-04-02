@@ -5,7 +5,9 @@ import pytest
 from lms.models import ApplicationInstance
 from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from lms.services import ConsumerKeyError
-from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.application_instance_getter import (
+    application_instance_getter_service_factory,
+)
 
 
 class TestApplicationInstanceGetter:
@@ -73,7 +75,9 @@ class TestApplicationInstanceGetter:
 
     @pytest.fixture
     def ai_getter(self, pyramid_request):
-        return ApplicationInstanceGetter(mock.sentinel.context, pyramid_request)
+        return application_instance_getter_service_factory(
+            mock.sentinel.context, pyramid_request
+        )
 
     @pytest.fixture(autouse=True)
     def test_application_instance(self, pyramid_request):
