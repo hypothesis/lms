@@ -149,13 +149,6 @@ class TestHAPI:
             upsert_group_call,
         ]
 
-    def test_update_group_works(self, h_api, _api_request):
-        h_api.update_group(sentinel.group_id, sentinel.group_name)
-
-        _api_request.assert_called_once_with(
-            "PATCH", "groups/sentinel.group_id", data={"name": sentinel.group_name}
-        )
-
     def test_add_user_to_group(self, h_api, _api_request, h_user):
         h_api.add_user_to_group(h_user, sentinel.group_id)
 

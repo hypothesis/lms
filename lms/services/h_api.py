@@ -121,19 +121,6 @@ class HAPI:
             )
             do_upsert_group()
 
-    def update_group(self, group_id, group_name):
-        """
-        Update a group in H.
-
-        Currently this only updates the name of the group.
-
-        :param group_id: The id of the group
-        :param group_name: The display name for the group
-        """
-        self._api_request(
-            "PATCH", f"groups/{group_id}", data={"name": group_name},
-        )
-
     def add_user_to_group(self, h_user, group_id):
         """
         Add the user as a member of the group.

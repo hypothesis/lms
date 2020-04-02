@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.services import HAPIError, HAPINotFoundError
+from lms.services import HAPIError
 
 Group = namedtuple("Group", "name groupid")
 
@@ -71,13 +71,7 @@ class LTIHService:
         )
 
         for group in groups:
-            try:
-                self.h_api.update_group(group_id=group.groupid, group_name=group.name)
-            except HAPINotFoundError:
-                # The group hasn't been created in h yet.
-                self.h_api.upsert_group(
-                    group_id=group.groupid, group_name=group.name,
-                )
+            self.h_api.upsert_group(group_id=group.groupid, group_name=group.name)
 
             self.group_info_service.upsert(
                 authority_provided_id=self._context.h_authority_provided_id,
