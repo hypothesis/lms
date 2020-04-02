@@ -2,7 +2,6 @@
 import functools
 import hashlib
 
-from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.security import Allow
 
 from lms.resources._js_config import JSConfig
@@ -22,12 +21,7 @@ class LTILaunchResource:
 
     @property
     def h_user(self):
-        """
-        Return the h user for the current request.
-
-        :raise HTTPBadRequest: if any LTI params needed for generating the
-          h user are missing
-        """
+        """Return the h user for the current request."""
 
         def username():
             """Return the h username for the current request."""
@@ -73,9 +67,6 @@ class LTILaunchResource:
         LTI course will always return the same authority_provided_id. Calling
         this function with different params will always return a different
         authority_provided_id.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-            authority_provided_id is missing
         """
         # Generate the authority_provided_id based on the LTI
         # tool_consumer_instance_guid and context_id parameters.
@@ -85,8 +76,8 @@ class LTILaunchResource:
         # and context_id uniquely identifies a course within an LMS. Together they
         # globally uniquely identify a course.
         hash_object = hashlib.sha1()
-        hash_object.update(self._get_param("tool_consumer_instance_guid").encode())
-        hash_object.update(self._get_param("context_id").encode())
+        hash_object.update(self._request.params["tool_consumer_instance_guid"].encode())
+        hash_object.update(self._request.params["context_id"].encode())
         return hash_object.hexdigest()
 
     @property
@@ -100,9 +91,6 @@ class LTILaunchResource:
         function again with params representing the same LTI course will always
         return the same groupid. Calling this function with different params will
         always return a different groupid.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-            groupid is missing
         """
         return f"group:{self.h_authority_provided_id}@{self._authority}"
 
@@ -146,11 +134,8 @@ class LTILaunchResource:
         chars) - in that case if you try to create a Hypothesis group using the
         generated name you'll get back an unsuccessful response from the Hypothesis
         API.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the group
-          name is missing
         """
-        return self._group_name(self._get_param("context_title").strip())
+        return self._group_name(self._request.params["context_title"].strip())
 
     def h_section_group_name(self, section):
         """
@@ -173,23 +158,13 @@ class LTILaunchResource:
 
     @property
     def h_provider(self):
-        """
-        Return the h "provider" string for the current request.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-          provider is missing
-        """
-        return self._get_param("tool_consumer_instance_guid")
+        """Return the h "provider" string for the current request."""
+        return self._request.params["tool_consumer_instance_guid"]
 
     @property
     def h_provider_unique_id(self):
-        """
-        Return the h provider_unique_id for the current request.
-
-        :raise HTTPBadRequest: if an LTI param needed for generating the
-          provider unique ID is missing
-        """
-        return self._get_param("user_id")
+        """Return the h provider_unique_id for the current request."""
+        return self._request.params["user_id"]
 
     @property
     def is_canvas(self):
@@ -212,17 +187,9 @@ class LTILaunchResource:
 
     @property
     def provisioning_enabled(self):
-        """
-        Return True if provisioning is enabled for this request.
-
-        Return True if the provisioning feature is enabled for the current
-        request, False otherwise.
-
-        :raise HTTPBadRequest: if there's no oauth_consumer_key in the request
-          params
-        """
+        """Return True if provisioning is enabled for this request."""
         return self._ai_getter.provisioning_enabled(
-            self._get_param("oauth_consumer_key")
+            self._request.params["oauth_consumer_key"]
         )
 
     @property
@@ -243,12 +210,3 @@ class LTILaunchResource:
         Canvas.
         """
         return self._request.params.get("custom_canvas_api_domain")
-
-    def _get_param(self, param_name):
-        """Return the named param from the request or raise a 400."""
-        param = self._request.params.get(param_name)
-        if not param:
-            raise HTTPBadRequest(
-                f'Required parameter "{param_name}" missing from LTI params'
-            )
-        return param

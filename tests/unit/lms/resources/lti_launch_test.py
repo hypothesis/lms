@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.resources import LTILaunchResource
 
@@ -78,19 +77,6 @@ class TestHDisplayName:
 
 
 class TestHAuthorityProvidedID:
-    @pytest.mark.parametrize("parameter", ("tool_consumer_instance_guid", "context_id"))
-    def test_it_raises_if_a_required_parameter_is_missing(
-        self, pyramid_request, parameter
-    ):
-        pyramid_request.params.pop(parameter)
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match=f'Required parameter "{parameter}" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_authority_provided_id
-
     def test_it(self, lti_launch):
         assert (
             lti_launch.h_authority_provided_id
@@ -170,10 +156,6 @@ class TestHSectionGroupID:
 
 
 class TestHGroupName:
-    def test_it_raises_if_theres_no_context_title(self, lti_launch):
-        with pytest.raises(HTTPBadRequest):
-            lti_launch.h_group_name  # pylint:disable=pointless-statement
-
     @pytest.mark.parametrize(
         "context_title,expected_group_name",
         (
@@ -217,27 +199,6 @@ class TestHProvider:
 
         assert provider == "test_tool_consumer_instance_guid"
 
-    @pytest.mark.parametrize(
-        "request_params",
-        [
-            {},
-            {"tool_consumer_instance_guid": ""},
-            {"tool_consumer_instance_guid": None},
-        ],
-    )
-    def test_it_raises_if_tool_consumer_instance_guid_is_missing(
-        self, request_params, pyramid_request
-    ):
-        pyramid_request.params.pop("tool_consumer_instance_guid")
-        pyramid_request.params.update(request_params)
-
-        with pytest.raises(
-            HTTPBadRequest,
-            match='Required parameter "tool_consumer_instance_guid" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_provider
-
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
@@ -251,17 +212,6 @@ class TestHProviderUniqueID:
         provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
 
         assert provider_unique_id == "test_user_id"
-
-    @pytest.mark.parametrize("request_params", [{}, {"user_id": ""}, {"user_id": None}])
-    def test_it_raises_if_user_id_is_missing(self, request_params, pyramid_request):
-        pyramid_request.params.pop("user_id")
-        pyramid_request.params.update(request_params)
-
-        with pytest.raises(
-            HTTPBadRequest, match='Required parameter "user_id" missing from LTI params'
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_provider_unique_id
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -312,13 +262,6 @@ class TestHUser:
     ):
         pyramid_request.params.pop(parameter)
 
-        with pytest.raises(
-            HTTPBadRequest,
-            match=f'Required parameter "{parameter}" missing from LTI params',
-        ):
-            # pylint:disable=expression-not-assigned
-            LTILaunchResource(pyramid_request).h_user
-
     def test_userid(self, pyramid_request):
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
@@ -350,13 +293,6 @@ class TestProvisioningEnabled:
         ai_getter.provisioning_enabled.return_value = expected
 
         assert lti_launch.provisioning_enabled is expected
-
-    def test_it_raises_if_no_oauth_consumer_key_in_params(self, pyramid_request):
-        del pyramid_request.params["oauth_consumer_key"]
-        lti_launch = LTILaunchResource(pyramid_request)
-
-        with pytest.raises(HTTPBadRequest):
-            lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
