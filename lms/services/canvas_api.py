@@ -144,12 +144,11 @@ class CanvasAPIClient:
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
 
-        return self.send_with_refresh_and_retry(
-            requests.Request(
-                "GET",
-                self._get_url(f"courses/{course_id}", params={"include[]": "sections"}),
-            ).prepare(),
-            CanvasAuthenticatedUsersSectionsResponseSchema,
+        return self.make_authenticated_request(
+            "GET",
+            f"courses/{course_id}",
+            params={"include[]": "sections"},
+            schema=CanvasAuthenticatedUsersSectionsResponseSchema,
         )
 
     def course_sections(self, course_id):
@@ -168,11 +167,10 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
-        return self.send_with_refresh_and_retry(
-            requests.Request(
-                "GET", self._get_url(f"courses/{course_id}/sections"),
-            ).prepare(),
-            CanvasCourseSectionsResponseSchema,
+        return self.make_authenticated_request(
+            "GET",
+            f"courses/{course_id}/sections",
+            schema=CanvasCourseSectionsResponseSchema,
         )
 
     def users_sections(self, user_id, course_id):
@@ -193,15 +191,11 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
-        return self.send_with_refresh_and_retry(
-            requests.Request(
-                "GET",
-                self._get_url(
-                    f"courses/{course_id}/users/{user_id}",
-                    params={"include[]": "enrollments"},
-                ),
-            ).prepare(),
-            CanvasUsersSectionsResponseSchema,
+        return self.make_authenticated_request(
+            "GET",
+            f"courses/{course_id}/users/{user_id}",
+            params={"include[]": "enrollments"},
+            schema=CanvasUsersSectionsResponseSchema,
         )
 
     def list_files(self, course_id):
@@ -220,15 +214,11 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self.send_with_refresh_and_retry(
-            requests.Request(
-                "GET",
-                self._get_url(
-                    f"courses/{course_id}/files",
-                    params={"content_types[]": "application/pdf", "per_page": 100},
-                ),
-            ).prepare(),
-            CanvasListFilesResponseSchema,
+        return self.make_authenticated_request(
+            "GET",
+            f"courses/{course_id}/files",
+            params={"content_types[]": "application/pdf", "per_page": 100},
+            schema=CanvasListFilesResponseSchema,
         )
 
     def public_url(self, file_id):
@@ -247,25 +237,36 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        return self.send_with_refresh_and_retry(
-            requests.Request(
-                "GET", self._get_url(f"files/{file_id}/public_url"),
-            ).prepare(),
-            CanvasPublicURLResponseSchema,
+        return self.make_authenticated_request(
+            "GET", f"files/{file_id}/public_url", schema=CanvasPublicURLResponseSchema
         )["public_url"]
 
-    def send_with_refresh_and_retry(self, request, schema):
-        refresh_token = self._oauth2_token.refresh_token
+    def make_authenticated_request(self, method, path, schema, params=None):
+        """
+        Send a Canvas API request, and retry it if there are OAuth problems.
+
+        :param method: HTTP method to use (e.g. "POST")
+        :param path: The path in the API to make a request to
+        :param schema: Schema to apply to the return values
+        :param params: Any query parameters to add to the request
+        :return: JSON deserialised object
+
+        :raise CanvasAPIAccessTokenError: if the request fails because our
+             Canvas API access token for the user is missing, expired, or has
+             been deleted and cannot be refreshed
+        :raise CanvasAPIServerError: if the request fails for any other reason
+        """
+        request = requests.Request(method, self._get_url(path, params)).prepare()
 
         request.headers["Authorization"] = f"Bearer {self._oauth2_token.access_token}"
 
         try:
             return self._validated_response(request, schema).parsed_params
-        except CanvasAPIAccessTokenError:
-            if not refresh_token:
-                raise
 
-            new_access_token = self.get_refreshed_token(refresh_token)
+        except CanvasAPIAccessTokenError:
+            new_access_token = self.get_refreshed_token(
+                self._oauth2_token.refresh_token
+            )
 
             request.headers["Authorization"] = f"Bearer {new_access_token}"
 
