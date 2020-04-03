@@ -1,5 +1,5 @@
 """Helpers for working with the Canvas API."""
-from urllib.parse import urlencode, urlparse, urlunparse
+from urllib.parse import urlencode, urlparse
 
 import requests
 from requests import RequestException
@@ -138,19 +138,11 @@ class CanvasAPIHelper:
         # get course API response just get really long? Does it get truncated?
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
-        url = urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}",
-                "",
-                "include[]=sections",
-                "",
-            )
-        )
 
         return requests.Request(
-            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+            "GET",
+            self._get_url(f"courses/{course_id}", params={"include[]": "sections"}),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     def course_sections_request(self, access_token, course_id):
@@ -172,19 +164,11 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
-        url = urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}/sections",
-                "",
-                "",
-                "",
-            )
-        )
 
         return requests.Request(
-            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+            "GET",
+            self._get_url(f"courses/{course_id}/sections"),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     def users_sections_request(self, access_token, user_id, course_id):
@@ -210,19 +194,14 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
-        url = urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}/users/{user_id}",
-                "",
-                "include[]=enrollments",
-                "",
-            )
-        )
 
         return requests.Request(
-            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+            "GET",
+            self._get_url(
+                f"courses/{course_id}/users/{user_id}",
+                params={"include[]": "enrollments"},
+            ),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     def list_files_request(self, access_token, course_id):
@@ -244,19 +223,14 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
-        url = urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/courses/{course_id}/files",
-                "",
-                urlencode({"content_types[]": "application/pdf", "per_page": 100}),
-                "",
-            )
-        )
 
         return requests.Request(
-            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+            "GET",
+            self._get_url(
+                f"courses/{course_id}/files",
+                params={"content_types[]": "application/pdf", "per_page": 100},
+            ),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     def public_url_request(self, access_token, file_id):
@@ -278,19 +252,11 @@ class CanvasAPIHelper:
 
         :rtype: requests.PreparedRequest
         """
-        url = urlunparse(
-            (
-                "https",
-                self._canvas_url,
-                f"/api/v1/files/{file_id}/public_url",
-                "",
-                "",
-                "",
-            )
-        )
 
         return requests.Request(
-            "GET", url, headers={"Authorization": f"Bearer {access_token}"},
+            "GET",
+            self._get_url(f"files/{file_id}/public_url"),
+            headers={"Authorization": f"Bearer {access_token}"},
         ).prepare()
 
     @staticmethod
@@ -344,7 +310,13 @@ class CanvasAPIHelper:
 
         return response
 
+    def _get_url(self, path, params=None, url_stub="/api/v1"):
+        return f"https://{self._canvas_url}{url_stub}/{path}" + (
+            "?" + urlencode(params) if params else ""
+        )
+
     @property
     def _token_url(self):
         """Return the URL of the Canvas API's token endpoint."""
-        return urlunparse(("https", self._canvas_url, "login/oauth2/token", "", "", ""))
+
+        return self._get_url("login/oauth2/token", url_stub="")
