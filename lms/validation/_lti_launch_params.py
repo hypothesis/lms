@@ -7,9 +7,9 @@ from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
 
-class LaunchParamsSchema(PyramidRequestSchema):
+class BasicLTILaunchSchema(PyramidRequestSchema):
     """
-    Schema describing the minimum requirements for LTI launch parameters.
+    Schema for basic LTI launch requests (i.e. assignment launches).
 
     This *DOES NOT* contain all of the fields required for authentication.
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
@@ -75,7 +75,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
             # Extract the launch_presentation_return_url and check it's a real
             # URL
             return_url = (
-                LaunchParamsSchema.URLSchema()
+                BasicLTILaunchSchema.URLSchema()
                 .load(data)
                 .get("launch_presentation_return_url")
             )
@@ -95,7 +95,7 @@ class LaunchParamsSchema(PyramidRequestSchema):
         super().handle_error(error, data, many=many, **kwargs)
 
 
-class LaunchParamsURLConfiguredSchema(LaunchParamsSchema):
+class LaunchParamsURLConfiguredSchema(BasicLTILaunchSchema):
     """
     Schema for an "URL-configured" Basic LTI Launch.
 
