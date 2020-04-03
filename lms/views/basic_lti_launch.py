@@ -16,8 +16,8 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches, ModuleItemConfiguration
 from lms.validation import (
+    BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
-    LaunchParamsSchema,
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
@@ -28,7 +28,7 @@ from lms.validation.authentication import BearerTokenSchema
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
     route_name="lti_launches",
-    schema=LaunchParamsSchema,
+    schema=BasicLTILaunchSchema,
 )
 class BasicLTILaunchViews:
     def __init__(self, context, request):

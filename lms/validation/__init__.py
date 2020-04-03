@@ -62,7 +62,7 @@ from lms.validation._canvas import (
 )
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
 from lms.validation._lti_launch_params import (
-    LaunchParamsSchema,
+    BasicLTILaunchSchema,
     LaunchParamsURLConfiguredSchema,
 )
 from lms.validation._module_item_configuration import ConfigureModuleItemSchema

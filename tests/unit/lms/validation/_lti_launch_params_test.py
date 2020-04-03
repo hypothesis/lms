@@ -2,18 +2,18 @@ import pytest
 from h_matchers import Any
 
 from lms.validation import (
-    LaunchParamsSchema,
+    BasicLTILaunchSchema,
     LaunchParamsURLConfiguredSchema,
     LTIToolRedirect,
     ValidationError,
 )
 
 
-class TestLaunchParamsSchema:
+class TestBasicLTILaunchSchema:
     def test_it_works_with_good_params(self, pyramid_request):
         pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
 
-        schema = LaunchParamsSchema(pyramid_request)
+        schema = BasicLTILaunchSchema(pyramid_request)
         params = schema.parse()
 
         assert params == Any.dict.containing({"resource_link_id": Any.string()})
@@ -21,7 +21,7 @@ class TestLaunchParamsSchema:
     def test_it_allows_bad_urls_if_there_are_no_other_errors(self, pyramid_request):
         pyramid_request.params["launch_presentation_return_url"] = "goofyurl"
 
-        schema = LaunchParamsSchema(pyramid_request)
+        schema = BasicLTILaunchSchema(pyramid_request)
         schema.parse()
 
         # Still alive!
@@ -29,7 +29,7 @@ class TestLaunchParamsSchema:
     def test_ValidationError_raised_when_res_link_missing(self, pyramid_request):
         pyramid_request.params.pop("resource_link_id")
 
-        schema = LaunchParamsSchema(pyramid_request)
+        schema = BasicLTILaunchSchema(pyramid_request)
 
         with pytest.raises(ValidationError):
             schema.parse()
@@ -40,7 +40,7 @@ class TestLaunchParamsSchema:
         pyramid_request.params.pop("resource_link_id")
         pyramid_request.params["launch_presentation_return_url"] = "broken"
 
-        schema = LaunchParamsSchema(pyramid_request)
+        schema = BasicLTILaunchSchema(pyramid_request)
 
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
@@ -56,7 +56,7 @@ class TestLaunchParamsSchema:
         pyramid_request.params.pop("resource_link_id")
         pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
 
-        schema = LaunchParamsSchema(pyramid_request)
+        schema = BasicLTILaunchSchema(pyramid_request)
 
         with pytest.raises(LTIToolRedirect):
             schema.parse()
