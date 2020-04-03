@@ -95,13 +95,8 @@ class BasicLTILaunchSchema(PyramidRequestSchema):
         super().handle_error(error, data, many=many, **kwargs)
 
 
-class LaunchParamsURLConfiguredSchema(BasicLTILaunchSchema):
-    """
-    Schema for an "URL-configured" Basic LTI Launch.
-
-    An URL-configured launch is one where the content URL is provided by a "url"
-    launch param.
-    """
+class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
+    """Schema for URL-configured basic LTI launches."""
 
     url = fields.Str(required=True)
 
