@@ -41,17 +41,27 @@ class CanvasAPIClient:
         """
         Get an access token for the current LTI user.
 
-        Posts to the Canvas API to get the access token and returns it.
-
-        :arg authorization_code: The Canvas API OAuth 2.0 authorization code to
+        :param authorization_code: The Canvas API OAuth 2.0 authorization code to
             exchange for an access token
-        :type authorization_code: str
 
-        :raise lms.services.CanvasAPIServerError: if the Canvas API request
-            fails for any reason
+        :raise CanvasAPIServerError: if the Canvas API request fails for any reason
         """
+        # For documentation of this request see:
+        # https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
+
         response = self._validated_response(
-            self._access_token_request(authorization_code),
+            requests.Request(
+                "POST",
+                self._token_url,
+                params={
+                    "grant_type": "authorization_code",
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                    "redirect_uri": self._redirect_uri,
+                    "code": authorization_code,
+                    "replace_tokens": True,
+                },
+            ).prepare(),
             CanvasAccessTokenResponseSchema,
         )
 
@@ -61,38 +71,18 @@ class CanvasAPIClient:
             response.parsed_params.get("expires_in"),
         )
 
-    def _access_token_request(self, authorization_code):
-        """
-        Return a prepared access token request.
-
-        Return a server-to-server request to the Canvas API's token endpoint
-        that exchanges ``authorization_code`` for an access token.
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
-
-        :arg authorization_code: the authorization code received from the
-            browser after Canvas redirected the browser to our redirect_uri
-
-        :rtype: requests.PreparedRequest
-        """
-        return requests.Request(
-            "POST",
-            self._token_url,
-            params={
-                "grant_type": "authorization_code",
-                "client_id": self._client_id,
-                "client_secret": self._client_secret,
-                "redirect_uri": self._redirect_uri,
-                "code": authorization_code,
-                "replace_tokens": True,
-            },
-        ).prepare()
-
     def get_refreshed_token(self, refresh_token):
         response = self._validated_response(
-            self._refresh_token_request(refresh_token),
+            requests.Request(
+                "POST",
+                self._token_url,
+                params={
+                    "grant_type": "refresh_token",
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                    "refresh_token": refresh_token,
+                },
+            ).prepare(),
             CanvasRefreshTokenResponseSchema,
         )
 
@@ -106,66 +96,21 @@ class CanvasAPIClient:
 
         return new_access_token
 
-    def _refresh_token_request(self, refresh_token):
-        return requests.Request(
-            "POST",
-            self._token_url,
-            params={
-                "grant_type": "refresh_token",
-                "client_id": self._client_id,
-                "client_secret": self._client_secret,
-                "refresh_token": refresh_token,
-            },
-        ).prepare()
-
     def authenticated_users_sections(self, course_id):
         """
         Return the authenticated user's sections for the given course_id.
 
-        Send an HTTP request to the Canvas API to get the list of sections and
-        return it.
+        :param course_id: the Canvas course_id of the course to look in
 
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
-            of sections because we don't have a working Canvas API access token
-            for the user
-        :raise lms.services.CanvasAPIServerError: if we do have an access token
-            but the Canvas API request fails for any other reason
+        :raise CanvasAPIAccessTokenError: if we can't get the list of sections
+            because we don't have a working Canvas API access token for the user
+        :raise CanvasAPIServerError: if we do have an access token but the
+            Canvas API request fails for any other reason
 
         :return: a list of raw section dicts as received from the Canvas API
         :rtype: list(dict)
         """
-        oauth2_token = self._oauth2_token
 
-        return self.send_with_refresh_and_retry(
-            self._authenticated_users_sections_request(
-                oauth2_token.access_token, course_id
-            ),
-            CanvasAuthenticatedUsersSectionsResponseSchema,
-            oauth2_token.refresh_token,
-        )
-
-    def _authenticated_users_sections_request(self, access_token, course_id):
-        """
-        Return a prepared "authenticated users sections" request.
-
-        Return a server-to-server request to the Canvas API that gets a list of
-        the authenticated user's sections for the given course (course_id).
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/courses.html#method.courses.index
-
-        :arg access_token: the access token to authenticate the request with
-        :type access_token: str
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :rtype: requests.PreparedRequest
-        """
         # Canvas's sections API
         # (https://canvas.instructure.com/doc/api/sections.html) only allows
         # you to get _all_ of a course's sections, it doesn't provide a way to
@@ -199,234 +144,137 @@ class CanvasAPIClient:
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
 
-        return requests.Request(
-            "GET",
-            self._get_url(f"courses/{course_id}", params={"include[]": "sections"}),
-            headers={"Authorization": f"Bearer {access_token}"},
-        ).prepare()
+        oauth2_token = self._oauth2_token
+
+        return self.send_with_refresh_and_retry(
+            requests.Request(
+                "GET",
+                self._get_url(f"courses/{course_id}", params={"include[]": "sections"}),
+                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+            ).prepare(),
+            CanvasAuthenticatedUsersSectionsResponseSchema,
+            oauth2_token.refresh_token,
+        )
 
     def course_sections(self, course_id):
         """
         Return all the sections for the given course_id.
 
-        Send an HTTP request to the Canvas API to get the list of sections and
-        return it.
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
-            of sections because we don't have a working Canvas API access token
-            for the user
-        :raise lms.services.CanvasAPIServerError: if we do have an access token
-            but the Canvas API request fails for any other reason
+        :param course_id: the Canvas course_id of the course to look in
+        :raise CanvasAPIAccessTokenError: if we can't get the list of sections
+            because we don't have a working Canvas API access token for the user
+        :raise CanvasAPIServerError: if we do have an access token but the
+            Canvas API request fails for any other reason
 
         :return: a list of raw section dicts as received from the Canvas API
         :rtype: list(dict)
         """
+        # For documentation of this request see:
+        # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
+
         oauth2_token = self._oauth2_token
 
         return self.send_with_refresh_and_retry(
-            self._course_sections_request(oauth2_token.access_token, course_id),
+            requests.Request(
+                "GET",
+                self._get_url(f"courses/{course_id}/sections"),
+                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+            ).prepare(),
             CanvasCourseSectionsResponseSchema,
             oauth2_token.refresh_token,
         )
-
-    def _course_sections_request(self, access_token, course_id):
-        """
-        Return a prepared "list course sections" request.
-
-        Return a server-to-server request to the Canvas API that gets a list of
-        all the sections for the given course (course_id).
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/sections.html#method.sections.index
-
-        :arg access_token: the access token to authenticate the request with
-        :type access_token: str
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :rtype: requests.PreparedRequest
-        """
-
-        return requests.Request(
-            "GET",
-            self._get_url(f"courses/{course_id}/sections"),
-            headers={"Authorization": f"Bearer {access_token}"},
-        ).prepare()
 
     def users_sections(self, user_id, course_id):
         """
         Return all the given user's sections for the given course_id.
 
-        Send an HTTP request to the Canvas API to get the list of sections and
-        return it.
+        :param user_id: the Canvas user_id of the user whose sections you want
+        :param course_id: the Canvas course_id of the course to look in
 
-        :arg user_id: the Canvas user_id of the user whose sections you want
-        :type user_id: str
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
-            of sections because we don't have a working Canvas API access token
-            for the user
-        :raise lms.services.CanvasAPIServerError: if we do have an access token
-            but the Canvas API request fails for any other reason
+        :raise CanvasAPIAccessTokenError: if we can't get the list of sections
+            because we don't have a working Canvas API access token for the user
+        :raise CanvasAPIServerError: if we do have an access token but the
+            Canvas API request fails for any other reason
 
         :return: a list of raw section dicts as received from the Canvas API
         :rtype: list(dict)
         """
+        # For documentation of this request see:
+        # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
+
         oauth2_token = self._oauth2_token
 
         return self.send_with_refresh_and_retry(
-            self._users_sections_request(oauth2_token.access_token, user_id, course_id),
+            requests.Request(
+                "GET",
+                self._get_url(
+                    f"courses/{course_id}/users/{user_id}",
+                    params={"include[]": "enrollments"},
+                ),
+                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+            ).prepare(),
             CanvasUsersSectionsResponseSchema,
             oauth2_token.refresh_token,
         )
 
-    def _users_sections_request(self, access_token, user_id, course_id):
-        """
-        Return a prepared "user's course sections" request.
-
-        Return a server-to-server request to the Canvas API that gets a list of
-        all the given user's (user_id) sections for the given course
-        (course_id).
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/courses.html#method.courses.user
-
-        :arg access_token: the access token to authenticate the request with
-        :type access_token: str
-
-        :arg user_id: the Canvas user_id of the user whose sections you want
-        :type user_id: str
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :rtype: requests.PreparedRequest
-        """
-
-        return requests.Request(
-            "GET",
-            self._get_url(
-                f"courses/{course_id}/users/{user_id}",
-                params={"include[]": "enrollments"},
-            ),
-            headers={"Authorization": f"Bearer {access_token}"},
-        ).prepare()
-
     def list_files(self, course_id):
         """
-        Return the list of files for the given ``course_id``.
+        Return the list of files for the given `course_id`.
 
-        Send an HTTP request to the Canvas API to get the list of files, and
-        return the list of files.
+        :param course_id: the Canvas course_id of the course to look in
 
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the list
-            of files because we don't have a working Canvas API access token
-            for the user
-        :raise lms.services.CanvasAPIServerError: if we do have an access token
-            but the Canvas API request fails for any other reason
+        :raise CanvasAPIAccessTokenError: if we can't get the list of files
+            because we don't have a working Canvas API access token for the user
+        :raise CanvasAPIServerError: if we do have an access token  but the
+            Canvas API request fails for any other reason
 
         :rtype: list(dict)
         """
+        # For documentation of this request see:
+        # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
+
         oauth2_token = self._oauth2_token
 
         return self.send_with_refresh_and_retry(
-            self._list_files_request(oauth2_token.access_token, course_id),
+            requests.Request(
+                "GET",
+                self._get_url(
+                    f"courses/{course_id}/files",
+                    params={"content_types[]": "application/pdf", "per_page": 100},
+                ),
+                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+            ).prepare(),
             CanvasListFilesResponseSchema,
             oauth2_token.refresh_token,
         )
 
-    def _list_files_request(self, access_token, course_id):
-        """
-        Return a prepared list files request.
-
-        Return a server-to-server request to Canvas's list files API that gets
-        a list of the files belonging to ``course_id``.
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/files.html#method.files.api_index
-
-        :arg access_token: the access token to authenticate the request with
-        :type access_token: str
-
-        :arg course_id: the Canvas course_id of the course to look in
-        :type course_id: str
-
-        :rtype: requests.PreparedRequest
-        """
-
-        return requests.Request(
-            "GET",
-            self._get_url(
-                f"courses/{course_id}/files",
-                params={"content_types[]": "application/pdf", "per_page": 100},
-            ),
-            headers={"Authorization": f"Bearer {access_token}"},
-        ).prepare()
-
     def public_url(self, file_id):
         """
-        Return a new public download URL for the file with the given ID.
+        Get a new temporary public download URL for the file with the given ID.
 
-        Send an HTTP request to the Canvas API to get a new temporary public
-        download URL, and return the URL.
+        :param file_id: the ID of the Canvas file
 
-        :arg file_id: the ID of the Canvas file
-        :type file_id: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if we can't get the
-            public URL because we don't have a working Canvas API access token
-            for the user
-        :raise lms.services.CanvasAPIServerError: if we do have an access token
-            but the Canvas API request fails for any other reason
+        :raise CanvasAPIAccessTokenError: if we can't get the public URL
+            because we don't have a working Canvas API access token for the user
+        :raise CanvasAPIServerError: if we do have an access token but the
+            Canvas API request fails for any other reason
 
         :rtype: str
         """
+        # For documentation of this request see:
+        # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
+
         oauth2_token = self._oauth2_token
 
         return self.send_with_refresh_and_retry(
-            self._public_url_request(oauth2_token.access_token, file_id),
+            requests.Request(
+                "GET",
+                self._get_url(f"files/{file_id}/public_url"),
+                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+            ).prepare(),
             CanvasPublicURLResponseSchema,
             oauth2_token.refresh_token,
         )["public_url"]
-
-    def _public_url_request(self, access_token, file_id):
-        """
-        Return a prepared public URL request.
-
-        Return a server-to-server request to Canvas's file public URL API that
-        gets a public download URL for the file with ID ``file_id``.
-
-        For documentation of this request see:
-
-        https://canvas.instructure.com/doc/api/files.html#method.files.public_url
-
-        :arg access_token: the access token to authenticate the request with
-        :type access_token: str
-
-        :arg file_id: the Canvas file ID of the file
-        :type file_id: str
-
-        :rtype: requests.PreparedRequest
-        """
-
-        return requests.Request(
-            "GET",
-            self._get_url(f"files/{file_id}/public_url"),
-            headers={"Authorization": f"Bearer {access_token}"},
-        ).prepare()
 
     def send_with_refresh_and_retry(self, request, schema, refresh_token):
         try:
@@ -444,10 +292,9 @@ class CanvasAPIClient:
         """
         Save an access token and refresh token to the DB.
 
-        If there's already an :class:`lms.models.OAuth2Token` for
-        ``self._consumer_key`` and ``self._user_id`` then overwrite its values.
-        Otherwise create a new :class:`lms.models.OAuth2Token` and add it to
-        the DB.
+        If there's already an `OAuth2Token` for the consumer key and user id
+        then overwrite its values. Otherwise create a new `OAuth2Token` and
+        add it to the DB.
         """
         try:
             oauth2_token = self._oauth2_token
@@ -467,8 +314,7 @@ class CanvasAPIClient:
         """
         Return the user's saved access and refresh tokens from the DB.
 
-        :raise lms.services.CanvasAPIAccessTokenError: if we don't have an access token
-            for the user
+        :raise CanvasAPIAccessTokenError: if we don't have an access token for the user
         """
         try:
             return (
@@ -489,32 +335,16 @@ class CanvasAPIClient:
 
         If a validation schema is given then the parsed and validated response
         params will be available on the returned response object as
-        ``response.parsed_params`` (a dict).
+        `response.parsed_params` (a dict).
 
-        :arg request: a prepared request to some Canvas API endoint
-        :type request: requests.PreparedRequest
+        :param request: a prepared request to some Canvas API endoint
+        :param schema: The schema class to validate the contents of the response
+            with.
 
-        :arg schema: The schema class to validate the contents of the response
-          with. If this is ``None`` then the response contents won't be
-          validated and there'll be no ``response.parsed_params``, but it will
-          still test that a response was received (no network error or timeout)
-          and the response had a 2xx HTTP status.
-        :type schema: a subclass of :cls:`lms.validation.RequestsResponseSchema`
-
-        :arg access_token: the access token to use in the
-            "Authorization: Bearer <ACCESS_TOKEN>" header to authorize the
-            request
-        :type access_token: str
-
-        :raise lms.services.CanvasAPIAccessTokenError: if the request fails
-            because our Canvas API access token for the user is missing,
-            expired, or has been deleted
-
-        :raise lms.services.CanvasAPIServerError: if the request fails for any
-            other reason (network error or timeout, non-2xx response received,
-            2xx but invalid response received, etc)
-
-        :rtype: requests.Response
+        :raise CanvasAPIAccessTokenError: if the request fails because our
+             Canvas API access token for the user is missing, expired, or has
+             been deleted
+        :raise CanvasAPIServerError: if the request fails for any other reason
         """
         if access_token:
             request.headers["Authorization"] = f"Bearer {access_token}"
