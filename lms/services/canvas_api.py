@@ -144,16 +144,12 @@ class CanvasAPIClient:
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
 
-        oauth2_token = self._oauth2_token
-
         return self.send_with_refresh_and_retry(
             requests.Request(
                 "GET",
                 self._get_url(f"courses/{course_id}", params={"include[]": "sections"}),
-                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
             ).prepare(),
             CanvasAuthenticatedUsersSectionsResponseSchema,
-            oauth2_token.refresh_token,
         )
 
     def course_sections(self, course_id):
@@ -172,16 +168,11 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
-        oauth2_token = self._oauth2_token
-
         return self.send_with_refresh_and_retry(
             requests.Request(
-                "GET",
-                self._get_url(f"courses/{course_id}/sections"),
-                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+                "GET", self._get_url(f"courses/{course_id}/sections"),
             ).prepare(),
             CanvasCourseSectionsResponseSchema,
-            oauth2_token.refresh_token,
         )
 
     def users_sections(self, user_id, course_id):
@@ -202,8 +193,6 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
-        oauth2_token = self._oauth2_token
-
         return self.send_with_refresh_and_retry(
             requests.Request(
                 "GET",
@@ -211,10 +200,8 @@ class CanvasAPIClient:
                     f"courses/{course_id}/users/{user_id}",
                     params={"include[]": "enrollments"},
                 ),
-                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
             ).prepare(),
             CanvasUsersSectionsResponseSchema,
-            oauth2_token.refresh_token,
         )
 
     def list_files(self, course_id):
@@ -233,8 +220,6 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        oauth2_token = self._oauth2_token
-
         return self.send_with_refresh_and_retry(
             requests.Request(
                 "GET",
@@ -242,10 +227,8 @@ class CanvasAPIClient:
                     f"courses/{course_id}/files",
                     params={"content_types[]": "application/pdf", "per_page": 100},
                 ),
-                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
             ).prepare(),
             CanvasListFilesResponseSchema,
-            oauth2_token.refresh_token,
         )
 
     def public_url(self, file_id):
@@ -264,19 +247,18 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        oauth2_token = self._oauth2_token
-
         return self.send_with_refresh_and_retry(
             requests.Request(
-                "GET",
-                self._get_url(f"files/{file_id}/public_url"),
-                headers={"Authorization": f"Bearer {oauth2_token.access_token}"},
+                "GET", self._get_url(f"files/{file_id}/public_url"),
             ).prepare(),
             CanvasPublicURLResponseSchema,
-            oauth2_token.refresh_token,
         )["public_url"]
 
-    def send_with_refresh_and_retry(self, request, schema, refresh_token):
+    def send_with_refresh_and_retry(self, request, schema):
+        refresh_token = self._oauth2_token.refresh_token
+
+        request.headers["Authorization"] = f"Bearer {self._oauth2_token.access_token}"
+
         try:
             return self._validated_response(request, schema).parsed_params
         except CanvasAPIAccessTokenError:
@@ -284,9 +266,42 @@ class CanvasAPIClient:
                 raise
 
             new_access_token = self.get_refreshed_token(refresh_token)
-            return self._validated_response(
-                request, schema, new_access_token
-            ).parsed_params
+
+            request.headers["Authorization"] = f"Bearer {new_access_token}"
+
+            return self._validated_response(request, schema).parsed_params
+
+    @staticmethod
+    def _validated_response(request, schema=None):
+        """
+        Send a Canvas API request and validate and return the response.
+
+        If a validation schema is given then the parsed and validated response
+        params will be available on the returned response object as
+        `response.parsed_params` (a dict).
+
+        :param request: a prepared request to some Canvas API endoint
+        :param schema: The schema class to validate the contents of the response
+            with.
+
+        :raise CanvasAPIAccessTokenError: if the request fails because our
+             Canvas API access token for the user is missing, expired, or has
+             been deleted
+        :raise CanvasAPIServerError: if the request fails for any other reason
+        """
+        try:
+            response = requests.Session().send(request, timeout=9)
+            response.raise_for_status()
+        except RequestException as err:
+            CanvasAPIError.raise_from(err)
+
+        if schema:
+            try:
+                response.parsed_params = schema(response).parse()
+            except ValidationError as err:
+                CanvasAPIError.raise_from(err)
+
+        return response
 
     def _save(self, access_token, refresh_token, expires_in):
         """
@@ -327,41 +342,6 @@ class CanvasAPIClient:
                 explanation="We don't have a Canvas API access token for this user",
                 response=None,
             ) from err
-
-    @staticmethod
-    def _validated_response(request, schema=None, access_token=None):
-        """
-        Send a Canvas API request and validate and return the response.
-
-        If a validation schema is given then the parsed and validated response
-        params will be available on the returned response object as
-        `response.parsed_params` (a dict).
-
-        :param request: a prepared request to some Canvas API endoint
-        :param schema: The schema class to validate the contents of the response
-            with.
-
-        :raise CanvasAPIAccessTokenError: if the request fails because our
-             Canvas API access token for the user is missing, expired, or has
-             been deleted
-        :raise CanvasAPIServerError: if the request fails for any other reason
-        """
-        if access_token:
-            request.headers["Authorization"] = f"Bearer {access_token}"
-
-        try:
-            response = requests.Session().send(request, timeout=9)
-            response.raise_for_status()
-        except RequestException as err:
-            CanvasAPIError.raise_from(err)
-
-        if schema:
-            try:
-                response.parsed_params = schema(response).parse()
-            except ValidationError as err:
-                CanvasAPIError.raise_from(err)
-
-        return response
 
     def _get_url(self, path, params=None, url_stub="/api/v1"):
         return f"https://{self._canvas_url}{url_stub}/{path}" + (
