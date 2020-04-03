@@ -7,7 +7,7 @@ from lms.validation.authentication import LaunchParamsAuthSchema
 from lms.values import LTIUser
 
 
-class TestLaunchParamsSchema:
+class TestLaunchParamsAuthSchema:
     def test_it_returns_the_lti_user_info(self, schema):
         lti_user = schema.lti_user()
 

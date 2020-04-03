@@ -30,11 +30,11 @@ class TestAuthenticatedUserID:
 
 
 class TestGetLTIUser:
-    def test_it_returns_the_LTIUser_from_LaunchParamsSchema(
+    def test_it_returns_the_LTIUser_from_LaunchParamsAuthSchema(
         self,
         bearer_token_schema,
-        LaunchParamsSchema,
-        launch_params_schema,
+        LaunchParamsAuthSchema,
+        launch_params_auth_schema,
         pyramid_request,
     ):
         bearer_token_schema.lti_user.side_effect = ValidationError(
@@ -43,18 +43,18 @@ class TestGetLTIUser:
 
         lti_user = get_lti_user(pyramid_request)
 
-        LaunchParamsSchema.assert_called_once_with(pyramid_request)
-        launch_params_schema.lti_user.assert_called_once_with()
-        assert lti_user == launch_params_schema.lti_user.return_value
+        LaunchParamsAuthSchema.assert_called_once_with(pyramid_request)
+        launch_params_auth_schema.lti_user.assert_called_once_with()
+        assert lti_user == launch_params_auth_schema.lti_user.return_value
 
-    def test_if_LaunchParamsSchema_fails_it_falls_back_on_BearerTokenSchema(
+    def test_if_LaunchParamsAuthSchema_fails_it_falls_back_on_BearerTokenSchema(
         self,
-        launch_params_schema,
+        launch_params_auth_schema,
         BearerTokenSchema,
         bearer_token_schema,
         pyramid_request,
     ):
-        launch_params_schema.lti_user.side_effect = ValidationError(
+        launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
 
@@ -64,15 +64,15 @@ class TestGetLTIUser:
         bearer_token_schema.lti_user.assert_called_once_with()
         assert lti_user == bearer_token_schema.lti_user.return_value
 
-    def test_if_LaunchParamsSchema_and_BearerTokenSchema_fails_it_falls_back_on_CanvasOAuthCallbackSchema(
+    def test_if_LaunchParamsAuthSchema_and_BearerTokenSchema_fails_it_falls_back_on_CanvasOAuthCallbackSchema(
         self,
-        launch_params_schema,
+        launch_params_auth_schema,
         bearer_token_schema,
         CanvasOAuthCallbackSchema,
         canvas_oauth_callback_schema,
         pyramid_request,
     ):
-        launch_params_schema.lti_user.side_effect = ValidationError(
+        launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
         bearer_token_schema.lti_user.side_effect = ValidationError(
@@ -87,12 +87,12 @@ class TestGetLTIUser:
 
     def test_it_returns_None_if_all_schemas_fail(
         self,
-        launch_params_schema,
+        launch_params_auth_schema,
         bearer_token_schema,
         canvas_oauth_callback_schema,
         pyramid_request,
     ):
-        launch_params_schema.lti_user.side_effect = ValidationError(
+        launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
         bearer_token_schema.lti_user.side_effect = ValidationError(
@@ -104,11 +104,12 @@ class TestGetLTIUser:
 
         assert get_lti_user(pyramid_request) is None
 
-    def test_LaunchParamsSchema_overrides_BearerTokenSchema(
-        self, launch_params_schema, pyramid_request
+    def test_LaunchParamsAuthSchema_overrides_BearerTokenSchema(
+        self, launch_params_auth_schema, pyramid_request
     ):
         assert (
-            get_lti_user(pyramid_request) == launch_params_schema.lti_user.return_value
+            get_lti_user(pyramid_request)
+            == launch_params_auth_schema.lti_user.return_value
         )
 
 
@@ -149,10 +150,10 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
 
 
 @pytest.fixture(autouse=True)
-def LaunchParamsSchema(patch):
+def LaunchParamsAuthSchema(patch):
     return patch("lms.authentication._helpers.LaunchParamsAuthSchema")
 
 
 @pytest.fixture
-def launch_params_schema(LaunchParamsSchema):
-    return LaunchParamsSchema.return_value
+def launch_params_auth_schema(LaunchParamsAuthSchema):
+    return LaunchParamsAuthSchema.return_value
