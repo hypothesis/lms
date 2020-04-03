@@ -18,7 +18,7 @@ from lms.models import LtiLaunches, ModuleItemConfiguration
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
-    LaunchParamsURLConfiguredSchema,
+    URLConfiguredBasicLTILaunchSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
 
@@ -116,7 +116,7 @@ class BasicLTILaunchViews:
 
         return {}
 
-    @view_config(url_configured=True, schema=LaunchParamsURLConfiguredSchema)
+    @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_basic_lti_launch(self):
         """
         Respond to a URL-configured assignment launch.

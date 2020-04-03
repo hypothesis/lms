@@ -47,7 +47,7 @@ def url_configured_basic_lti_launch_caller(context, pyramid_request):
     """
     # The `url` parsed param is always present when
     # url_configured_basic_lti_launch() is called. The url_configured=True view
-    # predicate and LaunchParamsURLConfiguredSchema ensure this.
+    # predicate and URLConfiguredBasicLTILaunchSchema ensure this.
     pyramid_request.parsed_params = {"url": "TEST_URL"}
 
     views = BasicLTILaunchViews(context, pyramid_request)

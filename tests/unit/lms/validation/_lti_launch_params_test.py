@@ -3,8 +3,8 @@ from h_matchers import Any
 
 from lms.validation import (
     BasicLTILaunchSchema,
-    LaunchParamsURLConfiguredSchema,
     LTIToolRedirect,
+    URLConfiguredBasicLTILaunchSchema,
     ValidationError,
 )
 
@@ -62,7 +62,7 @@ class TestBasicLTILaunchSchema:
             schema.parse()
 
 
-class TestURLConfiguredLaunchParamsSchema:
+class TestURLConfiguredBasicLTILaunchSchema:
     @pytest.mark.parametrize(
         "url_param, expected_parsed_url",
         [
@@ -119,7 +119,7 @@ class TestURLConfiguredLaunchParamsSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return LaunchParamsURLConfiguredSchema(pyramid_request)
+        return URLConfiguredBasicLTILaunchSchema(pyramid_request)
 
 
 @pytest.fixture
