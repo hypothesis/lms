@@ -7,7 +7,28 @@ from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
 
-class BasicLTILaunchSchema(PyramidRequestSchema):
+class _CommonLTILaunchSchema(PyramidRequestSchema):
+    """Fields common to different types of LTI launches."""
+
+    locations = ["form"]
+
+    context_id = fields.Str(required=True)
+    context_title = fields.Str(required=True)
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
+    oauth_consumer_key = fields.Str(required=True)
+    tool_consumer_instance_guid = fields.Str(required=True)
+    user_id = fields.Str(required=True)
+
+    custom_canvas_api_domain = fields.Str()
+    custom_canvas_course_id = fields.Str()
+    launch_presentation_return_url = fields.Str()
+    lis_person_name_full = fields.Str()
+    lis_person_name_family = fields.Str()
+    lis_person_name_given = fields.Str()
+    tool_consumer_info_product_family_code = fields.Str()
+
+
+class BasicLTILaunchSchema(_CommonLTILaunchSchema):
     """
     Schema for basic LTI launch requests (i.e. assignment launches).
 
@@ -25,24 +46,10 @@ class BasicLTILaunchSchema(PyramidRequestSchema):
 
         launch_presentation_return_url = fields.URL()
 
-    context_id = fields.Str(required=True)
-    context_title = fields.Str(required=True)
     lti_message_type = fields.Str(
         validate=OneOf(["basic-lti-launch-request"]), required=True
     )
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
-    oauth_consumer_key = fields.Str(required=True)
     resource_link_id = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
-    user_id = fields.Str(required=True)
-
-    custom_canvas_api_domain = fields.Str()
-    custom_canvas_course_id = fields.Str()
-    launch_presentation_return_url = fields.Str()
-    lis_person_name_full = fields.Str()
-    lis_person_name_family = fields.Str()
-    lis_person_name_given = fields.Str()
-    tool_consumer_info_product_family_code = fields.Str()
 
     # If we have an error in one of these fields we should redirect back to
     # the calling LMS if possible
@@ -53,8 +60,6 @@ class BasicLTILaunchSchema(PyramidRequestSchema):
         "context_id",
         "context_title",
     }
-
-    locations = ["form"]
 
     def handle_error(self, error, data, *, many, **kwargs):
         """
@@ -114,3 +119,11 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
             _data["url"] = url
 
         return _data
+
+
+class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
+    """Schema for content item selection LTI launches."""
+
+    lti_message_type = fields.Str(
+        validate=OneOf(["ContentItemSelectionRequest"]), required=True
+    )

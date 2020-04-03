@@ -36,6 +36,8 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 """
 from pyramid.view import view_config
 
+from lms.validation import ContentItemSelectionLTILaunchSchema
+
 
 @view_config(
     authorized_to_configure_assignments=True,
@@ -43,6 +45,7 @@ from pyramid.view import view_config
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",
+    schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
     request.find_service(name="lti_h").single_group_sync()
