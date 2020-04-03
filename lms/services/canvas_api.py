@@ -49,7 +49,7 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
 
-        response = self._validated_response(
+        parsed_params = self._validated_response(
             requests.Request(
                 "POST",
                 self._token_url,
@@ -66,13 +66,13 @@ class CanvasAPIClient:
         )
 
         self._save(
-            response.parsed_params["access_token"],
-            response.parsed_params.get("refresh_token"),
-            response.parsed_params.get("expires_in"),
+            parsed_params["access_token"],
+            parsed_params.get("refresh_token"),
+            parsed_params.get("expires_in"),
         )
 
     def get_refreshed_token(self, refresh_token):
-        response = self._validated_response(
+        parsed_params = self._validated_response(
             requests.Request(
                 "POST",
                 self._token_url,
@@ -86,12 +86,12 @@ class CanvasAPIClient:
             CanvasRefreshTokenResponseSchema,
         )
 
-        new_access_token = response.parsed_params["access_token"]
+        new_access_token = parsed_params["access_token"]
 
         self._save(
             new_access_token,
-            response.parsed_params.get("refresh_token", refresh_token),
-            response.parsed_params.get("expires_in"),
+            parsed_params.get("refresh_token", refresh_token),
+            parsed_params.get("expires_in"),
         )
 
         return new_access_token
@@ -261,7 +261,7 @@ class CanvasAPIClient:
         request.headers["Authorization"] = f"Bearer {self._oauth2_token.access_token}"
 
         try:
-            return self._validated_response(request, schema).parsed_params
+            return self._validated_response(request, schema)
 
         except CanvasAPIAccessTokenError:
             new_access_token = self.get_refreshed_token(
@@ -270,10 +270,10 @@ class CanvasAPIClient:
 
             request.headers["Authorization"] = f"Bearer {new_access_token}"
 
-            return self._validated_response(request, schema).parsed_params
+            return self._validated_response(request, schema)
 
     @staticmethod
-    def _validated_response(request, schema=None):
+    def _validated_response(request, schema):
         """
         Send a Canvas API request and validate and return the response.
 
@@ -296,13 +296,10 @@ class CanvasAPIClient:
         except RequestException as err:
             CanvasAPIError.raise_from(err)
 
-        if schema:
-            try:
-                response.parsed_params = schema(response).parse()
-            except ValidationError as err:
-                CanvasAPIError.raise_from(err)
-
-        return response
+        try:
+            return schema(response).parse()
+        except ValidationError as err:
+            CanvasAPIError.raise_from(err)
 
     def _save(self, access_token, refresh_token, expires_in):
         """
