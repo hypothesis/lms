@@ -256,12 +256,6 @@ class TestHUser:
         assert isinstance(username, str)
         assert len(username) == 30
 
-    @pytest.mark.parametrize("parameter", ["tool_consumer_instance_guid", "user_id"])
-    def test_it_raises_if_a_required_parameter_is_missing(
-        self, pyramid_request, parameter
-    ):
-        pyramid_request.parsed_params.pop(parameter)
-
     def test_userid(self, pyramid_request):
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
