@@ -124,25 +124,10 @@ class TestURLConfiguredBasicLTILaunchSchema:
 
 
 class TestContentItemSelectionLTILaunchSchema:
-    def test_it(self, schema):
+    def test_it(self, schema, valid_params):
         parsed_params = schema.parse()
 
-        assert parsed_params == {
-            "context_id": "test_context_id",
-            "context_title": "test_context_title",
-            "lti_message_type": "ContentItemSelectionRequest",
-            "lti_version": "LTI-1p0",
-            "oauth_consumer_key": "test_oauth_consumer_key",
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-            "user_id": "test_user_id",
-            "custom_canvas_api_domain": "test_custom_canvas_api_domain",
-            "custom_canvas_course_id": "test_custom_canvas_course_id",
-            "launch_presentation_return_url": "test_launch_presentation_return_url",
-            "lis_person_name_full": "test_lis_person_name_full",
-            "lis_person_name_family": "test_lis_person_name_family",
-            "lis_person_name_given": "test_lis_person_name_given",
-            "tool_consumer_info_product_family_code": "test_tool_consumer_info_product_family_code",
-        }
+        assert parsed_params == valid_params
 
     @pytest.mark.parametrize(
         "missing_param",
@@ -190,26 +175,28 @@ class TestContentItemSelectionLTILaunchSchema:
         assert exc_info.value.messages == expected_error_messages
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
+    def valid_params(self):
+        return {
+            "context_id": "test_context_id",
+            "context_title": "test_context_title",
+            "lti_message_type": "ContentItemSelectionRequest",
+            "lti_version": "LTI-1p0",
+            "oauth_consumer_key": "test_oauth_consumer_key",
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+            "user_id": "test_user_id",
+            "custom_canvas_api_domain": "test_custom_canvas_api_domain",
+            "custom_canvas_course_id": "test_custom_canvas_course_id",
+            "launch_presentation_return_url": "test_launch_presentation_return_url",
+            "lis_person_name_full": "test_lis_person_name_full",
+            "lis_person_name_family": "test_lis_person_name_family",
+            "lis_person_name_given": "test_lis_person_name_given",
+            "tool_consumer_info_product_family_code": "test_tool_consumer_info_product_family_code",
+        }
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request, valid_params):
         pyramid_request.params.clear()
-        pyramid_request.params.update(
-            {
-                "context_id": "test_context_id",
-                "context_title": "test_context_title",
-                "lti_message_type": "ContentItemSelectionRequest",
-                "lti_version": "LTI-1p0",
-                "oauth_consumer_key": "test_oauth_consumer_key",
-                "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                "user_id": "test_user_id",
-                "custom_canvas_api_domain": "test_custom_canvas_api_domain",
-                "custom_canvas_course_id": "test_custom_canvas_course_id",
-                "launch_presentation_return_url": "test_launch_presentation_return_url",
-                "lis_person_name_full": "test_lis_person_name_full",
-                "lis_person_name_family": "test_lis_person_name_family",
-                "lis_person_name_given": "test_lis_person_name_given",
-                "tool_consumer_info_product_family_code": "test_tool_consumer_info_product_family_code",
-            }
-        )
+        pyramid_request.params.update(valid_params)
         return pyramid_request
 
     @pytest.fixture
