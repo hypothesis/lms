@@ -22,7 +22,7 @@ oauthlib==3.1.0           # via requests-oauthlib
 pastedeploy==2.1.0        # via plaster-pastedeploy
 plaster-pastedeploy==0.7  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
-psycopg2==2.8.4           # via -r requirements.in
+psycopg2==2.8.5           # via -r requirements.in
 pycrypto==2.6.1           # via -r requirements.in
 pyjwt==1.7.1              # via -r requirements.in
 pylti==0.7.0              # via -r requirements.in
