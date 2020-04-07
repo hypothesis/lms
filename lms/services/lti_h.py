@@ -25,8 +25,8 @@ class LTIHService:
         self._context = request.context
         self._request = request
 
-        self.h_api = request.find_service(name="h_api")
-        self.group_info_service = request.find_service(name="group_info")
+        self._h_api = request.find_service(name="h_api")
+        self._group_info_service = request.find_service(name="group_info")
 
     def single_group_sync(self):
         """
@@ -64,20 +64,20 @@ class LTIHService:
     def _sync_to_h(self, groups):
         h_user = self._context.h_user
 
-        self.h_api.upsert_user(
+        self._h_api.upsert_user(
             h_user=h_user,
             provider=self._context.h_provider,
             provider_unique_id=self._context.h_provider_unique_id,
         )
 
         for group in groups:
-            self.h_api.upsert_group(group_id=group.groupid, group_name=group.name)
+            self._h_api.upsert_group(group_id=group.groupid, group_name=group.name)
 
-            self.group_info_service.upsert(
+            self._group_info_service.upsert(
                 authority_provided_id=self._context.h_authority_provided_id,
                 consumer_key=self._request.lti_user.oauth_consumer_key,
                 params=self._request.params,
             )
 
         for group in groups:
-            self.h_api.add_user_to_group(h_user=h_user, group_id=group.groupid)
+            self._h_api.add_user_to_group(h_user=h_user, group_id=group.groupid)
