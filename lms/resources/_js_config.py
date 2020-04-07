@@ -16,6 +16,10 @@ class JSConfig:  # pylint:disable=too-few-public-methods
     def __init__(self, context, request):
         self._context = context
         self._request = request
+        self._lti_user = request.lti_user
+        self._consumer_key = (
+            request.lti_user.oauth_consumer_key if request.lti_user else None
+        )
 
         self._grading_info_service = request.find_service(name="grading_info")
         self._ai_getter = request.find_service(name="ai_getter")
@@ -102,7 +106,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
 
-        if not self._request.lti_user.is_instructor:
+        if not self._lti_user.is_instructor:
             # Only instructors can grade assignments.
             return
 
@@ -198,12 +202,10 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
     def _auth_token(self):
         """Return the authToken setting."""
-        if not self._request.lti_user:
+        if not self._lti_user:
             return None
 
-        return BearerTokenSchema(self._request).authorization_param(
-            self._request.lti_user
-        )
+        return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
     def _canvas_files_available(self):
         """Return True if the Canvas Files API is available to this request."""
@@ -212,9 +214,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             return False
 
         try:
-            developer_key = self._ai_getter.developer_key(
-                self._request.params.get("oauth_consumer_key")
-            )
+            developer_key = self._ai_getter.developer_key(self._consumer_key)
         except ConsumerKeyError:
             return False
 
@@ -289,11 +289,9 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         """
         debug_info = {}
 
-        if self._request.lti_user:
+        if self._lti_user:
             debug_info["tags"] = [
-                "role:instructor"
-                if self._request.lti_user.is_instructor
-                else "role:learner"
+                "role:instructor" if self._lti_user.is_instructor else "role:learner"
             ]
 
         return debug_info
@@ -306,7 +304,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         and had grading info recorded for them.
         """
         grading_infos = self._grading_info_service.get_by_assignment(
-            oauth_consumer_key=self._request.lti_user.oauth_consumer_key,
+            oauth_consumer_key=self._consumer_key,
             context_id=self._request.params.get("context_id"),
             resource_link_id=self._request.params.get("resource_link_id"),
         )

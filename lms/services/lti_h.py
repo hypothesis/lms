@@ -24,6 +24,7 @@ class LTIHService:
     def __init__(self, _context, request):
         self._context = request.context
         self._request = request
+        self._lti_user = request.lti_user
 
         self.h_api = request.find_service(name="h_api")
         self.group_info_service = request.find_service(name="group_info")
@@ -75,7 +76,7 @@ class LTIHService:
 
             self.group_info_service.upsert(
                 authority_provided_id=self._context.h_authority_provided_id,
-                consumer_key=self._request.lti_user.oauth_consumer_key,
+                consumer_key=self._lti_user.oauth_consumer_key,
                 params=self._request.params,
             )
 

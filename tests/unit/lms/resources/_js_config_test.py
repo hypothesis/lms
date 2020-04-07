@@ -222,11 +222,8 @@ class TestMaybeEnableGrading:
             ],
         }
 
-    def test_it_does_nothing_if_the_user_isnt_an_instructor(
-        self, js_config, pyramid_request
-    ):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
-
+    @pytest.mark.usefixtures("learner_request")
+    def test_it_does_nothing_if_the_user_isnt_an_instructor(self, js_config):
         js_config.maybe_enable_grading()
 
         assert not js_config.asdict().get("grading")
@@ -485,6 +482,12 @@ def pyramid_request(pyramid_request):
     pyramid_request.params[
         "lis_outcome_service_url"
     ] = "example_lis_outcome_service_url"
+    return pyramid_request
+
+
+@pytest.fixture
+def learner_request(pyramid_request):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
     return pyramid_request
 
 
