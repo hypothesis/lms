@@ -123,7 +123,7 @@ Dialog.propTypes = {
    * The "Cancel" button is added automatically if the `onCancel` prop is set.
    */
   buttons: propTypes.arrayOf(
-    propTypes.oneOf([propTypes.instanceOf(Button), propTypes.element])
+    propTypes.oneOfType([propTypes.instanceOf(Button), propTypes.element])
   ), // e.g. <button>
 
   /**

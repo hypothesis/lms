@@ -37,7 +37,6 @@ describe('BasicLtiLaunchApp', () => {
       },
       canvas: {
         authUrl: 'https://lms.hypothes.is/authorize-lms',
-        speedGrader: {},
       },
       urls: {},
       grading: {},
@@ -176,56 +175,68 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
-  it('reports the submission in the LMS when the content iframe starts loading', async () => {
-    fakeConfig.canvas.speedGrader.submissionParams = {
-      lis_result_sourcedid: 'modelstudent-assignment1',
-    };
-
-    const wrapper = renderLtiLaunchApp();
-    await waitFor(() => fakeApiCall.called);
-
-    assert.calledWith(fakeApiCall, {
-      authToken: 'dummyAuthToken',
-      path: '/api/lti/submissions',
-      data: fakeConfig.canvas.speedGrader.submissionParams,
+  describe('speed grader config', () => {
+    beforeEach(() => {
+      fakeConfig.canvas.speedGrader = {
+        submissionParams: {
+          lis_result_sourcedid: 'modelstudent-assignment1',
+        },
+      };
     });
 
-    // After the successful API call, the iframe should still be rendered.
-    wrapper.update();
-    assert.isTrue(wrapper.exists('iframe'));
-  });
+    it('reports the submission in the LMS when the content iframe starts loading', async () => {
+      const wrapper = renderLtiLaunchApp();
+      await waitFor(() => fakeApiCall.called);
 
-  it('displays an error if reporting the submission fails', async () => {
-    fakeConfig.canvas.speedGrader.submissionParams = {
-      lis_result_sourcedid: 'modelstudent-assignment1',
-    };
-    const error = new ApiError(400, {});
-    fakeApiCall.rejects(error);
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/lti/submissions',
+        data: fakeConfig.canvas.speedGrader.submissionParams,
+      });
 
-    // Wait for the API call to fail and check that an error is displayed.
-    const wrapper = renderLtiLaunchApp();
-    const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
-    assert.equal(errorDisplay.prop('error'), error);
+      // After the successful API call, the iframe should still be rendered.
+      wrapper.update();
+      assert.isTrue(wrapper.exists('iframe'));
+    });
 
-    // There should be no "Try again" button in this context, instead we just
-    // ask the user to reload the page.
-    const tryAgainButton = wrapper.find('Button[label="Try again"]');
-    assert.isFalse(tryAgainButton.exists());
-    assert.include(
-      wrapper.text(),
-      'To fix this problem, try reloading the page'
-    );
-  });
+    it('displays an error if reporting the submission fails', async () => {
+      const error = new ApiError(400, {});
+      fakeApiCall.rejects(error);
 
-  it('does not report a submission if teacher launches assignment', async () => {
-    // When a teacher launches the assignment, there will typically be no
-    // `submissionParams` config provided by the backend.
-    fakeConfig.canvas.speedGrader.submissionParams = undefined;
+      // Wait for the API call to fail and check that an error is displayed.
+      const wrapper = renderLtiLaunchApp();
+      const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
+      assert.equal(errorDisplay.prop('error'), error);
 
-    renderLtiLaunchApp();
-    await new Promise(resolve => setTimeout(resolve, 0));
+      // There should be no "Try again" button in this context, instead we just
+      // ask the user to reload the page.
+      const tryAgainButton = wrapper.find('Button[label="Try again"]');
+      assert.isFalse(tryAgainButton.exists());
+      assert.include(
+        wrapper.text(),
+        'To fix this problem, try reloading the page'
+      );
+    });
 
-    assert.notCalled(fakeApiCall);
+    it('does not report a submission if teacher launches assignment', async () => {
+      // When a teacher launches the assignment, there will typically be no
+      // `submissionParams` config provided by the backend.
+      fakeConfig.canvas.speedGrader.submissionParams = undefined;
+
+      renderLtiLaunchApp();
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.notCalled(fakeApiCall);
+    });
+
+    it('does not report a submission if `speedGrader` object is omitted', async () => {
+      fakeConfig.canvas.speedGrader = undefined;
+
+      renderLtiLaunchApp();
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.notCalled(fakeApiCall);
+    });
   });
 
   context('when grading is enabled', () => {
