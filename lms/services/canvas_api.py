@@ -23,9 +23,7 @@ __all__ = ["CanvasAPIClient"]
 class CanvasAPIClient:
     def __init__(self, _context, request):
         self._helper = CanvasAPIHelper(
-            request.lti_user.oauth_consumer_key,
-            request.find_service(name="ai_getter"),
-            request.route_url,
+            request.find_service(name="ai_getter"), request.route_url,
         )
         self._consumer_key = request.lti_user.oauth_consumer_key
         self._user_id = request.lti_user.user_id

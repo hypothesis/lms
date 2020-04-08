@@ -19,7 +19,7 @@ class OAuth1Service:  # pylint:disable=too-few-public-methods
         """
 
         consumer_key = self.request.lti_user.oauth_consumer_key
-        shared_secret = self.ai_getter_service.shared_secret(consumer_key)
+        shared_secret = self.ai_getter_service.shared_secret()
 
         return OAuth1(
             client_key=consumer_key,
