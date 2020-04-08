@@ -25,15 +25,19 @@ class TestVerifyLaunchRequest:
         with pytest.raises(NoConsumerKey):
             launch_verifier.verify()
 
-    def test_it_gets_the_shared_secret_from_the_db(self, ai_getter, launch_verifier):
+    def test_it_gets_the_shared_secret_from_the_db(
+        self, launch_verifier, pyramid_request, models
+    ):
         launch_verifier.verify()
 
-        ai_getter.shared_secret.assert_called_once_with()
+        models.ApplicationInstance.get.assert_called_once_with(
+            pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY"
+        )
 
     def test_it_raises_if_the_consumer_key_isnt_in_the_db(
-        self, launch_verifier, ai_getter
+        self, launch_verifier, models
     ):
-        ai_getter.shared_secret.side_effect = ConsumerKeyError()
+        models.ApplicationInstance.get.return_value = None
 
         with pytest.raises(ConsumerKeyError):
             launch_verifier.verify()
@@ -206,4 +210,8 @@ def sign(pyramid_request):
     )
 
 
-pytestmark = pytest.mark.usefixtures("ai_getter")
+@pytest.fixture(autouse=True)
+def models(patch):
+    models = patch("lms.services.launch_verifier.models")
+    models.ApplicationInstance.get.return_value = mock.Mock(shared_secret="TEST_SECRET")
+    return models

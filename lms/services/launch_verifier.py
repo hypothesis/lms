@@ -1,6 +1,7 @@
 """LTI launch request verifier service."""
 import pylti.common
 
+from lms import models
 from lms.services import (
     ConsumerKeyError,
     LTILaunchVerificationError,
@@ -54,13 +55,15 @@ class LaunchVerifier:  # pylint:disable=too-few-public-methods
         except KeyError:
             raise NoConsumerKey()
 
-        try:
-            shared_secret = self._request.find_service(name="ai_getter").shared_secret()
-        except ConsumerKeyError:  # pylint: disable=try-except-raise
-            raise
+        application_instance = models.ApplicationInstance.get(
+            self._request.db, consumer_key
+        )
+
+        if not application_instance:
+            raise ConsumerKeyError()
 
         consumers = {}
-        consumers[consumer_key] = {"secret": shared_secret}
+        consumers[consumer_key] = {"secret": application_instance.shared_secret}
 
         try:
             valid = pylti.common.verify_request_common(

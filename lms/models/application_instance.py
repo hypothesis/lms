@@ -44,6 +44,11 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
     )
 
     @classmethod
+    def get(cls, db, consumer_key):
+        """Return the ApplicationInstance with the given consumer_key or None."""
+        return db.query(cls).filter_by(consumer_key=consumer_key).one_or_none()
+
+    @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
         cls, lms_url, email, developer_key, developer_secret, encryption_key=None
     ):
