@@ -197,11 +197,6 @@ class LTILaunchResource:
         return JSConfig(self, self._request)
 
     @property
-    def provisioning_enabled(self):
-        """Return True if provisioning is enabled for this request."""
-        return self._ai_getter.provisioning_enabled()
-
-    @property
     def lms_url(self):
         """Return the ApplicationInstance.lms_url."""
         return self._ai_getter.lms_url()

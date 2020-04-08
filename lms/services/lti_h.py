@@ -26,6 +26,7 @@ class LTIHService:
         self._request = request
         self._lti_user = request.lti_user
 
+        self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
         self._group_info_service = request.find_service(name="group_info")
 
@@ -53,7 +54,7 @@ class LTIHService:
         :raises HTTPInternalServerError: If we cannot sync to H for any reason
         """
 
-        if not self._context.provisioning_enabled:  # pylint: disable=protected-access
+        if not self._ai_getter.provisioning_enabled():
             return None
 
         try:

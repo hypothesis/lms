@@ -398,9 +398,7 @@ class TestJSConfigHypothesisClient:
 
         assert config["a_key"] == "a_value"
 
-    @pytest.mark.parametrize(
-        "context_property", ["provisioning_enabled", "h_user", "h_groupid"]
-    )
+    @pytest.mark.parametrize("context_property", ["h_user", "h_groupid"])
     def test_it_raises_if_a_context_property_raises(
         self, context, context_property, pyramid_request
     ):
@@ -487,9 +485,8 @@ def pyramid_request(pyramid_request):
 
 
 @pytest.fixture
-def provisioning_disabled(context):
-    """Modify context so that context.provisioning_enabled is False."""
-    context.provisioning_enabled = False
+def provisioning_disabled(ai_getter):
+    ai_getter.provisioning_enabled.return_value = False
 
 
 @pytest.fixture(autouse=True)

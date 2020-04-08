@@ -270,30 +270,6 @@ class TestHUser:
         return pyramid_request
 
 
-class TestProvisioningEnabled:
-    def test_it_checks_whether_provisioning_is_enabled_for_the_request(
-        self, ai_getter, lti_launch
-    ):
-        lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
-
-        ai_getter.provisioning_enabled.assert_called_once_with()
-
-    @pytest.mark.parametrize("expected", [True, False])
-    def test_it_returns_based_on_ai_getter_provisiioning(
-        self, expected, ai_getter, lti_launch
-    ):
-        ai_getter.provisioning_enabled.return_value = expected
-
-        assert lti_launch.provisioning_enabled is expected
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-        }
-        return pyramid_request
-
-
 class TestCustomCanvasAPIDomain:
     def test_it_returns_the_custom_canvas_api_domain(self, pyramid_request):
         lti_launch = LTILaunchResource(pyramid_request)

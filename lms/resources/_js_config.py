@@ -360,7 +360,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._context.provisioning_enabled:
+        if not self._ai_getter.provisioning_enabled():
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]

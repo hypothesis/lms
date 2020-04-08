@@ -18,9 +18,9 @@ class TestSync:
         lti_h_svc.sync.assert_called_once_with(groups=[group])
 
     def test_sync_does_nothing_if_provisioning_is_disabled(
-        self, context, lti_h_svc, h_api, group
+        self, ai_getter, lti_h_svc, h_api, group
     ):
-        context.provisioning_enabled = False
+        ai_getter.provisioning_enabled.return_value = False
 
         lti_h_svc.sync(groups=[group])
 
@@ -103,9 +103,9 @@ class TestUserUpserting:
             lti_h_svc.single_group_sync()
 
     def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, context, h_api, lti_h_svc
+        self, ai_getter, h_api, lti_h_svc
     ):
-        context.provisioning_enabled = False
+        ai_getter.provisioning_enabled.return_value = False
 
         lti_h_svc.single_group_sync()
 
@@ -155,7 +155,7 @@ class TestAddingUserToGroups:
         return pyramid_request
 
 
-pytestmark = pytest.mark.usefixtures("h_api", "group_info_service")
+pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
 
 
 @pytest.fixture
