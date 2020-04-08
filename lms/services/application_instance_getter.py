@@ -107,5 +107,5 @@ def application_instance_getter_service_factory(_context, request):
     return ApplicationInstanceGetter(
         request.db,
         request.registry.settings["aes_secret"],
-        request.params.get("oauth_consumer_key"),
+        request.lti_user.oauth_consumer_key,
     )
