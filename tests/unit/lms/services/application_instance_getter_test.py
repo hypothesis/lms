@@ -12,18 +12,19 @@ from lms.services.application_instance_getter import (
 
 class TestApplicationInstanceGetter:
     def test_developer_key_returns_the_developer_key(self, ai_getter):
-        assert ai_getter.developer_key("TEST_CONSUMER_KEY") == "TEST_DEVELOPER_KEY"
+        assert ai_getter.developer_key() == "TEST_DEVELOPER_KEY"
 
     def test_developer_key_returns_None_if_ApplicationInstance_has_no_developer_key(
         self, ai_getter, test_application_instance
     ):
         test_application_instance.developer_key = None
 
-        assert ai_getter.developer_key("TEST_CONSUMER_KEY") is None
+        assert ai_getter.developer_key() is None
 
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_developer_key_raises_if_consumer_key_unknown(self, ai_getter):
         with pytest.raises(ConsumerKeyError):
-            ai_getter.developer_key("UNKNOWN_CONSUMER_KEY")
+            ai_getter.developer_key()
 
     def test_developer_secret_returns_the_decrypted_developer_secret(
         self, ai_getter, pyramid_request, test_application_instance
@@ -35,25 +36,25 @@ class TestApplicationInstanceGetter:
             test_application_instance.aes_cipher_iv,
         )
 
-        assert (
-            ai_getter.developer_secret("TEST_CONSUMER_KEY") == b"TEST_DEVELOPER_SECRET"
-        )
+        assert ai_getter.developer_secret() == b"TEST_DEVELOPER_SECRET"
 
     def test_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
         self, ai_getter
     ):
-        assert ai_getter.developer_secret("TEST_CONSUMER_KEY") is None
+        assert ai_getter.developer_secret() is None
 
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_developer_secret_raises_if_consumer_key_unknown(self, ai_getter):
         with pytest.raises(ConsumerKeyError):
-            ai_getter.developer_secret("UNKNOWN_CONSUMER_KEY")
+            ai_getter.developer_secret()
 
     def test_lms_url_returns_the_lms_url(self, ai_getter):
-        assert ai_getter.lms_url("TEST_CONSUMER_KEY") == "TEST_LMS_URL"
+        assert ai_getter.lms_url() == "TEST_LMS_URL"
 
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_lms_url_raises_if_consumer_key_unknown(self, ai_getter):
         with pytest.raises(ConsumerKeyError):
-            ai_getter.lms_url("UNKNOWN_CONSUMER_KEY")
+            ai_getter.lms_url()
 
     @pytest.mark.parametrize("flag", [True, False])
     def test_provisioning_returns_the_provisioning_flag(
@@ -61,17 +62,19 @@ class TestApplicationInstanceGetter:
     ):
         test_application_instance.provisioning = flag
 
-        assert ai_getter.provisioning_enabled("TEST_CONSUMER_KEY") == flag
+        assert ai_getter.provisioning_enabled() == flag
 
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_provisioning_returns_False_if_consumer_key_unknown(self, ai_getter):
-        assert not ai_getter.provisioning_enabled("UNKNOWN_CONSUMER_KEY")
+        assert not ai_getter.provisioning_enabled()
 
     def test_shared_secret_returns_the_shared_secret(self, ai_getter):
-        assert ai_getter.shared_secret("TEST_CONSUMER_KEY") == "TEST_SHARED_SECRET"
+        assert ai_getter.shared_secret() == "TEST_SHARED_SECRET"
 
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_shared_secret_raises_if_consumer_key_unknown(self, ai_getter):
         with pytest.raises(ConsumerKeyError):
-            ai_getter.shared_secret("UNKNOWN_CONSUMER_KEY")
+            ai_getter.shared_secret()
 
     @pytest.fixture
     def ai_getter(self, pyramid_request):
@@ -121,3 +124,14 @@ class TestApplicationInstanceGetter:
         ]
         pyramid_request.db.add_all(application_instances)
         return application_instances
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params.clear()
+        pyramid_request.params["oauth_consumer_key"] = "TEST_CONSUMER_KEY"
+        return pyramid_request
+
+    @pytest.fixture
+    def unknown_consumer_key(self, pyramid_request):
+        pyramid_request.params["oauth_consumer_key"] = "UNKNOWN_CONSUMER_KEY"
+        return pyramid_request

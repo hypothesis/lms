@@ -14,9 +14,7 @@ class TestAuthorize:
         response = CanvasAPIAuthorizeViews(pyramid_request).authorize()
 
         assert response.status_code == 302
-        ai_getter.lms_url.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key
-        )
+        ai_getter.lms_url.assert_called_once_with()
         assert response.location.startswith(
             f"{ai_getter.lms_url.return_value}/login/oauth2/auth"
         )
@@ -28,9 +26,7 @@ class TestAuthorize:
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        ai_getter.developer_key.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key
-        )
+        ai_getter.developer_key.assert_called_once_with()
         assert query_params["client_id"] == [str(ai_getter.developer_key.return_value)]
 
     def test_it_includes_the_response_type_in_a_query_param(self, pyramid_request):

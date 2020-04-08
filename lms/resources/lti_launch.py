@@ -199,15 +199,12 @@ class LTILaunchResource:
     @property
     def provisioning_enabled(self):
         """Return True if provisioning is enabled for this request."""
-        return self._ai_getter.provisioning_enabled(
-            self._request.parsed_params["oauth_consumer_key"]
-        )
+        return self._ai_getter.provisioning_enabled()
 
     @property
     def lms_url(self):
         """Return the ApplicationInstance.lms_url."""
-        oauth_consumer_key = self._request.parsed_params.get("oauth_consumer_key")
-        return self._ai_getter.lms_url(oauth_consumer_key)
+        return self._ai_getter.lms_url()
 
     @property
     def custom_canvas_api_domain(self):

@@ -24,9 +24,7 @@ class TestGetToken:
 
         # It initializes canvas_api_helper correctly.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the access token request from canvas_api_helper.
@@ -110,9 +108,7 @@ class TestGetRefreshedToken:
 
         # It initializes canvas_api_helper correctly.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the refresh token request from canvas_api_helper.
@@ -219,9 +215,7 @@ class TestAuthenticatedUsersSections:
 
         # It initializes canvas_api_helper.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the prepared request.
@@ -280,9 +274,7 @@ class TestCourseSections:
 
         # It initializes canvas_api_helper.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the prepared request.
@@ -341,9 +333,7 @@ class TestUsersSections:
 
         # It initializes canvas_api_helper.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the prepared request.
@@ -400,9 +390,7 @@ class TestListFiles:
 
         # It initializes canvas_api_helper correctly.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the PreparedRequest from the helper.
@@ -463,9 +451,7 @@ class TestPublicURL:
 
         # It initializes canvas_api_helper correctly.
         CanvasAPIHelper.assert_called_once_with(
-            pyramid_request.lti_user.oauth_consumer_key,
-            ai_getter,
-            pyramid_request.route_url,
+            ai_getter, pyramid_request.route_url,
         )
 
         # It gets the PreparedRequest from the helper.

@@ -214,7 +214,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             return False
 
         try:
-            developer_key = self._ai_getter.developer_key(self._consumer_key)
+            developer_key = self._ai_getter.developer_key()
         except ConsumerKeyError:
             return False
 

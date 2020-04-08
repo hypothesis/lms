@@ -32,22 +32,18 @@ class CanvasAPIHelper:
         >>> response = requests.Session().send(prepared_request)
     """
 
-    def __init__(self, consumer_key, ai_getter, route_url):
+    def __init__(self, ai_getter, route_url):
         """
         Initialize a CanvasAPIHelper for the given ``consumer_key``.
-
-        :arg consumer_key: the consumer key of the application instance whose
-            Canvas instance's API we're going to be using
-        :type consumer_key: str
 
         :arg ai_getter: the "ai_getter" service
 
         :arg route_url: the :meth:`pyramid.request.Request.route_url()` method
         :type route_url: callable
         """
-        self._client_id = ai_getter.developer_key(consumer_key)
-        self._client_secret = ai_getter.developer_secret(consumer_key)
-        self._canvas_url = urlparse(ai_getter.lms_url(consumer_key)).netloc
+        self._client_id = ai_getter.developer_key()
+        self._client_secret = ai_getter.developer_secret()
+        self._canvas_url = urlparse(ai_getter.lms_url()).netloc
         self._redirect_uri = route_url("canvas_oauth_callback")
 
     def access_token_request(self, authorization_code):

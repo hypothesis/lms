@@ -28,7 +28,7 @@ class TestVerifyLaunchRequest:
     def test_it_gets_the_shared_secret_from_the_db(self, ai_getter, launch_verifier):
         launch_verifier.verify()
 
-        ai_getter.shared_secret.assert_called_once_with("TEST_OAUTH_CONSUMER_KEY")
+        ai_getter.shared_secret.assert_called_once_with()
 
     def test_it_raises_if_the_consumer_key_isnt_in_the_db(
         self, launch_verifier, ai_getter

@@ -55,9 +55,7 @@ class LaunchVerifier:  # pylint:disable=too-few-public-methods
             raise NoConsumerKey()
 
         try:
-            shared_secret = self._request.find_service(name="ai_getter").shared_secret(
-                consumer_key
-            )
+            shared_secret = self._request.find_service(name="ai_getter").shared_secret()
         except ConsumerKeyError:  # pylint: disable=try-except-raise
             raise
 

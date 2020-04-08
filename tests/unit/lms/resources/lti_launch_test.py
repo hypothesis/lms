@@ -276,9 +276,7 @@ class TestProvisioningEnabled:
     ):
         lti_launch.provisioning_enabled  # pylint:disable=pointless-statement
 
-        ai_getter.provisioning_enabled.assert_called_once_with(
-            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
-        )
+        ai_getter.provisioning_enabled.assert_called_once_with()
 
     @pytest.mark.parametrize("expected", [True, False])
     def test_it_returns_based_on_ai_getter_provisiioning(
@@ -335,9 +333,7 @@ class TestLMSURL:
         lti_launch = LTILaunchResource(pyramid_request)
 
         lms_url = lti_launch.lms_url
-        ai_getter.lms_url.assert_called_once_with(
-            "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef"
-        )
+        ai_getter.lms_url.assert_called_once_with()
         assert lms_url == ai_getter.lms_url.return_value
 
     @pytest.fixture

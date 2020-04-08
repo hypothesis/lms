@@ -26,16 +26,15 @@ class CanvasAPIAuthorizeViews:
 
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
-        consumer_key = self.request.lti_user.oauth_consumer_key
         authorize_url = urlunparse(
             (
                 "https",
-                urlparse(self.ai_getter.lms_url(consumer_key)).netloc,
+                urlparse(self.ai_getter.lms_url()).netloc,
                 "login/oauth2/auth",
                 "",
                 urlencode(
                     {
-                        "client_id": self.ai_getter.developer_key(consumer_key),
+                        "client_id": self.ai_getter.developer_key(),
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
