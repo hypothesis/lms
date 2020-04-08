@@ -26,7 +26,6 @@ class LTILaunchResource:
         """Return the context resource for an LTI launch request."""
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
-        self._ai_getter = self._request.find_service(name="ai_getter")
 
     @property
     def h_user(self):
@@ -195,11 +194,6 @@ class LTILaunchResource:
     @functools.lru_cache()
     def js_config(self):
         return JSConfig(self, self._request)
-
-    @property
-    def lms_url(self):
-        """Return the ApplicationInstance.lms_url."""
-        return self._ai_getter.lms_url()
 
     @property
     def custom_canvas_api_domain(self):

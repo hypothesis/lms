@@ -81,7 +81,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             # When we're being launched in an iframe within the LMS our JavaScript
             # needs to pass this URL (which is the URL of the top-most page) to Google
             # Picker, otherwise Picker refuses to launch inside an iframe.
-            return self._context.custom_canvas_api_domain or self._context.lms_url
+            return self._context.custom_canvas_api_domain or self._ai_getter.lms_url()
 
         self._config["filePicker"] = {
             "formAction": form_action,
