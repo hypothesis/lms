@@ -1,9 +1,8 @@
 from functools import lru_cache
 
 from Crypto.Cipher import AES
-from sqlalchemy.orm.exc import NoResultFound
 
-from lms.models import ApplicationInstance
+from lms import models
 from lms.services import ConsumerKeyError
 
 __all__ = ["ApplicationInstanceGetter"]
@@ -94,14 +93,14 @@ class ApplicationInstanceGetter:
         :return: the matching ApplicationInstance or ``None``
         :rtype: :cls:`lms.models.ApplicationInstance` or ``None``
         """
-        try:
-            return (
-                self._db.query(ApplicationInstance)
-                .filter(ApplicationInstance.consumer_key == self._consumer_key)
-                .one()
-            )
-        except NoResultFound as err:
-            raise ConsumerKeyError() from err
+        application_instance = models.ApplicationInstance.get(
+            self._db, self._consumer_key
+        )
+
+        if application_instance is None:
+            raise ConsumerKeyError()
+
+        return application_instance
 
 
 def application_instance_getter_service_factory(_context, request):

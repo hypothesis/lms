@@ -61,6 +61,22 @@ class TestApplicationInstance:
         with pytest.raises(IntegrityError, match="requesters_email"):
             db_session.flush()
 
+    def test_get_returns_the_matching_ApplicationInstance(
+        self, db_session, application_instance
+    ):
+        db_session.add(application_instance)
+
+        assert (
+            ApplicationInstance.get(db_session, application_instance.consumer_key)
+            == application_instance
+        )
+
+    @pytest.mark.usefixtures("application_instance")
+    def test_get_returns_None_if_theres_no_matching_ApplicationInstance(
+        self, db_session
+    ):
+        assert ApplicationInstance.get(db_session, "unknown_consumer_key") is None
+
     @pytest.fixture
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""
