@@ -302,27 +302,6 @@ class TestJSConfig:
         assert js_config == JSConfig.return_value
 
 
-class TestLMSURL:
-    def test_it_returns_the_ApplicationInstances_lms_url(
-        self, ai_getter, pyramid_request
-    ):
-        lti_launch = LTILaunchResource(pyramid_request)
-
-        lms_url = lti_launch.lms_url
-        ai_getter.lms_url.assert_called_once_with()
-        assert lms_url == ai_getter.lms_url.return_value
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "oauth_consumer_key": "Hypothesise3f14c1f7e8c89f73cefacdd1d80d0ef",
-        }
-        return pyramid_request
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter")
-
-
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)

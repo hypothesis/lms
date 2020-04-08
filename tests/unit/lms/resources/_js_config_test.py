@@ -41,7 +41,7 @@ class TestEnableContentItemSelectionMode:
         }
 
     def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
-        self, context, js_config
+        self, ai_getter, context, js_config
     ):
         context.custom_canvas_api_domain = None
 
@@ -49,7 +49,11 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        assert js_config.asdict()["filePicker"]["google"]["origin"] == context.lms_url
+        ai_getter.lms_url.assert_called_once_with()
+        assert (
+            js_config.asdict()["filePicker"]["google"]["origin"]
+            == ai_getter.lms_url.return_value
+        )
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_the_lms_isnt_Canvas(
         self, context, js_config,
