@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from Crypto.Cipher import AES
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -82,6 +84,7 @@ class ApplicationInstanceGetter:
         """
         return self._get().shared_secret
 
+    @lru_cache(maxsize=1)
     def _get(self):
         """
         Return the ApplicationInstance with the given consumer_key or ``None``.
