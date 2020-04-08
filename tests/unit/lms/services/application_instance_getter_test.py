@@ -85,7 +85,7 @@ class TestApplicationInstanceGetter:
     @pytest.fixture(autouse=True)
     def test_application_instance(self, pyramid_request):
         application_instance = ApplicationInstance(
-            consumer_key="TEST_CONSUMER_KEY",
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             developer_key="TEST_DEVELOPER_KEY",
             lms_url="TEST_LMS_URL",
             shared_secret="TEST_SHARED_SECRET",
@@ -126,12 +126,8 @@ class TestApplicationInstanceGetter:
         return application_instances
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params.clear()
-        pyramid_request.params["oauth_consumer_key"] = "TEST_CONSUMER_KEY"
-        return pyramid_request
-
-    @pytest.fixture
     def unknown_consumer_key(self, pyramid_request):
-        pyramid_request.params["oauth_consumer_key"] = "UNKNOWN_CONSUMER_KEY"
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(
+            oauth_consumer_key="UNKNOWN_CONSUMER_KEY"
+        )
         return pyramid_request
