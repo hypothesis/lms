@@ -7,6 +7,7 @@ import oauthlib.oauth1
 import pytest
 from pylti.common import LTIException
 
+from lms.models import ApplicationInstance
 from lms.services import ConsumerKeyError, LTIOAuthError, NoConsumerKey
 from lms.services.launch_verifier import LaunchVerifier
 
@@ -213,7 +214,7 @@ def sign(pyramid_request):
 @pytest.fixture(autouse=True)
 def models(patch):
     models = patch("lms.services.launch_verifier.models")
-    models.ApplicationInstance.get_by_consumer_key.return_value = mock.Mock(
-        shared_secret="TEST_SECRET"
+    models.ApplicationInstance.get_by_consumer_key.return_value = mock.create_autospec(
+        ApplicationInstance, instance=True, spec_set=True, shared_secret="TEST_SECRET"
     )
     return models
