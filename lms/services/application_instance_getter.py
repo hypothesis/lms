@@ -25,7 +25,7 @@ class ApplicationInstanceGetter:
         :return: the matching Canvas API developer key or ``None``
         :rtype: str or ``None``
         """
-        return self._get().developer_key
+        return self._get_by_consumer_key().developer_key
 
     def developer_secret(self):
         """
@@ -36,7 +36,7 @@ class ApplicationInstanceGetter:
         :return: the matching Canvas API developer secret or ``None``
         :rtype: str or ``None``
         """
-        application_instance = self._get()
+        application_instance = self._get_by_consumer_key()
 
         if application_instance.developer_secret is None:
             return None
@@ -55,7 +55,7 @@ class ApplicationInstanceGetter:
         :return: the matching LMS URL
         :rtype: str
         """
-        return self._get().lms_url
+        return self._get_by_consumer_key().lms_url
 
     def provisioning_enabled(self):
         """
@@ -65,7 +65,7 @@ class ApplicationInstanceGetter:
         request, ``False`` otherwise.
         """
         try:
-            provisioning = self._get().provisioning
+            provisioning = self._get_by_consumer_key().provisioning
         except ConsumerKeyError:
             provisioning = False
         return provisioning
@@ -81,10 +81,10 @@ class ApplicationInstanceGetter:
         :return: the request's shared secret
         :rtype: str
         """
-        return self._get().shared_secret
+        return self._get_by_consumer_key().shared_secret
 
     @lru_cache(maxsize=1)
-    def _get(self):
+    def _get_by_consumer_key(self):
         """
         Return the ApplicationInstance with the given consumer_key or ``None``.
 
@@ -93,7 +93,7 @@ class ApplicationInstanceGetter:
         :return: the matching ApplicationInstance or ``None``
         :rtype: :cls:`lms.models.ApplicationInstance` or ``None``
         """
-        application_instance = models.ApplicationInstance.get(
+        application_instance = models.ApplicationInstance.get_by_consumer_key(
             self._db, self._consumer_key
         )
 
