@@ -55,7 +55,7 @@ class LaunchVerifier:  # pylint:disable=too-few-public-methods
         except KeyError:
             raise NoConsumerKey()
 
-        application_instance = models.ApplicationInstance.get(
+        application_instance = models.ApplicationInstance.get_by_consumer_key(
             self._request.db, consumer_key
         )
 

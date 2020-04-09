@@ -44,7 +44,7 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
     )
 
     @classmethod
-    def get(cls, db, consumer_key):
+    def get_by_consumer_key(cls, db, consumer_key):
         """Return the ApplicationInstance with the given consumer_key or None."""
         return db.query(cls).filter_by(consumer_key=consumer_key).one_or_none()
 
