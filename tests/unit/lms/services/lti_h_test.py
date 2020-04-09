@@ -146,14 +146,6 @@ class TestAddingUserToGroups:
         with pytest.raises(HTTPInternalServerError, match="Oops"):
             lti_h_svc.single_group_sync()
 
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params[
-            "tool_consumer_instance_guid"
-        ] = "test_tool_consumer_instance_guid"
-        pyramid_request.params["context_id"] = "test_context_id"
-        return pyramid_request
-
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
 
