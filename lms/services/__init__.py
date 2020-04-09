@@ -13,21 +13,6 @@ from lms.services.exceptions import (
     ServiceError,
 )
 
-__all__ = (
-    "ServiceError",
-    "LTILaunchVerificationError",
-    "NoConsumerKey",
-    "ConsumerKeyError",
-    "LTIOAuthError",
-    "ExternalRequestError",
-    "HAPIError",
-    "HAPINotFoundError",
-    "CanvasAPIError",
-    "CanvasAPIAccessTokenError",
-    "CanvasAPIServerError",
-    "LTIOutcomesAPIError",
-)
-
 
 def includeme(config):
     config.register_service_factory(
