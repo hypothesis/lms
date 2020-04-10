@@ -52,9 +52,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         """
         kwargs = self.parse(locations=["form"])
 
-        return LTIUser(
-            kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs.get("roles", "")
-        )
+        return LTIUser(kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs["roles"])
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
