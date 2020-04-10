@@ -94,6 +94,18 @@ class TestConfigure:
 
         assert configurator.registry.settings["aes_secret"] == b"test_lms_secret_"
 
+    def test_aes_secret_is_None_when_theres_no_LMS_SECRET(self, setting_getter):
+        def side_effect(envvar_name, *_args, **_kwargs):
+            if envvar_name == "LMS_SECRET":
+                return None
+            return mock.DEFAULT
+
+        setting_getter.get.side_effect = side_effect
+
+        configurator = configure({})
+
+        assert configurator.registry.settings["aes_secret"] is None
+
     def test_LMS_SECRET_cant_contain_non_ascii_chars(self, setting_getter):
         def side_effect(
             envvar_name, *args, **kwargs
