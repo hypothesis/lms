@@ -70,7 +70,6 @@ class GradingInfoService:
             return
 
         grading_info = self._find_or_create(
-            GradingInfo,
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
             context_id=parsed_params["context_id"],
@@ -82,11 +81,11 @@ class GradingInfoService:
 
         grading_info.update_from_dict(parsed_params)
 
-    def _find_or_create(self, model_class, **query):
-        result = self._db.query(model_class).filter_by(**query).one_or_none()
+    def _find_or_create(self, **query):
+        result = self._db.query(GradingInfo).filter_by(**query).one_or_none()
 
         if result is None:
-            result = model_class(**query)
+            result = GradingInfo(**query)
             self._db.add(result)
 
         return result
