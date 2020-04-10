@@ -51,15 +51,75 @@ class TestBasicLTILaunchSchema:
             "resource_link_id": ["Missing data for required field."],
         }
 
-    def test_LTIToolRedirect_raised_when_res_link_missing_with_return_url(
-        self, pyramid_request
+    @pytest.mark.parametrize(
+        "required_param",
+        [
+            "oauth_consumer_key",
+            "tool_consumer_instance_guid",
+            "user_id",
+        ],
+    )
+    def test_it_raises_ValidationError_if_a_non_reportable_field_is_missing(
+        self, pyramid_request, required_param
     ):
-        pyramid_request.params.pop("resource_link_id")
         pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
+        del pyramid_request.params[required_param]
 
         schema = BasicLTILaunchSchema(pyramid_request)
 
-        with pytest.raises(LTIToolRedirect):
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    @pytest.mark.parametrize(
+        "required_param",
+        [
+            "resource_link_id",
+            "lti_version",
+            "lti_message_type",
+            "context_id",
+            "context_title",
+        ],
+    )
+    def test_it_raises_LTIToolRedirect_if_a_reportable_field_is_missing(
+        self, pyramid_request, required_param
+    ):
+        # The LTI 1.1 certification test suite requires LTI apps to redirect to
+        # the LMS with an error message if the launch request is invalid. But
+        # only if there's a launch_presentation_return_url and only if certain
+        # launch params are invalid, not others. For other params the test
+        # suite specifically requires that you *don't* redirect back to the
+        # LMS.
+        pyramid_request.params["launch_presentation_return_url"] = "http://example.com"
+        del pyramid_request.params[required_param]
+
+        schema = BasicLTILaunchSchema(pyramid_request)
+
+        with pytest.raises(LTIToolRedirect) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.location == (
+            "http://example.com"
+            f"?lti_msg=Field+%27{required_param}%27%3A+Missing+data+for+required+field."
+        )
+
+    @pytest.mark.parametrize(
+        "required_param",
+        [
+            "resource_link_id",
+            "lti_version",
+            "lti_message_type",
+            "context_id",
+            "context_title",
+        ],
+    )
+    def test_it_raises_ValidationError_if_a_reportable_field_is_missing_but_theres_no_launch_presentation_return_url(
+        self, pyramid_request, required_param
+    ):
+        del pyramid_request.params[required_param]
+
+        schema = BasicLTILaunchSchema(pyramid_request)
+
+        with pytest.raises(ValidationError):
             schema.parse()
 
 
