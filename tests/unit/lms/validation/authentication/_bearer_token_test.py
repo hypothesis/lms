@@ -2,7 +2,6 @@ import pytest
 from pyramid.testing import DummyRequest
 from webargs.pyramidparser import parser
 
-from lms.models import LTIUser
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -12,6 +11,7 @@ from lms.validation.authentication import (
     InvalidSessionTokenError,
     MissingSessionTokenError,
 )
+from tests import factories
 
 
 class TestBearerTokenSchema:
@@ -109,15 +109,6 @@ class TestBearerTokenSchema:
         assert deserialized == lti_user
 
     @pytest.fixture
-    def lti_user(self):
-        """Return the original LTIUser that was encoded as a JWT in the request."""
-        return LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="TEST_ROLES",
-        )
-
-    @pytest.fixture
     def schema(self, pyramid_request):
         """Return a BearerTokenSchema configured with the right secret."""
         return BearerTokenSchema(pyramid_request)
@@ -132,12 +123,14 @@ class TestBearerTokenSchema:
 
 
 @pytest.fixture(autouse=True)
-def _jwt(patch):
+def _jwt(patch, lti_user):
     _jwt = patch("lms.validation.authentication._bearer_token._jwt")
     _jwt.encode_jwt.return_value = "ENCODED_JWT"
-    _jwt.decode_jwt.return_value = {
-        "user_id": "TEST_USER_ID",
-        "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-        "roles": "TEST_ROLES",
-    }
+    _jwt.decode_jwt.return_value = lti_user._asdict()
     return _jwt
+
+
+@pytest.fixture
+def lti_user():
+    """Return the original LTIUser that was encoded as a JWT in the request."""
+    return factories.LTIUser()

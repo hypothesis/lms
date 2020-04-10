@@ -4,7 +4,6 @@ import pytest
 import requests
 from pyramid import testing
 
-from lms.models import LTIUser
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     ExpiredJWTError,
@@ -18,6 +17,7 @@ from lms.validation.authentication._oauth import (
     CanvasOAuthCallbackSchema,
     CanvasRefreshTokenResponseSchema,
 )
+from tests import factories
 
 
 class TestCanvasOauthCallbackSchema:
@@ -257,4 +257,4 @@ def _jwt(patch, lti_user):
 
 @pytest.fixture
 def lti_user():
-    return LTIUser("test_user_id", "test_oauth_consumer_key", "test_roles")
+    return factories.LTIUser()

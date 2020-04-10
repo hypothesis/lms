@@ -1,8 +1,8 @@
 import pytest
 
 from lms.authentication._helpers import authenticated_userid, get_lti_user, groupfinder
-from lms.models import LTIUser
 from lms.validation import ValidationError
+from tests import factories
 
 
 class TestAuthenticatedUserID:
@@ -10,16 +10,16 @@ class TestAuthenticatedUserID:
         "lti_user,expected_userid",
         [
             (
-                LTIUser(
-                    "sam", "Hypothesisf301584250a2dece14f021ab8424018a", "TEST_ROLES"
+                factories.LTIUser(
+                    user_id="sam",
+                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
                 ),
                 "c2Ft:Hypothesisf301584250a2dece14f021ab8424018a",
             ),
             (
-                LTIUser(
-                    "Sam:Smith",
-                    "Hypothesisf301584250a2dece14f021ab8424018a",
-                    "TEST_ROLES",
+                factories.LTIUser(
+                    user_id="Sam:Smith",
+                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
                 ),
                 "U2FtOlNtaXRo:Hypothesisf301584250a2dece14f021ab8424018a",
             ),

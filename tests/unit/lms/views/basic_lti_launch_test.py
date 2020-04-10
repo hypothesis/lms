@@ -2,10 +2,10 @@ from unittest import mock
 
 import pytest
 
-from lms.models import LTIUser
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.basic_lti_launch import BasicLTILaunchViews
+from tests import factories
 
 
 def canvas_file_basic_lti_launch_caller(context, pyramid_request):
@@ -112,6 +112,7 @@ class TestCommon:
             pyramid_request.params["oauth_consumer_key"],
         )
 
+    @pytest.mark.usefixtures("user_is_learner")
     def test_it_calls_grading_info_upsert(
         self, context, pyramid_request, grading_info_service, view_caller
     ):
@@ -124,7 +125,7 @@ class TestCommon:
     def test_it_does_not_call_grading_info_upsert_if_instructor(
         self, context, pyramid_request, grading_info_service, view_caller
     ):
-        pyramid_request.lti_user = LTIUser("USER_ID", "OAUTH_STUFF", roles="instructor")
+        pyramid_request.lti_user = factories.LTIUser(roles="instructor")
 
         view_caller(context, pyramid_request)
 

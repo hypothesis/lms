@@ -52,13 +52,13 @@ class TestGroupUpdating:
             lti_h_svc.single_group_sync()
 
     def test_it_upserts_the_GroupInfo_into_the_db(
-        self, params, group_info_service, context, lti_h_svc
+        self, params, group_info_service, context, lti_h_svc, pyramid_request
     ):
         lti_h_svc.single_group_sync()
 
         group_info_service.upsert.assert_called_once_with(
             authority_provided_id=context.h_authority_provided_id,
-            consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             params=params,
         )
 

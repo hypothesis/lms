@@ -3,9 +3,10 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo, HUser, LTIUser
+from lms.models import GradingInfo, HUser
 from lms.resources import LTILaunchResource
 from lms.services.grading_info import GradingInfoService
+from tests import factories
 
 
 class TestGetByAssignment:
@@ -158,7 +159,7 @@ class TestUpsertFromRequest:
 
 @pytest.fixture
 def lti_user():
-    return LTIUser("test_user_id", "matching_oauth_consumer_key", "test_roles")
+    return factories.LTIUser(oauth_consumer_key="matching_oauth_consumer_key")
 
 
 @pytest.fixture

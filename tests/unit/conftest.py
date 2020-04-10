@@ -7,7 +7,7 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms.models import HUser, LTIUser
+from lms.models import HUser
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.grading_info import GradingInfoService
@@ -17,6 +17,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
+from tests import factories
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
@@ -54,15 +55,18 @@ def pyramid_request(db_session):
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False  # pragma: no cover
     )
-    pyramid_request.lti_user = LTIUser(
-        "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
-    )
+    pyramid_request.lti_user = factories.LTIUser()
 
     # The DummyRequest request lacks a content_type property which the real
     # request has
     pyramid_request.content_type = None
 
     return pyramid_request
+
+
+@pytest.fixture
+def user_is_learner(pyramid_request):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
 
 
 def configure_jinja2_assets(config):
