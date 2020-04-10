@@ -1,6 +1,7 @@
 """Schema for our bearer token-based LTI authentication."""
 import marshmallow
 
+from lms.models import LTIUser
 from lms.validation import ValidationError
 from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
@@ -11,7 +12,6 @@ from lms.validation.authentication._exceptions import (
     MissingSessionTokenError,
 )
 from lms.validation.authentication._helpers import _jwt
-from lms.values import LTIUser
 
 __all__ = ("BearerTokenSchema",)
 
@@ -20,9 +20,9 @@ class BearerTokenSchema(PyramidRequestSchema):
     """
     Schema for our bearer token-based LTI authentication.
 
-    Serializes :class:`~lms.values.LTIUser` objects into signed and
+    Serializes models.LTIUser objects into signed and
     timestamped ``"Bearer <ENCODED_JWT>"`` strings, and deserializes these
-    bearer strings back into :class:`~lms.values.LTIUser` objects. The
+    bearer strings back into models.LTIUser objects. The
     JWT signature and timestamp are verified during deserialization.
 
     Usage:
@@ -49,7 +49,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         >>> schema.load({'authorization': 'Bearer eyJ...YoM'}).data
         LTIUser(user_id='...', oauth_consumer_key='...', ...)
 
-    Or to parse an :class:`~lms.values.LTIUser` out of a Pyramid
+    Or to parse an models.LTIUser out of a Pyramid
     request's authorization param using webargs::
 
         >>> from webargs.pyramidparser import parser
@@ -81,11 +81,11 @@ class BearerTokenSchema(PyramidRequestSchema):
 
     def lti_user(self):
         """
-        Return an :class:`~lms.values.LTIUser` from the request's authorization param.
+        Return an models.LTIUser from the request's authorization param.
 
         Verifies the signature and timestamp of the JWT in the request's
         authorization param, decodes the JWT, validates the JWT's payload, and
-        returns an :class:`~lms.values.LTIUser` from the payload.
+        returns an models.LTIUser from the payload.
 
         The authorization param can be in an HTTP header
         ``Authorization: Bearer <ENCODED_JWT>``, in a query string parameter

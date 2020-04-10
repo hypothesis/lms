@@ -2,9 +2,9 @@
 
 import marshmallow
 
+from lms.models import LTIUser
 from lms.services import LTILaunchVerificationError
 from lms.validation._base import PyramidRequestSchema
-from lms.values import LTIUser
 
 __all__ = ("LaunchParamsAuthSchema",)
 
@@ -20,7 +20,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         >>> schema = LaunchParamsAuthSchema(request)
         >>> parsed_params = parser.parse(schema, request, locations=["form"])
 
-    Or to verify the request and get an :class:`~lms.values.LTIUser`
+    Or to verify the request and get an models.LTIUser
     from the request's params::
 
         >>> schema = LaunchParamsAuthSchema(request)
@@ -44,7 +44,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
     def lti_user(self):
         """
-        Return an :class:`~lms.values.LTIUser` from the request's launch params.
+        Return an models.LTIUser from the request's launch params.
 
         :raise ValidationError: if the request isn't a valid LTI launch request
 

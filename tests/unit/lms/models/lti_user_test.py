@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from lms.values import HUser, LTIUser
+from lms.models import LTIUser
 
 
 class TestLTIUser:
@@ -37,10 +37,3 @@ class TestLTIUser:
         )
 
         assert lti_user.is_learner == is_learner
-
-
-class TestHUser:
-    def test_userid(self):
-        h_user = HUser("test_authority", "test_username")
-
-        assert h_user.userid == "acct:test_username@test_authority"

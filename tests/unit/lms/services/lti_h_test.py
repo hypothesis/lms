@@ -4,10 +4,9 @@ from unittest.mock import create_autospec
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
-from lms.models import GroupInfo
+from lms.models import GroupInfo, HUser
 from lms.services import HAPIError
 from lms.services.lti_h import Group, LTIHService
-from lms.values import HUser
 
 
 class TestSync:

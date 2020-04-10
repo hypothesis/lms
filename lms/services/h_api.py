@@ -5,8 +5,8 @@ import json
 import requests
 from requests import RequestException
 
+from lms.models import HUser
 from lms.services import HAPIError, HAPINotFoundError
-from lms.values import HUser
 
 __all__ = ["HAPI"]
 

@@ -1,8 +1,8 @@
 import pytest
 
 from lms.authentication._helpers import authenticated_userid, get_lti_user, groupfinder
+from lms.models import LTIUser
 from lms.validation import ValidationError
-from lms.values import LTIUser
 
 
 class TestAuthenticatedUserID:

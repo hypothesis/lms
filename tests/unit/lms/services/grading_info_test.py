@@ -3,10 +3,9 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo
+from lms.models import GradingInfo, HUser, LTIUser
 from lms.resources import LTILaunchResource
 from lms.services.grading_info import GradingInfoService
-from lms.values import HUser, LTIUser
 
 
 class TestGetByAssignment:

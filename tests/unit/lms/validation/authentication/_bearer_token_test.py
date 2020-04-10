@@ -2,6 +2,7 @@ import pytest
 from pyramid.testing import DummyRequest
 from webargs.pyramidparser import parser
 
+from lms.models import LTIUser
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -11,7 +12,6 @@ from lms.validation.authentication import (
     InvalidSessionTokenError,
     MissingSessionTokenError,
 )
-from lms.values import LTIUser
 
 
 class TestBearerTokenSchema:
