@@ -103,7 +103,7 @@ def make_engine(settings):
     return sqlalchemy.create_engine(settings["sqlalchemy.url"])
 
 
-def _session(request):
+def _session(request):  # pragma: no cover
     engine = request.registry["sqlalchemy.engine"]
     session = SESSION(bind=engine)
 
