@@ -100,17 +100,26 @@ class TestUpsertFromRequest:
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, h_user, lti_user, db_session,
     ):
-        # Update a couple of attributes on the model...
-        h_user = h_user._replace(display_name="Someone Else")
-
-        pyramid_request.POST["lis_result_sourcedid"] = "something different"
+        grading_info = GradingInfo(
+            lis_result_sourcedid="lis_result_sourcedid",
+            lis_outcome_service_url="lis_outcomes_service_url",
+            oauth_consumer_key=lti_user.oauth_consumer_key,
+            user_id=lti_user.user_id,
+            context_id=pyramid_request.params["context_id"],
+            resource_link_id=pyramid_request.params["resource_link_id"],
+            tool_consumer_info_product_family_code="tool_consumer_info_product_family_code",
+            h_username="h_username",
+            h_display_name="h_display_name",
+        )
+        db_session.add(grading_info)
+        h_user = h_user._replace(
+            username="updated_user_name", display_name="updated_display_name"
+        )
 
         svc.upsert_from_request(pyramid_request, h_user, lti_user)
 
-        result = db_session.get_last_inserted()
-        assert result == Any.instance_of(GradingInfo)
-        assert result.lis_result_sourcedid == "something different"
-        assert result.h_display_name == "Someone Else"
+        assert grading_info.h_username == "updated_user_name"
+        assert grading_info.h_display_name == "updated_display_name"
 
     @pytest.mark.parametrize(
         "param",
