@@ -53,11 +53,7 @@ class TestBasicLTILaunchSchema:
 
     @pytest.mark.parametrize(
         "required_param",
-        [
-            "oauth_consumer_key",
-            "tool_consumer_instance_guid",
-            "user_id",
-        ],
+        ["oauth_consumer_key", "tool_consumer_instance_guid", "user_id"],
     )
     def test_it_raises_ValidationError_if_a_non_reportable_field_is_missing(
         self, pyramid_request, required_param
