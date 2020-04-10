@@ -46,14 +46,13 @@ class BaseClass:
         if skip_keys is None:
             skip_keys = {"id"}
 
-        columns = {col.key for col in self.iter_columns()}
-        if skip_keys:
-            if not isinstance(skip_keys, set):
-                raise TypeError(
-                    f"Expected a set of keys to skip but found '{type(skip_keys)}'"
-                )
+        if not isinstance(skip_keys, set):
+            raise TypeError(
+                f"Expected a set of keys to skip but found '{type(skip_keys)}'"
+            )
 
-            columns -= skip_keys
+        columns = {col.key for col in self.iter_columns()}
+        columns -= skip_keys
 
         for key in columns:
             if key in data:
