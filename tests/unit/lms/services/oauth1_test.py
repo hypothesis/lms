@@ -7,18 +7,18 @@ from lms.services.oauth1 import OAuth1Service
 
 
 class TestOAuth1Service:
-    def test_we_configure_OAuth1_correctly(self, service, OAuth1):
+    def test_we_configure_OAuth1_correctly(self, service, OAuth1, pyramid_request):
         service.get_client()
 
         OAuth1.assert_called_once_with(
-            client_key="TEST_OAUTH_CONSUMER_KEY",
+            client_key=pyramid_request.lti_user.oauth_consumer_key,
             client_secret="TEST_SECRET",
             signature_method="HMAC-SHA1",
             signature_type="auth_header",
             force_include_body=True,
         )
 
-    def test_we_can_be_used_to_sign_a_request(self, service):
+    def test_we_can_be_used_to_sign_a_request(self, service, pyramid_request):
         request = Request(
             "POST",
             url="http://example.com",
@@ -32,7 +32,10 @@ class TestOAuth1Service:
 
         assert auth_header.startswith("OAuth")
         assert 'oauth_version="1.0"' in auth_header
-        assert 'oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY"' in auth_header
+        assert (
+            f'oauth_consumer_key="{pyramid_request.lti_user.oauth_consumer_key}"'
+            in auth_header
+        )
         assert 'oauth_signature_method="HMAC-SHA1"' in auth_header
 
         # This currently doesn't verify the signature, it only checks that

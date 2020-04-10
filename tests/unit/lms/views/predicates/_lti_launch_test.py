@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 from pyramid.testing import DummyRequest
 
-from lms.models import LTIUser
 from lms.views.predicates import (
     AuthorizedToConfigureAssignments,
     CanvasFile,
@@ -11,6 +10,7 @@ from lms.views.predicates import (
     DBConfigured,
     URLConfigured,
 )
+from tests import factories
 
 
 class TestDBConfigured:
@@ -157,11 +157,7 @@ class TestAuthorizedToConfigureAssignments:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
     def test_when_user_is_authorized(self, roles, value, expected):
         request = DummyRequest()
-        request.lti_user = LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles=roles,
-        )
+        request.lti_user = factories.LTIUser(roles=roles)
         predicate = AuthorizedToConfigureAssignments(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, request) is expected
@@ -169,11 +165,7 @@ class TestAuthorizedToConfigureAssignments:
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
     def test_when_user_isnt_authorized(self, value, expected):
         request = DummyRequest()
-        request.lti_user = LTIUser(
-            user_id="TEST_USER_ID",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="Learner",
-        )
+        request.lti_user = factories.LTIUser(roles="Learner")
         predicate = AuthorizedToConfigureAssignments(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, request) is expected

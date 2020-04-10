@@ -1,8 +1,6 @@
-from unittest import mock
-
 import pytest
 
-from lms.models import LTIUser
+from tests import factories
 
 
 class TestLTIUser:
@@ -16,11 +14,9 @@ class TestLTIUser:
         ],
     )
     def test_is_instructor(self, roles, is_instructor):
-        lti_user = LTIUser(
-            mock.sentinel.userid, mock.sentinel.oauth_consumer_key, roles
-        )
+        lti_user = factories.LTIUser(roles=roles)
 
-        assert lti_user.is_instructor == is_instructor
+        assert lti_user.is_instructor == is_instructor  # pylint:disable=no-member
 
     @pytest.mark.parametrize(
         "roles,is_learner",
@@ -32,8 +28,6 @@ class TestLTIUser:
         ],
     )
     def test_is_learner(self, roles, is_learner):
-        lti_user = LTIUser(
-            mock.sentinel.userid, mock.sentinel.oauth_consumer_key, roles
-        )
+        lti_user = factories.LTIUser(roles=roles)
 
         assert lti_user.is_learner == is_learner

@@ -198,12 +198,14 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
 
 class TestMaybeEnableGrading:
-    def test_it_adds_the_grading_settings(self, js_config, grading_info_service):
+    def test_it_adds_the_grading_settings(
+        self, js_config, grading_info_service, pyramid_request
+    ):
         js_config.maybe_enable_grading()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
-            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            oauth_consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assert js_config.asdict()["grading"] == {
@@ -221,7 +223,7 @@ class TestMaybeEnableGrading:
             ],
         }
 
-    @pytest.mark.usefixtures("learner_request")
+    @pytest.mark.usefixtures("user_is_learner")
     def test_it_does_nothing_if_the_user_isnt_an_instructor(self, js_config):
         js_config.maybe_enable_grading()
 
@@ -481,12 +483,6 @@ def pyramid_request(pyramid_request):
     pyramid_request.params[
         "lis_outcome_service_url"
     ] = "example_lis_outcome_service_url"
-    return pyramid_request
-
-
-@pytest.fixture
-def learner_request(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
     return pyramid_request
 
 
