@@ -6,5 +6,5 @@ from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.models.oauth2_token import OAuth2Token
 
 
-def includeme(config):  # pylint: disable=unused-argument
+def includeme(_config):
     pass
