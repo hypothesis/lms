@@ -7,6 +7,7 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
+from lms.models import HUser, LTIUser
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.grading_info import GradingInfoService
@@ -16,7 +17,6 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
-from lms.values import HUser, LTIUser
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(

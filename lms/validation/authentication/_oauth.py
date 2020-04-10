@@ -4,6 +4,7 @@ import secrets
 import marshmallow
 from webargs import fields
 
+from lms.models import LTIUser
 from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
@@ -13,7 +14,6 @@ from lms.validation.authentication._exceptions import (
     MissingStateParamError,
 )
 from lms.validation.authentication._helpers import _jwt
-from lms.values import LTIUser
 
 __all__ = [
     "CanvasOAuthCallbackSchema",
@@ -43,7 +43,7 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
     ``state`` parameter to us in a later ``redirect_uri`` request.
 
     Second, :meth:`CanvasOAuthCallbackSchema.lti_user` returns the
-    :class:`lms.values.LTIUser` authenticated by the ``state`` param in the
+    models.LTIUser authenticated by the ``state`` param in the
     current request. This will raise if the request doesn't contain a ``state``
     query parameter or if the ``state`` is expired or invalid::
 
@@ -98,7 +98,7 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
         """
         Return the LTIUser authenticated by the request's state param.
 
-        Return the :class:`lms.values.LTIUser` authenticated by the current
+        Return the models.LTIUser authenticated by the current
         request's ``state`` query parameter.
 
         :raise MissingStateParamError: if the request has no ``state`` query

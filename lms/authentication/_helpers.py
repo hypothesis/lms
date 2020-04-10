@@ -26,7 +26,7 @@ def authenticated_userid(lti_user):
 
 def get_lti_user(request):
     """
-    Return an :class:`~lms.values.LTIUser` for the authenticated LTI user.
+    Return an models.LTIUser for the authenticated LTI user.
 
     Get the authenticated user from the validated LTI launch params or, failing
     that, from one of our LTI bearer tokens (also validated).
@@ -34,7 +34,7 @@ def get_lti_user(request):
     If the request doesn't contain either valid LTI launch params or a valid
     bearer token then return ``None``.
 
-    :rtype: lms.values.LTIUser
+    :rtype: models.LTIUser
     """
     try:
         return LaunchParamsAuthSchema(request).lti_user()

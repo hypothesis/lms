@@ -11,9 +11,9 @@ from requests import (
     TooManyRedirects,
 )
 
+from lms.models import HUser
 from lms.services import HAPIError, HAPINotFoundError
 from lms.services.h_api import HAPI
-from lms.values import HUser
 
 
 class TestHAPI:

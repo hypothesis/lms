@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from pyramid.testing import DummyRequest
 
-from lms.values import LTIUser
+from lms.models import LTIUser
 from lms.views.predicates import (
     AuthorizedToConfigureAssignments,
     CanvasFile,

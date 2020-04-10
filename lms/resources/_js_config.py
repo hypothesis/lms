@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 
 import jwt
 
+from lms.models import HUser
 from lms.services import ConsumerKeyError, HAPIError
 from lms.validation.authentication import BearerTokenSchema
-from lms.values import HUser
 from lms.views.helpers import via_url
 
 

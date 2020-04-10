@@ -57,9 +57,9 @@ class GradingInfoService:
 
         :arg request: A pyramid request
         :arg h_user: The h user this record is associated with
-        :type h_user: :class:`lms.values.HUser`
+        :type h_user: models.HUser
         :arg lti_user: The LTI-provided user that this record is associated with
-        :type lti_user: :class:`lms.values.LTIUser`
+        :type lti_user: models.LTIUser
         """
         try:
             parsed_params = self._ParamsSchema(request).parse()

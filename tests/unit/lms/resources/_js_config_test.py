@@ -5,11 +5,10 @@ import jwt
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.models import GradingInfo
+from lms.models import GradingInfo, HUser
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
-from lms.values import HUser
 
 
 class TestJSConfig:

@@ -2,9 +2,9 @@ from unittest import mock
 
 import pytest
 
+from lms.models import LTIUser
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.values import LTIUser
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 
 

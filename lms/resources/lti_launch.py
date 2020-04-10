@@ -4,8 +4,8 @@ import hashlib
 
 from pyramid.security import Allow
 
+from lms.models import HUser
 from lms.resources._js_config import JSConfig
-from lms.values import HUser
 
 
 class LTILaunchResource:
