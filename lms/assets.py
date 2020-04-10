@@ -53,7 +53,7 @@ class _CachedFile:  # pylint:disable=too-few-public-methods
             return self._cached
 
         current_mtime = os.path.getmtime(self.path)
-        if not self._mtime or self._mtime < current_mtime:
+        if not self._mtime or self._mtime < current_mtime:  # pragma: no cover
             self._cached = self.loader(open(self.path))
             self._mtime = current_mtime
         return self._cached
@@ -76,7 +76,7 @@ class Environment:
 
     def __init__(
         self, assets_base_url, bundle_config_path, manifest_path, auto_reload=False
-    ):
+    ):  # pragma: no cover
         """
         Construct an Environment from the given configuration files.
 
@@ -94,12 +94,12 @@ class Environment:
             bundle_config_path, _load_bundles, auto_reload=auto_reload
         )
 
-    def files(self, bundle):
+    def files(self, bundle):  # pragma: no cover
         """Return the file paths for all files in a bundle."""
         bundles = self.bundles.load()
         return bundles[bundle]
 
-    def urls(self, bundle):
+    def urls(self, bundle):  # pragma: no cover
         """
         Return asset URLs for all files in a bundle.
 
@@ -110,14 +110,14 @@ class Environment:
 
         return [self.url(path) for path in bundles[bundle]]
 
-    def url(self, path):
+    def url(self, path):  # pragma: no cover
         """Return the cache-busted URL for an asset with a given path."""
         manifest = self.manifest.load()
         return "{}/{}".format(self.assets_base_url, manifest[path])
 
 
 def _add_cors_header(wrapped):
-    def wrapper(context, request):
+    def wrapper(context, request):  # pragma: no cover
         # Add a CORS header to the response because static assets from
         # the sidebar are loaded into pages served by a different origin:
         # The domain hosting the page into which the sidebar has been injected
@@ -133,7 +133,7 @@ def _add_cors_header(wrapped):
     return wrapper
 
 
-def _load_bundles(file_):
+def _load_bundles(file_):  # pragma: no cover
     """Read an asset bundle config from a file object."""
     parser = configparser.ConfigParser()
     parser.read_file(file_)
@@ -146,7 +146,7 @@ ASSETS_VIEW = _add_cors_header(
 )
 
 
-def includeme(config):
+def includeme(config):  # pragma: no cover
     config.add_view(route_name="assets", view=ASSETS_VIEW)
 
     assets_env = Environment(
