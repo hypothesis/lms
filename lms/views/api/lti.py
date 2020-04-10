@@ -114,8 +114,8 @@ class CanvasPreRecordHook:
 
         if parsed_params.get("document_url"):
             params["url"] = parsed_params.get("document_url")
-
-        elif parsed_params.get("canvas_file_id"):
+        else:
+            assert parsed_params.get("canvas_file_id")
             params["canvas_file"] = "true"
             params["file_id"] = parsed_params["canvas_file_id"]
 
