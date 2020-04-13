@@ -16,6 +16,15 @@ class LTIUser(NamedTuple):
     tool_consumer_instance_guid: str
     """Unique ID of the LMS instance that this user belongs to."""
 
+    given_name: str
+    """The user's given name from the lis_person_name_given LTI param."""
+
+    family_name: str
+    """The user's family name from the lis_person_name_family LTI param."""
+
+    full_name: str
+    """The user's full name from the lis_person_name_full LTI param."""
+
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""

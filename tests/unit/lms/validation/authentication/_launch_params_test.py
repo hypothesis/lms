@@ -16,6 +16,23 @@ class TestLaunchParamsAuthSchema:
             "TEST_OAUTH_CONSUMER_KEY",
             "TEST_ROLES",
             "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "TEST_GIVEN_NAME",
+            "TEST_FAMILY_NAME",
+            "TEST_FULL_NAME",
+        )
+
+    @pytest.mark.usefixtures("no_user_info")
+    def test_user_info_fields_default_to_empty_strings(self, schema):
+        lti_user = schema.lti_user()
+
+        assert lti_user == LTIUser(
+            "TEST_USER_ID",
+            "TEST_OAUTH_CONSUMER_KEY",
+            "TEST_ROLES",
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "",
+            "",
+            "",
         )
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
@@ -74,8 +91,17 @@ class TestLaunchParamsAuthSchema:
             "oauth_version": "TEST_OAUTH_VERSION",
             "roles": "TEST_ROLES",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "lis_person_name_given": "TEST_GIVEN_NAME",
+            "lis_person_name_family": "TEST_FAMILY_NAME",
+            "lis_person_name_full": "TEST_FULL_NAME",
         }
         return pyramid_request
+
+    @pytest.fixture
+    def no_user_info(self, pyramid_request):
+        del pyramid_request.POST["lis_person_name_given"]
+        del pyramid_request.POST["lis_person_name_family"]
+        del pyramid_request.POST["lis_person_name_full"]
 
 
 pytestmark = pytest.mark.usefixtures("launch_verifier")
