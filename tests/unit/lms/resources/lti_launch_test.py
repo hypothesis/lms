@@ -4,6 +4,7 @@ import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
 from lms.resources import LTILaunchResource
+from tests import factories
 
 
 class TestACL:
@@ -32,44 +33,34 @@ class TestHDisplayName:
             # It returns the full name if there is one.
             ("full", "given", "family", "full"),
             # If there's no full name it concatenates given and family names.
-            (None, "given", "family", "given family"),
             ("", "given", "family", "given family"),
             (" ", "given", "family", "given family"),
             # If there's no full name or given name it uses just the family name.
-            (None, None, "family", "family"),
             (" ", "", "family", "family"),
             # If there's no full name or family name it uses just the given name.
-            (None, "given", None, "given"),
-            (" ", "given", "", "given"),
+            ("", "given", "", "given"),
+            (" ", "given", " ", "given"),
             # If there's nothing else it just returns "Anonymous".
-            (None, None, None, "Anonymous"),
-            (" ", " ", "", "Anonymous"),
+            ("", "", "", "Anonymous"),
+            (" ", " ", " ", "Anonymous"),
             # Test white space stripping
-            (" full  ", None, None, "full"),
-            (None, "  given ", None, "given"),
-            (None, None, "  family ", "family"),
-            (None, "  given  ", "  family  ", "given family"),
+            (" full  ", "", "", "full"),
+            ("", "  given ", "", "given"),
+            ("", "", "  family ", "family"),
+            ("", "  given  ", "  family  ", "given family"),
             # Test truncation
-            ("x" * 100, None, None, "x" * 29 + "…"),
-            (None, "x" * 100, None, "x" * 29 + "…"),
-            (None, None, "x" * 100, "x" * 29 + "…"),
-            (None, "given" * 3, "family" * 3, "givengivengiven familyfamilyf…"),
+            ("x" * 100, "", "", "x" * 29 + "…"),
+            ("", "x" * 100, "", "x" * 29 + "…"),
+            ("", "", "x" * 100, "x" * 29 + "…"),
+            ("", "given" * 3, "family" * 3, "givengivengiven familyfamilyf…"),
         ],
     )
     def test_it(
         self, full_name, given_name, family_name, expected_display_name, pyramid_request
     ):
-        parsed_params = {
-            launch_param_name: value
-            for launch_param_name, value in (
-                ("lis_person_name_full", full_name),
-                ("lis_person_name_given", given_name),
-                ("lis_person_name_family", family_name),
-            )
-            if value is not None
-        }
-
-        pyramid_request.parsed_params.update(parsed_params)
+        pyramid_request.lti_user = factories.LTIUser(
+            full_name=full_name, given_name=given_name, family_name=family_name,
+        )
 
         assert (
             LTILaunchResource(pyramid_request).h_user.display_name
@@ -206,7 +197,7 @@ class TestHProvider:
     def test_it_just_returns_the_tool_consumer_instance_guid(self, pyramid_request):
         provider = LTILaunchResource(pyramid_request).h_provider
 
-        assert provider == "test_tool_consumer_instance_guid"
+        assert provider == pyramid_request.lti_user.tool_consumer_instance_guid
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -220,7 +211,7 @@ class TestHProviderUniqueID:
     def test_it_just_returns_the_user_id(self, pyramid_request):
         provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
 
-        assert provider_unique_id == "test_user_id"
+        assert provider_unique_id == pyramid_request.lti_user.user_id
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -266,6 +257,11 @@ class TestHUser:
         assert len(username) == 30
 
     def test_userid(self, pyramid_request):
+        pyramid_request.lti_user = factories.LTIUser(
+            user_id="test_user_id",
+            tool_consumer_instance_guid="test_tool_consumer_instance_guid",
+        )
+
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
         assert userid == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
