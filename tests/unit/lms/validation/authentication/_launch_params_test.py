@@ -12,7 +12,10 @@ class TestLaunchParamsAuthSchema:
         lti_user = schema.lti_user()
 
         assert lti_user == LTIUser(
-            "TEST_USER_ID", "TEST_OAUTH_CONSUMER_KEY", "TEST_ROLES"
+            "TEST_USER_ID",
+            "TEST_OAUTH_CONSUMER_KEY",
+            "TEST_ROLES",
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
         )
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
@@ -33,6 +36,7 @@ class TestLaunchParamsAuthSchema:
         [
             "user_id",
             "roles",
+            "tool_consumer_instance_guid",
             "oauth_consumer_key",
             "oauth_nonce",
             "oauth_signature",
@@ -69,6 +73,7 @@ class TestLaunchParamsAuthSchema:
             "oauth_timestamp": "TEST_OAUTH_TIMESTAMP",
             "oauth_version": "TEST_OAUTH_VERSION",
             "roles": "TEST_ROLES",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
         }
         return pyramid_request
 

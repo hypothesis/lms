@@ -347,6 +347,7 @@ class TestJSConfigAuthToken:
 class TestJSConfigDebug:
     """Unit tests for the "debug" sub-dict of JSConfig."""
 
+    @pytest.mark.usefixtures("user_is_learner")
     def test_it_contains_debugging_info_about_the_users_role(self, config):
         assert "role:learner" in config["tags"]
 

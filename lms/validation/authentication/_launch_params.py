@@ -30,6 +30,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
     user_id = marshmallow.fields.Str(required=True)
     roles = marshmallow.fields.Str(required=True)
+    tool_consumer_instance_guid = marshmallow.fields.Str(required=True)
 
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     oauth_nonce = marshmallow.fields.Str(required=True)
@@ -52,7 +53,12 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         """
         kwargs = self.parse(locations=["form"])
 
-        return LTIUser(kwargs["user_id"], kwargs["oauth_consumer_key"], kwargs["roles"])
+        return LTIUser(
+            kwargs["user_id"],
+            kwargs["oauth_consumer_key"],
+            kwargs["roles"],
+            kwargs["tool_consumer_instance_guid"],
+        )
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
