@@ -31,6 +31,9 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
     user_id = marshmallow.fields.Str(required=True)
     roles = marshmallow.fields.Str(required=True)
     tool_consumer_instance_guid = marshmallow.fields.Str(required=True)
+    lis_person_name_given = marshmallow.fields.Str(missing="")
+    lis_person_name_family = marshmallow.fields.Str(missing="")
+    lis_person_name_full = marshmallow.fields.Str(missing="")
 
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     oauth_nonce = marshmallow.fields.Str(required=True)
@@ -58,6 +61,9 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
             kwargs["oauth_consumer_key"],
             kwargs["roles"],
             kwargs["tool_consumer_instance_guid"],
+            kwargs["lis_person_name_given"],
+            kwargs["lis_person_name_family"],
+            kwargs["lis_person_name_full"],
         )
 
     @marshmallow.validates_schema
