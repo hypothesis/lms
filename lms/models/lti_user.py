@@ -13,6 +13,9 @@ class LTIUser(NamedTuple):
     roles: str
     """The user's LTI roles."""
 
+    tool_consumer_instance_guid: str
+    """Unique ID of the LMS instance that this user belongs to."""
+
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""
