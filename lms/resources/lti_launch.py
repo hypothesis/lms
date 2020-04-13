@@ -40,13 +40,13 @@ class LTILaunchResource:
 
         def display_name():
             """Return the h display name for the current request."""
-            params = self._request.parsed_params
+            lti_user = self._request.lti_user
 
-            display_name = params.get("lis_person_name_full", "").strip()
+            display_name = lti_user.full_name.strip()
 
             if not display_name:
-                given_name = params.get("lis_person_name_given", "").strip()
-                family_name = params.get("lis_person_name_family", "").strip()
+                given_name = lti_user.given_name.strip()
+                family_name = lti_user.family_name.strip()
 
                 display_name = " ".join((given_name, family_name)).strip()
 
@@ -169,12 +169,12 @@ class LTILaunchResource:
     @property
     def h_provider(self):
         """Return the h "provider" string for the current request."""
-        return self._request.parsed_params["tool_consumer_instance_guid"]
+        return self._request.lti_user.tool_consumer_instance_guid
 
     @property
     def h_provider_unique_id(self):
         """Return the h provider_unique_id for the current request."""
-        return self._request.parsed_params["user_id"]
+        return self._request.lti_user.user_id
 
     @property
     def is_canvas(self):
