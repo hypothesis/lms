@@ -27,45 +27,54 @@ class TestACL:
 
 class TestHDisplayName:
     @pytest.mark.parametrize(
-        "name_parts,expected",
+        "full_name,given_name,family_name,expected_display_name",
         [
             # It returns the full name if there is one.
-            (["full", "given", "family"], "full"),
+            ("full", "given", "family", "full"),
             # If there's no full name it concatenates given and family names.
-            ([None, "given", "family"], "given family"),
-            (["", "given", "family"], "given family"),
-            ([" ", "given", "family"], "given family"),
+            (None, "given", "family", "given family"),
+            ("", "given", "family", "given family"),
+            (" ", "given", "family", "given family"),
             # If there's no full name or given name it uses just the family name.
-            ([None, None, "family"], "family"),
-            ([" ", "", "family"], "family"),
+            (None, None, "family", "family"),
+            (" ", "", "family", "family"),
             # If there's no full name or family name it uses just the given name.
-            ([None, "given", None], "given"),
-            ([" ", "given", ""], "given"),
+            (None, "given", None, "given"),
+            (" ", "given", "", "given"),
             # If there's nothing else it just returns "Anonymous".
-            ([None, None, None], "Anonymous"),
-            ([" ", " ", ""], "Anonymous"),
+            (None, None, None, "Anonymous"),
+            (" ", " ", "", "Anonymous"),
             # Test white space stripping
-            ([" full  ", None, None], "full"),
-            ([None, "  given ", None], "given"),
-            ([None, None, "  family "], "family"),
-            ([None, "  given  ", "  family  "], "given family"),
+            (" full  ", None, None, "full"),
+            (None, "  given ", None, "given"),
+            (None, None, "  family ", "family"),
+            (None, "  given  ", "  family  ", "given family"),
             # Test truncation
-            (["x" * 100, None, None], "x" * 29 + "…"),
-            ([None, "x" * 100, None], "x" * 29 + "…"),
-            ([None, None, "x" * 100], "x" * 29 + "…"),
-            ([None, "given" * 3, "family" * 3], "givengivengiven familyfamilyf…"),
+            ("x" * 100, None, None, "x" * 29 + "…"),
+            (None, "x" * 100, None, "x" * 29 + "…"),
+            (None, None, "x" * 100, "x" * 29 + "…"),
+            (None, "given" * 3, "family" * 3, "givengivengiven familyfamilyf…"),
         ],
     )
-    def test_it(self, name_parts, expected, pyramid_request):
+    def test_it(
+        self, full_name, given_name, family_name, expected_display_name, pyramid_request
+    ):
         parsed_params = {
-            f"lis_person_name_{field}": part
-            for field, part in zip(["full", "given", "family"], name_parts)
-            if part is not None
+            launch_param_name: value
+            for launch_param_name, value in (
+                ("lis_person_name_full", full_name),
+                ("lis_person_name_given", given_name),
+                ("lis_person_name_family", family_name),
+            )
+            if value is not None
         }
 
         pyramid_request.parsed_params.update(parsed_params)
 
-        assert LTILaunchResource(pyramid_request).h_user.display_name == expected
+        assert (
+            LTILaunchResource(pyramid_request).h_user.display_name
+            == expected_display_name
+        )
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
