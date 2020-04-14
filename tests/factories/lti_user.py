@@ -1,11 +1,12 @@
 from factory import Faker, make_factory
 
 from lms import models
+from tests.factories._attributes import OAUTH_CONSUMER_KEY, USER_ID
 
 LTIUser = make_factory(  # pylint:disable=invalid-name
     models.LTIUser,
-    user_id=Faker("hexify", text="^" * 40),
-    oauth_consumer_key=Faker("hexify", text="Hypothesis" + "^" * 32),
+    user_id=USER_ID,
+    oauth_consumer_key=OAUTH_CONSUMER_KEY,
     roles=Faker("random_element", elements=["Learner", "Instructor"]),
     tool_consumer_instance_guid=Faker("hexify", text="^" * 40),
     display_name=Faker("name"),
