@@ -7,4 +7,6 @@ HUser = factory.make_factory(  # pylint:disable=invalid-name
     authority="lms.hypothes.is",
     username=factory.Faker("hexify", text="^" * 30),
     display_name=factory.Faker("name"),
+    provider=factory.Faker("hexify", text="^" * 40),
+    provider_unique_id=factory.Faker("hexify", text="^" * 40),
 )
