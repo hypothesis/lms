@@ -144,34 +144,6 @@ class TestHSectionGroupName:
         assert lti_launch.h_section_group_name(section) == group_name
 
 
-class TestHProvider:
-    def test_it_just_returns_the_tool_consumer_instance_guid(self, pyramid_request):
-        provider = LTILaunchResource(pyramid_request).h_provider
-
-        assert provider == pyramid_request.lti_user.tool_consumer_instance_guid
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-        }
-        return pyramid_request
-
-
-class TestHProviderUniqueID:
-    def test_it_just_returns_the_user_id(self, pyramid_request):
-        provider_unique_id = LTILaunchResource(pyramid_request).h_provider_unique_id
-
-        assert provider_unique_id == pyramid_request.lti_user.user_id
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "user_id": "test_user_id",
-        }
-        return pyramid_request
-
-
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "parsed_params,is_canvas",
@@ -206,6 +178,8 @@ class TestHUser:
             authority=pyramid_request.registry.settings["h_authority"],
             username="16aa3b3e92cdfa53e5996d138a7013",
             display_name=pyramid_request.lti_user.display_name,
+            provider="test_tool_consumer_instance_guid",
+            provider_unique_id="test_user_id",
         )
 
     @pytest.fixture

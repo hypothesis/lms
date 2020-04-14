@@ -66,11 +66,7 @@ class LTIHService:
     def _sync_to_h(self, groups):
         h_user = self._context.h_user
 
-        self._h_api.upsert_user(
-            h_user=h_user,
-            provider=self._context.h_provider,
-            provider_unique_id=self._context.h_provider_unique_id,
-        )
+        self._h_api.upsert_user(h_user=h_user)
 
         for group in groups:
             self._h_api.upsert_group(group_id=group.groupid, group_name=group.name)

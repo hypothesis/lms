@@ -27,6 +27,12 @@ class HUser(NamedTuple):
     display_name: str = ""
     """The display name for the user, generated from the LMS user's display name."""
 
+    provider: str = ""
+    """The "provider" string to pass to the h API for this user."""
+
+    provider_unique_id: str = ""
+    """The "provider_unique_id" string to pass to the h API for this user."""
+
     @property
     def userid(self):
         return f"acct:{self.username}@{self.authority}"

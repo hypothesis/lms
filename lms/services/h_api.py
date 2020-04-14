@@ -42,21 +42,22 @@ class HAPI:
             display_name=user_info["display_name"],
         )
 
-    def create_user(self, h_user, provider, provider_unique_id):
+    def create_user(self, h_user):
         """
         Create a user in H.
 
         :arg h_user: the user to be created in h
         :type h_user: HUser
-        :param provider: the "provider" string to send to h
-        :param provider_unique_id:  the "provider_unique_id" string to send to h
         """
         user_data = {
             "username": h_user.username,
             "display_name": h_user.display_name,
             "authority": self._authority,
             "identities": [
-                {"provider": provider, "provider_unique_id": provider_unique_id,}
+                {
+                    "provider": h_user.provider,
+                    "provider_unique_id": h_user.provider_unique_id,
+                }
             ],
         }
 
@@ -77,7 +78,7 @@ class HAPI:
             data={"display_name": h_user.display_name},
         )
 
-    def upsert_user(self, h_user, provider, provider_unique_id):
+    def upsert_user(self, h_user):
         """
         Create or update a user in H as appropriate.
 
@@ -86,13 +87,11 @@ class HAPI:
 
         :param h_user: the updated user value
         :type h_user: HUser
-        :param provider: the "provider" string to send to h
-        :param provider_unique_id:  the "provider_unique_id" string to send to h
         """
         try:
             self.update_user(h_user)
         except HAPINotFoundError:
-            self.create_user(h_user, provider, provider_unique_id)
+            self.create_user(h_user)
 
     def upsert_group(self, group_id, group_name):
         """
@@ -117,7 +116,7 @@ class HAPI:
             # If we get a 404 when trying to upsert a group that must mean
             # that the lms user doesn't exist in h yet.
             self.create_user(
-                HUser(self._authority, "lms"), provider="lms", provider_unique_id="lms",
+                HUser(self._authority, "lms", provider="lms", provider_unique_id="lms"),
             )
             do_upsert_group()
 

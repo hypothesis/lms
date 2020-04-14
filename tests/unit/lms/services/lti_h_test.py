@@ -91,11 +91,7 @@ class TestUserUpserting:
     def test_it_calls_h_api_for_user_update(self, h_api, lti_h_svc, h_user):
         lti_h_svc.single_group_sync()
 
-        h_api.upsert_user.assert_called_once_with(
-            h_user=h_user,
-            provider="test_provider",
-            provider_unique_id="test_provider_unique_id",
-        )
+        h_api.upsert_user.assert_called_once_with(h_user=h_user)
 
     def test_it_raises_if_upsert_user_raises_unexpected_error(self, h_api, lti_h_svc):
         h_api.upsert_user.side_effect = HAPIError("whatever")
@@ -114,20 +110,6 @@ class TestUserUpserting:
 
     def test_it_raises_if_h_user_raises(self, context, lti_h_svc):
         type(context).h_user = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
-
-        with pytest.raises(HTTPBadRequest, match="Oops"):
-            lti_h_svc.single_group_sync()
-
-    def test_it_raises_if_h_provider_raises(self, context, lti_h_svc):
-        type(context).h_provider = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
-
-        with pytest.raises(HTTPBadRequest, match="Oops"):
-            lti_h_svc.single_group_sync()
-
-    def test_it_raises_if_provider_unique_id_raises(self, context, lti_h_svc):
-        type(context).h_provider_unique_id = mock.PropertyMock(
-            side_effect=HTTPBadRequest("Oops")
-        )
 
         with pytest.raises(HTTPBadRequest, match="Oops"):
             lti_h_svc.single_group_sync()
@@ -166,8 +148,6 @@ def context(h_user):
     class TestContext:
         h_groupid = "test_groupid"
         h_group_name = "test_group_name"
-        h_provider = "test_provider"
-        h_provider_unique_id = "test_provider_unique_id"
         h_authority_provided_id = "test_authority_provided_id"
 
     context = TestContext()

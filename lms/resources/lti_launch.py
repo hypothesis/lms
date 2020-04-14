@@ -31,17 +31,25 @@ class LTILaunchResource:
     def h_user(self):
         """Return the h user for the current request."""
 
+        # The h "provider" string for the current request.
+        provider = self._request.lti_user.tool_consumer_instance_guid
+
+        # The h "provider_unique_id" string for the current request.
+        provider_unique_id = self._request.lti_user.user_id
+
         def username():
             """Return the h username for the current request."""
             username_hash_object = hashlib.sha1()
-            username_hash_object.update(self.h_provider.encode())
-            username_hash_object.update(self.h_provider_unique_id.encode())
+            username_hash_object.update(provider.encode())
+            username_hash_object.update(provider_unique_id.encode())
             return username_hash_object.hexdigest()[:30]
 
         return HUser(
             authority=self._authority,
             username=username(),
             display_name=self._request.lti_user.display_name,
+            provider=provider,
+            provider_unique_id=provider_unique_id,
         )
 
     @property
@@ -144,16 +152,6 @@ class LTILaunchResource:
             name = name[: group_name_max_length - 1].rstrip() + "…"
 
         return name
-
-    @property
-    def h_provider(self):
-        """Return the h "provider" string for the current request."""
-        return self._request.lti_user.tool_consumer_instance_guid
-
-    @property
-    def h_provider_unique_id(self):
-        """Return the h provider_unique_id for the current request."""
-        return self._request.lti_user.user_id
 
     @property
     def is_canvas(self):

@@ -40,7 +40,7 @@ class TestHAPI:
         assert user.display_name == sentinel.display_name
 
     def test_create_user_works(self, h_api, h_user, _api_request):
-        h_api.create_user(h_user, sentinel.provider, sentinel.provider_unique_id)
+        h_api.create_user(h_user)
 
         _api_request.assert_called_once_with(
             "POST",
@@ -51,8 +51,8 @@ class TestHAPI:
                 "authority": "TEST_AUTHORITY",
                 "identities": [
                     {
-                        "provider": sentinel.provider,
-                        "provider_unique_id": sentinel.provider_unique_id,
+                        "provider": h_user.provider,
+                        "provider_unique_id": h_user.provider_unique_id,
                     }
                 ],
             },
@@ -71,12 +71,10 @@ class TestHAPI:
         self, update_user, create_user, h_api, h_user
     ):
         update_user.side_effect = HAPINotFoundError()
-        h_api.upsert_user(h_user, sentinel.provider, sentinel.provider_unique_id)
+        h_api.upsert_user(h_user)
 
         update_user.assert_called_once_with(h_user)
-        create_user.assert_called_once_with(
-            h_user, sentinel.provider, sentinel.provider_unique_id
-        )
+        create_user.assert_called_once_with(h_user)
 
     def test_upsert_group_works(self, h_api, _api_request, upsert_group_call):
         h_api.upsert_group(sentinel.group_id, sentinel.group_name)
