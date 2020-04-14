@@ -1,3 +1,5 @@
+from functools import partial
+from operator import attrgetter
 from unittest import mock
 
 import pytest
@@ -17,7 +19,9 @@ class TestGetByAssignment:
             "matching_resource_link_id",
         )
 
-        assert list(grading_infos) == matching_grading_infos
+        assert sorted(grading_infos, key=attrgetter("id")) == sorted(
+            matching_grading_infos, key=attrgetter("id")
+        )
 
     @pytest.mark.parametrize(
         "oauth_consumer_key,context_id,resource_link_id",
@@ -50,31 +54,29 @@ class TestGetByAssignment:
         assert list(grading_infos) == []
 
     @pytest.fixture(autouse=True)
-    def matching_grading_infos(self, db_session):
+    def matching_grading_infos(self):
         """Add some GradingInfo's that should match the DB query in the test above."""
-        matching_grading_infos = [self.grading_info("matching", i) for i in range(3)]
-        db_session.add_all(matching_grading_infos)
-        return matching_grading_infos
+        matching_grading_info = partial(
+            factories.GradingInfo,
+            oauth_consumer_key="matching_oauth_consumer_key",
+            context_id="matching_context_id",
+            resource_link_id="matching_resource_link_id",
+        )
+
+        return [
+            matching_grading_info(),
+            matching_grading_info(),
+            matching_grading_info(),
+        ]
 
     @pytest.fixture(autouse=True)
-    def noise_grading_infos(self, db_session):
+    def noise_grading_infos(self):
         """Add some GradingInfo's that should *not* match the test query."""
-        noise_grading_infos = [self.grading_info("noise", i) for i in range(3)]
-        db_session.add_all(noise_grading_infos)
-        return noise_grading_infos
-
-    def grading_info(self, prefix, index):
-        return GradingInfo(
-            lis_result_sourcedid=f"{prefix}_lis_result_sourcedid_{index}",
-            lis_outcome_service_url=f"{prefix}_lis_outcomes_service_url_{index}",
-            oauth_consumer_key=f"{prefix}_oauth_consumer_key",
-            user_id=f"{prefix}_user_id_{index}",
-            context_id=f"{prefix}_context_id",
-            resource_link_id=f"{prefix}_resource_link_id",
-            tool_consumer_info_product_family_code=f"{prefix}_tool_consumer_info_product_family_code_{index}",
-            h_username=f"{prefix}_h_username_{index}",
-            h_display_name=f"{prefix}_h_display_name_{index}",
-        )
+        return [
+            factories.GradingInfo(),
+            factories.GradingInfo(),
+            factories.GradingInfo(),
+        ]
 
 
 class TestUpsertFromRequest:

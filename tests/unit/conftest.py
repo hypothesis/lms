@@ -4,6 +4,7 @@ from unittest import mock
 import httpretty
 import pytest
 import sqlalchemy
+from factory.alchemy import SQLAlchemyModelFactory
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
@@ -135,12 +136,38 @@ def db_session(db_engine):
         ):  # pylint:disable=protected-access
             session.begin_nested()
 
+    set_factory_boy_sqlalchemy_session(session)
+
     try:
         yield session
     finally:
+        clear_factory_boy_sqlalchemy_session()
         session.close()
         trans.rollback()
         conn.close()
+
+
+def sqlalchemy_factory_classes():
+    # Return all the SQLAlchemy factory classes from tests.factories.
+    for factory_class in factories.__dict__.values():
+        try:
+            is_sqla_factory = issubclass(factory_class, SQLAlchemyModelFactory)
+        except TypeError:
+            is_sqla_factory = False
+
+        if is_sqla_factory:
+            yield factory_class
+
+
+def set_factory_boy_sqlalchemy_session(session):
+    for factory_class in sqlalchemy_factory_classes():
+        # pylint:disable=protected-access
+        factory_class._meta.sqlalchemy_session = session
+
+
+def clear_factory_boy_sqlalchemy_session():
+    for factory_class in sqlalchemy_factory_classes():
+        factory_class._meta.sqlalchemy_session = None  # pylint:disable=protected-access
 
 
 @pytest.fixture
