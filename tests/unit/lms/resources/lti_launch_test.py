@@ -26,56 +26,6 @@ class TestACL:
         assert bool(has_permission) is expected
 
 
-class TestHDisplayName:
-    @pytest.mark.parametrize(
-        "full_name,given_name,family_name,expected_display_name",
-        [
-            # It returns the full name if there is one.
-            ("full", "given", "family", "full"),
-            # If there's no full name it concatenates given and family names.
-            ("", "given", "family", "given family"),
-            (" ", "given", "family", "given family"),
-            # If there's no full name or given name it uses just the family name.
-            (" ", "", "family", "family"),
-            # If there's no full name or family name it uses just the given name.
-            ("", "given", "", "given"),
-            (" ", "given", " ", "given"),
-            # If there's nothing else it just returns "Anonymous".
-            ("", "", "", "Anonymous"),
-            (" ", " ", " ", "Anonymous"),
-            # Test white space stripping
-            (" full  ", "", "", "full"),
-            ("", "  given ", "", "given"),
-            ("", "", "  family ", "family"),
-            ("", "  given  ", "  family  ", "given family"),
-            # Test truncation
-            ("x" * 100, "", "", "x" * 29 + "…"),
-            ("", "x" * 100, "", "x" * 29 + "…"),
-            ("", "", "x" * 100, "x" * 29 + "…"),
-            ("", "given" * 3, "family" * 3, "givengivengiven familyfamilyf…"),
-        ],
-    )
-    def test_it(
-        self, full_name, given_name, family_name, expected_display_name, pyramid_request
-    ):
-        pyramid_request.lti_user = factories.LTIUser(
-            full_name=full_name, given_name=given_name, family_name=family_name,
-        )
-
-        assert (
-            LTILaunchResource(pyramid_request).h_user.display_name
-            == expected_display_name
-        )
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-            "user_id": "test_user_id",
-        }
-        return pyramid_request
-
-
 class TestHAuthorityProvidedID:
     def test_it(self, lti_launch):
         assert (
@@ -265,6 +215,49 @@ class TestHUser:
         userid = LTILaunchResource(pyramid_request).h_user.userid
 
         assert userid == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
+
+    @pytest.mark.parametrize(
+        "full_name,given_name,family_name,expected_display_name",
+        [
+            # It returns the full name if there is one.
+            ("full", "given", "family", "full"),
+            # If there's no full name it concatenates given and family names.
+            ("", "given", "family", "given family"),
+            (" ", "given", "family", "given family"),
+            # If there's no full name or given name it uses just the family name.
+            (" ", "", "family", "family"),
+            # If there's no full name or family name it uses just the given name.
+            ("", "given", "", "given"),
+            (" ", "given", " ", "given"),
+            # If there's nothing else it just returns "Anonymous".
+            ("", "", "", "Anonymous"),
+            (" ", " ", " ", "Anonymous"),
+            # Test white space stripping
+            (" full  ", "", "", "full"),
+            ("", "  given ", "", "given"),
+            ("", "", "  family ", "family"),
+            ("", "  given  ", "  family  ", "given family"),
+            # Test truncation
+            ("x" * 100, "", "", "x" * 29 + "…"),
+            ("", "x" * 100, "", "x" * 29 + "…"),
+            ("", "", "x" * 100, "x" * 29 + "…"),
+            ("", "given" * 3, "family" * 3, "givengivengiven familyfamilyf…"),
+        ],
+    )
+    def test_display_name(
+        self,
+        full_name,
+        given_name,
+        family_name,
+        expected_display_name,
+        pyramid_request,
+        lti_launch,
+    ):
+        pyramid_request.lti_user = factories.LTIUser(
+            full_name=full_name, given_name=given_name, family_name=family_name,
+        )
+
+        assert lti_launch.h_user.display_name == expected_display_name
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
