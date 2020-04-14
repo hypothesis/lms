@@ -7,7 +7,6 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms.models import HUser
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.grading_info import GradingInfoService
@@ -199,11 +198,7 @@ def group_info_service(pyramid_config):
 @pytest.fixture
 def h_api(pyramid_config):
     h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
-    h_api.get_user.return_value = HUser(
-        authority="lms.hypothes.is",
-        username="example_h_username",
-        display_name="example_h_display_name",
-    )
+    h_api.get_user.return_value = factories.HUser()
     pyramid_config.register_service(h_api, name="h_api")
     return h_api
 
