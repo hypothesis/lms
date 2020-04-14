@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo, HUser
+from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.services.grading_info import GradingInfoService
 from tests import factories
@@ -185,9 +185,7 @@ def lti_user():
 
 @pytest.fixture
 def h_user():
-    return HUser(
-        authority="test_authority", username="seanh", display_name="Sample Student"
-    )
+    return factories.HUser()
 
 
 @pytest.fixture

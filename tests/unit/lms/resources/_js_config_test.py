@@ -5,10 +5,11 @@ import jwt
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.models import GradingInfo, HUser
+from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
+from tests import factories
 
 
 class TestJSConfig:
@@ -144,10 +145,12 @@ class TestAddDocumentURL:
 class TestAddCanvasFileIDAddDocumentURLCommon:
     """Tests common to both add_canvas_file_id() and add_document_url()."""
 
-    def test_it_sets_the_canvas_submission_params(self, method, submission_params):
+    def test_it_sets_the_canvas_submission_params(
+        self, context, method, submission_params
+    ):
         method("canvas_file_id_or_document_url")
 
-        assert submission_params()["h_username"] == "example_username"
+        assert submission_params()["h_username"] == context.h_user.username
         assert (
             submission_params()["lis_outcome_service_url"]
             == "example_lis_outcome_service_url"
@@ -300,7 +303,7 @@ class TestMaybeSetFocusedUser:
         assert js_config.asdict()["hypothesisClient"]["focus"] == {
             "user": {
                 "username": "example_h_username",
-                "displayName": "example_h_display_name",
+                "displayName": h_api.get_user.return_value.display_name,
             },
         }
 
@@ -371,7 +374,7 @@ class TestJSConfigHypothesisClient:
     def test_it_disables_share_links(self, config):
         assert not config["services"][0]["enableShareLinks"]
 
-    def test_it_includes_grant_token(self, config):
+    def test_it_includes_grant_token(self, config, context):
         before = int(datetime.datetime.now().timestamp())
 
         grant_token = config["services"][0]["grantToken"]
@@ -384,7 +387,7 @@ class TestJSConfigHypothesisClient:
         )
         after = int(datetime.datetime.now().timestamp())
         assert claims["iss"] == "TEST_JWT_CLIENT_ID"
-        assert claims["sub"] == "acct:example_username@TEST_AUTHORITY"
+        assert claims["sub"] == context.h_user.userid
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
@@ -467,7 +470,7 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_user=HUser("TEST_AUTHORITY", "example_username"),
+        h_user=factories.HUser(),
         h_groupid="example_groupid",
         is_canvas=True,
     )

@@ -14,6 +14,7 @@ from requests import (
 from lms.models import HUser
 from lms.services import HAPIError, HAPINotFoundError
 from lms.services.h_api import HAPI
+from tests import factories
 
 
 class TestHAPI:
@@ -62,7 +63,7 @@ class TestHAPI:
 
         _api_request.assert_called_once_with(
             "PATCH",
-            "users/sentinel.username",
+            f"users/{h_user.username}",
             data={"display_name": h_user.display_name},
         )
 
@@ -153,8 +154,7 @@ class TestHAPI:
         h_api.add_user_to_group(h_user, sentinel.group_id)
 
         _api_request.assert_called_once_with(
-            "POST",
-            "groups/sentinel.group_id/members/acct:sentinel.username@TEST_AUTHORITY",
+            "POST", f"groups/sentinel.group_id/members/{h_user.userid}",
         )
 
     def test__api_request(self, h_api, requests):
@@ -225,11 +225,7 @@ class TestHAPI:
 
     @pytest.fixture
     def h_user(self):
-        return HUser(
-            username=sentinel.username,
-            display_name=sentinel.display_name,
-            authority="TEST_AUTHORITY",
-        )
+        return factories.HUser()
 
     @pytest.fixture
     def h_api(self, pyramid_request):

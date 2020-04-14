@@ -4,9 +4,10 @@ from unittest.mock import create_autospec
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
 
-from lms.models import GroupInfo, HUser
+from lms.models import GroupInfo
 from lms.services import HAPIError
 from lms.services.lti_h import Group, LTIHService
+from tests import factories
 
 
 class TestSync:
@@ -165,11 +166,7 @@ def lti_h_svc(pyramid_request):
 
 @pytest.fixture
 def h_user():
-    return HUser(
-        authority="TEST_AUTHORITY",
-        username="test_username",
-        display_name="test_display_name",
-    )
+    return factories.HUser()
 
 
 @pytest.fixture
