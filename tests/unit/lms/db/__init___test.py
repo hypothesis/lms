@@ -52,6 +52,22 @@ class TestBase:
         with pytest.raises(TypeError):
             ModelClass().update_from_dict({}, skip_keys=["a"])
 
+    def test_repr(self):
+        model = ModelClass(id=23, column=46)
+
+        assert repr(model) == ("ModelClass(" "id=23, " "column=46)")
+
+    def test_repr_is_valid_python(self):
+        model = ModelClass(id=23, column=46)
+
+        deserialized_model = eval(repr(model))  # pylint:disable=eval-used
+
+        for attr in (
+            "id",
+            "column",
+        ):
+            assert getattr(deserialized_model, attr) == getattr(model, attr)
+
     @pytest.fixture
     def model(self):
         return ModelClass(id=1234, column="original_value")
