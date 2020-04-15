@@ -100,16 +100,11 @@ class TestUpsertFromRequest:
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, h_user, lti_user, db_session,
     ):
-        grading_info = GradingInfo(
-            lis_result_sourcedid="lis_result_sourcedid",
-            lis_outcome_service_url="lis_outcomes_service_url",
+        grading_info = make_grading_info(
             oauth_consumer_key=lti_user.oauth_consumer_key,
             user_id=lti_user.user_id,
             context_id=pyramid_request.params["context_id"],
             resource_link_id=pyramid_request.params["resource_link_id"],
-            tool_consumer_info_product_family_code="tool_consumer_info_product_family_code",
-            h_username="h_username",
-            h_display_name="h_display_name",
         )
         db_session.add(grading_info)
         h_user = h_user._replace(
@@ -164,6 +159,23 @@ class TestUpsertFromRequest:
         pyramid_request.POST.update(lti_params)
 
         return pyramid_request
+
+
+def make_grading_info(**kwargs):
+    """Return a GradingInfo with defaults for fields not given in kwargs."""
+    fields = dict(
+        lis_result_sourcedid="lis_result_sourcedid",
+        lis_outcome_service_url="lis_outcomes_service_url",
+        oauth_consumer_key="oauth_consumer_key",
+        user_id="user_id",
+        context_id="context_id",
+        resource_link_id="resource_link_id",
+        tool_consumer_info_product_family_code="tool_consumer_info_product_family_code",
+        h_username="h_username",
+        h_display_name="h_display_name",
+    )
+    fields.update(**kwargs)
+    return GradingInfo(**fields)
 
 
 @pytest.fixture
