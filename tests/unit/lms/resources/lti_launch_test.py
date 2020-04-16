@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
+from lms.models import HUser
 from lms.resources import LTILaunchResource
 from tests import factories
 
@@ -200,33 +201,19 @@ class TestIsCanvas:
 
 
 class TestHUser:
-    def test_username_is_a_30_char_string(self, pyramid_request):
-        username = LTILaunchResource(pyramid_request).h_user.username
-
-        assert isinstance(username, str)
-        assert len(username) == 30
-
-    def test_userid(self, pyramid_request):
-        pyramid_request.lti_user = factories.LTIUser(
-            user_id="test_user_id",
-            tool_consumer_instance_guid="test_tool_consumer_instance_guid",
+    def test_it(self, pyramid_request):
+        assert LTILaunchResource(pyramid_request).h_user == HUser(
+            authority=pyramid_request.registry.settings["h_authority"],
+            username="16aa3b3e92cdfa53e5996d138a7013",
+            display_name=pyramid_request.lti_user.display_name,
         )
-
-        userid = LTILaunchResource(pyramid_request).h_user.userid
-
-        assert userid == "acct:16aa3b3e92cdfa53e5996d138a7013@TEST_AUTHORITY"
-
-    def test_display_name(self, pyramid_request):
-        display_name = LTILaunchResource(pyramid_request).h_user.display_name
-
-        assert display_name == pyramid_request.lti_user.display_name
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-            "user_id": "test_user_id",
-        }
+        pyramid_request.lti_user = factories.LTIUser(
+            tool_consumer_instance_guid="test_tool_consumer_instance_guid",
+            user_id="test_user_id",
+        )
         return pyramid_request
 
 
