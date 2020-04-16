@@ -8,31 +8,26 @@ from lms.validation.authentication import LaunchParamsAuthSchema
 
 
 class TestLaunchParamsAuthSchema:
-    def test_it_returns_the_lti_user_info(self, schema):
+    def test_it_returns_the_lti_user_info(self, schema, display_name):
         lti_user = schema.lti_user()
 
+        display_name.assert_called_once_with(
+            "TEST_GIVEN_NAME", "TEST_FAMILY_NAME", "TEST_FULL_NAME",
+        )
         assert lti_user == LTIUser(
-            "TEST_USER_ID",
-            "TEST_OAUTH_CONSUMER_KEY",
-            "TEST_ROLES",
-            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "TEST_GIVEN_NAME",
-            "TEST_FAMILY_NAME",
-            "TEST_FULL_NAME",
+            user_id="TEST_USER_ID",
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            roles="TEST_ROLES",
+            tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            display_name=display_name.return_value,
         )
 
     @pytest.mark.usefixtures("no_user_info")
-    def test_user_info_fields_default_to_empty_strings(self, schema):
-        lti_user = schema.lti_user()
+    def test_user_info_fields_default_to_empty_strings(self, schema, display_name):
+        schema.lti_user()
 
-        assert lti_user == LTIUser(
-            "TEST_USER_ID",
-            "TEST_OAUTH_CONSUMER_KEY",
-            "TEST_ROLES",
-            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "",
-            "",
-            "",
+        display_name.assert_called_once_with(
+            "", "", "",
         )
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
@@ -105,3 +100,8 @@ class TestLaunchParamsAuthSchema:
 
 
 pytestmark = pytest.mark.usefixtures("launch_verifier")
+
+
+@pytest.fixture(autouse=True)
+def display_name(patch):
+    return patch("lms.validation.authentication._launch_params.display_name")

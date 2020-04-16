@@ -16,14 +16,8 @@ class LTIUser(NamedTuple):
     tool_consumer_instance_guid: str
     """Unique ID of the LMS instance that this user belongs to."""
 
-    given_name: str
-    """The user's given name from the lis_person_name_given LTI param."""
-
-    family_name: str
-    """The user's family name from the lis_person_name_family LTI param."""
-
-    full_name: str
-    """The user's full name from the lis_person_name_full LTI param."""
+    display_name: str
+    """The user's display name."""
 
     @property
     def is_instructor(self):
@@ -37,3 +31,32 @@ class LTIUser(NamedTuple):
     def is_learner(self):
         """Whether this user is a learner."""
         return "learner" in self.roles.lower()
+
+
+def display_name(given_name, family_name, full_name):
+    """
+    Return an h-compatible display name the given name parts.
+
+    LTI 1.1 launch requests have separate given_name (lis_person_name_given),
+    family_name (lis_person_name_family) and full_name (lis_person_name_full)
+    parameters. This function returns a single display name string based on
+    these three separate names.
+    """
+    name = full_name.strip()
+
+    if not name:
+        given_name = given_name.strip()
+        family_name = family_name.strip()
+
+        name = " ".join((given_name, family_name)).strip()
+
+    if not name:
+        return "Anonymous"
+
+    # The maximum length of an h display name.
+    display_name_max_length = 30
+
+    if len(name) <= display_name_max_length:
+        return name
+
+    return name[: display_name_max_length - 1].rstrip() + "…"

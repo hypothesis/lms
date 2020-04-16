@@ -38,31 +38,10 @@ class LTILaunchResource:
             username_hash_object.update(self.h_provider_unique_id.encode())
             return username_hash_object.hexdigest()[:30]
 
-        def display_name():
-            """Return the h display name for the current request."""
-            lti_user = self._request.lti_user
-
-            display_name = lti_user.full_name.strip()
-
-            if not display_name:
-                given_name = lti_user.given_name.strip()
-                family_name = lti_user.family_name.strip()
-
-                display_name = " ".join((given_name, family_name)).strip()
-
-            if not display_name:
-                return "Anonymous"
-
-            # The maximum length of an h display name.
-            display_name_max_length = 30
-
-            if len(display_name) <= display_name_max_length:
-                return display_name
-
-            return display_name[: display_name_max_length - 1].rstrip() + "…"
-
         return HUser(
-            authority=self._authority, username=username(), display_name=display_name()
+            authority=self._authority,
+            username=username(),
+            display_name=self._request.lti_user.display_name,
         )
 
     @property
