@@ -2,7 +2,7 @@
 
 import marshmallow
 
-from lms.models import LTIUser
+from lms.models import LTIUser, display_name
 from lms.services import LTILaunchVerificationError
 from lms.validation._base import PyramidRequestSchema
 
@@ -57,13 +57,15 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         kwargs = self.parse(locations=["form"])
 
         return LTIUser(
-            kwargs["user_id"],
-            kwargs["oauth_consumer_key"],
-            kwargs["roles"],
-            kwargs["tool_consumer_instance_guid"],
-            kwargs["lis_person_name_given"],
-            kwargs["lis_person_name_family"],
-            kwargs["lis_person_name_full"],
+            user_id=kwargs["user_id"],
+            oauth_consumer_key=kwargs["oauth_consumer_key"],
+            roles=kwargs["roles"],
+            tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],
+            display_name=display_name(
+                kwargs["lis_person_name_given"],
+                kwargs["lis_person_name_family"],
+                kwargs["lis_person_name_full"],
+            ),
         )
 
     @marshmallow.validates_schema

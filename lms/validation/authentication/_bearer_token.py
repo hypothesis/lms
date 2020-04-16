@@ -61,9 +61,7 @@ class BearerTokenSchema(PyramidRequestSchema):
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     roles = marshmallow.fields.Str(required=True)
     tool_consumer_instance_guid = marshmallow.fields.Str(required=True)
-    given_name = marshmallow.fields.Str(required=True)
-    family_name = marshmallow.fields.Str(required=True)
-    full_name = marshmallow.fields.Str(required=True)
+    display_name = marshmallow.fields.Str(required=True)
 
     def __init__(self, request):
         super().__init__(request)
