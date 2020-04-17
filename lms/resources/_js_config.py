@@ -10,7 +10,7 @@ from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
 
-class JSConfig:  # pylint:disable=too-few-public-methods
+class JSConfig:  # pylint:disable=too-many-instance-attributes
     """The config for the app's JavaScript code."""
 
     def __init__(self, context, request):
@@ -20,6 +20,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._consumer_key = (
             request.lti_user.oauth_consumer_key if request.lti_user else None
         )
+        self._authority = request.registry.settings["h_authority"]
 
         self._grading_info_service = request.find_service(name="grading_info")
         self._ai_getter = request.find_service(name="ai_getter")
@@ -312,7 +313,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         # Yield a "student" dict for each GradingInfo.
         for grading_info in grading_infos:
             h_user = HUser(
-                authority=self._request.registry.settings["h_authority"],
+                authority=self._authority,
                 username=grading_info.h_username,
                 display_name=grading_info.h_display_name,
             )
@@ -371,7 +372,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
             "services": [
                 {
                     "apiUrl": api_url,
-                    "authority": self._request.registry.settings["h_authority"],
+                    "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": self._grant_token(api_url),
                     "groups": [self._context.h_groupid],
