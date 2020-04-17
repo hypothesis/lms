@@ -10,7 +10,7 @@ from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
 
-class JSConfig:  # pylint:disable=too-few-public-methods
+class JSConfig:  # pylint:disable=too-few-public-methods,too-many-instance-attributes
     """The config for the app's JavaScript code."""
 
     def __init__(self, context, request):
@@ -24,6 +24,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         self._grading_info_service = request.find_service(name="grading_info")
         self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
+        self._lti_h = request.find_service(name="lti_h")
 
     def add_canvas_file_id(self, canvas_file_id):
         """
@@ -193,7 +194,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
 
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
-                "h_username": self._context.h_user.username,
+                "h_username": self._lti_h.h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
                 **kwargs,
@@ -330,7 +331,7 @@ class JSConfig:  # pylint:disable=too-few-public-methods
         claims = {
             "aud": urlparse(api_url).hostname,
             "iss": self._request.registry.settings["h_jwt_client_id"],
-            "sub": self._context.h_user.userid,
+            "sub": self._lti_h.h_user.userid,
             "nbf": now,
             "exp": now + datetime.timedelta(minutes=5),
         }

@@ -205,7 +205,9 @@ def h_api(pyramid_config):
 
 @pytest.fixture
 def lti_h_service(pyramid_config):
-    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
+    lti_h_service = mock.create_autospec(
+        LTIHService, instance=True, spec_set=True, h_user=factories.HUser()
+    )
     pyramid_config.register_service(lti_h_service, name="lti_h")
     return lti_h_service
 

@@ -1,13 +1,19 @@
-from unittest import mock
 from unittest.mock import create_autospec
 
 import pytest
-from pyramid.httpexceptions import HTTPBadRequest, HTTPInternalServerError
+from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import GroupInfo
 from lms.services import HAPIError
 from lms.services.lti_h import Group, LTIHService
-from tests import factories
+
+
+class TestHUser:
+    def test_it(self, lti_h_svc, HUser, pyramid_request):
+        assert lti_h_svc.h_user == HUser.from_lti_user.return_value
+        HUser.from_lti_user.assert_called_once_with(
+            pyramid_request.lti_user, pyramid_request.registry.settings["h_authority"],
+        )
 
 
 class TestSync:
@@ -88,10 +94,12 @@ class TestGroupUpdating:
 
 
 class TestUserUpserting:
-    def test_it_calls_h_api_for_user_update(self, h_api, lti_h_svc, h_user):
+    def test_it_calls_h_api_for_user_update(self, h_api, lti_h_svc, HUser):
         lti_h_svc.single_group_sync()
 
-        h_api.upsert_user.assert_called_once_with(h_user=h_user)
+        h_api.upsert_user.assert_called_once_with(
+            h_user=HUser.from_lti_user.return_value
+        )
 
     def test_it_raises_if_upsert_user_raises_unexpected_error(self, h_api, lti_h_svc):
         h_api.upsert_user.side_effect = HAPIError("whatever")
@@ -108,19 +116,13 @@ class TestUserUpserting:
 
         h_api.upsert_user.assert_not_called()
 
-    def test_it_raises_if_h_user_raises(self, context, lti_h_svc):
-        type(context).h_user = mock.PropertyMock(side_effect=HTTPBadRequest("Oops"))
-
-        with pytest.raises(HTTPBadRequest, match="Oops"):
-            lti_h_svc.single_group_sync()
-
 
 class TestAddingUserToGroups:
-    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, h_user):
+    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, HUser):
         lti_h_svc.single_group_sync()
 
         h_api.add_user_to_group.assert_called_once_with(
-            h_user=h_user, group_id="test_groupid"
+            h_user=HUser.from_lti_user.return_value, group_id="test_groupid"
         )
 
     def test_it_raises_if_post_raises(self, h_api, lti_h_svc):
@@ -139,20 +141,18 @@ def lti_h_svc(pyramid_request):
 
 
 @pytest.fixture
-def h_user():
-    return factories.HUser()
-
-
-@pytest.fixture
-def context(h_user):
+def context():
     class TestContext:
         h_groupid = "test_groupid"
         h_group_name = "test_group_name"
         h_authority_provided_id = "test_authority_provided_id"
 
-    context = TestContext()
-    context.h_user = h_user  # pylint:disable=attribute-defined-outside-init
-    return context
+    return TestContext()
+
+
+@pytest.fixture(autouse=True)
+def HUser(patch):
+    return patch("lms.services.lti_h.HUser")
 
 
 @pytest.fixture

@@ -9,7 +9,6 @@ from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
-from tests import factories
 
 
 class TestJSConfig:
@@ -146,11 +145,11 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
     """Tests common to both add_canvas_file_id() and add_document_url()."""
 
     def test_it_sets_the_canvas_submission_params(
-        self, context, method, submission_params
+        self, method, submission_params, lti_h_service
     ):
         method("canvas_file_id_or_document_url")
 
-        assert submission_params()["h_username"] == context.h_user.username
+        assert submission_params()["h_username"] == lti_h_service.h_user.username
         assert (
             submission_params()["lis_outcome_service_url"]
             == "example_lis_outcome_service_url"
@@ -186,17 +185,6 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         method("canvas_file_id_or_document_url")
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_raises_if_context_h_user_raises(self, context, method):
-        # Make reading context.h_user raise HTTPBadRequest.
-        setattr(
-            type(context),
-            "h_user",
-            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
-        )
-
-        with pytest.raises(HTTPBadRequest, match="example error message"):
-            method("canvas_file_id_or_document_url")
 
     @pytest.fixture(params=["add_canvas_file_id", "add_document_url"])
     def method(self, js_config, request):
@@ -375,7 +363,7 @@ class TestJSConfigHypothesisClient:
     def test_it_disables_share_links(self, config):
         assert not config["services"][0]["enableShareLinks"]
 
-    def test_it_includes_grant_token(self, config, context):
+    def test_it_includes_grant_token(self, config, lti_h_service):
         before = int(datetime.datetime.now().timestamp())
 
         grant_token = config["services"][0]["grantToken"]
@@ -388,7 +376,7 @@ class TestJSConfigHypothesisClient:
         )
         after = int(datetime.datetime.now().timestamp())
         assert claims["iss"] == "TEST_JWT_CLIENT_ID"
-        assert claims["sub"] == context.h_user.userid
+        assert claims["sub"] == lti_h_service.h_user.userid
         assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
 
@@ -406,7 +394,7 @@ class TestJSConfigHypothesisClient:
 
         assert config["a_key"] == "a_value"
 
-    @pytest.mark.parametrize("context_property", ["h_user", "h_groupid"])
+    @pytest.mark.parametrize("context_property", ["h_groupid"])
     def test_it_raises_if_a_context_property_raises(
         self, context, context_property, pyramid_request
     ):
@@ -437,7 +425,9 @@ class TestJSConfigRPCServer:
         return config["rpcServer"]
 
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
+pytestmark = pytest.mark.usefixtures(
+    "ai_getter", "grading_info_service", "h_api", "lti_h_service"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -471,7 +461,6 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_user=factories.HUser(),
         h_groupid="example_groupid",
         is_canvas=True,
     )

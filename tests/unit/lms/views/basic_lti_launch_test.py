@@ -114,12 +114,14 @@ class TestCommon:
 
     @pytest.mark.usefixtures("user_is_learner")
     def test_it_calls_grading_info_upsert(
-        self, context, pyramid_request, grading_info_service, view_caller
+        self, context, pyramid_request, grading_info_service, lti_h_service, view_caller
     ):
         view_caller(context, pyramid_request)
 
         grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request, h_user=context.h_user, lti_user=pyramid_request.lti_user
+            pyramid_request,
+            h_user=lti_h_service.h_user,
+            lti_user=pyramid_request.lti_user,
         )
 
     def test_it_does_not_call_grading_info_upsert_if_instructor(

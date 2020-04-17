@@ -1,3 +1,4 @@
+import hashlib
 from typing import NamedTuple
 
 
@@ -32,6 +33,26 @@ class HUser(NamedTuple):
 
     provider_unique_id: str = ""
     """The "provider_unique_id" string to pass to the h API for this user."""
+
+    @classmethod
+    def from_lti_user(cls, lti_user, authority):
+        provider = lti_user.tool_consumer_instance_guid
+        provider_unique_id = lti_user.user_id
+
+        def username():
+            """Return the h username for the current request."""
+            username_hash_object = hashlib.sha1()
+            username_hash_object.update(provider.encode())
+            username_hash_object.update(provider_unique_id.encode())
+            return username_hash_object.hexdigest()[:30]
+
+        return cls(
+            authority=authority,
+            username=username(),
+            display_name=lti_user.display_name,
+            provider=provider,
+            provider_unique_id=provider_unique_id,
+        )
 
     @property
     def userid(self):

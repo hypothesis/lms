@@ -35,6 +35,8 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
 
+        self._lti_h = request.find_service(name="lti_h")
+
         self.context.js_config.maybe_set_focused_user()
 
     def sync_lti_data_to_h(self):
@@ -45,7 +47,7 @@ class BasicLTILaunchViews:
         and group corresponding to the LTI user and course.
         """
 
-        self.request.find_service(name="lti_h").single_group_sync()
+        self._lti_h.single_group_sync()
 
     def store_lti_data(self):
         """Store LTI launch data in our LMS database."""
@@ -64,7 +66,7 @@ class BasicLTILaunchViews:
         if not lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="grading_info").upsert_from_request(
-                request, h_user=self.context.h_user, lti_user=lti_user
+                request, h_user=self._lti_h.h_user, lti_user=lti_user
             )
 
     @view_config(canvas_file=True)
