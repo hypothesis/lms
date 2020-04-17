@@ -190,9 +190,7 @@ def h_user():
 
 @pytest.fixture
 def svc(pyramid_request):
-    context = mock.create_autospec(
-        LTILaunchResource, spec_set=True, instance=True, h_user=h_user
-    )
+    context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
 
     return GradingInfoService(context, pyramid_request)
 
