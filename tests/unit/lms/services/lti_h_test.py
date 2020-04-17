@@ -168,7 +168,6 @@ def context(h_user):
         h_group_name = "test_group_name"
         h_provider = "test_provider"
         h_provider_unique_id = "test_provider_unique_id"
-        provisioning_enabled = True
         h_authority_provided_id = "test_authority_provided_id"
 
     context = TestContext()
