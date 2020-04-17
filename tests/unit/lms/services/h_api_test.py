@@ -48,7 +48,7 @@ class TestHAPI:
             data={
                 "username": h_user.username,
                 "display_name": h_user.display_name,
-                "authority": "TEST_AUTHORITY",
+                "authority": h_user.authority,
                 "identities": [
                     {
                         "provider": h_user.provider,

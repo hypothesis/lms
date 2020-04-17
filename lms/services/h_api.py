@@ -52,7 +52,7 @@ class HAPI:
         user_data = {
             "username": h_user.username,
             "display_name": h_user.display_name,
-            "authority": self._authority,
+            "authority": h_user.authority,
             "identities": [
                 {
                     "provider": h_user.provider,
