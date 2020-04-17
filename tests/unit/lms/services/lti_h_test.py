@@ -3,46 +3,40 @@ from unittest.mock import create_autospec
 import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.models import GroupInfo
+from lms.models import GroupInfo, HGroup
 from lms.services import HAPIError
-from lms.services.lti_h import Group, LTIHService
+from lms.services.lti_h import LTIHService
 
 
 class TestSync:
-    def test_single_group_sync_calls_sync(self, lti_h_svc, group):
+    def test_single_group_sync_calls_sync(self, lti_h_svc, context):
         lti_h_svc.sync = create_autospec(lti_h_svc.sync)
 
         lti_h_svc.single_group_sync()
 
-        lti_h_svc.sync.assert_called_once_with(groups=[group])
+        lti_h_svc.sync.assert_called_once_with(groups=[context.h_group])
 
     def test_sync_does_nothing_if_provisioning_is_disabled(
-        self, ai_getter, lti_h_svc, h_api, group
+        self, ai_getter, lti_h_svc, h_api, context
     ):
         ai_getter.provisioning_enabled.return_value = False
 
-        lti_h_svc.sync(groups=[group])
+        lti_h_svc.sync(groups=[context.h_group])
 
         h_api.upsert_user.assert_not_called()
 
-    def test_sync_catches_HAPIErrors(self, h_api, lti_h_svc, group):
+    def test_sync_catches_HAPIErrors(self, h_api, lti_h_svc, context):
         h_api.upsert_user.side_effect = HAPIError
 
         with pytest.raises(HTTPInternalServerError):
-            lti_h_svc.sync(groups=[group])
-
-    @pytest.fixture
-    def group(self):
-        return Group(name="test_group_name", groupid="test_groupid")
+            lti_h_svc.sync(groups=[context.h_group])
 
 
 class TestGroupUpdating:
-    def test_it_upserts_the_group(self, h_api, lti_h_svc):
+    def test_it_upserts_the_group(self, h_api, lti_h_svc, context):
         lti_h_svc.single_group_sync()
 
-        h_api.upsert_group.assert_called_once_with(
-            group_id="test_groupid", group_name="test_group_name"
-        )
+        h_api.upsert_group.assert_called_once_with(context.h_group)
 
     def test_it_raises_if_upserting_the_group_fails(self, h_api, lti_h_svc):
         h_api.upsert_group.side_effect = HAPIError("Oops")
@@ -56,7 +50,7 @@ class TestGroupUpdating:
         lti_h_svc.single_group_sync()
 
         group_info_service.upsert.assert_called_once_with(
-            authority_provided_id=context.h_authority_provided_id,
+            authority_provided_id=context.h_group.authority_provided_id,
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             params=params,
         )
@@ -108,12 +102,10 @@ class TestUserUpserting:
 
 
 class TestAddingUserToGroups:
-    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, h_user):
+    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, h_user, context):
         lti_h_svc.single_group_sync()
 
-        h_api.add_user_to_group.assert_called_once_with(
-            h_user=h_user, group_id="test_groupid"
-        )
+        h_api.add_user_to_group.assert_called_once_with(h_user, context.h_group)
 
     def test_it_raises_if_post_raises(self, h_api, lti_h_svc):
         h_api.add_user_to_group.side_effect = HAPIError("Oops")
@@ -138,9 +130,7 @@ def h_user(pyramid_request):
 @pytest.fixture
 def context():
     class TestContext:
-        h_groupid = "test_groupid"
-        h_group_name = "test_group_name"
-        h_authority_provided_id = "test_authority_provided_id"
+        h_group = create_autospec(HGroup, instance=True, spec_set=True)
 
     context = TestContext()
     return context

@@ -4,6 +4,7 @@ import hashlib
 
 from pyramid.security import Allow
 
+from lms.models import HGroup
 from lms.resources._js_config import JSConfig
 
 
@@ -27,14 +28,23 @@ class LTILaunchResource:
         self._authority = self._request.registry.settings["h_authority"]
 
     @property
-    def h_authority_provided_id(self):
+    def h_group(self):
         """
-        Return a unique h authority_provided_id for the request's group.
+        Return the h group for the current request.
 
-        The authority_provided_id is deterministic and is unique to the LTI
-        course. Calling this function again with params representing the same
-        LTI course will always return the same authority_provided_id. Calling
-        this function with different params will always return a different
+        The group's name is generated from the LTI course's title and is
+        usually a valid Hypothesis group name.  For example if the course's
+        title is too long for a Hypothesis group name it'll be truncated. But
+        this doesn't currently handle course titles that are *too short* to be
+        Hypothesis group names (shorter than 3 chars) - in that case if you try
+        to create a Hypothesis group using the generated name you'll get back
+        an unsuccessful response from the Hypothesis API.
+
+        The group's groupid and authority_provided_id are each deterministic
+        and unique to the LTI course. Calling this function again with params
+        representing the same LTI course will always return the same
+        groupid and authority_provided_id. Calling this function with
+        different params will always return a different groupid and
         authority_provided_id.
         """
         # Generate the authority_provided_id based on the LTI
@@ -49,21 +59,12 @@ class LTILaunchResource:
             self._request.parsed_params["tool_consumer_instance_guid"].encode()
         )
         hash_object.update(self._request.parsed_params["context_id"].encode())
-        return hash_object.hexdigest()
+        authority_provided_id = hash_object.hexdigest()
 
-    @property
-    def h_groupid(self):
-        """
-        Return a unique h groupid for the current request.
-
-        The returned ID is suitable for use with the h API's ``groupid`` parameter.
-
-        The groupid is deterministic and is unique to the LTI course. Calling this
-        function again with params representing the same LTI course will always
-        return the same groupid. Calling this function with different params will
-        always return a different groupid.
-        """
-        return f"group:{self.h_authority_provided_id}@{self._authority}"
+        return HGroup(
+            name=self._group_name(self._request.parsed_params["context_title"].strip()),
+            authority_provided_id=authority_provided_id,
+        )
 
     def h_section_groupid(self, tool_consumer_instance_guid, context_id, section):
         """
@@ -92,21 +93,6 @@ class LTILaunchResource:
         hash_object.update(context_id.encode())
         hash_object.update(section["id"].encode())
         return f"group:section-{hash_object.hexdigest()}@{self._authority}"
-
-    @property
-    def h_group_name(self):
-        """
-        Return the h group name for the current request.
-
-        This will usually generate a valid Hypothesis group name from the LTI
-        params. For example if the LTI course's title is too long for a Hypothesis
-        group name it'll be truncated. But this doesn't currently handle LTI course
-        names that are *too short* to be Hypothesis group names (shorter than 3
-        chars) - in that case if you try to create a Hypothesis group using the
-        generated name you'll get back an unsuccessful response from the Hypothesis
-        API.
-        """
-        return self._group_name(self._request.parsed_params["context_title"].strip())
 
     def h_section_group_name(self, section):
         """

@@ -72,31 +72,31 @@ class TestHAPI:
         update_user.assert_called_once_with(h_user)
         create_user.assert_called_once_with(h_user)
 
-    def test_upsert_group_works(self, h_api, _api_request, upsert_group_call):
-        h_api.upsert_group(sentinel.group_id, sentinel.group_name)
+    def test_upsert_group_works(self, h_api, _api_request, group, upsert_group_call):
+        h_api.upsert_group(group)
 
         assert _api_request.call_args_list == [upsert_group_call]
 
     def test_upsert_group_raises_if_creating_the_group_fails(
-        self, h_api, _api_request, upsert_group_call
+        self, h_api, _api_request, group, upsert_group_call
     ):
         # If the first attempt to upsert the group fails with anything other
         # than a 404, upsert_group() raises.
         _api_request.side_effect = HAPIError("test_error_message")
 
         with pytest.raises(HAPIError, match="test_error_message"):
-            h_api.upsert_group(sentinel.group_id, sentinel.group_name)
+            h_api.upsert_group(group)
 
         assert _api_request.call_args_list == [upsert_group_call]
 
     def test_upsert_group_creates_the_lms_user_if_it_doesnt_exist(
-        self, h_api, _api_request, upsert_group_call, create_user_call
+        self, h_api, _api_request, group, upsert_group_call, create_user_call
     ):
         # Make only the first h API call (the first attempt to upsert the
         # group) fail.
         _api_request.side_effect = [HAPINotFoundError(), None, None]
 
-        h_api.upsert_group(sentinel.group_id, sentinel.group_name)
+        h_api.upsert_group(group)
 
         # It should have tried to upsert the group once, then created the user,
         # then tried again to upsert the group.
@@ -107,7 +107,7 @@ class TestHAPI:
         ]
 
     def test_upsert_group_raises_if_creating_the_lms_user_fails(
-        self, h_api, _api_request, upsert_group_call, create_user_call
+        self, h_api, _api_request, group, upsert_group_call, create_user_call
     ):
         # Make the first attempt to upsert the group fail because the lms user
         # doesn't exist, and make the attempt to create the lms user also fail.
@@ -118,14 +118,14 @@ class TestHAPI:
         ]
 
         with pytest.raises(HAPIError, match="test_error_message"):
-            h_api.upsert_group(sentinel.group_id, sentinel.group_name)
+            h_api.upsert_group(group)
 
         # It should have tried to upsert the group once then tried to create
         # the user (which failed).
         assert _api_request.call_args_list == [upsert_group_call, create_user_call]
 
     def test_upsert_group_raises_if_the_second_attempt_to_upsert_the_group_fails(
-        self, h_api, _api_request, upsert_group_call, create_user_call
+        self, h_api, _api_request, group, upsert_group_call, create_user_call
     ):
         # Make both attempts to upsert the group fail, but let creating the lms
         # user succeed.
@@ -136,7 +136,7 @@ class TestHAPI:
         ]
 
         with pytest.raises(HAPIError, match="test_error_message"):
-            h_api.upsert_group(sentinel.group_id, sentinel.group_name)
+            h_api.upsert_group(group)
 
         assert _api_request.call_args_list == [
             upsert_group_call,
@@ -144,12 +144,14 @@ class TestHAPI:
             upsert_group_call,
         ]
 
-    def test_add_user_to_group(self, h_api, _api_request, h_user, pyramid_request):
-        h_api.add_user_to_group(h_user, sentinel.group_id)
+    def test_add_user_to_group(
+        self, h_api, _api_request, h_user, pyramid_request, group, groupid
+    ):
+        h_api.add_user_to_group(h_user, group)
 
         authority = pyramid_request.registry.settings["h_authority"]
         _api_request.assert_called_once_with(
-            "POST", f"groups/sentinel.group_id/members/{h_user.userid(authority)}",
+            "POST", f"groups/{groupid}/members/{h_user.userid(authority)}",
         )
 
     def test__api_request(self, h_api, requests):
@@ -242,12 +244,20 @@ class TestHAPI:
             yield h_api._api_request
 
     @pytest.fixture
-    def upsert_group_call(self):
+    def group(self):
+        return factories.HGroup()
+
+    @pytest.fixture
+    def groupid(self, group, pyramid_request):
+        return group.groupid(pyramid_request.registry.settings["h_authority"])
+
+    @pytest.fixture
+    def upsert_group_call(self, group, groupid):
         """Return the call that upsert_group() makes to _api_request() to try to upsert the group."""
         return call(
             "PUT",
-            "groups/sentinel.group_id",
-            data={"groupid": sentinel.group_id, "name": sentinel.group_name},
+            f"groups/{groupid}",
+            data={"groupid": groupid, "name": group.name},
             headers={"X-Forwarded-User": "acct:lms@TEST_AUTHORITY"},
         )
 

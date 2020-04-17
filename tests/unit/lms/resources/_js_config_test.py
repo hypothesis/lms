@@ -3,9 +3,8 @@ from unittest import mock
 
 import jwt
 import pytest
-from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.models import GradingInfo
+from lms.models import GradingInfo, HGroup
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
@@ -378,10 +377,10 @@ class TestJSConfigHypothesisClient:
         after = int(datetime.datetime.now().timestamp())
         assert before <= claims["nbf"] <= after
 
-    def test_it_includes_the_group(self, config):
+    def test_it_includes_the_group(self, config, context):
         groups = config["services"][0]["groups"]
 
-        assert groups == ["example_groupid"]
+        assert groups == [context.h_group.groupid.return_value]
 
     @pytest.mark.usefixtures("provisioning_disabled")
     def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
@@ -391,21 +390,6 @@ class TestJSConfigHypothesisClient:
         config.update({"a_key": "a_value"})
 
         assert config["a_key"] == "a_value"
-
-    @pytest.mark.parametrize("context_property", ["h_groupid"])
-    def test_it_raises_if_a_context_property_raises(
-        self, context, context_property, pyramid_request
-    ):
-        # Make reading context.<context_property> raise HTTPBadRequest.
-        setattr(
-            type(context),
-            context_property,
-            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
-        )
-
-        with pytest.raises(HTTPBadRequest, match="example error message"):
-            # pylint:disable=expression-not-assigned,protected-access
-            JSConfig(context, pyramid_request)._hypothesis_client
 
     @pytest.fixture
     def config(self, config):
@@ -457,7 +441,7 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_groupid="example_groupid",
+        h_group=mock.create_autospec(HGroup, instance=True, spec_set=True),
         is_canvas=True,
     )
 

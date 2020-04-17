@@ -363,7 +363,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                     "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": self._grant_token(api_url),
-                    "groups": [self._context.h_groupid],
+                    "groups": [self._context.h_group.groupid(self._authority)],
                 }
             ]
         }

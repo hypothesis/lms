@@ -1,10 +1,6 @@
-from collections import namedtuple
-
 from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.services import HAPIError
-
-Group = namedtuple("Group", "name groupid")
 
 
 class LTIHService:
@@ -38,11 +34,7 @@ class LTIHService:
         This will read a single group from the context object, upsert it, the
         current user and make that user a member of the group.
         """
-        self.sync(
-            groups=[
-                Group(name=self._context.h_group_name, groupid=self._context.h_groupid)
-            ]
-        )
+        self.sync(groups=[self._context.h_group])
 
     def sync(self, groups):
         """
@@ -51,7 +43,7 @@ class LTIHService:
         This will upsert the provided list of groups, the current user and
         make that user a member of each group.
 
-        :param groups: A list of Group objects.
+        :param groups: A list of models.Group objects.
         :raises HTTPInternalServerError: If we cannot sync to H for any reason
         """
 
@@ -68,13 +60,13 @@ class LTIHService:
         self._h_api.upsert_user(h_user=self._h_user)
 
         for group in groups:
-            self._h_api.upsert_group(group_id=group.groupid, group_name=group.name)
+            self._h_api.upsert_group(group)
 
             self._group_info_service.upsert(
-                authority_provided_id=self._context.h_authority_provided_id,
+                authority_provided_id=self._context.h_group.authority_provided_id,
                 consumer_key=self._lti_user.oauth_consumer_key,
                 params=self._request.params,
             )
 
         for group in groups:
-            self._h_api.add_user_to_group(h_user=self._h_user, group_id=group.groupid)
+            self._h_api.add_user_to_group(self._h_user, group)
