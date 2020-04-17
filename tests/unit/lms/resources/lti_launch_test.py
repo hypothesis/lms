@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
+from lms.models import HGroup
 from lms.resources import LTILaunchResource
 
 
@@ -25,36 +26,27 @@ class TestACL:
         assert bool(has_permission) is expected
 
 
-class TestHAuthorityProvidedID:
-    def test_it(self, lti_launch):
-        assert (
-            lti_launch.h_authority_provided_id
-            == "d55a3c86dd79d390ec8dc6a8096d0943044ea268"
-        )
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
+class TestHGroup:
+    @pytest.mark.parametrize(
+        "context_title,expected_group_name",
+        (
+            ("Test Course", "Test Course"),
+            (" Test Course ", "Test Course"),
+            ("Test   Course", "Test   Course"),
+            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
+            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
+        ),
+    )
+    def test_it(self, lti_launch, context_title, expected_group_name, pyramid_request):
         pyramid_request.parsed_params = {
             "context_id": "test_context_id",
+            "context_title": context_title,
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
-        return pyramid_request
 
-
-class TestHGroupID:
-    def test_it(self, lti_launch):
-        assert (
-            lti_launch.h_groupid
-            == "group:d55a3c86dd79d390ec8dc6a8096d0943044ea268@TEST_AUTHORITY"
+        assert lti_launch.h_group == HGroup(
+            expected_group_name, "d55a3c86dd79d390ec8dc6a8096d0943044ea268",
         )
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
-            "context_id": "test_context_id",
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-        }
-        return pyramid_request
 
 
 class TestHSectionGroupID:
@@ -102,25 +94,6 @@ class TestHSectionGroupID:
         groupid = lti_launch_resource.h_section_groupid(**args)
 
         assert groupid == expected_groupid
-
-
-class TestHGroupName:
-    @pytest.mark.parametrize(
-        "context_title,expected_group_name",
-        (
-            ("Test Course", "Test Course"),
-            (" Test Course ", "Test Course"),
-            ("Test   Course", "Test   Course"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
-        ),
-    )
-    def test_it_returns_group_names_based_on_context_titles(
-        self, context_title, expected_group_name, pyramid_request
-    ):
-        pyramid_request.parsed_params["context_title"] = context_title
-
-        assert LTILaunchResource(pyramid_request).h_group_name == expected_group_name
 
 
 class TestHSectionGroupName:

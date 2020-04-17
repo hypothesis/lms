@@ -89,20 +89,17 @@ class HAPI:
         except HAPINotFoundError:
             self.create_user(h_user)
 
-    def upsert_group(self, group_id, group_name):
-        """
-        Update or create a group in H.
-
-        :param group_id: The id of the group
-        :param group_name: The display name for the group
-        """
+    def upsert_group(self, group):
+        """Update or create a group in h."""
 
         def do_upsert_group():
             """Send an upsert group request to h."""
+            groupid = group.groupid(self._authority)
+
             self._api_request(
                 "PUT",
-                f"groups/{group_id}",
-                data={"groupid": group_id, "name": group_name},
+                f"groups/{groupid}",
+                data={"groupid": groupid, "name": group.name},
                 headers={"X-Forwarded-User": f"acct:lms@{self._authority}"},
             )
 
@@ -114,16 +111,18 @@ class HAPI:
             self.create_user(HUser("lms", provider="lms", provider_unique_id="lms"))
             do_upsert_group()
 
-    def add_user_to_group(self, h_user, group_id):
+    def add_user_to_group(self, h_user, h_group):
         """
         Add the user as a member of the group.
 
         :param h_user: the user to add to the group
         :type h_user: HUser
-        :param group_id: The id of the group
+        :param h_group: the group to add the user to
+        :type h_group: HGroup
         """
         self._api_request(
-            "POST", f"groups/{group_id}/members/{h_user.userid(self._authority)}"
+            "POST",
+            f"groups/{h_group.groupid(self._authority)}/members/{h_user.userid(self._authority)}",
         )
 
     def _api_request(self, method, path, data=None, headers=None):
