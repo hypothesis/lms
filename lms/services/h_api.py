@@ -33,14 +33,10 @@ class HAPI:
 
         :rtype: HUser
         """
-        userid = HUser(self._authority, username).userid
+        userid = HUser(username).userid(self._authority)
         user_info = self._api_request("GET", path=f"users/{userid}").json()
 
-        return HUser(
-            authority=self._authority,
-            username=username,
-            display_name=user_info["display_name"],
-        )
+        return HUser(username=username, display_name=user_info["display_name"])
 
     def create_user(self, h_user):
         """
@@ -52,7 +48,7 @@ class HAPI:
         user_data = {
             "username": h_user.username,
             "display_name": h_user.display_name,
-            "authority": h_user.authority,
+            "authority": self._authority,
             "identities": [
                 {
                     "provider": h_user.provider,
@@ -115,9 +111,7 @@ class HAPI:
         except HAPINotFoundError:
             # If we get a 404 when trying to upsert a group that must mean
             # that the lms user doesn't exist in h yet.
-            self.create_user(
-                HUser(self._authority, "lms", provider="lms", provider_unique_id="lms"),
-            )
+            self.create_user(HUser("lms", provider="lms", provider_unique_id="lms"))
             do_upsert_group()
 
     def add_user_to_group(self, h_user, group_id):
@@ -128,7 +122,9 @@ class HAPI:
         :type h_user: HUser
         :param group_id: The id of the group
         """
-        self._api_request("POST", f"groups/{group_id}/members/{h_user.userid}")
+        self._api_request(
+            "POST", f"groups/{group_id}/members/{h_user.userid(self._authority)}"
+        )
 
     def _api_request(self, method, path, data=None, headers=None):
         """

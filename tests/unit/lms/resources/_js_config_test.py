@@ -375,7 +375,7 @@ class TestJSConfigHypothesisClient:
     def test_it_disables_share_links(self, config):
         assert not config["services"][0]["enableShareLinks"]
 
-    def test_it_includes_grant_token(self, config, context):
+    def test_it_includes_grant_token(self, config, context, pyramid_request):
         before = int(datetime.datetime.now().timestamp())
 
         grant_token = config["services"][0]["grantToken"]
@@ -386,11 +386,14 @@ class TestJSConfigHypothesisClient:
             key="TEST_JWT_CLIENT_SECRET",
             audience="example.com",
         )
-        after = int(datetime.datetime.now().timestamp())
-        assert claims["iss"] == "TEST_JWT_CLIENT_ID"
-        assert claims["sub"] == context.h_user.userid
-        assert before <= claims["nbf"] <= after
         assert claims["exp"] > before
+        assert claims["iss"] == "TEST_JWT_CLIENT_ID"
+
+        authority = pyramid_request.registry.settings["h_authority"]
+        assert claims["sub"] == context.h_user.userid(authority)
+
+        after = int(datetime.datetime.now().timestamp())
+        assert before <= claims["nbf"] <= after
 
     def test_it_includes_the_group(self, config):
         groups = config["services"][0]["groups"]
