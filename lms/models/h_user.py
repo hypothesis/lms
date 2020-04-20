@@ -1,3 +1,4 @@
+import hashlib
 from typing import NamedTuple
 
 
@@ -28,3 +29,22 @@ class HUser(NamedTuple):
 
     def userid(self, authority):
         return f"acct:{self.username}@{authority}"
+
+    @classmethod
+    def from_lti_user(cls, lti_user):
+        provider = lti_user.tool_consumer_instance_guid
+        provider_unique_id = lti_user.user_id
+
+        def username():
+            """Return the h username for the current request."""
+            username_hash_object = hashlib.sha1()
+            username_hash_object.update(provider.encode())
+            username_hash_object.update(provider_unique_id.encode())
+            return username_hash_object.hexdigest()[:30]
+
+        return cls(
+            username=username(),
+            display_name=lti_user.display_name,
+            provider=provider,
+            provider_unique_id=provider_unique_id,
+        )

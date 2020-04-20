@@ -17,6 +17,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         self._context = context
         self._request = request
         self._lti_user = request.lti_user
+        self._h_user = request.lti_user.h_user
         self._consumer_key = (
             request.lti_user.oauth_consumer_key if request.lti_user else None
         )
@@ -194,7 +195,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
-                "h_username": self._context.h_user.username,
+                "h_username": self._h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
                 **kwargs,
@@ -203,9 +204,6 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
     def _auth_token(self):
         """Return the authToken setting."""
-        if not self._lti_user:
-            return None
-
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
     def _canvas_files_available(self):
@@ -262,7 +260,13 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "authUrl": self._request.route_url("canvas_api.authorize"),
             },
             # Some debug information, currently used in the Gherkin tests.
-            "debug": self._debug(),
+            "debug": {
+                "tags": [
+                    "role:instructor"
+                    if self._lti_user.is_instructor
+                    else "role:learner"
+                ],
+            },
             # Tell the JavaScript code whether we're in "dev" mode.
             "dev": self._request.registry.settings["dev"],
             # The config object for the Hypothesis client.
@@ -281,21 +285,6 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 ],
             },
         }
-
-    def _debug(self):
-        """
-        Return some debug information.
-
-        Currently used in the Gherkin tests.
-        """
-        debug_info = {}
-
-        if self._lti_user:
-            debug_info["tags"] = [
-                "role:instructor" if self._lti_user.is_instructor else "role:learner"
-            ]
-
-        return debug_info
 
     def _get_students(self):
         """
@@ -330,7 +319,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         claims = {
             "aud": urlparse(api_url).hostname,
             "iss": self._request.registry.settings["h_jwt_client_id"],
-            "sub": self._context.h_user.userid(self._authority),
+            "sub": self._h_user.userid(self._authority),
             "nbf": now,
             "exp": now + datetime.timedelta(minutes=5),
         }

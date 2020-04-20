@@ -5,6 +5,14 @@ from tests import factories
 
 
 class TestLTIUser:
+    def test_h_user(self, HUser):
+        lti_user = factories.LTIUser()
+
+        h_user = lti_user.h_user
+
+        HUser.from_lti_user.assert_called_once_with(lti_user)
+        assert h_user == HUser.from_lti_user.return_value
+
     @pytest.mark.parametrize(
         "roles,is_instructor",
         [
@@ -68,3 +76,8 @@ def test_display_name(
     display_name_ = display_name(given_name, family_name, full_name)
 
     assert display_name_ == expected_display_name
+
+
+@pytest.fixture(autouse=True)
+def HUser(patch):
+    return patch("lms.models.lti_user.HUser")

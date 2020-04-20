@@ -1,5 +1,7 @@
 from typing import NamedTuple
 
+from lms.models import HUser
+
 
 class LTIUser(NamedTuple):
     """An LTI user."""
@@ -18,6 +20,11 @@ class LTIUser(NamedTuple):
 
     display_name: str
     """The user's display name."""
+
+    @property
+    def h_user(self):
+        """Return a models.HUser generated from this LTIUser."""
+        return HUser.from_lti_user(self)
 
     @property
     def is_instructor(self):
