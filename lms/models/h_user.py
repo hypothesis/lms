@@ -10,13 +10,6 @@ class HUser(NamedTuple):
     usernames.
     """
 
-    authority: str
-    """
-    The authority which the user belongs to.
-
-    This should always match the h_authority setting.
-    """
-
     username: str
     """
     Generated username for h user.
@@ -33,6 +26,5 @@ class HUser(NamedTuple):
     provider_unique_id: str = ""
     """The "provider_unique_id" string to pass to the h API for this user."""
 
-    @property
-    def userid(self):
-        return f"acct:{self.username}@{self.authority}"
+    def userid(self, authority):
+        return f"acct:{self.username}@{authority}"

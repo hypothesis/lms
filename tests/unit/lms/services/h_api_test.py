@@ -2,7 +2,6 @@ from unittest.mock import call, patch, sentinel
 
 import pytest
 import requests as requests_
-from h_matchers import Any
 from requests import (
     HTTPError,
     ReadTimeout,
@@ -34,12 +33,9 @@ class TestHAPI:
             "GET", path="users/acct:username@TEST_AUTHORITY"
         )
 
-        assert user == Any.instance_of(HUser)
-        assert user.authority == "TEST_AUTHORITY"
-        assert user.username == "username"
-        assert user.display_name == sentinel.display_name
+        assert user == HUser(username="username", display_name=sentinel.display_name)
 
-    def test_create_user_works(self, h_api, h_user, _api_request):
+    def test_create_user_works(self, h_api, h_user, _api_request, pyramid_request):
         h_api.create_user(h_user)
 
         _api_request.assert_called_once_with(
@@ -48,7 +44,7 @@ class TestHAPI:
             data={
                 "username": h_user.username,
                 "display_name": h_user.display_name,
-                "authority": h_user.authority,
+                "authority": pyramid_request.registry.settings["h_authority"],
                 "identities": [
                     {
                         "provider": h_user.provider,
@@ -148,11 +144,12 @@ class TestHAPI:
             upsert_group_call,
         ]
 
-    def test_add_user_to_group(self, h_api, _api_request, h_user):
+    def test_add_user_to_group(self, h_api, _api_request, h_user, pyramid_request):
         h_api.add_user_to_group(h_user, sentinel.group_id)
 
+        authority = pyramid_request.registry.settings["h_authority"]
         _api_request.assert_called_once_with(
-            "POST", f"groups/sentinel.group_id/members/{h_user.userid}",
+            "POST", f"groups/sentinel.group_id/members/{h_user.userid(authority)}",
         )
 
     def test__api_request(self, h_api, requests):

@@ -45,7 +45,6 @@ class LTILaunchResource:
             return username_hash_object.hexdigest()[:30]
 
         return HUser(
-            authority=self._authority,
             username=username(),
             display_name=self._request.lti_user.display_name,
             provider=provider,

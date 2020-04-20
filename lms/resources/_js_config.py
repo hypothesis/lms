@@ -313,12 +313,11 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         # Yield a "student" dict for each GradingInfo.
         for grading_info in grading_infos:
             h_user = HUser(
-                authority=self._authority,
                 username=grading_info.h_username,
                 display_name=grading_info.h_display_name,
             )
             yield {
-                "userid": h_user.userid,
+                "userid": h_user.userid(self._authority),
                 "displayName": h_user.display_name,
                 "LISResultSourcedId": grading_info.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
@@ -331,7 +330,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         claims = {
             "aud": urlparse(api_url).hostname,
             "iss": self._request.registry.settings["h_jwt_client_id"],
-            "sub": self._context.h_user.userid,
+            "sub": self._context.h_user.userid(self._authority),
             "nbf": now,
             "exp": now + datetime.timedelta(minutes=5),
         }

@@ -175,7 +175,6 @@ class TestIsCanvas:
 class TestHUser:
     def test_it(self, pyramid_request):
         assert LTILaunchResource(pyramid_request).h_user == HUser(
-            authority=pyramid_request.registry.settings["h_authority"],
             username="16aa3b3e92cdfa53e5996d138a7013",
             display_name=pyramid_request.lti_user.display_name,
             provider="test_tool_consumer_instance_guid",
