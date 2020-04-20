@@ -69,10 +69,6 @@ class HAPIError(ExternalRequestError):
     """
 
 
-class HAPINotFoundError(HAPIError):
-    """A 404 error from an API request."""
-
-
 class CanvasAPIError(ExternalRequestError):
     """
     A problem with a Canvas API request.

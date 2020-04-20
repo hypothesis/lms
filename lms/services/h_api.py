@@ -1,12 +1,11 @@
 """The H API service."""
 
-import json
-
 import requests
+from h_api.bulk_api import BulkAPI, CommandBuilder
 from requests import RequestException
 
 from lms.models import HUser
-from lms.services import HAPIError, HAPINotFoundError
+from lms.services import HAPIError
 
 __all__ = ["HAPI"]
 
@@ -38,95 +37,29 @@ class HAPI:
 
         return HUser(username=username, display_name=user_info["display_name"])
 
-    def create_user(self, h_user):
+    def bulk_action(self, commands):
         """
-        Create a user in H.
+        Send a series of h_api commands to the H bulk API.
 
-        :arg h_user: the user to be created in h
-        :type h_user: HUser
-        """
-        user_data = {
-            "username": h_user.username,
-            "display_name": h_user.display_name,
-            "authority": self._authority,
-            "identities": [
-                {
-                    "provider": h_user.provider,
-                    "provider_unique_id": h_user.provider_unique_id,
-                }
-            ],
-        }
-
-        self._api_request("POST", "users", data=user_data)
-
-    def update_user(self, h_user):
-        """
-        Update details for a user in H.
-
-        Currently this only updates the display name.
-
-        :param h_user: the updated user details to send to h
-        :type h_user: HUser
-        """
-        self._api_request(
-            "PATCH",
-            f"users/{h_user.username}",
-            data={"display_name": h_user.display_name},
-        )
-
-    def upsert_user(self, h_user):
-        """
-        Create or update a user in H as appropriate.
-
-        This is equivalent to calling `update_user()` then `create_user()` if
-        that fails.
-
-        :param h_user: the updated user value
-        :type h_user: HUser
-        """
-        try:
-            self.update_user(h_user)
-        except HAPINotFoundError:
-            self.create_user(h_user)
-
-    def upsert_group(self, group_id, group_name):
-        """
-        Update or create a group in H.
-
-        :param group_id: The id of the group
-        :param group_name: The display name for the group
+        :param commands: Instances of h_api Commands
         """
 
-        def do_upsert_group():
-            """Send an upsert group request to h."""
-            self._api_request(
-                "PUT",
-                f"groups/{group_id}",
-                data={"groupid": group_id, "name": group_name},
-                headers={"X-Forwarded-User": f"acct:lms@{self._authority}"},
+        commands = list(commands)
+        commands = [
+            CommandBuilder.configure(
+                effective_user=HUser(username="lms").userid(self._authority),
+                total_instructions=len(commands) + 1,
             )
+        ] + commands
 
-        try:
-            do_upsert_group()
-        except HAPINotFoundError:
-            # If we get a 404 when trying to upsert a group that must mean
-            # that the lms user doesn't exist in h yet.
-            self.create_user(HUser("lms", provider="lms", provider_unique_id="lms"))
-            do_upsert_group()
-
-    def add_user_to_group(self, h_user, group_id):
-        """
-        Add the user as a member of the group.
-
-        :param h_user: the user to add to the group
-        :type h_user: HUser
-        :param group_id: The id of the group
-        """
         self._api_request(
-            "POST", f"groups/{group_id}/members/{h_user.userid(self._authority)}"
+            "POST",
+            path="bulk",
+            body=BulkAPI.to_string(commands),
+            headers={"Content-Type": "application/vnd.hypothesis.v1+x-ndjson"},
         )
 
-    def _api_request(self, method, path, data=None, headers=None):
+    def _api_request(self, method, path, headers=None, body=None):
         """
         Send any kind of HTTP request to the h API and return the response.
 
@@ -135,7 +68,7 @@ class HAPI:
         :param path: the h API path to post to, relative to
                      ``settings["h_api_url_private"]``, for example:
                      ``"users"`` or ``"groups/<GROUPID>/members/<USERID>"``
-        :param data: the data to post as JSON in the request body
+        :param body: the body to send as a string
         :param headers: extra headers to pass with the request
 
         :raise HAPINotFoundError: If the request fails with 404
@@ -148,8 +81,8 @@ class HAPI:
 
         request_args = {"headers": headers}
 
-        if data is not None:
-            request_args["data"] = json.dumps(data, separators=(",", ":"))
+        if body is not None:
+            request_args["data"] = body
 
         try:
             response = requests.request(
@@ -163,12 +96,6 @@ class HAPI:
 
         except RequestException as err:
             response = getattr(err, "response", None)
-            status_code = getattr(response, "status_code", None)
-
-            if status_code == 404:
-                raise HAPINotFoundError(
-                    "Could not find requested resource", response
-                ) from err
 
             raise HAPIError("Connecting to Hypothesis failed", response) from err
 
