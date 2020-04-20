@@ -9,7 +9,6 @@ from lms.models import GradingInfo
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
-from tests import factories
 
 
 class TestJSConfig:
@@ -146,11 +145,14 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
     """Tests common to both add_canvas_file_id() and add_document_url()."""
 
     def test_it_sets_the_canvas_submission_params(
-        self, context, method, submission_params
+        self, pyramid_request, method, submission_params
     ):
         method("canvas_file_id_or_document_url")
 
-        assert submission_params()["h_username"] == context.h_user.username
+        assert (
+            submission_params()["h_username"]
+            == pyramid_request.lti_user.h_user.username
+        )
         assert (
             submission_params()["lis_outcome_service_url"]
             == "example_lis_outcome_service_url"
@@ -186,17 +188,6 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         method("canvas_file_id_or_document_url")
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_raises_if_context_h_user_raises(self, context, method):
-        # Make reading context.h_user raise HTTPBadRequest.
-        setattr(
-            type(context),
-            "h_user",
-            mock.PropertyMock(side_effect=HTTPBadRequest("example error message")),
-        )
-
-        with pytest.raises(HTTPBadRequest, match="example error message"):
-            method("canvas_file_id_or_document_url")
 
     @pytest.fixture(params=["add_canvas_file_id", "add_document_url"])
     def method(self, js_config, request):
@@ -335,10 +326,6 @@ class TestJSConfigAuthToken:
         )
         assert authToken == bearer_token_schema.authorization_param.return_value
 
-    @pytest.mark.usefixtures("no_lti_user")
-    def test_it_is_None_for_non_lti_users(self, authToken):
-        assert authToken is None
-
     @pytest.fixture
     def authToken(self, config):
         return config["api"]["authToken"]
@@ -350,10 +337,6 @@ class TestJSConfigDebug:
     @pytest.mark.usefixtures("user_is_learner")
     def test_it_contains_debugging_info_about_the_users_role(self, config):
         assert "role:learner" in config["tags"]
-
-    @pytest.mark.usefixtures("no_lti_user")
-    def test_its_empty_if_theres_no_lti_user(self, config):
-        assert config == {}
 
     @pytest.fixture
     def config(self, config):
@@ -375,7 +358,7 @@ class TestJSConfigHypothesisClient:
     def test_it_disables_share_links(self, config):
         assert not config["services"][0]["enableShareLinks"]
 
-    def test_it_includes_grant_token(self, config, context, pyramid_request):
+    def test_it_includes_grant_token(self, config, pyramid_request):
         before = int(datetime.datetime.now().timestamp())
 
         grant_token = config["services"][0]["grantToken"]
@@ -390,7 +373,7 @@ class TestJSConfigHypothesisClient:
         assert claims["iss"] == "TEST_JWT_CLIENT_ID"
 
         authority = pyramid_request.registry.settings["h_authority"]
-        assert claims["sub"] == context.h_user.userid(authority)
+        assert claims["sub"] == pyramid_request.lti_user.h_user.userid(authority)
 
         after = int(datetime.datetime.now().timestamp())
         assert before <= claims["nbf"] <= after
@@ -409,7 +392,7 @@ class TestJSConfigHypothesisClient:
 
         assert config["a_key"] == "a_value"
 
-    @pytest.mark.parametrize("context_property", ["h_user", "h_groupid"])
+    @pytest.mark.parametrize("context_property", ["h_groupid"])
     def test_it_raises_if_a_context_property_raises(
         self, context, context_property, pyramid_request
     ):
@@ -474,16 +457,9 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_user=factories.HUser(),
         h_groupid="example_groupid",
         is_canvas=True,
     )
-
-
-@pytest.fixture
-def no_lti_user(pyramid_request):
-    """Modify the pyramid_request fixture so that request.lti_user is None."""
-    pyramid_request.lti_user = None
 
 
 @pytest.fixture

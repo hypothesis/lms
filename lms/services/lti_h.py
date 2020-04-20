@@ -25,6 +25,7 @@ class LTIHService:
         self._context = request.context
         self._request = request
         self._lti_user = request.lti_user
+        self._h_user = request.lti_user.h_user
 
         self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
@@ -64,9 +65,7 @@ class LTIHService:
             raise HTTPInternalServerError(explanation=err.explanation) from err
 
     def _sync_to_h(self, groups):
-        h_user = self._context.h_user
-
-        self._h_api.upsert_user(h_user=h_user)
+        self._h_api.upsert_user(h_user=self._h_user)
 
         for group in groups:
             self._h_api.upsert_group(group_id=group.groupid, group_name=group.name)
@@ -78,4 +77,4 @@ class LTIHService:
             )
 
         for group in groups:
-            self._h_api.add_user_to_group(h_user=h_user, group_id=group.groupid)
+            self._h_api.add_user_to_group(h_user=self._h_user, group_id=group.groupid)
