@@ -43,7 +43,7 @@ class LTIHService:
         This will upsert the provided list of groups, the current user and
         make that user a member of each group.
 
-        :param groups: A list of models.Group objects.
+        :param groups: A list of models.HGroup objects.
         :raises HTTPInternalServerError: If we cannot sync to H for any reason
         """
 
