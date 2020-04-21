@@ -2,6 +2,8 @@ from unittest.mock import call, patch, sentinel
 
 import pytest
 import requests as requests_
+from h_api.bulk_api.model.command import ConfigCommand
+from h_matchers import Any
 from requests import (
     HTTPError,
     ReadTimeout,
@@ -21,6 +23,40 @@ class TestHAPI:
     # We're accessing h_api._api_request a lot in this test class, so disable
     # protected-access messages.
     # pylint: disable=protected-access
+
+    def test_bulk_action_process_commands_correctly(self, h_api, BulkAPI):
+        h_api.bulk_action(
+            [sentinel.command_1, sentinel.command_2,]
+        )
+
+        BulkAPI.to_string.assert_called_once_with(
+            [
+                Any.object(ConfigCommand).with_attrs(
+                    {
+                        "body": Any.object.with_attrs(
+                            {
+                                "effective_user": "acct:lms@TEST_AUTHORITY",
+                                "total_instructions": 3,
+                            }
+                        )
+                    }
+                ),
+                sentinel.command_1,
+                sentinel.command_2,
+            ]
+        )
+
+    def test_bulk_action_calls_h_correctly(self, h_api, BulkAPI, _api_request):
+        h_api.bulk_action([sentinel.command])
+
+        _api_request.assert_called_once_with(
+            "POST",
+            path="bulk",
+            body=BulkAPI.to_string.return_value,
+            headers=Any.mapping.containing(
+                {"Content-Type": "application/vnd.hypothesis.v1+x-ndjson"}
+            ),
+        )
 
     def test_get_user_works(self, h_api, _api_request):
         _api_request.return_value.json.return_value = {
@@ -155,20 +191,17 @@ class TestHAPI:
         )
 
     def test__api_request(self, h_api, requests):
-        h_api._api_request(sentinel.method, "dummy-path")
+        h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)
 
         assert requests.request.call_args_list == [
             call(
-                # It uses the given HTTP request method.
                 method=sentinel.method,
-                # It requests the given URL.
                 url="https://example.com/private/api/dummy-path",
                 # It adds the authentication headers.
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-                # Requests time out after 10 seconds.
                 timeout=10,
-                # It adds the Hypothesis-Application header.
                 headers={"Hypothesis-Application": "lms"},
+                data=sentinel.raw_body,
             )
         ]
 
@@ -184,7 +217,9 @@ class TestHAPI:
             sentinel.method, "dummy-path", headers={"X-Header": sentinel.header}
         )
 
-        assert requests.request.call_args[1]["headers"]["X-Header"] == sentinel.header
+        assert requests.request.call_args[1]["headers"] == Any.mapping.containing(
+            {"X-Header": sentinel.header}
+        )
 
     def test__api_request_raises_HAPINotFoundError_for_404(self, h_api, requests):
         response = Response()
@@ -219,6 +254,10 @@ class TestHAPI:
 
         with pytest.raises(OSError):
             h_api._api_request(sentinel.method, "dummy-path")
+
+    @pytest.fixture
+    def BulkAPI(self, patch):
+        return patch("lms.services.h_api.BulkAPI")
 
     @pytest.fixture
     def h_user(self):

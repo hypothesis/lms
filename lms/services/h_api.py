@@ -3,6 +3,7 @@
 import json
 
 import requests
+from h_api.bulk_api import BulkAPI, CommandBuilder
 from requests import RequestException
 
 from lms.models import HUser
@@ -26,6 +27,28 @@ class HAPI:
         self._authority = settings["h_authority"]
         self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
         self._base_url = settings["h_api_url_private"]
+
+    def bulk_action(self, commands):
+        """
+        Send a series of h_api commands to the H bulk API.
+
+        :param commands: Instances of h_api Commands
+        """
+
+        commands = list(commands)
+        commands = [
+            CommandBuilder.configure(
+                effective_user=HUser(username="lms").userid(self._authority),
+                total_instructions=len(commands) + 1,
+            )
+        ] + commands
+
+        self._api_request(
+            "POST",
+            path="bulk",
+            body=BulkAPI.to_string(commands),
+            headers={"Content-Type": "application/vnd.hypothesis.v1+x-ndjson"},
+        )
 
     def get_user(self, username):
         """
@@ -125,7 +148,9 @@ class HAPI:
             f"groups/{h_group.groupid(self._authority)}/members/{h_user.userid(self._authority)}",
         )
 
-    def _api_request(self, method, path, data=None, headers=None):
+    # pylint: disable=too-many-arguments
+    # (data will be removed soon)
+    def _api_request(self, method, path, data=None, headers=None, body=None):
         """
         Send any kind of HTTP request to the h API and return the response.
 
@@ -135,6 +160,7 @@ class HAPI:
                      ``settings["h_api_url_private"]``, for example:
                      ``"users"`` or ``"groups/<GROUPID>/members/<USERID>"``
         :param data: the data to post as JSON in the request body
+        :param body: the body to send as a string (without modification)
         :param headers: extra headers to pass with the request
 
         :raise HAPINotFoundError: If the request fails with 404
@@ -147,7 +173,9 @@ class HAPI:
 
         request_args = {"headers": headers}
 
-        if data is not None:
+        if body is not None:
+            request_args["data"] = body
+        elif data is not None:
             request_args["data"] = json.dumps(data, separators=(",", ":"))
 
         try:
