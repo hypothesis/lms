@@ -3,7 +3,7 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.services import HAPIError
 
 
-class LTIHService:
+class LTIHService:  # pylint:disable=too-few-public-methods
     """
     Copy LTI users and courses to h users and groups.
 
@@ -18,7 +18,6 @@ class LTIHService:
     """
 
     def __init__(self, _context, request):
-        self._context = request.context
         self._request = request
         self._lti_user = request.lti_user
         self._h_user = request.lti_user.h_user
@@ -26,15 +25,6 @@ class LTIHService:
         self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
         self._group_info_service = request.find_service(name="group_info")
-
-    def single_group_sync(self):
-        """
-        Sync standard data to H for an LTI launch.
-
-        This will read a single group from the context object, upsert it, the
-        current user and make that user a member of the group.
-        """
-        self.sync(groups=[self._context.h_group])
 
     def sync(self, groups):
         """
@@ -63,7 +53,7 @@ class LTIHService:
             self._h_api.upsert_group(group)
 
             self._group_info_service.upsert(
-                authority_provided_id=self._context.h_group.authority_provided_id,
+                authority_provided_id=group.authority_provided_id,
                 consumer_key=self._lti_user.oauth_consumer_key,
                 params=self._request.params,
             )
