@@ -19,11 +19,15 @@ class TestSync:
 
         h_api.bulk_action.assert_not_called()
 
-    def test_sync_catches_HAPIErrors(self, h_api, lti_h_svc, h_group):
+    def test_sync_catches_HAPIErrors(
+        self, h_api, lti_h_svc, h_group, group_info_service
+    ):
         h_api.bulk_action.side_effect = HAPIError
 
         with pytest.raises(HTTPInternalServerError):
             lti_h_svc.sync(h_groups=[h_group])
+
+        group_info_service.assert_not_called()
 
     def test_sync_calls_bulk_action_correctly(self, h_api, h_user, lti_h_svc):
         groups = [
@@ -71,21 +75,8 @@ class TestSync:
         ]
 
 
-class TestGroupUpdating:
-    def test_it_upserts_the_group(self, h_api, lti_h_svc, h_group):
-        lti_h_svc.sync([h_group])
-
-        h_api.upsert_group.assert_called_once_with(h_group)
-
-    @pytest.mark.usefixtures("use_serial_api")
-    def test_it_raises_if_upserting_the_group_fails(self, h_api, lti_h_svc, h_group):
-        h_api.upsert_group.side_effect = HAPIError("Oops")
-
-        with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.sync([h_group])
-
-    @pytest.mark.usefixtures("use_serial_api")
-    def test_it_upserts_the_GroupInfo_into_the_db(
+class TestGroupInfoUpdating:
+    def test_sync_upserts_the_GroupInfo_into_the_db(
         self, params, group_info_service, lti_h_svc, pyramid_request, h_group
     ):
         lti_h_svc.sync([h_group])
@@ -95,19 +86,6 @@ class TestGroupUpdating:
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             params=params,
         )
-
-    @pytest.mark.usefixtures("use_serial_api")
-    def test_it_doesnt_upsert_GroupInfo_into_the_db_if_upserting_the_group_fails(
-        self, group_info_service, h_api, lti_h_svc, h_group
-    ):
-        h_api.upsert_group.side_effect = HAPIError("Oops")
-
-        try:
-            lti_h_svc.sync([h_group])
-        except:  # pylint: disable=bare-except
-            pass
-
-        group_info_service.assert_not_called()
 
     @pytest.fixture
     def params(self):
@@ -119,6 +97,20 @@ class TestGroupUpdating:
     def pyramid_request(self, params, pyramid_request):
         pyramid_request.params = params
         return pyramid_request
+
+
+@pytest.mark.usefixtures("use_serial_api")
+class TestGroupUpdating:
+    def test_it_upserts_the_group(self, h_api, lti_h_svc, h_group):
+        lti_h_svc.sync([h_group])
+
+        h_api.upsert_group.assert_called_once_with(h_group)
+
+    def test_it_raises_if_upserting_the_group_fails(self, h_api, lti_h_svc, h_group):
+        h_api.upsert_group.side_effect = HAPIError("Oops")
+
+        with pytest.raises(HTTPInternalServerError, match="Oops"):
+            lti_h_svc.sync([h_group])
 
 
 @pytest.mark.usefixtures("use_serial_api")

@@ -48,6 +48,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
 
+        # Keep a note of the groups locally for reporting purposes
         for h_group in h_groups:
             self._group_info_service.upsert(
                 authority_provided_id=h_group.authority_provided_id,
@@ -56,26 +57,21 @@ class LTIHService:  # pylint:disable=too-few-public-methods
             )
 
     def _sync_to_h(self, h_groups):
-        h_user = self._context.h_user
-
         if self._request.feature("use_serial_api"):
-            self._h_api.upsert_user(h_user=h_user)
+            # Legacy behavior using individual API calls
+            self._h_api.upsert_user(h_user=self._h_user)
 
             for h_group in h_groups:
                 self._h_api.upsert_group(h_group)
 
             for h_group in h_groups:
-                self._h_api.add_user_to_group(h_user, h_group)
-
+                self._h_api.add_user_to_group(self._h_user, h_group)
         else:
-            self._h_api.bulk_action(
-                commands=self._yield_commands(
-                    h_user=self._context.h_user, h_groups=h_groups
-                )
-            )
+            # Bulk API behavior (default)
+            self._h_api.bulk_action(commands=self._yield_commands(h_groups))
 
-    def _yield_commands(self, h_user, h_groups):
-        yield self._user_upsert(h_user)
+    def _yield_commands(self, h_groups):
+        yield self._user_upsert(self._h_user)
 
         for i, h_group in enumerate(h_groups):
             yield self._group_upsert(h_group, f"group_{i}")
