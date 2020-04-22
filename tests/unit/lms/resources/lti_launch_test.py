@@ -41,63 +41,6 @@ class TestHGroup:
         )
 
 
-class TestHSectionGroupID:
-    @pytest.mark.parametrize(
-        "settings,args,expected_groupid",
-        (
-            (
-                {},
-                {},
-                "group:section-298e68dd4befff42f9a9ff7edffc542b2ba1f782@TEST_AUTHORITY",
-            ),
-            (
-                {},
-                {
-                    "tool_consumer_instance_guid": "DIFFERENT_tool_consumer_instance_guid"
-                },
-                "group:section-e690bef466ef1d42587ae88b6b76f553d5e718e7@TEST_AUTHORITY",
-            ),
-            (
-                {},
-                {"context_id": "DIFFERENT_context_id"},
-                "group:section-1ca5d17b0eab0e02784964c21aca33d99167402f@TEST_AUTHORITY",
-            ),
-            (
-                {},
-                {"section": {"id": "DIFFERENT_section_id"}},
-                "group:section-15348ff2dbeb6e250d029c363007b8357bde7eea@TEST_AUTHORITY",
-            ),
-            (
-                {"h_authority": "DIFFERENT_authority"},
-                {},
-                "group:section-298e68dd4befff42f9a9ff7edffc542b2ba1f782@DIFFERENT_authority",
-            ),
-        ),
-    )
-    def test_it(
-        self, settings, args, expected_groupid, pyramid_request,
-    ):
-        pyramid_request.registry.settings.update(**settings)
-        lti_launch_resource = LTILaunchResource(pyramid_request)
-        args.setdefault("tool_consumer_instance_guid", "tool_consumer_instance_guid")
-        args.setdefault("context_id", "context_id")
-        args.setdefault("section", {"id": "section_id"})
-
-        groupid = lti_launch_resource.h_section_groupid(**args)
-
-        assert groupid == expected_groupid
-
-
-class TestHSectionGroupName:
-    def test_it(self, lti_launch, h_group_name):
-        # A section dict as received from the Canvas API (except this one only
-        # has the keys that we actually use).
-        section = {"name": "test_section_name"}
-
-        assert lti_launch.h_section_group_name(section) == h_group_name.return_value
-        h_group_name.assert_called_once_with("test_section_name")
-
-
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "parsed_params,is_canvas",
@@ -156,6 +99,30 @@ class TestJSConfig:
 
         JSConfig.assert_called_once_with(lti_launch, pyramid_request)
         assert js_config == JSConfig.return_value
+
+
+class TestShouldUseSectionGroups:
+    @pytest.mark.parametrize(
+        "is_canvas,is_feature_flag_enabled,should_use_section_groups",
+        [
+            pytest.param(True, True, True, id="Canvas with feature flag on"),
+            pytest.param(True, False, False, id="Canvas with feature flag off"),
+            pytest.param(False, True, False, id="Non-Canvas with feature flag on",),
+            pytest.param(False, True, False, id="Non-Canvas with feature flag off"),
+        ],
+    )
+    def test_it(
+        self,
+        lti_launch,
+        pyramid_request,
+        is_canvas,
+        is_feature_flag_enabled,
+        should_use_section_groups,
+    ):
+        pyramid_request.feature.return_value = is_feature_flag_enabled
+
+        with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
+            assert lti_launch.should_use_section_groups == should_use_section_groups
 
 
 @pytest.fixture

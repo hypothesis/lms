@@ -66,43 +66,6 @@ class LTILaunchResource:
             authority_provided_id=authority_provided_id,
         )
 
-    def h_section_groupid(self, tool_consumer_instance_guid, context_id, section):
-        """
-        Return a unique h groupid for a given Canvas course section.
-
-        The groupid is deterministic and is unique to the course section.
-        Calling this function again with params representing the same course
-        section will always return the same groupid. Calling this function with
-        different params will always return a different groupid.
-
-        :param tool_consumer_instance_guid: the tool_consumer_instance_guid LTI
-            launch param from the Canvas instance that the section belongs to.
-            This is a unique identifier for the Canvas instance
-        :type tool_consumer_instance_guid: str
-
-        :param context_id: the context_id LTI launch param from the Canvas
-            course that the section belongs to. This is a unique identifier for
-            the course within the Canvas instance
-        :type context_id: str
-
-        :param section: a section dict as received from the Canvas API
-        :type section: dict
-        """
-        hash_object = hashlib.sha1()
-        hash_object.update(tool_consumer_instance_guid.encode())
-        hash_object.update(context_id.encode())
-        hash_object.update(section["id"].encode())
-        return f"group:section-{hash_object.hexdigest()}@{self._authority}"
-
-    @staticmethod
-    def h_section_group_name(section):
-        """
-        Return the h group name for the given Canvas course section.
-
-        :param section: a section dict as received from the Canvas API
-        """
-        return h_group_name(section["name"])
-
     @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
@@ -134,3 +97,11 @@ class LTILaunchResource:
         Canvas.
         """
         return self._request.parsed_params.get("custom_canvas_api_domain")
+
+    @property
+    def should_use_section_groups(self):
+        """Return True if section groups rather than a course group should be used."""
+        if not self.is_canvas:
+            return False
+
+        return self._request.feature("section_groups")
