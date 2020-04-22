@@ -68,7 +68,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
                 self._h_api.add_user_to_group(self._h_user, h_group)
         else:
             # Bulk API behavior (default)
-            self._h_api.bulk_action(commands=self._yield_commands(h_groups))
+            self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
 
     def _yield_commands(self, h_groups):
         yield self._user_upsert(self._h_user)

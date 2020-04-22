@@ -28,7 +28,7 @@ class HAPI:
         self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
         self._base_url = settings["h_api_url_private"]
 
-    def bulk_action(self, commands):
+    def execute_bulk(self, commands):
         """
         Send a series of h_api commands to the H bulk API.
 

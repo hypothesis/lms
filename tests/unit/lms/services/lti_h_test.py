@@ -7,6 +7,7 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.models import GroupInfo, HGroup
 from lms.services import HAPIError
 from lms.services.lti_h import LTIHService
+from tests import factories
 
 
 class TestSync:
@@ -17,12 +18,12 @@ class TestSync:
 
         lti_h_svc.sync(h_groups=[h_group])
 
-        h_api.bulk_action.assert_not_called()
+        h_api.execute_bulk.assert_not_called()
 
     def test_sync_catches_HAPIErrors(
         self, h_api, lti_h_svc, h_group, group_info_service
     ):
-        h_api.bulk_action.side_effect = HAPIError
+        h_api.execute_bulk.side_effect = HAPIError
 
         with pytest.raises(HTTPInternalServerError):
             lti_h_svc.sync(h_groups=[h_group])
@@ -34,7 +35,7 @@ class TestSync:
 
         lti_h_svc.sync(h_groups=groups)
 
-        _, kwargs = h_api.bulk_action.call_args
+        _, kwargs = h_api.execute_bulk.call_args
 
         assert "commands" in kwargs
 
