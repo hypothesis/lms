@@ -23,5 +23,5 @@ def test_groupid():
         ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
     ),
 )
-def test_group_name(name, expected_result):
+def test_h_group_name(name, expected_result):
     assert h_group_name(name) == expected_result

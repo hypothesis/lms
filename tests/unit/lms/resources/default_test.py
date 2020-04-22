@@ -1,3 +1,4 @@
+import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
 from lms.resources import DefaultResource
@@ -43,3 +44,16 @@ class TestDefaultResource:
         resource = DefaultResource(pyramid_request)
 
         assert not pyramid_request.has_permission("canvas_api", resource)
+
+    @pytest.mark.parametrize(
+        "groupid,permission", [("lti_user", True), ("others", False)]
+    )
+    def test_sync_api_permission(
+        self, pyramid_config, pyramid_request, groupid, permission
+    ):
+        pyramid_config.testing_securitypolicy("some_lti_user", groupids=[groupid])
+        pyramid_config.set_authorization_policy(ACLAuthorizationPolicy())
+
+        resource = DefaultResource(pyramid_request)
+
+        assert pyramid_request.has_permission("sync_api", resource) == permission

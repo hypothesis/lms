@@ -9,6 +9,7 @@ class DefaultResource:  # pylint:disable=too-few-public-methods
         (Allow, "report_viewers", "view"),
         (Allow, "lti_user", "canvas_api"),
         (Allow, "lti_user", "lti_outcomes"),
+        (Allow, "lti_user", "sync_api"),
     ]
 
     def __init__(self, request):

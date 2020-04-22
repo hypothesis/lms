@@ -102,11 +102,6 @@ class TestEnableContentItemSelectionMode:
         assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
         assert "courseId" not in js_config.asdict()
 
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params["custom_canvas_course_id"] = "test_course_id"
-        return pyramid_request
-
 
 class TestAddCanvasFileID:
     """Unit tests for JSConfig.add_canvas_file_id()."""
@@ -266,7 +261,6 @@ class TestMaybeEnableGrading:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
-        pyramid_request.params["context_id"] = "test_course_id"
         pyramid_request.params["context_title"] = "test_course_name"
         pyramid_request.params["resource_link_title"] = "test_assignment_name"
         return pyramid_request
@@ -330,6 +324,44 @@ class TestJSConfigAuthToken:
         return config["api"]["authToken"]
 
 
+class TestJSConfigAPISync:
+    """Unit tests for the api.sync sub-dict of JSConfig."""
+
+    @pytest.mark.usefixtures("section_groups_on")
+    def test_it(self, sync):
+        assert sync == {
+            "path": "/api/canvas/sync",
+            "data": {
+                "course": {
+                    "context_id": "test_context_id",
+                    "custom_canvas_course_id": "test_custom_canvas_course_id",
+                },
+                "lms": {
+                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                },
+            },
+        }
+
+    def test_its_None_if_section_groups_isnt_enabled(self, sync):
+        assert sync is None
+
+    @pytest.fixture
+    def sync(self, config):
+        return config["api"]["sync"]
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params.clear()
+        pyramid_request.params.update(
+            {
+                "context_id": "test_context_id",
+                "custom_canvas_course_id": "test_custom_canvas_course_id",
+                "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+            }
+        )
+        return pyramid_request
+
+
 class TestJSConfigDebug:
     """Unit tests for the "debug" sub-dict of JSConfig."""
 
@@ -381,6 +413,10 @@ class TestJSConfigHypothesisClient:
         groups = config["services"][0]["groups"]
 
         assert groups == [context.h_group.groupid.return_value]
+
+    @pytest.mark.usefixtures("section_groups_on")
+    def test_it_configures_the_client_to_fetch_the_groups_over_RPC(self, config):
+        assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
     @pytest.mark.usefixtures("provisioning_disabled")
     def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
@@ -443,15 +479,25 @@ def context():
         instance=True,
         h_group=mock.create_autospec(HGroup, instance=True, spec_set=True),
         is_canvas=True,
+        should_use_section_groups=False,
     )
 
 
 @pytest.fixture
+def section_groups_on(context):
+    context.should_use_section_groups = True
+
+
+@pytest.fixture
 def pyramid_request(pyramid_request):
-    pyramid_request.params["lis_result_sourcedid"] = "example_lis_result_sourcedid"
-    pyramid_request.params[
-        "lis_outcome_service_url"
-    ] = "example_lis_outcome_service_url"
+    pyramid_request.params.update(
+        {
+            "lis_result_sourcedid": "example_lis_result_sourcedid",
+            "lis_outcome_service_url": "example_lis_outcome_service_url",
+            "context_id": "test_course_id",
+            "custom_canvas_course_id": "test_course_id",
+        }
+    )
     return pyramid_request
 
 

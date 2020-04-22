@@ -250,6 +250,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 # The auth token that the JavaScript code will use to
                 # authenticate itself to the API.
                 "authToken": self._auth_token(),
+                "sync": self._sync_api(),
             },
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new Canvas access token.
@@ -363,7 +364,33 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                     "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": self._grant_token(api_url),
-                    "groups": [self._context.h_group.groupid(self._authority)],
+                    "groups": self._groups(),
                 }
             ]
+        }
+
+    def _groups(self):
+        if self._context.should_use_section_groups:
+            return "$rpc:requestGroups"
+        return [self._context.h_group.groupid(self._authority)]
+
+    def _sync_api(self):
+        if not self._context.should_use_section_groups:
+            return None
+
+        req = self._request
+
+        return {
+            "path": req.route_path("canvas_api.sync"),
+            "data": {
+                "lms": {
+                    "tool_consumer_instance_guid": req.params[
+                        "tool_consumer_instance_guid"
+                    ],
+                },
+                "course": {
+                    "context_id": req.params["context_id"],
+                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                },
+            },
         }
