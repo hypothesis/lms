@@ -30,12 +30,7 @@ class TestSync:
         group_info_service.assert_not_called()
 
     def test_sync_calls_bulk_action_correctly(self, h_api, h_user, lti_h_svc):
-        groups = [
-            HGroup(
-                name=f"name_{i}", authority_provided_id="test_authority_provided_id",
-            )
-            for i in range(2)
-        ]
+        groups = factories.HGroup.create_batch(2)
 
         lti_h_svc.sync(h_groups=groups)
 
