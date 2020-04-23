@@ -4,7 +4,7 @@ import hashlib
 
 from pyramid.security import Allow
 
-from lms.models import HGroup
+from lms.models import HGroup, h_group_name
 from lms.resources._js_config import JSConfig
 
 
@@ -62,7 +62,7 @@ class LTILaunchResource:
         authority_provided_id = hash_object.hexdigest()
 
         return HGroup(
-            name=self._group_name(self._request.parsed_params["context_title"].strip()),
+            name=h_group_name(self._request.parsed_params["context_title"]),
             authority_provided_id=authority_provided_id,
         )
 
@@ -94,24 +94,14 @@ class LTILaunchResource:
         hash_object.update(section["id"].encode())
         return f"group:section-{hash_object.hexdigest()}@{self._authority}"
 
-    def h_section_group_name(self, section):
+    @staticmethod
+    def h_section_group_name(section):
         """
         Return the h group name for the given Canvas course section.
 
         :param section: a section dict as received from the Canvas API
         """
-        return self._group_name(section["name"].strip())
-
-    @staticmethod
-    def _group_name(name):
-        """Return an h group name from the given course or section name."""
-        # The maximum length of an h group name.
-        group_name_max_length = 25
-
-        if len(name) > group_name_max_length:
-            name = name[: group_name_max_length - 1].rstrip() + "…"
-
-        return name
+        return h_group_name(section["name"])
 
     @property
     def is_canvas(self):

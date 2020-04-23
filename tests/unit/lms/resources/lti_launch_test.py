@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
 
-from lms.models import HGroup
 from lms.resources import LTILaunchResource
 
 
@@ -27,25 +26,18 @@ class TestACL:
 
 
 class TestHGroup:
-    @pytest.mark.parametrize(
-        "context_title,expected_group_name",
-        (
-            ("Test Course", "Test Course"),
-            (" Test Course ", "Test Course"),
-            ("Test   Course", "Test   Course"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
-        ),
-    )
-    def test_it(self, lti_launch, context_title, expected_group_name, pyramid_request):
+    def test_it(self, lti_launch, pyramid_request, HGroup, h_group_name):
         pyramid_request.parsed_params = {
             "context_id": "test_context_id",
-            "context_title": context_title,
+            "context_title": "test_context_title",
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
 
-        assert lti_launch.h_group == HGroup(
-            expected_group_name, "d55a3c86dd79d390ec8dc6a8096d0943044ea268",
+        assert lti_launch.h_group == HGroup.return_value
+        h_group_name.assert_called_once_with("test_context_title")
+        HGroup.assert_called_once_with(
+            name=h_group_name.return_value,
+            authority_provided_id="d55a3c86dd79d390ec8dc6a8096d0943044ea268",
         )
 
 
@@ -97,22 +89,13 @@ class TestHSectionGroupID:
 
 
 class TestHSectionGroupName:
-    @pytest.mark.parametrize(
-        "section_name,group_name",
-        [
-            ("Test Section", "Test Section"),
-            (" Test Section ", "Test Section"),
-            ("Test   Section", "Test   Section"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
-        ],
-    )
-    def test_it(self, lti_launch, section_name, group_name):
+    def test_it(self, lti_launch, h_group_name):
         # A section dict as received from the Canvas API (except this one only
         # has the keys that we actually use).
-        section = {"name": section_name}
+        section = {"name": "test_section_name"}
 
-        assert lti_launch.h_section_group_name(section) == group_name
+        assert lti_launch.h_section_group_name(section) == h_group_name.return_value
+        h_group_name.assert_called_once_with("test_section_name")
 
 
 class TestIsCanvas:
@@ -178,6 +161,16 @@ class TestJSConfig:
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)
+
+
+@pytest.fixture(autouse=True)
+def h_group_name(patch):
+    return patch("lms.resources.lti_launch.h_group_name")
+
+
+@pytest.fixture(autouse=True)
+def HGroup(patch):
+    return patch("lms.resources.lti_launch.HGroup")
 
 
 @pytest.fixture(autouse=True)
