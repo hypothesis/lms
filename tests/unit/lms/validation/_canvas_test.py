@@ -24,7 +24,7 @@ def canvas_authenticated_users_sections_response_schema():
     response_ = response()
     response_.json.return_value = {
         "sections": [
-            {"id": 101, "name": "section_name_1", "foo": "bar"},
+            {"id": 101, "name": "section_name_1", "unexpected": "ignored"},
             {"id": 102, "name": "section_name_2"},
             {"id": 103, "name": "section_name_3"},
         ]
