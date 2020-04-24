@@ -7,7 +7,7 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { ApiError, apiCall } from '../utils/api';
+import { ApiError, apiCall, sync } from '../utils/api';
 import { Config } from '../config';
 
 import AuthWindow from '../utils/AuthWindow';
@@ -55,6 +55,7 @@ export default function BasicLtiLaunchApp() {
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
       viaCallbackUrl,
+      sync: syncApiConfig,
     },
     grading,
     // Content URL to show in the iframe.
@@ -74,27 +75,35 @@ export default function BasicLtiLaunchApp() {
    * This will typically be a PDF URL proxied through Via.
    */
   const fetchContentUrl = useCallback(async () => {
-    if (!viaCallbackUrl) {
-      // If no "callback" URL was supplied for the frontend to use to fetch
-      // the URL, then the backend must have provided the Via URL in the
-      // initial request, which we'll just use directly.
-      return;
-    }
-
     try {
       setLtiLaunchState({
         ...INITIAL_LTI_LAUNCH_STATE,
         state: 'fetching-url',
       });
-      const { via_url: contentUrl } = await apiCall({
-        authToken,
-        path: viaCallbackUrl,
-      });
-      setLtiLaunchState({
-        ...INITIAL_LTI_LAUNCH_STATE,
-        state: 'fetched-url',
-        contentUrl,
-      });
+
+      if (syncApiConfig !== null) {
+        const groups = await sync(authToken, syncApiConfig);
+        window.resolveGroupsPromise(groups);
+      }
+
+      if (viaCallbackUrl) {
+        const response = await apiCall({
+          authToken,
+          path: viaCallbackUrl,
+        });
+
+        setLtiLaunchState({
+          ...INITIAL_LTI_LAUNCH_STATE,
+          state: 'fetched-url',
+          contentUrl: response.via_url,
+        });
+      } else {
+        setLtiLaunchState({
+          ...INITIAL_LTI_LAUNCH_STATE,
+          state: 'fetched-url',
+          contentUrl: viaUrl,
+        });
+      }
     } catch (e) {
       if (e instanceof ApiError && !e.errorMessage) {
         setLtiLaunchState({
@@ -110,7 +119,7 @@ export default function BasicLtiLaunchApp() {
         });
       }
     }
-  }, [authToken, viaCallbackUrl]);
+  }, [authToken, syncApiConfig, viaUrl, viaCallbackUrl]);
 
   /**
    * Fetch the assignment content URL when the app is initially displayed.

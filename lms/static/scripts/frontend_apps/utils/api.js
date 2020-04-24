@@ -76,6 +76,14 @@ async function listFiles(authToken, courseId) {
   });
 }
 
+async function sync(authToken, config) {
+  return apiCall({
+    authToken,
+    path: config.path,
+    data: config.data,
+  });
+}
+
 // Separate export from declaration to work around
 // https://github.com/robertknight/babel-plugin-mockable-imports/issues/9
-export { apiCall, listFiles };
+export { apiCall, sync, listFiles };

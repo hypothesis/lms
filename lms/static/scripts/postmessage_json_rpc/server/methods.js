@@ -15,27 +15,14 @@ export function requestConfig() {
   return clientConfigObj;
 }
 
+
+var groupsPromise = new Promise(function(resolve, reject) {
+  window.resolveGroupsPromise = resolve;
+});
+
 /**
  * Return the groups for the Hypothesis client to show.
  */
 export async function requestGroups() {
-  const configObj = JSON.parse(
-    document.querySelector('.js-config').textContent
-  );
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  if (configObj.dev === true) {
-    // Artifically sleep to simulate how long this will take when it needs to
-    // send real API requests to get the groups.
-    // The artificial delay is only inserted 50% of the time (at random) so we
-    // don't somehow accidentally end up relying on the slowness.
-    if (Math.random() < 0.5) {
-      await sleep(4000);
-    }
-  }
-
-  return configObj.hypothesisClient.services[0].groups;
+  return await groupsPromise;
 }
