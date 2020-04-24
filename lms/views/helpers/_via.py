@@ -20,9 +20,9 @@ def via_url(request, document_url):
 
     # Default via parameters
     options = {
-        "via.open_sidebar": "1",
-        "via.request_config_from_frame": request.host_url,
-        "via.config_frame_ancestor_level": "2",
+        "via.client.openSidebar": "1",
+        "via.client.requestConfigFromFrame.origin": request.host_url,
+        "via.client.requestConfigFromFrame.ancestorLevel": "2",
     }
 
     if request.feature("use_legacy_via"):

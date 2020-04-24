@@ -8,10 +8,10 @@ from lms.views.helpers import via_url
 
 class TestViaURL:
     DEFAULT_OPTIONS = {
-        "via.open_sidebar": "1",
+        "via.client.openSidebar": "1",
         # This is the `request.host_url`
-        "via.request_config_from_frame": "http://example.com",
-        "via.config_frame_ancestor_level": "2",
+        "via.client.requestConfigFromFrame.origin": "http://example.com",
+        "via.client.requestConfigFromFrame.ancestorLevel": "2",
     }
 
     def test_if_creates_the_correct_via_url(self, pyramid_request):
@@ -36,8 +36,8 @@ class TestViaURL:
                 # its own values.
                 {
                     "extra": "value",
-                    "via.open_sidebar": "IGNORED1",
-                    "via.request_config_from_frame": "IGNORED2",
+                    "via.client.openSidebar": "IGNORED1",
+                    "via.client.requestConfigFromFrame.origin": "IGNORED2",
                 },
                 "extra=value",
             ),
