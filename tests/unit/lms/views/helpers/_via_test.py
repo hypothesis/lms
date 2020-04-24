@@ -53,6 +53,16 @@ class TestViaURL:
         if expected_extras:
             assert final_url == Any.url.containing_query(expected_extras)
 
+    def test_it_redirects_to_via3_view_pdf_directly_for_google_drive(
+        self, pyramid_request
+    ):
+        google_drive_url = "https://drive.google.com/uc?id=<SOME-ID>&export=download"
+        final_url = via_url(pyramid_request, google_drive_url)
+
+        assert final_url == Any.url.matching(
+            "http://test_via3_server.is/pdf"
+        ).containing_query({"url": google_drive_url})
+
     @pytest.mark.usefixtures("legacy_via_feature_flag")
     @pytest.mark.parametrize(
         "url", ("http://doc.example.com", "https://doc.example.com",)
