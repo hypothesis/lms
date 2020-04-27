@@ -48,7 +48,9 @@ class TestViaURL:
         FilesAPIViews(pyramid_request).via_url()
 
         helpers.via_url.assert_called_once_with(
-            pyramid_request, canvas_api_client.public_url.return_value
+            pyramid_request,
+            canvas_api_client.public_url.return_value,
+            content_type="pdf",
         )
 
     # CanvasAPIError's are caught and handled by an exception view, so the

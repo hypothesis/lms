@@ -31,5 +31,9 @@ class FilesAPIViews:
         public_url = self.canvas_api_client.public_url(
             self.request.matchdict["file_id"]
         )
-        via_url = helpers.via_url(self.request, public_url)
+
+        # Currently we only let users pick PDF files, so we can save a little
+        # time by specifying this, instead of Via having to work it out
+        via_url = helpers.via_url(self.request, public_url, content_type="pdf")
+
         return {"via_url": via_url}
