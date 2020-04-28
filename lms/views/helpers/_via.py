@@ -47,8 +47,6 @@ class _ViaClient:
         self.legacy_mode = legacy_mode
 
     def url_for(self, doc):
-        assert isinstance(doc, _ViaDoc), "Provided doc is a ViaDoc"
-
         if self.legacy_mode or doc.is_html:
             return self._legacy_via_url(doc.url)
 
