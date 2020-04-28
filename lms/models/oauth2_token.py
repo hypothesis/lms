@@ -8,7 +8,7 @@ from lms.db import BASE
 __all__ = ["OAuth2Token"]
 
 
-class OAuth2Token(BASE):
+class OAuth2Token(BASE):  # pylint:disable=too-few-public-methods
     """
     An OAuth 2.0 access token, refresh token and expiry time.
 
@@ -69,19 +69,3 @@ class OAuth2Token(BASE):
         server_default=sa.func.now(),
         nullable=False,
     )
-
-    def __str__(self):
-        return (
-            f"<OAuth2Token user_id:'{self.user_id}' consumer_key:'{self.consumer_key}'>"
-        )
-
-    def __repr__(self):
-        return (
-            "<lms.models.OAuth2Token"
-            f" user_id:'{self.user_id}'"
-            f" consumer_key:'{self.consumer_key}'"
-            f" access_token:'{self.access_token}'"
-            f" refresh_token:'{self.refresh_token}'"
-            f" expires_in:{self.expires_in}'"
-            f" received_at:'{self.received_at}'>"
-        )

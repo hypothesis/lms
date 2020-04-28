@@ -105,28 +105,6 @@ class TestOAuth2Token:
 
         assert isinstance(token.received_at, datetime.datetime)
 
-    def test___str__(self, init_kwargs):
-        token = OAuth2Token(**init_kwargs)
-
-        assert (
-            str(token)
-            == "<OAuth2Token user_id:'test_user_id' consumer_key:'test_consumer_key'>"
-        )
-
-    def test___repr__(self, init_kwargs):
-        now = datetime.datetime(
-            year=2019, month=5, day=15, hour=11, minute=11, second=9
-        )
-        init_kwargs["refresh_token"] = "test_refresh_token"
-        init_kwargs["expires_in"] = 3600
-        init_kwargs["received_at"] = now
-        token = OAuth2Token(**init_kwargs)
-
-        assert (
-            repr(token)
-            == "<lms.models.OAuth2Token user_id:'test_user_id' consumer_key:'test_consumer_key' access_token:'test_access_token' refresh_token:'test_refresh_token' expires_in:3600' received_at:'2019-05-15 11:11:09'>"
-        )
-
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session):
         """Return the ApplicationInstance that the test OAuth2Token's belong to."""
