@@ -5,7 +5,7 @@ from lms.db import BASE
 __all__ = ["GroupInfo"]
 
 
-class GroupInfo(BASE):
+class GroupInfo(BASE):  # pylint:disable=too-few-public-methods
     """
     Some info about an LMS group that was created in h.
 
@@ -78,13 +78,3 @@ class GroupInfo(BASE):
 
     #: The value of the custom_canvas_course_id param this group was last launched with.
     custom_canvas_course_id = sa.Column(sa.UnicodeText())
-
-    def __str__(self):
-        return self.__repr__(_class_name="GroupInfo")
-
-    def __repr__(self, _class_name="lms.models.GroupInfo"):
-        return (
-            f"<{_class_name}"
-            f" authority_provided_id:'{self.authority_provided_id}'"
-            f" consumer_key:'{self.consumer_key}'>"
-        )

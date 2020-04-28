@@ -43,22 +43,6 @@ class TestGroupInfo:
         ):
             db_session.flush()
 
-    def test___str__(self, db_session, group_info):
-        db_session.add(group_info)
-        db_session.flush()
-        assert (
-            str(group_info)
-            == "<GroupInfo authority_provided_id:'test_authority_provided_id' consumer_key:'test_consumer_key'>"
-        )
-
-    def test___repr__(self, db_session, group_info):
-        db_session.add(group_info)
-        db_session.flush()
-        assert (
-            repr(group_info)
-            == "<lms.models.GroupInfo authority_provided_id:'test_authority_provided_id' consumer_key:'test_consumer_key'>"
-        )
-
     @pytest.fixture(autouse=True)
     def application_instance(self):
         """Return the ApplicationInstance that the test GroupInfo belongs to."""
