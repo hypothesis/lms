@@ -63,9 +63,18 @@ class TestViaURL:
             "http://test_via3_server.is/pdf"
         ).containing_query({"url": google_drive_url})
 
+    def test_it_redirects_to_via3_view_pdf_directly_if_content_type_is_pdf(
+        self, pyramid_request
+    ):
+        final_url = via_url(pyramid_request, "any url", content_type="pdf")
+
+        assert (
+            final_url == Any.url.matching("http://test_via3_server.is/pdf").with_query()
+        )
+
     @pytest.mark.usefixtures("legacy_via_feature_flag")
     @pytest.mark.parametrize(
-        "url", ("http://doc.example.com", "https://doc.example.com",)
+        "url", ("http://doc.example.com", "https://doc.example.com")
     )
     def test_it_passes_through_the_url(self, pyramid_request, url):
         final_url = via_url(pyramid_request, url)

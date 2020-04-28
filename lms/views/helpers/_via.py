@@ -75,7 +75,7 @@ class _ViaClient:
         )
 
 
-def via_url(request, document_url):
+def via_url(request, document_url, content_type=None):
     """
     Return the Via URL for annotating the given ``document_url``.
 
@@ -86,12 +86,15 @@ def via_url(request, document_url):
 
     :param request: Request object
     :param document_url: Document URL to present in Via
+    :param content_type: Either "pdf" or "html" if known, None if not
     :return: A URL string
     """
+
+    doc = _ViaDoc(document_url, content_type)
 
     return _ViaClient(
         service_url=request.registry.settings["via_url"],
         legacy_service_url=request.registry.settings["legacy_via_url"],
         host_url=request.host_url,
         legacy_mode=request.feature("use_legacy_via"),
-    ).url_for(_ViaDoc(document_url))
+    ).url_for(doc)
