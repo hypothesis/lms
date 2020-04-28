@@ -1,3 +1,5 @@
+import { apiCall } from '../../frontend_apps/utils/api';
+
 /**
  * Methods that're remotely callable by JSON-RPC over postMessage.
  *
@@ -16,26 +18,18 @@ export function requestConfig() {
 }
 
 /**
- * Return the groups for the Hypothesis client to show.
+ * In the case where groups are not available at load time, the groups must
+ * be fetched asynchronously using the api values found in the js-config
+ * object. In this case, call the remote endpoint and return the groups for
+ * the Hypothesis client.
  */
 export async function requestGroups() {
   const configObj = JSON.parse(
     document.querySelector('.js-config').textContent
   );
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  if (configObj.dev === true) {
-    // Artifically sleep to simulate how long this will take when it needs to
-    // send real API requests to get the groups.
-    // The artificial delay is only inserted 50% of the time (at random) so we
-    // don't somehow accidentally end up relying on the slowness.
-    if (Math.random() < 0.5) {
-      await sleep(4000);
-    }
-  }
-
-  return configObj.hypothesisClient.services[0].groups;
+  return apiCall({
+    authToken: configObj.api.authToken,
+    path: configObj.api.sync.path,
+    data: configObj.api.sync.data,
+  });
 }
