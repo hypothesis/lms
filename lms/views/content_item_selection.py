@@ -48,7 +48,7 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
-    request.find_service(name="lti_h").sync([context.h_group])
+    request.find_service(name="lti_h").sync([context.h_group], request.params)
 
     context.js_config.enable_content_item_selection_mode(
         form_action=request.params["content_item_return_url"],

@@ -18,6 +18,7 @@ def sync(request):
 
     context_id = request.json["course"]["context_id"]
     custom_canvas_course_id = request.json["course"]["custom_canvas_course_id"]
+    group_info = request.json["group_info"]
     tool_consumer_instance_guid = request.json["lms"]["tool_consumer_instance_guid"]
 
     if request.lti_user.is_learner:
@@ -41,6 +42,6 @@ def sync(request):
 
     groups = [group(section) for section in sections]
 
-    lti_h_svc.sync(groups)
+    lti_h_svc.sync(groups, group_info)
 
     return [group.groupid(authority) for group in groups]

@@ -28,15 +28,18 @@ class LTIHService:  # pylint:disable=too-few-public-methods
         self._h_api = request.find_service(name="h_api")
         self._group_info_service = request.find_service(name="group_info")
 
-    def sync(self, h_groups):
+    def sync(self, h_groups, group_info_params):
         """
-        Sync standard data to H for an LTI launch with the provided groups.
+        Sync standard data to h for an LTI launch with the provided groups.
 
         This will upsert the provided list of groups, the current user and
         make that user a member of each group.
 
-        :param h_groups: A list of models.HGroup objects.
-        :raises HTTPInternalServerError: If we cannot sync to H for any reason
+        :param h_groups: the list of models.HGroup objects to upsert
+        :param group_info_params: the params to record for these groups in
+            models.GroupInfo
+
+        :raise HTTPInternalServerError: if we can't sync to h for any reason
         """
 
         if not self._ai_getter.provisioning_enabled():
@@ -53,7 +56,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
             self._group_info_service.upsert(
                 authority_provided_id=h_group.authority_provided_id,
                 consumer_key=self._lti_user.oauth_consumer_key,
-                params=self._request.params,
+                params=group_info_params,
             )
 
     def _yield_commands(self, h_groups):
