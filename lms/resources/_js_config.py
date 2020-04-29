@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import jwt
 
-from lms.models import HUser
+from lms.models import GroupInfo, HUser
 from lms.services import ConsumerKeyError, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
@@ -391,6 +391,11 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "course": {
                     "context_id": req.params["context_id"],
                     "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                },
+                "group_info": {
+                    key: value
+                    for key, value in req.params.items()
+                    if key in GroupInfo.columns()
                 },
             },
         }

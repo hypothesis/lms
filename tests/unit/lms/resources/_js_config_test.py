@@ -328,7 +328,7 @@ class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
     @pytest.mark.usefixtures("section_groups_on")
-    def test_it(self, sync):
+    def test_it(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "path": "/api/canvas/sync",
             "data": {
@@ -338,6 +338,11 @@ class TestJSConfigAPISync:
                 },
                 "lms": {
                     "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                },
+                "group_info": {
+                    key: value
+                    for key, value in pyramid_request.params.items()
+                    if key in GroupInfo.columns.return_value
                 },
             },
         }
@@ -357,6 +362,7 @@ class TestJSConfigAPISync:
                 "context_id": "test_context_id",
                 "custom_canvas_course_id": "test_custom_canvas_course_id",
                 "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+                "foo": "bar",  # This item should be missing from group_info.
             }
         )
         return pyramid_request
@@ -509,3 +515,10 @@ def provisioning_disabled(ai_getter):
 @pytest.fixture(autouse=True)
 def via_url(patch):
     return patch("lms.resources._js_config.via_url")
+
+
+@pytest.fixture(autouse=True)
+def GroupInfo(patch):
+    group_info_class = patch("lms.resources._js_config.GroupInfo")
+    group_info_class.columns.return_value = ["context_id", "custom_canvas_course_id"]
+    return group_info_class

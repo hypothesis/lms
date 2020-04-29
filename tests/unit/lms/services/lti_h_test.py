@@ -1,10 +1,10 @@
-from unittest.mock import create_autospec
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_api.bulk_api import CommandBuilder
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.models import GroupInfo, HGroup
+from lms.models import HGroup
 from lms.services import HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
@@ -16,7 +16,7 @@ class TestSync:
     ):
         ai_getter.provisioning_enabled.return_value = False
 
-        lti_h_svc.sync(h_groups=[h_group])
+        lti_h_svc.sync([h_group], sentinel.params)
 
         h_api.execute_bulk.assert_not_called()
 
@@ -26,14 +26,14 @@ class TestSync:
         h_api.execute_bulk.side_effect = HAPIError
 
         with pytest.raises(HTTPInternalServerError):
-            lti_h_svc.sync(h_groups=[h_group])
+            lti_h_svc.sync([h_group], sentinel.params)
 
         group_info_service.assert_not_called()
 
     def test_sync_calls_bulk_action_correctly(self, h_api, h_user, lti_h_svc):
         groups = factories.HGroup.create_batch(2)
 
-        lti_h_svc.sync(h_groups=groups)
+        lti_h_svc.sync(groups, sentinel.params)
 
         _, kwargs = h_api.execute_bulk.call_args
 
@@ -73,25 +73,18 @@ class TestSync:
 
 class TestGroupInfoUpdating:
     def test_sync_upserts_the_GroupInfo_into_the_db(
-        self, params, group_info_service, lti_h_svc, pyramid_request, h_group
+        self, group_info_service, lti_h_svc, pyramid_request, h_group
     ):
-        lti_h_svc.sync([h_group])
+        lti_h_svc.sync([h_group], sentinel.params)
 
         group_info_service.upsert.assert_called_once_with(
             authority_provided_id=h_group.authority_provided_id,
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            params=params,
+            params=sentinel.params,
         )
 
     @pytest.fixture
-    def params(self):
-        return {
-            field.key: f"TEST_{field.key.upper()}" for field in GroupInfo.iter_columns()
-        }
-
-    @pytest.fixture
-    def pyramid_request(self, params, pyramid_request):
-        pyramid_request.params = params
+    def pyramid_request(self, pyramid_request):
         return pyramid_request
 
 

@@ -57,7 +57,7 @@ def test_sync_when_the_user_isnt_a_learner(
 def assert_that_it_called_sync_and_returned_the_groupids(
     lti_h_service, returned_groupids, expected_groups
 ):
-    lti_h_service.sync.assert_called_once_with(expected_groups)
+    lti_h_service.sync.assert_called_once_with(expected_groups, {"foo": "bar"})
     assert returned_groupids == [
         f"group:{group.authority_provided_id}@TEST_AUTHORITY"
         for group in expected_groups
@@ -90,6 +90,7 @@ def pyramid_request(pyramid_request):
             "context_id": "test_context_id",
             "custom_canvas_course_id": "test_custom_canvas_course_id",
         },
-        "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid",},
+        "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
+        "group_info": {"foo": "bar"},
     }
     return pyramid_request
