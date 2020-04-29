@@ -48,7 +48,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
 
-        # Keep a note of the groups locally for reporting purposes
+        # Keep a note of the groups locally for reporting purposes.
         for h_group in h_groups:
             self._group_info_service.upsert(
                 authority_provided_id=h_group.authority_provided_id,
