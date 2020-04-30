@@ -68,6 +68,39 @@ class TestGroupInfoUpsert:
         assert group_info.authority_provided_id == self.AUTHORITY
         assert group_info.id != "IGNORE ME 1"
 
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_records_instructors_with_group_info(
+        self, db_session, group_info_svc, pyramid_request
+    ):
+        group_info_svc.upsert(
+            authority_provided_id=self.AUTHORITY,
+            consumer_key=self.CONSUMER_KEY,
+            params={},
+        )
+
+        group_info = self.get_inserted_group_info(db_session)
+
+        assert len(group_info.instructors) == 1
+        assert (
+            group_info.instructors[0]["username"]
+            == pyramid_request.lti_user.h_user.username
+        )
+        assert group_info.instructors[0]["email"] == "test_email"
+
+    @pytest.mark.usefixtures("user_is_learner")
+    def test_it_doesnt_record_learners_with_group_info(
+        self, db_session, group_info_svc
+    ):
+        group_info_svc.upsert(
+            authority_provided_id=self.AUTHORITY,
+            consumer_key=self.CONSUMER_KEY,
+            params={},
+        )
+
+        group_info = self.get_inserted_group_info(db_session)
+
+        assert group_info.instructors == []
+
     def get_inserted_group_info(self, db_session):
         return (
             db_session.query(GroupInfo)
@@ -125,3 +158,8 @@ class TestGroupInfoUpsert:
         ]
         pyramid_request.db.add_all(group_infos)
         return group_infos
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(email="test_email")
+        return pyramid_request

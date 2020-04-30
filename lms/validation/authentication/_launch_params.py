@@ -34,6 +34,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
     lis_person_name_given = marshmallow.fields.Str(missing="")
     lis_person_name_family = marshmallow.fields.Str(missing="")
     lis_person_name_full = marshmallow.fields.Str(missing="")
+    lis_person_contact_email_primary = marshmallow.fields.Str(missing="")
 
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     oauth_nonce = marshmallow.fields.Str(required=True)
@@ -66,6 +67,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
                 kwargs["lis_person_name_family"],
                 kwargs["lis_person_name_full"],
             ),
+            email=kwargs["lis_person_contact_email_primary"],
         )
 
     @marshmallow.validates_schema

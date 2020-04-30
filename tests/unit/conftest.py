@@ -69,6 +69,11 @@ def user_is_learner(pyramid_request):
     pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
 
 
+@pytest.fixture
+def user_is_instructor(pyramid_request):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+
+
 def configure_jinja2_assets(config):
     jinja2_env = config.get_jinja2_environment()
     jinja2_env.globals["asset_url"] = "http://example.com"

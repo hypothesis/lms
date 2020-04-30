@@ -21,6 +21,9 @@ class LTIUser(NamedTuple):
     display_name: str
     """The user's display name."""
 
+    email: str = ""
+    """The user's email address."""
+
     @property
     def h_user(self):
         """Return a models.HUser generated from this LTIUser."""
