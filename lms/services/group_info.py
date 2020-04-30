@@ -17,6 +17,7 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
 
     def __init__(self, _context, request):
         self._db = request.db
+        self._lti_user = request.lti_user
 
     def upsert(self, authority_provided_id, consumer_key, params):
         """
@@ -52,4 +53,9 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
             self._db.add(group_info)
 
         group_info.consumer_key = consumer_key
-        group_info.update_from_dict(params, skip_keys={"authority_provided_id", "id"})
+        group_info.update_from_dict(
+            params, skip_keys={"authority_provided_id", "id", "info"}
+        )
+
+        if self._lti_user.is_instructor:
+            group_info.upsert_instructor(self._lti_user.h_user._asdict())

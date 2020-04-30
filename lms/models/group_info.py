@@ -1,4 +1,6 @@
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 
@@ -78,3 +80,36 @@ class GroupInfo(BASE):  # pylint:disable=too-few-public-methods
 
     #: The value of the custom_canvas_course_id param this group was last launched with.
     custom_canvas_course_id = sa.Column(sa.UnicodeText())
+
+    #: A dict of info about this group.
+    info = sa.Column(MutableDict.as_mutable(JSONB))
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("info", {})
+        kwargs["info"].setdefault("instructors", [])
+        super().__init__(*args, **kwargs)
+
+    @property
+    def instructors(self):
+        return self.info["instructors"]
+
+    @instructors.setter
+    def instructors(self, new_instructors):
+        self.info["instructors"] = new_instructors
+
+    def upsert_instructor(self, new_instructor):
+        updated_instructors = []
+        found = False
+
+        for existing_instructor in self.instructors:
+            if existing_instructor["username"] == new_instructor["username"]:
+                updated_instructors.append(new_instructor)
+                found = True
+            else:
+                updated_instructors.append(existing_instructor)
+
+        if not found:
+            updated_instructors.append(new_instructor)
+
+        if updated_instructors != self.instructors:
+            self.instructors = updated_instructors
