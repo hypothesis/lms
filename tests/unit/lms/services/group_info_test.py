@@ -118,7 +118,7 @@ class TestGroupInfoUpsert:
         return {
             field.key: f"TEST_{field.key.upper()}"
             for field in GroupInfo.iter_columns()
-            if field.key not in ["info"]
+            if field.key != "info"
         }
 
     @pytest.fixture

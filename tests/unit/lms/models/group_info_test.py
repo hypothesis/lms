@@ -1,3 +1,4 @@
+import factory
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -47,35 +48,28 @@ class TestGroupInfo:
     def test_instructors_defaults_to_an_empty_list(self):
         assert GroupInfo().instructors == []
 
-    def test_upsert_instructor_when_no_existing_instructors(self):
-        group_info = GroupInfo()
+    def test_upsert_instructor_when_no_existing_instructors(self, group_info):
         instructor = factories.HUser()._asdict()
 
         group_info.upsert_instructor(instructor)
 
         assert group_info.instructors == [instructor]
 
-    def test_upsert_instructor_when_existing_instructors(self):
-        group_info = GroupInfo()
-        existing_instructors = group_info.instructors = [
-            factories.HUser()._asdict(),
-            factories.HUser()._asdict(),
-            factories.HUser()._asdict(),
-        ]
+    def test_upsert_instructor_when_existing_instructors(
+        self, group_info, existing_instructors
+    ):
         new_instructor = factories.HUser(username="new_instructor")._asdict()
 
         group_info.upsert_instructor(new_instructor)
 
         assert group_info.instructors == existing_instructors + [new_instructor]
 
-    def test_upsert_instructor_when_existing_matching_instructor(self):
-        group_info = GroupInfo()
-        updated_instructor = factories.HUser()._asdict()
-        existing_instructors = group_info.instructors = [
-            factories.HUser()._asdict(),
-            factories.HUser(username=updated_instructor["username"])._asdict(),
-            factories.HUser()._asdict(),
-        ]
+    def test_upsert_instructor_when_existing_matching_instructor(
+        self, group_info, existing_instructors
+    ):
+        updated_instructor = factories.HUser(
+            username=group_info.instructors[1]["username"], display_name="updated",
+        )._asdict()
 
         group_info.upsert_instructor(updated_instructor)
 
@@ -85,17 +79,19 @@ class TestGroupInfo:
             existing_instructors[2],
         ]
 
-    def test_upsert_instructor_when_existing_equal_instructor(self):
-        group_info = GroupInfo()
-        existing_instructors = group_info.instructors = [
-            factories.HUser()._asdict(),
-            factories.HUser()._asdict(),
-            factories.HUser()._asdict(),
-        ]
-
+    def test_upsert_instructor_when_existing_equal_instructor(
+        self, group_info, existing_instructors
+    ):
         group_info.upsert_instructor(existing_instructors[1])
 
         assert group_info.instructors == existing_instructors
+
+    @pytest.fixture
+    def existing_instructors(self, group_info):
+        group_info.instructors = factory.build_batch(
+            dict, 3, FACTORY_CLASS=factories.HUser
+        )
+        return group_info.instructors
 
     @pytest.fixture(autouse=True)
     def application_instance(self):
