@@ -58,4 +58,6 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
         )
 
         if self._lti_user.is_instructor:
-            group_info.upsert_instructor(self._lti_user.h_user._asdict())
+            group_info.upsert_instructor(
+                dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
+            )
