@@ -95,8 +95,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   };
 
   // Helper to handle error events from api requests
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleError = useCallback(async (e, errorState) => {
+  const handleError = async (e, errorState) => {
     setFetched();
     if (e instanceof ApiError && !e.errorMessage) {
       setErrorState('error-authorizing');
@@ -104,7 +103,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       setErrorMessage(e.errorMessage);
       setErrorState(errorState);
     }
-  });
+  };
 
   /**
    * Fetch the groups from the sync endpoint
