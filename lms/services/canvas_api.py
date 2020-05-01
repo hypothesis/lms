@@ -349,10 +349,11 @@ class CanvasAPIClient:
             return self._validated_response(request, schema)
 
         except CanvasAPIAccessTokenError:
-            new_access_token = self._get_refreshed_token(
-                self._oauth2_token.refresh_token
-            )
+            refresh_token = self._oauth2_token.refresh_token
+            if not refresh_token:
+                raise
 
+            new_access_token = self._get_refreshed_token(refresh_token)
             request.headers["Authorization"] = f"Bearer {new_access_token}"
 
             return self._validated_response(request, schema)

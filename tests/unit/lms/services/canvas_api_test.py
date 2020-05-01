@@ -442,6 +442,23 @@ class TestMakeAuthenticatedRequest:
             ]
         )
 
+    @pytest.mark.usefixtures("access_token_no_refresh")
+    def test_it_raises_CanvasAPIAccessTokenError_if_refresh_token_is_None(
+        self, api_client
+    ):
+        api_client._validated_response.side_effect = CanvasAPIAccessTokenError()
+
+        with pytest.raises(CanvasAPIAccessTokenError):
+            api_client._make_authenticated_request(
+                method="method", path="path", schema=sentinel.schema
+            )
+
+    @pytest.fixture
+    def access_token_no_refresh(self, db_session, access_token_fields):
+        access_token = OAuth2Token(**dict(access_token_fields, refresh_token=None))
+        db_session.add(access_token)
+        return access_token
+
     @pytest.fixture
     def api_client(self, api_client):
         with mock.patch.object(api_client, "_get_refreshed_token"):
@@ -478,13 +495,18 @@ def application_instance(db_session, pyramid_request):
 
 
 @pytest.fixture
-def access_token(db_session, pyramid_request):
-    access_token = OAuth2Token(
-        user_id=pyramid_request.lti_user.user_id,
-        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-        access_token="existing_access_token",
-        refresh_token="existing_refresh_token",
-        expires_in=9999,
-    )
+def access_token_fields(pyramid_request):
+    return {
+        "user_id": pyramid_request.lti_user.user_id,
+        "consumer_key": pyramid_request.lti_user.oauth_consumer_key,
+        "access_token": "existing_access_token",
+        "refresh_token": "existing_refresh_token",
+        "expires_in": 9999,
+    }
+
+
+@pytest.fixture
+def access_token(db_session, access_token_fields):
+    access_token = OAuth2Token(**access_token_fields)
     db_session.add(access_token)
     return access_token
