@@ -10,8 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services.exceptions import CanvasAPIError
-from lms.validation import ValidationError
-from lms.validation._base import RequestsResponseSchema
+from lms.validation import RequestsResponseSchema, ValidationError
 
 __all__ = ["CanvasAPIClient"]
 
@@ -79,7 +78,7 @@ class CanvasAPIClient:
             parsed_params.get("expires_in"),
         )
 
-    def get_refreshed_token(self, refresh_token):
+    def _get_refreshed_token(self, refresh_token):
         parsed_params = self._validated_response(
             requests.Request(
                 "POST",
@@ -350,7 +349,7 @@ class CanvasAPIClient:
             return self._validated_response(request, schema)
 
         except CanvasAPIAccessTokenError:
-            new_access_token = self.get_refreshed_token(
+            new_access_token = self._get_refreshed_token(
                 self._oauth2_token.refresh_token
             )
 
@@ -367,7 +366,7 @@ class CanvasAPIClient:
         params will be available on the returned response object as
         `response.parsed_params` (a dict).
 
-        :param request: a prepared request to some Canvas API endoint
+        :param request: a prepared request to some Canvas API endpoint
         :param schema: The schema class to validate the contents of the response
             with.
 
