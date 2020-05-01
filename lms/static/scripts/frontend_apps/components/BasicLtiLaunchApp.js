@@ -48,7 +48,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   } = useContext(Config);
 
   // The current state of the error.
-  // One "error-fetched-url", "error-fetched-groups", "error-authorizing"
+  // One "error-fetch", "error-authorizing"
   const [errorState, setErrorState] = useState(null);
 
   // Any current error message to render to a dialog
@@ -125,7 +125,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         rpcServer.resolveGroupFetch(groups);
         setFetched();
       } catch (e) {
-        handleError(e, 'error-fetch-groups');
+        handleError(e, 'error-fetch');
       }
     }
   };
@@ -157,7 +157,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       setFetched();
       setContentUrl(contentUrl);
     } catch (e) {
-      handleError(e, 'error-fetch-url');
+      handleError(e, 'error-fetch');
     }
   };
 
@@ -274,8 +274,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
             </p>
           </Dialog>
         )}
-        {(errorState === 'error-fetch-url' ||
-          errorState === 'error-fetch-groups') && (
+        {errorState === 'error-fetch' && (
           <Dialog
             title="Something went wrong"
             contentClass="BasicLtiLaunchApp__dialog"
