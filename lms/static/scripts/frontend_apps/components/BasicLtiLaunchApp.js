@@ -200,7 +200,8 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       // submission.
       handleError(e, 'error-report-submission');
     }
-  }, [authToken, canvas.speedGrader, contentUrl, handleError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, canvas.speedGrader, contentUrl]);
 
   useEffect(reportSubmission, [reportSubmission]);
 
