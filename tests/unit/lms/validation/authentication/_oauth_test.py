@@ -1,7 +1,4 @@
-from unittest import mock
-
 import pytest
-import requests
 from pyramid import testing
 
 from lms.validation import ValidationError
@@ -12,11 +9,7 @@ from lms.validation.authentication import (
     InvalidStateParamError,
     MissingStateParamError,
 )
-from lms.validation.authentication._oauth import (
-    CanvasAccessTokenResponseSchema,
-    CanvasOAuthCallbackSchema,
-    CanvasRefreshTokenResponseSchema,
-)
+from lms.validation.authentication._oauth import CanvasOAuthCallbackSchema
 from tests import factories
 
 
@@ -166,79 +159,6 @@ class TestCanvasOauthCallbackSchema:
         with testing.testConfig(request=pyramid_request, settings=settings) as config:
             config.include("pyramid_services")
             yield config
-
-
-class TestCanvasAccessTokenResponseSchema:
-    def test_it_returns_the_valid_parsed_params(self, schema):
-        parsed_params = schema.parse()
-
-        assert parsed_params == {
-            "access_token": "TEST_ACCESS_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "expires_in": 3600,
-        }
-
-    def test_access_token_is_required(self, schema, response):
-        del response.json.return_value["access_token"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.parse()
-
-        assert exc_info.value.messages == {
-            "access_token": ["Missing data for required field."]
-        }
-
-    def test_refresh_token_is_optional(self, schema, response):
-        del response.json.return_value["refresh_token"]
-
-        parsed_params = schema.parse()
-
-        assert parsed_params == {
-            "access_token": "TEST_ACCESS_TOKEN",
-            "expires_in": 3600,
-        }
-
-    def test_expires_in_is_optional(self, schema, response):
-        del response.json.return_value["expires_in"]
-
-        parsed_params = schema.parse()
-
-        assert parsed_params == {
-            "access_token": "TEST_ACCESS_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-        }
-
-    @pytest.mark.parametrize("invalid_expires_in_value", ["foo", -16, False, None])
-    def test_expires_in_must_be_an_int_greater_than_0(
-        self, invalid_expires_in_value, schema, response
-    ):
-        response.json.return_value["expires_in"] = invalid_expires_in_value
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.parse()
-
-        assert list(exc_info.value.messages.keys()) == ["expires_in"]
-
-    @pytest.fixture
-    def response(self):
-        """Return the ``requests`` library response that's being validated."""
-        response = mock.create_autospec(requests.Response, instance=True, spec_set=True)
-        response.json.return_value = {
-            "access_token": "TEST_ACCESS_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "expires_in": 3600,
-        }
-        return response
-
-    @pytest.fixture
-    def schema(self, response):
-        return CanvasAccessTokenResponseSchema(response)
-
-
-class TestCanvasRefreshTokenResponseSchema(TestCanvasAccessTokenResponseSchema):
-    @pytest.fixture
-    def schema(self, response):
-        return CanvasRefreshTokenResponseSchema(response)
 
 
 @pytest.fixture(autouse=True)

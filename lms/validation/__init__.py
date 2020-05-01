@@ -53,13 +53,6 @@ from lms.validation._base import (
     PyramidRequestSchema,
     RequestsResponseSchema,
 )
-from lms.validation._canvas import (
-    CanvasAuthenticatedUsersSectionsResponseSchema,
-    CanvasCourseSectionsResponseSchema,
-    CanvasListFilesResponseSchema,
-    CanvasPublicURLResponseSchema,
-    CanvasUsersSectionsResponseSchema,
-)
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
 from lms.validation._lti_launch_params import (
     BasicLTILaunchSchema,

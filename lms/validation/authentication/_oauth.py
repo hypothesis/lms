@@ -5,7 +5,7 @@ import marshmallow
 from webargs import fields
 
 from lms.models import LTIUser
-from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
+from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredStateParamError,
@@ -14,12 +14,6 @@ from lms.validation.authentication._exceptions import (
     MissingStateParamError,
 )
 from lms.validation.authentication._helpers import _jwt
-
-__all__ = [
-    "CanvasOAuthCallbackSchema",
-    "CanvasAccessTokenResponseSchema",
-    "CanvasRefreshTokenResponseSchema",
-]
 
 
 class CanvasOAuthCallbackSchema(PyramidRequestSchema):
@@ -138,20 +132,3 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
             raise ExpiredStateParamError() from err
         except InvalidJWTError as err:
             raise InvalidStateParamError() from err
-
-
-class CanvasAccessTokenResponseSchema(RequestsResponseSchema):
-    """Schema for validating OAuth 2 access token responses from Canvas."""
-
-    access_token = fields.Str(required=True)
-    refresh_token = fields.Str()
-    expires_in = fields.Integer()
-
-    @marshmallow.validates("expires_in")
-    def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if expires_in <= 0:
-            raise marshmallow.ValidationError("expires_in must be greater than 0")
-
-
-class CanvasRefreshTokenResponseSchema(CanvasAccessTokenResponseSchema):
-    """Schema for validating OAuth 2 refresh token responses from Canvas."""

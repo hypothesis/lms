@@ -1,27 +1,35 @@
 import datetime
 from urllib.parse import urlencode, urlparse
 
+import marshmallow
 import requests
-from requests import RequestException
+from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
+from requests import RequestException, Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services.exceptions import CanvasAPIError
-from lms.validation import (
-    CanvasAuthenticatedUsersSectionsResponseSchema,
-    CanvasCourseSectionsResponseSchema,
-    CanvasListFilesResponseSchema,
-    CanvasPublicURLResponseSchema,
-    CanvasUsersSectionsResponseSchema,
-    ValidationError,
-)
-from lms.validation.authentication import (
-    CanvasAccessTokenResponseSchema,
-    CanvasRefreshTokenResponseSchema,
-)
+from lms.validation import ValidationError
+from lms.validation._base import RequestsResponseSchema
 
 __all__ = ["CanvasAPIClient"]
+
+
+class _SectionSchema(Schema):
+    """
+    Schema for an individual course section dict.
+
+    These course section dicts appear in various different Canvas API responses.
+    This _SectionSchema class is used as a base class or nested schema by
+    various schemas below for Canvas API responses that contain section dicts.
+    """
+
+    class Meta:  # pylint:disable=too-few-public-methods
+        unknown = EXCLUDE
+
+    id = fields.Int(required=True)
+    name = fields.String(required=True)
 
 
 class CanvasAPIClient:
@@ -62,7 +70,7 @@ class CanvasAPIClient:
                     "replace_tokens": True,
                 },
             ).prepare(),
-            CanvasAccessTokenResponseSchema,
+            self._CanvasTokenResponseSchema,
         )
 
         self._save(
@@ -83,7 +91,7 @@ class CanvasAPIClient:
                     "refresh_token": refresh_token,
                 },
             ).prepare(),
-            CanvasRefreshTokenResponseSchema,
+            self._CanvasTokenResponseSchema,
         )
 
         new_access_token = parsed_params["access_token"]
@@ -95,6 +103,18 @@ class CanvasAPIClient:
         )
 
         return new_access_token
+
+    class _CanvasTokenResponseSchema(RequestsResponseSchema):
+        """Schema for validating OAuth 2 token responses from Canvas."""
+
+        access_token = fields.Str(required=True)
+        refresh_token = fields.Str()
+        expires_in = fields.Integer()
+
+        @marshmallow.validates("expires_in")
+        def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
+            if expires_in <= 0:
+                raise marshmallow.ValidationError("expires_in must be greater than 0")
 
     def authenticated_users_sections(self, course_id):
         """
@@ -144,12 +164,27 @@ class CanvasAPIClient:
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
 
-        return self.make_authenticated_request(
+        return self._make_authenticated_request(
             "GET",
             f"courses/{course_id}",
             params={"include[]": "sections"},
-            schema=CanvasAuthenticatedUsersSectionsResponseSchema,
+            schema=self._AuthenticatedUsersSectionsSchema,
         )
+
+    class _AuthenticatedUsersSectionsSchema(RequestsResponseSchema):
+        """Schema for the "authenticated user's sections" responses."""
+
+        sections = fields.List(
+            fields.Nested(_SectionSchema),
+            validate=validate.Length(min=1),
+            required=True,
+        )
+
+        @post_load
+        def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+            # Return the contents of sections without the key
+
+            return data["sections"]
 
     def course_sections(self, course_id):
         """
@@ -167,11 +202,21 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
-        return self.make_authenticated_request(
-            "GET",
-            f"courses/{course_id}/sections",
-            schema=CanvasCourseSectionsResponseSchema,
+        return self._make_authenticated_request(
+            "GET", f"courses/{course_id}/sections", schema=self._CourseSectionsSchema,
         )
+
+    class _CourseSectionsSchema(RequestsResponseSchema, _SectionSchema):
+        """Schema for the "list course sections" responses."""
+
+        many = True
+
+        @validates_schema(pass_many=True)
+        def _validate_length(self, data, **kwargs):  # pylint:disable=no-self-use
+            # If we get as far as this method then data is guaranteed to be a list
+            # so the only way it can be falsey is if it's an empty list.
+            if not data:
+                raise marshmallow.ValidationError("Shorter than minimum length 1.")
 
     def users_sections(self, user_id, course_id):
         """
@@ -191,12 +236,39 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
-        return self.make_authenticated_request(
+        return self._make_authenticated_request(
             "GET",
             f"courses/{course_id}/users/{user_id}",
             params={"include[]": "enrollments"},
-            schema=CanvasUsersSectionsResponseSchema,
+            schema=self._UsersSectionsSchema,
         )
+
+    class _UsersSectionsSchema(RequestsResponseSchema):
+        """Schema for the "user's course sections" responses."""
+
+        class _EnrollmentSchema(Schema):
+            """Schema for extracting a section ID from an enrollment dict."""
+
+            class Meta:  # pylint:disable=too-few-public-methods
+                unknown = EXCLUDE
+
+            course_section_id = fields.Int(required=True)
+
+        enrollments = fields.List(
+            fields.Nested(_EnrollmentSchema),
+            validate=validate.Length(min=1),
+            required=True,
+        )
+
+        @post_load
+        def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+            # Return a list of section ids in the same style as the course
+            # sections (but without names).
+
+            return [
+                {"id": enrollment["course_section_id"]}
+                for enrollment in data["enrollments"]
+            ]
 
     def list_files(self, course_id):
         """
@@ -214,12 +286,21 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self.make_authenticated_request(
+        return self._make_authenticated_request(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf", "per_page": 100},
-            schema=CanvasListFilesResponseSchema,
+            schema=self._ListFilesSchema,
         )
+
+    class _ListFilesSchema(RequestsResponseSchema):
+        """Schema for the list_files response."""
+
+        many = True
+
+        display_name = fields.Str(required=True)
+        id = fields.Integer(required=True)
+        updated_at = fields.String(required=True)
 
     def public_url(self, file_id):
         """
@@ -237,11 +318,16 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        return self.make_authenticated_request(
-            "GET", f"files/{file_id}/public_url", schema=CanvasPublicURLResponseSchema
+        return self._make_authenticated_request(
+            "GET", f"files/{file_id}/public_url", schema=self._PublicURLSchema
         )["public_url"]
 
-    def make_authenticated_request(self, method, path, schema, params=None):
+    class _PublicURLSchema(RequestsResponseSchema):
+        """Schema for the public_url response."""
+
+        public_url = fields.Str(required=True)
+
+    def _make_authenticated_request(self, method, path, schema, params=None):
         """
         Send a Canvas API request, and retry it if there are OAuth problems.
 
@@ -291,7 +377,7 @@ class CanvasAPIClient:
         :raise CanvasAPIServerError: if the request fails for any other reason
         """
         try:
-            response = requests.Session().send(request, timeout=9)
+            response = Session().send(request, timeout=9)
             response.raise_for_status()
         except RequestException as err:
             CanvasAPIError.raise_from(err)
