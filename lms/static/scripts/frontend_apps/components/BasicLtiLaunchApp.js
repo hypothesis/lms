@@ -109,16 +109,12 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   /**
    * Fetch the groups from the sync endpoint
    */
-  const fetchGroups = async xxx_bypassfail_authToken => {
+  const fetchGroups = async () => {
     if (apiSync) {
-      let auth = authToken + 'invalid token!';
-      if (xxx_bypassfail_authToken) {
-        auth = xxx_bypassfail_authToken;
-      }
       try {
         setFetching();
         const groups = await apiCall({
-          authToken: auth,
+          authToken,
           path: apiSync.path,
           data: apiSync.data,
         });
@@ -135,7 +131,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    *
    * This will typically be a PDF URL proxied through Via.
    */
-  const fetchContentUrl = async xxx_bypassfail_authToken => {
+  const fetchContentUrl = async () => {
     if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
@@ -144,14 +140,8 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     }
     try {
       setFetching();
-      //setContentUrl(null); // unset any previous value
-      // temp code to test failed requets
-      let auth = authToken + 'invalid token!';
-      if (xxx_bypassfail_authToken) {
-        auth = xxx_bypassfail_authToken;
-      }
       const { via_url: contentUrl } = await apiCall({
-        authToken: auth,
+        authToken,
         path: viaCallbackUrl,
       });
       setFetched();
@@ -200,7 +190,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       // submission.
       handleError(e, 'error-report-submission');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, canvas.speedGrader, contentUrl]);
 
   useEffect(reportSubmission, [reportSubmission]);
