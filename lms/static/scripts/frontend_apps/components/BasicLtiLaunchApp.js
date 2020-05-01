@@ -1,4 +1,6 @@
 import { Fragment, createElement } from 'preact';
+import propTypes from 'prop-types';
+
 import {
   useCallback,
   useContext,
@@ -23,31 +25,13 @@ import Spinner from './Spinner';
  * @property {string} displayName - User's display name
  */
 
-const INITIAL_LTI_LAUNCH_STATE = {
-  // The current state of the screen.
-  // One of "fetching", "fetched-url", "authorizing" or "error".
-  //
-  // When the app is initially displayed it will use the Via URL if given
-  // or invoke the API callback to fetch the URL otherwise.
-  state: 'fetching-url',
-
-  // URL of assignment content. Set when state is "fetched-url".
-  contentUrl: null,
-
-  // Details of last error. Set when state is "error".
-  error: null,
-
-  // The action that resulted in an error.
-  failedAction: null,
-};
-
 /**
  * Application displayed when an assignment is launched if the LMS backend
  * is unable to directly render the content in an iframe. This happens when
  * the content URL needs to be fetched from a remote source (eg. the LMS's
  * file storage) first, which may require authorization from the user.
  */
-export default function BasicLtiLaunchApp() {
+export default function BasicLtiLaunchApp({ rpcServer }) {
   const {
     api: {
       authToken,
@@ -55,6 +39,7 @@ export default function BasicLtiLaunchApp() {
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
       viaCallbackUrl,
+      sync: apiSync,
     },
     grading,
     // Content URL to show in the iframe.
@@ -62,65 +47,133 @@ export default function BasicLtiLaunchApp() {
     canvas,
   } = useContext(Config);
 
-  const [ltiLaunchState, setLtiLaunchState] = useState({
-    ...INITIAL_LTI_LAUNCH_STATE,
-    state: viaCallbackUrl ? 'fetching-url' : 'fetched-url',
-    contentUrl: viaUrl ? viaUrl : null,
+  // The current state of the error.
+  // One "error-fetched-url", "error-fetched-groups", "error-authorizing"
+  const [errorState, setErrorState] = useState(null);
+
+  // Any current error message to render to a dialog
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  // When the app is initially displayed it will use the Via URL if given
+  // or invoke the API callback to fetch the URL otherwise.
+  const [contentUrl, setContentUrl] = useState(viaUrl ? viaUrl : null);
+
+  // How many current request are pending
+  const [fetchCount, setFetchCount] = useState(0);
+
+  // Non-rendered var to keep track of the fetchCount
+  const count = useRef(0);
+
+  // `AuthWindow` instance, set only when waiting for the user to approve
+  // the app's access to the user's files in the LMS.
+  const authWindow = useRef(null);
+
+  // Show the assignment when there are no pending requests
+  // and no errorState
+  const showIframe = () => {
+    return fetchCount === 0 && !errorState;
+  };
+
+  // Show the loader is there are any pending requests and
+  // no errorState
+  const showSpinner = () => {
+    return !errorState && fetchCount > 0;
+  };
+
+  // Increment the fetch counter by 1 and clear any
+  // previous error state.
+  const setFetching = () => {
+    count.current += 1;
+    setFetchCount(count.current);
+    setErrorState(null);
+  };
+
+  // Decrement the fetch counter by 1.
+  const setFetched = () => {
+    count.current -= 1;
+    setFetchCount(count.current);
+  };
+
+  // Helper to handle error events from api requests
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleError = useCallback(async (e, errorState) => {
+    setFetched();
+    if (e instanceof ApiError && !e.errorMessage) {
+      setErrorState('error-authorizing');
+    } else {
+      setErrorMessage(e.errorMessage);
+      setErrorState(errorState);
+    }
   });
+
+  /**
+   * Fetch the groups from the sync endpoint
+   */
+  const fetchGroups = async xxx_bypassfail_authToken => {
+    if (apiSync) {
+      let auth = authToken + 'invalid token!';
+      if (xxx_bypassfail_authToken) {
+        auth = xxx_bypassfail_authToken;
+      }
+      try {
+        setFetching();
+        const groups = await apiCall({
+          authToken: auth,
+          path: apiSync.path,
+          data: apiSync.data,
+        });
+        rpcServer.resolveGroupFetch(groups);
+        setFetched();
+      } catch (e) {
+        handleError(e, 'error-fetch-groups');
+      }
+    }
+  };
 
   /**
    * Fetch the URL of the content to display in the iframe.
    *
    * This will typically be a PDF URL proxied through Via.
    */
-  const fetchContentUrl = useCallback(async () => {
+  const fetchContentUrl = async xxx_bypassfail_authToken => {
     if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
       return;
     }
-
     try {
-      setLtiLaunchState({
-        ...INITIAL_LTI_LAUNCH_STATE,
-        state: 'fetching-url',
-      });
+      setFetching();
+      //setContentUrl(null); // unset any previous value
+      // temp code to test failed requets
+      let auth = authToken + 'invalid token!';
+      if (xxx_bypassfail_authToken) {
+        auth = xxx_bypassfail_authToken;
+      }
       const { via_url: contentUrl } = await apiCall({
-        authToken,
+        authToken: auth,
         path: viaCallbackUrl,
       });
-      setLtiLaunchState({
-        ...INITIAL_LTI_LAUNCH_STATE,
-        state: 'fetched-url',
-        contentUrl,
-      });
+      setFetched();
+      setContentUrl(contentUrl);
     } catch (e) {
-      if (e instanceof ApiError && !e.errorMessage) {
-        setLtiLaunchState({
-          ...INITIAL_LTI_LAUNCH_STATE,
-          state: 'authorizing',
-        });
-      } else {
-        setLtiLaunchState({
-          ...INITIAL_LTI_LAUNCH_STATE,
-          state: 'error',
-          error: e,
-          failedAction: 'fetch-url',
-        });
-      }
+      handleError(e, 'error-fetch-url');
     }
-  }, [authToken, viaCallbackUrl]);
+  };
 
   /**
-   * Fetch the assignment content URL when the app is initially displayed.
+   * Fetch the assignment content URL and groups when the app is initially displayed.
    */
   useEffect(() => {
     fetchContentUrl();
-  }, [fetchContentUrl]);
+    fetchGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Report a submission to the LMS, with the LMS-provided metadata needed for
-  // later grading of the assignment.
+  /**
+   * Report a submission to the LMS, with the LMS-provided metadata needed for
+   * later grading of the assignment.
+   */
   const reportSubmission = useCallback(async () => {
     // If a teacher launches an assignment or the LMS does not support reporting
     // outcomes or grading is not enabled for the assignment, then no submission
@@ -130,7 +183,7 @@ export default function BasicLtiLaunchApp() {
     }
 
     // Don't report a submission until the URL has been successfully fetched.
-    if (ltiLaunchState.state !== 'fetched-url') {
+    if (!contentUrl) {
       return;
     }
 
@@ -145,29 +198,18 @@ export default function BasicLtiLaunchApp() {
       // This avoids the student trying to complete the assignment without
       // knowing that there was a problem, and the teacher then not seeing a
       // submission.
-      setLtiLaunchState({
-        state: 'error',
-        error: e,
-        failedAction: 'report-submission',
-      });
+      handleError(e, 'error-report-submission');
     }
-  }, [authToken, ltiLaunchState.state, canvas]);
+  }, [authToken, canvas.speedGrader, contentUrl, handleError]);
 
   useEffect(reportSubmission, [reportSubmission]);
-
-  // `AuthWindow` instance, set only when waiting for the user to approve
-  // the app's access to the user's files in the LMS.
-  const authWindow = useRef(null);
 
   /**
    * Request the user's authorization to access the content, then try fetching
    * the content URL again.
    */
   const authorizeAndFetchUrl = useCallback(async () => {
-    setLtiLaunchState({
-      ...INITIAL_LTI_LAUNCH_STATE,
-      state: 'authorizing',
-    });
+    setErrorState('error-authorizing');
 
     if (authWindow.current) {
       authWindow.current.focus();
@@ -177,20 +219,20 @@ export default function BasicLtiLaunchApp() {
 
     try {
       await authWindow.current.authorize();
-      await fetchContentUrl();
+      await Promise.all([fetchContentUrl(authToken), fetchGroups(authToken)]);
     } finally {
-      // eslint-disable-next-line require-atomic-updates
       authWindow.current = null;
     }
-  }, [authToken, canvas, fetchContentUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, canvas.authUrl]);
 
-  if (ltiLaunchState.state === 'fetched-url') {
+  if (showIframe()) {
     const iFrame = (
       <iframe
         width="100%"
         height="100%"
         className="js-via-iframe"
-        src={ltiLaunchState.contentUrl}
+        src={contentUrl}
         title="Course content with Hypothesis annotation viewer"
       />
     );
@@ -209,31 +251,31 @@ export default function BasicLtiLaunchApp() {
     } else {
       return iFrame;
     }
-  }
-
-  return (
-    <Fragment>
-      {ltiLaunchState.state === 'fetching-url' && (
-        <Spinner className="BasicLtiLaunchApp__spinner" />
-      )}
-      {ltiLaunchState.state === 'authorizing' && (
-        <Dialog
-          title="Authorize Hypothesis"
-          role="alertdialog"
-          buttons={[
-            <Button
-              onClick={authorizeAndFetchUrl}
-              className="BasicLtiLaunchApp__button"
-              label="Authorize"
-              key="authorize"
-            />,
-          ]}
-        >
-          <p>Hypothesis needs your authorization to launch this assignment.</p>
-        </Dialog>
-      )}
-      {ltiLaunchState.state === 'error' &&
-        ltiLaunchState.failedAction === 'fetch-url' && (
+  } else {
+    // Render either a Spinner or Dialog.
+    return (
+      <Fragment>
+        {showSpinner() && <Spinner className="BasicLtiLaunchApp__spinner" />}
+        {errorState === 'error-authorizing' && (
+          <Dialog
+            title="Authorize Hypothesis"
+            role="alertdialog"
+            buttons={[
+              <Button
+                onClick={authorizeAndFetchUrl}
+                className="BasicLtiLaunchApp__button"
+                label="Authorize"
+                key="authorize"
+              />,
+            ]}
+          >
+            <p>
+              Hypothesis needs your authorization to launch this assignment.
+            </p>
+          </Dialog>
+        )}
+        {(errorState === 'error-fetch-url' ||
+          errorState === 'error-fetch-groups') && (
           <Dialog
             title="Something went wrong"
             contentClass="BasicLtiLaunchApp__dialog"
@@ -249,12 +291,11 @@ export default function BasicLtiLaunchApp() {
           >
             <ErrorDisplay
               message="There was a problem fetching this Hypothesis assignment"
-              error={ltiLaunchState.error}
+              error={errorMessage}
             />
           </Dialog>
         )}
-      {ltiLaunchState.state === 'error' &&
-        ltiLaunchState.failedAction === 'report-submission' && (
+        {errorState === 'error-report-submission' && (
           <Dialog
             title="Something went wrong"
             contentClass="BasicLtiLaunchApp__dialog"
@@ -262,11 +303,16 @@ export default function BasicLtiLaunchApp() {
           >
             <ErrorDisplay
               message="There was a problem submitting this Hypothesis assignment"
-              error={ltiLaunchState.error}
+              error={errorMessage}
             />
             <b>To fix this problem, try reloading the page.</b>
           </Dialog>
         )}
-    </Fragment>
-  );
+      </Fragment>
+    );
+  }
 }
+
+BasicLtiLaunchApp.propTypes = {
+  rpcServer: propTypes.object,
+};
