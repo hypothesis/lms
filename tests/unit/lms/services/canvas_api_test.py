@@ -1,643 +1,467 @@
+import json
+from io import BytesIO
 from unittest import mock
+from unittest.mock import call, sentinel
 
 import pytest
+from _pytest.mark import param
+from h_matchers import Any
+from h_matchers.decorator import fluent_entrypoint
+from h_matchers.matcher.core import Matcher
+from requests import PreparedRequest, RequestException, Response
 
 from lms.models import ApplicationInstance, OAuth2Token
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
+from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
+from lms.validation import ValidationError
+
+# pylint: disable=protected-access
 
 
-class TestGetToken:
-    """Unit tests for CanvasAPIClient.get_token()."""
+class AnyRequest(Matcher):  # pragma: no cover
+    # This will be moved out to h-matchers and prettied up and tested there
+    assert_on_comparison = False
 
-    def test_it_sends_an_access_token_request(
-        self,
-        ai_getter,
-        access_token_request,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        CanvasAccessTokenResponseSchema,
-        pyramid_request,
-    ):
-        canvas_api_client.get_token("test_authorization_code")
+    def __init__(self, method=None, url=None, headers=None):
+        self.method = method
+        self.url = url
+        self.headers = headers
 
-        # It initializes canvas_api_helper correctly.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
+        super().__init__(f"<AnyRequest {method}: {url}>", self._matches_request)
+
+    # pylint: disable=function-redefined
+    @classmethod
+    def containing_headers(cls, headers):
+        """Confuse pylint so it doesn't complain about fluent-endpoints."""
+
+    @fluent_entrypoint
+    def containing_headers(self, headers):
+        self.headers = Any.mapping.containing(headers)
+
+        return self
+
+    def _matches_request(self, other):
+        try:
+            self.assert_equal_to(other)
+        except AssertionError:
+            if self.assert_on_comparison:
+                raise
+            return False
+
+        return True
+
+    def assert_equal_to(self, other):
+        if isinstance(other, PreparedRequest):
+            if self.method is not None and self.method != other.method:
+                raise AssertionError(f"Method '{other.method}' != '{self.method}'")
+
+            if self.url is not None and self.url != other.url:
+                raise AssertionError(f"URL '{other.url}' != '{self.url}'")
+
+            if self.headers is not None and self.headers != other.headers:
+                raise AssertionError(f"Headers {other.headers} != {self.headers}")
+
+            return
+
+        raise AssertionError(f"Unknown request type '{type(other)}'")
+
+
+def _make_response(json_data=None, raw=None, status_code=200):
+    response = Response()
+
+    if raw is None:
+        raw = json.dumps(json_data)
+
+    response.raw = BytesIO(raw.encode("utf-8"))
+    response.status_code = status_code
+
+    return response
+
+
+class TestDataCalls:
+    @pytest.mark.usefixtures("access_token")
+    def test_authenticated_users_sections(self, api_client, http_session):
+        sections = [{"id": 1, "name": "name_1"}, {"id": 2, "name": "name_2"}]
+        http_session.send.return_value = _make_response({"sections": sections})
+
+        response = api_client.authenticated_users_sections("COURSE_ID")
+
+        assert response == sections
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                "GET",
+                url=Any.url.with_path("api/v1/courses/COURSE_ID").with_query(
+                    {"include[]": "sections"}
+                ),
+                headers={"Authorization": "Bearer existing_access_token"},
+            ),
+            timeout=Any(),
         )
-
-        # It gets the access token request from canvas_api_helper.
-        canvas_api_helper.access_token_request.assert_called_once_with(
-            "test_authorization_code"
-        )
-
-        # It sends the access token request.
-        canvas_api_helper.validated_response.assert_called_once_with(
-            access_token_request, CanvasAccessTokenResponseSchema
-        )
-
-    def test_it_saves_the_access_token_to_the_db(
-        self, canvas_api_client, db_session, pyramid_request
-    ):
-        canvas_api_client.get_token("test_authorization_code")
-
-        oauth2_token = db_session.query(OAuth2Token).one()
-        assert oauth2_token.user_id == pyramid_request.lti_user.user_id
-        assert oauth2_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        assert oauth2_token.access_token == "test_access_token"
-        assert oauth2_token.refresh_token == "test_refresh_token"
-        assert oauth2_token.expires_in == 3600
-
-    def test_when_the_response_from_Canvas_omits_optional_parameters(
-        self, canvas_api_client, access_token_response, db_session, pyramid_request
-    ):
-        # refresh_token and expires_in are optional in OAuth 2.0, so we should
-        # be able to handle them being missing from the Canvas API's response.
-        del access_token_response.parsed_params["refresh_token"]
-        del access_token_response.parsed_params["expires_in"]
-
-        canvas_api_client.get_token("test_authorization_code")
-
-        oauth2_token = db_session.query(OAuth2Token).one()
-        assert oauth2_token.user_id == pyramid_request.lti_user.user_id
-        assert oauth2_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        assert oauth2_token.access_token == "test_access_token"
-        assert oauth2_token.refresh_token is None
-        assert oauth2_token.expires_in is None
-
-    def test_it_raises_CanvasAPIServerError_if_it_receives_an_error_response(
-        self, canvas_api_client, canvas_api_helper
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIServerError(
-            "Test error message"
-        )
-
-        with pytest.raises(CanvasAPIServerError, match="Test error message"):
-            canvas_api_client.get_token("test_authorization_code")
-
-    @pytest.fixture
-    def access_token_request(self, canvas_api_helper):
-        return canvas_api_helper.access_token_request.return_value
-
-    @pytest.fixture(autouse=True)
-    def access_token_response(self, canvas_api_helper):
-        access_token_response = canvas_api_helper.validated_response.return_value
-        access_token_response.parsed_params = {
-            "access_token": "test_access_token",
-            "refresh_token": "test_refresh_token",
-            "expires_in": 3600,
-        }
-        return access_token_response
-
-
-class TestGetRefreshedToken:
-    """Unit tests for CanvasAPIClient.get_refreshed_token()."""
-
-    def test_it_sends_a_refresh_token_request(
-        self,
-        ai_getter,
-        refresh_token_request,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        CanvasRefreshTokenResponseSchema,
-        pyramid_request,
-    ):
-        canvas_api_client.get_refreshed_token("test_refresh_token")
-
-        # It initializes canvas_api_helper correctly.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
-        )
-
-        # It gets the refresh token request from canvas_api_helper.
-        canvas_api_helper.refresh_token_request.assert_called_once_with(
-            "test_refresh_token"
-        )
-
-        # It sends the refresh token request.
-        canvas_api_helper.validated_response.assert_called_once_with(
-            refresh_token_request, CanvasRefreshTokenResponseSchema
-        )
-
-    def test_it_saves_the_new_access_token_to_the_db(
-        self, canvas_api_client, db_session, pyramid_request
-    ):
-        canvas_api_client.get_refreshed_token("test_refresh_token")
-
-        oauth2_token = db_session.query(OAuth2Token).one()
-        assert oauth2_token.user_id == pyramid_request.lti_user.user_id
-        assert oauth2_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        assert oauth2_token.access_token == "new_access_token"
-        assert oauth2_token.refresh_token == "new_refresh_token"
-        assert oauth2_token.expires_in == 6400
-
-    def test_it_returns_the_new_access_token(self, canvas_api_client):
-        new_access_token = canvas_api_client.get_refreshed_token("test_refresh_token")
-
-        assert new_access_token == "new_access_token"
-
-    def test_when_the_response_from_Canvas_omits_optional_parameters(
-        self, canvas_api_client, refresh_token_response, db_session, pyramid_request
-    ):
-        # refresh_token and expires_in are optional in OAuth 2.0, so we should
-        # be able to handle them being missing from the Canvas API's response.
-        del refresh_token_response.parsed_params["refresh_token"]
-        del refresh_token_response.parsed_params["expires_in"]
-
-        canvas_api_client.get_refreshed_token("old_refresh_token")
-
-        oauth2_token = db_session.query(OAuth2Token).one()
-        assert oauth2_token.user_id == pyramid_request.lti_user.user_id
-        assert oauth2_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
-        assert oauth2_token.access_token == "new_access_token"
-        assert oauth2_token.refresh_token == "old_refresh_token"
-        assert oauth2_token.expires_in is None
-
-    def test_it_raises_CanvasAPIServerError_if_it_receives_an_error_response(
-        self, canvas_api_client, canvas_api_helper
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIServerError(
-            "Test error message"
-        )
-
-        with pytest.raises(CanvasAPIServerError, match="Test error message"):
-            canvas_api_client.get_refreshed_token("test_refresh_token")
-
-    @pytest.fixture
-    def refresh_token_request(self, canvas_api_helper):
-        return canvas_api_helper.refresh_token_request.return_value
-
-    @pytest.fixture(autouse=True)
-    def refresh_token_response(self, canvas_api_helper):
-        refresh_token_response = canvas_api_helper.validated_response.return_value
-        refresh_token_response.parsed_params = {
-            "access_token": "new_access_token",
-            "refresh_token": "new_refresh_token",
-            "expires_in": 6400,
-        }
-        return refresh_token_response
-
-    @pytest.fixture
-    def CanvasRefreshTokenResponseSchema(self, patch):
-        return patch("lms.services.canvas_api.CanvasRefreshTokenResponseSchema")
-
-    @pytest.fixture(autouse=True)
-    def old_oauth2_token(self, db_session, pyramid_request):
-        old_oauth2_token = OAuth2Token(
-            user_id=pyramid_request.lti_user.user_id,
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            access_token="old_access_token",
-            refresh_token="old_refresh_token",
-            expires_in=3600,
-        )
-        db_session.add(old_oauth2_token)
-        return old_oauth2_token
-
-
-@pytest.mark.usefixtures("send_with_refresh_and_retry")
-class TestAuthenticatedUsersSections:
-    """Unit tests for CanvasAPIClient.authenticated_users_sections()."""
 
     @pytest.mark.usefixtures("access_token")
-    def test_it(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        send_with_refresh_and_retry,
-        CanvasAuthenticatedUsersSectionsResponseSchema,
-        pyramid_request,
+    def test_course_sections(self, api_client, http_session):
+        sections = [
+            {"id": 101, "name": "name_1"},
+            {"id": 102, "name": "name_2"},
+        ]
+        sections_with_noise = [
+            dict(section, unexpected="ignored") for section in sections
+        ]
+        http_session.send.return_value = _make_response(sections_with_noise)
+
+        response = api_client.course_sections("COURSE_ID")
+
+        assert response == sections
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                "GET",
+                url=Any.url.with_path("api/v1/courses/COURSE_ID/sections"),
+                headers={"Authorization": "Bearer existing_access_token"},
+            ),
+            timeout=Any(),
+        )
+
+    @pytest.mark.usefixtures("access_token")
+    def test_course_section_raises_CanvasAPIError_with_no_sections_returned(
+        self, api_client, http_session
     ):
-        sections = canvas_api_client.authenticated_users_sections("test_course_id")
+        http_session.send.return_value = _make_response([])
 
-        # It initializes canvas_api_helper.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
+        with pytest.raises(CanvasAPIError):
+            api_client.course_sections("dummy")
+
+    @pytest.mark.usefixtures("access_token")
+    def test_users_sections(self, api_client, http_session):
+        http_session.send.return_value = _make_response(
+            {
+                "enrollments": [
+                    {"course_section_id": 101, "unexpected": "ignored"},
+                    {"course_section_id": 102, "unexpected": "ignored"},
+                ]
+            }
         )
 
-        # It gets the prepared request.
-        canvas_api_helper.authenticated_users_sections_request.assert_called_once_with(
-            "test_access_token", "test_course_id"
+        response = api_client.users_sections("USER_ID", "COURSE_ID")
+
+        assert response == [{"id": 101}, {"id": 102}]
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                "GET",
+                url=Any.url.with_path(
+                    "api/v1/courses/COURSE_ID/users/USER_ID"
+                ).with_query({"include[]": "enrollments"}),
+                headers={"Authorization": "Bearer existing_access_token"},
+            ),
+            timeout=Any(),
         )
 
-        # It sends the prepared request.
-        send_with_refresh_and_retry.assert_called_once_with(
-            canvas_api_helper.authenticated_users_sections_request.return_value,
-            CanvasAuthenticatedUsersSectionsResponseSchema,
-            "test_refresh_token",
+    @pytest.mark.usefixtures("access_token")
+    def test_list_files(self, api_client, http_session):
+        files = [
+            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
+            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
+        ]
+        files_with_noise = [dict(file, unexpected="igored") for file in files]
+        http_session.send.return_value = _make_response(files_with_noise)
+
+        response = api_client.list_files("COURSE_ID")
+
+        assert response == files
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                "GET",
+                url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
+                    {"content_types[]": "application/pdf", "per_page": "100"}
+                ),
+                headers={"Authorization": "Bearer existing_access_token"},
+            ),
+            timeout=Any(),
         )
 
-        # It returns the sections.
-        assert sections == send_with_refresh_and_retry.return_value
+    @pytest.mark.usefixtures("access_token")
+    def test_public_url(self, api_client, http_session):
+        http_session.send.return_value = _make_response(
+            {"public_url": "public_url_value"}
+        )
 
-    def test_it_raises_if_we_dont_have_an_access_token(self, canvas_api_client):
-        with pytest.raises(
-            CanvasAPIAccessTokenError,
-            match="We don't have a Canvas API access token for this user",
-        ):
-            canvas_api_client.authenticated_users_sections("test_course_id")
+        response = api_client.public_url("FILE_ID")
 
+        assert response == "public_url_value"
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                "GET",
+                url=Any.url.with_path("api/v1/files/FILE_ID/public_url"),
+                headers={"Authorization": "Bearer existing_access_token"},
+            ),
+            timeout=Any(),
+        )
+
+    def test_methods_require_access_token(self, data_method):
+        with pytest.raises(CanvasAPIAccessTokenError):
+            data_method()
+
+    @pytest.mark.usefixtures("access_token")
+    def test_methods_raise_CanvasAPIServerError_if_the_response_json_has_the_wrong_format(
+        self, data_method, http_session
+    ):
+        http_session.send.return_value = _make_response({})
+
+        with pytest.raises(CanvasAPIServerError):
+            data_method()
+
+    @pytest.mark.usefixtures("access_token")
+    def test_methods_raise_CanvasAPIServerError_if_the_response_is_invalid_json(
+        self, data_method, http_session
+    ):
+        http_session.send.return_value = _make_response(raw="[broken json")
+
+        with pytest.raises(CanvasAPIServerError):
+            data_method()
+
+    def test_methods_use_retry_mechanism(self, api_client, data_method):
+        # The actual test of the retry mechanism is covered elsewhere
+        with mock.patch.object(api_client, "_make_authenticated_request") as func:
+            data_method()
+
+            func.assert_called_once()
+
+    methods = {
+        "authenticated_users_sections": ["course_id"],
+        "course_sections": ["course_id"],
+        "users_sections": ["user_id", "course_id"],
+        "list_files": ["course_id"],
+        "public_url": ["file_id"],
+    }
+
+    @pytest.fixture(params=tuple(methods.items()), ids=tuple(methods.keys()))
+    def data_method(self, request, api_client):
+        method, args = request.param
+
+        return lambda: getattr(api_client, method)(*args)
+
+
+class TestTokenCalls:
+    @pytest.mark.parametrize(
+        "json_data",
+        (
+            {
+                "access_token": "test_access_token",
+                "refresh_token": "test_refresh_token",
+                "expires_in": 3600,
+            },
+            {"access_token": "test_access_token"},
+        ),
+    )
+    def test_get_token(
+        self, api_client, http_session, db_session, pyramid_request, json_data
+    ):
+        http_session.send.return_value = _make_response(json_data)
+
+        api_client.get_token("authorization_code")
+
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                method="POST",
+                url=Any.url()
+                .with_path("login/oauth2/token")
+                .with_query(
+                    {
+                        "grant_type": "authorization_code",
+                        "client_id": "developer_key",
+                        "client_secret": "developer_secret",
+                        "redirect_uri": api_client._redirect_uri,
+                        "code": "authorization_code",
+                        "replace_tokens": "True",
+                    }
+                ),
+            ),
+            timeout=Any(),
+        )
+        self._assert_token_is_saved_in_db(db_session, pyramid_request, json_data)
+
+    # Add noise with an existing token to make sure we update it
     @pytest.mark.usefixtures("access_token")
     @pytest.mark.parametrize(
-        "ExceptionClass", [CanvasAPIAccessTokenError, CanvasAPIServerError]
+        "json_data",
+        (
+            {
+                "access_token": "test_access_token",
+                "refresh_token": "test_refresh_token",
+                "expires_in": 3600,
+            },
+            {"access_token": "test_access_token"},
+        ),
     )
-    def test_it_raises_if_the_request_fails(
-        self, canvas_api_client, send_with_refresh_and_retry, ExceptionClass,
+    def test__get_refreshed_token(
+        self, api_client, http_session, db_session, pyramid_request, json_data
     ):
-        send_with_refresh_and_retry.side_effect = ExceptionClass("test_error_message")
+        http_session.send.return_value = _make_response(json_data)
 
-        with pytest.raises(
-            ExceptionClass, match="test_error_message",
-        ):
-            canvas_api_client.authenticated_users_sections("test_course_id")
+        api_client._get_refreshed_token("new_refresh_token")
 
-
-@pytest.mark.usefixtures("send_with_refresh_and_retry")
-class TestCourseSections:
-    """Unit tests for CanvasAPIClient.course_sections()."""
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        send_with_refresh_and_retry,
-        CanvasCourseSectionsResponseSchema,
-        pyramid_request,
-    ):
-        sections = canvas_api_client.course_sections("test_course_id")
-
-        # It initializes canvas_api_helper.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
+        http_session.send.assert_called_once_with(
+            AnyRequest(
+                method="POST",
+                url=Any.url()
+                .with_path("login/oauth2/token")
+                .with_query(
+                    {
+                        "grant_type": "refresh_token",
+                        "client_id": "developer_key",
+                        "client_secret": "developer_secret",
+                        "refresh_token": "new_refresh_token",
+                    }
+                ),
+            ),
+            timeout=Any(),
         )
 
-        # It gets the prepared request.
-        canvas_api_helper.course_sections_request.assert_called_once_with(
-            "test_access_token", "test_course_id"
-        )
+        # We use our own refresh token if none was passed back from Canvas
+        json_data.setdefault("refresh_token", "new_refresh_token")
+        self._assert_token_is_saved_in_db(db_session, pyramid_request, json_data)
 
-        # It sends the prepared request.
-        send_with_refresh_and_retry.assert_called_once_with(
-            canvas_api_helper.course_sections_request.return_value,
-            CanvasCourseSectionsResponseSchema,
-            "test_refresh_token",
-        )
-
-        # It returns the sections.
-        assert sections == send_with_refresh_and_retry.return_value
-
-    def test_it_raises_if_we_dont_have_an_access_token(self, canvas_api_client):
-        with pytest.raises(
-            CanvasAPIAccessTokenError,
-            match="We don't have a Canvas API access token for this user",
-        ):
-            canvas_api_client.course_sections("test_course_id")
-
-    @pytest.mark.usefixtures("access_token")
     @pytest.mark.parametrize(
-        "ExceptionClass", [CanvasAPIAccessTokenError, CanvasAPIServerError]
+        "json_data",
+        (
+            param({}, id="No access token"),
+            param(
+                {"expires_in": -1, "access_token": "irrelevant"},
+                id="Negative expires in",
+            ),
+        ),
     )
-    def test_it_raises_if_the_request_fails(
-        self, canvas_api_client, send_with_refresh_and_retry, ExceptionClass,
+    @pytest.mark.parametrize("method", ("get_token", "_get_refreshed_token"))
+    def test_token_methods_raises_CanvasAPIServerError_for_bad_responses(
+        self, http_session, api_client, method, json_data
     ):
-        send_with_refresh_and_retry.side_effect = ExceptionClass("test_error_message")
+        http_session.send.return_value = _make_response(json_data)
 
-        with pytest.raises(
-            ExceptionClass, match="test_error_message",
-        ):
-            canvas_api_client.course_sections("test_course_id")
+        method = getattr(api_client, method)
 
+        with pytest.raises(CanvasAPIServerError):
+            method("token_value")
 
-@pytest.mark.usefixtures("send_with_refresh_and_retry")
-class TestUsersSections:
-    """Unit tests for CanvasAPIClient.users_sections()."""
+    def _assert_token_is_saved_in_db(self, db_session, pyramid_request, json_data):
+        oauth2_token = db_session.query(OAuth2Token).one()
 
-    @pytest.mark.usefixtures("access_token")
-    def test_it(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        send_with_refresh_and_retry,
-        CanvasUsersSectionsResponseSchema,
-        pyramid_request,
-    ):
-        sections = canvas_api_client.users_sections("test_user_id", "test_course_id")
+        assert oauth2_token.user_id == pyramid_request.lti_user.user_id
+        assert oauth2_token.consumer_key == pyramid_request.lti_user.oauth_consumer_key
 
-        # It initializes canvas_api_helper.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
-        )
-
-        # It gets the prepared request.
-        canvas_api_helper.users_sections_request.assert_called_once_with(
-            "test_access_token", "test_user_id", "test_course_id"
-        )
-
-        # It sends the prepared request.
-        send_with_refresh_and_retry.assert_called_once_with(
-            canvas_api_helper.users_sections_request.return_value,
-            CanvasUsersSectionsResponseSchema,
-            "test_refresh_token",
-        )
-
-        # It returns the sections.
-        assert sections == send_with_refresh_and_retry.return_value
-
-    def test_it_raises_if_we_dont_have_an_access_token(self, canvas_api_client):
-        with pytest.raises(
-            CanvasAPIAccessTokenError,
-            match="We don't have a Canvas API access token for this user",
-        ):
-            canvas_api_client.authenticated_users_sections("test_course_id")
-
-    @pytest.mark.usefixtures("access_token")
-    @pytest.mark.parametrize(
-        "ExceptionClass", [CanvasAPIAccessTokenError, CanvasAPIServerError]
-    )
-    def test_it_raises_if_the_request_fails(
-        self, canvas_api_client, send_with_refresh_and_retry, ExceptionClass,
-    ):
-        send_with_refresh_and_retry.side_effect = ExceptionClass("test_error_message")
-
-        with pytest.raises(
-            ExceptionClass, match="test_error_message",
-        ):
-            canvas_api_client.authenticated_users_sections("test_course_id")
-
-
-class TestListFiles:
-    """Unit tests for CanvasAPIClient.list_files()."""
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_sends_a_list_files_request_to_canvas(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        CanvasListFilesResponseSchema,
-        pyramid_request,
-    ):
-        canvas_api_client.list_files("test_course_id")
-
-        # It initializes canvas_api_helper correctly.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
-        )
-
-        # It gets the PreparedRequest from the helper.
-        canvas_api_helper.list_files_request.assert_called_once_with(
-            "test_access_token", "test_course_id"
-        )
-
-        prepared_request = canvas_api_helper.list_files_request.return_value
-
-        # It uses the helper to send the PreparedRequest.
-        canvas_api_helper.validated_response.assert_called_once_with(
-            prepared_request, CanvasListFilesResponseSchema
-        )
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_returns_the_list_of_files(self, canvas_api_client, canvas_api_helper):
-        files = canvas_api_client.list_files("test_course_id")
-
-        validated_response = canvas_api_helper.validated_response.return_value
-
-        assert files == validated_response.parsed_params
-
-    def test_it_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token(
-        self, canvas_api_client
-    ):
-        with pytest.raises(
-            CanvasAPIAccessTokenError,
-            match="We don't have a Canvas API access token for this user",
-        ):
-            canvas_api_client.list_files("test_course_id")
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_raises_CanvasAPIServerError_if_the_request_fails(
-        self, canvas_api_client, canvas_api_helper
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIServerError(
-            "test_error_message"
-        )
-
-        with pytest.raises(CanvasAPIServerError, match="test_error_message"):
-            canvas_api_client.list_files("test_course_id")
-
-
-class TestPublicURL:
-    """Unit tests for CanvasAPIClient.public_url()."""
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_sends_a_public_url_request_to_canvas(
-        self,
-        ai_getter,
-        canvas_api_client,
-        CanvasAPIHelper,
-        canvas_api_helper,
-        CanvasPublicURLResponseSchema,
-        pyramid_request,
-    ):
-        canvas_api_client.public_url("test_file_id")
-
-        # It initializes canvas_api_helper correctly.
-        CanvasAPIHelper.assert_called_once_with(
-            ai_getter, pyramid_request.route_url,
-        )
-
-        # It gets the PreparedRequest from the helper.
-        canvas_api_helper.public_url_request.assert_called_once_with(
-            "test_access_token", "test_file_id"
-        )
-
-        prepared_request = canvas_api_helper.public_url_request.return_value
-
-        # It uses the helper to send the PreparedRequest.
-        canvas_api_helper.validated_response.assert_called_once_with(
-            prepared_request, CanvasPublicURLResponseSchema
-        )
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_returns_the_public_url(self, canvas_api_client, canvas_api_helper):
-        canvas_api_helper.validated_response.return_value.parsed_params = {
-            "public_url": "test_public_url"
-        }
-
-        url = canvas_api_client.public_url("test_file_id")
-
-        assert url == "test_public_url"
-
-    def test_it_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token(
-        self, canvas_api_client
-    ):
-        with pytest.raises(
-            CanvasAPIAccessTokenError,
-            match="We don't have a Canvas API access token for this user",
-        ):
-            canvas_api_client.public_url("test_file_id")
-
-    @pytest.mark.usefixtures("access_token")
-    def test_it_raises_CanvasAPIServerError_if_the_request_fails(
-        self, canvas_api_client, canvas_api_helper
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIServerError(
-            "test_error_message"
-        )
-
-        with pytest.raises(CanvasAPIServerError, match="test_error_message"):
-            canvas_api_client.public_url("test_file_id")
-
-
-class TestSendWithRefreshAndRetry:
-    def test_it_sends_the_request_and_returns_the_parsed_params(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
-    ):
-        parsed_params = canvas_api_client.send_with_refresh_and_retry(
-            prepared_request, Schema, refresh_token
-        )
-
-        canvas_api_helper.validated_response.assert_called_once_with(
-            prepared_request, Schema
-        )
-        assert (
-            parsed_params
-            == canvas_api_helper.validated_response.return_value.parsed_params
-        )
-
-    def test_if_the_request_raises_CanvasAPIServerError_it_raises(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIServerError(
-            "test_error"
-        )
-
-        with pytest.raises(CanvasAPIServerError, match="test_error"):
-            canvas_api_client.send_with_refresh_and_retry(
-                prepared_request, Schema, refresh_token
-            )
-
-    def test_if_the_request_raises_CanvasAPIAccessTokenError_and_theres_no_refresh_token_it_raises(
-        self, canvas_api_client, canvas_api_helper, prepared_request, Schema,
-    ):
-        canvas_api_helper.validated_response.side_effect = CanvasAPIAccessTokenError(
-            "test_error"
-        )
-
-        with pytest.raises(CanvasAPIAccessTokenError, match="test_error"):
-            canvas_api_client.send_with_refresh_and_retry(
-                prepared_request, Schema, refresh_token=None
-            )
-
-    def test_if_the_request_raises_CanvasAPIAccessTokenError_it_refreshes_and_retries(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
-        get_refreshed_token,
-    ):
-        # Make validated_response() raise only the first time it's called.
-        canvas_api_helper.validated_response.side_effect = [
-            CanvasAPIAccessTokenError("test_error"),
-            mock.DEFAULT,
-        ]
-
-        parsed_params = canvas_api_client.send_with_refresh_and_retry(
-            prepared_request, Schema, refresh_token
-        )
-
-        get_refreshed_token.assert_called_once_with(canvas_api_client, refresh_token)
-        assert canvas_api_helper.validated_response.call_args_list == [
-            mock.call(prepared_request, Schema),
-            mock.call(prepared_request, Schema, get_refreshed_token.return_value),
-        ]
-        assert (
-            parsed_params
-            == canvas_api_helper.validated_response.return_value.parsed_params
-        )
-
-    def test_if_the_refresh_request_raises_it_raises(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
-        get_refreshed_token,
-    ):
-        # Make validated_response() raise only the first time it's called.
-        canvas_api_helper.validated_response.side_effect = [
-            CanvasAPIAccessTokenError("test_error"),
-            mock.DEFAULT,
-        ]
-        # Make the refresh token request raise.
-        get_refreshed_token.side_effect = CanvasAPIServerError("test_error")
-
-        with pytest.raises(CanvasAPIServerError, match="test_error"):
-            canvas_api_client.send_with_refresh_and_retry(
-                prepared_request, Schema, refresh_token
-            )
-
-    def test_if_the_request_raises_the_second_time_it_raises(
-        self,
-        canvas_api_client,
-        canvas_api_helper,
-        prepared_request,
-        Schema,
-        refresh_token,
-    ):
-        # Make validated_response() raise both times it's called.
-        canvas_api_helper.validated_response.side_effect = [
-            CanvasAPIAccessTokenError("first_error"),
-            CanvasAPIServerError("second_error"),
-        ]
-
-        with pytest.raises(CanvasAPIServerError, match="second_error"):
-            canvas_api_client.send_with_refresh_and_retry(
-                prepared_request, Schema, refresh_token
-            )
-
-    @pytest.fixture
-    def prepared_request(self):
-        """Return the PreparedRequest that we're sending."""
-        return mock.sentinel.request
-
-    @pytest.fixture
-    def Schema(self):
-        """Return the schema class we're using to validate the responses."""
-        return mock.sentinel.Schema
-
-    @pytest.fixture
-    def refresh_token(self):
-        """Return the refresh token we're using if our access token has expired."""
-        return mock.sentinel.refresh_token
+        assert oauth2_token.access_token == json_data["access_token"]
+        assert oauth2_token.refresh_token == json_data.get("refresh_token")
+        assert oauth2_token.expires_in == json_data.get("expires_in")
 
     @pytest.fixture(autouse=True)
-    def get_refreshed_token(self, patch):
-        return patch("lms.services.canvas_api.CanvasAPIClient.get_refreshed_token")
+    def ai_getter(self, ai_getter):
+        ai_getter.developer_key.return_value = "developer_key"
+        ai_getter.developer_secret.return_value = "developer_secret"
+
+        return ai_getter
+
+
+class TestValidatedResponse:
+    def test_it(self, api_client, http_session, schema):
+        response = _make_response("request_body")
+        http_session.send.return_value = response
+
+        api_client._validated_response(sentinel.request, schema)
+
+        http_session.send.assert_called_once_with(sentinel.request, timeout=9)
+        schema.assert_called_once_with(response)
+        schema.return_value.parse.assert_called_once_with()
+
+    def test_it_raises_CanvasAPIError_for_request_errors(
+        self, api_client, http_session, schema
+    ):
+        response = _make_response("request_body")
+        response.raise_for_status = mock.MagicMock()
+        response.raise_for_status.side_effect = RequestException
+        http_session.send.return_value = response
+
+        with pytest.raises(CanvasAPIError):
+            api_client._validated_response(sentinel.request, schema)
+
+    def test_it_raises_CanvasAPIError_for_validation_errors(self, api_client, schema):
+        schema.return_value.parse.side_effect = ValidationError("Some error")
+
+        with pytest.raises(CanvasAPIError):
+            api_client._validated_response(sentinel.request, schema)
+
+    @pytest.fixture
+    def schema(self):
+        return mock.MagicMock()
+
+
+class TestMakeAuthenticatedRequest:
+    def test_it(self, api_client, access_token):
+        params = {"a": "1"}
+
+        api_client._make_authenticated_request(
+            method="method", path="path", schema=sentinel.schema, params=params
+        )
+
+        expected_url = (
+            Any.url.matching(f"https://{api_client._canvas_url}")
+            .with_path("api/v1/path")
+            .with_query(params)
+        )
+        api_client._validated_response.assert_called_once_with(
+            AnyRequest(method="METHOD", url=expected_url).containing_headers(
+                {"Authorization": f"Bearer {access_token.access_token}"}
+            ),
+            sentinel.schema,
+        )
+
+    @pytest.mark.usefixtures("access_token")
+    def test_it_refreshes_the_token_and_tries_again(self, api_client):
+        api_client._validated_response.side_effect = [
+            CanvasAPIAccessTokenError(),
+            sentinel.second_call,
+        ]
+        api_client._get_refreshed_token.return_value = "new_access_token"
+
+        response = api_client._make_authenticated_request(
+            method="method", path="path", schema=sentinel.schema
+        )
+
+        assert response == sentinel.second_call
+        api_client._get_refreshed_token.assert_called_once_with(
+            api_client._oauth2_token.refresh_token
+        )
+        api_client._validated_response.assert_has_calls(
+            [
+                # It would be good to assert this call has the old header, but as
+                # the object is mutated, you can't easily
+                call(AnyRequest(), sentinel.schema),
+                call(
+                    AnyRequest.containing_headers(
+                        {"Authorization": "Bearer new_access_token"}
+                    ),
+                    sentinel.schema,
+                ),
+            ]
+        )
+
+    @pytest.fixture
+    def api_client(self, api_client):
+        with mock.patch.object(api_client, "_get_refreshed_token"):
+            with mock.patch.object(api_client, "_validated_response"):
+                yield api_client
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")
+
+
+@pytest.fixture
+def api_client(pyramid_request):
+    return CanvasAPIClient(sentinel.context, pyramid_request)
+
+
+@pytest.fixture(autouse=True)
+def http_session(patch):
+    session = patch("lms.services.canvas_api.Session")
+
+    return session()
 
 
 @pytest.fixture(autouse=True)
@@ -658,64 +482,9 @@ def access_token(db_session, pyramid_request):
     access_token = OAuth2Token(
         user_id=pyramid_request.lti_user.user_id,
         consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-        access_token="test_access_token",
-        refresh_token="test_refresh_token",
+        access_token="existing_access_token",
+        refresh_token="existing_refresh_token",
+        expires_in=9999,
     )
     db_session.add(access_token)
     return access_token
-
-
-@pytest.fixture
-def CanvasAccessTokenResponseSchema(patch):
-    return patch("lms.services.canvas_api.CanvasAccessTokenResponseSchema")
-
-
-@pytest.fixture
-def CanvasAuthenticatedUsersSectionsResponseSchema(patch):
-    return patch(
-        "lms.services.canvas_api.CanvasAuthenticatedUsersSectionsResponseSchema"
-    )
-
-
-@pytest.fixture
-def CanvasCourseSectionsResponseSchema(patch):
-    return patch("lms.services.canvas_api.CanvasCourseSectionsResponseSchema")
-
-
-@pytest.fixture
-def CanvasUsersSectionsResponseSchema(patch):
-    return patch("lms.services.canvas_api.CanvasUsersSectionsResponseSchema")
-
-
-@pytest.fixture
-def CanvasListFilesResponseSchema(patch):
-    return patch("lms.services.canvas_api.CanvasListFilesResponseSchema")
-
-
-@pytest.fixture
-def CanvasPublicURLResponseSchema(patch):
-    return patch("lms.services.canvas_api.CanvasPublicURLResponseSchema")
-
-
-@pytest.fixture
-def canvas_api_client(pyramid_request, ai_getter):  # pylint:disable=unused-argument
-    return CanvasAPIClient(mock.sentinel.context, pyramid_request)
-
-
-@pytest.fixture(autouse=True)
-def CanvasAPIHelper(patch):
-    return patch("lms.services.canvas_api.CanvasAPIHelper")
-
-
-@pytest.fixture
-def canvas_api_helper(CanvasAPIHelper):
-    return CanvasAPIHelper.return_value
-
-
-@pytest.fixture
-def send_with_refresh_and_retry(canvas_api_client):
-    send_with_refresh_and_retry = mock.create_autospec(
-        canvas_api_client.send_with_refresh_and_retry
-    )
-    canvas_api_client.send_with_refresh_and_retry = send_with_refresh_and_retry
-    return send_with_refresh_and_retry
