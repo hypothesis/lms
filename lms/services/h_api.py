@@ -7,7 +7,7 @@ from h_api.bulk_api import BulkAPI, CommandBuilder
 from requests import RequestException
 
 from lms.models import HUser
-from lms.services import HAPIError, HAPINotFoundError
+from lms.services import HAPIError
 
 __all__ = ["HAPI"]
 
@@ -76,7 +76,6 @@ class HAPI:
         :param body: the body to send as a string (without modification)
         :param headers: extra headers to pass with the request
 
-        :raise HAPINotFoundError: If the request fails with 404
         :raise HAPIError: if the request fails for any other reason
         :return: the response from the h API
         :rtype: requests.Response
@@ -103,12 +102,6 @@ class HAPI:
 
         except RequestException as err:
             response = getattr(err, "response", None)
-            status_code = getattr(response, "status_code", None)
-
-            if status_code == 404:
-                raise HAPINotFoundError(
-                    "Could not find requested resource", response
-                ) from err
 
             raise HAPIError("Connecting to Hypothesis failed", response) from err
 

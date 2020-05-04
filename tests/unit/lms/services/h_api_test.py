@@ -1,24 +1,16 @@
 from unittest.mock import call, patch, sentinel
 
 import pytest
-import requests as requests_
 from h_api.bulk_api.model.command import ConfigCommand
 from h_matchers import Any
-from requests import (
-    HTTPError,
-    ReadTimeout,
-    RequestException,
-    Response,
-    TooManyRedirects,
-)
+from requests import RequestException
 
 from lms.models import HUser
-from lms.services import HAPIError, HAPINotFoundError
+from lms.services import HAPIError
 from lms.services.h_api import HAPI
 
 
 class TestHAPI:
-
     # We're accessing h_api._api_request a lot in this test class, so disable
     # protected-access messages.
     # pylint: disable=protected-access
@@ -101,26 +93,8 @@ class TestHAPI:
             {"X-Header": sentinel.header}
         )
 
-    def test__api_request_raises_HAPINotFoundError_for_404(self, h_api, requests):
-        response = Response()
-        response.status_code = 404
-        exception = RequestException(response=response)
-        requests.request.return_value.raise_for_status.side_effect = exception
-
-        with pytest.raises(HAPINotFoundError) as exc_info:
-            h_api._api_request(sentinel.method, "dummy-path")
-
-        # It records the requests exception that caused the HAPIError.
-        assert exc_info.value.__cause__ == exception
-
-    @pytest.mark.parametrize(
-        "exception_class",
-        [requests_.ConnectionError, HTTPError, ReadTimeout, TooManyRedirects],
-    )
-    def test__api_request_raises_HAPIError_for_other_http_errors(
-        self, h_api, requests, exception_class
-    ):
-        exception = exception_class()
+    def test__api_request_raises_HAPIError_for_request_errors(self, h_api, requests):
+        exception = RequestException()
         requests.request.side_effect = exception
 
         with pytest.raises(HAPIError) as exc_info:
