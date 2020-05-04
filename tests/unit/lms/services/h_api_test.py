@@ -77,13 +77,6 @@ class TestHAPI:
             )
         ]
 
-    def test_if_given_a_data_dict__api_request_dumps_it_to_a_json_string(
-        self, h_api, requests
-    ):
-        h_api._api_request(sentinel.method, "dummy-path", {"a": 1, "b": [2]})
-
-        assert requests.request.call_args[1]["data"] == '{"a":1,"b":[2]}'
-
     def test_if_given_custom_headers__api_request_adds_them(self, h_api, requests):
         h_api._api_request(
             sentinel.method, "dummy-path", headers={"X-Header": sentinel.header}

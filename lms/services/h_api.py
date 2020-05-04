@@ -1,7 +1,5 @@
 """The H API service."""
 
-import json
-
 import requests
 from h_api.bulk_api import BulkAPI, CommandBuilder
 from requests import RequestException
@@ -61,18 +59,13 @@ class HAPI:
 
         return HUser(username=username, display_name=user_info["display_name"])
 
-    # pylint: disable=too-many-arguments
-    # (data will be removed soon)
-    def _api_request(self, method, path, data=None, headers=None, body=None):
+    def _api_request(self, method, path, body=None, headers=None):
         """
         Send any kind of HTTP request to the h API and return the response.
 
-        :param method: the HTTP request method to use, for example "GET",
-                       "POST", "PUT", "PATCH" or "DELETE"
+        :param method: the HTTP request method to use, (e.g. "GET")
         :param path: the h API path to post to, relative to
-                     ``settings["h_api_url_private"]``, for example:
-                     ``"users"`` or ``"groups/<GROUPID>/members/<USERID>"``
-        :param data: the data to post as JSON in the request body
+                     `settings["h_api_url_private"]` (e.g. "users")
         :param body: the body to send as a string (without modification)
         :param headers: extra headers to pass with the request
 
@@ -83,12 +76,9 @@ class HAPI:
         headers = headers or {}
         headers["Hypothesis-Application"] = "lms"
 
-        request_args = {"headers": headers}
-
+        request_args = {}
         if body is not None:
             request_args["data"] = body
-        elif data is not None:
-            request_args["data"] = json.dumps(data, separators=(",", ":"))
 
         try:
             response = requests.request(
@@ -96,6 +86,7 @@ class HAPI:
                 url=self._base_url + path.lstrip("/"),
                 auth=self._http_auth,
                 timeout=10,
+                headers=headers,
                 **request_args,
             )
             response.raise_for_status()
