@@ -116,9 +116,9 @@ class TestGroupInfoUpsert:
     @pytest.fixture
     def params(self):
         return {
-            field.key: f"TEST_{field.key.upper()}"
-            for field in GroupInfo.iter_columns()
-            if field.key != "info"
+            column: f"TEST_{column.upper()}"
+            for column in GroupInfo.columns()
+            if column != "info"
         }
 
     @pytest.fixture

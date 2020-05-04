@@ -17,15 +17,8 @@ class ModelClass(BASE):
 
 
 class TestBase:
-    def test_we_can_get_properties(self):
-        keys = {prop.key for prop in ModelClass.iter_properties()}
-
-        assert keys == {"id", "relationship", "column"}
-
     def test_we_can_get_columns(self):
-        keys = {prop.key for prop in ModelClass.iter_columns()}
-
-        assert keys == {"id", "column"}
+        assert sorted(ModelClass.columns()) == ["column", "id"]
 
     def test_we_can_update_from_dict(self, model):
         model.update_from_dict(
