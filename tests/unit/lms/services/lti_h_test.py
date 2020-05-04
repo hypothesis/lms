@@ -81,6 +81,7 @@ class TestGroupInfoUpdating:
             authority_provided_id=h_group.authority_provided_id,
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             params=sentinel.params,
+            type_=h_group.type,
         )
 
     @pytest.fixture

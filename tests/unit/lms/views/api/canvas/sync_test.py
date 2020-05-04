@@ -15,6 +15,7 @@ def test_sync_when_the_user_is_a_learner(
         factories.HGroup(
             name="Section 2",
             authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
+            type="section_group",
         )
     ]
     canvas_api_client.authenticated_users_sections.assert_called_once_with(
@@ -36,14 +37,17 @@ def test_sync_when_the_user_isnt_a_learner(
         factories.HGroup(
             name="Section 1",
             authority_provided_id="d0f36006728f2277f228b74c8a7f620305bfb3e7",
+            type="section_group",
         ),
         factories.HGroup(
             name="Section 2",
             authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
+            type="section_group",
         ),
         factories.HGroup(
             name="Section 3",
             authority_provided_id="6a85e3651705dee4da0805b8985472343cbea94e",
+            type="section_group",
         ),
     ]
     canvas_api_client.course_sections.assert_called_once_with(

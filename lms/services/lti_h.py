@@ -57,6 +57,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
                 authority_provided_id=h_group.authority_provided_id,
                 consumer_key=self._lti_user.oauth_consumer_key,
                 params=group_info_params,
+                type_=h_group.type,
             )
 
     def _yield_commands(self, h_groups):

@@ -38,7 +38,9 @@ def sync(request):
         hash_object.update(str(section["id"]).encode())
         authority_provided_id = hash_object.hexdigest()
 
-        return HGroup(h_group_name(section["name"]), authority_provided_id,)
+        return HGroup(
+            h_group_name(section["name"]), authority_provided_id, type="section_group"
+        )
 
     groups = [group(section) for section in sections]
 
