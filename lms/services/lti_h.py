@@ -43,7 +43,7 @@ class LTIHService:  # pylint:disable=too-few-public-methods
             return
 
         try:
-            self._sync_to_h(h_groups)
+            self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
 
         except HAPIError as err:
             raise HTTPInternalServerError(explanation=err.explanation) from err
@@ -55,20 +55,6 @@ class LTIHService:  # pylint:disable=too-few-public-methods
                 consumer_key=self._lti_user.oauth_consumer_key,
                 params=self._request.params,
             )
-
-    def _sync_to_h(self, h_groups):
-        if self._request.feature("use_serial_api"):
-            # Legacy behavior using individual API calls
-            self._h_api.upsert_user(h_user=self._h_user)
-
-            for h_group in h_groups:
-                self._h_api.upsert_group(h_group)
-
-            for h_group in h_groups:
-                self._h_api.add_user_to_group(self._h_user, h_group)
-        else:
-            # Bulk API behavior (default)
-            self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
 
     def _yield_commands(self, h_groups):
         yield self._user_upsert(self._h_user)

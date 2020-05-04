@@ -95,59 +95,6 @@ class TestGroupInfoUpdating:
         return pyramid_request
 
 
-@pytest.mark.usefixtures("use_serial_api")
-class TestGroupUpdating:
-    def test_it_upserts_the_group(self, h_api, lti_h_svc, h_group):
-        lti_h_svc.sync([h_group])
-
-        h_api.upsert_group.assert_called_once_with(h_group)
-
-    def test_it_raises_if_upserting_the_group_fails(self, h_api, lti_h_svc, h_group):
-        h_api.upsert_group.side_effect = HAPIError("Oops")
-
-        with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.sync([h_group])
-
-
-@pytest.mark.usefixtures("use_serial_api")
-class TestUserUpserting:
-    def test_it_calls_h_api_for_user_update(self, h_api, lti_h_svc, h_user, h_group):
-        lti_h_svc.sync([h_group])
-
-        h_api.upsert_user.assert_called_once_with(h_user=h_user)
-
-    def test_it_raises_if_upsert_user_raises_unexpected_error(
-        self, h_api, lti_h_svc, h_group
-    ):
-        h_api.upsert_user.side_effect = HAPIError("whatever")
-
-        with pytest.raises(HTTPInternalServerError, match="whatever"):
-            lti_h_svc.sync([h_group])
-
-    def test_it_doesnt_use_the_h_api_if_feature_not_enabled(
-        self, ai_getter, h_api, lti_h_svc, h_group
-    ):
-        ai_getter.provisioning_enabled.return_value = False
-
-        lti_h_svc.sync([h_group])
-
-        h_api.upsert_user.assert_not_called()
-
-
-@pytest.mark.usefixtures("use_serial_api")
-class TestAddingUserToGroups:
-    def test_it_adds_the_user_to_the_group(self, h_api, lti_h_svc, h_user, h_group):
-        lti_h_svc.sync([h_group])
-
-        h_api.add_user_to_group.assert_called_once_with(h_user, h_group)
-
-    def test_it_raises_if_post_raises(self, h_api, lti_h_svc, h_group):
-        h_api.add_user_to_group.side_effect = HAPIError("Oops")
-
-        with pytest.raises(HTTPInternalServerError, match="Oops"):
-            lti_h_svc.sync([h_group])
-
-
 pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
 
 
@@ -159,11 +106,6 @@ def lti_h_svc(pyramid_request):
 @pytest.fixture
 def h_user(pyramid_request):
     return pyramid_request.lti_user.h_user
-
-
-@pytest.fixture
-def use_serial_api(pyramid_request):
-    pyramid_request.feature = lambda item: item == "use_serial_api"
 
 
 @pytest.fixture
