@@ -14,6 +14,7 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let fakeConfig;
   let fakeHypothesisConfig;
+  let fakeRpcServer;
 
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
@@ -80,6 +81,46 @@ describe('BasicLtiLaunchApp', () => {
       assert.include(iframe.props(), {
         src: 'https://via.hypothes.is/123',
       });
+    });
+  });
+
+  context('when sync object is provided in the config', () => {
+    beforeEach(() => {
+      fakeRpcServer = {
+        resolveGroupFetch: sinon.stub(),
+      };
+      fakeConfig.api.sync = {
+        data: {
+          course: {
+            context_id: '12345',
+            custom_canvas_course_id: '101',
+          },
+        },
+        path: '/api/sync',
+      };
+    });
+
+    it('attempts to fetch the groups when mounted', async () => {
+      const wrapper = renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      await waitFor(() => fakeApiCall.called);
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/sync',
+        data: {
+          course: {
+            context_id: '12345',
+            custom_canvas_course_id: '101',
+          },
+        },
+      });
+      assert.isTrue(wrapper.exists('Spinner'));
+    });
+
+    it('passes the groups array from api call to rpcServer.resolveGroupFetch', async () => {
+      const promise = fakeApiCall.resolves(['group1', 'group2']);
+      renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      await promise;
+      assert.calledWith(fakeRpcServer.resolveGroupFetch, ['group1', 'group2']);
     });
   });
 
@@ -182,9 +223,10 @@ describe('BasicLtiLaunchApp', () => {
           lis_result_sourcedid: 'modelstudent-assignment1',
         },
       };
+      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
-    it('reports the submission in the LMS when the content iframe starts loading', async () => {
+    it('reports the submission when the content iframe starts loading', async () => {
       const wrapper = renderLtiLaunchApp();
       await waitFor(() => fakeApiCall.called);
 
@@ -203,8 +245,9 @@ describe('BasicLtiLaunchApp', () => {
       const error = new ApiError(400, {});
       fakeApiCall.rejects(error);
 
-      // Wait for the API call to fail and check that an error is displayed.
       const wrapper = renderLtiLaunchApp();
+
+      // Wait for the API call to fail and check that an error is displayed.
       const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
       assert.equal(errorDisplay.prop('error'), error);
 
@@ -218,7 +261,7 @@ describe('BasicLtiLaunchApp', () => {
       );
     });
 
-    it('does not report a submission if teacher launches assignment', async () => {
+    it('does not report a submission if a teacher launches an assignment', async () => {
       // When a teacher launches the assignment, there will typically be no
       // `submissionParams` config provided by the backend.
       fakeConfig.canvas.speedGrader.submissionParams = undefined;
@@ -237,6 +280,13 @@ describe('BasicLtiLaunchApp', () => {
 
       assert.notCalled(fakeApiCall);
     });
+
+    it('does not report the submission when there is no `contentUrl`', async () => {
+      // When present, viaUrl becomes the contentUrl
+      fakeConfig.viaUrl = null;
+      renderLtiLaunchApp();
+      assert.isTrue(fakeApiCall.notCalled);
+    });
   });
 
   context('when grading is enabled', () => {
@@ -251,6 +301,70 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       const LMSGrader = wrapper.find('LMSGrader');
       assert.isTrue(LMSGrader.exists());
+    });
+  });
+
+  describe('multiple fetches', () => {
+    let contentUrlCall;
+    let groupsCall;
+
+    beforeEach(() => {
+      // Will attempt to fetch the 1. content url and 2. groups.
+      fakeConfig.api = {
+        authToken: 'dummyAuthToken',
+        viaCallbackUrl: 'https://lms.hypothes.is/api/files/1234',
+        sync: {
+          data: {
+            course: {
+              context_id: '12345',
+              custom_canvas_course_id: '101',
+            },
+          },
+          path: '/api/sync',
+        },
+      };
+      contentUrlCall = fakeApiCall.withArgs({
+        authToken: 'dummyAuthToken',
+        path: 'https://lms.hypothes.is/api/files/1234',
+      });
+
+      groupsCall = fakeApiCall.withArgs({
+        authToken: 'dummyAuthToken',
+        path: '/api/sync',
+        data: {
+          course: {
+            context_id: '12345',
+            custom_canvas_course_id: '101',
+          },
+        },
+      });
+    });
+    it('renders the spinner until both groups and contentUrl requests finish', async () => {
+      const contentUrl = contentUrlCall.resolves({
+        via_url: 'https://via.hypothes.is/123',
+      });
+      const groups = groupsCall.resolves(['group1', 'group2']);
+      const wrapper = renderLtiLaunchApp();
+      await contentUrl;
+      // Spinner should not go away after first request
+      assert.isTrue(wrapper.exists('Spinner'));
+
+      await groups;
+      wrapper.update();
+      // Spinner should hide after second request finishes
+      assert.isFalse(wrapper.exists('Spinner'));
+    });
+    it('shows an error dialog if the first request fails and second succeeds', async () => {
+      const contentUrl = contentUrlCall.rejects(new ApiError(400, {}));
+      const groups = groupsCall.resolves(['group1', 'group2']);
+      const wrapper = renderLtiLaunchApp();
+      await contentUrl;
+      // Should show an error after the first request fails
+      await waitForElement(wrapper, 'ErrorDisplay');
+      await groups;
+      wrapper.update();
+      // Should still show an error even if the second request does not fail
+      await waitForElement(wrapper, 'ErrorDisplay');
     });
   });
 

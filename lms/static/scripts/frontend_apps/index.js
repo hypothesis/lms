@@ -10,14 +10,16 @@ import FilePickerApp from './components/FilePickerApp';
 import { startRpcServer } from '../postmessage_json_rpc/server';
 
 // Create an RPC Server and start listening to postMessage calls.
-startRpcServer();
+const rpcServer = startRpcServer();
 
 const rootEl = document.querySelector('#app');
 const config = JSON.parse(document.querySelector('.js-config').textContent);
 
 render(
   <Config.Provider value={config}>
-    {config.mode === 'basic-lti-launch' && <BasicLtiLaunchApp />}
+    {config.mode === 'basic-lti-launch' && (
+      <BasicLtiLaunchApp rpcServer={rpcServer} />
+    )}
     {config.mode === 'content-item-selection' && <FilePickerApp />}
   </Config.Provider>,
   rootEl
