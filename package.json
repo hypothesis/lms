@@ -71,7 +71,7 @@
     "karma-browserify": "^7.0.0",
     "karma-chai": "^0.1.0",
     "karma-coverage-istanbul-reporter": "^2.1.1",
-    "karma-mocha": "^2.0.0",
+    "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.0.4",
     "karma-sinon": "^1.0.5",
     "mocha": "^7.1.2",
