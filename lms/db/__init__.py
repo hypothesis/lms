@@ -17,18 +17,13 @@ class BaseClass:
     """Functions common to all SQLAlchemy models."""
 
     @classmethod
-    def iter_properties(cls):
-        """Iterate over all declared SQLAlchemy properties."""
-        return inspect(cls).iterate_properties
-
-    @classmethod
-    def iter_columns(cls):
-        """Iterate over all declared SQLAlchemy columns."""
-        return (
-            property
-            for property in cls.iter_properties()
+    def columns(cls):
+        """Return a list of all declared SQLAlchemy column names."""
+        return [
+            property.key
+            for property in inspect(cls).iterate_properties
             if isinstance(property, ColumnProperty)
-        )
+        ]
 
     def update_from_dict(self, data, skip_keys=None):
         """
@@ -51,7 +46,7 @@ class BaseClass:
                 f"Expected a set of keys to skip but found '{type(skip_keys)}'"
             )
 
-        columns = {col.key for col in self.iter_columns()}
+        columns = set(self.columns())
         columns -= skip_keys
 
         for key in columns:

@@ -135,7 +135,7 @@ class TestUpsertFromRequest:
 
     @classmethod
     def model_as_dict(cls, model):
-        return {col.key: getattr(model, col.key) for col in model.iter_columns()}
+        return {col: getattr(model, col) for col in model.columns()}
 
     @pytest.fixture
     def db_session(self, db_session):
