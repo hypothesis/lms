@@ -1,3 +1,4 @@
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -115,6 +116,58 @@ class TestOAuth2RedirectError:
         ).oauth2_redirect_error()
 
         assert "authorize_url" not in template_variables
+
+    @pytest.mark.parametrize(
+        "params,invalid_scope",
+        [
+            ({"error": "invalid_scope"}, True),
+            ({"error": "unknown_error"}, False),
+            ({"foo": "bar"}, False),
+        ],
+    )
+    def test_it_tells_the_template_whether_to_show_the_missing_scopes_error_message(
+        self, pyramid_request, params, invalid_scope
+    ):
+        pyramid_request.params.clear()
+        pyramid_request.params.update(params)
+
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        assert template_variables["invalid_scope"] == invalid_scope
+
+    @pytest.mark.parametrize(
+        "params,expected_details",
+        [
+            (
+                {"error_description": mock.sentinel.error_description},
+                mock.sentinel.error_description,
+            ),
+            ({"foo": "bar"}, None),
+        ],
+    )
+    def test_it_passes_error_descriptions_from_Canvas_to_the_template(
+        self, pyramid_request, params, expected_details
+    ):
+        pyramid_request.params.clear()
+        pyramid_request.params.update(params)
+
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        assert template_variables["details"] == expected_details
+
+    def test_it_passes_our_required_API_scopes_to_the_template(self, pyramid_request):
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        assert template_variables["scopes"] == (
+            "url:GET|/api/v1/courses/:course_id/files",
+            "url:GET|/api/v1/files/:id/public_url",
+        )
 
 
 @pytest.fixture(autouse=True)

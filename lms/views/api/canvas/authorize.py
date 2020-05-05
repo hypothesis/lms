@@ -20,6 +20,13 @@ from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallback
 
 @view_defaults(request_method="GET", route_name="canvas_oauth_callback")
 class CanvasAPIAuthorizeViews:
+
+    #: The Canvas API scopes that we request.
+    scopes = (
+        "url:GET|/api/v1/courses/:course_id/files",
+        "url:GET|/api/v1/files/:id/public_url",
+    )
+
     def __init__(self, request):
         self.request = request
 
@@ -39,7 +46,7 @@ class CanvasAPIAuthorizeViews:
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
-                        "scope": "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url",
+                        "scope": " ".join(self.scopes),
                     }
                 ),
                 "",
@@ -74,7 +81,11 @@ class CanvasAPIAuthorizeViews:
         route_name="canvas_api.authorize",
     )
     def oauth2_redirect_error(self):
-        template_variables = {}
+        template_variables = {
+            "invalid_scope": self.request.params.get("error") == "invalid_scope",
+            "details": self.request.params.get("error_description"),
+            "scopes": self.scopes,
+        }
 
         if self.request.lti_user:
             authorization_param = BearerTokenSchema(self.request).authorization_param(
