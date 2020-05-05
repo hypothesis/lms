@@ -6,20 +6,7 @@ import LMSGrader, { $imports } from '../LMSGrader';
 import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('LMSGrader', () => {
-  const fakeStudents = [
-    {
-      userid: 'acct:student1@authority',
-      displayName: 'Student 1',
-      LISResultSourcedId: 1,
-      LISOutcomeServiceUrl: '',
-    },
-    {
-      userid: 'acct:student2@authority',
-      displayName: 'Student 2',
-      LISResultSourcedId: 2,
-      LISOutcomeServiceUrl: '',
-    },
-  ];
+  let fakeStudents;
   let fakeOnChange;
   let fakeRpcCall;
   const fakeSidebarWindow = sinon.stub().resolves({
@@ -33,6 +20,20 @@ describe('LMSGrader', () => {
   };
 
   beforeEach(() => {
+    fakeStudents = [
+      {
+        userid: 'acct:student1@authority',
+        displayName: 'Student 1',
+        LISResultSourcedId: 1,
+        LISOutcomeServiceUrl: '',
+      },
+      {
+        userid: 'acct:student2@authority',
+        displayName: 'Student 2',
+        LISResultSourcedId: 2,
+        LISOutcomeServiceUrl: '',
+      },
+    ];
     fakeOnChange = sinon.spy();
     fakeRpcCall = sinon.spy();
     $imports.$mock({
@@ -81,6 +82,56 @@ describe('LMSGrader', () => {
     );
   });
 
+  it('orders the students by last name (if it exists), then first name', () => {
+    // Un-order students
+    fakeStudents = [
+      {
+        displayName: 'Student Beta',
+      },
+      {
+        displayName: 'stu Beta',
+      },
+      {
+        displayName: 'Students Beta',
+      },
+      {
+        displayName: 'Beta',
+      },
+      {
+        displayName: 'Student Delta',
+      },
+      {
+        displayName: 'Student Alpha',
+      },
+      {
+        displayName: 'Student Alpha Longer Last Name',
+      },
+      {
+        displayName: 'Alpha',
+      },
+    ];
+    const wrapper = renderGrader();
+    const orderedStudentNames = wrapper
+      .find('FakeStudentSelector')
+      .prop('students')
+      .map(s => {
+        return s.displayName;
+      });
+    assert.match(
+      [
+        'Alpha', // no last name
+        'Alpha, Student',
+        'Alpha Longer Last Name, Student', // multiple last name words
+        'Beta', // no last name
+        'Beta, stu', // lowercase won't matter
+        'Beta, Student',
+        'Beta, Students',
+        'Delta, Student',
+      ],
+      orderedStudentNames
+    );
+  });
+
   it('set the selected student count to "Student 2 of 2" when the index changers to 1', async () => {
     const wrapper = renderGrader();
     act(() => {
@@ -125,8 +176,8 @@ describe('LMSGrader', () => {
         'changeFocusModeUser',
         [
           {
-            username: fakeStudents[0].userid,
-            displayName: fakeStudents[0].displayName,
+            username: 'acct:student1@authority',
+            displayName: '1, Student',
           },
         ]
       )
