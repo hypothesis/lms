@@ -104,7 +104,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    *  "error-authorizing", or "error-report-submission"
    * @param {boolean} [retry=true] - Can the request be retried?
    */
-  const handleError = (e, errorState, retry = true) => {
+  const handleError = useCallback((e, errorState, retry = true) => {
     setFetched();
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
@@ -112,12 +112,12 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       setError(e);
       setErrorState(errorState);
     }
-  };
+  }, []);
 
   /**
    * Fetch the groups from the sync endpoint if `sync` object exists.
    */
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     if (apiSync) {
       try {
         setFetching();
@@ -132,7 +132,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         handleError(e, 'error-fetch');
       }
     }
-  };
+  }, [apiSync, authToken, handleError, rpcServer]);
 
   /**
    * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
@@ -140,7 +140,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    *
    * This will typically be a PDF URL proxied through Via.
    */
-  const fetchContentUrl = async () => {
+  const fetchContentUrl = useCallback(async () => {
     if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
@@ -158,7 +158,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     } catch (e) {
       handleError(e, 'error-fetch');
     }
-  };
+  }, [authToken, handleError, viaCallbackUrl]);
 
   /**
    * Fetch the assignment content URL and groups when the app is initially displayed.
@@ -221,8 +221,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     } finally {
       authWindow.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authToken, canvas.authUrl]);
+  }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
 
   if (showIframe()) {
     const iFrame = (
