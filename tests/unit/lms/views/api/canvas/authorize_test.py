@@ -89,11 +89,6 @@ class TestOAuth2Redirect:
 
 
 class TestOAuth2RedirectError:
-    def test_it_sets_the_response_status_code_to_500(self, pyramid_request):
-        CanvasAPIAuthorizeViews(pyramid_request).oauth2_redirect_error()
-
-        assert pyramid_request.response.status_code == 500
-
     def test_it_passes_authorize_url_to_the_template(
         self, BearerTokenSchema, bearer_token_schema, pyramid_request
     ):

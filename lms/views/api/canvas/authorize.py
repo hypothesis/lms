@@ -73,8 +73,6 @@ class CanvasAPIAuthorizeViews:
         route_name="canvas_api.authorize",
     )
     def oauth2_redirect_error(self):
-        self.request.response.status_code = 500
-
         authorization_param = (
             BearerTokenSchema(self.request).authorization_param(self.request.lti_user),
         )
