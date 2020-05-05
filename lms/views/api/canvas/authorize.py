@@ -22,19 +22,20 @@ from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallback
 class CanvasAPIAuthorizeViews:
     def __init__(self, request):
         self.request = request
-        self.ai_getter = request.find_service(name="ai_getter")
 
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
+        ai_getter = self.request.find_service(name="ai_getter")
+
         authorize_url = urlunparse(
             (
                 "https",
-                urlparse(self.ai_getter.lms_url()).netloc,
+                urlparse(ai_getter.lms_url()).netloc,
                 "login/oauth2/auth",
                 "",
                 urlencode(
                     {
-                        "client_id": self.ai_getter.developer_key(),
+                        "client_id": ai_getter.developer_key(),
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
@@ -73,11 +74,14 @@ class CanvasAPIAuthorizeViews:
         route_name="canvas_api.authorize",
     )
     def oauth2_redirect_error(self):
-        authorization_param = (
-            BearerTokenSchema(self.request).authorization_param(self.request.lti_user),
-        )
-        return {
-            "authorize_url": self.request.route_url(
-                "canvas_api.authorize", _query=[("authorization", authorization_param)]
+        template_variables = {}
+
+        if self.request.lti_user:
+            authorization_param = BearerTokenSchema(self.request).authorization_param(
+                self.request.lti_user
             )
-        }
+            template_variables["authorize_url"] = self.request.route_url(
+                "canvas_api.authorize", _query=[("authorization", authorization_param)],
+            )
+
+        return template_variables
