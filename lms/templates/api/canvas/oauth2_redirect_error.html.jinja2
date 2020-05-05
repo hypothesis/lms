@@ -15,16 +15,23 @@
 
       <div class="u-stretch"></div>
       <div class="Dialog__actions">
-        <button class="Button Button--cancel"
-                type="button"
-                onclick="window.close()">
-          Cancel
-        </button>
-        <button class="Button"
-                type="button"
-                onclick="window.location.href = '{{ authorize_url }}'">
-          Try again
-        </button>
+        {% if authorize_url %}
+          <button class="Button Button--cancel" type="button"
+                  onclick="window.close()">
+            Cancel
+          </button>
+          <button class="Button"
+                  type="button"
+                  onclick="window.location.href = '{{ authorize_url }}'">
+            Try again
+          </button>
+        {% else %}
+          <button class="Button"
+                  type="button"
+                  onclick="window.close()">
+            Close
+          </button>
+        {% endif %}
       </div>
     </div>
   </div>

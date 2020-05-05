@@ -105,6 +105,17 @@ class TestOAuth2RedirectError:
             == "http://example.com/api/canvas/authorize?authorization=TEST_AUTHORIZATION_PARAM"
         )
 
+    def test_it_doesnt_pass_authorize_url_if_theres_no_authorized_user(
+        self, pyramid_request
+    ):
+        pyramid_request.lti_user = None
+
+        template_variables = CanvasAPIAuthorizeViews(
+            pyramid_request
+        ).oauth2_redirect_error()
+
+        assert "authorize_url" not in template_variables
+
 
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
