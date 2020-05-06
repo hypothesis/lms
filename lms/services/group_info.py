@@ -68,4 +68,4 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
                 dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
             )
 
-        group_info.info["type"] = type_
+        group_info.type = type_

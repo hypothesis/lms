@@ -87,6 +87,7 @@ class GroupInfo(BASE):  # pylint:disable=too-few-public-methods
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("info", {})
         kwargs["info"].setdefault("instructors", [])
+        kwargs["info"].setdefault("type", None)
         super().__init__(*args, **kwargs)
 
     @property
@@ -96,6 +97,14 @@ class GroupInfo(BASE):  # pylint:disable=too-few-public-methods
     @instructors.setter
     def instructors(self, new_instructors):
         self.info["instructors"] = new_instructors
+
+    @property
+    def type(self):
+        return self.info["type"]
+
+    @type.setter
+    def type(self, new_type):
+        self.info["type"] = new_type
 
     def upsert_instructor(self, new_instructor):
         updated_instructors = []
