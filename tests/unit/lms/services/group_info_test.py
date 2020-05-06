@@ -4,6 +4,7 @@ import pytest
 
 from lms.models import ApplicationInstance, GroupInfo
 from lms.services.group_info import GroupInfoService
+from tests import factories
 
 
 class TestGroupInfoUpsert:
@@ -14,10 +15,11 @@ class TestGroupInfoUpsert:
         self, db_session, group_info_svc, params
     ):
         group_info_svc.upsert(
-            authority_provided_id=self.AUTHORITY,
+            factories.HGroup(
+                authority_provided_id=self.AUTHORITY, type="course_group",
+            ),
             consumer_key=self.CONSUMER_KEY,
             params=params,
-            type_="course_group",
         )
 
         group_info = self.get_inserted_group_info(db_session)
@@ -42,10 +44,11 @@ class TestGroupInfoUpsert:
         )
 
         group_info_svc.upsert(
-            authority_provided_id=self.AUTHORITY,
+            factories.HGroup(
+                authority_provided_id=self.AUTHORITY, type="course_group",
+            ),
             consumer_key=self.CONSUMER_KEY,
             params=dict(params, context_title="NEW_TITLE"),
-            type_="course_group",
         )
 
         group_info = self.get_inserted_group_info(db_session)
@@ -57,7 +60,9 @@ class TestGroupInfoUpsert:
 
     def test_it_ignores_non_metadata_params(self, db_session, group_info_svc, params):
         group_info_svc.upsert(
-            authority_provided_id=self.AUTHORITY,
+            factories.HGroup(
+                authority_provided_id=self.AUTHORITY, type="course_group",
+            ),
             consumer_key=self.CONSUMER_KEY,
             params=dict(
                 params,
@@ -65,7 +70,6 @@ class TestGroupInfoUpsert:
                 authority_provided_id="IGNORE ME 2",
                 something_unrelated="IGNORED ME 3",
             ),
-            type_="course_group",
         )
 
         group_info = self.get_inserted_group_info(db_session)
@@ -78,10 +82,11 @@ class TestGroupInfoUpsert:
         self, db_session, group_info_svc, pyramid_request
     ):
         group_info_svc.upsert(
-            authority_provided_id=self.AUTHORITY,
+            factories.HGroup(
+                authority_provided_id=self.AUTHORITY, type="course_group",
+            ),
             consumer_key=self.CONSUMER_KEY,
             params={},
-            type_="course_group",
         )
 
         group_info = self.get_inserted_group_info(db_session)
@@ -98,10 +103,11 @@ class TestGroupInfoUpsert:
         self, db_session, group_info_svc
     ):
         group_info_svc.upsert(
-            authority_provided_id=self.AUTHORITY,
+            factories.HGroup(
+                authority_provided_id=self.AUTHORITY, type="course_group",
+            ),
             consumer_key=self.CONSUMER_KEY,
             params={},
-            type_="course_group",
         )
 
         group_info = self.get_inserted_group_info(db_session)

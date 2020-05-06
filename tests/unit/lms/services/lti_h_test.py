@@ -78,10 +78,9 @@ class TestGroupInfoUpdating:
         lti_h_svc.sync([h_group], sentinel.params)
 
         group_info_service.upsert.assert_called_once_with(
-            authority_provided_id=h_group.authority_provided_id,
+            h_group=h_group,
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             params=sentinel.params,
-            type_=h_group.type,
         )
 
     @pytest.fixture
