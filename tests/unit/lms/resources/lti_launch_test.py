@@ -105,11 +105,12 @@ class TestShouldUseSectionGroups:
     @pytest.mark.parametrize(
         "params",
         [
-            # If we're in Canvas and sections is enabled for the application
-            # instance then sections should be enabled.
+            # If we're in Canvas and the application instance has a developer
+            # key with sections enabled then sections should be enabled.
             dict(
                 is_canvas=True,
                 is_feature_flag_enabled=True,
+                developer_key=mock.sentinel.developer_key,
                 is_canvas_sections_enabled=True,
                 should_use_section_groups=True,
             ),
@@ -117,6 +118,7 @@ class TestShouldUseSectionGroups:
             dict(
                 is_canvas=True,
                 is_feature_flag_enabled=False,
+                developer_key=mock.sentinel.developer_key,
                 is_canvas_sections_enabled=True,
                 should_use_section_groups=False,
             ),
@@ -124,6 +126,7 @@ class TestShouldUseSectionGroups:
             dict(
                 is_canvas=False,
                 is_feature_flag_enabled=True,
+                developer_key=mock.sentinel.developer_key,
                 is_canvas_sections_enabled=True,
                 should_use_section_groups=False,
             ),
@@ -132,7 +135,17 @@ class TestShouldUseSectionGroups:
             dict(
                 is_canvas=True,
                 is_feature_flag_enabled=True,
+                developer_key=mock.sentinel.developer_key,
                 is_canvas_sections_enabled=False,
+                should_use_section_groups=False,
+            ),
+            # If the application instance doesn't have a developer key then
+            # sections should be disabled.
+            dict(
+                is_canvas=True,
+                is_feature_flag_enabled=True,
+                developer_key=None,
+                is_canvas_sections_enabled=True,
                 should_use_section_groups=False,
             ),
         ],
@@ -141,6 +154,7 @@ class TestShouldUseSectionGroups:
         self, lti_launch, pyramid_request, params, ai_getter,
     ):
         pyramid_request.feature.return_value = params["is_feature_flag_enabled"]
+        ai_getter.developer_key.return_value = params["developer_key"]
         ai_getter.canvas_sections_enabled.return_value = params[
             "is_canvas_sections_enabled"
         ]
