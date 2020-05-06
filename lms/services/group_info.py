@@ -19,7 +19,7 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
         self._db = request.db
         self._lti_user = request.lti_user
 
-    def upsert(self, authority_provided_id, consumer_key, params, type_):
+    def upsert(self, h_group, consumer_key, params):
         """
         Upsert a row into the ``group_info`` DB table.
 
@@ -34,27 +34,25 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
         Any keys in ``params`` that don't correspond to a ``GroupInfo`` column
         name will be ignored.
 
-        :param authority_provided_id: the ``authority_provided_id`` of the
-            ``GroupInfo`` to create or update
+        :param h_group: the group to upsert
+        :type h_group: lms.models.HGroup
 
         :param consumer_key: the ``GroupInfo.consumer_key`` value to set
 
         :param params: the other ``GroupInfo`` columns to set
         :type params: dict
 
-        :param type_: the type of the group, e.g. "course_group" or "section_group"
-        :type type_: str
-
         """
         group_info = (
             self._db.query(GroupInfo)
-            .filter_by(authority_provided_id=authority_provided_id)
+            .filter_by(authority_provided_id=h_group.authority_provided_id)
             .one_or_none()
         )
 
         if not group_info:
             group_info = GroupInfo(
-                authority_provided_id=authority_provided_id, consumer_key=consumer_key
+                authority_provided_id=h_group.authority_provided_id,
+                consumer_key=consumer_key,
             )
             self._db.add(group_info)
 
@@ -68,4 +66,4 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
                 dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
             )
 
-        group_info.type = type_
+        group_info.type = h_group.type
