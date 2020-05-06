@@ -19,7 +19,12 @@ from lms.validation import ValidationError
 
 
 class AnyRequest(Matcher):  # pragma: no cover
+    """Matching object for request type objects."""
+
     # This will be moved out to h-matchers and prettied up and tested there
+    # At present the matcher only supports `requests.PreparedRequest` but the
+    # plan is to expand it to more request types in future.
+
     assert_on_comparison = False
 
     def __init__(self, method=None, url=None, headers=None):
