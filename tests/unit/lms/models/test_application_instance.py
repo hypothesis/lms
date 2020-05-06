@@ -33,6 +33,32 @@ class TestApplicationInstance:
 
         assert application_instance.provisioning is not None
 
+    def test_canvas_sections_enabled_defaults_to_False(
+        self, db_session, application_instance
+    ):
+        db_session.add(application_instance)
+
+        db_session.flush()
+
+        assert not application_instance.canvas_sections_enabled
+
+    def test_canvas_sections_can_be_enabled(self, db_session, application_instance):
+        application_instance.canvas_sections_enabled = True
+        db_session.add(application_instance)
+        db_session.flush()
+
+        assert application_instance.canvas_sections_enabled is True
+
+    def test_canvas_sections_enabled_is_not_nullable(
+        self, db_session, application_instance
+    ):
+        application_instance.canvas_sections_enabled = None
+        db_session.add(application_instance)
+
+        db_session.flush()
+
+        assert application_instance.canvas_sections_enabled is not None
+
     def test_consumer_key_cant_be_null(self, db_session, application_instance):
         application_instance.consumer_key = None
         db_session.add(application_instance)
