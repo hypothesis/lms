@@ -25,7 +25,7 @@ class TestGroupInfoUpsert:
         assert group_info.consumer_key == self.CONSUMER_KEY
         assert group_info.context_title == params["context_title"]
         assert group_info.context_label == params["context_label"]
-        assert group_info.info["type"] == "course_group"
+        assert group_info.type == "course_group"
 
     def test_it_updates_an_existing_GroupInfo_if_one_already_exists(
         self, db_session, group_info_svc, params
@@ -53,7 +53,7 @@ class TestGroupInfoUpsert:
         assert group_info.consumer_key == self.CONSUMER_KEY
         assert group_info.context_label == params["context_label"]
         assert group_info.context_title == "NEW_TITLE"
-        assert group_info.info["type"] == "course_group"
+        assert group_info.type == "course_group"
 
     def test_it_ignores_non_metadata_params(self, db_session, group_info_svc, params):
         group_info_svc.upsert(
