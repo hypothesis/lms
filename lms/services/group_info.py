@@ -21,25 +21,24 @@ class GroupInfoService:  # pylint:disable=too-few-public-methods
 
     def upsert(self, h_group, consumer_key, params):
         """
-        Upsert a row into the ``group_info`` DB table.
+        Upsert a row into the `group_info` DB table.
 
-        Find the :class:`~lms.models.GroupInfo` with the given
-        ``authority_provided_id``, or create it if none exists.  Then update
-        the ``GroupInfo``'s ``consumer_key`` to the given ``consumer_key``, and
-        update its other columns from the items in ``params``.
+        Find the models.GroupInfo matching the given h_group or create it if
+        none exists. Then update the GroupInfo's consumer_key to the given
+        consumer_key, and update its other columns from the items in `params`.
 
-        ``params["id"]`` and ``params["authority_provided_id"]`` will be
-        ignored if present--these columns can't be updated.
+        params["id"], params["authority_provided_id"], and params["info"] will
+        be ignored if present--these columns can't be updated.
 
-        Any keys in ``params`` that don't correspond to a ``GroupInfo`` column
-        name will be ignored.
+        Any keys in `params` that don't correspond to a GroupInfo column name
+        will be ignored.
 
         :param h_group: the group to upsert
-        :type h_group: lms.models.HGroup
+        :type h_group: models.HGroup
 
-        :param consumer_key: the ``GroupInfo.consumer_key`` value to set
+        :param consumer_key: the GroupInfo.consumer_key value to set
 
-        :param params: the other ``GroupInfo`` columns to set
+        :param params: the other GroupInfo columns to set
         :type params: dict
 
         """
