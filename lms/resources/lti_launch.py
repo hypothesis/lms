@@ -104,4 +104,9 @@ class LTILaunchResource:
         if not self.is_canvas:
             return False
 
+        ai_getter = self._request.find_service(name="ai_getter")
+
+        if not ai_getter.canvas_sections_enabled():
+            return False
+
         return self._request.feature("section_groups")

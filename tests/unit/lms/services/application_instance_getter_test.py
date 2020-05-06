@@ -68,6 +68,20 @@ class TestApplicationInstanceGetter:
     def test_provisioning_returns_False_if_consumer_key_unknown(self, ai_getter):
         assert not ai_getter.provisioning_enabled()
 
+    @pytest.mark.parametrize("flag", [True, False])
+    def test_canvas_sections_enabled_returns_the_canvas_sections_enabled(
+        self, ai_getter, flag, test_application_instance
+    ):
+        test_application_instance.canvas_sections_enabled = flag
+
+        assert ai_getter.canvas_sections_enabled() == flag
+
+    @pytest.mark.usefixtures("unknown_consumer_key")
+    def test_canvas_sections_enabled_returns_False_if_consumer_key_unknown(
+        self, ai_getter
+    ):
+        assert not ai_getter.canvas_sections_enabled()
+
     def test_shared_secret_returns_the_shared_secret(self, ai_getter):
         assert ai_getter.shared_secret() == "TEST_SHARED_SECRET"
 
