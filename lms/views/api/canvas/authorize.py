@@ -20,15 +20,21 @@ from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallback
 
 @view_defaults(request_method="GET", route_name="canvas_oauth_callback")
 class CanvasAPIAuthorizeViews:
-
-    #: The Canvas API scopes that we request.
-    scopes = (
-        "url:GET|/api/v1/courses/:course_id/files",
-        "url:GET|/api/v1/files/:id/public_url",
-    )
-
     def __init__(self, request):
         self.request = request
+
+        #: The Canvas API scopes that we request.
+        self.scopes = (
+            "url:GET|/api/v1/courses/:course_id/files",
+            "url:GET|/api/v1/files/:id/public_url",
+        )
+
+        if request.feature("section_groups"):
+            self.scopes = self.scopes + (
+                "url:GET|/api/v1/courses/:id",
+                "url:GET|/api/v1/courses/:course_id/sections",
+                "url:GET|/api/v1/courses/:course_id/users/:id",
+            )
 
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
