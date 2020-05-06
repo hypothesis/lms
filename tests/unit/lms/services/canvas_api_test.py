@@ -12,7 +12,7 @@ from requests import PreparedRequest, RequestException, Response
 
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
-from lms.services.canvas_api import CanvasAPIClient
+from lms.services.canvas_api import CanvasAPIClient, _CanvasAPIAuthenticatedClient
 from lms.validation import ValidationError
 
 # pylint: disable=protected-access
@@ -244,6 +244,10 @@ class TestDataCalls:
 
         return lambda: getattr(api_client, method)(*args)
 
+    @pytest.fixture
+    def api_client(self, pyramid_request):
+        return CanvasAPIClient(sentinel.context, pyramid_request)
+
 
 class TestTokenCalls:
     @pytest.mark.parametrize(
@@ -258,11 +262,11 @@ class TestTokenCalls:
         ),
     )
     def test_get_token(
-        self, api_client, http_session, db_session, pyramid_request, json_data
+        self, base_client, http_session, db_session, pyramid_request, json_data
     ):
         http_session.send.return_value = _make_response(json_data)
 
-        api_client.get_token("authorization_code")
+        base_client.get_token("authorization_code")
 
         http_session.send.assert_called_once_with(
             AnyRequest(
@@ -274,7 +278,7 @@ class TestTokenCalls:
                         "grant_type": "authorization_code",
                         "client_id": "developer_key",
                         "client_secret": "developer_secret",
-                        "redirect_uri": api_client._redirect_uri,
+                        "redirect_uri": base_client._redirect_uri,
                         "code": "authorization_code",
                         "replace_tokens": "True",
                     }
@@ -298,11 +302,11 @@ class TestTokenCalls:
         ),
     )
     def test__get_refreshed_token(
-        self, api_client, http_session, db_session, pyramid_request, json_data
+        self, base_client, http_session, db_session, pyramid_request, json_data
     ):
         http_session.send.return_value = _make_response(json_data)
 
-        api_client._get_refreshed_token("new_refresh_token")
+        base_client._get_refreshed_token("new_refresh_token")
 
         http_session.send.assert_called_once_with(
             AnyRequest(
@@ -337,11 +341,11 @@ class TestTokenCalls:
     )
     @pytest.mark.parametrize("method", ("get_token", "_get_refreshed_token"))
     def test_token_methods_raises_CanvasAPIServerError_for_bad_responses(
-        self, http_session, api_client, method, json_data
+        self, http_session, base_client, method, json_data
     ):
         http_session.send.return_value = _make_response(json_data)
 
-        method = getattr(api_client, method)
+        method = getattr(base_client, method)
 
         with pytest.raises(CanvasAPIServerError):
             method("token_value")
@@ -365,18 +369,18 @@ class TestTokenCalls:
 
 
 class TestValidatedResponse:
-    def test_it(self, api_client, http_session, schema):
+    def test_it(self, base_client, http_session, schema):
         response = _make_response("request_body")
         http_session.send.return_value = response
 
-        api_client._validated_response(sentinel.request, schema)
+        base_client._validated_response(sentinel.request, schema)
 
         http_session.send.assert_called_once_with(sentinel.request, timeout=9)
         schema.assert_called_once_with(response)
         schema.return_value.parse.assert_called_once_with()
 
     def test_it_raises_CanvasAPIError_for_request_errors(
-        self, api_client, http_session, schema
+        self, base_client, http_session, schema
     ):
         response = _make_response("request_body")
         response.raise_for_status = mock.MagicMock()
@@ -384,13 +388,13 @@ class TestValidatedResponse:
         http_session.send.return_value = response
 
         with pytest.raises(CanvasAPIError):
-            api_client._validated_response(sentinel.request, schema)
+            base_client._validated_response(sentinel.request, schema)
 
-    def test_it_raises_CanvasAPIError_for_validation_errors(self, api_client, schema):
+    def test_it_raises_CanvasAPIError_for_validation_errors(self, base_client, schema):
         schema.return_value.parse.side_effect = ValidationError("Some error")
 
         with pytest.raises(CanvasAPIError):
-            api_client._validated_response(sentinel.request, schema)
+            base_client._validated_response(sentinel.request, schema)
 
     @pytest.fixture
     def schema(self):
@@ -398,19 +402,19 @@ class TestValidatedResponse:
 
 
 class TestMakeAuthenticatedRequest:
-    def test_it(self, api_client, access_token):
+    def test_it(self, base_client, access_token):
         params = {"a": "1"}
 
-        api_client.make_authenticated_request(
+        base_client.make_authenticated_request(
             method="method", path="path", schema=sentinel.schema, params=params
         )
 
         expected_url = (
-            Any.url.matching(f"https://{api_client._canvas_url}")
+            Any.url.matching(f"https://{base_client._canvas_url}")
             .with_path("api/v1/path")
             .with_query(params)
         )
-        api_client._validated_response.assert_called_once_with(
+        base_client._validated_response.assert_called_once_with(
             AnyRequest(method="METHOD", url=expected_url).containing_headers(
                 {"Authorization": f"Bearer {access_token.access_token}"}
             ),
@@ -418,22 +422,22 @@ class TestMakeAuthenticatedRequest:
         )
 
     @pytest.mark.usefixtures("access_token")
-    def test_it_refreshes_the_token_and_tries_again(self, api_client):
-        api_client._validated_response.side_effect = [
+    def test_it_refreshes_the_token_and_tries_again(self, base_client):
+        base_client._validated_response.side_effect = [
             CanvasAPIAccessTokenError(),
             sentinel.second_call,
         ]
-        api_client._get_refreshed_token.return_value = "new_access_token"
+        base_client._get_refreshed_token.return_value = "new_access_token"
 
-        response = api_client.make_authenticated_request(
+        response = base_client.make_authenticated_request(
             method="method", path="path", schema=sentinel.schema
         )
 
         assert response == sentinel.second_call
-        api_client._get_refreshed_token.assert_called_once_with(
-            api_client._oauth2_token.refresh_token
+        base_client._get_refreshed_token.assert_called_once_with(
+            base_client._oauth2_token.refresh_token
         )
-        api_client._validated_response.assert_has_calls(
+        base_client._validated_response.assert_has_calls(
             [
                 # It would be good to assert this call has the old header, but as
                 # the object is mutated, you can't easily
@@ -449,12 +453,12 @@ class TestMakeAuthenticatedRequest:
 
     @pytest.mark.usefixtures("access_token_no_refresh")
     def test_it_raises_CanvasAPIAccessTokenError_if_refresh_token_is_None(
-        self, api_client
+        self, base_client
     ):
-        api_client._validated_response.side_effect = CanvasAPIAccessTokenError()
+        base_client._validated_response.side_effect = CanvasAPIAccessTokenError()
 
         with pytest.raises(CanvasAPIAccessTokenError):
-            api_client.make_authenticated_request(
+            base_client.make_authenticated_request(
                 method="method", path="path", schema=sentinel.schema
             )
 
@@ -465,18 +469,18 @@ class TestMakeAuthenticatedRequest:
         return access_token
 
     @pytest.fixture
-    def api_client(self, api_client):
-        with mock.patch.object(api_client, "_get_refreshed_token"):
-            with mock.patch.object(api_client, "_validated_response"):
-                yield api_client
+    def base_client(self, base_client):
+        with mock.patch.object(base_client, "_get_refreshed_token"):
+            with mock.patch.object(base_client, "_validated_response"):
+                yield base_client
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")
 
 
 @pytest.fixture
-def api_client(pyramid_request):
-    return CanvasAPIClient(sentinel.context, pyramid_request)
+def base_client(pyramid_request):
+    return _CanvasAPIAuthenticatedClient(sentinel.context, pyramid_request)
 
 
 @pytest.fixture(autouse=True)
