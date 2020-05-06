@@ -22,62 +22,11 @@ export default function LMSGrader({
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
-  /**
-   * Create a name object for a given displayName for a
-   * student to facilitate sorting. This object contains
-   * a firstName and optional lastName as well as a new
-   * displayName as "{last}, {first}"
-   *
-   * @return {object}
-   * e.g.
-   * {
-   *  displayName: <string>
-   *  firstName: <string>
-   *  lastName: <string|null>
-   * }
-   */
-  const makeNames = name => {
-    const parts = name.split(' ');
-    if (parts.length <= 1) {
-      // No separator, don't mutate displayName
-      return {
-        displayName: name,
-        firstName: name,
-        lastName: null,
-      };
-    } else {
-      const first = parts[0];
-      // If there is more than two separators, just lump any beyond
-      // the first into the last name.
-      const last = parts.slice(1).join(' ');
-      let displayName;
-      if (last) {
-        displayName = `${last}, ${first}`;
-      } else {
-        displayName = first;
-      }
-      return {
-        displayName,
-        firstName: first,
-        lastName: last,
-      };
-    }
-  };
-
   // A sorted list of students. Students are sorted by
-  //  1. last name
-  //  2. first name
-  // Not all students may have a last name and in which
-  // case their first name is used to sort by.
+  // displayName.
   const [students] = useState(() => {
-    // First, create a first and last name for each student
-    // so we can compare on those values.
-    const students_ = unorderedStudents.map(s => {
-      return {
-        ...s,
-        ...makeNames(s.displayName),
-      };
-    });
+    // Make a copy
+    const students_ = [...unorderedStudents];
     students_.sort((student1, student2) => {
       function compareNames(name1, name2) {
         if (name1.toLowerCase() < name2.toLowerCase()) {
@@ -88,22 +37,7 @@ export default function LMSGrader({
           return 0;
         }
       }
-      // Compare last name, then first name. If there is no last name
-      // then compare first name.
-      let result = compareNames(
-        student1.lastName ? student1.lastName : student1.firstName,
-        student2.lastName ? student2.lastName : student2.firstName
-      );
-      if (result === 0) {
-        // Tie breaker (if needed)
-        // If we previously compared on first name, then the second compare
-        // shall use an empty string, otherwise use the first name.
-        result = compareNames(
-          student1.lastName ? student1.firstName : '',
-          student2.lastName ? student2.firstName : ''
-        );
-      }
-      return result;
+      return compareNames(student1.displayName, student2.displayName);
     });
     return students_;
   });

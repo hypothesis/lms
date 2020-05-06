@@ -89,22 +89,19 @@ describe('LMSGrader', () => {
         displayName: 'Student Beta',
       },
       {
-        displayName: 'stu Beta',
-      },
-      {
         displayName: 'Students Beta',
       },
       {
         displayName: 'Beta',
       },
       {
+        displayName: 'student Beta',
+      },
+      {
         displayName: 'Student Delta',
       },
       {
         displayName: 'Student Alpha',
-      },
-      {
-        displayName: 'Student Alpha Longer Last Name',
       },
       {
         displayName: 'Alpha',
@@ -119,14 +116,13 @@ describe('LMSGrader', () => {
       });
     assert.match(
       [
-        'Alpha', // no last name
-        'Alpha, Student',
-        'Alpha Longer Last Name, Student', // multiple last name words
-        'Beta', // no last name
-        'Beta, stu', // lowercase won't matter
-        'Beta, Student',
-        'Beta, Students',
-        'Delta, Student',
+        'Alpha',
+        'Beta',
+        'Student Alpha',
+        'Student Beta',
+        'student Beta',
+        'Student Delta',
+        'Students Beta',
       ],
       orderedStudentNames
     );
@@ -176,8 +172,8 @@ describe('LMSGrader', () => {
         'changeFocusModeUser',
         [
           {
-            username: 'acct:student1@authority',
-            displayName: '1, Student',
+            username: fakeStudents[0].userid,
+            displayName: fakeStudents[0].displayName,
           },
         ]
       )
