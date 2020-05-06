@@ -31,6 +31,7 @@ class _SectionSchema(Schema):
     name = fields.String(required=True)
 
 
+# pylint: disable=too-many-instance-attributes
 class _CanvasAPIAuthenticatedClient:
     """
     A client for making authenticated calls to the Canvas API.
@@ -43,14 +44,28 @@ class _CanvasAPIAuthenticatedClient:
     :raise CanvasAPIServerError: if the request fails for any other reason
     """
 
+    PAGINATION_PER_PAGE = 1000
+    """The number of items to request at one time.
+
+     This only applies for calls which return more than one, and is subject
+     to a secret internal limit applied by Canvas (might be 100?)."""
+
+    PAGINATION_MAXIMUM_REQUESTS = 25
+    """The maximum number of calls to make before giving up."""
+
     def __init__(self, _context, request):
         ai_getter = request.find_service(name="ai_getter")
 
+        # For all requests
+        self._session = Session()
+        self._canvas_url = urlparse(ai_getter.lms_url()).netloc
+
+        # For making token requests
         self._client_id = ai_getter.developer_key()
         self._client_secret = ai_getter.developer_secret()
-        self._canvas_url = urlparse(ai_getter.lms_url()).netloc
         self._redirect_uri = request.route_url("canvas_oauth_callback")
 
+        # For saving tokens
         self._consumer_key = request.lti_user.oauth_consumer_key
         self._user_id = request.lti_user.user_id
         self._db = request.db
@@ -137,8 +152,7 @@ class _CanvasAPIAuthenticatedClient:
              been deleted
         :return: JSON deserialised object
         """
-        request = requests.Request(method, self._get_url(path, params)).prepare()
-
+        request = self._make_request(method, path, schema, params)
         request.headers["Authorization"] = f"Bearer {self._oauth2_token.access_token}"
 
         try:
@@ -154,8 +168,18 @@ class _CanvasAPIAuthenticatedClient:
 
             return self._validated_response(request, schema)
 
-    @staticmethod
-    def _validated_response(request, schema):
+    def _make_request(self, method, path, schema, params):
+        # Always request the maximum items per page for requests which return
+        # more than one thing
+        if schema.many:
+            if params is None:
+                params = {}
+
+            params["per_page"] = self.PAGINATION_PER_PAGE
+
+        return requests.Request(method, self._get_url(path, params)).prepare()
+
+    def _validated_response(self, request, schema, request_depth=1):
         """
         Send a Canvas API request and validate and return the response.
 
@@ -166,17 +190,44 @@ class _CanvasAPIAuthenticatedClient:
         :param request: a prepared request to some Canvas API endpoint
         :param schema: The schema class to validate the contents of the response
             with.
+        :param request_depth: The number of requests made so far for pagination
         """
+
         try:
-            response = Session().send(request, timeout=9)
+            response = self._session.send(request, timeout=9)
             response.raise_for_status()
         except RequestException as err:
             CanvasAPIError.raise_from(err)
 
+        result = None
         try:
-            return schema(response).parse()
+            result = schema(response).parse()
         except ValidationError as err:
             CanvasAPIError.raise_from(err)
+
+        # Handle pagination links. See:
+        # https://canvas.instructure.com/doc/api/file.pagination.html
+        next_url = response.links.get("next")
+        if next_url:
+            # We can only append results if the response is expecting multiple
+            # items from the Canvas API
+            if not schema.many:
+                CanvasAPIError.raise_from(
+                    TypeError(
+                        "Canvas returned paginated results but we expected a single value"
+                    )
+                )
+
+            # Don't make requests forever
+            if request_depth < self.PAGINATION_MAXIMUM_REQUESTS:
+                request.url = next_url["url"]
+                result.extend(
+                    self._validated_response(
+                        request, schema, request_depth=request_depth + 1
+                    )
+                )
+
+        return result
 
     def _save(self, access_token, refresh_token, expires_in):
         """
@@ -240,7 +291,6 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
             because we don't have a working Canvas API access token for the user
     :raise CanvasAPIServerError: if we do have an access token but the
             Canvas API request fails for any other reason
-
     """
 
     def authenticated_users_sections(self, course_id):
@@ -393,7 +443,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         return self.make_authenticated_request(
             "GET",
             f"courses/{course_id}/files",
-            params={"content_types[]": "application/pdf", "per_page": 100},
+            params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
         )
 
