@@ -56,7 +56,13 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
 
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
-        cls, lms_url, email, developer_key, developer_secret, encryption_key
+        cls,
+        lms_url,
+        email,
+        developer_key,
+        developer_secret,
+        encryption_key,
+        canvas_sections_enabled,
     ):
         """Instantiate ApplicationInstance with lms_url."""
         encrypted_secret = developer_secret
@@ -76,6 +82,7 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
             developer_secret=encrypted_secret,
             aes_cipher_iv=aes_iv,
             created=datetime.utcnow(),
+            canvas_sections_enabled=canvas_sections_enabled,
         )
 
 
