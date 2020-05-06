@@ -70,6 +70,12 @@ class ApplicationInstanceGetter:
             provisioning = False
         return provisioning
 
+    def canvas_sections_enabled(self):
+        try:
+            return self._get_by_consumer_key().canvas_sections_enabled
+        except ConsumerKeyError:
+            return False
+
     def shared_secret(self):
         """
         Return the LTI/OAuth 1 shared secret for the current request.

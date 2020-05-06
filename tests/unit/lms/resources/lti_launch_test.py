@@ -103,26 +103,56 @@ class TestJSConfig:
 
 class TestShouldUseSectionGroups:
     @pytest.mark.parametrize(
-        "is_canvas,is_feature_flag_enabled,should_use_section_groups",
+        "params",
         [
-            pytest.param(True, True, True, id="Canvas with feature flag on"),
-            pytest.param(True, False, False, id="Canvas with feature flag off"),
-            pytest.param(False, True, False, id="Non-Canvas with feature flag on",),
-            pytest.param(False, True, False, id="Non-Canvas with feature flag off"),
+            # If we're in Canvas and sections is enabled for the application
+            # instance then sections should be enabled.
+            dict(
+                is_canvas=True,
+                is_feature_flag_enabled=True,
+                is_canvas_sections_enabled=True,
+                should_use_section_groups=True,
+            ),
+            # If the feature flag is disabled then sections should be disabled.
+            dict(
+                is_canvas=True,
+                is_feature_flag_enabled=False,
+                is_canvas_sections_enabled=True,
+                should_use_section_groups=False,
+            ),
+            # If we're not in Canvas then sections should be disabled.
+            dict(
+                is_canvas=False,
+                is_feature_flag_enabled=True,
+                is_canvas_sections_enabled=True,
+                should_use_section_groups=False,
+            ),
+            # If sections is disabled for the application instance then
+            # sections should be disabled.
+            dict(
+                is_canvas=True,
+                is_feature_flag_enabled=True,
+                is_canvas_sections_enabled=False,
+                should_use_section_groups=False,
+            ),
         ],
     )
     def test_it(
-        self,
-        lti_launch,
-        pyramid_request,
-        is_canvas,
-        is_feature_flag_enabled,
-        should_use_section_groups,
+        self, lti_launch, pyramid_request, params, ai_getter,
     ):
-        pyramid_request.feature.return_value = is_feature_flag_enabled
+        pyramid_request.feature.return_value = params["is_feature_flag_enabled"]
+        ai_getter.canvas_sections_enabled.return_value = params[
+            "is_canvas_sections_enabled"
+        ]
 
-        with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
-            assert lti_launch.should_use_section_groups == should_use_section_groups
+        with mock.patch.object(LTILaunchResource, "is_canvas", params["is_canvas"]):
+            assert (
+                lti_launch.should_use_section_groups
+                == params["should_use_section_groups"]
+            )
+
+
+pytestmark = pytest.mark.usefixtures("ai_getter")
 
 
 @pytest.fixture
