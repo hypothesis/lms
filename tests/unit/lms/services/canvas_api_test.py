@@ -225,7 +225,7 @@ class TestDataCalls:
 
     def test_methods_use_retry_mechanism(self, api_client, data_method):
         # The actual test of the retry mechanism is covered elsewhere
-        with mock.patch.object(api_client, "_make_authenticated_request") as func:
+        with mock.patch.object(api_client, "make_authenticated_request") as func:
             data_method()
 
             func.assert_called_once()
@@ -401,7 +401,7 @@ class TestMakeAuthenticatedRequest:
     def test_it(self, api_client, access_token):
         params = {"a": "1"}
 
-        api_client._make_authenticated_request(
+        api_client.make_authenticated_request(
             method="method", path="path", schema=sentinel.schema, params=params
         )
 
@@ -425,7 +425,7 @@ class TestMakeAuthenticatedRequest:
         ]
         api_client._get_refreshed_token.return_value = "new_access_token"
 
-        response = api_client._make_authenticated_request(
+        response = api_client.make_authenticated_request(
             method="method", path="path", schema=sentinel.schema
         )
 
@@ -454,7 +454,7 @@ class TestMakeAuthenticatedRequest:
         api_client._validated_response.side_effect = CanvasAPIAccessTokenError()
 
         with pytest.raises(CanvasAPIAccessTokenError):
-            api_client._make_authenticated_request(
+            api_client.make_authenticated_request(
                 method="method", path="path", schema=sentinel.schema
             )
 
