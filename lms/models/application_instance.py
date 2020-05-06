@@ -56,12 +56,12 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
 
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
-        cls, lms_url, email, developer_key, developer_secret, encryption_key=None
+        cls, lms_url, email, developer_key, developer_secret, encryption_key
     ):
         """Instantiate ApplicationInstance with lms_url."""
         encrypted_secret = developer_secret
         aes_iv = None
-        if encryption_key is not None and developer_secret and developer_key:
+        if developer_secret and developer_key:
             aes_iv = _build_aes_iv()
             encrypted_secret = _encrypt_oauth_secret(
                 developer_secret, encryption_key, aes_iv
