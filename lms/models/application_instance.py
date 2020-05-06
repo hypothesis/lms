@@ -30,6 +30,12 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
         server_default=sa.sql.expression.true(),
         nullable=False,
     )
+    canvas_sections_enabled = sa.Column(
+        sa.Boolean(),
+        default=False,
+        server_default=sa.sql.expression.false(),
+        nullable=False,
+    )
 
     #: A list of all the OAuth2Tokens for this application instance
     #: (each token belongs to a different user of this application
