@@ -51,6 +51,21 @@ class TestAuthorize:
             "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
         ]
 
+    @pytest.mark.usefixtures("sections_enabled")
+    def test_it_requests_sections_scopes_if_the_sections_feature_flag_is_on(
+        self, views
+    ):
+        response = views.authorize()
+
+        query_params = parse_qs(urlparse(response.location).query)
+        assert query_params["scope"] == [
+            "url:GET|/api/v1/courses/:course_id/files "
+            "url:GET|/api/v1/files/:id/public_url "
+            "url:GET|/api/v1/courses/:id "
+            "url:GET|/api/v1/courses/:course_id/sections "
+            "url:GET|/api/v1/courses/:course_id/users/:id"
+        ]
+
     def test_it_includes_the_state_in_a_query_param(
         self,
         pyramid_request,
@@ -157,6 +172,18 @@ class TestOAuth2RedirectError:
             "url:GET|/api/v1/files/:id/public_url",
         )
 
+    @pytest.mark.usefixtures("sections_enabled")
+    def test_it_passes_sections_scopes_if_the_feature_flag_is_on(self, views):
+        template_variables = views.oauth2_redirect_error()
+
+        assert template_variables["scopes"] == (
+            "url:GET|/api/v1/courses/:course_id/files",
+            "url:GET|/api/v1/files/:id/public_url",
+            "url:GET|/api/v1/courses/:id",
+            "url:GET|/api/v1/courses/:course_id/sections",
+            "url:GET|/api/v1/courses/:course_id/users/:id",
+        )
+
 
 @pytest.fixture
 def views(pyramid_request):
@@ -185,6 +212,14 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
     schema = CanvasOAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema
+
+
+@pytest.fixture
+def sections_enabled(pyramid_request):
+    def feature(flag):
+        return flag == "section_groups"
+
+    pyramid_request.feature.side_effect = feature
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "canvas_api_client")
