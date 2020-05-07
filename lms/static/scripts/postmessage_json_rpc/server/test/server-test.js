@@ -1,4 +1,4 @@
-import Server from './server';
+import Server from '../server';
 
 describe('postmessage_json_rpc/server#Server', () => {
   // The window origin of the server.

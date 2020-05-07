@@ -63,38 +63,27 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // How many current blocking request are pending
   const [fetchCount, setFetchCount] = useState(0);
 
-  // Var to keep track of the fetchCount
-  const count = useRef(0);
-
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(null);
 
   // Show the assignment when there are no pending requests
   // and errorState is falsely
-  const showIframe = () => {
-    return fetchCount === 0 && !errorState;
-  };
+  const showIframe = fetchCount === 0 && !errorState;
 
   // Show the loader is there are any pending requests and
   // and errorState is falsely
-  const showSpinner = () => {
-    return !errorState && fetchCount > 0;
-  };
+  const showSpinner = !errorState && fetchCount > 0;
 
   // Increment the fetch counter by 1 and clear any
   // previous error state.
-  const setFetching = () => {
-    count.current += 1;
-    setFetchCount(count.current);
+  const incFetchCount = () => {
+    setFetchCount(count => count + 1);
     setErrorState(null);
   };
 
   // Decrement the fetch counter by 1.
-  const setFetched = () => {
-    count.current -= 1;
-    setFetchCount(count.current);
-  };
+  const decFetchCount = () => setFetchCount(count => count - 1);
 
   /**
    * Helper to handle thrown errors from from API requests.
@@ -105,7 +94,6 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * @param {boolean} [retry=true] - Can the request be retried?
    */
   const handleError = (e, errorState, retry = true) => {
-    setFetched();
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
@@ -117,22 +105,23 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   /**
    * Fetch the groups from the sync endpoint if `sync` object exists.
    */
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     if (apiSync) {
       try {
-        setFetching();
+        incFetchCount();
         const groups = await apiCall({
           authToken,
           path: apiSync.path,
           data: apiSync.data,
         });
         rpcServer.resolveGroupFetch(groups);
-        setFetched();
       } catch (e) {
         handleError(e, 'error-fetch');
+      } finally {
+        decFetchCount();
       }
     }
-  };
+  }, [apiSync, authToken, rpcServer]);
 
   /**
    * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
@@ -140,7 +129,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    *
    * This will typically be a PDF URL proxied through Via.
    */
-  const fetchContentUrl = async () => {
+  const fetchContentUrl = useCallback(async () => {
     if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
@@ -148,17 +137,18 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       return;
     }
     try {
-      setFetching();
+      incFetchCount();
       const { via_url: contentUrl } = await apiCall({
         authToken,
         path: viaCallbackUrl,
       });
-      setFetched();
       setContentUrl(contentUrl);
     } catch (e) {
       handleError(e, 'error-fetch');
+    } finally {
+      decFetchCount();
     }
-  };
+  }, [authToken, viaCallbackUrl]);
 
   /**
    * Fetch the assignment content URL and groups when the app is initially displayed.
@@ -221,10 +211,9 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     } finally {
       authWindow.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authToken, canvas.authUrl]);
+  }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
 
-  if (showIframe()) {
+  if (showIframe) {
     const iFrame = (
       <iframe
         width="100%"
@@ -253,7 +242,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     // Render either a Spinner or Dialog.
     return (
       <Fragment>
-        {showSpinner() && <Spinner className="BasicLtiLaunchApp__spinner" />}
+        {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
         {errorState === 'error-authorizing' && (
           <Dialog
             title="Authorize Hypothesis"

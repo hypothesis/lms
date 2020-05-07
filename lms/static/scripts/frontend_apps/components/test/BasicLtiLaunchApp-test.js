@@ -26,7 +26,7 @@ describe('BasicLtiLaunchApp', () => {
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <BasicLtiLaunchApp {...props} />
+        <BasicLtiLaunchApp rpcServer={fakeRpcServer} {...props} />
       </Config.Provider>
     );
   };
@@ -46,6 +46,7 @@ describe('BasicLtiLaunchApp', () => {
     FakeAuthWindow = sinon.stub().returns({
       authorize: sinon.stub().resolves(null),
     });
+    fakeRpcServer = {};
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
