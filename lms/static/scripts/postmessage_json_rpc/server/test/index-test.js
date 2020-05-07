@@ -1,6 +1,6 @@
 import { startRpcServer, getSidebarWindow, $imports } from '../index';
 
-describe('postmessage_json_rpc/server', () => {
+describe('postmessage_json_rpc/server/index', () => {
   let FakeServer;
   let FakeRegister;
 
@@ -17,20 +17,20 @@ describe('postmessage_json_rpc/server', () => {
     });
   });
 
-  afterEach('remove the server config from the document', () => {
+  afterEach(() => {
     $imports.$restore();
   });
 
-  describe('#startRpcServer', () => {
-    it('returns a server object', async () => {
+  describe('startRpcServer', () => {
+    it('returns a server object', () => {
       const server = startRpcServer();
       assert.isTrue(FakeServer.called);
       assert.isOk(server);
     });
   });
 
-  describe('#getSidebarWindow', () => {
-    it('returns the value of server.sidebarWindow', async () => {
+  describe('getSidebarWindow', () => {
+    it('returns the value of server.sidebarWindow', () => {
       startRpcServer();
       assert.equal(getSidebarWindow(), 'FakeSidebarWindow');
     });
@@ -65,10 +65,10 @@ describe('postmessage_json_rpc/server', () => {
       });
 
       afterEach('remove the client config from the document', () => {
-        configEl.parentNode.removeChild(configEl);
+        configEl.remove();
       });
 
-      it('returns the .js-config json object', async () => {
+      it('returns the .js-config json object', () => {
         startRpcServer();
         assert.match(
           FakeRegister.withArgs('requestConfig', sinon.match.func).args[0][1](),

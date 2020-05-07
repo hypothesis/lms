@@ -85,7 +85,7 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
-  context('when sync object is provided in the config', () => {
+  context('when `sync` object is provided in the config', () => {
     beforeEach(() => {
       fakeRpcServer = {
         resolveGroupFetch: sinon.stub(),
@@ -305,7 +305,7 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
-  describe('multiple fetches', () => {
+  describe('concurrent fetching of groups and content', () => {
     let contentUrlCall;
     let groupsCall;
 
@@ -340,6 +340,7 @@ describe('BasicLtiLaunchApp', () => {
         },
       });
     });
+
     it('renders the spinner until both groups and contentUrl requests finish', async () => {
       const contentUrl = contentUrlCall.resolves({
         via_url: 'https://via.hypothes.is/123',
@@ -355,6 +356,7 @@ describe('BasicLtiLaunchApp', () => {
       // Spinner should hide after second request finishes
       assert.isFalse(wrapper.exists('Spinner'));
     });
+
     it('shows an error dialog if the first request fails and second succeeds', async () => {
       const contentUrl = contentUrlCall.rejects(new ApiError(400, {}));
       const groups = groupsCall.resolves(['group1', 'group2']);

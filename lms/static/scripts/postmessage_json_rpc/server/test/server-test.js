@@ -26,7 +26,7 @@ describe('postmessage_json_rpc/server#Server', () => {
   });
 
   afterEach('remove the server config from the document', () => {
-    configEl.parentNode.removeChild(configEl);
+    configEl.remove();
   });
 
   beforeEach('set up the test server', () => {
