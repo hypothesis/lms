@@ -370,12 +370,12 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         }
 
     def _groups(self):
-        if self._context.should_use_section_groups:
+        if self._context.canvas_sections_enabled:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
 
     def _sync_api(self):
-        if not self._context.should_use_section_groups:
+        if not self._context.canvas_sections_enabled:
             return None
 
         req = self._request

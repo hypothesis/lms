@@ -68,15 +68,42 @@ class TestApplicationInstanceGetter:
     def test_provisioning_returns_False_if_consumer_key_unknown(self, ai_getter):
         assert not ai_getter.provisioning_enabled()
 
-    @pytest.mark.parametrize("flag", [True, False])
-    def test_canvas_sections_enabled_returns_the_canvas_sections_enabled(
-        self, ai_getter, flag, test_application_instance
+    @pytest.mark.parametrize(
+        "section_groups_feature_flag,developer_key,canvas_sections_enabled,expected_result",
+        [
+            (True, "test_developer_key", True, True),
+            (False, "test_developer_key", True, False),
+            (True, None, True, False),
+            (True, "test_developer_key", False, False),
+            (False, None, False, False),
+        ],
+    )
+    def test_canvas_sections_enabled(
+        self,
+        pyramid_request,
+        test_application_instance,
+        section_groups_feature_flag,
+        developer_key,
+        canvas_sections_enabled,
+        expected_result,
     ):
-        test_application_instance.canvas_sections_enabled = flag
+        def feature(flag):
+            if section_groups_feature_flag:
+                return flag == "section_groups"
+            return False
 
-        assert ai_getter.canvas_sections_enabled() == flag
+        pyramid_request.feature.side_effect = feature
+        ai_getter = application_instance_getter_service_factory(
+            mock.sentinel.context, pyramid_request
+        )
+        test_application_instance.developer_key = developer_key
+        test_application_instance.canvas_sections_enabled = canvas_sections_enabled
 
-    @pytest.mark.usefixtures("unknown_consumer_key")
+        assert ai_getter.canvas_sections_enabled() == expected_result
+
+    @pytest.mark.usefixtures(
+        "unknown_consumer_key", "section_groups_feature_flag_enabled"
+    )
     def test_canvas_sections_enabled_returns_False_if_consumer_key_unknown(
         self, ai_getter
     ):
@@ -145,3 +172,10 @@ class TestApplicationInstanceGetter:
             oauth_consumer_key="UNKNOWN_CONSUMER_KEY"
         )
         return pyramid_request
+
+    @pytest.fixture
+    def section_groups_feature_flag_enabled(self, pyramid_request):
+        def feature(flag):
+            return flag == "section_groups"
+
+        pyramid_request.feature.side_effect = feature
