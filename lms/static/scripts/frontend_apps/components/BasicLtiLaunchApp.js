@@ -67,13 +67,13 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(null);
 
-  // Show the assignment when there are no pending requests
-  // and errorState is falsely
-  const showIframe = fetchCount === 0 && !errorState;
+  // Show the assignment when the contentUrl has resolved and errorState
+  // is falsely
+  const showIframe = contentUrl && !errorState;
 
   // Show the loader is there are any pending requests and
   // and errorState is falsely
-  const showSpinner = !errorState && fetchCount > 0;
+  const showSpinner = fetchCount > 0;
 
   // Increment the fetch counter by 1 and clear any
   // previous error state.
@@ -83,7 +83,9 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   };
 
   // Decrement the fetch counter by 1.
-  const decFetchCount = () => setFetchCount(count => count - 1);
+  const decFetchCount = () => {
+    setFetchCount(count => count - 1);
+  };
 
   /**
    * Helper to handle thrown errors from from API requests.
@@ -215,13 +217,20 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
 
   if (showIframe) {
     const iFrame = (
-      <iframe
-        width="100%"
-        height="100%"
-        className="js-via-iframe"
-        src={contentUrl}
-        title="Course content with Hypothesis annotation viewer"
-      />
+      <Fragment>
+        {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
+        <iframe
+          // Render the iframe hidden if still loading something (such as the groups)
+          style={{
+            visibility: fetchCount === 0 ? 'visible' : 'hidden',
+          }}
+          width="100%"
+          height="100%"
+          className="js-via-iframe"
+          src={contentUrl}
+          title="Course content with Hypothesis annotation viewer"
+        />
+      </Fragment>
     );
 
     if (grading && grading.enabled) {
