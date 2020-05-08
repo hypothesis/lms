@@ -19,6 +19,21 @@ describe('LMSGrader', () => {
     return <Fragment>{children}</Fragment>;
   };
 
+  /**
+   * Helper to return a list of displayNames of the students.
+   *
+   * @param {import("enzyme").CommonWrapper} wrapper - Enzyme wrapper
+   * @returns {Array<string>}
+   */
+  function getDisplayNames(wrapper) {
+    return wrapper
+      .find('FakeStudentSelector')
+      .prop('students')
+      .map(s => {
+        return s.displayName;
+      });
+  }
+
   beforeEach(() => {
     fakeStudents = [
       {
@@ -108,24 +123,69 @@ describe('LMSGrader', () => {
       },
     ];
     const wrapper = renderGrader();
-    const orderedStudentNames = wrapper
-      .find('FakeStudentSelector')
-      .prop('students')
-      .map(s => {
-        return s.displayName;
-      });
+    const orderedStudentNames = getDisplayNames(wrapper);
     assert.match(
       [
         'Alpha',
         'Beta',
         'Student Alpha',
         'Student Beta',
+        // 'student Beta' ties with 'Student Beta',
+        // but since 'Student Beta' came first, it wins.
         'student Beta',
         'Student Delta',
         'Students Beta',
       ],
       orderedStudentNames
     );
+  });
+
+  it('updates the order if the `students` change', () => {
+    // Un-order students
+    fakeStudents = [
+      {
+        displayName: 'Beta',
+      },
+      {
+        displayName: 'Alpha',
+      },
+    ];
+    const wrapper = renderGrader();
+    let orderedStudentNames = getDisplayNames(wrapper);
+    assert.match(['Alpha', 'Beta'], orderedStudentNames);
+    // New list of students
+    wrapper.setProps({
+      students: [
+        {
+          displayName: 'Beta',
+        },
+        {
+          displayName: 'Gamma',
+        },
+      ],
+    });
+    orderedStudentNames = getDisplayNames(wrapper);
+    assert.match(['Beta', 'Gamma'], orderedStudentNames);
+  });
+
+  it('sorts an undefined displayName first', () => {
+    // Un-order students
+    fakeStudents = [
+      {
+        displayName: 'Student Beta',
+      },
+      {
+        displayName: undefined,
+      },
+    ];
+    const wrapper = renderGrader();
+    const orderedStudentNames = wrapper
+      .find('FakeStudentSelector')
+      .prop('students')
+      .map(s => {
+        return s.displayName;
+      });
+    assert.match([undefined, 'Student Beta'], orderedStudentNames);
   });
 
   it('set the selected student count to "Student 2 of 2" when the index changers to 1', async () => {
