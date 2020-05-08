@@ -346,7 +346,7 @@ describe('BasicLtiLaunchApp', () => {
       });
     });
 
-    it.skip('renders the spinner until both groups and contentUrl requests finish', async () => {
+    it('renders the spinner until both groups and contentUrl requests finish', async () => {
       const contentUrl = contentUrlCall.resolves({
         via_url: 'https://via.hypothes.is/123',
       });
@@ -354,12 +354,8 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       await contentUrl;
       // Spinner should not go away after first request
-      try {
-        await waitForElementToRemove(wrapper, 'Spinner');
-        throw new Error('failed DOM check');
-      } catch (e) {
-        assert.notEqual(e, 'Error: failed DOM check');
-      }
+      wrapper.update();
+      assert.isTrue(wrapper.find('Spinner').exists());
       await groups;
       // Spinner should go away after the second request
       await waitForElementToRemove(wrapper, 'Spinner');
@@ -389,24 +385,19 @@ describe('BasicLtiLaunchApp', () => {
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
     });
 
-    it.skip('shows an error dialog if the first request succeeds and second fails', async () => {
+    it('shows an error dialog if the first request succeeds and second fails', async () => {
       const contentUrl = contentUrlCall.resolves({
         via_url: 'https://via.hypothes.is/123',
       });
       const groups = groupsCall.rejects(new ApiError(400, {}));
       const wrapper = renderLtiLaunchApp();
       await contentUrl;
-      try {
-        await waitForElement(
-          wrapper,
-          'FakeDialog[title="Authorize Hypothesis"]'
-        );
-        throw new Error('failed DOM check');
-      } catch (e) {
-        assert.notEqual(e, 'Error: failed DOM check');
-      }
+      // Should not show an error yet
+      assert.isFalse(
+        wrapper.find('FakeDialog[title="Authorize Hypothesis"]').exists()
+      );
       await groups;
-      // Should still show an error even if the second request does not fail
+      // Should show an error after failure
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
     });
   });
