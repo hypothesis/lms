@@ -198,6 +198,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "h_username": self._h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
+                "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
                 **kwargs,
             },
         }
