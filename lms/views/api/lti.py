@@ -110,7 +110,10 @@ class CanvasPreRecordHook:
 
     def get_speedgrader_launch_url(self):
         parsed_params = self.request.parsed_params
-        params = {"focused_user": parsed_params["h_username"]}
+        params = {
+            "focused_user": parsed_params["h_username"],
+            "learner_canvas_user_id": parsed_params["learner_canvas_user_id"],
+        }
 
         if parsed_params.get("document_url"):
             params["url"] = parsed_params.get("document_url")

@@ -72,6 +72,7 @@ class TestCanvasPreRecordHook:
     )
     def test_it_sets_expected_fields(self, pyramid_request, parsed_params, url_params):
         parsed_params["h_username"] = "h_username"
+        parsed_params["learner_canvas_user_id"] = "learner_canvas_user_id"
         pyramid_request.parsed_params = parsed_params
 
         result = CanvasPreRecordHook(pyramid_request)(
@@ -89,7 +90,11 @@ class TestCanvasPreRecordHook:
         assert launch_url.startswith("http://example.com/lti_launches?")
 
         query_string = parse_qs(urlparse(launch_url).query)
-        assert query_string == dict(url_params, focused_user=["h_username"])
+        assert query_string == dict(
+            url_params,
+            focused_user=["h_username"],
+            learner_canvas_user_id=["learner_canvas_user_id"],
+        )
 
 
 class TestReadResult:

@@ -20,6 +20,9 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     h_username = fields.Str(required=True)
     """h username generated for the active user."""
 
+    learner_canvas_user_id = fields.Str(required=True)
+    """Canvas user ID of the active user."""
+
     lis_outcome_service_url = fields.Str(required=True)
     """URL provided by the LMS to submit grades or other results to."""
 
