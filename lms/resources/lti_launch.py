@@ -101,6 +101,17 @@ class LTILaunchResource:
     @property
     def canvas_sections_enabled(self):
         """Return True if Canvas sections is enabled for this request."""
-        ai_getter = self._request.find_service(name="ai_getter")
+        if not self.is_canvas:
+            return False
 
-        return self.is_canvas and ai_getter.canvas_sections_enabled()
+        ai_getter = self._request.find_service(name="ai_getter")
+        if not ai_getter.canvas_sections_enabled():
+            return False
+
+        params = self._request.params
+        if "focused_user" in params and "learner_canvas_user_id" not in params:
+            # This is a legacy SpeedGrader URL, submitted to Canvas before our
+            # Canvas course sections feature was released.
+            return False
+
+        return True
