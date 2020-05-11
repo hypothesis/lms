@@ -155,6 +155,7 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
             submission_params()["lis_result_sourcedid"]
             == "example_lis_result_sourcedid"
         )
+        assert submission_params()["learner_canvas_user_id"] == "test_user_id"
 
     def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
         self, context, method, js_config
@@ -502,6 +503,7 @@ def pyramid_request(pyramid_request):
             "lis_outcome_service_url": "example_lis_outcome_service_url",
             "context_id": "test_course_id",
             "custom_canvas_course_id": "test_course_id",
+            "custom_canvas_user_id": "test_user_id",
         }
     )
     return pyramid_request
