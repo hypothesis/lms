@@ -9,7 +9,7 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 import {
   waitFor,
   waitForElement,
-  waitForElementToRemove,
+  waitForElementToBeRemoved,
 } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
@@ -311,8 +311,10 @@ describe('BasicLtiLaunchApp', () => {
   });
 
   describe('concurrent fetching of groups and content', () => {
-    let contentUrlCall;
-    let groupsCall;
+    let contentUrlResolve,
+      contentUrlReject,
+      groupsCallResolve,
+      groupsCallReject;
 
     beforeEach(() => {
       // Will attempt to fetch the 1. content url and 2. groups.
@@ -329,75 +331,88 @@ describe('BasicLtiLaunchApp', () => {
           path: '/api/sync',
         },
       };
-      contentUrlCall = fakeApiCall.withArgs({
-        authToken: 'dummyAuthToken',
-        path: 'https://lms.hypothes.is/api/files/1234',
-      });
+      fakeApiCall
+        .withArgs({
+          authToken: 'dummyAuthToken',
+          path: 'https://lms.hypothes.is/api/files/1234',
+        })
+        .returns(
+          new Promise((resolve, reject) => {
+            contentUrlResolve = resolve;
+            contentUrlReject = reject;
+          })
+        );
 
-      groupsCall = fakeApiCall.withArgs({
-        authToken: 'dummyAuthToken',
-        path: '/api/sync',
-        data: {
-          course: {
-            context_id: '12345',
-            custom_canvas_course_id: '101',
+      fakeApiCall
+        .withArgs({
+          authToken: 'dummyAuthToken',
+          path: '/api/sync',
+          data: {
+            course: {
+              context_id: '12345',
+              custom_canvas_course_id: '101',
+            },
           },
-        },
-      });
+        })
+        .returns(
+          new Promise((resolve, reject) => {
+            groupsCallResolve = resolve;
+            groupsCallReject = reject;
+          })
+        );
     });
 
     it('renders the spinner until both groups and contentUrl requests finish', async () => {
-      const contentUrl = contentUrlCall.resolves({
+      const wrapper = renderLtiLaunchApp();
+
+      // Spinner should not go away after first request
+      contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
-      const groups = groupsCall.resolves(['group1', 'group2']);
-      const wrapper = renderLtiLaunchApp();
-      await contentUrl;
-      // Spinner should not go away after first request
-      wrapper.update();
       assert.isTrue(wrapper.find('Spinner').exists());
-      await groups;
+
       // Spinner should go away after the second request
-      await waitForElementToRemove(wrapper, 'Spinner');
+      groupsCallResolve(['group1', 'group2']);
+      await waitForElementToBeRemoved(wrapper, 'Spinner');
+
       // iframe should be visible
       assert.equal(wrapper.find('iframe').prop('style').visibility, 'visible');
     });
 
     it('renders the iframe hidden after contentUrl succeeds and groups remains pending', async () => {
-      const contentUrl = contentUrlCall.resolves({
+      const wrapper = renderLtiLaunchApp();
+      contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
-      const wrapper = renderLtiLaunchApp();
-      await contentUrl;
-      wrapper.update();
+      await waitForElement(wrapper, 'iframe');
       assert.equal(wrapper.find('iframe').prop('style').visibility, 'hidden');
     });
 
     it('shows an error dialog if the first request fails and second succeeds', async () => {
-      const contentUrl = contentUrlCall.rejects(new ApiError(400, {}));
-      const groups = groupsCall.resolves(['group1', 'group2']);
       const wrapper = renderLtiLaunchApp();
-      await contentUrl;
+
       // Should show an error after the first request fails
+      contentUrlReject(new ApiError(400, {}));
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
-      await groups;
+
       // Should still show an error even if the second request does not fail
+      groupsCallResolve(['group1', 'group2']);
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
     });
 
     it('shows an error dialog if the first request succeeds and second fails', async () => {
-      const contentUrl = contentUrlCall.resolves({
+      const wrapper = renderLtiLaunchApp();
+
+      // Should not show an error yet
+      contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
-      const groups = groupsCall.rejects(new ApiError(400, {}));
-      const wrapper = renderLtiLaunchApp();
-      await contentUrl;
-      // Should not show an error yet
       assert.isFalse(
         wrapper.find('FakeDialog[title="Authorize Hypothesis"]').exists()
       );
-      await groups;
+
       // Should show an error after failure
+      groupsCallReject(new ApiError(400, {}));
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
     });
   });

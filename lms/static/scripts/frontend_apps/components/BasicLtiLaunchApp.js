@@ -53,7 +53,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // One "error-fetch", "error-authorizing", or "error-report-submission"
   const [errorState, setErrorState] = useState(null);
 
-  // Any current error event object thrown.
+  // Any current error thrown.
   const [error, setError] = useState(null);
 
   // When the app is initially displayed, it will use the Via URL if given
@@ -71,18 +71,13 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // is falsely
   const showIframe = contentUrl && !errorState;
 
-  // Show the loader is there are any pending requests and
-  // and errorState is falsely
   const showSpinner = fetchCount > 0;
 
-  // Increment the fetch counter by 1 and clear any
-  // previous error state.
   const incFetchCount = () => {
     setFetchCount(count => count + 1);
     setErrorState(null);
   };
 
-  // Decrement the fetch counter by 1.
   const decFetchCount = () => {
     setFetchCount(count => count - 1);
   };
@@ -158,8 +153,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   useEffect(() => {
     fetchContentUrl();
     fetchGroups();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchContentUrl, fetchGroups]);
 
   /**
    * Report a submission to the LMS, with the LMS-provided metadata needed for

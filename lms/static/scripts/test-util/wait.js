@@ -70,7 +70,7 @@ export function waitForElement(wrapper, selector, timeout = 10) {
  * @param {number} timeout
  * @return {Promise<CommonWrapper>}
  */
-export function waitForElementToRemove(wrapper, selector, timeout = 10) {
+export function waitForElementToBeRemoved(wrapper, selector, timeout = 10) {
   return waitFor(
     () => {
       wrapper.update();

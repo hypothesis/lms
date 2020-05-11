@@ -2,13 +2,13 @@ import { startRpcServer, getSidebarWindow, $imports } from '../index';
 
 describe('postmessage_json_rpc/server/index', () => {
   let FakeServer;
-  let FakeRegister;
+  let fakeRegister;
 
   beforeEach(() => {
-    FakeRegister = sinon.stub();
+    fakeRegister = sinon.stub();
 
     FakeServer = sinon.stub().returns({
-      register: FakeRegister,
+      register: fakeRegister,
       sidebarWindow: 'FakeSidebarWindow',
     });
 
@@ -42,10 +42,9 @@ describe('postmessage_json_rpc/server/index', () => {
         const server = startRpcServer();
         server.resolveGroupFetch(['group1', 'group2']); // exposed resolver
         assert.match(
-          await FakeRegister.withArgs(
-            'requestGroups',
-            sinon.match.func
-          ).args[0][1](),
+          await fakeRegister
+            .withArgs('requestGroups', sinon.match.func)
+            .args[0][1](),
           ['group1', 'group2']
         );
       });
@@ -71,7 +70,7 @@ describe('postmessage_json_rpc/server/index', () => {
       it('returns the .js-config json object', () => {
         startRpcServer();
         assert.match(
-          FakeRegister.withArgs('requestConfig', sinon.match.func).args[0][1](),
+          fakeRegister.withArgs('requestConfig', sinon.match.func).args[0][1](),
           { foo: 'bar' }
         );
       });
