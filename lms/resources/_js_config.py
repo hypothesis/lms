@@ -360,6 +360,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
             # https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
             "services": [
                 {
+                    "allowLeavingGroups": False,
                     "apiUrl": api_url,
                     "authority": self._authority,
                     "enableShareLinks": False,
