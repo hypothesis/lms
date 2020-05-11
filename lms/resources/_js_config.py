@@ -382,7 +382,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
         req = self._request
 
-        return {
+        sync_api_config = {
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {
@@ -401,3 +401,10 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 },
             },
         }
+
+        if "learner_canvas_user_id" in req.params:
+            sync_api_config["data"]["learner"] = {
+                "canvas_user_id": req.params["learner_canvas_user_id"],
+            }
+
+        return sync_api_config

@@ -348,12 +348,22 @@ class TestJSConfigAPISync:
             },
         }
 
+    @pytest.mark.usefixtures("section_groups_on", "learner_canvas_user_id")
+    def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
+        assert sync["data"]["learner"] == {
+            "canvas_user_id": "test_learner_canvas_user_id",
+        }
+
     def test_its_None_if_section_groups_isnt_enabled(self, sync):
         assert sync is None
 
     @pytest.fixture
     def sync(self, config):
         return config["api"]["sync"]
+
+    @pytest.fixture
+    def learner_canvas_user_id(self, pyramid_request):
+        pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
