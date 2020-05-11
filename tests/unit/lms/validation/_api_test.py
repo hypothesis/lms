@@ -19,7 +19,13 @@ class TestAPIRecordSpeedgraderSchema:
         assert parsed_params == all_fields
 
     @pytest.mark.parametrize(
-        "field", ["h_username", "lis_outcome_service_url", "lis_result_sourcedid"]
+        "field",
+        [
+            "h_username",
+            "lis_outcome_service_url",
+            "lis_result_sourcedid",
+            "learner_canvas_user_id",
+        ],
     )
     def test_it_raises_if_required_fields_missing(
         self, json_request, all_fields, field
@@ -45,6 +51,7 @@ class TestAPIRecordSpeedgraderSchema:
             "document_url": "https://example.com",
             "canvas_file_id": "file123",
             "h_username": "user123",
+            "learner_canvas_user_id": "canvas_user_123",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
         }
