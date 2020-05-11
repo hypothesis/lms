@@ -58,6 +58,43 @@ def test_sync_when_the_user_isnt_a_learner(
     )
 
 
+def test_sync_when_in_SpeedGrader(pyramid_request, canvas_api_client, lti_h_service):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+    pyramid_request.json["learner"] = {
+        "canvas_user_id": "test_canvas_user_id",
+    }
+
+    returned_groupids = sync(pyramid_request)
+
+    instructors_groups = [
+        factories.HGroup(
+            name="Section 1",
+            authority_provided_id="d0f36006728f2277f228b74c8a7f620305bfb3e7",
+            type="section_group",
+        ),
+        factories.HGroup(
+            name="Section 2",
+            authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
+            type="section_group",
+        ),
+        factories.HGroup(
+            name="Section 3",
+            authority_provided_id="6a85e3651705dee4da0805b8985472343cbea94e",
+            type="section_group",
+        ),
+    ]
+    canvas_api_client.course_sections.assert_called_once_with(
+        "test_custom_canvas_course_id"
+    )
+    lti_h_service.sync.assert_called_once_with(instructors_groups, {"foo": "bar"})
+    canvas_api_client.users_sections.assert_called_once_with(
+        "test_canvas_user_id", "test_custom_canvas_course_id"
+    )
+    assert returned_groupids == [
+        "group:d99674b9700f4a40a2b301d2949b61339c58236c@TEST_AUTHORITY"
+    ]
+
+
 def assert_that_it_called_sync_and_returned_the_groupids(
     lti_h_service, returned_groupids, expected_groups
 ):
@@ -83,6 +120,9 @@ def canvas_api_client(canvas_api_client):
     canvas_api_client.authenticated_users_sections.return_value = [
         {"id": 2, "name": "Section 2"}
     ]
+
+    # users_sections() returns id's only, not names.
+    canvas_api_client.users_sections.return_value = [{"id": 2}]
 
     return canvas_api_client
 
