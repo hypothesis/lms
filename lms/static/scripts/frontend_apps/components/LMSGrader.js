@@ -22,8 +22,7 @@ export default function LMSGrader({
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
-  // A sorted list of students. Students are sorted by
-  // displayName.
+  // Students sorted by displayName
   const students = useMemo(() => {
     function compareNames(name1 = '', name2 = '') {
       if (name1.toLowerCase() < name2.toLowerCase()) {

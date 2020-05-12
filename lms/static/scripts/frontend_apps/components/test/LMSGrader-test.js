@@ -97,7 +97,7 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('orders the students by last name (if it exists), then first name', () => {
+  it('orders the students by displayName', () => {
     // Un-order students
     fakeStudents = [
       {
@@ -140,7 +140,7 @@ describe('LMSGrader', () => {
     );
   });
 
-  it('updates the order if the `students` change', () => {
+  it('updates the order if the `students` prop changes', () => {
     // Un-order students
     fakeStudents = [
       {
@@ -168,7 +168,7 @@ describe('LMSGrader', () => {
     assert.match(['Beta', 'Gamma'], orderedStudentNames);
   });
 
-  it('sorts an undefined displayName first', () => {
+  it('puts students with empty displayNames at the beginning of sorted students', () => {
     // Un-order students
     fakeStudents = [
       {
