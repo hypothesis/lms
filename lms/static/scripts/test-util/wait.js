@@ -61,3 +61,22 @@ export function waitForElement(wrapper, selector, timeout = 10) {
     `"${selector}" to render`
   );
 }
+
+/**
+ * Wait up to `timeout` ms for an element to be removed.
+ *
+ * @param {CommonWrapper} wrapper - Root Enzyme wrapper
+ * @param {string|Function} selector - Selector string or function to pass to `wrapper.find`
+ * @param {number} timeout
+ * @return {Promise<CommonWrapper>}
+ */
+export function waitForElementToBeRemoved(wrapper, selector, timeout = 10) {
+  return waitFor(
+    () => {
+      wrapper.update();
+      return wrapper.find(selector).length === 0;
+    },
+    timeout,
+    `"${selector}" to render`
+  );
+}

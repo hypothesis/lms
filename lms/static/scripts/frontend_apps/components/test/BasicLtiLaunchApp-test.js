@@ -1,12 +1,17 @@
-import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
+import { Fragment, createElement } from 'preact';
+import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
-import { waitFor, waitForElement } from '../../../test-util/wait';
+import {
+  waitFor,
+  waitForElement,
+  waitForElementToBeRemoved,
+} from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('BasicLtiLaunchApp', () => {
@@ -14,6 +19,7 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let fakeConfig;
   let fakeHypothesisConfig;
+  let fakeRpcServer;
 
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
@@ -25,7 +31,7 @@ describe('BasicLtiLaunchApp', () => {
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <BasicLtiLaunchApp {...props} />
+        <BasicLtiLaunchApp rpcServer={fakeRpcServer} {...props} />
       </Config.Provider>
     );
   };
@@ -45,6 +51,9 @@ describe('BasicLtiLaunchApp', () => {
     FakeAuthWindow = sinon.stub().returns({
       authorize: sinon.stub().resolves(null),
     });
+    fakeRpcServer = {
+      resolveGroupFetch: sinon.stub(),
+    };
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
@@ -80,6 +89,43 @@ describe('BasicLtiLaunchApp', () => {
       assert.include(iframe.props(), {
         src: 'https://via.hypothes.is/123',
       });
+    });
+  });
+
+  context('when `sync` object is provided in the config', () => {
+    beforeEach(() => {
+      fakeConfig.api.sync = {
+        data: {
+          course: {
+            context_id: '12345',
+            custom_canvas_course_id: '101',
+          },
+        },
+        path: '/api/sync',
+      };
+    });
+
+    it('attempts to fetch the groups when mounted', async () => {
+      const wrapper = renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      await waitFor(() => fakeApiCall.called);
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/sync',
+        data: {
+          course: {
+            context_id: '12345',
+            custom_canvas_course_id: '101',
+          },
+        },
+      });
+      assert.isTrue(wrapper.exists('Spinner'));
+    });
+
+    it('passes the groups array from api call to rpcServer.resolveGroupFetch', async () => {
+      const groups = await fakeApiCall.resolves(['group1', 'group2']);
+      renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      await groups;
+      assert.calledWith(fakeRpcServer.resolveGroupFetch, ['group1', 'group2']);
     });
   });
 
@@ -182,9 +228,10 @@ describe('BasicLtiLaunchApp', () => {
           lis_result_sourcedid: 'modelstudent-assignment1',
         },
       };
+      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
-    it('reports the submission in the LMS when the content iframe starts loading', async () => {
+    it('reports the submission when the content iframe starts loading', async () => {
       const wrapper = renderLtiLaunchApp();
       await waitFor(() => fakeApiCall.called);
 
@@ -203,8 +250,9 @@ describe('BasicLtiLaunchApp', () => {
       const error = new ApiError(400, {});
       fakeApiCall.rejects(error);
 
-      // Wait for the API call to fail and check that an error is displayed.
       const wrapper = renderLtiLaunchApp();
+
+      // Wait for the API call to fail and check that an error is displayed.
       const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
       assert.equal(errorDisplay.prop('error'), error);
 
@@ -218,7 +266,7 @@ describe('BasicLtiLaunchApp', () => {
       );
     });
 
-    it('does not report a submission if teacher launches assignment', async () => {
+    it('does not report a submission if a teacher launches an assignment', async () => {
       // When a teacher launches the assignment, there will typically be no
       // `submissionParams` config provided by the backend.
       fakeConfig.canvas.speedGrader.submissionParams = undefined;
@@ -237,6 +285,13 @@ describe('BasicLtiLaunchApp', () => {
 
       assert.notCalled(fakeApiCall);
     });
+
+    it('does not report the submission when there is no `contentUrl`', async () => {
+      // When present, viaUrl becomes the contentUrl
+      fakeConfig.viaUrl = null;
+      renderLtiLaunchApp();
+      assert.isTrue(fakeApiCall.notCalled);
+    });
   });
 
   context('when grading is enabled', () => {
@@ -245,6 +300,8 @@ describe('BasicLtiLaunchApp', () => {
         enabled: true,
         students: [{ userid: 'user1' }, { userid: 'user2' }],
       };
+      // needs a viaUrl or viaCallbackUrl to show iframe
+      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
     it('renders the LMSGrader component', () => {
@@ -254,11 +311,127 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
+  describe('concurrent fetching of groups and content', () => {
+    let contentUrlResolve;
+    let contentUrlReject;
+    let groupsCallResolve;
+    let groupsCallReject;
+
+    beforeEach(() => {
+      // Will attempt to fetch the 1. content url and 2. groups.
+      fakeConfig.api = {
+        authToken: 'dummyAuthToken',
+        viaCallbackUrl: 'https://lms.hypothes.is/api/files/1234',
+        sync: {
+          data: {
+            course: {
+              context_id: '12345',
+              custom_canvas_course_id: '101',
+            },
+          },
+          path: '/api/sync',
+        },
+      };
+      fakeApiCall
+        .withArgs({
+          authToken: 'dummyAuthToken',
+          path: 'https://lms.hypothes.is/api/files/1234',
+        })
+        .returns(
+          new Promise((resolve, reject) => {
+            contentUrlResolve = resolve;
+            contentUrlReject = reject;
+          })
+        );
+
+      fakeApiCall
+        .withArgs({
+          authToken: 'dummyAuthToken',
+          path: '/api/sync',
+          data: {
+            course: {
+              context_id: '12345',
+              custom_canvas_course_id: '101',
+            },
+          },
+        })
+        .returns(
+          new Promise((resolve, reject) => {
+            groupsCallResolve = resolve;
+            groupsCallReject = reject;
+          })
+        );
+    });
+
+    it('renders the spinner until both groups and contentUrl requests finish', async () => {
+      const wrapper = renderLtiLaunchApp();
+
+      // Spinner should not go away after first request
+      await act(async () => {
+        contentUrlResolve({
+          via_url: 'https://via.hypothes.is/123',
+        });
+      });
+      wrapper.update();
+      assert.isTrue(wrapper.find('Spinner').exists());
+
+      // Spinner should go away after the second request
+      groupsCallResolve(['group1', 'group2']);
+      await waitForElementToBeRemoved(wrapper, 'Spinner');
+
+      // iframe should be visible
+      assert.equal(wrapper.find('iframe').prop('style').visibility, 'visible');
+    });
+
+    it('renders the iframe hidden after contentUrl succeeds and groups remains pending', async () => {
+      const wrapper = renderLtiLaunchApp();
+      contentUrlResolve({
+        via_url: 'https://via.hypothes.is/123',
+      });
+      await waitForElement(wrapper, 'iframe');
+      assert.equal(wrapper.find('iframe').prop('style').visibility, 'hidden');
+    });
+
+    it('shows an error dialog if the first request fails and second succeeds', async () => {
+      const wrapper = renderLtiLaunchApp();
+
+      // Should show an error after the first request fails
+      contentUrlReject(new ApiError(400, {}));
+      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+
+      // Should still show an error even if the second request does not fail
+      groupsCallResolve(['group1', 'group2']);
+      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+    });
+
+    it('shows an error dialog if the first request succeeds and second fails', async () => {
+      const wrapper = renderLtiLaunchApp();
+
+      // Should not show an error yet
+      contentUrlResolve({
+        via_url: 'https://via.hypothes.is/123',
+      });
+      assert.isFalse(
+        wrapper.find('FakeDialog[title="Authorize Hypothesis"]').exists()
+      );
+
+      // Should show an error after failure
+      groupsCallReject(new ApiError(400, {}));
+      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility([
       {
-        content: () => renderLtiLaunchApp(),
+        content: () => {
+          fakeConfig = {
+            ...fakeConfig,
+            viaUrl: 'https://via.hypothes.is/123',
+          };
+          return renderLtiLaunchApp();
+        },
       },
       {
         name: 'LMS grader mode',
