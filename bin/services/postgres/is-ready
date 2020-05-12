@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run a command which will exit cleanly if PostgreSQL is accepting connections
+psql -U postgres -c 'select 1';

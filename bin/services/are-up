@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Check the status
+docker exec -it lms_postgres_1 /opt/hypothesis/is-ready 1>/dev/null 2>/dev/null;

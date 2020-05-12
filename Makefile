@@ -29,7 +29,7 @@ help:
 .PHONY: services
 services: args?=up -d
 services: python
-	@tox -qe docker-compose -- $(args)
+	@./bin/services/are-up || (tox -qe docker-compose -- $(args) && ./bin/services/wait-until-up)
 
 .PHONY: dev
 dev: build/manifest.json python

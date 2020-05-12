@@ -1,0 +1,9 @@
+#!/bin/bash
+
+while ! ./bin/services/are-up
+do
+  echo "Waiting for services..."
+  sleep 0.01
+done
+
+echo "Services up"
