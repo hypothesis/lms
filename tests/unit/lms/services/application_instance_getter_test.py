@@ -97,7 +97,10 @@ class TestApplicationInstanceGetter:
             mock.sentinel.context, pyramid_request
         )
         test_application_instance.developer_key = developer_key
-        test_application_instance.canvas_sections_enabled = canvas_sections_enabled
+        # pylint: disable=protected-access
+        test_application_instance._settings = {
+            "canvas": {"sections_enabled": canvas_sections_enabled}
+        }
 
         assert ai_getter.canvas_sections_enabled() == expected_result
 

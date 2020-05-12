@@ -81,7 +81,10 @@ class ApplicationInstanceGetter:
         except ConsumerKeyError:
             return False
 
-        return bool(app_instance.developer_key and app_instance.canvas_sections_enabled)
+        return bool(
+            app_instance.developer_key
+            and app_instance.settings.get("canvas", "sections_enabled")
+        )
 
     def shared_secret(self):
         """
