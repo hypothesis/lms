@@ -69,7 +69,10 @@ class TestCreateApplicationInstance:
         create_application_instance(pyramid_request)
 
         application_instance = pyramid_request.db.query(ApplicationInstance).one()
-        assert application_instance.canvas_sections_enabled == canvas_sections_enabled
+        assert (
+            bool(application_instance.settings.get("canvas", "sections_enabled"))
+            == canvas_sections_enabled
+        )
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
