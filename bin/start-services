@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+"""
+Start the services (if they aren't already running) and wait for them to start responding.
+
+Usage:
+
+    bin/start_services
+"""
+from time import sleep
+import subprocess
+import sys
+from subprocess import CalledProcessError, PIPE
+
+
+def is_postgres_running():
+    """Return True if Postgres is responding."""
+    try:
+        subprocess.run(
+            [
+                "docker",
+                "exec",
+                "-it",
+                "lms_postgres_1",
+                "psql",
+                "-U",
+                "postgres",
+                "-c",
+                "select 1",
+            ],
+            stdout=PIPE,
+            stderr=PIPE,
+            check=True,
+        )
+    except CalledProcessError:
+        return False
+
+    return True
+
+
+def wait_for_postgres():
+    for _ in range(50):
+        if is_postgres_running():
+            return
+        sleep(0.1)
+
+    raise RuntimeError("Starting Postgres failed")
+
+
+def start_containers():
+    subprocess.run(
+        ["tox", "-qq", "-e", "docker-compose", "--run-command", "docker-compose up -d"],
+        check=True,
+    )
+
+
+def main():
+    if not is_postgres_running():
+        start_containers()
+        wait_for_postgres()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except RuntimeError as err:
+        sys.exit(err)

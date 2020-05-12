@@ -1,8 +1,6 @@
 .PHONY: help
 help:
 	@echo "make help              Show this help message"
-	@echo 'make services          Run the services that `make dev` requires'
-	@echo "                       (Postgres) in Docker"
 	@echo "make dev               Run the entire app (web server and other processes)"
 	@echo "make web               Run the web server on its own (useful for debugging the "
 	@echo "                       Python code with pdb)"
@@ -25,11 +23,6 @@ help:
 	@echo "make run-docker        Run the app's Docker image locally"
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
-
-.PHONY: services
-services: args?=up -d
-services: python
-	@tox -qe docker-compose -- $(args)
 
 .PHONY: dev
 dev: build/manifest.json python
