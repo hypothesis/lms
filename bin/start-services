@@ -6,6 +6,7 @@ Usage:
 
     bin/start_services
 """
+import os
 from time import sleep
 import subprocess
 import sys
@@ -60,6 +61,9 @@ def main():
 
 
 if __name__ == "__main__":
+    if "JENKINS_URL" in os.environ:
+        sys.exit()
+
     try:
         main()
     except RuntimeError as err:
