@@ -74,11 +74,7 @@ export function waitForElementToBeRemoved(wrapper, selector, timeout = 10) {
   return waitFor(
     () => {
       wrapper.update();
-      const el = wrapper.find(selector);
-      if (el.length === 0) {
-        return true;
-      }
-      return false;
+      return wrapper.find(selector).length === 0;
     },
     timeout,
     `"${selector}" to render`

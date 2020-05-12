@@ -1,5 +1,6 @@
-import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
+import { Fragment, createElement } from 'preact';
+import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ApiError } from '../../utils/api';
@@ -121,9 +122,9 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('passes the groups array from api call to rpcServer.resolveGroupFetch', async () => {
-      const promise = fakeApiCall.resolves(['group1', 'group2']);
+      const groups = await fakeApiCall.resolves(['group1', 'group2']);
       renderLtiLaunchApp({ rpcServer: fakeRpcServer });
-      await promise;
+      await groups;
       assert.calledWith(fakeRpcServer.resolveGroupFetch, ['group1', 'group2']);
     });
   });
@@ -311,10 +312,10 @@ describe('BasicLtiLaunchApp', () => {
   });
 
   describe('concurrent fetching of groups and content', () => {
-    let contentUrlResolve,
-      contentUrlReject,
-      groupsCallResolve,
-      groupsCallReject;
+    let contentUrlResolve;
+    let contentUrlReject;
+    let groupsCallResolve;
+    let groupsCallReject;
 
     beforeEach(() => {
       // Will attempt to fetch the 1. content url and 2. groups.
@@ -366,9 +367,12 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
 
       // Spinner should not go away after first request
-      contentUrlResolve({
-        via_url: 'https://via.hypothes.is/123',
+      await act(async () => {
+        contentUrlResolve({
+          via_url: 'https://via.hypothes.is/123',
+        });
       });
+      wrapper.update();
       assert.isTrue(wrapper.find('Spinner').exists());
 
       // Spinner should go away after the second request

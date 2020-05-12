@@ -50,7 +50,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   } = useContext(Config);
 
   // The current state of the error.
-  // One "error-fetch", "error-authorizing", or "error-report-submission"
+  // One of "error-fetch", "error-authorizing", or "error-report-submission"
   const [errorState, setErrorState] = useState(null);
 
   // Any current error thrown.
