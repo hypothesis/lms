@@ -1,6 +1,6 @@
 import { createElement } from 'preact';
 import propTypes from 'prop-types';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { call as rpcCall } from '../../postmessage_json_rpc/client';
 import { getSidebarWindow } from '../../postmessage_json_rpc/server';
@@ -17,10 +17,30 @@ export default function LMSGrader({
   children,
   assignmentName,
   courseName,
-  students,
+  students: unorderedStudents,
 }) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
+
+  // Students sorted by displayName
+  const students = useMemo(() => {
+    function compareNames(name1 = '', name2 = '') {
+      if (name1.toLowerCase() < name2.toLowerCase()) {
+        return -1;
+      } else if (name1.toLowerCase() > name2.toLowerCase()) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    // Make a copy
+    const students_ = [...unorderedStudents];
+
+    students_.sort((student1, student2) => {
+      return compareNames(student1.displayName, student2.displayName);
+    });
+    return students_;
+  }, [unorderedStudents]);
 
   /**
    * Makes an RPC call to the sidebar to change to the focused user.
