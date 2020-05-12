@@ -5,6 +5,4 @@
 # Usage:
 #
 #     create-db <DB_NAME>
-tox -qqe docker-compose \
-    --run-command "docker-compose exec postgres psql -U postgres -c 'CREATE DATABASE $1;'" \
-    > /dev/null 2>&1 || true
+docker exec -it lms_postgres_1 psql -U postgres -c "CREATE DATABASE $1;" > /dev/null 2>&1 || true
