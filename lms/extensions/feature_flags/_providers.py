@@ -6,9 +6,7 @@ documentation for these functions.
 """
 import os
 
-from pyramid.settings import asbool
-
-from ._helpers import FeatureFlagsCookieHelper
+from ._helpers import FeatureFlagsCookieHelper, as_tristate
 
 __all__ = [
     "config_file_provider",
@@ -26,8 +24,9 @@ def config_file_provider(request, feature_flag_name):
     disabled in the config file, or ``None`` if the config file doesn't mention
     the given feature flag.
     """
-    setting_name = f"feature_flags.{feature_flag_name}"
-    return _bool_or_none_from_dict(request.registry.settings, setting_name)
+    return as_tristate(
+        request.registry.settings.get(f"feature_flags.{feature_flag_name}")
+    )
 
 
 def envvar_provider(_request, feature_flag_name):
@@ -38,8 +37,7 @@ def envvar_provider(_request, feature_flag_name):
     disabled by an environment variable, or ``None`` if there's no environment
     variable for this feature flag.
     """
-    key = "FEATURE_FLAG_{name}".format(name=feature_flag_name.upper())
-    return _bool_or_none_from_dict(os.environ, key)
+    return as_tristate(os.environ.get(f"FEATURE_FLAG_{feature_flag_name.upper()}"))
 
 
 def cookie_provider(request, feature_flag_name):
@@ -54,14 +52,5 @@ def query_string_provider(request, feature_flag_name):
     disabled by a query string parameter, or ``None`` if there's no query
     string parameter for this feature flag.
     """
-    key = f"feature_flags.{feature_flag_name}"
-    return _bool_or_none_from_dict(request.GET, key)
 
-
-def _bool_or_none_from_dict(dict_, key):
-    result = dict_.get(key)
-
-    if result is None:
-        return None
-
-    return asbool(result)
+    return as_tristate(request.GET.get(f"feature_flags.{feature_flag_name}"))
