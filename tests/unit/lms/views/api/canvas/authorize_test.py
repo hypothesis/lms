@@ -42,24 +42,11 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
-    def test_it_includes_the_scopes_in_a_query_param(self, views):
+    def test_it_includes_the_scope_in_a_query_param(self, views):
         response = views.authorize()
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        assert query_params["scope"] == [
-            "url:GET|/api/v1/courses/:course_id/files "
-            "url:GET|/api/v1/files/:id/public_url "
-            "url:GET|/api/v1/courses/:id "
-            "url:GET|/api/v1/courses/:course_id/sections "
-            "url:GET|/api/v1/courses/:course_id/users/:id"
-        ]
-
-    @pytest.mark.usefixtures("sections_disabled")
-    def test_it_doesnt_request_sections_scopes_if_sections_is_disabled(self, views):
-        response = views.authorize()
-
-        query_params = parse_qs(urlparse(response.location).query)
         assert query_params["scope"] == [
             "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
         ]
@@ -168,9 +155,6 @@ class TestOAuth2RedirectError:
         assert template_variables["scopes"] == (
             "url:GET|/api/v1/courses/:course_id/files",
             "url:GET|/api/v1/files/:id/public_url",
-            "url:GET|/api/v1/courses/:id",
-            "url:GET|/api/v1/courses/:course_id/sections",
-            "url:GET|/api/v1/courses/:course_id/users/:id",
         )
 
 
@@ -201,11 +185,6 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
     schema = CanvasOAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema
-
-
-@pytest.fixture
-def sections_disabled(ai_getter):
-    ai_getter.canvas_sections_enabled.return_value = False
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "canvas_api_client")

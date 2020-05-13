@@ -99,8 +99,9 @@ class LTILaunchResource:
         return self._request.parsed_params.get("custom_canvas_api_domain")
 
     @property
-    def canvas_sections_enabled(self):
-        """Return True if Canvas sections is enabled for this request."""
-        ai_getter = self._request.find_service(name="ai_getter")
+    def should_use_section_groups(self):
+        """Return True if section groups rather than a course group should be used."""
+        if not self.is_canvas:
+            return False
 
-        return self.is_canvas and ai_getter.canvas_sections_enabled()
+        return self._request.feature("section_groups")
