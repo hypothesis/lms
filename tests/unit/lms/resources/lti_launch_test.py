@@ -103,24 +103,26 @@ class TestJSConfig:
 
 class TestShouldUseSectionGroups:
     @pytest.mark.parametrize(
-        "is_canvas,canvas_sections_enabled,expected_result",
+        "is_canvas,is_feature_flag_enabled,should_use_section_groups",
         [
-            (True, True, True),
-            (False, True, False),
-            (True, False, False),
-            (False, False, False),
+            pytest.param(True, True, True, id="Canvas with feature flag on"),
+            pytest.param(True, False, False, id="Canvas with feature flag off"),
+            pytest.param(False, True, False, id="Non-Canvas with feature flag on",),
+            pytest.param(False, True, False, id="Non-Canvas with feature flag off"),
         ],
     )
     def test_it(
-        self, lti_launch, ai_getter, is_canvas, canvas_sections_enabled, expected_result
+        self,
+        lti_launch,
+        pyramid_request,
+        is_canvas,
+        is_feature_flag_enabled,
+        should_use_section_groups,
     ):
-        ai_getter.canvas_sections_enabled.return_value = canvas_sections_enabled
+        pyramid_request.feature.return_value = is_feature_flag_enabled
 
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
-            assert lti_launch.canvas_sections_enabled == expected_result
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter")
+            assert lti_launch.should_use_section_groups == should_use_section_groups
 
 
 @pytest.fixture
