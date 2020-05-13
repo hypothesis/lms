@@ -1,3 +1,5 @@
+from unittest.mock import sentinel
+
 import jwt
 import pytest
 from pyramid.httpexceptions import HTTPFound
@@ -6,139 +8,85 @@ from lms.extensions.feature_flags._exceptions import SettingError
 from lms.extensions.feature_flags._helpers import (
     FeatureFlagsCookieHelper,
     JWTCookieHelper,
+    as_tristate,
 )
 
 
+class TestAsTristate:
+    @pytest.mark.parametrize(
+        "value,expected_value",
+        (
+            # Truthy
+            (True, True),
+            ("True", True),
+            ("true", True),
+            ("1", True),
+            (1, True),
+            # Falsy
+            (False, False),
+            ("False", False),
+            ("false", False),
+            ("0", False),
+            (0, False),
+            # None
+            ("", None),
+            (None, None),
+            ("None", None),
+            ("none", None),
+        ),
+    )
+    def test_it(self, value, expected_value):
+        assert as_tristate(value) == expected_value
+
+
 class TestFeatureFlagsCookieHelper:
-    def test_set_cookie_sets_the_cookie_from_the_request_params(
-        self, pyramid_request, JWTCookieHelper, jwt_cookie_helper
-    ):
-        pyramid_request.params = {"test_flag_one": "on"}
-        response = HTTPFound()
-        helper = FeatureFlagsCookieHelper(pyramid_request)
+    def test_get_all(self, cookie_helper):
+        flags = cookie_helper.get_all()
 
-        helper.set_cookie(response)
+        assert flags == {"flag_one": True, "flag_two": False}
 
-        JWTCookieHelper.assert_called_once_with("feature_flags", pyramid_request)
+    @pytest.mark.parametrize(
+        "flag,expected_value",
+        (("flag_one", True), ("flag_two", False), ("flag_three", None)),
+    )
+    def test_get(self, cookie_helper, flag, expected_value):
+        assert cookie_helper.get(flag) == expected_value
+
+    def test_set_cookie(self, cookie_helper, jwt_cookie_helper, pyramid_request):
+        pyramid_request.params = {
+            "flag_one": "false",
+            "flag_two": "true",
+            "flag_three": "true",
+        }
+
+        cookie_helper.set_cookie(sentinel.response)
+
         jwt_cookie_helper.set.assert_called_once_with(
-            response, {"test_flag_one": True, "test_flag_two": False}
+            sentinel.response, {"flag_one": False, "flag_two": True}
         )
 
-    def test_set_cookie_omits_disallowed_feature_flags(
-        self, pyramid_request, jwt_cookie_helper
-    ):
-        pyramid_request.params = {
-            "test_flag_one": "on",
-            "disallowed_flag": "on",
-        }
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        helper.set_cookie(HTTPFound())
-
-        assert jwt_cookie_helper.set.call_args[0][1] == {
-            "test_flag_one": True,
-            "test_flag_two": False,
-        }
-
-    def test_get_gets_the_flag_from_the_cookie(
-        self, pyramid_request, JWTCookieHelper, jwt_cookie_helper
-    ):
-        jwt_cookie_helper.get.return_value = {"test_flag_one": True}
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        flag = helper.get("test_flag_one")
-
-        JWTCookieHelper.assert_called_once_with("feature_flags", pyramid_request)
-        jwt_cookie_helper.get.assert_called_once_with()
-        assert flag is True
-
-    def test_get_returns_False_if_flag_is_toggled_off_in_cookie(
-        self, pyramid_request, jwt_cookie_helper
-    ):
-        jwt_cookie_helper.get.return_value = {"test_flag_one": False}
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        assert not helper.get("test_flag_one")
-
-    def test_get_omits_disallowed_flags(self, jwt_cookie_helper, pyramid_request):
-        jwt_cookie_helper.get.return_value = {"disallowed_flag": True}
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        assert helper.get("disallowed_flag") is None
-
-    def test_get_all_gets_all_the_flags_from_the_cookie(
-        self, pyramid_request, JWTCookieHelper, jwt_cookie_helper
-    ):
-        jwt_cookie_helper.get.return_value = {
-            "test_flag_one": True,
-            "test_flag_two": False,
-        }
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        returned_flags = helper.get_all()
-
-        JWTCookieHelper.assert_called_once_with("feature_flags", pyramid_request)
-        jwt_cookie_helper.get.assert_called_once_with()
-        assert returned_flags == {"test_flag_one": True, "test_flag_two": False}
-
-    def test_get_all_omits_disallowed_flags(self, pyramid_request, jwt_cookie_helper):
-        jwt_cookie_helper.get.return_value = {
-            "test_flag_one": True,
-            "test_flag_two": False,
-            "disallowed_flag": True,
-        }
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        assert helper.get_all() == {"test_flag_one": True, "test_flag_two": False}
-
-    @pytest.mark.parametrize("flags_setting", ["", None])
-    def test_when_theres_no_flags_allowed_set_turns_off_all_flags(
-        self, pyramid_request, jwt_cookie_helper, flags_setting
-    ):
-        pyramid_request.registry.settings[
-            "feature_flags_allowed_in_cookie"
-        ] = flags_setting
-        pyramid_request.params = {"test_flag_one": "on"}
-        response = HTTPFound()
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        helper.set_cookie(response)
-
-        jwt_cookie_helper.set.assert_called_once_with(response, {})
-
-    def test_when_theres_no_flags_allowed_get_always_returns_None(
-        self, pyramid_request, jwt_cookie_helper
-    ):
-        pyramid_request.registry.settings["feature_flags_allowed_in_cookie"] = ""
-        jwt_cookie_helper.get.return_value = {"test_flag_one": True}
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        assert helper.get("test_flag_one") is None
-
-    def test_when_theres_no_flags_allowed_get_all_returns_an_empty_dict(
-        self, pyramid_request, jwt_cookie_helper
-    ):
-        pyramid_request.registry.settings["feature_flags_allowed_in_cookie"] = ""
-        pyramid_request.params = jwt_cookie_helper.get.return_value = {
-            "test_flag_one": "on"
-        }
-        helper = FeatureFlagsCookieHelper(pyramid_request)
-
-        assert helper.get_all() == {}
+    @pytest.fixture
+    def cookie_helper(self, pyramid_request):
+        return FeatureFlagsCookieHelper(pyramid_request)
 
     @pytest.fixture
     def pyramid_config(self, pyramid_config):
         pyramid_config.registry.settings[
             "feature_flags_allowed_in_cookie"
-        ] = "test_flag_one test_flag_two"
+        ] = "flag_one flag_two"
         return pyramid_config
 
     @pytest.fixture(autouse=True)
-    def JWTCookieHelper(self, patch):
-        return patch("lms.extensions.feature_flags._helpers.JWTCookieHelper")
+    def jwt_cookie_helper(self, patch):
+        # pylint: disable=invalid-name
+        JWTCookieHelper = patch("lms.extensions.feature_flags._helpers.JWTCookieHelper")
 
-    @pytest.fixture
-    def jwt_cookie_helper(self, JWTCookieHelper):
+        JWTCookieHelper.return_value.get.return_value = {
+            "flag_one": 1,
+            "flag_two": "false",
+            "flag_three": "not in feature_flags_allowed_in_cookie",
+        }
+
         return JWTCookieHelper.return_value
 
 
