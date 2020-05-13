@@ -1,19 +1,19 @@
 import json
 from io import BytesIO
 from unittest import mock
-from unittest.mock import call, sentinel
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from _pytest.mark import param
 from h_matchers import Any
 from h_matchers.decorator import fluent_entrypoint
 from h_matchers.matcher.core import Matcher
-from requests import PreparedRequest, RequestException, Response
+from requests import PreparedRequest, Request, RequestException, Response
 
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient, _CanvasAPIAuthenticatedClient
-from lms.validation import ValidationError
+from lms.validation import RequestsResponseSchema, ValidationError
 
 # pylint: disable=protected-access
 
@@ -71,7 +71,7 @@ class AnyRequest(Matcher):  # pragma: no cover
         raise AssertionError(f"Unknown request type '{type(other)}'")
 
 
-def _make_response(json_data=None, raw=None, status_code=200):
+def _make_response(json_data=None, raw=None, status_code=200, headers=None):
     response = Response()
 
     if raw is None:
@@ -79,6 +79,10 @@ def _make_response(json_data=None, raw=None, status_code=200):
 
     response.raw = BytesIO(raw.encode("utf-8"))
     response.status_code = status_code
+
+    if headers:
+        # Requests seems to store these lower case and expects them that way
+        response.headers = {key.lower(): value for key, value in headers.items()}
 
     return response
 
@@ -172,11 +176,15 @@ class TestDataCalls:
         response = api_client.list_files("COURSE_ID")
 
         assert response == files
+        AnyRequest.assert_on_comparison = True
         http_session.send.assert_called_once_with(
             AnyRequest(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
-                    {"content_types[]": "application/pdf", "per_page": "100"}
+                    {
+                        "content_types[]": "application/pdf",
+                        "per_page": str(api_client.PAGINATION_PER_PAGE),
+                    }
                 ),
                 headers={"Authorization": "Bearer existing_access_token"},
             ),
@@ -369,18 +377,18 @@ class TestTokenCalls:
 
 
 class TestValidatedResponse:
-    def test_it(self, base_client, http_session, schema):
+    def test_it(self, base_client, http_session, Schema):
         response = _make_response("request_body")
         http_session.send.return_value = response
 
-        base_client._validated_response(sentinel.request, schema)
+        base_client._validated_response(sentinel.request, Schema)
 
         http_session.send.assert_called_once_with(sentinel.request, timeout=9)
-        schema.assert_called_once_with(response)
-        schema.return_value.parse.assert_called_once_with()
+        Schema.assert_called_once_with(response)
+        Schema.return_value.parse.assert_called_once_with()
 
     def test_it_raises_CanvasAPIError_for_request_errors(
-        self, base_client, http_session, schema
+        self, base_client, http_session, Schema
     ):
         response = _make_response("request_body")
         response.raise_for_status = mock.MagicMock()
@@ -388,25 +396,82 @@ class TestValidatedResponse:
         http_session.send.return_value = response
 
         with pytest.raises(CanvasAPIError):
-            base_client._validated_response(sentinel.request, schema)
+            base_client._validated_response(sentinel.request, Schema)
 
-    def test_it_raises_CanvasAPIError_for_validation_errors(self, base_client, schema):
-        schema.return_value.parse.side_effect = ValidationError("Some error")
+    @pytest.mark.usefixtures("paginated_results")
+    def test_it_follows_pagination_links_for_many_schema(
+        self, base_client, http_session, PaginatedSchema
+    ):
+        result = base_client._validated_response(
+            Request("method", "http://example.com/start").prepare(), PaginatedSchema
+        )
 
+        # Values are from the PaginatedSchema fixture
+        assert result == ["item_0", "item_1", "item_2"]
+
+        # We'd love to say the first call here isn't to 'next_url', but we
+        # mutate the object in place, so the information is destroyed
+        http_session.send.assert_has_calls(
+            [
+                call(AnyRequest(), timeout=Any()),
+                call(AnyRequest(url="http://example.com/next"), timeout=Any()),
+                call(AnyRequest(url="http://example.com/next"), timeout=Any()),
+            ]
+        )
+
+    @pytest.mark.usefixtures("paginated_results")
+    def test_it_only_paginates_to_the_max_value(self, base_client, PaginatedSchema):
+        base_client.PAGINATION_MAXIMUM_REQUESTS = 2
+
+        result = base_client._validated_response(sentinel.request, PaginatedSchema)
+
+        assert result == ["item_0", "item_1"]
+
+    @pytest.mark.usefixtures("paginated_results")
+    def test_it_raises_CanvasAPIError_for_pagination_with_non_many_schema(
+        self, base_client, Schema
+    ):
         with pytest.raises(CanvasAPIError):
-            base_client._validated_response(sentinel.request, schema)
+            base_client._validated_response(sentinel.request, Schema)
 
     @pytest.fixture
-    def schema(self):
-        return mock.MagicMock()
+    def paginated_results(self, http_session):
+        next_url = "http://example.com/next"
+        http_session.send.side_effect = [
+            _make_response(headers=self._link_headers(next_url)),
+            _make_response(headers=self._link_headers(next_url)),
+            _make_response(),
+        ]
+
+    def test_it_raises_CanvasAPIError_for_validation_errors(self, base_client, Schema):
+        Schema.return_value.parse.side_effect = ValidationError("Some error")
+
+        with pytest.raises(CanvasAPIError):
+            base_client._validated_response(sentinel.request, Schema)
+
+    def _link_headers(self, next_url):
+        # See: https://canvas.instructure.com/doc/api/file.pagination.html
+
+        decoy_url = "http://example.com/decoy"
+
+        return {
+            "Link": ", ".join(
+                [
+                    f'<{decoy_url}>; rel="current"',
+                    f'<{next_url}>; rel="next"',
+                    f'<{decoy_url}>; rel="first"',
+                    f'<{decoy_url}>; rel="last"',
+                ]
+            )
+        }
 
 
 class TestMakeAuthenticatedRequest:
-    def test_it(self, base_client, access_token):
+    def test_it(self, base_client, access_token, Schema):
         params = {"a": "1"}
 
         base_client.make_authenticated_request(
-            method="method", path="path", schema=sentinel.schema, params=params
+            method="method", path="path", schema=Schema, params=params
         )
 
         expected_url = (
@@ -418,11 +483,27 @@ class TestMakeAuthenticatedRequest:
             AnyRequest(method="METHOD", url=expected_url).containing_headers(
                 {"Authorization": f"Bearer {access_token.access_token}"}
             ),
-            sentinel.schema,
+            Schema,
         )
 
     @pytest.mark.usefixtures("access_token")
-    def test_it_refreshes_the_token_and_tries_again(self, base_client):
+    def test_it_adds_pagination_for_multi_schema(self, base_client, PaginatedSchema):
+        base_client.make_authenticated_request(
+            method="method", path="path", schema=PaginatedSchema
+        )
+
+        AnyRequest.assert_on_comparison = True
+        base_client._validated_response.assert_called_once_with(
+            AnyRequest(
+                url=Any.url.containing_query(
+                    {"per_page": str(base_client.PAGINATION_PER_PAGE)}
+                )
+            ),
+            Any(),
+        )
+
+    @pytest.mark.usefixtures("access_token")
+    def test_it_refreshes_the_token_and_tries_again(self, base_client, Schema):
         base_client._validated_response.side_effect = [
             CanvasAPIAccessTokenError(),
             sentinel.second_call,
@@ -430,7 +511,7 @@ class TestMakeAuthenticatedRequest:
         base_client._get_refreshed_token.return_value = "new_access_token"
 
         response = base_client.make_authenticated_request(
-            method="method", path="path", schema=sentinel.schema
+            method="method", path="path", schema=Schema
         )
 
         assert response == sentinel.second_call
@@ -441,25 +522,25 @@ class TestMakeAuthenticatedRequest:
             [
                 # It would be good to assert this call has the old header, but as
                 # the object is mutated, you can't easily
-                call(AnyRequest(), sentinel.schema),
+                call(AnyRequest(), Schema),
                 call(
                     AnyRequest.containing_headers(
                         {"Authorization": "Bearer new_access_token"}
                     ),
-                    sentinel.schema,
+                    Schema,
                 ),
             ]
         )
 
     @pytest.mark.usefixtures("access_token_no_refresh")
     def test_it_raises_CanvasAPIAccessTokenError_if_refresh_token_is_None(
-        self, base_client
+        self, base_client, Schema
     ):
         base_client._validated_response.side_effect = CanvasAPIAccessTokenError()
 
         with pytest.raises(CanvasAPIAccessTokenError):
             base_client.make_authenticated_request(
-                method="method", path="path", schema=sentinel.schema
+                method="method", path="path", schema=Schema
             )
 
     @pytest.fixture
@@ -519,3 +600,23 @@ def access_token(db_session, access_token_fields):
     access_token = OAuth2Token(**access_token_fields)
     db_session.add(access_token)
     return access_token
+
+
+@pytest.fixture
+def Schema():
+    # pylint: disable=invalid-name
+    Schema = create_autospec(RequestsResponseSchema)
+    Schema.many = False
+
+    return Schema
+
+
+@pytest.fixture
+def PaginatedSchema(Schema):
+    Schema.many = True
+
+    Schema.return_value.parse.side_effect = (
+        [f"item_{i}"] for i in range(100)
+    )  # pragma: no cover
+
+    return Schema
