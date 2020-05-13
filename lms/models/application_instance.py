@@ -4,6 +4,8 @@ from datetime import datetime
 import sqlalchemy as sa
 from Crypto import Random
 from Crypto.Cipher import AES
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 
@@ -30,6 +32,23 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
         server_default=sa.sql.expression.true(),
         nullable=False,
     )
+    _settings = sa.Column("settings", MutableDict.as_mutable(JSONB))
+
+    @property
+    def settings(self):
+        """
+        Get a settings object which can get and set grouped settings.
+
+        The object can be queried with `settings.get(group, key)` or
+        `settings.set(group, key, value)`.
+
+        :return: _ApplicationSettings object.
+        """
+
+        if self._settings is None:
+            self._settings = {}
+
+        return _ApplicationSettings(self._settings)
 
     #: A list of all the OAuth2Tokens for this application instance
     #: (each token belongs to a different user of this application
@@ -50,12 +69,12 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
 
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
-        cls, lms_url, email, developer_key, developer_secret, encryption_key=None
+        cls, lms_url, email, developer_key, developer_secret, encryption_key, settings,
     ):
         """Instantiate ApplicationInstance with lms_url."""
         encrypted_secret = developer_secret
         aes_iv = None
-        if encryption_key is not None and developer_secret and developer_key:
+        if developer_secret and developer_key:
             aes_iv = _build_aes_iv()
             encrypted_secret = _encrypt_oauth_secret(
                 developer_secret, encryption_key, aes_iv
@@ -70,6 +89,7 @@ class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
             developer_secret=encrypted_secret,
             aes_cipher_iv=aes_iv,
             created=datetime.utcnow(),
+            _settings=settings,
         )
 
 
@@ -92,3 +112,30 @@ def _encrypt_oauth_secret(oauth_secret, key, init_v):
     """Encrypt an oauth secrety via AES encryption."""
     cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.encrypt(oauth_secret)
+
+
+class _ApplicationSettings:
+    """Model for accessing and updating application settings."""
+
+    def __init__(self, data):
+        self.data = data
+
+    def get(self, group, key):
+        """
+        Get a specific settings or None if it doesn't exist.
+
+        :param group: The name of the group of settings
+        :param key: The key in that group
+        :return: The value or None
+        """
+        return self.data.get(group, {}).get(key)
+
+    def set(self, group, key, value):
+        """
+        Set a specific setting in a group.
+
+        :param group: The name of the group of settings
+        :param key: The key in that group
+        :param value: The value to set
+        """
+        self.data.setdefault(group, {})[key] = value

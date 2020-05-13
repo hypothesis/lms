@@ -26,7 +26,7 @@ class TestReports:
 
         def build_ai_from_pair(pair):
             return ApplicationInstance.build_from_lms_url(
-                pair[0], pair[1], None, None, None
+                pair[0], pair[1], None, None, None, None
             )
 
         app_instances = [

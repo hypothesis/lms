@@ -485,13 +485,13 @@ def context():
         instance=True,
         h_group=mock.create_autospec(HGroup, instance=True, spec_set=True),
         is_canvas=True,
-        should_use_section_groups=False,
+        canvas_sections_enabled=False,
     )
 
 
 @pytest.fixture
 def section_groups_on(context):
-    context.should_use_section_groups = True
+    context.canvas_sections_enabled = True
 
 
 @pytest.fixture

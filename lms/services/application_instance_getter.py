@@ -11,10 +11,11 @@ __all__ = ["ApplicationInstanceGetter"]
 class ApplicationInstanceGetter:
     """Methods for getting properties from application instances."""
 
-    def __init__(self, db, aes_secret, consumer_key):
+    def __init__(self, db, aes_secret, consumer_key, section_groups_feature_flag):
         self._db = db
         self._aes_secret = aes_secret
         self._consumer_key = consumer_key
+        self._section_groups_feature_flag = section_groups_feature_flag
 
     def developer_key(self):
         """
@@ -70,6 +71,21 @@ class ApplicationInstanceGetter:
             provisioning = False
         return provisioning
 
+    def canvas_sections_enabled(self):
+        """Return True if the application instance has Canvas sections is enabled."""
+        if not self._section_groups_feature_flag:
+            return False
+
+        try:
+            app_instance = self._get_by_consumer_key()
+        except ConsumerKeyError:
+            return False
+
+        return bool(
+            app_instance.developer_key
+            and app_instance.settings.get("canvas", "sections_enabled")
+        )
+
     def shared_secret(self):
         """
         Return the LTI/OAuth 1 shared secret for the current request.
@@ -108,4 +124,5 @@ def application_instance_getter_service_factory(_context, request):
         request.db,
         request.registry.settings["aes_secret"],
         request.lti_user.oauth_consumer_key,
+        section_groups_feature_flag=request.feature("section_groups"),
     )
