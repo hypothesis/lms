@@ -21,10 +21,17 @@ from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallback
 @view_defaults(request_method="GET", route_name="canvas_oauth_callback")
 class CanvasAPIAuthorizeViews:
 
-    #: The Canvas API scopes that we request.
-    scopes = (
+    # The Canvas API scopes that we need for our Canvas Files feature.
+    files_scopes = (
         "url:GET|/api/v1/courses/:course_id/files",
         "url:GET|/api/v1/files/:id/public_url",
+    )
+
+    # The Canvas API scopes that we need for our Sections feature.
+    sections_scopes = (
+        "url:GET|/api/v1/courses/:id",
+        "url:GET|/api/v1/courses/:course_id/sections",
+        "url:GET|/api/v1/courses/:course_id/users/:id",
     )
 
     def __init__(self, request):
@@ -33,6 +40,11 @@ class CanvasAPIAuthorizeViews:
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
         ai_getter = self.request.find_service(name="ai_getter")
+
+        if ai_getter.canvas_sections_enabled():
+            scopes = self.files_scopes + self.sections_scopes
+        else:
+            scopes = self.files_scopes
 
         authorize_url = urlunparse(
             (
@@ -46,7 +58,7 @@ class CanvasAPIAuthorizeViews:
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
-                        "scope": " ".join(self.scopes),
+                        "scope": " ".join(scopes),
                     }
                 ),
                 "",
@@ -84,7 +96,7 @@ class CanvasAPIAuthorizeViews:
         template_variables = {
             "invalid_scope": self.request.params.get("error") == "invalid_scope",
             "details": self.request.params.get("error_description"),
-            "scopes": self.scopes,
+            "scopes": self.files_scopes + self.sections_scopes,
         }
 
         if self.request.lti_user:
