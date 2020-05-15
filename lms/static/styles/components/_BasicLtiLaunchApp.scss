@@ -12,3 +12,9 @@
   left: calc(50% - #{$spinner-size / 2});
   top: 100px;
 }
+
+.BasicLtiLaunchApp__content {
+  &.is-hidden {
+    visibility: hidden;
+  }
+}

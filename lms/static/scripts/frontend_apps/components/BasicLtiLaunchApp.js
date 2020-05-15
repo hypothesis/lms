@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { Fragment, createElement } from 'preact';
 import propTypes from 'prop-types';
 
@@ -50,7 +51,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   } = useContext(Config);
 
   // The current state of the error.
-  // One of "error-fetch", "error-authorizing", or "error-report-submission"
+  // One of "error-fetch", "error-authorizing", or "error-report-submission" or null
   const [errorState, setErrorState] = useState(null);
 
   // Any current error thrown.
@@ -71,7 +72,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // is falsely
   const showIframe = contentUrl && !errorState;
 
-  const showSpinner = fetchCount > 0;
+  const showSpinner = fetchCount > 0 && !errorState;
 
   const incFetchCount = () => {
     setFetchCount(count => count + 1);
@@ -86,16 +87,16 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * Helper to handle thrown errors from from API requests.
    *
    * @param {Error} e - Error object from request.
-   * @param {string} errorState - One of "error-fetch",
+   * @param {string} newErrorState - One of "error-fetch",
    *  "error-authorizing", or "error-report-submission"
    * @param {boolean} [retry=true] - Can the request be retried?
    */
-  const handleError = (e, errorState, retry = true) => {
+  const handleError = (e, newErrorState, retry = true) => {
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
       setError(e);
-      setErrorState(errorState);
+      setErrorState(newErrorState);
     }
   };
 
@@ -105,7 +106,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   const fetchGroups = useCallback(async () => {
     if (apiSync) {
       try {
-        incFetchCount();
+        setErrorState(null);
         const groups = await apiCall({
           authToken,
           path: apiSync.path,
@@ -114,10 +115,10 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         rpcServer.resolveGroupFetch(groups);
       } catch (e) {
         handleError(e, 'error-fetch');
-      } finally {
-        decFetchCount();
       }
     }
+    // ignore errorState changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiSync, authToken, rpcServer]);
 
   /**
@@ -145,6 +146,8 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     } finally {
       decFetchCount();
     }
+    // ignore errorState changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, viaCallbackUrl]);
 
   /**
@@ -209,97 +212,106 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     }
   }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
 
-  if (showIframe) {
-    const iFrame = (
-      <Fragment>
-        {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
-        <iframe
-          // Render the iframe hidden if still loading something (such as the groups)
-          style={{
-            visibility: fetchCount === 0 ? 'visible' : 'hidden',
-          }}
-          width="100%"
-          height="100%"
-          className="js-via-iframe"
-          src={contentUrl}
-          title="Course content with Hypothesis annotation viewer"
-        />
-      </Fragment>
-    );
+  // Construct the <iframe> content
+  let iFrameWrapper;
+  const iFrame = (
+    <iframe
+      width="100%"
+      height="100%"
+      className="js-via-iframe"
+      src={contentUrl}
+      title="Course content with Hypothesis annotation viewer"
+    />
+  );
 
-    if (grading && grading.enabled) {
-      // Use the LMS Grader.
-      return (
-        <LMSGrader
-          students={grading.students}
-          courseName={grading.courseName}
-          assignmentName={grading.assignmentName}
-        >
-          {iFrame}
-        </LMSGrader>
-      );
-    } else {
-      return iFrame;
-    }
-  } else {
-    // Render either a Spinner or Dialog.
-    return (
-      <Fragment>
-        {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
-        {errorState === 'error-authorizing' && (
-          <Dialog
-            title="Authorize Hypothesis"
-            role="alertdialog"
-            buttons={[
-              <Button
-                onClick={authorizeAndFetchUrl}
-                className="BasicLtiLaunchApp__button"
-                label="Authorize"
-                key="authorize"
-              />,
-            ]}
-          >
-            <p>
-              Hypothesis needs your authorization to launch this assignment.
-            </p>
-          </Dialog>
-        )}
-        {errorState === 'error-fetch' && (
-          <Dialog
-            title="Something went wrong"
-            contentClass="BasicLtiLaunchApp__dialog"
-            role="alertdialog"
-            buttons={[
-              <Button
-                onClick={authorizeAndFetchUrl}
-                className="BasicLtiLaunchApp__button"
-                label="Try again"
-                key="retry"
-              />,
-            ]}
-          >
-            <ErrorDisplay
-              message="There was a problem fetching this Hypothesis assignment"
-              error={error}
-            />
-          </Dialog>
-        )}
-        {errorState === 'error-report-submission' && (
-          <Dialog
-            title="Something went wrong"
-            contentClass="BasicLtiLaunchApp__dialog"
-            role="alertdialog"
-          >
-            <ErrorDisplay
-              message="There was a problem submitting this Hypothesis assignment"
-              error={error}
-            />
-            <b>To fix this problem, try reloading the page.</b>
-          </Dialog>
-        )}
-      </Fragment>
+  if (grading && grading.enabled) {
+    // Use the LMS Grader
+    iFrameWrapper = (
+      <LMSGrader
+        students={grading.students}
+        courseName={grading.courseName}
+        assignmentName={grading.assignmentName}
+      >
+        {iFrame}
+      </LMSGrader>
     );
+  } else {
+    // Use speed grader
+    iFrameWrapper = iFrame;
   }
+
+  const content = (
+    <span
+      // Visually hide the iframe / grader if there is an error or no contentUrl.
+      className={classNames('BasicLtiLaunchApp__content', {
+        'is-hidden': !showIframe,
+      })}
+    >
+      {iFrameWrapper}
+    </span>
+  );
+
+  const errorDialog = (
+    <Fragment>
+      {errorState === 'error-authorizing' && (
+        <Dialog
+          title="Authorize Hypothesis"
+          role="alertdialog"
+          buttons={[
+            <Button
+              onClick={authorizeAndFetchUrl}
+              className="BasicLtiLaunchApp__button"
+              label="Authorize"
+              key="authorize"
+            />,
+          ]}
+        >
+          <p>Hypothesis needs your authorization to launch this assignment.</p>
+        </Dialog>
+      )}
+      {errorState === 'error-fetch' && (
+        <Dialog
+          title="Something went wrong"
+          contentClass="BasicLtiLaunchApp__dialog"
+          role="alertdialog"
+          buttons={[
+            <Button
+              onClick={authorizeAndFetchUrl}
+              className="BasicLtiLaunchApp__button"
+              label="Try again"
+              key="retry"
+            />,
+          ]}
+        >
+          <ErrorDisplay
+            message="There was a problem fetching this Hypothesis assignment"
+            error={error}
+          />
+        </Dialog>
+      )}
+      {errorState === 'error-report-submission' && (
+        <Dialog
+          title="Something went wrong"
+          contentClass="BasicLtiLaunchApp__dialog"
+          role="alertdialog"
+        >
+          <ErrorDisplay
+            message="There was a problem submitting this Hypothesis assignment"
+            error={error}
+          />
+          <b>To fix this problem, try reloading the page.</b>
+        </Dialog>
+      )}
+    </Fragment>
+  );
+
+  return (
+    <span className="BasicLtiLaunchApp">
+      <Spinner hide={!showSpinner} className="BasicLtiLaunchApp__spinner" />
+      {errorDialog}
+      {content}
+    </span>
+  );
 }
 
 BasicLtiLaunchApp.propTypes = {
