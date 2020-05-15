@@ -1,17 +1,12 @@
 import { mount } from 'enzyme';
 import { Fragment, createElement } from 'preact';
-import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ApiError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
-import {
-  waitFor,
-  waitForElement,
-  waitForElementToBeRemoved,
-} from '../../../test-util/wait';
+import { waitFor, waitForElement } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('BasicLtiLaunchApp', () => {
@@ -35,6 +30,17 @@ describe('BasicLtiLaunchApp', () => {
       </Config.Provider>
     );
   };
+
+  function contentHidden(wrapper) {
+    return waitForElement(wrapper, '.BasicLtiLaunchApp__content.is-hidden');
+  }
+
+  function contentVisible(wrapper) {
+    return waitForElement(
+      wrapper,
+      '.BasicLtiLaunchApp__content:not(.is-hidden)'
+    );
+  }
 
   beforeEach(() => {
     fakeConfig = {
@@ -106,7 +112,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('attempts to fetch the groups when mounted', async () => {
-      const wrapper = renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      renderLtiLaunchApp({ rpcServer: fakeRpcServer });
       await waitFor(() => fakeApiCall.called);
       assert.calledWith(fakeApiCall, {
         authToken: 'dummyAuthToken',
@@ -118,7 +124,6 @@ describe('BasicLtiLaunchApp', () => {
           },
         },
       });
-      assert.isTrue(wrapper.exists('Spinner'));
     });
 
     it('passes the groups array from api call to rpcServer.resolveGroupFetch', async () => {
@@ -136,14 +141,16 @@ describe('BasicLtiLaunchApp', () => {
 
     it('attempts to fetch the content URL when mounted', async () => {
       const wrapper = renderLtiLaunchApp();
-
+      // Initially show the spinner
+      await waitForElement(wrapper, 'Spinner[hide=false]');
       await waitFor(() => fakeApiCall.called);
 
       assert.calledWith(fakeApiCall, {
         authToken: 'dummyAuthToken',
         path: 'https://lms.hypothes.is/api/files/1234',
       });
-      assert.isTrue(wrapper.exists('Spinner'));
+      // Spinner shall be hidden
+      await waitForElement(wrapper, 'Spinner[hide=true]');
     });
 
     it('displays the content URL in an iframe if successfully fetched', async () => {
@@ -152,12 +159,11 @@ describe('BasicLtiLaunchApp', () => {
       });
 
       const wrapper = renderLtiLaunchApp();
-
-      const iframe = await waitForElement(wrapper, 'iframe');
-
-      assert.include(iframe.props(), {
-        src: 'https://via.hypothes.is/123',
-      });
+      await contentVisible(wrapper);
+      assert.equal(
+        wrapper.find('iframe').prop('src'),
+        'https://via.hypothes.is/123'
+      );
     });
 
     it('displays authorization prompt if content URL fetch fails with an `ApiError`', async () => {
@@ -165,13 +171,15 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.rejects(new ApiError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
-
+      // Spinner initially shown
+      await waitForElement(wrapper, 'Spinner[hide=false]');
       // Verify that an "Authorize" prompt is shown.
       const authButton = await waitForElement(
         wrapper,
         'Button[label="Authorize"]'
       );
       assert.isTrue(authButton.exists());
+      await contentHidden(wrapper);
 
       // Click the "Authorize" button and verify that authorization is attempted.
       fakeApiCall.reset();
@@ -180,9 +188,14 @@ describe('BasicLtiLaunchApp', () => {
       assert.called(FakeAuthWindow);
 
       // Check that files are fetched after authorization completes.
-      const iframe = await waitForElement(wrapper, 'iframe');
-
-      assert.equal(iframe.prop('src'), 'https://via.hypothes.is/123');
+      //const iframe = await waitForElement(wrapper, 'iframe');
+      await contentVisible(wrapper);
+      // Clears the spinner
+      await waitForElement(wrapper, 'Spinner[hide=true]');
+      assert.equal(
+        wrapper.find('iframe').prop('src'),
+        'https://via.hypothes.is/123'
+      );
     });
 
     [
@@ -200,13 +213,14 @@ describe('BasicLtiLaunchApp', () => {
         fakeApiCall.rejects(error);
 
         const wrapper = renderLtiLaunchApp();
+        // Spinner initially shown
+        await waitForElement(wrapper, 'Spinner[hide=false]');
 
         // Verify that a "Try again" prompt is shown.
         const tryAgainButton = await waitForElement(
           wrapper,
           'Button[label="Try again"]'
         );
-        assert.isTrue(tryAgainButton.exists());
 
         // Click the "Try again" button and verify that authorization is attempted.
         fakeApiCall.reset();
@@ -215,8 +229,13 @@ describe('BasicLtiLaunchApp', () => {
         assert.called(FakeAuthWindow);
 
         // Check that files are fetched after authorization completes.
-        const iframe = await waitForElement(wrapper, 'iframe');
-        assert.equal(iframe.prop('src'), 'https://via.hypothes.is/123');
+        await contentVisible(wrapper);
+        // Spinner shall be hidden
+        await waitForElement(wrapper, 'Spinner[hide=true]');
+        assert.equal(
+          wrapper.find('iframe').prop('src'),
+          'https://via.hypothes.is/123'
+        );
       });
     });
   });
@@ -300,7 +319,7 @@ describe('BasicLtiLaunchApp', () => {
         enabled: true,
         students: [{ userid: 'user1' }, { userid: 'user2' }],
       };
-      // needs a viaUrl or viaCallbackUrl to show iframe
+      // Needs a viaUrl or viaCallbackUrl to show iframe
       fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
@@ -363,38 +382,30 @@ describe('BasicLtiLaunchApp', () => {
         );
     });
 
-    it('renders the spinner until both groups and contentUrl requests finish', async () => {
+    it('renders the spinner until contentUrl requests finish', async () => {
       const wrapper = renderLtiLaunchApp();
-
-      // Spinner should not go away after first request
-      await act(async () => {
-        contentUrlResolve({
-          via_url: 'https://via.hypothes.is/123',
-        });
-      });
-      wrapper.update();
-      assert.isTrue(wrapper.find('Spinner').exists());
-
-      // Spinner should go away after the second request
+      // Spinner should not go away if only the groups resolves
       groupsCallResolve(['group1', 'group2']);
-      await waitForElementToBeRemoved(wrapper, 'Spinner');
+      await waitForElement(wrapper, 'Spinner[hide=false]');
 
-      // iframe should be visible
-      assert.equal(wrapper.find('iframe').prop('style').visibility, 'visible');
+      // Spinner shall hide after content url resolves
+      contentUrlResolve({
+        via_url: 'https://via.hypothes.is/123',
+      });
+      await waitForElement(wrapper, 'Spinner[hide=true]');
+      await contentVisible(wrapper);
     });
 
-    it('renders the iframe hidden after contentUrl succeeds and groups remains pending', async () => {
+    it('renders the iframe after contentUrl succeeds but groups remains pending', async () => {
       const wrapper = renderLtiLaunchApp();
       contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
-      await waitForElement(wrapper, 'iframe');
-      assert.equal(wrapper.find('iframe').prop('style').visibility, 'hidden');
+      await contentVisible(wrapper);
     });
 
     it('shows an error dialog if the first request fails and second succeeds', async () => {
       const wrapper = renderLtiLaunchApp();
-
       // Should show an error after the first request fails
       contentUrlReject(new ApiError(400, {}));
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
@@ -402,22 +413,21 @@ describe('BasicLtiLaunchApp', () => {
       // Should still show an error even if the second request does not fail
       groupsCallResolve(['group1', 'group2']);
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+      await contentHidden(wrapper);
     });
 
     it('shows an error dialog if the first request succeeds and second fails', async () => {
       const wrapper = renderLtiLaunchApp();
-
       // Should not show an error yet
       contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
-      assert.isFalse(
-        wrapper.find('FakeDialog[title="Authorize Hypothesis"]').exists()
-      );
+      await contentVisible(wrapper);
 
       // Should show an error after failure
       groupsCallReject(new ApiError(400, {}));
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+      await contentHidden(wrapper);
     });
   });
 
