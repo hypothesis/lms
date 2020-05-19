@@ -22,6 +22,7 @@ class CookieFormViews:
 
         return {
             "flags": flags,
+            # The final effective state of each feature flag
             "effective": {flag: self._request.feature(flag) for flag in flags.keys()},
         }
 

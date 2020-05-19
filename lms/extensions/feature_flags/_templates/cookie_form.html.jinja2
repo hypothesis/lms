@@ -27,7 +27,7 @@
           <tr>
             <th>Flag</th>
             <th>State</th>
-            <th>Default</th>
+            <th><span title="The final state once all feature flag providers are applied">Effective</span></th>
             <th>Off</th>
             <th>On</th>
           </tr>
@@ -48,8 +48,6 @@
                     <td>
                         <input type="radio" name="{{ flag }}" value="on" {% if value == True %}checked{% endif %}>
                     </td>
-
-
                 </tr>
             {% endfor %}
         </table>
