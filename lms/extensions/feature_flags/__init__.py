@@ -33,8 +33,7 @@ disabled.
 
 By default no sources are consulted and ``request.feature()`` always returns
 ``False``. You have to explicitly add the sources you want, in the order you
-want, by calling ``config.add_feature_flag_provider()`` or
-``add_feature_flag_providers()``.  For example::
+want, by calling ``add_feature_flag_providers()``. For example::
 
     config.add_feature_flag_providers(
         "lms.extensions.feature_flags.config_file_provider",
@@ -59,7 +58,7 @@ Enable or disable feature flags in the app's config file.
 
 Usage::
 
-    config.add_feature_flag_provider("lms.extensions.feature_flags.config_file_provider")
+    config.add_feature_flag_providers("lms.extensions.feature_flags.config_file_provider", ...)
 
 To enable or disable feature flags in your app's config file add
 ``feature_flags.* = true|false`` lines to the file, one line per feature flag.
@@ -76,7 +75,7 @@ Enable or disable feature flags using environment variables.
 
 Usage::
 
-    config.add_feature_flag_provider("lms.extensions.feature_flags.envvar_provider")
+    config.add_feature_flag_providers("lms.extensions.feature_flags.envvar_provider", ...)
 
 To enable or disable feature flags add ``FEATURE_FLAG_*=true|false``
 environment variables, one envvar per feature flag. For example::
@@ -91,7 +90,7 @@ Enable or disable feature flags using a browser cookie.
 
 Usage::
 
-    config.add_feature_flag_provider("lms.extensions.feature_flags.cookie_provider")
+    config.add_feature_flag_providers("lms.extensions.feature_flags.cookie_provider", ...)
 
 This will add a ``/flags`` page to your app that you can visit to enable or disable
 feature flags in your browser's feature flags cookie.
@@ -119,7 +118,7 @@ Enable or disable feature flags using URL query string parameters.
 
 Usage::
 
-    config.add_feature_flag_provider("lms.extensions.feature_flags.query_string_provider")
+    config.add_feature_flag_providers("lms.extensions.feature_flags.query_string_provider", ...)
 
 To enable or disable feature flags add ``?feature_flags.foo=true|false``
 parameters to the query string. For example::
@@ -172,19 +171,6 @@ def includeme(config):
         """
         return feature_flags.flag_is_active(request, feature_flag_name)
 
-    def add_feature_flag_provider(_config, feature_flag_provider):
-        """
-        Adapt feature_flags.add_provider().
-
-        Adapt feature_flags.add_provider() to enable it to be used as a Pyramid
-        config directive.
-
-        This enables things to call
-        config.add_feature_flag_provider(my_provider) and it'll call
-        feature_flags.add_provider(my_provider).
-        """
-        return feature_flags.add_provider(config.maybe_dotted(feature_flag_provider))
-
     def add_feature_flag_providers(_config, *providers):
         """Adapt feature_flags.add_providers()."""
         providers = [config.maybe_dotted(provider) for provider in providers]
@@ -193,9 +179,6 @@ def includeme(config):
     # Register the Pyramid request method and config directive. These are this
     # extension's public API.
     config.add_request_method(feature)
-    config.add_directive(
-        "add_feature_flag_provider", add_feature_flag_provider, action_wrap=False
-    )
     config.add_directive(
         "add_feature_flag_providers", add_feature_flag_providers, action_wrap=False
     )

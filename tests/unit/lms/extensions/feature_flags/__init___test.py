@@ -22,13 +22,6 @@ class TestIncludeMe:
             pyramid_request, "test_feature"
         )
 
-    def test_add_feature_flag_provider(self, pyramid_config, feature_flags):
-        includeme(pyramid_config)
-
-        pyramid_config.add_feature_flag_provider(mock.sentinel.provider)
-
-        feature_flags.add_provider.assert_called_once_with(mock.sentinel.provider)
-
     def test_add_feature_flag_providers(self, pyramid_config, feature_flags):
         includeme(pyramid_config)
 

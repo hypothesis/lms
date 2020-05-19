@@ -47,10 +47,6 @@ class FeatureFlags:
 
         return False
 
-    def add_provider(self, provider):
-        """Add a feature flag provider."""
-        self._providers.append(provider)
-
     def add_providers(self, *providers):
         """Add a list of feature flag providers."""
         self._providers.extend(providers)
