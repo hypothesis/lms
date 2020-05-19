@@ -9,7 +9,7 @@ def as_tristate(value):
     """
     Coerce the given value to True, False or None.
 
-    Like Pyramid `as_bool` this will attempt to interpret the value given to
+    Like Pyramid's `asbool` this will attempt to interpret the value given to
     it as either True or False, but in addition allows for None types.
 
     The following items are considered as None:
@@ -18,13 +18,12 @@ def as_tristate(value):
      * None
      * "None" or "none"
 
-    All other values are handle as per `as_bool`.
+    All other values are handle as per `asbool`.
     """
     if value in {None, True, False}:
         return value
 
-    # Catch empty strings
-    if not value or (isinstance(value, str) and value.lower() == "none"):
+    if isinstance(value, str) and value.lower() in {"", "none"}:
         return None
 
     return asbool(value)
@@ -88,6 +87,7 @@ class JWTCookieHelper:
 
     def get(self):
         jwt_bytes = self._request.cookies.get(self._name, "")
+
         if not jwt_bytes:
             return {}
 

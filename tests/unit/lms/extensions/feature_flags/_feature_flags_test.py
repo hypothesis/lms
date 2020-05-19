@@ -42,15 +42,11 @@ class TestFeatureFlags:
 
     def test_it_calls_providers_with_request_and_flag(self, pyramid_request):
         uncalled_provider = mock.MagicMock()
-        true_provider = mock.MagicMock()
-        true_provider.return_value = True
-        none_provider = mock.MagicMock()
-        none_provider.return_value = None
+        true_provider = mock.MagicMock(return_value=True)
+        none_provider = mock.MagicMock(return_value=None)
 
         feature_flags = FeatureFlags()
-        feature_flags.add_provider(uncalled_provider)
-        feature_flags.add_provider(true_provider)
-        feature_flags.add_provider(none_provider)
+        feature_flags.add_providers(uncalled_provider, true_provider, none_provider)
 
         feature_flags.flag_is_active(pyramid_request, "test_flag")
 
