@@ -39,16 +39,13 @@ class FeatureFlags:
         otherwise. All feature flags are ``False`` by default (if no source
         toggles the feature flag either on or off, it will be off by default).
         """
-        results = [False]  # All feature flags are False by default.
-        results.extend(
-            [provider(request, feature_flag_name) for provider in self._providers]
-        )
-        results = [result for result in results if result is not None]
-        return results[-1]
 
-    def add_provider(self, provider):
-        """Add a feature flag provider."""
-        self._providers.append(provider)
+        for provider in reversed(self._providers):
+            enabled = provider(request, feature_flag_name)
+            if enabled is not None:
+                return enabled
+
+        return False
 
     def add_providers(self, *providers):
         """Add a list of feature flag providers."""

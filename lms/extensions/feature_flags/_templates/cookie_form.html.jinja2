@@ -23,14 +23,36 @@
 
       <form class="feature_flags_form" action="{{ request.route_url('feature_flags_cookie_form') }}" method="post">
 
-        <ul>
-        {% for flag in flags %}
-          <li>
-            <input type="checkbox"{% if flags[flag] %} checked{% endif %} id="{{ flag }}" name="{{ flag }}">
-            <label for="{{ flag }}">{{ flag }}</label>
-          </li>
-        {% endfor %}
-        </ul>
+        <table>
+          <tr>
+            <th>Flag</th>
+            <th>State</th>
+            <th><span title="The final state once all feature flag providers are applied">Effective</span></th>
+            <th>Off</th>
+            <th>On</th>
+          </tr>
+            {% for flag, value in flags.items() %}
+                <tr>
+                    <td>
+                         <label for="{{ flag }}"><code>{{ flag }}</code></label>
+                    </td>
+                    <td>
+                        {{ "On" if effective[flag] else "Off" }}
+                    </td>
+                    <td>
+                        <input type="radio" name="{{ flag }}" value="" {% if not value %}checked{% endif %}>
+                    </td>
+                    <td>
+                        <input type="radio" name="{{ flag }}" value="off" {% if value == False %}checked{% endif %}>
+                    </td>
+                    <td>
+                        <input type="radio" name="{{ flag }}" value="on" {% if value == True %}checked{% endif %}>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <br>
 
         <div class="form-controls">
           <div style="display:flex; flex-direction:column; align-items:flex-end;">

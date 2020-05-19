@@ -18,7 +18,13 @@ class CookieFormViews:
     @view_config(request_method="GET")
     def get(self):
         """Render the feature flags cookie form page."""
-        return {"flags": self._cookie_helper.get_all()}
+        flags = self._cookie_helper.get_all()
+
+        return {
+            "flags": flags,
+            # The final effective state of each feature flag
+            "effective": {flag: self._request.feature(flag) for flag in flags.keys()},
+        }
 
     @view_config(request_method="POST")
     def post(self):

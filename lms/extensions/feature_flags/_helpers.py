@@ -4,7 +4,29 @@ from pyramid.settings import asbool, aslist
 
 from ._exceptions import SettingError
 
-__all__ = ["FeatureFlagsCookieHelper", "JWTCookieHelper"]
+
+def as_tristate(value):
+    """
+    Coerce the given value to True, False or None.
+
+    Like Pyramid's `asbool` this will attempt to interpret the value given to
+    it as either True or False, but in addition allows for None types.
+
+    The following items are considered as None:
+
+     * Empty string
+     * None
+     * "None" or "none"
+
+    All other values are handle as per `asbool`.
+    """
+    if value in {None, True, False}:
+        return value
+
+    if isinstance(value, str) and value.lower() in {"", "none"}:
+        return None
+
+    return asbool(value)
 
 
 class FeatureFlagsCookieHelper:
@@ -30,7 +52,7 @@ class FeatureFlagsCookieHelper:
         return self._parse_flags(self._jwt_cookie_helper.get())
 
     def _parse_flags(self, flags):
-        return {flag: asbool(flags.get(flag, False)) for flag in self._allowed_flags}
+        return {flag: as_tristate(flags.get(flag)) for flag in self._allowed_flags}
 
 
 class JWTCookieHelper:
@@ -65,6 +87,10 @@ class JWTCookieHelper:
 
     def get(self):
         jwt_bytes = self._request.cookies.get(self._name, "")
+
+        if not jwt_bytes:
+            return {}
+
         try:
             return jwt.decode(jwt_bytes, self._secret, algorithms=["HS256"])
         except InvalidTokenError:

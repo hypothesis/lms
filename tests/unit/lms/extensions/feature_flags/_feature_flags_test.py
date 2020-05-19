@@ -41,13 +41,15 @@ class TestFeatureFlags:
         assert feature_flags.flag_is_active(pyramid_request, "test_flag") == result
 
     def test_it_calls_providers_with_request_and_flag(self, pyramid_request):
+        uncalled_provider = mock.MagicMock()
+        true_provider = mock.MagicMock(return_value=True)
+        none_provider = mock.MagicMock(return_value=None)
+
         feature_flags = FeatureFlags()
-        provider_1 = mock.MagicMock()
-        provider_2 = mock.MagicMock()
-        feature_flags.add_provider(provider_1)
-        feature_flags.add_provider(provider_2)
+        feature_flags.add_providers(uncalled_provider, true_provider, none_provider)
 
         feature_flags.flag_is_active(pyramid_request, "test_flag")
 
-        provider_1.assert_called_once_with(pyramid_request, "test_flag")
-        provider_2.assert_called_once_with(pyramid_request, "test_flag")
+        none_provider.assert_called_once_with(pyramid_request, "test_flag")
+        true_provider.assert_called_once_with(pyramid_request, "test_flag")
+        uncalled_provider.assert_not_called()
