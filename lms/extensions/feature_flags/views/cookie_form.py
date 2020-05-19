@@ -22,8 +22,8 @@ class CookieFormViews:
 
         return {
             "flags": flags,
-            # The final effective state of each feature flag
-            "effective": {flag: self._request.feature(flag) for flag in flags.keys()},
+            # The final state of each feature flag
+            "state": {flag: self._request.feature(flag) for flag in flags.keys()},
         }
 
     @view_config(request_method="POST")
