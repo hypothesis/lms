@@ -12,6 +12,7 @@ class TestViaURL:
         # This is the `request.host_url`
         "via.client.requestConfigFromFrame.origin": "http://example.com",
         "via.client.requestConfigFromFrame.ancestorLevel": "2",
+        "via.external_link_mode": "new-tab",
     }
 
     def test_if_creates_the_correct_via_url(self, pyramid_request):

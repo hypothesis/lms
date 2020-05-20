@@ -43,6 +43,7 @@ class _ViaClient:
             "via.client.openSidebar": "1",
             "via.client.requestConfigFromFrame.origin": host_url,
             "via.client.requestConfigFromFrame.ancestorLevel": "2",
+            "via.external_link_mode": "new-tab",
         }
         self.legacy_mode = legacy_mode
 
