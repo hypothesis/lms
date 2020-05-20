@@ -303,7 +303,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
 
   return (
     <span className="BasicLtiLaunchApp">
-      <Spinner hide={!showSpinner} className="BasicLtiLaunchApp__spinner" />
+      {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
       {errorDialog}
       {content}
     </span>

@@ -1,26 +1,22 @@
-import { createElement, Fragment } from 'preact';
+import { createElement } from 'preact';
 import propTypes from 'prop-types';
 
 import SvgIcon from './SvgIcon';
 import { trustMarkup } from '../utils/trusted';
+
 /**
  * A spinning loading indicator.
  */
-export default function Spinner({ className, hide }) {
+export default function Spinner({ className }) {
   return (
-    <Fragment>
-      {!hide && (
-        <SvgIcon
-          className={className}
-          src={trustMarkup(require('../../../images/spinner.svg'))}
-          inline={true}
-        />
-      )}
-    </Fragment>
+    <SvgIcon
+      className={className}
+      src={trustMarkup(require('../../../images/spinner.svg'))}
+      inline={true}
+    />
   );
 }
 
 Spinner.propTypes = {
   className: propTypes.string,
-  hide: propTypes.bool,
 };
