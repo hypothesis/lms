@@ -117,8 +117,6 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         handleError(e, 'error-fetch');
       }
     }
-    // ignore errorState changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiSync, authToken, rpcServer]);
 
   /**
@@ -146,8 +144,6 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     } finally {
       decFetchCount();
     }
-    // ignore errorState changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, viaCallbackUrl]);
 
   /**
