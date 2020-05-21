@@ -43,7 +43,7 @@ class DevDataFactory:
         values.
         """
         for data_dict in self.devdata:
-            data_dict.pop("__doc__")
+            data_dict.pop("__doc__", None)
 
             type_ = data_dict.pop("type")
 
