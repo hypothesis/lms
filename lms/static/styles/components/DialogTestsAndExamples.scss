@@ -1,0 +1,20 @@
+.DialogTestsAndExamples {
+
+  &__buttons {
+    text-align: center;
+    width: 100%;
+    padding: 5px 0;
+    top: 0;
+    font-size: 20px;
+    position: fixed;
+    background-color: black;
+    z-index: 3;
+    button {
+      margin-left: 5px;
+      margin-right: 5px;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+}
