@@ -57,6 +57,13 @@ export default function Dialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const contentClasses = {
+    Dialog__content: true,
+  };
+  if (contentClass) {
+    contentClasses[contentClass] = true;
+  }
+
   return (
     <div
       role={role}
@@ -70,12 +77,7 @@ export default function Dialog({
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div
-          className={classNames({
-            Dialog__content: true,
-            [contentClass]: true,
-          })}
-        >
+        <div className={classNames(contentClasses)}>
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />

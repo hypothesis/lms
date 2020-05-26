@@ -14,6 +14,7 @@ $file-list-icon-size: 24px;
 
 .FileList__spinner {
   position: absolute;
+  margin: 15px;
   left: calc(50% - #{$file-list-icon-size / 2});
   top: calc(50% - #{$file-list-icon-size / 2});
 }

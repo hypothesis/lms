@@ -27,13 +27,11 @@
 @use 'components/ErrorDisplay';
 @use 'components/FileList';
 @use 'components/FilePickerApp';
-@use 'components/LMSFilePicker';
 @use 'components/LMSGrader';
 @use 'components/StudentSelector';
 @use 'components/SubmitGradeForm';
 @use 'components/ValidationMessage';
 @use 'components/SvgIcon';
-@use 'components/URLPicker';
 
 
 // Element styles.
