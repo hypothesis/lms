@@ -2,13 +2,20 @@
 
 
 .ErrorDisplay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  padding-right: 5px;
+  margin-bottom: 10px;
   max-width: 100%;
 }
 
 .ErrorDisplay__details {
-  overflow: scroll;
   background-color: var.$grey-1;
   border: 1px solid var.$grey-3;
-
+  white-space: pre-wrap;
   max-width: 100%;
+  padding: 10px;
+  margin-bottom: 0;
 }
