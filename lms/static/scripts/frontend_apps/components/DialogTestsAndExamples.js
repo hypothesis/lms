@@ -114,14 +114,14 @@ function FilePickerDialog({ onClose }) {
       )}
       {dialogState === 'loading' && (
         <FileList
-        files={[]}
-        isLoading={true}
-        selectedFile={selectedFile}
-        onUseFile={() => {}}
-        onSelectFile={file => {
-          setSelectedFile(file);
-        }}
-      />
+          files={[]}
+          isLoading={true}
+          selectedFile={selectedFile}
+          onUseFile={() => {}}
+          onSelectFile={file => {
+            setSelectedFile(file);
+          }}
+        />
       )}
 
       {!dialogState && (
@@ -179,32 +179,6 @@ SimpleErrorDialog.propTypes = {
   onClose: propTypes.func,
 };
 
-function FetchError({ error }) {
-  return (
-    <Dialog
-      title="Something went wrong"
-      contentClass="BasicLtiLaunchApp__dialog"
-      role="alertdialog"
-      buttons={[
-        <Button
-          onClick={() => {}}
-          className="BasicLtiLaunchApp__button"
-          label="Try again"
-          key="retry"
-        />,
-      ]}
-    >
-      <ErrorDisplay
-        message="There was a problem fetching this Hypothesis assignment"
-        error={error}
-      />
-    </Dialog>
-  );
-}
-FetchError.propTypes = {
-  error: propTypes.object,
-};
-
 function AuthorizeError() {
   return (
     <Dialog
@@ -227,10 +201,36 @@ AuthorizeError.propTypes = {
   error: propTypes.object,
 };
 
-function SomethingWentWrongError({ error }) {
+function FetchError({ error }) {
   return (
     <Dialog
-      title="Something went wrong"
+      title="Something went wrong (button)"
+      contentClass="BasicLtiLaunchApp__dialog"
+      role="alertdialog"
+      buttons={[
+        <Button
+          onClick={() => {}}
+          className="BasicLtiLaunchApp__button"
+          label="Try again"
+          key="retry"
+        />,
+      ]}
+    >
+      <ErrorDisplay
+        message="There was a problem fetching this Hypothesis assignment"
+        error={error}
+      />
+    </Dialog>
+  );
+}
+FetchError.propTypes = {
+  error: propTypes.object,
+};
+
+function SomethingWentWrongError({ title, error }) {
+  return (
+    <Dialog
+      title={title}
       contentClass="BasicLtiLaunchApp__dialog"
       role="alertdialog"
     >
@@ -245,6 +245,7 @@ function SomethingWentWrongError({ error }) {
 
 SomethingWentWrongError.propTypes = {
   error: propTypes.object,
+  title: propTypes.string,
 };
 
 /**
@@ -263,7 +264,7 @@ export default function DialogTestsAndExamples() {
     setDialogName('');
   };
 
-  const apiError = useMemo(() => {
+  const apiErrorText = useMemo(() => {
     return new ApiError(400, {
       details: `Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs. The passage is attributed to an unknown typesetter in the 15th century who is thought to have scrambled parts of Cicero's De Finibus Bonorum et Malorum for use in a type specimen book. It usually begins with:
 
@@ -294,6 +295,14 @@ export default function DialogTestsAndExamples() {
     });
   }, []);
 
+  const apiErrorJson = useMemo(() => {
+    return new ApiError(400, {
+      details: { someTechnicalDetail: 123 },
+      message:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam',
+    });
+  }, []);
+
   return (
     <div className="DialogTestsAndExamples">
       <div className="DialogTestsAndExamples__buttons">
@@ -302,7 +311,21 @@ export default function DialogTestsAndExamples() {
             changeDialog('1');
           }}
         >
-          SomethingWentWrongError
+          Dialog - ErrorDisplay (text)
+        </button>
+        <button
+          onClick={() => {
+            changeDialog('8');
+          }}
+        >
+          Dialog - ErrorDisplay (json)
+        </button>
+        <button
+          onClick={() => {
+            changeDialog('3');
+          }}
+        >
+          Dialog - ErrorDisplay (with button)
         </button>
         <button
           onClick={() => {
@@ -310,13 +333,6 @@ export default function DialogTestsAndExamples() {
           }}
         >
           AuthorizeError
-        </button>
-        <button
-          onClick={() => {
-            changeDialog('3');
-          }}
-        >
-          FetchError
         </button>
         <button
           onClick={() => {
@@ -348,9 +364,20 @@ export default function DialogTestsAndExamples() {
         </button>
       </div>
 
-      {dialogName === '1' && <SomethingWentWrongError error={apiError} />}
+      {dialogName === '1' && (
+        <SomethingWentWrongError
+          title="Something went wrong (text)"
+          error={apiErrorText}
+        />
+      )}
+      {dialogName === '8' && (
+        <SomethingWentWrongError
+          title="Something went wrong (json)"
+          error={apiErrorJson}
+        />
+      )}
       {dialogName === '2' && <AuthorizeError />}
-      {dialogName === '3' && <FetchError error={apiError} />}
+      {dialogName === '3' && <FetchError error={apiErrorText} />}
       {dialogName === '4' && <SimpleErrorDialog onClose={close} />}
       {dialogName === '5' && <FilePickerDialog onClose={close} />}
       {dialogName === '6' && <UrlPickerDialog onClose={close} />}
