@@ -6,39 +6,41 @@
     <div class="Dialog__content LMSFilePicker__dialog">
       {% if invalid_scope %}
         <h1 class="Dialog__title">Developer Key Scopes Missing</h1>
+        <div class="ErrorDisplay">
+          <p>
+            A Canvas admin needs to edit Hypothesis's developer key and add these
+            scopes:
+          </p>
 
-        <p>
-          A Canvas admin needs to edit Hypothesis's developer key and add these
-          scopes:
-        </p>
+          <ol>
+            {% for scope in scopes %}
+              <li><code>{{ scope }}</code></li>
+            {% endfor %}
+          </ol>
 
-        <ol>
-          {% for scope in scopes %}
-            <li><code>{{ scope }}</code></li>
-          {% endfor %}
-        </ol>
+          <p>For more information see:
+          <a target="_blank" rel="noopener noreferrer" href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App">Canvas API Endpoints Used 
+  y the Hypothesis LMS App</a>.
+          </p>
+        {% else %}
+          <h1 class="Dialog__title">Authorization Failed</h1>
 
-        <p>For more information see:
-        <a target="_blank" rel="noopener noreferrer" href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App">Canvas API Endpoints Used 
-y the Hypothesis LMS App</a>.
-        </p>
-      {% else %}
-        <h1 class="Dialog__title">Authorization Failed</h1>
+          <p>Something went wrong when authorizing Hypothesis.</p>
+        {% endif %}
 
-        <p>Something went wrong when authorizing Hypothesis.</p>
-      {% endif %}
+        <p>To get help from Hypothesis
+        <a href="mailto:support@hypothes.is?subject=Hypothesis%20LMS%20Support" target="_blank" rel="noopener noreferrer">send us an email</a>
+        or <a href="https://web.hypothes.is/get-help/" target="_blank" rel="noopener noreferrer">open a support ticket</a>.
+        You can also visit our <a href="https://web.hypothes.is/help/" target="_blank" rel="noopener noreferrer"> help documents</a>.</p>
 
-      <p>To get help from Hypothesis
-      <a href="mailto:support@hypothes.is?subject=Hypothesis%20LMS%20Support" target="_blank" rel="noopener noreferrer">send us an email</a>
-      or <a href="https://web.hypothes.is/get-help/" target="_blank" rel="noopener noreferrer">open a support ticket</a>.
-      You can also visit our <a href="https://web.hypothes.is/help/" target="_blank" rel="noopener noreferrer"> help documents</a>.</p>
-
-      {% if details %}
-        <details>
-          <p>The error message from Canvas was:</p>
-          <pre class="ErrorDisplay__details">{{ details }}</pre>
-        </details>
-      {% endif %}
+        {% if details %}
+          <details class="ErrorDisplay__details">
+            <summary class="ErrorDisplay__details-summary">Error Details</summary>
+            <p>The error message from Canvas was:</p>
+            <pre class="ErrorDisplay__details-content">{{ details }}</pre>
+          </details>
+        {% endif %}
+      </div>
 
       <div class="u-stretch"></div>
       <div class="Dialog__actions">

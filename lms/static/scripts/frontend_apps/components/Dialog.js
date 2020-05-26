@@ -70,12 +70,7 @@ export default function Dialog({
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div
-          className={classNames({
-            Dialog__content: true,
-            [contentClass]: true,
-          })}
-        >
+        <div className={classNames('Dialog__content', contentClass)}>
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />

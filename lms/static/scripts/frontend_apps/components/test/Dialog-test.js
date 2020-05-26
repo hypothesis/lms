@@ -14,6 +14,15 @@ describe('Dialog', () => {
     assert.isTrue(wrapper.contains(<span>content</span>));
   });
 
+  it('adds `contentClass` value to class list', () => {
+    const wrapper = mount(
+      <Dialog contentClass="foo">
+        <span>content</span>
+      </Dialog>
+    );
+    assert.isTrue(wrapper.find('.Dialog__content').hasClass('foo'));
+  });
+
   it('renders buttons', () => {
     const wrapper = mount(
       <Dialog

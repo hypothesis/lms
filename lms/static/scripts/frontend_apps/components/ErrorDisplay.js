@@ -13,12 +13,15 @@ function emailLink({ address, subject = '', body = '' }) {
  */
 export default function ErrorDisplay({ message, error }) {
   let details = '';
-  try {
-    if (error.details) {
+
+  if (typeof error.details === 'object') {
+    try {
       details = JSON.stringify(error.details, null, 2 /* indent */);
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // Ignored
+  } else {
+    details = error.details;
   }
 
   const supportLink = emailLink({
@@ -64,8 +67,11 @@ ${details}
         .
       </p>
       {!!details && (
-        <details>
-          <pre className="ErrorDisplay__details">{details}</pre>
+        <details className="ErrorDisplay__details">
+          <summary className="ErrorDisplay__details-summary">
+            Error Details
+          </summary>
+          <pre className="ErrorDisplay__details-content">{details}</pre>
         </details>
       )}
     </div>
