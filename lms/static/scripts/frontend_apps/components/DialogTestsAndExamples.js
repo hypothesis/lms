@@ -83,6 +83,13 @@ function FilePickerDialog({ onClose }) {
           }}
           label="Error 3"
         />,
+        <Button
+          key="select"
+          onClick={() => {
+            setDialogState('loading');
+          }}
+          label="Loading Files"
+        />,
       ]}
     >
       {dialogState === 'error' && (
@@ -105,6 +112,18 @@ function FilePickerDialog({ onClose }) {
           in Canvas.
         </p>
       )}
+      {dialogState === 'loading' && (
+        <FileList
+        files={[]}
+        isLoading={true}
+        selectedFile={selectedFile}
+        onUseFile={() => {}}
+        onSelectFile={file => {
+          setSelectedFile(file);
+        }}
+      />
+      )}
+
       {!dialogState && (
         <FileList
           files={files}
