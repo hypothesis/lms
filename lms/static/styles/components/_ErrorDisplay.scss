@@ -1,3 +1,4 @@
+@use "../mixins/focus";
 @use "../variables" as var;
 
 
@@ -9,16 +10,23 @@
   padding-right: 5px;
   margin-bottom: 10px;
   max-width: 100%;
-  details {
+  
+  &__details {  
     padding: 4px; // fix for focus halo w/ overflow scroll
+    &-summary {
+      &:hover {
+        cursor: pointer;
+      }
+      @include focus.outline-on-keyboard-focus;
+    }
   }
-}
 
-.ErrorDisplay__details {
-  background-color: var.$grey-1;
-  border: 1px solid var.$grey-3;
-  white-space: pre-wrap;
-  max-width: 100%;
-  padding: 10px;
-  margin-bottom: 0;
+  &__details-content {
+    background-color: var.$grey-1;
+    border: 1px solid var.$grey-3;
+    white-space: pre-wrap;
+    max-width: 100%;
+    padding: 10px;
+    margin-bottom: 0;
+  }
 }

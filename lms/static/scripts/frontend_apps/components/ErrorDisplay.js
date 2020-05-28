@@ -67,8 +67,11 @@ ${details}
         .
       </p>
       {!!details && (
-        <details>
-          <pre className="ErrorDisplay__details">{details}</pre>
+        <details className="ErrorDisplay__details">
+          <summary className="ErrorDisplay__details-summary">
+            Error Details
+          </summary>
+          <pre className="ErrorDisplay__details-content">{details}</pre>
         </details>
       )}
     </div>

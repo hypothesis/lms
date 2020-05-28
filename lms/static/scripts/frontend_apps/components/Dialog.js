@@ -1,7 +1,6 @@
 import { createElement } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import propTypes from 'prop-types';
-import classNames from 'classnames';
 
 import Button from './Button';
 import useElementShouldClose from '../common/use-element-should-close';
@@ -57,13 +56,6 @@ export default function Dialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const contentClasses = {
-    Dialog__content: true,
-  };
-  if (contentClass) {
-    contentClasses[contentClass] = true;
-  }
-
   return (
     <div
       role={role}
@@ -77,7 +69,11 @@ export default function Dialog({
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div className={classNames(contentClasses)}>
+        <div
+          className={
+            'Dialog__content' + (contentClass ? ` ${contentClass}` : '')
+          }
+        >
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />
