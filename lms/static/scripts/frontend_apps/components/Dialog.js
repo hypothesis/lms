@@ -1,6 +1,7 @@
 import { createElement } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import propTypes from 'prop-types';
+import classNames from 'classnames';
 
 import Button from './Button';
 import useElementShouldClose from '../common/use-element-should-close';
@@ -69,11 +70,7 @@ export default function Dialog({
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div
-          className={
-            'Dialog__content' + (contentClass ? ` ${contentClass}` : '')
-          }
-        >
+        <div className={classNames('Dialog__content', contentClass)}>
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />
