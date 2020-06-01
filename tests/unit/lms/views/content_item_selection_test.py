@@ -19,6 +19,13 @@ class TestContentItemSelection:
             },
         )
 
+    def test_it_records_the_course_in_the_DB(
+        self, context, pyramid_request, record_course
+    ):
+        content_item_selection(context, pyramid_request)
+
+        record_course.assert_called_once_with(context, pyramid_request)
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
@@ -32,6 +39,11 @@ class TestContentItemSelection:
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         return context
+
+
+@pytest.fixture(autouse=True)
+def record_course(patch):
+    return patch("lms.views.content_item_selection.record_course")
 
 
 pytestmark = pytest.mark.usefixtures("lti_h_service")

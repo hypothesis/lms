@@ -14,7 +14,7 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
-from lms.models import LtiLaunches, ModuleItemConfiguration
+from lms.models import Course, LtiLaunches, ModuleItemConfiguration
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
@@ -83,6 +83,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
+        record_course(self.context, self.request)
         self.context.js_config.add_canvas_file_id(self.request.params["file_id"])
         return {}
 
@@ -100,6 +101,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
+        record_course(self.context, self.request)
 
         self.context.js_config.maybe_enable_grading()
 
@@ -132,6 +134,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
+        record_course(self.context, self.request)
         self.context.js_config.maybe_enable_grading()
         self.context.js_config.add_document_url(self.request.parsed_params["url"])
         return {}
@@ -157,6 +160,8 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
+        record_course(self.context, self.request)
+
         form_fields = {
             param: value
             for param, value in self.request.params.items()
@@ -227,3 +232,13 @@ class BasicLTILaunchViews:
         self.context.js_config.maybe_enable_grading()
 
         return {}
+
+
+def record_course(context, request):
+    """Add the current course to the course table in the DB."""
+    Course.insert_if_not_exists(
+        request.db,
+        context.h_group.authority_provided_id,
+        request.lti_user.oauth_consumer_key,
+        {"canvas": {"sections_enabled": context.canvas_sections_enabled}},
+    )

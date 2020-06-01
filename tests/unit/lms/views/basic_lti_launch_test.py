@@ -55,6 +55,18 @@ def url_configured_basic_lti_launch_caller(context, pyramid_request):
     return views.url_configured_basic_lti_launch()
 
 
+def unconfigured_basic_lti_launch_caller(context, pyramid_request):
+    """
+    Call BasicLTILaunchViews.unconfigured_basic_lti_launch().
+
+    Set up the appropriate conditions and then call
+    BasicLTILaunchViews.unconfigured_basic_lti_launch(), and return whatever
+    BasicLTILaunchViews.unconfigured_basic_lti_launch() returns.
+    """
+    views = BasicLTILaunchViews(context, pyramid_request)
+    return views.unconfigured_basic_lti_launch()
+
+
 def configure_module_item_caller(context, pyramid_request):
     """
     Call BasicLTILaunchViews.configure_module_item().
@@ -161,6 +173,39 @@ class TestCommon:
         return request.param
 
 
+class TestCourseRecording:
+    def test_it_records_the_course_in_the_DB(
+        self, context, pyramid_request, view_caller, Course
+    ):
+        view_caller(context, pyramid_request)
+
+        Course.insert_if_not_exists.assert_called_once_with(
+            pyramid_request.db,
+            context.h_group.authority_provided_id,
+            pyramid_request.lti_user.oauth_consumer_key,
+            {"canvas": {"sections_enabled": context.canvas_sections_enabled}},
+        )
+
+    @pytest.fixture(
+        params=[
+            canvas_file_basic_lti_launch_caller,
+            db_configured_basic_lti_launch_caller,
+            url_configured_basic_lti_launch_caller,
+            unconfigured_basic_lti_launch_caller,
+        ]
+    )
+    def view_caller(self, request):
+        """
+        Return a function that calls the view method to be tested.
+
+        This is a parametrized fixture. A test that uses this fixture will be
+        run multiple times, once for each parametrized version of this fixture.
+
+        See https://docs.pytest.org/en/latest/fixture.html#parametrizing-fixtures
+        """
+        return request.param
+
+
 @pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
     @pytest.mark.usefixtures("is_canvas")
@@ -235,7 +280,7 @@ class TestUnconfiguredBasicLTILaunch:
     def test_it_enables_content_item_selection_mode(
         self, BearerTokenSchema, bearer_token_schema, context, pyramid_request
     ):
-        BasicLTILaunchViews(context, pyramid_request).unconfigured_basic_lti_launch()
+        unconfigured_basic_lti_launch_caller(context, pyramid_request)
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.authorization_param.assert_called_once_with(
@@ -309,6 +354,11 @@ def pyramid_request(pyramid_request):
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
     return patch("lms.views.basic_lti_launch.BearerTokenSchema")
+
+
+@pytest.fixture(autouse=True)
+def Course(patch):
+    return patch("lms.views.basic_lti_launch.Course")
 
 
 @pytest.fixture(autouse=True)

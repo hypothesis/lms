@@ -37,6 +37,7 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 from pyramid.view import view_config
 
 from lms.validation import ContentItemSelectionLTILaunchSchema
+from lms.views.basic_lti_launch import record_course
 
 
 @view_config(
@@ -48,6 +49,8 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
+    record_course(context, request)
+
     request.find_service(name="lti_h").sync([context.h_group], request.params)
 
     context.js_config.enable_content_item_selection_mode(
