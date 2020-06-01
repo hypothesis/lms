@@ -10,6 +10,7 @@ from pyramid.request import apply_request_extensions
 
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
+from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
@@ -214,6 +215,13 @@ def canvas_api_client(pyramid_config):
     )
     pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
     return canvas_api_client
+
+
+@pytest.fixture
+def course_service(pyramid_config):
+    course_service = mock.create_autospec(CourseService, spec_set=True, instance=True)
+    pyramid_config.register_service(course_service, name="course")
+    return course_service
 
 
 @pytest.fixture

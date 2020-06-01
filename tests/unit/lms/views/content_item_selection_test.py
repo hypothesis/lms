@@ -19,6 +19,15 @@ class TestContentItemSelection:
             },
         )
 
+    def test_it_records_the_course_in_the_DB(
+        self, context, pyramid_request, course_service
+    ):
+        content_item_selection(context, pyramid_request)
+
+        course_service.record.assert_called_once_with(
+            context.h_group.authority_provided_id
+        )
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
@@ -34,4 +43,4 @@ class TestContentItemSelection:
         return context
 
 
-pytestmark = pytest.mark.usefixtures("lti_h_service")
+pytestmark = pytest.mark.usefixtures("course_service", "lti_h_service")
