@@ -4,8 +4,6 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 __all__ = ["via_url"]
 
-# pylint: disable=too-few-public-methods
-
 
 class _ViaDoc:
     """A doc we want to proxy with content type."""

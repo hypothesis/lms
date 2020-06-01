@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from lms.db import BASE
 
 
-class LtiLaunches(BASE):  # pylint:disable=too-few-public-methods
+class LtiLaunches(BASE):
     """Track each LTI launch."""
 
     __tablename__ = "lti_launches"

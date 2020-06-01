@@ -39,7 +39,7 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
     class URLSchema(Schema):
         """Schema containing only validation for the return URL."""
 
-        class Meta:  # pylint:disable=too-few-public-methods
+        class Meta:
             """Allow other values, as we are only here to validate the URL."""
 
             unknown = EXCLUDE
