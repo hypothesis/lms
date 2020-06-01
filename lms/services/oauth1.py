@@ -1,7 +1,7 @@
 from requests_oauthlib import OAuth1
 
 
-class OAuth1Service:  # pylint:disable=too-few-public-methods
+class OAuth1Service:
     """Provides OAuth1 convenience functions."""
 
     def __init__(self, _context, request):

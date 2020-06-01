@@ -4,7 +4,7 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.services import HAPIError
 
 
-class LTIHService:  # pylint:disable=too-few-public-methods
+class LTIHService:
     """
     Copy LTI users and courses to h users and groups.
 

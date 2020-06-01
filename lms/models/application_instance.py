@@ -12,7 +12,7 @@ from lms.db import BASE
 __all__ = ["ApplicationInstance"]
 
 
-class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
+class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
 
     __tablename__ = "application_instances"

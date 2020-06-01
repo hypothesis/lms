@@ -8,7 +8,7 @@ from lms.db import BASE
 __all__ = ["OAuth2Token"]
 
 
-class OAuth2Token(BASE):  # pylint:disable=too-few-public-methods
+class OAuth2Token(BASE):
     """
     An OAuth 2.0 access token, refresh token and expiry time.
 

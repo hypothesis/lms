@@ -7,7 +7,7 @@ from pyramid.settings import aslist
 from pyramid.static import static_view
 
 
-class _CachedFile:  # pylint:disable=too-few-public-methods
+class _CachedFile:
     """
     Parses content from a file and caches the result.
 

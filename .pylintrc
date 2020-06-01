@@ -37,6 +37,8 @@ disable=
     bad-continuation,
     line-too-long,
 
+    too-few-public-methods,
+
 good-names=
     # PyLint's default good names.
     i,j,k,ex,Run,_,

@@ -7,7 +7,7 @@ from lms.db import BASE
 __all__ = ["GroupInfo"]
 
 
-class GroupInfo(BASE):  # pylint:disable=too-few-public-methods
+class GroupInfo(BASE):
     """
     Some info about an LMS group that was created in h.
 

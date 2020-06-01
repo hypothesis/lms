@@ -24,7 +24,7 @@ class _SectionSchema(Schema):
     various schemas below for Canvas API responses that contain section dicts.
     """
 
-    class Meta:  # pylint:disable=too-few-public-methods
+    class Meta:
         unknown = EXCLUDE
 
     id = fields.Int(required=True)
@@ -409,7 +409,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         class _EnrollmentSchema(Schema):
             """Schema for extracting a section ID from an enrollment dict."""
 
-            class Meta:  # pylint:disable=too-few-public-methods
+            class Meta:
                 unknown = EXCLUDE
 
             course_section_id = fields.Int(required=True)

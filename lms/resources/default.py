@@ -2,7 +2,7 @@
 from pyramid.security import Allow
 
 
-class DefaultResource:  # pylint:disable=too-few-public-methods
+class DefaultResource:
     """The application's default root resource."""
 
     __acl__ = [
