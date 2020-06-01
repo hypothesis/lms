@@ -11,7 +11,7 @@ chardet==3.0.4            # via requests
 gunicorn==20.0.4          # via -r requirements.in
 h-api==1.0.0              # via -r requirements.in
 h-pyramid-sentry==1.2.0   # via -r requirements.in
-httplib2==0.18.0          # via oauth2, pylti
+httplib2==0.18.1          # via oauth2, pylti
 hupper==1.10.2            # via pyramid
 idna==2.9                 # via requests
 importlib-metadata==1.6.0  # via jsonschema
