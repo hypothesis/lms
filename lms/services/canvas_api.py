@@ -335,11 +335,13 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # Can you paginate through it somehow? This seems edge-casey enough
         # that we're ignoring it for now.
 
-        return self.make_authenticated_request(
-            "GET",
-            f"courses/{course_id}",
-            params={"include[]": "sections"},
-            schema=self._AuthenticatedUsersSectionsSchema,
+        return self._ensure_sections_unique(
+            self.make_authenticated_request(
+                "GET",
+                f"courses/{course_id}",
+                params={"include[]": "sections"},
+                schema=self._AuthenticatedUsersSectionsSchema,
+            )
         )
 
     class _AuthenticatedUsersSectionsSchema(RequestsResponseSchema):
@@ -368,8 +370,12 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
-        return self.make_authenticated_request(
-            "GET", f"courses/{course_id}/sections", schema=self._CourseSectionsSchema,
+        return self._ensure_sections_unique(
+            self.make_authenticated_request(
+                "GET",
+                f"courses/{course_id}/sections",
+                schema=self._CourseSectionsSchema,
+            )
         )
 
     class _CourseSectionsSchema(RequestsResponseSchema, _SectionSchema):
@@ -396,11 +402,13 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
-        return self.make_authenticated_request(
-            "GET",
-            f"courses/{course_id}/users/{user_id}",
-            params={"include[]": "enrollments"},
-            schema=self._UsersSectionsSchema,
+        return self._ensure_sections_unique(
+            self.make_authenticated_request(
+                "GET",
+                f"courses/{course_id}/users/{user_id}",
+                params={"include[]": "enrollments"},
+                schema=self._UsersSectionsSchema,
+            )
         )
 
     class _UsersSectionsSchema(RequestsResponseSchema):
@@ -474,3 +482,27 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         """Schema for the public_url response."""
 
         public_url = fields.Str(required=True)
+
+    @classmethod
+    def _ensure_sections_unique(cls, sections):
+        """Ensure that sections returned by Canvas are unique.
+
+        We _suspect_ that Canvas may on occasion return the same section twice
+        or more. In the case this happens, and the name is the same we remove
+        the duplicates.
+
+        :param sections: Sections to filter for duplicates
+        :return: A list of unique sections
+        :raise CanvasAPIError: When duplicate sections have different names
+        """
+        sections_by_id = {}
+
+        for section in sections:
+            duplicate = sections_by_id.get(section["id"])
+
+            if duplicate and section.get("name") != duplicate.get("name"):
+                raise CanvasAPIError(f"Duplicate section id on {section}")
+
+            sections_by_id[section["id"]] = section
+
+        return list(sections_by_id.values())

@@ -164,6 +164,81 @@ class TestDataCalls:
             timeout=Any(),
         )
 
+    @pytest.mark.parametrize(
+        "method,args,response,expected,exception",
+        (
+            (
+                param(
+                    "users_sections",
+                    ["USER_ID", "COURSE_ID"],
+                    {
+                        "enrollments": [
+                            {"course_section_id": 1},
+                            {"course_section_id": 1},
+                        ]
+                    },
+                    [{"id": 1}],
+                    None,
+                    id="user_sections with duplicate",
+                ),
+                param(
+                    "course_sections",
+                    ["COURSE_ID"],
+                    [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}],
+                    [{"id": 1, "name": "name"}],
+                    None,
+                    id="course_sections with duplicate",
+                ),
+                param(
+                    "course_sections",
+                    ["COURSE_ID"],
+                    [{"id": 1, "name": "name"}, {"id": 1, "name": "DIFFERENT"}],
+                    None,
+                    CanvasAPIError,
+                    id="course_sections with conflicting duplicate",
+                ),
+                param(
+                    "authenticated_users_sections",
+                    ["COURSE_ID"],
+                    {
+                        "sections": [
+                            {"id": 1, "name": "name"},
+                            {"id": 1, "name": "name"},
+                        ]
+                    },
+                    [{"id": 1, "name": "name"}],
+                    None,
+                    id="authenticated_users_sections with duplicate",
+                ),
+                param(
+                    "authenticated_users_sections",
+                    ["COURSE_ID"],
+                    {
+                        "sections": [
+                            {"id": 1, "name": "name"},
+                            {"id": 1, "name": "DIFFERENT"},
+                        ]
+                    },
+                    None,
+                    CanvasAPIError,
+                    id="authenticated_users_sections with conflicting duplicate",
+                ),
+            )
+        ),
+    )
+    @pytest.mark.usefixtures("access_token")
+    def test_duplicate_sections(
+        self, method, args, response, expected, exception, api_client, http_session
+    ):
+        http_session.send.return_value = _make_response(response)
+
+        if exception:
+            with pytest.raises(exception):
+                getattr(api_client, method)(*args)
+        else:
+            sections = getattr(api_client, method)(*args)
+            assert sections == expected
+
     @pytest.mark.usefixtures("access_token")
     def test_list_files(self, api_client, http_session):
         files = [
