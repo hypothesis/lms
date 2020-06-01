@@ -9,8 +9,6 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 
-__all__ = ["ApplicationInstance"]
-
 
 class ApplicationInstance(BASE):  # pylint:disable=too-few-public-methods
     """Class to represent a single lms install."""
