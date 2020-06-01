@@ -47,7 +47,7 @@
     "postcss": "^7.0.30",
     "preact": "10.4.4",
     "query-string": "^5.0.0",
-    "sass": "^1.26.5",
+    "sass": "^1.26.7",
     "stringify": "^5.2.0",
     "through2": "^3.0.1",
     "tiny-emitter": "^2.1.0",
