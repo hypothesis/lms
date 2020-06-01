@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
+from lms.models.application_settings import ApplicationSettings
 
 
 class ApplicationInstance(BASE):
@@ -40,13 +41,13 @@ class ApplicationInstance(BASE):
         The object can be queried with `settings.get(group, key)` or
         `settings.set(group, key, value)`.
 
-        :return: _ApplicationSettings object.
+        :rtype: models.ApplicationSettings
         """
 
         if self._settings is None:
             self._settings = {}
 
-        return _ApplicationSettings(self._settings)
+        return ApplicationSettings(self._settings)
 
     #: A list of all the OAuth2Tokens for this application instance
     #: (each token belongs to a different user of this application
@@ -110,30 +111,3 @@ def _encrypt_oauth_secret(oauth_secret, key, init_v):
     """Encrypt an oauth secrety via AES encryption."""
     cipher = AES.new(key, AES.MODE_CFB, init_v)
     return cipher.encrypt(oauth_secret)
-
-
-class _ApplicationSettings:
-    """Model for accessing and updating application settings."""
-
-    def __init__(self, data):
-        self.data = data
-
-    def get(self, group, key):
-        """
-        Get a specific settings or None if it doesn't exist.
-
-        :param group: The name of the group of settings
-        :param key: The key in that group
-        :return: The value or None
-        """
-        return self.data.get(group, {}).get(key)
-
-    def set(self, group, key, value):
-        """
-        Set a specific setting in a group.
-
-        :param group: The name of the group of settings
-        :param key: The key in that group
-        :param value: The value to set
-        """
-        self.data.setdefault(group, {})[key] = value
