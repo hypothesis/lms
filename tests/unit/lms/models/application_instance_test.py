@@ -1,8 +1,7 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance
-from lms.models.application_instance import _ApplicationSettings
+from lms.models import ApplicationInstance, ApplicationSettings
 
 # pylint: disable=protected-access
 
@@ -39,7 +38,7 @@ class TestApplicationInstance:
     def test_settings_defaults_to_an_empty_dict(self, application_instance):
         settings = application_instance.settings
 
-        assert isinstance(settings, _ApplicationSettings)
+        assert isinstance(settings, ApplicationSettings)
         assert settings.data == {}
 
     def test_settings_can_be_retrieved(self, application_instance):
@@ -138,4 +137,4 @@ class TestApplicationSettings:
 
     @pytest.fixture
     def settings(self):
-        return _ApplicationSettings({"group": {"key": "old_value"}})
+        return ApplicationSettings({"group": {"key": "old_value"}})
