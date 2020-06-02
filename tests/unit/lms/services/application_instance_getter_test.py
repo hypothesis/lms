@@ -69,26 +69,45 @@ class TestApplicationInstanceGetter:
         assert not ai_getter.provisioning_enabled()
 
     @pytest.mark.parametrize(
-        "section_groups_feature_flag,developer_key,canvas_sections_enabled,expected_result",
+        "params",
         [
-            (True, "test_developer_key", True, True),
-            (False, "test_developer_key", True, False),
-            (True, None, True, False),
-            (True, "test_developer_key", False, False),
-            (False, None, False, False),
+            dict(
+                feature_flag=True,
+                developer_key="test_developer_key",
+                canvas_sections_enabled=True,
+                expected_result=True,
+            ),
+            dict(
+                feature_flag=False,
+                developer_key="test_developer_key",
+                canvas_sections_enabled=True,
+                expected_result=False,
+            ),
+            dict(
+                feature_flag=True,
+                developer_key=None,
+                canvas_sections_enabled=True,
+                expected_result=False,
+            ),
+            dict(
+                feature_flag=True,
+                developer_key="test_developer_key",
+                canvas_sections_enabled=False,
+                expected_result=False,
+            ),
+            dict(
+                feature_flag=False,
+                developer_key=None,
+                canvas_sections_enabled=False,
+                expected_result=False,
+            ),
         ],
     )
     def test_canvas_sections_enabled(
-        self,
-        pyramid_request,
-        test_application_instance,
-        section_groups_feature_flag,
-        developer_key,
-        canvas_sections_enabled,
-        expected_result,
+        self, pyramid_request, test_application_instance, params,
     ):
         def feature(flag):
-            if section_groups_feature_flag:
+            if params["feature_flag"]:
                 return flag == "section_groups"
             return False
 
@@ -96,13 +115,13 @@ class TestApplicationInstanceGetter:
         ai_getter = application_instance_getter_service_factory(
             mock.sentinel.context, pyramid_request
         )
-        test_application_instance.developer_key = developer_key
+        test_application_instance.developer_key = params["developer_key"]
         # pylint: disable=protected-access
         test_application_instance._settings = {
-            "canvas": {"sections_enabled": canvas_sections_enabled}
+            "canvas": {"sections_enabled": params["canvas_sections_enabled"]}
         }
 
-        assert ai_getter.canvas_sections_enabled() == expected_result
+        assert ai_getter.canvas_sections_enabled() == params["expected_result"]
 
     @pytest.mark.usefixtures(
         "unknown_consumer_key", "section_groups_feature_flag_enabled"
