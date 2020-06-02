@@ -71,41 +71,23 @@ class TestApplicationInstanceGetter:
     @pytest.mark.parametrize(
         "params",
         [
-            dict(
-                feature_flag=True,
-                developer_key="test_developer_key",
-                canvas_sections_enabled=True,
-                expected_result=True,
-            ),
-            dict(
-                feature_flag=False,
-                developer_key="test_developer_key",
-                canvas_sections_enabled=True,
-                expected_result=False,
-            ),
-            dict(
-                feature_flag=True,
-                developer_key=None,
-                canvas_sections_enabled=True,
-                expected_result=False,
-            ),
-            dict(
-                feature_flag=True,
-                developer_key="test_developer_key",
-                canvas_sections_enabled=False,
-                expected_result=False,
-            ),
-            dict(
-                feature_flag=False,
-                developer_key=None,
-                canvas_sections_enabled=False,
-                expected_result=False,
-            ),
+            dict(),
+            dict(feature_flag=False, expected_result=False),
+            dict(developer_key=None, expected_result=False),
+            dict(canvas_sections_enabled=False, expected_result=False),
         ],
     )
     def test_canvas_sections_enabled(
         self, pyramid_request, test_application_instance, params,
     ):
+        default_params = dict(
+            feature_flag=True,
+            developer_key="test_developer_key",
+            canvas_sections_enabled=True,
+            expected_result=True,
+        )
+        params = dict(default_params, **params)
+
         if params["feature_flag"]:
             enable_section_groups_feature_flag(pyramid_request)
 
