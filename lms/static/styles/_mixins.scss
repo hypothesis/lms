@@ -32,14 +32,6 @@
     @content;
   }
 }
-// Used to apply standard outline focus state styling to buttons and input fields
-@mixin input-focus {
-  &:focus {
-    outline: 1px solid var.$grey-5;
-    outline-offset: -1px;
-    outline-style: solid
-  }
-}
 
 // Creates a spinner style with a provided $size and $color. The spinner
 // will be positioned in the center of its parent as long as that element is

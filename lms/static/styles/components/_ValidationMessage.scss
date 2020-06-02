@@ -1,4 +1,4 @@
-@use "../mixins";
+@use "../mixins/focus";
 
 
 @keyframes validationErrorOpen {
@@ -24,7 +24,7 @@
 }
 
 .ValidationMessage {
-  @include mixins.input-focus;
+  @include focus.outline-on-keyboard-focus;
   display: inline-block;
   position: absolute;
   z-index: 10;
@@ -36,6 +36,7 @@
   color: white;
   white-space: nowrap;
   overflow: hidden;
+  border: none;
   animation-duration: 0.3s;
   animation-fill-mode: forwards;
   &:hover {

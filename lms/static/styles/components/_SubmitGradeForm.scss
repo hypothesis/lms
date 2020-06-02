@@ -1,4 +1,5 @@
 @use "../mixins";
+@use "../mixins/focus";
 @use "../variables" as var;
 
 @keyframes SubmitGradeForm__fadeAway {
@@ -32,16 +33,14 @@
   }
 
   &__submit {
+    @include focus.outline-on-keyboard-focus;
+    
     height: 40px;
     width: 150px;
     font-weight: 500;
     border: 1px solid var.$grey-3;
     background-color: var.$grey-2;
     transition: background-color 0.2s;
-
-    &:focus {
-      border-color: var.$grey-5;
-    }
 
     &:hover {
       cursor: pointer;
@@ -52,10 +51,6 @@
       background-color: var.$grey-1;
       cursor: default;
       opacity: 0.5;
-    }
-
-    &:focus {
-      @include mixins.input-focus;
     }
   }
 
@@ -72,7 +67,7 @@
   }
 
   &__grade {
-    @include mixins.input-focus;
+    @include focus.outline-on-keyboard-focus;
     text-align: center;
     width: 60px;
     height: 40px;

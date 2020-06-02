@@ -145,6 +145,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
    */
   const handleKeyDown = () => {
     setValidationError(false);
+    setGradeSaved(false);
   };
 
   return (
@@ -182,11 +183,11 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           })}
         />
       </span>
-      <button
+      <input
+        type="submit"
         className="SubmitGradeForm__submit"
         disabled={disabled}
         onClick={onSubmitGrade}
-        type="submit"
       >
         <SvgIcon
           className="SubmitGradeForm__check-icon"
@@ -194,7 +195,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           inline={true}
         />{' '}
         Submit Grade
-      </button>
+      </input>
       {!!submitGradeError && (
         <ErrorDialog
           title="Error"

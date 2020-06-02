@@ -30,7 +30,7 @@ describe('ValidationMessage', () => {
 
   it('sets the message from the `message` prop', () => {
     const wrapper = renderMessage({ message: 'some error' });
-    assert.equal(wrapper.text(), 'some error');
+    assert.equal(wrapper.find('input').props().value, 'some error');
   });
 
   it('closes the message and calls `onClose` prop when clicked', () => {
@@ -40,7 +40,7 @@ describe('ValidationMessage', () => {
       open: true,
       message: 'foo',
     });
-    wrapper.find('button').simulate('click');
+    wrapper.find('input').simulate('click');
     assert.isTrue(onCloseProp.calledOnce);
     assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
   });

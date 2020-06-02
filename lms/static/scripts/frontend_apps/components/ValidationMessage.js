@@ -34,9 +34,12 @@ export default function ValidationMessage({
   });
 
   return (
-    <button onClick={closeValidationError} className={errorClass}>
-      {message}
-    </button>
+    <input
+      type="button"
+      onClick={closeValidationError}
+      className={errorClass}
+      value={message}
+    />
   );
 }
 
