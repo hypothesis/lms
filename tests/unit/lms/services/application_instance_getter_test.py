@@ -106,12 +106,9 @@ class TestApplicationInstanceGetter:
     def test_canvas_sections_enabled(
         self, pyramid_request, test_application_instance, params,
     ):
-        def feature(flag):
-            if params["feature_flag"]:
-                return flag == "section_groups"
-            return False
+        if params["feature_flag"]:
+            enable_section_groups_feature_flag(pyramid_request)
 
-        pyramid_request.feature.side_effect = feature
         ai_getter = application_instance_getter_service_factory(
             mock.sentinel.context, pyramid_request
         )
@@ -195,9 +192,16 @@ class TestApplicationInstanceGetter:
         )
         return pyramid_request
 
-    @pytest.fixture
-    def section_groups_feature_flag_enabled(self, pyramid_request):
-        def feature(flag):
-            return flag == "section_groups"
 
-        pyramid_request.feature.side_effect = feature
+def enable_section_groups_feature_flag(pyramid_request):
+    """
+    Enable the "section_groups" feature flag.
+
+    Also disables all other feature flags.
+    """
+    pyramid_request.feature.side_effect = lambda flag: flag == "section_groups"
+
+
+@pytest.fixture
+def section_groups_feature_flag_enabled(pyramid_request):
+    enable_section_groups_feature_flag(pyramid_request)
