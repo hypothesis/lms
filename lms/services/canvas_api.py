@@ -485,7 +485,8 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
 
     @classmethod
     def _ensure_sections_unique(cls, sections):
-        """Ensure that sections returned by Canvas are unique.
+        """
+        Ensure that sections returned by Canvas are unique.
 
         We _suspect_ that Canvas may on occasion return the same section twice
         or more. In the case this happens, and the name is the same we remove
