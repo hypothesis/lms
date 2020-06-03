@@ -41,7 +41,7 @@ class CanvasAPIAuthorizeViews:
     def authorize(self):
         ai_getter = self.request.find_service(name="ai_getter")
 
-        if ai_getter.canvas_sections_supported():
+        if ai_getter.canvas_sections_enabled():
             scopes = self.files_scopes + self.sections_scopes
         else:
             scopes = self.files_scopes
