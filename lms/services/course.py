@@ -15,17 +15,21 @@ class CourseService:
         return self._db.query(Course).get((self._consumer_key, authority_provided_id))
 
     def _create(self, authority_provided_id):
-        settings = self._ai_getter.settings.clone()
+        # By default we'll make our course setting have the same settings
+        # as the course group
+        course_settings = self._ai_getter.settings.clone()
 
-        if settings.get("canvas", "sections_enabled") and self._is_pre_sections(
+        # Unless! The group was pre-sections, and we've just seen it for the
+        # first time in which case turn sections off
+        if course_settings.get("canvas", "sections_enabled") and self._is_pre_sections(
             authority_provided_id
         ):
-            settings.set("canvas", "sections_enabled", False)
+            course_settings.set("canvas", "sections_enabled", False)
 
         course = Course(
             consumer_key=self._consumer_key,
             authority_provided_id=authority_provided_id,
-            _settings=settings.data,
+            _settings=course_settings.data,
         )
 
         self._db.add(course)
