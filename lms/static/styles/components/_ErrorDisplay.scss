@@ -12,12 +12,12 @@
   max-width: 100%;
   
   &__details {  
-    padding: 4px; // fix for focus halo w/ overflow scroll
+    padding: 4px; // prevents focus ring from getting cut off
     &-summary {
+      @include focus.outline-on-keyboard-focus;
       &:hover {
         cursor: pointer;
       }
-      @include focus.outline-on-keyboard-focus;
     }
   }
 
