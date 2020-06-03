@@ -15,13 +15,7 @@ class CourseService:
         return self._db.query(Course).get((self._consumer_key, authority_provided_id))
 
     def _create(self, authority_provided_id):
-        # This is weird I feel the thing we get back kind of should do it all
-        app_instance = self._ai_getter.get()
-        if not app_instance:
-            # Should we raise here?
-            return
-
-        settings = app_instance.settings.clone()
+        settings = self._ai_getter.settings.clone()
 
         if settings.get("canvas", "sections_enabled") and self._is_pre_sections(
             authority_provided_id

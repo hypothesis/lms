@@ -3,7 +3,7 @@ from functools import lru_cache
 from Crypto.Cipher import AES
 
 from lms import models
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, ApplicationSettings
 from lms.services import ConsumerKeyError
 
 __all__ = ["ApplicationInstanceGetter"]
@@ -85,11 +85,8 @@ class ApplicationInstanceGetter:
         # We need a developer key to call the API
         return bool(app_instance.developer_key)
 
-    def canvas_sections_enabled(self):
-        if not self.canvas_sections_supported():
-            return False
-
-        return self._get_by_consumer_key().settings.get("canvas", "sections_enabled")
+    def settings(self):
+        return self._get_by_consumer_key().settings
 
     def shared_secret(self):
         """
