@@ -16,7 +16,7 @@ class CourseService:
 
     def _create(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
-        # as the course group
+        # as the application instance
         course_settings = self._ai_getter.settings.clone()
 
         # Unless! The group was pre-sections, and we've just seen it for the
