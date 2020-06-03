@@ -23,12 +23,8 @@ class CourseService:
 
         settings = app_instance.settings.clone()
 
-        if (
-            not self._ai_getter.canvas_sections_supported()
-            or (
-                settings.get("canvas", "sections_enabled")
-                and self._is_pre_sections(authority_provided_id)
-            )
+        if settings.get("canvas", "sections_enabled") and self._is_pre_sections(
+            authority_provided_id
         ):
             settings.set("canvas", "sections_enabled", False)
 
