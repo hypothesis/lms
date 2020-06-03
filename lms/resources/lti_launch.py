@@ -119,4 +119,4 @@ class LTILaunchResource:
 
         course_service = self._request.find_service(name="course")
         course = course_service.get_or_create(self.h_group.authority_provided_id)
-        return course.settings("canvas", "sections_enabled")
+        return course.settings.get("canvas", "sections_enabled")
