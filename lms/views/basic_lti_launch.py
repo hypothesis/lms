@@ -84,7 +84,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.course_service.record(self.context.h_group.authority_provided_id)
+        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
         self.context.js_config.add_canvas_file_id(self.request.params["file_id"])
         return {}
 
@@ -102,7 +102,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.course_service.record(self.context.h_group.authority_provided_id)
+        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
 
         self.context.js_config.maybe_enable_grading()
 
@@ -135,7 +135,7 @@ class BasicLTILaunchViews:
         """
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.course_service.record(self.context.h_group.authority_provided_id)
+        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
         self.context.js_config.maybe_enable_grading()
         self.context.js_config.add_document_url(self.request.parsed_params["url"])
         return {}
@@ -161,7 +161,7 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        self.course_service.record(self.context.h_group.authority_provided_id)
+        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
 
         form_fields = {
             param: value

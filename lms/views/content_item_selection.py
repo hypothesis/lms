@@ -48,7 +48,9 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
-    request.find_service(name="course").record(context.h_group.authority_provided_id)
+    request.find_service(name="course").get_or_create(
+        context.h_group.authority_provided_id
+    )
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
 

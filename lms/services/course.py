@@ -7,30 +7,45 @@ class CourseService:
         self._consumer_key = consumer_key
         self._db = db
 
-    def record(self, authority_provided_id):
-        """Add the current course to the `course` table if it's not there already."""
-        sections_enabled = self._ai_getter.canvas_sections_enabled()
+    def get_or_create(self, authority_provided_id):
+        course = self._get(authority_provided_id)
+        if not course:
+            course = self._create(authority_provided_id)
 
-        existing_course = self._db.query(Course).get(
-            (self._consumer_key, authority_provided_id)
-        )
-        if existing_course:
+        return course
+
+    def _get(self, authority_provided_id):
+        return self._db.query(Course).get((self._consumer_key, authority_provided_id))
+
+    def _create(self, authority_provided_id):
+        """Add the current course to the `course` table if it's not there already."""
+
+        # This is weird I feel the thing we get back kind of should do it all
+        app_instance = self._ai_getter.get()
+        if not app_instance:
+            # Should we raise here?
             return
 
-        if sections_enabled:
+        settings = app_instance.settings
+
+        if self._ai_getter.canvas_sections_supported() and settings.get(
+            "canvas", "sections_enabled"
+        ):
             course_group = self._db.query(CourseGroupsExportedFromH).get(
                 authority_provided_id
             )
             if course_group:
-                sections_enabled = False
+                settings.set("canvas", "sections_enabled", False)
 
-        self._db.add(
-            Course(
-                consumer_key=self._consumer_key,
-                authority_provided_id=authority_provided_id,
-                _settings={"canvas": {"sections_enabled": sections_enabled}},
-            )
+        course = Course(
+            consumer_key=self._consumer_key,
+            authority_provided_id=authority_provided_id,
+            _settings=settings.data,
         )
+
+        self._db.add(course)
+
+        return course
 
 
 def course_service_factory(_context, request):

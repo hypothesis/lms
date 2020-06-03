@@ -99,13 +99,9 @@ class LTILaunchResource:
         return self._request.parsed_params.get("custom_canvas_api_domain")
 
     @property
-    def canvas_sections_enabled(self):
+    def _canvas_sections_supported(self):
         """Return True if Canvas sections is enabled for this request."""
         if not self.is_canvas:
-            return False
-
-        ai_getter = self._request.find_service(name="ai_getter")
-        if not ai_getter.canvas_sections_enabled():
             return False
 
         params = self._request.params
@@ -114,4 +110,13 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        return True
+        return self._request.find_service(name="ai_getter").canvas_sections_supported()
+
+    @property
+    def canvas_sections_enabled(self):
+        if not self._canvas_sections_supported:
+            return False
+
+        course_service = self._request.find_service(name="course")
+        course = course_service.get_or_create(self.h_group.authority_provided_id)
+        return course.settings("canvas", "sections_enabled")
