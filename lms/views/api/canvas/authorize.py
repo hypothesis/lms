@@ -36,31 +36,24 @@ class CanvasAPIAuthorizeViews:
 
     def __init__(self, request):
         self.request = request
+        self.ai_getter = self.request.find_service(name="ai_getter")
+        self.course_service = self.request.find_service(name="course")
 
     @view_config(permission="canvas_api", route_name="canvas_api.authorize")
     def authorize(self):
-        ai_getter = self.request.find_service(name="ai_getter")
-
-        if ai_getter.canvas_sections_supported() and ai_getter.settings().get(
-            "canvas", "sections_enabled"
-        ):
-            scopes = self.files_scopes + self.sections_scopes
-        else:
-            scopes = self.files_scopes
-
         authorize_url = urlunparse(
             (
                 "https",
-                urlparse(ai_getter.lms_url()).netloc,
+                urlparse(self.ai_getter.lms_url()).netloc,
                 "login/oauth2/auth",
                 "",
                 urlencode(
                     {
-                        "client_id": ai_getter.developer_key(),
+                        "client_id": self.ai_getter.developer_key(),
                         "response_type": "code",
                         "redirect_uri": self.request.route_url("canvas_oauth_callback"),
                         "state": CanvasOAuthCallbackSchema(self.request).state_param(),
-                        "scope": " ".join(scopes),
+                        "scope": " ".join(self._required_scopes()),
                     }
                 ),
                 "",
@@ -110,3 +103,16 @@ class CanvasAPIAuthorizeViews:
             )
 
         return template_variables
+
+    def _required_scopes(self):
+        scopes = self.files_scopes
+
+        # We must check if this application instance has any courses which
+        # could need the scopes settings as we can only reasonably expect the
+        # user to authorise the once. Not every time they change course.
+        if self.ai_getter.canvas_sections_supported() and self.course_service.any_with_setting(
+            "canvas", "sections_enabled", True
+        ):
+            scopes += self.sections_scopes
+
+        return scopes
