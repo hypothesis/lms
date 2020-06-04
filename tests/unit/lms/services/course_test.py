@@ -9,8 +9,6 @@ from tests import factories
 
 
 class TestCourseService:
-    pytestmark = pytest.mark.usefixtures("ai_getter")
-
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
     def test_inserting_True_and_False(
         self, ai_getter, db_session, svc, canvas_sections_enabled
@@ -129,3 +127,6 @@ class TestCourseService:
         pyramid_request.db.add(application_instance)
         pyramid_request.db.flush()
         return application_instance
+
+
+pytestmark = pytest.mark.usefixtures("ai_getter")
