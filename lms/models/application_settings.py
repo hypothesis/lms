@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class ApplicationSettings:
     """Model for accessing and updating application settings."""
 
@@ -23,3 +26,6 @@ class ApplicationSettings:
         :param value: The value to set
         """
         self.data.setdefault(group, {})[key] = value
+
+    def clone(self):
+        return ApplicationSettings(deepcopy(self.data))
