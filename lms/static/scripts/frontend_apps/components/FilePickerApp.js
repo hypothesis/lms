@@ -5,6 +5,7 @@ import { Config } from '../config';
 import {
   contentItemForUrl,
   contentItemForLmsFile,
+  contentItemForVitalSourceBook,
 } from '../utils/content-item';
 import {
   GooglePickerClient,
@@ -19,7 +20,6 @@ import URLPicker from './URLPicker';
 
 /**
  * @typedef {import('../api-types').File} File
- *
  * @typedef {'lms'|'url'|null} DialogType
  *
  * @typedef FilePickerAppProps
@@ -53,9 +53,14 @@ export default function FilePickerApp({
     },
   } = useContext(Config);
 
+  // TODO - This should depend on whether we have VS credentials for this
+  // app installation.
+  const vitalSourceEnabled = true;
+
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
+  const [vitalSourceBook, setVitalSourceBook] = useState(false);
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
@@ -140,6 +145,11 @@ export default function FilePickerApp({
     }
   };
 
+  const selectVitalSourceBook = () => {
+    setVitalSourceBook(true);
+    submit(true);
+  };
+
   // Submit the form after a selection is made via one of the available
   // methods.
   useEffect(() => {
@@ -175,6 +185,8 @@ export default function FilePickerApp({
     contentItem = contentItemForUrl(ltiLaunchUrl, url);
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
+  } else if (vitalSourceBook) {
+    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl);
   }
   contentItem = JSON.stringify(contentItem);
 
@@ -219,6 +231,13 @@ export default function FilePickerApp({
               className="FilePickerApp__source-button"
               label="Select PDF from Google Drive"
               onClick={showGooglePicker}
+            />
+          )}
+          {vitalSourceEnabled && (
+            <Button
+              className="FilePickerApp__source-button"
+              label="Select book from VitalSource"
+              onClick={selectVitalSourceBook}
             />
           )}
         </div>

@@ -5,9 +5,6 @@
 import { stringify } from 'querystring';
 
 /**
- * Return a JSON-LD `ContentItem` representation of the LTI activity launch
- * URL for a given document URL.
- *
  * @param {string} ltiLaunchUrl
  * @param {Object.<string,string>} params - Query parameters for the generated URL
  */
@@ -46,5 +43,31 @@ export function contentItemForLmsFile(ltiLaunchUrl, file) {
   return contentItemWithParams(ltiLaunchUrl, {
     canvas_file: 'true',
     file_id: file.id,
+  });
+}
+
+/**
+ * Return a JSON-LD `ContentItem` representation of the LTI activity launch URL
+ * for a VitalSource ebook.
+ *
+ * This currently just uses a hard-coded book ID and chapter specifier ("CFI").
+ * In future the book ID and chapter will be parameters that are filled in with
+ * a user's selection.
+ *
+ * @param {string} ltiLaunchUrl
+ */
+export function contentItemForVitalSourceBook(ltiLaunchUrl) {
+  // Book ID from `GET https://api.vitalsource.com/v4/products` response.
+  const bookId = 'BOOKSHELF-TUTORIAL';
+
+  // CFI from `GET https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
+  // response.
+  const chapterCfi =
+    '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
+
+  return contentItemWithParams(ltiLaunchUrl, {
+    vitalsource_book: 'true',
+    book_id: bookId,
+    cfi: chapterCfi,
   });
 }

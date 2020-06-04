@@ -42,6 +42,14 @@ import { createContext } from 'preact';
  */
 
 /**
+ * Data needed to display the VitalSource book viewer.
+ *
+ * @typedef VitalsourceConfig
+ * @prop {string} launchUrl
+ * @prop {Object.<string,string>} launchParams
+ */
+
+/**
  * Configuration for the content/file picker app shown while configuring an
  * assignment.
  *
@@ -93,6 +101,7 @@ import { createContext } from 'preact';
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
  * @prop {CanvasAuthErrorConfig} canvasOAuth2RedirectError
+ * @prop {VitalsourceConfig} [vitalSource]
  */
 
 /**

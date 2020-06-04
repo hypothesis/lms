@@ -105,6 +105,19 @@ class BasicLTILaunchViews:
         )
         return self.basic_lti_launch(grading_supported=False)
 
+    @view_config(vitalsource_book=True)
+    def vitalsource_lti_launch(self):
+        """
+        Respond to a VitalSource book launch.
+        """
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+        self.context.js_config.maybe_enable_grading()
+        self.context.js_config.add_vitalsource_launch_url(
+            self.request.params["book_id"], self.request.params.get("cfi")
+        )
+        return {}
+
     @view_config(db_configured=True)
     def db_configured_basic_lti_launch(self):
         """
