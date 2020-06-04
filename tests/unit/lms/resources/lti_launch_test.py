@@ -114,15 +114,14 @@ class TestCanvasSectionsEnabled:
     def test_it(
         self, lti_launch, ai_getter, is_canvas, canvas_sections_enabled, expected_result
     ):
-        ai_getter.canvas_sections_enabled.return_value = canvas_sections_enabled
+        ai_getter.settings().set("canvas", "sections_enabled", canvas_sections_enabled)
 
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
             assert lti_launch.canvas_sections_enabled == expected_result
 
     def test_it_enables_sections_for_SpeedGrader_launches(
-        self, lti_launch, ai_getter, pyramid_request
+        self, lti_launch, pyramid_request
     ):
-        ai_getter.canvas_sections_enabled.return_value = True
         pyramid_request.params["focused_user"] = mock.sentinel.focused_user
         pyramid_request.params[
             "learner_canvas_user_id"
@@ -132,9 +131,8 @@ class TestCanvasSectionsEnabled:
             assert lti_launch.canvas_sections_enabled is True
 
     def test_it_disables_sections_for_legacy_SpeedGrader_launches(
-        self, lti_launch, ai_getter, pyramid_request
+        self, lti_launch, pyramid_request
     ):
-        ai_getter.canvas_sections_enabled.return_value = True
         pyramid_request.params["focused_user"] = mock.sentinel.focused_user
 
         with mock.patch.object(LTILaunchResource, "is_canvas", True):
