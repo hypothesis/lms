@@ -1,6 +1,14 @@
 @use "../mixins/focus";
 @use "../variables" as var;
 
+// Mixin used to make more of the viewport's vertical space available to the
+// dialog content in small viewports.
+@mixin small-screen {
+  @media (max-height: 450px) {
+    @content;
+  }
+}
+
 .Dialog__container {
   display: flex;
   position: fixed;
@@ -30,12 +38,21 @@
   border-radius: 3px;
   margin: auto;
   padding: 20px;
+
+  @include small-screen {
+    max-height: 98vh;
+    padding: 10px;
+  }
 }
 
 .Dialog__title {
   display: flex;
   align-items: center;
   font-size: var.$title-font-size;
+
+  @include small-screen {
+    margin: 0.4em 0;
+  }
 }
 
 .Dialog__cancel-btn {

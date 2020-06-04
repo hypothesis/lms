@@ -62,6 +62,10 @@ def configure(settings):
         # like this:
         #     python3 -c 'import secrets; print(secrets.token_hex())'
         "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET"),
+        # Default OAuth 1.0 key and secret for VitalSource LTI launches
+        "vitalsource_launch_key": sg.get("VITALSOURCE_LAUNCH_KEY"),
+        "vitalsource_launch_secret": sg.get("VITALSOURCE_LAUNCH_SECRET"),
+        "vitalsource_api_key": sg.get("VITALSOURCE_API_KEY"),
     }
 
     env_settings["dev"] = asbool(env_settings["dev"])

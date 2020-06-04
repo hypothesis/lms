@@ -1,13 +1,12 @@
 /**
  * @typedef {import('../api-types').File} File
+ * @typedef {import('../api-types').Book} Book
+ * @typedef {import('../api-types').Chapter} Chapter
  */
 
 import { stringify } from 'querystring';
 
 /**
- * Return a JSON-LD `ContentItem` representation of the LTI activity launch
- * URL for a given document URL.
- *
  * @param {string} ltiLaunchUrl
  * @param {Object.<string,string>} params - Query parameters for the generated URL
  */
@@ -46,5 +45,19 @@ export function contentItemForLmsFile(ltiLaunchUrl, file) {
   return contentItemWithParams(ltiLaunchUrl, {
     canvas_file: 'true',
     file_id: file.id,
+  });
+}
+
+/**
+ * @param {string} ltiLaunchUrl
+ * @param {Object} item
+ *   @param {Book} item.book
+ *   @param {Chapter} item.chapter
+ */
+export function contentItemForVitalSourceBook(ltiLaunchUrl, { book, chapter }) {
+  return contentItemWithParams(ltiLaunchUrl, {
+    vitalsource_book: 'true',
+    book_id: book.id,
+    cfi: chapter.cfi,
   });
 }

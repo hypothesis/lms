@@ -8,6 +8,7 @@ class DefaultResource:
     __acl__ = [
         (Allow, "report_viewers", "view"),
         (Allow, "lti_user", "api"),
+        (Allow, "lti_user", "vitalsource_api"),
     ]
 
     def __init__(self, request):
