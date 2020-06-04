@@ -8,6 +8,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
+from lms.models import ApplicationSettings
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.grading_info import GradingInfoService
@@ -198,6 +199,8 @@ def ai_getter(pyramid_config):
     ai_getter.provisioning_enabled.return_value = True
     ai_getter.lms_url.return_value = "https://example.com"
     ai_getter.shared_secret.return_value = "TEST_SECRET"
+    ai_getter.settings.return_value = ApplicationSettings({})
+    ai_getter.settings().set("canvas", "sections_enabled", True)
     pyramid_config.register_service(ai_getter, name="ai_getter")
     return ai_getter
 

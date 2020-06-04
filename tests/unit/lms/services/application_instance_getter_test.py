@@ -74,17 +74,13 @@ class TestApplicationInstanceGetter:
             dict(),
             dict(feature_flag=False, expected_result=False),
             dict(developer_key=None, expected_result=False),
-            dict(canvas_sections_enabled=False, expected_result=False),
         ],
     )
-    def test_canvas_sections_enabled(
+    def test_canvas_sections_supported(
         self, pyramid_request, test_application_instance, params,
     ):
         default_params = dict(
-            feature_flag=True,
-            developer_key="test_developer_key",
-            canvas_sections_enabled=True,
-            expected_result=True,
+            feature_flag=True, developer_key="test_developer_key", expected_result=True,
         )
         params = dict(default_params, **params)
 
@@ -95,20 +91,19 @@ class TestApplicationInstanceGetter:
             mock.sentinel.context, pyramid_request
         )
         test_application_instance.developer_key = params["developer_key"]
-        # pylint: disable=protected-access
-        test_application_instance._settings = {
-            "canvas": {"sections_enabled": params["canvas_sections_enabled"]}
-        }
 
-        assert ai_getter.canvas_sections_enabled() == params["expected_result"]
+        assert ai_getter.canvas_sections_supported() == params["expected_result"]
 
     @pytest.mark.usefixtures(
         "unknown_consumer_key", "section_groups_feature_flag_enabled"
     )
-    def test_canvas_sections_enabled_returns_False_if_consumer_key_unknown(
+    def test_canvas_sections_supported_returns_False_if_consumer_key_unknown(
         self, ai_getter
     ):
-        assert not ai_getter.canvas_sections_enabled()
+        assert not ai_getter.canvas_sections_supported()
+
+    def test_settings(self, ai_getter, test_application_instance):
+        assert ai_getter.settings().data == test_application_instance.settings.data
 
     def test_shared_secret_returns_the_shared_secret(self, ai_getter):
         assert ai_getter.shared_secret() == "TEST_SHARED_SECRET"
