@@ -13,6 +13,7 @@ from lms.views.predicates._lti_launch import (
     Configured,
     DBConfigured,
     URLConfigured,
+    VitalSourceBook,
 )
 
 
@@ -23,6 +24,7 @@ def includeme(config):
         BrightspaceCopied,
         CanvasFile,
         URLConfigured,
+        VitalSourceBook,
         Configured,
         AuthorizedToConfigureAssignments,
     ):
