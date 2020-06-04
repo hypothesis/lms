@@ -5,9 +5,6 @@
 import { stringify } from 'querystring';
 
 /**
- * Return a JSON-LD `ContentItem` representation of the LTI activity launch
- * URL for a given document URL.
- *
  * @param {string} ltiLaunchUrl
  * @param {Object.<string,string>} params - Query parameters for the generated URL
  */
@@ -46,5 +43,23 @@ export function contentItemForLmsFile(ltiLaunchUrl, file) {
   return contentItemWithParams(ltiLaunchUrl, {
     canvas_file: 'true',
     file_id: file.id,
+  });
+}
+
+/**
+ * Return a JSON-LD `ContentItem` representation of the LTI activity launch URL
+ * for a VitalSource ebook.
+ *
+ * @param {string} ltiLaunchUrl
+ * @param {string} bookId - VitalSource book ID (aka. `vbid`)
+ * @param {string} cfi -
+ *   Location in the book. This is an EPUB CFI path without the surrounding
+ *   `epubcfi(...)` fragment. See http://idpf.org/epub/linking/cfi/epub-cfi.html.
+ */
+export function contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi) {
+  return contentItemWithParams(ltiLaunchUrl, {
+    vitalsource_book: 'true',
+    book_id: bookId,
+    cfi,
   });
 }

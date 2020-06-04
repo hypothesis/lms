@@ -8,6 +8,7 @@ import { Config } from '../../config';
 import {
   contentItemForLmsFile,
   contentItemForUrl,
+  contentItemForVitalSourceBook,
 } from '../../utils/content-item';
 import { PickerCanceledError } from '../../utils/google-picker-client';
 import FilePickerApp, { $imports } from '../FilePickerApp';
@@ -54,6 +55,9 @@ describe('FilePickerApp', () => {
           },
         },
         google: {},
+        vitalSource: {
+          enabled: false,
+        },
       },
     };
 
@@ -350,6 +354,39 @@ describe('FilePickerApp', () => {
 
       wrapper.setProps({}); // Force re-render.
       assert.isFalse(wrapper.exists('Spinner'));
+    });
+  });
+
+  describe('VitalSource Book selector', () => {
+    it('renders VitalSource picker button if enabled', () => {
+      fakeConfig.filePicker.vitalSource.enabled = true;
+      const wrapper = renderFilePicker();
+      assert.isTrue(
+        wrapper.exists('Button[label="Select book from VitalSource"]')
+      );
+    });
+
+    it('submits hard-coded book and chapter when VitalSource picker button is selected', () => {
+      fakeConfig.filePicker.vitalSource.enabled = true;
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      const button = wrapper.find(
+        'Button[label="Select book from VitalSource"]'
+      );
+      interact(wrapper, () => {
+        button.props().onClick();
+      });
+
+      assert.called(onSubmit);
+      assert.deepEqual(
+        getContentItem(wrapper),
+        contentItemForVitalSourceBook(
+          fakeConfig.filePicker.canvas.ltiLaunchUrl,
+          'BOOKSHELF-TUTORIAL',
+          '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]'
+        )
+      );
     });
   });
 
