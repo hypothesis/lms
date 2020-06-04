@@ -48,3 +48,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.assignment.factory", name="assignment"
     )
+    config.register_service_factory(
+        "lms.services.vitalsource.VitalSourceService", name="vitalsource"
+    )

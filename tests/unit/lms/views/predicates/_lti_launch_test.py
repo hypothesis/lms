@@ -11,6 +11,7 @@ from lms.views.predicates import (
     Configured,
     DBConfigured,
     URLConfigured,
+    VitalSourceBook,
 )
 from tests import factories
 
@@ -112,6 +113,21 @@ class TestCanvasFile:
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
     def test_when_assignment_is_not_canvas_file(self, value, expected):
         predicate = CanvasFile(value, mock.sentinel.config)
+
+        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+
+
+class TestVitalSourceBook:
+    @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
+    def test_when_assignment_is_vitalsource_book(self, value, expected):
+        request = DummyRequest(params={"vitalsource_book": "true"})
+        predicate = VitalSourceBook(value, mock.sentinel.config)
+
+        assert predicate(mock.sentinel.context, request) is expected
+
+    @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
+    def test_when_assignment_is_not_vitalsource_book(self, value, expected):
+        predicate = VitalSourceBook(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, DummyRequest()) is expected
 
