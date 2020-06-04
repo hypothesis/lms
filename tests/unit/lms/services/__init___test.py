@@ -12,6 +12,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
+from lms.services.vitalsource import VitalSourceService
 
 
 class TestIncludeme:
@@ -27,6 +28,7 @@ class TestIncludeme:
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
             ("oauth1", OAuth1Service),
+            ("vitalsource", VitalSourceService),
         ),
     )
     def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
