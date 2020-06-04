@@ -205,7 +205,7 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
 
 @pytest.fixture
 def sections_disabled(ai_getter):
-    ai_getter.canvas_sections_enabled.return_value = False
+    ai_getter.settings().set("canvas", "sections_enabled", False)
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "canvas_api_client")

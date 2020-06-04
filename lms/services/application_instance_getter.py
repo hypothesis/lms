@@ -71,7 +71,7 @@ class ApplicationInstanceGetter:
             provisioning = False
         return provisioning
 
-    def canvas_sections_enabled(self):
+    def canvas_sections_supported(self):
         """Return True if the application instance has Canvas sections is enabled."""
         if not self._section_groups_feature_flag:
             return False
@@ -81,10 +81,11 @@ class ApplicationInstanceGetter:
         except ConsumerKeyError:
             return False
 
-        return bool(
-            app_instance.developer_key
-            and app_instance.settings.get("canvas", "sections_enabled")
-        )
+        # We need a developer key to call the API
+        return bool(app_instance.developer_key)
+
+    def settings(self):
+        return self._get_by_consumer_key().settings
 
     def shared_secret(self):
         """
