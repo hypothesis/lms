@@ -1,4 +1,8 @@
-import { contentItemForUrl, contentItemForLmsFile } from '../content-item';
+import {
+  contentItemForUrl,
+  contentItemForLmsFile,
+  contentItemForVitalSourceBook,
+} from '../content-item';
 
 const ltiLaunchUrl = 'https://lms.hypothes.is/lti_launch';
 
@@ -35,6 +39,32 @@ describe('content-item', () => {
             '@type': 'LtiLinkItem',
             mediaType: 'application/vnd.ims.lti.v1.ltilink',
             url: ltiLaunchUrl + '?canvas_file=true&file_id=foobar',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('contentItemForVitalSourceBook', () => {
+    it('returns expected JSON-LD data', () => {
+      const bookId = 'TEST-BOOK';
+      const chapterCfi = '/4/5';
+
+      const contentItem = contentItemForVitalSourceBook(
+        ltiLaunchUrl,
+        bookId,
+        chapterCfi
+      );
+
+      assert.deepEqual(contentItem, {
+        '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
+        '@graph': [
+          {
+            '@type': 'LtiLinkItem',
+            mediaType: 'application/vnd.ims.lti.v1.ltilink',
+            url:
+              ltiLaunchUrl +
+              '?vitalsource_book=true&book_id=TEST-BOOK&cfi=%2F4%2F5',
           },
         ],
       });

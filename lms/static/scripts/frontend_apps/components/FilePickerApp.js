@@ -5,6 +5,7 @@ import { Config } from '../config';
 import {
   contentItemForUrl,
   contentItemForLmsFile,
+  contentItemForVitalSourceBook,
 } from '../utils/content-item';
 import {
   GooglePickerClient,
@@ -19,7 +20,6 @@ import URLPicker from './URLPicker';
 
 /**
  * @typedef {import('../api-types').File} File
- *
  * @typedef {'lms'|'url'|null} DialogType
  *
  * @typedef FilePickerAppProps
@@ -50,12 +50,14 @@ export default function FilePickerApp({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
+      vitalSource: { enabled: vitalSourceEnabled },
     },
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
+  const [vitalSourceBook, setVitalSourceBook] = useState(false);
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
@@ -140,6 +142,11 @@ export default function FilePickerApp({
     }
   };
 
+  const selectVitalSourceBook = () => {
+    setVitalSourceBook(true);
+    submit(true);
+  };
+
   // Submit the form after a selection is made via one of the available
   // methods.
   useEffect(() => {
@@ -175,6 +182,13 @@ export default function FilePickerApp({
     contentItem = contentItemForUrl(ltiLaunchUrl, url);
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
+  } else if (vitalSourceBook) {
+    // Chosen from `https://api.vitalsource.com/v4/products` response.
+    const bookId = 'BOOKSHELF-TUTORIAL';
+    // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
+    // response.
+    const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
+    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi);
   }
   contentItem = JSON.stringify(contentItem);
 
@@ -219,6 +233,13 @@ export default function FilePickerApp({
               className="FilePickerApp__source-button"
               label="Select PDF from Google Drive"
               onClick={showGooglePicker}
+            />
+          )}
+          {vitalSourceEnabled && (
+            <Button
+              className="FilePickerApp__source-button"
+              label="Select book from VitalSource"
+              onClick={selectVitalSourceBook}
             />
           )}
         </div>

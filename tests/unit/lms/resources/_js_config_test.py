@@ -43,6 +43,9 @@ class TestEnableContentItemSelectionMode:
                     "path": "/api/canvas/courses/test_course_id/files",
                 },
             },
+            "vitalSource": {
+                "enabled": False,
+            },
         }
 
     def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
@@ -112,6 +115,17 @@ class TestEnableContentItemSelectionMode:
         )
 
         self.assert_canvas_file_picker_not_enabled(js_config)
+
+    def test_it_enables_vitalsource_picker_if_feature_enabled(
+        self, pyramid_request, js_config
+    ):
+        pyramid_request.feature = lambda feature: feature == "vitalsource"
+
+        js_config.enable_content_item_selection_mode(
+            mock.sentinel.form_action, mock.sentinel.form_fields
+        )
+
+        assert js_config.asdict()["filePicker"]["vitalSource"]["enabled"]
 
     def assert_canvas_file_picker_not_enabled(self, js_config):
         assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
