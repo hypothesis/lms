@@ -107,11 +107,11 @@ class CanvasAPIAuthorizeViews:
     def _required_scopes(self):
         scopes = self.files_scopes
 
-        # We must check if this application instance has any courses which
-        # could need the scopes settings as we can only reasonably expect the
-        # user to authorise the once. Not every time they change course.
-        if self.ai_getter.canvas_sections_supported() and self.course_service.any_with_setting(
-            "canvas", "sections_enabled", True
+        if self.ai_getter.canvas_sections_supported() and (
+            # If the instance could add a new course with sections...
+            self.ai_getter.settings().get("canvas", "sections_enabled")
+            # ... or any of it's existing courses have sections
+            or self.course_service.any_with_setting("canvas", "sections_enabled", True)
         ):
             scopes += self.sections_scopes
 

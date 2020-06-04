@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
+from lms.models import ApplicationSettings
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
 
@@ -42,36 +43,25 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
-    ALL_SCOPES_STRING = (
-        "url:GET|/api/v1/courses/:course_id/files "
-        "url:GET|/api/v1/files/:id/public_url "
-        "url:GET|/api/v1/courses/:id "
-        "url:GET|/api/v1/courses/:course_id/sections "
-        "url:GET|/api/v1/courses/:course_id/users/:id"
-    )
-    FILES_SCOPES_STRING = (
-        "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
-    )
-
     def test_it_includes_the_scopes_in_a_query_param(self, views):
-        response = views.authorize()
+        self.assert_sections_scopes(views.authorize())
 
-        query_params = parse_qs(urlparse(response.location).query)
-        assert query_params["scope"] == [self.ALL_SCOPES_STRING]
+    @pytest.mark.usefixtures("no_courses_with_sections_enabled")
+    def test_sections_enabled_alone_triggers_sections_scopes(self, views):
+        self.assert_sections_scopes(views.authorize())
+
+    @pytest.mark.usefixtures("sections_disabled")
+    def test_another_course_with_sections_alone_triggers_sections_scopes(self, views):
+        self.assert_sections_scopes(views.authorize())
 
     @pytest.mark.usefixtures("sections_not_supported")
     def test_no_sections_scopes_if_sections_is_disabled(self, views):
-        response = views.authorize()
-
-        query_params = parse_qs(urlparse(response.location).query)
-        assert query_params["scope"] == [self.FILES_SCOPES_STRING]
+        self.assert_file_scopes_only(views.authorize())
 
     @pytest.mark.usefixtures("no_courses_with_sections_enabled")
-    def test_no_sections_scopes_if_no_courses_have_sections_enabled(self, views):
-        response = views.authorize()
-
-        query_params = parse_qs(urlparse(response.location).query)
-        assert query_params["scope"] == [self.FILES_SCOPES_STRING]
+    @pytest.mark.usefixtures("sections_disabled")
+    def test_no_sections_scopes_if_no_courses_and_disabled(self, views):
+        self.assert_file_scopes_only(views.authorize())
 
     def test_it_includes_the_state_in_a_query_param(
         self,
@@ -89,6 +79,34 @@ class TestAuthorize:
         assert query_params["state"] == [
             canvas_oauth_callback_schema.state_param.return_value
         ]
+
+    def assert_sections_scopes(self, response):
+        query_params = parse_qs(urlparse(response.location).query)
+        assert query_params["scope"] == [
+            "url:GET|/api/v1/courses/:course_id/files "
+            "url:GET|/api/v1/files/:id/public_url "
+            "url:GET|/api/v1/courses/:id "
+            "url:GET|/api/v1/courses/:course_id/sections "
+            "url:GET|/api/v1/courses/:course_id/users/:id"
+        ]
+
+    def assert_file_scopes_only(self, response):
+        query_params = parse_qs(urlparse(response.location).query)
+        assert query_params["scope"] == [
+            "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
+        ]
+
+    @pytest.fixture
+    def sections_not_supported(self, ai_getter):
+        ai_getter.canvas_sections_supported.return_value = False
+
+    @pytest.fixture
+    def sections_disabled(self, ai_getter):
+        ai_getter.settings.return_value = ApplicationSettings({})
+
+    @pytest.fixture
+    def no_courses_with_sections_enabled(self, course_service):
+        course_service.any_with_setting.return_value = False
 
 
 class TestOAuth2Redirect:
@@ -210,16 +228,6 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
     schema = CanvasOAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema
-
-
-@pytest.fixture
-def sections_not_supported(ai_getter):
-    ai_getter.canvas_sections_supported.return_value = False
-
-
-@pytest.fixture
-def no_courses_with_sections_enabled(course_service):
-    course_service.any_with_setting.return_value = False
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "canvas_api_client")
