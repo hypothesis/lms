@@ -1,14 +1,32 @@
+@use "../mixins/focus";
 @use "../variables" as var;
 
 
 .ErrorDisplay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  padding-right: 5px;
+  margin-bottom: 10px;
   max-width: 100%;
-}
+  
+  &__details {  
+    padding: 4px; // prevents focus ring from getting cut off
+    &-summary {
+      @include focus.outline-on-keyboard-focus;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
 
-.ErrorDisplay__details {
-  overflow: scroll;
-  background-color: var.$grey-1;
-  border: 1px solid var.$grey-3;
-
-  max-width: 100%;
+  &__details-content {
+    background-color: var.$grey-1;
+    border: 1px solid var.$grey-3;
+    white-space: pre-wrap;
+    max-width: 100%;
+    padding: 10px;
+    margin-bottom: 0;
+  }
 }
