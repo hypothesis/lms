@@ -2,7 +2,9 @@ from unittest import mock
 
 import pytest
 from pyramid.authorization import ACLAuthorizationPolicy
+from pytest import param
 
+from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 
 
@@ -26,13 +28,8 @@ class TestACL:
 
 
 class TestHGroup:
-    def test_it(self, lti_launch, pyramid_request, HGroup, h_group_name):
-        pyramid_request.parsed_params = {
-            "context_id": "test_context_id",
-            "context_title": "test_context_title",
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-        }
-
+    @pytest.mark.usefixtures("has_course")
+    def test_it(self, lti_launch, HGroup, h_group_name):
         assert lti_launch.h_group == HGroup.return_value
         h_group_name.assert_called_once_with("test_context_title")
         HGroup.assert_called_once_with(
@@ -101,45 +98,95 @@ class TestJSConfig:
         assert js_config == JSConfig.return_value
 
 
-class TestCanvasSectionsEnabled:
-    @pytest.mark.parametrize(
-        "is_canvas,canvas_sections_enabled,expected_result",
-        [
-            (True, True, True),
-            (False, True, False),
-            (True, False, False),
-            (False, False, False),
-        ],
-    )
-    def test_it(
-        self, lti_launch, ai_getter, is_canvas, canvas_sections_enabled, expected_result
-    ):
-        ai_getter.settings().set("canvas", "sections_enabled", canvas_sections_enabled)
+class TestCanvasSectionsSupported:
+    def test_its_supported_when_everything_is_right(self, lti_launch):
+        assert lti_launch.canvas_sections_supported()
 
+    @pytest.mark.parametrize("is_canvas", [True, False])
+    def test_support_for_canvas(self, lti_launch, is_canvas):
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
-            assert lti_launch.canvas_sections_enabled == expected_result
+            assert lti_launch.canvas_sections_supported() == is_canvas
 
-    def test_it_enables_sections_for_SpeedGrader_launches(
-        self, lti_launch, pyramid_request
+    @pytest.mark.parametrize(
+        "params,expected",
+        (
+            param(
+                {
+                    "focused_user": mock.sentinel.focused_user,
+                    "learner_canvas_user_id": mock.sentinel.learner_canvas_user_id,
+                },
+                True,
+                id="Speedgrader",
+            ),
+            param(
+                {"focused_user": mock.sentinel.focused_user},
+                False,
+                id="Legacy Speedgrader",
+            ),
+        ),
+    )
+    def test_its_support_for_speedgrader(
+        self, lti_launch, pyramid_request, params, expected
     ):
-        pyramid_request.params["focused_user"] = mock.sentinel.focused_user
-        pyramid_request.params[
-            "learner_canvas_user_id"
-        ] = mock.sentinel.learner_canvas_user_id
+        pyramid_request.params.update(params)
 
-        with mock.patch.object(LTILaunchResource, "is_canvas", True):
-            assert lti_launch.canvas_sections_enabled is True
+        assert lti_launch.canvas_sections_supported() is expected
 
-    def test_it_disables_sections_for_legacy_SpeedGrader_launches(
-        self, lti_launch, pyramid_request
+    def test_it_depends_on_ai_getter(self, lti_launch, ai_getter):
+        ai_getter.canvas_sections_supported.return_value = False
+        assert not lti_launch.canvas_sections_supported()
+
+    @pytest.fixture(autouse=True)
+    def sections_supported(self, ai_getter, pyramid_request):
+        # We are in canvas
+        pyramid_request.parsed_params[
+            "tool_consumer_info_product_family_code"
+        ] = "canvas"
+
+        # The AI getter returns true
+        ai_getter.canvas_sections_supported.return_value = True
+
+
+class TestCanvasSectionsEnabled:
+    pytestmark = pytest.mark.usefixtures("has_course")
+
+    def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
+        assert lti_launch.canvas_sections_enabled
+
+        course_service.get_or_create.assert_called_once_with(
+            lti_launch.h_group.authority_provided_id
+        )
+
+    def test_its_disabled_if_sections_are_not_supported(
+        self, lti_launch, canvas_sections_supported
     ):
-        pyramid_request.params["focused_user"] = mock.sentinel.focused_user
+        canvas_sections_supported.return_value = False
+        assert not lti_launch.canvas_sections_enabled
 
-        with mock.patch.object(LTILaunchResource, "is_canvas", True):
-            assert not lti_launch.canvas_sections_enabled
+    def test_its_disabled_if_the_course_settings_is_False(
+        self, lti_launch, course_settings
+    ):
+        course_settings.set("canvas", "sections_enabled", False)
+        assert not lti_launch.canvas_sections_enabled
+
+    @pytest.fixture(autouse=True)
+    def course_settings(self, course_service):
+        settings = ApplicationSettings({"canvas": {"sections_enabled": True}})
+
+        course_service.get_or_create.return_value.settings = settings
+
+        return settings
+
+    @pytest.fixture(autouse=True)
+    def canvas_sections_supported(self):
+        with mock.patch.object(
+            LTILaunchResource, "canvas_sections_supported"
+        ) as canvas_sections_supported:
+            canvas_sections_supported.return_value = True
+            yield canvas_sections_supported
 
 
-pytestmark = pytest.mark.usefixtures("ai_getter")
+pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
 
 
 @pytest.fixture
@@ -160,6 +207,15 @@ def HGroup(patch):
 @pytest.fixture(autouse=True)
 def JSConfig(patch):
     return patch("lms.resources.lti_launch.JSConfig")
+
+
+@pytest.fixture
+def has_course(pyramid_request):
+    pyramid_request.parsed_params = {
+        "context_id": "test_context_id",
+        "context_title": "test_context_title",
+        "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+    }
 
 
 @pytest.fixture
