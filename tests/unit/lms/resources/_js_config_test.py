@@ -3,13 +3,16 @@ from unittest import mock
 
 import jwt
 import pytest
+from h_matchers import Any
 
 from lms.models import GradingInfo, HGroup
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
+pytestmark = pytest.mark.usefixtures(
+    "ai_getter", "grading_info_service", "h_api", "vitalsource_service"
+)
 
 
 class TestEnableContentItemSelectionMode:
@@ -178,6 +181,41 @@ class TestAddDocumentURL:
         js_config.add_document_url("example_document_url")
 
         assert submission_params()["document_url"] == "example_document_url"
+
+
+class TestAddVitalsourceLaunchConfig:
+    """Unit tests for JSConfig.add_vitalsource_launch_config()."""
+
+    def test_it_sets_vitalsource_config(
+        self, js_config, pyramid_request, vitalsource_service
+    ):
+        js_config.add_vitalsource_launch_config("book-id", "/abc")
+
+        vitalsource_service.get_launch_params.assert_called_with(
+            "book-id", "/abc", pyramid_request.lti_user
+        )
+        assert js_config.asdict()["vitalSource"] == {
+            "launchUrl": mock.sentinel.launch_url,
+            "launchParams": mock.sentinel.launch_params,
+        }
+
+    def test_it_sets_submission_params(self, js_config, submission_params):
+        js_config.add_vitalsource_launch_config("book-id", "/abc")
+
+        assert submission_params() == Any.dict.containing(
+            {
+                "vitalsource_book_id": "book-id",
+                "vitalsource_cfi": "/abc",
+            }
+        )
+
+    @pytest.fixture
+    def vitalsource_service(self, vitalsource_service):
+        vitalsource_service.get_launch_params.return_value = (
+            mock.sentinel.launch_url,
+            mock.sentinel.launch_params,
+        )
+        return vitalsource_service
 
 
 class TestAddCanvasFileIDAddDocumentURLCommon:
