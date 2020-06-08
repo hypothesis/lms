@@ -30,18 +30,10 @@ class TestGroupInfoUpsert:
         assert group_info.type == "course_group"
 
     def test_it_updates_an_existing_GroupInfo_if_one_already_exists(
-        self, db_session, group_info_svc, params
+        self, db_session, group_info_svc, params, pre_existing_group
     ):
-        db_session.add(
-            GroupInfo(
-                **dict(
-                    params,
-                    id=None,
-                    authority_provided_id=self.AUTHORITY,
-                    consumer_key=self.CONSUMER_KEY,
-                )
-            )
-        )
+
+        db_session.add(pre_existing_group)
 
         group_info_svc.upsert(
             factories.HGroup(
@@ -133,6 +125,24 @@ class TestGroupInfoUpsert:
             for column in GroupInfo.columns()
             if column != "info"
         }
+
+    @pytest.fixture(
+        params=(True, False), ids=["GroupInfo w/o info", "GroupInfo w/info"]
+    )
+    def pre_existing_group(self, request, params):
+        pre_existing_group = GroupInfo(
+            **dict(
+                params,
+                id=None,
+                authority_provided_id=self.AUTHORITY,
+                consumer_key=self.CONSUMER_KEY,
+            )
+        )
+
+        if request.param:
+            pre_existing_group.info = None
+
+        return pre_existing_group
 
     @pytest.fixture
     def application_instance(self, pyramid_request):
