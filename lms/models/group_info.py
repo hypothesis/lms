@@ -84,27 +84,28 @@ class GroupInfo(BASE):
     #: A dict of info about this group.
     info = sa.Column(MutableDict.as_mutable(JSONB))
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("info", {})
-        kwargs["info"].setdefault("instructors", [])
-        kwargs["info"].setdefault("type", None)
-        super().__init__(*args, **kwargs)
+    @property
+    def _safe_info(self):
+        if self.info is None:
+            self.info = {}
+
+        return self.info
 
     @property
     def instructors(self):
-        return self.info["instructors"]
+        return self._safe_info.get("instructors", [])
 
     @instructors.setter
     def instructors(self, new_instructors):
-        self.info["instructors"] = new_instructors
+        self._safe_info["instructors"] = new_instructors
 
     @property
     def type(self):
-        return self.info["type"]
+        return self._safe_info.get("type", None)
 
     @type.setter
     def type(self, new_type):
-        self.info["type"] = new_type
+        self._safe_info["type"] = new_type
 
     def upsert_instructor(self, new_instructor):
         updated_instructors = []

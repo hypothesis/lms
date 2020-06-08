@@ -45,9 +45,6 @@ class TestGroupInfo:
         ):
             db_session.flush()
 
-    def test_instructors_defaults_to_an_empty_list(self):
-        assert GroupInfo().instructors == []
-
     def test_upsert_instructor_when_no_existing_instructors(self, group_info):
         instructor = factories.HUser()._asdict()
 
@@ -86,15 +83,21 @@ class TestGroupInfo:
 
         assert group_info.instructors == existing_instructors
 
-    def test_type_defaults_to_None(self):
-        assert GroupInfo().type is None
-
     def test_set_and_get_type(self):
         group_info = GroupInfo()
 
         group_info.type = "test_type"
 
         assert group_info.type == "test_type"
+
+    @pytest.mark.parametrize("blank_info", (True, False))
+    def test_info_defaults_ok(self, blank_info):
+        group_info = GroupInfo()
+        if blank_info:
+            group_info.info = None
+
+        assert group_info.type is None
+        assert group_info.instructors == []
 
     @pytest.fixture
     def existing_instructors(self, group_info):
