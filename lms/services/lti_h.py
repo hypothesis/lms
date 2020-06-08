@@ -19,7 +19,6 @@ class LTIHService:
     """
 
     def __init__(self, _context, request):
-        self._request = request
         self._lti_user = request.lti_user
         self._h_user = request.lti_user.h_user
 
