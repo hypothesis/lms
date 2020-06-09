@@ -12,107 +12,106 @@ authenticated server-to-server requests to Canvas.
 from urllib.parse import urlencode, urlparse, urlunparse
 
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
-from pyramid.view import exception_view_config, view_config, view_defaults
+from pyramid.view import exception_view_config, view_config
 
 from lms.services import CanvasAPIServerError
 from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallbackSchema
 
+#: The Canvas API scopes that we need for our Canvas Files feature.
+FILES_SCOPES = (
+    "url:GET|/api/v1/courses/:course_id/files",
+    "url:GET|/api/v1/files/:id/public_url",
+)
 
-@view_defaults(request_method="GET", route_name="canvas_oauth_callback")
-class CanvasAPIAuthorizeViews:
+#: The Canvas API scopes that we need for our Sections feature.
+SECTIONS_SCOPES = (
+    "url:GET|/api/v1/courses/:id",
+    "url:GET|/api/v1/courses/:course_id/sections",
+    "url:GET|/api/v1/courses/:course_id/users/:id",
+)
 
-    # The Canvas API scopes that we need for our Canvas Files feature.
-    files_scopes = (
-        "url:GET|/api/v1/courses/:course_id/files",
-        "url:GET|/api/v1/files/:id/public_url",
+
+@view_config(
+    request_method="GET", route_name="canvas_api.authorize", permission="canvas_api"
+)
+def authorize(request):
+    ai_getter = request.find_service(name="ai_getter")
+    course_service = request.find_service(name="course")
+
+    scopes = FILES_SCOPES
+
+    if ai_getter.canvas_sections_supported() and (
+        # If the instance could add a new course with sections...
+        ai_getter.settings().get("canvas", "sections_enabled")
+        # ... or any of it's existing courses have sections
+        or course_service.any_with_setting("canvas", "sections_enabled", True)
+    ):
+        scopes += SECTIONS_SCOPES
+
+    authorize_url = urlunparse(
+        (
+            "https",
+            urlparse(ai_getter.lms_url()).netloc,
+            "login/oauth2/auth",
+            "",
+            urlencode(
+                {
+                    "client_id": ai_getter.developer_key(),
+                    "response_type": "code",
+                    "redirect_uri": request.route_url("canvas_oauth_callback"),
+                    "state": CanvasOAuthCallbackSchema(request).state_param(),
+                    "scope": " ".join(scopes),
+                }
+            ),
+            "",
+        )
     )
 
-    # The Canvas API scopes that we need for our Sections feature.
-    sections_scopes = (
-        "url:GET|/api/v1/courses/:id",
-        "url:GET|/api/v1/courses/:course_id/sections",
-        "url:GET|/api/v1/courses/:course_id/users/:id",
-    )
+    return HTTPFound(location=authorize_url)
 
-    def __init__(self, request):
-        self.request = request
-        self.ai_getter = self.request.find_service(name="ai_getter")
-        self.course_service = self.request.find_service(name="course")
 
-    @view_config(permission="canvas_api", route_name="canvas_api.authorize")
-    def authorize(self):
-        authorize_url = urlunparse(
-            (
-                "https",
-                urlparse(self.ai_getter.lms_url()).netloc,
-                "login/oauth2/auth",
-                "",
-                urlencode(
-                    {
-                        "client_id": self.ai_getter.developer_key(),
-                        "response_type": "code",
-                        "redirect_uri": self.request.route_url("canvas_oauth_callback"),
-                        "state": CanvasOAuthCallbackSchema(self.request).state_param(),
-                        "scope": " ".join(self._required_scopes()),
-                    }
-                ),
-                "",
-            )
+@view_config(
+    request_method="GET",
+    route_name="canvas_oauth_callback",
+    permission="canvas_api",
+    renderer="lms:templates/api/canvas/oauth2_redirect.html.jinja2",
+    schema=CanvasOAuthCallbackSchema,
+)
+def oauth2_redirect(request):
+    authorization_code = request.parsed_params["code"]
+    canvas_api_client = request.find_service(name="canvas_api_client")
+
+    try:
+        canvas_api_client.get_token(authorization_code)
+    except CanvasAPIServerError as err:
+        raise HTTPInternalServerError("Authorizing with the Canvas API failed") from err
+
+    return {}
+
+
+@exception_view_config(
+    request_method="GET",
+    route_name="canvas_oauth_callback",
+    renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+)
+@exception_view_config(
+    request_method="GET",
+    route_name="canvas_api.authorize",
+    renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+)
+def oauth2_redirect_error(request):
+    template_variables = {
+        "invalid_scope": request.params.get("error") == "invalid_scope",
+        "details": request.params.get("error_description"),
+        "scopes": FILES_SCOPES + SECTIONS_SCOPES,
+    }
+
+    if request.lti_user:
+        authorization_param = BearerTokenSchema(request).authorization_param(
+            request.lti_user
+        )
+        template_variables["authorize_url"] = request.route_url(
+            "canvas_api.authorize", _query=[("authorization", authorization_param)],
         )
 
-        return HTTPFound(location=authorize_url)
-
-    @view_config(
-        permission="canvas_api",
-        renderer="lms:templates/api/canvas/oauth2_redirect.html.jinja2",
-        schema=CanvasOAuthCallbackSchema,
-    )
-    def oauth2_redirect(self):
-        authorization_code = self.request.parsed_params["code"]
-        canvas_api_client = self.request.find_service(name="canvas_api_client")
-
-        try:
-            canvas_api_client.get_token(authorization_code)
-        except CanvasAPIServerError as err:
-            raise HTTPInternalServerError(
-                "Authorizing with the Canvas API failed"
-            ) from err
-
-        return {}
-
-    @exception_view_config(
-        renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2"
-    )
-    @exception_view_config(
-        renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
-        route_name="canvas_api.authorize",
-    )
-    def oauth2_redirect_error(self):
-        template_variables = {
-            "invalid_scope": self.request.params.get("error") == "invalid_scope",
-            "details": self.request.params.get("error_description"),
-            "scopes": self.files_scopes + self.sections_scopes,
-        }
-
-        if self.request.lti_user:
-            authorization_param = BearerTokenSchema(self.request).authorization_param(
-                self.request.lti_user
-            )
-            template_variables["authorize_url"] = self.request.route_url(
-                "canvas_api.authorize", _query=[("authorization", authorization_param)],
-            )
-
-        return template_variables
-
-    def _required_scopes(self):
-        scopes = self.files_scopes
-
-        if self.ai_getter.canvas_sections_supported() and (
-            # If the instance could add a new course with sections...
-            self.ai_getter.settings().get("canvas", "sections_enabled")
-            # ... or any of it's existing courses have sections
-            or self.course_service.any_with_setting("canvas", "sections_enabled", True)
-        ):
-            scopes += self.sections_scopes
-
-        return scopes
+    return template_variables

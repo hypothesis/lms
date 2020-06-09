@@ -6,12 +6,14 @@ from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import ApplicationSettings
 from lms.services import CanvasAPIServerError
-from lms.views.api.canvas.authorize import CanvasAPIAuthorizeViews
+from lms.views.api.canvas import authorize
 
 
 class TestAuthorize:
-    def test_it_redirects_to_the_right_Canvas_endpoint(self, ai_getter, views):
-        response = views.authorize()
+    def test_it_redirects_to_the_right_Canvas_endpoint(
+        self, ai_getter, pyramid_request
+    ):
+        response = authorize.authorize(pyramid_request)
 
         assert response.status_code == 302
         ai_getter.lms_url.assert_called_once_with()
@@ -19,23 +21,25 @@ class TestAuthorize:
             f"{ai_getter.lms_url.return_value}/login/oauth2/auth"
         )
 
-    def test_it_includes_the_client_id_in_a_query_param(self, ai_getter, views):
-        response = views.authorize()
+    def test_it_includes_the_client_id_in_a_query_param(
+        self, ai_getter, pyramid_request
+    ):
+        response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
         ai_getter.developer_key.assert_called_once_with()
         assert query_params["client_id"] == [str(ai_getter.developer_key.return_value)]
 
-    def test_it_includes_the_response_type_in_a_query_param(self, views):
-        response = views.authorize()
+    def test_it_includes_the_response_type_in_a_query_param(self, pyramid_request):
+        response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
         assert query_params["response_type"] == ["code"]
 
-    def test_it_includes_the_redirect_uri_in_a_query_param(self, views):
-        response = views.authorize()
+    def test_it_includes_the_redirect_uri_in_a_query_param(self, pyramid_request):
+        response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
@@ -43,34 +47,32 @@ class TestAuthorize:
             "http://example.com/canvas_oauth_callback"
         ]
 
-    def test_it_includes_the_scopes_in_a_query_param(self, views):
-        self.assert_sections_scopes(views.authorize())
+    def test_it_includes_the_scopes_in_a_query_param(self, pyramid_request):
+        self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("no_courses_with_sections_enabled")
-    def test_sections_enabled_alone_triggers_sections_scopes(self, views):
-        self.assert_sections_scopes(views.authorize())
+    def test_sections_enabled_alone_triggers_sections_scopes(self, pyramid_request):
+        self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("sections_disabled")
-    def test_another_course_with_sections_alone_triggers_sections_scopes(self, views):
-        self.assert_sections_scopes(views.authorize())
+    def test_another_course_with_sections_alone_triggers_sections_scopes(
+        self, pyramid_request
+    ):
+        self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("sections_not_supported")
-    def test_no_sections_scopes_if_sections_is_disabled(self, views):
-        self.assert_file_scopes_only(views.authorize())
+    def test_no_sections_scopes_if_sections_is_disabled(self, pyramid_request):
+        self.assert_file_scopes_only(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("no_courses_with_sections_enabled")
     @pytest.mark.usefixtures("sections_disabled")
-    def test_no_sections_scopes_if_no_courses_and_disabled(self, views):
-        self.assert_file_scopes_only(views.authorize())
+    def test_no_sections_scopes_if_no_courses_and_disabled(self, pyramid_request):
+        self.assert_file_scopes_only(authorize.authorize(pyramid_request))
 
     def test_it_includes_the_state_in_a_query_param(
-        self,
-        pyramid_request,
-        CanvasOAuthCallbackSchema,
-        canvas_oauth_callback_schema,
-        views,
+        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema,
     ):
-        response = views.authorize()
+        response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
@@ -110,16 +112,18 @@ class TestAuthorize:
 
 
 class TestOAuth2Redirect:
-    def test_it_gets_an_access_token_from_canvas(self, canvas_api_client, views):
-        views.oauth2_redirect()
+    def test_it_gets_an_access_token_from_canvas(
+        self, canvas_api_client, pyramid_request
+    ):
+        authorize.oauth2_redirect(pyramid_request)
 
         canvas_api_client.get_token.assert_called_once_with("test_authorization_code")
 
-    def test_it_500s_if_get_token_raises(self, canvas_api_client, views):
+    def test_it_500s_if_get_token_raises(self, canvas_api_client, pyramid_request):
         canvas_api_client.get_token.side_effect = CanvasAPIServerError()
 
         with pytest.raises(HTTPInternalServerError):
-            views.oauth2_redirect()
+            authorize.oauth2_redirect(pyramid_request)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -129,9 +133,9 @@ class TestOAuth2Redirect:
 
 class TestOAuth2RedirectError:
     def test_it_passes_authorize_url_to_the_template(
-        self, BearerTokenSchema, bearer_token_schema, pyramid_request, views
+        self, BearerTokenSchema, bearer_token_schema, pyramid_request
     ):
-        template_variables = views.oauth2_redirect_error()
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.authorization_param.assert_called_once_with(
@@ -143,11 +147,11 @@ class TestOAuth2RedirectError:
         )
 
     def test_it_doesnt_pass_authorize_url_if_theres_no_authorized_user(
-        self, pyramid_request, views
+        self, pyramid_request
     ):
         pyramid_request.lti_user = None
 
-        template_variables = views.oauth2_redirect_error()
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
 
         assert "authorize_url" not in template_variables
 
@@ -160,12 +164,12 @@ class TestOAuth2RedirectError:
         ],
     )
     def test_it_tells_the_template_whether_to_show_the_missing_scopes_error_message(
-        self, pyramid_request, params, invalid_scope, views
+        self, pyramid_request, params, invalid_scope
     ):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
 
-        template_variables = views.oauth2_redirect_error()
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
 
         assert template_variables["invalid_scope"] == invalid_scope
 
@@ -180,17 +184,17 @@ class TestOAuth2RedirectError:
         ],
     )
     def test_it_passes_error_descriptions_from_Canvas_to_the_template(
-        self, pyramid_request, params, expected_details, views
+        self, pyramid_request, params, expected_details
     ):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
 
-        template_variables = views.oauth2_redirect_error()
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
 
         assert template_variables["details"] == expected_details
 
-    def test_it_passes_our_required_API_scopes_to_the_template(self, views):
-        template_variables = views.oauth2_redirect_error()
+    def test_it_passes_our_required_API_scopes_to_the_template(self, pyramid_request):
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
 
         assert template_variables["scopes"] == (
             "url:GET|/api/v1/courses/:course_id/files",
@@ -199,11 +203,6 @@ class TestOAuth2RedirectError:
             "url:GET|/api/v1/courses/:course_id/sections",
             "url:GET|/api/v1/courses/:course_id/users/:id",
         )
-
-
-@pytest.fixture
-def views(pyramid_request):
-    return CanvasAPIAuthorizeViews(pyramid_request)
 
 
 @pytest.fixture(autouse=True)
