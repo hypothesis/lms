@@ -183,7 +183,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           })}
         />
       </span>
-      <input
+      <button
         type="submit"
         className="SubmitGradeForm__submit"
         disabled={disabled}
@@ -195,7 +195,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           inline={true}
         />{' '}
         Submit Grade
-      </input>
+      </button>
       {!!submitGradeError && (
         <ErrorDialog
           title="Error"

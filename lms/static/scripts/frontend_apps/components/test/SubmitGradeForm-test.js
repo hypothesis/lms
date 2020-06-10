@@ -78,7 +78,7 @@ describe('SubmitGradeForm', () => {
 
   it('disables the submit button when the disable prop is true', () => {
     const wrapper = renderForm({ disabled: true });
-    assert.isTrue(wrapper.find('input[type="submit"]').prop('disabled'));
+    assert.isTrue(wrapper.find('button[type="submit"]').prop('disabled'));
   });
 
   it("sets the input key to the student's LISResultSourcedId", () => {
@@ -135,7 +135,7 @@ describe('SubmitGradeForm', () => {
         },
       });
       const wrapper = renderForm();
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(wrapper.find('ValidationMessage').prop('open'));
       assert.equal(wrapper.find('ValidationMessage').prop('message'), 'err');
     });
@@ -147,7 +147,7 @@ describe('SubmitGradeForm', () => {
         },
       });
       const wrapper = renderForm();
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       wrapper.find('input.SubmitGradeForm__grade').simulate('input');
       assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
     });
@@ -156,7 +156,7 @@ describe('SubmitGradeForm', () => {
   context('when submitting a grade', () => {
     it('shows the loading spinner when submitting a grade', () => {
       const wrapper = renderForm();
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(
         wrapper.find('.SubmitGradeForm__loading-backdrop Spinner').exists()
       );
@@ -165,14 +165,14 @@ describe('SubmitGradeForm', () => {
     it('shows the error dialog when the grade request throws an error', () => {
       const wrapper = renderForm();
       fakeSubmitGrade.throws({ errorMessage: '' });
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(wrapper.find('ErrorDialog').exists());
     });
 
     it('sets the `is-saved` class when the grade has posted', async () => {
       const wrapper = renderForm();
 
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       await waitFor(() => !isFetchingGrade(wrapper));
 
       assert.isTrue(
@@ -183,7 +183,7 @@ describe('SubmitGradeForm', () => {
     it('removes the `is-saved` class after keyboard input', async () => {
       const wrapper = renderForm();
 
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       await waitFor(() => !isFetchingGrade(wrapper));
 
       wrapper.find('input.SubmitGradeForm__grade').simulate('input');
@@ -195,7 +195,7 @@ describe('SubmitGradeForm', () => {
     it('removes the `SubmitGradeForm__grade--saved` class after the student prop changes', async () => {
       const wrapper = renderForm();
 
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
       wrapper.setProps({ student: fakeStudentAlt });
 
       assert.isFalse(
@@ -207,7 +207,7 @@ describe('SubmitGradeForm', () => {
 
     it('closes the spinner after the grade has posted', async () => {
       const wrapper = renderForm();
-      wrapper.find('input[type="submit"]').simulate('click');
+      wrapper.find('button[type="submit"]').simulate('click');
 
       await waitFor(() => {
         wrapper.update();
