@@ -57,6 +57,22 @@ describe('ErrorDisplay', () => {
     assert.include(details.text(), 'Note from server');
   });
 
+  it('scrolls details into view when opened', () => {
+    const error = { message: '', details: 'Note from server' };
+
+    const wrapper = mount(
+      <ErrorDisplay message="Something went wrong" error={error} />
+    );
+
+    const details = wrapper.find('details');
+    const scrollIntoView = sinon.stub(details.getDOMNode(), 'scrollIntoView');
+
+    details.getDOMNode().open = true;
+    details.simulate('toggle');
+
+    assert.called(scrollIntoView);
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
