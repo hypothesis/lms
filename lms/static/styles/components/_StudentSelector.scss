@@ -1,4 +1,4 @@
-@use "../mixins";
+@use "../mixins/focus";
 @use "../variables" as var;
 
 
@@ -11,7 +11,7 @@
 }
 
 .StudentSelector-change-student {
-  @include mixins.input-focus;
+  @include focus.outline-on-keyboard-focus;
   min-width: 60px;
   height: 40px;
   border: none;
@@ -32,10 +32,11 @@
 }
 
 .StudentsSelector__students {
-  @include mixins.input-focus;
+  @include focus.outline-on-keyboard-focus;
   position: relative;
 
   &-select {
+    @include focus.outline-on-keyboard-focus;
     appearance: none;
     border: 1px solid var.$grey-3;
     border-left: none;
