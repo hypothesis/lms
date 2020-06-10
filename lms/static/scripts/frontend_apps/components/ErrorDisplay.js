@@ -37,6 +37,14 @@ ${details}
     `,
   });
 
+  const onDetailsToggle = event => {
+    const details = event.target;
+    if (!details.open) {
+      return;
+    }
+    details.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     // nb. Wrapper `<div>` here exists to apply block layout to contents.
     <div className="ErrorDisplay">
@@ -67,7 +75,7 @@ ${details}
         .
       </p>
       {!!details && (
-        <details className="ErrorDisplay__details">
+        <details className="ErrorDisplay__details" onToggle={onDetailsToggle}>
           <summary className="ErrorDisplay__details-summary">
             Error Details
           </summary>
