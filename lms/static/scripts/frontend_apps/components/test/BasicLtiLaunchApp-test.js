@@ -32,13 +32,16 @@ describe('BasicLtiLaunchApp', () => {
   };
 
   function spinnerVisible(wrapper) {
-    return waitForElement(wrapper, 'Spinner');
+    return waitFor(() => {
+      wrapper.update();
+      return wrapper.find('Spinner').prop('visible') === true;
+    });
   }
 
   function spinnerHidden(wrapper) {
     return waitFor(() => {
       wrapper.update();
-      return !wrapper.exists('Spinner');
+      return wrapper.find('Spinner').prop('visible') === false;
     });
   }
 
@@ -204,6 +207,28 @@ describe('BasicLtiLaunchApp', () => {
       );
     });
 
+    it('does not create a second auth window when clicked twice', async () => {
+      // Make the initial URL fetch request reject with an unspecified `ApiError`.
+      fakeApiCall.rejects(new ApiError(400, {}));
+
+      const wrapper = renderLtiLaunchApp();
+      const authButton = await waitForElement(
+        wrapper,
+        'Button[label="Authorize"]'
+      );
+      await contentHidden(wrapper);
+
+      // Click the "Authorize" button
+      fakeApiCall.reset();
+      fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
+      authButton.prop('onClick')();
+      assert.calledOnce(FakeAuthWindow);
+
+      // Click the "Authorize" button again
+      authButton.prop('onClick')();
+      assert.calledOnce(FakeAuthWindow);
+    });
+
     [
       {
         description: 'a specific server error',
@@ -340,21 +365,7 @@ describe('BasicLtiLaunchApp', () => {
     let groupsCallResolve;
     let groupsCallReject;
 
-    beforeEach(() => {
-      // Will attempt to fetch the 1. content url and 2. groups.
-      fakeConfig.api = {
-        authToken: 'dummyAuthToken',
-        viaCallbackUrl: 'https://lms.hypothes.is/api/files/1234',
-        sync: {
-          data: {
-            course: {
-              context_id: '12345',
-              custom_canvas_course_id: '101',
-            },
-          },
-          path: '/api/sync',
-        },
-      };
+    const resetApiCalls = () => {
       fakeApiCall
         .withArgs({
           authToken: 'dummyAuthToken',
@@ -384,6 +395,23 @@ describe('BasicLtiLaunchApp', () => {
             groupsCallReject = reject;
           })
         );
+    };
+    beforeEach(() => {
+      // Will attempt to fetch the 1. content url and 2. groups.
+      fakeConfig.api = {
+        authToken: 'dummyAuthToken',
+        viaCallbackUrl: 'https://lms.hypothes.is/api/files/1234',
+        sync: {
+          data: {
+            course: {
+              context_id: '12345',
+              custom_canvas_course_id: '101',
+            },
+          },
+          path: '/api/sync',
+        },
+      };
+      resetApiCalls();
     });
 
     it('renders the spinner until contentUrl requests finish', async () => {
@@ -432,6 +460,57 @@ describe('BasicLtiLaunchApp', () => {
       groupsCallReject(new ApiError(400, {}));
       await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
       await contentHidden(wrapper);
+    });
+
+    context('when auth fails multiple times in a row', () => {
+      it('shows an error dialog if the first requests rejects and second also rejects', async () => {
+        const wrapper = renderLtiLaunchApp();
+        // Both requests reject first
+        contentUrlReject(new ApiError(401, {}));
+        groupsCallReject(new ApiError(400, {}));
+
+        const authButton = await waitForElement(
+          wrapper,
+          'Button[label="Authorize"]'
+        );
+
+        // Click the "Authorize" button.
+        resetApiCalls();
+        // contentUrlReject rejects again
+        contentUrlReject(new ApiError(401, {}));
+        groupsCallReject(new ApiError(400, {}));
+        // Error prompt should remain.
+        authButton.prop('onClick')();
+        await waitForElement(
+          wrapper,
+          'FakeDialog[title="Authorize Hypothesis"]'
+        );
+      });
+      it('shows an error dialog if contentUrl succeeds but groups rejects first', async () => {
+        const wrapper = renderLtiLaunchApp();
+        // Both requests reject first
+        contentUrlReject(new ApiError(401, {}));
+        groupsCallReject(new ApiError(400, {}));
+
+        const authButton = await waitForElement(
+          wrapper,
+          'Button[label="Authorize"]'
+        );
+
+        // Click the "Authorize" button.
+        resetApiCalls();
+        // groups still fails, but contentUrl does not.
+        groupsCallReject(new ApiError(400, {}));
+        contentUrlResolve({
+          via_url: 'https://via.hypothes.is/123',
+        });
+        // Error prompt should remain.
+        authButton.prop('onClick')();
+        await waitForElement(
+          wrapper,
+          'FakeDialog[title="Authorize Hypothesis"]'
+        );
+      });
     });
   });
 

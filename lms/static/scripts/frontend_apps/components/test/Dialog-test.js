@@ -101,6 +101,16 @@ describe('Dialog', () => {
     container.remove();
   });
 
+  it('does not render the spinner when `isLoading` is falsely', () => {
+    const wrapper = mount(<Dialog title="Test dialog" />);
+    assert.isFalse(wrapper.find('Spinner').prop('visible'));
+  });
+
+  it('renders the spinner when `isLoading` is true', () => {
+    const wrapper = mount(<Dialog title="Test dialog" isLoading={true} />);
+    assert.isTrue(wrapper.find('Spinner').prop('visible'));
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

@@ -1,3 +1,4 @@
+@use "../mixins";
 @use "../mixins/focus";
 @use "../variables" as var;
 
@@ -72,3 +73,7 @@
     }
   }
 }
+.Dialog__spinner {
+  @include mixins.spinner(28px);
+  margin: auto 0 auto auto;
+}  

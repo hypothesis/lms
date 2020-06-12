@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import Button from './Button';
 import useElementShouldClose from '../common/use-element-should-close';
 import { zIndexScale } from '../utils/style';
+import Spinner from './Spinner';
 import { useUniqueId } from '../utils/hooks';
 
 /**
@@ -33,6 +34,7 @@ export default function Dialog({
   role = 'dialog',
   title,
   buttons,
+  isLoading = false,
 }) {
   const dialogTitleId = useUniqueId('dialog');
   const rootEl = useRef();
@@ -87,6 +89,7 @@ export default function Dialog({
           {children}
           <div className="u-stretch" />
           <div className="Dialog__actions">
+            <Spinner visible={isLoading} className="Dialog__spinner" />
             {onCancel && (
               <Button
                 className="Button--cancel"
@@ -141,4 +144,8 @@ Dialog.propTypes = {
    * a "Cancel" button will be displayed.
    */
   onCancel: propTypes.func,
+  /**
+   * Renders a spinner when true next to the buttons (defaults to false)
+   */
+  isLoading: propTypes.bool,
 };

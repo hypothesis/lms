@@ -1,3 +1,6 @@
+@use "../mixins";
+
+
 $file-list-icon-size: 24px;
 
 .FileList {
@@ -12,10 +15,9 @@ $file-list-icon-size: 24px;
 }
 
 .FileList__spinner {
+  @include mixins.spinner($file-list-icon-size);
   position: absolute;
   margin: 15px;
-  left: calc(50% - #{$file-list-icon-size / 2});
-  top: calc(50% - #{$file-list-icon-size / 2});
 }
 
 .FileList__name-header {

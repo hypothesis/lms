@@ -1,0 +1,16 @@
+.Spinner {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s linear 1000ms, opacity 1000ms;
+}
+
+.Spinner--fade-in {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0s linear 0s, opacity 50ms;
+}
+
+.Spinner__svg {
+  width: 100%;
+  height: 100%;
+}

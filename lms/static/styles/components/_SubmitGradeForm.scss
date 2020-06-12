@@ -2,17 +2,6 @@
 @use "../mixins/focus";
 @use "../variables" as var;
 
-@keyframes SubmitGradeForm__fadeAway {
-  from {
-    opacity: 1;
-    visibility: inherit;
-  }
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 @keyframes SubmitGradeForm__gradeSaved {
   from {
     background-color: #58bf4b;
@@ -101,17 +90,10 @@
 
 .SubmitGradeForm__submit-spinner {
   @include mixins.spinner(100px);
+  position: absolute;
 }
 
 .SubmitGradeForm__fetch-spinner {
   @include mixins.spinner(28px);
-  animation-duration: 0.5s;
-  visibility: hidden;
-  animation-fill-mode: forwards;
-  &.is-fade-away {
-    animation-name: SubmitGradeForm__fadeAway;
-  }
-  &.is-active {
-    visibility: inherit;
-  }
+  position: absolute;
 }

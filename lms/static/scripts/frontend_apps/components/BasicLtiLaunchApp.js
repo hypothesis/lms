@@ -68,15 +68,18 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(null);
 
+  // Helpers
+  const hasError = !!errorState;
+
   // Show the assignment when the contentUrl has resolved and errorState
   // is falsely
-  const showIframe = contentUrl && !errorState;
+  const showIframe = contentUrl && !hasError;
 
-  const showSpinner = fetchCount > 0 && !errorState;
+  const showPageSpinner = fetchCount > 0 && !hasError;
+  const showDialogSpinner = fetchCount > 0 && hasError;
 
   const incFetchCount = () => {
     setFetchCount(count => count + 1);
-    setErrorState(null);
   };
 
   const decFetchCount = () => {
@@ -91,67 +94,77 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    *  "error-authorizing", or "error-report-submission"
    * @param {boolean} [retry=true] - Can the request be retried?
    */
-  const handleError = (e, newErrorState, retry = true) => {
+  const handleError = useCallback((e, newErrorState, retry = true) => {
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
       setError(e);
       setErrorState(newErrorState);
     }
-  };
+  }, []);
 
   /**
    * Fetch the groups from the sync endpoint if `sync` object exists.
+   *
+   * @returns {number} - 1 if an error occurred, 0 otherwise
    */
   const fetchGroups = useCallback(async () => {
     if (apiSync) {
       try {
-        setErrorState(null);
         const groups = await apiCall({
           authToken,
           path: apiSync.path,
           data: apiSync.data,
         });
         rpcServer.resolveGroupFetch(groups);
+        return 0;
       } catch (e) {
         handleError(e, 'error-fetch');
+        return 1;
       }
     }
-  }, [apiSync, authToken, rpcServer]);
+    return 0;
+  }, [apiSync, authToken, handleError, rpcServer]);
 
   /**
    * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
    * exists.
    *
    * This will typically be a PDF URL proxied through Via.
+   *
+   * @returns {number} - 1 if an error occurred, 0 otherwise
    */
   const fetchContentUrl = useCallback(async () => {
     if (!viaCallbackUrl) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
-      return;
+
+      return 0;
     }
     try {
       incFetchCount();
       const { via_url: contentUrl } = await apiCall({
-        authToken,
+        authToken: authToken,
         path: viaCallbackUrl,
       });
       setContentUrl(contentUrl);
-    } catch (e) {
-      handleError(e, 'error-fetch');
-    } finally {
       decFetchCount();
+      return 0;
+    } catch (e) {
+      decFetchCount();
+      handleError(e, 'error-fetch');
+      return 1; // error state
     }
-  }, [authToken, viaCallbackUrl]);
+  }, [authToken, handleError, viaCallbackUrl]);
 
   /**
    * Fetch the assignment content URL and groups when the app is initially displayed.
    */
-  useEffect(() => {
-    fetchContentUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(async () => {
     fetchGroups();
+    fetchContentUrl();
   }, [fetchContentUrl, fetchGroups]);
 
   /**
@@ -191,18 +204,43 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * Request the user's authorization to access the content, then try fetching
    * the content URL and groups again.
    */
-  const authorizeAndFetchUrl = useCallback(async () => {
-    setErrorState('error-authorizing');
 
+  const authorizeAndFetchUrl = useCallback(async () => {
     if (authWindow.current) {
       authWindow.current.focus();
       return;
     }
     authWindow.current = new AuthWindow({ authToken, authUrl: canvas.authUrl });
-
     try {
       await authWindow.current.authorize();
-      await Promise.all([fetchContentUrl(), fetchGroups()]);
+
+      // In the re-try case, block only the contentUrl request. At
+      // the time is succeeds, check the error code groups too. There
+      // are two possible cases:
+      //
+      // 1. Groups did finish.
+      //   If the groups request errors, then don't reset
+      //   the the errorState as that may cause a flickering.
+      //
+      // 2. Groups did not finish.
+      //   Just allow the group to finish on its own and it will
+      //   take care of setting any new error, We can't prevent
+      //   the UI from jumping around at that point because we
+      //   don't block on the groups request in the first place.
+      let groupError = 0;
+      fetchGroups().then(error => {
+        // This may or may not resolve before fetchContentUrl.
+        // We only care if it resolves first AND if an error code
+        // was returned
+        groupError = error;
+      });
+      if (!(await fetchContentUrl())) {
+        // Clear out an old error if no new error occurs.
+        if (!groupError) {
+          // Okay to clear the error state
+          setErrorState(null);
+        }
+      }
     } finally {
       authWindow.current = null;
     }
@@ -253,6 +291,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         <Dialog
           title="Authorize Hypothesis"
           role="alertdialog"
+          isLoading={showDialogSpinner}
           buttons={[
             <Button
               onClick={authorizeAndFetchUrl}
@@ -270,6 +309,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
           title="Something went wrong"
           contentClass="BasicLtiLaunchApp__dialog"
           role="alertdialog"
+          isLoading={showDialogSpinner}
           buttons={[
             <Button
               onClick={authorizeAndFetchUrl}
@@ -303,7 +343,10 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
 
   return (
     <span className="BasicLtiLaunchApp">
-      {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
+      <Spinner
+        visible={showPageSpinner}
+        className="BasicLtiLaunchApp__spinner"
+      />
       {errorDialog}
       {content}
     </span>

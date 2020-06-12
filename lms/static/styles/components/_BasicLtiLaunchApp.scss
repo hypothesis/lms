@@ -1,10 +1,8 @@
+@use "../mixins";
+  
 .BasicLtiLaunchApp__spinner {
-  $spinner-size: 50px;
-
+  @include mixins.spinner(100px);
   position: absolute;
-  width: $spinner-size;
-  height: $spinner-size;
-  left: calc(50% - #{$spinner-size / 2});
   top: 100px;
 }
 
@@ -13,3 +11,4 @@
     visibility: hidden;
   }
 }
+

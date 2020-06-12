@@ -55,7 +55,7 @@ export default function FileList({
           </Fragment>
         )}
       />
-      {isLoading && <Spinner className="FileList__spinner" />}
+      <Spinner visible={isLoading} className="FileList__spinner" />
     </div>
   );
 }

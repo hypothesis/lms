@@ -33,13 +33,23 @@ describe('SubmitGradeForm', () => {
   const fakeValidateGrade = sinon.stub();
   const fakeFormatToNumber = sinon.stub();
 
-  const isFetchingGrade = wrapper => {
-    wrapper.update();
-    return wrapper
-      .find('Spinner.SubmitGradeForm__fetch-spinner')
-      .prop('className')
-      .includes('is-active');
-  };
+  function hasFetchedGrade(wrapper) {
+    return waitFor(() => {
+      wrapper.update();
+      return (
+        wrapper
+          .find('Spinner.SubmitGradeForm__fetch-spinner')
+          .prop('visible') === false
+      );
+    });
+  }
+
+  function hasSubmittedGrade(wrapper) {
+    return waitFor(() => {
+      wrapper.update();
+      return !wrapper.exists('.SubmitGradeForm__submit-spinner');
+    });
+  }
 
   beforeEach(() => {
     // This extra element is necessary to test automatic `focus`-ing
@@ -91,7 +101,7 @@ describe('SubmitGradeForm', () => {
 
   it('clears out the previous grade when changing students', async () => {
     const wrapper = renderForm();
-    await waitFor(() => !isFetchingGrade(wrapper));
+    await hasFetchedGrade(wrapper);
 
     assert.equal(
       wrapper.find('.SubmitGradeForm__grade').prop('defaultValue'),
@@ -107,18 +117,18 @@ describe('SubmitGradeForm', () => {
   it('focuses the input field when changing students and fetching the grade', async () => {
     document.body.focus();
     const wrapper = renderForm();
-    await waitFor(() => !isFetchingGrade(wrapper));
+    await hasFetchedGrade(wrapper);
     wrapper.setProps({ student: fakeStudentAlt });
-    await waitFor(() => !isFetchingGrade(wrapper));
+    await hasFetchedGrade(wrapper);
     assert.equal(document.activeElement.className, 'SubmitGradeForm__grade');
   });
 
   it("selects the input field's text when changing students and fetching the grade", async () => {
     document.body.focus();
     const wrapper = renderForm();
-    await waitFor(() => !isFetchingGrade(wrapper));
+    await hasFetchedGrade(wrapper);
     wrapper.setProps({ student: fakeStudentAlt });
-    await waitFor(() => !isFetchingGrade(wrapper));
+    await hasFetchedGrade(wrapper);
     assert.equal(document.getSelection().toString(), '10');
   });
 
@@ -173,7 +183,7 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
 
       wrapper.find('button[type="submit"]').simulate('click');
-      await waitFor(() => !isFetchingGrade(wrapper));
+      await hasFetchedGrade(wrapper);
 
       assert.isTrue(
         wrapper.find('input.SubmitGradeForm__grade').hasClass('is-saved')
@@ -184,7 +194,7 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
 
       wrapper.find('button[type="submit"]').simulate('click');
-      await waitFor(() => !isFetchingGrade(wrapper));
+      await hasFetchedGrade(wrapper);
 
       wrapper.find('input.SubmitGradeForm__grade').simulate('input');
       assert.isFalse(
@@ -205,14 +215,10 @@ describe('SubmitGradeForm', () => {
       );
     });
 
-    it('closes the spinner after the grade has posted', async () => {
+    it('closes the page spinner after the grade has posted', async () => {
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
-
-      await waitFor(() => {
-        wrapper.update();
-        return !wrapper.exists('.SubmitGradeForm__submit-spinner');
-      });
+      await hasSubmittedGrade(wrapper);
     });
   });
 
@@ -220,7 +226,7 @@ describe('SubmitGradeForm', () => {
     it('sets the defaultValue prop to an empty string if the grade is falsey', async () => {
       fakeFetchGrade.resolves({ currentScore: null });
       const wrapper = renderForm();
-      await waitFor(() => !isFetchingGrade(wrapper));
+      await hasFetchedGrade(wrapper);
       assert.equal(
         wrapper.find('input.SubmitGradeForm__grade').prop('defaultValue'),
         ''
@@ -229,7 +235,7 @@ describe('SubmitGradeForm', () => {
 
     it("sets the input defaultValue prop to the student's grade", async () => {
       const wrapper = renderForm();
-      await waitFor(() => !isFetchingGrade(wrapper));
+      await hasFetchedGrade(wrapper);
       // note, grade is scaled by 10
       assert.equal(
         wrapper.find('input.SubmitGradeForm__grade').prop('defaultValue'),
@@ -237,37 +243,18 @@ describe('SubmitGradeForm', () => {
       );
     });
 
-    it('sets the class on the <Spinner> component `active` while the grade is fetching', () => {
+    it('shows the <Spinner> component while the grade is fetching', () => {
       const wrapper = renderForm();
       assert.isTrue(
-        wrapper
-          .find('.SubmitGradeForm__grade-wrapper')
-          .find('Spinner')
-          .props('classNames')
-          .className.includes('is-active')
+        wrapper.find('Spinner.SubmitGradeForm__fetch-spinner').prop('visible')
       );
     });
 
-    it('sets the class on the <Spinner> component to `fade-away` after the grade has fetched', async () => {
+    it('hides the <Spinner> component  after the grade has fetched', async () => {
       const wrapper = renderForm();
-      await waitFor(() => !isFetchingGrade(wrapper));
-      assert.isTrue(
-        wrapper
-          .find('.SubmitGradeForm__grade-wrapper')
-          .find('Spinner')
-          .props('classNames')
-          .className.includes('is-fade-away')
-      );
-    });
-
-    it('does not add the `fade-away` class to the <Spinner> component while the grade is fetching', async () => {
-      const wrapper = renderForm();
+      await hasFetchedGrade(wrapper);
       assert.isFalse(
-        wrapper
-          .find('.SubmitGradeForm__grade-wrapper')
-          .find('Spinner')
-          .props('classNames')
-          .className.includes('SubmitGradeForm__fetch-spinner--fade-away')
+        wrapper.find('Spinner.SubmitGradeForm__fetch-spinner').prop('visible')
       );
     });
   });

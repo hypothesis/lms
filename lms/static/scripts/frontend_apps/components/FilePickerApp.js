@@ -195,7 +195,7 @@ export default function FilePickerApp({
       </form>
       {isLoadingIndicatorVisible && (
         <div className="FilePickerApp__loading-backdrop">
-          <Spinner className="FilePickerApp__loading-spinner" />
+          <Spinner visible={true} className="FilePickerApp__loading-spinner" />
         </div>
       )}
       {dialog}

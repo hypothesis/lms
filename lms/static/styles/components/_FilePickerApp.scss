@@ -1,3 +1,6 @@
+@use "../mixins";
+
+
 .FilePickerApp__form {
   max-width: 600px;
   margin-left: auto;
@@ -22,13 +25,7 @@
 }
 
 .FilePickerApp__loading-spinner {
-  $spinner-size: 100px;
-
-  position: absolute;
-  width: $spinner-size;
-  height: $spinner-size;
-  left: calc(50% - #{$spinner-size});
-  top: calc(50% - #{$spinner-size});
+  @include mixins.spinner(100px);
 }
 
 .FilePickerApp__document-source-buttons {

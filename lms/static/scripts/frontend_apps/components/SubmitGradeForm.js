@@ -177,10 +177,8 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           key={student.LISResultSourcedId}
         />
         <Spinner
-          className={classNames('SubmitGradeForm__fetch-spinner', {
-            'is-active': gradeLoading,
-            'is-fade-away': !gradeLoading && student.LISResultSourcedId,
-          })}
+          visible={gradeLoading}
+          className="SubmitGradeForm__fetch-spinner"
         />
       </span>
       <button
@@ -207,7 +205,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
       )}
       {gradeSaving && (
         <div className="SubmitGradeForm__loading-backdrop">
-          <Spinner className="SubmitGradeForm__submit-spinner" />
+          <Spinner visible={true} className="SubmitGradeForm__submit-spinner" />
         </div>
       )}
     </form>

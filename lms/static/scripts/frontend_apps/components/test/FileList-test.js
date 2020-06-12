@@ -57,7 +57,7 @@ describe('FileList', () => {
 
   it('does not show a loading indicator if `isLoading` is false', () => {
     const wrapper = renderFileList({ isLoading: false });
-    assert.isFalse(wrapper.exists('.FileList__spinner'));
+    assert.isFalse(wrapper.find('Spinner').prop('visible'));
   });
 
   it(
