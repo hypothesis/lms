@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+"""
+Start the given services if they aren't already running.
+
+Usage:
+
+    bin/start-services lms_postgres_1 ...
+
+"""
+from sys import argv
+from subprocess import run
+
+
+if run(["bin/check-services"] + argv[1:]).returncode:
+    run(["make", "services"])

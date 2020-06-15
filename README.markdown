@@ -56,12 +56,6 @@ installation process:
 
     cd lms
 
-### Run the services with Docker Compose
-
-Start the services that the LMS app requires using Docker Compose:
-
-    make services
-
 ### Create the development data and settings
 
 Create the database contents and environment variable settings needed to get lms

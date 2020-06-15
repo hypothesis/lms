@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+"""
+Start the given services and wait for them to become healthy.
+
+Usage:
+
+    bin/start-and-wait-for-services lms_postgres_1 ...
+
+"""
+from os import environ
+from sys import argv, exit
+from subprocess import run
+
+if "JENKINS_URL" in environ:
+    exit()
+
+for command in ("start-services", "wait-for-services"):
+    run([f"bin/{command}"] + argv[1:])

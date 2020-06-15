@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+"""
+Exit with 0 if all the given services are healthy, 1 otherwise.
+
+Usage:
+
+    bin/check-services lms_postgres_1 ...
+
+"""
+from sys import argv, exit
+from subprocess import check_output, DEVNULL
+
+
+def check_service(service):
+    try:
+        status = (
+            check_output(
+                [
+                    "docker",
+                    "inspect",
+                    "-f",
+                    "{{.State.Health.Status}}",
+                    service,
+                ],
+                stderr=DEVNULL,
+            )
+            .decode()
+            .strip()
+        )
+    except:
+        pass
+    else:
+        if status == "healthy":
+            return True
+
+    return False
+
+
+if __name__ == "__main__":
+    for service in argv[1:]:
+        if not check_service(service):
+            exit(1)

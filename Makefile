@@ -1,8 +1,6 @@
 .PHONY: help
 help:
 	@echo "make help              Show this help message"
-	@echo 'make services          Run the services that `make dev` requires'
-	@echo "                       (Postgres) in Docker"
 	@echo "make dev               Run the entire app (web server and other processes)"
 	@echo "make web               Run the web server on its own (useful for debugging the "
 	@echo "                       Python code with pdb)"

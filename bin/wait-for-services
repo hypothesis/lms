@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+"""
+Wait for the given services to start and become healthy.
+
+Exit with status 0 once all the services are healthy.
+
+Exit with status 1 if any of the services are unhealthy or if they aren't all
+healthy after about 10 seconds.
+
+Usage:
+
+    bin/wait-for-services lms_postgres_1 ...
+"""
+from sys import argv, exit
+from subprocess import run
+from time import sleep
+
+for _ in range(100):
+    if run(["bin/check-services"] + argv[1:]).returncode == 0:
+        exit()
+    sleep(0.1)
+
+exit(1)
