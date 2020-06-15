@@ -158,7 +158,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * Report a submission to the LMS, with the LMS-provided metadata needed for
    * later grading of the assignment.
    */
-  const reportSubmission = async () => {
+  const reportSubmission = useCallback(async () => {
     // If a teacher launches an assignment or the LMS does not support reporting
     // outcomes or grading is not enabled for the assignment, then no submission
     // URL will be available.
@@ -183,9 +183,9 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       // submission.
       handleError(e, 'error-report-submission', false);
     }
-  };
+  }, [authToken, canvas.speedGrader, contentUrl]);
 
-  useEffect(reportSubmission, [authToken, canvas.speedGrader, contentUrl]);
+  useEffect(reportSubmission, [reportSubmission]);
 
   /**
    * Request the user's authorization to access the content, then try fetching
