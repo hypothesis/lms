@@ -89,6 +89,16 @@ def oauth2_redirect(request):
     return {}
 
 
+# Stripped down version of `lms.resources._js_config.JSConfig` implementing
+# the interface used by the `base.html.jinja2` template.
+class JSConfig:
+    def __init__(self, config):
+        self.config = config
+
+    def asdict(self):
+        return self.config
+
+
 @exception_view_config(
     request_method="GET",
     route_name="canvas_oauth_callback",
@@ -99,9 +109,13 @@ def oauth2_redirect(request):
     route_name="canvas_api.authorize",
     renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
 )
-def oauth2_redirect_error(request):
-    template_variables = {
-        "invalid_scope": request.params.get("error") == "invalid_scope",
+def oauth2_redirect_error(context, request):
+    js_config = {
+        # Configure frontend app route.
+        "mode": "canvas-auth-error-dialog",
+
+        # Basic properties for the dialog.
+        "invalidScope": request.params.get("error") == "invalid_scope",
         "details": request.params.get("error_description"),
         "scopes": FILES_SCOPES + SECTIONS_SCOPES,
     }
@@ -110,8 +124,10 @@ def oauth2_redirect_error(request):
         authorization_param = BearerTokenSchema(request).authorization_param(
             request.lti_user
         )
-        template_variables["authorize_url"] = request.route_url(
+        js_config["authorizeUrl"] = request.route_url(
             "canvas_api.authorize", _query=[("authorization", authorization_param)],
         )
 
-    return template_variables
+    context.js_config = JSConfig(js_config)
+
+    return {}

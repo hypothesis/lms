@@ -1,76 +1,19 @@
 {% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
-  <div class="Dialog__background" style="z-index: 1;"></div>
-    <div class="Dialog__container" style="z-index: 2;">
-      <div class="Dialog__content">
-        {% if invalid_scope %}
-          <h1 class="Dialog__title">Developer Key Scopes Missing</h1>
-          <div class="ErrorDisplay">
-            <p>
-              A Canvas admin needs to edit Hypothesis's developer key and add these
-              scopes:
-            </p>
-
-            <ol>
-              {% for scope in scopes %}
-                <li><code>{{ scope }}</code></li>
-              {% endfor %}
-            </ol>
-
-            <p>For more information see:
-            <a target="_blank"
-              rel="noopener noreferrer"
-              href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
-            >Canvas API Endpoints Used by the Hypothesis LMS App</a>.
-            </p>
-          {% else %}
-            <h1 class="Dialog__title">Authorization Failed</h1>
-
-            <p>Something went wrong when authorizing Hypothesis.</p>
-          {% endif %}
-
-          <p>To get help from Hypothesis
-          <a href="mailto:support@hypothes.is?subject=Hypothesis%20LMS%20Support" target="_blank" rel="noopener noreferrer">send us an email</a>
-          or <a href="https://web.hypothes.is/get-help/" target="_blank" rel="noopener noreferrer">open a support ticket</a>.
-          You can also visit our <a href="https://web.hypothes.is/help/" target="_blank" rel="noopener noreferrer"> help documents</a>.</p>
-
-          {% if details %}
-            <details class="ErrorDisplay__details">
-              <summary class="ErrorDisplay__details-summary">Error Details</summary>
-              <p>The error message from Canvas was:</p>
-              <pre class="ErrorDisplay__details-content">{{ details }}</pre>
-            </details>
-          {% endif %}
-
-        <div class="u-stretch"></div>
-        <div class="Dialog__actions">
-          {% if authorize_url %}
-            <button class="Button Button--cancel" type="button"
-                    onclick="window.close()">
-              Cancel
-            </button>
-            <button class="Button"
-                    type="button"
-                    onclick="window.location.href = '{{ authorize_url }}'">
-              Try again
-            </button>
-          {% else %}
-            <button class="Button"
-                    type="button"
-                    onclick="window.close()">
-              Close
-            </button>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
+  {# The `Dialog__background` class avoids a brief flash-of-white as the frontend app loads. #}
+  <div className="Dialog__background" style="width: 100%; height: 100%;" id="app"></div>
 {% endblock %}
-
 
 {% block styles %}
   {% for url in  asset_urls("frontend_apps_css") %}
     <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% for url in asset_urls("frontend_apps_js") %}
+    <script async defer src="{{ url }}"></script>
   {% endfor %}
 {% endblock %}
