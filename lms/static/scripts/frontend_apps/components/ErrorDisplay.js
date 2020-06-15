@@ -1,5 +1,5 @@
 import propTypes from 'prop-types';
-import { createElement } from 'preact';
+import { Fragment, createElement } from 'preact';
 
 function emailLink({ address, subject = '', body = '' }) {
   return `mailto:${address}?subject=${encodeURIComponent(
@@ -48,9 +48,16 @@ ${details}
   return (
     // nb. Wrapper `<div>` here exists to apply block layout to contents.
     <div className="ErrorDisplay">
-      <p>
-        {message}: <i>{error.message}</i>
-      </p>
+      {message && (
+        <p>
+          {message}
+          {error.message && (
+            <Fragment>
+              : <i>{error.message}</i>
+            </Fragment>
+          )}
+        </p>
+      )}
       <p>
         If the problem persists{' '}
         <a href={supportLink} target="_blank" rel="noopener noreferrer">
@@ -90,8 +97,7 @@ ErrorDisplay.propTypes = {
   /**
    * A short message explaining that a problem happened.
    */
-  message: propTypes.oneOfType([propTypes.string, propTypes.element])
-    .isRequired,
+  message: propTypes.oneOfType([propTypes.string, propTypes.element]),
 
   /**
    * An `Error`-like object with details of the problem.
