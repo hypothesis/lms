@@ -84,7 +84,6 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
 
   const incFetchCount = () => {
     setFetchCount(count => count + 1);
-    setErrorState(null);
   };
 
   const decFetchCount = () => {
@@ -111,18 +110,20 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
    * Fetch the groups from the sync endpoint if `sync` object exists.
    */
   const fetchGroups = useCallback(async () => {
-    if (apiSync) {
-      try {
-        setErrorState(null);
-        const groups = await apiCall({
-          authToken,
-          path: apiSync.path,
-          data: apiSync.data,
-        });
-        clientRpc.setGroups(groups);
-      } catch (e) {
-        handleError(e, 'error-fetch');
-      }
+    if (!apiSync) {
+      return true;
+    }
+    try {
+      const groups = await apiCall({
+        authToken,
+        path: apiSync.path,
+        data: apiSync.data,
+      });
+      clientRpc.setGroups(groups);
+      return true;
+    } catch (e) {
+      handleError(e, 'error-fetch');
+      return false;
     }
   }, [apiSync, authToken, clientRpc]);
 
@@ -137,20 +138,23 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
-      return;
+      return true;
     }
+    let result;
+    incFetchCount();
     try {
-      incFetchCount();
       const { via_url: contentUrl } = await apiCall({
-        authToken,
+        authToken: authToken,
         path: viaCallbackUrl,
       });
       setContentUrl(contentUrl);
+      result = true;
     } catch (e) {
       handleError(e, 'error-fetch');
-    } finally {
-      decFetchCount();
+      result = false;
     }
+    decFetchCount();
+    return result;
   }, [authToken, viaCallbackUrl]);
 
   /**
@@ -211,7 +215,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
 
     try {
       await authWindow.current.authorize();
-      await Promise.all([fetchContentUrl(), fetchGroups()]);
+      const [fetchedContent, fetchedGroups] = await Promise.all([
+        fetchContentUrl(),
+        fetchGroups(),
+      ]);
+      if (fetchedContent && fetchedGroups) {
+        setErrorState(null);
+      }
     } finally {
       // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
@@ -271,6 +281,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
           role="alertdialog"
           buttons={[
             <Button
+              disabled={fetchCount > 0}
               buttonRef={focusedDialogButton}
               onClick={authorizeAndFetchUrl}
               className="BasicLtiLaunchApp__button"
@@ -290,6 +301,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
           role="alertdialog"
           buttons={[
             <Button
+              disabled={fetchCount > 0}
               buttonRef={focusedDialogButton}
               onClick={authorizeAndFetchUrl}
               className="BasicLtiLaunchApp__button"
