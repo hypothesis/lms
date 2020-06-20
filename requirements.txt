@@ -6,7 +6,7 @@
 #
 alembic==1.4.2            # via -r requirements.in
 attrs==19.3.0             # via jsonschema
-certifi==2020.4.5.2       # via requests, sentry-sdk
+certifi==2020.6.20        # via requests, sentry-sdk
 chardet==3.0.4            # via requests
 gunicorn==20.0.4          # via -r requirements.in
 h-api==1.0.0              # via -r requirements.in
