@@ -49,24 +49,22 @@ class PlainSchema(marshmallow.Schema):
 class PyramidRequestSchema(PlainSchema):
     """Base class for schemas that validate Pyramid requests."""
 
-    locations = None
+    location = None
     """
-    The locations where webargs should look for the parameters.
+    The location where webargs should look for the parameters.
 
-    If this is ``None`` then webargs's default locations will be used.
+    If this is ``None`` then webargs's default location will be used.
 
     Subclasses can override this to control where parameters are searched for::
 
         class MySchema(PyramidRequestSchema):
-            locations = ["form"]
+            location = "form"
 
             ...
 
     For the list of available locations see:
     https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations
     """
-
-    _parser = pyramidparser.PyramidParser()
 
     def __init__(self, request):
         super().__init__()
@@ -82,12 +80,15 @@ class PyramidRequestSchema(PlainSchema):
 
         :raise lms.validation.ValidationError: if the request isn't valid
         """
-        kwargs.setdefault("locations", self.locations)
-        return self._parser.parse(self, self.context["request"], *args, **kwargs)
+
+        parser = pyramidparser.PyramidParser(
+            location=kwargs.pop("location", self.location),
+            error_handler=self._handle_error,
+        )
+        return parser.parse(self, self.context["request"], *args, **kwargs)
 
     @staticmethod
-    @_parser.error_handler
-    def _handle_error(error, _req, _schema, _status_code, _headers):
+    def _handle_error(error, _req, _schema, *, error_status_code, error_headers):
         raise ValidationError(messages=error.messages) from error
 
 
@@ -97,7 +98,7 @@ class JSONPyramidRequestSchema(PyramidRequestSchema):
     def __init__(self, request):
         super().__init__(request)
 
-        self.locations = ["json"]
+        self.location = "json"
 
     @pre_load
     def check_content_type(self, data, **_):

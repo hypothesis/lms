@@ -1,4 +1,5 @@
 import base64
+from functools import partial
 
 from lms.validation import ValidationError
 from lms.validation.authentication import (
@@ -36,20 +37,21 @@ def get_lti_user(request):
 
     :rtype: models.LTIUser
     """
-    try:
-        return LaunchParamsAuthSchema(request).lti_user()
-    except ValidationError:
-        pass
+    bearer_token_schema = BearerTokenSchema(request)
 
-    try:
-        return BearerTokenSchema(request).lti_user()
-    except ValidationError:
-        pass
+    schemas = [
+        LaunchParamsAuthSchema(request).lti_user,
+        partial(bearer_token_schema.lti_user, location="headers"),
+        partial(bearer_token_schema.lti_user, location="querystring"),
+        partial(bearer_token_schema.lti_user, location="form"),
+        CanvasOAuthCallbackSchema(request).lti_user,
+    ]
 
-    try:
-        return CanvasOAuthCallbackSchema(request).lti_user()
-    except ValidationError:
-        return None
+    for schema in schemas:
+        try:
+            return schema()
+        except ValidationError:
+            pass
 
 
 def groupfinder(userid, request):

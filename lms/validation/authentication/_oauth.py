@@ -61,7 +61,7 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
     session so that it can't be reused.
     """
 
-    locations = ["querystring"]
+    location = "querystring"
     code = fields.Str(required=True)
     state = fields.Str(required=True)
 

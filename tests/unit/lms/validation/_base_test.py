@@ -19,14 +19,14 @@ class TestJSONPyramidRequestSchema:
             body=json.dumps(data),
             headers={"Content-Type": "application/json; charset=UTF-8"},
         )
-        request.content_type = "application/json"
+        request.content_type = request.headers["content-type"] = "application/json"
 
         assert self.ExampleSchema(request).parse() == data
 
     @pytest.mark.parametrize("content_type", (None, "text/html"))
     def test_it_fails_without_json_content_type_header(self, content_type):
         request = DummyRequest(body=json.dumps({}))
-        request.content_type = content_type
+        request.content_type = request.headers["content_type"] = content_type
 
         with pytest.raises(HTTPUnsupportedMediaType):
             self.ExampleSchema(request).parse()

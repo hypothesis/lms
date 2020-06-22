@@ -12,7 +12,7 @@ class GradingInfoService:
     class _ParamsSchema(PyramidRequestSchema):
         """Schema for the relevant parameters from the request."""
 
-        locations = ["form"]
+        location = "form"
         lis_result_sourcedid = fields.Str(required=True)
         lis_outcome_service_url = fields.Str(required=True)
         context_id = fields.Str(required=True)

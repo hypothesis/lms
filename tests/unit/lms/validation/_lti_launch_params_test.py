@@ -47,8 +47,10 @@ class TestBasicLTILaunchSchema:
             schema.parse()
 
         assert exc_info.value.messages == {
-            "launch_presentation_return_url": ["Not a valid URL."],
-            "resource_link_id": ["Missing data for required field."],
+            "form": {
+                "launch_presentation_return_url": ["Not a valid URL."],
+                "resource_link_id": ["Missing data for required field."],
+            },
         }
 
     @pytest.mark.parametrize(
@@ -93,9 +95,9 @@ class TestBasicLTILaunchSchema:
         with pytest.raises(LTIToolRedirect) as exc_info:
             schema.parse()
 
-        assert exc_info.value.location == (
-            "http://example.com"
-            f"?lti_msg=Field+%27{required_param}%27%3A+Missing+data+for+required+field."
+        assert (
+            exc_info.value.location
+            == f"http://example.com?lti_msg=Field+%27{required_param}%27%3A+Missing+data+for+required+field."
         )
 
     @pytest.mark.parametrize(
@@ -162,9 +164,9 @@ class TestURLConfiguredBasicLTILaunchSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == dict(
-            [("url", ["Missing data for required field."])]
-        )
+        assert exc_info.value.messages == {
+            "form": {"url": ["Missing data for required field."],},
+        }
 
     @pytest.fixture
     def set_url(self, pyramid_request):
@@ -203,9 +205,9 @@ class TestContentItemSelectionLTILaunchSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == dict(
-            ((missing_param, ["Missing data for required field."]),)
-        )
+        assert exc_info.value.messages == {
+            "form": {missing_param: ["Missing data for required field."]},
+        }
 
     @pytest.mark.parametrize(
         "invalid_params,expected_error_messages",
@@ -228,7 +230,7 @@ class TestContentItemSelectionLTILaunchSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == expected_error_messages
+        assert exc_info.value.messages == {"form": expected_error_messages}
 
     @pytest.fixture
     def valid_params(self):
@@ -246,7 +248,9 @@ class TestContentItemSelectionLTILaunchSchema:
             "lis_person_name_full": "test_lis_person_name_full",
             "lis_person_name_family": "test_lis_person_name_family",
             "lis_person_name_given": "test_lis_person_name_given",
-            "tool_consumer_info_product_family_code": "test_tool_consumer_info_product_family_code",
+            "tool_consumer_info_product_family_code": (
+                "test_tool_consumer_info_product_family_code"
+            ),
         }
 
     @pytest.fixture

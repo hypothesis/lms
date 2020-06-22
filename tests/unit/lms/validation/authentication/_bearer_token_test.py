@@ -24,7 +24,7 @@ class TestBearerTokenSchema:
     def test_it_deserializes_lti_users_from_authorization_headers(
         self, lti_user, schema, _jwt
     ):
-        assert schema.lti_user() == lti_user
+        assert schema.lti_user(location="headers") == lti_user
         _jwt.decode_jwt.assert_called_once_with(
             _jwt.encode_jwt.return_value, "test_secret"
         )
@@ -39,62 +39,66 @@ class TestBearerTokenSchema:
         ]
         del pyramid_request.headers["authorization"]
 
-        assert schema.lti_user() == lti_user
+        assert schema.lti_user(location="query") == lti_user
 
     def test_it_raises_if_theres_no_authorization_param(self, schema, pyramid_request):
         del pyramid_request.headers["authorization"]
 
         with pytest.raises(MissingSessionTokenError) as exc_info:
-            schema.lti_user()
+            schema.lti_user(location="headers")
 
         assert exc_info.value.messages == {
-            "authorization": ["Missing data for required field."]
+            "headers": {"authorization": ["Missing data for required field."]},
         }
 
     def test_it_raises_if_the_jwt_has_expired(self, schema, _jwt):
         _jwt.decode_jwt.side_effect = ExpiredJWTError()
 
         with pytest.raises(ExpiredSessionTokenError) as exc_info:
-            schema.lti_user()
+            schema.lti_user("headers")
 
-        assert exc_info.value.messages == {"authorization": ["Expired session token"]}
+        assert exc_info.value.messages == {
+            "headers": {"authorization": ["Expired session token"]}
+        }
 
     def test_it_raises_if_the_jwt_is_invalid(self, schema, _jwt):
         _jwt.decode_jwt.side_effect = InvalidJWTError()
 
         with pytest.raises(InvalidSessionTokenError) as exc_info:
-            schema.lti_user()
+            schema.lti_user("headers")
 
-        assert exc_info.value.messages == {"authorization": ["Invalid session token"]}
+        assert exc_info.value.messages == {
+            "headers": {"authorization": ["Invalid session token"]}
+        }
 
     def test_it_raises_if_the_user_id_param_is_missing(self, schema, _jwt):
         del _jwt.decode_jwt.return_value["user_id"]
 
         with pytest.raises(ValidationError) as exc_info:
-            schema.lti_user()
+            schema.lti_user("headers")
 
         assert exc_info.value.messages == {
-            "user_id": ["Missing data for required field."]
+            "headers": {"user_id": ["Missing data for required field."]},
         }
 
     def test_it_raises_if_the_oauth_consumer_key_param_is_missing(self, schema, _jwt):
         del _jwt.decode_jwt.return_value["oauth_consumer_key"]
 
         with pytest.raises(ValidationError) as exc_info:
-            schema.lti_user()
+            schema.lti_user("headers")
 
         assert exc_info.value.messages == {
-            "oauth_consumer_key": ["Missing data for required field."]
+            "headers": {"oauth_consumer_key": ["Missing data for required field."]},
         }
 
     def test_it_raises_if_the_roles_param_is_missing(self, schema, _jwt):
         del _jwt.decode_jwt.return_value["roles"]
 
         with pytest.raises(ValidationError) as exc_info:
-            schema.lti_user()
+            schema.lti_user("headers")
 
         assert exc_info.value.messages == {
-            "roles": ["Missing data for required field."]
+            "headers": {"roles": ["Missing data for required field."]},
         }
 
     def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
@@ -104,7 +108,7 @@ class TestBearerTokenSchema:
         assert deserialized == lti_user
 
     def test_parse_via_webargs_api(self, lti_user, schema, pyramid_request):
-        deserialized = parser.parse(schema, pyramid_request, locations=["headers"])
+        deserialized = parser.parse(schema, pyramid_request, location="headers")
 
         assert deserialized == lti_user
 

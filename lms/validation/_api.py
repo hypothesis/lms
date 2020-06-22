@@ -36,7 +36,7 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
 class APIReadResultSchema(PyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for reading grades."""
 
-    locations = ["query"]
+    location = "query"
 
     lis_outcome_service_url = fields.Str(required=True)
     """URL provided by the LMS to submit grades or other results to."""
