@@ -6,6 +6,6 @@ services:
       - '127.0.0.1:5433:5432'
     healthcheck:
         test: ["CMD", "pg_isready", "-U", "postgres"]
-        interval: 0.1s
+        interval: 1s
         timeout: 1s
-        retries: 10
+        retries: 1
