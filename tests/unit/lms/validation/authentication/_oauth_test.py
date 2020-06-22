@@ -76,7 +76,9 @@ class TestCanvasOauthCallbackSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == {"code": ["Missing data for required field."]}
+        assert exc_info.value.messages == {
+            "querystring": {"code": ["Missing data for required field."]}
+        }
 
     def test_it_raises_if_the_state_is_missing(self, schema, pyramid_request):
         del pyramid_request.params["state"]
@@ -85,7 +87,7 @@ class TestCanvasOauthCallbackSchema:
             schema.parse()
 
         assert exc_info.value.messages == {
-            "state": ["Missing data for required field."]
+            "querystring": {"state": ["Missing data for required field."]},
         }
 
     def test_it_raises_if_the_state_jwt_is_expired(self, schema, _jwt):
@@ -112,7 +114,9 @@ class TestCanvasOauthCallbackSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == {"state": ["Invalid CSRF token"]}
+        assert exc_info.value.messages == {
+            "querystring": {"state": ["Invalid CSRF token"]}
+        }
 
     def test_it_raises_if_theres_no_csrf_token_in_the_session(
         self, schema, pyramid_request
@@ -122,7 +126,9 @@ class TestCanvasOauthCallbackSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == {"state": ["Invalid CSRF token"]}
+        assert exc_info.value.messages == {
+            "querystring": {"state": ["Invalid CSRF token"]}
+        }
 
     def test_it_removes_the_csrf_token_from_the_session(self, schema, pyramid_request):
         schema.parse()

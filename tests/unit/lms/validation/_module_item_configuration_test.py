@@ -19,9 +19,9 @@ class TestConfigureModuleItemSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == dict(
-            [(param, ["Missing data for required field."])]
-        )
+        assert exc_info.value.messages == {
+            "form": {param: ["Missing data for required field."]},
+        }
 
     @pytest.fixture
     def pyramid_request(self):

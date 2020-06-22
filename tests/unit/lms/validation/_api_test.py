@@ -146,7 +146,9 @@ class TestAPIRecordResultSchema:
 @pytest.fixture
 def json_request(pyramid_request):
     def _make_json_request(data, exclude=None):
-        pyramid_request.content_type = "application/json"
+        pyramid_request.content_type = pyramid_request.headers[
+            "content-type"
+        ] = "application/json"
 
         if exclude:
             for field in exclude:

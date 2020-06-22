@@ -41,7 +41,9 @@ class TestLaunchParamsAuthSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.lti_user()
 
-        assert exc_info.value.messages == {"_schema": ["Invalid OAuth 1 signature."]}
+        assert exc_info.value.messages == {
+            "form": {"_schema": ["Invalid OAuth 1 signature."]}
+        }
 
     @pytest.mark.parametrize(
         "missing_param",
@@ -65,9 +67,9 @@ class TestLaunchParamsAuthSchema:
         with pytest.raises(HTTPUnprocessableEntity) as exc_info:
             schema.lti_user()
 
-        assert exc_info.value.messages == dict(
-            [(missing_param, ["Missing data for required field."])]
-        )
+        assert exc_info.value.messages == {
+            "form": {missing_param: ["Missing data for required field."]},
+        }
 
     @pytest.fixture
     def schema(self, pyramid_request):

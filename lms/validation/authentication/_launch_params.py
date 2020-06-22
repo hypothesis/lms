@@ -18,7 +18,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         >>> from webargs.pyramidparser import parser
         >>>
         >>> schema = LaunchParamsAuthSchema(request)
-        >>> parsed_params = parser.parse(schema, request, locations=["form"])
+        >>> parsed_params = parser.parse(schema, request, location="form")
 
     Or to verify the request and get an models.LTIUser
     from the request's params::
@@ -55,7 +55,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
         :rtype: LTIUser
         """
-        kwargs = self.parse(locations=["form"])
+        kwargs = self.parse(location="form")
 
         return LTIUser(
             user_id=kwargs["user_id"],

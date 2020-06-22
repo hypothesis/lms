@@ -82,7 +82,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         """
         return self.dump(lti_user)["authorization"]
 
-    def lti_user(self):
+    def lti_user(self, location):
         """
         Return an models.LTIUser from the request's authorization param.
 
@@ -111,10 +111,12 @@ class BearerTokenSchema(PyramidRequestSchema):
         :rtype: LTIUser
         """
         try:
-            return self.parse(locations=["headers", "querystring", "form"])
+            return self.parse(location=location)
         except ValidationError as error:
             try:
-                authorization_error_message = error.messages["authorization"][0]
+                authorization_error_message = error.messages[location]["authorization"][
+                    0
+                ]
             except KeyError:
                 exc_class = ValidationError
             else:
@@ -148,12 +150,12 @@ class BearerTokenSchema(PyramidRequestSchema):
 
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
-        try:
-            jwt = data["authorization"][len("Bearer ") :]
-        except KeyError:
+        if data["authorization"] == marshmallow.missing:
             raise marshmallow.ValidationError(
                 "Missing data for required field.", "authorization"
             )
+
+        jwt = data["authorization"][len("Bearer ") :]
 
         try:
             return _jwt.decode_jwt(jwt, self.context["secret"])

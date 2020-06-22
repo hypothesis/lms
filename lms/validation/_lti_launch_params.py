@@ -10,7 +10,7 @@ from lms.validation._exceptions import LTIToolRedirect
 class _CommonLTILaunchSchema(PyramidRequestSchema):
     """Fields common to different types of LTI launches."""
 
-    locations = ["form"]
+    location = "form"
 
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)

@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 import pytest
 
 from lms.authentication._helpers import authenticated_userid, get_lti_user, groupfinder
@@ -30,7 +32,7 @@ class TestAuthenticatedUserID:
 
 
 class TestGetLTIUser:
-    def test_it_returns_the_LTIUser_from_LaunchParamsAuthSchema(
+    def test_it_returns_the_LTIUsers_from_LTI_launch_params(
         self,
         bearer_token_schema,
         LaunchParamsAuthSchema,
@@ -47,7 +49,7 @@ class TestGetLTIUser:
         launch_params_auth_schema.lti_user.assert_called_once_with()
         assert lti_user == launch_params_auth_schema.lti_user.return_value
 
-    def test_if_LaunchParamsAuthSchema_fails_it_falls_back_on_BearerTokenSchema(
+    def test_it_returns_LTIUsers_from_authorization_headers(
         self,
         launch_params_auth_schema,
         BearerTokenSchema,
@@ -61,10 +63,53 @@ class TestGetLTIUser:
         lti_user = get_lti_user(pyramid_request)
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
-        bearer_token_schema.lti_user.assert_called_once_with()
+        bearer_token_schema.lti_user.assert_called_once_with(location="headers")
         assert lti_user == bearer_token_schema.lti_user.return_value
 
-    def test_if_LaunchParamsAuthSchema_and_BearerTokenSchema_fails_it_falls_back_on_CanvasOAuthCallbackSchema(
+    def test_it_returns_LTIUsers_from_authorization_query_string_params(
+        self, launch_params_auth_schema, bearer_token_schema, pyramid_request,
+    ):
+        launch_params_auth_schema.lti_user.side_effect = ValidationError(
+            ["TEST_ERROR_MESSAGE"]
+        )
+        lti_user = factories.LTIUser()
+        bearer_token_schema.lti_user.side_effect = [
+            ValidationError(["TEST_ERROR_MESSAGE"]),
+            lti_user,
+            ValidationError(["TEST_ERROR_MESSAGE"]),
+        ]
+
+        returned_lti_user = get_lti_user(pyramid_request)
+
+        assert bearer_token_schema.lti_user.call_args_list == [
+            call(location="headers"),
+            call(location="querystring"),
+        ]
+        assert returned_lti_user == lti_user
+
+    def test_it_returns_LTIUsers_from_authorization_form_fields(
+        self, launch_params_auth_schema, bearer_token_schema, pyramid_request,
+    ):
+        launch_params_auth_schema.lti_user.side_effect = ValidationError(
+            ["TEST_ERROR_MESSAGE"]
+        )
+        lti_user = factories.LTIUser()
+        bearer_token_schema.lti_user.side_effect = [
+            ValidationError(["TEST_ERROR_MESSAGE"]),
+            ValidationError(["TEST_ERROR_MESSAGE"]),
+            lti_user,
+        ]
+
+        returned_lti_user = get_lti_user(pyramid_request)
+
+        assert bearer_token_schema.lti_user.call_args_list == [
+            call(location="headers"),
+            call(location="querystring"),
+            call(location="form"),
+        ]
+        assert returned_lti_user == lti_user
+
+    def test_it_returns_LTIUsers_from_OAuth2_state_params(
         self,
         launch_params_auth_schema,
         bearer_token_schema,
