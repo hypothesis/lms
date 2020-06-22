@@ -7,5 +7,3 @@ services:
     healthcheck:
         test: ["CMD", "pg_isready", "-U", "postgres"]
         interval: 1s
-        timeout: 1s
-        retries: 1
