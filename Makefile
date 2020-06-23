@@ -3,6 +3,7 @@ help:
 	@echo "make help              Show this help message"
 	@echo 'make services          Run the services that `make dev` requires'
 	@echo "                       (Postgres) in Docker"
+	@echo 'make db                Upgrade the DB schema to the latest version'
 	@echo "make dev               Run the entire app (web server and other processes)"
 	@echo "make web               Run the web server on its own (useful for debugging the "
 	@echo "                       Python code with pdb)"
@@ -30,6 +31,12 @@ help:
 services: args?=up -d
 services: python
 	@tox -qe docker-compose -- $(args)
+
+.PHONY: db
+db: args?=upgrade head
+db: python
+	@tox -qqe dev --run-command 'initdb conf/development.ini'
+	@tox -qe dev --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
 dev: build/manifest.json python
