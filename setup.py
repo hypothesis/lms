@@ -24,5 +24,6 @@ setup(
     entry_points="""\
     [console_scripts]
     devdata = lms.scripts:devdata
+    initdb = lms.scripts:initdb
     """,
 )
