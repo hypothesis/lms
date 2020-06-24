@@ -116,6 +116,10 @@ export default function LMSFilePicker({
   return (
     <Dialog
       contentClass="LMSFilePicker__dialog"
+      size={{
+        width: 700,
+        height: 300,
+      }}
       title={title}
       onCancel={cancel}
       buttons={[

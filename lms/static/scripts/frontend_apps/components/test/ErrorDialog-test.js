@@ -22,4 +22,13 @@ describe('ErrorDialog', () => {
       error: err,
     });
   });
+
+  it('passes the `size` prop to the Dialog', () => {
+    const err = new Error('Something went wrong');
+    const sizes = { width: 100, height: 100 };
+    const wrapper = mount(
+      <ErrorDialog title="Oh no!" error={err} size={sizes} />
+    );
+    assert.equal(wrapper.find('Dialog').prop('size'), sizes);
+  });
 });

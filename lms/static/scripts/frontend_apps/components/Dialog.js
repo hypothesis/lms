@@ -33,6 +33,10 @@ export default function Dialog({
   role = 'dialog',
   title,
   buttons,
+  size = {
+    width: null,
+    height: null,
+  },
 }) {
   const dialogTitleId = useUniqueId('dialog');
   const rootEl = useRef();
@@ -57,6 +61,15 @@ export default function Dialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const containerStyle = {};
+
+  if (size.width) {
+    containerStyle.width = size.width;
+  }
+  if (size.height) {
+    containerStyle.height = size.height;
+  }
+
   return (
     <div
       role={role}
@@ -70,7 +83,10 @@ export default function Dialog({
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div className={classNames('Dialog__content', contentClass)}>
+        <div
+          style={containerStyle}
+          className={classNames('Dialog__content', contentClass)}
+        >
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />
@@ -141,4 +157,14 @@ Dialog.propTypes = {
    * a "Cancel" button will be displayed.
    */
   onCancel: propTypes.func,
+
+  /**
+   * Force a width or a height or both on the dialog's content.
+   * This can be used to keep dialogs a consistent size relative
+   * to one another.
+   */
+  size: propTypes.shape({
+    height: propTypes.oneOfType([propTypes.string, propTypes.number]),
+    width: propTypes.oneOfType([propTypes.string, propTypes.number]),
+  }),
 };

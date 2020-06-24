@@ -204,6 +204,10 @@ export default function FilePickerApp({
           title={errorInfo.title}
           error={errorInfo.error}
           onCancel={() => setErrorInfo(null)}
+          size={{
+            width: 700,
+            heigh: 300,
+          }}
         />
       )}
     </main>

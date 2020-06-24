@@ -101,6 +101,32 @@ describe('Dialog', () => {
     container.remove();
   });
 
+  context('with `size` prop', () => {
+    it('sets a width on the dialog content', () => {
+      const wrapper = mount(<Dialog size={{ width: 100 }} />);
+      assert.equal(
+        wrapper.find('.Dialog__content').getDOMNode().style.width,
+        '100px'
+      );
+      assert.equal(
+        wrapper.find('.Dialog__content').getDOMNode().style.height,
+        ''
+      );
+    });
+
+    it('sets a height on the dialog content', () => {
+      const wrapper = mount(<Dialog size={{ height: 100 }} />);
+      assert.equal(
+        wrapper.find('.Dialog__content').getDOMNode().style.height,
+        '100px'
+      );
+      assert.equal(
+        wrapper.find('.Dialog__content').getDOMNode().style.width,
+        ''
+      );
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

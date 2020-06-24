@@ -27,6 +27,10 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       onCancel={onCancel}
       buttons={[<Button key="submit" label="Submit" onClick={submit} />]}
       initialFocus={input}
+      size={{
+        width: 700,
+        height: 300,
+      }}
     >
       <p>Enter the URL of any publicly available web page or PDF.</p>
       <form ref={form} className="u-flex-row" onSubmit={submit}>

@@ -236,6 +236,11 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     iFrameWrapper = iFrame;
   }
 
+  const dialogSize = {
+    width: 500,
+    height: 200,
+  };
+
   const content = (
     <span
       // Visually hide the iframe / grader if there is an error or no contentUrl.
@@ -253,6 +258,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         <Dialog
           title="Authorize Hypothesis"
           role="alertdialog"
+          size={dialogSize}
           buttons={[
             <Button
               onClick={authorizeAndFetchUrl}
@@ -270,6 +276,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
           title="Something went wrong"
           contentClass="BasicLtiLaunchApp__dialog"
           role="alertdialog"
+          size={dialogSize}
           buttons={[
             <Button
               onClick={authorizeAndFetchUrl}
@@ -290,6 +297,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
           title="Something went wrong"
           contentClass="BasicLtiLaunchApp__dialog"
           role="alertdialog"
+          size={dialogSize}
         >
           <ErrorDisplay
             message="There was a problem submitting this Hypothesis assignment"
