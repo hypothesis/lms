@@ -1,4 +1,3 @@
-from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -70,7 +69,7 @@ class TestAuthorize:
         self.assert_file_scopes_only(authorize.authorize(pyramid_request))
 
     def test_it_includes_the_state_in_a_query_param(
-        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema,
+        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
     ):
         response = authorize.authorize(pyramid_request)
 
@@ -132,71 +131,22 @@ class TestOAuth2Redirect:
 
 
 class TestOAuth2RedirectError:
-    def test_it_passes_authorize_url_to_the_template(
-        self, BearerTokenSchema, bearer_token_schema, pyramid_request
-    ):
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-
-        BearerTokenSchema.assert_called_once_with(pyramid_request)
-        bearer_token_schema.authorization_param.assert_called_once_with(
-            pyramid_request.lti_user
-        )
-        assert (
-            template_variables["authorize_url"]
-            == "http://example.com/api/canvas/authorize?authorization=TEST_AUTHORIZATION_PARAM"
-        )
-
-    def test_it_doesnt_pass_authorize_url_if_theres_no_authorized_user(
-        self, pyramid_request
-    ):
-        pyramid_request.lti_user = None
-
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-
-        assert "authorize_url" not in template_variables
-
     @pytest.mark.parametrize(
         "params,invalid_scope",
         [
             ({"error": "invalid_scope"}, True),
             ({"error": "unknown_error"}, False),
             ({"foo": "bar"}, False),
+            ({"error_description": "Something went wrong"}, False),
         ],
     )
-    def test_it_tells_the_template_whether_to_show_the_missing_scopes_error_message(
-        self, pyramid_request, params, invalid_scope
+    def test_it_configures_frontend_app(
+        self, pyramid_request, params, invalid_scope, FrontendAppResource
     ):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
 
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-
-        assert template_variables["invalid_scope"] == invalid_scope
-
-    @pytest.mark.parametrize(
-        "params,expected_details",
-        [
-            (
-                {"error_description": mock.sentinel.error_description},
-                mock.sentinel.error_description,
-            ),
-            ({"foo": "bar"}, None),
-        ],
-    )
-    def test_it_passes_error_descriptions_from_Canvas_to_the_template(
-        self, pyramid_request, params, expected_details
-    ):
-        pyramid_request.params.clear()
-        pyramid_request.params.update(params)
-
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-
-        assert template_variables["details"] == expected_details
-
-    def test_it_passes_our_required_API_scopes_to_the_template(self, pyramid_request):
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-
-        assert template_variables["scopes"] == (
+        scopes = (
             "url:GET|/api/v1/courses/:course_id/files",
             "url:GET|/api/v1/files/:id/public_url",
             "url:GET|/api/v1/courses/:id",
@@ -204,17 +154,19 @@ class TestOAuth2RedirectError:
             "url:GET|/api/v1/courses/:course_id/users/:id",
         )
 
+        template_variables = authorize.oauth2_redirect_error(pyramid_request)
+        context = FrontendAppResource.return_value
 
-@pytest.fixture(autouse=True)
-def BearerTokenSchema(patch):
-    return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
+        assert template_variables["context"] == context
+        context.js_config.enable_oauth_error_mode.assert_called_with(
+            error_details=params.get("error_description"),
+            is_scope_invalid=invalid_scope,
+            requested_scopes=scopes,
+        )
 
-
-@pytest.fixture
-def bearer_token_schema(BearerTokenSchema):
-    schema = BearerTokenSchema.return_value
-    schema.authorization_param.return_value = "TEST_AUTHORIZATION_PARAM"
-    return schema
+    @pytest.fixture(autouse=True)
+    def FrontendAppResource(self, patch):
+        return patch("lms.views.api.canvas.authorize.FrontendAppResource")
 
 
 @pytest.fixture(autouse=True)

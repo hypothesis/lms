@@ -11,6 +11,9 @@ class FrontendAppResource:
     resources.
     """
 
+    def __init__(self, request):
+        self._request = request
+
     @property
     @functools.lru_cache()
     def js_config(self):
