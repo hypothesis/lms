@@ -36,6 +36,7 @@ class BasicLTILaunchViews:
         self.request = request
         self.course_service = request.find_service(name="course")
 
+        self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
     def sync_lti_data_to_h(self):
