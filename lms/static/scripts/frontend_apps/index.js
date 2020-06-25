@@ -6,7 +6,7 @@ import { createElement, render } from 'preact';
 
 import { Config } from './config';
 import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
-import CanvasAuthErrorDialog from './components/CanvasAuthErrorDialog';
+import CanvasAuthErrorApp from './components/CanvasAuthErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import { startRpcServer } from '../postmessage_json_rpc/server';
 
@@ -25,14 +25,7 @@ render(
       <BasicLtiLaunchApp rpcServer={rpcServer} />
     )}
     {config.mode === 'content-item-selection' && <FilePickerApp />}
-    {config.mode === 'canvas-auth-error-dialog' && (
-      <CanvasAuthErrorDialog
-        authorizeUrl={config.authorizeUrl}
-        details={config.details}
-        invalidScope={config.invalidScope}
-        scopes={config.scopes}
-      />
-    )}
+    {config.mode === 'canvas-auth-error-dialog' && <CanvasAuthErrorApp />}
   </Config.Provider>,
   rootEl
 );
