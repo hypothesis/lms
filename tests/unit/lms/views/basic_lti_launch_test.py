@@ -92,6 +92,11 @@ def configure_module_item_caller(context, pyramid_request):
 class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
+    def test_it_sets_frontend_app_mode(self, context, pyramid_request):
+        BasicLTILaunchViews(context, pyramid_request)
+
+        context.js_config.enable_lti_launch_mode.assert_called_once_with()
+
     def test_it_sets_the_focused_user(self, context, pyramid_request):
         BasicLTILaunchViews(context, pyramid_request)
 
