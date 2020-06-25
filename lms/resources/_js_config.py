@@ -16,16 +16,19 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
     def __init__(self, context, request):
         self._context = context
         self._request = request
-        self._lti_user = request.lti_user
-        self._h_user = request.lti_user.h_user
-        self._consumer_key = (
-            request.lti_user.oauth_consumer_key if request.lti_user else None
-        )
         self._authority = request.registry.settings["h_authority"]
-
         self._grading_info_service = request.find_service(name="grading_info")
-        self._ai_getter = request.find_service(name="ai_getter")
         self._h_api = request.find_service(name="h_api")
+
+        self._lti_user = request.lti_user
+        if self._lti_user:
+            self._h_user = self._lti_user.h_user
+            self._consumer_key = self._lti_user.oauth_consumer_key
+            self._ai_getter = request.find_service(name="ai_getter")
+        else:
+            self._h_user = None
+            self._consumer_key = None
+            self._ai_getter = None
 
     def add_canvas_file_id(self, canvas_file_id):
         """
@@ -59,6 +62,46 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         :rtype: dict
         """
         return self._config
+
+    def enable_oauth_error_mode(
+        self, error_details, is_scope_invalid=False, requested_scopes=None
+    ):
+        """
+        Put the JavaScript code into "OAuth authorization failed" mode.
+
+        This mini-app is shown when OAuth authorization with Canvas fails
+        after redirecting to Canvas's OAuth authorization endpoint.
+
+        :param error_details: Technical details of the error
+        :type error_details: str
+        :param is_scope_invalid: `True` if authorization failed because the
+          OAuth client does not have access to all the necessary scopes
+        :type is_scope_invalid: bool
+        :param requested_scopes: List of Canvas API scopes that were requested
+        :type requested_scopes: list(str)
+        """
+        self._config.update(
+            {
+                "mode": "canvas-auth-error-dialog",
+                "invalidScope": is_scope_invalid,
+                "errorDetails": error_details,
+                "scopes": requested_scopes or [],
+            }
+        )
+
+    def enable_lti_launch_mode(self):
+        self._config["mode"] = "basic-lti-launch"
+
+        self._config["api"]["sync"] = self._sync_api()
+
+        # The config object for the Hypothesis client.
+        # Our JSON-RPC server passes this to the Hypothesis client over
+        # postMessage.
+        self._config["hypothesisClient"] = self._hypothesis_client
+
+        self._config["rpcServer"] = {
+            "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
+        }
 
     def enable_content_item_selection_mode(self, form_action, form_fields):
         """
@@ -200,7 +243,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "lis_outcome_service_url": lis_outcome_service_url,
                 "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
                 **kwargs,
-            },
+            }
         }
 
     def _auth_token(self):
@@ -229,6 +272,10 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         """
         Return the current configuration dict.
 
+        This method populates the default parameters used by all frontend
+        apps. The `enable_xxx_mode` methods configures the specific parameters
+        needed by a particular frontend mode.
+
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
 
@@ -244,14 +291,13 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         # mutable. You can do self._config["foo"] = "bar" and the mutation will
         # be preserved.
 
-        return {
+        config = {
             # Settings to do with the API that the backend provides for the
             # frontend to call.
             "api": {
                 # The auth token that the JavaScript code will use to
                 # authenticate itself to the API.
-                "authToken": self._auth_token(),
-                "sync": self._sync_api(),
+                "authToken": self._auth_token()
             },
             # The URL that the JavaScript code will open if it needs the user to
             # authorize us to request a new Canvas access token.
@@ -259,34 +305,25 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
             "canvas": {
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new Canvas access token.
-                "authUrl": self._request.route_url("canvas_api.authorize"),
+                "authUrl": self._request.route_url("canvas_api.authorize")
             },
             # Some debug information, currently used in the Gherkin tests.
-            "debug": {
-                "tags": [
-                    "role:instructor"
-                    if self._lti_user.is_instructor
-                    else "role:learner"
-                ],
-            },
+            "debug": {"tags": []},
             # Tell the JavaScript code whether we're in "dev" mode.
             "dev": self._request.registry.settings["dev"],
-            # The config object for the Hypothesis client.
-            # Our JSON-RPC server passes this to the Hypothesis client over
-            # postMessage.
-            "hypothesisClient": self._hypothesis_client,
             # What "mode" to put the JavaScript code in.
             # For example in "basic-lti-launch" mode the JavaScript code
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
-            "mode": "basic-lti-launch",
-            # The config object for our JSON-RPC server.
-            "rpcServer": {
-                "allowedOrigins": self._request.registry.settings[
-                    "rpc_allowed_origins"
-                ],
-            },
+            "mode": None,
         }
+
+        if self._lti_user:
+            config["debug"]["tags"].append(
+                "role:instructor" if self._lti_user.is_instructor else "role:learner"
+            )
+
+        return config
 
     def _get_students(self):
         """
@@ -388,7 +425,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "lms": {
                     "tool_consumer_instance_guid": req.params[
                         "tool_consumer_instance_guid"
-                    ],
+                    ]
                 },
                 "course": {
                     "context_id": req.params["context_id"],
@@ -404,7 +441,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
         if "learner_canvas_user_id" in req.params:
             sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
+                "canvas_user_id": req.params["learner_canvas_user_id"]
             }
 
         return sync_api_config
