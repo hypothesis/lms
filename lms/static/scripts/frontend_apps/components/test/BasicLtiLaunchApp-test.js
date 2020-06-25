@@ -242,6 +242,16 @@ describe('BasicLtiLaunchApp', () => {
         );
       });
     });
+
+    it('shows an unrecoverable error dialog if the request returns a 500 error', async () => {
+      fakeApiCall.rejects(new ApiError(500, {}));
+      const wrapper = renderLtiLaunchApp();
+      await waitForElement(wrapper, 'FakeDialog');
+      assert.equal(
+        wrapper.find('ErrorDisplay').prop('message'),
+        'There was an unrecoverable problem with the server'
+      );
+    });
   });
 
   describe('speed grader config', () => {
@@ -270,7 +280,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('displays an error if reporting the submission fails', async () => {
-      const error = new ApiError(400, {});
+      const error = new ApiError(400, { error_message: 'Server error' });
       fakeApiCall.rejects(error);
 
       const wrapper = renderLtiLaunchApp();

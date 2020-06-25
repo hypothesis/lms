@@ -51,7 +51,8 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
   } = useContext(Config);
 
   // The current state of the error.
-  // One of "error-fetch", "error-authorizing", or "error-report-submission" or null
+  // One of "error-fetch", "error-authorizing", "error-report-submission",
+  // "error-unrecoverable" or null
   const [errorState, setErrorState] = useState(null);
 
   // Any current error thrown.
@@ -87,12 +88,13 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * Helper to handle thrown errors from from API requests.
    *
    * @param {Error} e - Error object from request.
-   * @param {string} newErrorState - One of "error-fetch",
-   *  "error-authorizing", or "error-report-submission"
-   * @param {boolean} [retry=true] - Can the request be retried?
+   * @param {string} newErrorState - One of "error-fetch" or "error-report-submission"
    */
-  const handleError = (e, newErrorState, retry = true) => {
-    if (e instanceof ApiError && !e.errorMessage && retry) {
+  const handleError = (e, newErrorState) => {
+    if (e.status === 500) {
+      setError(e);
+      setErrorState('error-unrecoverable');
+    } else if (e instanceof ApiError && !e.errorMessage) {
       setErrorState('error-authorizing');
     } else {
       setError(e);
@@ -107,6 +109,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     if (apiSync) {
       try {
         setErrorState(null);
+
         const groups = await apiCall({
           authToken,
           path: apiSync.path,
@@ -138,6 +141,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         authToken,
         path: viaCallbackUrl,
       });
+
       setContentUrl(contentUrl);
     } catch (e) {
       handleError(e, 'error-fetch');
@@ -180,8 +184,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       // If reporting the submission failed, replace the content with an error.
       // This avoids the student trying to complete the assignment without
       // knowing that there was a problem, and the teacher then not seeing a
-      // submission.
-      handleError(e, 'error-report-submission', false);
+      handleError(e, 'error-report-submission');
     }
   }, [authToken, canvas.speedGrader, contentUrl]);
 
@@ -293,6 +296,19 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
         >
           <ErrorDisplay
             message="There was a problem submitting this Hypothesis assignment"
+            error={error}
+          />
+          <b>To fix this problem, try reloading the page.</b>
+        </Dialog>
+      )}
+      {errorState === 'error-unrecoverable' && (
+        <Dialog
+          title="Something went wrong"
+          contentClass="BasicLtiLaunchApp__dialog"
+          role="alertdialog"
+        >
+          <ErrorDisplay
+            message="There was an unrecoverable problem with the server"
             error={error}
           />
           <b>To fix this problem, try reloading the page.</b>
