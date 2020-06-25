@@ -1,5 +1,7 @@
 import { Fragment, createElement } from 'preact';
-import propTypes from 'prop-types';
+import { useContext } from 'preact/hooks';
+
+import { Config } from '../config';
 
 import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
@@ -9,30 +11,32 @@ import Dialog from './Dialog';
  * Error dialog displayed when authorization of Canvas API access via OAuth
  * fails.
  */
-export default function CanvasAuthErrorDialog({
-  details,
-  invalidScope,
-  scopes,
-  authorizeUrl,
-}) {
+export default function CanvasAuthErrorApp() {
+  const {
+    authUrl,
+    invalidScope = false,
+    errorDetails = '',
+    scopes = [],
+  } = useContext(Config);
+
   const title = invalidScope
     ? 'Developer key scopes missing'
     : 'Authorization failed';
 
-  const retry = () => (window.location.href = authorizeUrl);
+  const retry = () => (window.location.href = authUrl);
 
   const message = invalidScope
     ? null
     : 'Something went wrong when authorizing Hypothesis';
 
-  const error = { details };
+  const error = { details: errorDetails };
 
   return (
     <Dialog
       title={title}
       onCancel={() => window.close()}
       buttons={
-        authorizeUrl
+        authUrl
           ? [<Button key="try-again" onClick={retry} label="Try again" />]
           : []
       }
@@ -68,9 +72,4 @@ export default function CanvasAuthErrorDialog({
   );
 }
 
-CanvasAuthErrorDialog.propTypes = {
-  authorizeUrl: propTypes.string,
-  details: propTypes.string,
-  invalidScope: propTypes.bool,
-  scopes: propTypes.arrayOf(propTypes.string),
-};
+CanvasAuthErrorApp.propTypes = {};
