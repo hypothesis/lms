@@ -22,6 +22,12 @@ describe('CanvasAuthErrorApp', () => {
       authUrl: null,
       scopes: [],
     };
+
+    sinon.stub(window, 'close');
+  });
+
+  afterEach(() => {
+    window.close.restore();
   });
 
   it('shows a scope error if the scope is invalid', () => {
@@ -53,5 +59,11 @@ describe('CanvasAuthErrorApp', () => {
     assert.deepEqual(errorDisplay.prop('error'), {
       details: fakeConfig.errorDetails,
     });
+  });
+
+  it(`closes the window when the dialog's "Cancel" button is clicked`, () => {
+    const wrapper = renderApp();
+    wrapper.find('Dialog').props().onCancel();
+    assert.called(window.close);
   });
 });
