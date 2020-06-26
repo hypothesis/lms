@@ -3,7 +3,6 @@ import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
 
-import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
@@ -12,18 +11,13 @@ import Dialog from './Dialog';
  * fails.
  */
 export default function CanvasAuthErrorApp() {
-  const {
-    authUrl,
-    invalidScope = false,
-    errorDetails = '',
-    scopes = [],
-  } = useContext(Config);
+  const { invalidScope = false, errorDetails = '', scopes = [] } = useContext(
+    Config
+  );
 
   const title = invalidScope
     ? 'Developer key scopes missing'
     : 'Authorization failed';
-
-  const retry = () => (window.location.href = authUrl);
 
   const message = invalidScope
     ? null
@@ -32,15 +26,7 @@ export default function CanvasAuthErrorApp() {
   const error = { details: errorDetails };
 
   return (
-    <Dialog
-      title={title}
-      onCancel={() => window.close()}
-      buttons={
-        authUrl
-          ? [<Button key="try-again" onClick={retry} label="Try again" />]
-          : []
-      }
-    >
+    <Dialog title={title} onCancel={() => window.close()}>
       {invalidScope && (
         <Fragment>
           <p>
