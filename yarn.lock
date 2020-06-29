@@ -2835,10 +2835,10 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.5:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
-eslint-config-hypothesis@^2.1.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-hypothesis/-/eslint-config-hypothesis-2.3.0.tgz#846512b19f920597551162eef4003ca1e668c8f5"
-  integrity sha512-QYAatDSMyWklmz3oCcGdr0fq06T0sSlg/Pf9MGEtztl5hf+B0mLkM9h6DGquZeceZloMBIvzofIarTBqgnOlRA==
+eslint-config-hypothesis@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-hypothesis/-/eslint-config-hypothesis-2.4.0.tgz#aa9db1ecf4b18e6ca4389af265038db10b7f68d6"
+  integrity sha512-k2MXBLafvxqsDh+RBoTMvuFv9f8A/Dg6RJN6tI0KzHvIeGO/fV/VMkqBAKuWMAu2kcw+uH2DGsxGP00W2eX7OQ==
 
 eslint-plugin-jsx-a11y@^6.3.1:
   version "6.3.1"
