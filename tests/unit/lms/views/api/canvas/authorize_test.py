@@ -140,9 +140,7 @@ class TestOAuth2RedirectError:
             ({"error_description": "Something went wrong"}, False),
         ],
     )
-    def test_it_configures_frontend_app(
-        self, pyramid_request, params, invalid_scope, FrontendAppResource
-    ):
+    def test_it_configures_frontend_app(self, pyramid_request, params, invalid_scope):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
 
@@ -154,19 +152,23 @@ class TestOAuth2RedirectError:
             "url:GET|/api/v1/courses/:course_id/users/:id",
         )
 
-        template_variables = authorize.oauth2_redirect_error(pyramid_request)
-        context = FrontendAppResource.return_value
+        authorize.oauth2_redirect_error(pyramid_request)
 
-        assert template_variables["context"] == context
-        context.js_config.enable_oauth_error_mode.assert_called_with(
+        js_config = pyramid_request.context.js_config
+        js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_with(
             error_details=params.get("error_description"),
             is_scope_invalid=invalid_scope,
             requested_scopes=scopes,
         )
 
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request, CanvasOAuth2RedirectResource):
+        pyramid_request.context = CanvasOAuth2RedirectResource(pyramid_request)
+        return pyramid_request
+
     @pytest.fixture(autouse=True)
-    def FrontendAppResource(self, patch):
-        return patch("lms.views.api.canvas.authorize.FrontendAppResource")
+    def CanvasOAuth2RedirectResource(self, patch):
+        return patch("lms.resources.CanvasOAuth2RedirectResource")
 
 
 @pytest.fixture(autouse=True)

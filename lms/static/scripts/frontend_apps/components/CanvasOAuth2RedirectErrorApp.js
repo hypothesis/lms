@@ -10,10 +10,14 @@ import Dialog from './Dialog';
  * Error dialog displayed when authorization of Canvas API access via OAuth
  * fails.
  */
-export default function CanvasAuthErrorApp() {
-  const { invalidScope = false, errorDetails = '', scopes = [] } = useContext(
-    Config
-  );
+export default function CanvasOAuth2RedirectErrorApp() {
+  const {
+    canvasOAuth2RedirectError: {
+      invalidScope = false,
+      errorDetails = '',
+      scopes = [],
+    },
+  } = useContext(Config);
 
   const title = invalidScope
     ? 'Developer key scopes missing'
@@ -58,4 +62,4 @@ export default function CanvasAuthErrorApp() {
   );
 }
 
-CanvasAuthErrorApp.propTypes = {};
+CanvasOAuth2RedirectErrorApp.propTypes = {};

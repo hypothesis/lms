@@ -19,16 +19,20 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         self._authority = request.registry.settings["h_authority"]
         self._grading_info_service = request.find_service(name="grading_info")
         self._h_api = request.find_service(name="h_api")
-
         self._lti_user = request.lti_user
-        if self._lti_user:
-            self._h_user = self._lti_user.h_user
-            self._consumer_key = self._lti_user.oauth_consumer_key
-            self._ai_getter = request.find_service(name="ai_getter")
-        else:
-            self._h_user = None
-            self._consumer_key = None
-            self._ai_getter = None
+
+    @property
+    def _h_user(self):
+        return self._lti_user.h_user
+
+    @property
+    def _consumer_key(self):
+        return self._lti_user.oauth_consumer_key
+
+    @property
+    def _ai_getter(self):
+        # nb. `ai_getter` service is only available in LTI launches.
+        return self._request.find_service(name="ai_getter")
 
     def add_canvas_file_id(self, canvas_file_id):
         """
@@ -63,11 +67,11 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         """
         return self._config
 
-    def enable_oauth_error_mode(
+    def enable_canvas_oauth2_redirect_error_mode(
         self, error_details, is_scope_invalid=False, requested_scopes=None
     ):
         """
-        Put the JavaScript code into "OAuth authorization failed" mode.
+        Configure the frontend to show the "Canvas authorization failed" dialog.
 
         This mini-app is shown when OAuth authorization with Canvas fails
         after redirecting to Canvas's OAuth authorization endpoint.
@@ -82,10 +86,12 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         """
         self._config.update(
             {
-                "mode": "canvas-auth-error-dialog",
-                "invalidScope": is_scope_invalid,
-                "errorDetails": error_details,
-                "scopes": requested_scopes or [],
+                "mode": "canvas-oauth2-redirect-error",
+                "canvasOAuth2RedirectError": {
+                    "invalidScope": is_scope_invalid,
+                    "errorDetails": error_details,
+                    "scopes": requested_scopes or [],
+                },
             }
         )
 
