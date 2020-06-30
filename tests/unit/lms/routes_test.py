@@ -37,8 +37,16 @@ class TestIncludeMe:
                 "/content_item_selection",
                 factory="lms.resources.LTILaunchResource",
             ),
-            mock.call.add_route("canvas_oauth_callback", "/canvas_oauth_callback"),
-            mock.call.add_route("canvas_api.authorize", "/api/canvas/authorize"),
+            mock.call.add_route(
+                "canvas_oauth_callback",
+                "/canvas_oauth_callback",
+                factory="lms.resources.CanvasOAuth2RedirectResource",
+            ),
+            mock.call.add_route(
+                "canvas_api.authorize",
+                "/api/canvas/authorize",
+                factory="lms.resources.CanvasOAuth2RedirectResource",
+            ),
             mock.call.add_route(
                 "canvas_api.courses.files.list", "/api/canvas/courses/{course_id}/files"
             ),

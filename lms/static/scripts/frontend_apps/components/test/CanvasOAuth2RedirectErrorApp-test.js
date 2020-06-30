@@ -3,15 +3,19 @@ import { createElement } from 'preact';
 
 import { Config } from '../../config';
 
-import CanvasAuthErrorApp from '../CanvasAuthErrorApp';
+import CanvasOAuth2RedirectErrorApp from '../CanvasOAuth2RedirectErrorApp';
 
-describe('CanvasAuthErrorApp', () => {
+describe('CanvasOAuth2RedirectErrorApp', () => {
   let fakeConfig;
 
   const renderApp = () => {
+    const config = {
+      canvasOAuth2RedirectError: fakeConfig,
+    };
+
     return mount(
-      <Config.Provider value={fakeConfig}>
-        <CanvasAuthErrorApp />
+      <Config.Provider value={config}>
+        <CanvasOAuth2RedirectErrorApp />
       </Config.Provider>
     );
   };

@@ -5,7 +5,7 @@ import jwt
 import pytest
 
 from lms.models import GradingInfo, HGroup
-from lms.resources import FrontendAppResource, LTILaunchResource
+from lms.resources import CanvasOAuth2RedirectResource, LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
@@ -460,9 +460,9 @@ class TestJSConfigRPCServer:
         return config["rpcServer"]
 
 
-class TestEnableOauthErrorMode:
+class TestEnableCanvasOauth2RedirectErrorMode:
     def test_scope_error(self, js_config):
-        js_config.enable_oauth_error_mode(
+        js_config.enable_canvas_oauth2_redirect_error_mode(
             error_details="Technical error",
             is_scope_invalid=True,
             requested_scopes=["scope_a", "scope_b"],
@@ -470,20 +470,24 @@ class TestEnableOauthErrorMode:
 
         config = js_config.asdict()
 
-        assert config["mode"] == "canvas-auth-error-dialog"
-        assert config["invalidScope"] is True
-        assert config["errorDetails"] == "Technical error"
-        assert config["scopes"] == ["scope_a", "scope_b"]
+        assert config["mode"] == "canvas-oauth2-redirect-error"
+        assert config["canvasOAuth2RedirectError"] == {
+            "invalidScope": True,
+            "errorDetails": "Technical error",
+            "scopes": ["scope_a", "scope_b"],
+        }
 
     def test_other_error(self, js_config):
-        js_config.enable_oauth_error_mode(error_details="Some error")
+        js_config.enable_canvas_oauth2_redirect_error_mode(error_details="Some error")
 
         config = js_config.asdict()
 
-        assert config["mode"] == "canvas-auth-error-dialog"
-        assert not config["invalidScope"]
-        assert config["errorDetails"] == "Some error"
-        assert config["scopes"] == []
+        assert config["mode"] == "canvas-oauth2-redirect-error"
+        assert config["canvasOAuth2RedirectError"] == {
+            "invalidScope": False,
+            "errorDetails": "Some error",
+            "scopes": [],
+        }
 
     @pytest.fixture
     def js_config(self, context, pyramid_request):
@@ -496,7 +500,9 @@ class TestEnableOauthErrorMode:
 
     @pytest.fixture
     def context(self):
-        return mock.create_autospec(FrontendAppResource, spec_set=True, instance=True)
+        return mock.create_autospec(
+            CanvasOAuth2RedirectResource, spec_set=True, instance=True
+        )
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")

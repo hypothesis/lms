@@ -14,7 +14,6 @@ from urllib.parse import urlencode, urlparse, urlunparse
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
-from lms.resources import FrontendAppResource
 from lms.services import CanvasAPIServerError
 from lms.validation.authentication import CanvasOAuthCallbackSchema
 
@@ -101,13 +100,9 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    # In an exception view the `context` is usually the exception that occurred.
-    # We're going to cheat here and create a different object instead to serve
-    # as the `context` in templates.
-    context = FrontendAppResource(request)
-    context.js_config.enable_oauth_error_mode(
+    request.context.js_config.enable_canvas_oauth2_redirect_error_mode(
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
         requested_scopes=FILES_SCOPES + SECTIONS_SCOPES,
     )
-    return {"context": context}
+    return {}
