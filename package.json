@@ -64,7 +64,7 @@
     "diff": "^4.0.2",
     "enzyme": "^3.11.0",
     "enzyme-adapter-preact-pure": "^2.2.0",
-    "eslint": "^6.8.0",
+    "eslint": "^7.3.1",
     "eslint-config-hypothesis": "^2.4.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "karma": "^5.1.0",
