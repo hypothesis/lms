@@ -8,7 +8,8 @@
  */
 export class ApiError extends Error {
   constructor(status, data) {
-    const message = data.error_message || data.message || 'API call failed';
+    // If message is omitted, pass a default error message.
+    const message = data.message || 'API call failed';
     super(message);
 
     /**
@@ -26,7 +27,7 @@ export class ApiError extends Error {
      *
      * @type {string|null}
      */
-    this.errorMessage = data.error_message || null;
+    this.errorMessage = data.message || null;
 
     /**
      * Server-provided details of the error.

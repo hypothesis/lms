@@ -69,12 +69,12 @@ describe('api', () => {
     [
       {
         status: 403,
-        body: { error_message: null, details: {} },
+        body: { message: null, details: {} },
         expectedMessage: 'API call failed',
       },
       {
         status: 400,
-        body: { error_message: 'Something went wrong', details: {} },
+        body: { message: 'Something went wrong', details: {} },
         expectedMessage: 'Something went wrong',
       },
       {
@@ -96,9 +96,13 @@ describe('api', () => {
         }
 
         assert.instanceOf(reason, ApiError);
-        assert.equal(reason.message, expectedMessage);
-        assert.equal(reason.errorMessage, body.error_message);
-        assert.equal(reason.details, body.details);
+        assert.equal(reason.message, expectedMessage, '`Error.message`');
+        assert.equal(
+          reason.errorMessage,
+          body.message,
+          '`ApiError.errorMessage`'
+        );
+        assert.equal(reason.details, body.details, '`ApiError.details`');
       });
     });
   });
