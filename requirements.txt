@@ -54,7 +54,7 @@ wired==0.2.2              # via pyramid-services
 xmltodict==0.12.0         # via -r requirements.in
 zipp==3.1.0               # via importlib-metadata
 zope.deprecation==4.3.0   # via pyramid, pyramid-jinja2
-zope.interface==4.4.3     # via pyramid, pyramid-retry, pyramid-services, transaction, wired, zope.sqlalchemy
+zope.interface==5.1.0     # via pyramid, pyramid-retry, pyramid-services, transaction, wired, zope.sqlalchemy
 zope.sqlalchemy==0.7.7    # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
