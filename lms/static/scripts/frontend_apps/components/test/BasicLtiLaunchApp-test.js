@@ -207,7 +207,7 @@ describe('BasicLtiLaunchApp', () => {
     [
       {
         description: 'a specific server error',
-        error: new ApiError(400, { error_message: 'Server error' }),
+        error: new ApiError(400, { message: 'Server error' }),
       },
       {
         description: 'a network or other generic error',

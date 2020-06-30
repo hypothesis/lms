@@ -123,7 +123,7 @@ describe('LMSFilePicker', () => {
     {
       description: 'a server error with details',
       error: new ApiError('Not authorized', {
-        error_message: 'Some error detail',
+        message: 'Some error detail',
       }),
     },
     {

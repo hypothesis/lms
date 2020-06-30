@@ -10,7 +10,7 @@ class TestSchemaValidationError:
         )
         assert pyramid_request.response.status_code == 422
         assert json_data == {
-            "error_message": "Unable to process the contained instructions",
+            "message": "Unable to process the contained instructions",
             "details": "foobar",
         }
 
@@ -20,7 +20,7 @@ class TestCanvasAPIAccessTokenError:
         json_data = error.canvas_api_access_token_error(pyramid_request)
 
         assert pyramid_request.response.status_code == 400
-        assert json_data == {"error_message": None, "details": None}
+        assert json_data == {"message": None, "details": None}
 
 
 class TestCanvasAPIError:
@@ -32,7 +32,7 @@ class TestCanvasAPIError:
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {
-            "error_message": "test_explanation",
+            "message": "test_explanation",
             "details": {"foo": "bar"},
         }
 
@@ -46,7 +46,7 @@ class TestLTIOutcomesAPIError:
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {
-            "error_message": "test_explanation",
+            "message": "test_explanation",
             "details": {"foo": "bar"},
         }
 
