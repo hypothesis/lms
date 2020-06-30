@@ -13,7 +13,7 @@ h-api==1.0.0              # via -r requirements.in
 h-pyramid-sentry==1.2.0   # via -r requirements.in
 httplib2==0.18.1          # via oauth2, pylti
 hupper==1.10.2            # via pyramid
-idna==2.9                 # via requests
+idna==2.10                # via requests
 importlib-metadata==1.7.0  # via jsonschema
 jinja2==2.11.2            # via pyramid-jinja2
 jsonschema==3.2.0         # via h-api
