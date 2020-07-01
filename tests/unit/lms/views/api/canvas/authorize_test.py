@@ -69,7 +69,7 @@ class TestAuthorize:
         self.assert_file_scopes_only(authorize.authorize(pyramid_request))
 
     def test_it_includes_the_state_in_a_query_param(
-        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
+        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema,
     ):
         response = authorize.authorize(pyramid_request)
 
