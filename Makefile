@@ -35,7 +35,7 @@ services: python
 .PHONY: db
 db: args?=upgrade head
 db: python
-	@tox -qqe dev --run-command 'initdb conf/development.ini'
+	@tox -qqe dev --run-command 'initdb conf/development.ini'  # See setup.py for what initdb is.
 	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
@@ -44,7 +44,7 @@ dev: build/manifest.json python
 
 .PHONY: devdata
 devdata: python
-	@tox -qe dev --run-command 'devdata conf/development.ini'
+	@tox -qe dev --run-command 'devdata conf/development.ini'  # See setup.py for what devdata is.
 
 .PHONY: web
 web: python
