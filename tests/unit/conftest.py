@@ -4,7 +4,6 @@ from unittest import mock
 import httpretty
 import pytest
 import sqlalchemy
-from factory.alchemy import SQLAlchemyModelFactory
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
@@ -143,53 +142,15 @@ def db_session(db_engine):
         ):  # pylint:disable=protected-access
             session.begin_nested()
 
-    set_factory_boy_sqlalchemy_session(session)
+    factories.set_sqlalchemy_session(session)
 
     try:
         yield session
     finally:
-        clear_factory_boy_sqlalchemy_session()
+        factories.clear_sqlalchemy_session()
         session.close()
         trans.rollback()
         conn.close()
-
-
-def sqlalchemy_factory_classes():
-    # Return all the SQLAlchemy factory classes from tests.factories.
-    for factory_class in factories.__dict__.values():
-        try:
-            is_sqla_factory = issubclass(factory_class, SQLAlchemyModelFactory)
-        except TypeError:
-            is_sqla_factory = False
-
-        if is_sqla_factory:
-            yield factory_class
-
-
-def set_factory_boy_sqlalchemy_session(session):
-    # Set the Meta.sqlalchemy_session option on all our SQLAlchemy test factory
-    # classes. We can't do it in the normal Factory Boy way:
-    #
-    #     class MyFactory:
-    #         class Meta:
-    #             sqlalchemy_session = session
-    #
-    # Because we don't have `session` available to us at import time.
-    # So we have to do it this way instead.
-    #
-    # See:
-    # https://factoryboy.readthedocs.io/en/latest/orms.html#sqlalchemy
-    # https://factoryboy.readthedocs.io/en/latest/reference.html#factory.Factory._meta
-    for factory_class in sqlalchemy_factory_classes():
-        # pylint:disable=protected-access
-        factory_class._meta.sqlalchemy_session = session
-
-
-def clear_factory_boy_sqlalchemy_session():
-    # Delete the sqlalchemy session from all our test factories.
-    # Just in case, so we don't have references to the session hanging about.
-    for factory_class in sqlalchemy_factory_classes():
-        factory_class._meta.sqlalchemy_session = None  # pylint:disable=protected-access
 
 
 @pytest.fixture
