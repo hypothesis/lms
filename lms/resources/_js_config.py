@@ -73,8 +73,8 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         """
         Configure the frontend to show the "Canvas authorization failed" dialog.
 
-        This mini-app is shown when OAuth authorization with Canvas fails
-        after redirecting to Canvas's OAuth authorization endpoint.
+        This is shown when authorizing with the Canvas API fails, following the
+        redirect to Canvas's OAuth 2 authorization endpoint.
 
         :param error_details: Technical details of the error
         :type error_details: str
