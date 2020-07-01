@@ -10,7 +10,7 @@ certifi==2020.6.20        # via requests, sentry-sdk
 chardet==3.0.4            # via requests
 gunicorn==20.0.4          # via -r requirements.in
 h-api==1.0.0              # via -r requirements.in
-h-pyramid-sentry==1.2.0   # via -r requirements.in
+h_pyramid_sentry==1.2.1   # via -r requirements.in
 httplib2==0.18.1          # via oauth2, pylti
 hupper==1.10.2            # via pyramid
 idna==2.10                # via requests
