@@ -249,7 +249,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "lis_outcome_service_url": lis_outcome_service_url,
                 "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
                 **kwargs,
-            }
+            },
         }
 
     def _auth_token(self):
@@ -311,7 +311,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
             "canvas": {
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new Canvas access token.
-                "authUrl": self._request.route_url("canvas_api.authorize")
+                "authUrl": self._request.route_url("canvas_api.authorize"),
             },
             # Some debug information, currently used in the Gherkin tests.
             "debug": {"tags": []},
@@ -431,7 +431,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "lms": {
                     "tool_consumer_instance_guid": req.params[
                         "tool_consumer_instance_guid"
-                    ]
+                    ],
                 },
                 "course": {
                     "context_id": req.params["context_id"],
@@ -447,7 +447,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
         if "learner_canvas_user_id" in req.params:
             sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"]
+                "canvas_user_id": req.params["learner_canvas_user_id"],
             }
 
         return sync_api_config

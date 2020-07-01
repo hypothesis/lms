@@ -40,7 +40,7 @@ class TestEnableContentItemSelectionMode:
         }
 
     def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
-        self, ai_getter, context, js_config
+        self, ai_getter, context, js_config,
     ):
         context.custom_canvas_api_domain = None
 
@@ -55,7 +55,7 @@ class TestEnableContentItemSelectionMode:
         )
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_the_lms_isnt_Canvas(
-        self, context, js_config
+        self, context, js_config,
     ):
         context.is_canvas = False
 
@@ -66,7 +66,7 @@ class TestEnableContentItemSelectionMode:
         self.assert_canvas_file_picker_not_enabled(js_config)
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_the_consumer_key_isnt_found_in_the_db(
-        self, ai_getter, js_config
+        self, ai_getter, js_config,
     ):
         ai_getter.developer_key.side_effect = ConsumerKeyError()
 
@@ -77,7 +77,7 @@ class TestEnableContentItemSelectionMode:
         self.assert_canvas_file_picker_not_enabled(js_config)
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_we_dont_have_a_developer_key(
-        self, ai_getter, js_config
+        self, ai_getter, js_config,
     ):
         ai_getter.developer_key.return_value = None
 
@@ -88,7 +88,7 @@ class TestEnableContentItemSelectionMode:
         self.assert_canvas_file_picker_not_enabled(js_config)
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_theres_no_custom_canvas_course_id(
-        self, pyramid_request, js_config
+        self, pyramid_request, js_config,
     ):
         del pyramid_request.params["custom_canvas_course_id"]
 
@@ -289,7 +289,7 @@ class TestMaybeSetFocusedUser:
             "user": {
                 "username": "example_h_username",
                 "displayName": h_api.get_user.return_value.display_name,
-            }
+            },
         }
 
     def test_display_name_falls_back_to_a_default_value(self, h_api, js_config):
@@ -351,7 +351,7 @@ class TestJSConfigAPISync:
     @pytest.mark.usefixtures("section_groups_on", "learner_canvas_user_id")
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
         assert sync["data"]["learner"] == {
-            "canvas_user_id": "test_learner_canvas_user_id"
+            "canvas_user_id": "test_learner_canvas_user_id",
         }
 
     def test_its_None_if_section_groups_isnt_enabled(self, sync):
