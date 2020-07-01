@@ -1,5 +1,6 @@
 -r requirements.txt
 -e .
 
+factory-boy
 pyramid_ipython
 honcho
