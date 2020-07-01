@@ -36,15 +36,15 @@ services: python
 db: args?=upgrade head
 db: python
 	@tox -qqe dev --run-command 'initdb conf/development.ini'
-	@tox -qe dev --run-command 'alembic -c conf/alembic.ini $(args)'
+	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
 dev: build/manifest.json python
-	@tox -qe dev -- honcho start ${processes}
+	@tox -qe dev --run-command 'honcho start ${processes}'
 
 .PHONY: devdata
 devdata: python
-	@tox -qe dev -- devdata conf/development.ini
+	@tox -qe dev --run-command 'devdata conf/development.ini'
 
 .PHONY: web
 web: python
@@ -58,7 +58,7 @@ assets:
 
 .PHONY: shell
 shell: python
-	@tox -qe dev -- pshell conf/development.ini
+	@tox -qe dev --run-command 'pshell conf/development.ini'
 
 .PHONY: sql
 sql: python
