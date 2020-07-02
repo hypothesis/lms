@@ -12,8 +12,8 @@ async function loadGAPI() {
     gapiScript.onload = () => {
       resolve(window.gapi);
     };
-    gapiScript.onerror = ({ error }) => {
-      reject(error);
+    gapiScript.onerror = () => {
+      reject(new Error('Failed to load Google API client'));
     };
     document.body.appendChild(gapiScript);
   });

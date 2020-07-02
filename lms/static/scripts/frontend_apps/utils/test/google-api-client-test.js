@@ -45,7 +45,7 @@ describe('loadLibraries', () => {
     const libs = loadLibraries(['one', 'two']);
 
     // Simulate api.js failing to load.
-    dummyScript.onerror({ error: new Error('Script failed to load') });
+    dummyScript.onerror();
 
     let err;
     try {
@@ -53,7 +53,7 @@ describe('loadLibraries', () => {
     } catch (e) {
       err = e;
     }
-    assert.equal(err.message, 'Script failed to load');
+    assert.equal(err.message, 'Failed to load Google API client');
   });
 
   it('rejects if loading requested libraries fails', async () => {
