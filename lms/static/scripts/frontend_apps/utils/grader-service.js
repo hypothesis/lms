@@ -16,11 +16,10 @@ import { apiCall } from './api';
 /**
  * Submits a student's grade to the LTI endpoint.
  *
- * @param {Student} student - Student object
- * @param {number} grade - A number between 0 and 1
- * @param {string} authToken - The auth token from the config
- * @return {Object} - An empty object
- *
+ * @param {Object} options
+ * @param {Student} options.student - Student object
+ * @param {number} options.grade - A number between 0 and 1
+ * @param {string} options.authToken - The auth token from the config
  */
 function submitGrade({ student, grade, authToken }) {
   return apiCall({
@@ -37,10 +36,10 @@ function submitGrade({ student, grade, authToken }) {
 /**
  * Fetches a student's grade from the LTI endpoint
  *
- * @param {Student} student - Student object
- * @param {string} authToken - The auth token from the config
- * @return {FetchGradeResult}
- *
+ * @param {Object} options
+ * @param {Student} options.student - Student object
+ * @param {string} options.authToken - The auth token from the config
+ * @return {Promise<FetchGradeResult>}
  */
 function fetchGrade({ student, authToken }) {
   return apiCall({

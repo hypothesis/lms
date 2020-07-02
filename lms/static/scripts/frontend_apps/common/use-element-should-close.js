@@ -31,7 +31,7 @@ import { listen } from './dom';
  *                                Reference to a DOM element or preat component
  *                                that should be closed when DOM elements external
  *                                to it are interacted with or `Esc` is pressed
- * @param {bool} isOpen - Whether the element is currently open. This hook does
+ * @param {boolean} isOpen - Whether the element is currently open. This hook does
  *                        not attach event listeners/do anything if it's not.
  * @param {() => void} handleClose - A function that will do the actual closing
  *                                   of `closeableEl`
@@ -45,7 +45,7 @@ export default function useElementShouldClose(
    *  Helper to return the underlying node object whether
    *  `closeableEl` is attached to an HTMLNode or Preact component.
    *
-   *  @param {Preact ref} closeableEl
+   *  @param {any} closeableEl
    *  @returns {Node}
    */
 
