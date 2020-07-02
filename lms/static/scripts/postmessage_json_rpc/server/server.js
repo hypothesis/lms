@@ -1,14 +1,34 @@
 /**
+ * See https://www.jsonrpc.org/specification#request_object.
+ *
+ * @typedef JsonRpcRequest
+ * @prop {'2.0'} jsonrpc
+ * @prop {string} method
+ * @prop {any[]} params
+ * @prop {string|null} id
+ */
+
+/**
+ * See https://www.jsonrpc.org/specification#response_object
+ *
+ * @typedef JsonRpcResponse
+ * @prop {'2.0'} jsonrpc
+ * @prop {Object} [result]
+ * @prop {JsonRpcError} [error]
+ * @prop {string|null} id
+ */
+
+/**
+ * See https://www.jsonrpc.org/specification#error_object
+ *
+ * @typedef JsonRpcError
+ * @prop {number} code
+ * @prop {string} message
+ * @prop {Object} [data]
+ */
+
+/**
  * A JSON-RPC-over-postMessage server.
- *
- * On creation the server automatically finds and reads its config settings
- * from a JSON config object in the document. For example:
- *
- *     <script type="application/json" class="js-config">
- *       {
- *         rpcServer: { allowedOrigins: ["https://hypothes.is"] }
- *       }
- *     </script>
  *
  * After constructing a server you have to call its register() method to
  * register remotely callable methods. After a method has been registered the
@@ -16,18 +36,17 @@
  * and sending the method's return value, serialized to a JSON string, back to
  * the caller over postMessage. For example:
  *
- *     const server = new Server();
+ *     const server = new Server(['https://hypothes.is']);
  *     server.register('requestConfig', requestConfig);
- *
  */
 export default class Server {
-  constructor() {
-    const configEl = document.getElementsByClassName('js-config')[0];
-    const configObj = JSON.parse(configEl.textContent).rpcServer;
-
-    // JSON-RPC messages that don't come from one of these allowed window
-    // origins will be ignored.
-    this._allowedOrigins = configObj.allowedOrigins;
+  /**
+   * @param {string[]} allowedOrigins -
+   *   Specifies the origins of iframes that may send requests to this server
+   *   via `window.postMessage`.
+   */
+  constructor(allowedOrigins) {
+    this._allowedOrigins = allowedOrigins;
 
     // Add a postMessage event listener so we can recieve JSON-RPC requests.
     this._boundReceiveMessage = this._receiveMessage.bind(this);
@@ -43,6 +62,9 @@ export default class Server {
 
   /**
    * Register a remotely callable method with this server.
+   *
+   * @param {string} name
+   * @param {(...args: any[]) => any|Promise<any>} method
    */
   register(name, method) {
     this._registeredMethods[name] = method;
@@ -60,6 +82,8 @@ export default class Server {
    *
    * Receive a postMessage event and, if it's a JSON-RPC request from an
    * allowed origin, post back either a result or an error response.
+   *
+   * @param {MessageEvent} event
    */
   async _receiveMessage(event) {
     if (!this._allowedOrigins.includes(event.origin)) {
@@ -69,6 +93,7 @@ export default class Server {
     if (!this._isJSONRPCRequest(event)) {
       return;
     }
+
     // Resolve the promise we created in the constructor with the saved
     // sidebar frame and origin.
     this._resolveSidebarWindow({
@@ -77,11 +102,13 @@ export default class Server {
     });
 
     const result = await this._jsonRPCResponse(event.data);
-    event.source.postMessage(result, event.origin);
+    /** @type {WindowProxy} */ (event.source).postMessage(result, event.origin);
   }
 
   /**
    * Return true if the given postMessage event is a JSON-RPC request.
+   *
+   * @param {MessageEvent} event
    */
   _isJSONRPCRequest(event) {
     if (!(event.data instanceof Object) || event.data.jsonrpc !== '2.0') {
@@ -99,6 +126,9 @@ export default class Server {
 
   /**
    * Return a JSON-RPC response object for the given JSON-RPC request object.
+   *
+   * @param {JsonRpcRequest} request
+   * @return {Promise<JsonRpcResponse>}
    */
   async _jsonRPCResponse(request) {
     // Return an error response if the request id is invalid.

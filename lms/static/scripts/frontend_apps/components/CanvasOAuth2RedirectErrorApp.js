@@ -35,7 +35,7 @@ export default function CanvasOAuth2RedirectErrorApp({
   const error = { details: errorDetails };
 
   const retry = () => {
-    location.href = authorizeUrl;
+    location.href = /** @type {string} */ (authorizeUrl);
   };
 
   const buttons = [

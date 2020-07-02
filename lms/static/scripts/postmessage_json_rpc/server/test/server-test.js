@@ -1,36 +1,19 @@
 import Server from '../server';
 
-describe('postmessage_json_rpc/server#Server', () => {
+describe('Server', () => {
   // The window origin of the server.
   // postMessage messages must be sent to this origin in order for the server
   // to receive them.
   const serversOrigin = 'http://localhost:9876';
 
-  let configEl;
   let server;
   let registeredMethod;
   let registeredMethodError;
   let listener;
   let receiveMessage;
 
-  beforeEach('inject the server config into the document', () => {
-    configEl = document.createElement('script');
-    configEl.setAttribute('type', 'application/json');
-    configEl.classList.add('js-config');
-    configEl.textContent = JSON.stringify({
-      rpcServer: {
-        allowedOrigins: ['http://localhost:9876'],
-      },
-    });
-    document.body.appendChild(configEl);
-  });
-
-  afterEach('remove the server config from the document', () => {
-    configEl.remove();
-  });
-
   beforeEach('set up the test server', () => {
-    server = new Server();
+    server = new Server(['http://localhost:9876']);
     registeredMethod = sinon.stub().resolves('test_result');
     server.register('registeredMethodName', registeredMethod);
 

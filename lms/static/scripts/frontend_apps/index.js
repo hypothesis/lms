@@ -4,19 +4,23 @@ import 'focus-visible';
 // Setup app.
 import { createElement, render } from 'preact';
 
-import { Config } from './config';
+import { readConfig, Config } from './config';
 import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import { startRpcServer } from '../postmessage_json_rpc/server';
 
 const rootEl = document.querySelector('#app');
-const config = JSON.parse(document.querySelector('.js-config').textContent);
+
+const config = readConfig();
 
 let rpcServer;
 if (config.mode === 'basic-lti-launch') {
   // Create an RPC Server and start listening to postMessage calls.
-  rpcServer = startRpcServer();
+  rpcServer = startRpcServer({
+    allowedOrigins: config.rpcServer.allowedOrigins,
+    clientConfig: config.hypothesisClient,
+  });
 }
 
 render(

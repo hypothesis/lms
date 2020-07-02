@@ -5,10 +5,14 @@ let server = {}; // Singleton RPC server reference
 /**
  * Create a new RPC server and register any methods it will support.
  *
+ * @param {Object} config
+ *   @param {string[]} config.allowedOrigins -
+ *     Origins that are allowed to request client configuration
+ *   @param {Object} config.clientConfig - Configuration for the Hypothesis client
  * @return {Server} - Instance of the server.
  */
-function startRpcServer() {
-  server = new Server();
+function startRpcServer(config) {
+  server = new Server(config.allowedOrigins);
 
   /**
    * Methods that are remotely callable by JSON-RPC over postMessage.
@@ -20,14 +24,8 @@ function startRpcServer() {
 
   /**
    * Config request RPC handler.
-   *
-   * @returns {Object} - A Hypothesis client config object for the current LTI request.
    */
-  server.register('requestConfig', () => {
-    const configEl = document.querySelector('.js-config');
-    const clientConfigObj = JSON.parse(configEl.textContent).hypothesisClient;
-    return clientConfigObj;
-  });
+  server.register('requestConfig', () => config.clientConfig);
 
   /**
    * Section groups RPC handler.
