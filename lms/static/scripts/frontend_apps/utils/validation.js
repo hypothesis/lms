@@ -2,7 +2,7 @@
  * Coerce a string value from an input field to an numeric value.
  * If the value can't be properly cast, then it will remain a string.
  *
- * @param {string} value - The value to attempt to translate
+ * @param {string} originalValue - The value to attempt to translate
  * @return {number|string} - Translated value or original if not translated
  */
 function formatToNumber(originalValue) {

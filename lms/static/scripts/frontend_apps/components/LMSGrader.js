@@ -9,6 +9,12 @@ import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 
 /**
+ * @typedef User
+ * @prop {string} displayName
+ * @prop {string} userid
+ */
+
+/**
  * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
  * active as well as a list of students to both view and submit grades for.
  */

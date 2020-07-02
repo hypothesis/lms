@@ -6,7 +6,7 @@ function byteToHex(val) {
 /**
  * Generate a random hex string of `len` chars.
  *
- * @param {number} - An even-numbered length string to generate.
+ * @param {number} len - An even-numbered length string to generate.
  * @return {string}
  */
 function generateHexString(len) {

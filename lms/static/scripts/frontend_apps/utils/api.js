@@ -40,7 +40,7 @@ export class ApiError extends Error {
 /**
  * Make an API call to the LMS app backend.
  *
- * @param options
+ * @param {Object} options
  * @param {string} options.path - The `/api/...` path of the endpoint to call
  * @param {string} options.authToken
  * @param {Object} [options.data] - JSON-serializable body of the request
