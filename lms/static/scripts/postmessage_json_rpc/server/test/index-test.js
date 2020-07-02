@@ -3,6 +3,7 @@ import { startRpcServer, getSidebarWindow, $imports } from '../index';
 describe('postmessage_json_rpc/server/index', () => {
   let FakeServer;
   let fakeRegister;
+  let config;
 
   beforeEach(() => {
     fakeRegister = sinon.stub();
@@ -11,6 +12,11 @@ describe('postmessage_json_rpc/server/index', () => {
       register: fakeRegister,
       sidebarWindow: 'FakeSidebarWindow',
     });
+
+    config = {
+      allowedOrigins: ['http://hypothes.is'],
+      clientConfig: { aSetting: 'aValue' },
+    };
 
     $imports.$mock({
       './server': FakeServer,
@@ -23,7 +29,7 @@ describe('postmessage_json_rpc/server/index', () => {
 
   describe('startRpcServer', () => {
     it('returns a server object', () => {
-      const server = startRpcServer();
+      const server = startRpcServer(config);
       assert.isTrue(FakeServer.called);
       assert.isOk(server);
     });
@@ -31,7 +37,7 @@ describe('postmessage_json_rpc/server/index', () => {
 
   describe('getSidebarWindow', () => {
     it('returns the value of server.sidebarWindow', () => {
-      startRpcServer();
+      startRpcServer(config);
       assert.equal(getSidebarWindow(), 'FakeSidebarWindow');
     });
   });
@@ -39,7 +45,7 @@ describe('postmessage_json_rpc/server/index', () => {
   describe('registered methods', () => {
     describe('requestGroups', () => {
       it('returns the groups through the resolveGroupFetch promise resolver', async () => {
-        const server = startRpcServer();
+        const server = startRpcServer(config);
         server.resolveGroupFetch(['group1', 'group2']); // exposed resolver
         assert.match(
           await fakeRegister
@@ -51,27 +57,11 @@ describe('postmessage_json_rpc/server/index', () => {
     });
 
     describe('requestConfig', () => {
-      let configEl;
-
-      beforeEach('inject the client config into the document', () => {
-        configEl = document.createElement('script');
-        configEl.setAttribute('type', 'application/json');
-        configEl.classList.add('js-config');
-        configEl.textContent = JSON.stringify({
-          hypothesisClient: { foo: 'bar' },
-        });
-        document.body.appendChild(configEl);
-      });
-
-      afterEach('remove the client config from the document', () => {
-        configEl.remove();
-      });
-
-      it('returns the .js-config json object', () => {
-        startRpcServer();
-        assert.match(
+      it('returns the Hypothesis client configuration', () => {
+        startRpcServer(config);
+        assert.equal(
           fakeRegister.withArgs('requestConfig', sinon.match.func).args[0][1](),
-          { foo: 'bar' }
+          config.clientConfig
         );
       });
     });
