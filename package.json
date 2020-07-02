@@ -12,7 +12,8 @@
     "checkformatting": "prettier --check lms/**/*.js scripts/**/*.js",
     "format": "prettier --list-different --write lms/**/*.js scripts/**/*.js",
     "lint": "eslint lms/static/scripts",
-    "test": "gulp test"
+    "test": "gulp test",
+    "typecheck": "tsc --build lms/static/scripts/tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -76,7 +77,8 @@
     "karma-sinon": "^1.0.5",
     "mocha": "^8.0.1",
     "prettier": "2.0.5",
-    "sinon": "^9.0.2"
+    "sinon": "^9.0.2",
+    "typescript": "^3.9.6"
   },
   "browserify": {
     "transform": [
