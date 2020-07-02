@@ -70,7 +70,7 @@ export default function Table({
       <table
         aria-label={accessibleLabel}
         className="Table__table"
-        tabIndex="0"
+        tabIndex={0}
         role="grid"
         onKeyDown={onKeyDown}
       >
@@ -100,7 +100,7 @@ export default function Table({
               onClick={() => onSelectItem(item)}
               onDblClick={() => onUseItem(item)}
               ref={node => (rowRefs.current[index] = node)}
-              tabIndex="-1"
+              tabIndex={-1}
             >
               {renderItem(item, selectedItem === item)}
             </tr>

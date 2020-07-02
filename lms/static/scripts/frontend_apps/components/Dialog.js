@@ -63,7 +63,7 @@ export default function Dialog({
       aria-labelledby={dialogTitleId}
       aria-modal="true"
       ref={rootEl}
-      tabIndex="-1"
+      tabIndex={-1}
     >
       <div
         className="Dialog__background"
