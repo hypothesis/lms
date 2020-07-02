@@ -39,7 +39,7 @@ export default function ValidationMessage({
       onClick={closeValidationError}
       className={errorClass}
       value={message}
-      tabIndex={showError ? '0' : '-1'}
+      tabIndex={showError ? 0 : -1}
     />
   );
 }
