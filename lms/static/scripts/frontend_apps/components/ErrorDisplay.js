@@ -14,7 +14,7 @@ function emailLink({ address, subject = '', body = '' }) {
 export default function ErrorDisplay({ message, error }) {
   let details = '';
 
-  if (typeof error.details === 'object') {
+  if (typeof error.details === 'object' && error.details !== null) {
     try {
       details = JSON.stringify(error.details, null, 2 /* indent */);
     } catch (e) {

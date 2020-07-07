@@ -34,27 +34,42 @@ describe('ErrorDisplay', () => {
     assert.include(href.searchParams.get('body'), '"someTechnicalDetail": 123');
   });
 
-  it('omits technical details if not provided', () => {
-    const error = { message: '' };
+  [
+    { message: '' },
+    { message: 'Oh no', details: null },
+    { message: 'Oh no', details: '' },
+  ].forEach(error => {
+    it('omits technical details if not provided', () => {
+      const wrapper = mount(
+        <ErrorDisplay message="Something went wrong" error={error} />
+      );
 
-    const wrapper = mount(
-      <ErrorDisplay message="Something went wrong" error={error} />
-    );
-
-    const details = wrapper.find('pre');
-    assert.isFalse(details.exists());
+      const details = wrapper.find('pre');
+      assert.isFalse(details.exists());
+    });
   });
 
-  it('displays technical details if provided', () => {
-    const error = { message: '', details: 'Note from server' };
+  [
+    {
+      details: 'Note from server',
+      expectedText: 'Note from server',
+    },
+    {
+      details: { statusCode: 123 },
+      expectedText: '{ "statusCode": 123 }',
+    },
+  ].forEach(({ details, expectedText }) => {
+    it('displays technical details if provided', () => {
+      const error = { message: '', details };
 
-    const wrapper = mount(
-      <ErrorDisplay message="Something went wrong" error={error} />
-    );
+      const wrapper = mount(
+        <ErrorDisplay message="Something went wrong" error={error} />
+      );
 
-    const details = wrapper.find('pre');
-    assert.isTrue(details.exists());
-    assert.include(details.text(), 'Note from server');
+      const detailsEl = wrapper.find('pre');
+      assert.isTrue(detailsEl.exists());
+      assert.include(detailsEl.text().replace(/\s+/g, ' '), expectedText);
+    });
   });
 
   it('scrolls details into view when opened', () => {
