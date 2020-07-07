@@ -10,8 +10,8 @@
   padding-right: 5px;
   margin-bottom: 10px;
   max-width: 100%;
-  
-  &__details {  
+
+  &__details {
     padding: 4px; // prevents focus ring from getting cut off
     &-summary {
       @include focus.outline-on-keyboard-focus;
@@ -25,6 +25,8 @@
     background-color: var.$grey-1;
     border: 1px solid var.$grey-3;
     white-space: pre-wrap;
+    /* Prevent very long single words from breaking out of the box */
+    overflow-wrap: break-word;
     max-width: 100%;
     padding: 10px;
     margin-bottom: 0;
