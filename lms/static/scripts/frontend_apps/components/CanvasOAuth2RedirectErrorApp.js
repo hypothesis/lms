@@ -1,8 +1,10 @@
 import { Fragment, createElement } from 'preact';
 import { useContext } from 'preact/hooks';
+import propTypes from 'prop-types';
 
 import { Config } from '../config';
 
+import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
@@ -10,9 +12,12 @@ import Dialog from './Dialog';
  * Error dialog displayed when authorization of Canvas API access via OAuth
  * fails.
  */
-export default function CanvasOAuth2RedirectErrorApp() {
+export default function CanvasOAuth2RedirectErrorApp({
+  location = window.location,
+}) {
   const {
     canvasOAuth2RedirectError: {
+      authorizeUrl = null,
       invalidScope = false,
       errorDetails = '',
       scopes = [],
@@ -29,8 +34,17 @@ export default function CanvasOAuth2RedirectErrorApp() {
 
   const error = { details: errorDetails };
 
+  const retry = () => {
+    location.href = authorizeUrl;
+  };
+
+  const buttons = [];
+  if (authorizeUrl) {
+    buttons.push(<Button label="Try again" onClick={retry} />);
+  }
+
   return (
-    <Dialog title={title} onCancel={() => window.close()}>
+    <Dialog title={title} buttons={buttons} onCancel={() => window.close()}>
       {invalidScope && (
         <Fragment>
           <p>
@@ -62,4 +76,7 @@ export default function CanvasOAuth2RedirectErrorApp() {
   );
 }
 
-CanvasOAuth2RedirectErrorApp.propTypes = {};
+CanvasOAuth2RedirectErrorApp.propTypes = {
+  // Test seam for `window.location`.
+  location: propTypes.object,
+};

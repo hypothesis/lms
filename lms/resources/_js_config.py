@@ -68,7 +68,11 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         return self._config
 
     def enable_canvas_oauth2_redirect_error_mode(
-        self, error_details, is_scope_invalid=False, requested_scopes=None
+        self,
+        error_details,
+        authorize_url=None,
+        is_scope_invalid=False,
+        requested_scopes=None,
     ):
         """
         Configure the frontend to show the "Canvas authorization failed" dialog.
@@ -78,6 +82,8 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
         :param error_details: Technical details of the error
         :type error_details: str
+        :param authorize_url: URL for the "Try again" button in the dialog
+        :type authorize_url: str
         :param is_scope_invalid: `True` if authorization failed because the
           OAuth client does not have access to all the necessary scopes
         :type is_scope_invalid: bool
@@ -88,6 +94,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
             {
                 "mode": "canvas-oauth2-redirect-error",
                 "canvasOAuth2RedirectError": {
+                    "authorizeUrl": authorize_url,
                     "invalidScope": is_scope_invalid,
                     "errorDetails": error_details,
                     "scopes": requested_scopes or [],
