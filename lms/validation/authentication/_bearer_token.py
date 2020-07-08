@@ -172,31 +172,3 @@ class BearerTokenSchema(PyramidRequestSchema):
     def _make_user(self, data, **_kwargs):  # pylint:disable=no-self-use
         # See https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#deserializing-to-objects
         return LTIUser(**data)
-
-    # This is a hack to make Marshmallow enveloping work even when this schema
-    # is used via webargs.
-    #
-    # A limitation of webargs makes it incompatible with marshmallow schemas
-    # that use enveloping, such as this one. See:
-    #
-    # https://github.com/marshmallow-code/webargs/issues/267
-    # https://github.com/marshmallow-code/webargs/issues/173
-    #
-    # To work around the limitation we have to add an ``authorization`` field
-    # to the schema class and then, since we don't want any ``authorization``
-    # params to show up in deserialized session dicts from the schema, we add a
-    # post_load method to delete them.
-    #
-    # Remove this hack once https://github.com/marshmallow-code/webargs/issues/267
-    # is fixed.
-    authorization = marshmallow.fields.Str()
-
-    @marshmallow.post_load
-    def _delete_authorization_field(
-        self, data, **_kwargs
-    ):  # pylint:disable=no-self-use
-        try:
-            del data["authorization"]
-        except KeyError:
-            pass
-        return data
