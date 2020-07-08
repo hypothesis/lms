@@ -15,7 +15,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
 from lms.services import CanvasAPIServerError
-from lms.validation.authentication import CanvasOAuthCallbackSchema
+from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 #: The Canvas API scopes that we need for our Canvas Files feature.
 FILES_SCOPES = (
@@ -100,9 +100,20 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
+    authorize_url = None
+    if request.lti_user:
+        authorization_param = BearerTokenSchema(request).authorization_param(
+            request.lti_user
+        )
+        authorize_url = request.route_url(
+            "canvas_api.authorize", _query=[("authorization", authorization_param)]
+        )
+
     request.context.js_config.enable_canvas_oauth2_redirect_error_mode(
+        authorize_url=authorize_url,
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
         requested_scopes=FILES_SCOPES + SECTIONS_SCOPES,
     )
+
     return {}

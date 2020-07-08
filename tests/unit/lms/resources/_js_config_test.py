@@ -463,6 +463,7 @@ class TestJSConfigRPCServer:
 class TestEnableCanvasOauth2RedirectErrorMode:
     def test_scope_error(self, js_config):
         js_config.enable_canvas_oauth2_redirect_error_mode(
+            authorize_url=None,
             error_details="Technical error",
             is_scope_invalid=True,
             requested_scopes=["scope_a", "scope_b"],
@@ -472,18 +473,23 @@ class TestEnableCanvasOauth2RedirectErrorMode:
 
         assert config["mode"] == "canvas-oauth2-redirect-error"
         assert config["canvasOAuth2RedirectError"] == {
+            "authorizeUrl": None,
             "invalidScope": True,
             "errorDetails": "Technical error",
             "scopes": ["scope_a", "scope_b"],
         }
 
     def test_other_error(self, js_config):
-        js_config.enable_canvas_oauth2_redirect_error_mode(error_details="Some error")
+        authorize_url = "https://lms.hypothes.is/auth/url"
+        js_config.enable_canvas_oauth2_redirect_error_mode(
+            authorize_url=authorize_url, error_details="Some error"
+        )
 
         config = js_config.asdict()
 
         assert config["mode"] == "canvas-oauth2-redirect-error"
         assert config["canvasOAuth2RedirectError"] == {
+            "authorizeUrl": authorize_url,
             "invalidScope": False,
             "errorDetails": "Some error",
             "scopes": [],

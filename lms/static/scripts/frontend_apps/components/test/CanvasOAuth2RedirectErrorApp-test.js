@@ -7,6 +7,7 @@ import CanvasOAuth2RedirectErrorApp from '../CanvasOAuth2RedirectErrorApp';
 
 describe('CanvasOAuth2RedirectErrorApp', () => {
   let fakeConfig;
+  let fakeLocation;
 
   const renderApp = () => {
     const config = {
@@ -15,7 +16,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
     return mount(
       <Config.Provider value={config}>
-        <CanvasOAuth2RedirectErrorApp />
+        <CanvasOAuth2RedirectErrorApp location={fakeLocation} />
       </Config.Provider>
     );
   };
@@ -23,8 +24,12 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
   beforeEach(() => {
     fakeConfig = {
       invalidScope: false,
-      authUrl: null,
+      authorizeUrl: null,
       scopes: [],
+    };
+
+    fakeLocation = {
+      href: '',
     };
 
     sinon.stub(window, 'close');
@@ -69,5 +74,24 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
     const wrapper = renderApp();
     wrapper.find('Dialog').props().onCancel();
     assert.called(window.close);
+  });
+
+  it('shows "Try again" button if retry URL is provided', () => {
+    const initialLocation = fakeLocation.href;
+    fakeConfig.authorizeUrl = 'https://lms.hypothes.is/auth/url';
+
+    const wrapper = renderApp();
+    const tryAgainButton = wrapper.find('Button[label="Try again"]');
+    assert.isTrue(tryAgainButton.exists());
+    assert.equal(fakeLocation.href, initialLocation);
+
+    tryAgainButton.props().onClick();
+
+    assert.equal(fakeLocation.href, fakeConfig.authorizeUrl);
+  });
+
+  it('does not show "Try again" button if no retry URL is provided', () => {
+    const wrapper = renderApp();
+    assert.isFalse(wrapper.exists('Button[label="Try again"]'));
   });
 });

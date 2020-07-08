@@ -143,6 +143,7 @@ class TestOAuth2RedirectError:
     def test_it_configures_frontend_app(self, pyramid_request, params, invalid_scope):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
+        pyramid_request.lti_user = None
 
         scopes = (
             "url:GET|/api/v1/courses/:course_id/files",
@@ -156,10 +157,30 @@ class TestOAuth2RedirectError:
 
         js_config = pyramid_request.context.js_config
         js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_with(
+            authorize_url=None,
             error_details=params.get("error_description"),
             is_scope_invalid=invalid_scope,
             requested_scopes=scopes,
         )
+
+    # Test the URL that the backend provides to the frontend for the "Try again"
+    # button.
+    def test_it_configures_authorize_url(self, pyramid_request, BearerTokenSchema):
+        schema = BearerTokenSchema.return_value
+        schema.authorization_param.return_value = "auth-param"
+
+        authorize.oauth2_redirect_error(pyramid_request)
+
+        BearerTokenSchema.assert_called_once_with(pyramid_request)
+        schema.authorization_param.assert_called_once_with(pyramid_request.lti_user)
+
+        expected_auth_url = pyramid_request.route_url(
+            "canvas_api.authorize", _query=[("authorization", "auth-param")]
+        )
+        js_config = pyramid_request.context.js_config
+        js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_once()
+        _, kwargs = js_config.enable_canvas_oauth2_redirect_error_mode.call_args
+        assert kwargs["authorize_url"] == expected_auth_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, CanvasOAuth2RedirectResource):
@@ -169,6 +190,11 @@ class TestOAuth2RedirectError:
     @pytest.fixture(autouse=True)
     def CanvasOAuth2RedirectResource(self, patch):
         return patch("lms.resources.CanvasOAuth2RedirectResource")
+
+
+@pytest.fixture(autouse=True)
+def BearerTokenSchema(patch):
+    return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
 
 
 @pytest.fixture(autouse=True)
