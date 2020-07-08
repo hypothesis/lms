@@ -14,6 +14,13 @@ describe('ErrorDisplay', () => {
     $imports.$restore();
   });
 
+  const getSupportEmailLink = wrapper => {
+    const supportLink = wrapper
+      .find('a')
+      .filterWhere(n => n.text() === 'send us an email');
+    return new URL(supportLink.prop('href'));
+  };
+
   it('displays a support link', () => {
     const error = new Error('Canvas says no');
     error.details = { someTechnicalDetail: 123 };
@@ -22,16 +29,38 @@ describe('ErrorDisplay', () => {
       <ErrorDisplay message="Failed to fetch files" error={error} />
     );
 
-    const supportLink = wrapper
-      .find('a')
-      .filterWhere(n => n.text() === 'send us an email');
-    const href = new URL(supportLink.prop('href'));
+    const href = getSupportEmailLink(wrapper);
 
     assert.equal(href.protocol, 'mailto:');
     assert.equal(href.pathname, 'support@hypothes.is');
     assert.equal(href.searchParams.get('subject'), 'Hypothesis LMS support');
     assert.include(href.searchParams.get('body'), 'Canvas says no');
     assert.include(href.searchParams.get('body'), '"someTechnicalDetail": 123');
+  });
+
+  it('omits "Error message" from support email body if error has no message', () => {
+    const error = new Error('');
+    error.details = { someTechnicalDetail: 123 };
+
+    const wrapper = mount(
+      <ErrorDisplay message="Failed to fetch files" error={error} />
+    );
+    const href = getSupportEmailLink(wrapper);
+
+    assert.include(href.searchParams.get('body'), 'Technical details');
+    assert.notInclude(href.searchParams.get('body'), 'Error message');
+  });
+
+  it('omits "Technical details" from support email body if error has no details', () => {
+    const error = new Error('Something went wrong');
+
+    const wrapper = mount(
+      <ErrorDisplay message="Failed to fetch files" error={error} />
+    );
+    const href = getSupportEmailLink(wrapper);
+
+    assert.notInclude(href.searchParams.get('body'), 'Technical details');
+    assert.include(href.searchParams.get('body'), 'Error message');
   });
 
   [

@@ -24,17 +24,18 @@ export default function ErrorDisplay({ message, error }) {
     details = error.details;
   }
 
+  let supportEmailBody = '';
+  if (error.message) {
+    supportEmailBody += `\n\nError message: ${error.message}`;
+  }
+  if (details) {
+    supportEmailBody += `\n\nTechnical details:\n\n${details}`;
+  }
+
   const supportLink = emailLink({
     address: 'support@hypothes.is',
     subject: 'Hypothesis LMS support',
-    body: `
-
-Error message: ${error.message}
-
-Technical details:
-
-${details}
-    `,
+    body: supportEmailBody,
   });
 
   const onDetailsToggle = event => {
