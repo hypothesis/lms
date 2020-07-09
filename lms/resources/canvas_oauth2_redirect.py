@@ -9,16 +9,7 @@ class CanvasOAuth2RedirectResource:
     __acl__ = [(Allow, "lti_user", "canvas_api")]
 
     def __init__(self, request):
-        self._js_config = None
-        self._request = request
-
-    @property
-    def js_config(self):
-        if not self._request.exception:
-            # The normal views do not need to configure the frontend, only
-            # the exception views.
-            return None
-
-        if not self._js_config:
-            self._js_config = JSConfig(self, self._request)
-        return self._js_config
+        # The frontend config is only used by the exception view, but it is OK
+        # to set `js_config` unconditionally because the normal view replaces
+        # the frontend scripts with one that just closes the window.
+        self.js_config = JSConfig(self, request)
