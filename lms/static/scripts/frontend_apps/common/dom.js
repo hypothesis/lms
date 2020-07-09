@@ -4,10 +4,10 @@
  *
  * @param {Element} element
  * @param {string[]} events
- * @param {(event: Event) => any} listener
+ * @param {(e: Event) => any} listener
  * @param {Object} options
- * @param {boolean} [options.useCapture]
- * @return {function} Function which removes the event listeners.
+ *   @param {boolean} [options.useCapture]
+ * @return {() => void} Function which removes the event listeners.
  */
 export function listen(element, events, listener, { useCapture = false } = {}) {
   if (!Array.isArray(events)) {
