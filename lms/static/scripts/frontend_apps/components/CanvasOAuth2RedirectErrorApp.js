@@ -41,13 +41,14 @@ export default function CanvasOAuth2RedirectErrorApp({
   const buttons = [
     <Button
       className="Button--cancel"
+      key="close"
       label="Close"
       onClick={() => window.close()}
     />,
   ];
 
   if (authorizeUrl) {
-    buttons.push(<Button label="Try again" onClick={retry} />);
+    buttons.push(<Button key="try-again" label="Try again" onClick={retry} />);
   }
 
   return (
