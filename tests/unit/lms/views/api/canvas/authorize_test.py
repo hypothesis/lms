@@ -1,9 +1,11 @@
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import ApplicationSettings
+from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
 
@@ -184,7 +186,9 @@ class TestOAuth2RedirectError:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, CanvasOAuth2RedirectResource):
-        pyramid_request.context = CanvasOAuth2RedirectResource(pyramid_request)
+        context = CanvasOAuth2RedirectResource(pyramid_request)
+        context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
+        pyramid_request.context = context
         return pyramid_request
 
     @pytest.fixture(autouse=True)
