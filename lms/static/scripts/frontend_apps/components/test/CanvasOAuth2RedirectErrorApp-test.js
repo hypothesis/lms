@@ -70,9 +70,9 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
     });
   });
 
-  it(`closes the window when the dialog's "Cancel" button is clicked`, () => {
+  it(`closes the window when the dialog's "Close" button is clicked`, () => {
     const wrapper = renderApp();
-    wrapper.find('Dialog').props().onCancel();
+    wrapper.find('Button[label="Close"]').props().onClick();
     assert.called(window.close);
   });
 

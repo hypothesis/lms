@@ -38,13 +38,20 @@ export default function CanvasOAuth2RedirectErrorApp({
     location.href = authorizeUrl;
   };
 
-  const buttons = [];
+  const buttons = [
+    <Button
+      className="Button--cancel"
+      label="Close"
+      onClick={() => window.close()}
+    />,
+  ];
+
   if (authorizeUrl) {
     buttons.push(<Button label="Try again" onClick={retry} />);
   }
 
   return (
-    <Dialog title={title} buttons={buttons} onCancel={() => window.close()}>
+    <Dialog title={title} buttons={buttons}>
       {invalidScope && (
         <Fragment>
           <p>
