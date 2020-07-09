@@ -31,7 +31,6 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
 
     @property
     def _ai_getter(self):
-        # nb. `ai_getter` service is only available in LTI launches.
         return self._request.find_service(name="ai_getter")
 
     def add_canvas_file_id(self, canvas_file_id):
