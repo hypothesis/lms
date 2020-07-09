@@ -4,11 +4,9 @@ from unittest import mock
 from unittest.mock import call, create_autospec, sentinel
 
 import pytest
-from _pytest.mark import param
 from h_matchers import Any
-from h_matchers.decorator import fluent_entrypoint
-from h_matchers.matcher.core import Matcher
-from requests import PreparedRequest, Request, RequestException, Response
+from pytest import param
+from requests import Request, RequestException, Response
 
 from lms.models import ApplicationInstance, OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
@@ -16,59 +14,6 @@ from lms.services.canvas_api import CanvasAPIClient, _CanvasAPIAuthenticatedClie
 from lms.validation import RequestsResponseSchema, ValidationError
 
 # pylint: disable=protected-access
-
-
-class AnyRequest(Matcher):  # pragma: no cover
-    """Matching object for request type objects."""
-
-    # This will be moved out to h-matchers and prettied up and tested there
-    # At present the matcher only supports `requests.PreparedRequest` but the
-    # plan is to expand it to more request types in future.
-
-    assert_on_comparison = False
-
-    def __init__(self, method=None, url=None, headers=None):
-        self.method = method
-        self.url = url
-        self.headers = headers
-
-        super().__init__(f"<AnyRequest {method}: {url}>", self._matches_request)
-
-    # pylint: disable=function-redefined
-    @classmethod
-    def containing_headers(cls, headers):
-        """Confuse pylint so it doesn't complain about fluent-endpoints."""
-
-    @fluent_entrypoint
-    def containing_headers(self, headers):
-        self.headers = Any.mapping.containing(headers)
-
-        return self
-
-    def _matches_request(self, other):
-        try:
-            self.assert_equal_to(other)
-        except AssertionError:
-            if self.assert_on_comparison:
-                raise
-            return False
-
-        return True
-
-    def assert_equal_to(self, other):
-        if isinstance(other, PreparedRequest):
-            if self.method is not None and self.method != other.method:
-                raise AssertionError(f"Method '{other.method}' != '{self.method}'")
-
-            if self.url is not None and self.url != other.url:
-                raise AssertionError(f"URL '{other.url}' != '{self.url}'")
-
-            if self.headers is not None and self.headers != other.headers:
-                raise AssertionError(f"Headers {other.headers} != {self.headers}")
-
-            return
-
-        raise AssertionError(f"Unknown request type '{type(other)}'")
 
 
 def _make_response(json_data=None, raw=None, status_code=200, headers=None):
@@ -97,7 +42,7 @@ class TestDataCalls:
 
         assert response == sections
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID").with_query(
                     {"include[]": "sections"}
@@ -122,7 +67,7 @@ class TestDataCalls:
 
         assert response == sections
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/sections"),
                 headers={"Authorization": "Bearer existing_access_token"},
@@ -154,7 +99,7 @@ class TestDataCalls:
 
         assert response == [{"id": 101}, {"id": 102}]
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 "GET",
                 url=Any.url.with_path(
                     "api/v1/courses/COURSE_ID/users/USER_ID"
@@ -251,9 +196,9 @@ class TestDataCalls:
         response = api_client.list_files("COURSE_ID")
 
         assert response == files
-        AnyRequest.assert_on_comparison = True
+
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
                     {
@@ -276,7 +221,7 @@ class TestDataCalls:
 
         assert response == "public_url_value"
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/files/FILE_ID/public_url"),
                 headers={"Authorization": "Bearer existing_access_token"},
@@ -352,7 +297,7 @@ class TestTokenCalls:
         base_client.get_token("authorization_code")
 
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 method="POST",
                 url=Any.url()
                 .with_path("login/oauth2/token")
@@ -392,7 +337,7 @@ class TestTokenCalls:
         base_client._get_refreshed_token("new_refresh_token")
 
         http_session.send.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 method="POST",
                 url=Any.url()
                 .with_path("login/oauth2/token")
@@ -488,9 +433,9 @@ class TestValidatedResponse:
         # mutate the object in place, so the information is destroyed
         http_session.send.assert_has_calls(
             [
-                call(AnyRequest(), timeout=Any()),
-                call(AnyRequest(url="http://example.com/next"), timeout=Any()),
-                call(AnyRequest(url="http://example.com/next"), timeout=Any()),
+                call(Any.request(), timeout=Any()),
+                call(Any.request(url="http://example.com/next"), timeout=Any()),
+                call(Any.request(url="http://example.com/next"), timeout=Any()),
             ]
         )
 
@@ -555,7 +500,7 @@ class TestMakeAuthenticatedRequest:
             .with_query(params)
         )
         base_client._validated_response.assert_called_once_with(
-            AnyRequest(method="METHOD", url=expected_url).containing_headers(
+            Any.request(method="METHOD", url=expected_url).containing_headers(
                 {"Authorization": f"Bearer {access_token.access_token}"}
             ),
             Schema,
@@ -567,9 +512,9 @@ class TestMakeAuthenticatedRequest:
             method="method", path="path", schema=PaginatedSchema
         )
 
-        AnyRequest.assert_on_comparison = True
+        Any.request.assert_on_comparison = True
         base_client._validated_response.assert_called_once_with(
-            AnyRequest(
+            Any.request(
                 url=Any.url.containing_query(
                     {"per_page": str(base_client.PAGINATION_PER_PAGE)}
                 )
@@ -597,9 +542,9 @@ class TestMakeAuthenticatedRequest:
             [
                 # It would be good to assert this call has the old header, but as
                 # the object is mutated, you can't easily
-                call(AnyRequest(), Schema),
+                call(Any.request(), Schema),
                 call(
-                    AnyRequest.containing_headers(
+                    Any.request.containing_headers(
                         {"Authorization": "Bearer new_access_token"}
                     ),
                     Schema,
