@@ -1,7 +1,7 @@
 import pytest
 
 from lms.models import HGroup
-from lms.views.api.canvas.sync import sync
+from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
 
@@ -9,30 +9,24 @@ from tests.conftest import TEST_SETTINGS
 def test_sync_when_the_user_is_a_learner(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    groupids = sync(pyramid_request)
+    groupids = Sync(pyramid_request).sync()
 
     course_id = request_json["course"]["custom_canvas_course_id"]
     canvas_api_client.authenticated_users_sections.assert_called_once_with(course_id)
 
-    assert_sync_and_return(
-        groupids,
-        synced_sections=sections.authenticated_user,
-        returned_sections=sections.authenticated_user,
-    )
+    assert_sync_and_return(groupids, sections=sections.authenticated_user)
 
 
 @pytest.mark.usefixtures("is_instructor")
 def test_sync_when_the_user_is_an_instructor(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    groupids = sync(pyramid_request)
+    groupids = Sync(pyramid_request).sync()
 
     course_id = request_json["course"]["custom_canvas_course_id"]
     canvas_api_client.course_sections.assert_called_once_with(course_id)
 
-    assert_sync_and_return(
-        groupids, synced_sections=sections.course, returned_sections=sections.course,
-    )
+    assert_sync_and_return(groupids, sections=sections.course)
 
 
 @pytest.mark.usefixtures("is_instructor")
@@ -40,16 +34,14 @@ def test_sync_when_the_user_is_an_instructor(
 def test_sync_when_in_SpeedGrader(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    groupids = sync(pyramid_request)
+    groupids = Sync(pyramid_request).sync()
 
     course_id = request_json["course"]["custom_canvas_course_id"]
     user_id = request_json["learner"]["canvas_user_id"]
     canvas_api_client.course_sections.assert_called_once_with(course_id)
     canvas_api_client.users_sections.assert_called_once_with(user_id, course_id)
 
-    assert_sync_and_return(
-        groupids, synced_sections=sections.course, returned_sections=sections.user,
-    )
+    assert_sync_and_return(groupids, sections=sections.user)
 
 
 pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
@@ -60,8 +52,8 @@ def assert_sync_and_return(lti_h_service, request_json):
     tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
     context_id = request_json["course"]["context_id"]
 
-    def _groups_for(sections):
-        return [
+    def assert_return_values(groupids, sections):
+        expected_groups = [
             HGroup.section_group(
                 section_name=section.get("name", f"Section {section['id']}"),
                 tool_consumer_instance_guid=tool_guid,
@@ -71,14 +63,12 @@ def assert_sync_and_return(lti_h_service, request_json):
             for section in sections
         ]
 
-    def assert_return_values(groupids, synced_sections, returned_sections):
         lti_h_service.sync.assert_called_once_with(
-            _groups_for(synced_sections), request_json["group_info"]
+            expected_groups, request_json["group_info"]
         )
 
         assert groupids == [
-            group.groupid(TEST_SETTINGS["h_authority"])
-            for group in _groups_for(returned_sections)
+            group.groupid(TEST_SETTINGS["h_authority"]) for group in expected_groups
         ]
 
     return assert_return_values

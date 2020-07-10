@@ -3,49 +3,69 @@ from pyramid.view import view_config
 from lms.models import HGroup
 
 
-@view_config(
-    route_name="canvas_api.sync",
-    request_method="POST",
-    renderer="json",
-    permission="sync_api",
-)
-def sync(request):
-    authority = request.registry.settings["h_authority"]
-    canvas_api_svc = request.find_service(name="canvas_api_client")
-    lti_h_svc = request.find_service(name="lti_h")
+class Sync:
+    def __init__(self, request):
+        self._request = request
 
-    course_id = request.json["course"]["custom_canvas_course_id"]
-    group_info = request.json["group_info"]
+    @view_config(
+        route_name="canvas_api.sync",
+        request_method="POST",
+        renderer="json",
+        permission="sync_api",
+    )
+    def sync(self):
+        groups = self._to_groups(self._get_sections())
 
-    if request.lti_user.is_learner:
-        # For learners we only want the client to show the sections that the
-        # student belongs to, so fetch only the user's sections.
-        sections = canvas_api_svc.authenticated_users_sections(course_id)
-    else:
+        self._sync_to_h(groups)
+
+        authority = self._request.registry.settings["h_authority"]
+        return [group.groupid(authority) for group in groups]
+
+    @property
+    def _is_speedgrader(self):
+        return "learner" in self._request.json
+
+    def _get_sections(self):
+        canvas_api = self._request.find_service(name="canvas_api_client")
+        course_id = self._request.json["course"]["custom_canvas_course_id"]
+        lti_user = self._request.lti_user
+
+        if lti_user.is_learner:
+            # For learners we only want the client to show the sections that
+            # the student belongs to, so fetch only the user's sections.
+            return canvas_api.authenticated_users_sections(course_id)
+
         # For non-learners (e.g. instructors, teaching assistants) we want the
         # client to show all of the course's sections.
-        sections = canvas_api_svc.course_sections(course_id)
+        sections = canvas_api.course_sections(course_id)
+        if not self._is_speedgrader:
+            return sections
 
-    tool_consumer_instance_guid = request.json["lms"]["tool_consumer_instance_guid"]
-    context_id = request.json["course"]["context_id"]
+        # Speedgrader requests are made by the teacher, but we want the
+        # learners sections. The canvas API won't give us names for those so
+        # we will just use them to filter the course sections
+        user_id = self._request.json["learner"]["canvas_user_id"]
+        learner_section_ids = {
+            sec["id"] for sec in canvas_api.users_sections(user_id, course_id)
+        }
 
-    def group(section):
-        """Return an HGroup from the given Canvas section dict."""
+        return [sec for sec in sections if sec["id"] in learner_section_ids]
 
-        return HGroup.section_group(
-            section_name=section.get("name"),
-            tool_consumer_instance_guid=tool_consumer_instance_guid,
-            context_id=context_id,
-            section_id=section["id"],
-        )
+    def _to_groups(self, sections):
+        tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
+        context_id = self._request.json["course"]["context_id"]
 
-    groups = [group(section) for section in sections]
-    lti_h_svc.sync(groups, group_info)
+        return [
+            HGroup.section_group(
+                section_name=section["name"],
+                tool_consumer_instance_guid=tool_guid,
+                context_id=context_id,
+                section_id=section["id"],
+            )
+            for section in sections
+        ]
 
-    if "learner" in request.json:
-        user_id = request.json["learner"]["canvas_user_id"]
-        learners_sections = canvas_api_svc.users_sections(user_id, course_id)
-        learners_groups = [group(section) for section in learners_sections]
-        return [group.groupid(authority) for group in learners_groups]
-
-    return [group.groupid(authority) for group in groups]
+    def _sync_to_h(self, groups):
+        lti_h_svc = self._request.find_service(name="lti_h")
+        group_info = self._request.json["group_info"]
+        lti_h_svc.sync(groups, group_info)
