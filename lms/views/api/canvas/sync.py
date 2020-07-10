@@ -41,7 +41,7 @@ class Sync:
         if not self._is_speedgrader:
             return sections
 
-        # Speedgrader requests are made by the teacher, but we want the
+        # SpeedGrader requests are made by the teacher, but we want the
         # learners sections. The canvas API won't give us names for those so
         # we will just use them to filter the course sections
         user_id = self._request.json["learner"]["canvas_user_id"]
