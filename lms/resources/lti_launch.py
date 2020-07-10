@@ -1,10 +1,9 @@
 """Traversal resources for LTI launch views."""
 import functools
-import hashlib
 
 from pyramid.security import Allow
 
-from lms.models import HGroup, h_group_name
+from lms.models import HGroup
 from lms.resources._js_config import JSConfig
 
 
@@ -54,16 +53,13 @@ class LTILaunchResource:
         # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
         # and context_id uniquely identifies a course within an LMS. Together they
         # globally uniquely identify a course.
-        hash_object = hashlib.sha1()
-        hash_object.update(
-            self._request.parsed_params["tool_consumer_instance_guid"].encode()
-        )
-        hash_object.update(self._request.parsed_params["context_id"].encode())
-        authority_provided_id = hash_object.hexdigest()
 
-        return HGroup(
-            name=h_group_name(self._request.parsed_params["context_title"]),
-            authority_provided_id=authority_provided_id,
+        params = self._request.parsed_params
+
+        return HGroup.from_lti_parts(
+            name=params["context_title"],
+            tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
+            context_id=params["context_id"],
         )
 
     @property

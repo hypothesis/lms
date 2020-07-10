@@ -29,12 +29,15 @@ class TestACL:
 
 class TestHGroup:
     @pytest.mark.usefixtures("has_course")
-    def test_it(self, lti_launch, HGroup, h_group_name):
-        assert lti_launch.h_group == HGroup.return_value
-        h_group_name.assert_called_once_with("test_context_title")
-        HGroup.assert_called_once_with(
-            name=h_group_name.return_value,
-            authority_provided_id="d55a3c86dd79d390ec8dc6a8096d0943044ea268",
+    def test_it(self, lti_launch, HGroup, pyramid_request):
+        assert lti_launch.h_group == HGroup.from_lti_parts.return_value
+
+        HGroup.from_lti_parts.assert_called_once_with(
+            name="test_context_title",
+            tool_consumer_instance_guid=pyramid_request.parsed_params[
+                "tool_consumer_instance_guid"
+            ],
+            context_id=pyramid_request.parsed_params["context_id"],
         )
 
 
@@ -192,11 +195,6 @@ pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)
-
-
-@pytest.fixture(autouse=True)
-def h_group_name(patch):
-    return patch("lms.resources.lti_launch.h_group_name")
 
 
 @pytest.fixture(autouse=True)
