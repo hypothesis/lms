@@ -1,5 +1,6 @@
-import hashlib
 from typing import NamedTuple
+
+from lms.models._hashed_id import hashed_id
 
 
 class HUser(NamedTuple):
@@ -35,15 +36,8 @@ class HUser(NamedTuple):
         provider = lti_user.tool_consumer_instance_guid
         provider_unique_id = lti_user.user_id
 
-        def username():
-            """Return the h username for the current request."""
-            username_hash_object = hashlib.sha1()
-            username_hash_object.update(provider.encode())
-            username_hash_object.update(provider_unique_id.encode())
-            return username_hash_object.hexdigest()[:30]
-
         return cls(
-            username=username(),
+            username=hashed_id(provider, provider_unique_id)[:30],
             display_name=lti_user.display_name,
             provider=provider,
             provider_unique_id=provider_unique_id,
