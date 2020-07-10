@@ -1,135 +1,141 @@
 import pytest
 
+from lms.models import HGroup
 from lms.views.api.canvas.sync import sync
-from tests import factories
+from tests.conftest import TEST_SETTINGS
 
 
+@pytest.mark.usefixtures("is_learner")
 def test_sync_when_the_user_is_a_learner(
-    pyramid_request, canvas_api_client, lti_h_service
+    pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
+    groupids = sync(pyramid_request)
 
-    returned_groupids = sync(pyramid_request)
+    course_id = request_json["course"]["custom_canvas_course_id"]
+    canvas_api_client.authenticated_users_sections.assert_called_once_with(course_id)
 
-    expected_groups = [
-        factories.HGroup(
-            name="Section 2",
-            authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
-            type="section_group",
-        )
-    ]
-    canvas_api_client.authenticated_users_sections.assert_called_once_with(
-        "test_custom_canvas_course_id"
-    )
-    assert_that_it_called_sync_and_returned_the_groupids(
-        lti_h_service, returned_groupids, expected_groups
+    assert_sync_and_return(
+        groupids,
+        synced_sections=sections.authenticated_user,
+        returned_sections=sections.authenticated_user,
     )
 
 
-def test_sync_when_the_user_isnt_a_learner(
-    pyramid_request, canvas_api_client, lti_h_service
+@pytest.mark.usefixtures("is_instructor")
+def test_sync_when_the_user_is_an_instructor(
+    pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+    groupids = sync(pyramid_request)
 
-    returned_groupids = sync(pyramid_request)
+    course_id = request_json["course"]["custom_canvas_course_id"]
+    canvas_api_client.course_sections.assert_called_once_with(course_id)
 
-    expected_groups = [
-        factories.HGroup(
-            name="Section 1",
-            authority_provided_id="d0f36006728f2277f228b74c8a7f620305bfb3e7",
-            type="section_group",
-        ),
-        factories.HGroup(
-            name="Section 2",
-            authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
-            type="section_group",
-        ),
-        factories.HGroup(
-            name="Section 3",
-            authority_provided_id="6a85e3651705dee4da0805b8985472343cbea94e",
-            type="section_group",
-        ),
-    ]
-    canvas_api_client.course_sections.assert_called_once_with(
-        "test_custom_canvas_course_id"
-    )
-    assert_that_it_called_sync_and_returned_the_groupids(
-        lti_h_service, returned_groupids, expected_groups
+    assert_sync_and_return(
+        groupids, synced_sections=sections.course, returned_sections=sections.course,
     )
 
 
-def test_sync_when_in_SpeedGrader(pyramid_request, canvas_api_client, lti_h_service):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
-    pyramid_request.json["learner"] = {
-        "canvas_user_id": "test_canvas_user_id",
-    }
-
-    returned_groupids = sync(pyramid_request)
-
-    instructors_groups = [
-        factories.HGroup(
-            name="Section 1",
-            authority_provided_id="d0f36006728f2277f228b74c8a7f620305bfb3e7",
-            type="section_group",
-        ),
-        factories.HGroup(
-            name="Section 2",
-            authority_provided_id="d99674b9700f4a40a2b301d2949b61339c58236c",
-            type="section_group",
-        ),
-        factories.HGroup(
-            name="Section 3",
-            authority_provided_id="6a85e3651705dee4da0805b8985472343cbea94e",
-            type="section_group",
-        ),
-    ]
-    canvas_api_client.course_sections.assert_called_once_with(
-        "test_custom_canvas_course_id"
-    )
-    lti_h_service.sync.assert_called_once_with(instructors_groups, {"foo": "bar"})
-    canvas_api_client.users_sections.assert_called_once_with(
-        "test_canvas_user_id", "test_custom_canvas_course_id"
-    )
-    assert returned_groupids == [
-        "group:d99674b9700f4a40a2b301d2949b61339c58236c@TEST_AUTHORITY"
-    ]
-
-
-def assert_that_it_called_sync_and_returned_the_groupids(
-    lti_h_service, returned_groupids, expected_groups
+@pytest.mark.usefixtures("is_instructor")
+@pytest.mark.usefixtures("is_speedgrader")
+def test_sync_when_in_SpeedGrader(
+    pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
-    lti_h_service.sync.assert_called_once_with(expected_groups, {"foo": "bar"})
-    assert returned_groupids == [
-        f"group:{group.authority_provided_id}@TEST_AUTHORITY"
-        for group in expected_groups
-    ]
+    groupids = sync(pyramid_request)
+
+    course_id = request_json["course"]["custom_canvas_course_id"]
+    user_id = request_json["learner"]["canvas_user_id"]
+    canvas_api_client.course_sections.assert_called_once_with(course_id)
+    canvas_api_client.users_sections.assert_called_once_with(user_id, course_id)
+
+    assert_sync_and_return(
+        groupids, synced_sections=sections.course, returned_sections=sections.user,
+    )
 
 
 pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
 
 
 @pytest.fixture
-def canvas_api_client(canvas_api_client):
-    # The course has three sections named "Section 1", "Section 2" and "Section
-    # 3" (with IDs 1, 2 and 3).
-    canvas_api_client.course_sections.return_value = [
-        {"id": i, "name": f"Section {i}",} for i in range(1, 4)
-    ]
+def assert_sync_and_return(lti_h_service, request_json):
+    tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
+    context_id = request_json["course"]["context_id"]
 
-    # The learner is only a member of section 2.
-    canvas_api_client.authenticated_users_sections.return_value = [
-        {"id": 2, "name": "Section 2"}
-    ]
+    def _groups_for(sections):
+        return [
+            HGroup.from_lti_parts(
+                name=section.get("name", f"Section {section['id']}"),
+                tool_consumer_instance_guid=tool_guid,
+                context_id=context_id,
+                section_id=section["id"],
+                type_="section_group",
+            )
+            for section in sections
+        ]
 
-    # users_sections() returns id's only, not names.
-    canvas_api_client.users_sections.return_value = [{"id": 2}]
+    def assert_return_values(groupids, synced_sections, returned_sections):
+        lti_h_service.sync.assert_called_once_with(
+            _groups_for(synced_sections), request_json["group_info"]
+        )
+
+        assert groupids == [
+            group.groupid(TEST_SETTINGS["h_authority"])
+            for group in _groups_for(returned_sections)
+        ]
+
+    return assert_return_values
+
+
+@pytest.fixture
+def is_instructor(pyramid_request):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+
+
+@pytest.fixture
+def is_learner(pyramid_request):
+    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
+
+
+@pytest.fixture
+def is_speedgrader(request_json):
+    request_json["learner"] = {"canvas_user_id": "user_id"}
+
+
+@pytest.fixture
+def sections():
+    class Sections:
+        # The course has three sections named "Section 1", "Section 2" and "Section
+        # 3" (with IDs 1, 2 and 3).
+        course = [{"id": i, "name": f"Section {i}"} for i in range(1, 4)]
+
+        # users_sections() returns id's only, not names.
+        authenticated_user = [{"id": 2, "name": "Section 2"}]
+
+        # The learner is only a member of section 2.
+        user = [{"id": section["id"]} for section in authenticated_user]
+
+    return Sections()
+
+
+@pytest.fixture
+def canvas_api_client(canvas_api_client, sections):
+    canvas_api_client.course_sections.return_value = sections.course
+    canvas_api_client.authenticated_users_sections.return_value = (
+        sections.authenticated_user
+    )
+    canvas_api_client.users_sections.return_value = sections.user
 
     return canvas_api_client
 
 
 @pytest.fixture
-def pyramid_request(pyramid_request):
-    pyramid_request.json = {
+def pyramid_request(pyramid_request, request_json):
+    pyramid_request.json = request_json
+    return pyramid_request
+
+
+@pytest.fixture
+def request_json():
+    return {
         "course": {
             "context_id": "test_context_id",
             "custom_canvas_course_id": "test_custom_canvas_course_id",
@@ -137,4 +143,3 @@ def pyramid_request(pyramid_request):
         "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
         "group_info": {"foo": "bar"},
     }
-    return pyramid_request
