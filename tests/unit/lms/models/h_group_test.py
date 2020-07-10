@@ -1,5 +1,4 @@
 import pytest
-from pytest import param
 
 from lms.models import HGroup
 from tests import factories
@@ -45,7 +44,6 @@ class TestHGroup:
     @pytest.mark.parametrize(
         "name,expected_result",
         (
-            (None, None),
             ("Test Course", "Test Course"),
             (" Test Course ", "Test Course"),
             ("Test   Course", "Test   Course"),
@@ -53,23 +51,24 @@ class TestHGroup:
             ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
         ),
     )
-    @pytest.mark.parametrize(
-        "constructor",
-        (
-            param(
-                lambda name: HGroup.course_group(name, "blah", "blah"),
-                id="course_group",
-            ),
-            param(
-                lambda name: HGroup.section_group(name, "blah", "blah", "blah"),
-                id="section_group",
-            ),
-        ),
-    )
-    def test_contructors_truncate_the_name(self, constructor, name, expected_result):
-        group = constructor(name)
+    def test_constructors_truncate_the_name(
+        self, name_only_constructor, name, expected_result
+    ):
+        group = name_only_constructor(name)
 
         assert group.name == expected_result
+
+    def test_constructors_name_is_mandatory(self, name_only_constructor):
+        with pytest.raises(ValueError):
+            name_only_constructor(None)
+
+    @pytest.fixture(
+        params=GROUP_CONSTRUCTORS, ids=[group[2] for group in GROUP_CONSTRUCTORS]
+    )
+    def name_only_constructor(self, request):
+        constructor, args, _group_type = request.param
+
+        return lambda name: constructor(name, *args)
 
     @pytest.fixture
     def hashed_id(self, patch):

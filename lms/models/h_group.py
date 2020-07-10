@@ -51,7 +51,7 @@ class HGroup(NamedTuple):
         """Return an h-compatible group name from the given string."""
 
         if name is None:
-            return None
+            raise ValueError("Name is mandatory to create a group")
 
         name = name.strip()
 
