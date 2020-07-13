@@ -2,7 +2,7 @@ import marshmallow
 from marshmallow import validate, post_load, validates_schema
 
 from lms.services import CanvasAPIError
-from lms.services.canvas_api.authenticated_client import _CanvasAPIAuthenticatedClient
+from lms.services.canvas_api.authenticated_client import CanvasAPIAuthenticatedClient
 from lms.validation import RequestsResponseSchema
 
 from marshmallow import EXCLUDE, Schema, fields
@@ -24,7 +24,7 @@ class _SectionSchema(Schema):
     name = fields.String(required=True)
 
 
-class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
+class CanvasAPIClient:
     """
     A client for making calls to the CanvasAPI.
 
@@ -35,6 +35,12 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
     :raise CanvasAPIServerError: if we do have an access token but the
             Canvas API request fails for any other reason
     """
+
+    def __init__(self, context_, request):
+        self.api = CanvasAPIAuthenticatedClient(request)
+
+    def get_token(self, authorization_code):
+        return self.api.get_token(authorization_code)
 
     def authenticated_users_sections(self, course_id):
         """
@@ -79,7 +85,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # that we're ignoring it for now.
 
         return self._ensure_sections_unique(
-            self.make_authenticated_request(
+            self.api.send(
                 "GET",
                 f"courses/{course_id}",
                 params={"include[]": "sections"},
@@ -114,7 +120,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
         return self._ensure_sections_unique(
-            self.make_authenticated_request(
+            self.api.send(
                 "GET",
                 f"courses/{course_id}/sections",
                 schema=self._CourseSectionsSchema,
@@ -146,7 +152,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
         return self._ensure_sections_unique(
-            self.make_authenticated_request(
+            self.api.send(
                 "GET",
                 f"courses/{course_id}/users/{user_id}",
                 params={"include[]": "enrollments"},
@@ -191,7 +197,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self.make_authenticated_request(
+        return self.api.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
@@ -217,7 +223,7 @@ class CanvasAPIClient(_CanvasAPIAuthenticatedClient):
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        return self.make_authenticated_request(
+        return self.api.send(
             "GET", f"files/{file_id}/public_url", schema=self._PublicURLSchema
         )["public_url"]
 

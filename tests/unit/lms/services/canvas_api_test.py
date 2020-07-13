@@ -253,7 +253,7 @@ class TestDataCalls:
 
     def test_methods_use_retry_mechanism(self, api_client, data_method):
         # The actual test of the retry mechanism is covered elsewhere
-        with mock.patch.object(api_client, "make_authenticated_request") as func:
+        with mock.patch.object(api_client, "send") as func:
             data_method()
 
             func.assert_called_once()
@@ -490,7 +490,7 @@ class TestMakeAuthenticatedRequest:
     def test_it(self, base_client, access_token, Schema):
         params = {"a": "1"}
 
-        base_client.make_authenticated_request(
+        base_client.send(
             method="method", path="path", schema=Schema, params=params
         )
 
@@ -508,7 +508,7 @@ class TestMakeAuthenticatedRequest:
 
     @pytest.mark.usefixtures("access_token")
     def test_it_adds_pagination_for_multi_schema(self, base_client, PaginatedSchema):
-        base_client.make_authenticated_request(
+        base_client.send(
             method="method", path="path", schema=PaginatedSchema
         )
 
@@ -530,7 +530,7 @@ class TestMakeAuthenticatedRequest:
         ]
         base_client._get_refreshed_token.return_value = "new_access_token"
 
-        response = base_client.make_authenticated_request(
+        response = base_client.send(
             method="method", path="path", schema=Schema
         )
 
@@ -559,7 +559,7 @@ class TestMakeAuthenticatedRequest:
         base_client._validated_response.side_effect = CanvasAPIAccessTokenError()
 
         with pytest.raises(CanvasAPIAccessTokenError):
-            base_client.make_authenticated_request(
+            base_client.send(
                 method="method", path="path", schema=Schema
             )
 
