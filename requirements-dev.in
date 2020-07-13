@@ -3,4 +3,4 @@
 
 factory-boy
 pyramid_ipython
-honcho
+supervisor
