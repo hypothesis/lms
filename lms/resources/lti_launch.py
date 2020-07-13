@@ -56,8 +56,8 @@ class LTILaunchResource:
 
         params = self._request.parsed_params
 
-        return HGroup.from_lti_parts(
-            name=params["context_title"],
+        return HGroup.course_group(
+            course_name=params["context_title"],
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
         )

@@ -6,4 +6,5 @@ HGroup = make_factory(  # pylint:disable=invalid-name
     models.HGroup,
     name=Sequence(lambda n: f"Test Group {n}"),
     authority_provided_id=Faker("hexify", text="^" * 40),
+    type=Faker("random_element", elements=["course_group", "section_group"]),
 )

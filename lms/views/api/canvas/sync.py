@@ -32,12 +32,11 @@ def sync(request):
     def group(section):
         """Return an HGroup from the given Canvas section dict."""
 
-        return HGroup.from_lti_parts(
-            name=section.get("name"),
+        return HGroup.section_group(
+            section_name=section.get("name"),
             tool_consumer_instance_guid=tool_consumer_instance_guid,
             context_id=context_id,
             section_id=section["id"],
-            type_="section_group",
         )
 
     groups = [group(section) for section in sections]

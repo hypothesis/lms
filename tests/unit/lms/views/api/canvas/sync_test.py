@@ -62,12 +62,11 @@ def assert_sync_and_return(lti_h_service, request_json):
 
     def _groups_for(sections):
         return [
-            HGroup.from_lti_parts(
-                name=section.get("name", f"Section {section['id']}"),
+            HGroup.section_group(
+                section_name=section.get("name", f"Section {section['id']}"),
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
                 section_id=section["id"],
-                type_="section_group",
             )
             for section in sections
         ]
