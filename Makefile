@@ -5,6 +5,8 @@ help:
 	@echo "                       (Postgres) in Docker"
 	@echo 'make db                Upgrade the DB schema to the latest version'
 	@echo "make dev               Run the entire app (web server and other processes)"
+	@echo "make supervisor        Launch a supervisorctl shell for managing the processes "
+	@echo '                       that `make dev` starts, type `help` for docs'
 	@echo "make web               Run the web server on its own (useful for debugging the "
 	@echo "                       Python code with pdb)"
 	@echo "make assets            Run the assets build on its own, with live reloading "
@@ -40,21 +42,17 @@ db: python
 
 .PHONY: dev
 dev: build/manifest.json python
-	@tox -qe dev --run-command 'honcho start ${processes}'
+	@tox -qe dev
+
+.PHONY: supervisor
+supervisor: python
+	@tox -qe dev --run-command 'supervisorctl -c conf/supervisord-dev.conf $(command)'
 
 .PHONY: devdata
 devdata: python
 	@tox -qe dev --run-command 'devdata conf/development.ini'  # See setup.py for what devdata is.
 
-.PHONY: web
-web: python
-	@tox -qe dev
-
 GULP := node_modules/.bin/gulp
-
-.PHONY: assets
-assets:
-	@$(GULP) watch
 
 .PHONY: shell
 shell: python

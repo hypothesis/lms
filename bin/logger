@@ -64,9 +64,54 @@ we redirect the aggregated output back to STDOUT (FD 1). You can also log the
 aggregated output to a single file.
 """
 
+import itertools
 import sys
 
 WIDTH = 20
+
+
+class Colors:
+    colors = itertools.cycle(
+        {
+            "cyan": "36",
+            "yellow": "33",
+            "green": "32",
+            "magenta": "35",
+            "blue": "34",
+            "intense_cyan": "36;1",
+            "intense_yellow": "33;1",
+            "intense_green": "32;1",
+            "intense_magenta": "35;1",
+            "intense_blue": "34;1",
+        }.values()
+    )
+
+    intense_red = "31;1"
+
+    def __init__(self):
+        self._process_colors = {}
+
+    def color(self, process_name, s, error=False):
+        if error:
+            color = self.intense_red
+        else:
+            color = self._process_colors.get(process_name)
+
+            if not color:
+                color = self._process_colors[process_name] = next(self.colors)
+
+        return self._color_string(color, s)
+
+    @staticmethod
+    def _ansi(code):
+        return "\033[{0}m".format(code)
+
+    @classmethod
+    def _color_string(cls, color, s):
+        return "{0}{1}{2}{3}".format(cls._ansi(0), cls._ansi(color), s, cls._ansi(0))
+
+
+colors = Colors()
 
 
 def main():
@@ -101,7 +146,12 @@ def _log_payload(payload, err=False):
         name += ' (stderr)'
     prefix = '{name:{width}} | '.format(name=name, width=WIDTH)
     for line in data.splitlines():
-        sys.stderr.write(prefix + line + '\n')
+        output_line = prefix + line + '\n'
+
+        if '--dev' in sys.argv:
+            output_line = colors.color(name, output_line, error=err)
+
+        sys.stderr.write(output_line)
     sys.stderr.flush()
 
 
