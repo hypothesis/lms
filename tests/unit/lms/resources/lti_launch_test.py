@@ -30,10 +30,10 @@ class TestACL:
 class TestHGroup:
     @pytest.mark.usefixtures("has_course")
     def test_it(self, lti_launch, HGroup, pyramid_request):
-        assert lti_launch.h_group == HGroup.from_lti_parts.return_value
+        assert lti_launch.h_group == HGroup.course_group.return_value
 
-        HGroup.from_lti_parts.assert_called_once_with(
-            name="test_context_title",
+        HGroup.course_group.assert_called_once_with(
+            course_name="test_context_title",
             tool_consumer_instance_guid=pyramid_request.parsed_params[
                 "tool_consumer_instance_guid"
             ],
