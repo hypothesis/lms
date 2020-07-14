@@ -5,7 +5,7 @@ from lms.models import ApplicationSettings
 
 class TestApplicationSettings:
     def test_data(self, application_settings):
-        assert application_settings.data == {"test_group": {"test_key": "test_value"}}
+        assert application_settings == {"test_group": {"test_key": "test_value"}}
 
     @pytest.mark.parametrize(
         "group,key,expected_value",
@@ -35,7 +35,7 @@ class TestApplicationSettings:
     def test_set(self, application_settings, group, key, value, expected_value):
         application_settings.set(group, key, value)
 
-        assert application_settings.data[group][key] == expected_value
+        assert application_settings[group][key] == expected_value
 
     def test_clone(self, application_settings):
         cloned_settings = application_settings.clone()

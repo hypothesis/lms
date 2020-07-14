@@ -103,7 +103,7 @@ class TestApplicationInstanceGetter:
         assert not ai_getter.canvas_sections_supported()
 
     def test_settings(self, ai_getter, test_application_instance):
-        assert ai_getter.settings().data == test_application_instance.settings.data
+        assert ai_getter.settings() == test_application_instance.settings
 
     def test_shared_secret_returns_the_shared_secret(self, ai_getter):
         assert ai_getter.shared_secret() == "TEST_SHARED_SECRET"

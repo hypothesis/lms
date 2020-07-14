@@ -1,11 +1,10 @@
 from copy import deepcopy
 
+from sqlalchemy.ext.mutable import MutableDict
 
-class ApplicationSettings:
+
+class ApplicationSettings(MutableDict):
     """Model for accessing and updating application settings."""
-
-    def __init__(self, data):
-        self.data = data
 
     def get(self, group, key):
         """
@@ -15,7 +14,7 @@ class ApplicationSettings:
         :param key: The key in that group
         :return: The value or None
         """
-        return self.data.get(group, {}).get(key)
+        return super().get(group, {}).get(key)
 
     def set(self, group, key, value):
         """
@@ -25,7 +24,7 @@ class ApplicationSettings:
         :param key: The key in that group
         :param value: The value to set
         """
-        self.data.setdefault(group, {})[key] = value
+        super().setdefault(group, {})[key] = value
 
     def clone(self):
-        return ApplicationSettings(deepcopy(self.data))
+        return ApplicationSettings(deepcopy(self))
