@@ -35,11 +35,10 @@ class TestApplicationInstance:
 
         assert application_instance.provisioning is not None
 
-    def test_settings_defaults_to_an_empty_dict(self, application_instance):
+    def test_settings_defaults_to_None(self, application_instance):
         settings = application_instance.settings
 
-        assert isinstance(settings, ApplicationSettings)
-        assert settings == {}
+        assert settings is None
 
     def test_settings_can_be_retrieved(self, application_instance):
         application_instance.settings = {"group": {"key": "value"}}

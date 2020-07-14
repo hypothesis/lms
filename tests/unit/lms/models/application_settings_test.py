@@ -46,6 +46,18 @@ class TestApplicationSettings:
         assert application_settings.get("test_group", "test_key") == "test_value"
         assert cloned_settings.get("test_group", "test_key") == "new_value"
 
+    def test__repr__(self, application_settings):
+        assert (
+            repr(application_settings)
+            == "ApplicationSettings({'test_group': {'test_key': 'test_value'}})"
+        )
+
+    def test__str__(self, application_settings):
+        assert (
+            str(application_settings)
+            == "ApplicationSettings({'test_group': {'test_key': 'test_value'}})"
+        )
+
     @pytest.fixture
     def application_settings(self):
         return ApplicationSettings({"test_group": {"test_key": "test_value"}})
