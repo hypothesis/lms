@@ -7,11 +7,6 @@ help:
 	@echo "make dev               Run the entire app (web server and other processes)"
 	@echo "make supervisor        Launch a supervisorctl shell for managing the processes "
 	@echo '                       that `make dev` starts, type `help` for docs'
-	@echo "make web               Run the web server on its own (useful for debugging the "
-	@echo "                       Python code with pdb)"
-	@echo "make assets            Run the assets build on its own, with live reloading "
-	@echo '                       (goes well with `make web` and useful for debugging '
-	@echo "                       gulp)"
 	@echo "make shell             Launch a Python shell in the dev environment"
 	@echo "make sql               Connect to the dev database with a psql shell"
 	@echo "make lint              Run the code linter(s) and print any warnings"
