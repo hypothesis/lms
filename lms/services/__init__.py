@@ -19,7 +19,7 @@ def includeme(config):
         name="ai_getter",
     )
     config.register_service_factory(
-        "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
+        "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
     config.register_service_factory("lms.services.h_api.HAPI", name="h_api")
     config.register_service_factory(

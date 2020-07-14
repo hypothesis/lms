@@ -1,11 +1,8 @@
 import marshmallow
-from marshmallow import validate, post_load, validates_schema
+from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
 from lms.services import CanvasAPIError
-from lms.services.canvas_api.authenticated_client import CanvasAPIAuthenticatedClient
 from lms.validation import RequestsResponseSchema
-
-from marshmallow import EXCLUDE, Schema, fields
 
 
 class _SectionSchema(Schema):
@@ -36,8 +33,8 @@ class CanvasAPIClient:
             Canvas API request fails for any other reason
     """
 
-    def __init__(self, context_, request):
-        self.api = CanvasAPIAuthenticatedClient(request)
+    def __init__(self, authenticated_api):
+        self.api = authenticated_api
 
     def get_token(self, authorization_code):
         return self.api.get_token(authorization_code)
