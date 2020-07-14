@@ -26,7 +26,7 @@ export default function FilePickerApp({
   defaultActiveDialog = null,
   onSubmit,
 }) {
-  const formEl = useRef();
+  const submitButton = useRef(/** @type {HTMLInputElement|null} */ (null));
   const {
     api: { authToken },
     filePicker: {
@@ -43,12 +43,21 @@ export default function FilePickerApp({
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
-  const [url, setUrl] = useState(null);
+  const [url, setUrl] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(null);
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
-  const [errorInfo, setErrorInfo] = useState(null);
+
+  /**
+   * @typedef ErrorInfo
+   * @prop {string} title
+   * @prop {Error} error
+   */
+
+  const [errorInfo, setErrorInfo] = useState(
+    /** @type {ErrorInfo|null} */ (null)
+  );
 
   // Initialize the Google Picker client if credentials have been provided.
   // We do this eagerly to make the picker load faster if the user does click
@@ -91,8 +100,9 @@ export default function FilePickerApp({
   const showGooglePicker = async () => {
     try {
       setLoadingIndicatorVisible(true);
-      const { id, url } = await googlePicker.showPicker();
-      await googlePicker.enablePublicViewing(id);
+      const picker = /** @type {GooglePickerClient} */ (googlePicker);
+      const { id, url } = await picker.showPicker();
+      await picker.enablePublicViewing(id);
       setUrl(url);
       submit(true);
     } catch (error) {
@@ -114,7 +124,7 @@ export default function FilePickerApp({
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
-      formEl.current.querySelector('input[type="submit"]').click();
+      submitButton.current.click();
     }
   }, [shouldSubmit]);
 
@@ -150,7 +160,6 @@ export default function FilePickerApp({
     <main>
       <form
         className="FilePickerApp__form"
-        ref={formEl}
         action={formAction}
         method="POST"
         onSubmit={onSubmit}
@@ -169,7 +178,7 @@ export default function FilePickerApp({
           You can select content for your assignment from one of the following
           sources:
         </p>
-        <input name="document_url" type="hidden" value={url} />
+        <input name="document_url" type="hidden" value={url || ''} />
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
@@ -191,7 +200,7 @@ export default function FilePickerApp({
             />
           )}
         </div>
-        <input style={{ display: 'none' }} type="submit" />
+        <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
       {isLoadingIndicatorVisible && (
         <div className="FilePickerApp__loading-backdrop">
