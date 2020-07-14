@@ -9,7 +9,7 @@ class ApplicationSettings:
 
     def get(self, group, key):
         """
-        Get a specific settings or None if it doesn't exist.
+        Get a specific setting or None if it doesn't exist.
 
         :param group: The name of the group of settings
         :param key: The key in that group
