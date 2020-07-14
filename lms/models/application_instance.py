@@ -31,7 +31,12 @@ class ApplicationInstance(BASE):
         server_default=sa.sql.expression.true(),
         nullable=False,
     )
-    _settings = sa.Column("settings", MutableDict.as_mutable(JSONB))
+    _settings = sa.Column(
+        "settings",
+        MutableDict.as_mutable(JSONB),
+        server_default=sa.text("'{}'::jsonb"),
+        nullable=False,
+    )
 
     @property
     def settings(self):

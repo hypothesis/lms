@@ -23,7 +23,12 @@ class Course(BASE):
     #: settings belong to.
     authority_provided_id = sa.Column(sa.UnicodeText(), primary_key=True)
 
-    _settings = sa.Column("settings", MutableDict.as_mutable(JSONB), nullable=False)
+    _settings = sa.Column(
+        "settings",
+        MutableDict.as_mutable(JSONB),
+        server_default=sa.text("'{}'::jsonb"),
+        nullable=False,
+    )
 
     @property
     def settings(self):
