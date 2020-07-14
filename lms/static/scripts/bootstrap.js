@@ -10,3 +10,8 @@ patchPropTypes(propTypes);
 import { configure } from 'enzyme';
 import { Adapter } from 'enzyme-adapter-preact-pure';
 configure({ adapter: new Adapter() });
+
+// Register the same set of icons that is available in the app.
+import { registerIcons } from './frontend_apps/components/SvgIcon';
+import iconSet from './frontend_apps/icons';
+registerIcons(iconSet);

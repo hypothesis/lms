@@ -14,6 +14,10 @@ const rootEl = document.querySelector('#app');
 
 const config = readConfig();
 
+import { registerIcons } from './components/SvgIcon';
+import iconSet from './icons';
+registerIcons(iconSet);
+
 let rpcServer;
 if (config.mode === 'basic-lti-launch') {
   // Create an RPC Server and start listening to postMessage calls.

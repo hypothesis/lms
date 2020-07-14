@@ -15,7 +15,6 @@ import Spinner from './Spinner';
 import SvgIcon from './SvgIcon';
 import { fetchGrade, submitGrade } from '../utils/grader-service';
 import { useUniqueId } from '../utils/hooks';
-import { trustMarkup } from '../utils/trusted';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 import ValidationMessage from './ValidationMessage';
 
@@ -191,7 +190,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
       >
         <SvgIcon
           className="SubmitGradeForm__check-icon"
-          src={trustMarkup(require('../../../images/check.svg'))}
+          name="check"
           inline={true}
         />{' '}
         Submit Grade

@@ -1,76 +1,73 @@
 import { createElement, render } from 'preact';
 
-import SvgIcon from '../SvgIcon';
-import { checkAccessibility } from '../../../test-util/accessibility';
+import SvgIcon, { availableIcons, registerIcons } from '../SvgIcon';
 
 describe('SvgIcon', () => {
-  const inlineSvg = {
-    trustedHTML: '<svg />',
-  };
-  const inlineSvg2 = {
-    trustedHTML: '<svg width="3" class="svg2" />',
-  };
-  const unTrustedSvg = '<svg />';
-
   // Tests here use DOM APIs rather than Enzyme because SvgIcon uses
   // `dangerouslySetInnerHTML` for its content, and that is not visible in the
   // Enzyme tree.
 
-  // Some of the tests below intentionally pass arguments of invalid types
-  // as the `src` prop. Ignore the `console.error` that this triggers.
+  // Global icon set that is registered with `SvgIcon` outside of these tests.
+  let savedIconSet;
+
   beforeEach(() => {
-    sinon.stub(console, 'error');
+    savedIconSet = availableIcons();
+
+    registerIcons(
+      {
+        // The icons don't match the names here. This is because we're using
+        // the same icon names as the corresponding tests in the `client` repo
+        // to make it easier to keep the two in sync.
+        'collapse-menu': require('../../../../images/arrow-left.svg'),
+        'expand-menu': require('../../../../images/arrow-right.svg'),
+        refresh: require('../../../../images/file-pdf.svg'),
+      },
+      { reset: true }
+    );
   });
 
   afterEach(() => {
-    console.error.restore();
+    registerIcons(savedIconSet, { reset: true });
   });
 
   it("sets the element's content to the content of the SVG", () => {
     const container = document.createElement('div');
-    render(<SvgIcon src={inlineSvg} />, container);
+    render(<SvgIcon name="refresh" />, container);
     assert.ok(container.querySelector('svg'));
   });
 
-  it('throws an error if the icon is unknown', () => {
+  it('throws an error if the icon name is not registered', () => {
     assert.throws(() => {
       const container = document.createElement('div');
-      render(<SvgIcon />, container);
-    });
-  });
-
-  it('throws an error if the icon is un-trusted svg', () => {
-    assert.throws(() => {
-      const container = document.createElement('div');
-      render(<SvgIcon src={unTrustedSvg} />, container);
-    });
+      render(<SvgIcon name="unknown" />, container);
+    }, 'Icon name "unknown" is not registered');
   });
 
   it('does not set the class of the SVG by default', () => {
     const container = document.createElement('div');
-    render(<SvgIcon src={inlineSvg} />, container);
+    render(<SvgIcon name="refresh" />, container);
     const svg = container.querySelector('svg');
     assert.equal(svg.getAttribute('class'), '');
   });
 
   it('sets the class of the SVG if provided', () => {
     const container = document.createElement('div');
-    render(<SvgIcon src={inlineSvg} className="thing__icon" />, container);
+    render(<SvgIcon name="refresh" className="thing__icon" />, container);
     const svg = container.querySelector('svg');
     assert.equal(svg.getAttribute('class'), 'thing__icon');
   });
 
   it('retains the CSS class if the icon changes', () => {
     const container = document.createElement('div');
-    render(<SvgIcon src={inlineSvg} className="thing__icon" />, container);
-    render(<SvgIcon src={inlineSvg2} className="thing__icon" />, container);
+    render(<SvgIcon name="expand-menu" className="thing__icon" />, container);
+    render(<SvgIcon name="collapse-menu" className="thing__icon" />, container);
     const svg = container.querySelector('svg');
     assert.equal(svg.getAttribute('class'), 'thing__icon');
   });
 
   it('sets a default class on the wrapper element', () => {
     const container = document.createElement('div');
-    render(<SvgIcon src={inlineSvg} />, container);
+    render(<SvgIcon name="expand-menu" />, container);
     const wrapper = container.querySelector('span');
     assert.isTrue(wrapper.classList.contains('svg-icon'));
     assert.isFalse(wrapper.classList.contains('svg-icon--inline'));
@@ -78,17 +75,23 @@ describe('SvgIcon', () => {
 
   it('appends an inline class to wrapper if `inline` prop is `true`', () => {
     const container = document.createElement('div');
-    render(<SvgIcon inline={true} src={inlineSvg} />, container);
+    render(<SvgIcon name="expand-menu" inline={true} />, container);
     const wrapper = container.querySelector('span');
     assert.isTrue(wrapper.classList.contains('svg-icon'));
     assert.isTrue(wrapper.classList.contains('svg-icon--inline'));
   });
 
-  it(
-    'should pass a11y checks',
-    checkAccessibility({
-      // eslint-disable-next-line react/display-name
-      content: () => <SvgIcon src={inlineSvg} />,
-    })
-  );
+  it('sets a title to the containing `span` element if `title` is present', () => {
+    const container = document.createElement('div');
+    render(<SvgIcon name="expand-menu" title="Open menu" />, container);
+    const wrapper = container.querySelector('span');
+    assert.equal(wrapper.getAttribute('title'), 'Open menu');
+  });
+
+  it('sets does not set a title on the containing `span` element if `title` not present', () => {
+    const container = document.createElement('div');
+    render(<SvgIcon name="expand-menu" />, container);
+    const wrapper = container.querySelector('span');
+    assert.notOk(wrapper.getAttribute('title'));
+  });
 });
