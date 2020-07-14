@@ -2,7 +2,6 @@ import { createElement } from 'preact';
 import propTypes from 'prop-types';
 
 import SvgIcon from './SvgIcon';
-import { trustMarkup } from '../utils/trusted';
 
 /**
  * A student navigation tool which shows a student selection list and a previous and next button.
@@ -75,7 +74,7 @@ export default function StudentSelector({
         </select>
         <SvgIcon
           className="StudentsSelector__students-icon"
-          src={trustMarkup(require('../../../images/caret-down.svg'))}
+          name="caret-down"
           inline={true}
         />{' '}
       </span>
@@ -92,7 +91,7 @@ export default function StudentSelector({
       >
         <SvgIcon
           className="StudentSelector-change-student-svg"
-          src={trustMarkup(require('../../../images/arrow-left.svg'))}
+          name="arrow-left"
           inline={true}
         />
       </button>
@@ -105,7 +104,7 @@ export default function StudentSelector({
       >
         <SvgIcon
           className="StudentSelector-change-student-svg"
-          src={trustMarkup(require('../../../images/arrow-right.svg'))}
+          name="arrow-right"
           inline={true}
         />
       </button>
