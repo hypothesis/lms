@@ -98,7 +98,7 @@ class TestCourseService:
 
             for settings in settings_set:
                 db_session.add(
-                    factories.Course(consumer_key=consumer_key, _settings=settings,)
+                    factories.Course(consumer_key=consumer_key, settings=settings)
                 )
 
         return add_courses_with_settings

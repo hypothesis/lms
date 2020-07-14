@@ -28,8 +28,7 @@ class CourseService:
         return bool(
             self._db.query(Course)
             .filter(Course.consumer_key == self._consumer_key)
-            # pylint: disable=protected-access
-            .filter(Course._settings[group][key] == json.dumps(value))
+            .filter(Course.settings[group][key] == json.dumps(value))
             .limit(1)
             .count()
         )
@@ -52,7 +51,7 @@ class CourseService:
         course = Course(
             consumer_key=self._consumer_key,
             authority_provided_id=authority_provided_id,
-            _settings=course_settings.data,
+            settings=course_settings,
         )
 
         self._db.add(course)

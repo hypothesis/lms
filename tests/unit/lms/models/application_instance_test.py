@@ -39,19 +39,19 @@ class TestApplicationInstance:
         settings = application_instance.settings
 
         assert isinstance(settings, ApplicationSettings)
-        assert settings.data == {}
+        assert settings == {}
 
     def test_settings_can_be_retrieved(self, application_instance):
-        application_instance._settings = {"group": {"key": "value"}}
+        application_instance.settings = {"group": {"key": "value"}}
 
         assert application_instance.settings.get("group", "key") == "value"
 
     def test_can_update_settings(self, application_instance):
-        application_instance._settings = {"group": {"key": "value"}}
+        application_instance.settings = {"group": {"key": "value"}}
 
         application_instance.settings.set("group", "key", "new_value")
 
-        assert application_instance._settings["group"]["key"] == "new_value"
+        assert application_instance.settings["group"]["key"] == "new_value"
 
     def test_consumer_key_cant_be_null(self, db_session, application_instance):
         application_instance.consumer_key = None

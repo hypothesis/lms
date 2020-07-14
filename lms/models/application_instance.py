@@ -5,7 +5,6 @@ import sqlalchemy as sa
 from Crypto import Random
 from Crypto.Cipher import AES
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
@@ -31,28 +30,13 @@ class ApplicationInstance(BASE):
         server_default=sa.sql.expression.true(),
         nullable=False,
     )
-    _settings = sa.Column(
+
+    settings = sa.Column(
         "settings",
-        MutableDict.as_mutable(JSONB),
+        ApplicationSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
-
-    @property
-    def settings(self):
-        """
-        Get a settings object which can get and set grouped settings.
-
-        The object can be queried with `settings.get(group, key)` or
-        `settings.set(group, key, value)`.
-
-        :rtype: models.ApplicationSettings
-        """
-
-        if self._settings is None:
-            self._settings = {}
-
-        return ApplicationSettings(self._settings)
 
     #: A list of all the OAuth2Tokens for this application instance
     #: (each token belongs to a different user of this application
@@ -93,7 +77,7 @@ class ApplicationInstance(BASE):
             developer_secret=encrypted_secret,
             aes_cipher_iv=aes_iv,
             created=datetime.utcnow(),
-            _settings=settings,
+            settings=settings,
         )
 
 

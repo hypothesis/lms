@@ -1,6 +1,5 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
@@ -23,18 +22,9 @@ class Course(BASE):
     #: settings belong to.
     authority_provided_id = sa.Column(sa.UnicodeText(), primary_key=True)
 
-    _settings = sa.Column(
+    settings = sa.Column(
         "settings",
-        MutableDict.as_mutable(JSONB),
+        ApplicationSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
-
-    @property
-    def settings(self):
-        """
-        Return this course's settings.
-
-        :rtype: models.ApplicationSettings
-        """
-        return ApplicationSettings(self._settings)
