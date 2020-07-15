@@ -13,7 +13,8 @@ import { useUniqueId } from '../utils/hooks';
  *
  * @typedef DialogProps
  * @prop {Object} children - The content of the dialog.
- * @prop {Object} [initialFocus] - A ref associated with the child element to focus when the dialog is rendered.
+ * @prop {import("preact/hooks").Ref<HTMLElement>} [initialFocus] -
+ *   Child element to focus when the dialog is rendered.
  * @prop {JSXElement[]} [buttons] -
  *   Additional `Button` elements to display at the bottom of the dialog.
  *   A "Cancel" button is added automatically if the `onCancel` prop is set.
