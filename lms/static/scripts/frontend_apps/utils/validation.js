@@ -26,7 +26,7 @@ function formatToNumber(originalValue) {
  * - a numeric type
  * - between or equal to the the range of [0 - 10]
  * -
- * @param {number} value - Value to test
+ * @param {number|string} value - Value to test
  * @return {string|undefined} - Returns an error message or undefined if valid.
  */
 function validateGrade(value) {
@@ -49,13 +49,13 @@ function validateGrade(value) {
  *
  * @param {number} grade
  * @param {number} multiplier
- * @return {number}
+ * @return {string}
  */
 function scaleGrade(grade, multiplier) {
   const sGrade = grade.toString();
   if (sGrade.indexOf('.') < 0) {
     // no decimal value, just returns the scaled value
-    return grade * multiplier;
+    return (grade * multiplier).toString();
   } else {
     const decimalDigitsLength = sGrade.split('.')[1].length;
     // scale and round to one less the number of decimal digits the grade had
