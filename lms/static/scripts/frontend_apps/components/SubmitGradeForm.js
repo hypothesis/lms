@@ -128,7 +128,8 @@ export default function SubmitGradeForm({ disabled = false, student }) {
       try {
         await submitGrade({
           student,
-          grade: value / GRADE_MULTIPLIER,
+          // nb. `value` will be a number if there was no validation error.
+          grade: /** @type {number} */ (value) / GRADE_MULTIPLIER,
           authToken,
         });
         setGradeSaved(true);
