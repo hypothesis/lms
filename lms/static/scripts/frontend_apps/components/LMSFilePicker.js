@@ -10,15 +10,21 @@ import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
 
+/**
+ * @typedef {import("./FileList").File} File
+ */
+
+/**
+ * @typedef DialogState
+ * @prop {'fetching'|'fetched'|'authorizing'|'error'} state
+ * @prop {File[]|null} files - List of fetched files
+ * @prop {Error|null} error - Details of current error, if `state` is 'error'
+ */
+
+/** @type {DialogState} */
 const INITIAL_DIALOG_STATE = {
-  // The current state of the dialog, one of:
-  // "fetching", "fetched", "authorizing" or "error".
   state: 'fetching',
-
-  // List of fetched files. Set when state is "fetched".
   files: null,
-
-  // Fetch error details. Set when state is "error".
   error: null,
 };
 
@@ -43,11 +49,11 @@ export default function LMSFilePicker({
   const [authorizationAttempted, setAuthorizationAttempted] = useState(false);
 
   // The file within `files` which is currently selected.
-  const [selectedFile, selectFile] = useState(null);
+  const [selectedFile, selectFile] = useState(/** @type {File|null} */ (null));
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
-  const authWindow = useRef(null);
+  const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
@@ -86,6 +92,7 @@ export default function LMSFilePicker({
       setAuthorizationAttempted(true);
       authWindow.current.close();
       // eslint-disable-next-line require-atomic-updates
+      // @ts-ignore - `authWindow` is marked as non-nullable.
       authWindow.current = null;
     }
   }, [fetchFiles, authToken, authUrl]);

@@ -6,7 +6,26 @@ import Spinner from './Spinner';
 import Table from './Table';
 
 /**
+ * @typedef File
+ * @prop {string} display_name - The filename
+ * @prop {string} updated_at - An ISO date or date + time string
+ */
+
+/**
+ * @typedef FileListProps
+ * @prop {File[]} files - List of file objects returned by a `listFiles` call.
+ * @prop {boolean} [isLoading] - Whether to show a loading indicator.
+ * @prop {File|null} selectedFile - The file within `files` which is currently selected.
+ * @prop {(f: File) => any} [onSelectFile] -
+ *   Callback invoked when the user clicks on a file
+ * @prop {(f: File) => any} [onUseFile] -
+ *   Callback invoked when the user double-clicks a file to indicate that they want to use it.
+ */
+
+/**
  * List of the files within a single directory.
+ *
+ * @param {FileListProps} props
  */
 export default function FileList({
   files,
@@ -61,24 +80,9 @@ export default function FileList({
 }
 
 FileList.propTypes = {
-  /** List of file objects returned by a `listFiles` call. */
   files: propTypes.arrayOf(propTypes.object),
-
-  /** Whether to show a loading indicator. */
   isLoading: propTypes.bool,
-
-  /** The file within `files` which is currently selected. */
   selectedFile: propTypes.object,
-
-  /**
-   * Callback passed the selected file when the user clicks on a file in
-   * order to select it before performing further actions on it.
-   */
   onSelectFile: propTypes.func,
-
-  /**
-   * Callback passed when the user double-clicks a file to indicate that they
-   * want to use it.
-   */
   onUseFile: propTypes.func,
 };
