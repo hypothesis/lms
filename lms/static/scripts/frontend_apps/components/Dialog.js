@@ -9,6 +9,23 @@ import { zIndexScale } from '../utils/style';
 import { useUniqueId } from '../utils/hooks';
 
 /**
+ * @typedef {import("preact").JSX.Element} JSXElement
+ *
+ * @typedef DialogProps
+ * @prop {Object} children - The content of the dialog.
+ * @prop {Object} [initialFocus] - A ref associated with the child element to focus when the dialog is rendered.
+ * @prop {JSXElement[]} [buttons] -
+ *   Additional `Button` elements to display at the bottom of the dialog.
+ *   A "Cancel" button is added automatically if the `onCancel` prop is set.
+ * @prop {string} [contentClass] - e.g. <button>
+ * @prop {'dialog'|'alertdialog'} [role] - The aria role for the dialog (defaults to" dialog")
+ * @prop {string} title - The title of the dialog.
+ * @prop {() => any} [onCancel] -
+ *   A callback to invoke when the user cancels the dialog. If provided, a
+ *   "Cancel" button will be displayed.
+ */
+
+/**
  * A modal dialog wrapper with a title. The wrapper sets initial focus to itself
  * unless an element inside of it is specified with the `initialFocus` ref.
  * Optional action buttons may be passed in with the `buttons` prop but the
@@ -24,6 +41,8 @@ import { useUniqueId } from '../utils/hooks';
  *
  * - A description which is reliably read out when the dialog is opened, in
  *   addition to the title.
+ *
+ * @param {DialogProps} props
  */
 export default function Dialog({
   children,
@@ -35,7 +54,7 @@ export default function Dialog({
   buttons,
 }) {
   const dialogTitleId = useUniqueId('dialog');
-  const rootEl = useRef();
+  const rootEl = useRef(/** @type {HTMLDivElement|null} */ (null));
 
   useElementShouldClose(rootEl, true, () => {
     if (typeof onCancel === 'function') {
@@ -103,42 +122,13 @@ export default function Dialog({
 }
 
 Dialog.propTypes = {
-  /** The content of the dialog. */
   children: propTypes.any,
-
-  /**
-   * A ref associated with the child element to focus when the dialog is
-   * rendered.
-   */
   initialFocus: propTypes.object,
-
-  /**
-   * Additional buttons to display at the bottom of the dialog.
-   *
-   * The "Cancel" button is added automatically if the `onCancel` prop is set.
-   */
   buttons: propTypes.arrayOf(
     propTypes.oneOfType([propTypes.instanceOf(Button), propTypes.element])
   ), // e.g. <button>
-
-  /**
-   * Class applied to the content of the dialog.
-   *
-   * The primary role of this class is to set the size of the dialog.
-   */
   contentClass: propTypes.string,
-
-  /**
-   * The aria role for the dialog (defaults to" dialog")
-   */
   role: propTypes.oneOf(['alertdialog', 'dialog']),
-
-  /** The title of the dialog. */
   title: propTypes.string,
-
-  /**
-   * A callback to invoke when the user cancels the dialog. If provided,
-   * a "Cancel" button will be displayed.
-   */
   onCancel: propTypes.func,
 };
