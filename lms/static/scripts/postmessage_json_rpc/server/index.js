@@ -5,14 +5,14 @@ let server = {}; // Singleton RPC server reference
 /**
  * Create a new RPC server and register any methods it will support.
  *
- * @param {Object} config
- *   @param {string[]} config.allowedOrigins -
+ * @param {Object} options
+ *   @param {string[]} options.allowedOrigins -
  *     Origins that are allowed to request client configuration
- *   @param {Object} config.clientConfig - Configuration for the Hypothesis client
+ *   @param {Object} options.clientConfig - Configuration for the Hypothesis client
  * @return {Server} - Instance of the server.
  */
-function startRpcServer(config) {
-  server = new Server(config.allowedOrigins);
+function startRpcServer({ allowedOrigins, clientConfig }) {
+  server = new Server(allowedOrigins);
 
   /**
    * Methods that are remotely callable by JSON-RPC over postMessage.
@@ -25,7 +25,7 @@ function startRpcServer(config) {
   /**
    * Config request RPC handler.
    */
-  server.register('requestConfig', () => config.clientConfig);
+  server.register('requestConfig', () => clientConfig);
 
   /**
    * Section groups RPC handler.
