@@ -1,7 +1,7 @@
 import { createContext } from 'preact';
 
 /**
- * Parameters for an "canned" API call that the frontend can make to the server.
+ * Parameters for a "canned" API call that the frontend can make to the server.
  *
  * The parameters of the call are decided by the backend, but the frontend
  * decides _when_ to make the call and what to show while waiting for the
@@ -116,6 +116,10 @@ export function readConfig() {
     throw new Error(`No config object found for selector "${selector}"`);
   }
 
-  const config = JSON.parse(/** @type {string} */ (configEl.textContent));
-  return config;
+  try {
+    const config = JSON.parse(/** @type {string} */ (configEl.textContent));
+    return config;
+  } catch (err) {
+    throw new Error('Failed to parse frontend configuration');
+  }
 }
