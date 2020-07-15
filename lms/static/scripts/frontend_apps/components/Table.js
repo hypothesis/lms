@@ -6,6 +6,11 @@ import propTypes from 'prop-types';
 /**
  * Return the next item to select when advancing the selection by `step` items
  * forwards (if positive) or backwards (if negative).
+ *
+ * @template Item
+ * @param {Item[]} items
+ * @param {Item} currentItem
+ * @param {number} step
  */
 function nextItem(items, currentItem, step) {
   const index = items.indexOf(currentItem);
@@ -25,7 +30,33 @@ function nextItem(items, currentItem, step) {
 }
 
 /**
+ * @typedef TableColumn
+ * @prop {string} label - Header label for the column
+ * @prop {string} className - Additional classes for the column's `<th>` element
+ */
+
+/**
+ * @template Item
+ * @typedef TableProps
+ * @prop {string} accessibleLabel - An accessible label for the table.
+ * @prop {TableColumn[]} columns - The columns to display in this table.
+ * @prop {Item[]} items - The items to display in this table.
+ * @prop {(it: Item, selected: boolean) => any} renderItem -
+ *   A function called to render each item.
+ *   The result should be a list of `<td>` elements (one per column) wrapped inside a Fragment.
+ * @prop {Item|null} selectedItem - The currently selected item from `items`
+ * @prop {(it: Item) => any} onSelectItem -
+ *   Callback invoked when the user changes the selected item.
+ * @prop {(it: Item) => any} onUseItem -
+ *   Callback invoked when a user chooses to use an item by double-clicking it
+ *   or pressing Enter while it is selected.
+ */
+
+/**
  * An interactive table of items with a sticky header.
+ *
+ * @template Item
+ * @param {TableProps<Item>} props
  */
 export default function Table({
   accessibleLabel,
@@ -36,7 +67,7 @@ export default function Table({
   renderItem,
   selectedItem,
 }) {
-  const rowRefs = useRef([]);
+  const rowRefs = useRef(/** @type {(HTMLElement|null)[]} */ ([]));
 
   const focusAndSelectItem = item => {
     const itemIndex = items.indexOf(item);
@@ -51,7 +82,9 @@ export default function Table({
     let handled = false;
     if (event.key === 'Enter') {
       handled = true;
-      onUseItem(selectedItem);
+      if (selectedItem) {
+        onUseItem(selectedItem);
+      }
     } else if (event.key === 'ArrowUp') {
       handled = true;
       focusAndSelectItem(nextItem(items, selectedItem, -1));
@@ -91,7 +124,7 @@ export default function Table({
           {items.map((item, index) => (
             <tr
               aria-selected={selectedItem === item}
-              key={item.name}
+              key={index}
               className={classnames({
                 Table__row: true,
                 'is-selected': selectedItem === item,
@@ -112,49 +145,16 @@ export default function Table({
 }
 
 Table.propTypes = {
-  /**
-   * An accessible label for the table.
-   */
   accessibleLabel: propTypes.string.isRequired,
-
-  /**
-   * The columns to display in this table.
-   */
   columns: propTypes.arrayOf(
     propTypes.shape({
       label: propTypes.string,
       className: propTypes.string,
     })
   ).isRequired,
-
-  /**
-   * The items to display in this table.
-   */
   items: propTypes.arrayOf(propTypes.any).isRequired,
-
-  /**
-   * A function called to render each item. The result should be a list of
-   * `<td>` elements (one per column) wrapped inside a Fragment.
-   *
-   * The function takes two arguments: The item to render and a boolean
-   * indicating whether the item is currently selected.
-   */
   renderItem: propTypes.func.isRequired,
-
-  /**
-   * The currently selected item from `items` or `null` if no item is
-   * selected.
-   */
   selectedItem: propTypes.any,
-
-  /**
-   * Callback invoked when the user changes the selected item.
-   */
   onSelectItem: propTypes.func,
-
-  /**
-   * Callback invoked when a user chooses to use an item by double-clicking it
-   * or pressing Enter while it is selected.
-   */
   onUseItem: propTypes.func,
 };
