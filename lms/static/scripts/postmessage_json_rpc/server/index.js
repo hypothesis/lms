@@ -8,7 +8,11 @@ let server = {}; // Singleton RPC server reference
  * @param {Object} options
  *   @param {string[]} options.allowedOrigins -
  *     Origins that are allowed to request client configuration
- *   @param {Object} options.clientConfig - Configuration for the Hypothesis client
+ *   @param {Object} options.clientConfig -
+ *     Configuration for the Hypothesis client. Whatever is provided here is
+ *     passed directly to the client via `window.postMessage` when it requests
+ *     configuration. It should be a subset of the config options specified at
+ *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
  * @return {Server} - Instance of the server.
  */
 function startRpcServer({ allowedOrigins, clientConfig }) {
