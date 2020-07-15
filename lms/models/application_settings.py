@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from sqlalchemy.ext.mutable import MutableDict
 
 
@@ -25,9 +23,6 @@ class ApplicationSettings(MutableDict):
         :param value: The value to set
         """
         super().setdefault(group, {})[key] = value
-
-    def clone(self):
-        return ApplicationSettings(deepcopy(self))
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
