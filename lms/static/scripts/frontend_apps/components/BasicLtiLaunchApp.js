@@ -50,12 +50,16 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     canvas,
   } = useContext(Config);
 
-  // The current state of the error.
-  // One of "error-fetch", "error-authorizing", or "error-report-submission" or null
-  const [errorState, setErrorState] = useState(null);
+  /**  @typedef {'error-fetch'|'error-authorizing'|'error-report-submission'} ErrorState */
 
-  // Any current error thrown.
-  const [error, setError] = useState(null);
+  // Indicates what the application was doing when the error indicated by
+  // `error` occurred.
+  const [errorState, setErrorState] = useState(
+    /** @type {ErrorState|null} */ (null)
+  );
+
+  // The most recent error that occurred when launching the assignment.
+  const [error, setError] = useState(/** @type {Error|null} */ (null));
 
   // When the app is initially displayed, it will use the Via URL if given
   // or invoke the API callback to fetch the URL otherwise.
@@ -66,7 +70,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
-  const authWindow = useRef(null);
+  const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
   // Show the assignment when the contentUrl has resolved and errorState
   // is falsely
@@ -87,16 +91,15 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
    * Helper to handle thrown errors from from API requests.
    *
    * @param {Error} e - Error object from request.
-   * @param {string} newErrorState - One of "error-fetch",
-   *  "error-authorizing", or "error-report-submission"
+   * @param {ErrorState} state
    * @param {boolean} [retry=true] - Can the request be retried?
    */
-  const handleError = (e, newErrorState, retry = true) => {
+  const handleError = (e, state, retry = true) => {
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
       setError(e);
-      setErrorState(newErrorState);
+      setErrorState(state);
     }
   };
 
@@ -185,7 +188,9 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     }
   }, [authToken, canvas.speedGrader, contentUrl]);
 
-  useEffect(reportSubmission, [reportSubmission]);
+  useEffect(() => {
+    reportSubmission();
+  }, [reportSubmission]);
 
   /**
    * Request the user's authorization to access the content, then try fetching
@@ -204,6 +209,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       await authWindow.current.authorize();
       await Promise.all([fetchContentUrl(), fetchGroups()]);
     } finally {
+      // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
     }
   }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
@@ -215,7 +221,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
       width="100%"
       height="100%"
       className="js-via-iframe"
-      src={contentUrl}
+      src={contentUrl || ''}
       title="Course content with Hypothesis annotation viewer"
     />
   );
