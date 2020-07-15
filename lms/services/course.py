@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 from lms.models import Course, CourseGroupsExportedFromH
 
@@ -39,7 +40,7 @@ class CourseService:
     def _create(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
         # as the application instance
-        course_settings = self._ai_getter.settings().clone()
+        course_settings = deepcopy(self._ai_getter.settings())
 
         # Unless! The group was pre-sections, and we've just seen it for the
         # first time in which case turn sections off

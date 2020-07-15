@@ -37,15 +37,6 @@ class TestApplicationSettings:
 
         assert application_settings[group][key] == expected_value
 
-    def test_clone(self, application_settings):
-        cloned_settings = application_settings.clone()
-
-        assert cloned_settings.get("test_group", "test_key") == "test_value"
-
-        cloned_settings.set("test_group", "test_key", "new_value")
-        assert application_settings.get("test_group", "test_key") == "test_value"
-        assert cloned_settings.get("test_group", "test_key") == "new_value"
-
     def test__repr__(self, application_settings):
         assert (
             repr(application_settings)
