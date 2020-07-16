@@ -490,9 +490,7 @@ class TestMakeAuthenticatedRequest:
     def test_it(self, base_client, access_token, Schema):
         params = {"a": "1"}
 
-        base_client.send(
-            method="method", path="path", schema=Schema, params=params
-        )
+        base_client.send(method="method", path="path", schema=Schema, params=params)
 
         expected_url = (
             Any.url.matching(f"https://{base_client._canvas_url}")
@@ -508,9 +506,7 @@ class TestMakeAuthenticatedRequest:
 
     @pytest.mark.usefixtures("access_token")
     def test_it_adds_pagination_for_multi_schema(self, base_client, PaginatedSchema):
-        base_client.send(
-            method="method", path="path", schema=PaginatedSchema
-        )
+        base_client.send(method="method", path="path", schema=PaginatedSchema)
 
         Any.request.assert_on_comparison = True
         base_client._validated_response.assert_called_once_with(
@@ -530,9 +526,7 @@ class TestMakeAuthenticatedRequest:
         ]
         base_client._get_refreshed_token.return_value = "new_access_token"
 
-        response = base_client.send(
-            method="method", path="path", schema=Schema
-        )
+        response = base_client.send(method="method", path="path", schema=Schema)
 
         assert response == sentinel.second_call
         base_client._get_refreshed_token.assert_called_once_with(
@@ -559,9 +553,7 @@ class TestMakeAuthenticatedRequest:
         base_client._validated_response.side_effect = CanvasAPIAccessTokenError()
 
         with pytest.raises(CanvasAPIAccessTokenError):
-            base_client.send(
-                method="method", path="path", schema=Schema
-            )
+            base_client.send(method="method", path="path", schema=Schema)
 
     @pytest.fixture
     def access_token_no_refresh(self, db_session, access_token_fields):

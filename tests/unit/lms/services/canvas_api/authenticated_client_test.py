@@ -7,11 +7,7 @@ from h_matchers import Any
 from requests import Request, Response
 
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api import (
-    CanvasAPIAuthenticatedClient,
-    CanvasAPIBasicClient,
-    TokenStore,
-)
+from lms.services.canvas_api import AuthenticatedClient, BasicClient, TokenStore
 from lms.services.canvas_api.authenticated_client import CanvasTokenResponseSchema
 from lms.validation import ValidationError
 from tests import factories
@@ -31,38 +27,42 @@ class TestCanvasTokenResponseSchema:
             CanvasTokenResponseSchema(response).parse()
 
 
-class TestCanvasAPIAuthenticatedClient:
-    def test_send(self, api_client, basic_api, oauth_token):
-        basic_api.make_request.return_value = Request("GET", "url")
+class TestAuthenticatedClient:
+    def test_send(self, authenticated_client, basic_client, oauth_token):
+        basic_client.make_request.return_value = Request("GET", "url")
 
-        result = api_client.send("METHOD", "/path", sentinel.schema, sentinel.params)
+        result = authenticated_client.send(
+            "METHOD", "/path", sentinel.schema, sentinel.params
+        )
 
-        basic_api.make_request.assert_called_once_with(
+        basic_client.make_request.assert_called_once_with(
             "METHOD", "/path", sentinel.schema, sentinel.params
         )
 
         Any.request.assert_on_comparison = True
-        basic_api.send_and_validate.assert_called_once_with(
+        basic_client.send_and_validate.assert_called_once_with(
             Any.request.containing_headers(
                 {"Authorization": f"Bearer {oauth_token.access_token}"}
             ),
             sentinel.schema,
         )
 
-        assert result == basic_api.send_and_validate.return_value
+        assert result == basic_client.send_and_validate.return_value
 
     def test_send_refreshes_and_retries_for_CanvasAPIAccessTokenError(
-        self, api_client, basic_api, oauth_token, token_response
+        self, authenticated_client, basic_client, oauth_token, token_response
     ):
-        basic_api.send_and_validate.side_effect = (
+        basic_client.send_and_validate.side_effect = (
             CanvasAPIAccessTokenError,  # The first call should fail
             token_response,  # Then we expect a refresh call
             "success",  # Then finally our successful content request
         )
 
-        result = api_client.send("METHOD", "/path", sentinel.schema, sentinel.params)
+        result = authenticated_client.send(
+            "METHOD", "/path", sentinel.schema, sentinel.params
+        )
 
-        basic_api.send_and_validate.assert_has_calls(
+        basic_client.send_and_validate.assert_has_calls(
             [
                 call(Any(), sentinel.schema),
                 call(Any(), CanvasTokenResponseSchema),
@@ -78,19 +78,21 @@ class TestCanvasAPIAuthenticatedClient:
         assert result == "success"
 
     def test_send_raises_CanvasAPIAccessTokenError_if_it_cannot_refresh(
-        self, api_client, basic_api, oauth_token
+        self, authenticated_client, basic_client, oauth_token
     ):
         oauth_token.refresh_token = None
-        basic_api.send_and_validate.side_effect = CanvasAPIAccessTokenError
+        basic_client.send_and_validate.side_effect = CanvasAPIAccessTokenError
 
         with pytest.raises(CanvasAPIAccessTokenError):
-            api_client.send("METHOD", "/path", sentinel.schema, sentinel.params)
+            authenticated_client.send(
+                "METHOD", "/path", sentinel.schema, sentinel.params
+            )
 
-    def test_get_token(self, api_client, basic_api, token_store):
-        api_client.get_token("authorization_code")
+    def test_get_token(self, authenticated_client, basic_client, token_store):
+        authenticated_client.get_token("authorization_code")
 
-        basic_api.get_url.assert_called_once_with("login/oauth2/token", url_stub="")
-        basic_api.send_and_validate.assert_called_once_with(
+        basic_client.get_url.assert_called_once_with("login/oauth2/token", url_stub="")
+        basic_client.send_and_validate.assert_called_once_with(
             Any.request(
                 "POST",
                 Any.url.matching("http://example.com/token_url").with_query(
@@ -110,12 +112,12 @@ class TestCanvasAPIAuthenticatedClient:
             "new_access_token", "new_refresh_token", "new_expires_in"
         )
 
-    def test_get_refreshed_token(self, api_client, basic_api, token_store):
-        api_client.get_refreshed_token("refresh_token")
+    def test_get_refreshed_token(self, authenticated_client, basic_client, token_store):
+        authenticated_client.get_refreshed_token("refresh_token")
 
-        basic_api.get_url.assert_called_once_with("login/oauth2/token", url_stub="")
+        basic_client.get_url.assert_called_once_with("login/oauth2/token", url_stub="")
 
-        basic_api.send_and_validate.assert_called_once_with(
+        basic_client.send_and_validate.assert_called_once_with(
             Any.request(
                 "POST",
                 Any.url.matching("http://example.com/token_url").with_query(
@@ -135,9 +137,9 @@ class TestCanvasAPIAuthenticatedClient:
         )
 
     @pytest.fixture
-    def api_client(self, basic_api, token_store):
-        return CanvasAPIAuthenticatedClient(
-            basic_api=basic_api,
+    def authenticated_client(self, basic_client, token_store):
+        return AuthenticatedClient(
+            basic_client=basic_client,
             token_store=token_store,
             client_id=sentinel.client_id,
             client_secret=sentinel.client_secret,
@@ -145,8 +147,8 @@ class TestCanvasAPIAuthenticatedClient:
         )
 
     @pytest.fixture
-    def basic_api(self, token_response):
-        basic_api = create_autospec(CanvasAPIBasicClient)
+    def basic_client(self, token_response):
+        basic_api = create_autospec(BasicClient)
 
         basic_api.send_and_validate.return_value = token_response
         basic_api.get_url.return_value = "http://example.com/token_url"

@@ -33,11 +33,11 @@ class CanvasAPIClient:
             Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_api):
-        self.api = authenticated_api
+    def __init__(self, authenticated_client):
+        self._api = authenticated_client
 
     def get_token(self, authorization_code):
-        return self.api.get_token(authorization_code)
+        return self._api.get_token(authorization_code)
 
     def authenticated_users_sections(self, course_id):
         """
@@ -82,7 +82,7 @@ class CanvasAPIClient:
         # that we're ignoring it for now.
 
         return self._ensure_sections_unique(
-            self.api.send(
+            self._api.send(
                 "GET",
                 f"courses/{course_id}",
                 params={"include[]": "sections"},
@@ -117,7 +117,7 @@ class CanvasAPIClient:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
         return self._ensure_sections_unique(
-            self.api.send(
+            self._api.send(
                 "GET",
                 f"courses/{course_id}/sections",
                 schema=self._CourseSectionsSchema,
@@ -149,7 +149,7 @@ class CanvasAPIClient:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
         return self._ensure_sections_unique(
-            self.api.send(
+            self._api.send(
                 "GET",
                 f"courses/{course_id}/users/{user_id}",
                 params={"include[]": "enrollments"},
@@ -194,7 +194,7 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self.api.send(
+        return self._api.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
@@ -220,7 +220,7 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        return self.api.send(
+        return self._api.send(
             "GET", f"files/{file_id}/public_url", schema=self._PublicURLSchema
         )["public_url"]
 

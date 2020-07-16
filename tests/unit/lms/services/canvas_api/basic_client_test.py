@@ -7,11 +7,11 @@ from h_matchers import Any
 from requests import Request, RequestException, Response
 
 from lms.services import CanvasAPIError
-from lms.services.canvas_api import CanvasAPIBasicClient
+from lms.services.canvas_api import BasicClient
 from lms.validation import RequestsResponseSchema, ValidationError
 
 
-class TestCanvasAPIBasicClient:
+class TestBasicClient:
     @pytest.mark.parametrize(
         "key,value,expected_url",
         (
@@ -56,9 +56,7 @@ class TestCanvasAPIBasicClient:
         )
 
         assert request == Any.request.with_url(
-            Any.url.containing_query(
-                {"per_page": str(CanvasAPIBasicClient.PAGINATION_PER_PAGE)}
-            )
+            Any.url.containing_query({"per_page": str(BasicClient.PAGINATION_PER_PAGE)})
         )
 
     def test_send_and_validate(self, basic_client, http_session, Schema):
@@ -132,7 +130,7 @@ class TestCanvasAPIBasicClient:
 
     @pytest.fixture
     def basic_client(self):
-        return CanvasAPIBasicClient("canvas_host")
+        return BasicClient("canvas_host")
 
     @pytest.fixture
     def requests(self, patch):

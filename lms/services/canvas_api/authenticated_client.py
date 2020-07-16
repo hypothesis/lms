@@ -21,7 +21,7 @@ class CanvasTokenResponseSchema(RequestsResponseSchema):
             raise marshmallow.ValidationError("expires_in must be greater than 0")
 
 
-class CanvasAPIAuthenticatedClient:
+class AuthenticatedClient:
     """
     A client for making authenticated calls to the Canvas API.
 
@@ -33,8 +33,10 @@ class CanvasAPIAuthenticatedClient:
     :raise CanvasAPIServerError: if the request fails for any other reason
     """
 
-    def __init__(self, basic_api, token_store, client_id, client_secret, redirect_uri):
-        self._api = basic_api
+    def __init__(
+        self, basic_client, token_store, client_id, client_secret, redirect_uri
+    ):
+        self._api = basic_client
         self._token_store = token_store
 
         # For making token requests

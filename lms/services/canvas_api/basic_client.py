@@ -8,7 +8,7 @@ from lms.services import CanvasAPIError
 from lms.validation import ValidationError
 
 
-class CanvasAPIBasicClient:
+class BasicClient:
     PAGINATION_PER_PAGE = 1000
     """The number of items to request at one time.
 
