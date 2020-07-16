@@ -11,6 +11,9 @@ import FilePickerApp from './components/FilePickerApp';
 import { startRpcServer } from '../postmessage_json_rpc/server';
 
 const rootEl = document.querySelector('#app');
+if (!rootEl) {
+  throw new Error('#app container for LMS frontend is missing');
+}
 
 const config = readConfig();
 
