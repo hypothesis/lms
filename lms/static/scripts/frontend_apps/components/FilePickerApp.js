@@ -19,8 +19,17 @@ import Spinner from './Spinner';
 import URLPicker from './URLPicker';
 
 /**
+ * @typedef FilePickerAppProps
+ * @prop {'lms'|'url'|null} [defaultActiveDialog] -
+ *   The dialog that should be shown when the app is first opened.
+ * @prop {() => any} [onSubmit] - Callback invoked when the form is submitted.
+ */
+
+/**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
+ *
+ * @param {FilePickerAppProps} props
  */
 export default function FilePickerApp({
   defaultActiveDialog = null,
@@ -220,11 +229,6 @@ export default function FilePickerApp({
 }
 
 FilePickerApp.propTypes = {
-  /**
-   * The dialog that should be shown when the app is first opened.
-   */
   defaultActiveDialog: propTypes.oneOf(['url', 'lms']),
-
-  /** Callback invoked when the form is submitted. */
   onSubmit: propTypes.func,
 };
