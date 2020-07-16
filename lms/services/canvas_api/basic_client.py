@@ -1,3 +1,4 @@
+from copy import deepcopy
 from urllib.parse import urlencode
 
 import requests
@@ -21,7 +22,7 @@ class CanvasAPIBasicClient:
         self._session = Session()
         self._canvas_host = canvas_host
 
-    def make_request(self, method, path, schema, params):
+    def make_request(self, method, path, schema, params=None):
         # Always request the maximum items per page for requests which return
         # more than one thing
         if schema.many:
@@ -78,10 +79,11 @@ class CanvasAPIBasicClient:
 
             # Don't make requests forever
             if request_depth < self.PAGINATION_MAXIMUM_REQUESTS:
-                request.url = next_url["url"]
+                new_request = deepcopy(request)
+                new_request.url = next_url["url"]
                 result.extend(
                     self.send_and_validate(
-                        request, schema, request_depth=request_depth + 1
+                        new_request, schema, request_depth=request_depth + 1
                     )
                 )
 

@@ -33,7 +33,6 @@ class TokenStore:
         oauth2_token.expires_in = expires_in
         oauth2_token.received_at = datetime.datetime.utcnow()
 
-    @property
     def get(self):
         """
         Return the user's saved access and refresh tokens from the DB.

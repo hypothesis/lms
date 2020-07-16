@@ -1,12 +1,10 @@
-from urllib.parse import urlparse
+from copy import deepcopy
 
 import marshmallow
-import requests
 from marshmallow import fields
+from requests import Request
 
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api.basic_client import CanvasAPIBasicClient
-from lms.services.canvas_api.token_store import TokenStore
 from lms.validation import RequestsResponseSchema
 
 
@@ -70,10 +68,11 @@ class CanvasAPIAuthenticatedClient:
             if not refresh_token:
                 raise
 
+            new_request = deepcopy(request)
             new_access_token = self.get_refreshed_token(refresh_token)
-            request.headers["Authorization"] = f"Bearer {new_access_token}"
+            new_request.headers["Authorization"] = f"Bearer {new_access_token}"
 
-            return self._api.send_and_validate(request, schema)
+            return self._api.send_and_validate(new_request, schema)
 
     def get_token(self, authorization_code):
         """
@@ -107,7 +106,7 @@ class CanvasAPIAuthenticatedClient:
         if refresh_token:
             params["refresh_token"] = refresh_token
 
-        request = requests.Request("POST", self._token_url, params=params).prepare()
+        request = Request("POST", self._token_url, params=params).prepare()
         parsed_params = self._api.send_and_validate(request, CanvasTokenResponseSchema)
 
         self._token_store.save(
