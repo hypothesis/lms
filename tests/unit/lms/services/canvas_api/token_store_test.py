@@ -6,9 +6,9 @@ from h_matchers import Any
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services.canvas_api import TokenStore
-from tests import factories
 
 
+@pytest.mark.usefixtures("application_instance")
 class TestTokenStore:
     @pytest.mark.parametrize("delete_token", (False, True))
     def test_save(
@@ -60,29 +60,3 @@ class TestTokenStore:
 
         with pytest.raises(CanvasAPIAccessTokenError):
             store.get()
-
-    @pytest.fixture
-    def token_store(self, db_session, application_instance, lti_user):
-        return TokenStore(
-            db_session,
-            consumer_key=application_instance.consumer_key,
-            user_id=lti_user.user_id,
-        )
-
-    @pytest.fixture
-    def lti_user(self):
-        return factories.LTIUser()
-
-    @pytest.fixture(autouse=True)
-    def application_instance(self, db_session):
-        application_instance = factories.ApplicationInstance()
-        db_session.add(application_instance)
-        return application_instance
-
-    @pytest.fixture
-    def oauth_token(self, db_session, lti_user, application_instance):
-        oauth_token = factories.OAuth2Token(
-            user_id=lti_user.user_id, consumer_key=application_instance.consumer_key
-        )
-        db_session.add(oauth_token)
-        return oauth_token

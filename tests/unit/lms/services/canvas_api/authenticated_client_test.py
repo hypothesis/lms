@@ -137,16 +137,6 @@ class TestAuthenticatedClient:
         )
 
     @pytest.fixture
-    def authenticated_client(self, basic_client, token_store):
-        return AuthenticatedClient(
-            basic_client=basic_client,
-            token_store=token_store,
-            client_id=sentinel.client_id,
-            client_secret=sentinel.client_secret,
-            redirect_uri=sentinel.redirect_uri,
-        )
-
-    @pytest.fixture
     def basic_client(self, token_response):
         basic_api = create_autospec(BasicClient)
 

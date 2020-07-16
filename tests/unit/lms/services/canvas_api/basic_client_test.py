@@ -129,10 +129,6 @@ class TestBasicClient:
             basic_client.send_and_validate(sentinel.request, Schema)
 
     @pytest.fixture
-    def basic_client(self):
-        return BasicClient("canvas_host")
-
-    @pytest.fixture
     def requests(self, patch):
         return patch("lms.services.canvas_api.requests")
 
