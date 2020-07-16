@@ -21,9 +21,7 @@ import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
 
 /**
- * @typedef {Object} User
- * @property {string} userid - Unique user's id
- * @property {string} displayName - User's display name
+ * @typedef {import('./LMSGrader').User} User
  */
 
 /**

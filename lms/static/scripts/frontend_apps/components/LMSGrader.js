@@ -15,10 +15,19 @@ import SubmitGradeForm from './SubmitGradeForm';
  */
 
 /**
- * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
- * active as well as a list of students to both view and submit grades for.
+ * @typedef LMSGraderProps
+ * @prop {Object} children - The <iframe> element displaying the assignment
+ * @prop {string} courseName
+ * @prop {string} assignmentName
+ * @prop {User[]} students - List of students to grade
  */
 
+/**
+ * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
+ * active as well as a list of students to both view and submit grades for.
+ *
+ * @param {LMSGraderProps} props
+ */
 export default function LMSGrader({
   children,
   assignmentName,
@@ -51,7 +60,7 @@ export default function LMSGrader({
   /**
    * Makes an RPC call to the sidebar to change to the focused user.
    *
-   * @param {User} user - The user to focus on in the sidebar
+   * @param {User|null} user - The user to focus on in the sidebar
    */
   const changeFocusedUser = async user => {
     const sidebar = await getSidebarWindow();
@@ -59,8 +68,12 @@ export default function LMSGrader({
     // to change the focused user.
     rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
       {
-        username: user.userid, // change `username` key to `userid` once the client is ready
-        displayName: user.displayName,
+        // Passing `undefined` as the `username` disables focus mode in the client.
+        //
+        // TODO: The `username` property is deprecated in the client and should be
+        // changed to `userid` once the client no longer references `username`.
+        username: user ? user.userid : undefined,
+        displayName: user ? user.displayName : undefined,
       },
     ]);
   };
@@ -69,7 +82,7 @@ export default function LMSGrader({
     if (students[currentStudentIndex]) {
       changeFocusedUser(students[currentStudentIndex]);
     } else {
-      changeFocusedUser({}); // any non-real userid will clear out a previously focused user
+      changeFocusedUser(null);
     }
   }, [students, currentStudentIndex]);
 
@@ -135,11 +148,8 @@ export default function LMSGrader({
 }
 
 LMSGrader.propTypes = {
-  // iframe to pass along
   children: propTypes.node.isRequired,
-  // Assignment and course information
   courseName: propTypes.string.isRequired,
   assignmentName: propTypes.string.isRequired,
-  // List of students to grade
   students: propTypes.array.isRequired,
 };
