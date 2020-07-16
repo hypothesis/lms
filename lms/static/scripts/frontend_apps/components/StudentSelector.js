@@ -4,9 +4,23 @@ import propTypes from 'prop-types';
 import SvgIcon from './SvgIcon';
 
 /**
- * A student navigation tool which shows a student selection list and a previous and next button.
+ * @typedef Student
+ * @prop {string} displayName
  */
 
+/**
+ * @typedef StudentSelectorProps
+ * @prop {(index: number) => any} onSelectStudent -
+ *   Callback invoked when the selected student changes
+ * @prop {number} selectedStudentIndex - Index of selected student in `students`
+ * @prop {Student[]} students - Ordered list of students to display in the drop-down
+ */
+
+/**
+ * A student navigation tool which shows a student selection list and a previous and next button.
+ *
+ * @param {StudentSelectorProps} props
+ */
 export default function StudentSelector({
   onSelectStudent,
   selectedStudentIndex,
@@ -58,8 +72,8 @@ export default function StudentSelector({
 
     return (
       <span className="StudentsSelector__students">
-        {/* 
-        This lint issue may have arisen from browser inconsistency issues with 
+        {/*
+        This lint issue may have arisen from browser inconsistency issues with
         `onChange` which have since been fixed. See browser compatibility note here:
         https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event#annotations:xeC6ClQsEequhUdih2lXzw
         */}
@@ -67,7 +81,9 @@ export default function StudentSelector({
         <select
           className="StudentsSelector__students-select"
           onChange={e => {
-            onSelectStudent(parseInt(e.target.value));
+            onSelectStudent(
+              parseInt(/** @type {HTMLInputElement} */ (e.target).value)
+            );
           }}
         >
           {options}
@@ -113,10 +129,7 @@ export default function StudentSelector({
 }
 
 StudentSelector.propTypes = {
-  // Callback when the selected student changes.
   onSelectStudent: propTypes.func.isRequired,
-
-  // Students array and selected index of that array.
   selectedStudentIndex: propTypes.number.isRequired,
   students: propTypes.array.isRequired,
 };
