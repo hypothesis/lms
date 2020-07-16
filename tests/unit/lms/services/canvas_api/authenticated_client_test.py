@@ -1,13 +1,11 @@
-import json
-from io import BytesIO
 from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
-from requests import Request, Response
+from requests import Request
 
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api import AuthenticatedClient, BasicClient, TokenStore
+from lms.services.canvas_api import BasicClient, TokenStore
 from lms.services.canvas_api.authenticated_client import CanvasTokenResponseSchema
 from lms.validation import ValidationError
 from tests import factories
@@ -16,11 +14,8 @@ from tests import factories
 class TestCanvasTokenResponseSchema:
     @pytest.mark.parametrize("value", (-1, 0))
     def test_expires_in_must_be_positive(self, value):
-        response = Response()
-        response.raw = BytesIO(
-            json.dumps({"access_token": "required", "expires_in": value}).encode(
-                "utf-8"
-            )
+        response = factories.requests.Response(
+            status_code=200, json_data={"access_token": "required", "expires_in": value}
         )
 
         with pytest.raises(ValidationError):

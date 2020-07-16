@@ -1,14 +1,13 @@
-import json
-from io import BytesIO
 from unittest.mock import MagicMock, call, create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
-from requests import Request, RequestException, Response
+from requests import Request, RequestException
 
 from lms.services import CanvasAPIError
 from lms.services.canvas_api import BasicClient
 from lms.validation import RequestsResponseSchema, ValidationError
+from tests import factories
 
 
 class TestBasicClient:
@@ -60,7 +59,7 @@ class TestBasicClient:
         )
 
     def test_send_and_validate(self, basic_client, http_session, Schema):
-        response = self._make_response("request_body")
+        response = factories.requests.Response(status_code=200)
         http_session.send.return_value = response
 
         basic_client.send_and_validate(sentinel.request, Schema)
@@ -72,7 +71,7 @@ class TestBasicClient:
     def test_it_raises_CanvasAPIError_for_request_errors(
         self, basic_client, http_session, Schema
     ):
-        response = self._make_response("request_body")
+        response = factories.requests.Response(status_code=200)
         response.raise_for_status = MagicMock()
         response.raise_for_status.side_effect = RequestException
 
@@ -154,9 +153,13 @@ class TestBasicClient:
     def paginated_results(self, http_session):
         next_url = "http://example.com/next/"
         http_session.send.side_effect = [
-            self._make_response(headers=self._link_headers(next_url + "0")),
-            self._make_response(headers=self._link_headers(next_url + "1")),
-            self._make_response(),
+            factories.requests.Response(
+                status_code=200, headers=self._link_headers(next_url + "0")
+            ),
+            factories.requests.Response(
+                status_code=200, headers=self._link_headers(next_url + "1")
+            ),
+            factories.requests.Response(status_code=200),
         ]
 
     @pytest.fixture(autouse=True)
@@ -181,19 +184,3 @@ class TestBasicClient:
                 ]
             )
         }
-
-    @classmethod
-    def _make_response(cls, json_data=None, raw=None, status_code=200, headers=None):
-        response = Response()
-
-        if raw is None:
-            raw = json.dumps(json_data)
-
-        response.raw = BytesIO(raw.encode("utf-8"))
-        response.status_code = status_code
-
-        if headers:
-            # Requests seems to store these lower case and expects them that way
-            response.headers = {key.lower(): value for key, value in headers.items()}
-
-        return response
