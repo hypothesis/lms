@@ -5,7 +5,7 @@ from h_matchers import Any
 
 from lms.services import CanvasAPIAccessTokenError
 from lms.services.canvas_api import BasicClient, TokenStore
-from lms.services.canvas_api.authenticated import CanvasTokenResponseSchema
+from lms.services.canvas_api.authenticated import TokenResponseSchema
 from lms.validation import ValidationError
 from tests import factories
 
@@ -18,7 +18,7 @@ class TestCanvasTokenResponseSchema:
         )
 
         with pytest.raises(ValidationError):
-            CanvasTokenResponseSchema(response).parse()
+            TokenResponseSchema(response).parse()
 
 
 class TestAuthenticatedClient:
@@ -100,7 +100,7 @@ class TestAuthenticatedClient:
                 "redirect_uri": sentinel.redirect_uri,
                 "replace_tokens": True,
             },
-            schema=CanvasTokenResponseSchema,
+            schema=TokenResponseSchema,
             url_stub="",
         )
 
@@ -122,7 +122,7 @@ class TestAuthenticatedClient:
                 "client_secret": sentinel.client_secret,
                 "refresh_token": "refresh_token",
             },
-            schema=CanvasTokenResponseSchema,
+            schema=TokenResponseSchema,
             url_stub="",
         )
 

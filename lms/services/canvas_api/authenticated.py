@@ -7,7 +7,7 @@ from lms.services import CanvasAPIAccessTokenError
 from lms.validation import RequestsResponseSchema
 
 
-class CanvasTokenResponseSchema(RequestsResponseSchema):
+class TokenResponseSchema(RequestsResponseSchema):
     """Schema for validating OAuth 2 token responses from Canvas."""
 
     access_token = fields.Str(required=True)
@@ -128,7 +128,7 @@ class AuthenticatedClient:
             "login/oauth2/token",
             url_stub="",
             params=params,
-            schema=CanvasTokenResponseSchema,
+            schema=TokenResponseSchema,
         )
 
         self._token_store.save(
