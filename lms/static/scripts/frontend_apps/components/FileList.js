@@ -13,13 +13,13 @@ import Table from './Table';
 
 /**
  * @typedef FileListProps
- * @prop {File[]} files - List of file objects returned by a `listFiles` call.
- * @prop {boolean} [isLoading] - Whether to show a loading indicator.
- * @prop {File|null} selectedFile - The file within `files` which is currently selected.
+ * @prop {File[]} files - List of file objects returned by a `listFiles` call
+ * @prop {boolean} [isLoading] - Whether to show a loading indicator
+ * @prop {File|null} selectedFile - The file within `files` which is currently selected
  * @prop {(f: File) => any} [onSelectFile] -
  *   Callback invoked when the user clicks on a file
  * @prop {(f: File) => any} [onUseFile] -
- *   Callback invoked when the user double-clicks a file to indicate that they want to use it.
+ *   Callback invoked when the user double-clicks a file to indicate that they want to use it
  */
 
 /**
