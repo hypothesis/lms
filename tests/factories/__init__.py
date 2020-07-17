@@ -2,11 +2,13 @@ import sys
 
 from factory.alchemy import SQLAlchemyModelFactory
 
+from tests.factories.application_instance import ApplicationInstance
 from tests.factories.course import Course
 from tests.factories.grading_info import GradingInfo
 from tests.factories.h_group import HGroup
 from tests.factories.h_user import HUser
 from tests.factories.lti_user import LTIUser
+from tests.factories.oauth2_token import OAuth2Token
 
 
 def set_sqlalchemy_session(session):
