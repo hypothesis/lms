@@ -3,7 +3,7 @@
  * function that removes the listeners.
  *
  * @param {Element} element
- * @param {string[]} events
+ * @param {string|string[]} events
  * @param {(e: Event) => any} listener
  * @param {Object} options
  *   @param {boolean} [options.useCapture]
@@ -17,7 +17,7 @@ export function listen(element, events, listener, { useCapture = false } = {}) {
     element.addEventListener(event, listener, useCapture)
   );
   return () => {
-    events.forEach(event =>
+    /** @type {string[]} */ (events).forEach(event =>
       element.removeEventListener(event, listener, useCapture)
     );
   };

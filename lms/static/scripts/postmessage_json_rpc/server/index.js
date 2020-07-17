@@ -1,6 +1,12 @@
 import Server from './server';
 
-let server = {}; // Singleton RPC server reference
+// Singleton RPC server reference.
+//
+// The fact that this is a singleton is a hangover from an earlier iteration of
+// the code where the RPC server and LMS frontend were separate JS applications.
+// We could now call `startRpcServer` at startup and pass the resulting `Server`
+// down to clients that need it.
+let server;
 
 /**
  * Create a new RPC server and register any methods it will support.
@@ -66,6 +72,9 @@ function startRpcServer({ allowedOrigins, clientConfig }) {
  * @returns {Promise<SidebarFrame>} - The `SidebarFrame`
  */
 function getSidebarWindow() {
+  if (!server) {
+    throw new Error('RPC server is not active');
+  }
   return server.sidebarWindow;
 }
 

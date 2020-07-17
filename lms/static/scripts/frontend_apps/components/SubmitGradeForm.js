@@ -100,7 +100,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
   } = useContext(Config);
 
   // Used to handle keyboard input changes for the grade input field.
-  const inputRef = useRef(null);
+  const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
 
   // Clear the previous grade saved status when the user changes.
   useEffect(() => {
@@ -172,6 +172,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           ref={inputRef}
           onInput={handleKeyDown}
           type="input"
+          // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
           defaultValue={grade}
           key={student.LISResultSourcedId}
         />
