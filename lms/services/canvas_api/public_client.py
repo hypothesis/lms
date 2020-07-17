@@ -34,6 +34,11 @@ class CanvasAPIClient:
     """
 
     def __init__(self, authenticated_client):
+        """
+        Create a new CanvasAPIClient.
+
+        :param authenticated_client: An instance of AuthenticatedClient.
+        """
         self._api = authenticated_client
 
     def get_token(self, authorization_code):

@@ -9,12 +9,30 @@ This is to prevent these tests from just becoming an MD5 of the code, and to
 actually show what calls we are supposed to be making in the end, rather than
 just what we feed into the system.
 """
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient
+
+
+class TestCanvasAPIClientGetToken:
+    # This is the only test where we fake out the underlying class, because
+    # this _one_ call is just a pass through.
+
+    def test_get_token(self, canvas_api_client, authenticated_client):
+        token = canvas_api_client.get_token(sentinel.authorization_code)
+
+        authenticated_client.get_token.assert_called_once_with(
+            sentinel.authorization_code
+        )
+        assert token == authenticated_client.get_token.return_value
+
+    @pytest.fixture
+    def authenticated_client(self, patch):
+        return patch("lms.services.canvas_api.AuthenticatedClient")
 
 
 @pytest.mark.usefixtures("http_session", "oauth_token")
