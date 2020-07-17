@@ -18,9 +18,11 @@ class Response(Factory):
     headers = None
 
     @classmethod
-    def _adjust_kwargs(cls, raw=..., json_data=..., **kwargs):
+    def _adjust_kwargs(cls, **kwargs):
         headers = kwargs["headers"] or {}
         encoding = kwargs["encoding"]
+        raw = kwargs["raw"]
+        json_data = kwargs["json_data"]
 
         if raw is None and json_data is not None:
             raw = json.dumps(json_data)
@@ -28,21 +30,21 @@ class Response(Factory):
             if not headers:
                 headers["Content-Type"] = f"application/json; charset={encoding}"
 
-        if isinstance(raw, str):
-            raw = BytesIO(raw.encode(encoding))
-
-        kwargs["raw"] = raw
+        kwargs["raw"] = BytesIO(raw.encode(encoding)) if isinstance(raw, str) else raw
 
         # Requests seems to store these lower case and expects them that way
-
         kwargs["headers"] = {key.lower(): value for key, value in headers.items()}
 
         return kwargs
 
     @classmethod
-    def _create(cls, model_class, **kwargs):
+    def _create(cls, model_class, *_args, **kwargs):
         response = model_class()
         for field, value in kwargs.items():
             setattr(response, field, value)
 
         return response
+
+
+class OKResponse(Response):
+    status_code = 200

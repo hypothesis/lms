@@ -33,7 +33,7 @@ class BasicClient:
 
         return requests.Request(method, self.get_url(path, params)).prepare()
 
-    def get_url(self, path, params=None, url_stub="/_api/v1"):
+    def get_url(self, path, params=None, url_stub="/api/v1"):
         return f"https://{self._canvas_host}{url_stub}/{path}" + (
             "?" + urlencode(params) if params else ""
         )

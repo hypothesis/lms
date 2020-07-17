@@ -21,6 +21,21 @@ def basic_client():
 
 
 @pytest.fixture
+def http_session(patch):
+    session = patch("lms.services.canvas_api.basic_client.Session")
+    session = session()
+
+    def set_response(json_data=None, raw=None, status_code=200):
+        session.send.return_value = factories.requests.OKResponse(
+            json_data=json_data, raw=raw, status_code=status_code
+        )
+
+    session.set_response = set_response
+
+    return session
+
+
+@pytest.fixture
 def authenticated_client(basic_client, token_store):
     return AuthenticatedClient(
         basic_client=basic_client,

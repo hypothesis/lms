@@ -33,7 +33,7 @@ class AuthenticatedClient:
     :raise CanvasAPIServerError: if the request fails for any other reason
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self, basic_client, token_store, client_id, client_secret, redirect_uri
     ):
         self._api = basic_client

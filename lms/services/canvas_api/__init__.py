@@ -6,7 +6,7 @@ from lms.services.canvas_api.public_client import CanvasAPIClient
 from lms.services.canvas_api.token_store import TokenStore
 
 
-def canvas_api_client_factory(context_, request):
+def canvas_api_client_factory(_context, request):
     ai_getter = request.find_service(name="ai_getter")
 
     canvas_host = urlparse(ai_getter.lms_url()).netloc

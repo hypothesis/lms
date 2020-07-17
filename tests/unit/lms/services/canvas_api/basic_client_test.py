@@ -1,8 +1,8 @@
-from unittest.mock import MagicMock, call, create_autospec, sentinel
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
-from requests import Request, RequestException
+from requests import Request
 
 from lms.services import CanvasAPIError
 from lms.services.canvas_api import BasicClient
@@ -10,6 +10,7 @@ from lms.validation import RequestsResponseSchema, ValidationError
 from tests import factories
 
 
+@pytest.mark.usefixtures("http_session")
 class TestBasicClient:
     @pytest.mark.parametrize(
         "key,value,expected_url",
@@ -19,7 +20,7 @@ class TestBasicClient:
                 "irrelevant",
                 Any.url.with_scheme("https").with_host("canvas_host"),
             ),
-            ("path", "my_custom/path", Any.url.with_path("/_api/v1/my_custom/path")),
+            ("path", "my_custom/path", Any.url.with_path("/api/v1/my_custom/path")),
             ("params", {"a": "A"}, Any.url.with_query({"a": "A"})),
             (
                 "url_stub",
@@ -71,11 +72,7 @@ class TestBasicClient:
     def test_it_raises_CanvasAPIError_for_request_errors(
         self, basic_client, http_session, Schema
     ):
-        response = factories.requests.Response(status_code=200)
-        response.raise_for_status = MagicMock()
-        response.raise_for_status.side_effect = RequestException
-
-        http_session.send.return_value = response
+        http_session.set_response(status_code=501)
 
         with pytest.raises(CanvasAPIError):
             basic_client.send_and_validate(sentinel.request, Schema)
@@ -128,10 +125,6 @@ class TestBasicClient:
             basic_client.send_and_validate(sentinel.request, Schema)
 
     @pytest.fixture
-    def requests(self, patch):
-        return patch("lms.services.canvas_api.requests")
-
-    @pytest.fixture
     def Schema(self):
         # pylint: disable=invalid-name
         Schema = create_autospec(RequestsResponseSchema)
@@ -161,12 +154,6 @@ class TestBasicClient:
             ),
             factories.requests.Response(status_code=200),
         ]
-
-    @pytest.fixture(autouse=True)
-    def http_session(self, patch):
-        session = patch("lms.services.canvas_api.basic_client.Session")
-
-        return session()
 
     @classmethod
     def _link_headers(cls, next_url):

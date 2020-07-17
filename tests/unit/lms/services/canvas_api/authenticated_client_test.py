@@ -45,7 +45,7 @@ class TestAuthenticatedClient:
         assert result == basic_client.send_and_validate.return_value
 
     def test_send_refreshes_and_retries_for_CanvasAPIAccessTokenError(
-        self, authenticated_client, basic_client, oauth_token, token_response
+        self, authenticated_client, basic_client, token_response
     ):
         basic_client.send_and_validate.side_effect = (
             CanvasAPIAccessTokenError,  # The first call should fail

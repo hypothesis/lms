@@ -40,7 +40,7 @@ class TestTokenStore:
             }
         )
 
-    def test_get_returns_token_when_present(self, token_store, db_session, oauth_token):
+    def test_get_returns_token_when_present(self, token_store, oauth_token):
         result = token_store.get()
 
         assert result == oauth_token
