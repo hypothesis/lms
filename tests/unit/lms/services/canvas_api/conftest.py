@@ -22,7 +22,7 @@ def basic_client():
 
 @pytest.fixture
 def http_session(patch):
-    session = patch("lms.services.canvas_api.basic_client.Session")
+    session = patch("lms.services.canvas_api.basic.Session")
     session = session()
 
     def set_response(json_data=None, raw=None, status_code=200):

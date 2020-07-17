@@ -1,12 +1,19 @@
 from urllib.parse import urlparse
 
-from lms.services.canvas_api.authenticated_client import AuthenticatedClient
-from lms.services.canvas_api.basic_client import BasicClient
-from lms.services.canvas_api.public_client import CanvasAPIClient
+from lms.services.canvas_api.authenticated import AuthenticatedClient
+from lms.services.canvas_api.basic import BasicClient
+from lms.services.canvas_api.public import CanvasAPIClient
 from lms.services.canvas_api.token_store import TokenStore
 
 
 def canvas_api_client_factory(_context, request):
+    """
+    Get a CanvasAPIClient from a pyramid request.
+
+    :param _context: Pyramid context object
+    :param request: Pyramid request object
+    :return: An instance of CanvasAPIClient
+    """
     ai_getter = request.find_service(name="ai_getter")
 
     canvas_host = urlparse(ai_getter.lms_url()).netloc

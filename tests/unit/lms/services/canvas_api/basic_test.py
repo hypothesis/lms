@@ -1,8 +1,7 @@
-from unittest.mock import call, create_autospec, sentinel
+from unittest.mock import call, create_autospec
 
 import pytest
 from h_matchers import Any
-from requests import Request
 
 from lms.services import CanvasAPIError
 from lms.services.canvas_api import BasicClient
@@ -22,6 +21,7 @@ class TestBasicClient:
             ),
             ("path", "my_custom/path", Any.url.with_path("/api/v1/my_custom/path")),
             ("params", {"a": "A"}, Any.url.with_query({"a": "A"})),
+            ("params", None, Any.url.with_query(None)),
             (
                 "url_stub",
                 "/custom/stub",
@@ -29,69 +29,71 @@ class TestBasicClient:
             ),
         ),
     )
-    def test_get_url(self, basic_client, key, value, expected_url):
-        url = basic_client.get_url(**{"path": "default_path", key: value})
-
-        assert url == expected_url
-
-    @pytest.mark.parametrize(
-        "params,expected_params", ((None, None), ({"a": "A"}, {"a": "A"}),)
-    )
-    def test_make_request(self, basic_client, params, expected_params, Schema):
-        request = basic_client.make_request("GET", "path", schema=Schema, params=params)
-
-        assert request == Any.request(
-            method="GET",
-            url=Any.url.matching(basic_client.get_url("path")).with_query(
-                expected_params
-            ),
-        )
-
-    @pytest.mark.parametrize("params", ((None, {"a": "A"})))
-    def test_make_request_sets_pagination_for_multi_schema(
-        self, basic_client, params, PaginatedSchema
+    def test_sends_builds_the_right_url(
+        self, basic_client, key, value, expected_url, http_session, Schema
     ):
-        request = basic_client.make_request(
-            "GET", "path", schema=PaginatedSchema, params=params
+        basic_client.send(
+            **{
+                "method": "METHOD",
+                "path": "default_path/",
+                "schema": Schema,
+                key: value,
+            }
         )
 
-        assert request == Any.request.with_url(
-            Any.url.containing_query({"per_page": str(BasicClient.PAGINATION_PER_PAGE)})
+        http_session.send.assert_called_once_with(
+            Any.request.with_url(expected_url), timeout=Any()
         )
 
-    def test_send_and_validate(self, basic_client, http_session, Schema):
-        response = factories.requests.Response(status_code=200)
-        http_session.send.return_value = response
+    @pytest.mark.parametrize("method", ("GET", "POST", "PATCH"))
+    def test_send_uses_the_request_method(
+        self, basic_client, Schema, method, http_session
+    ):
+        basic_client.send(method, "path/", schema=Schema)
 
-        basic_client.send_and_validate(sentinel.request, Schema)
+        http_session.send.assert_called_once_with(Any.request(method), timeout=Any())
 
-        http_session.send.assert_called_once_with(sentinel.request, timeout=9)
-        Schema.assert_called_once_with(response)
+    def test_send_sets_pagination_for_multi_schema(
+        self, basic_client, PaginatedSchema, http_session
+    ):
+        basic_client.send("METHOD", "path/", schema=PaginatedSchema)
+
+        expected_url = Any.url.containing_query(
+            {"per_page": str(BasicClient.PAGINATION_PER_PAGE)}
+        )
+        http_session.send.assert_called_once_with(
+            Any.request.with_url(expected_url), timeout=Any()
+        )
+
+    def test_send_calls_the_schema(self, basic_client, http_session, Schema):
+        result = basic_client.send("METHOD", "path/", schema=Schema)
+
+        Schema.assert_called_once_with(http_session.send.return_value)
         Schema.return_value.parse.assert_called_once_with()
 
-    def test_it_raises_CanvasAPIError_for_request_errors(
+        assert result == Schema.return_value.parse.return_value
+
+    def test_send_raises_CanvasAPIError_for_request_errors(
         self, basic_client, http_session, Schema
     ):
         http_session.set_response(status_code=501)
 
         with pytest.raises(CanvasAPIError):
-            basic_client.send_and_validate(sentinel.request, Schema)
+            basic_client.send("METHOD", "path/", schema=Schema)
 
-    def test_send_and_validate_raises_CanvasAPIError_for_validation_errors(
+    def test_send_raises_CanvasAPIError_for_validation_errors(
         self, basic_client, Schema
     ):
         Schema.return_value.parse.side_effect = ValidationError("Some error")
 
         with pytest.raises(CanvasAPIError):
-            basic_client.send_and_validate(sentinel.request, Schema)
+            basic_client.send("any", "any", schema=Schema)
 
     @pytest.mark.usefixtures("paginated_results")
-    def test_send_and_validate_follows_pagination_links_for_many_schema(
+    def test_send_follows_pagination_links_for_many_schema(
         self, basic_client, PaginatedSchema, http_session
     ):
-        result = basic_client.send_and_validate(
-            Request("method", "http://example.com/start").prepare(), PaginatedSchema
-        )
+        result = basic_client.send("METHOD", "path/", schema=PaginatedSchema)
 
         # Values are from the PaginatedSchema fixture
         assert result == ["item_0", "item_1", "item_2"]
@@ -108,21 +110,23 @@ class TestBasicClient:
         )
 
     @pytest.mark.usefixtures("paginated_results")
-    def test_send_and_validate_only_paginates_to_the_max_value(
-        self, basic_client, PaginatedSchema
-    ):
+    def test_send_only_paginates_to_the_max_value(self, basic_client, PaginatedSchema):
         basic_client.PAGINATION_MAXIMUM_REQUESTS = 2
 
-        result = basic_client.send_and_validate(sentinel.request, PaginatedSchema)
+        result = basic_client.send("METHOD", "path/", schema=PaginatedSchema)
 
         assert result == ["item_0", "item_1"]
 
     @pytest.mark.usefixtures("paginated_results")
-    def test_send_and_validate_raises_CanvasAPIError_for_pagination_with_non_many_schema(
+    def test_send_raises_CanvasAPIError_for_pagination_with_non_many_schema(
         self, basic_client, Schema
     ):
         with pytest.raises(CanvasAPIError):
-            basic_client.send_and_validate(sentinel.request, Schema)
+            basic_client.send("METHOD", "path/", schema=Schema)
+
+    @pytest.fixture(autouse=True)
+    def has_ok_response(self, http_session):
+        http_session.set_response()
 
     @pytest.fixture
     def Schema(self):

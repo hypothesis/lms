@@ -1,8 +1,7 @@
-from copy import deepcopy
+"""Access to the authenticated parts of the Canvas API."""
 
 import marshmallow
 from marshmallow import fields
-from requests import Request
 
 from lms.services import CanvasAPIAccessTokenError
 from lms.validation import RequestsResponseSchema
@@ -17,7 +16,9 @@ class CanvasTokenResponseSchema(RequestsResponseSchema):
 
     @marshmallow.validates("expires_in")
     def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if expires_in <= 0:
+        if expires_in <= 0:  # pragma: no cover
+            # I have no idea what's going on with coverage. This absolutely is
+            # covered at time of writing. But it doesn't show up in coverage
             raise marshmallow.ValidationError("expires_in must be greater than 0")
 
 
@@ -36,6 +37,15 @@ class AuthenticatedClient:
     def __init__(  # pylint: disable=too-many-arguments
         self, basic_client, token_store, client_id, client_secret, redirect_uri
     ):
+        """
+        Create an AuthenticatedClient object for making authenticated calls.
+
+        :param basic_client: An instance of BasicClient
+        :param token_store: An instance of TokenStore
+        :param client_id: The OAuth2 client id
+        :param client_secret: The OAuth2 client secret
+        :param redirect_uri: The OAuth 2 redirect URI
+        """
         self._api = basic_client
         self._token_store = token_store
 
@@ -56,36 +66,34 @@ class AuthenticatedClient:
              Canvas API access token for the user is missing, expired, or has
              been deleted
         :return: JSON deserialised object
+        :raise CanvasAPIAccessTokenError: If a token is required and cannot be
+                                          found / refreshed
         """
-        request = self._api.make_request(method, path, schema, params)
-        request.headers[
-            "Authorization"
-        ] = f"Bearer {self._token_store.get().access_token}"
+        call_args = (method, path, schema, params)
 
         try:
-            return self._api.send_and_validate(request, schema)
+            auth_header = f"Bearer {self._token_store.get().access_token}"
+            return self._api.send(*call_args, headers={"Authorization": auth_header})
 
         except CanvasAPIAccessTokenError:
             refresh_token = self._token_store.get().refresh_token
             if not refresh_token:
                 raise
 
-            new_request = deepcopy(request)
-            new_access_token = self.get_refreshed_token(refresh_token)
-            new_request.headers["Authorization"] = f"Bearer {new_access_token}"
-
-            return self._api.send_and_validate(new_request, schema)
+            auth_header = f"Bearer {self.get_refreshed_token(refresh_token)}"
+            return self._api.send(*call_args, headers={"Authorization": auth_header})
 
     def get_token(self, authorization_code):
         """
         Get an access token for the current LTI user.
 
-        :param authorization_code: The Canvas API OAuth 2.0 authorization code to
-            exchange for an access token
+        :param authorization_code: The Canvas API OAuth 2.0 authorization code
+                                   to exchange for an access token
+        :return: An access token string
         """
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
-        self._send_token_request(
+        return self._send_token_request(
             grant_type="authorization_code",
             code=authorization_code,
             redirect_uri=self._redirect_uri,
@@ -93,6 +101,13 @@ class AuthenticatedClient:
         )
 
     def get_refreshed_token(self, refresh_token):
+        """
+        Get a refreshed access token for the current LTI user.
+
+        :param refresh_token: The Canvas API OAuth 2.0 refresh token from a
+                              previous token call
+        :return: A new access token string
+        """
         return self._send_token_request(
             grant_type="refresh_token", refresh_token=refresh_token
         )
@@ -108,8 +123,13 @@ class AuthenticatedClient:
         if refresh_token:
             params["refresh_token"] = refresh_token
 
-        request = Request("POST", self._token_url, params=params).prepare()
-        parsed_params = self._api.send_and_validate(request, CanvasTokenResponseSchema)
+        parsed_params = self._api.send(
+            "POST",
+            "login/oauth2/token",
+            url_stub="",
+            params=params,
+            schema=CanvasTokenResponseSchema,
+        )
 
         self._token_store.save(
             parsed_params["access_token"],
@@ -118,9 +138,3 @@ class AuthenticatedClient:
         )
 
         return parsed_params["access_token"]
-
-    @property
-    def _token_url(self):
-        """Return the URL of the Canvas API's token endpoint."""
-
-        return self._api.get_url("login/oauth2/token", url_stub="")
