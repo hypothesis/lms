@@ -58,7 +58,7 @@ export default function Dialog({
   const rootEl = useRef(/** @type {HTMLDivElement|null} */ (null));
 
   useElementShouldClose(rootEl, true, () => {
-    if (typeof onCancel === 'function') {
+    if (onCancel) {
       onCancel();
     }
   });
