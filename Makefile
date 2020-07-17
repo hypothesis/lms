@@ -137,6 +137,7 @@ backend-lint: python
 frontend-lint: node_modules/.uptodate
 	@yarn checkformatting
 	@yarn lint
+	@yarn typecheck
 
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
