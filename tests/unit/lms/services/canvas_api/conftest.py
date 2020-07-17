@@ -1,6 +1,8 @@
+from unittest.mock import sentinel
+
 import pytest
 
-from lms.services.canvas_api import BasicClient, TokenStore
+from lms.services.canvas_api import AuthenticatedClient, BasicClient, TokenStore
 from tests import factories
 
 
@@ -31,6 +33,17 @@ def http_session(patch):
     session.set_response = set_response
 
     return session
+
+
+@pytest.fixture
+def authenticated_client(basic_client, token_store):
+    return AuthenticatedClient(
+        basic_client=basic_client,
+        token_store=token_store,
+        client_id=sentinel.client_id,
+        client_secret=sentinel.client_secret,
+        redirect_uri=sentinel.redirect_uri,
+    )
 
 
 @pytest.fixture
