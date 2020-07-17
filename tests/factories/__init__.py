@@ -2,6 +2,7 @@ import sys
 
 from factory.alchemy import SQLAlchemyModelFactory
 
+from tests.factories import requests_ as requests
 from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import (
     ACCESS_TOKEN,
