@@ -4,7 +4,7 @@ from lms.services import includeme
 from lms.services.application_instance_getter import (
     application_instance_getter_service_factory,
 )
-from lms.services.canvas_api import CanvasAPIClient
+from lms.services.canvas_api import canvas_api_client_factory
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
@@ -19,7 +19,7 @@ class TestIncludeme:
         "name,service_class",
         (
             ("ai_getter", application_instance_getter_service_factory),
-            ("canvas_api_client", CanvasAPIClient),
+            ("canvas_api_client", canvas_api_client_factory),
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),
             ("grading_info", GradingInfoService),
