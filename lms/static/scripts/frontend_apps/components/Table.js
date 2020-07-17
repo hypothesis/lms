@@ -40,9 +40,11 @@ function nextItem(items, currentItem, step) {
  * @typedef TableProps
  * @prop {string} accessibleLabel - An accessible label for the table.
  * @prop {TableColumn[]} columns - The columns to display in this table.
- * @prop {Item[]} items - The items to display in this table.
+ * @prop {Item[]} items -
+ *   The items to display in this table, one per row. `renderItem` defines how
+ *   information from each item is represented as a series of table cells.
  * @prop {(it: Item, selected: boolean) => any} renderItem -
- *   A function called to render each item.
+ *   A function called to render each item as the contents of a table row.
  *   The result should be a list of `<td>` elements (one per column) wrapped inside a Fragment.
  * @prop {Item|null} selectedItem - The currently selected item from `items`
  * @prop {(it: Item) => any} onSelectItem -
