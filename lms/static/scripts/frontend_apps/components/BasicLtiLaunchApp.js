@@ -22,6 +22,12 @@ import Spinner from './Spinner';
 
 /**
  * @typedef {import('./LMSGrader').User} User
+ * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
+ */
+
+/**
+ * @typedef BasicLtiLaunchAppProps
+ * @prop {ClientRpc} clientRpc
  */
 
 /**
@@ -29,8 +35,10 @@ import Spinner from './Spinner';
  * is unable to directly render the content in an iframe. This happens when
  * the content URL needs to be fetched from a remote source (eg. the LMS's
  * file storage) first, which may require authorization from the user.
+ *
+ * @param {BasicLtiLaunchAppProps} props
  */
-export default function BasicLtiLaunchApp({ rpcServer }) {
+export default function BasicLtiLaunchApp({ clientRpc }) {
   const {
     api: {
       authToken,
@@ -113,12 +121,12 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
           path: apiSync.path,
           data: apiSync.data,
         });
-        rpcServer.resolveGroupFetch(groups);
+        clientRpc.setGroups(groups);
       } catch (e) {
         handleError(e, 'error-fetch');
       }
     }
-  }, [apiSync, authToken, rpcServer]);
+  }, [apiSync, authToken, clientRpc]);
 
   /**
    * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
@@ -228,6 +236,7 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
     // Use the LMS Grader
     iFrameWrapper = (
       <LMSGrader
+        clientRpc={clientRpc}
         students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}
@@ -315,5 +324,5 @@ export default function BasicLtiLaunchApp({ rpcServer }) {
 }
 
 BasicLtiLaunchApp.propTypes = {
-  rpcServer: propTypes.object.isRequired,
+  clientRpc: propTypes.object.isRequired,
 };

@@ -1,6 +1,6 @@
 import { generateHexString } from '../random';
 
-describe('postmessage_json_rpc/client/random', () => {
+describe('postmessage_json_rpc/random', () => {
   describe('#generateHexString', () => {
     [2, 4, 8, 16].forEach(len => {
       it(`returns a ${len} digit hex string`, () => {

@@ -26,7 +26,7 @@ describe('BasicLtiLaunchApp', () => {
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <BasicLtiLaunchApp rpcServer={fakeRpcServer} {...props} />
+        <BasicLtiLaunchApp clientRpc={fakeRpcServer} {...props} />
       </Config.Provider>
     );
   };
@@ -69,7 +69,7 @@ describe('BasicLtiLaunchApp', () => {
       authorize: sinon.stub().resolves(null),
     });
     fakeRpcServer = {
-      resolveGroupFetch: sinon.stub(),
+      setGroups: sinon.stub(),
     };
 
     $imports.$mock(mockImportedComponents());
@@ -137,11 +137,11 @@ describe('BasicLtiLaunchApp', () => {
       });
     });
 
-    it('passes the groups array from api call to rpcServer.resolveGroupFetch', async () => {
+    it('passes the groups array from api call to rpcServer.setGroups', async () => {
       const groups = await fakeApiCall.resolves(['group1', 'group2']);
-      renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      renderLtiLaunchApp();
       await groups;
-      assert.calledWith(fakeRpcServer.resolveGroupFetch, ['group1', 'group2']);
+      assert.calledWith(fakeRpcServer.setGroups, ['group1', 'group2']);
     });
   });
 

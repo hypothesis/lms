@@ -10,7 +10,7 @@ class FakeWindow {
   }
 }
 
-describe('postmessage_json_rpc/client/client', () => {
+describe('postmessage_json_rpc/client', () => {
   const origin = 'https://embedder.com';
   const messageId = 42;
 
