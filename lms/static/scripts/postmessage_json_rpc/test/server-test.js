@@ -1,4 +1,4 @@
-import Server from '../server';
+import { Server } from '../server';
 
 describe('Server', () => {
   // The window origin of the server.

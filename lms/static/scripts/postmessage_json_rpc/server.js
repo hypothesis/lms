@@ -39,7 +39,7 @@
  *     const server = new Server(['https://hypothes.is']);
  *     server.register('requestConfig', requestConfig);
  */
-export default class Server {
+export class Server {
   /**
    * @param {string[]} allowedOrigins -
    *   Specifies the origins of iframes that may send requests to this server

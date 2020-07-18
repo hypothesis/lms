@@ -1,9 +1,6 @@
 import { createElement } from 'preact';
 import propTypes from 'prop-types';
-import { useEffect, useMemo, useState } from 'preact/hooks';
-
-import { call as rpcCall } from '../../postmessage_json_rpc/client';
-import { getSidebarWindow } from '../../postmessage_json_rpc/server';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
@@ -12,11 +9,14 @@ import SubmitGradeForm from './SubmitGradeForm';
  * @typedef User
  * @prop {string} displayName
  * @prop {string} userid
+ *
+ * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
  */
 
 /**
  * @typedef LMSGraderProps
  * @prop {Object} children - The <iframe> element displaying the assignment
+ * @prop {ClientRpc} clientRpc
  * @prop {string} courseName
  * @prop {string} assignmentName
  * @prop {User[]} students - List of students to grade
@@ -30,6 +30,7 @@ import SubmitGradeForm from './SubmitGradeForm';
  */
 export default function LMSGrader({
   children,
+  clientRpc,
   assignmentName,
   courseName,
   students: unorderedStudents,
@@ -62,21 +63,12 @@ export default function LMSGrader({
    *
    * @param {User|null} user - The user to focus on in the sidebar
    */
-  const changeFocusedUser = async user => {
-    const sidebar = await getSidebarWindow();
-    // Calls the client sidebar to fire the `changeFocusModeUser` action
-    // to change the focused user.
-    rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
-      {
-        // Passing `undefined` as the `username` disables focus mode in the client.
-        //
-        // TODO: The `username` property is deprecated in the client and should be
-        // changed to `userid` once the client no longer references `username`.
-        username: user ? user.userid : undefined,
-        displayName: user ? user.displayName : undefined,
-      },
-    ]);
-  };
+  const changeFocusedUser = useCallback(
+    async user => {
+      await clientRpc.setFocusedUser(user);
+    },
+    [clientRpc]
+  );
 
   useEffect(() => {
     if (students[currentStudentIndex]) {
@@ -84,7 +76,7 @@ export default function LMSGrader({
     } else {
       changeFocusedUser(null);
     }
-  }, [students, currentStudentIndex]);
+  }, [students, changeFocusedUser, currentStudentIndex]);
 
   /**
    * Shows the current student index if a user is selected, or the
@@ -148,6 +140,7 @@ export default function LMSGrader({
 }
 
 LMSGrader.propTypes = {
+  clientRpc: propTypes.object.isRequired,
   children: propTypes.node.isRequired,
   courseName: propTypes.string.isRequired,
   assignmentName: propTypes.string.isRequired,
