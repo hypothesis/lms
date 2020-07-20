@@ -6,8 +6,17 @@ import Button from './Button';
 import Dialog from './Dialog';
 
 /**
+ * @typedef URLPickerProps
+ * @prop {() => any} onCancel
+ * @prop {(url: string) => any} onSelectURL -
+ *   Callback invoked with the entered URL when the user accepts the dialog
+ */
+
+/**
  * A dialog that allows the user to enter or paste the URL of a web page or
  * PDF file to use for an assignment.
+ *
+ * @param {URLPickerProps} props
  */
 export default function URLPicker({ onCancel, onSelectURL }) {
   const input = useRef(/** @type {HTMLInputElement|null} */ (null));
@@ -49,7 +58,5 @@ export default function URLPicker({ onCancel, onSelectURL }) {
 
 URLPicker.propTypes = {
   onCancel: propTypes.func,
-
-  /** Callback invoked when the entered URL when the user accepts the dialog. */
   onSelectURL: propTypes.func,
 };

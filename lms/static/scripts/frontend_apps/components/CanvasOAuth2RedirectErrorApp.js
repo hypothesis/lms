@@ -9,8 +9,15 @@ import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
 /**
+ * @typedef CanvasOAuth2RedirectErrorAppProps
+ * @prop {Location} [location] - Test seam
+ */
+
+/**
  * Error dialog displayed when authorization of Canvas API access via OAuth
  * fails.
+ *
+ * @param {CanvasOAuth2RedirectErrorAppProps} props
  */
 export default function CanvasOAuth2RedirectErrorApp({
   location = window.location,
@@ -85,6 +92,5 @@ export default function CanvasOAuth2RedirectErrorApp({
 }
 
 CanvasOAuth2RedirectErrorApp.propTypes = {
-  // Test seam for `window.location`.
   location: propTypes.object,
 };

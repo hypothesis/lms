@@ -24,9 +24,15 @@ import ValidationMessage from './ValidationMessage';
 const GRADE_MULTIPLIER = 10;
 
 /**
+ * @typedef {import('../config').StudentInfo} StudentInfo
+ */
+
+/**
  * Custom useEffect function that handles fetching a student's
  * grade and returning the result of that grade and the loading
  * and error status of that fetch request.
+ *
+ * @param {StudentInfo|null} student
  */
 const useFetchGrade = student => {
   const {
@@ -37,8 +43,7 @@ const useFetchGrade = student => {
 
   useEffect(() => {
     let didCancel;
-    // Don't bother fetching a grade if the student object is empty
-    if (Object.entries(student).length) {
+    if (student) {
       // Fetch the grade from the service api
       // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
       const fetchData = async () => {
@@ -69,11 +74,17 @@ const useFetchGrade = student => {
 };
 
 /**
- * A form with a single input field and submit button for an instructor to
- * save a students grade.
+ * @typedef SubmitGradeFormProps
+ * @prop {StudentInfo|null} student - The student to fetch and submit grades for
  */
 
-export default function SubmitGradeForm({ disabled = false, student }) {
+/**
+ * A form with a single input field and submit button for an instructor to
+ * save a students grade.
+ *
+ * @param {SubmitGradeFormProps} props
+ */
+export default function SubmitGradeForm({ student }) {
   // State for loading the grade
   const { grade, gradeLoading } = useFetchGrade(student);
 
@@ -127,7 +138,7 @@ export default function SubmitGradeForm({ disabled = false, student }) {
       setGradeSaving(true);
       try {
         await submitGrade({
-          student,
+          student: /** @type {StudentInfo} */ (student),
           // nb. `value` will be a number if there was no validation error.
           grade: /** @type {number} */ (value) / GRADE_MULTIPLIER,
           authToken,
@@ -147,6 +158,8 @@ export default function SubmitGradeForm({ disabled = false, student }) {
     setValidationError(false);
     setGradeSaved(false);
   };
+
+  const disabled = !student;
 
   return (
     <form className="SubmitGradeForm" autoComplete="off">
@@ -175,12 +188,13 @@ export default function SubmitGradeForm({ disabled = false, student }) {
           type="input"
           // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
           defaultValue={grade}
-          key={student.LISResultSourcedId}
+          key={student ? student.LISResultSourcedId : null}
         />
         <Spinner
           className={classNames('SubmitGradeForm__fetch-spinner', {
             'is-active': gradeLoading,
-            'is-fade-away': !gradeLoading && student.LISResultSourcedId,
+            'is-fade-away':
+              !gradeLoading && student && student.LISResultSourcedId,
           })}
         />
       </span>
@@ -216,8 +230,5 @@ export default function SubmitGradeForm({ disabled = false, student }) {
 }
 
 SubmitGradeForm.propTypes = {
-  // Disables the the entire form.
-  disabled: propTypes.bool,
-  // Grade for the current student.SubmitGradeForm.propTypes
-  student: propTypes.object.isRequired,
+  student: propTypes.object,
 };

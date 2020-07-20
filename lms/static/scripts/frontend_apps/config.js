@@ -16,6 +16,8 @@ import { createContext } from 'preact';
  * @typedef StudentInfo
  * @prop {string} displayName
  * @prop {string} userid
+ * @prop {string} LISResultSourcedId - Unique outcome identifier
+ * @prop {string} LISOutcomeServiceUrl - API URL for posting outcome results
  */
 
 /**

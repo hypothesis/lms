@@ -21,7 +21,6 @@ import LMSGrader from './LMSGrader';
 import Spinner from './Spinner';
 
 /**
- * @typedef {import('./LMSGrader').User} User
  * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
  */
 
@@ -294,7 +293,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         >
           <ErrorDisplay
             message="There was a problem fetching this Hypothesis assignment"
-            error={error}
+            error={/** @type {Error} */ (error)}
           />
         </Dialog>
       )}
@@ -306,7 +305,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         >
           <ErrorDisplay
             message="There was a problem submitting this Hypothesis assignment"
-            error={error}
+            error={/** @type {Error} */ (error)}
           />
           <b>To fix this problem, try reloading the page.</b>
         </Dialog>

@@ -8,8 +8,27 @@ function emailLink({ address, subject = '', body = '' }) {
 }
 
 /**
+ * An `Error` or `Error`-like object.
+ *
+ * @typedef ErrorLike
+ * @prop {string} [message]
+ * @prop {Object} [details] - Optional JSON-serializable details of the error
+ */
+
+/**
+ * @typedef ErrorDisplayProps
+ * @prop {Object} [message] -
+ *   A short message to display explaining that a problem happened. This is
+ *   typically a general message like "There was a problem fetching this assignment".
+ * @prop {ErrorLike} error -
+ *   An `Error`-like object with specific details of the problem
+ */
+
+/**
  * Displays details of an error, such as a failed API call and provide the user
  * with information on how to get help with it.
+ *
+ * @param {ErrorDisplayProps} props
  */
 export default function ErrorDisplay({ message, error }) {
   let details = '';
@@ -95,16 +114,6 @@ export default function ErrorDisplay({ message, error }) {
 }
 
 ErrorDisplay.propTypes = {
-  /**
-   * A short message explaining that a problem happened.
-   */
   message: propTypes.oneOfType([propTypes.string, propTypes.element]),
-
-  /**
-   * An `Error`-like object with details of the problem.
-   *
-   * This is assumed to have a string `message` property and may have a
-   * JSON-serializable `details` property.
-   */
   error: propTypes.object.isRequired,
 };
