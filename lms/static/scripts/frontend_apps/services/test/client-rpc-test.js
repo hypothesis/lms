@@ -51,7 +51,9 @@ describe('ClientRpc', () => {
   it('registers "requestConfig" RPC handler that returns client config', () => {
     createClientRpc();
     assert.calledWith(fakeServerInstance.register, 'requestConfig');
-    const callback = fakeServerInstance.register.args[0][1];
+    const [, callback] = fakeServerInstance.register.args.find(
+      ([method]) => method === 'requestConfig'
+    );
     assert.equal(callback(), clientConfig);
   });
 
@@ -65,7 +67,9 @@ describe('ClientRpc', () => {
       const clientRpc = createClientRpc();
       clientRpc.setGroups(['groupA', 'groupB']);
 
-      const callback = fakeServerInstance.register.args[1][1];
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'requestGroups'
+      );
       const groups = await callback();
 
       assert.deepEqual(groups, ['groupA', 'groupB']);

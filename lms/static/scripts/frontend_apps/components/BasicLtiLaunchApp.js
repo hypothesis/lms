@@ -27,7 +27,7 @@ import Spinner from './Spinner';
 
 /**
  * @typedef BasicLtiLaunchAppProps
- * @prop {ClientRpc} clientRpc
+ * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
  */
 
 /**

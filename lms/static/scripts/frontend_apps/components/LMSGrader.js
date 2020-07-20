@@ -16,7 +16,7 @@ import SubmitGradeForm from './SubmitGradeForm';
 /**
  * @typedef LMSGraderProps
  * @prop {Object} children - The <iframe> element displaying the assignment
- * @prop {ClientRpc} clientRpc
+ * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
  * @prop {string} courseName
  * @prop {string} assignmentName
  * @prop {User[]} students - List of students to grade
