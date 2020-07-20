@@ -64,9 +64,7 @@ export default function LMSGrader({
    * @param {User|null} user - The user to focus on in the sidebar
    */
   const changeFocusedUser = useCallback(
-    async user => {
-      await clientRpc.setFocusedUser(user);
-    },
+    user => clientRpc.setFocusedUser(user),
     [clientRpc]
   );
 
