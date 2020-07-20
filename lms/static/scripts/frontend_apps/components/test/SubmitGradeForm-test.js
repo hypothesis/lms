@@ -76,8 +76,8 @@ describe('SubmitGradeForm', () => {
     );
   });
 
-  it('disables the submit button when the disable prop is true', () => {
-    const wrapper = renderForm({ disabled: true });
+  it('disables the submit button when the `student` prop is `null`', () => {
+    const wrapper = renderForm({ student: null });
     assert.isTrue(wrapper.find('button[type="submit"]').prop('disabled'));
   });
 

@@ -6,10 +6,7 @@ import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 
 /**
- * @typedef User
- * @prop {string} displayName
- * @prop {string} userid
- *
+ * @typedef {import('../config').StudentInfo} StudentInfo
  * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
  */
 
@@ -19,7 +16,7 @@ import SubmitGradeForm from './SubmitGradeForm';
  * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
  * @prop {string} courseName
  * @prop {string} assignmentName
- * @prop {User[]} students - List of students to grade
+ * @prop {StudentInfo[]} students - List of students to grade
  */
 
 /**
@@ -61,7 +58,7 @@ export default function LMSGrader({
   /**
    * Makes an RPC call to the sidebar to change to the focused user.
    *
-   * @param {User|null} user - The user to focus on in the sidebar
+   * @param {StudentInfo|null} user - The user to focus on in the sidebar
    */
   const changeFocusedUser = useCallback(
     user => clientRpc.setFocusedUser(user),
@@ -103,7 +100,7 @@ export default function LMSGrader({
    * Return the current student, or an empty object if there is none
    */
   const getCurrentStudent = () => {
-    return students[currentStudentIndex] ? students[currentStudentIndex] : {};
+    return students[currentStudentIndex] ? students[currentStudentIndex] : null;
   };
 
   return (
@@ -125,10 +122,7 @@ export default function LMSGrader({
             />
           </li>
           <li className="LMSGrader__student-grade">
-            <SubmitGradeForm
-              student={getCurrentStudent()}
-              disabled={currentStudentIndex < 0}
-            />
+            <SubmitGradeForm student={getCurrentStudent()} />
           </li>
         </ul>
       </header>

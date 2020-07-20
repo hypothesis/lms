@@ -15,6 +15,16 @@ import FileList from './FileList';
  */
 
 /**
+ * @typedef LMSFilePickerProps
+ * @prop {string} authToken - Auth token for use in calls to the backend
+ * @prop {string} authUrl - URL of the authorization endpoint
+ * @prop {string} courseId - ID of the course that the user is choosing a file for
+ * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
+ * @prop {(f: File) => any} onSelectFile -
+ *   Callback invoked with the metadata of the selected file if the user makes a selection
+ */
+
+/**
  * @typedef DialogState
  * @prop {'fetching'|'fetched'|'authorizing'|'error'} state
  * @prop {File[]|null} files - List of fetched files
@@ -34,6 +44,8 @@ const INITIAL_DIALOG_STATE = {
  *
  * The picker will attempt to list files when mounted, and will show an
  * authorization popup if necessary.
+ *
+ * @param {LMSFilePickerProps} props
  */
 export default function LMSFilePicker({
   authToken,
@@ -115,7 +127,8 @@ export default function LMSFilePicker({
     onCancel();
   };
 
-  const useSelectedFile = () => onSelectFile(selectedFile);
+  const useSelectedFile = () =>
+    onSelectFile(/** @type {File} */ (selectedFile));
 
   const title =
     dialogState.state === 'authorizing' ? 'Allow file access' : 'Select a file';
@@ -150,7 +163,7 @@ export default function LMSFilePicker({
       {dialogState.state === 'error' && (
         <ErrorDisplay
           message="There was a problem fetching files"
-          error={dialogState.error}
+          error={/** @type {Error} */ (dialogState.error)}
         />
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
@@ -180,27 +193,9 @@ export default function LMSFilePicker({
 }
 
 LMSFilePicker.propTypes = {
-  /**
-   * Auth token for use in calls to the backend.
-   */
   authToken: propTypes.string,
-
-  /**
-   * URL of the authorization endpoint.
-   */
   authUrl: propTypes.string,
-
-  /**
-   * ID of the course that the user is choosing a file for.
-   */
   courseId: propTypes.string.isRequired,
-
-  /** Callback invoked if the user cancels file selection. */
   onCancel: propTypes.func.isRequired,
-
-  /**
-   * Callback invoked with the metadata of the selected file if the user makes
-   * a selection.
-   */
   onSelectFile: propTypes.func.isRequired,
 };

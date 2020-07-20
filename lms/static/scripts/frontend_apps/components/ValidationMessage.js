@@ -4,10 +4,18 @@ import classNames from 'classnames';
 import propTypes from 'prop-types';
 
 /**
- * Shows a single validation error message that can be open or closed.
- * A user can also close the message by clicking on it.
+ * @typedef ValidationMessageProps
+ * @prop {string} message - Error message text
+ * @prop {boolean} [open] - Should this be open or closed
+ * @prop {() => any} [onClose] - Optional callback when the error message is closed
  */
 
+/**
+ * Shows a single validation error message that can be open or closed.
+ * A user can also close the message by clicking on it.
+ *
+ * @param {ValidationMessageProps} props
+ */
 export default function ValidationMessage({
   message,
   open = false,
@@ -45,10 +53,7 @@ export default function ValidationMessage({
 }
 
 ValidationMessage.propTypes = {
-  // Error message text
   message: propTypes.string.isRequired,
-  // Should this be open or closed
   open: propTypes.bool,
-  // Optional callback when the error message closes itself via onClick
   onClose: propTypes.func,
 };
