@@ -32,7 +32,7 @@ jobs:
         path: .tox
         key: ${{ runner.os }}-tox-${{ hashFiles('tox.ini') }}-${{ hashFiles('requirements*') }}-${{ hashFiles('setup.py') }}-${{ hashFiles('setup.cfg') }}
         restore-keys: |
-          .tox-
+          ${{ runner.os }}-tox-
     - name: Cache the node_modules dir
       uses: actions/cache@v2
       with:
