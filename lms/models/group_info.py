@@ -84,12 +84,6 @@ class GroupInfo(BASE):
     #: A dict of info about this group.
     _info = sa.Column("info", MutableDict.as_mutable(JSONB))
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("info", {})
-        kwargs["info"].setdefault("instructors", [])
-        kwargs["info"].setdefault("type", None)
-        super().__init__(*args, **kwargs)
-
     @property
     def _safe_info(self):
         if self._info is None:
