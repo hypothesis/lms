@@ -123,7 +123,7 @@ class TestGroupInfoUpsert:
         return {
             column: f"TEST_{column.upper()}"
             for column in GroupInfo.columns()
-            if column != "info"
+            if column != "_info"
         }
 
     @pytest.fixture(

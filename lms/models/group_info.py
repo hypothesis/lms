@@ -82,7 +82,7 @@ class GroupInfo(BASE):
     custom_canvas_course_id = sa.Column(sa.UnicodeText())
 
     #: A dict of info about this group.
-    info = sa.Column(MutableDict.as_mutable(JSONB))
+    _info = sa.Column("info", MutableDict.as_mutable(JSONB))
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("info", {})
@@ -92,10 +92,10 @@ class GroupInfo(BASE):
 
     @property
     def _safe_info(self):
-        if self.info is None:
-            self.info = {}
+        if self._info is None:
+            self._info = {}
 
-        return self.info
+        return self._info
 
     @property
     def instructors(self):
