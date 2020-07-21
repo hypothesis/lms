@@ -22,16 +22,10 @@ class TestBasicLTILaunch:
 
         self.assert_response_is_html(result)
 
-    # ---------------------------------------------------------------------- #
-    # Assertions
-
     @classmethod
     def assert_response_is_html(cls, response):
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
-
-    # ---------------------------------------------------------------------- #
-    # Helper methods
 
     @classmethod
     def lti_launch(cls, app, params, status=200):
@@ -63,8 +57,6 @@ class TestBasicLTILaunch:
         )
 
         return params
-
-    # Fixtures ------------------------------------------------------------- #
 
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session):
