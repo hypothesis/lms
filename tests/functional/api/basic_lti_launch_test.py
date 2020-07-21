@@ -12,7 +12,6 @@ from tests import factories
 
 
 class TestBasicLTILaunch:
-    @pytest.mark.usefixtures("http_intercept")
     def test_a_good_request_loads_fine(self, app, lti_params):
         response = app.post(
             "/lti_launches",
@@ -100,7 +99,7 @@ class TestBasicLTILaunch:
 
         return params
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def http_intercept(self, _http_intercept):
         """
         Monkey-patch Python's socket core module to mock all HTTP responses.
