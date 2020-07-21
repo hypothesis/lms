@@ -93,6 +93,20 @@ class GroupInfo(BASE):
 
     @property
     def instructors(self):
+        """
+        Return the list of instructors associated with this course.
+
+        Warning: if you mutate this list your changes **will not be saved**.
+        For example this change won't be saved to the DB:
+
+            group_info.instructors.append(new_instructor)
+
+        Instead you should always assign to instructors rather than mutating it
+        in place:
+
+            group_info.instructors = new_list_of_instructors
+
+        """
         return self._safe_info.get("instructors", [])
 
     @instructors.setter
