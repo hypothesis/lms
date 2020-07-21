@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import ApplicationInstance, Course, CourseGroupsExportedFromH
+from lms.models import Course, CourseGroupsExportedFromH
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -32,7 +32,6 @@ class TestCourseService:
             authority_provided_id="test_authority_provided_id",
         )
         existing_course.settings.set("canvas", "sections_enabled", False)
-        pyramid_request.db.add(existing_course)
         ai_getter.settings.return_value.set("canvas", "sections_enabled", True)
 
         svc.get_or_create("test_authority_provided_id")
@@ -91,15 +90,13 @@ class TestCourseService:
         assert svc.any_with_setting("group", "key", value) is expected
 
     @pytest.fixture
-    def add_courses_with_settings(self, db_session, pyramid_request):
+    def add_courses_with_settings(self, pyramid_request):
         def add_courses_with_settings(settings_set, consumer_key=None):
             if consumer_key is None:
                 consumer_key = pyramid_request.lti_user.oauth_consumer_key
 
             for settings in settings_set:
-                db_session.add(
-                    factories.Course(consumer_key=consumer_key, settings=settings)
-                )
+                factories.Course(consumer_key=consumer_key, settings=settings)
 
         return add_courses_with_settings
 
@@ -109,24 +106,13 @@ class TestCourseService:
 
     @pytest.fixture(autouse=True)
     def application_instance(self, pyramid_request):
-        return self._make_application_instance(
-            pyramid_request, pyramid_request.lti_user.oauth_consumer_key
+        return factories.ApplicationInstance(
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key
         )
 
     @pytest.fixture
-    def other_application_instance(self, pyramid_request):
-        return self._make_application_instance(pyramid_request, consumer_key="other")
-
-    def _make_application_instance(self, pyramid_request, consumer_key):
-        application_instance = ApplicationInstance(
-            consumer_key=consumer_key,
-            shared_secret="test_shared_secret",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-        pyramid_request.db.add(application_instance)
-        pyramid_request.db.flush()
-        return application_instance
+    def other_application_instance(self):
+        return factories.ApplicationInstance()
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")

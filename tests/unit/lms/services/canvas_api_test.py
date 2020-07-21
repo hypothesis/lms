@@ -8,10 +8,11 @@ from h_matchers import Any
 from pytest import param
 from requests import Request, RequestException, Response
 
-from lms.models import ApplicationInstance, OAuth2Token
+from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
 from lms.services.canvas_api import CanvasAPIClient, _CanvasAPIAuthenticatedClient
 from lms.validation import RequestsResponseSchema, ValidationError
+from tests import factories
 
 # pylint: disable=protected-access
 
@@ -592,16 +593,11 @@ def http_session(patch):
 
 
 @pytest.fixture(autouse=True)
-def application_instance(db_session, pyramid_request):
+def application_instance(pyramid_request):
     """Return the ApplicationInstance that the test OAuth2Token's belong to."""
-    application_instance = ApplicationInstance(
+    return factories.ApplicationInstance(
         consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-        shared_secret="test_shared_secret",
-        lms_url="test_lms_url",
-        requesters_email="test_requesters_email",
     )
-    db_session.add(application_instance)
-    return application_instance
 
 
 @pytest.fixture

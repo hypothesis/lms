@@ -18,6 +18,11 @@ class Course(BASE):
         primary_key=True,
     )
 
+    #: The ApplicationInstance that this access token belongs to.
+    application_instance = sa.orm.relationship(
+        "ApplicationInstance", back_populates="courses"
+    )
+
     #: The authority_provided_id that uniquely identifies the course that these
     #: settings belong to.
     authority_provided_id = sa.Column(sa.UnicodeText(), primary_key=True)

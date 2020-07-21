@@ -3,7 +3,8 @@ import datetime
 import pytest
 import sqlalchemy.exc
 
-from lms.models import ApplicationInstance, OAuth2Token
+from lms.models import OAuth2Token
+from tests import factories
 
 
 class TestOAuth2Token:
@@ -23,7 +24,7 @@ class TestOAuth2Token:
 
         token = db_session.query(OAuth2Token).one()
         assert token.user_id == "test_user_id"
-        assert token.consumer_key == "test_consumer_key"
+        assert token.consumer_key == application_instance.consumer_key
         assert token.consumer_key == application_instance.consumer_key
         assert token.application_instance == application_instance
         assert token.access_token == "test_access_token"
@@ -106,16 +107,9 @@ class TestOAuth2Token:
         assert isinstance(token.received_at, datetime.datetime)
 
     @pytest.fixture(autouse=True)
-    def application_instance(self, db_session):
+    def application_instance(self):
         """Return the ApplicationInstance that the test OAuth2Token's belong to."""
-        application_instance = ApplicationInstance(
-            consumer_key="test_consumer_key",
-            shared_secret="test_shared_secret",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-        db_session.add(application_instance)
-        return application_instance
+        return factories.ApplicationInstance()
 
     @pytest.fixture
     def init_kwargs(self, application_instance):
