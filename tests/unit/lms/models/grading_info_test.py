@@ -1,7 +1,8 @@
 import pytest
 import sqlalchemy.exc
 
-from lms.models import ApplicationInstance, GradingInfo
+from lms.models import GradingInfo
+from tests import factories
 
 
 class TestGradingInfo:
@@ -58,16 +59,9 @@ class TestGradingInfo:
             db_session.flush()
 
     @pytest.fixture
-    def application_instance(self, db_session):
+    def application_instance(self):
         """Return the ApplicationInstance that the GradingInfos belong to."""
-        application_instance = ApplicationInstance(
-            consumer_key="test_consumer_key",
-            shared_secret="test_shared_secret",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-        db_session.add(application_instance)
-        return application_instance
+        return factories.ApplicationInstance()
 
     @pytest.fixture
     def grading_info(self, grading_info_params):

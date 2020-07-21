@@ -2,17 +2,19 @@ from unittest import mock
 
 import pytest
 
-from lms.models import ApplicationInstance
 from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from lms.services import ConsumerKeyError
 from lms.services.application_instance_getter import (
     application_instance_getter_service_factory,
 )
+from tests import factories
 
 
 class TestApplicationInstanceGetter:
-    def test_developer_key_returns_the_developer_key(self, ai_getter):
-        assert ai_getter.developer_key() == "TEST_DEVELOPER_KEY"
+    def test_developer_key_returns_the_developer_key(
+        self, ai_getter, test_application_instance
+    ):
+        assert ai_getter.developer_key() == test_application_instance.developer_key
 
     def test_developer_key_returns_None_if_ApplicationInstance_has_no_developer_key(
         self, ai_getter, test_application_instance
@@ -48,8 +50,8 @@ class TestApplicationInstanceGetter:
         with pytest.raises(ConsumerKeyError):
             ai_getter.developer_secret()
 
-    def test_lms_url_returns_the_lms_url(self, ai_getter):
-        assert ai_getter.lms_url() == "TEST_LMS_URL"
+    def test_lms_url_returns_the_lms_url(self, ai_getter, test_application_instance):
+        assert ai_getter.lms_url() == test_application_instance.lms_url
 
     @pytest.mark.usefixtures("unknown_consumer_key")
     def test_lms_url_raises_if_consumer_key_unknown(self, ai_getter):
@@ -90,8 +92,10 @@ class TestApplicationInstanceGetter:
     def test_settings(self, ai_getter, test_application_instance):
         assert ai_getter.settings() == test_application_instance.settings
 
-    def test_shared_secret_returns_the_shared_secret(self, ai_getter):
-        assert ai_getter.shared_secret() == "TEST_SHARED_SECRET"
+    def test_shared_secret_returns_the_shared_secret(
+        self, ai_getter, test_application_instance
+    ):
+        assert ai_getter.shared_secret() == test_application_instance.shared_secret
 
     @pytest.mark.usefixtures("unknown_consumer_key")
     def test_shared_secret_raises_if_consumer_key_unknown(self, ai_getter):
@@ -106,46 +110,16 @@ class TestApplicationInstanceGetter:
 
     @pytest.fixture(autouse=True)
     def test_application_instance(self, pyramid_request):
-        application_instance = ApplicationInstance(
+        return factories.ApplicationInstance(
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-            developer_key="TEST_DEVELOPER_KEY",
-            lms_url="TEST_LMS_URL",
-            shared_secret="TEST_SHARED_SECRET",
-            requesters_email="TEST_EMAIL",
         )
-        pyramid_request.db.add(application_instance)
-        return application_instance
 
     @pytest.fixture(autouse=True)
-    def application_instances(self, pyramid_request):
+    def application_instances(self):
         """Add some "noise" application instances."""
         # Add some "noise" application instances to the DB for every test, to
         # make the tests more realistic.
-        application_instances = [
-            ApplicationInstance(
-                consumer_key="NOISE_CONSUMER_KEY_1",
-                developer_key="NOISE_DEVELOPER_KEY_1",
-                lms_url="NOISE_LMS_URL_1",
-                shared_secret="NOISE_SHARED_SECRET_1",
-                requesters_email="NOISE_EMAIL_1",
-            ),
-            ApplicationInstance(
-                consumer_key="NOISE_CONSUMER_KEY_2",
-                developer_key="NOISE_DEVELOPER_KEY_2",
-                lms_url="NOISE_LMS_URL_2",
-                shared_secret="NOISE_SHARED_SECRET_2",
-                requesters_email="NOISE_EMAIL_2",
-            ),
-            ApplicationInstance(
-                consumer_key="NOISE_CONSUMER_KEY_3",
-                developer_key="NOISE_DEVELOPER_KEY_3",
-                lms_url="NOISE_LMS_URL_3",
-                shared_secret="NOISE_SHARED_SECRET_3",
-                requesters_email="NOISE_EMAIL_3",
-            ),
-        ]
-        pyramid_request.db.add_all(application_instances)
-        return application_instances
+        return factories.ApplicationInstance.create_batch(size=3)
 
     @pytest.fixture
     def unknown_consumer_key(self, pyramid_request):
