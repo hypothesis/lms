@@ -2,7 +2,7 @@ import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
-from tests.factories._attributes import OAUTH_CONSUMER_KEY
+from tests.factories.attributes import OAUTH_CONSUMER_KEY
 
 Course = factory.make_factory(  # pylint:disable=invalid-name
     models.Course,
