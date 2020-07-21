@@ -34,8 +34,7 @@ def _make_response(json_data=None, raw=None, status_code=200, headers=None):
 
 
 class TestDataCalls:
-    @pytest.mark.usefixtures("access_token")
-    def test_authenticated_users_sections(self, api_client, http_session):
+    def test_authenticated_users_sections(self, access_token, api_client, http_session):
         sections = [{"id": 1, "name": "name_1"}, {"id": 2, "name": "name_2"}]
         http_session.send.return_value = _make_response({"sections": sections})
 
@@ -48,13 +47,12 @@ class TestDataCalls:
                 url=Any.url.with_path("api/v1/courses/COURSE_ID").with_query(
                     {"include[]": "sections"}
                 ),
-                headers={"Authorization": "Bearer existing_access_token"},
+                headers={"Authorization": f"Bearer {access_token.access_token}"},
             ),
             timeout=Any(),
         )
 
-    @pytest.mark.usefixtures("access_token")
-    def test_course_sections(self, api_client, http_session):
+    def test_course_sections(self, access_token, api_client, http_session):
         sections = [
             {"id": 101, "name": "name_1"},
             {"id": 102, "name": "name_2"},
@@ -71,7 +69,7 @@ class TestDataCalls:
             Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/sections"),
-                headers={"Authorization": "Bearer existing_access_token"},
+                headers={"Authorization": f"Bearer {access_token.access_token}"},
             ),
             timeout=Any(),
         )
@@ -85,8 +83,7 @@ class TestDataCalls:
         with pytest.raises(CanvasAPIError):
             api_client.course_sections("dummy")
 
-    @pytest.mark.usefixtures("access_token")
-    def test_users_sections(self, api_client, http_session):
+    def test_users_sections(self, access_token, api_client, http_session):
         http_session.send.return_value = _make_response(
             {
                 "enrollments": [
@@ -105,7 +102,7 @@ class TestDataCalls:
                 url=Any.url.with_path(
                     "api/v1/courses/COURSE_ID/users/USER_ID"
                 ).with_query({"include[]": "enrollments"}),
-                headers={"Authorization": "Bearer existing_access_token"},
+                headers={"Authorization": f"Bearer {access_token.access_token}"},
             ),
             timeout=Any(),
         )
@@ -185,8 +182,7 @@ class TestDataCalls:
             sections = getattr(api_client, method)(*args)
             assert sections == expected
 
-    @pytest.mark.usefixtures("access_token")
-    def test_list_files(self, api_client, http_session):
+    def test_list_files(self, access_token, api_client, http_session):
         files = [
             {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
             {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
@@ -207,13 +203,12 @@ class TestDataCalls:
                         "per_page": str(api_client.PAGINATION_PER_PAGE),
                     }
                 ),
-                headers={"Authorization": "Bearer existing_access_token"},
+                headers={"Authorization": f"Bearer {access_token.access_token}"},
             ),
             timeout=Any(),
         )
 
-    @pytest.mark.usefixtures("access_token")
-    def test_public_url(self, api_client, http_session):
+    def test_public_url(self, access_token, api_client, http_session):
         http_session.send.return_value = _make_response(
             {"public_url": "public_url_value"}
         )
@@ -225,7 +220,7 @@ class TestDataCalls:
             Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/files/FILE_ID/public_url"),
-                headers={"Authorization": "Bearer existing_access_token"},
+                headers={"Authorization": f"Bearer {access_token.access_token}"},
             ),
             timeout=Any(),
         )
@@ -293,6 +288,9 @@ class TestTokenCalls:
     def test_get_token(
         self, base_client, http_session, db_session, pyramid_request, json_data
     ):
+        factories.ApplicationInstance(
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key
+        )
         http_session.send.return_value = _make_response(json_data)
 
         base_client.get_token("authorization_code")
@@ -565,10 +563,14 @@ class TestMakeAuthenticatedRequest:
             )
 
     @pytest.fixture
-    def access_token_no_refresh(self, db_session, access_token_fields):
-        access_token = OAuth2Token(**dict(access_token_fields, refresh_token=None))
-        db_session.add(access_token)
-        return access_token
+    def access_token_no_refresh(self, pyramid_request):
+        return factories.OAuth2Token(
+            user_id=pyramid_request.lti_user.user_id,
+            # The consumer_key argument to pass through to the new
+            # OAuth2Token's related ApplicationInstance.
+            application_instance__consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            refresh_token=None,
+        )
 
     @pytest.fixture
     def base_client(self, base_client):
@@ -592,30 +594,12 @@ def http_session(patch):
     return session()
 
 
-@pytest.fixture(autouse=True)
-def application_instance(pyramid_request):
-    """Return the ApplicationInstance that the test OAuth2Token's belong to."""
-    return factories.ApplicationInstance(
-        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+@pytest.fixture
+def access_token(pyramid_request):
+    return factories.OAuth2Token(
+        user_id=pyramid_request.lti_user.user_id,
+        application_instance__consumer_key=pyramid_request.lti_user.oauth_consumer_key,
     )
-
-
-@pytest.fixture
-def access_token_fields(pyramid_request):
-    return {
-        "user_id": pyramid_request.lti_user.user_id,
-        "consumer_key": pyramid_request.lti_user.oauth_consumer_key,
-        "access_token": "existing_access_token",
-        "refresh_token": "existing_refresh_token",
-        "expires_in": 9999,
-    }
-
-
-@pytest.fixture
-def access_token(db_session, access_token_fields):
-    access_token = OAuth2Token(**access_token_fields)
-    db_session.add(access_token)
-    return access_token
 
 
 @pytest.fixture

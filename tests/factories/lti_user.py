@@ -1,7 +1,7 @@
 from factory import Faker, make_factory
 
 from lms import models
-from tests.factories._attributes import OAUTH_CONSUMER_KEY, USER_ID
+from tests.factories.attributes import OAUTH_CONSUMER_KEY, USER_ID
 
 LTIUser = make_factory(  # pylint:disable=invalid-name
     models.LTIUser,

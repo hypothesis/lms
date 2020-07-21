@@ -1,7 +1,7 @@
 import factory
 
 from lms import models
-from tests.factories._attributes import H_DISPLAY_NAME, H_USERNAME
+from tests.factories.attributes import H_DISPLAY_NAME, H_USERNAME
 
 HUser = factory.make_factory(  # pylint:disable=invalid-name
     models.HUser,

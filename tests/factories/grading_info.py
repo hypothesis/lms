@@ -2,7 +2,7 @@ from factory import Faker, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
-from tests.factories._attributes import (
+from tests.factories.attributes import (
     H_DISPLAY_NAME,
     H_USERNAME,
     OAUTH_CONSUMER_KEY,
