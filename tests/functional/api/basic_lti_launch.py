@@ -8,10 +8,9 @@ from h_matchers import Any
 from httpretty import httpretty
 
 from lms.models import ApplicationInstance, ModuleItemConfiguration
-from tests.functional.base_class import TestBaseClass
 
 
-class TestBasicLTILaunch(TestBaseClass):
+class TestBasicLTILaunch:
     SHARED_SECRET = "TEST_SECRET"
     OAUTH_CONSUMER_KEY = "Hypothesis1b40eafba184a131307049e01e9c147d"
     OAUTH_NONCE = "38d6db30e395417659d068164ca95169"
@@ -99,7 +98,41 @@ class TestBasicLTILaunch(TestBaseClass):
 
     @pytest.fixture
     def lti_params(self):
-        return self.json_fixture("lti_params/good_params.json")
+        return {
+            "context_id": "con-182",
+            "context_label": "SI182",
+            "context_title": "Design of Personal Environments",
+            "context_type": "CourseSection",
+            "custom_context_memberships_url": "https://apps.imsglobal.org/lti/cert/tp/tp_membership.php/context/con-182/membership?b64=a2puNjk3b3E5YTQ3Z28wZDRnbW5xYzZyYjU%3D",
+            "custom_context_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/lis/CourseSection/con-182/bindings/ims/cert/custom?b64=a2puNjk3b3E5YTQ3Z28wZDRnbW5xYzZyYjU%3D",
+            "custom_link_setting_url": "$LtiLink.custom.url",
+            "custom_system_setting_url": "https://apps.imsglobal.org/lti/cert/tp/tp_settings.php/ToolProxy/Hypothesis1b40eafba184a131307049e01e9c147d/custom?b64=a2puNjk3b3E5YTQ3Z28wZDRnbW5xYzZyYjU%3D",
+            "custom_tc_profile_url": "https://apps.imsglobal.org/lti/cert/tp/tp_tcprofile.php?b64=a2puNjk3b3E5YTQ3Z28wZDRnbW5xYzZyYjU%3D",
+            "launch_presentation_document_target": "iframe",
+            "launch_presentation_locale": "en_US",
+            "launch_presentation_return_url": "https://apps.imsglobal.org/lti/cert/tp/tp_return.php/basic-lti-launch-request",
+            "lis_course_section_sourcedid": "id-182",
+            "lis_person_contact_email_primary": "jane@school.edu",
+            "lis_person_name_family": "Lastname",
+            "lis_person_name_full": "Jane Q. Lastname",
+            "lis_person_name_given": "Jane",
+            "lis_person_sourcedid": "school.edu:jane",
+            "lti_message_type": "basic-lti-launch-request",
+            "lti_version": "LTI-1p0",
+            "oauth_callback": "about:blank",
+            "oauth_signature_method": "HMAC-SHA1",
+            "oauth_version": "1.0",
+            "resource_link_id": "rli-1234",
+            "resource_link_title": "Link 1234",
+            "resourcelinkid": "rli-1234",
+            "roles": "Instructor",
+            "tool_consumer_info_product_family_code": "imsglc",
+            "tool_consumer_info_version": "1.1",
+            "tool_consumer_instance_description": "IMS Testing Description",
+            "tool_consumer_instance_guid": "IMS Testing",
+            "tool_consumer_instance_name": "IMS Testing Instance",
+            "user_id": "123456",
+        }
 
     @pytest.fixture
     def http_intercept(self, _http_intercept):
