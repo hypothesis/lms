@@ -11,60 +11,28 @@ from lms.models import ApplicationInstance, ModuleItemConfiguration
 
 
 class TestBasicLTILaunch:
-    SHARED_SECRET = "TEST_SECRET"
-    OAUTH_CONSUMER_KEY = "Hypothesis1b40eafba184a131307049e01e9c147d"
-    OAUTH_NONCE = "38d6db30e395417659d068164ca95169"
-    OAUTH_CLIENT = oauthlib.oauth1.Client(OAUTH_CONSUMER_KEY, SHARED_SECRET)
-
     @pytest.mark.usefixtures("http_intercept")
     def test_a_good_request_loads_fine(self, app, lti_params):
-        result = self.lti_launch(app, lti_params, status=200)
-
-        self.assert_response_is_html(result)
-
-    @classmethod
-    def assert_response_is_html(cls, response):
-        assert response.headers["Content-Type"] == Any.string.matching("^text/html")
-        assert response.html
-
-    @classmethod
-    def lti_launch(cls, app, params, status=200):
-        url = "/lti_launches"
-
-        params = cls.oauth_sign_params(url, params)
-
-        return app.post(
-            url,
-            params=params,
+        response = app.post(
+            "/lti_launches",
+            params=lti_params,
             headers={
                 "Accept": "text/html",
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            status=status,
+            status=200,
         )
 
-    @classmethod
-    def oauth_sign_params(cls, url, params):
-        params.update(
-            {
-                "oauth_consumer_key": cls.OAUTH_CONSUMER_KEY,
-                "oauth_nonce": cls.OAUTH_NONCE,
-                "oauth_timestamp": str(int(time.time())),
-            }
-        )
-        params["oauth_signature"] = cls.OAUTH_CLIENT.get_oauth_signature(
-            oauthlib.common.Request(f"http://localhost{url}", "POST", body=params)
-        )
-
-        return params
+        assert response.headers["Content-Type"] == Any.string.matching("^text/html")
+        assert response.html
 
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session):
         # Load app so we create the instance after the DB has been truncated
 
         application_instance = ApplicationInstance(
-            consumer_key=self.OAUTH_CONSUMER_KEY,
-            shared_secret=self.SHARED_SECRET,
+            consumer_key="Hypothesis1b40eafba184a131307049e01e9c147d",
+            shared_secret="TEST_SECRET",
             lms_url="test_lms_url",
             requesters_email="test_requesters_email",
         )
@@ -89,8 +57,14 @@ class TestBasicLTILaunch:
         db_session.commit()
 
     @pytest.fixture
-    def lti_params(self):
-        return {
+    def oauth_client(self, application_instance):
+        return oauthlib.oauth1.Client(
+            application_instance.consumer_key, application_instance.shared_secret
+        )
+
+    @pytest.fixture
+    def lti_params(self, application_instance, oauth_client):
+        params = {
             "context_id": "con-182",
             "context_label": "SI182",
             "context_title": "Design of Personal Environments",
@@ -112,7 +86,10 @@ class TestBasicLTILaunch:
             "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
             "oauth_callback": "about:blank",
+            "oauth_consumer_key": application_instance.consumer_key,
+            "oauth_nonce": "38d6db30e395417659d068164ca95169",
             "oauth_signature_method": "HMAC-SHA1",
+            "oauth_timestamp": str(int(time.time())),
             "oauth_version": "1.0",
             "resource_link_id": "rli-1234",
             "resource_link_title": "Link 1234",
@@ -125,6 +102,14 @@ class TestBasicLTILaunch:
             "tool_consumer_instance_name": "IMS Testing Instance",
             "user_id": "123456",
         }
+
+        params["oauth_signature"] = oauth_client.get_oauth_signature(
+            oauthlib.common.Request(
+                f"http://localhost/lti_launches", "POST", body=params
+            )
+        )
+
+        return params
 
     @pytest.fixture
     def http_intercept(self, _http_intercept):
