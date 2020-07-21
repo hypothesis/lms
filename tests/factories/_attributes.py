@@ -3,6 +3,7 @@
 from factory import Faker
 
 OAUTH_CONSUMER_KEY = Faker("hexify", text="Hypothesis" + "^" * 32)
+SHARED_SECRET = Faker("hexify", text="^" * 64)
 
 USER_ID = Faker("hexify", text="^" * 40)
 

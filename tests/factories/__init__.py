@@ -2,6 +2,7 @@ import sys
 
 from factory.alchemy import SQLAlchemyModelFactory
 
+from tests.factories.application_instance import ApplicationInstance
 from tests.factories.course import Course
 from tests.factories.grading_info import GradingInfo
 from tests.factories.h_group import HGroup
@@ -9,7 +10,7 @@ from tests.factories.h_user import HUser
 from tests.factories.lti_user import LTIUser
 
 
-def set_sqlalchemy_session(session):
+def set_sqlalchemy_session(session, persistence=None):
     # Set the Meta.sqlalchemy_session option on all our SQLAlchemy test factory
     # classes. We can't do it in the normal Factory Boy way:
     #
@@ -26,6 +27,9 @@ def set_sqlalchemy_session(session):
     for factory_class in _sqlalchemy_factory_classes():
         # pylint:disable=protected-access
         factory_class._meta.sqlalchemy_session = session
+
+        if persistence:
+            factory_class._meta.sqlalchemy_session_persistence = persistence
 
 
 def clear_sqlalchemy_session():

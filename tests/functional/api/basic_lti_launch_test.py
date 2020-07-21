@@ -7,7 +7,8 @@ import pytest
 from h_matchers import Any
 from httpretty import httpretty
 
-from lms.models import ApplicationInstance, ModuleItemConfiguration
+from lms.models import ModuleItemConfiguration
+from tests import factories
 
 
 class TestBasicLTILaunch:
@@ -27,20 +28,8 @@ class TestBasicLTILaunch:
         assert response.html
 
     @pytest.fixture(autouse=True)
-    def application_instance(self, db_session):
-        # Load app so we create the instance after the DB has been truncated
-
-        application_instance = ApplicationInstance(
-            consumer_key="Hypothesis1b40eafba184a131307049e01e9c147d",
-            shared_secret="TEST_SECRET",
-            lms_url="test_lms_url",
-            requesters_email="test_requesters_email",
-        )
-
-        db_session.add(application_instance)
-        db_session.commit()
-
-        return application_instance
+    def application_instance(self):
+        return factories.ApplicationInstance()
 
     @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
     def module_item_configuration(self, request, db_session):

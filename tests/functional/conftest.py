@@ -5,6 +5,7 @@ from webtest import TestApp
 
 from lms import db
 from lms.app import create_app
+from tests import factories
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
@@ -35,13 +36,17 @@ def app(pyramid_app, db_engine):
     return TestApp(pyramid_app)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def db_session(db_engine):
     """Get a standalone database session for preparing database state."""
 
     conn = db_engine.connect()
     session = SESSION(bind=conn)
 
-    yield session
+    factories.set_sqlalchemy_session(session, persistence="commit")
 
-    session.close()
+    try:
+        yield session
+    finally:
+        factories.clear_sqlalchemy_session()
+        session.close()
