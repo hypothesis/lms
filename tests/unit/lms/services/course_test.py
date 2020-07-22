@@ -25,10 +25,10 @@ class TestCourseService:
         )
 
     def test_it_does_nothing_if_theres_already_a_matching_row(
-        self, ai_getter, pyramid_request, svc
+        self, ai_getter, application_instance, pyramid_request, svc
     ):
         existing_course = factories.Course(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            application_instance=application_instance,
             authority_provided_id="test_authority_provided_id",
             settings={},
         )
@@ -73,31 +73,26 @@ class TestCourseService:
         ),
     )
     def test_any_with_setting(
-        self,
-        svc,
-        settings_set,
-        value,
-        expected,
-        add_courses_with_settings,
-        other_application_instance,
+        self, svc, settings_set, value, expected, add_courses_with_settings,
     ):
         add_courses_with_settings(settings_set)
         # Add a matching course with a different consumer key
         add_courses_with_settings(
             [{"group": {"key": value}}],
-            consumer_key=other_application_instance.consumer_key,
+            application_instance=factories.ApplicationInstance(),
         )
 
         assert svc.any_with_setting("group", "key", value) is expected
 
     @pytest.fixture
-    def add_courses_with_settings(self, pyramid_request):
-        def add_courses_with_settings(settings_set, consumer_key=None):
-            if consumer_key is None:
-                consumer_key = pyramid_request.lti_user.oauth_consumer_key
-
+    def add_courses_with_settings(self, application_instance):
+        def add_courses_with_settings(
+            settings_set, application_instance=application_instance
+        ):
             for settings in settings_set:
-                factories.Course(consumer_key=consumer_key, settings=settings)
+                factories.Course(
+                    application_instance=application_instance, settings=settings
+                )
 
         return add_courses_with_settings
 
@@ -110,10 +105,6 @@ class TestCourseService:
         return factories.ApplicationInstance(
             consumer_key=pyramid_request.lti_user.oauth_consumer_key
         )
-
-    @pytest.fixture
-    def other_application_instance(self):
-        return factories.ApplicationInstance(consumer_key="other_consumer_key")
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")

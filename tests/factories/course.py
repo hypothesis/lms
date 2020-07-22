@@ -2,11 +2,11 @@ import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
-from tests.factories.attributes import OAUTH_CONSUMER_KEY
+from tests.factories import ApplicationInstance
 
 Course = factory.make_factory(  # pylint:disable=invalid-name
     models.Course,
     FACTORY_CLASS=SQLAlchemyModelFactory,
-    consumer_key=OAUTH_CONSUMER_KEY,
+    application_instance=factory.SubFactory(ApplicationInstance),
     authority_provided_id=factory.Faker("hexify", text="^" * 40),
 )
