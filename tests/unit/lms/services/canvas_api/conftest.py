@@ -26,7 +26,7 @@ def http_session(patch):
     session = session()
 
     def set_response(json_data=None, raw=None, status_code=200):
-        session.send.return_value = factories.requests.OKResponse(
+        session.send.return_value = factories.requests.Response(
             json_data=json_data, raw=raw, status_code=status_code
         )
 
