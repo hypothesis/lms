@@ -30,6 +30,7 @@ class TestCourseService:
         existing_course = factories.Course(
             consumer_key=pyramid_request.lti_user.oauth_consumer_key,
             authority_provided_id="test_authority_provided_id",
+            settings={},
         )
         existing_course.settings.set("canvas", "sections_enabled", False)
         ai_getter.settings.return_value.set("canvas", "sections_enabled", True)
