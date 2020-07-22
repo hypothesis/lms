@@ -12,7 +12,8 @@ import SvgIcon from './SvgIcon';
  * @typedef StudentSelectorProps
  * @prop {(index: number) => any} onSelectStudent -
  *   Callback invoked when the selected student changes
- * @prop {number} selectedStudentIndex - Index of selected student in `students`
+ * @prop {number} selectedStudentIndex -
+ *   Index of selected student in `students` or -1 if no student is selected
  * @prop {Student[]} students - Ordered list of students to display in the drop-down
  */
 

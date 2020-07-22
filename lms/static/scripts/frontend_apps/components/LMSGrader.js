@@ -66,7 +66,7 @@ export default function LMSGrader({
   );
 
   useEffect(() => {
-    if (students[currentStudentIndex]) {
+    if (currentStudentIndex >= 0) {
       changeFocusedUser(students[currentStudentIndex]);
     } else {
       changeFocusedUser(null);
@@ -100,7 +100,7 @@ export default function LMSGrader({
    * Return the current student, or an empty object if there is none
    */
   const getCurrentStudent = () => {
-    return students[currentStudentIndex] ? students[currentStudentIndex] : null;
+    return currentStudentIndex >= 0 ? students[currentStudentIndex] : null;
   };
 
   return (
