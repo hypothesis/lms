@@ -3,6 +3,7 @@ import { createElement } from 'preact';
 
 /**
  * @typedef ButtonProps
+ * @prop {Object} [buttonRef]
  * @prop {string} [className]
  * @prop {boolean} [disabled]
  * @prop {string} label
@@ -18,6 +19,7 @@ export default function Button({
   disabled = false,
   label,
   onClick,
+  buttonRef,
   type = 'button',
 }) {
   return (
@@ -26,6 +28,7 @@ export default function Button({
       disabled={disabled}
       onClick={onClick}
       type={type}
+      ref={buttonRef}
     >
       {label}
     </button>

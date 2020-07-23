@@ -53,8 +53,9 @@ export default function Dialog({
   title,
   buttons,
 }) {
-  const dialogTitleId = useUniqueId('dialog');
-  const rootEl = useRef(/** @type {HTMLDivElement|null} */ (null));
+  const dialogTitleId = useUniqueId('dialog-title');
+  const dialogDescriptionId = useUniqueId('dialog-description');
+  const rootEl = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useElementShouldClose(rootEl, true, () => {
     if (onCancel) {
@@ -77,19 +78,21 @@ export default function Dialog({
   }, []);
 
   return (
-    <div
-      role={role}
-      aria-labelledby={dialogTitleId}
-      aria-modal="true"
-      ref={rootEl}
-      tabIndex={-1}
-    >
+    <div>
       <div
         className="Dialog__background"
         style={{ zIndex: zIndexScale.dialogBackground }}
       />
       <div className="Dialog__container" style={{ zIndex: zIndexScale.dialog }}>
-        <div className={classNames('Dialog__content', contentClass)}>
+        <div
+          tabIndex={-1}
+          ref={rootEl}
+          role={role}
+          aria-labelledby={dialogTitleId}
+          aria-describedby={dialogDescriptionId}
+          aria-modal={true}
+          className={classNames('Dialog__content', contentClass)}
+        >
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
             <span className="u-stretch" />
@@ -103,7 +106,7 @@ export default function Dialog({
               </button>
             )}
           </h1>
-          {children}
+          <div id={dialogDescriptionId}>{children}</div>
           <div className="u-stretch" />
           <div className="Dialog__actions">
             {onCancel && (

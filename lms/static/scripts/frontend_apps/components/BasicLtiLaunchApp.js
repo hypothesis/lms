@@ -258,14 +258,20 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     </span>
   );
 
+  const focusedDialogButton = useRef(
+    /** @type {HTMLButtonElement | null} */ (null)
+  );
+
   const errorDialog = (
     <Fragment>
       {errorState === 'error-authorizing' && (
         <Dialog
+          initialFocus={focusedDialogButton}
           title="Authorize Hypothesis"
           role="alertdialog"
           buttons={[
             <Button
+              buttonRef={focusedDialogButton}
               onClick={authorizeAndFetchUrl}
               className="BasicLtiLaunchApp__button"
               label="Authorize"
@@ -278,11 +284,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       )}
       {errorState === 'error-fetch' && (
         <Dialog
+          initialFocus={focusedDialogButton}
           title="Something went wrong"
           contentClass="BasicLtiLaunchApp__dialog"
           role="alertdialog"
           buttons={[
             <Button
+              buttonRef={focusedDialogButton}
               onClick={authorizeAndFetchUrl}
               className="BasicLtiLaunchApp__button"
               label="Try again"
