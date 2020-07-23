@@ -69,34 +69,19 @@ class TestApplicationInstanceGetter:
         assert not ai_getter.provisioning_enabled()
 
     @pytest.mark.parametrize(
-        "params",
-        [
-            dict(),
-            dict(feature_flag=False, expected_result=False),
-            dict(developer_key=None, expected_result=False),
-        ],
+        "developer_key,expected_result", [("test_developer_key", True), (None, False)]
     )
     def test_canvas_sections_supported(
-        self, pyramid_request, test_application_instance, params,
+        self, pyramid_request, test_application_instance, developer_key, expected_result
     ):
-        default_params = dict(
-            feature_flag=True, developer_key="test_developer_key", expected_result=True,
-        )
-        params = dict(default_params, **params)
-
-        if params["feature_flag"]:
-            enable_section_groups_feature_flag(pyramid_request)
-
         ai_getter = application_instance_getter_service_factory(
             mock.sentinel.context, pyramid_request
         )
-        test_application_instance.developer_key = params["developer_key"]
+        test_application_instance.developer_key = developer_key
 
-        assert ai_getter.canvas_sections_supported() == params["expected_result"]
+        assert ai_getter.canvas_sections_supported() == expected_result
 
-    @pytest.mark.usefixtures(
-        "unknown_consumer_key", "section_groups_feature_flag_enabled"
-    )
+    @pytest.mark.usefixtures("unknown_consumer_key")
     def test_canvas_sections_supported_returns_False_if_consumer_key_unknown(
         self, ai_getter
     ):
@@ -168,17 +153,3 @@ class TestApplicationInstanceGetter:
             oauth_consumer_key="UNKNOWN_CONSUMER_KEY"
         )
         return pyramid_request
-
-
-def enable_section_groups_feature_flag(pyramid_request):
-    """
-    Enable the "section_groups" feature flag.
-
-    Also disables all other feature flags.
-    """
-    pyramid_request.feature.side_effect = lambda flag: flag == "section_groups"
-
-
-@pytest.fixture
-def section_groups_feature_flag_enabled(pyramid_request):
-    enable_section_groups_feature_flag(pyramid_request)

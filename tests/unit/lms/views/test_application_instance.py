@@ -51,20 +51,14 @@ class TestCreateApplicationInstance:
         assert application_instance.developer_secret is None
 
     @pytest.mark.parametrize(
-        "developer_key,feature_flag,canvas_sections_enabled",
-        [
-            ("test_developer_key", True, True),
-            ("test_developer_key", False, False),
-            ("", True, False),
-            ("", False, False),
-        ],
+        "developer_key,canvas_sections_enabled",
+        [("test_developer_key", True), ("", False)],
     )
     def test_it_sets_canvas_sections_enabled(
-        self, pyramid_request, developer_key, feature_flag, canvas_sections_enabled
+        self, pyramid_request, developer_key, canvas_sections_enabled
     ):
         pyramid_request.params["developer_key"] = developer_key
         pyramid_request.params["developer_secret"] = "test_developer_secret"
-        pyramid_request.feature.return_value = feature_flag
 
         create_application_instance(pyramid_request)
 
