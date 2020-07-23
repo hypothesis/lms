@@ -6,7 +6,9 @@ from lms.models import ApplicationInstance
 @view_config(
     route_name="welcome",
     request_method="POST",
-    renderer="lms:templates/application_instances/create_application_instance.html.jinja2",
+    renderer=(
+        "lms:templates/application_instances/create_application_instance.html.jinja2"
+    ),
 )
 def create_application_instance(request):
     """Create application instance in the databse and respond with key and secret."""
@@ -28,13 +30,7 @@ def create_application_instance(request):
         developer_key,
         developer_secret,
         request.registry.settings["aes_secret"],
-        settings={
-            "canvas": {
-                "sections_enabled": bool(
-                    developer_key and request.feature("section_groups")
-                )
-            }
-        },
+        settings={"canvas": {"sections_enabled": bool(developer_key)}},
     )
     request.db.add(instance)
 
