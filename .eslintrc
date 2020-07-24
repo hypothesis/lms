@@ -8,6 +8,9 @@
     "prefer-const": ["error", { "destructuring": "all" }],
 
     // Handled by Prettier.
-    "comma-dangle": "off"
+    "comma-dangle": "off",
+
+    // Prop validation is performed by TypeScript + JSDoc.
+    "react/prop-types": "off"
   }
 }
