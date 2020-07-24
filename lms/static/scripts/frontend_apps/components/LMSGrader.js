@@ -1,5 +1,4 @@
 import { createElement } from 'preact';
-import propTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
@@ -130,11 +129,3 @@ export default function LMSGrader({
     </div>
   );
 }
-
-LMSGrader.propTypes = {
-  clientRpc: propTypes.object.isRequired,
-  children: propTypes.node.isRequired,
-  courseName: propTypes.string.isRequired,
-  assignmentName: propTypes.string.isRequired,
-  students: propTypes.array.isRequired,
-};

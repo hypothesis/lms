@@ -1,6 +1,5 @@
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
-import propTypes from 'prop-types';
 
 import Button from './Button';
 import Dialog from './Dialog';
@@ -55,8 +54,3 @@ export default function URLPicker({ onCancel, onSelectURL }) {
     </Dialog>
   );
 }
-
-URLPicker.propTypes = {
-  onCancel: propTypes.func,
-  onSelectURL: propTypes.func,
-};

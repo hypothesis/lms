@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import { Fragment, createElement } from 'preact';
-import propTypes from 'prop-types';
 
 import {
   useCallback,
@@ -321,7 +320,3 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     </span>
   );
 }
-
-BasicLtiLaunchApp.propTypes = {
-  clientRpc: propTypes.object.isRequired,
-};

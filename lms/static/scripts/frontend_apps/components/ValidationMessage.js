@@ -1,7 +1,6 @@
 import { createElement } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import classNames from 'classnames';
-import propTypes from 'prop-types';
 
 /**
  * @typedef ValidationMessageProps
@@ -51,9 +50,3 @@ export default function ValidationMessage({
     />
   );
 }
-
-ValidationMessage.propTypes = {
-  message: propTypes.string.isRequired,
-  open: propTypes.bool,
-  onClose: propTypes.func,
-};

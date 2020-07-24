@@ -1,6 +1,5 @@
 import { createElement } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import propTypes from 'prop-types';
 
 import { Config } from '../config';
 import {
@@ -227,8 +226,3 @@ export default function FilePickerApp({
     </main>
   );
 }
-
-FilePickerApp.propTypes = {
-  defaultActiveDialog: propTypes.oneOf(['url', 'lms']),
-  onSubmit: propTypes.func,
-};

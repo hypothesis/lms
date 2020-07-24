@@ -1,6 +1,5 @@
 import { Fragment, createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import propTypes from 'prop-types';
 
 import { ApiError, listFiles } from '../utils/api';
 
@@ -191,11 +190,3 @@ export default function LMSFilePicker({
     </Dialog>
   );
 }
-
-LMSFilePicker.propTypes = {
-  authToken: propTypes.string,
-  authUrl: propTypes.string,
-  courseId: propTypes.string.isRequired,
-  onCancel: propTypes.func.isRequired,
-  onSelectFile: propTypes.func.isRequired,
-};
