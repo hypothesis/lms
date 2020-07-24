@@ -4,9 +4,12 @@
 function isComponent(value) {
   return (
     typeof value === 'function' &&
-    // eslint-disable-next-line
-    value.hasOwnProperty('propTypes') &&
-    value.name.match(/^[A-Z]/)
+    value.name.match(/^[A-Z]/) &&
+    // A crude test to check that the function returns a JSX expression.
+    //
+    // This won't work if the component is an arrow function, or if `createElement`
+    // is imported under a different name.
+    value.toString().match(/\breturn\b.*\bcreateElement\b/)
   );
 }
 
