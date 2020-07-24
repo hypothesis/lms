@@ -1,6 +1,5 @@
 import { createElement } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
-import propTypes from 'prop-types';
 import classNames from 'classnames';
 
 import Button from './Button';
@@ -121,15 +120,3 @@ export default function Dialog({
     </div>
   );
 }
-
-Dialog.propTypes = {
-  children: propTypes.any,
-  initialFocus: propTypes.object,
-  buttons: propTypes.arrayOf(
-    propTypes.oneOfType([propTypes.instanceOf(Button), propTypes.element])
-  ), // e.g. <button>
-  contentClass: propTypes.string,
-  role: propTypes.oneOf(['alertdialog', 'dialog']),
-  title: propTypes.string,
-  onCancel: propTypes.func,
-};

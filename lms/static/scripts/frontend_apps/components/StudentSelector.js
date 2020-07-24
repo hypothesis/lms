@@ -1,5 +1,4 @@
 import { createElement } from 'preact';
-import propTypes from 'prop-types';
 
 import SvgIcon from './SvgIcon';
 
@@ -128,9 +127,3 @@ export default function StudentSelector({
     </div>
   );
 }
-
-StudentSelector.propTypes = {
-  onSelectStudent: propTypes.func.isRequired,
-  selectedStudentIndex: propTypes.number.isRequired,
-  students: propTypes.array.isRequired,
-};

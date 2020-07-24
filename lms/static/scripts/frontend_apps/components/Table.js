@@ -1,7 +1,6 @@
 import classnames from 'classnames';
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
-import propTypes from 'prop-types';
 
 /**
  * Return the next item to select when advancing the selection by `step` items
@@ -145,18 +144,3 @@ export default function Table({
     </div>
   );
 }
-
-Table.propTypes = {
-  accessibleLabel: propTypes.string.isRequired,
-  columns: propTypes.arrayOf(
-    propTypes.shape({
-      label: propTypes.string,
-      className: propTypes.string,
-    })
-  ).isRequired,
-  items: propTypes.arrayOf(propTypes.any).isRequired,
-  renderItem: propTypes.func.isRequired,
-  selectedItem: propTypes.any,
-  onSelectItem: propTypes.func,
-  onUseItem: propTypes.func,
-};

@@ -1,5 +1,4 @@
 import classNames from 'classnames';
-import propTypes from 'prop-types';
 import { createElement } from 'preact';
 
 /**
@@ -32,11 +31,3 @@ export default function Button({
     </button>
   );
 }
-
-Button.propTypes = {
-  className: propTypes.string,
-  disabled: propTypes.bool,
-  label: propTypes.string,
-  onClick: propTypes.func,
-  type: propTypes.string,
-};

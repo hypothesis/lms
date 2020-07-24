@@ -1,6 +1,5 @@
 import classnames from 'classnames';
 import { Fragment, createElement } from 'preact';
-import propTypes from 'prop-types';
 
 import Spinner from './Spinner';
 import Table from './Table';
@@ -78,11 +77,3 @@ export default function FileList({
     </div>
   );
 }
-
-FileList.propTypes = {
-  files: propTypes.arrayOf(propTypes.object),
-  isLoading: propTypes.bool,
-  selectedFile: propTypes.object,
-  onSelectFile: propTypes.func,
-  onUseFile: propTypes.func,
-};

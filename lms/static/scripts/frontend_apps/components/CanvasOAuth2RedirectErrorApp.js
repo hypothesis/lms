@@ -1,6 +1,5 @@
 import { Fragment, createElement } from 'preact';
 import { useContext } from 'preact/hooks';
-import propTypes from 'prop-types';
 
 import { Config } from '../config';
 
@@ -90,7 +89,3 @@ export default function CanvasOAuth2RedirectErrorApp({
     </Dialog>
   );
 }
-
-CanvasOAuth2RedirectErrorApp.propTypes = {
-  location: propTypes.object,
-};

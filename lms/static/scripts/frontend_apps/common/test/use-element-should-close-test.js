@@ -2,7 +2,6 @@ import { mount } from 'enzyme';
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
 import { act } from 'preact/test-utils';
-import propTypes from 'prop-types';
 
 import useElementShouldClose from '../use-element-should-close';
 
@@ -27,10 +26,6 @@ describe('useElementShouldClose', () => {
     );
   }
 
-  FakeComponent.propTypes = {
-    isOpen: propTypes.bool,
-  };
-
   // Tests useElementShouldClose on a custom component directly
   function FakeCompoundComponent({ isOpen = true }) {
     function FakeCustomComponent() {
@@ -44,10 +39,6 @@ describe('useElementShouldClose', () => {
     useElementShouldClose(myRef, isOpen, handleClose);
     return <FakeCustomComponent ref={myRef} />;
   }
-
-  FakeCompoundComponent.propTypes = {
-    isOpen: propTypes.bool,
-  };
 
   function createComponent(props) {
     return mount(<FakeComponent isOpen={true} {...props} />);

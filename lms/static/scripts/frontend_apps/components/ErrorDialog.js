@@ -1,5 +1,4 @@
 import { createElement } from 'preact';
-import propTypes from 'prop-types';
 
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
@@ -28,11 +27,3 @@ export default function ErrorDialog({ onCancel, title, error }) {
     </Dialog>
   );
 }
-
-ErrorDialog.propTypes = {
-  onCancel: propTypes.func,
-  title: propTypes.string.isRequired,
-  error: propTypes.shape({
-    message: propTypes.string.isRequired,
-  }),
-};

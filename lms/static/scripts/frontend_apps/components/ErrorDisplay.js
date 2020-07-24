@@ -1,4 +1,3 @@
-import propTypes from 'prop-types';
 import { Fragment, createElement } from 'preact';
 
 function emailLink({ address, subject = '', body = '' }) {
@@ -112,8 +111,3 @@ export default function ErrorDisplay({ message, error }) {
     </div>
   );
 }
-
-ErrorDisplay.propTypes = {
-  message: propTypes.oneOfType([propTypes.string, propTypes.element]),
-  error: propTypes.object.isRequired,
-};
