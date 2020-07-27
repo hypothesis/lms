@@ -37,7 +37,7 @@
     "classnames": "^2.2.6",
     "commander": "^6.0.0",
     "eslint-plugin-mocha": "^7.0.1",
-    "eslint-plugin-react": "^7.20.3",
+    "eslint-plugin-react": "^7.20.4",
     "eslint-plugin-react-hooks": "^4.0.8",
     "exorcist": "^1.0.1",
     "focus-visible": "^5.1.0",
