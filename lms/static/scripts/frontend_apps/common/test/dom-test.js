@@ -1,7 +1,7 @@
 import { listen } from '../dom';
 
 describe('common/dom', () => {
-  const createElement = () => ({
+  const createListenerElement = () => ({
     addEventListener: sinon.stub(),
     removeEventListener: sinon.stub(),
   });
@@ -9,7 +9,7 @@ describe('common/dom', () => {
   describe('listen', () => {
     [true, false].forEach(useCapture => {
       it('adds listeners for specified events', () => {
-        const element = createElement();
+        const element = createListenerElement();
         const handler = sinon.stub();
 
         listen(element, ['click', 'mousedown'], handler, { useCapture });
@@ -31,7 +31,7 @@ describe('common/dom', () => {
 
     [true, false].forEach(useCapture => {
       it('removes listeners when returned function is invoked', () => {
-        const element = createElement();
+        const element = createListenerElement();
         const handler = sinon.stub();
 
         const removeListeners = listen(
