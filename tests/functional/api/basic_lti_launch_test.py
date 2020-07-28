@@ -27,7 +27,7 @@ class TestBasicLTILaunch:
         assert response.html
 
     @pytest.fixture(autouse=True)
-    def application_instance(self):
+    def application_instance(self, db_session):  # pylint:disable=unused-argument
         return factories.ApplicationInstance()
 
     @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
