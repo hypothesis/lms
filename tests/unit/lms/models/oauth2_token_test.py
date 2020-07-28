@@ -25,7 +25,6 @@ class TestOAuth2Token:
         token = db_session.query(OAuth2Token).one()
         assert token.user_id == "test_user_id"
         assert token.consumer_key == application_instance.consumer_key
-        assert token.consumer_key == application_instance.consumer_key
         assert token.application_instance == application_instance
         assert token.access_token == "test_access_token"
         assert token.refresh_token == "test_refresh_token"

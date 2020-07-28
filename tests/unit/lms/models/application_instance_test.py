@@ -21,8 +21,9 @@ class TestApplicationInstance:
 
         assert application_instance.provisioning is True
 
-    def test_provisioning_can_be_disabled(self, application_instance):
+    def test_provisioning_can_be_disabled(self, application_instance, db_session):
         application_instance.provisioning = False
+        db_session.flush()
 
         assert not application_instance.provisioning
 
