@@ -112,7 +112,7 @@ class TestCourseService:
 
     @pytest.fixture
     def other_application_instance(self):
-        return factories.ApplicationInstance()
+        return factories.ApplicationInstance(consumer_key="other_consumer_key")
 
 
 pytestmark = pytest.mark.usefixtures("ai_getter")
