@@ -36,7 +36,7 @@ def app(pyramid_app, db_engine):
     return TestApp(pyramid_app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def db_session(db_engine):
     """Get a standalone database session for preparing database state."""
 
