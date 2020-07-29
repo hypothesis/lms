@@ -1,4 +1,8 @@
 /**
+ * @typedef {import('../api-types').File} File
+ */
+
+/**
  * Error returned when an API call fails with a 4xx or 5xx response and
  * JSON body.
  */
@@ -69,6 +73,13 @@ async function apiCall({ path, authToken, data }) {
   return resultJson;
 }
 
+/**
+ * List files in the LMS's file storage.
+ *
+ * @param {string} authToken
+ * @param {string} courseId
+ * @return {Promise<File[]>}
+ */
 async function listFiles(authToken, courseId) {
   return apiCall({
     authToken,

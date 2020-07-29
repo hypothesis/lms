@@ -5,9 +5,7 @@ import Spinner from './Spinner';
 import Table from './Table';
 
 /**
- * @typedef File
- * @prop {string} display_name - The filename
- * @prop {string} updated_at - An ISO date or date + time string
+ * @typedef {import('../api-types').File} File
  */
 
 /**
