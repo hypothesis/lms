@@ -48,6 +48,12 @@ disable=
 
     too-many-arguments,
 
+    # not-callable is mis-firing on all pytest.mark.parametrize usages, so
+    # disable it for now. This can be re-enabled once a new pytest version
+    # including https://github.com/pytest-dev/pytest/pull/7565 has been
+    # released.
+    not-callable,
+
 # Just disable PyLint's name style checking for the tests, because we
 # frequently use lots of argument names that don't conform.
 # For example we frequently create pytest fixtures that aren't named in
