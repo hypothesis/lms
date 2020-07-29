@@ -1,0 +1,7 @@
+httpretty
+pytest
+factory-boy
+h-matchers
+webtest
+behave
+-r requirements.txt

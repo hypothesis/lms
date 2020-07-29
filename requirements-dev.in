@@ -1,6 +1,6 @@
--r requirements.txt
--e .
-
 factory-boy
 pyramid_ipython
 supervisor
+-e file:.
+-r requirements.txt
+
