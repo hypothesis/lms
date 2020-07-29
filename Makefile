@@ -27,7 +27,7 @@ help:
 .PHONY: services
 services: args?=up -d
 services: python
-	@tox -qe docker-compose -- $(args)
+	@tox -qe dockercompose -- $(args)
 
 .PHONY: db
 db: args?=upgrade head
@@ -55,7 +55,7 @@ shell: python
 
 .PHONY: sql
 sql: python
-	@tox -qe docker-compose -- exec postgres psql --pset expanded=auto -U postgres
+	@tox -qe dockercompose -- exec postgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
 lint: backend-lint frontend-lint
@@ -87,11 +87,11 @@ functests-only: python
 
 .PHONY: pip-compile
 pip-compile: python
-	@tox -qe pip-compile
+	@tox -qe pipcompile
 
 .PHONY: upgrade-package
 upgrade-package: python
-	@tox -qe pip-compile -- --upgrade-package $(name)
+	@tox -qe pipcompile -- --upgrade-package $(name)
 
 .PHONY: docker
 docker:
@@ -128,6 +128,7 @@ clean:
 	@find . -type d -name "__pycache__" -delete
 	@rm -f node_modules/.uptodate
 	@rm -rf build
+	@tox -qe tests --run-command 'coverage erase'
 
 .PHONY: backend-lint
 backend-lint: python
