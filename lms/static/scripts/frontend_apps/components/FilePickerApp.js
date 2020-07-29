@@ -18,6 +18,8 @@ import Spinner from './Spinner';
 import URLPicker from './URLPicker';
 
 /**
+ * @typedef {import('../api-types').File} File
+ *
  * @typedef FilePickerAppProps
  * @prop {'lms'|'url'|null} [defaultActiveDialog] -
  *   The dialog that should be shown when the app is first opened.
@@ -52,7 +54,7 @@ export default function FilePickerApp({
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
-  const [lmsFile, setLmsFile] = useState(null);
+  const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
