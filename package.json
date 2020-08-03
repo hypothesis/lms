@@ -33,7 +33,7 @@
     "autoprefixer": "^9.8.5",
     "babel-plugin-transform-async-to-promises": "^0.8.15",
     "babelify": "^10.0.0",
-    "browserify": "^16.5.1",
+    "browserify": "^16.5.2",
     "classnames": "^2.2.6",
     "commander": "^6.0.0",
     "eslint-plugin-mocha": "^7.0.1",
