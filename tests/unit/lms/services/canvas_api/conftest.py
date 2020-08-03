@@ -52,16 +52,12 @@ def lti_user():
 
 
 @pytest.fixture
-def application_instance(db_session):
-    application_instance = factories.ApplicationInstance()
-    db_session.add(application_instance)
-    return application_instance
+def application_instance():
+    return factories.ApplicationInstance()
 
 
 @pytest.fixture
-def oauth_token(db_session, lti_user, application_instance):
-    oauth_token = factories.OAuth2Token(
-        user_id=lti_user.user_id, consumer_key=application_instance.consumer_key
+def oauth_token(lti_user, application_instance):
+    return factories.OAuth2Token(
+        user_id=lti_user.user_id, application_instance=application_instance
     )
-    db_session.add(oauth_token)
-    return oauth_token
