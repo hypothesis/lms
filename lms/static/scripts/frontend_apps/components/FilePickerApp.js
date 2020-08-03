@@ -48,6 +48,7 @@ export default function FilePickerApp({
       },
     },
     canvas,
+    blackboard,
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
@@ -144,8 +145,21 @@ export default function FilePickerApp({
     case 'lms':
       dialog = (
         <LMSFilePicker
+          lms='Canvas'
           authToken={authToken}
           authUrl={canvas.authUrl}
+          courseId={courseId}
+          onCancel={cancelDialog}
+          onSelectFile={selectLMSFile}
+        />
+      );
+      break;
+    case 'blackboard':
+      dialog = (
+        <LMSFilePicker
+          lms='Blackboard'
+          authToken={authToken}
+          authUrl={blackboard.authUrl}
           courseId={courseId}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
@@ -200,6 +214,11 @@ export default function FilePickerApp({
               onClick={() => setActiveDialog('lms')}
             />
           )}
+          <Button
+            className="FilePickerApp__source-button"
+            label={`Select PDF from Blackboard`}
+            onClick={() => setActiveDialog('blackboard')}
+          />
           {googlePicker && (
             <Button
               className="FilePickerApp__source-button"

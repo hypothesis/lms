@@ -319,6 +319,9 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 # authorize us to request a new Canvas access token.
                 "authUrl": self._request.route_url("canvas_api.authorize"),
             },
+            "blackboard": {
+                "authUrl": self._request.route_url("blackboard_api.authorize"),
+            },
             # Some debug information, currently used in the Gherkin tests.
             "debug": {"tags": []},
             # Tell the JavaScript code whether we're in "dev" mode.

@@ -63,6 +63,7 @@ def configure(settings):
         # like this:
         #     python3 -c 'import secrets; print(secrets.token_hex())'
         "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET"),
+        "blackboard_client_secret": sg.get("BLACKBOARD_CLIENT_SECRET"),
     }
 
     env_settings["dev"] = asbool(env_settings["dev"])
