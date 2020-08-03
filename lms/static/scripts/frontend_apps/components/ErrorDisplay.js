@@ -7,6 +7,13 @@ function emailLink({ address, subject = '', body = '' }) {
 }
 
 /**
+ * @param {string} str
+ */
+function toSentence(str) {
+  return str.match(/[.!?]$/) ? str : str + '.';
+}
+
+/**
  * An `Error` or `Error`-like object.
  *
  * @typedef ErrorLike
@@ -16,7 +23,7 @@ function emailLink({ address, subject = '', body = '' }) {
 
 /**
  * @typedef ErrorDisplayProps
- * @prop {Object} [message] -
+ * @prop {string|null} [message] -
  *   A short message to display explaining that a problem happened. This is
  *   typically a general message like "There was a problem fetching this assignment".
  * @prop {ErrorLike} error -
@@ -69,10 +76,10 @@ export default function ErrorDisplay({ message, error }) {
     <div className="ErrorDisplay">
       {message && (
         <p>
-          {message}
+          {!error.message && toSentence(message)}
           {error.message && (
             <Fragment>
-              : <i>{error.message}</i>
+              {message}: <i>{toSentence(error.message)}</i>
             </Fragment>
           )}
         </p>

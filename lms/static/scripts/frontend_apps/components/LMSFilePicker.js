@@ -1,4 +1,4 @@
-import { Fragment, createElement } from 'preact';
+import { createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { ApiError, listFiles } from '../utils/api';
@@ -167,7 +167,7 @@ export default function LMSFilePicker({
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
         <ErrorDisplay
-          message={<Fragment>{`Failed to authorize with Canvas`}</Fragment>}
+          message={'Failed to authorize with Canvas'}
           error={new Error('')}
         />
       )}

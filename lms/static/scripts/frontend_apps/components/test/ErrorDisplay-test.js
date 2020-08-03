@@ -117,6 +117,34 @@ describe('ErrorDisplay', () => {
     assert.called(scrollIntoView);
   });
 
+  [
+    {
+      message: 'Not a sentence',
+      output: 'Not a sentence.',
+    },
+    {
+      message: 'A sentence',
+      output: 'A sentence.',
+    },
+    {
+      message: 'Oh no',
+      error: 'Tech details',
+      output: 'Oh no: Tech details.',
+    },
+    {
+      message: 'Oh no',
+      error: 'Tech details.',
+      output: 'Oh no: Tech details.',
+    },
+  ].forEach(({ message, error, output }, index) => {
+    it(`formats errors as sentences (${index})`, () => {
+      const wrapper = mount(
+        <ErrorDisplay message={message} error={{ message: error }} />
+      );
+      assert.equal(wrapper.find('p').first().text(), output);
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
