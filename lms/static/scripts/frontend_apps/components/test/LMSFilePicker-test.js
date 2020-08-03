@@ -6,6 +6,7 @@ import { ApiError } from '../../utils/api';
 
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import ErrorDisplay from '../ErrorDisplay';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('LMSFilePicker', () => {
   const FakeButton = () => null;
@@ -44,6 +45,7 @@ describe('LMSFilePicker', () => {
 
     fakeListFiles = sinon.stub().resolves([]);
 
+    $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
@@ -112,11 +114,12 @@ describe('LMSFilePicker', () => {
 
     assert.isTrue(wrapper.exists('FakeButton[label="Try again"]'));
 
-    const errorDetails = wrapper.find(ErrorDisplay);
-    assert.isTrue(
-      errorDetails.text().includes('Failed to authorize with Canvas')
+    const errorDetails = wrapper.find('ErrorDisplay');
+    assert.equal(
+      errorDetails.prop('message'),
+      'Failed to authorize with Canvas'
     );
-    assert.equal(errorDetails.props().error.message, '');
+    assert.equal(errorDetails.prop('error').message, '');
   });
 
   [
