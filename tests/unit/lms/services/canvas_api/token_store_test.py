@@ -2,33 +2,23 @@ from datetime import datetime
 
 import pytest
 from h_matchers import Any
+from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 from lms.services.canvas_api import TokenStore
+from tests import factories
 
 
 @pytest.mark.usefixtures("application_instance")
 class TestTokenStore:
-    @pytest.mark.parametrize("delete_token", (False, True))
-    def test_save(
-        self,
-        token_store,
-        db_session,
-        application_instance,
-        lti_user,
-        delete_token,
-        oauth_token,
-    ):
-        if delete_token:
-            db_session.expunge(oauth_token)
-
+    @pytest.mark.usefixtures("oauth_token_in_db_or_not")
+    def test_save(self, token_store, db_session, application_instance, lti_user):
         token_store.save(
             access_token="access_token", refresh_token="refresh_token", expires_in=1234
         )
 
         oauth2_token = db_session.query(OAuth2Token).one()
-
         assert oauth2_token == Any.object(OAuth2Token).with_attrs(
             {
                 "consumer_key": application_instance.consumer_key,
@@ -60,3 +50,23 @@ class TestTokenStore:
 
         with pytest.raises(CanvasAPIAccessTokenError):
             store.get()
+
+    @pytest.fixture(
+        params=(param(True, id="token in db"), param(False, id="token not in db"))
+    )
+    def oauth_token_in_db_or_not(
+        self, request, db_session, lti_user, application_instance
+    ):
+        """Get an OAuthToken which either is, or isn't in the DB."""
+        oauth_token = factories.OAuth2Token.build(
+            user_id=lti_user.user_id,
+            consumer_key=application_instance.consumer_key,
+            # Don't link to an application instance directly, or factoryboy
+            # will add this token whether we like it or not
+            application_instance=None,
+        )
+
+        if request.param:
+            db_session.add(oauth_token)
+
+        return oauth_token
