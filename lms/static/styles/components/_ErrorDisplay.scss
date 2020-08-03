@@ -9,7 +9,6 @@
   overflow-y: auto;
   padding-right: 5px;
   margin-bottom: 10px;
-  max-width: 100%;
 
   &__details {
     padding: 4px; // prevents focus ring from getting cut off
@@ -27,8 +26,17 @@
     white-space: pre-wrap;
     /* Prevent very long single words from breaking out of the box */
     overflow-wrap: break-word;
-    max-width: 100%;
     padding: 10px;
     margin-bottom: 0;
+
+    // When the `ErrorDisplay` is embedded in a container (eg. a dialog) whose
+    // size depends on the preferred width of its children, we want to avoid the
+    // container changing size when the `ErrorDisplay` is opened or closed.
+    //
+    // Therefore we override the instrinsic width of the content with a small
+    // value using `width` and set `min-width` to make the `ErrorDisplay` still
+    // fill the final width of the container.
+    width: 200px;
+    min-width: 100%;
   }
 }
