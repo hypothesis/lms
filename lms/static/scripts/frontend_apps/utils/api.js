@@ -1,4 +1,6 @@
 /**
+ * @typedef {import('../api-types').Book} Book
+ * @typedef {import('../api-types').Chapter} Chapter
  * @typedef {import('../api-types').File} File
  */
 
@@ -63,7 +65,7 @@ export class ApiError extends Error {
  *   @param {string} options.authToken
  *   @param {Object} [options.data] - JSON-serializable body of the request
  */
-async function apiCall({ path, authToken, data }) {
+export async function apiCall({ path, authToken, data }) {
   let body;
 
   /** @type {Record<string,string>} */
@@ -90,6 +92,66 @@ async function apiCall({ path, authToken, data }) {
   return resultJson;
 }
 
-// Separate export from declaration to work around
-// https://github.com/robertknight/babel-plugin-mockable-imports/issues/9
-export { apiCall };
+/**
+ * Return the numeric range `[min, max)`
+ *
+ * @param {number} min
+ * @param {number} max
+ */
+function range(min, max) {
+  return Array.from({ length: max - min }, (_, i) => min + i);
+}
+
+// Dummy book and chapter data for testing the book selection UI.
+const bookList = [
+  {
+    id: 'gutenberg:967',
+    title: 'Nicholas Nickleby',
+    cover_image:
+      'https://upload.wikimedia.org/wikipedia/commons/8/87/Nickleby_serialcover.jpg',
+  },
+];
+
+/** @type {Object.<string,Chapter[]>} */
+const chapterData = {
+  'gutenberg:967': range(1, 20).map(i => ({
+    cfi: `/6/${i}`,
+    title: `Chapter ${i}`,
+    page: `${1 + i * 10}`,
+  })),
+};
+
+/** @param {number} ms */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Fetch a list of available ebooks to use in assignments.
+ *
+ * @param {string} authToken
+ * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
+ * @return {Promise<Book[]>}
+ */
+// eslint-disable-next-line no-unused-vars
+export async function fetchBooks(authToken, fetchDelay = 500) {
+  await delay(fetchDelay);
+  return bookList;
+}
+
+/**
+ * Fetch a list of chapters that can be used as the target location for an
+ * ebook assignment.
+ *
+ * @param {string} authToken
+ * @param {string} bookId
+ * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
+ * @return {Promise<Chapter[]>}
+ */
+export async function fetchChapters(authToken, bookId, fetchDelay = 500) {
+  await delay(fetchDelay);
+  if (!chapterData[bookId]) {
+    throw new ApiError(404, { message: 'Book not found' });
+  }
+  return chapterData[bookId];
+}

@@ -1,5 +1,7 @@
 /**
  * @typedef {import('../api-types').File} File
+ * @typedef {import('../api-types').Book} Book
+ * @typedef {import('../api-types').Chapter} Chapter
  */
 
 import { stringify } from 'querystring';
@@ -63,3 +65,4 @@ export function contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi) {
     cfi,
   });
 }
+

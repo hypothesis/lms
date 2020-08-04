@@ -17,10 +17,15 @@ import ErrorDialog from './ErrorDialog';
 import LMSFilePicker from './LMSFilePicker';
 import Spinner from './Spinner';
 import URLPicker from './URLPicker';
+import BookPicker from './BookPicker';
 
 /**
  * @typedef {import('../api-types').File} File
- * @typedef {'lms'|'url'|null} DialogType
+ * @typedef {'lms'|'url'|'vitalsource'|null} DialogType
+ *
+ * @typedef VitalsourceBook
+ * @prop {import('../api-types').Book} book
+ * @prop {import('../api-types').Chapter} chapter
  *
  * @typedef FilePickerAppProps
  * @prop {DialogType} [defaultActiveDialog] -
@@ -58,11 +63,9 @@ export default function FilePickerApp({
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
 
-  // Whether the user chose a book from VitalSource. This is currently a
-  // boolean because there is no choice about which book is used. In future this
-  // will contain the selected book and chapter.
-  const [vitalSourceBook, setVitalSourceBook] = useState(false);
-
+  const [vitalSourceBook, setVitalSourceBook] = useState(
+    /** @type {VitalsourceBook|null} */ (null)
+  );
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
@@ -147,10 +150,17 @@ export default function FilePickerApp({
     }
   };
 
-  const selectVitalSourceBook = () => {
-    setVitalSourceBook(true);
+  /**
+   * @param {import('../api-types').Book} book
+   * @param {import('../api-types').Chapter} chapter
+   */
+  const selectVitalSourceBook = (book, chapter) => {
+    setActiveDialog(null);
+    setVitalSourceBook({ book, chapter });
     submit(true);
   };
+
+  const showVitalSourcePicker = () => setActiveDialog('vitalsource');
 
   // Submit the form after a selection is made via one of the available
   // methods.
@@ -178,6 +188,15 @@ export default function FilePickerApp({
         />
       );
       break;
+    case 'vitalsource':
+      dialog = (
+        <BookPicker
+          authToken={authToken}
+          onCancel={cancelDialog}
+          onSelectBook={selectVitalSourceBook}
+        />
+      );
+      break;
     default:
       dialog = null;
   }
@@ -188,12 +207,14 @@ export default function FilePickerApp({
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
   } else if (vitalSourceBook) {
-    // Chosen from `https://api.vitalsource.com/v4/products` response.
-    const bookId = 'BOOKSHELF-TUTORIAL';
     // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
     // response.
     const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
-    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi);
+    contentItem = contentItemForVitalSourceBook(
+      ltiLaunchUrl,
+      vitalSourceBook.book.id,
+      cfi
+    );
   }
   contentItem = JSON.stringify(contentItem);
 
@@ -244,7 +265,7 @@ export default function FilePickerApp({
             <Button
               className="FilePickerApp__source-button"
               label="Select book from VitalSource"
-              onClick={selectVitalSourceBook}
+              onClick={showVitalSourcePicker}
             />
           )}
         </div>

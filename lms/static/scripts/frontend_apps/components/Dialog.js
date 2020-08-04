@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 import { useElementShouldClose } from '@hypothesis/frontend-shared';
 import { createElement, Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
+||||||| parent of a0a9c11b (Import book selection UI from VitalSource prototype)
+import { createElement } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
+=======
+import { Fragment, createElement } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
+>>>>>>> a0a9c11b (Import book selection UI from VitalSource prototype)
 import classNames from 'classnames';
 
 import Button from './Button';
@@ -24,6 +32,12 @@ import { useUniqueId } from '../utils/hooks';
  *   A callback to invoke when the user cancels the dialog. If provided, a
  *   "Cancel" button will be displayed.
  * @prop {string} [cancelLabel] - Label for the cancel button
+ * @prop {(() => any)|null} [onBack] -
+ *   Callback to go to the previous step in a multi-step dialog. If provided a
+ *   "Back" button will be displayed.
+ * @prop {string} [minWidth] - CSS length that sets the minimum width of the dialog
+ * @prop {string} [minHeight] - CSS length that sets the minimum height of the dialog
+ * @prop {boolean} [stretchContent]
  */
 
 /**
@@ -54,11 +68,15 @@ export default function Dialog({
   children,
   contentClass,
   initialFocus,
+  onBack,
   onCancel,
   cancelLabel = 'Cancel',
   role = 'dialog',
   title,
   buttons,
+  minWidth,
+  minHeight,
+  stretchContent = false,
 }) {
   const dialogTitleId = useUniqueId('dialog-title');
   const dialogDescriptionId = useUniqueId('dialog-description');
@@ -99,6 +117,14 @@ export default function Dialog({
     }
   }, [dialogDescriptionId]);
 
+  const contentStyle = /** @type {Object.<string,string>} */ ({});
+  if (minWidth) {
+    contentStyle.minWidth = minWidth;
+  }
+  if (minHeight) {
+    contentStyle.minHeight = minHeight;
+  }
+
   return (
     <Fragment>
       <div
@@ -113,6 +139,7 @@ export default function Dialog({
           aria-labelledby={dialogTitleId}
           aria-modal={true}
           className={classNames('Dialog__content', contentClass)}
+          style={contentStyle}
         >
           <h1 className="Dialog__title" id={dialogTitleId}>
             {title}
@@ -128,8 +155,14 @@ export default function Dialog({
             )}
           </h1>
           {children}
-          <div className="u-stretch" />
+          {!stretchContent && <div className="u-stretch" />}
           <div className="Dialog__actions">
+            {onBack && (
+              <Fragment>
+                <Button onClick={onBack} label="← Back" />
+                <div className="u-stretch" />
+              </Fragment>
+            )}
             {onCancel && (
               <Button
                 className="Button--cancel"

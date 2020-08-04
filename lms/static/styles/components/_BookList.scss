@@ -1,0 +1,22 @@
+.BookList {
+  display: flex;
+  flex-direction: row;
+}
+
+.BookList__cover {
+  width: 160px;
+  height: auto;
+}
+
+.BookList__cover-container {
+  margin-left: 5px;
+
+  // Align top of cover image with top edge of table.
+  margin-top: 10px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background-color: #eee;
+}

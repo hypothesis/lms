@@ -2,6 +2,8 @@ import classnames from 'classnames';
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
 
+import Spinner from './Spinner';
+
 /**
  * Return the next item to select when advancing the selection by `step` items
  * forwards (if positive) or backwards (if negative).
@@ -31,7 +33,7 @@ function nextItem(items, currentItem, step) {
 /**
  * @typedef TableColumn
  * @prop {string} label - Header label for the column
- * @prop {string} className - Additional classes for the column's `<th>` element
+ * @prop {string} [className] - Additional classes for the column's `<th>` element
  */
 
 /**
@@ -39,6 +41,7 @@ function nextItem(items, currentItem, step) {
  * @typedef TableProps
  * @prop {string} accessibleLabel - An accessible label for the table
  * @prop {TableColumn[]} columns - The columns to display in this table
+ * @prop {boolean} [contentLoading] - Whether to show a loading spinner in place of the content
  * @prop {Item[]} items -
  *   The items to display in this table, one per row. `renderItem` defines how
  *   information from each item is represented as a series of table cells.
@@ -62,6 +65,7 @@ function nextItem(items, currentItem, step) {
 export default function Table({
   accessibleLabel,
   columns,
+  contentLoading = false,
   items,
   onSelectItem,
   onUseItem,
@@ -104,7 +108,7 @@ export default function Table({
   return (
     <div
       className={classnames({
-        Table__wrapper: true,
+        Table__viewport: true,
         'has-files': items.length > 0,
       })}
     >
@@ -148,6 +152,11 @@ export default function Table({
           ))}
         </tbody>
       </table>
+      {contentLoading && (
+        <div className="Table__spinner">
+          <Spinner />
+        </div>
+      )}
     </div>
   );
 }
