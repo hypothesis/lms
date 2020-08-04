@@ -63,11 +63,11 @@ class AuthenticatedClient:
         :param schema: Schema to apply to the return values
         :param params: Any query parameters to add to the request
         :raise CanvasAPIAccessTokenError: if the request fails because our
-             Canvas API access token for the user is missing, expired, or has
-             been deleted
+            Canvas API access token for the user is missing, expired, or has
+            been deleted
         :return: JSON deserialised object
         :raise CanvasAPIAccessTokenError: If a token is required and cannot be
-                                          found / refreshed
+            found / refreshed
         """
         call_args = (method, path, schema, params)
 
