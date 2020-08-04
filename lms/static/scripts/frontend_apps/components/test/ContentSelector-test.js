@@ -353,7 +353,7 @@ describe('ContentSelector', () => {
     );
   });
 
-  it('submits hard-coded book and chapter when VitalSource button is selected', () => {
+  it('shows VitalSource book picker when VitalSource button is clicked', () => {
     fakeConfig.filePicker.vitalSource.enabled = true;
     const onSelectContent = sinon.stub();
     const wrapper = renderContentSelector({ onSelectContent });
@@ -365,10 +365,27 @@ describe('ContentSelector', () => {
       button.props().onClick();
     });
 
+    const bookPicker = wrapper.find('BookPicker');
+    assert.equal(bookPicker.prop('authToken'), fakeConfig.api.authToken);
+    assert.isTrue(wrapper.exists('BookPicker'));
+  });
+
+  it('submits selecting a book from VitalSource', () => {
+    const onSelectContent = sinon.stub();
+    const wrapper = renderContentSelector({
+      defaultActiveDialog: 'vitalSourceBook',
+      onSelectContent,
+    });
+
+    const picker = wrapper.find('BookPicker');
+    interact(wrapper, () => {
+      picker.props().onSelectBook({ id: 'test-book' }, { cfi: '/1/2' });
+    });
+
     assert.calledWith(onSelectContent, {
       type: 'vitalsource',
-      bookID: 'BOOKSHELF-TUTORIAL',
-      cfi: '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]',
+      bookID: 'test-book',
+      cfi: '/1/2',
     });
   });
 });

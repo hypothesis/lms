@@ -7,18 +7,21 @@ import {
   GooglePickerClient,
   PickerCanceledError,
 } from '../utils/google-picker-client';
+import BookPicker from './BookPicker';
 import FullScreenSpinner from './FullScreenSpinner';
 import LMSFilePicker from './LMSFilePicker';
 import URLPicker from './URLPicker';
 
 /**
+ * @typedef {import('../api-types').Book} Book
  * @typedef {import('../api-types').File} File
+ * @typedef {import('../api-types').Chapter} Chapter
  *
  * @typedef ErrorInfo
  * @prop {string} title
  * @prop {Error} error
  *
- * @typedef {'blackboardFile'|'canvasFile'|'url'|null} DialogType
+ * @typedef {'blackboardFile'|'canvasFile'|'url'|'vitalSourceBook'|null} DialogType
  *
  * @typedef {import('../utils/content-item').Content} Content
  */
@@ -111,6 +114,15 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
+  /**
+   * @param {Book} book
+   * @param {Chapter} chapter
+   */
+  const selectVitalSourceBook = (book, chapter) => {
+    cancelDialog();
+    onSelectContent({ type: 'vitalsource', bookID: book.id, cfi: chapter.cfi });
+  };
+
   let dialog;
   switch (activeDialog) {
     case 'url':
@@ -136,6 +148,15 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'vitalSourceBook':
+      dialog = (
+        <BookPicker
+          authToken={authToken}
+          onCancel={cancelDialog}
+          onSelectBook={selectVitalSourceBook}
+        />
+      );
+      break;
     default:
       dialog = null;
   }
@@ -157,16 +178,6 @@ export default function ContentSelector({
         });
       }
     }
-  };
-
-  const selectVitalSourceBook = () => {
-    // Chosen from `https://api.vitalsource.com/v4/products` response.
-    const bookID = 'BOOKSHELF-TUTORIAL';
-    // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
-    // response.
-    const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
-
-    onSelectContent({ type: 'vitalsource', bookID, cfi });
   };
 
   return (
@@ -211,7 +222,7 @@ export default function ContentSelector({
           )}
           {vitalSourceEnabled && (
             <LabeledButton
-              onClick={selectVitalSourceBook}
+              onClick={() => selectDialog('vitalSourceBook')}
               variant="primary"
               data-testid="vitalsource-button"
             >
