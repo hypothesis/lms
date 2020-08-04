@@ -33,7 +33,7 @@ function nextItem(items, currentItem, step) {
 /**
  * @typedef TableColumn
  * @prop {string} label - Header label for the column
- * @prop {string} className - Additional classes for the column's `<th>` element
+ * @prop {string} [className] - Additional classes for the column's `<th>` element
  */
 
 /**
