@@ -15,7 +15,7 @@ import pytest
 from h_matchers import Any
 
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
-from lms.services.canvas_api import CanvasAPIClient
+from lms.services.canvas_api.client import CanvasAPIClient
 
 
 class TestCanvasAPIClientGetToken:
@@ -32,7 +32,7 @@ class TestCanvasAPIClientGetToken:
 
     @pytest.fixture
     def authenticated_client(self, patch):
-        return patch("lms.services.canvas_api.AuthenticatedClient")
+        return patch("lms.services.canvas_api._authenticated.AuthenticatedClient")
 
 
 @pytest.mark.usefixtures("http_session", "oauth_token")

@@ -2,7 +2,9 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.canvas_api import AuthenticatedClient, BasicClient, TokenStore
+from lms.services.canvas_api._authenticated import AuthenticatedClient
+from lms.services.canvas_api._basic import BasicClient
+from lms.services.canvas_api._token_store import TokenStore
 from tests import factories
 
 
@@ -22,7 +24,7 @@ def basic_client():
 
 @pytest.fixture
 def http_session(patch):
-    session = patch("lms.services.canvas_api.basic.Session")
+    session = patch("lms.services.canvas_api._basic.Session")
     session = session()
 
     def set_response(json_data=None, raw=None, status_code=200):

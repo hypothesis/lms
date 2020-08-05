@@ -4,8 +4,9 @@ import pytest
 from h_matchers import Any
 
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api import BasicClient, TokenStore
-from lms.services.canvas_api.authenticated import TokenResponseSchema
+from lms.services.canvas_api._authenticated import TokenResponseSchema
+from lms.services.canvas_api._basic import BasicClient
+from lms.services.canvas_api._token_store import TokenStore
 from lms.validation import ValidationError
 from tests import factories
 
