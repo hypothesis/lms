@@ -4,7 +4,7 @@ import pytest
 from h_matchers import Any
 
 from lms.services import CanvasAPIError
-from lms.services.canvas_api import BasicClient
+from lms.services.canvas_api._basic import BasicClient
 from lms.validation import RequestsResponseSchema, ValidationError
 from tests import factories
 

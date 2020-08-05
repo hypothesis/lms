@@ -6,7 +6,7 @@ from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api import TokenStore
+from lms.services.canvas_api._token_store import TokenStore
 from tests import factories
 
 

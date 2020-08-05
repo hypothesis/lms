@@ -2,7 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.canvas_api import canvas_api_client_factory
+from lms.services.canvas_api.factory import canvas_api_client_factory
 
 
 @pytest.mark.usefixtures("ai_getter")
@@ -46,16 +46,16 @@ class TestCanvasAPIClientFactory:
 
     @pytest.fixture
     def BasicClient(self, patch):
-        return patch("lms.services.canvas_api.BasicClient")
+        return patch("lms.services.canvas_api.factory.BasicClient")
 
     @pytest.fixture
     def TokenStore(self, patch):
-        return patch("lms.services.canvas_api.TokenStore")
+        return patch("lms.services.canvas_api.factory.TokenStore")
 
     @pytest.fixture
     def AuthenticatedClient(self, patch):
-        return patch("lms.services.canvas_api.AuthenticatedClient")
+        return patch("lms.services.canvas_api.factory.AuthenticatedClient")
 
     @pytest.fixture
     def CanvasAPIClient(self, patch):
-        return patch("lms.services.canvas_api.CanvasAPIClient")
+        return patch("lms.services.canvas_api.factory.CanvasAPIClient")
