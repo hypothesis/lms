@@ -35,6 +35,8 @@ class BasicClient:
 
         :param canvas_host: Hostname of the Canvas instance
         """
+
+        # This is a requests Session object, not a DB session etc.
         self._session = Session()
         self._canvas_host = canvas_host
 

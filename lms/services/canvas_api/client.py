@@ -30,9 +30,9 @@ class CanvasAPIClient:
     All methods may raise:
 
     :raise CanvasAPIAccessTokenError: if we can't get the list of sections
-            because we don't have a working Canvas API access token for the user
+        because we don't have a working Canvas API access token for the user
     :raise CanvasAPIServerError: if we do have an access token but the
-            Canvas API request fails for any other reason
+        Canvas API request fails for any other reason
     """
 
     def __init__(self, authenticated_client):
@@ -41,17 +41,52 @@ class CanvasAPIClient:
 
         :param authenticated_client: An instance of AuthenticatedClient.
         """
-        self._api = authenticated_client
+        self._client = authenticated_client
 
     def get_token(self, authorization_code):
         """
         Get an access token for the current LTI user.
 
         :param authorization_code: The Canvas API OAuth 2.0 authorization code
-                                   to exchange for an access token
+            to exchange for an access token
         :return: An access token string
         """
-        return self._api.get_token(authorization_code)
+        return self._client.get_token(authorization_code)
+
+    # Getting authenticated users sections
+    # ------------------------------------
+    #
+    # [Canvas's sections API](https://canvas.instructure.com/doc/api/sections.html)
+    # only allows you to get _all_ of a course's sections, it doesn't provide a
+    # way to get only the sections that the authenticated user belongs to. So
+    # we have to get the authenticated user's sections from part of the
+    # response from a courses API endpoint instead.
+    #
+    # Canvas's "Get a single course" API is capable of doing this if the
+    # `?include[]=sections` query param is given:
+    #
+    # https://canvas.instructure.com/doc/api/courses.html#method.courses.show
+    #
+    # The `?include[]=sections` query param is documented elsewhere in the
+    # "List your courses" API:
+    #
+    #  https://canvas.instructure.com/doc/api/courses.html#method.courses.index)
+    #
+    # >  Section enrollment information to include with each Course.
+    #    Returns an array of hashes containing the section ID (id), section
+    #    name (name), start and end dates (start_at, end_at), as well as the
+    #    enrollment type (enrollment_role, e.g. 'StudentEnrollment').
+    #
+    # In practice `?include[]=sections` seems to add a "sections" key to the
+    # API response that is a list of section dicts, one for each section the
+    # authenticated user is currently enrolled in, each with the section's "id"
+    # and "name" among other fields.
+    #
+    # **We don't know what happens if the user belongs to a really large number
+    # of sections**. Does the list of sections embedded within the get course
+    # API response just get really long? Does it get truncated? Can you
+    # paginate through it somehow? This seems edge-casey enough that we're
+    # ignoring it for now.
 
     def authenticated_users_sections(self, course_id):
         """
@@ -63,7 +98,7 @@ class CanvasAPIClient:
         """
 
         return self._ensure_sections_unique(
-            self._api.send(
+            self._client.send(
                 "GET",
                 f"courses/{course_id}",
                 params={"include[]": "sections"},
@@ -98,7 +133,7 @@ class CanvasAPIClient:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
         return self._ensure_sections_unique(
-            self._api.send(
+            self._client.send(
                 "GET",
                 f"courses/{course_id}/sections",
                 schema=self._CourseSectionsSchema,
@@ -130,7 +165,7 @@ class CanvasAPIClient:
         # https://canvas.instructure.com/doc/api/courses.html#method.courses.user
 
         return self._ensure_sections_unique(
-            self._api.send(
+            self._client.send(
                 "GET",
                 f"courses/{course_id}/users/{user_id}",
                 params={"include[]": "enrollments"},
@@ -175,7 +210,7 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self._api.send(
+        return self._client.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
@@ -201,7 +236,7 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url
 
-        return self._api.send(
+        return self._client.send(
             "GET", f"files/{file_id}/public_url", schema=self._PublicURLSchema
         )["public_url"]
 
