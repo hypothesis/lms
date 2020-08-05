@@ -1,14 +1,3 @@
-"""
-Tests for the Canvas public API client.
-
-These tests take an integration style approach, rather than the mocked approach
-for the sub-components. The only thing mocked here is the requests session, the
-rest is the real deal.
-
-This is to prevent these tests from just becoming an MD5 of the code, and to
-actually show what calls we are supposed to be making in the end, rather than
-just what we feed into the system.
-"""
 from unittest.mock import sentinel
 
 import pytest

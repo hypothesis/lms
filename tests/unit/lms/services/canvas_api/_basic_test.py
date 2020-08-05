@@ -151,16 +151,16 @@ class TestBasicClient:
         next_url = "http://example.com/next/"
         http_session.send.side_effect = [
             factories.requests.Response(
-                status_code=200, headers=self._link_headers(next_url + "0")
+                status_code=200, headers=self.link_headers(next_url + "0")
             ),
             factories.requests.Response(
-                status_code=200, headers=self._link_headers(next_url + "1")
+                status_code=200, headers=self.link_headers(next_url + "1")
             ),
             factories.requests.Response(status_code=200),
         ]
 
     @classmethod
-    def _link_headers(cls, next_url):
+    def link_headers(cls, next_url):
         # See: https://canvas.instructure.com/doc/api/file.pagination.html
 
         decoy_url = "http://example.com/decoy"
