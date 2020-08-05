@@ -12,7 +12,8 @@ class ConfigureModuleItemSchema(PyramidRequestSchema):
 
     location = "form"
 
-    document_url = fields.Str(required=True)
+    document_url = fields.Str()
+    file_id = fields.Str()
     resource_link_id = fields.Str(required=True)
     tool_consumer_instance_guid = fields.Str(required=True)
     oauth_consumer_key = fields.Str(required=True)

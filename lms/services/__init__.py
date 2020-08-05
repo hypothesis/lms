@@ -1,4 +1,5 @@
 from lms.services.exceptions import (
+    BlackboardAPIAccessTokenError,
     CanvasAPIAccessTokenError,
     CanvasAPIError,
     CanvasAPIServerError,
@@ -20,6 +21,9 @@ def includeme(config):
     )
     config.register_service_factory(
         "lms.services.canvas_api.CanvasAPIClient", name="canvas_api_client"
+    )
+    config.register_service_factory(
+        "lms.services.blackboard_api.blackboard_api_client_service_factory", name="blackboard_api_client"
     )
     config.register_service_factory("lms.services.h_api.HAPI", name="h_api")
     config.register_service_factory(

@@ -1,7 +1,7 @@
 import { Fragment, createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { ApiError, listFiles } from '../utils/api';
+import { ApiError, listFiles, blackboardListFiles } from '../utils/api';
 
 import AuthWindow from '../utils/AuthWindow';
 import Button from './Button';
@@ -47,11 +47,13 @@ const INITIAL_DIALOG_STATE = {
  * @param {LMSFilePickerProps} props
  */
 export default function LMSFilePicker({
+  lms,
   authToken,
   authUrl,
   courseId,
   onCancel,
   onSelectFile,
+  isBlackboard,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
@@ -70,8 +72,13 @@ export default function LMSFilePicker({
   const fetchFiles = useCallback(async () => {
     try {
       setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetching' });
-      const files = await listFiles(authToken, courseId);
-      setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
+      if (isBlackboard) {
+        const files = await blackboardListFiles(authToken, courseId);
+        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
+      } else {
+        const files = await listFiles(authToken, courseId);
+        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
+      }
     } catch (e) {
       if (e instanceof ApiError && !e.errorMessage) {
         // If the server returned an error, but provided no details, assume
@@ -167,14 +174,14 @@ export default function LMSFilePicker({
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
         <ErrorDisplay
-          message={<Fragment>{`Failed to authorize with Canvas`}</Fragment>}
+          message={<Fragment>{`Failed to authorize with ${lms}`}</Fragment>}
           error={new Error('')}
         />
       )}
       {dialogState.state === 'authorizing' && !authorizationAttempted && (
         <p>
           To select a file, you must authorize Hypothesis to access your files
-          in Canvas.
+          in {lms}.
         </p>
       )}
       {(dialogState.state === 'fetching' ||

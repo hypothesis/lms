@@ -40,6 +40,7 @@ export default function FilePickerApp({
     filePicker: {
       formAction,
       formFields,
+      blackboard: { enabled: blackboardEnabled, courseId: blackboardCourseId },
       canvas: { enabled: canvasEnabled, ltiLaunchUrl, courseId },
       google: {
         clientId: googleClientId,
@@ -48,6 +49,7 @@ export default function FilePickerApp({
       },
     },
     canvas,
+    blackboard,
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
@@ -98,6 +100,12 @@ export default function FilePickerApp({
     setLmsFile(file);
     submit(true);
   };
+  const selectBlackboardFile = file => {
+    debugger;
+    setActiveDialog(null);
+    setLmsFile(file);
+    submit(true);
+  };
 
   const selectURL = url => {
     setActiveDialog(null);
@@ -144,11 +152,26 @@ export default function FilePickerApp({
     case 'lms':
       dialog = (
         <LMSFilePicker
+          lms='Canvas'
           authToken={authToken}
           authUrl={canvas.authUrl}
           courseId={courseId}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
+          isBlackboard={false}
+        />
+      );
+      break;
+    case 'blackboard':
+      dialog = (
+        <LMSFilePicker
+          lms='Blackboard'
+          authToken={authToken}
+          authUrl={blackboard.authUrl}
+          courseId={blackboardCourseId}
+          onCancel={cancelDialog}
+          onSelectFile={selectBlackboardFile}
+          isBlackboard={true}
         />
       );
       break;
@@ -157,11 +180,15 @@ export default function FilePickerApp({
   }
 
   let contentItem = null;
+  console.log(url);
   if (url) {
     contentItem = contentItemForUrl(ltiLaunchUrl, url);
+    console.log(contentItem);
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
+    console.log(contentItem);
   }
+  debugger;
   contentItem = JSON.stringify(contentItem);
 
   return (
@@ -187,6 +214,7 @@ export default function FilePickerApp({
           sources:
         </p>
         <input name="document_url" type="hidden" value={url || ''} />
+        <input name="file_id" type="hidden" value={lmsFile?.id || ''} />
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
@@ -198,6 +226,13 @@ export default function FilePickerApp({
               className="FilePickerApp__source-button"
               label={`Select PDF from Canvas`}
               onClick={() => setActiveDialog('lms')}
+            />
+          )}
+          {blackboardEnabled && (
+            <Button
+              className="FilePickerApp__source-button"
+              label={`Select PDF from Blackboard`}
+              onClick={() => setActiveDialog('blackboard')}
             />
           )}
           {googlePicker && (

@@ -114,11 +114,14 @@ class BasicLTILaunchViews:
         # won't be called if there isn't a matching ModuleItemConfiguration in
         # the DB. So here we can safely assume that the ModuleItemConfiguration
         # exists.
-        document_url = ModuleItemConfiguration.get_document_url(
+        mic = ModuleItemConfiguration._get(
             self.request.db, tool_consumer_instance_guid, resource_link_id
         )
 
-        self.context.js_config.add_document_url(document_url)
+        if mic.document_url:
+            self.context.js_config.add_document_url(mic.document_url)
+        else:
+            self.context.js_config.add_blackboard_file_id(mic.file_id)
 
         return {}
 
@@ -217,16 +220,27 @@ class BasicLTILaunchViews:
         And we also send back the assignment launch page, passing the chosen
         URL to Via, as the direct response to the content item form submission.
         """
-        document_url = self.request.parsed_params["document_url"]
+        document_url = self.request.parsed_params.get("document_url")
+        file_id = self.request.parsed_params.get("file_id")
 
         ModuleItemConfiguration.set_document_url(
             self.request.db,
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.request.parsed_params["resource_link_id"],
             document_url,
+            file_id,
         )
 
-        self.context.js_config.add_document_url(document_url)
+        mic = ModuleItemConfiguration._get(
+            self.request.db,
+            self.request.parsed_params["tool_consumer_instance_guid"],
+            self.request.parsed_params["resource_link_id"],
+        )
+
+        if mic.document_url:
+            self.context.js_config.add_document_url(mic.document_url)
+        else:
+            self.context.js_config.add_blackboard_file_id(mic.file_id)
 
         self.sync_lti_data_to_h()
         self.store_lti_data()

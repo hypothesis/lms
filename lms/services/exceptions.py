@@ -146,6 +146,10 @@ class CanvasAPIAccessTokenError(CanvasAPIError):
     """
 
 
+class BlackboardAPIAccessTokenError(CanvasAPIError):
+    """A problem with a Blackboard API access token."""
+
+
 class CanvasAPIServerError(CanvasAPIError):
     """
     A server error during a Canvas API request.

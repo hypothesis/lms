@@ -6,7 +6,7 @@ from pyramid.view import (
     notfound_view_config,
 )
 
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, LTIOutcomesAPIError
+from lms.services import BlackboardAPIAccessTokenError, CanvasAPIAccessTokenError, CanvasAPIError, LTIOutcomesAPIError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -28,6 +28,12 @@ def canvas_api_access_token_error(request):
     # error message to the user in this case. Just the 400 status so the
     # frontend knows that the request failed, and that it should show the user
     # an [Authorize] button so they can get a (new) access token and try again.
+    return {"error_message": None, "details": None}
+
+
+@exception_view_config(context=BlackboardAPIAccessTokenError, renderer="json")
+def canvas_api_access_token_error(request):
+    request.response.status_int = 400
     return {"error_message": None, "details": None}
 
 

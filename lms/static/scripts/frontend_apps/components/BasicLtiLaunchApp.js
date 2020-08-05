@@ -51,6 +51,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     grading,
     // Content URL to show in the iframe.
     viaUrl,
+    blackboard,
     canvas,
   } = useContext(Config);
 
@@ -207,7 +208,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       authWindow.current.focus();
       return;
     }
-    authWindow.current = new AuthWindow({ authToken, authUrl: canvas.authUrl });
+    authWindow.current = new AuthWindow({ authToken, authUrl: blackboard.authUrl });
 
     try {
       await authWindow.current.authorize();
@@ -216,7 +217,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
     }
-  }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
+  }, [authToken, blackboard.authUrl, fetchContentUrl, fetchGroups]);
 
   // Construct the <iframe> content
   let iFrameWrapper;

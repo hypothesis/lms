@@ -1,10 +1,14 @@
 """Sentry crash reporting integration."""
-from lms.services import CanvasAPIAccessTokenError
+from lms.services import BlackboardAPIAccessTokenError, CanvasAPIAccessTokenError
 
 
 def filter_canvas_api_access_token_error(event):
     """Filter out all CanvasAPIAccessTokenError's."""
     return isinstance(event.exception, CanvasAPIAccessTokenError)
+
+
+def filter_blackboard_api_access_token_error(event):
+    return isinstance(event.exception, BlackboardAPIAccessTokenError)
 
 
 def includeme(config):

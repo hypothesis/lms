@@ -45,6 +45,11 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         )
         self._add_canvas_speedgrader_settings(canvas_file_id=canvas_file_id)
 
+    def add_blackboard_file_id(self, blackboard_file_id):
+        self._config["api"]["viaCallbackUrl"] = self._request.route_url(
+            "blackboard_api.files.via_url", file_id=blackboard_file_id
+        )
+
     def add_document_url(self, document_url):
         """
         Set the document to the document at the given document_url.
@@ -143,6 +148,10 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         self._config["filePicker"] = {
             "formAction": form_action,
             "formFields": form_fields,
+            "blackboard": {
+                "enabled": self._blackboard_files_available(),
+                "courseId": self._request.params["context_id"],
+            },
             "canvas": {
                 "enabled": self._canvas_files_available(),
                 # The "content item selection" that we submit to Canvas's
@@ -262,6 +271,9 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
+    def _blackboard_files_available(self):
+        return self._request.params.get('tool_consumer_info_product_family_code') == 'BlackboardLearn'
+
     def _canvas_files_available(self):
         """Return True if the Canvas Files API is available to this request."""
 
@@ -311,13 +323,13 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 # authenticate itself to the API.
                 "authToken": self._auth_token()
             },
-            # The URL that the JavaScript code will open if it needs the user to
-            # authorize us to request a new Canvas access token.
-            "authUrl": self._request.route_url("canvas_api.authorize"),
             "canvas": {
                 # The URL that the JavaScript code will open if it needs the user to
                 # authorize us to request a new Canvas access token.
                 "authUrl": self._request.route_url("canvas_api.authorize"),
+            },
+            "blackboard": {
+                "authUrl": self._request.route_url("blackboard_api.authorize"),
             },
             # Some debug information, currently used in the Gherkin tests.
             "debug": {"tags": []},

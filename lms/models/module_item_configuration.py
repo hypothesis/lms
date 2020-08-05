@@ -39,8 +39,11 @@ class ModuleItemConfiguration(BASE):
     across different LMS's.
     """
 
-    document_url = sa.Column(sa.String, nullable=False)
+    document_url = sa.Column(sa.String, nullable=True)
     """The URL of the document to be annotated for this assignment."""
+
+    file_id = sa.Column(sa.String, nullable=True)
+    """The LMS's file ID for the file to be annotated for this assignment."""
 
     @classmethod
     def get_document_url(cls, db, tool_consumer_instance_guid, resource_link_id):
@@ -63,7 +66,7 @@ class ModuleItemConfiguration(BASE):
 
     @classmethod
     def set_document_url(
-        cls, db, tool_consumer_instance_guid, resource_link_id, document_url
+        cls, db, tool_consumer_instance_guid, resource_link_id, document_url, file_id
     ):
         """
         Save the given ``document_url``.
@@ -78,10 +81,12 @@ class ModuleItemConfiguration(BASE):
 
         if mic:
             mic.document_url = document_url
+            mic.file_id = file_id
         else:
             db.add(
                 cls(
                     document_url=document_url,
+                    file_id=file_id,
                     resource_link_id=resource_link_id,
                     tool_consumer_instance_guid=tool_consumer_instance_guid,
                 )

@@ -8,6 +8,7 @@ class DefaultResource:
     __acl__ = [
         (Allow, "report_viewers", "view"),
         (Allow, "lti_user", "canvas_api"),
+        (Allow, "lti_user", "blackboard_api"),
         (Allow, "lti_user", "lti_outcomes"),
         (Allow, "lti_user", "sync_api"),
     ]
