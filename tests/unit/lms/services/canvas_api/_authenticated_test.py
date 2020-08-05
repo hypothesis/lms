@@ -3,23 +3,10 @@ from unittest.mock import call, create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIAccessTokenError
+from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
 from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
-from lms.services.canvas_api._token_store import TokenStore
-from lms.validation import ValidationError
 from tests import factories
-
-
-class TestCanvasTokenResponseSchema:
-    @pytest.mark.parametrize("value", (-1, 0))
-    def test_expires_in_must_be_positive(self, value):
-        response = factories.requests.Response(
-            status_code=200, json_data={"access_token": "required", "expires_in": value}
-        )
-
-        with pytest.raises(ValidationError):
-            TokenResponseSchema(response).parse()
 
 
 class TestAuthenticatedClient:
@@ -85,7 +72,9 @@ class TestAuthenticatedClient:
                 "METHOD", "/path", sentinel.schema, sentinel.params
             )
 
-    def test_get_token(self, authenticated_client, basic_client, token_store):
+    def test_get_token(
+        self, authenticated_client, basic_client, token_store, token_response
+    ):
         token = authenticated_client.get_token("authorization_code")
 
         assert token == "new_access_token"
@@ -106,10 +95,14 @@ class TestAuthenticatedClient:
         )
 
         token_store.save.assert_called_once_with(
-            "new_access_token", "new_refresh_token", "new_expires_in"
+            token_response["access_token"],
+            token_response["refresh_token"],
+            token_response["expires_in"],
         )
 
-    def test_get_refreshed_token(self, authenticated_client, basic_client, token_store):
+    def test_get_refreshed_token(
+        self, authenticated_client, basic_client, token_store, token_response
+    ):
         token = authenticated_client.get_refreshed_token("refresh_token")
 
         assert token == "new_access_token"
@@ -128,7 +121,9 @@ class TestAuthenticatedClient:
         )
 
         token_store.save.assert_called_once_with(
-            "new_access_token", "new_refresh_token", "new_expires_in"
+            token_response["access_token"],
+            token_response["refresh_token"],
+            token_response["expires_in"],
         )
 
     @pytest.fixture
@@ -140,16 +135,8 @@ class TestAuthenticatedClient:
         return basic_api
 
     @pytest.fixture
-    def token_response(self):
-        return {
-            "access_token": "new_access_token",
-            "refresh_token": "new_refresh_token",
-            "expires_in": "new_expires_in",
-        }
-
-    @pytest.fixture
-    def token_store(self, oauth_token):
-        token_store = create_autospec(TokenStore)
+    def token_store(self, patch, oauth_token):
+        token_store = patch("lms.services.canvas_api._token_store.TokenStore")
 
         token_store.get.return_value = oauth_token
 
@@ -158,3 +145,38 @@ class TestAuthenticatedClient:
     @pytest.fixture
     def oauth_token(self):
         return factories.OAuth2Token()
+
+
+@pytest.mark.usefixtures("http_session")
+class TestAuthenticatedClientIntegrated:
+    """Tests which include the real basic client and Schema."""
+
+    def test_ok(self, token_method, http_session, token_response):
+        http_session.set_response(token_response)
+        token = token_method("code")
+        assert token == token_response["access_token"]
+
+    @pytest.mark.parametrize("bad_value", [-1, 0, "string"])
+    def test_bad_expires_in(
+        self, token_method, http_session, token_response, bad_value
+    ):
+        http_session.set_response(dict(token_response, expires_in=bad_value))
+
+        with pytest.raises(CanvasAPIServerError):
+            token_method("code")
+
+    @pytest.fixture(
+        params=("get_token", "get_refreshed_token"),
+        ids=("get_token", "get_refreshed_token"),
+    )
+    def token_method(self, request, authenticated_client):
+        return getattr(authenticated_client, request.param)
+
+
+@pytest.fixture
+def token_response():
+    return {
+        "access_token": "new_access_token",
+        "refresh_token": "new_refresh_token",
+        "expires_in": 384762,
+    }

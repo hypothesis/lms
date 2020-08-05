@@ -134,7 +134,5 @@ class TokenResponseSchema(RequestsResponseSchema):
 
     @marshmallow.validates("expires_in")
     def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if expires_in <= 0:  # pragma: no cover
-            # I have no idea what's going on with coverage. This absolutely is
-            # covered at time of writing. But it doesn't show up in coverage
+        if expires_in <= 0:
             raise marshmallow.ValidationError("expires_in must be greater than 0")
