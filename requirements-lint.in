@@ -1,6 +1,0 @@
-pylint<2.5
-pydocstyle
-pycodestyle
--r requirements-tests.txt
--r requirements-functests.txt
--r requirements-bddtests.txt

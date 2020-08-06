@@ -22,7 +22,7 @@ RUN addgroup -S lms \
 WORKDIR /var/lib/lms
 
 # Copy minimal data to allow installation of dependencies.
-COPY requirements.txt ./
+COPY requirements/requirements.txt ./
 
 # Install build deps, build, and then clean up.
 RUN apk add --virtual build-deps \

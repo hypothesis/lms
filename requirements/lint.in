@@ -1,0 +1,6 @@
+pylint<2.5
+pydocstyle
+pycodestyle
+-r tests.txt
+-r functests.txt
+-r bddtests.txt
