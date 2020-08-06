@@ -5,5 +5,5 @@
 #    pip-compile requirements/pipcompile.in
 #
 click==7.1.2              # via pip-tools
-pip-tools==4.5.1          # via -r requirements/pipcompile.in
+pip-tools==5.3.1          # via -r requirements/pipcompile.in
 six==1.15.0               # via pip-tools
