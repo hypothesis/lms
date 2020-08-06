@@ -14,7 +14,7 @@ factory-boy==2.12.0       # via -r requirements/bddtests.in
 faker==4.1.1              # via factory-boy
 gunicorn==20.0.4          # via -r requirements/requirements.txt
 h-api==1.0.0              # via -r requirements/requirements.txt
-h-matchers==1.2.8         # via -r requirements/bddtests.in
+h-matchers==1.2.9         # via -r requirements/bddtests.in
 h-pyramid-sentry==1.2.1   # via -r requirements/requirements.txt
 httplib2==0.18.1          # via -r requirements/requirements.txt, oauth2, pylti
 httpretty==1.0.2          # via -r requirements/bddtests.in
