@@ -27,15 +27,6 @@ node {
 
     // Run each of the stages in parallel.
     parallel failFast: true,
-    "Backend lint": {
-        stage("Backend lint") {
-            testApp(image: img, runArgs: runArgs) {
-                installDeps()
-                run("make checkformatting")
-                run("make backend-lint")
-            }
-        }
-    },
     "Backend tests": {
         stage("Backend tests") {
             // Run the Postgres test DB in a Docker container.
@@ -51,14 +42,13 @@ node {
             }
         }
     },
-    "Frontend lint + tests": {
-        stage("Frontend lint + tests") {
+    "Frontend tests": {
+        stage("Frontend tests") {
             frontendTestContainer = docker.build(
               "hypothesis/lms-frontend-test", "-f ./jenkins/frontend-test.dockerfile jenkins/"
             )
             workspace = pwd()
             frontendTestContainer.inside("${runArgs} -e HOME=${workspace}") {
-                sh "make frontend-lint"
                 sh "make frontend-tests"
             }
         }
