@@ -24,8 +24,7 @@ class TestViaURL:
             "http://test_via3_server.is/route"
         ).with_query(dict(self.DEFAULT_OPTIONS, url=url))
 
-    @pytest.mark.usefixtures("legacy_via_feature_flag")
-    @pytest.mark.parametrize(
+    pywb_test_params = pytest.mark.parametrize(
         "params,expected_extras",
         (
             ({}, None),
@@ -44,15 +43,54 @@ class TestViaURL:
             ),
         ),
     )
-    def test_it_merges_params_correctly(self, pyramid_request, params, expected_extras):
+
+    @pytest.mark.usefixtures("legacy_via_feature_flag")
+    @pywb_test_params
+    def test_it_merges_params_correctly_for_legacy_via(
+        self, pyramid_request, params, expected_extras
+    ):
         final_url = via_url(
             pyramid_request, f"http://doc.example.com/?{urlencode(params, doseq=True)}"
         )
 
+        assert final_url == Any.url.with_host("test_legacy_via_server.is")
+        assert final_url == Any.url.with_path("/http://doc.example.com/")
         assert final_url == Any.url.containing_query(self.DEFAULT_OPTIONS)
 
         if expected_extras:
             assert final_url == Any.url.containing_query(expected_extras)
+
+    def test_it_routes_to_via_for_html(self, pyramid_request):
+        final_url = via_url(
+            pyramid_request, f"http://doc.example.com/", content_type="html"
+        )
+
+        assert final_url == Any.url.with_host("test_legacy_via_server.is")
+        assert final_url == Any.url.with_path("/http://doc.example.com/")
+
+    @pytest.mark.usefixtures("via_rewriter_feature_flag")
+    @pywb_test_params
+    def test_it_merges_params_correctly_for_via_rewriter(
+        self, pyramid_request, params, expected_extras
+    ):
+        final_url = via_url(
+            pyramid_request,
+            f"http://doc.example.com/?{urlencode(params, doseq=True)}",
+            content_type="html",
+        )
+
+        assert final_url == Any.url.with_host("test_via3_server.is")
+        assert final_url == Any.url.with_path("/html/v/http://doc.example.com/")
+        assert final_url == Any.url.containing_query(self.DEFAULT_OPTIONS)
+
+        if expected_extras:
+            assert final_url == Any.url.containing_query(expected_extras)
+
+    @pytest.mark.usefixtures("via_rewriter_feature_flag")
+    def test_it_adds_the_rewriter_option_if_the_flag_is_enabled(self, pyramid_request):
+        final_url = via_url(pyramid_request, "http://doc.example.com")
+
+        assert final_url == Any.url.containing_query({"via.rewrite": "1"})
 
     def test_it_redirects_to_via3_view_pdf_directly_for_google_drive(
         self, pyramid_request
@@ -87,3 +125,7 @@ class TestViaURL:
     @pytest.fixture
     def legacy_via_feature_flag(self, pyramid_request):
         pyramid_request.feature = lambda feature: feature == "use_legacy_via"
+
+    @pytest.fixture
+    def via_rewriter_feature_flag(self, pyramid_request):
+        pyramid_request.feature = lambda feature: feature == "use_via_rewriter"
