@@ -12,6 +12,9 @@ load-plugins=pylint.extensions.bad_builtin,
              pylint.extensions.redefined_variable_type,
 
 [MESSAGES CONTROL]
+enable=
+    useless-suppression,
+    use-symbolic-message-instead,
 disable=
     # Docstrings are encouraged but we don't want to enforce that everything
     # must have a docstring.

@@ -153,7 +153,7 @@ class TestCanvasAPIError:
     ):
         cause = ValidationError("The response was invalid.")
         cause.response = canvas_api_invalid_response
-        cause.response.body = "x" * 1000  # pylint:disable=no-member
+        cause.response.body = "x" * 1000
 
         raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 

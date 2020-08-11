@@ -4,7 +4,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from lms import models
 from tests.factories.attributes import OAUTH_CONSUMER_KEY, SHARED_SECRET
 
-ApplicationInstance = make_factory(  # pylint:disable=invalid-name
+ApplicationInstance = make_factory(
     models.ApplicationInstance,
     FACTORY_CLASS=SQLAlchemyModelFactory,
     consumer_key=OAUTH_CONSUMER_KEY,

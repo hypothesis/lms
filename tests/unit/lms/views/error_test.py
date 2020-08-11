@@ -70,9 +70,7 @@ class TestHTTPClientError(ExceptionViewTest):
 
     response_status = 400
     report_to_sentry = False
-    expected_result = {
-        "message": exception.args[0]  # pylint:disable=unsubscriptable-object
-    }
+    expected_result = {"message": exception.args[0]}
 
 
 class TestHTTPServerError(ExceptionViewTest):
@@ -81,9 +79,7 @@ class TestHTTPServerError(ExceptionViewTest):
 
     response_status = 500
     report_to_sentry = True
-    expected_result = {
-        "message": exception.args[0]  # pylint:disable=unsubscriptable-object
-    }
+    expected_result = {"message": exception.args[0]}
 
 
 class TestValidationError(ExceptionViewTest):

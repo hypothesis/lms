@@ -3,7 +3,7 @@ import factory
 from lms import models
 from tests.factories.attributes import H_DISPLAY_NAME, H_USERNAME
 
-HUser = factory.make_factory(  # pylint:disable=invalid-name
+HUser = factory.make_factory(
     models.HUser,
     username=H_USERNAME,
     display_name=H_DISPLAY_NAME,

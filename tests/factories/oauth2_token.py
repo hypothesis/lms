@@ -5,7 +5,7 @@ from lms import models
 from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import ACCESS_TOKEN, REFRESH_TOKEN, USER_ID
 
-OAuth2Token = make_factory(  # pylint:disable=invalid-name
+OAuth2Token = make_factory(
     models.OAuth2Token,
     FACTORY_CLASS=SQLAlchemyModelFactory,
     user_id=USER_ID,

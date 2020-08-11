@@ -18,9 +18,9 @@ def clean_database(db_engine):
     """Delete any data added by the previous test."""
     tables = reversed(db.BASE.metadata.sorted_tables)
     with contextlib.closing(db_engine.connect()) as conn:
-        transaction = conn.begin()  # pylint:disable=no-member
+        transaction = conn.begin()
         tnames = ", ".join('"' + t.name + '"' for t in tables)
-        conn.execute("TRUNCATE {};".format(tnames))  # pylint:disable=no-member
+        conn.execute("TRUNCATE {};".format(tnames))
         transaction.commit()
 
 

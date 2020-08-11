@@ -4,8 +4,6 @@ from sqlalchemy.exc import IntegrityError
 from lms.models import ApplicationInstance, ApplicationSettings
 from tests import factories
 
-# pylint: disable=protected-access
-
 
 class TestApplicationInstance:
     def test_it_persists_application_instance(self, db_session):

@@ -47,7 +47,7 @@ class LaunchVerifier:
                 self._request_verified = True
 
         if self._exception:
-            raise self._exception  # pylint: disable=raising-bad-type
+            raise self._exception
 
     def _verify(self):
         try:
