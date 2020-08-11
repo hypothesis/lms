@@ -14,6 +14,8 @@ load-plugins=pylint.extensions.bad_builtin,
 
 [MESSAGES CONTROL]
 enable=
+    bad-inline-option,
+    deprecated-pragma,
     useless-suppression,
     use-symbolic-message-instead,
 disable=
