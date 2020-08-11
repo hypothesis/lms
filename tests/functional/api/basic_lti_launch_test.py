@@ -93,7 +93,7 @@ class TestBasicLTILaunch:
 
         params["oauth_signature"] = oauth_client.get_oauth_signature(
             oauthlib.common.Request(
-                f"http://localhost/lti_launches", "POST", body=params
+                "http://localhost/lti_launches", "POST", body=params
             )
         )
 

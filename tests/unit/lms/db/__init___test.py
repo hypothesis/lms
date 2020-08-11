@@ -18,10 +18,13 @@ class ModelClass(BASE):
 
 class TestBase:
     def test_we_can_get_columns(self):
-        assert sorted(ModelClass.columns()) == ["column", "id"]
+        assert sorted(ModelClass.columns()) == [  # pylint:disable=no-member
+            "column",
+            "id",
+        ]
 
     def test_we_can_update_from_dict(self, model):
-        model.update_from_dict(
+        model.update_from_dict(  # pylint:disable=no-member
             {
                 "id": 4321,
                 "column": "new_value",
@@ -43,12 +46,14 @@ class TestBase:
 
     def test_we_fail_to_update_when_skip_keys_is_not_a_set(self):
         with pytest.raises(TypeError):
-            ModelClass().update_from_dict({}, skip_keys=["a"])
+            ModelClass().update_from_dict(  # pylint:disable=no-member
+                {}, skip_keys=["a"]
+            )
 
     def test_repr(self):
         model = ModelClass(id=23, column=46)
 
-        assert repr(model) == ("ModelClass(" "id=23, " "column=46)")
+        assert repr(model) == "ModelClass(id=23, column=46)"
 
     def test_repr_is_valid_python(self):
         model = ModelClass(id=23, column=46)

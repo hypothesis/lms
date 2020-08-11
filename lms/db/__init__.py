@@ -147,11 +147,11 @@ def _session(request):  # pragma: no cover
     @request.add_finished_callback
     def close_the_sqlalchemy_session(_request):  # pylint: disable=unused-variable
         connections = (
-            session.transaction._connections  # pylint:disable=protected-access
+            session.transaction._connections  # pylint:disable=protected-access,no-member
         )
         if len(connections) > 1:
             LOG.warning("closing an unclosed DB session")
-        session.close()
+        session.close()  # pylint:disable=no-member
 
     return session
 

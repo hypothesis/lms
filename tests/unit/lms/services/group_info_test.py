@@ -128,7 +128,7 @@ class TestGroupInfoUpsert:
     def params(self):
         return {
             column: f"TEST_{column.upper()}"
-            for column in GroupInfo.columns()
+            for column in GroupInfo.columns()  # pylint:disable=no-member
             if column not in ("consumer_key", "_info")
         }
 

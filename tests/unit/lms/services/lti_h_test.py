@@ -66,8 +66,8 @@ class TestSync:
             ).raw
             for i, group in enumerate(groups)
         ] + [
-            CommandBuilder.group_membership.create("user_0", f"group_0").raw,
-            CommandBuilder.group_membership.create("user_0", f"group_1").raw,
+            CommandBuilder.group_membership.create("user_0", "group_0").raw,
+            CommandBuilder.group_membership.create("user_0", "group_1").raw,
         ]
 
 

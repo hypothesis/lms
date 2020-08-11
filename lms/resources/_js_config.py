@@ -446,7 +446,7 @@ class JSConfig:  # pylint:disable=too-many-instance-attributes
                 "group_info": {
                     key: value
                     for key, value in req.params.items()
-                    if key in GroupInfo.columns()
+                    if key in GroupInfo.columns()  # pylint:disable=no-member
                 },
             },
         }
