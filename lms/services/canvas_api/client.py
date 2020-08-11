@@ -146,7 +146,7 @@ class CanvasAPIClient:
         many = True
 
         @validates_schema(pass_many=True)
-        def _validate_length(self, data, **kwargs):  # pylint:disable=no-self-use
+        def _validate_length(self, data, **_kwargs):  # pylint:disable=no-self-use
             # If we get as far as this method then data is guaranteed to be a list
             # so the only way it can be falsey is if it's an empty list.
             if not data:

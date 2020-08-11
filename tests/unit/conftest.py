@@ -132,7 +132,7 @@ def db_session(db_engine):
     conn = db_engine.connect()
     trans = conn.begin()
     session = SESSION(bind=conn)
-    session.begin_nested()
+    session.begin_nested()  # pylint:disable=no-member
 
     @sqlalchemy.event.listens_for(session, "after_transaction_end")
     def restart_savepoint(session, transaction):  # pylint:disable=unused-variable
@@ -148,7 +148,7 @@ def db_session(db_engine):
         yield session
     finally:
         factories.clear_sqlalchemy_session()
-        session.close()
+        session.close()  # pylint:disable=no-member
         trans.rollback()
         conn.close()
 

@@ -49,4 +49,4 @@ def db_session(db_engine):
         yield session
     finally:
         factories.clear_sqlalchemy_session()
-        session.close()
+        session.close()  # pylint:disable=no-member
