@@ -81,7 +81,7 @@ webargs==6.1.0            # via -r requirements/bddtests.txt, -r requirements/fu
 webob==1.8.6              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid, webtest
 webtest==2.0.35           # via -r requirements/bddtests.txt, -r requirements/functests.txt
 wired==0.2.2              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid-services
-wrapt==1.11.2             # via astroid
+wrapt==1.12.1             # via astroid
 xmltodict==0.12.0         # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 zipp==3.1.0               # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, importlib-metadata
 zope.deprecation==4.3.0   # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid, pyramid-jinja2
