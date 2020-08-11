@@ -9,7 +9,7 @@ from tests.factories.attributes import (
     USER_ID,
 )
 
-GradingInfo = make_factory(  # pylint:disable=invalid-name
+GradingInfo = make_factory(
     models.GradingInfo,
     FACTORY_CLASS=SQLAlchemyModelFactory,
     lis_result_sourcedid=Faker("numerify", text="test_lis_result_sourcedid_#"),

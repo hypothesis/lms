@@ -25,7 +25,7 @@ class TestLTIUser:
     def test_is_instructor(self, roles, is_instructor):
         lti_user = factories.LTIUser(roles=roles)
 
-        assert lti_user.is_instructor == is_instructor  # pylint:disable=no-member
+        assert lti_user.is_instructor == is_instructor
 
     @pytest.mark.parametrize(
         "roles,is_learner",

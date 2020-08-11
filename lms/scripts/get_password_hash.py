@@ -2,7 +2,6 @@
 from lms.authentication.password_hash import hash_password
 
 if __name__ == "__main__":
-    # pylint: disable=invalid-name
     password = input("Please enter a password: ").encode("utf8")
     salt = input("Please enter a salt (leave blank to have one created): ")
 

@@ -139,7 +139,7 @@ def db_session(db_engine):
         if (
             transaction.nested
             and not transaction._parent.nested  # pylint: disable=protected-access
-        ):  # pylint:disable=protected-access
+        ):
             session.begin_nested()
 
     factories.set_sqlalchemy_session(session)

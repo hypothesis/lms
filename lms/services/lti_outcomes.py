@@ -20,7 +20,7 @@ class LTIOutcomesClient:
         self.oauth1_service = request.find_service(name="oauth1")
         self.service_url = request.parsed_params["lis_outcome_service_url"]
 
-    def read_result(self, lis_result_sourcedid):  # pylint:disable=no-self-use
+    def read_result(self, lis_result_sourcedid):
         """
         Return the last-submitted score for a given submission.
 
@@ -44,7 +44,7 @@ class LTIOutcomesClient:
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(  # pylint:disable=no-self-use
+    def record_result(
         self, lis_result_sourcedid, score=None, pre_record_hook=None,
     ):
         """

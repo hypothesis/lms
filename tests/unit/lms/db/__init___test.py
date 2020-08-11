@@ -24,7 +24,7 @@ class TestBase:
         ]
 
     def test_we_can_update_from_dict(self, model):
-        model.update_from_dict(  # pylint:disable=no-member
+        model.update_from_dict(
             {
                 "id": 4321,
                 "column": "new_value",

@@ -10,7 +10,7 @@ from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
 
-class JSConfig:  # pylint:disable=too-many-instance-attributes
+class JSConfig:
     """The config for the app's JavaScript code."""
 
     def __init__(self, context, request):

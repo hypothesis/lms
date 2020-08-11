@@ -4,7 +4,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from lms import models
 from tests.factories import ApplicationInstance
 
-Course = factory.make_factory(  # pylint:disable=invalid-name
+Course = factory.make_factory(
     models.Course,
     FACTORY_CLASS=SQLAlchemyModelFactory,
     application_instance=factory.SubFactory(ApplicationInstance),
