@@ -64,8 +64,10 @@ export default function Dialog({
   });
 
   useEffect(() => {
-    if (initialFocus) {
-      initialFocus.current.focus();
+    /** @type {HTMLElement & { disabled?: boolean }} */
+    const focusEl = initialFocus?.current;
+    if (focusEl && !focusEl.disabled) {
+      focusEl.focus();
     } else {
       // Modern accessibility guidance is to focus the dialog itself rather than
       // trying to be smart about focusing a particular control within the
