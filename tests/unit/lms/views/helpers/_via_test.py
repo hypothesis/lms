@@ -62,7 +62,7 @@ class TestViaURL:
 
     def test_it_routes_to_via_for_html(self, pyramid_request):
         final_url = via_url(
-            pyramid_request, f"http://doc.example.com/", content_type="html"
+            pyramid_request, "http://doc.example.com/", content_type="html"
         )
 
         assert final_url == Any.url.with_host("test_legacy_via_server.is")
