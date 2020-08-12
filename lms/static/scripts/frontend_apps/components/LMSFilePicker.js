@@ -132,20 +132,14 @@ export default function LMSFilePicker({
   const title =
     dialogState.state === 'authorizing' ? 'Allow file access' : 'Select a file';
 
-  const focusedDialogButton = useRef(
-    /** @type {HTMLButtonElement | null} */ (null)
-  );
-
   return (
     <Dialog
-      initialFocus={focusedDialogButton}
       contentClass="LMSFilePicker__dialog"
       title={title}
       onCancel={cancel}
       buttons={[
         dialogState.state === 'authorizing' || dialogState.state === 'error' ? (
           <Button
-            buttonRef={focusedDialogButton}
             key="showAuthWindow"
             onClick={authorizeAndFetchFiles}
             label={
@@ -157,7 +151,6 @@ export default function LMSFilePicker({
           />
         ) : (
           <Button
-            buttonRef={focusedDialogButton}
             key="select"
             disabled={selectedFile === null}
             onClick={useSelectedFile}

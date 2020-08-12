@@ -1,4 +1,4 @@
-import { createElement } from 'preact';
+import { createElement, Fragment } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import classNames from 'classnames';
 
@@ -78,7 +78,7 @@ export default function Dialog({
   }, []);
 
   return (
-    <div>
+    <Fragment>
       <div
         className="Dialog__background"
         style={{ zIndex: zIndexScale.dialogBackground }}
@@ -120,6 +120,6 @@ export default function Dialog({
           </div>
         </div>
       </div>
-    </div>
+    </Fragment>
   );
 }
