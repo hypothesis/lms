@@ -66,39 +66,74 @@ describe('Dialog', () => {
     assert.called(onCancel);
   });
 
-  it('focuses the `initialFocus` ref if set', () => {
-    const container = document.createElement('div');
-    document.body.appendChild(container);
+  describe('initial focus', () => {
+    let container;
 
-    const inputRef = createRef();
-    mount(
-      <Dialog initialFocus={inputRef}>
-        <input ref={inputRef} />
-      </Dialog>,
-      { attachTo: container }
-    );
-    assert.equal(document.activeElement, inputRef.current);
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
 
-    container.remove();
-  });
+    afterEach(() => {
+      container.remove();
+    });
 
-  it('focuses the root element of the dialog if no `initialFocus` is set', () => {
-    const container = document.createElement('div');
-    document.body.appendChild(container);
+    it('focuses the `initialFocus` element', () => {
+      const inputRef = createRef();
 
-    const wrapper = mount(
-      <Dialog>
-        <div>Test</div>
-      </Dialog>,
-      { attachTo: container }
-    );
+      mount(
+        <Dialog initialFocus={inputRef}>
+          <input ref={inputRef} />
+        </Dialog>,
+        { attachTo: container }
+      );
 
-    assert.equal(
-      document.activeElement,
-      wrapper.find('[role="dialog"]').getDOMNode()
-    );
+      assert.equal(document.activeElement, inputRef.current);
+    });
 
-    container.remove();
+    it('focuses the dialog if `initialFocus` prop is missing', () => {
+      const wrapper = mount(
+        <Dialog>
+          <div>Test</div>
+        </Dialog>,
+        { attachTo: container }
+      );
+
+      assert.equal(
+        document.activeElement,
+        wrapper.find('[role="dialog"]').getDOMNode()
+      );
+    });
+
+    it('focuses the dialog if `initialFocus` ref is `null`', () => {
+      const wrapper = mount(
+        <Dialog initialFocus={{ current: null }}>
+          <div>Test</div>
+        </Dialog>,
+        { attachTo: container }
+      );
+
+      assert.equal(
+        document.activeElement,
+        wrapper.find('[role="dialog"]').getDOMNode()
+      );
+    });
+
+    it('focuses the dialog if `initialFocus` element is disabled', () => {
+      const inputRef = createRef();
+
+      const wrapper = mount(
+        <Dialog initialFocus={inputRef}>
+          <button ref={inputRef} disabled={true} />
+        </Dialog>,
+        { attachTo: container }
+      );
+
+      assert.equal(
+        document.activeElement,
+        wrapper.find('[role="dialog"]').getDOMNode()
+      );
+    });
   });
 
   it("marks the first `<p>` in the dialog's content as the accessible description", () => {
