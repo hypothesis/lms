@@ -13,7 +13,7 @@ certifi==2020.6.20        # via -r requirements/bddtests.txt, -r requirements/fu
 chardet==3.0.4            # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, requests
 coverage==5.2.1           # via -r requirements/tests.txt
 factory-boy==3.0.1        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
-faker==4.1.1              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, factory-boy
+faker==4.1.2              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, factory-boy
 gunicorn==20.0.4          # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 h-api==1.0.0              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 h-matchers==1.2.9         # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
