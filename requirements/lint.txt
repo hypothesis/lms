@@ -33,7 +33,7 @@ markupsafe==1.1.1         # via -r requirements/bddtests.txt, -r requirements/fu
 marshmallow==3.7.1        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, webargs
 mccabe==0.6.1             # via pylint
 more-itertools==8.4.0     # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
-newrelic==5.16.0.145      # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
+newrelic==5.16.1.146      # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 oauth2==1.9.0.post1       # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pylti
 oauthlib==3.1.0           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, requests-oauthlib
 packaging==20.4           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
