@@ -4,6 +4,7 @@ from pyramid.view import (
     exception_view_config,
     forbidden_view_config,
     notfound_view_config,
+    view_defaults,
 )
 
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, LTIOutcomesAPIError
@@ -12,52 +13,125 @@ from lms.validation import ValidationError
 _ = i18n.TranslationStringFactory(__package__)
 
 
-@exception_view_config(context=ValidationError, renderer="json")
-def validation_error(context, request):
-    request.response.status_int = 422
-    # For frontend requests to proxy API endpoints, handle schema
-    # validation errors.
-    return {"message": context.explanation, "details": context.messages}
+@view_defaults(renderer="json")
+class ExceptionViews:
+    """
+    Exception views for the API.
 
+    Error responses from the API have JSON bodies with the following keys (all
+    optional):
 
-@exception_view_config(context=CanvasAPIAccessTokenError, renderer="json")
-def canvas_api_access_token_error(request):
-    request.response.status_int = 400
-    # For a CanvasAPIAccessTokenError we don't send any error message or
-    # details to the frontend because we don't want the frontend to show any
-    # error message to the user in this case. Just the 400 status so the
-    # frontend knows that the request failed, and that it should show the user
-    # an [Authorize] button so they can get a (new) access token and try again.
-    return {"message": None, "details": None}
+    1. "auth_url": A URL to (re-)authenticate with the third-party API that's
+       being proxied, such as the Canvas API or the Blackboard API.
 
+       The frontend will open this URL in a popup window to get the user to
+       (re-)authenticate with the third-party API before re-trying the failed
+       proxy API request.
 
-@exception_view_config(context=CanvasAPIError, renderer="json")
-@exception_view_config(context=LTIOutcomesAPIError, renderer="json")
-def proxy_api_error(context, request):
-    request.response.status_int = 400
-    # Send the frontend an error message and details to show to the user for
-    # debugging.
-    return {"message": context.explanation, "details": context.details}
+    2. "message": An error message for the frontend to show to the user.
 
+       If "message" is present the frontend will show an error dialog that
+       indicates that something went wrong and has a [Try again] button that
+       opens "auth_url".
 
-@forbidden_view_config(path_info="/api/*", renderer="json")
-def forbidden(request):
-    request.response.status_int = 403
-    return {"message": _("You're not authorized to view this page")}
+       If no "message" is present the frontend will show a standard
+       authorization dialog (not an error dialog) and the button that opens
+       "auth_url" will be labelled [Authorize].
 
+    3. "details": Optional further error details to show to the user after
+       "message", for debugging and support.
 
-@notfound_view_config(path_info="/api/*", renderer="json")
-def notfound(request):
-    request.response.status_int = 404
-    return {"message": _("Endpoint not found")}
+    The HTTP status codes of the API error responses are:
 
+    * 403 Forbidden is used if the frontend's authentication to the backend's
+      API failed
 
-@exception_view_config(path_info="/api/*", context=Exception, renderer="json")
-def api_error(request):
-    """Fallback error handler for frontend API requests."""
-    request.response.status_int = 500
+    * 400 Bad Request is deliberately abused whenever the backend's
+      server-to-server request to a third-party API (such as the Canvas API or
+      the Blackboard API) fails or can't be made for any reason.
 
-    # Exception details are not reported here to avoid leaking internal information.
-    return {
-        "message": "A problem occurred while handling this request. Hypothesis has been notified."
-    }
+      For example if we can't authenticate to the third-party API because we
+      don't have an access token for this user yet; if we get an authentication
+      error from the third-party API because the access token has expired (and
+      can't be refreshed); if the third-party API returns an invalid,
+      unexpected or unsuccessful response; are all 400s.
+
+      The frontend uses the JSON bodies of these 400 Bad Request responses to
+      distinguish between them and decide what to do.
+
+      Since 403 is used to mean that the frontend's authentication *to the
+      backend* failed, it can't also be used to indicate failure of the
+      backend's server-to-server request to authenticate with the third-party
+      API. Hence why 400 is used for this.
+
+      You might think that some sort of gateway error (e.g. 502 Bad Gateway) is
+      more semantically correct than abusing 400 here. But Cloudflare replaces
+      502 JSON responses from our app with its own Cloudflare error pages. So
+      we can't use 5xx statuses in production.
+
+    * 422 is used for validation errors (if the frontend sent invalid params to
+      a backend API) (in practice this should never happen)
+
+    * 404 Not Found is used for API endpoints that don't exist
+      (in practice this should never happen)
+
+    * 500 Server Error is used for unexpected exceptions (our code crashed)
+      (in practice this should never happen)
+
+    """
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    @exception_view_config(context=ValidationError)
+    def validation_error(self):
+        self.request.response.status_int = 422
+        return {
+            "message": self.context.explanation,
+            "details": self.context.messages,
+        }
+
+    @exception_view_config(context=CanvasAPIAccessTokenError)
+    def canvas_api_access_token_error(self):
+        self.request.response.status_int = 400
+        return {
+            "message": None,
+            "details": None,
+        }
+
+    @exception_view_config(context=CanvasAPIError)
+    @exception_view_config(context=LTIOutcomesAPIError)
+    def proxy_api_error(self):
+        self.request.response.status_int = 400
+        return {
+            "message": self.context.explanation,
+            "details": self.context.details,
+        }
+
+    @exception_view_config(path_info="/api/*", context=Exception)
+    def api_error(self):
+        """Fallback error handler for frontend API requests."""
+        self.request.response.status_int = 500
+
+        # Exception details are not reported here to avoid leaking internal information.
+        return {
+            "message": (
+                "A problem occurred while handling this request. Hypothesis has been"
+                " notified."
+            ),
+        }
+
+    @forbidden_view_config(path_info="/api/*")
+    def forbidden(self):
+        self.request.response.status_int = 403
+        return {
+            "message": _("You're not authorized to view this page"),
+        }
+
+    @notfound_view_config(path_info="/api/*")
+    def notfound(self):
+        self.request.response.status_int = 404
+        return {
+            "message": _("Endpoint not found"),
+        }
