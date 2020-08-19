@@ -101,6 +101,29 @@ describe('Dialog', () => {
     container.remove();
   });
 
+  it("marks the first `<p>` in the dialog's content as the accessible description", () => {
+    const wrapper = mount(
+      <Dialog>
+        <p>Enter a URL</p>
+      </Dialog>
+    );
+    const content = wrapper.find('[role="dialog"]').getDOMNode();
+    const paragraphEl = wrapper.find('p').getDOMNode();
+
+    assert.ok(content.getAttribute('aria-describedby'));
+    assert.equal(content.getAttribute('aria-describedby'), paragraphEl.id);
+  });
+
+  it("does not set an accessible description if the dialog's content does not have a `<p>`", () => {
+    const wrapper = mount(
+      <Dialog>
+        <button>Click me</button>
+      </Dialog>
+    );
+    const content = wrapper.find('[role="dialog"]').getDOMNode();
+    assert.isNull(content.getAttribute('aria-describedby'));
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

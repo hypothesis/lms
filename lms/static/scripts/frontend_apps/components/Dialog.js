@@ -1,5 +1,5 @@
 import { createElement, Fragment } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import classNames from 'classnames';
 
 import Button from './Button';
@@ -37,10 +37,9 @@ import { useUniqueId } from '../utils/hooks';
  * https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/dialog.html
  * https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/alertdialog.html
  *
- * Things that are not implemented here yet:
- *
- * - A description which is reliably read out when the dialog is opened, in
- *   addition to the title.
+ * If the dialog's content, specified by the `children` prop, contains a paragraph
+ * (`<p>`) element, that element will be identified as the dialog's accessible
+ * description.
  *
  * @param {DialogProps} props
  */
@@ -54,6 +53,8 @@ export default function Dialog({
   buttons,
 }) {
   const dialogTitleId = useUniqueId('dialog-title');
+  const dialogDescriptionId = useUniqueId('dialog-description');
+
   const rootEl = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useElementShouldClose(rootEl, true, () => {
@@ -75,6 +76,19 @@ export default function Dialog({
     //
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If the content of the dialog contains a paragraph of text, mark it as the
+  // dialog's accessible description.
+  //
+  // A limitation of this approach is that it doesn't update if the dialog's
+  // content changes after the initial render.
+  useLayoutEffect(() => {
+    const description = rootEl.current.querySelector('p');
+    if (description) {
+      description.id = dialogDescriptionId;
+      rootEl.current.setAttribute('aria-describedby', dialogDescriptionId);
+    }
+  }, [dialogDescriptionId]);
 
   return (
     <Fragment>
