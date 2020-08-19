@@ -6,6 +6,7 @@ from lms.models.grading_info import GradingInfo
 from lms.models.group_info import GroupInfo
 from lms.models.h_group import HGroup
 from lms.models.h_user import HUser
+from lms.models.learning_management_system import LearningManagementSystem
 from lms.models.lti_launches import LtiLaunches
 from lms.models.lti_user import LTIUser, display_name
 from lms.models.module_item_configuration import ModuleItemConfiguration
