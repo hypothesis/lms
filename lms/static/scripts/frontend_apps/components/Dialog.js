@@ -54,7 +54,6 @@ export default function Dialog({
   buttons,
 }) {
   const dialogTitleId = useUniqueId('dialog-title');
-  const dialogDescriptionId = useUniqueId('dialog-description');
   const rootEl = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useElementShouldClose(rootEl, true, () => {
@@ -89,7 +88,6 @@ export default function Dialog({
           ref={rootEl}
           role={role}
           aria-labelledby={dialogTitleId}
-          aria-describedby={dialogDescriptionId}
           aria-modal={true}
           className={classNames('Dialog__content', contentClass)}
         >
@@ -106,7 +104,7 @@ export default function Dialog({
               </button>
             )}
           </h1>
-          <div id={dialogDescriptionId}>{children}</div>
+          {children}
           <div className="u-stretch" />
           <div className="Dialog__actions">
             {onCancel && (
