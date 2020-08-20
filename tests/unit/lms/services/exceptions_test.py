@@ -75,39 +75,20 @@ class TestExternalRequestError:
 
 class TestCanvasAPIError:
     @pytest.mark.parametrize(
-        "status,expected_status,expected_exception_class,expected_exception_string",
+        "status,expected_status,expected_exception_class",
         [
             # A 401 Unauthorized response from Canvas, because our access token was
             # expired or deleted.
-            (
-                401,
-                "401 Unauthorized",
-                CanvasAPIAccessTokenError,
-                "401 Client Error: Unauthorized for url: https://example.com/",
-            ),
+            (401, "401 Unauthorized", CanvasAPIAccessTokenError,),
             # A 400 Bad Request response from Canvas, because we sent an invalid
             # parameter or something.
-            (
-                400,
-                "400 Bad Request",
-                CanvasAPIServerError,
-                "400 Client Error: Bad Request for url: https://example.com/",
-            ),
+            (400, "400 Bad Request", CanvasAPIServerError,),
             # An unexpected error response from Canvas.
-            (
-                500,
-                "500 Internal Server Error",
-                CanvasAPIServerError,
-                "500 Server Error: Internal Server Error for url: https://example.com/",
-            ),
+            (500, "500 Internal Server Error", CanvasAPIServerError,),
         ],
     )
     def test_it_raises_the_right_subclass_for_different_Canvas_responses(
-        self,
-        status,
-        expected_status,
-        expected_exception_class,
-        expected_exception_string,
+        self, status, expected_status, expected_exception_class,
     ):
         cause = self._requests_exception(status=status)
 
@@ -116,24 +97,21 @@ class TestCanvasAPIError:
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == cause.response
         assert raised_exception.details == {
-            "exception": expected_exception_string,
             "validation_errors": None,
             "response": {"status": expected_status, "body": '{"foo": "bar"}'},
         }
 
     @pytest.mark.parametrize(
-        "cause,expected_exception_string",
+        "cause",
         [
-            (requests.RequestException(), "RequestException()"),
-            (requests.ConnectionError(), "ConnectionError()"),
-            (requests.TooManyRedirects(), "TooManyRedirects()"),
-            (requests.ConnectTimeout(), "ConnectTimeout()"),
-            (requests.ReadTimeout(), "ReadTimeout()"),
+            requests.RequestException(),
+            requests.ConnectionError(),
+            requests.TooManyRedirects(),
+            requests.ConnectTimeout(),
+            requests.ReadTimeout(),
         ],
     )
-    def test_it_raises_CanvasAPIServerError_for_all_other_requests_errors(
-        self, cause, expected_exception_string
-    ):
+    def test_it_raises_CanvasAPIServerError_for_all_other_requests_errors(self, cause):
         raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
         assert raised_exception.__cause__ == cause
@@ -143,7 +121,6 @@ class TestCanvasAPIError:
         # property.
         assert raised_exception.response is None
         assert raised_exception.details == {
-            "exception": expected_exception_string,
             "response": None,
             "validation_errors": None,
         }
@@ -160,7 +137,6 @@ class TestCanvasAPIError:
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == canvas_api_invalid_response
         assert raised_exception.details == {
-            "exception": "Unable to process the contained instructions",
             "response": {"body": "Invalid", "status": "200 OK"},
             "validation_errors": "The response was invalid.",
         }
