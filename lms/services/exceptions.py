@@ -112,7 +112,6 @@ class CanvasAPIError(ExternalRequestError):
             exception_class = CanvasAPIServerError
 
         details = {
-            "exception": str(cause) or repr(cause),
             "validation_errors": getattr(cause, "messages", None),
         }
 
