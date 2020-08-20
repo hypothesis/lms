@@ -59,7 +59,7 @@ requests==2.24.0          # via -r requirements/requirements.txt, requests-oauth
 sentry-sdk==0.16.5        # via -r requirements/requirements.txt, h-pyramid-sentry
 six==1.15.0               # via -r requirements/requirements.txt, jsonschema, pylti, pyrsistent, python-dateutil, traitlets
 sqlalchemy==1.3.19        # via -r requirements/requirements.txt, alembic, zope.sqlalchemy
-supervisor==4.2.0         # via -r requirements/dev.in
+supervisor==4.2.1         # via -r requirements/dev.in
 text-unidecode==1.3       # via faker
 traitlets==4.3.3          # via ipython
 transaction==2.4.0        # via -r requirements/requirements.txt, pyramid-tm, zope.sqlalchemy
