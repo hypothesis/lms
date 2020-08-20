@@ -69,7 +69,8 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   // or invoke the API callback to fetch the URL otherwise.
   const [contentUrl, setContentUrl] = useState(viaUrl ? viaUrl : null);
 
-  // How many current blocking request are pending
+  // Count of pending API requests which must complete before the assignment
+  // content can be shown.
   const [fetchCount, setFetchCount] = useState(0);
 
   // `AuthWindow` instance, set only when waiting for the user to approve
@@ -107,25 +108,45 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   };
 
   /**
-   * Fetch the groups from the sync endpoint if `sync` object exists.
+   * Fetch the list of groups to show in the client.
+   *
+   * On the initial launch fetching groups does not block display of the assignment,
+   * so `updateFetchCount` should be false. After re-authorization we wait
+   * for group fetching to complete before showing the content, so `updateFetchCount`
+   * should be true.
    */
-  const fetchGroups = useCallback(async () => {
-    if (!apiSync) {
-      return true;
-    }
-    try {
-      const groups = await apiCall({
-        authToken,
-        path: apiSync.path,
-        data: apiSync.data,
-      });
-      clientRpc.setGroups(groups);
-      return true;
-    } catch (e) {
-      handleError(e, 'error-fetch');
-      return false;
-    }
-  }, [apiSync, authToken, clientRpc]);
+  const fetchGroups = useCallback(
+    async (updateFetchCount = false) => {
+      if (!apiSync) {
+        return true;
+      }
+      let success;
+
+      if (updateFetchCount) {
+        incFetchCount();
+      }
+
+      try {
+        const groups = await apiCall({
+          authToken,
+          path: apiSync.path,
+          data: apiSync.data,
+        });
+        clientRpc.setGroups(groups);
+        success = true;
+      } catch (e) {
+        handleError(e, 'error-fetch');
+        success = false;
+      }
+
+      if (updateFetchCount) {
+        decFetchCount();
+      }
+
+      return success;
+    },
+    [apiSync, authToken, clientRpc]
+  );
 
   /**
    * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
@@ -140,7 +161,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // initial request, which we'll just use directly.
       return true;
     }
-    let result;
+    let success;
     incFetchCount();
     try {
       const { via_url: contentUrl } = await apiCall({
@@ -148,13 +169,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         path: viaCallbackUrl,
       });
       setContentUrl(contentUrl);
-      result = true;
+      success = true;
     } catch (e) {
       handleError(e, 'error-fetch');
-      result = false;
+      success = false;
     }
     decFetchCount();
-    return result;
+    return success;
   }, [authToken, viaCallbackUrl]);
 
   /**
@@ -217,7 +238,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       await authWindow.current.authorize();
       const [fetchedContent, fetchedGroups] = await Promise.all([
         fetchContentUrl(),
-        fetchGroups(),
+        fetchGroups(true /* updateFetchCount */),
       ]);
       if (fetchedContent && fetchedGroups) {
         setErrorState(null);

@@ -521,6 +521,45 @@ describe('BasicLtiLaunchApp', () => {
         // Dialog prompt should remain.
         await dialogShouldRemain(wrapper);
       });
+
+      it('disables "Authorize" button while re-fetching content and groups', async () => {
+        const wrapper = renderLtiLaunchApp();
+
+        // Make initial content URL and groups requests fail.
+        contentUrlReject(new ApiError(400, {}));
+        groupsCallReject(new ApiError(400, {}));
+
+        resetApiCalls();
+
+        // Click the "Authorize" button.
+        const authButton = await waitForElement(
+          wrapper,
+          'Button[label="Authorize"]'
+        );
+        authButton.prop('onClick')();
+
+        // Wait for the "Authorize" button to appear disabled.
+        await waitFor(() => {
+          wrapper.update();
+          return wrapper.find('Button[label="Authorize"]').prop('disabled');
+        });
+
+        // Let the content URL fetch complete and wait a moment.
+        // The "Authorize" button should remain disabled.
+        contentUrlResolve({
+          via_url: 'https://via.hypothes.is/123',
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 1));
+        wrapper.update();
+        assert.isTrue(
+          wrapper.find('Button[label="Authorize"]').prop('disabled')
+        );
+
+        // Let the groups fetch complete. The content should then appear.
+        groupsCallResolve(['group1', 'group2']);
+        await contentVisible(wrapper);
+      });
     });
   });
 
