@@ -47,7 +47,7 @@ psycopg2==2.8.5           # via -r requirements/bddtests.txt, -r requirements/fu
 py==1.9.0                 # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
 pycodestyle==2.6.0        # via -r requirements/lint.in
 pycrypto==2.6.1           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
-pydocstyle==5.0.2         # via -r requirements/lint.in
+pydocstyle==5.1.0         # via -r requirements/lint.in
 pyjwt==1.7.1              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 pylint==2.5.3             # via -r requirements/lint.in
 pylti==0.7.0              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
