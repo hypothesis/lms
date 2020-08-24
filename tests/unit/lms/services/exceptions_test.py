@@ -101,6 +101,16 @@ class TestCanvasAPIError:
             "response": {"status": expected_status, "body": '{"foo": "bar"}'},
         }
 
+    def test_it_raises_CanvasAccessTokenError_for_refresh_token_not_found_responses(
+        self,
+    ):
+        cause = self._requests_exception(
+            status=400,
+            body=json.dumps({"error_description": "refresh_token not found",}),
+        )
+
+        self.assert_raises(cause, CanvasAPIAccessTokenError)
+
     @pytest.mark.parametrize(
         "cause",
         [
@@ -189,7 +199,7 @@ class TestCanvasAPIError:
             httpretty.GET,
             "https://example.com",
             priority=1,
-            body=json.dumps({"foo": "bar"}),
+            body=kwargs.pop("body", json.dumps({"foo": "bar"})),
             **kwargs
         )
 
