@@ -25,32 +25,17 @@ node {
         img = buildApp(name: "hypothesis/lms")
     }
 
-    // Run each of the stages in parallel.
-    parallel failFast: true,
-    "Backend tests": {
-        stage("Backend tests") {
-            // Run the Postgres test DB in a Docker container.
-            postgresContainer = docker.image("postgres:11.5").run("-P -e POSTGRES_DB=lmstest")
+    stage("Backend tests") {
+        // Run the Postgres test DB in a Docker container.
+        postgresContainer = docker.image("postgres:11.5").run("-P -e POSTGRES_DB=lmstest")
 
-            try {
-                testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)}") {
-                    installDeps()
-                    run("make backend-tests functests-only bddtests")
-                }
-            } finally {
-                postgresContainer.stop()
+        try {
+            testApp(image: img, runArgs: "${runArgs} -e TEST_DATABASE_URL=${databaseUrl(postgresContainer)}") {
+                installDeps()
+                run("make functests-only")
             }
-        }
-    },
-    "Frontend tests": {
-        stage("Frontend tests") {
-            frontendTestContainer = docker.build(
-              "hypothesis/lms-frontend-test", "-f ./jenkins/frontend-test.dockerfile jenkins/"
-            )
-            workspace = pwd()
-            frontendTestContainer.inside("${runArgs} -e HOME=${workspace}") {
-                sh "make frontend-tests"
-            }
+        } finally {
+            postgresContainer.stop()
         }
     }
 
