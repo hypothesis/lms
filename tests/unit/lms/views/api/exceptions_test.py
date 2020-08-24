@@ -2,7 +2,7 @@ import pytest
 
 from lms.services import CanvasAPIError, LTIOutcomesAPIError
 from lms.validation import ValidationError
-from lms.views.api.error import ExceptionViews
+from lms.views.api.exceptions import ExceptionViews
 
 
 class TestSchemaValidationError:

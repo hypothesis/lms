@@ -4,7 +4,7 @@ import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
 
 from lms.validation import ValidationError
-from lms.views import error
+from lms.views import exceptions
 
 
 class ExceptionViewTest:
@@ -47,7 +47,7 @@ class ExceptionViewTest:
 
 
 class TestNotFound(ExceptionViewTest):
-    view = error.notfound
+    view = exceptions.notfound
     exception = None
 
     response_status = 404
@@ -56,7 +56,7 @@ class TestNotFound(ExceptionViewTest):
 
 
 class TestForbidden(ExceptionViewTest):
-    view = error.forbidden
+    view = exceptions.forbidden
     exception = None
 
     response_status = 403
@@ -65,7 +65,7 @@ class TestForbidden(ExceptionViewTest):
 
 
 class TestHTTPClientError(ExceptionViewTest):
-    view = error.http_client_error
+    view = exceptions.http_client_error
     exception = HTTPBadRequest("This is the error message")
 
     response_status = 400
@@ -74,7 +74,7 @@ class TestHTTPClientError(ExceptionViewTest):
 
 
 class TestHTTPServerError(ExceptionViewTest):
-    view = error.http_server_error
+    view = exceptions.http_server_error
     exception = HTTPServerError("This is the error message")
 
     response_status = 500
@@ -83,7 +83,7 @@ class TestHTTPServerError(ExceptionViewTest):
 
 
 class TestValidationError(ExceptionViewTest):
-    view = error.validation_error
+    view = exceptions.validation_error
     exception = ValidationError(mock.sentinel.messages)
 
     response_status = 422
@@ -92,7 +92,7 @@ class TestValidationError(ExceptionViewTest):
 
 
 class TestError(ExceptionViewTest):
-    view = error.error
+    view = exceptions.error
     exception = None
 
     response_status = 500
@@ -108,4 +108,4 @@ class TestError(ExceptionViewTest):
 
 @pytest.fixture(autouse=True)
 def h_pyramid_sentry(patch):
-    return patch("lms.views.error.h_pyramid_sentry")
+    return patch("lms.views.exceptions.h_pyramid_sentry")
