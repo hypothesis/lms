@@ -1,19 +1,15 @@
 import { act } from 'preact/test-utils';
-import { Fragment, createElement } from 'preact';
+import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import LMSGrader, { $imports } from '../LMSGrader';
 import { checkAccessibility } from '../../../test-util/accessibility';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('LMSGrader', () => {
   let fakeStudents;
   let fakeOnChange;
   let fakeClientRpc;
-
-  // eslint-disable-next-line react/prop-types
-  const FakeStudentSelector = ({ children }) => {
-    return <Fragment>{children}</Fragment>;
-  };
 
   /**
    * Helper to return a list of displayNames of the students.
@@ -23,7 +19,7 @@ describe('LMSGrader', () => {
    */
   function getDisplayNames(wrapper) {
     return wrapper
-      .find('FakeStudentSelector')
+      .find('StudentSelector')
       .prop('students')
       .map(s => {
         return s.displayName;
@@ -50,9 +46,7 @@ describe('LMSGrader', () => {
       setFocusedUser: sinon.stub(),
     };
 
-    $imports.$mock({
-      './StudentSelector': FakeStudentSelector,
-    });
+    $imports.$mock(mockImportedComponents());
   });
 
   afterEach(() => {
@@ -174,7 +168,7 @@ describe('LMSGrader', () => {
     ];
     const wrapper = renderGrader();
     const orderedStudentNames = wrapper
-      .find('FakeStudentSelector')
+      .find('StudentSelector')
       .prop('students')
       .map(s => {
         return s.displayName;
@@ -185,7 +179,7 @@ describe('LMSGrader', () => {
   it('set the selected student count to "Student 2 of 2" when the index changers to 1', () => {
     const wrapper = renderGrader();
     act(() => {
-      wrapper.find(FakeStudentSelector).props().onSelectStudent(1); // second student
+      wrapper.find('StudentSelector').props().onSelectStudent(1); // second student
     });
     assert.equal(
       wrapper.find('.LMSGrader__student-count').text(),
@@ -202,7 +196,7 @@ describe('LMSGrader', () => {
     const wrapper = renderGrader();
 
     act(() => {
-      wrapper.find(FakeStudentSelector).props().onSelectStudent(0); // note: initial index is -1
+      wrapper.find('StudentSelector').props().onSelectStudent(0); // note: initial index is -1
     });
 
     assert.calledWith(fakeClientRpc.setFocusedUser, fakeStudents[0]);
@@ -211,7 +205,7 @@ describe('LMSGrader', () => {
   it('does not set a focus user when the user index is invalid', () => {
     const wrapper = renderGrader();
     act(() => {
-      wrapper.find(FakeStudentSelector).props().onSelectStudent(-1); // invalid choice
+      wrapper.find('StudentSelector').props().onSelectStudent(-1); // invalid choice
     });
 
     assert.calledWith(fakeClientRpc.setFocusedUser, null);

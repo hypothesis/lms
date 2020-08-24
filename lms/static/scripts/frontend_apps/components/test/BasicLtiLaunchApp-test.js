@@ -1,5 +1,6 @@
 import { mount } from 'enzyme';
 import { Fragment, createElement } from 'preact';
+import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ApiError } from '../../utils/api';
@@ -67,6 +68,7 @@ describe('BasicLtiLaunchApp', () => {
     fakeApiCall = sinon.stub();
     FakeAuthWindow = sinon.stub().returns({
       authorize: sinon.stub().resolves(null),
+      focus: sinon.stub(),
     });
     fakeRpcServer = {
       setGroups: sinon.stub(),
@@ -216,11 +218,16 @@ describe('BasicLtiLaunchApp', () => {
       // Click the "Authorize" button
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
-      authButton.prop('onClick')();
+
+      act(() => {
+        authButton.prop('onClick')();
+      });
       assert.calledOnce(FakeAuthWindow);
 
       // Click the "Authorize" button again
-      authButton.prop('onClick')();
+      act(() => {
+        authButton.prop('onClick')();
+      });
       assert.calledOnce(FakeAuthWindow);
     });
 
