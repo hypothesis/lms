@@ -19,16 +19,19 @@ registerIcons(iconSet);
 let pendingError = null;
 let pendingErrorNotice = null;
 
+/* istanbul ignore next */
 window.addEventListener('error', event => {
   pendingError = event.error;
   pendingErrorNotice = 'An uncaught exception was thrown between tests';
 });
+/* istanbul ignore next */
 window.addEventListener('unhandledrejection', event => {
   pendingError = event.reason;
   pendingErrorNotice = 'An uncaught promise rejection occurred between tests';
 });
 
 afterEach(() => {
+  /* istanbul ignore if */
   if (pendingError) {
     console.error(pendingErrorNotice);
     throw pendingError;
