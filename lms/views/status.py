@@ -11,6 +11,6 @@ def status(request):
     try:
         request.db.execute("SELECT 1")
         return {"status": "okay"}
-    except Exception:
+    except Exception as err:
         LOG.exception("Executing a simple database query failed:")
-        raise HTTPInternalServerError("Database connection failed")
+        raise HTTPInternalServerError("Database connection failed") from err
