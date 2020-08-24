@@ -26,6 +26,12 @@ import { useUniqueId } from '../utils/hooks';
  */
 
 /**
+ * HTML control that can be disabled.
+ *
+ * @typedef {HTMLElement & { disabled: boolean }} InputElement
+ */
+
+/**
  * A modal dialog wrapper with a title. The wrapper sets initial focus to itself
  * unless an element inside of it is specified with the `initialFocus` ref.
  * Optional action buttons may be passed in with the `buttons` prop but the
@@ -64,8 +70,7 @@ export default function Dialog({
   });
 
   useEffect(() => {
-    /** @type {HTMLElement & { disabled?: boolean }} */
-    const focusEl = initialFocus?.current;
+    const focusEl = /** @type {InputElement|undefined} */ (initialFocus?.current);
     if (focusEl && !focusEl.disabled) {
       focusEl.focus();
     } else {
