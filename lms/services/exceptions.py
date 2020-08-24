@@ -106,10 +106,18 @@ class CanvasAPIError(ExternalRequestError):
         response = getattr(cause, "response", None)
         status_code = getattr(response, "status_code", None)
 
+        exception_class = CanvasAPIServerError
+
         if status_code == 401:
             exception_class = CanvasAPIAccessTokenError
-        else:
-            exception_class = CanvasAPIServerError
+        elif response is not None:
+            try:
+                json = response.json()
+            except ValueError:
+                pass
+            else:
+                if json.get("error_description") == "refresh_token not found":
+                    exception_class = CanvasAPIAccessTokenError
 
         details = {
             "validation_errors": getattr(cause, "messages", None),
