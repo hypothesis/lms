@@ -10,13 +10,6 @@ from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
 
-class TestJSConfig:
-    """General unit tests for JSConfig."""
-
-    def test_auth_url(self, config):
-        assert config["canvas"]["authUrl"] == "http://example.com/api/canvas/authorize"
-
-
 class TestEnableContentItemSelectionMode:
     def test_it(self, context, js_config):
         js_config.enable_content_item_selection_mode(

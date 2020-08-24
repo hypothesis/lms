@@ -83,6 +83,12 @@ class ExceptionViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.default_response_data = {}
+
+        if request.matched_route.name.startswith("canvas_api."):
+            self.default_response_data["auth_url"] = request.route_url(
+                "canvas_api.authorize"
+            )
 
     @exception_view_config(context=ValidationError)
     def validation_error(self):
@@ -90,6 +96,7 @@ class ExceptionViews:
         return {
             "message": self.context.explanation,
             "details": self.context.messages,
+            **self.default_response_data,
         }
 
     @exception_view_config(context=CanvasAPIAccessTokenError)
@@ -98,6 +105,7 @@ class ExceptionViews:
         return {
             "message": None,
             "details": None,
+            **self.default_response_data,
         }
 
     @exception_view_config(context=CanvasAPIError)
@@ -107,6 +115,7 @@ class ExceptionViews:
         return {
             "message": self.context.explanation,
             "details": self.context.details,
+            **self.default_response_data,
         }
 
     @exception_view_config(path_info="/api/*", context=Exception)
@@ -120,6 +129,7 @@ class ExceptionViews:
                 "A problem occurred while handling this request. Hypothesis has been"
                 " notified."
             ),
+            **self.default_response_data,
         }
 
     @forbidden_view_config(path_info="/api/*")
@@ -127,6 +137,7 @@ class ExceptionViews:
         self.request.response.status_int = 403
         return {
             "message": _("You're not authorized to view this page"),
+            **self.default_response_data,
         }
 
     @notfound_view_config(path_info="/api/*")
@@ -134,4 +145,5 @@ class ExceptionViews:
         self.request.response.status_int = 404
         return {
             "message": _("Endpoint not found"),
+            **self.default_response_data,
         }
