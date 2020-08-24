@@ -52,8 +52,8 @@ class LaunchVerifier:
     def _verify(self):
         try:
             consumer_key = self._request.params["oauth_consumer_key"]
-        except KeyError:
-            raise NoConsumerKey()
+        except KeyError as err:
+            raise NoConsumerKey() from err
 
         application_instance = models.ApplicationInstance.get_by_consumer_key(
             self._request.db, consumer_key
@@ -84,10 +84,10 @@ class LaunchVerifier:
             )
         except pylti.common.LTIException as err:
             raise LTIOAuthError() from err
-        except KeyError:
+        except KeyError as err:
             # pylti crashes if certain params (e.g. oauth_nonce) are missing
             # from the request.
-            raise LTIOAuthError()
+            raise LTIOAuthError() from err
 
         if not valid:
             raise LTIOAuthError()

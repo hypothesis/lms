@@ -87,8 +87,8 @@ def configure(settings):
             env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[
                 0:16
             ]
-        except UnicodeEncodeError:
-            raise SettingError("LMS_SECRET must contain only ASCII characters")
+        except UnicodeEncodeError as err:
+            raise SettingError("LMS_SECRET must contain only ASCII characters") from err
 
     env_settings["rpc_allowed_origins"] = aslist(env_settings["rpc_allowed_origins"])
 
