@@ -12,3 +12,25 @@ configure({ adapter: new Adapter() });
 import { registerIcons } from './frontend_apps/components/SvgIcon';
 import iconSet from './frontend_apps/icons';
 registerIcons(iconSet);
+
+// Ensure that uncaught exceptions between tests result in the tests failing.
+// This works around an issue with mocha / karma-mocha, see
+// https://github.com/hypothesis/client/issues/2249.
+let pendingError = null;
+let pendingErrorNotice = null;
+
+window.addEventListener('error', event => {
+  pendingError = event.error;
+  pendingErrorNotice = 'An uncaught exception was thrown between tests';
+});
+window.addEventListener('unhandledrejection', event => {
+  pendingError = event.reason;
+  pendingErrorNotice = 'An uncaught promise rejection occurred between tests';
+});
+
+afterEach(() => {
+  if (pendingError) {
+    console.error(pendingErrorNotice);
+    throw pendingError;
+  }
+});

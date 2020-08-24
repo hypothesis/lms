@@ -31,13 +31,26 @@ describe('postmessage_json_rpc/client', () => {
       );
     }
 
+    function emitReply(result = null) {
+      fakeWindow.emitter.emit('message', {
+        origin,
+        data: {
+          jsonrpc: '2.0',
+          id: messageId,
+          result,
+        },
+      });
+    }
+
     beforeEach(() => {
       frame = { postMessage: sinon.stub() };
       fakeWindow = new FakeWindow();
     });
 
-    it('sends a message to the target frame', () => {
-      doCall();
+    it('sends a message to the target frame', async () => {
+      const result = doCall();
+      emitReply();
+      await result;
 
       assert.calledWith(frame.postMessage, {
         jsonrpc: '2.0',
@@ -137,14 +150,7 @@ describe('postmessage_json_rpc/client', () => {
     it('resolves with the result if the `result` field is set in the response', async () => {
       const call = doCall();
       const expectedResult = { foo: 'bar' };
-      fakeWindow.emitter.emit('message', {
-        origin,
-        data: {
-          jsonrpc: '2.0',
-          id: messageId,
-          result: expectedResult,
-        },
-      });
+      emitReply(expectedResult);
 
       assert.deepEqual(await call, expectedResult);
     });
