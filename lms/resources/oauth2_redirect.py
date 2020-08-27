@@ -3,8 +3,8 @@ from pyramid.security import Allow
 from lms.resources._js_config import JSConfig
 
 
-class CanvasOAuth2RedirectResource:
-    """Resource for the Canvas OAuth 2 redirect popup."""
+class OAuth2RedirectResource:
+    """Resource for the OAuth 2 redirect popup."""
 
     __acl__ = [(Allow, "lti_user", "canvas_api")]
 
