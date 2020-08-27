@@ -11,7 +11,7 @@ class Sync:
         route_name="canvas_api.sync",
         request_method="POST",
         renderer="json",
-        permission="sync_api",
+        permission="api",
     )
     def sync(self):
         groups = self._to_groups(self._get_sections())

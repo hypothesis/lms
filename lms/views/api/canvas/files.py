@@ -4,7 +4,7 @@ from pyramid.view import view_config, view_defaults
 from lms.views import helpers
 
 
-@view_defaults(permission="canvas_api", renderer="json")
+@view_defaults(permission="api", renderer="json")
 class FilesAPIViews:
     def __init__(self, request):
         self.request = request
