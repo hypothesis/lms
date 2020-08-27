@@ -71,7 +71,7 @@ class TestAuthenticationPolicy:
         auth_tkt_authentication_policy.remember.assert_not_called()
 
     def test_remember_falls_back_on_AuthTktAuthenticationPolicy(
-        self, policy, lti_authentication_policy, auth_tkt_authentication_policy,
+        self, policy, lti_authentication_policy, auth_tkt_authentication_policy
     ):
         lti_authentication_policy.authenticated_userid.return_value = None
 
@@ -97,7 +97,7 @@ class TestAuthenticationPolicy:
         auth_tkt_authentication_policy.forget.assert_not_called()
 
     def test_forget_falls_back_on_AuthTktAuthenticationPolicy(
-        self, policy, lti_authentication_policy, auth_tkt_authentication_policy,
+        self, policy, lti_authentication_policy, auth_tkt_authentication_policy
     ):
         lti_authentication_policy.authenticated_userid.return_value = None
 

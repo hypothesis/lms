@@ -73,7 +73,7 @@ class TestCourseService:
         ),
     )
     def test_any_with_setting(
-        self, svc, settings_set, value, expected, add_courses_with_settings,
+        self, svc, settings_set, value, expected, add_courses_with_settings
     ):
         add_courses_with_settings(settings_set)
         # Add a matching course with a different consumer key

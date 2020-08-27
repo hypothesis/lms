@@ -17,7 +17,7 @@ down_revision = "37710e6bcb66"
 
 def upgrade():
     op.add_column(
-        "application_instances", sa.Column("settings", MutableDict.as_mutable(JSONB)),
+        "application_instances", sa.Column("settings", MutableDict.as_mutable(JSONB))
     )
 
 

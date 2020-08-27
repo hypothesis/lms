@@ -79,16 +79,16 @@ class TestCanvasAPIError:
         [
             # A 401 Unauthorized response from Canvas, because our access token was
             # expired or deleted.
-            (401, "401 Unauthorized", CanvasAPIAccessTokenError,),
+            (401, "401 Unauthorized", CanvasAPIAccessTokenError),
             # A 400 Bad Request response from Canvas, because we sent an invalid
             # parameter or something.
-            (400, "400 Bad Request", CanvasAPIServerError,),
+            (400, "400 Bad Request", CanvasAPIServerError),
             # An unexpected error response from Canvas.
-            (500, "500 Internal Server Error", CanvasAPIServerError,),
+            (500, "500 Internal Server Error", CanvasAPIServerError),
         ],
     )
     def test_it_raises_the_right_subclass_for_different_Canvas_responses(
-        self, status, expected_status, expected_exception_class,
+        self, status, expected_status, expected_exception_class
     ):
         cause = self._requests_exception(status=status)
 
@@ -106,7 +106,7 @@ class TestCanvasAPIError:
     ):
         cause = self._requests_exception(
             status=400,
-            body=json.dumps({"error_description": "refresh_token not found",}),
+            body=json.dumps({"error_description": "refresh_token not found"}),
         )
 
         self.assert_raises(cause, CanvasAPIAccessTokenError)

@@ -48,7 +48,7 @@ class BasicLTILaunchViews:
         """
 
         self.request.find_service(name="lti_h").sync(
-            [self.context.h_group], self.request.params,
+            [self.context.h_group], self.request.params
         )
 
     def store_lti_data(self):

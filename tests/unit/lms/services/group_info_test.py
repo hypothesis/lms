@@ -14,9 +14,7 @@ class TestGroupInfoUpsert:
         self, application_instance, db_session, group_info_svc, params
     ):
         group_info_svc.upsert(
-            factories.HGroup(
-                authority_provided_id=self.AUTHORITY, type="course_group",
-            ),
+            factories.HGroup(authority_provided_id=self.AUTHORITY, type="course_group"),
             consumer_key=application_instance.consumer_key,
             params=params,
         )
@@ -40,9 +38,7 @@ class TestGroupInfoUpsert:
         db_session.add(pre_existing_group)
 
         group_info_svc.upsert(
-            factories.HGroup(
-                authority_provided_id=self.AUTHORITY, type="course_group",
-            ),
+            factories.HGroup(authority_provided_id=self.AUTHORITY, type="course_group"),
             consumer_key=application_instance.consumer_key,
             params=dict(params, context_title="NEW_TITLE"),
         )
@@ -58,9 +54,7 @@ class TestGroupInfoUpsert:
         self, application_instance, db_session, group_info_svc, params
     ):
         group_info_svc.upsert(
-            factories.HGroup(
-                authority_provided_id=self.AUTHORITY, type="course_group",
-            ),
+            factories.HGroup(authority_provided_id=self.AUTHORITY, type="course_group"),
             consumer_key=application_instance.consumer_key,
             params=dict(
                 params,
@@ -80,9 +74,7 @@ class TestGroupInfoUpsert:
         self, application_instance, db_session, group_info_svc, pyramid_request
     ):
         group_info_svc.upsert(
-            factories.HGroup(
-                authority_provided_id=self.AUTHORITY, type="course_group",
-            ),
+            factories.HGroup(authority_provided_id=self.AUTHORITY, type="course_group"),
             consumer_key=application_instance.consumer_key,
             params={},
         )
@@ -101,9 +93,7 @@ class TestGroupInfoUpsert:
         self, application_instance, db_session, group_info_svc
     ):
         group_info_svc.upsert(
-            factories.HGroup(
-                authority_provided_id=self.AUTHORITY, type="course_group",
-            ),
+            factories.HGroup(authority_provided_id=self.AUTHORITY, type="course_group"),
             consumer_key=application_instance.consumer_key,
             params={},
         )

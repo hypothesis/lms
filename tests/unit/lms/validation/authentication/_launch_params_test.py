@@ -12,7 +12,7 @@ class TestLaunchParamsAuthSchema:
         lti_user = schema.lti_user()
 
         display_name.assert_called_once_with(
-            "TEST_GIVEN_NAME", "TEST_FAMILY_NAME", "TEST_FULL_NAME",
+            "TEST_GIVEN_NAME", "TEST_FAMILY_NAME", "TEST_FULL_NAME"
         )
         assert lti_user == LTIUser(
             user_id="TEST_USER_ID",
@@ -26,9 +26,7 @@ class TestLaunchParamsAuthSchema:
     def test_user_info_fields_default_to_empty_strings(self, schema, display_name):
         schema.lti_user()
 
-        display_name.assert_called_once_with(
-            "", "", "",
-        )
+        display_name.assert_called_once_with("", "", "")
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
         schema.lti_user()

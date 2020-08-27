@@ -66,7 +66,7 @@ def upgrade():
 
         session.add(
             CourseGroupsExportedFromH(
-                authority_provided_id=authority_provided_id, created=created,
+                authority_provided_id=authority_provided_id, created=created
             )
         )
         rows_inserted += 1

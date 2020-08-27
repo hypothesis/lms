@@ -44,7 +44,7 @@ class TestCanvasAPIClient:
         )
 
     def test_authenticated_users_sections_deduplicates_sections(
-        self, canvas_api_client, http_session,
+        self, canvas_api_client, http_session
     ):
         http_session.set_response(
             {"sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]}
@@ -164,7 +164,7 @@ class TestCanvasAPIClient:
             Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
-                    {"content_types[]": "application/pdf", "per_page": Any.string(),}
+                    {"content_types[]": "application/pdf", "per_page": Any.string()}
                 ),
             ),
             timeout=Any(),
