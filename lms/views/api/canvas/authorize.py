@@ -31,9 +31,7 @@ SECTIONS_SCOPES = (
 )
 
 
-@view_config(
-    request_method="GET", route_name="canvas_api.authorize", permission="canvas_api"
-)
+@view_config(request_method="GET", route_name="canvas_api.authorize", permission="api")
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
     course_service = request.find_service(name="course")
@@ -73,7 +71,7 @@ def authorize(request):
 @view_config(
     request_method="GET",
     route_name="canvas_oauth_callback",
-    permission="canvas_api",
+    permission="api",
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
     schema=CanvasOAuthCallbackSchema,
 )

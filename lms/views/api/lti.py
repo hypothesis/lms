@@ -10,7 +10,7 @@ from lms.validation import (
 )
 
 
-@view_defaults(request_method="POST", renderer="json", permission="lti_outcomes")
+@view_defaults(request_method="POST", renderer="json", permission="api")
 class LTIOutcomesViews:
     """Views for proxy APIs interacting with LTI Outcome Management APIs."""
 
