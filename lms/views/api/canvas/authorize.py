@@ -74,7 +74,7 @@ def authorize(request):
     request_method="GET",
     route_name="canvas_oauth_callback",
     permission="canvas_api",
-    renderer="lms:templates/api/canvas/oauth2_redirect.html.jinja2",
+    renderer="lms:templates/api/oauth2/redirect.html.jinja2",
     schema=CanvasOAuthCallbackSchema,
 )
 def oauth2_redirect(request):
@@ -92,12 +92,12 @@ def oauth2_redirect(request):
 @exception_view_config(
     request_method="GET",
     route_name="canvas_oauth_callback",
-    renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+    renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 @exception_view_config(
     request_method="GET",
     route_name="canvas_api.authorize",
-    renderer="lms:templates/api/canvas/oauth2_redirect_error.html.jinja2",
+    renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
     authorize_url = None
