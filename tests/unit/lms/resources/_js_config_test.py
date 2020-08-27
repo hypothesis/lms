@@ -5,7 +5,7 @@ import jwt
 import pytest
 
 from lms.models import GradingInfo, HGroup
-from lms.resources import CanvasOAuth2RedirectResource, LTILaunchResource
+from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
@@ -507,7 +507,7 @@ class TestEnableCanvasOauth2RedirectErrorMode:
     @pytest.fixture
     def context(self):
         return mock.create_autospec(
-            CanvasOAuth2RedirectResource, spec_set=True, instance=True
+            OAuth2RedirectResource, spec_set=True, instance=True
         )
 
 

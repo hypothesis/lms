@@ -185,15 +185,15 @@ class TestOAuth2RedirectError:
         assert kwargs["authorize_url"] == expected_auth_url
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request, CanvasOAuth2RedirectResource):
-        context = CanvasOAuth2RedirectResource(pyramid_request)
+    def pyramid_request(self, pyramid_request, OAuth2RedirectResource):
+        context = OAuth2RedirectResource(pyramid_request)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
         return pyramid_request
 
     @pytest.fixture(autouse=True)
-    def CanvasOAuth2RedirectResource(self, patch):
-        return patch("lms.resources.CanvasOAuth2RedirectResource")
+    def OAuth2RedirectResource(self, patch):
+        return patch("lms.resources.OAuth2RedirectResource")
 
 
 @pytest.fixture(autouse=True)
