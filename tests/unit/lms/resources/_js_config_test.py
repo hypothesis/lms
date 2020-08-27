@@ -10,13 +10,6 @@ from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
 
-class TestJSConfig:
-    """General unit tests for JSConfig."""
-
-    def test_auth_url(self, config):
-        assert config["canvas"]["authUrl"] == "http://example.com/api/canvas/authorize"
-
-
 class TestEnableContentItemSelectionMode:
     def test_it(self, context, js_config):
         js_config.enable_content_item_selection_mode(
@@ -35,7 +28,10 @@ class TestEnableContentItemSelectionMode:
             "canvas": {
                 "enabled": True,
                 "ltiLaunchUrl": "http://example.com/lti_launches",
-                "courseId": "test_course_id",
+                "listFiles": {
+                    "authUrl": "http://example.com/api/canvas/authorize",
+                    "path": "/api/canvas/courses/test_course_id/files",
+                },
             },
         }
 
@@ -106,13 +102,13 @@ class TestEnableContentItemSelectionMode:
 class TestAddCanvasFileID:
     """Unit tests for JSConfig.add_canvas_file_id()."""
 
-    def test_it_adds_the_viaCallbackUrl(self, js_config):
+    def test_it_adds_the_viaUrl_api_config(self, js_config):
         js_config.add_canvas_file_id("example_canvas_file_id")
 
-        assert (
-            js_config.asdict()["api"]["viaCallbackUrl"]
-            == "http://example.com/api/canvas/files/example_canvas_file_id/via_url"
-        )
+        assert js_config.asdict()["api"]["viaUrl"] == {
+            "authUrl": "http://example.com/api/canvas/authorize",
+            "path": "/api/canvas/files/example_canvas_file_id/via_url",
+        }
 
     def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
         js_config.add_canvas_file_id("example_canvas_file_id")
@@ -331,6 +327,7 @@ class TestJSConfigAPISync:
     @pytest.mark.usefixtures("section_groups_on")
     def test_it(self, sync, pyramid_request, GroupInfo):
         assert sync == {
+            "authUrl": "http://example.com/api/canvas/authorize",
             "path": "/api/canvas/sync",
             "data": {
                 "course": {

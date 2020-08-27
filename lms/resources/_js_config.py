@@ -40,9 +40,12 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self._config["api"]["viaCallbackUrl"] = self._request.route_url(
-            "canvas_api.files.via_url", file_id=canvas_file_id
-        )
+        self._config["api"]["viaUrl"] = {
+            "authUrl": self._request.route_url("canvas_api.authorize"),
+            "path": self._request.route_path(
+                "canvas_api.files.via_url", file_id=canvas_file_id
+            ),
+        }
         self._add_canvas_speedgrader_settings(canvas_file_id=canvas_file_id)
 
     def add_document_url(self, document_url):
@@ -151,7 +154,13 @@ class JSConfig:
                 # construct these launch URLs our JavaScript code needs the
                 # base URL of our LTI launch endpoint.
                 "ltiLaunchUrl": self._request.route_url("lti_launches"),
-                "courseId": self._request.params.get("custom_canvas_course_id"),
+                "listFiles": {
+                    "authUrl": self._request.route_url("canvas_api.authorize"),
+                    "path": self._request.route_path(
+                        "canvas_api.courses.files.list",
+                        course_id=self._request.params.get("custom_canvas_course_id"),
+                    ),
+                },
             },
             "google": {
                 "clientId": self._request.registry.settings["google_client_id"],
@@ -311,14 +320,7 @@ class JSConfig:
                 # authenticate itself to the API.
                 "authToken": self._auth_token()
             },
-            # The URL that the JavaScript code will open if it needs the user to
-            # authorize us to request a new Canvas access token.
-            "authUrl": self._request.route_url("canvas_api.authorize"),
-            "canvas": {
-                # The URL that the JavaScript code will open if it needs the user to
-                # authorize us to request a new Canvas access token.
-                "authUrl": self._request.route_url("canvas_api.authorize"),
-            },
+            "canvas": {},
             # Some debug information, currently used in the Gherkin tests.
             "debug": {"tags": []},
             # Tell the JavaScript code whether we're in "dev" mode.
@@ -432,6 +434,7 @@ class JSConfig:
         req = self._request
 
         sync_api_config = {
+            "authUrl": req.route_url("canvas_api.authorize"),
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {
