@@ -67,7 +67,7 @@ class TestGetLTIUser:
         assert lti_user == bearer_token_schema.lti_user.return_value
 
     def test_it_returns_LTIUsers_from_authorization_query_string_params(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request,
+        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
     ):
         launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
@@ -88,7 +88,7 @@ class TestGetLTIUser:
         assert returned_lti_user == lti_user
 
     def test_it_returns_LTIUsers_from_authorization_form_fields(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request,
+        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
     ):
         launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]

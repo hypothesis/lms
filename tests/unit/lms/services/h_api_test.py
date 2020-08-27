@@ -16,9 +16,7 @@ class TestHAPI:
     # pylint: disable=protected-access
 
     def test_bulk_action_process_commands_correctly(self, h_api, BulkAPI):
-        h_api.execute_bulk(
-            [sentinel.command_1, sentinel.command_2,]
-        )
+        h_api.execute_bulk([sentinel.command_1, sentinel.command_2])
 
         BulkAPI.to_string.assert_called_once_with(
             [

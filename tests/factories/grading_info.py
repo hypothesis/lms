@@ -22,7 +22,7 @@ GradingInfo = make_factory(
     resource_link_id=Faker("hexify", text="^" * 32),
     tool_consumer_info_product_family_code=Faker(
         "random_element",
-        elements=["BlackBoardLearn", "moodle", "canvas", "sakai", "desire2learn",],
+        elements=["BlackBoardLearn", "moodle", "canvas", "sakai", "desire2learn"],
     ),
     h_username=H_USERNAME,
     h_display_name=H_DISPLAY_NAME,

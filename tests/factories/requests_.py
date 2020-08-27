@@ -13,7 +13,7 @@ class Response(Factory):
 
     encoding = "utf-8"
     status_code = Faker(
-        "random_element", elements=[200, 201, 301, 304, 401, 404, 500, 501],
+        "random_element", elements=[200, 201, 301, 304, 401, 404, 500, 501]
     )
 
     @post_generation

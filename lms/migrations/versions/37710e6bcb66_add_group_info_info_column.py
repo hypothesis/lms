@@ -17,9 +17,7 @@ down_revision = "a930adadac74"
 
 
 def upgrade():
-    op.add_column(
-        "group_info", sa.Column("info", MutableDict.as_mutable(JSONB)),
-    )
+    op.add_column("group_info", sa.Column("info", MutableDict.as_mutable(JSONB)))
     group_info_table = sa.table(
         "group_info", sa.Column("info", MutableDict.as_mutable(JSONB))
     )

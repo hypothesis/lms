@@ -30,7 +30,7 @@ def upgrade():
 
     op.create_table(
         "course_groups_exported_from_h",
-        sa.Column("authority_provided_id", sa.UnicodeText(), primary_key=True,),
+        sa.Column("authority_provided_id", sa.UnicodeText(), primary_key=True),
         sa.Column("created", sa.DateTime(), nullable=False),
     )
 

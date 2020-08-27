@@ -165,7 +165,7 @@ class TestURLConfiguredBasicLTILaunchSchema:
             schema.parse()
 
         assert exc_info.value.messages == {
-            "form": {"url": ["Missing data for required field."],},
+            "form": {"url": ["Missing data for required field."]},
         }
 
     @pytest.fixture
@@ -213,11 +213,11 @@ class TestContentItemSelectionLTILaunchSchema:
         "invalid_params,expected_error_messages",
         [
             (
-                {"lti_version": "invalid version",},
+                {"lti_version": "invalid version"},
                 {"lti_version": ["Must be one of: LTI-1p0."]},
             ),
             (
-                {"lti_message_type": "invalid message type",},
+                {"lti_message_type": "invalid message type"},
                 {"lti_message_type": ["Must be one of: ContentItemSelectionRequest."]},
             ),
         ],

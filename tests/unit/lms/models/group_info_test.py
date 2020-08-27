@@ -65,7 +65,7 @@ class TestGroupInfo:
         self, group_info, existing_instructors
     ):
         updated_instructor = factories.HUser(
-            username=group_info.instructors[1]["username"], display_name="updated",
+            username=group_info.instructors[1]["username"], display_name="updated"
         )._asdict()
 
         group_info.upsert_instructor(updated_instructor)

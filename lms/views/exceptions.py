@@ -33,7 +33,7 @@ def forbidden(_exc, request):
 
 
 @exception_view_config(
-    context=httpexceptions.HTTPClientError, renderer=DEFAULT_RENDERER,
+    context=httpexceptions.HTTPClientError, renderer=DEFAULT_RENDERER
 )
 def http_client_error(exc, request):
     """Handle an HTTP 4xx (client error) exception."""

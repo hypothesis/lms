@@ -44,9 +44,7 @@ class LTIOutcomesClient:
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(
-        self, lis_result_sourcedid, score=None, pre_record_hook=None,
-    ):
+    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
         """
         Set the score or content URL for a student submission to an assignment.
 
