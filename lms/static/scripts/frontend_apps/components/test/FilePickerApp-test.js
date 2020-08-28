@@ -41,17 +41,20 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
-      api: {},
+      api: { authToken: 'dummy-auth-token' },
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
         canvas: {
           enabled: true,
           ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
+          listFiles: {
+            authUrl: 'https://lms.anno.co/authorize',
+            path: 'https://lms.anno.co/api/files',
+          },
         },
         google: {},
       },
-      canvas: {},
     };
 
     container = document.createElement('div');
@@ -154,7 +157,13 @@ describe('FilePickerApp', () => {
       btn.props().onClick();
     });
 
-    assert.isTrue(wrapper.exists('LMSFilePicker'));
+    const filePicker = wrapper.find('LMSFilePicker');
+    assert.isTrue(filePicker.exists());
+    assert.equal(filePicker.prop('authToken'), fakeConfig.api.authToken);
+    assert.equal(
+      filePicker.prop('listFilesApi'),
+      fakeConfig.filePicker.canvas.listFiles
+    );
   });
 
   it('submits an LMS file when an LMS file is selected', () => {

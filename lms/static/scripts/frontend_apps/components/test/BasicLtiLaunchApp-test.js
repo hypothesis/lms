@@ -14,7 +14,6 @@ describe('BasicLtiLaunchApp', () => {
   let fakeApiCall;
   let FakeAuthWindow;
   let fakeConfig;
-  let fakeHypothesisConfig;
   let fakeRpcServer;
 
   // eslint-disable-next-line react/prop-types
@@ -59,9 +58,7 @@ describe('BasicLtiLaunchApp', () => {
       api: {
         authToken: 'dummyAuthToken',
       },
-      canvas: {
-        authUrl: 'https://lms.hypothes.is/authorize-lms',
-      },
+      canvas: {},
       urls: {},
       grading: {},
     };
@@ -82,17 +79,10 @@ describe('BasicLtiLaunchApp', () => {
         apiCall: fakeApiCall,
       },
     });
-
-    // fake js-config
-    fakeHypothesisConfig = sinon.stub(document, 'querySelector');
-    fakeHypothesisConfig
-      .withArgs('.js-config')
-      .returns({ text: JSON.stringify({}) });
   });
 
   afterEach(() => {
     $imports.$restore();
-    fakeHypothesisConfig.restore();
   });
 
   context('when a content URL is provided in the config', () => {
@@ -148,8 +138,13 @@ describe('BasicLtiLaunchApp', () => {
   });
 
   context('when a content URL callback is provided in the config', () => {
+    const authUrl = 'https://lms.hypothes.is/authorize-lms';
+
     beforeEach(() => {
-      fakeConfig.api.viaCallbackUrl = 'https://lms.hypothes.is/api/files/1234';
+      fakeConfig.api.viaUrl = {
+        authUrl,
+        path: 'https://lms.hypothes.is/api/files/1234',
+      };
     });
 
     it('attempts to fetch the content URL when mounted', async () => {
@@ -194,7 +189,10 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
       authButton.prop('onClick')();
-      assert.called(FakeAuthWindow);
+      assert.calledWith(FakeAuthWindow, {
+        authToken: 'dummyAuthToken',
+        authUrl,
+      });
 
       // Check that files are fetched after authorization completes.
       await contentVisible(wrapper);
@@ -350,7 +348,6 @@ describe('BasicLtiLaunchApp', () => {
         enabled: true,
         students: [{ userid: 'user1' }, { userid: 'user2' }],
       };
-      // Needs a viaUrl or viaCallbackUrl to show iframe
       fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
@@ -405,7 +402,10 @@ describe('BasicLtiLaunchApp', () => {
       //  2. groups
       fakeConfig.api = {
         authToken: 'dummyAuthToken',
-        viaCallbackUrl: 'https://lms.hypothes.is/api/files/1234',
+        viaUrl: {
+          authUrl: 'https://lms.hypothes.is/authorize-lms',
+          path: 'https://lms.hypothes.is/api/files/1234',
+        },
         sync: {
           data: {
             course: {

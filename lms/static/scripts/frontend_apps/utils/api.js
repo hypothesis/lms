@@ -74,20 +74,6 @@ async function apiCall({ path, authToken, data }) {
   return resultJson;
 }
 
-/**
- * List files in the LMS's file storage.
- *
- * @param {string} authToken
- * @param {string} courseId
- * @return {Promise<File[]>}
- */
-async function listFiles(authToken, courseId) {
-  return apiCall({
-    authToken,
-    path: `/api/canvas/courses/${courseId}/files`,
-  });
-}
-
 // Separate export from declaration to work around
 // https://github.com/robertknight/babel-plugin-mockable-imports/issues/9
-export { apiCall, listFiles };
+export { apiCall };

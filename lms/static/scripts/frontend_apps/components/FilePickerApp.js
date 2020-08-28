@@ -42,14 +42,13 @@ export default function FilePickerApp({
     filePicker: {
       formAction,
       formFields,
-      canvas: { enabled: canvasEnabled, ltiLaunchUrl, courseId },
+      canvas: { enabled: canvasEnabled, listFiles: listFilesApi, ltiLaunchUrl },
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
     },
-    canvas,
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
@@ -147,8 +146,7 @@ export default function FilePickerApp({
       dialog = (
         <LMSFilePicker
           authToken={authToken}
-          authUrl={canvas.authUrl}
-          courseId={courseId}
+          listFilesApi={listFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
         />

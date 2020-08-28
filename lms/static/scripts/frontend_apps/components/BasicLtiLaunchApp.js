@@ -43,7 +43,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // API callback to use to fetch the URL to show in the iframe. This is
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
-      viaCallbackUrl,
+      viaUrl: viaUrlApi,
       // Sync API callback and data to asynchronously load the section groups
       // to relay to the sidebar via RPC.
       sync: apiSync,
@@ -73,6 +73,9 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   // content can be shown.
   const [fetchCount, setFetchCount] = useState(0);
 
+  // The authorization URL associated with the most recent failed API call.
+  const [authUrl, setAuthUrl] = useState(/** @type {string|null} */ (null));
+
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
@@ -97,8 +100,15 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
    * @param {Error} e - Error object from request.
    * @param {ErrorState} state
    * @param {boolean} [retry=true] - Can the request be retried?
+   * @param {string} [authUrl] -
+   *   Authorization URL association with the API request
    */
-  const handleError = (e, state, retry = true) => {
+  const handleError = (e, state, retry = true, authUrl) => {
+    // Here we always set the authorization URL, but we could improve UX by
+    // not setting it if the problem is not related to authorization (eg.
+    // a network fetch error).
+    setAuthUrl(authUrl || null);
+
     if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
@@ -135,7 +145,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         clientRpc.setGroups(groups);
         success = true;
       } catch (e) {
-        handleError(e, 'error-fetch');
+        handleError(e, 'error-fetch', true /* retry */, apiSync.authUrl);
         success = false;
       }
 
@@ -149,13 +159,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   );
 
   /**
-   * Fetch the URL of the content to display in the iframe if `viaCallbackUrl`
+   * Fetch the URL of the content to display in the iframe if `viaUrlApi`
    * exists.
    *
    * This will typically be a PDF URL proxied through Via.
    */
   const fetchContentUrl = useCallback(async () => {
-    if (!viaCallbackUrl) {
+    if (!viaUrlApi) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
@@ -166,17 +176,17 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     try {
       const { via_url: contentUrl } = await apiCall({
         authToken: authToken,
-        path: viaCallbackUrl,
+        path: viaUrlApi.path,
       });
       setContentUrl(contentUrl);
       success = true;
     } catch (e) {
-      handleError(e, 'error-fetch');
+      handleError(e, 'error-fetch', true /* retry */, viaUrlApi.authUrl);
       success = false;
     }
     decFetchCount();
     return success;
-  }, [authToken, viaCallbackUrl]);
+  }, [authToken, viaUrlApi]);
 
   /**
    * Fetch the assignment content URL and groups when the app is initially displayed.
@@ -232,10 +242,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       authWindow.current.focus();
       return;
     }
-    authWindow.current = new AuthWindow({ authToken, authUrl: canvas.authUrl });
 
     try {
-      await authWindow.current.authorize();
+      if (authUrl) {
+        authWindow.current = new AuthWindow({ authToken, authUrl });
+        await authWindow.current.authorize();
+        setAuthUrl(null);
+      }
       const [fetchedContent, fetchedGroups] = await Promise.all([
         fetchContentUrl(),
         fetchGroups(true /* updateFetchCount */),
@@ -247,7 +260,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
     }
-  }, [authToken, canvas.authUrl, fetchContentUrl, fetchGroups]);
+  }, [authToken, authUrl, fetchContentUrl, fetchGroups]);
 
   // Construct the <iframe> content
   let iFrameWrapper;
