@@ -9,14 +9,12 @@ import ErrorDisplay from '../ErrorDisplay';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('LMSFilePicker', () => {
-  const FakeButton = () => null;
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
     <Fragment>
       {buttons} {children}
     </Fragment>
   );
-  const FakeFileList = () => null;
 
   let FakeAuthWindow;
   let fakeApiCall;
@@ -55,9 +53,7 @@ describe('LMSFilePicker', () => {
       '../utils/api': {
         apiCall: fakeApiCall,
       },
-      './Button': FakeButton,
       './Dialog': FakeDialog,
-      './FileList': FakeFileList,
     });
   });
 
@@ -73,8 +69,8 @@ describe('LMSFilePicker', () => {
     });
     const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
-    const fileList = wrapper.find(FakeFileList);
-    assert.equal(fileList.prop('files'), expectedFiles);
+    const fileList = wrapper.find('FileList');
+    assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
   it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
@@ -95,7 +91,7 @@ describe('LMSFilePicker', () => {
     const authWindowClosed = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
     });
-    const authButton = wrapper.find('FakeButton[label="Authorize"]');
+    const authButton = wrapper.find('Button[label="Authorize"]');
     assert.isTrue(authButton.exists());
 
     // Click the "Authorize" button and check that files are re-fetched.
@@ -114,7 +110,7 @@ describe('LMSFilePicker', () => {
       path: fakeListFilesApi.path,
     });
     wrapper.update();
-    const fileList = wrapper.find(FakeFileList);
+    const fileList = wrapper.find('FileList');
     assert.equal(fileList.prop('files'), expectedFiles);
   });
 
@@ -138,13 +134,13 @@ describe('LMSFilePicker', () => {
 
     // Make an authorization attempt and wait for the auth window to close.
     await act(async () => {
-      wrapper.find('FakeButton[label="Authorize"]').props().onClick();
+      wrapper.find('Button[label="Authorize"]').props().onClick();
       await authWindowClosed;
     });
 
     wrapper.update();
 
-    assert.isTrue(wrapper.exists('FakeButton[label="Try again"]'));
+    assert.isTrue(wrapper.exists('Button[label="Try again"]'));
 
     const errorDetails = wrapper.find('ErrorDisplay');
     assert.equal(
@@ -182,7 +178,7 @@ describe('LMSFilePicker', () => {
 
       // The details of the error should be displayed, along with a "Try again"
       // button.
-      const tryAgainButton = wrapper.find('FakeButton[label="Try again"]');
+      const tryAgainButton = wrapper.find('Button[label="Try again"]');
       assert.isTrue(tryAgainButton.exists());
 
       const errorDetails = wrapper.find(ErrorDisplay);
@@ -201,10 +197,7 @@ describe('LMSFilePicker', () => {
       // file list should be displayed.
       await fakeApiCall.returnValues[0];
       wrapper.update();
-      assert.isTrue(
-        wrapper.exists('FakeFileList'),
-        'File list was not displayed'
-      );
+      assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
     });
   });
 
@@ -226,7 +219,7 @@ describe('LMSFilePicker', () => {
       // Ignored
     }
     wrapper.update();
-    wrapper.find('FakeButton[label="Authorize"]').prop('onClick')();
+    wrapper.find('Button[label="Authorize"]').prop('onClick')();
 
     // Dismiss the LMS file picker. This should close the auth popup.
     wrapper.find(FakeDialog).props().onCancel();
@@ -237,7 +230,7 @@ describe('LMSFilePicker', () => {
   it('does not show an authorization window when mounted', () => {
     const wrapper = renderFilePicker();
     assert.notCalled(FakeAuthWindow);
-    assert.isFalse(wrapper.exists('FakeButton[label="Authorize"]'));
+    assert.isFalse(wrapper.exists('Button[label="Authorize"]'));
   });
 
   it('fetches and displays files from the LMS', async () => {
@@ -247,18 +240,18 @@ describe('LMSFilePicker', () => {
     const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
 
-    const fileList = wrapper.find(FakeFileList);
+    const fileList = wrapper.find('FileList');
     assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
   it('shows a loading indicator while fetching files', async () => {
     const wrapper = renderFilePicker();
-    assert.isTrue(wrapper.find(FakeFileList).prop('isLoading'));
+    assert.isTrue(wrapper.find('FileList').prop('isLoading'));
 
     await fakeApiCall.returnValues[0];
     wrapper.update();
 
-    assert.isFalse(wrapper.find(FakeFileList).prop('isLoading'));
+    assert.isFalse(wrapper.find('FileList').prop('isLoading'));
   });
 
   it('maintains selected file state', () => {
@@ -266,37 +259,34 @@ describe('LMSFilePicker', () => {
     const file = { id: 123 };
 
     act(() => {
-      wrapper.find(FakeFileList).props().onSelectFile(file);
+      wrapper.find('FileList').props().onSelectFile(file);
     });
     wrapper.update();
 
-    assert.equal(wrapper.find(FakeFileList).prop('selectedFile'), file);
+    assert.equal(wrapper.find('FileList').prop('selectedFile'), file);
   });
 
   it('invokes `onSelectFile` when user chooses a file', () => {
     const onSelectFile = sinon.stub();
     const file = { id: 123 };
     const wrapper = renderFilePicker({ onSelectFile });
-    wrapper.find(FakeFileList).props().onUseFile(file);
+    wrapper.find('FileList').props().onUseFile(file);
     assert.calledWith(onSelectFile, file);
   });
 
   it('shows disabled "Select" button when no file is selected', () => {
     const wrapper = renderFilePicker();
-    assert.equal(
-      wrapper.find('FakeButton[label="Select"]').prop('disabled'),
-      true
-    );
+    assert.equal(wrapper.find('Button[label="Select"]').prop('disabled'), true);
   });
 
   it('shows enabled "Select" button when a file is selected', () => {
     const wrapper = renderFilePicker();
     act(() => {
-      wrapper.find(FakeFileList).props().onSelectFile({ id: 123 });
+      wrapper.find('FileList').props().onSelectFile({ id: 123 });
     });
     wrapper.update();
     assert.equal(
-      wrapper.find('FakeButton[label="Select"]').prop('disabled'),
+      wrapper.find('Button[label="Select"]').prop('disabled'),
       false
     );
   });
@@ -307,12 +297,12 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ onSelectFile });
 
     act(() => {
-      wrapper.find(FakeFileList).props().onSelectFile(file);
+      wrapper.find('FileList').props().onSelectFile(file);
     });
     wrapper.update();
 
     act(() => {
-      wrapper.find('FakeButton[label="Select"]').props().onClick();
+      wrapper.find('Button[label="Select"]').props().onClick();
     });
 
     assert.calledWith(onSelectFile, file);
