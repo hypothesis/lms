@@ -16,14 +16,8 @@ class VitalSourceAPIViews:
         """
         List the books available to the current user.
         """
-        # data = self._call_vitalsource_api("products")
-        # items = data["items"]
-
-        # FIXME - Fetch just the one book from the VS catalog that is set up
-        # for Hypothesis. A configuration issue on their end is causing "products"
-        # to return other books as well.
-        data = self._call_vitalsource_api("products/HYPOTHESIS-TESTING")
-        items = [data]
+        data = self._call_vitalsource_api("products")
+        items = data["items"]
 
         items.sort(key=lambda item: item["title"].lower())
 
