@@ -10,7 +10,7 @@ import Table from './Table';
 
 /**
  * @typedef FileListProps
- * @prop {File[]} files - List of file objects returned by a `listFiles` call
+ * @prop {File[]} files - List of file objects returned by the API
  * @prop {boolean} [isLoading] - Whether to show a loading indicator
  * @prop {File|null} selectedFile - The file within `files` which is currently selected
  * @prop {(f: File) => any} onSelectFile -

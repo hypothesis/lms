@@ -1,4 +1,4 @@
-import { ApiError, apiCall, listFiles } from '../api';
+import { ApiError, apiCall } from '../api';
 
 describe('api', () => {
   let fakeResponse;
@@ -50,21 +50,6 @@ describe('api', () => {
     });
   });
 
-  describe('listFiles', () => {
-    it('fetches file data from the backend', async () => {
-      const response = listFiles('auth-token', 'course-id');
-      assert.calledWith(window.fetch, '/api/canvas/courses/course-id/files', {
-        method: 'GET',
-        body: undefined,
-        headers: {
-          Authorization: 'auth-token',
-        },
-      });
-      const data = await response;
-      assert.deepEqual(data, await fakeResponse.json());
-    });
-  });
-
   context('when an API call fails', () => {
     [
       {
@@ -87,7 +72,7 @@ describe('api', () => {
         fakeResponse.status = status;
         fakeResponse.json.resolves(body);
 
-        const response = listFiles('auth-token', 'course-id');
+        const response = apiCall({ path: '/api/test', authToken: 'auth' });
         let reason;
         try {
           await response;
@@ -110,7 +95,7 @@ describe('api', () => {
   it('throws original error if `fetch` or parsing JSON fails', async () => {
     fakeResponse.json.rejects(new TypeError('Parse failed'));
 
-    const response = listFiles('auth-token', 'course-id');
+    const response = apiCall({ path: '/api/test', authToken: 'auth' });
     let reason;
     try {
       await response;

@@ -19,15 +19,15 @@ describe('LMSFilePicker', () => {
   const FakeFileList = () => null;
 
   let FakeAuthWindow;
-  let fakeListFiles;
+  let fakeApiCall;
+  let fakeListFilesApi;
   let fakeAuthWindowInstance;
 
   const renderFilePicker = (props = {}) => {
     return mount(
       <LMSFilePicker
         authToken="auth-token"
-        authUrl="https://lms.anno.co/authorize-lms"
-        courseId="test-course"
+        listFilesApi={fakeListFilesApi}
         onAuthorized={sinon.stub()}
         onSelectFile={sinon.stub()}
         onCancel={sinon.stub()}
@@ -37,19 +37,23 @@ describe('LMSFilePicker', () => {
   };
 
   beforeEach(() => {
+    fakeApiCall = sinon.stub().resolves([]);
     fakeAuthWindowInstance = {
       authorize: sinon.stub().resolves(null),
       close: () => {},
     };
     FakeAuthWindow = sinon.stub().returns(fakeAuthWindowInstance);
 
-    fakeListFiles = sinon.stub().resolves([]);
+    fakeListFilesApi = {
+      path: 'https://lms.anno.co/files/course123',
+      authUrl: 'https://lms.anno.co/authorize-lms',
+    };
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
-        listFiles: fakeListFiles,
+        apiCall: fakeApiCall,
       },
       './Button': FakeButton,
       './Dialog': FakeDialog,
@@ -63,41 +67,69 @@ describe('LMSFilePicker', () => {
 
   it('fetches files when the dialog first appears', async () => {
     const wrapper = renderFilePicker();
-    assert.called(fakeListFiles);
-    const expectedFiles = await fakeListFiles.returnValues[0];
+    assert.calledWith(fakeApiCall, {
+      authToken: 'auth-token',
+      path: fakeListFilesApi.path,
+    });
+    const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
     const fileList = wrapper.find(FakeFileList);
-    assert.deepEqual(fileList.prop('files'), expectedFiles);
+    assert.equal(fileList.prop('files'), expectedFiles);
   });
 
   it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
-    fakeListFiles.rejects(new ApiError('Not authorized', {}));
+    fakeApiCall.rejects(new ApiError('Not authorized', {}));
 
+    // Wait for the initial file fetch to fail.
     const wrapper = renderFilePicker();
-    assert.called(fakeListFiles);
+    assert.called(fakeApiCall);
 
     try {
-      await fakeListFiles.returnValues[0];
+      await fakeApiCall.returnValues[0];
     } catch (err) {
       /* unused */
     }
-
     wrapper.update();
-    assert.isTrue(wrapper.exists('FakeButton[label="Authorize"]'));
+
+    // Check that the "Authorize" button is shown.
+    const authWindowClosed = new Promise(resolve => {
+      fakeAuthWindowInstance.close = resolve;
+    });
+    const authButton = wrapper.find('FakeButton[label="Authorize"]');
+    assert.isTrue(authButton.exists());
+
+    // Click the "Authorize" button and check that files are re-fetched.
+    const expectedFiles = [];
+    fakeApiCall.reset();
+    fakeApiCall.resolves(expectedFiles);
+    await act(async () => {
+      authButton.props().onClick();
+      // Wait for auth to complete, signaled by the window being closed.
+      await authWindowClosed;
+    });
+    wrapper.update();
+
+    assert.calledWith(fakeApiCall, {
+      authToken: 'auth-token',
+      path: fakeListFilesApi.path,
+    });
+    wrapper.update();
+    const fileList = wrapper.find(FakeFileList);
+    assert.equal(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the try again prompt after a failed authorization attempt', async () => {
-    fakeListFiles.rejects(new ApiError('Not authorized', {}));
+  it('shows the "Try again" prompt after a failed authorization attempt', async () => {
+    fakeApiCall.rejects(new ApiError('Not authorized', {}));
 
     const authWindowClosed = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
     });
 
     const wrapper = renderFilePicker();
-    assert.called(fakeListFiles);
+    assert.called(fakeApiCall);
 
     try {
-      await fakeListFiles.returnValues[0];
+      await fakeApiCall.returnValues[0];
     } catch (err) {
       /* unused */
     }
@@ -135,14 +167,14 @@ describe('LMSFilePicker', () => {
     },
   ].forEach(({ description, error }) => {
     it(`shows error details and "Try again" button if fetching files fails with ${description}`, async () => {
-      fakeListFiles.rejects(error);
+      fakeApiCall.rejects(error);
 
       // When the dialog is initially displayed, it should try to fetch files.
       const wrapper = renderFilePicker();
-      assert.called(fakeListFiles);
+      assert.called(fakeApiCall);
 
       try {
-        await fakeListFiles.returnValues[0];
+        await fakeApiCall.returnValues[0];
       } catch (err) {
         /* unused */
       }
@@ -160,14 +192,14 @@ describe('LMSFilePicker', () => {
       });
 
       // Clicking the "Try again" button should re-try authorization.
-      fakeListFiles.reset();
-      fakeListFiles.resolves([]);
+      fakeApiCall.reset();
+      fakeApiCall.resolves([]);
       tryAgainButton.prop('onClick')();
       assert.called(FakeAuthWindow);
 
       // After authorization completes, files should be fetched and then the
       // file list should be displayed.
-      await fakeListFiles.returnValues[0];
+      await fakeApiCall.returnValues[0];
       wrapper.update();
       assert.isTrue(
         wrapper.exists('FakeFileList'),
@@ -178,7 +210,7 @@ describe('LMSFilePicker', () => {
 
   it('closes the authorization window if open when canceling the dialog', async () => {
     // Make the initial file list request fail, to trigger a prompt to authorize.
-    fakeListFiles.rejects(new ApiError('Not authorized', {}));
+    fakeApiCall.rejects(new ApiError('Not authorized', {}));
 
     const closePopup = sinon.stub();
     FakeAuthWindow.returns({
@@ -189,7 +221,7 @@ describe('LMSFilePicker', () => {
     // Click the "Authorize" button to show the authorization popup.
     const wrapper = renderFilePicker();
     try {
-      await fakeListFiles.returnValues[0];
+      await fakeApiCall.returnValues[0];
     } catch (e) {
       // Ignored
     }
@@ -210,9 +242,9 @@ describe('LMSFilePicker', () => {
 
   it('fetches and displays files from the LMS', async () => {
     const wrapper = renderFilePicker();
-    assert.called(fakeListFiles);
+    assert.called(fakeApiCall);
 
-    const expectedFiles = await fakeListFiles.returnValues[0];
+    const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
 
     const fileList = wrapper.find(FakeFileList);
@@ -223,7 +255,7 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker();
     assert.isTrue(wrapper.find(FakeFileList).prop('isLoading'));
 
-    await fakeListFiles.returnValues[0];
+    await fakeApiCall.returnValues[0];
     wrapper.update();
 
     assert.isFalse(wrapper.find(FakeFileList).prop('isLoading'));

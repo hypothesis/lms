@@ -1,7 +1,7 @@
 import { createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { ApiError, listFiles } from '../utils/api';
+import { ApiError, apiCall } from '../utils/api';
 
 import AuthWindow from '../utils/AuthWindow';
 import Button from './Button';
@@ -11,13 +11,14 @@ import FileList from './FileList';
 
 /**
  * @typedef {import("./FileList").File} File
+ * @typedef {import("../config").ApiCallInfo} ApiCallInfo
  */
 
 /**
  * @typedef LMSFilePickerProps
  * @prop {string} authToken - Auth token for use in calls to the backend
- * @prop {string} authUrl - URL of the authorization endpoint
- * @prop {string} courseId - ID of the course that the user is choosing a file for
+ * @prop {ApiCallInfo} listFilesApi -
+ *   Config for the API call to list available files
  * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
  * @prop {(f: File) => any} onSelectFile -
  *   Callback invoked with the metadata of the selected file if the user makes a selection
@@ -48,8 +49,7 @@ const INITIAL_DIALOG_STATE = {
  */
 export default function LMSFilePicker({
   authToken,
-  authUrl,
-  courseId,
+  listFilesApi,
   onCancel,
   onSelectFile,
 }) {
@@ -70,7 +70,10 @@ export default function LMSFilePicker({
   const fetchFiles = useCallback(async () => {
     try {
       setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetching' });
-      const files = await listFiles(authToken, courseId);
+      const files = /** @type {File[]} */ (await apiCall({
+        authToken,
+        path: listFilesApi.path,
+      }));
       setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
     } catch (e) {
       if (e instanceof ApiError && !e.errorMessage) {
@@ -82,7 +85,7 @@ export default function LMSFilePicker({
         setDialogState({ ...INITIAL_DIALOG_STATE, state: 'error', error: e });
       }
     }
-  }, [authToken, courseId]);
+  }, [authToken, listFilesApi]);
 
   // Execute the authorization flow in a popup window and then attempt to
   // fetch files.
@@ -94,6 +97,10 @@ export default function LMSFilePicker({
       return;
     }
 
+    // We assume here that the API call to list files will always require
+    // authentication. This is true for the LMSes (Canvas, Blackboard) that
+    // we currently support.
+    const authUrl = /** @type {string} */ (listFilesApi.authUrl);
     authWindow.current = new AuthWindow({ authToken, authUrl });
 
     try {
@@ -106,7 +113,7 @@ export default function LMSFilePicker({
       // @ts-ignore - `authWindow` is marked as non-nullable.
       authWindow.current = null;
     }
-  }, [fetchFiles, authToken, authUrl]);
+  }, [fetchFiles, authToken, listFilesApi]);
 
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.

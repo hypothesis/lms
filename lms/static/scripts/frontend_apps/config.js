@@ -1,15 +1,19 @@
 import { createContext } from 'preact';
 
 /**
- * Parameters for a "canned" API call that the frontend can make to the server.
+ * Parameters for an API call that the frontend can make to the server.
  *
  * The parameters of the call are decided by the backend, but the frontend
  * decides _when_ to make the call and what to show while waiting for the
  * response.
  *
  * @typedef ApiCallInfo
- * @prop {string} path
- * @prop {Object} data
+ * @prop {string} path - The complete URL or path of the API call
+ * @prop {string} [authUrl] -
+ *   URL to display in a popup window if the call fails due to an authorization
+ *   error. This is used when the API call requires an OAuth 2 authorization
+ *   flow to be completed with eg. an external LMS's API
+ * @prop {Object} [data]
  */
 
 /**
@@ -47,7 +51,7 @@ import { createContext } from 'preact';
  * @prop {Object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {string} canvas.ltiLaunchUrl
- *   @prop {string} canvas.courseId
+ *   @prop {ApiCallInfo} canvas.listFiles
  * @prop {Object} google
  *   @prop {string} clientId
  *   @prop {string} developerKey
@@ -78,10 +82,8 @@ import { createContext } from 'preact';
  * @prop {Object} api
  *   @prop {string} api.authToken
  *   @prop {ApiCallInfo} api.sync
- *   @prop {string} api.viaCallbackUrl
- * @prop {string} authUrl
+ *   @prop {ApiCallInfo} api.viaUrl
  * @prop {Object} canvas
- *   @prop {string} canvas.authUrl
  *   @prop {SpeedGraderConfig} canvas.speedGrader
  * @prop {boolean} dev
  * @prop {FilePickerConfig} filePicker

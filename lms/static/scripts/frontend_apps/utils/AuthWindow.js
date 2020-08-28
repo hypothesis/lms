@@ -4,6 +4,13 @@ import queryString from 'query-string';
  * Manages an LMS authentication popup window.
  */
 export default class AuthWindow {
+  /**
+   * @param {Object} options
+   * @param {string} options.authToken -
+   *   Authorization token used for API requests between frontend and backend
+   * @param {string} options.authUrl -
+   *   The initial URL to open in the authorization popup
+   */
   constructor({ authToken, authUrl }) {
     this._authToken = authToken;
     this._authUrl = authUrl;
