@@ -19,7 +19,7 @@ docopt==0.6.2             # via docker-compose
 idna==2.10                # via requests
 importlib-metadata==1.7.0  # via jsonschema
 jsonschema==3.2.0         # via docker-compose
-paramiko==2.7.1           # via docker
+paramiko==2.7.2           # via docker
 pycparser==2.20           # via cffi
 pynacl==1.4.0             # via paramiko
 pyrsistent==0.16.0        # via jsonschema
