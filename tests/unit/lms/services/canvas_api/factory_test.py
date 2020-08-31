@@ -36,7 +36,7 @@ class TestCanvasAPIClientFactory:
             oauth2_token_service=oauth2_token_service,
             client_id=ai_getter.developer_key(),
             client_secret=ai_getter.developer_secret(),
-            redirect_uri=pyramid_request.route_url("canvas_oauth_callback"),
+            redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
         )
 
     @pytest.fixture(autouse=True)

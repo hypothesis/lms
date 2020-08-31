@@ -44,7 +44,7 @@ class JSConfig:
             is missing
         """
         self._config["api"]["viaUrl"] = {
-            "authUrl": self._request.route_url("canvas_api.authorize"),
+            "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
             "path": self._request.route_path(
                 "canvas_api.files.via_url", file_id=canvas_file_id
             ),
@@ -162,7 +162,7 @@ class JSConfig:
                 # base URL of our LTI launch endpoint.
                 "ltiLaunchUrl": self._request.route_url("lti_launches"),
                 "listFiles": {
-                    "authUrl": self._request.route_url("canvas_api.authorize"),
+                    "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
                     "path": self._request.route_path(
                         "canvas_api.courses.files.list",
                         course_id=self._request.params.get("custom_canvas_course_id"),
@@ -441,7 +441,7 @@ class JSConfig:
         req = self._request
 
         sync_api_config = {
-            "authUrl": req.route_url("canvas_api.authorize"),
+            "authUrl": req.route_url("canvas_api.oauth.authorize"),
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {

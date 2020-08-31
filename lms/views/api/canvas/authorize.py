@@ -31,7 +31,9 @@ SECTIONS_SCOPES = (
 )
 
 
-@view_config(request_method="GET", route_name="canvas_api.authorize", permission="api")
+@view_config(
+    request_method="GET", route_name="canvas_api.oauth.authorize", permission="api"
+)
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
     course_service = request.find_service(name="course")
@@ -56,7 +58,7 @@ def authorize(request):
                 {
                     "client_id": ai_getter.developer_key(),
                     "response_type": "code",
-                    "redirect_uri": request.route_url("canvas_oauth_callback"),
+                    "redirect_uri": request.route_url("canvas_api.oauth.callback"),
                     "state": CanvasOAuthCallbackSchema(request).state_param(),
                     "scope": " ".join(scopes),
                 }
@@ -70,7 +72,7 @@ def authorize(request):
 
 @view_config(
     request_method="GET",
-    route_name="canvas_oauth_callback",
+    route_name="canvas_api.oauth.callback",
     permission="api",
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
     schema=CanvasOAuthCallbackSchema,
@@ -89,12 +91,12 @@ def oauth2_redirect(request):
 
 @exception_view_config(
     request_method="GET",
-    route_name="canvas_oauth_callback",
+    route_name="canvas_api.oauth.callback",
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 @exception_view_config(
     request_method="GET",
-    route_name="canvas_api.authorize",
+    route_name="canvas_api.oauth.authorize",
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
@@ -104,7 +106,8 @@ def oauth2_redirect_error(request):
             request.lti_user
         )
         authorize_url = request.route_url(
-            "canvas_api.authorize", _query=[("authorization", authorization_param)]
+            "canvas_api.oauth.authorize",
+            _query=[("authorization", authorization_param)],
         )
 
     request.context.js_config.enable_canvas_oauth2_redirect_error_mode(

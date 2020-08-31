@@ -25,13 +25,13 @@ def includeme(config):
         factory="lms.resources.LTILaunchResource",
     )
     config.add_route(
-        "canvas_oauth_callback",
+        "canvas_api.oauth.callback",
         "/canvas_oauth_callback",
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route(
-        "canvas_api.authorize",
-        "/api/canvas/authorize",
+        "canvas_api.oauth.authorize",
+        "/api/canvas/oauth/authorize",
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route(
