@@ -29,7 +29,7 @@ class TestEnableContentItemSelectionMode:
                 "enabled": True,
                 "ltiLaunchUrl": "http://example.com/lti_launches",
                 "listFiles": {
-                    "authUrl": "http://example.com/api/canvas/authorize",
+                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
                     "path": "/api/canvas/courses/test_course_id/files",
                 },
             },
@@ -106,7 +106,7 @@ class TestAddCanvasFileID:
         js_config.add_canvas_file_id("example_canvas_file_id")
 
         assert js_config.asdict()["api"]["viaUrl"] == {
-            "authUrl": "http://example.com/api/canvas/authorize",
+            "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/files/example_canvas_file_id/via_url",
         }
 
@@ -327,7 +327,7 @@ class TestJSConfigAPISync:
     @pytest.mark.usefixtures("section_groups_on")
     def test_it(self, sync, pyramid_request, GroupInfo):
         assert sync == {
-            "authUrl": "http://example.com/api/canvas/authorize",
+            "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/sync",
             "data": {
                 "course": {
