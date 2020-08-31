@@ -38,7 +38,7 @@ oauth2==1.9.0.post1       # via -r requirements/bddtests.txt, -r requirements/fu
 oauthlib==3.1.0           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, requests-oauthlib
 packaging==20.4           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
 parse-type==0.5.2         # via -r requirements/bddtests.txt, behave
-parse==1.16.0             # via -r requirements/bddtests.txt, behave, parse-type
+parse==1.17.0             # via -r requirements/bddtests.txt, behave, parse-type
 pastedeploy==2.1.0        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, plaster-pastedeploy
 plaster-pastedeploy==0.7  # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid
 plaster==1.0              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, plaster-pastedeploy, pyramid
