@@ -153,6 +153,18 @@ class JSConfig:
         self._config["filePicker"] = {
             "formAction": form_action,
             "formFields": form_fields,
+            "blackboard": {
+                "enabled": self._blackboard_files_available(),
+                "listFiles": {
+                    "authUrl": self._request.route_url(
+                        "blackboard_api.oauth.authorize"
+                    ),
+                    "path": self._request.route_path(
+                        "blackboard_api.courses.files.list",
+                        course_id=self._request.params.get("context_id"),
+                    ),
+                },
+            },
             "canvas": {
                 "enabled": self._canvas_files_available(),
                 # The "content item selection" that we submit to Canvas's
@@ -277,6 +289,10 @@ class JSConfig:
     def _auth_token(self):
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
+
+    def _blackboard_files_available(self):
+        """Return True if the Blackboard Files API is available to this request."""
+        return self._request.feature("blackboard_files")
 
     def _canvas_files_available(self):
         """Return True if the Canvas Files API is available to this request."""

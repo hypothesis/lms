@@ -11,6 +11,7 @@ from lms.services import ConsumerKeyError, HAPIError
 
 
 class TestEnableContentItemSelectionMode:
+    @pytest.mark.usefixtures("blackboard_files_enabled")
     def test_it(self, context, js_config):
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
@@ -24,6 +25,13 @@ class TestEnableContentItemSelectionMode:
                 "clientId": "fake_client_id",
                 "developerKey": "fake_developer_key",
                 "origin": context.custom_canvas_api_domain,
+            },
+            "blackboard": {
+                "enabled": True,
+                "listFiles": {
+                    "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+                    "path": "/api/blackboard/courses/test_course_id/files",
+                },
             },
             "canvas": {
                 "enabled": True,
@@ -49,6 +57,15 @@ class TestEnableContentItemSelectionMode:
             js_config.asdict()["filePicker"]["google"]["origin"]
             == ai_getter.lms_url.return_value
         )
+
+    def test_it_doesnt_enable_the_blackboard_file_picker_if_the_feature_flag_is_off(
+        self, js_config
+    ):
+        js_config.enable_content_item_selection_mode(
+            mock.sentinel.form_action, mock.sentinel.form_fields
+        )
+
+        assert not js_config.asdict()["filePicker"]["blackboard"]["enabled"]
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_the_lms_isnt_Canvas(
         self, context, js_config
@@ -97,6 +114,10 @@ class TestEnableContentItemSelectionMode:
     def assert_canvas_file_picker_not_enabled(self, js_config):
         assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
         assert "courseId" not in js_config.asdict()
+
+    @pytest.fixture
+    def blackboard_files_enabled(self, pyramid_request):
+        pyramid_request.feature = lambda feature: feature == "blackboard_files"
 
 
 class TestAddCanvasFileID:
