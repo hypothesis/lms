@@ -26,6 +26,24 @@ def includeme(config):
     )
 
     config.add_route(
+        "blackboard_api.oauth.authorize",
+        "/api/blackboard/oauth/authorize",
+        factory="lms.resources.OAuth2RedirectResource",
+    )
+    config.add_route(
+        "blackboard_api.oauth.callback",
+        "/api/blackboard/oauth/callback",
+        factory="lms.resources.OAuth2RedirectResource",
+    )
+    config.add_route(
+        "blackboard_api.courses.files.list", "/api/blackboard/courses/{course_id}/files"
+    )
+    config.add_route(
+        "blackboard_api.files.via_url",
+        "/api/blackboard/courses/{course_id}/files/{file_id}/via_url",
+    )
+
+    config.add_route(
         "canvas_api.oauth.authorize",
         "/api/canvas/oauth/authorize",
         factory="lms.resources.OAuth2RedirectResource",
