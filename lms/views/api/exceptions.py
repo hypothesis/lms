@@ -25,11 +25,11 @@ class ExceptionViews:
 
        If "message" is present the frontend will show an error dialog that
        indicates that something went wrong and has a [Try again] button that
-       opens the "canvas_api.authorize" route.
+       opens the "canvas_api.oauth.authorize" route.
 
        If no "message" is present the frontend will show a standard
        authorization dialog (not an error dialog) and the button that opens
-       "canvas_api.authorize" route will be labelled [Authorize].
+       "canvas_api.oauth.authorize" route will be labelled [Authorize].
 
     2. "details": Optional further error details to show to the user after
        "message", for debugging and support.

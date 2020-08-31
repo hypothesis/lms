@@ -177,7 +177,7 @@ class TestOAuth2RedirectError:
         schema.authorization_param.assert_called_once_with(pyramid_request.lti_user)
 
         expected_auth_url = pyramid_request.route_url(
-            "canvas_api.authorize", _query=[("authorization", "auth-param")]
+            "canvas_api.oauth.authorize", _query=[("authorization", "auth-param")]
         )
         js_config = pyramid_request.context.js_config
         js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_once()

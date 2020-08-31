@@ -23,7 +23,7 @@ def canvas_api_client_factory(_context, request):
         oauth2_token_service=request.find_service(name="oauth2_token"),
         client_id=ai_getter.developer_key(),
         client_secret=ai_getter.developer_secret(),
-        redirect_uri=request.route_url("canvas_oauth_callback"),
+        redirect_uri=request.route_url("canvas_api.oauth.callback"),
     )
 
     return CanvasAPIClient(authenticated_api)
