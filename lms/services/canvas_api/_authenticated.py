@@ -20,19 +20,19 @@ class AuthenticatedClient:
     """
 
     def __init__(  # pylint: disable=too-many-arguments
-        self, basic_client, token_store, client_id, client_secret, redirect_uri
+        self, basic_client, oauth2_token_service, client_id, client_secret, redirect_uri
     ):
         """
         Create an AuthenticatedClient object for making authenticated calls.
 
         :param basic_client: An instance of BasicClient
-        :param token_store: The token_store service
+        :param oauth2_token_service: The "oauth2_token" service
         :param client_id: The OAuth2 client id
         :param client_secret: The OAuth2 client secret
         :param redirect_uri: The OAuth 2 redirect URI
         """
         self._client = basic_client
-        self._token_store = token_store
+        self._oauth2_token_service = oauth2_token_service
 
         # For making token requests
         self._client_id = client_id
@@ -57,11 +57,11 @@ class AuthenticatedClient:
         call_args = (method, path, schema, params)
 
         try:
-            auth_header = f"Bearer {self._token_store.get().access_token}"
+            auth_header = f"Bearer {self._oauth2_token_service.get().access_token}"
             return self._client.send(*call_args, headers={"Authorization": auth_header})
 
         except CanvasAPIAccessTokenError:
-            refresh_token = self._token_store.get().refresh_token
+            refresh_token = self._oauth2_token_service.get().refresh_token
             if not refresh_token:
                 raise
 
@@ -116,7 +116,7 @@ class AuthenticatedClient:
             schema=TokenResponseSchema,
         )
 
-        self._token_store.save(
+        self._oauth2_token_service.save(
             parsed_params["access_token"],
             parsed_params.get("refresh_token", refresh_token),
             parsed_params.get("expires_in"),
