@@ -23,7 +23,7 @@ export default function CanvasOAuth2RedirectErrorApp({
 }) {
   const {
     canvasOAuth2RedirectError: {
-      authorizeUrl = null,
+      authUrl = null,
       invalidScope = false,
       errorDetails = '',
       scopes = [],
@@ -41,7 +41,7 @@ export default function CanvasOAuth2RedirectErrorApp({
   const error = { details: errorDetails };
 
   const retry = () => {
-    location.href = /** @type {string} */ (authorizeUrl);
+    location.href = /** @type {string} */ (authUrl);
   };
 
   const buttons = [
@@ -53,7 +53,7 @@ export default function CanvasOAuth2RedirectErrorApp({
     />,
   ];
 
-  if (authorizeUrl) {
+  if (authUrl) {
     buttons.push(<Button key="try-again" label="Try again" onClick={retry} />);
   }
 

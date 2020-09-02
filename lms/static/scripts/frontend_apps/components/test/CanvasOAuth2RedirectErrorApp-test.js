@@ -24,7 +24,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
   beforeEach(() => {
     fakeConfig = {
       invalidScope: false,
-      authorizeUrl: null,
+      authUrl: null,
       scopes: [],
     };
 
@@ -78,7 +78,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
   it('shows "Try again" button if retry URL is provided', () => {
     const initialLocation = fakeLocation.href;
-    fakeConfig.authorizeUrl = 'https://lms.hypothes.is/auth/url';
+    fakeConfig.authUrl = 'https://lms.hypothes.is/auth/url';
 
     const wrapper = renderApp();
     const tryAgainButton = wrapper.find('Button[label="Try again"]');
@@ -87,7 +87,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
     tryAgainButton.props().onClick();
 
-    assert.equal(fakeLocation.href, fakeConfig.authorizeUrl);
+    assert.equal(fakeLocation.href, fakeConfig.authUrl);
   });
 
   it('does not show "Try again" button if no retry URL is provided', () => {

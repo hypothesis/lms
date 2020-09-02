@@ -159,7 +159,7 @@ class TestOAuth2RedirectError:
 
         js_config = pyramid_request.context.js_config
         js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_with(
-            authorize_url=None,
+            auth_url=None,
             error_details=params.get("error_description"),
             is_scope_invalid=invalid_scope,
             requested_scopes=scopes,
@@ -167,7 +167,7 @@ class TestOAuth2RedirectError:
 
     # Test the URL that the backend provides to the frontend for the "Try again"
     # button.
-    def test_it_configures_authorize_url(self, pyramid_request, BearerTokenSchema):
+    def test_it_configures_auth_url(self, pyramid_request, BearerTokenSchema):
         schema = BearerTokenSchema.return_value
         schema.authorization_param.return_value = "auth-param"
 
@@ -182,7 +182,7 @@ class TestOAuth2RedirectError:
         js_config = pyramid_request.context.js_config
         js_config.enable_canvas_oauth2_redirect_error_mode.assert_called_once()
         _, kwargs = js_config.enable_canvas_oauth2_redirect_error_mode.call_args
-        assert kwargs["authorize_url"] == expected_auth_url
+        assert kwargs["auth_url"] == expected_auth_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, OAuth2RedirectResource):

@@ -63,7 +63,7 @@ import { createContext } from 'preact';
  * Canvas API fails.
  *
  * @typedef CanvasAuthErrorConfig
- * @prop {string|null} authorizeUrl
+ * @prop {string|null} authUrl
  * @prop {boolean} invalidScope
  * @prop {string} errorDetails
  * @prop {string[]} scopes

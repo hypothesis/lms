@@ -48,7 +48,7 @@ def authorize(request):
     ):
         scopes += SECTIONS_SCOPES
 
-    authorize_url = urlunparse(
+    auth_url = urlunparse(
         (
             "https",
             urlparse(ai_getter.lms_url()).netloc,
@@ -67,7 +67,7 @@ def authorize(request):
         )
     )
 
-    return HTTPFound(location=authorize_url)
+    return HTTPFound(location=auth_url)
 
 
 @view_config(
@@ -100,18 +100,18 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    authorize_url = None
+    auth_url = None
     if request.lti_user:
         authorization_param = BearerTokenSchema(request).authorization_param(
             request.lti_user
         )
-        authorize_url = request.route_url(
+        auth_url = request.route_url(
             "canvas_api.oauth.authorize",
             _query=[("authorization", authorization_param)],
         )
 
     request.context.js_config.enable_canvas_oauth2_redirect_error_mode(
-        authorize_url=authorize_url,
+        auth_url=auth_url,
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
         requested_scopes=FILES_SCOPES + SECTIONS_SCOPES,
