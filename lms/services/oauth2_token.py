@@ -6,7 +6,7 @@ from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
 
 
-class TokenStore:
+class OAuth2TokenService:
     """Save and retrieve OAuth2Tokens from the DB."""
 
     def __init__(self, db, consumer_key, user_id):
@@ -61,7 +61,7 @@ class TokenStore:
             ) from err
 
 
-def token_store_service_factory(_context, request):
-    return TokenStore(
+def oauth2_token_service_factory(_context, request):
+    return OAuth2TokenService(
         request.db, request.lti_user.oauth_consumer_key, request.lti_user.user_id
     )

@@ -40,5 +40,5 @@ def includeme(config):
         "lms.services.course.course_service_factory", name="course"
     )
     config.register_service_factory(
-        "lms.services.token_store.token_store_service_factory", name="token_store"
+        "lms.services.oauth2_token.oauth2_token_service_factory", name="oauth2_token"
     )

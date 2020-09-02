@@ -28,10 +28,10 @@ def http_session(patch):
 
 
 @pytest.fixture
-def authenticated_client(basic_client, token_store_service):
+def authenticated_client(basic_client, oauth2_token_service):
     return AuthenticatedClient(
         basic_client=basic_client,
-        token_store=token_store_service,
+        token_store=oauth2_token_service,
         client_id=sentinel.client_id,
         client_secret=sentinel.client_secret,
         redirect_uri=sentinel.redirect_uri,
