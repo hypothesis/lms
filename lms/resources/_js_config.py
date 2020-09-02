@@ -37,6 +37,9 @@ class JSConfig:
         """
         Set the document to the Canvas file with the given canvas_file_id.
 
+        This configures the frontend to make an API call to get the URL to use
+        as the src for the Via iframe.
+
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
@@ -51,6 +54,10 @@ class JSConfig:
     def add_document_url(self, document_url):
         """
         Set the document to the document at the given document_url.
+
+        This configures the frontend to inject the Via iframe with this URL as
+        its src immediately, without making any further API requests to get the
+        Via URL.
 
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
