@@ -27,13 +27,13 @@ class TestCanvasAPIClientFactory:
         ai_getter,
         AuthenticatedClient,
         BasicClient,
-        token_store_service,
+        oauth2_token_service,
     ):
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
-            token_store=token_store_service,
+            token_store=oauth2_token_service,
             client_id=ai_getter.developer_key(),
             client_secret=ai_getter.developer_secret(),
             redirect_uri=pyramid_request.route_url("canvas_oauth_callback"),
@@ -52,4 +52,4 @@ class TestCanvasAPIClientFactory:
         return patch("lms.services.canvas_api.factory.CanvasAPIClient")
 
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "token_store_service")
+pytestmark = pytest.mark.usefixtures("ai_getter", "oauth2_token_service")

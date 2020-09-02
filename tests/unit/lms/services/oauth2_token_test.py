@@ -7,15 +7,15 @@ from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.token_store import TokenStore, token_store_service_factory
+from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_factory
 from tests import factories
 
 
 @pytest.mark.usefixtures("application_instance")
-class TestTokenStore:
+class TestOAuth2TokenService:
     @pytest.mark.usefixtures("oauth_token_in_db_or_not")
-    def test_save(self, token_store, db_session, application_instance, lti_user):
-        token_store.save(
+    def test_save(self, svc, db_session, application_instance, lti_user):
+        svc.save(
             access_token="access_token", refresh_token="refresh_token", expires_in=1234
         )
 
@@ -31,8 +31,8 @@ class TestTokenStore:
             }
         )
 
-    def test_get_returns_token_when_present(self, token_store, oauth_token):
-        result = token_store.get()
+    def test_get_returns_token_when_present(self, svc, oauth_token):
+        result = svc.get()
 
         assert result == oauth_token
 
@@ -40,7 +40,7 @@ class TestTokenStore:
     def test_get_raises_CanvasAPIAccessTokenError_with_no_token(
         self, db_session, wrong_param, application_instance, lti_user
     ):
-        store = TokenStore(
+        store = OAuth2TokenService(
             db_session,
             **{
                 "consumer_key": application_instance.consumer_key,
@@ -73,16 +73,16 @@ class TestTokenStore:
         return oauth_token
 
     @pytest.fixture
-    def token_store(self, pyramid_request):
-        return TokenStore(
+    def svc(self, pyramid_request):
+        return OAuth2TokenService(
             pyramid_request.db,
             pyramid_request.lti_user.oauth_consumer_key,
             pyramid_request.lti_user.user_id,
         )
 
 
-class TestTokenStoreServiceFactory:
+class TestOAuth2TokenServiceFactory:
     def test_it(self, pyramid_request):
-        svc = token_store_service_factory(mock.sentinel.context, pyramid_request)
+        svc = oauth2_token_service_factory(mock.sentinel.context, pyramid_request)
 
-        assert isinstance(svc, TokenStore)
+        assert isinstance(svc, OAuth2TokenService)

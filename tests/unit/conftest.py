@@ -18,7 +18,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
-from lms.services.token_store import TokenStore
+from lms.services.oauth2_token import OAuth2TokenService
 from tests import factories
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
@@ -247,11 +247,13 @@ def oauth1_service(pyramid_config):
 
 
 @pytest.fixture
-def token_store_service(oauth_token, pyramid_config):
-    token_store_service = mock.create_autospec(TokenStore, instance=True, spec_set=True)
-    token_store_service.get.return_value = oauth_token
-    pyramid_config.register_service(token_store_service, name="token_store")
-    return token_store_service
+def oauth2_token_service(oauth_token, pyramid_config):
+    oauth2_token_service = mock.create_autospec(
+        OAuth2TokenService, instance=True, spec_set=True
+    )
+    oauth2_token_service.get.return_value = oauth_token
+    pyramid_config.register_service(oauth2_token_service, name="oauth2_token")
+    return oauth2_token_service
 
 
 @pytest.fixture(autouse=True)
