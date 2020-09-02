@@ -6,6 +6,7 @@ from h_matchers import Any
 from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
 from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
+from lms.services.canvas_api._token_store import TokenStore
 from tests import factories
 
 
@@ -135,11 +136,9 @@ class TestAuthenticatedClient:
         return basic_api
 
     @pytest.fixture
-    def token_store(self, patch, oauth_token):
-        token_store = patch("lms.services.canvas_api._token_store.TokenStore")
-
+    def token_store(self, oauth_token):
+        token_store = create_autospec(TokenStore, spec_set=True, instance=True)
         token_store.get.return_value = oauth_token
-
         return token_store
 
     @pytest.fixture
