@@ -44,18 +44,18 @@ class TestCanvasAPIClientFactory:
             redirect_uri=pyramid_request.route_url("canvas_oauth_callback"),
         )
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def BasicClient(self, patch):
         return patch("lms.services.canvas_api.factory.BasicClient")
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def TokenStore(self, patch):
         return patch("lms.services.canvas_api.factory.TokenStore")
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def AuthenticatedClient(self, patch):
         return patch("lms.services.canvas_api.factory.AuthenticatedClient")
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def CanvasAPIClient(self, patch):
         return patch("lms.services.canvas_api.factory.CanvasAPIClient")

@@ -1,4 +1,4 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 
@@ -9,12 +9,10 @@ from tests import factories
 
 
 @pytest.fixture
-def token_store(db_session, application_instance, lti_user):
-    return TokenStore(
-        db_session,
-        consumer_key=application_instance.consumer_key,
-        user_id=lti_user.user_id,
-    )
+def token_store(oauth_token):
+    token_store = create_autospec(TokenStore, spec_set=True, instance=True)
+    token_store.get.return_value = oauth_token
+    return token_store
 
 
 @pytest.fixture

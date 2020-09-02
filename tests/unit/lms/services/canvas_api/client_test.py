@@ -185,7 +185,11 @@ class TestCanvasAPIClient:
 
 
 class TestMetaBehavior:
-    def test_methods_require_access_token(self, data_method):
+    def test_methods_require_access_token(self, data_method, token_store):
+        token_store.get.side_effect = CanvasAPIAccessTokenError(
+            "We don't have a Canvas API access token for this user"
+        )
+
         with pytest.raises(CanvasAPIAccessTokenError):
             data_method()
 

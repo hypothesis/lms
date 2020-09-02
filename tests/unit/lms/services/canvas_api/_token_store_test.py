@@ -70,3 +70,11 @@ class TestTokenStore:
             db_session.add(oauth_token)
 
         return oauth_token
+
+    @pytest.fixture
+    def token_store(self, db_session, application_instance, lti_user):
+        return TokenStore(
+            db_session,
+            consumer_key=application_instance.consumer_key,
+            user_id=lti_user.user_id,
+        )
