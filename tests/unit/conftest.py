@@ -18,6 +18,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
+from lms.services.token_store import TokenStore
 from tests import factories
 from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
 
@@ -245,6 +246,14 @@ def oauth1_service(pyramid_config):
     return oauth1_service
 
 
+@pytest.fixture
+def token_store_service(oauth_token, pyramid_config):
+    token_store_service = mock.create_autospec(TokenStore, instance=True, spec_set=True)
+    token_store_service.get.return_value = oauth_token
+    pyramid_config.register_service(token_store_service, name="token_store")
+    return token_store_service
+
+
 @pytest.fixture(autouse=True)
 def routes(pyramid_config):
     """Add all the routes that would be added in production."""
@@ -291,3 +300,22 @@ def httpretty_():
 
     httpretty.disable()
     httpretty.reset()
+
+
+@pytest.fixture
+def application_instance(pyramid_request):
+    return factories.ApplicationInstance(
+        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+    )
+
+
+@pytest.fixture
+def lti_user(pyramid_request):
+    return pyramid_request.lti_user
+
+
+@pytest.fixture
+def oauth_token(lti_user, application_instance):
+    return factories.OAuth2Token(
+        user_id=lti_user.user_id, application_instance=application_instance
+    )
