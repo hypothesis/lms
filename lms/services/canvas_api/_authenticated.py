@@ -26,7 +26,7 @@ class AuthenticatedClient:
         Create an AuthenticatedClient object for making authenticated calls.
 
         :param basic_client: An instance of BasicClient
-        :param token_store: An instance of TokenStore
+        :param token_store: The token_store service
         :param client_id: The OAuth2 client id
         :param client_secret: The OAuth2 client secret
         :param redirect_uri: The OAuth 2 redirect URI

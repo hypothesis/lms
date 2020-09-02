@@ -1,18 +1,10 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 
 from lms.services.canvas_api._authenticated import AuthenticatedClient
 from lms.services.canvas_api._basic import BasicClient
-from lms.services.canvas_api._token_store import TokenStore
 from tests import factories
-
-
-@pytest.fixture
-def token_store(oauth_token):
-    token_store = create_autospec(TokenStore, spec_set=True, instance=True)
-    token_store.get.return_value = oauth_token
-    return token_store
 
 
 @pytest.fixture
@@ -36,28 +28,11 @@ def http_session(patch):
 
 
 @pytest.fixture
-def authenticated_client(basic_client, token_store):
+def authenticated_client(basic_client, token_store_service):
     return AuthenticatedClient(
         basic_client=basic_client,
-        token_store=token_store,
+        token_store=token_store_service,
         client_id=sentinel.client_id,
         client_secret=sentinel.client_secret,
         redirect_uri=sentinel.redirect_uri,
-    )
-
-
-@pytest.fixture
-def lti_user():
-    return factories.LTIUser()
-
-
-@pytest.fixture
-def application_instance():
-    return factories.ApplicationInstance()
-
-
-@pytest.fixture
-def oauth_token(lti_user, application_instance):
-    return factories.OAuth2Token(
-        user_id=lti_user.user_id, application_instance=application_instance
     )

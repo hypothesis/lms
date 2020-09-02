@@ -1,5 +1,3 @@
-"""Access to OAuth2Tokens in the DB."""
-
 import datetime
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -13,11 +11,11 @@ class TokenStore:
 
     def __init__(self, db, consumer_key, user_id):
         """
-        Construct a new TokenStore.
+        Return a new TokenStore.
 
-        :param db: An SQLAlchemy session
-        :param consumer_key: Consumer key to retrieve and save against
-        :param user_id: User id to retrieve and save against
+        :param db: the SQLAlchemy session
+        :param consumer_key: the LTI consumer key to use for tokens
+        :param user_id: the LTI user ID to user for tokens
         """
         self._db = db
         self._consumer_key = consumer_key
@@ -25,10 +23,10 @@ class TokenStore:
 
     def save(self, access_token, refresh_token, expires_in):
         """
-        Save an access token and refresh token to the DB.
+        Save an OAuth 2 token to the DB.
 
-        If there's already an `OAuth2Token` for the consumer key and user id
-        then overwrite its values. Otherwise create a new `OAuth2Token` and
+        If there's already an OAuth2Token for the user's consumer key and user
+        ID then overwrite its values. Otherwise create a new OAuth2Token and
         add it to the DB.
         """
         try:
@@ -46,7 +44,7 @@ class TokenStore:
 
     def get(self):
         """
-        Return the user's saved access and refresh tokens from the DB.
+        Return the user's saved OAuth 2 token from the DB.
 
         :raise CanvasAPIAccessTokenError: if we don't have an access token for the user
         """
@@ -61,3 +59,9 @@ class TokenStore:
                 explanation="We don't have a Canvas API access token for this user",
                 response=None,
             ) from err
+
+
+def token_store_service_factory(_context, request):
+    return TokenStore(
+        request.db, request.lti_user.oauth_consumer_key, request.lti_user.user_id
+    )

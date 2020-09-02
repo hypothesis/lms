@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest import mock
 
 import pytest
 from h_matchers import Any
@@ -6,7 +7,7 @@ from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import CanvasAPIAccessTokenError
-from lms.services.canvas_api._token_store import TokenStore
+from lms.services.token_store import TokenStore, token_store_service_factory
 from tests import factories
 
 
@@ -72,9 +73,16 @@ class TestTokenStore:
         return oauth_token
 
     @pytest.fixture
-    def token_store(self, db_session, application_instance, lti_user):
+    def token_store(self, pyramid_request):
         return TokenStore(
-            db_session,
-            consumer_key=application_instance.consumer_key,
-            user_id=lti_user.user_id,
+            pyramid_request.db,
+            pyramid_request.lti_user.oauth_consumer_key,
+            pyramid_request.lti_user.user_id,
         )
+
+
+class TestTokenStoreServiceFactory:
+    def test_it(self, pyramid_request):
+        svc = token_store_service_factory(mock.sentinel.context, pyramid_request)
+
+        assert isinstance(svc, TokenStore)

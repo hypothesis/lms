@@ -72,7 +72,7 @@ class TestAuthenticatedClient:
             )
 
     def test_get_token(
-        self, authenticated_client, basic_client, token_store, token_response
+        self, authenticated_client, basic_client, token_store_service, token_response
     ):
         token = authenticated_client.get_token("authorization_code")
 
@@ -93,14 +93,14 @@ class TestAuthenticatedClient:
             url_stub="",
         )
 
-        token_store.save.assert_called_once_with(
+        token_store_service.save.assert_called_once_with(
             token_response["access_token"],
             token_response["refresh_token"],
             token_response["expires_in"],
         )
 
     def test_get_refreshed_token(
-        self, authenticated_client, basic_client, token_store, token_response
+        self, authenticated_client, basic_client, token_store_service, token_response
     ):
         token = authenticated_client.get_refreshed_token("refresh_token")
 
@@ -119,7 +119,7 @@ class TestAuthenticatedClient:
             url_stub="",
         )
 
-        token_store.save.assert_called_once_with(
+        token_store_service.save.assert_called_once_with(
             token_response["access_token"],
             token_response["refresh_token"],
             token_response["expires_in"],
