@@ -6,7 +6,7 @@ from h_matchers import Any
 from pytest import param
 
 from lms.models import OAuth2Token
-from lms.services import CanvasAPIAccessTokenError
+from lms.services import NoOAuth2Token
 from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_factory
 from tests import factories
 
@@ -49,7 +49,7 @@ class TestOAuth2TokenService:
             }
         )
 
-        with pytest.raises(CanvasAPIAccessTokenError):
+        with pytest.raises(NoOAuth2Token):
             store.get()
 
     @pytest.fixture(

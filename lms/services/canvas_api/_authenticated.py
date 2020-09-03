@@ -3,7 +3,7 @@
 import marshmallow
 from marshmallow import fields
 
-from lms.services import CanvasAPIAccessTokenError
+from lms.services import CanvasAPIAccessTokenError, NoOAuth2Token
 from lms.validation import RequestsResponseSchema
 
 
@@ -57,16 +57,31 @@ class AuthenticatedClient:
         call_args = (method, path, schema, params)
 
         try:
-            auth_header = f"Bearer {self._oauth2_token_service.get().access_token}"
-            return self._client.send(*call_args, headers={"Authorization": auth_header})
+            oauth2_token = self._oauth2_token_service.get()
+        except NoOAuth2Token as err:
+            raise CanvasAPIAccessTokenError(
+                explanation="We don't have a Canvas API access token for this user",
+                response=None,
+            ) from err
 
+        access_token = oauth2_token.access_token
+        refresh_token = oauth2_token.refresh_token
+
+        try:
+            return self._client.send(
+                *call_args,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
         except CanvasAPIAccessTokenError:
-            refresh_token = self._oauth2_token_service.get().refresh_token
             if not refresh_token:
                 raise
 
-            auth_header = f"Bearer {self.get_refreshed_token(refresh_token)}"
-            return self._client.send(*call_args, headers={"Authorization": auth_header})
+        new_access_token = self.get_refreshed_token(refresh_token)
+
+        return self._client.send(
+            *call_args,
+            headers={"Authorization": f"Bearer {new_access_token}"},
+        )
 
     def get_token(self, authorization_code):
         """

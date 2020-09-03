@@ -3,7 +3,7 @@ from unittest.mock import call, create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError
+from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError, NoOAuth2Token
 from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
 
@@ -23,6 +23,21 @@ class TestAuthenticatedClient:
         )
 
         assert result == basic_client.send.return_value
+
+    def test_send_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token_for_the_user(
+        self, authenticated_client, oauth2_token_service
+    ):
+        oauth2_token_service.get.side_effect = NoOAuth2Token()
+
+        with pytest.raises(
+            CanvasAPIAccessTokenError,
+            match="^We don't have a Canvas API access token for this user$",
+        ) as exc_info:
+            authenticated_client.send(
+                "METHOD", "/path", sentinel.schema, sentinel.params
+            )
+
+        assert exc_info.value.response is None
 
     def test_send_refreshes_and_retries_for_CanvasAPIAccessTokenError(
         self, authenticated_client, basic_client, token_response, oauth_token
