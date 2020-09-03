@@ -7,7 +7,12 @@ from pyramid.view import (
     view_defaults,
 )
 
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, LTIOutcomesAPIError
+from lms.services import (
+    CanvasAPIAccessTokenError,
+    CanvasAPIError,
+    LTIOutcomesAPIError,
+    NoOAuth2Token,
+)
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -85,6 +90,7 @@ class ExceptionViews:
             "details": self.context.messages,
         }
 
+    @exception_view_config(context=NoOAuth2Token)
     @exception_view_config(context=CanvasAPIAccessTokenError)
     def canvas_api_access_token_error(self):
         self.request.response.status_int = 400
