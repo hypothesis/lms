@@ -42,6 +42,10 @@ export default function FilePickerApp({
     filePicker: {
       formAction,
       formFields,
+      blackboard: {
+        enabled: blackboardEnabled,
+        listFiles: blackboardListFilesApi,
+      },
       canvas: { enabled: canvasEnabled, listFiles: listFilesApi, ltiLaunchUrl },
       google: {
         clientId: googleClientId,
@@ -149,6 +153,18 @@ export default function FilePickerApp({
           listFilesApi={listFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectLMSFile}
+          lmsName="Canvas"
+        />
+      );
+      break;
+    case 'blackboardLms':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={blackboardListFilesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectLMSFile}
+          lmsName="Blackboard"
         />
       );
       break;
@@ -186,13 +202,24 @@ export default function FilePickerApp({
           You can select content for your assignment from one of the following
           sources:
         </p>
-        <input name="document_url" type="hidden" value={url || ''} />
+        <input
+          name="document_url"
+          type="hidden"
+          value={url || lmsFile?.id || ''}
+        />
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
             label="Enter URL of web page or PDF"
             onClick={() => setActiveDialog('url')}
           />
+          {blackboardEnabled && (
+            <Button
+              className="FilePickerApp__source-button"
+              label={`Select PDF from Blackboard`}
+              onClick={() => setActiveDialog('blackboardLms')}
+            />
+          )}
           {canvasEnabled && (
             <Button
               className="FilePickerApp__source-button"

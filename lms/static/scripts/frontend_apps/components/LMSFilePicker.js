@@ -52,6 +52,7 @@ export default function LMSFilePicker({
   listFilesApi,
   onCancel,
   onSelectFile,
+  lmsName,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
@@ -174,14 +175,14 @@ export default function LMSFilePicker({
       )}
       {dialogState.state === 'authorizing' && authorizationAttempted && (
         <ErrorDisplay
-          message={'Failed to authorize with Canvas'}
+          message={'Failed to authorize with {lmsName}'}
           error={new Error('')}
         />
       )}
       {dialogState.state === 'authorizing' && !authorizationAttempted && (
         <p>
           To select a file, you must authorize Hypothesis to access your files
-          in Canvas.
+          in {lmsName}.
         </p>
       )}
       {(dialogState.state === 'fetching' ||
