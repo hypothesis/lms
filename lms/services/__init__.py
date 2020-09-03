@@ -9,6 +9,7 @@ from lms.services.exceptions import (
     LTIOAuthError,
     LTIOutcomesAPIError,
     NoConsumerKey,
+    NoOAuth2Token,
     ServiceError,
 )
 

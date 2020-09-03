@@ -24,6 +24,10 @@ class LTIOAuthError(LTILaunchVerificationError):
     """Raised when OAuth signature verification of a launch request fails."""
 
 
+class NoOAuth2Token(ServiceError):
+    """A requested OAuth 2 token wasn't found in the DB."""
+
+
 class ExternalRequestError(ServiceError):
     """
     A problem with a network request to an external service.
