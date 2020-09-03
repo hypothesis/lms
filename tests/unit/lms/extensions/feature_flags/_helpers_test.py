@@ -78,7 +78,6 @@ class TestFeatureFlagsCookieHelper:
 
     @pytest.fixture(autouse=True)
     def jwt_cookie_helper(self, patch):
-        # pylint: disable=invalid-name
         JWTCookieHelper = patch("lms.extensions.feature_flags._helpers.JWTCookieHelper")
 
         JWTCookieHelper.return_value.get.return_value = {
