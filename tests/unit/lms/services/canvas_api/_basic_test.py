@@ -130,7 +130,6 @@ class TestBasicClient:
 
     @pytest.fixture
     def Schema(self):
-        # pylint: disable=invalid-name
         Schema = create_autospec(RequestsResponseSchema)
         Schema.many = False
 

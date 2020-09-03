@@ -68,6 +68,7 @@ argument-naming-style=any
 class-naming-style=any
 function-naming-style=any
 method-naming-style=any
+variable-naming-style=any
 
 good-names=
     # PyLint's default good names.
