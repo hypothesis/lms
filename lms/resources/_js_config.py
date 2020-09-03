@@ -62,8 +62,18 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        self._config["viaUrl"] = via_url(self._request, document_url)
-        self._add_canvas_speedgrader_settings(document_url=document_url)
+        if document_url.startswith("blackboard://"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
+                "path": self._request.route_path(
+                    "blackboard_api.files.via_url",
+                    course_id=self._request.params["context_id"],
+                    file_id=document_url.split("/")[3],
+                ),
+            }
+        else:
+            self._config["viaUrl"] = via_url(self._request, document_url)
+            self._add_canvas_speedgrader_settings(document_url=document_url)
 
     def asdict(self):
         """
