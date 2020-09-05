@@ -6,7 +6,7 @@
 #
 -e .                      # via -r requirements/dev.in
 alembic==1.4.2            # via -r requirements/requirements.txt
-attrs==20.1.0             # via -r requirements/requirements.txt, jsonschema
+attrs==20.2.0             # via -r requirements/requirements.txt, jsonschema
 backcall==0.2.0           # via ipython
 certifi==2020.6.20        # via -r requirements/requirements.txt, requests, sentry-sdk
 chardet==3.0.4            # via -r requirements/requirements.txt, requests

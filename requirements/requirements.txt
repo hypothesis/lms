@@ -5,7 +5,7 @@
 #    pip-compile requirements/requirements.in
 #
 alembic==1.4.2            # via -r requirements/requirements.in
-attrs==20.1.0             # via jsonschema
+attrs==20.2.0             # via jsonschema
 certifi==2020.6.20        # via requests, sentry-sdk
 chardet==3.0.4            # via requests
 gunicorn==20.0.4          # via -r requirements/requirements.in
