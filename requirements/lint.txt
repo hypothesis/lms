@@ -43,7 +43,7 @@ pastedeploy==2.1.0        # via -r requirements/bddtests.txt, -r requirements/fu
 plaster-pastedeploy==0.7  # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid
 plaster==1.0              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, plaster-pastedeploy, pyramid
 pluggy==0.13.1            # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
-psycopg2==2.8.5           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
+psycopg2==2.8.6           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 py==1.9.0                 # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
 pycodestyle==2.6.0        # via -r requirements/lint.in
 pycrypto==2.6.1           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
