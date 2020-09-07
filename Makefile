@@ -16,9 +16,6 @@ help:
 	@echo "make functests         Run the functional tests"
 	@echo "make bddtests          Run the gherkin tests"
 	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
-	@echo "make pip-compile       Compile requirements.in to requirements.txt"
-	@echo "make upgrade-package   Upgrade the version of a package in requirements.txt."
-	@echo '                       Usage: `make upgrade-package name=some-package`.'
 	@echo "make docker            Make the app's Docker image"
 	@echo "make run-docker        Run the app's Docker image locally"
 	@echo "make clean             Delete development artefacts (cached files, "
@@ -84,14 +81,6 @@ functests: build/manifest.json functests-only
 .PHONY: functests-only
 functests-only: python
 	@tox -qe functests
-
-.PHONY: pip-compile
-pip-compile: python
-	@tox -qe pipcompile
-
-.PHONY: upgrade-package
-upgrade-package: python
-	@tox -qe pipcompile -- --upgrade-package $(name)
 
 .PHONY: docker
 docker:
