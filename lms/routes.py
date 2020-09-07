@@ -31,6 +31,8 @@ def includeme(config):
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route(
+        # Unfortunately we can't easily fix this URL to match the others as its  
+        # been given out to Canvas instances
         "canvas_api.oauth.callback",
         "/canvas_oauth_callback",
         factory="lms.resources.OAuth2RedirectResource",
