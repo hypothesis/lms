@@ -1,5 +1,5 @@
 factory-boy
 pyramid_ipython
 supervisor
--e .
+-e file:.#egg=lms
 -r requirements.txt
