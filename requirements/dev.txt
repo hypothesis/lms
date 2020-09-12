@@ -41,7 +41,7 @@ prompt-toolkit==3.0.7     # via ipython
 psycopg2==2.8.6           # via -r requirements/requirements.txt
 ptyprocess==0.6.0         # via pexpect
 pycrypto==2.6.1           # via -r requirements/requirements.txt
-pygments==2.6.1           # via ipython
+pygments==2.7.0           # via ipython
 pyjwt==1.7.1              # via -r requirements/requirements.txt
 pylti==0.7.0              # via -r requirements/requirements.txt
 pyramid-exclog==1.0       # via -r requirements/requirements.txt
