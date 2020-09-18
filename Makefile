@@ -41,7 +41,7 @@ supervisor: python
 	@tox -qe dev --run-command 'supervisorctl -c conf/supervisord-dev.conf $(command)'
 
 .PHONY: devdata
-devdata: python
+devdata: build/manifest.json  python
 	@tox -qe dev --run-command 'devdata conf/development.ini'  # See setup.py for what devdata is.
 
 GULP := node_modules/.bin/gulp
