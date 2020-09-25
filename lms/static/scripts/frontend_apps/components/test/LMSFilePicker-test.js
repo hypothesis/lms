@@ -74,7 +74,11 @@ describe('LMSFilePicker', () => {
   });
 
   it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
-    fakeApiCall.rejects(new ApiError('Not authorized', {}));
+    fakeApiCall.rejects(
+      new ApiError('Not authorized', {
+        /** without errorMessage */
+      })
+    );
 
     // Wait for the initial file fetch to fail.
     const wrapper = renderFilePicker();
@@ -114,8 +118,12 @@ describe('LMSFilePicker', () => {
     assert.equal(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the "Try again" prompt after a failed authorization attempt', async () => {
-    fakeApiCall.rejects(new ApiError('Not authorized', {}));
+  it('shows the "Authorize" and "Authorize again" buttons after 2 failed authorization requests', async () => {
+    fakeApiCall.rejects(
+      new ApiError('Not authorized', {
+        /** without errorMessage */
+      })
+    );
 
     const authWindowClosed = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
@@ -129,25 +137,49 @@ describe('LMSFilePicker', () => {
     } catch (err) {
       /* unused */
     }
-
     wrapper.update();
 
-    // Make an authorization attempt and wait for the auth window to close.
+    // After first failed authentication request
+    const authorizeButton = wrapper.find('Button[label="Authorize"]');
+    assert.isTrue(authorizeButton.exists());
+    assert.isTrue(wrapper.exists('p[data-testid="authorization warning"]'));
+
+    // Make first (unsuccesful) authorization attempt and wait for the auth window to close.
     await act(async () => {
-      wrapper.find('Button[label="Authorize"]').props().onClick();
+      authorizeButton.props().onClick();
       await authWindowClosed;
     });
-
     wrapper.update();
 
-    assert.isTrue(wrapper.exists('Button[label="Try again"]'));
-
+    // After second failed authentication request
+    const authorizeAgainButton = wrapper.find(
+      'Button[label="Authorize again"]'
+    );
+    assert.isTrue(authorizeAgainButton.exists());
     const errorDetails = wrapper.find('ErrorDisplay');
     assert.equal(
       errorDetails.prop('message'),
-      'Failed to authorize with Canvas'
+      'Failed to authorize file access'
     );
     assert.equal(errorDetails.prop('error').message, '');
+
+    // Make second (successful) authorization attempt and wait for the auth window to close.
+    fakeApiCall.reset();
+    fakeApiCall.resolves([]);
+    await fakeApiCall.returnValues[0];
+    await act(async () => {
+      authorizeAgainButton.props().onClick();
+      await authWindowClosed;
+    });
+    wrapper.update();
+
+    // After authorization completes, files should be fetched and then the
+    // file list should be displayed.
+    assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
+    assert.isFalse(wrapper.exists('Button[label="Authorize"]'));
+    assert.isFalse(wrapper.exists('p[data-testid="authorization warning"]'));
+    assert.isFalse(wrapper.exists('Button[label="Authorize again"]'));
+    assert.isFalse(wrapper.exists('ErrorDisplay'));
   });
 
   [
@@ -164,6 +196,10 @@ describe('LMSFilePicker', () => {
   ].forEach(({ description, error }) => {
     it(`shows error details and "Try again" button if fetching files fails with ${description}`, async () => {
       fakeApiCall.rejects(error);
+
+      const authWindowClosed = new Promise(resolve => {
+        fakeAuthWindowInstance.close = resolve;
+      });
 
       // When the dialog is initially displayed, it should try to fetch files.
       const wrapper = renderFilePicker();
@@ -190,8 +226,11 @@ describe('LMSFilePicker', () => {
       // Clicking the "Try again" button should re-try authorization.
       fakeApiCall.reset();
       fakeApiCall.resolves([]);
-      tryAgainButton.prop('onClick')();
-      assert.called(FakeAuthWindow);
+      await act(async () => {
+        tryAgainButton.props().onClick();
+        await authWindowClosed;
+      });
+      wrapper.update();
 
       // After authorization completes, files should be fetched and then the
       // file list should be displayed.
@@ -201,9 +240,45 @@ describe('LMSFilePicker', () => {
     });
   });
 
+  it('shows no "Select" button when the request returns an empty list of files', async () => {
+    fakeApiCall.resolves([]);
+    // When the dialog is initially displayed, it should try to fetch files.
+    const wrapper = renderFilePicker();
+    assert.called(fakeApiCall);
+
+    try {
+      await fakeApiCall.returnValues[0];
+    } catch (err) {
+      /* unused */
+    }
+    wrapper.update();
+
+    assert.isFalse(wrapper.exists('Button'));
+  });
+
+  it('shows a "Select" button when the request return a list with one or more files', async () => {
+    fakeApiCall.resolves([0]);
+    // When the dialog is initially displayed, it should try to fetch files.
+    const wrapper = renderFilePicker();
+    assert.called(fakeApiCall);
+
+    try {
+      await fakeApiCall.returnValues[0];
+    } catch (err) {
+      /* unused */
+    }
+    wrapper.update();
+
+    assert.isTrue(wrapper.exists('Button[label="Select"]'));
+  });
+
   it('closes the authorization window if open when canceling the dialog', async () => {
     // Make the initial file list request fail, to trigger a prompt to authorize.
-    fakeApiCall.rejects(new ApiError('Not authorized', {}));
+    fakeApiCall.rejects(
+      new ApiError('Not authorized', {
+        /** without errorMessage */
+      })
+    );
 
     const closePopup = sinon.stub();
     FakeAuthWindow.returns({

@@ -66,7 +66,7 @@ describe('FileList', () => {
   it('renders a explanatory message when there are no files', () => {
     const wrapper = renderFilesListNoFiles({
       isLoading: false,
-      noFiles: <div className="FileList__no-files" />,
+      noFilesMessage: <div className="FileList__no-files" />,
     });
     assert.isTrue(wrapper.exists('.FileList__no-files'));
   });

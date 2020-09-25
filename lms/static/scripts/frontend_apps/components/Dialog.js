@@ -8,13 +8,13 @@ import { zIndexScale } from '../utils/style';
 import { useUniqueId } from '../utils/hooks';
 
 /**
- * @typedef {import("preact").JSX.Element} JSXElement
+ * @typedef {import("preact").ComponentChildren} Children
  *
  * @typedef DialogProps
- * @prop {Object} children - The content of the dialog.
+ * @prop {Children} children - The content of the dialog.
  * @prop {import("preact/hooks").Ref<HTMLElement>} [initialFocus] -
  *   Child element to focus when the dialog is rendered.
- * @prop {JSXElement[]} [buttons] -
+ * @prop {Children} [buttons] -
  *   Additional `Button` elements to display at the bottom of the dialog.
  *   A "Cancel" button is added automatically if the `onCancel` prop is set.
  * @prop {string} [contentClass] - e.g. <button>

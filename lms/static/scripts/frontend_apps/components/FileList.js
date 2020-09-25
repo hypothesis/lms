@@ -6,7 +6,7 @@ import Table from './Table';
 
 /**
  * @typedef {import('../api-types').File} File
- * @typedef {import("preact").VNode} VNode
+ * @typedef {import("preact").ComponentChildren} Children
  */
 
 /**
@@ -18,7 +18,7 @@ import Table from './Table';
  *   Callback invoked when the user clicks on a file
  * @prop {(f: File) => any} onUseFile -
  *   Callback invoked when the user double-clicks a file to indicate that they want to use it
- * @prop {VNode} [noFiles] - component displayed when no files are available
+ * @prop {Children} [noFilesMessage] - component displayed when no files are available
  */
 
 /**
@@ -32,7 +32,7 @@ export default function FileList({
   selectedFile,
   onSelectFile,
   onUseFile,
-  noFiles,
+  noFilesMessage,
 }) {
   const formatDate = isoString => new Date(isoString).toLocaleDateString();
   const columns = [
@@ -74,7 +74,7 @@ export default function FileList({
           </Fragment>
         )}
       />
-      {!isLoading && files.length === 0 && noFiles}
+      {!isLoading && files.length === 0 && noFilesMessage}
       {isLoading && <Spinner className="FileList__spinner" />}
     </div>
   );
