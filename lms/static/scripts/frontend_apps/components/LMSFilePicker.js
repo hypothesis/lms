@@ -27,6 +27,8 @@ import FileList from './FileList';
 /**
  * @typedef DialogState
  * @prop {'fetching'|'fetched'|'authorizing'|'error'} state
+ * @prop {string} title - Dialog title
+ * @prop {'select'|'authorize'|'authorize_retry'|'retry'|'none'} buttonAction - Action for the right button
  * @prop {File[]|null} files - List of fetched files
  * @prop {Error|null} error - Details of current error, if `state` is 'error'
  */
@@ -34,6 +36,8 @@ import FileList from './FileList';
 /** @type {DialogState} */
 const INITIAL_DIALOG_STATE = {
   state: 'fetching',
+  title: 'Select a file',
+  buttonAction: 'select',
   files: null,
   error: null,
 };
@@ -74,24 +78,46 @@ export default function LMSFilePicker({
         authToken,
         path: listFilesApi.path,
       }));
-      setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetched', files });
+      const title =
+        files.length === 0 ? 'No files available' : INITIAL_DIALOG_STATE.title;
+      const buttonAction =
+        files.length === 0 ? 'none' : INITIAL_DIALOG_STATE.buttonAction;
+      setDialogState({
+        ...INITIAL_DIALOG_STATE,
+        state: 'fetched',
+        files,
+        title,
+        buttonAction,
+      });
     } catch (e) {
+      const buttonAction = authorizationAttempted
+        ? 'authorize_retry'
+        : 'authorize';
       if (e instanceof ApiError && !e.errorMessage) {
         // If the server returned an error, but provided no details, assume
         // an authorization failure.
-        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
+        setDialogState({
+          ...INITIAL_DIALOG_STATE,
+          state: 'authorizing',
+          title: 'Allow file access',
+          buttonAction,
+        });
       } else {
         // Otherwise, display the error to the user.
-        setDialogState({ ...INITIAL_DIALOG_STATE, state: 'error', error: e });
+        setDialogState({
+          ...INITIAL_DIALOG_STATE,
+          state: 'error',
+          title: 'Error accessing files',
+          error: e,
+          buttonAction: 'retry',
+        });
       }
     }
-  }, [authToken, listFilesApi]);
+  }, [authToken, listFilesApi, authorizationAttempted]);
 
   // Execute the authorization flow in a popup window and then attempt to
   // fetch files.
   const authorizeAndFetchFiles = useCallback(async () => {
-    setDialogState({ ...INITIAL_DIALOG_STATE, state: 'authorizing' });
-
     if (authWindow.current) {
       authWindow.current.focus();
       return;
@@ -118,11 +144,7 @@ export default function LMSFilePicker({
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
   useEffect(() => {
-    if (dialogState.state === 'authorizing') {
-      authorizeAndFetchFiles();
-    } else {
-      fetchFiles();
-    }
+    fetchFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -136,35 +158,50 @@ export default function LMSFilePicker({
   const useSelectedFile = () =>
     onSelectFile(/** @type {File} */ (selectedFile));
 
-  const title =
-    dialogState.state === 'authorizing' ? 'Allow file access' : 'Select a file';
+  let buttons;
+  switch (dialogState.buttonAction) {
+    case 'select':
+      buttons = [
+        <Button
+          key="select"
+          disabled={selectedFile === null}
+          onClick={useSelectedFile}
+          label="Select"
+        />,
+      ];
+      break;
+    case 'authorize':
+      buttons = [
+        <Button
+          key="showAuthWindow"
+          onClick={authorizeAndFetchFiles}
+          label="Authorize"
+        />,
+      ];
+      break;
+    case 'authorize_retry':
+      buttons = [
+        <Button
+          key="showAuthWindow"
+          onClick={authorizeAndFetchFiles}
+          label="Try authorize again"
+        />,
+      ];
+      break;
+    case 'retry':
+      buttons = [<Button key="retry" onClick={fetchFiles} label="Try again" />];
+      break;
+    default:
+      buttons = [];
+      break;
+  }
 
   return (
     <Dialog
       contentClass="LMSFilePicker__dialog"
-      title={title}
+      title={dialogState.title}
       onCancel={cancel}
-      buttons={[
-        dialogState.state === 'authorizing' || dialogState.state === 'error' ? (
-          <Button
-            key="showAuthWindow"
-            onClick={authorizeAndFetchFiles}
-            label={
-              dialogState.state === 'error' ||
-              (dialogState.state === 'authorizing' && authorizationAttempted)
-                ? 'Try again'
-                : 'Authorize'
-            }
-          />
-        ) : (
-          <Button
-            key="select"
-            disabled={selectedFile === null}
-            onClick={useSelectedFile}
-            label="Select"
-          />
-        ),
-      ]}
+      buttons={buttons}
     >
       {dialogState.state === 'error' && (
         <ErrorDisplay
@@ -184,10 +221,10 @@ export default function LMSFilePicker({
           in Canvas.
         </p>
       )}
-      {(dialogState.state === 'fetching' ||
-        dialogState.state === 'fetched') && (
+
+      {['fetching', 'fetched'].includes(dialogState.state) && (
         <FileList
-          files={dialogState.files || []}
+          files={dialogState.files ?? []}
           isLoading={dialogState.state === 'fetching'}
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
