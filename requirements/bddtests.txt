@@ -27,7 +27,6 @@ jsonschema==3.2.0         # via -r requirements/requirements.txt, h-api
 mako==1.1.3               # via -r requirements/requirements.txt, alembic
 markupsafe==1.1.1         # via -r requirements/requirements.txt, jinja2, mako, pyramid-jinja2
 marshmallow==3.8.0        # via -r requirements/requirements.txt, webargs
-more-itertools==8.5.0     # via pytest
 newrelic==5.20.0.149      # via -r requirements/requirements.txt
 oauth2==1.9.0.post1       # via -r requirements/requirements.txt, pylti
 oauthlib==3.1.0           # via -r requirements/requirements.txt, requests-oauthlib
@@ -51,7 +50,7 @@ pyramid-services==2.2     # via -r requirements/requirements.txt
 pyramid-tm==2.4           # via -r requirements/requirements.txt
 pyramid==1.10.4           # via -r requirements/requirements.txt, h-pyramid-sentry, pyramid-exclog, pyramid-jinja2, pyramid-retry, pyramid-services, pyramid-tm
 pyrsistent==0.17.3        # via -r requirements/requirements.txt, jsonschema
-pytest==6.0.2             # via -r requirements/bddtests.in
+pytest==6.1.0             # via -r requirements/bddtests.in
 python-dateutil==2.8.1    # via -r requirements/requirements.txt, alembic, faker
 python-editor==1.0.4      # via -r requirements/requirements.txt, alembic
 requests-oauthlib==1.3.0  # via -r requirements/requirements.txt

@@ -32,7 +32,6 @@ mako==1.1.3               # via -r requirements/bddtests.txt, -r requirements/fu
 markupsafe==1.1.1         # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, jinja2, mako, pyramid-jinja2
 marshmallow==3.8.0        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, webargs
 mccabe==0.6.1             # via pylint
-more-itertools==8.5.0     # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pytest
 newrelic==5.20.0.149      # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 oauth2==1.9.0.post1       # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pylti
 oauthlib==3.1.0           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, requests-oauthlib
@@ -59,7 +58,7 @@ pyramid-services==2.2     # via -r requirements/bddtests.txt, -r requirements/fu
 pyramid-tm==2.4           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 pyramid==1.10.4           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, h-pyramid-sentry, pyramid-exclog, pyramid-jinja2, pyramid-retry, pyramid-services, pyramid-tm
 pyrsistent==0.17.3        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, jsonschema
-pytest==6.0.2             # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
+pytest==6.1.0             # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 python-dateutil==2.8.1    # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic, faker
 python-editor==1.0.4      # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic
 requests-oauthlib==1.3.0  # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
