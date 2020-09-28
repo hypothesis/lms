@@ -14,6 +14,11 @@ class VitalSourceService:
         See https://developer.vitalsource.com/hc/en-us/articles/215612237-POST-LTI-Create-a-Bookshelf-Launch
         """
 
+        if not self._oauth_key:
+            raise ValueError('VitalSource launch key has not been set')
+        if not self._oauth_secret:
+            raise ValueError('VitalSource launch secret has not been set')
+
         launch_url = f"https://bc.vitalsource.com/books/{book_id}"
 
         if cfi:
