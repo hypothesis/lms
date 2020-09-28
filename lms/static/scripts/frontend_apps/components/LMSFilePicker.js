@@ -1,4 +1,4 @@
-import { createElement } from 'preact';
+import { createElement, Fragment } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { ApiError, apiCall } from '../utils/api';
@@ -37,6 +37,25 @@ const INITIAL_DIALOG_STATE = {
   files: null,
   error: null,
 };
+
+const CanvasNoFiles = (
+  <Fragment>
+    <div className="FileList__no-files">
+      There are no supported files in the current Canvas course.
+    </div>
+    <p>
+      Please see the Canvas help article for{' '}
+      <a
+        href="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
+        target="_blank"
+        rel="noreferrer"
+      >
+        uploading files to a course
+      </a>{' '}
+      and try again.
+    </p>
+  </Fragment>
+);
 
 /**
  * A file picker dialog that allows the user to choose files from their
@@ -192,6 +211,7 @@ export default function LMSFilePicker({
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
           onSelectFile={selectFile}
+          noFiles={CanvasNoFiles} // Add Blackboard or other specific LMS warning messages here.
         />
       )}
     </Dialog>

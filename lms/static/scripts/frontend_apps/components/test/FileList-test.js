@@ -17,6 +17,9 @@ describe('FileList', () => {
   const renderFileList = (props = {}) =>
     mount(<FileList files={testFiles} {...props} />);
 
+  const renderFilesListNoFiles = (props = {}) =>
+    mount(<FileList files={[]} {...props} />);
+
   beforeEach(() => {
     $imports.$mock(mockImportedComponents());
   });
@@ -58,6 +61,14 @@ describe('FileList', () => {
   it('does not show a loading indicator if `isLoading` is false', () => {
     const wrapper = renderFileList({ isLoading: false });
     assert.isFalse(wrapper.exists('.FileList__spinner'));
+  });
+
+  it('renders a explanatory message when there are no files', () => {
+    const wrapper = renderFilesListNoFiles({
+      isLoading: false,
+      noFiles: <div className="FileList__no-files" />,
+    });
+    assert.isTrue(wrapper.exists('.FileList__no-files'));
   });
 
   it(

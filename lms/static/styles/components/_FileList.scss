@@ -1,3 +1,5 @@
+@use "../variables" as var;
+
 $file-list-icon-size: 24px;
 
 .FileList {
@@ -38,7 +40,7 @@ $file-list-icon-size: 24px;
   &.is-selected {
     // nb. Argument must be passed to `invert` even though "1" is the default
     // to work around https://bugs.chromium.org/p/chromium/issues/detail?id=964696.
-    filter: #{"invert(1)"}; // Quoted to avoid conflict with SASS mixin.
+    filter: #{'invert(1)'}; // Quoted to avoid conflict with SASS mixin.
   }
 }
 
@@ -57,4 +59,12 @@ $file-list-icon-size: 24px;
 
 .FileList__date-col {
   padding-right: 10px;
+}
+
+.FileList__no-files {
+  border: 1px solid var.$grey-6;
+  height: 40px;
+  vertical-align: middle;
+  padding: 12px;
+  background-color: var.$grey-2;
 }
