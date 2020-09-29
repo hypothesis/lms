@@ -55,7 +55,7 @@
     "through2": "^4.0.2",
     "tiny-emitter": "^2.1.0",
     "uglifyify": "^5.0.2",
-    "vinyl": "^2.2.0",
+    "vinyl": "^2.2.1",
     "watchify": "^3.11.1"
   },
   "devDependencies": {
