@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "gulp build",
-    "checkformatting": "prettier --check lms/**/*.js scripts/**/*.js",
-    "format": "prettier --list-different --write lms/**/*.js scripts/**/*.js",
+    "checkformatting": "prettier --check lms/**/*.{js,scss} scripts/**/*.js",
+    "format": "prettier --list-different --write lms/**/*.{js,scss} scripts/**/*.js",
     "lint": "eslint lms/static/scripts",
     "test": "gulp test",
     "typecheck": "tsc --build lms/static/scripts/tsconfig.json"
