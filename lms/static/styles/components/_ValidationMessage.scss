@@ -1,6 +1,5 @@
 @use "../mixins/focus";
 
-
 @keyframes validationErrorOpen {
   from {
     width: 0;
@@ -28,7 +27,7 @@
   display: inline-block;
   position: absolute;
   z-index: 10;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   padding: 0 10px;
   right: 210px;
   line-height: 40px;

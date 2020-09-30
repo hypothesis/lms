@@ -1,7 +1,6 @@
 @use "../mixins/focus";
 @use "../variables" as var;
 
-
 .StudentSelector {
   display: flex;
 }
@@ -18,7 +17,7 @@
   background-color: var.$grey-2;
   border: 1px solid var.$grey-3;
   transition: background-color 0.2s, border-color 0.2s;
-  
+
   &:hover {
     cursor: pointer;
     background-color: var.$grey-3;

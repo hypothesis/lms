@@ -1,7 +1,6 @@
 @use "../mixins";
 @use "../variables" as var;
 
-
 .Button {
   @include mixins.font-normal;
 

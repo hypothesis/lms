@@ -1,7 +1,6 @@
 @use "../mixins/focus";
 @use "../variables" as var;
 
-
 .Dialog__container {
   display: flex;
   position: fixed;
@@ -47,7 +46,7 @@
 
   // Given the button a large hit target and ensure the 'X' label is large
   // enough to see easily and aligned with the right edge of the dialog.
-  // Add negative margins so that the button does not force the dialog to 
+  // Add negative margins so that the button does not force the dialog to
   // grow in height.
   font-size: 20px;
   padding: 5px;

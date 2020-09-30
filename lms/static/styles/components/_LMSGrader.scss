@@ -1,6 +1,5 @@
 @use "../variables" as var;
 
-
 .LMSGrader {
   display: flex;
   flex-direction: column;
@@ -31,7 +30,7 @@
    * when the student index is changed. This prevents a 
    * potential re-flow onto the next line.
    */
-  width: 150px; 
+  width: 150px;
   text-align: right;
 }
 
@@ -48,7 +47,6 @@
   font-size: 16px;
   margin: 0;
 }
-
 
 .LMSGrader__student-picker {
   display: flex;
