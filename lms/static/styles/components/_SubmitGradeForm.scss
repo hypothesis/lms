@@ -22,7 +22,6 @@
   }
 }
 
-
 .SubmitGradeForm {
   display: flex;
   position: relative;
@@ -34,7 +33,7 @@
 
   &__submit {
     @include focus.outline-on-keyboard-focus;
-    
+
     height: 40px;
     width: 150px;
     font-weight: 500;
@@ -75,10 +74,10 @@
     border-right: none;
 
     // Animation for successful grade submit
-    animation-duration: 2.0s;
+    animation-duration: 2s;
     animation-timing-function: ease-out;
     animation-fill-mode: forwards;
-    
+
     &.is-saved {
       animation-name: SubmitGradeForm__gradeSaved;
     }
