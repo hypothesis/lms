@@ -101,6 +101,7 @@ class TestLTIOutcomesClient:
             data=Any(),
             headers=Any(),
             auth=oauth1_service.get_client.return_value,
+            timeout=Any(),
         )
 
     def test_requests_fail_if_http_status_is_error(self, svc, respond_with):

@@ -104,6 +104,7 @@ class LTIOutcomesClient:
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
+                timeout=9,
             )
 
             # Raise an exception if the status is bad
