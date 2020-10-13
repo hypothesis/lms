@@ -10,6 +10,8 @@ from requests import RequestException
 from lms.services.exceptions import LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient
 
+pytestmark = pytest.mark.usefixtures("oauth1_service")
+
 
 class TestLTIOutcomesClient:
     SERVICE_URL = "http://example.com/service_url"
@@ -227,6 +229,3 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def requests(self, patch):
         return patch("lms.services.lti_outcomes.requests")
-
-
-pytestmark = pytest.mark.usefixtures("oauth1_service")

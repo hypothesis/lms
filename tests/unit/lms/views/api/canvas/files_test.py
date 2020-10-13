@@ -3,6 +3,8 @@ import pytest
 from lms.services import CanvasAPIError
 from lms.views.api.canvas.files import FilesAPIViews
 
+pytestmark = pytest.mark.usefixtures("canvas_api_client")
+
 
 class TestListFiles:
     def test_it_gets_the_list_of_files_from_canvas(
@@ -77,6 +79,3 @@ class TestViaURL:
 @pytest.fixture(autouse=True)
 def helpers(patch):
     return patch("lms.views.api.canvas.files.helpers")
-
-
-pytestmark = pytest.mark.usefixtures("canvas_api_client")

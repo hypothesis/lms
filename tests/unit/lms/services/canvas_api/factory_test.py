@@ -4,6 +4,8 @@ import pytest
 
 from lms.services.canvas_api.factory import canvas_api_client_factory
 
+pytestmark = pytest.mark.usefixtures("ai_getter", "oauth2_token_service")
+
 
 class TestCanvasAPIClientFactory:
     def test_building_the_CanvasAPIClient(
@@ -50,6 +52,3 @@ class TestCanvasAPIClientFactory:
     @pytest.fixture(autouse=True)
     def CanvasAPIClient(self, patch):
         return patch("lms.services.canvas_api.factory.CanvasAPIClient")
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter", "oauth2_token_service")

@@ -9,6 +9,8 @@ from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
+pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
+
 
 class TestEnableContentItemSelectionMode:
     @pytest.mark.usefixtures("blackboard_files_enabled")
@@ -535,9 +537,6 @@ class TestEnableCanvasOauth2RedirectErrorMode:
         return mock.create_autospec(
             OAuth2RedirectResource, spec_set=True, instance=True
         )
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter", "grading_info_service", "h_api")
 
 
 @pytest.fixture(autouse=True)

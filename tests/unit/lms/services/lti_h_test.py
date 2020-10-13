@@ -9,6 +9,8 @@ from lms.services import HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
+pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
+
 
 class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
@@ -86,9 +88,6 @@ class TestGroupInfoUpdating:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         return pyramid_request
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
 
 
 @pytest.fixture

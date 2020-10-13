@@ -6,6 +6,8 @@ from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.content_item_selection import content_item_selection
 
+pytestmark = pytest.mark.usefixtures("course_service", "lti_h_service")
+
 
 class TestContentItemSelection:
     def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
@@ -41,6 +43,3 @@ class TestContentItemSelection:
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         return context
-
-
-pytestmark = pytest.mark.usefixtures("course_service", "lti_h_service")

@@ -7,6 +7,8 @@ from pytest import param
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 
+pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
+
 
 class TestACL:
     @pytest.mark.parametrize(
@@ -150,9 +152,8 @@ class TestCanvasSectionsSupported:
         ai_getter.canvas_sections_supported.return_value = True
 
 
+@pytest.mark.usefixtures("has_course")
 class TestCanvasSectionsEnabled:
-    pytestmark = pytest.mark.usefixtures("has_course")
-
     def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
         assert lti_launch.canvas_sections_enabled
 
@@ -187,9 +188,6 @@ class TestCanvasSectionsEnabled:
         ) as canvas_sections_supported:
             canvas_sections_supported.return_value = True
             yield canvas_sections_supported
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
 
 
 @pytest.fixture

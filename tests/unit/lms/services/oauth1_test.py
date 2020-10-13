@@ -5,6 +5,8 @@ from requests import Request
 
 from lms.services.oauth1 import OAuth1Service
 
+pytestmark = pytest.mark.usefixtures("ai_getter")
+
 
 class TestOAuth1Service:
     def test_we_configure_OAuth1_correctly(self, service, OAuth1, pyramid_request):
@@ -54,6 +56,3 @@ class TestOAuth1Service:
     @pytest.fixture
     def OAuth1(self, patch):
         return patch("lms.services.oauth1.OAuth1")
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter")

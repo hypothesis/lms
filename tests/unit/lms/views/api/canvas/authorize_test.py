@@ -9,6 +9,8 @@ from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
 
+pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "canvas_api_client")
+
 
 class TestAuthorize:
     def test_it_redirects_to_the_right_Canvas_endpoint(
@@ -211,6 +213,3 @@ def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
     schema = CanvasOAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "canvas_api_client")
