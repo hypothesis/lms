@@ -5,6 +5,8 @@ import pytest
 from lms.services import NoOAuth2Token
 from lms.views.api.blackboard.authorize import authorize, oauth2_redirect
 
+pytestmark = pytest.mark.usefixtures("oauth2_token_service")
+
 
 class TestAuthorize:
     def test_it_just_redirects_to_the_oauth2_redirect_view(self, pyramid_request):
@@ -55,6 +57,3 @@ def CanvasOAuthCallbackSchema(patch):
     )
     CanvasOAuthCallbackSchema.return_value.state_param.return_value = "test_state"
     return CanvasOAuthCallbackSchema
-
-
-pytestmark = pytest.mark.usefixtures("oauth2_token_service")

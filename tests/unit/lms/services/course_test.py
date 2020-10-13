@@ -7,6 +7,8 @@ from lms.models import Course, CourseGroupsExportedFromH
 from lms.services.course import course_service_factory
 from tests import factories
 
+pytestmark = pytest.mark.usefixtures("ai_getter")
+
 
 class TestCourseService:
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
@@ -105,6 +107,3 @@ class TestCourseService:
         return factories.ApplicationInstance(
             consumer_key=pyramid_request.lti_user.oauth_consumer_key
         )
-
-
-pytestmark = pytest.mark.usefixtures("ai_getter")

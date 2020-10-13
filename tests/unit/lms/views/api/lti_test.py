@@ -7,6 +7,8 @@ from h_matchers import Any
 
 from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
 
+pytestmark = pytest.mark.usefixtures("lti_outcomes_client")
+
 
 class TestRecordCanvasSpeedgraderSubmission:
     GRADING_ID = "lis_result_sourcedid"
@@ -141,6 +143,3 @@ class TestRecordResult:
             "score": 0.5,
         }
         return pyramid_request
-
-
-pytestmark = pytest.mark.usefixtures("lti_outcomes_client")

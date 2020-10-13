@@ -4,6 +4,8 @@ from lms.models import HGroup
 from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
+pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
+
 
 @pytest.mark.usefixtures("is_learner")
 def test_sync_when_the_user_is_a_learner(
@@ -42,9 +44,6 @@ def test_sync_when_in_SpeedGrader(
     canvas_api_client.users_sections.assert_called_once_with(user_id, course_id)
 
     assert_sync_and_return(groupids, sections=sections.user)
-
-
-pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
 
 
 @pytest.fixture

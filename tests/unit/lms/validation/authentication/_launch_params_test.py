@@ -6,6 +6,8 @@ from lms.services import LTILaunchVerificationError
 from lms.validation import ValidationError
 from lms.validation.authentication import LaunchParamsAuthSchema
 
+pytestmark = pytest.mark.usefixtures("launch_verifier")
+
 
 class TestLaunchParamsAuthSchema:
     def test_it_returns_the_lti_user_info(self, schema, display_name):
@@ -97,9 +99,6 @@ class TestLaunchParamsAuthSchema:
         del pyramid_request.POST["lis_person_name_given"]
         del pyramid_request.POST["lis_person_name_family"]
         del pyramid_request.POST["lis_person_name_full"]
-
-
-pytestmark = pytest.mark.usefixtures("launch_verifier")
 
 
 @pytest.fixture(autouse=True)

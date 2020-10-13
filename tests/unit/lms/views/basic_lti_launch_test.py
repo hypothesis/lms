@@ -7,6 +7,10 @@ from lms.resources._js_config import JSConfig
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 from tests import factories
 
+pytestmark = pytest.mark.usefixtures(
+    "ai_getter", "course_service", "h_api", "grading_info_service", "lti_h_service"
+)
+
 
 def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     """
@@ -323,11 +327,6 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
         ).unconfigured_basic_lti_launch_not_authorized()
 
         assert data == {}
-
-
-pytestmark = pytest.mark.usefixtures(
-    "ai_getter", "course_service", "h_api", "grading_info_service", "lti_h_service"
-)
 
 
 @pytest.fixture
