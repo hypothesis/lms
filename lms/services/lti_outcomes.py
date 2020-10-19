@@ -65,7 +65,7 @@ class LTIOutcomesClient:
 
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
 
-        if score:
+        if score is not None:
             request["resultRecord"]["result"] = {
                 "resultScore": {"language": "en", "textString": score}
             }

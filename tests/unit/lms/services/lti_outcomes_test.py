@@ -64,13 +64,20 @@ class TestLTIOutcomesClient:
         assert sourced_id == self.GRADING_ID
 
     @pytest.mark.usefixtures("response")
-    def test_record_result_sends_score(self, svc):
-        svc.record_result(self.GRADING_ID, score=0.5)
+    @pytest.mark.parametrize(
+        "score_provided,score_in_record",
+        [
+            (0.5, "0.5"),
+            (0, "0"),  # test the zero value
+        ],
+    )
+    def test_record_result_sends_score(self, svc, score_provided, score_in_record):
+        svc.record_result(self.GRADING_ID, score=score_provided)
 
         result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
         score = result_record["result"]["resultScore"]["textString"]
 
-        assert score == "0.5"
+        assert score == score_in_record
 
     @pytest.mark.usefixtures("response")
     def test_record_result_calls_hook(self, svc):
