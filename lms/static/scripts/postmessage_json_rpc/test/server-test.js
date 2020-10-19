@@ -4,7 +4,7 @@ describe('Server', () => {
   // The window origin of the server.
   // postMessage messages must be sent to this origin in order for the server
   // to receive them.
-  const serversOrigin = 'http://localhost:9876';
+  let serversOrigin;
 
   let server;
   let registeredMethod;
@@ -13,7 +13,11 @@ describe('Server', () => {
   let receiveMessage;
 
   beforeEach('set up the test server', () => {
-    server = new Server(['http://localhost:9876']);
+    // The test server normally runs on http://localhost:9876, but may be
+    // on a higher port if multiple instances are running.
+    // Use window.location.origin to be safe.
+    serversOrigin = window.location.origin;
+    server = new Server([serversOrigin]);
     registeredMethod = sinon.stub().resolves('test_result');
     server.register('registeredMethodName', registeredMethod);
 
