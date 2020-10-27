@@ -4,12 +4,23 @@
       "pragma": "createElement"
     }],
     ["@babel/preset-env", {
+       "bugfixes": true,
        "targets": {
-         "browsers": ["> 0.3%"]
+         "chrome": "55",
+         "edge": "17",
+         "firefox": "53",
+         "safari": "10.1",
       }
     }]
   ],
-  "plugins": [
-    "transform-async-to-promises"
-  ]
+  "env": {
+    "development": {
+      "presets": [
+        ["@babel/preset-react", {
+          "development": true,
+          "pragma": "createElement"
+        }]
+      ]
+    }
+  }
 }
