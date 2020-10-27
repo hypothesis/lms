@@ -51,9 +51,13 @@ function createGoogleLibFakes() {
       PICKED: 'picked',
       CANCEL: 'cancel',
     },
-    DocsUploadView: () => {},
-    PickerBuilder: () => pickerBuilder,
-    View: () => pickerView,
+    DocsUploadView: function () {},
+    PickerBuilder: function () {
+      return pickerBuilder;
+    },
+    View: function () {
+      return pickerView;
+    },
     ViewId: {
       DOCS: 'docs',
     },
