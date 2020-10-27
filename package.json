@@ -38,7 +38,7 @@
     "commander": "^6.1.0",
     "eslint-plugin-mocha": "^8.0.0",
     "eslint-plugin-react": "^7.21.5",
-    "eslint-plugin-react-hooks": "^4.1.2",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "exorcist": "^1.0.1",
     "focus-visible": "^5.2.0",
     "gulp": "^4.0.2",
