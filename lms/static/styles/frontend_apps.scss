@@ -1,40 +1,34 @@
 @use 'normalize.css/normalize';
 
-@use 'mixins';
-@use 'variables' as *;
-
-// Additional mixins.
-@use 'mixins/focus';
-
-// Shared classes.
+// Shared classes
 @use 'utils';
 @use 'typography';
 
-// HTML components.
+// HTML components
 @use 'components/heading';
 @use 'components/label';
 
-// Generic React components.
-// Note: Some of these are also used by server-rendered HTML templates, not
-// just by React code.
+// Styling for components rendered both by Preact and other HTML (eg. server-rendered templates)
 @use 'components/Button';
-@use 'components/Dialog';
-@use 'components/Table';
 
-// React components.
+// Preact components
 @use 'components/BasicLtiLaunchApp';
+@use 'components/Dialog';
 @use 'components/ErrorDisplay';
 @use 'components/FileList';
 @use 'components/FilePickerApp';
 @use 'components/LMSGrader';
 @use 'components/StudentSelector';
 @use 'components/SubmitGradeForm';
+@use 'components/Table';
 @use 'components/ValidationMessage';
 @use 'components/SvgIcon';
 
-// Element styles.
+// Element styles
+@use 'variables' as var;
+
 body {
-  font-family: $sans-font-family;
-  font-size: $normal-font-size;
-  line-height: $normal-line-height;
+  font-family: var.$sans-font-family;
+  font-size: var.$normal-font-size;
+  line-height: var.$normal-line-height;
 }
