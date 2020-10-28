@@ -70,11 +70,15 @@ var bundleBaseConfig = {
 var bundles = [
   {
     name: 'frontend_apps',
-    entry: './lms/static/scripts/frontend_apps/index',
+    entry: './lms/static/scripts/frontend_apps/index.js',
   },
   {
     name: 'new_application_instance',
     entry: './lms/static/scripts/new-application-instance.js',
+  },
+  {
+    name: 'browser_check',
+    entry: './lms/static/scripts/browser_check/index.js',
   },
 ];
 

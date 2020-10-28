@@ -1,0 +1,14 @@
+// Custom compilation settings for the `browser_check` bundle. This is intended
+// to work in old browsers that are not supported by the main LMS frontend.
+{
+  "presets": [
+    ["@babel/preset-env", {
+       "targets": {
+         "chrome": "40",
+         "firefox": "38",
+         "safari": "9",
+         "ie": "11"
+      }
+    }]
+  ]
+}
