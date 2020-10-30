@@ -266,9 +266,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   let iFrameWrapper;
   const iFrame = (
     <iframe
-      width="100%"
-      height="100%"
-      className="js-via-iframe"
+      className="BasicLtiLaunchApp__iframe"
       src={contentUrl || ''}
       title="Course content with Hypothesis annotation viewer"
     />
@@ -292,14 +290,14 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   }
 
   const content = (
-    <span
+    <div
       // Visually hide the iframe / grader if there is an error or no contentUrl.
       className={classNames('BasicLtiLaunchApp__content', {
         'is-hidden': !showIframe,
       })}
     >
       {iFrameWrapper}
-    </span>
+    </div>
   );
 
   const focusedDialogButton = useRef(
@@ -367,10 +365,10 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
   );
 
   return (
-    <span className="BasicLtiLaunchApp">
+    <div className="BasicLtiLaunchApp">
       {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
       {errorDialog}
       {content}
-    </span>
+    </div>
   );
 }

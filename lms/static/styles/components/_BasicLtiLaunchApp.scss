@@ -1,3 +1,7 @@
+.BasicLtiLaunchApp {
+  height: 100%;
+}
+
 .BasicLtiLaunchApp__spinner {
   $spinner-size: 50px;
 
@@ -12,4 +16,16 @@
   &.is-hidden {
     visibility: hidden;
   }
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.BasicLtiLaunchApp__iframe {
+  width: 100%;
+
+  // nb. This element may be contained directly in the `BasicLtiLaunchApp__content` element or
+  // within an `LMSGrader` wrapper. In both cases it should fill whatever space remains.
+  flex-grow: 1;
 }
