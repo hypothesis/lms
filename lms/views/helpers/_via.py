@@ -32,15 +32,7 @@ class _ViaDoc:
 class _ViaClient:
     """A small wrapper to make calling Via easier."""
 
-    def __init__(
-        # pylint: disable=too-many-arguments
-        self,
-        service_url,
-        legacy_service_url,
-        host_url,
-        legacy_mode=False,
-        via_rewriter_mode=False,
-    ):
+    def __init__(self, service_url, legacy_service_url, host_url, legacy_mode=False):
         self.service_url = urlparse(service_url)
         self.legacy_service_url = legacy_service_url
 
@@ -53,25 +45,16 @@ class _ViaClient:
         }
 
         self.legacy_mode = legacy_mode
-        self.via_rewriter_mode = via_rewriter_mode
 
     def url_for(self, doc):
         if self.legacy_mode:
             return self._legacy_via_url(doc.url)
 
         if doc.is_html:
-            if self.via_rewriter_mode:
-                return self._pywb_style_url(
-                    self.service_url._replace(path="/html/v/").geturl(), doc.url
-                )
-
             return self._legacy_via_url(doc.url)
 
         if doc.is_pdf:
             return self._url_for("/pdf", doc.url)
-
-        if self.via_rewriter_mode:
-            self.options["via.rewrite"] = "1"
 
         return self._url_for("/route", doc.url)
 
@@ -117,5 +100,4 @@ def via_url(request, document_url, content_type=None):
         legacy_service_url=request.registry.settings["legacy_via_url"],
         host_url=request.host_url,
         legacy_mode=request.feature("use_legacy_via"),
-        via_rewriter_mode=request.feature("use_via_rewriter"),
     ).url_for(doc)
