@@ -10,6 +10,14 @@ $table-item-height: 40px;
   border: 1px solid var.$grey-6;
 
   margin-top: 10px;
+
+  &.has-files {
+    // This very specific value is so that when the table contains <=3 items
+    // it maintains the same height as when `.FileList__no-files-message` is
+    // displayed. This prevents layout shifts. See:
+    // https://github.com/hypothesis/lms/pull/2219/files#r518727080
+    min-height: 176px;
+  }
 }
 
 .Table__table {

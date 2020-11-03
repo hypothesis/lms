@@ -10,14 +10,7 @@ $file-list-icon-size: 24px;
 
   // Override the default minimum height of the table so that the file list
   // is fully visible even if available height is very small.
-  min-height: 100px;
-}
-
-.FileList__spinner {
-  position: absolute;
-  margin: 15px;
-  left: calc(50% - #{$file-list-icon-size / 2});
-  top: calc(50% - #{$file-list-icon-size / 2});
+  min-height: 130px;
 }
 
 .FileList__name-header {
@@ -61,10 +54,14 @@ $file-list-icon-size: 24px;
   padding-right: 10px;
 }
 
-.FileList__no-files {
-  border: 1px solid var.$grey-6;
-  height: 40px;
+.FileList__no-files-message {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
   vertical-align: middle;
-  padding: 12px;
+  text-align: center;
+  width: 100%;
+  min-height: 149px;
+  border: 1px solid var.$grey-6;
   background-color: var.$grey-2;
 }

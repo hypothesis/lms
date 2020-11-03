@@ -75,7 +75,11 @@ export default function FileList({
         )}
       />
       {!isLoading && files.length === 0 && noFilesMessage}
-      {isLoading && <Spinner className="FileList__spinner" />}
+      {isLoading && (
+        <div className="FileList__no-files-message">
+          <Spinner />
+        </div>
+      )}
     </div>
   );
 }

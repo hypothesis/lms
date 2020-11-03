@@ -1,4 +1,4 @@
-import { createElement, Fragment } from 'preact';
+import { createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { ApiError, apiCall } from '../utils/api';
@@ -28,7 +28,7 @@ import FileList from './FileList';
  * @typedef DialogState
  * @prop {'fetching'|'fetched'|'authorizing'|'error'} state
  * @prop {string} title - Dialog title
- * @prop {'select'|'authorize'|'authorize_retry'|'retry'|'none'} continueAction - Action for the continue button
+ * @prop {'select'|'authorize'|'authorize_retry'|'retry'|'reload'} continueAction - Action for the continue button
  * @prop {File[]|null} files - List of fetched files
  * @prop {Error|null} error - Details of current error, if `state` is 'error'
  */
@@ -43,22 +43,19 @@ const INITIAL_DIALOG_STATE = {
 };
 
 const CanvasNoFiles = (
-  <Fragment>
-    <div className="FileList__no-files">
-      There are no available PDF files in the current course.
-    </div>
+  <div className="FileList__no-files-message">
     <p>
-      Please see the Canvas help article for{' '}
+      There are no PDFs in this course.{' '}
       <a
         href="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
         target="_blank"
         rel="noreferrer"
       >
-        uploading files to a course
+        Upload some files to the course
       </a>{' '}
       and try again.
     </p>
-  </Fragment>
+  </div>
 );
 
 /**
@@ -92,13 +89,20 @@ export default function LMSFilePicker({
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
     try {
-      setDialogState({ ...INITIAL_DIALOG_STATE, state: 'fetching' });
+      // Show the fetching state, but preserve the existing continueAction to
+      // prevent the button label changing. See:
+      // https://github.com/hypothesis/lms/pull/2219#issuecomment-721833947
+      setDialogState(({ continueAction }) => ({
+        ...INITIAL_DIALOG_STATE,
+        state: 'fetching',
+        continueAction,
+      }));
       const files = /** @type {File[]} */ (await apiCall({
         authToken,
         path: listFilesApi.path,
       }));
       const continueAction =
-        files.length === 0 ? 'none' : INITIAL_DIALOG_STATE.continueAction;
+        files.length === 0 ? 'reload' : INITIAL_DIALOG_STATE.continueAction;
       setDialogState({
         ...INITIAL_DIALOG_STATE,
         state: 'fetched',
@@ -181,7 +185,6 @@ export default function LMSFilePicker({
     case 'select':
       continueButton = (
         <Button
-          key="select"
           disabled={selectedFile === null}
           onClick={useSelectedFile}
           label="Select"
@@ -191,11 +194,7 @@ export default function LMSFilePicker({
       break;
     case 'authorize':
       continueButton = (
-        <Button
-          key="showAuthWindow"
-          onClick={authorizeAndFetchFiles}
-          label="Authorize"
-        />
+        <Button onClick={authorizeAndFetchFiles} label="Authorize" />
       );
       warningOrError = (
         <p data-testid="authorization warning">
@@ -205,11 +204,7 @@ export default function LMSFilePicker({
       break;
     case 'authorize_retry':
       continueButton = (
-        <Button
-          key="showAuthWindow"
-          onClick={authorizeAndFetchFiles}
-          label="Authorize again"
-        />
+        <Button onClick={authorizeAndFetchFiles} label="Authorize again" />
       );
       warningOrError = (
         <ErrorDisplay
@@ -221,7 +216,6 @@ export default function LMSFilePicker({
     case 'retry':
       continueButton = (
         <Button
-          key="retry"
           onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
           label="Try again"
         />
@@ -233,8 +227,16 @@ export default function LMSFilePicker({
         />
       );
       break;
+    case 'reload':
+      continueButton = (
+        <Button
+          disabled={dialogState.state === 'fetching'}
+          onClick={fetchFiles}
+          label="Reload"
+        />
+      );
+      break;
     default:
-      // 'none' case
       continueButton = null;
       warningOrError = null;
       break;
