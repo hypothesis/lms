@@ -81,6 +81,7 @@
     "sinon": "^9.2.1",
     "typescript": "^4.0.5"
   },
+  "browserslist": "chrome 55, edge 17, firefox 53, safari 10.1",
   "browserify": {
     "transform": [
       "babelify",
