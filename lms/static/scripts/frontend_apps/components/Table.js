@@ -100,7 +100,12 @@ export default function Table({
   };
 
   return (
-    <div className="Table__wrapper">
+    <div
+      className={classnames({
+        Table__wrapper: true,
+        'has-files': items.length > 0,
+      })}
+    >
       <table
         aria-label={accessibleLabel}
         className="Table__table"

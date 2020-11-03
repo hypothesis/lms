@@ -240,7 +240,7 @@ describe('LMSFilePicker', () => {
     });
   });
 
-  it('shows no "Select" button when the request returns an empty list of files', async () => {
+  it('shows "Reload" button when the request returns an empty list of files', async () => {
     fakeApiCall.resolves([]);
     // When the dialog is initially displayed, it should try to fetch files.
     const wrapper = renderFilePicker();
@@ -253,7 +253,7 @@ describe('LMSFilePicker', () => {
     }
     wrapper.update();
 
-    assert.isFalse(wrapper.exists('Button'));
+    assert.isTrue(wrapper.exists('Button[label="Reload"]'));
   });
 
   it('shows a "Select" button when the request return a list with one or more files', async () => {

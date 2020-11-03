@@ -55,20 +55,20 @@ describe('FileList', () => {
 
   it('shows a loading indicator if `isLoading` is true', () => {
     const wrapper = renderFileList({ isLoading: true });
-    assert.isTrue(wrapper.exists('.FileList__spinner'));
+    assert.isTrue(wrapper.exists('Spinner'));
   });
 
   it('does not show a loading indicator if `isLoading` is false', () => {
     const wrapper = renderFileList({ isLoading: false });
-    assert.isFalse(wrapper.exists('.FileList__spinner'));
+    assert.isFalse(wrapper.exists('Spinner'));
   });
 
   it('renders a explanatory message when there are no files', () => {
     const wrapper = renderFilesListNoFiles({
       isLoading: false,
-      noFilesMessage: <div className="FileList__no-files" />,
+      noFilesMessage: <div className="FileList__no-files-message" />,
     });
-    assert.isTrue(wrapper.exists('.FileList__no-files'));
+    assert.isTrue(wrapper.exists('.FileList__no-files-message'));
   });
 
   it(
