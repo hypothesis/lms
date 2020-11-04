@@ -1,6 +1,6 @@
 """Via-related view helpers."""
 import re
-from urllib.parse import parse_qsl, urlencode, urlparse
+from urllib.parse import urlencode, urlparse
 
 __all__ = ["via_url"]
 
@@ -24,17 +24,12 @@ class _ViaDoc:
     def is_pdf(self):
         return self._content_type == "pdf"
 
-    @property
-    def is_html(self):
-        return self._content_type == "html"
-
 
 class _ViaClient:
     """A small wrapper to make calling Via easier."""
 
-    def __init__(self, service_url, legacy_service_url, host_url, legacy_mode=False):
+    def __init__(self, service_url, host_url):
         self.service_url = urlparse(service_url)
-        self.legacy_service_url = legacy_service_url
 
         # Default via parameters
         self.options = {
@@ -44,38 +39,14 @@ class _ViaClient:
             "via.external_link_mode": "new-tab",
         }
 
-        self.legacy_mode = legacy_mode
-
     def url_for(self, doc):
-        if self.legacy_mode:
-            return self._legacy_via_url(doc.url)
+        # Optimisation to skip routing for documents we know are PDFs
+        path = "/pdf" if doc.is_pdf else "/route"
 
-        if doc.is_html:
-            return self._legacy_via_url(doc.url)
-
-        if doc.is_pdf:
-            return self._url_for("/pdf", doc.url)
-
-        return self._url_for("/route", doc.url)
-
-    def _url_for(self, path, doc_url):
-        options = {"url": doc_url}
+        options = {"url": doc.url}
         options.update(self.options)
 
         return self.service_url._replace(path=path, query=urlencode(options)).geturl()
-
-    def _legacy_via_url(self, doc_url):
-        return self._pywb_style_url(self.legacy_service_url, doc_url)
-
-    def _pywb_style_url(self, base_url, doc_url):
-        parsed_url = urlparse(doc_url)
-
-        params = [
-            kv for kv in parse_qsl(parsed_url.query) if not kv[0].startswith("via.")
-        ]
-        params.extend(self.options.items())
-
-        return base_url + parsed_url._replace(query=urlencode(params)).geturl()
 
 
 def via_url(request, document_url, content_type=None):
@@ -96,8 +67,5 @@ def via_url(request, document_url, content_type=None):
     doc = _ViaDoc(document_url, content_type)
 
     return _ViaClient(
-        service_url=request.registry.settings["via_url"],
-        legacy_service_url=request.registry.settings["legacy_via_url"],
-        host_url=request.host_url,
-        legacy_mode=request.feature("use_legacy_via"),
+        service_url=request.registry.settings["via_url"], host_url=request.host_url
     ).url_for(doc)

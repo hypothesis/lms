@@ -1,5 +1,3 @@
-from urllib.parse import urlencode
-
 import pytest
 from h_matchers import Any
 
@@ -44,30 +42,6 @@ class TestViaURL:
         ),
     )
 
-    @pytest.mark.usefixtures("legacy_via_feature_flag")
-    @pywb_test_params
-    def test_it_merges_params_correctly_for_legacy_via(
-        self, pyramid_request, params, expected_extras
-    ):
-        final_url = via_url(
-            pyramid_request, f"http://doc.example.com/?{urlencode(params, doseq=True)}"
-        )
-
-        assert final_url == Any.url.with_host("test_legacy_via_server.is")
-        assert final_url == Any.url.with_path("/http://doc.example.com/")
-        assert final_url == Any.url.containing_query(self.DEFAULT_OPTIONS)
-
-        if expected_extras:
-            assert final_url == Any.url.containing_query(expected_extras)
-
-    def test_it_routes_to_via_for_html(self, pyramid_request):
-        final_url = via_url(
-            pyramid_request, "http://doc.example.com/", content_type="html"
-        )
-
-        assert final_url == Any.url.with_host("test_legacy_via_server.is")
-        assert final_url == Any.url.with_path("/http://doc.example.com/")
-
     def test_it_redirects_to_via3_view_pdf_directly_for_google_drive(
         self, pyramid_request
     ):
@@ -86,18 +60,3 @@ class TestViaURL:
         assert (
             final_url == Any.url.matching("http://test_via3_server.is/pdf").with_query()
         )
-
-    @pytest.mark.usefixtures("legacy_via_feature_flag")
-    @pytest.mark.parametrize(
-        "url", ("http://doc.example.com", "https://doc.example.com")
-    )
-    def test_it_passes_through_the_url(self, pyramid_request, url):
-        final_url = via_url(pyramid_request, url)
-
-        assert final_url == Any.url.with_host("test_legacy_via_server.is").with_path(
-            url
-        )
-
-    @pytest.fixture
-    def legacy_via_feature_flag(self, pyramid_request):
-        pyramid_request.feature = lambda feature: feature == "use_legacy_via"
