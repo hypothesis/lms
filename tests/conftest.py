@@ -18,7 +18,6 @@ def get_test_database_url(default):
 
 TEST_SETTINGS = {
     "dev": False,
-    "legacy_via_url": "http://TEST_LEGACY_VIA_SERVER.is/",
     "via_url": "http://TEST_VIA3_SERVER.is/",
     "jwt_secret": "test_secret",
     "google_client_id": "fake_client_id",
