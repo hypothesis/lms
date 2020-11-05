@@ -25,7 +25,7 @@ class TestCanvasAPIAccessTokenError:
         json_data = views.canvas_api_access_token_error()
 
         assert pyramid_request.response.status_code == 400
-        assert json_data == {"message": None, "details": None}
+        assert json_data == {}
 
 
 class TestCanvasAPIError:
@@ -69,7 +69,7 @@ class TestNotFound:
     def test_it_shows_a_generic_error_message_to_the_user(self, views):
         result = views.notfound()
 
-        assert result["message"] == "Endpoint not found"
+        assert result["message"] == "Endpoint not found."
 
 
 class TestForbidden:
@@ -81,7 +81,7 @@ class TestForbidden:
     def test_it_shows_a_generic_error_message_to_the_user(self, views):
         result = views.forbidden()
 
-        assert result["message"] == "You're not authorized to view this page"
+        assert result["message"] == "You're not authorized to view this page."
 
 
 class TestAPIError:
