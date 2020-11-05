@@ -8,6 +8,7 @@ import requests
 from lms.services import (
     CanvasAPIAccessTokenError,
     CanvasAPIError,
+    CanvasAPIPermissionError,
     CanvasAPIServerError,
     ExternalRequestError,
 )
@@ -75,22 +76,47 @@ class TestExternalRequestError:
 
 class TestCanvasAPIError:
     @pytest.mark.parametrize(
-        "status,expected_status,expected_exception_class",
+        "status,body,expected_status,expected_exception_class",
         [
             # A 401 Unauthorized response from Canvas, because our access token was
             # expired or deleted.
-            (401, "401 Unauthorized", CanvasAPIAccessTokenError),
+            (
+                401,
+                json.dumps({"errors": [{"message": "Invalid access token."}]}),
+                "401 Unauthorized",
+                CanvasAPIAccessTokenError,
+            ),
+            # A permissions error from Canvas, because the Canvas user doesn't
+            # have permission to make the API call.
+            (
+                401,
+                json.dumps(
+                    {
+                        "status": "unauthorized",
+                        "errors": [
+                            {"message": "user not authorized to perform that action"}
+                        ],
+                    }
+                ),
+                "401 Unauthorized",
+                CanvasAPIPermissionError,
+            ),
             # A 400 Bad Request response from Canvas, because we sent an invalid
             # parameter or something.
-            (400, "400 Bad Request", CanvasAPIServerError),
+            (
+                400,
+                json.dumps({"test": "body"}),
+                "400 Bad Request",
+                CanvasAPIServerError,
+            ),
             # An unexpected error response from Canvas.
-            (500, "500 Internal Server Error", CanvasAPIServerError),
+            (500, "test_body", "500 Internal Server Error", CanvasAPIServerError),
         ],
     )
     def test_it_raises_the_right_subclass_for_different_Canvas_responses(
-        self, status, expected_status, expected_exception_class
+        self, status, body, expected_status, expected_exception_class
     ):
-        cause = self._requests_exception(status=status)
+        cause = self._requests_exception(status=status, body=body)
 
         raised_exception = self.assert_raises(cause, expected_exception_class)
 
@@ -98,7 +124,7 @@ class TestCanvasAPIError:
         assert raised_exception.response == cause.response
         assert raised_exception.details == {
             "validation_errors": None,
-            "response": {"status": expected_status, "body": '{"foo": "bar"}'},
+            "response": {"status": expected_status, "body": body},
         }
 
     def test_it_raises_CanvasAccessTokenError_for_refresh_token_not_found_responses(

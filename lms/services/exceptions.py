@@ -113,7 +113,10 @@ class CanvasAPIError(ExternalRequestError):
         exception_class = CanvasAPIServerError
 
         if status_code == 401:
-            exception_class = CanvasAPIAccessTokenError
+            if "status" in response.json():
+                exception_class = CanvasAPIPermissionError
+            else:
+                exception_class = CanvasAPIAccessTokenError
         elif response is not None:
             try:
                 json = response.json()
@@ -155,6 +158,19 @@ class CanvasAPIAccessTokenError(CanvasAPIError):
     If we can put the user through the OAuth grant flow to get a new access
     token and then re-try the request, it might succeed.
     """
+
+
+class CanvasAPIPermissionError(CanvasAPIError):
+    """
+    A Canvas API permissions error.
+
+    This happens when the user's access token is fine but they don't have
+    permission to carry out the requested action. For example a user might not
+    have permission to get a public URL for a file if they don't have
+    permission to read that file.
+    """
+
+    error_code = "canvas_api_permission_error"
 
 
 class CanvasAPIServerError(CanvasAPIError):
