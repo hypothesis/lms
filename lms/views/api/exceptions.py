@@ -84,53 +84,52 @@ class ExceptionViews:
 
     @exception_view_config(context=ValidationError)
     def validation_error(self):
-        self.request.response.status_int = 422
-        return {
-            "message": self.context.explanation,
-            "details": self.context.messages,
-        }
+        return self.error_response(
+            422, message=self.context.explanation, details=self.context.messages
+        )
 
     @exception_view_config(context=NoOAuth2Token)
     @exception_view_config(context=CanvasAPIAccessTokenError)
     def canvas_api_access_token_error(self):
-        self.request.response.status_int = 400
-        return {
-            "message": None,
-            "details": None,
-        }
+        return self.error_response()
 
     @exception_view_config(context=CanvasAPIError)
     @exception_view_config(context=LTIOutcomesAPIError)
     def proxy_api_error(self):
-        self.request.response.status_int = 400
-        return {
-            "message": self.context.explanation,
-            "details": self.context.details,
-        }
+        return self.error_response(
+            message=self.context.explanation, details=self.context.details
+        )
 
     @exception_view_config(path_info="/api/*", context=Exception)
     def api_error(self):
         """Fallback error handler for frontend API requests."""
-        self.request.response.status_int = 500
-
         # Exception details are not reported here to avoid leaking internal information.
-        return {
-            "message": (
-                "A problem occurred while handling this request. Hypothesis has been"
-                " notified."
+        return self.error_response(
+            500,
+            message=_(
+                "A problem occurred while handling this request. Hypothesis has been notified."
             ),
-        }
+        )
 
     @forbidden_view_config(path_info="/api/*")
     def forbidden(self):
-        self.request.response.status_int = 403
-        return {
-            "message": _("You're not authorized to view this page"),
-        }
+        return self.error_response(
+            403, message=_("You're not authorized to view this page.")
+        )
 
     @notfound_view_config(path_info="/api/*")
     def notfound(self):
-        self.request.response.status_int = 404
-        return {
-            "message": _("Endpoint not found"),
-        }
+        return self.error_response(404, message=_("Endpoint not found."))
+
+    def error_response(self, status=400, message=None, details=None):
+        self.request.response.status_int = status
+
+        response = {}
+
+        if message is not None:
+            response["message"] = message
+
+        if details is not None:
+            response["details"] = details
+
+        return response
