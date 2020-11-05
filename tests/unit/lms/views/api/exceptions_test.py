@@ -1,6 +1,6 @@
 import pytest
 
-from lms.services import CanvasAPIError, LTIOutcomesAPIError
+from lms.services import CanvasAPIError, CanvasAPIPermissionError, LTIOutcomesAPIError
 from lms.validation import ValidationError
 from lms.views.api.exceptions import ExceptionViews
 
@@ -26,6 +26,21 @@ class TestCanvasAPIAccessTokenError:
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {}
+
+
+class TestCanvasAPIPermissionError:
+    def test_it(self, context, pyramid_request, views):
+        json_data = views.canvas_api_permission_error()
+
+        assert pyramid_request.response.status_code == 400
+        assert json_data == {
+            "error_code": context.error_code,
+            "details": context.details,
+        }
+
+    @pytest.fixture
+    def context(self):
+        return CanvasAPIPermissionError(details={"foo": "bar"})
 
 
 class TestCanvasAPIError:
