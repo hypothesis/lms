@@ -10,6 +10,7 @@ from pyramid.view import (
 from lms.services import (
     CanvasAPIAccessTokenError,
     CanvasAPIError,
+    CanvasAPIPermissionError,
     LTIOutcomesAPIError,
     NoOAuth2Token,
 )
@@ -26,18 +27,28 @@ class ExceptionViews:
     Error responses from the API have JSON bodies with the following keys (all
     optional):
 
-    1. "message": An error message for the frontend to show to the user.
+    1. "error_code": A unique string that identifies the error to the frontend.
+
+       If "error_code" is present the frontend should show an error dialog
+       relevant to the particular error code. For example if "error_code" is
+       "canvas_api_permission_error" the frontend should show a
+       "You don't have permission" error dialog. The error dialog should
+       include a [Try again] button that opens the "canvas_api.oauth.authorize"
+       route.
+
+    2. "message": An error message for the frontend to show to the user.
 
        If "message" is present the frontend will show an error dialog that
        indicates that something went wrong and has a [Try again] button that
-       opens the "canvas_api.oauth.authorize" route.
+       opens the "canvas_api.oauth.authorize" route. The "message" string
+       should be rendered by the frontend somewhere in the error dialog.
 
-       If no "message" is present the frontend will show a standard
-       authorization dialog (not an error dialog) and the button that opens
-       "canvas_api.oauth.authorize" route will be labelled [Authorize].
+    If no "error_code" or "message" is present the frontend will show a
+    standard authorization dialog (not an error dialog) and the button that
+    opens "canvas_api.oauth.authorize" route will be labelled [Authorize].
 
-    2. "details": Optional further error details to show to the user after
-       "message", for debugging and support.
+    3. "details": Optional further error details to show to the user in the
+       error dialog, for debugging and support.
 
     The HTTP status codes of the API error responses are:
 
@@ -93,6 +104,12 @@ class ExceptionViews:
     def canvas_api_access_token_error(self):
         return self.error_response()
 
+    @exception_view_config(context=CanvasAPIPermissionError)
+    def canvas_api_permission_error(self):
+        return self.error_response(
+            error_code=self.context.error_code, details=self.context.details
+        )
+
     @exception_view_config(context=CanvasAPIError)
     @exception_view_config(context=LTIOutcomesAPIError)
     def proxy_api_error(self):
@@ -121,10 +138,13 @@ class ExceptionViews:
     def notfound(self):
         return self.error_response(404, message=_("Endpoint not found."))
 
-    def error_response(self, status=400, message=None, details=None):
+    def error_response(self, status=400, error_code=None, message=None, details=None):
         self.request.response.status_int = status
 
         response = {}
+
+        if error_code is not None:
+            response["error_code"] = error_code
 
         if message is not None:
             response["message"] = message

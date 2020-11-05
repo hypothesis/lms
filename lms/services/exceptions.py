@@ -81,8 +81,8 @@ class CanvasAPIError(ExternalRequestError):
     invalid or unexpected response is received from the Canvas API.
     """
 
-    @staticmethod
-    def raise_from(cause):
+    @classmethod
+    def raise_from(cls, cause):
         """
         Raise a :exc:`lms.services.CanvasAPIError` from the given ``cause``.
 
@@ -108,20 +108,8 @@ class CanvasAPIError(ExternalRequestError):
         ``<raised_exception>.response`` will be ``None``.
         """
         response = getattr(cause, "response", None)
-        status_code = getattr(response, "status_code", None)
 
-        exception_class = CanvasAPIServerError
-
-        if status_code == 401:
-            exception_class = CanvasAPIAccessTokenError
-        elif response is not None:
-            try:
-                json = response.json()
-            except ValueError:
-                pass
-            else:
-                if json.get("error_description") == "refresh_token not found":
-                    exception_class = CanvasAPIAccessTokenError
+        exception_class = cls._exception_class(response)
 
         details = {
             "validation_errors": getattr(cause, "messages", None),
@@ -143,6 +131,33 @@ class CanvasAPIError(ExternalRequestError):
             details=details,
         ) from cause
 
+    @staticmethod
+    def _exception_class(response):
+        """Return the exception class to raise for the given response."""
+        if response is None:
+            return CanvasAPIServerError
+
+        status_code = getattr(response, "status_code", None)
+
+        try:
+            response_json = response.json()
+        except ValueError:
+            response_json = {}
+
+        errors = response_json.get("errors", [])
+        error_description = response_json.get("error_description", "")
+
+        if {"message": "Invalid access token."} in errors:
+            return CanvasAPIAccessTokenError
+
+        if error_description == "refresh_token not found":
+            return CanvasAPIAccessTokenError
+
+        if status_code == 401:
+            return CanvasAPIPermissionError
+
+        return CanvasAPIServerError
+
 
 class CanvasAPIAccessTokenError(CanvasAPIError):
     """
@@ -155,6 +170,19 @@ class CanvasAPIAccessTokenError(CanvasAPIError):
     If we can put the user through the OAuth grant flow to get a new access
     token and then re-try the request, it might succeed.
     """
+
+
+class CanvasAPIPermissionError(CanvasAPIError):
+    """
+    A Canvas API permissions error.
+
+    This happens when the user's access token is fine but they don't have
+    permission to carry out the requested action. For example a user might not
+    have permission to get a public URL for a file if they don't have
+    permission to read that file.
+    """
+
+    error_code = "canvas_api_permission_error"
 
 
 class CanvasAPIServerError(CanvasAPIError):
