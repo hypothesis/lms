@@ -267,6 +267,54 @@ describe('BasicLtiLaunchApp', () => {
         );
       });
     });
+
+    it('shows Canvas file permission error if content URL fetch fails with "canvas_api_permission_error" error', async () => {
+      // Make the initial URL fetch request reject with a Canvas API permission error.
+      fakeApiCall.rejects(
+        new ApiError(400, { error_code: 'canvas_api_permission_error' })
+      );
+
+      const wrapper = renderLtiLaunchApp();
+      await spinnerVisible(wrapper);
+
+      // Verify that the expected error dialog is shown.
+      await waitForElement(
+        wrapper,
+        'FakeDialog[title="Couldn\'t get the file from Canvas"]'
+      );
+      const tryAgainButton = wrapper.find('Button[label="Try again"]');
+
+      // Click the "Try again" button and verify that files are re-fetched without re-authorizing.
+      fakeApiCall.resetHistory();
+      act(() => {
+        tryAgainButton.prop('onClick')();
+      });
+      assert.notCalled(FakeAuthWindow);
+      assert.called(fakeApiCall);
+      await spinnerVisible(wrapper);
+
+      // We didn't change the API response, so it will fail the same way and the same error dialog
+      // should be shown.
+      await waitForElement(
+        wrapper,
+        'FakeDialog[title="Couldn\'t get the file from Canvas"]'
+      );
+
+      // Change the API call to succeed and try again.
+      fakeApiCall.reset();
+      fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
+      act(() => {
+        tryAgainButton.prop('onClick')();
+      });
+
+      // When the request succeeds, the content should now be shown.
+      await contentVisible(wrapper);
+      await spinnerHidden(wrapper);
+      assert.equal(
+        wrapper.find('iframe').prop('src'),
+        'https://via.hypothes.is/123'
+      );
+    });
   });
 
   describe('speed grader config', () => {

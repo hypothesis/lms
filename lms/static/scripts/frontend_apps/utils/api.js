@@ -20,6 +20,15 @@ export class ApiError extends Error {
     this.status = status;
 
     /**
+     * Identifier for the specific error that happened.
+     *
+     * This can be used to show custom error dialogs for specific issues.
+     *
+     * @type {string|null}
+     */
+    this.errorCode = data.error_code || null;
+
+    /**
      * Server-provided error message.
      *
      * May be `null` if the server did not provide any details about what the

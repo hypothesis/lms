@@ -24,6 +24,15 @@ import Spinner from './Spinner';
  */
 
 /**
+ * The categories of error that can happen when launching an assignment.
+ *
+ * These affect the message that is shown to users and the actions
+ * offered to remedy the problem.
+ *
+ * @typedef {'error-fetching'|'error-authorizing'|'error-reporting-submission'|'error-fetching-canvas-file'} ErrorState
+ */
+
+/**
  * @typedef BasicLtiLaunchAppProps
  * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
  */
@@ -53,8 +62,6 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     viaUrl,
     canvas,
   } = useContext(Config);
-
-  /**  @typedef {'error-fetch'|'error-authorizing'|'error-report-submission'} ErrorState */
 
   // Indicates what the application was doing when the error indicated by
   // `error` occurred.
@@ -109,7 +116,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     // a network fetch error).
     setAuthUrl(authUrl || null);
 
-    if (e instanceof ApiError && !e.errorMessage && retry) {
+    if (
+      e instanceof ApiError &&
+      e.errorCode === 'canvas_api_permission_error'
+    ) {
+      setError(e);
+      setErrorState('error-fetching-canvas-file');
+    } else if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
       setError(e);
@@ -145,7 +158,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         clientRpc.setGroups(groups);
         success = true;
       } catch (e) {
-        handleError(e, 'error-fetch', true /* retry */, apiSync.authUrl);
+        handleError(e, 'error-fetching', true /* retry */, apiSync.authUrl);
         success = false;
       }
 
@@ -181,7 +194,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       setContentUrl(contentUrl);
       success = true;
     } catch (e) {
-      handleError(e, 'error-fetch', true /* retry */, viaUrlApi.authUrl);
+      handleError(e, 'error-fetching', true /* retry */, viaUrlApi.authUrl);
       success = false;
     }
     decFetchCount();
@@ -223,7 +236,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       // This avoids the student trying to complete the assignment without
       // knowing that there was a problem, and the teacher then not seeing a
       // submission.
-      handleError(e, 'error-report-submission', false);
+      handleError(e, 'error-reporting-submission', false);
     }
   }, [authToken, canvas.speedGrader, contentUrl]);
 
@@ -261,6 +274,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       authWindow.current = null;
     }
   }, [authToken, authUrl, fetchContentUrl, fetchGroups]);
+
+  const refetchContentUrl = useCallback(async () => {
+    const success = fetchContentUrl();
+    if (success) {
+      setErrorState(null);
+    }
+  }, [fetchContentUrl]);
 
   // Construct the <iframe> content
   let iFrameWrapper;
@@ -325,7 +345,43 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
           <p>Hypothesis needs your authorization to launch this assignment.</p>
         </Dialog>
       )}
-      {errorState === 'error-fetch' && (
+      {errorState === 'error-fetching-canvas-file' && (
+        <Dialog
+          initialFocus={focusedDialogButton}
+          title="Couldn't get the file from Canvas"
+          role="alertdialog"
+          buttons={[
+            <Button
+              buttonRef={focusedDialogButton}
+              className="BasicLtiLaunchApp__button"
+              disabled={fetchCount > 0}
+              key="retry"
+              label="Try again"
+              onClick={refetchContentUrl}
+            />,
+          ]}
+        >
+          <p>
+            Hypothesis couldn&apos;t get the assignment&apos;s file from Canvas.
+          </p>
+          <p>
+            You might not have permission to read the file in Canvas. This could
+            be because:
+          </p>
+          <ul>
+            <li>
+              The file is marked as <i>Unpublished</i> in Canvas: an instructor
+              needs to publish the file.
+            </li>
+            <li>
+              This course was copied from another course: an instructor needs to
+              edit this assignment and re-select the file.
+            </li>
+          </ul>
+          <ErrorDisplay error={/** @type {Error} */ (error)} />
+        </Dialog>
+      )}
+      {errorState === 'error-fetching' && (
         <Dialog
           initialFocus={focusedDialogButton}
           title="Something went wrong"
@@ -348,7 +404,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
           />
         </Dialog>
       )}
-      {errorState === 'error-report-submission' && (
+      {errorState === 'error-reporting-submission' && (
         <Dialog
           title="Something went wrong"
           contentClass="BasicLtiLaunchApp__dialog"

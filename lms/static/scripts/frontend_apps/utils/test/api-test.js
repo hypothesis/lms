@@ -88,7 +88,26 @@ describe('api', () => {
           '`ApiError.errorMessage`'
         );
         assert.equal(reason.details, body.details, '`ApiError.details`');
+        assert.equal(reason.errorCode, null);
       });
+    });
+
+    it('sets `errorCode` property if server provides an `error_code`', async () => {
+      fakeResponse.status = 400;
+      fakeResponse.json.resolves({
+        error_code: 'canvas_api_permission_error',
+        details: {},
+      });
+
+      const response = apiCall({ path: '/api/test', authToken: 'auth' });
+      let reason;
+      try {
+        await response;
+      } catch (err) {
+        reason = err;
+      }
+
+      assert.equal(reason.errorCode, 'canvas_api_permission_error');
     });
   });
 
