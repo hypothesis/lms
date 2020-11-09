@@ -35,7 +35,7 @@ pyramid-jinja2==2.8       # via -r requirements/requirements.in
 pyramid-retry==2.1.1      # via -r requirements/requirements.in
 pyramid-services==2.2     # via -r requirements/requirements.in
 pyramid-tm==2.4           # via -r requirements/requirements.in
-pyramid==1.10.4           # via -r requirements/requirements.in, h-pyramid-sentry, pyramid-exclog, pyramid-jinja2, pyramid-retry, pyramid-services, pyramid-tm
+pyramid==1.10.5           # via -r requirements/requirements.in, h-pyramid-sentry, pyramid-exclog, pyramid-jinja2, pyramid-retry, pyramid-services, pyramid-tm
 pyrsistent==0.17.3        # via jsonschema
 python-dateutil==2.8.1    # via alembic
 python-editor==1.0.4      # via alembic
