@@ -5,6 +5,7 @@ help:
 	@echo "                       (Postgres) in Docker"
 	@echo 'make db                Upgrade the DB schema to the latest version'
 	@echo "make dev               Run the entire app (web server and other processes)"
+	@echo "make build             Create a production build of the static assests"
 	@echo "make supervisor        Launch a supervisorctl shell for managing the processes "
 	@echo '                       that `make dev` starts, type `help` for docs'
 	@echo "make shell             Launch a Python shell in the dev environment"
@@ -33,7 +34,7 @@ db: python
 	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
-dev: build/manifest.json python
+dev: node_modules/.uptodate python
 	@tox -qe dev
 
 .PHONY: supervisor
@@ -148,7 +149,8 @@ frontend-tests: node_modules/.uptodate
 
 DOCKER_TAG = dev
 
-build/manifest.json: node_modules/.uptodate
+.PHONY: build
+build: node_modules/.uptodate
 	@yarn build
 
 node_modules/.uptodate: package.json yarn.lock
