@@ -187,6 +187,7 @@ export default function FilePickerApp({
           sources:
         </p>
         <input name="document_url" type="hidden" value={url || ''} />
+        <input name="file_id" type="hidden" value={lmsFile? lmsFile.id : ''} />
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
