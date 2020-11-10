@@ -83,10 +83,55 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
+        # Do we have a module item configuration for this assignment in the DB?
+        # If so it overrides the file_id in the launch URL.
+        resource_link_id = self.request.params["resource_link_id"]
+        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
+        document_url = ModuleItemConfiguration.get_document_url(
+            self.request.db, tool_consumer_instance_guid, resource_link_id
+        )
+        if document_url:
+            print("document_url was found in DB")
+            file_id = int(document_url)
+        else:
+            print("document_url was *not* found in DB")
+            file_id = int(self.request.params["file_id"])
+
+        print(f"file_id: {file_id}")
+
+        # Has the assignment been course copied (or has a file ID from another
+        # course somehow)?
+        if self.request.lti_user.is_instructor:
+            canvas_api = self.request.find_service(name="canvas_api_client")
+            file_ids = [
+                file_["id"]
+                for file_ in canvas_api.list_files(
+                    self.request.params["custom_canvas_course_id"]
+                )
+            ]
+            print(f"file_ids: {file_ids}")
+            if file_id not in file_ids:
+                print("file_id is not in this course")
+
+                form_fields = {
+                    param: value
+                    for param, value in self.request.params.items()
+                    if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+                }
+
+                form_fields["authorization"] = BearerTokenSchema(
+                    self.request
+                ).authorization_param(self.request.lti_user)
+
+                self.context.js_config.enable_content_item_selection_mode(
+                    form_action=self.request.route_url("module_item_configurations"),
+                    form_fields=form_fields,
+                )
+
         self.sync_lti_data_to_h()
         self.store_lti_data()
         self.course_service.get_or_create(self.context.h_group.authority_provided_id)
-        self.context.js_config.add_canvas_file_id(self.request.params["file_id"])
+        self.context.js_config.add_canvas_file_id(str(file_id))
         return {}
 
     @view_config(db_configured=True)
@@ -219,6 +264,12 @@ class BasicLTILaunchViews:
         """
         document_url = self.request.parsed_params["document_url"]
 
+        if document_url:
+            self.context.js_config.add_document_url(document_url)
+        else:
+            document_url = self.request.params["file_id"]
+            self.context.js_config.add_canvas_file_id(document_url)
+
         ModuleItemConfiguration.set_document_url(
             self.request.db,
             self.request.parsed_params["tool_consumer_instance_guid"],
@@ -226,11 +277,8 @@ class BasicLTILaunchViews:
             document_url,
         )
 
-        self.context.js_config.add_document_url(document_url)
-
         self.sync_lti_data_to_h()
         self.store_lti_data()
-
         self.context.js_config.maybe_enable_grading()
 
         return {}
