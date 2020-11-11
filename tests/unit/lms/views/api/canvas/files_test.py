@@ -1,6 +1,6 @@
 import pytest
 
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.views.api.canvas.files import FilesAPIViews
 
 pytestmark = pytest.mark.usefixtures("canvas_api_client")
@@ -37,6 +37,35 @@ class TestListFiles:
 
 
 class TestViaURL:
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_checks_whether_the_file_is_in_the_course(
+        self, canvas_api_client, pyramid_request
+    ):
+        FilesAPIViews(pyramid_request).via_url()
+
+        canvas_api_client.check_file_in_course.assert_called_once_with(
+            "test_file_id", "test_course_id"
+        )
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_raises_if_the_file_isnt_in_the_course(
+        self, canvas_api_client, pyramid_request
+    ):
+        canvas_api_client.check_file_in_course.side_effect = CanvasFileNotFoundInCourse(
+            1
+        )
+
+        with pytest.raises(CanvasFileNotFoundInCourse):
+            FilesAPIViews(pyramid_request).via_url()
+
+    @pytest.mark.usefixtures("user_is_learner")
+    def test_it_doesnt_check_whether_the_file_is_in_the_course(
+        self, canvas_api_client, pyramid_request
+    ):
+        FilesAPIViews(pyramid_request).via_url()
+
+        canvas_api_client.check_file_in_course.assert_not_called()
+
     def test_it_gets_the_public_url_from_canvas(
         self, canvas_api_client, pyramid_request
     ):
@@ -72,7 +101,10 @@ class TestViaURL:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.matchdict = {"file_id": "test_file_id"}
+        pyramid_request.matchdict = {
+            "course_id": "test_course_id",
+            "file_id": "test_file_id",
+        }
         return pyramid_request
 
 

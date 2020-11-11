@@ -3,8 +3,14 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIError, CanvasAPIServerError
+from lms.services import (
+    CanvasAPIAccessTokenError,
+    CanvasAPIError,
+    CanvasAPIServerError,
+    CanvasFileNotFoundInCourse,
+)
 from lms.services.canvas_api.client import CanvasAPIClient
+from tests import factories
 
 
 class TestCanvasAPIClientGetToken:
@@ -170,6 +176,31 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
+    @pytest.mark.usefixtures("list_files_response")
+    @pytest.mark.parametrize("file_id", [1, "1"])
+    def test_check_file_in_course_checks_that_the_file_is_in_the_course(
+        self, canvas_api_client, file_id, http_session
+    ):
+        canvas_api_client.check_file_in_course(
+            file_id=file_id, course_id="test_course_id"
+        )
+
+        http_session.send.assert_called_once_with(
+            Any.request(
+                url=Any.url.with_path("api/v1/courses/test_course_id/files"),
+            ),
+            timeout=Any(),
+        )
+
+    @pytest.mark.usefixtures("list_files_response")
+    def test_check_file_in_course_raises_if_the_file_isnt_in_the_course(
+        self, canvas_api_client
+    ):
+        with pytest.raises(CanvasFileNotFoundInCourse):
+            canvas_api_client.check_file_in_course(
+                file_id="not_in_course", course_id="test_course_id"
+            )
+
     def test_public_url(self, canvas_api_client, http_session):
         http_session.set_response({"public_url": "public_url_value"})
 
@@ -181,6 +212,25 @@ class TestCanvasAPIClient:
                 "GET", url=Any.url.with_path("api/v1/files/FILE_ID/public_url")
             ),
             timeout=Any(),
+        )
+
+    @pytest.fixture
+    def list_files_response(self, http_session):
+        """Make the network send a valid Canvas API list files response."""
+        http_session.send.return_value = factories.requests.Response(
+            json_data=[
+                {
+                    "display_name": "display_name_1",
+                    "id": 1,
+                    "updated_at": "updated_at_1",
+                },
+                {
+                    "display_name": "display_name_2",
+                    "id": 2,
+                    "updated_at": "updated_at_2",
+                },
+            ],
+            status_code=200,
         )
 
 

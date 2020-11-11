@@ -3,6 +3,7 @@ from lms.services.exceptions import (
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
+    CanvasFileNotFoundInCourse,
     ConsumerKeyError,
     ExternalRequestError,
     HAPIError,

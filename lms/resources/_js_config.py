@@ -33,7 +33,7 @@ class JSConfig:
     def _ai_getter(self):
         return self._request.find_service(name="ai_getter")
 
-    def add_canvas_file_id(self, canvas_file_id):
+    def add_canvas_file_id(self, course_id, canvas_file_id):
         """
         Set the document to the Canvas file with the given canvas_file_id.
 
@@ -46,7 +46,7 @@ class JSConfig:
         self._config["api"]["viaUrl"] = {
             "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
             "path": self._request.route_path(
-                "canvas_api.files.via_url", file_id=canvas_file_id
+                "canvas_api.files.via_url", course_id=course_id, file_id=canvas_file_id
             ),
         }
         self._add_canvas_speedgrader_settings(canvas_file_id=canvas_file_id)

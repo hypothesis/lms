@@ -86,7 +86,10 @@ class BasicLTILaunchViews:
         self.sync_lti_data_to_h()
         self.store_lti_data()
         self.course_service.get_or_create(self.context.h_group.authority_provided_id)
-        self.context.js_config.add_canvas_file_id(self.request.params["file_id"])
+        self.context.js_config.add_canvas_file_id(
+            self.request.params["custom_canvas_course_id"],
+            self.request.params["file_id"],
+        )
         return {}
 
     @view_config(db_configured=True)
