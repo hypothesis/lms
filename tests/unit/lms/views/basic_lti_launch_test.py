@@ -20,6 +20,10 @@ def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     BasicLTILaunchViews.canvas_file_basic_lti_launch(), and return whatever
     BasicLTILaunchViews.canvas_file_basic_lti_launch() returns.
     """
+    # The custom_canvas_course_id param is always present when
+    # canvas_file_basic_lti_launch() is called: Canvas always includes this
+    # param because we request it in our config.xml.
+    pyramid_request.params["custom_canvas_course_id"] = "TEST_COURSE_ID"
     # The file_id param is always present when canvas_file_basic_lti_launch()
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
@@ -219,7 +223,8 @@ class TestCanvasFileBasicLTILaunch:
         canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         context.js_config.add_canvas_file_id.assert_called_once_with(
-            pyramid_request.params["file_id"]
+            pyramid_request.params["custom_canvas_course_id"],
+            pyramid_request.params["file_id"],
         )
 
 

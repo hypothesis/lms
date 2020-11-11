@@ -201,3 +201,13 @@ class LTIOutcomesAPIError(ExternalRequestError):
     Raised whenever an LTI outcomes API request times out or when an
     unsuccessful, invalid or unexpected response is received from the API.
     """
+
+
+class CanvasFileNotFoundInCourse(ServiceError):
+    """A Canvas file ID wasn't found in the current course."""
+
+    error_code = "canvas_file_not_found_in_course"
+
+    def __init__(self, file_id):
+        self.details = {"file_id": file_id}
+        super().__init__(self.details)

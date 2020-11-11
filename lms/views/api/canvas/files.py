@@ -28,6 +28,12 @@ class FilesAPIViews:
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.
         """
+        file_id = self.request.matchdict["file_id"]
+        course_id = self.request.matchdict["course_id"]
+
+        if self.request.lti_user.is_instructor:
+            self.canvas_api_client.check_file_in_course(file_id, course_id)
+
         public_url = self.canvas_api_client.public_url(
             self.request.matchdict["file_id"]
         )

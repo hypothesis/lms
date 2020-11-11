@@ -3,7 +3,7 @@
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.validation import RequestsResponseSchema
 
 
@@ -39,7 +39,7 @@ class CanvasAPIClient:
         """
         Create a new CanvasAPIClient.
 
-        :param authenticated_client: An instance of AuthenticatedClient.
+        :param authenticated_client: An instance of AuthenticatedClient
         """
         self._client = authenticated_client
 
@@ -226,12 +226,22 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
 
+    def check_file_in_course(self, file_id, course_id):
+        """
+        Raise if the file with ID file_id isn't in the course with ID course_id.
+
+        :raise CanvasFileNotFoundInCourse: If the file isn't in the course
+        """
+        if not any(
+            str(file_["id"]) == str(file_id) for file_ in self.list_files(course_id)
+        ):
+            raise CanvasFileNotFoundInCourse(file_id)
+
     def public_url(self, file_id):
         """
         Get a new temporary public download URL for the file with the given ID.
 
         :param file_id: the ID of the Canvas file
-        :rtype: str
         """
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.public_url

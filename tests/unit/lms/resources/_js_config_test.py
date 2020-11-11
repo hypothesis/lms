@@ -126,15 +126,19 @@ class TestAddCanvasFileID:
     """Unit tests for JSConfig.add_canvas_file_id()."""
 
     def test_it_adds_the_viaUrl_api_config(self, js_config):
-        js_config.add_canvas_file_id("example_canvas_file_id")
+        js_config.add_canvas_file_id(
+            "example_canvas_course_id", "example_canvas_file_id"
+        )
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/files/example_canvas_file_id/via_url",
+            "path": "/api/canvas/courses/example_canvas_course_id/files/example_canvas_file_id/via_url",
         }
 
     def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
-        js_config.add_canvas_file_id("example_canvas_file_id")
+        js_config.add_canvas_file_id(
+            "example_canvas_course_id", "example_canvas_file_id"
+        )
 
         assert submission_params()["canvas_file_id"] == "example_canvas_file_id"
 
@@ -213,7 +217,10 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
     @pytest.fixture(
         params=[
-            {"method": "add_canvas_file_id", "args": ["example_canvas_file_id"]},
+            {
+                "method": "add_canvas_file_id",
+                "args": ["example_canvas_course_id", "example_canvas_file_id"],
+            },
             {"method": "add_document_url", "args": ["example_document_url"]},
         ]
     )
@@ -221,9 +228,7 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         """Return a function that calls the method-under-test with default args."""
 
         def method_caller():
-            method_name = request.param["method"]
-            args = request.param["args"]
-            return getattr(js_config, method_name)(*args)
+            return getattr(js_config, request.param["method"])(*request.param["args"])
 
         return method_caller
 

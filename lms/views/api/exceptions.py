@@ -11,6 +11,7 @@ from lms.services import (
     CanvasAPIAccessTokenError,
     CanvasAPIError,
     CanvasAPIPermissionError,
+    CanvasFileNotFoundInCourse,
     LTIOutcomesAPIError,
     NoOAuth2Token,
 )
@@ -105,6 +106,7 @@ class ExceptionViews:
         return self.error_response()
 
     @exception_view_config(context=CanvasAPIPermissionError)
+    @exception_view_config(context=CanvasFileNotFoundInCourse)
     def canvas_api_permission_error(self):
         return self.error_response(
             error_code=self.context.error_code, details=self.context.details

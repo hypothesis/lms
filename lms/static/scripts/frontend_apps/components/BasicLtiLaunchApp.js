@@ -29,7 +29,7 @@ import Spinner from './Spinner';
  * These affect the message that is shown to users and the actions
  * offered to remedy the problem.
  *
- * @typedef {'error-fetching'|'error-authorizing'|'error-reporting-submission'|'error-fetching-canvas-file'} ErrorState
+ * @typedef {'error-fetching'|'error-authorizing'|'error-reporting-submission'|'error-fetching-canvas-file'|'canvas-file-not-found-in-course'} ErrorState
  */
 
 /**
@@ -122,6 +122,12 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     ) {
       setError(e);
       setErrorState('error-fetching-canvas-file');
+    } else if (
+      e instanceof ApiError &&
+      e.errorCode === 'canvas_file_not_found_in_course'
+    ) {
+      setError(e);
+      setErrorState('canvas-file-not-found-in-course');
     } else if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
@@ -378,6 +384,44 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
               edit this assignment and re-select the file.
             </li>
           </ul>
+          <ErrorDisplay error={/** @type {Error} */ (error)} />
+        </Dialog>
+      )}
+      {errorState === 'canvas-file-not-found-in-course' && (
+        <Dialog
+          initialFocus={focusedDialogButton}
+          title="Hypothesis couldn't find the file in the course"
+          role="alertdialog"
+          buttons={[
+            <Button
+              buttonRef={focusedDialogButton}
+              className="BasicLtiLaunchApp__button"
+              disabled={fetchCount > 0}
+              key="retry"
+              label="Try again"
+              onClick={refetchContentUrl}
+            />,
+          ]}
+        >
+          <p>This might have happened because:</p>
+
+          <ul>
+            <li>The file has been deleted from Canvas</li>
+            <li>The course was copied from another course</li>
+          </ul>
+
+          <p>
+            To fix the issue,{' '}
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://web.hypothes.is/help/fixing-a-broken-canvas-file-link/"
+            >
+              edit the assignment and re-select the file
+            </a>
+            .
+          </p>
+
           <ErrorDisplay error={/** @type {Error} */ (error)} />
         </Dialog>
       )}
