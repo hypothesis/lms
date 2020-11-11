@@ -166,9 +166,9 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
     """Tests common to both add_canvas_file_id() and add_document_url()."""
 
     def test_it_sets_the_canvas_submission_params(
-        self, pyramid_request, method, submission_params
+        self, pyramid_request, method_caller, submission_params
     ):
-        method("canvas_file_id_or_document_url")
+        method_caller()
 
         assert (
             submission_params()["h_username"]
@@ -185,36 +185,47 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         assert submission_params()["learner_canvas_user_id"] == "test_user_id"
 
     def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
-        self, context, method, js_config
+        self, context, method_caller, js_config
     ):
         context.is_canvas = False
 
-        method("canvas_file_id_or_document_url")
+        method_caller()
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
     def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
-        self, method, js_config, pyramid_request
+        self, method_caller, js_config, pyramid_request
     ):
         del pyramid_request.params["lis_result_sourcedid"]
 
-        method("canvas_file_id_or_document_url")
+        method_caller()
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
     def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
-        self, method, js_config, pyramid_request
+        self, method_caller, js_config, pyramid_request
     ):
         del pyramid_request.params["lis_outcome_service_url"]
 
-        method("canvas_file_id_or_document_url")
+        method_caller()
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
-    @pytest.fixture(params=["add_canvas_file_id", "add_document_url"])
-    def method(self, js_config, request):
-        """Return the method to be tested."""
-        return getattr(js_config, request.param)
+    @pytest.fixture(
+        params=[
+            {"method": "add_canvas_file_id", "args": ["example_canvas_file_id"]},
+            {"method": "add_document_url", "args": ["example_document_url"]},
+        ]
+    )
+    def method_caller(self, js_config, request):
+        """Return a function that calls the method-under-test with default args."""
+
+        def method_caller():
+            method_name = request.param["method"]
+            args = request.param["args"]
+            return getattr(js_config, method_name)(*args)
+
+        return method_caller
 
 
 class TestMaybeEnableGrading:
