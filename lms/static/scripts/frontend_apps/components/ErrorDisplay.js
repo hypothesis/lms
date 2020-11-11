@@ -85,7 +85,7 @@ export default function ErrorDisplay({ message, error }) {
         </p>
       )}
       <p>
-        If the problem persists{' '}
+        If the problem persists,{' '}
         <a href={supportLink} target="_blank" rel="noopener noreferrer">
           send us an email
         </a>{' '}
