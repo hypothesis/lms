@@ -7,7 +7,7 @@ from tests.conftest import TEST_SETTINGS
 pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
 
 
-@pytest.mark.usefixtures("is_learner")
+@pytest.mark.usefixtures("user_is_learner")
 def test_sync_when_the_user_is_a_learner(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
@@ -19,7 +19,7 @@ def test_sync_when_the_user_is_a_learner(
     assert_sync_and_return(groupids, sections=sections.authenticated_user)
 
 
-@pytest.mark.usefixtures("is_instructor")
+@pytest.mark.usefixtures("user_is_instructor")
 def test_sync_when_the_user_is_an_instructor(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
 ):
@@ -31,7 +31,7 @@ def test_sync_when_the_user_is_an_instructor(
     assert_sync_and_return(groupids, sections=sections.course)
 
 
-@pytest.mark.usefixtures("is_instructor")
+@pytest.mark.usefixtures("user_is_instructor")
 @pytest.mark.usefixtures("is_speedgrader")
 def test_sync_when_in_SpeedGrader(
     pyramid_request, canvas_api_client, sections, assert_sync_and_return, request_json
@@ -71,16 +71,6 @@ def assert_sync_and_return(lti_h_service, request_json):
         ]
 
     return assert_return_values
-
-
-@pytest.fixture
-def is_instructor(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
-
-
-@pytest.fixture
-def is_learner(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
 
 
 @pytest.fixture
