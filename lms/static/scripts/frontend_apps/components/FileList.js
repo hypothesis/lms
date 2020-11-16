@@ -34,6 +34,7 @@ export default function FileList({
   onUseFile,
   noFilesMessage,
 }) {
+  /** @param {string} isoString */
   const formatDate = isoString => new Date(isoString).toLocaleDateString();
   const columns = [
     {

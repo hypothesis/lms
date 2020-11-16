@@ -41,6 +41,7 @@ const useFetchGrade = student => {
   const [gradeLoading, setGradeLoading] = useState(false);
 
   useEffect(() => {
+    /** @type {boolean} */
     let didCancel;
     if (student) {
       // Fetch the grade from the service api
@@ -124,6 +125,8 @@ export default function SubmitGradeForm({ student }) {
 
   /**
    * Validate the grade and if it passes, then submit the grade to to `onSubmitGrade`
+   *
+   * @param {Event} event
    */
   const onSubmitGrade = async event => {
     event.preventDefault();

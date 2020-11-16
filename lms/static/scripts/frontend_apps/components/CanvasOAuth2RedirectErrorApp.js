@@ -23,10 +23,10 @@ export default function CanvasOAuth2RedirectErrorApp({
 }) {
   const {
     canvasOAuth2RedirectError: {
-      authUrl = null,
+      authUrl = /** @type {string|null} */ (null),
       invalidScope = false,
       errorDetails = '',
-      scopes = [],
+      scopes = /** @type {string[]} */ ([]),
     },
   } = useContext(Config);
 

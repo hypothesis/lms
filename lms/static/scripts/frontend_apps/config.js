@@ -53,9 +53,9 @@ import { createContext } from 'preact';
  *   @prop {string} canvas.ltiLaunchUrl
  *   @prop {ApiCallInfo} canvas.listFiles
  * @prop {Object} google
- *   @prop {string} clientId
- *   @prop {string} developerKey
- *   @prop {string} origin
+ *   @prop {string} google.clientId
+ *   @prop {string} google.developerKey
+ *   @prop {string} google.origin
  */
 
 /**

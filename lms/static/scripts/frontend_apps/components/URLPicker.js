@@ -20,6 +20,8 @@ import Dialog from './Dialog';
 export default function URLPicker({ onCancel, onSelectURL }) {
   const input = useRef(/** @type {HTMLInputElement|null} */ (null));
   const form = useRef(/** @type {HTMLFormElement|null} */ (null));
+
+  /** @param {Event} event */
   const submit = event => {
     event.preventDefault();
     if (form.current.checkValidity()) {

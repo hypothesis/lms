@@ -1,5 +1,13 @@
 import { Fragment, createElement } from 'preact';
 
+/**
+ * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
+ *
+ * @param {Object} args
+ * @param {string} args.address - Email address to sent to
+ * @param {string} [args.subject] - Pre-filled subject line
+ * @param {string} [args.body] - Pre-filled body
+ */
 function emailLink({ address, subject = '', body = '' }) {
   return `mailto:${address}?subject=${encodeURIComponent(
     subject
@@ -37,6 +45,7 @@ function toSentence(str) {
  * @param {ErrorDisplayProps} props
  */
 export default function ErrorDisplay({ message, error }) {
+  /** @type {string|undefined} */
   let details = '';
 
   if (typeof error.details === 'object' && error.details !== null) {
@@ -63,8 +72,9 @@ export default function ErrorDisplay({ message, error }) {
     body: supportEmailBody,
   });
 
+  /** @param {Event} event */
   const onDetailsToggle = event => {
-    const details = event.target;
+    const details = /** @type {HTMLDetailsElement} */ (event.target);
     if (!details.open) {
       return;
     }

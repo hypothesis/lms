@@ -1,3 +1,4 @@
+// @ts-ignore - Types are missing for query-string
 import queryString from 'query-string';
 
 /**
