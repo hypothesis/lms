@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { Fragment, createElement } from 'preact';
+import { createElement } from 'preact';
 
 import {
   useCallback,
@@ -13,10 +13,8 @@ import { ApiError, apiCall } from '../utils/api';
 import { Config } from '../config';
 
 import AuthWindow from '../utils/AuthWindow';
-import Dialog from './Dialog';
-import Button from './Button';
-import ErrorDisplay from './ErrorDisplay';
 import LMSGrader from './LMSGrader';
+import LaunchErrorDialog from './LaunchErrorDialog';
 import Spinner from './Spinner';
 
 /**
@@ -326,148 +324,27 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     </div>
   );
 
-  const focusedDialogButton = useRef(
-    /** @type {HTMLButtonElement | null} */ (null)
-  );
-
-  const errorDialog = (
-    <Fragment>
-      {errorState === 'error-authorizing' && (
-        <Dialog
-          initialFocus={focusedDialogButton}
-          title="Authorize Hypothesis"
-          role="alertdialog"
-          buttons={[
-            <Button
-              disabled={fetchCount > 0}
-              buttonRef={focusedDialogButton}
-              onClick={authorizeAndFetchUrl}
-              className="BasicLtiLaunchApp__button"
-              label="Authorize"
-              key="authorize"
-            />,
-          ]}
-        >
-          <p>Hypothesis needs your authorization to launch this assignment.</p>
-        </Dialog>
-      )}
-      {errorState === 'error-fetching-canvas-file' && (
-        <Dialog
-          initialFocus={focusedDialogButton}
-          title="Couldn't get the file from Canvas"
-          role="alertdialog"
-          buttons={[
-            <Button
-              buttonRef={focusedDialogButton}
-              className="BasicLtiLaunchApp__button"
-              disabled={fetchCount > 0}
-              key="retry"
-              label="Try again"
-              onClick={refetchContentUrl}
-            />,
-          ]}
-        >
-          <p>
-            Hypothesis couldn&apos;t get the assignment&apos;s file from Canvas.
-          </p>
-          <p>
-            You might not have permission to read the file in Canvas. This could
-            be because:
-          </p>
-          <ul>
-            <li>
-              The file is marked as <i>Unpublished</i> in Canvas: an instructor
-              needs to publish the file.
-            </li>
-            <li>
-              This course was copied from another course: an instructor needs to
-              edit this assignment and re-select the file.
-            </li>
-          </ul>
-          <ErrorDisplay error={/** @type {Error} */ (error)} />
-        </Dialog>
-      )}
-      {errorState === 'canvas-file-not-found-in-course' && (
-        <Dialog
-          initialFocus={focusedDialogButton}
-          title="Hypothesis couldn't find the file in the course"
-          role="alertdialog"
-          buttons={[
-            <Button
-              buttonRef={focusedDialogButton}
-              className="BasicLtiLaunchApp__button"
-              disabled={fetchCount > 0}
-              key="retry"
-              label="Try again"
-              onClick={refetchContentUrl}
-            />,
-          ]}
-        >
-          <p>This might have happened because:</p>
-
-          <ul>
-            <li>The file has been deleted from Canvas</li>
-            <li>The course was copied from another course</li>
-          </ul>
-
-          <p>
-            To fix the issue,{' '}
-            <a
-              target="_blank"
-              rel="noreferrer"
-              href="https://web.hypothes.is/help/fixing-a-broken-canvas-file-link/"
-            >
-              edit the assignment and re-select the file
-            </a>
-            .
-          </p>
-
-          <ErrorDisplay error={/** @type {Error} */ (error)} />
-        </Dialog>
-      )}
-      {errorState === 'error-fetching' && (
-        <Dialog
-          initialFocus={focusedDialogButton}
-          title="Something went wrong"
-          contentClass="BasicLtiLaunchApp__dialog"
-          role="alertdialog"
-          buttons={[
-            <Button
-              disabled={fetchCount > 0}
-              buttonRef={focusedDialogButton}
-              onClick={authorizeAndFetchUrl}
-              className="BasicLtiLaunchApp__button"
-              label="Try again"
-              key="retry"
-            />,
-          ]}
-        >
-          <ErrorDisplay
-            message="There was a problem fetching this Hypothesis assignment"
-            error={/** @type {Error} */ (error)}
-          />
-        </Dialog>
-      )}
-      {errorState === 'error-reporting-submission' && (
-        <Dialog
-          title="Something went wrong"
-          contentClass="BasicLtiLaunchApp__dialog"
-          role="alertdialog"
-        >
-          <ErrorDisplay
-            message="There was a problem submitting this Hypothesis assignment"
-            error={/** @type {Error} */ (error)}
-          />
-          <b>To fix this problem, try reloading the page.</b>
-        </Dialog>
-      )}
-    </Fragment>
-  );
+  let retryLaunch;
+  switch (errorState) {
+    case 'error-authorizing':
+    case 'error-fetching':
+      retryLaunch = authorizeAndFetchUrl;
+      break;
+    default:
+      retryLaunch = refetchContentUrl;
+  }
 
   return (
     <div className="BasicLtiLaunchApp">
       {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
-      {errorDialog}
+      {errorState && (
+        <LaunchErrorDialog
+          busy={fetchCount > 0}
+          errorState={errorState}
+          error={error}
+          onRetry={retryLaunch}
+        />
+      )}
       {content}
     </div>
   );

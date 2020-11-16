@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import { Fragment, createElement } from 'preact';
+import { createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
@@ -15,13 +15,6 @@ describe('BasicLtiLaunchApp', () => {
   let FakeAuthWindow;
   let fakeConfig;
   let fakeRpcServer;
-
-  // eslint-disable-next-line react/prop-types
-  const FakeDialog = ({ buttons, children }) => (
-    <Fragment>
-      {buttons} {children}
-    </Fragment>
-  );
 
   const renderLtiLaunchApp = (props = {}) => {
     return mount(
@@ -73,7 +66,6 @@ describe('BasicLtiLaunchApp', () => {
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      './Dialog': FakeDialog,
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
         apiCall: fakeApiCall,
@@ -179,16 +171,17 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       await spinnerVisible(wrapper);
       // Verify that an "Authorize" prompt is shown.
-      const authButton = await waitForElement(
+      const errorDialog = await waitForElement(
         wrapper,
-        'Button[label="Authorize"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]'
       );
-      assert.isTrue(authButton.exists());
 
       // Click the "Authorize" button and verify that authorization is attempted.
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
-      authButton.prop('onClick')();
+      act(() => {
+        errorDialog.prop('onRetry')();
+      });
       assert.calledWith(FakeAuthWindow, {
         authToken: 'dummyAuthToken',
         authUrl,
@@ -208,9 +201,9 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.rejects(new ApiError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
-      const authButton = await waitForElement(
+      const errorDialog = await waitForElement(
         wrapper,
-        'Button[label="Authorize"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]'
       );
 
       // Click the "Authorize" button
@@ -218,13 +211,13 @@ describe('BasicLtiLaunchApp', () => {
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
 
       act(() => {
-        authButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
       assert.calledOnce(FakeAuthWindow);
 
       // Click the "Authorize" button again
       act(() => {
-        authButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
       assert.calledOnce(FakeAuthWindow);
     });
@@ -246,16 +239,15 @@ describe('BasicLtiLaunchApp', () => {
         const wrapper = renderLtiLaunchApp();
         await spinnerVisible(wrapper);
 
-        // Verify that a "Try again" prompt is shown.
-        const tryAgainButton = await waitForElement(
-          wrapper,
-          'Button[label="Try again"]'
-        );
+        // Verify that an "Try again" prompt is shown.
+        const errorDialog = await waitForElement(wrapper, 'LaunchErrorDialog');
 
         // Click the "Try again" button and verify that authorization is attempted.
         fakeApiCall.reset();
         fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
-        tryAgainButton.prop('onClick')();
+        act(() => {
+          errorDialog.prop('onRetry')();
+        });
         assert.called(FakeAuthWindow);
 
         // Check that files are fetched after authorization completes.
@@ -278,16 +270,15 @@ describe('BasicLtiLaunchApp', () => {
       await spinnerVisible(wrapper);
 
       // Verify that the expected error dialog is shown.
-      await waitForElement(
+      let errorDialog = await waitForElement(
         wrapper,
-        'FakeDialog[title="Couldn\'t get the file from Canvas"]'
+        'LaunchErrorDialog[errorState="error-fetching-canvas-file"]'
       );
-      const tryAgainButton = wrapper.find('Button[label="Try again"]');
 
       // Click the "Try again" button and verify that files are re-fetched without re-authorizing.
       fakeApiCall.resetHistory();
       act(() => {
-        tryAgainButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
       assert.notCalled(FakeAuthWindow);
       assert.called(fakeApiCall);
@@ -295,16 +286,16 @@ describe('BasicLtiLaunchApp', () => {
 
       // We didn't change the API response, so it will fail the same way and the same error dialog
       // should be shown.
-      await waitForElement(
+      errorDialog = await waitForElement(
         wrapper,
-        'FakeDialog[title="Couldn\'t get the file from Canvas"]'
+        'LaunchErrorDialog[errorState="error-fetching-canvas-file"]'
       );
 
       // Change the API call to succeed and try again.
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
       act(() => {
-        tryAgainButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
 
       // When the request succeeds, the content should now be shown.
@@ -326,16 +317,15 @@ describe('BasicLtiLaunchApp', () => {
       await spinnerVisible(wrapper);
 
       // Verify that the expected error dialog is shown.
-      await waitForElement(
+      let errorDialog = await waitForElement(
         wrapper,
-        'FakeDialog[title="Hypothesis couldn\'t find the file in the course"]'
+        'LaunchErrorDialog[errorState="canvas-file-not-found-in-course"]'
       );
-      const tryAgainButton = wrapper.find('Button[label="Try again"]');
 
       // Click the "Try again" button and verify that files are re-fetched without re-authorizing.
       fakeApiCall.resetHistory();
       act(() => {
-        tryAgainButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
       assert.notCalled(FakeAuthWindow);
       assert.called(fakeApiCall);
@@ -343,16 +333,16 @@ describe('BasicLtiLaunchApp', () => {
 
       // We didn't change the API response, so it will fail the same way and the same error dialog
       // should be shown.
-      await waitForElement(
+      errorDialog = await waitForElement(
         wrapper,
-        'FakeDialog[title="Hypothesis couldn\'t find the file in the course"]'
+        'LaunchErrorDialog[errorState="canvas-file-not-found-in-course"]'
       );
 
       // Change the API call to succeed and try again.
       fakeApiCall.reset();
       fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
       act(() => {
-        tryAgainButton.prop('onClick')();
+        errorDialog.prop('onRetry')();
       });
 
       // When the request succeeds, the content should now be shown.
@@ -397,17 +387,13 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
 
       // Wait for the API call to fail and check that an error is displayed.
-      const errorDisplay = await waitForElement(wrapper, 'ErrorDisplay');
-      assert.equal(errorDisplay.prop('error'), error);
-
       // There should be no "Try again" button in this context, instead we just
       // ask the user to reload the page.
-      const tryAgainButton = wrapper.find('Button[label="Try again"]');
-      assert.isFalse(tryAgainButton.exists());
-      assert.include(
-        wrapper.text(),
-        'To fix this problem, try reloading the page'
+      const errorDialog = await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="error-reporting-submission"]'
       );
+      assert.equal(errorDialog.prop('error'), error);
     });
 
     it('does not report a submission if a teacher launches an assignment', async () => {
@@ -541,11 +527,17 @@ describe('BasicLtiLaunchApp', () => {
       const wrapper = renderLtiLaunchApp();
       // Should show an error after the first request fails
       contentUrlReject(new ApiError(400, {}));
-      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+      await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="error-authorizing"]'
+      );
 
       // Should still show an error even if the second request does not fail
       groupsCallResolve(['group1', 'group2']);
-      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+      await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="error-authorizing"]'
+      );
       await contentHidden(wrapper);
     });
 
@@ -559,7 +551,10 @@ describe('BasicLtiLaunchApp', () => {
 
       // Should show an error after failure
       groupsCallReject(new ApiError(400, {}));
-      await waitForElement(wrapper, 'FakeDialog[title="Authorize Hypothesis"]');
+      await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="error-authorizing"]'
+      );
       await contentHidden(wrapper);
     });
 
@@ -568,12 +563,12 @@ describe('BasicLtiLaunchApp', () => {
       // for a short duration longer without disappearing.
       async function dialogShouldRemain(wrapper) {
         // Error prompt should be present.
-        assert.isTrue(wrapper.find('FakeDialog').exists());
+        assert.isTrue(wrapper.find('LaunchErrorDialog').exists());
         // Error prompt should also not go away after a short while (see issue #1826)
         try {
           await waitFor(() => {
             wrapper.update();
-            if (!wrapper.exists('FakeDialog')) {
+            if (!wrapper.exists('LaunchErrorDialog')) {
               throw new Error();
             }
             return null;
@@ -591,9 +586,9 @@ describe('BasicLtiLaunchApp', () => {
         contentUrlReject(new ApiError(400, {}));
         groupsCallReject(new ApiError(400, {}));
 
-        const authButton = await waitForElement(
+        const errorDialog = await waitForElement(
           wrapper,
-          'Button[label="Authorize"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]'
         );
         resetApiCalls();
         await dialogShouldRemain(wrapper);
@@ -601,7 +596,9 @@ describe('BasicLtiLaunchApp', () => {
         contentUrlReject(new ApiError(400, {}));
         groupsCallReject(new ApiError(400, {}));
         // Click the "Authorize" button.
-        authButton.prop('onClick')();
+        act(() => {
+          errorDialog.prop('onRetry')();
+        });
         // Dialog prompt should remain.
         await dialogShouldRemain(wrapper);
       });
@@ -612,15 +609,17 @@ describe('BasicLtiLaunchApp', () => {
         contentUrlReject(new ApiError(400, {}));
         groupsCallReject(new ApiError(400, {}));
 
-        const authButton = await waitForElement(
+        const errorDialog = await waitForElement(
           wrapper,
-          'Button[label="Authorize"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]'
         );
         resetApiCalls();
         // groups still fails, but contentUrl does not.
         groupsCallReject(new ApiError(400, {}));
         // Click the "Authorize" button.
-        authButton.prop('onClick')();
+        act(() => {
+          errorDialog.prop('onRetry')();
+        });
         // Dialog prompt should remain.
         await dialogShouldRemain(wrapper);
       });
@@ -635,16 +634,18 @@ describe('BasicLtiLaunchApp', () => {
         resetApiCalls();
 
         // Click the "Authorize" button.
-        const authButton = await waitForElement(
+        const errorDialog = await waitForElement(
           wrapper,
-          'Button[label="Authorize"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]'
         );
-        authButton.prop('onClick')();
+        act(() => {
+          errorDialog.prop('onRetry')();
+        });
 
         // Wait for the "Authorize" button to appear disabled.
         await waitFor(() => {
           wrapper.update();
-          return wrapper.find('Button[label="Authorize"]').prop('disabled');
+          return wrapper.find('LaunchErrorDialog').prop('busy');
         });
 
         // Let the content URL fetch complete and wait a moment.
@@ -655,9 +656,7 @@ describe('BasicLtiLaunchApp', () => {
 
         await new Promise(resolve => setTimeout(resolve, 1));
         wrapper.update();
-        assert.isTrue(
-          wrapper.find('Button[label="Authorize"]').prop('disabled')
-        );
+        assert.isTrue(wrapper.find('LaunchErrorDialog').prop('busy'));
 
         // Let the groups fetch complete. The content should then appear.
         groupsCallResolve(['group1', 'group2']);
