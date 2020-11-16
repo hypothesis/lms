@@ -3,7 +3,7 @@ import { createElement } from 'preact';
 
 /**
  * @typedef ButtonProps
- * @prop {Object} [buttonRef]
+ * @prop {any} [buttonRef]
  * @prop {string} [className]
  * @prop {boolean} [disabled]
  * @prop {string} label
