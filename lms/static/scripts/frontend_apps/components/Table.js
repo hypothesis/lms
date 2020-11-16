@@ -8,11 +8,11 @@ import { useRef } from 'preact/hooks';
  *
  * @template Item
  * @param {Item[]} items
- * @param {Item} currentItem
+ * @param {Item|null} currentItem
  * @param {number} step
  */
 function nextItem(items, currentItem, step) {
-  const index = items.indexOf(currentItem);
+  const index = currentItem ? items.indexOf(currentItem) : -1;
   if (index < 0) {
     return items[0];
   }
@@ -70,6 +70,7 @@ export default function Table({
 }) {
   const rowRefs = useRef(/** @type {(HTMLElement|null)[]} */ ([]));
 
+  /** @param {Item} item */
   const focusAndSelectItem = item => {
     const itemIndex = items.indexOf(item);
     const rowEl = rowRefs.current[itemIndex];
@@ -79,6 +80,7 @@ export default function Table({
     onSelectItem(item);
   };
 
+  /** @param {KeyboardEvent} event */
   const onKeyDown = event => {
     let handled = false;
     if (event.key === 'Enter') {

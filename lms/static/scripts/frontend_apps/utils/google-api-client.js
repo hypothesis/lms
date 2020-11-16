@@ -25,7 +25,7 @@ async function loadGAPI() {
  * See https://developers.google.com/api-client-library/javascript/reference/referencedocs
  *
  * @param {string[]} names
- * @return {Promise<Object>}
+ * @return {Promise<Record<string, any>>}
  *   The `gapi` object with properties corresponding to each of the named
  *   libraries' entry points.
  */
@@ -37,6 +37,8 @@ async function loadLibraries(names) {
       callback: () => {
         resolve(gapi);
       },
+
+      /** @param {any} err */
       onerror: err => {
         reject(err);
       },

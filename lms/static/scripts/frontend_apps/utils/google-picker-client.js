@@ -2,6 +2,7 @@ import { loadLibraries } from './google-api-client';
 
 export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 
+/** @param {string} origin */
 function addHttps(origin) {
   if (origin.indexOf('://') !== -1) {
     return origin;
@@ -17,6 +18,16 @@ export class PickerCanceledError extends Error {
     super('Dialog was canceled');
   }
 }
+
+/**
+ * Subset of the `Document` type returned by the Google Picker.
+ *
+ * See https://developers.google.com/picker/docs/reference#document
+ *
+ * @typedef PickerDocument
+ * @prop {string} id
+ * @prop {string} url
+ */
 
 /**
  * A wrapper around the Google Picker API client libraries.
@@ -90,9 +101,17 @@ export class GooglePickerClient {
       }
     }
 
+    /** @type {(doc: PickerDocument) => void} */
     let resolve;
+
+    /** @type {(e: Error) => void} */
     let reject;
 
+    /**
+     * @param {Object} args
+     * @param {any} args.action
+     * @param {PickerDocument[]} args.docs
+     */
     function pickerCallback({ action, docs }) {
       if (action === pickerLib.Action.PICKED) {
         const doc = docs[0];
@@ -127,6 +146,8 @@ export class GooglePickerClient {
   /**
    * Change the sharing settings on a document in Google Drive to make it
    * publicly viewable to anyone with the link.
+   *
+   * @param {string} docId
    */
   async enablePublicViewing(docId) {
     const gapiClient = await this._gapiClient;

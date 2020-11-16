@@ -28,6 +28,10 @@
  */
 
 /**
+ * @typedef {(...args: any[]) => any|Promise<any>} RpcMethod
+ */
+
+/**
  * A JSON-RPC-over-postMessage server.
  *
  * After constructing a server you have to call its register() method to
@@ -52,7 +56,10 @@ export class Server {
     this._boundReceiveMessage = this._receiveMessage.bind(this);
     window.addEventListener('message', this._boundReceiveMessage);
 
-    // The methods that can be called remotely via this server.
+    /**
+     * The methods that can be called remotely via this server.
+     * @type {Record<string,RpcMethod>}
+     */
     this._registeredMethods = {};
 
     this.sidebarWindow = new Promise(resolve => {
@@ -64,7 +71,7 @@ export class Server {
    * Register a remotely callable method with this server.
    *
    * @param {string} name
-   * @param {(...args: any[]) => any|Promise<any>} method
+   * @param {RpcMethod} method
    */
   register(name, method) {
     this._registeredMethods[name] = method;

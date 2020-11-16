@@ -56,10 +56,9 @@ export default function LMSGrader({
 
   /**
    * Makes an RPC call to the sidebar to change to the focused user.
-   *
-   * @param {StudentInfo|null} user - The user to focus on in the sidebar
    */
   const changeFocusedUser = useCallback(
+    /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
     user => clientRpc.setFocusedUser(user),
     [clientRpc]
   );
@@ -90,6 +89,8 @@ export default function LMSGrader({
 
   /**
    * Callback to set the current selected student.
+   *
+   * @param {number} studentIndex
    */
   const onSelectStudent = studentIndex => {
     setCurrentStudentIndex(studentIndex);

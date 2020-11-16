@@ -94,12 +94,15 @@ export default function FilePickerApp({
   const [shouldSubmit, submit] = useState(false);
 
   const cancelDialog = () => setActiveDialog(null);
+
+  /** @param {File} file */
   const selectLMSFile = file => {
     setActiveDialog(null);
     setLmsFile(file);
     submit(true);
   };
 
+  /** @param {string} url */
   const selectURL = url => {
     setActiveDialog(null);
     setUrl(url);

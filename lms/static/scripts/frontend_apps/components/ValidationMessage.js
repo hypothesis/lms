@@ -28,9 +28,11 @@ export default function ValidationMessage({
 
   /**
    * Closes the validation error message and notifies parent
+   *
+   * @param {Event} event
    */
-  const closeValidationError = e => {
-    e.preventDefault();
+  const closeValidationError = event => {
+    event.preventDefault();
     setShowError(false);
     onClose();
   };

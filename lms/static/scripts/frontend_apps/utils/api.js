@@ -7,6 +7,10 @@
  * JSON body.
  */
 export class ApiError extends Error {
+  /**
+   * @param {number} status - HTTP status code
+   * @param {any} data - Parsed JSON body from the API response
+   */
   constructor(status, data) {
     // If message is omitted, pass a default error message.
     const message = data.message || 'API call failed';
@@ -61,9 +65,12 @@ export class ApiError extends Error {
  */
 async function apiCall({ path, authToken, data }) {
   let body;
+
+  /** @type {Record<string,string>} */
   const headers = {
     Authorization: authToken,
   };
+
   if (data !== undefined) {
     body = JSON.stringify(data);
     headers['Content-Type'] = 'application/json; charset=UTF-8';

@@ -7,7 +7,7 @@ import { createElement } from 'preact';
  * @prop {string} [className]
  * @prop {boolean} [disabled]
  * @prop {string} label
- * @prop {() => any} onClick
+ * @prop {(e: Event) => any} onClick
  * @prop {string} [type]
  */
 
