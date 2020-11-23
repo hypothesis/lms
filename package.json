@@ -61,7 +61,7 @@
   "devDependencies": {
     "@types/classnames": "^2.2.11",
     "@types/prop-types": "^15.7.3",
-    "axe-core": "^4.0.2",
+    "axe-core": "^4.1.1",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-mockable-imports": "^1.7.1",
     "chai": "^4.2.0",
