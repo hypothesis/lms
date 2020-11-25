@@ -21,9 +21,10 @@ import { registerIcons } from './components/SvgIcon';
 import iconSet from './icons';
 registerIcons(iconSet);
 
-render(
-  <Config.Provider value={config}>
-    {config.mode === 'basic-lti-launch' && (
+let app;
+switch (config.mode) {
+  case 'basic-lti-launch':
+    app = (
       <BasicLtiLaunchApp
         clientRpc={
           new ClientRpc({
@@ -32,11 +33,14 @@ render(
           })
         }
       />
-    )}
-    {config.mode === 'content-item-selection' && <FilePickerApp />}
-    {config.mode === 'canvas-oauth2-redirect-error' && (
-      <CanvasOAuth2RedirectErrorApp />
-    )}
-  </Config.Provider>,
-  rootEl
-);
+    );
+    break;
+  case 'content-item-selection':
+    app = <FilePickerApp />;
+    break;
+  case 'canvas-oauth2-redirect-error':
+    app = <CanvasOAuth2RedirectErrorApp />;
+    break;
+}
+
+render(<Config.Provider value={config}>{app}</Config.Provider>, rootEl);
