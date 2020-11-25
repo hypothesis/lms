@@ -99,7 +99,7 @@
 }
 
 .SubmitGradeForm__submit-spinner {
-  @include mixins.spinner(100px);
+  @include mixins.spinner(var.$spinner-size);
 }
 
 .SubmitGradeForm__fetch-spinner {

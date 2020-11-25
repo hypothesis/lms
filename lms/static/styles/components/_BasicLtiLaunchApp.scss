@@ -1,15 +1,15 @@
+@use "../variables" as var;
+
 .BasicLtiLaunchApp {
   height: 100%;
 }
 
 .BasicLtiLaunchApp__spinner {
-  $spinner-size: 50px;
-
   position: absolute;
-  width: $spinner-size;
-  height: $spinner-size;
-  left: calc(50% - #{$spinner-size / 2});
-  top: 100px;
+  width: var.$spinner-size;
+  height: var.$spinner-size;
+  left: calc(50% - #{var.$spinner-size / 2});
+  top: calc(50% - #{var.$spinner-size / 2});
 }
 
 .BasicLtiLaunchApp__content {
