@@ -7,24 +7,18 @@ https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-a
 """
 from lms.views.predicates._lti_launch import (
     AuthorizedToConfigureAssignments,
+    BlackboardCopied,
     CanvasFile,
     Configured,
     DBConfigured,
     URLConfigured,
 )
 
-__all__ = [
-    "DBConfigured",
-    "CanvasFile",
-    "URLConfigured",
-    "Configured",
-    "AuthorizedToConfigureAssignments",
-]
-
 
 def includeme(config):
     for view_predicate_factory in (
         DBConfigured,
+        BlackboardCopied,
         CanvasFile,
         URLConfigured,
         Configured,

@@ -50,6 +50,18 @@ def db_configured_basic_lti_launch_caller(context, pyramid_request):
     return views.db_configured_basic_lti_launch()
 
 
+def blackboard_copied_basic_lti_launch_caller(context, pyramid_request):
+    """
+    Call BasicLTILaunchViews.blackboard_copied_basic_lti_launch().
+
+    Set up the appropriate conditions and then call
+    BasicLTILaunchViews.blackboard_copied_basic_lti_launch(), and return
+    whatever BasicLTILaunchViews.blackboard_copied_basic_lti_launch() returns.
+    """
+    views = BasicLTILaunchViews(context, pyramid_request)
+    return views.blackboard_copied_basic_lti_launch()
+
+
 def url_configured_basic_lti_launch_caller(context, pyramid_request):
     """
     Call BasicLTILaunchViews.url_configured_basic_lti_launch().
@@ -175,6 +187,7 @@ class TestCommon:
         params=[
             canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
+            blackboard_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
             configure_module_item_caller,
         ]
@@ -205,6 +218,7 @@ class TestCourseRecording:
         params=[
             canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
+            blackboard_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
             unconfigured_basic_lti_launch_caller,
         ]
@@ -243,6 +257,32 @@ class TestDBConfiguredBasicLTILaunch:
         self, assignment_service, context, pyramid_request
     ):
         db_configured_basic_lti_launch_caller(context, pyramid_request)
+
+        context.js_config.add_document_url.assert_called_once_with(
+            assignment_service.get_document_url.return_value
+        )
+
+
+class TestBlackboardCopiedBasicLTILaunch:
+    def test_it_copies_the_ModuleItemConfiguration(
+        self, assignment_service, context, pyramid_request
+    ):
+        blackboard_copied_basic_lti_launch_caller(context, pyramid_request)
+
+        assignment_service.get_document_url.assert_called_once_with(
+            pyramid_request.params["tool_consumer_instance_guid"],
+            pyramid_request.params["resource_link_id_history"],
+        )
+        assignment_service.set_document_url.assert_called_once_with(
+            pyramid_request.params["tool_consumer_instance_guid"],
+            pyramid_request.params["resource_link_id"],
+            assignment_service.get_document_url.return_value,
+        )
+
+    def test_it_adds_the_document_url_to_the_JavaScript_config(
+        self, assignment_service, context, pyramid_request
+    ):
+        blackboard_copied_basic_lti_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
             assignment_service.get_document_url.return_value
@@ -353,6 +393,7 @@ def is_canvas(context):
 def pyramid_request(pyramid_request):
     pyramid_request.params.update(
         {
+            "resource_link_id_history": "test_resource_link_id_history",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         }

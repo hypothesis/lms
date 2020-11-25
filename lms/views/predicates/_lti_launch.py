@@ -1,14 +1,6 @@
 """Predicates for use with LTI launch views."""
 from lms.views.predicates._helpers import Base
 
-__all__ = [
-    "DBConfigured",
-    "CanvasFile",
-    "URLConfigured",
-    "Configured",
-    "AuthorizedToConfigureAssignments",
-]
-
 
 class DBConfigured(Base):
     """
@@ -48,6 +40,65 @@ class DBConfigured(Base):
         )
 
         return has_document_url == self.value
+
+
+class BlackboardCopied(Base):
+    """
+    Allow invoking an LTI launch view for newly course-copied Blackboard assignments.
+
+    When a user uses Blackboard's Course Copy feature to copy a course that
+    contains Hypothesis assignments, Blackboard copies the Hypothesis
+    assignments into the new course. Blackboard gives new
+    resource_link_id's to the new copies of the assignments and includes
+    the original resource_link_id in a resource_link_id_history launch
+    param.
+
+    Pass blackboard_copied=True to a view's configuration to allow invoking the
+    view only for newly course-copied Blackboard assignments where we don't yet
+    have a document_url for the new resource_link_id but we do have a
+    document_url for the resource_link_id_history.
+
+    For example:
+
+        @view_config(..., blackboard_copied=True)
+        def blackboard_course_copied_assignment_launch_view(context, request):
+            ...
+
+    resource_link_id_history is a non-standard and undocumented param
+    that's only used by Blackboard as far as we know, but nothing in this
+    code actually prevents us from using resource_link_id_history if
+    another LMS sends it to us.
+    """
+
+    name = "blackboard_copied"
+
+    def __init__(self, value, config):
+        super().__init__(value, config)
+        self.db_configured = DBConfigured(True, config)
+
+    def __call__(self, context, request):
+        if self.db_configured(context, request):
+            # We already have a document URL in the DB for this resource_link_id,
+            # so it's not a newly copied assignment.
+            is_newly_copied = False
+        else:
+            resource_link_id_history = request.params.get("resource_link_id_history")
+            tool_consumer_instance_guid = request.params.get(
+                "tool_consumer_instance_guid"
+            )
+
+            if not resource_link_id_history or not tool_consumer_instance_guid:
+                is_newly_copied = False
+            else:
+                # Look for the document URL of the previous assignment that
+                # this one was copied from.
+                assignment_service = request.find_service(name="assignment")
+                previous_document_url = assignment_service.get_document_url(
+                    tool_consumer_instance_guid, resource_link_id_history
+                )
+                is_newly_copied = bool(previous_document_url)
+
+        return is_newly_copied == self.value
 
 
 class CanvasFile(Base):
@@ -122,6 +173,7 @@ class Configured(Base):
         self.canvas_file = CanvasFile(True, config)
         self.url_configured = URLConfigured(True, config)
         self.db_configured = DBConfigured(True, config)
+        self.blackboard_copied = BlackboardCopied(True, config)
 
     def __call__(self, context, request):
         configured = any(
@@ -129,6 +181,7 @@ class Configured(Base):
                 self.canvas_file(context, request),
                 self.url_configured(context, request),
                 self.db_configured(context, request),
+                self.blackboard_copied(context, request),
             ]
         )
         return configured == self.value
