@@ -5,6 +5,7 @@ from pyramid.testing import DummyRequest
 
 from lms.views.predicates import (
     AuthorizedToConfigureAssignments,
+    BlackboardCopied,
     CanvasFile,
     Configured,
     DBConfigured,
@@ -36,6 +37,65 @@ class TestDBConfigured:
         result = predicate(mock.sentinel.context, pyramid_request)
 
         assert result is expected
+
+
+class TestBlackboardCopied:
+    @pytest.mark.parametrize("resource_link_id_exists", [True, False])
+    @pytest.mark.parametrize("resource_link_id_history_exists", [True, False])
+    def test_it(
+        self,
+        assignment_service,
+        pyramid_request,
+        resource_link_id_exists,
+        resource_link_id_history_exists,
+    ):
+        def get_document_url(_, resource_link_id):
+            document_url = None
+
+            if resource_link_id == pyramid_request.params["resource_link_id"]:
+                if resource_link_id_exists:
+                    # The database already has a document_url for the resource_link_id.
+                    document_url = mock.sentinel.document_url
+
+            if resource_link_id == pyramid_request.params["resource_link_id_history"]:
+                if resource_link_id_history_exists:
+                    # The database has a document_url for the resource_link_id_history.
+                    document_url = mock.sentinel.previous_document_url
+
+            return document_url
+
+        assignment_service.get_document_url.side_effect = get_document_url
+
+        # If there's no ModuleItemConfiguration for resource_link_id in the DB
+        # but there *is* a ModuleItemConfiguration for resource_link_id_history
+        # then we have a Blackboard copied assignment.
+        expected_result = (
+            resource_link_id_history_exists and not resource_link_id_exists
+        )
+
+        predicate = BlackboardCopied(True, mock.sentinel.config)
+        assert predicate(mock.sentinel.context, pyramid_request) == expected_result
+
+        predicate = BlackboardCopied(False, mock.sentinel.config)
+        assert predicate(mock.sentinel.context, pyramid_request) == (
+            not expected_result
+        )
+
+    def test_with_request_params_missing(self, pyramid_request):
+        pyramid_request.params = {}
+
+        predicate = BlackboardCopied(True, mock.sentinel.config)
+        assert not predicate(mock.sentinel.context, pyramid_request)
+
+        predicate = BlackboardCopied(False, mock.sentinel.config)
+        assert predicate(mock.sentinel.context, pyramid_request)
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params[
+            "resource_link_id_history"
+        ] = "test_resource_link_id_history"
+        return pyramid_request
 
 
 class TestCanvasFile:

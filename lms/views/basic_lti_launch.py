@@ -40,6 +40,20 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
+    def basic_lti_launch(self, document_url=None, grading_supported=True):
+        """Do a basic LTI launch with the given document_url."""
+        self.sync_lti_data_to_h()
+        self.store_lti_data()
+        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
+
+        if grading_supported:
+            self.context.js_config.maybe_enable_grading()
+
+        if document_url is not None:
+            self.context.js_config.add_document_url(document_url)
+
+        return {}
+
     def sync_lti_data_to_h(self):
         """
         Sync LTI data to H.
@@ -84,14 +98,11 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
-        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
         self.context.js_config.add_canvas_file_id(
             self.request.params["custom_canvas_course_id"],
             self.request.params["file_id"],
         )
-        return {}
+        return self.basic_lti_launch(grading_supported=False)
 
     @view_config(db_configured=True)
     def db_configured_basic_lti_launch(self):
@@ -105,23 +116,43 @@ class BasicLTILaunchViews:
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
-        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
-
-        self.context.js_config.maybe_enable_grading()
-
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        self.context.js_config.add_document_url(
-            self.assignment_service.get_document_url(
-                self.request.params["tool_consumer_instance_guid"],
-                self.request.params["resource_link_id"],
-            )
+        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
+        resource_link_id = self.request.params["resource_link_id"]
+        document_url = self.assignment_service.get_document_url(
+            tool_consumer_instance_guid, resource_link_id
+        )
+        return self.basic_lti_launch(document_url)
+
+    @view_config(blackboard_copied=True)
+    def blackboard_copied_basic_lti_launch(self):
+        """
+        Respond to a launch of a newly-copied Blackboard assignment.
+
+        Find the document_url for resource_link_id_history and make a copy of
+        it with the new resource_link_id, then lanuch the assignment as normal.
+
+        For more about Blackboard course copy and the resource_link_id_history
+        param see the BlackboardCopied predicate's docstring.
+        """
+        # The ``blackboard_copied=True`` view predicate ensures that this view
+        # won't be called if there isn't a resource_link_id_history param and a
+        # matching document_url in the DB.
+        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
+        resource_link_id = self.request.params["resource_link_id"]
+        resource_link_id_history = self.request.params["resource_link_id_history"]
+
+        document_url = self.assignment_service.get_document_url(
+            tool_consumer_instance_guid, resource_link_id_history
         )
 
-        return {}
+        self.assignment_service.set_document_url(
+            tool_consumer_instance_guid, resource_link_id, document_url
+        )
+
+        return self.basic_lti_launch(document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_basic_lti_launch(self):
@@ -135,12 +166,7 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
-        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
-        self.context.js_config.maybe_enable_grading()
-        self.context.js_config.add_document_url(self.request.parsed_params["url"])
-        return {}
+        return self.basic_lti_launch(self.request.parsed_params["url"])
 
     @view_config(
         authorized_to_configure_assignments=True,
