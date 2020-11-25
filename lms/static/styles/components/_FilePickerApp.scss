@@ -1,3 +1,5 @@
+@use "../variables" as var;
+
 .FilePickerApp__form {
   max-width: 600px;
   margin-left: auto;
@@ -22,13 +24,11 @@
 }
 
 .FilePickerApp__loading-spinner {
-  $spinner-size: 100px;
-
   position: absolute;
-  width: $spinner-size;
-  height: $spinner-size;
-  left: calc(50% - #{$spinner-size});
-  top: calc(50% - #{$spinner-size});
+  width: var.$spinner-size;
+  height: var.$spinner-size;
+  left: calc(50% - #{var.$spinner-size / 2});
+  top: calc(50% - #{var.$spinner-size / 2});
 }
 
 .FilePickerApp__document-source-buttons {
