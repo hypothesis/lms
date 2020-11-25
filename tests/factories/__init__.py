@@ -10,7 +10,9 @@ from tests.factories.attributes import (
     H_USERNAME,
     OAUTH_CONSUMER_KEY,
     REFRESH_TOKEN,
+    RESOURCE_LINK_ID,
     SHARED_SECRET,
+    TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
 from tests.factories.course import Course
@@ -18,6 +20,7 @@ from tests.factories.grading_info import GradingInfo
 from tests.factories.h_group import HGroup
 from tests.factories.h_user import HUser
 from tests.factories.lti_user import LTIUser
+from tests.factories.module_item_configuration import ModuleItemConfiguration
 from tests.factories.oauth2_token import OAuth2Token
 
 

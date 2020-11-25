@@ -9,3 +9,6 @@ ACCESS_TOKEN = REFRESH_TOKEN = Faker("hexify", text="^" * 32)
 USER_ID = Faker("hexify", text="^" * 40)
 H_USERNAME = Faker("hexify", text="^" * 30)
 H_DISPLAY_NAME = Faker("name")
+
+RESOURCE_LINK_ID = Faker("hexify", text="^" * 32)
+TOOL_CONSUMER_INSTANCE_GUID = Faker("hexify", text="^" * 40)
