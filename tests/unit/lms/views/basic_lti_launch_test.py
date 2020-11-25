@@ -234,17 +234,17 @@ class TestDBConfiguredBasicLTILaunch:
 
         context.js_config.maybe_enable_grading.assert_called_once_with()
 
-    def test_it_adds_the_document_url(
-        self, context, pyramid_request, ModuleItemConfiguration
-    ):
+    def test_it_adds_the_document_url(self, context, pyramid_request):
+        mic = factories.ModuleItemConfiguration(
+            resource_link_id=pyramid_request.params["resource_link_id"],
+            tool_consumer_instance_guid=pyramid_request.params[
+                "tool_consumer_instance_guid"
+            ],
+        )
+
         db_configured_basic_lti_launch_caller(context, pyramid_request)
 
-        ModuleItemConfiguration.get_document_url.assert_called_once_with(
-            pyramid_request.db, "TEST_GUID", "TEST_RESOURCE_LINK_ID"
-        )
-        context.js_config.add_document_url.assert_called_once_with(
-            ModuleItemConfiguration.get_document_url.return_value
-        )
+        context.js_config.add_document_url.assert_called_once_with(mic.document_url)
 
 
 class TestURLConfiguredBasicLTILaunch:
@@ -369,7 +369,7 @@ def LtiLaunches(patch):
     return patch("lms.views.basic_lti_launch.LtiLaunches")
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def ModuleItemConfiguration(patch):
     return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
 
