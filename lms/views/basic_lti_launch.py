@@ -14,7 +14,7 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
-from lms.models import LtiLaunches, ModuleItemConfiguration
+from lms.models import LtiLaunches
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
@@ -34,6 +34,7 @@ class BasicLTILaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.assignment_service = request.find_service(name="assignment")
         self.course_service = request.find_service(name="course")
 
         self.context.js_config.enable_lti_launch_mode()
@@ -110,18 +111,15 @@ class BasicLTILaunchViews:
 
         self.context.js_config.maybe_enable_grading()
 
-        resource_link_id = self.request.params["resource_link_id"]
-        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
-
         # The ``db_configured=True`` view predicate ensures that this view
-        # won't be called if there isn't a matching ModuleItemConfiguration in
-        # the DB. So here we can safely assume that the ModuleItemConfiguration
-        # exists.
-        document_url = ModuleItemConfiguration.get_document_url(
-            self.request.db, tool_consumer_instance_guid, resource_link_id
+        # won't be called if there isn't a matching document_url in the DB. So
+        # here we can safely assume that the document_url exists.
+        self.context.js_config.add_document_url(
+            self.assignment_service.get_document_url(
+                self.request.params["tool_consumer_instance_guid"],
+                self.request.params["resource_link_id"],
+            )
         )
-
-        self.context.js_config.add_document_url(document_url)
 
         return {}
 
@@ -222,8 +220,7 @@ class BasicLTILaunchViews:
         """
         document_url = self.request.parsed_params["document_url"]
 
-        ModuleItemConfiguration.set_document_url(
-            self.request.db,
+        self.assignment_service.set_document_url(
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.request.parsed_params["resource_link_id"],
             document_url,

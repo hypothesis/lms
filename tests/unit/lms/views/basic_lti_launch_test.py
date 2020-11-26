@@ -8,7 +8,12 @@ from lms.views.basic_lti_launch import BasicLTILaunchViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
-    "ai_getter", "course_service", "h_api", "grading_info_service", "lti_h_service"
+    "ai_getter",
+    "assignment_service",
+    "course_service",
+    "h_api",
+    "grading_info_service",
+    "lti_h_service",
 )
 
 
@@ -234,17 +239,14 @@ class TestDBConfiguredBasicLTILaunch:
 
         context.js_config.maybe_enable_grading.assert_called_once_with()
 
-    def test_it_adds_the_document_url(self, context, pyramid_request):
-        mic = factories.ModuleItemConfiguration(
-            resource_link_id=pyramid_request.params["resource_link_id"],
-            tool_consumer_instance_guid=pyramid_request.params[
-                "tool_consumer_instance_guid"
-            ],
-        )
-
+    def test_it_adds_the_document_url(
+        self, assignment_service, context, pyramid_request
+    ):
         db_configured_basic_lti_launch_caller(context, pyramid_request)
 
-        context.js_config.add_document_url.assert_called_once_with(mic.document_url)
+        context.js_config.add_document_url.assert_called_once_with(
+            assignment_service.get_document_url.return_value
+        )
 
 
 class TestURLConfiguredBasicLTILaunch:
@@ -263,15 +265,14 @@ class TestURLConfiguredBasicLTILaunch:
 
 class TestConfigureModuleItem:
     def test_it_saves_the_assignments_document_url_to_the_db(
-        self, context, pyramid_request, ModuleItemConfiguration
+        self, assignment_service, context, pyramid_request
     ):
         configure_module_item_caller(context, pyramid_request)
 
-        ModuleItemConfiguration.set_document_url.assert_called_once_with(
-            pyramid_request.db,
-            "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "TEST_RESOURCE_LINK_ID",
-            "TEST_DOCUMENT_URL",
+        assignment_service.set_document_url.assert_called_once_with(
+            pyramid_request.parsed_params["tool_consumer_instance_guid"],
+            pyramid_request.parsed_params["resource_link_id"],
+            pyramid_request.parsed_params["document_url"],
         )
 
     def test_it_enables_frontend_grading(self, context, pyramid_request):
@@ -367,11 +368,6 @@ def BearerTokenSchema(patch):
 @pytest.fixture(autouse=True)
 def LtiLaunches(patch):
     return patch("lms.views.basic_lti_launch.LtiLaunches")
-
-
-@pytest.fixture
-def ModuleItemConfiguration(patch):
-    return patch("lms.views.basic_lti_launch.ModuleItemConfiguration")
 
 
 @pytest.fixture

@@ -45,3 +45,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.oauth2_token.oauth2_token_service_factory", name="oauth2_token"
     )
+    config.register_service_factory(
+        "lms.services.assignment.factory", name="assignment"
+    )

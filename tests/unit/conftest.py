@@ -9,6 +9,7 @@ from pyramid.request import apply_request_extensions
 
 from lms.models import ApplicationSettings
 from lms.services.application_instance_getter import ApplicationInstanceGetter
+from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
@@ -166,6 +167,15 @@ def ai_getter(pyramid_config):
     ai_getter.settings().set("canvas", "sections_enabled", True)
     pyramid_config.register_service(ai_getter, name="ai_getter")
     return ai_getter
+
+
+@pytest.fixture
+def assignment_service(pyramid_config):
+    assignment_service = mock.create_autospec(
+        AssignmentService, spec_set=True, instance=True
+    )
+    pyramid_config.register_service(assignment_service, name="assignment")
+    return assignment_service
 
 
 @pytest.fixture

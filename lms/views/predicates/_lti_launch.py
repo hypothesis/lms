@@ -1,5 +1,4 @@
 """Predicates for use with LTI launch views."""
-from lms.models import ModuleItemConfiguration
 from lms.views.predicates._helpers import Base
 
 __all__ = [
@@ -38,17 +37,17 @@ class DBConfigured(Base):
     name = "db_configured"
 
     def __call__(self, context, request):
+        assignment_svc = request.find_service(name="assignment")
         resource_link_id = request.params.get("resource_link_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
-        has_module_item_configuration = (
-            ModuleItemConfiguration.get_document_url(
-                request.db, tool_consumer_instance_guid, resource_link_id
+        has_document_url = bool(
+            assignment_svc.get_document_url(
+                tool_consumer_instance_guid, resource_link_id
             )
-            is not None
         )
 
-        return has_module_item_configuration == self.value
+        return has_document_url == self.value
 
 
 class CanvasFile(Base):
