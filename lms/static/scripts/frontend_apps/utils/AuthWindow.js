@@ -1,5 +1,4 @@
-// @ts-ignore - Types are missing for query-string
-import queryString from 'query-string';
+import * as queryString from 'query-string';
 
 /**
  * Manages an LMS authentication popup window.
