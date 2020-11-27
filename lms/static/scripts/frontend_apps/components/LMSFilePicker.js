@@ -26,7 +26,7 @@ import FileList from './FileList';
 
 /**
  * @typedef DialogState
- * @prop {'fetching'|'fetched'|'authorizing'|'error'} state
+ * @prop {'fetching'|'reloading'|'fetched'|'authorizing'|'error'} state
  * @prop {string} title - Dialog title
  * @prop {'select'|'authorize'|'authorize_retry'|'retry'|'reload'} continueAction - Action for the continue button
  * @prop {File[]|null} files - List of fetched files
@@ -84,7 +84,8 @@ export default function LMSFilePicker({
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
-  const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
+  /** @type {import('preact').Ref<AuthWindow>} */
+  const authWindow = useRef(null);
 
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
@@ -94,7 +95,7 @@ export default function LMSFilePicker({
       // https://github.com/hypothesis/lms/pull/2219#issuecomment-721833947
       setDialogState(({ continueAction }) => ({
         ...INITIAL_DIALOG_STATE,
-        state: 'fetching',
+        state: continueAction === 'reload' ? 'reloading' : 'fetching',
         continueAction,
       }));
       const files = /** @type {File[]} */ (await apiCall({
@@ -156,8 +157,6 @@ export default function LMSFilePicker({
       await fetchFiles();
     } finally {
       authWindow.current.close();
-      // eslint-disable-next-line require-atomic-updates
-      // @ts-ignore - `authWindow` is marked as non-nullable.
       authWindow.current = null;
     }
   }, [fetchFiles, authToken, listFilesApi]);
@@ -230,7 +229,7 @@ export default function LMSFilePicker({
     case 'reload':
       continueButton = (
         <Button
-          disabled={dialogState.state === 'fetching'}
+          disabled={dialogState.state === 'reloading'}
           onClick={fetchFiles}
           label="Reload"
         />
@@ -242,6 +241,10 @@ export default function LMSFilePicker({
       break;
   }
 
+  if (dialogState.state === 'fetching') {
+    return null;
+  }
+
   return (
     <Dialog
       contentClass="LMSFilePicker__dialog"
@@ -251,10 +254,10 @@ export default function LMSFilePicker({
     >
       {warningOrError}
 
-      {['fetching', 'fetched'].includes(dialogState.state) && (
+      {['reloading', 'fetched'].includes(dialogState.state) && (
         <FileList
           files={dialogState.files ?? []}
-          isLoading={dialogState.state === 'fetching'}
+          isLoading={dialogState.state === 'reloading'}
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
           onSelectFile={selectFile}
