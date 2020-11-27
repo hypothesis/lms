@@ -37,6 +37,7 @@ export default class AuthWindow {
    *
    * In order to check the authorization status after the window closes, make
    * an API call and check for a successful response.
+   * @returns {Promise<void>}
    */
   async authorize() {
     const width = 775;
