@@ -20,8 +20,10 @@ import URLPicker from './URLPicker';
 /**
  * @typedef {import('../api-types').File} File
  *
+ * @typedef {'lms'|'url'|null} DialogType
+ *
  * @typedef FilePickerAppProps
- * @prop {'lms'|'url'|null} [defaultActiveDialog] -
+ * @prop {DialogType} [defaultActiveDialog] -
  *   The dialog that should be shown when the app is first opened.
  * @prop {() => any} [onSubmit] - Callback invoked when the form is submitted.
  */
@@ -93,18 +95,27 @@ export default function FilePickerApp({
    */
   const [shouldSubmit, submit] = useState(false);
 
-  const cancelDialog = () => setActiveDialog(null);
+  const cancelDialog = () => {
+    setLoadingIndicatorVisible(false);
+    setActiveDialog(null);
+  };
+
+  /** @param {DialogType} type */
+  const selectDialog = type => {
+    setLoadingIndicatorVisible(true);
+    setActiveDialog(type);
+  };
 
   /** @param {File} file */
   const selectLMSFile = file => {
-    setActiveDialog(null);
+    cancelDialog();
     setLmsFile(file);
     submit(true);
   };
 
   /** @param {string} url */
   const selectURL = url => {
-    setActiveDialog(null);
+    cancelDialog();
     setUrl(url);
     submit(true);
   };
@@ -194,13 +205,13 @@ export default function FilePickerApp({
           <Button
             className="FilePickerApp__source-button"
             label="Enter URL of web page or PDF"
-            onClick={() => setActiveDialog('url')}
+            onClick={() => selectDialog('url')}
           />
           {canvasEnabled && (
             <Button
               className="FilePickerApp__source-button"
               label={`Select PDF from Canvas`}
-              onClick={() => setActiveDialog('lms')}
+              onClick={() => selectDialog('lms')}
             />
           )}
           {googlePicker && (

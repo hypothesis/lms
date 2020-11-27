@@ -122,12 +122,21 @@ describe('FilePickerApp', () => {
   it('shows URL selection dialog when "Enter URL" button is clicked', () => {
     const wrapper = renderFilePicker();
 
+    assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
+
     const btn = wrapper.find('Button[label="Enter URL of web page or PDF"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
 
-    assert.isTrue(wrapper.exists('URLPicker'));
+    const urlPicker = wrapper.find('URLPicker');
+    assert.isTrue(urlPicker.exists());
+    assert.isTrue(wrapper.find('.FilePickerApp__loading-backdrop').exists());
+
+    interact(wrapper, () => {
+      urlPicker.props().onCancel();
+    });
+    assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
   });
 
   it('submits a URL when a URL is selected', () => {
@@ -152,10 +161,14 @@ describe('FilePickerApp', () => {
   it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
     const wrapper = renderFilePicker();
 
+    assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
+
     const btn = wrapper.find('Button[label="Select PDF from Canvas"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
+
+    assert.isTrue(wrapper.find('.FilePickerApp__loading-backdrop').exists());
 
     const filePicker = wrapper.find('LMSFilePicker');
     assert.isTrue(filePicker.exists());
@@ -164,6 +177,11 @@ describe('FilePickerApp', () => {
       filePicker.prop('listFilesApi'),
       fakeConfig.filePicker.canvas.listFiles
     );
+
+    interact(wrapper, () => {
+      filePicker.props().onCancel();
+    });
+    assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
   });
 
   it('submits an LMS file when an LMS file is selected', () => {

@@ -1,5 +1,4 @@
 import { Fragment, createElement } from 'preact';
-import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 
 import { ApiError } from '../../utils/api';
@@ -35,7 +34,7 @@ describe('LMSFilePicker', () => {
   };
 
   beforeEach(() => {
-    fakeApiCall = sinon.stub().resolves([]);
+    fakeApiCall = sinon.stub().resolves(['one file']);
     fakeAuthWindowInstance = {
       authorize: sinon.stub().resolves(null),
       close: () => {},
@@ -82,31 +81,29 @@ describe('LMSFilePicker', () => {
 
     // Wait for the initial file fetch to fail.
     const wrapper = renderFilePicker();
-    assert.called(fakeApiCall);
-
     try {
-      await fakeApiCall.returnValues[0];
-    } catch (err) {
+      await fakeApiCall;
+    } catch {
       /* unused */
     }
     wrapper.update();
+    assert.called(fakeApiCall);
 
     // Check that the "Authorize" button is shown.
-    const authWindowClosed = new Promise(resolve => {
-      fakeAuthWindowInstance.close = resolve;
-    });
     const authButton = wrapper.find('Button[label="Authorize"]');
     assert.isTrue(authButton.exists());
 
     // Click the "Authorize" button and check that files are re-fetched.
+    const authWindowClosed = new Promise(resolve => {
+      fakeAuthWindowInstance.close = resolve;
+    });
     const expectedFiles = [];
     fakeApiCall.reset();
     fakeApiCall.resolves(expectedFiles);
-    await act(async () => {
-      authButton.props().onClick();
-      // Wait for auth to complete, signaled by the window being closed.
-      await authWindowClosed;
-    });
+
+    authButton.prop('onClick')();
+    // Wait for auth to complete, signaled by the window being closed.
+    await authWindowClosed;
     wrapper.update();
 
     assert.calledWith(fakeApiCall, {
@@ -125,30 +122,26 @@ describe('LMSFilePicker', () => {
       })
     );
 
-    const authWindowClosed = new Promise(resolve => {
-      fakeAuthWindowInstance.close = resolve;
-    });
-
     const wrapper = renderFilePicker();
-    assert.called(fakeApiCall);
-
     try {
-      await fakeApiCall.returnValues[0];
-    } catch (err) {
+      await fakeApiCall;
+    } catch {
       /* unused */
     }
     wrapper.update();
+    assert.called(fakeApiCall);
 
     // After first failed authentication request
     const authorizeButton = wrapper.find('Button[label="Authorize"]');
     assert.isTrue(authorizeButton.exists());
     assert.isTrue(wrapper.exists('p[data-testid="authorization warning"]'));
 
-    // Make first (unsuccesful) authorization attempt and wait for the auth window to close.
-    await act(async () => {
-      authorizeButton.props().onClick();
-      await authWindowClosed;
+    // Make unsuccessful authorization attempt and wait for the auth window to close.
+    const authWindowClosed = new Promise(resolve => {
+      fakeAuthWindowInstance.close = resolve;
     });
+    authorizeButton.prop('onClick')();
+    await authWindowClosed;
     wrapper.update();
 
     // After second failed authentication request
@@ -163,14 +156,17 @@ describe('LMSFilePicker', () => {
     );
     assert.equal(errorDetails.prop('error').message, '');
 
-    // Make second (successful) authorization attempt and wait for the auth window to close.
+    // Make successful authorization attempt and wait for the auth window to close.
     fakeApiCall.reset();
-    fakeApiCall.resolves([]);
-    await fakeApiCall.returnValues[0];
-    await act(async () => {
-      authorizeAgainButton.props().onClick();
-      await authWindowClosed;
+    fakeApiCall.resolves([0]);
+    await fakeApiCall;
+    wrapper.update();
+
+    const authWindowClosed2 = new Promise(resolve => {
+      fakeAuthWindowInstance.close = resolve;
     });
+    wrapper.find('Button[label="Authorize again"]').prop('onClick')();
+    await authWindowClosed2;
     wrapper.update();
 
     // After authorization completes, files should be fetched and then the
@@ -203,14 +199,13 @@ describe('LMSFilePicker', () => {
 
       // When the dialog is initially displayed, it should try to fetch files.
       const wrapper = renderFilePicker();
-      assert.called(fakeApiCall);
-
       try {
-        await fakeApiCall.returnValues[0];
-      } catch (err) {
+        await fakeApiCall;
+      } catch {
         /* unused */
       }
       wrapper.update();
+      assert.called(fakeApiCall);
 
       // The details of the error should be displayed, along with a "Try again"
       // button.
@@ -226,48 +221,57 @@ describe('LMSFilePicker', () => {
       // Clicking the "Try again" button should re-try authorization.
       fakeApiCall.reset();
       fakeApiCall.resolves([]);
-      await act(async () => {
-        tryAgainButton.props().onClick();
-        await authWindowClosed;
-      });
+
+      tryAgainButton.prop('onClick')();
+      await authWindowClosed;
       wrapper.update();
 
       // After authorization completes, files should be fetched and then the
       // file list should be displayed.
-      await fakeApiCall.returnValues[0];
+      await fakeApiCall;
       wrapper.update();
       assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
     });
   });
 
-  it('shows "Reload" button when the request returns an empty list of files', async () => {
-    fakeApiCall.resolves([]);
+  it('shows "Reload" button when the request returns no files', async () => {
+    const clock = sinon.useFakeTimers();
+    fakeApiCall.onFirstCall().resolves([]);
     // When the dialog is initially displayed, it should try to fetch files.
     const wrapper = renderFilePicker();
+    await fakeApiCall;
+    wrapper.update();
     assert.called(fakeApiCall);
 
-    try {
-      await fakeApiCall.returnValues[0];
-    } catch (err) {
-      /* unused */
-    }
+    const reloadButton = wrapper.find('Button[label="Reload"]');
+    assert.isFalse(reloadButton.prop('disabled'));
+
+    const waitMs = 3000;
+    fakeApiCall
+      .onSecondCall()
+      .resolves(new Promise(resolve => setTimeout(() => resolve([]), waitMs)));
+
+    reloadButton.prop('onClick')();
     wrapper.update();
 
-    assert.isTrue(wrapper.exists('Button[label="Reload"]'));
+    assert.isTrue(wrapper.find('Button[label="Reload"]').prop('disabled'));
+
+    clock.tick(waitMs);
+    await fakeApiCall;
+    wrapper.update();
+
+    assert.isFalse(wrapper.find('Button[label="Reload"]').prop('disabled'));
+
+    clock.restore();
   });
 
   it('shows a "Select" button when the request return a list with one or more files', async () => {
     fakeApiCall.resolves([0]);
     // When the dialog is initially displayed, it should try to fetch files.
     const wrapper = renderFilePicker();
-    assert.called(fakeApiCall);
-
-    try {
-      await fakeApiCall.returnValues[0];
-    } catch (err) {
-      /* unused */
-    }
+    await fakeApiCall;
     wrapper.update();
+    assert.called(fakeApiCall);
 
     assert.isTrue(wrapper.exists('Button[label="Select"]'));
   });
@@ -280,24 +284,24 @@ describe('LMSFilePicker', () => {
       })
     );
 
+    // Click the "Authorize" button to show the authorization popup.
+    const wrapper = renderFilePicker();
+    try {
+      await fakeApiCall;
+    } catch {
+      /* unused  */
+    }
+    wrapper.update();
+
     const closePopup = sinon.stub();
     FakeAuthWindow.returns({
       authorize: sinon.stub().resolves(null),
       close: closePopup,
     });
-
-    // Click the "Authorize" button to show the authorization popup.
-    const wrapper = renderFilePicker();
-    try {
-      await fakeApiCall.returnValues[0];
-    } catch (e) {
-      // Ignored
-    }
-    wrapper.update();
     wrapper.find('Button[label="Authorize"]').prop('onClick')();
 
     // Dismiss the LMS file picker. This should close the auth popup.
-    wrapper.find(FakeDialog).props().onCancel();
+    wrapper.find(FakeDialog).prop('onCancel')();
 
     assert.called(closePopup);
   });
@@ -310,76 +314,82 @@ describe('LMSFilePicker', () => {
 
   it('fetches and displays files from the LMS', async () => {
     const wrapper = renderFilePicker();
-    assert.called(fakeApiCall);
-
     const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
+    assert.called(fakeApiCall);
 
     const fileList = wrapper.find('FileList');
     assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows a loading indicator while fetching files', async () => {
+  it('maintains selected file state', async () => {
     const wrapper = renderFilePicker();
-    assert.isTrue(wrapper.find('FileList').prop('isLoading'));
-
-    await fakeApiCall.returnValues[0];
+    await fakeApiCall;
     wrapper.update();
 
-    assert.isFalse(wrapper.find('FileList').prop('isLoading'));
-  });
-
-  it('maintains selected file state', () => {
-    const wrapper = renderFilePicker();
     const file = { id: 123 };
 
-    act(() => {
-      wrapper.find('FileList').props().onSelectFile(file);
-    });
+    wrapper.find('FileList').prop('onSelectFile')(file);
     wrapper.update();
 
     assert.equal(wrapper.find('FileList').prop('selectedFile'), file);
   });
 
-  it('invokes `onSelectFile` when user chooses a file', () => {
+  it('invokes `onSelectFile` when user chooses a file', async () => {
     const onSelectFile = sinon.stub();
-    const file = { id: 123 };
     const wrapper = renderFilePicker({ onSelectFile });
-    wrapper.find('FileList').props().onUseFile(file);
+    await fakeApiCall;
+    wrapper.update();
+
+    const file = { id: 123 };
+    wrapper.find('FileList').prop('onUseFile')(file);
     assert.calledWith(onSelectFile, file);
   });
 
-  it('shows disabled "Select" button when no file is selected', () => {
+  it('disables "Select" button when no file is selected', async () => {
     const wrapper = renderFilePicker();
+    await fakeApiCall;
+    wrapper.update();
+
     assert.equal(wrapper.find('Button[label="Select"]').prop('disabled'), true);
   });
 
-  it('shows enabled "Select" button when a file is selected', () => {
+  it('enables "Select" button when a file is selected', async () => {
     const wrapper = renderFilePicker();
-    act(() => {
-      wrapper.find('FileList').props().onSelectFile({ id: 123 });
-    });
+    await fakeApiCall;
     wrapper.update();
+
+    wrapper.find('FileList').prop('onSelectFile')({ id: 123 });
+    wrapper.update();
+
     assert.equal(
       wrapper.find('Button[label="Select"]').prop('disabled'),
       false
     );
   });
 
-  it('chooses selected file when uses clicks "Select" button', () => {
+  it('chooses selected file when uses clicks "Select" button', async () => {
     const onSelectFile = sinon.stub();
-    const file = { id: 123 };
     const wrapper = renderFilePicker({ onSelectFile });
-
-    act(() => {
-      wrapper.find('FileList').props().onSelectFile(file);
-    });
+    await fakeApiCall;
     wrapper.update();
 
-    act(() => {
-      wrapper.find('Button[label="Select"]').props().onClick();
-    });
+    const file = { id: 123 };
+
+    wrapper.find('FileList').prop('onSelectFile')(file);
+    wrapper.update();
+
+    wrapper.find('Button[label="Select"]').prop('onClick')();
 
     assert.calledWith(onSelectFile, file);
+  });
+
+  it('does not render anything while fetching', async () => {
+    const wrapper = renderFilePicker();
+    assert.isTrue(wrapper.isEmptyRender());
+
+    await fakeApiCall;
+    wrapper.update();
+    assert.isFalse(wrapper.isEmptyRender());
   });
 });
