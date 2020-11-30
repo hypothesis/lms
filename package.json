@@ -60,7 +60,9 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.11",
+    "@types/gapi": "^0.0.39",
     "@types/prop-types": "^15.7.3",
+    "@types/query-string": "^5.0.0",
     "axe-core": "^4.1.1",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-mockable-imports": "^1.7.1",
