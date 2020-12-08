@@ -227,6 +227,13 @@ describe('SubmitGradeForm', () => {
       );
     });
 
+    it('shows the error dialog when the grade request throws an error', () => {
+      fakeFetchGrade.throws({ errorMessage: '' });
+      const wrapper = renderForm();
+      wrapper.find('button[type="submit"]').simulate('click');
+      assert.isTrue(wrapper.find('ErrorDialog').exists());
+    });
+
     it("sets the input defaultValue prop to the student's grade", async () => {
       const wrapper = renderForm();
       await waitFor(() => !isFetchingGrade(wrapper));

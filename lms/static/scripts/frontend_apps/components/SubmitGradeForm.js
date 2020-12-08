@@ -32,8 +32,9 @@ const GRADE_MULTIPLIER = 10;
  * and error status of that fetch request.
  *
  * @param {StudentInfo|null} student
+ * @param {(value: string) => void} setFetchGradeError
  */
-const useFetchGrade = student => {
+const useFetchGrade = (student, setFetchGradeError) => {
   const {
     api: { authToken },
   } = useContext(Config);
@@ -42,20 +43,22 @@ const useFetchGrade = student => {
 
   useEffect(() => {
     /** @type {boolean} */
-    let didCancel;
+    let ignoreResults;
     if (student) {
       // Fetch the grade from the service api
       // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
       const fetchData = async () => {
         setGradeLoading(true);
         setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
-
-        const response = await fetchGrade({ student, authToken });
-        if (!didCancel) {
-          // Only set these values if we didn't cancel this request
-          if (response.currentScore) {
-            setGrade(scaleGrade(response.currentScore, GRADE_MULTIPLIER));
+        try {
+          const { currentScore } = await fetchGrade({ student, authToken });
+          if (!ignoreResults && currentScore) {
+            // Only set these values if we didn't cancel this request
+            setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
           }
+        } catch (e) {
+          setFetchGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
+        } finally {
           setGradeLoading(false);
         }
       };
@@ -66,10 +69,10 @@ const useFetchGrade = student => {
     }
     // Called when unmounting the component
     return () => {
-      // Set a flag to cancel the the fetchGrade response from saving to state
-      didCancel = true;
+      // Set a flag to ignore the the fetchGrade response from saving to state
+      ignoreResults = true;
     };
-  }, [student, authToken]);
+  }, [student, authToken, setFetchGradeError]);
   return { grade, gradeLoading };
 };
 
@@ -86,7 +89,8 @@ const useFetchGrade = student => {
  */
 export default function SubmitGradeForm({ student }) {
   // State for loading the grade
-  const { grade, gradeLoading } = useFetchGrade(student);
+  const [fetchGradeError, setFetchGradeError] = useState('');
+  const { grade, gradeLoading } = useFetchGrade(student, setFetchGradeError);
 
   // The following is state for saving the grade
   //
@@ -215,11 +219,22 @@ export default function SubmitGradeForm({ student }) {
       </button>
       {!!submitGradeError && (
         <ErrorDialog
-          title="Error"
+          title="Submit Grade Error"
           error={{ message: submitGradeError }}
           onCancel={() => {
             setSubmitGradeError('');
           }}
+          cancelLabel="Close"
+        />
+      )}
+      {!!fetchGradeError && (
+        <ErrorDialog
+          title="Fetch Grade Error"
+          error={{ message: submitGradeError }}
+          onCancel={() => {
+            setFetchGradeError('');
+          }}
+          cancelLabel="Close"
         />
       )}
       {gradeSaving && (

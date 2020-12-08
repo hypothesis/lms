@@ -23,6 +23,7 @@ import { useUniqueId } from '../utils/hooks';
  * @prop {() => any} [onCancel] -
  *   A callback to invoke when the user cancels the dialog. If provided, a
  *   "Cancel" button will be displayed.
+ * @prop {string} [cancelLabel] - Label for the cancel button
  */
 
 /**
@@ -54,6 +55,7 @@ export default function Dialog({
   contentClass,
   initialFocus,
   onCancel,
+  cancelLabel = 'Cancel',
   role = 'dialog',
   title,
   buttons,
@@ -132,7 +134,7 @@ export default function Dialog({
               <Button
                 className="Button--cancel"
                 onClick={onCancel}
-                label="Cancel"
+                label={cancelLabel}
               />
             )}
             {buttons}
