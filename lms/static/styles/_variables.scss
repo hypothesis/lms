@@ -6,6 +6,11 @@ $grey-2: #ececec;
 $grey-3: #dbdbdb;
 $grey-4: #a6a6a6;
 $grey-5: #7a7a7a;
+// Interim color variable for migration purposes, as the step between `$grey-5`
+// and `$grey-6` is large. Represents `base-mid` in proposed future palette,
+// minus blue tint.
+// This is the lightest grey admissible on $grey-2, $grey-3
+$grey-mid: #595959;
 $grey-6: #3f3f3f;
 $grey-7: #202020;
 

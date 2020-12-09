@@ -6,7 +6,7 @@
 
   min-height: 30px;
 
-  background-color: var.$grey-6;
+  background-color: var.$grey-mid;
   border: none;
   border-radius: 2px;
   color: var.$white;
@@ -16,16 +16,9 @@
   padding-right: 15px;
   white-space: nowrap;
 
-  &:hover {
-    background-color: var.$brand;
-  }
-
-  &[disabled] {
-    color: var.$grey-6;
-    background-color: var.$grey-2;
-    &:hover {
-      background-color: var.$grey-2;
-    }
+  &:hover:not([disabled]),
+  &:focus:not([disabled]) {
+    background-color: var.$grey-6;
   }
 }
 
@@ -37,14 +30,10 @@
   color: var.$grey-6;
   background-color: var.$grey-2;
 
-  &:hover {
+  &:hover:not([disabled]),
+  &:focus:not([disabled]) {
     background-color: var.$grey-3;
-    color: var.$brand;
   }
-}
-
-.Button--danger {
-  background-color: var.$brand;
 }
 
 @include mixins.touch-input {

@@ -42,19 +42,20 @@
   @include focus.outline-on-keyboard-focus;
   border: 0;
   background: none;
-  color: var.$grey-6;
+  color: var.$grey-mid;
 
   // Given the button a large hit target and ensure the 'X' label is large
   // enough to see easily and aligned with the right edge of the dialog.
   // Add negative margins so that the button does not force the dialog to
   // grow in height.
   font-size: 20px;
+  font-weight: 600;
   padding: 5px;
   margin: -10px 0px;
 
   &:hover {
     cursor: pointer;
-    color: var.$brand;
+    color: var.$grey-7;
   }
 }
 
