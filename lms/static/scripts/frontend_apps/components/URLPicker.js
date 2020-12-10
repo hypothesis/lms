@@ -1,8 +1,9 @@
 import { createElement } from 'preact';
-import { useRef } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 
 import Button from './Button';
 import Dialog from './Dialog';
+import ValidationMessage from './ValidationMessage';
 
 /**
  * @typedef URLPickerProps
@@ -20,23 +21,52 @@ import Dialog from './Dialog';
 export default function URLPicker({ onCancel, onSelectURL }) {
   const input = useRef(/** @type {HTMLInputElement|null} */ (null));
   const form = useRef(/** @type {HTMLFormElement|null} */ (null));
+  // Is there a validation error message to show?
+  const [showValidationError, setValidationError] = useState(false);
+  // The actual validation error message.
+  const [validationMessage, setValidationMessage] = useState('');
 
   /** @param {Event} event */
   const submit = event => {
     event.preventDefault();
+
     if (form.current.checkValidity()) {
       onSelectURL(input.current.value);
     } else {
-      form.current.reportValidity();
+      setValidationMessage('A valid URL is required');
+      setValidationError(true);
     }
   };
 
+  /**
+   * If any input is detected, close the ValidationMessage.
+   */
+  const handleKeyDown = () => {
+    setValidationError(false);
+  };
+
+  const submitButton = (
+    <span className="URLPicker__buttons">
+      {validationMessage && (
+        <ValidationMessage
+          message={validationMessage}
+          open={showValidationError}
+          onClose={() => {
+            // Sync up the state when the ValidationMessage is closed
+            setValidationError(false);
+          }}
+        />
+      )}
+      <Button key="submit" label="Submit" onClick={submit} />
+    </span>
+  );
+
   return (
     <Dialog
-      contentClass="URLPicker__dialog"
+      contentClass="URLPicker"
       title="Enter URL"
       onCancel={onCancel}
-      buttons={[<Button key="submit" label="Submit" onClick={submit} />]}
+      buttons={[submitButton]}
       initialFocus={input}
     >
       <p>Enter the URL of any publicly available web page or PDF.</p>
@@ -45,6 +75,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
           URL:{' '}
         </label>
         <input
+          onInput={handleKeyDown}
           className="u-stretch u-cross-stretch"
           name="path"
           type="url"

@@ -1,0 +1,39 @@
+@keyframes validationErrorOpen--url {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 200px;
+    opacity: 0.9;
+  }
+}
+
+@keyframes validationErrorClose--url {
+  from {
+    width: 200px;
+    opacity: 1;
+  }
+  to {
+    width: 0px;
+    opacity: 0;
+  }
+}
+.URLPicker {
+  &__buttons {
+    position: relative;
+  }
+  .ValidationMessage {
+    line-height: inherit;
+    height: 100%;
+    right: 73px;
+  }
+
+  .ValidationMessage--open {
+    animation-name: validationErrorOpen--url;
+  }
+
+  .ValidationMessage--closed {
+    animation-name: validationErrorClose--url;
+  }
+}

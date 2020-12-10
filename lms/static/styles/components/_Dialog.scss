@@ -66,8 +66,6 @@
 
   .Button {
     @include focus.outline-on-keyboard-focus;
-    &:not(:first-child) {
-      margin-left: 5px;
-    }
+    margin-left: 5px;
   }
 }
