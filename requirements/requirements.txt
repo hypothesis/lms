@@ -48,7 +48,7 @@ transaction==2.4.0        # via pyramid-tm, zope.sqlalchemy
 translationstring==1.4    # via pyramid
 urllib3==1.25.10          # via requests, sentry-sdk
 venusian==3.0.0           # via pyramid
-webargs==6.1.1            # via -r requirements/requirements.in
+webargs==7.0.0            # via -r requirements/requirements.in
 webob==1.8.6              # via pyramid
 wired==0.2.2              # via pyramid-services
 xmltodict==0.12.0         # via -r requirements/requirements.in
