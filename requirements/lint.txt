@@ -58,7 +58,7 @@ pyramid-services==2.2     # via -r requirements/bddtests.txt, -r requirements/fu
 pyramid-tm==2.4           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 pyramid==1.10.5           # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, h-pyramid-sentry, pyramid-exclog, pyramid-jinja2, pyramid-retry, pyramid-services, pyramid-tm
 pyrsistent==0.17.3        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, jsonschema
-pytest==6.1.2             # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
+pytest==6.2.0             # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
 python-dateutil==2.8.1    # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic, faker
 python-editor==1.0.4      # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic
 requests-oauthlib==1.3.0  # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt
