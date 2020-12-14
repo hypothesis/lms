@@ -4,6 +4,7 @@ from lms.views.predicates import includeme
 from lms.views.predicates._lti_launch import (
     AuthorizedToConfigureAssignments,
     BlackboardCopied,
+    BrightspaceCopied,
     CanvasFile,
     Configured,
     DBConfigured,
@@ -19,6 +20,7 @@ def test_includeme_adds_the_view_predicates():
     assert config.add_view_predicate.call_args_list == [
         mock.call("db_configured", DBConfigured),
         mock.call("blackboard_copied", BlackboardCopied),
+        mock.call("brightspace_copied", BrightspaceCopied),
         mock.call("canvas_file", CanvasFile),
         mock.call("url_configured", URLConfigured),
         mock.call("configured", Configured),

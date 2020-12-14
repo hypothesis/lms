@@ -58,8 +58,24 @@ def blackboard_copied_basic_lti_launch_caller(context, pyramid_request):
     BasicLTILaunchViews.blackboard_copied_basic_lti_launch(), and return
     whatever BasicLTILaunchViews.blackboard_copied_basic_lti_launch() returns.
     """
+    pyramid_request.params["resource_link_id_history"] = "test_resource_link_id_history"
     views = BasicLTILaunchViews(context, pyramid_request)
     return views.blackboard_copied_basic_lti_launch()
+
+
+def brightspace_copied_basic_lti_launch_caller(context, pyramid_request):
+    """
+    Call BasicLTILaunchViews.brightspace_copied_basic_lti_launch().
+
+    Set up the appropriate conditions and then call
+    BasicLTILaunchViews.brightspace_copied_basic_lti_launch(), and return
+    whatever BasicLTILaunchViews.brightspace_copied_basic_lti_launch() returns.
+    """
+    pyramid_request.params[
+        "ext_d2l_resource_link_id_history"
+    ] = "test_ext_d2l_resource_link_id_history"
+    views = BasicLTILaunchViews(context, pyramid_request)
+    return views.brightspace_copied_basic_lti_launch()
 
 
 def url_configured_basic_lti_launch_caller(context, pyramid_request):
@@ -188,6 +204,7 @@ class TestCommon:
             canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
             blackboard_copied_basic_lti_launch_caller,
+            brightspace_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
             configure_module_item_caller,
         ]
@@ -219,6 +236,7 @@ class TestCourseRecording:
             canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
             blackboard_copied_basic_lti_launch_caller,
+            brightspace_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
             unconfigured_basic_lti_launch_caller,
         ]
@@ -263,27 +281,43 @@ class TestDBConfiguredBasicLTILaunch:
         )
 
 
-class TestBlackboardCopiedBasicLTILaunch:
-    def test_it_copies_the_ModuleItemConfiguration(
-        self, assignment_service, context, pyramid_request
-    ):
-        blackboard_copied_basic_lti_launch_caller(context, pyramid_request)
+@pytest.mark.parametrize(
+    "caller,param_name",
+    [
+        (
+            blackboard_copied_basic_lti_launch_caller,
+            "resource_link_id_history",
+        ),
+        (
+            brightspace_copied_basic_lti_launch_caller,
+            "ext_d2l_resource_link_id_history",
+        ),
+    ],
+)
+class TestFooCopiedBasicLTILaunch:
+    """Common tests for the *_copied_basic_lti_launch() views."""
 
+    def test_it_copies_the_assignment_settings_and_adds_the_document_url(
+        self, assignment_service, caller, context, param_name, pyramid_request
+    ):
+        caller(context, pyramid_request)
+
+        # It gets the original assignment settings (ModuleItemConfiguration)
+        # from the DB.
         assignment_service.get_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
-            pyramid_request.params["resource_link_id_history"],
+            pyramid_request.params[param_name],
         )
+
+        # It copies the assignment settings to the new resource_link_id in the
+        # DB.
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params["resource_link_id"],
             assignment_service.get_document_url.return_value,
         )
 
-    def test_it_adds_the_document_url_to_the_JavaScript_config(
-        self, assignment_service, context, pyramid_request
-    ):
-        blackboard_copied_basic_lti_launch_caller(context, pyramid_request)
-
+        # It adds the document URL to the JavaScript config.
         context.js_config.add_document_url.assert_called_once_with(
             assignment_service.get_document_url.return_value
         )
@@ -393,7 +427,6 @@ def is_canvas(context):
 def pyramid_request(pyramid_request):
     pyramid_request.params.update(
         {
-            "resource_link_id_history": "test_resource_link_id_history",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         }
