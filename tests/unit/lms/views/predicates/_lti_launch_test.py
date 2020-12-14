@@ -6,6 +6,7 @@ from pyramid.testing import DummyRequest
 from lms.views.predicates import (
     AuthorizedToConfigureAssignments,
     BlackboardCopied,
+    BrightspaceCopied,
     CanvasFile,
     Configured,
     DBConfigured,
@@ -39,12 +40,14 @@ class TestDBConfigured:
         assert result is expected
 
 
-class TestBlackboardCopied:
+@pytest.mark.parametrize("PredicateClass", [BlackboardCopied, BrightspaceCopied])
+class TestFooCopied:
     @pytest.mark.parametrize("resource_link_id_exists", [True, False])
     @pytest.mark.parametrize("resource_link_id_history_exists", [True, False])
     def test_it(
         self,
         assignment_service,
+        PredicateClass,
         pyramid_request,
         resource_link_id_exists,
         resource_link_id_history_exists,
@@ -57,7 +60,7 @@ class TestBlackboardCopied:
                     # The database already has a document_url for the resource_link_id.
                     document_url = mock.sentinel.document_url
 
-            if resource_link_id == pyramid_request.params["resource_link_id_history"]:
+            if resource_link_id == pyramid_request.params[PredicateClass.param_name]:
                 if resource_link_id_history_exists:
                     # The database has a document_url for the resource_link_id_history.
                     document_url = mock.sentinel.previous_document_url
@@ -73,27 +76,27 @@ class TestBlackboardCopied:
             resource_link_id_history_exists and not resource_link_id_exists
         )
 
-        predicate = BlackboardCopied(True, mock.sentinel.config)
+        predicate = PredicateClass(True, mock.sentinel.config)
         assert predicate(mock.sentinel.context, pyramid_request) == expected_result
 
-        predicate = BlackboardCopied(False, mock.sentinel.config)
+        predicate = PredicateClass(False, mock.sentinel.config)
         assert predicate(mock.sentinel.context, pyramid_request) == (
             not expected_result
         )
 
-    def test_with_request_params_missing(self, pyramid_request):
+    def test_with_request_params_missing(self, PredicateClass, pyramid_request):
         pyramid_request.params = {}
 
-        predicate = BlackboardCopied(True, mock.sentinel.config)
+        predicate = PredicateClass(True, mock.sentinel.config)
         assert not predicate(mock.sentinel.context, pyramid_request)
 
-        predicate = BlackboardCopied(False, mock.sentinel.config)
+        predicate = PredicateClass(False, mock.sentinel.config)
         assert predicate(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
+    def pyramid_request(self, PredicateClass, pyramid_request):
         pyramid_request.params[
-            "resource_link_id_history"
+            PredicateClass.param_name
         ] = "test_resource_link_id_history"
         return pyramid_request
 

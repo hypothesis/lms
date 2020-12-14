@@ -21,6 +21,7 @@ from lms.validation import (
     URLConfiguredBasicLTILaunchSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
+from lms.views.predicates import BlackboardCopied, BrightspaceCopied
 
 
 @view_defaults(
@@ -131,21 +132,42 @@ class BasicLTILaunchViews:
         """
         Respond to a launch of a newly-copied Blackboard assignment.
 
-        Find the document_url for resource_link_id_history and make a copy of
-        it with the new resource_link_id, then lanuch the assignment as normal.
-
-        For more about Blackboard course copy and the resource_link_id_history
-        param see the BlackboardCopied predicate's docstring.
+        For more about Blackboard course copy see the BlackboardCopied
+        predicate's docstring.
         """
-        # The ``blackboard_copied=True`` view predicate ensures that this view
-        # won't be called if there isn't a resource_link_id_history param and a
-        # matching document_url in the DB.
+        return self.course_copied_basic_lti_launch(
+            BlackboardCopied.get_original_resource_link_id(self.request)
+        )
+
+    @view_config(brightspace_copied=True)
+    def brightspace_copied_basic_lti_launch(self):
+        """
+        Respond to a launch of a newly-copied Brightspace assignment.
+
+        For more about Brightspace course copy see the BrightspaceCopied
+        predicate's docstring.
+        """
+        return self.course_copied_basic_lti_launch(
+            BrightspaceCopied.get_original_resource_link_id(self.request)
+        )
+
+    def course_copied_basic_lti_launch(self, original_resource_link_id):
+        """
+        Respond to a launch of a newly-copied assignment.
+
+        Find the document_url for the original assignment and make a copy of it
+        with the new resource_link_id, then launch the assignment as normal.
+
+        Helper method for the *_copied_basic_lti_launch() methods above.
+
+        :param original_resource_link_id: the resource_link_id of the original
+            assignment that this assignment was copied from
+        """
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
         resource_link_id = self.request.params["resource_link_id"]
-        resource_link_id_history = self.request.params["resource_link_id_history"]
 
         document_url = self.assignment_service.get_document_url(
-            tool_consumer_instance_guid, resource_link_id_history
+            tool_consumer_instance_guid, original_resource_link_id
         )
 
         self.assignment_service.set_document_url(
