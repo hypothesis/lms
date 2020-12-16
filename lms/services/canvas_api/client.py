@@ -3,6 +3,7 @@
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
+from lms.models import CanvasFile
 from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.validation import RequestsResponseSchema
 
@@ -35,13 +36,14 @@ class CanvasAPIClient:
         Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_client):
+    def __init__(self, authenticated_client, db):
         """
         Create a new CanvasAPIClient.
 
         :param authenticated_client: An instance of AuthenticatedClient
         """
         self._client = authenticated_client
+        self._db = db
 
     def get_token(self, authorization_code):
         """
@@ -200,7 +202,7 @@ class CanvasAPIClient:
                 for enrollment in data["enrollments"]
             ]
 
-    def list_files(self, course_id):
+    def list_files(self, course_id, consumer_key, tool_consumer_instance_guid):
         """
         Return the list of files for the given `course_id`.
 
@@ -210,12 +212,34 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self._client.send(
+        files = self._client.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
         )
+
+        for file_dict in files:
+            canvas_file = self._db.query(CanvasFile).filter_by(
+                consumer_key=consumer_key,
+                tool_consumer_instance_guid=tool_consumer_instance_guid,
+                course_id=course_id,
+                file_id=file_dict["id"],
+            ).one_or_none()
+
+            if not canvas_file:
+                canvas_file = CanvasFile(
+                    consumer_key=consumer_key,
+                    tool_consumer_instance_guid=tool_consumer_instance_guid,
+                    course_id=course_id,
+                    file_id=file_dict["id"],
+                )
+                self._db.add(canvas_file)
+
+            canvas_file.filename = file_dict["filename"]
+            canvas_file.size = file_dict["size"]
+
+        return files
 
     class _ListFilesSchema(RequestsResponseSchema):
         """Schema for the list_files response."""
@@ -223,8 +247,17 @@ class CanvasAPIClient:
         many = True
 
         display_name = fields.Str(required=True)
+        filename = fields.Str(required=True)
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
+        size = fields.Int(required=True)
+
+    def list_users_files(self, user_id):
+        return self._client.send(
+            "GET",
+            f"users/{user_id}/files",
+            schema=self._ListFilesSchema,
+        )
 
     def check_file_in_course(self, file_id, course_id):
         """

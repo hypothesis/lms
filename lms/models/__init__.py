@@ -10,6 +10,7 @@ from lms.models.lti_launches import LtiLaunches
 from lms.models.lti_user import LTIUser, display_name
 from lms.models.module_item_configuration import ModuleItemConfiguration
 from lms.models.oauth2_token import OAuth2Token
+from lms.models.canvas_file import CanvasFile
 
 
 def includeme(_config):
