@@ -67,7 +67,7 @@ sentry-sdk==0.17.6        # via -r requirements/bddtests.txt, -r requirements/fu
 six==1.15.0               # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, astroid, behave, jsonschema, packaging, parse-type, pylti, python-dateutil, webtest
 snowballstemmer==2.0.0    # via pydocstyle
 soupsieve==2.0.1          # via -r requirements/bddtests.txt, -r requirements/functests.txt, beautifulsoup4
-sqlalchemy==1.3.20        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic, zope.sqlalchemy
+sqlalchemy==1.3.21        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, alembic, zope.sqlalchemy
 text-unidecode==1.3       # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, faker
 toml==0.10.1              # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pylint, pytest
 transaction==2.4.0        # via -r requirements/bddtests.txt, -r requirements/functests.txt, -r requirements/tests.txt, pyramid-tm, zope.sqlalchemy
