@@ -122,7 +122,11 @@ class LTIOutcomesClient:
                 "Unable to parse XML response from LTI Outcomes service", response
             ) from err
 
-        return self._get_body(data)
+        try:
+            return self._get_body(data)
+        except LTIOutcomesAPIError as err:
+            err.response = response
+            raise
 
     @classmethod
     def _get_body(cls, data):
