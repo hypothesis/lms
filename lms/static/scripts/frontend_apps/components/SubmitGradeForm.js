@@ -32,14 +32,14 @@ const GRADE_MULTIPLIER = 10;
  * and error status of that fetch request.
  *
  * @param {StudentInfo|null} student
- * @param {(value: string) => void} setFetchGradeError
  */
-const useFetchGrade = (student, setFetchGradeError) => {
+const useFetchGrade = student => {
   const {
     api: { authToken },
   } = useContext(Config);
   const [grade, setGrade] = useState('');
   const [gradeLoading, setGradeLoading] = useState(false);
+  const [fetchGradeError, setFetchGradeError] = useState('');
 
   useEffect(() => {
     /** @type {boolean} */
@@ -72,8 +72,8 @@ const useFetchGrade = (student, setFetchGradeError) => {
       // Set a flag to ignore the the fetchGrade response from saving to state
       ignoreResults = true;
     };
-  }, [student, authToken, setFetchGradeError]);
-  return { grade, gradeLoading };
+  }, [student, authToken]);
+  return { grade, gradeLoading, fetchGradeError, setFetchGradeError };
 };
 
 /**
@@ -89,8 +89,12 @@ const useFetchGrade = (student, setFetchGradeError) => {
  */
 export default function SubmitGradeForm({ student }) {
   // State for loading the grade
-  const [fetchGradeError, setFetchGradeError] = useState('');
-  const { grade, gradeLoading } = useFetchGrade(student, setFetchGradeError);
+  const {
+    grade,
+    gradeLoading,
+    fetchGradeError,
+    setFetchGradeError,
+  } = useFetchGrade(student);
 
   // The following is state for saving the grade
   //
