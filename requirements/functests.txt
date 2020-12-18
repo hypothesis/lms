@@ -55,7 +55,7 @@ requests==2.25.1          # via -r requirements/requirements.txt, requests-oauth
 sentry-sdk==0.17.6        # via -r requirements/requirements.txt, h-pyramid-sentry
 six==1.15.0               # via -r requirements/requirements.txt, jsonschema, packaging, pylti, python-dateutil, webtest
 soupsieve==2.0.1          # via beautifulsoup4
-sqlalchemy==1.3.20        # via -r requirements/requirements.txt, alembic, zope.sqlalchemy
+sqlalchemy==1.3.21        # via -r requirements/requirements.txt, alembic, zope.sqlalchemy
 text-unidecode==1.3       # via faker
 toml==0.10.1              # via pytest
 transaction==2.4.0        # via -r requirements/requirements.txt, pyramid-tm, zope.sqlalchemy
