@@ -9,6 +9,11 @@
   padding-right: 5px;
   margin-bottom: 10px;
 
+  &__links {
+    white-space: normal;
+    line-height: 1.25em;
+  }
+
   &__details {
     padding: 4px; // prevents focus ring from getting cut off
     &-summary {

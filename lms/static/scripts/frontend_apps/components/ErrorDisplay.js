@@ -94,7 +94,7 @@ export default function ErrorDisplay({ message, error }) {
           )}
         </p>
       )}
-      <p>
+      <p className="ErrorDisplay__links">
         If the problem persists,{' '}
         <a href={supportLink} target="_blank" rel="noopener noreferrer">
           send us an email
