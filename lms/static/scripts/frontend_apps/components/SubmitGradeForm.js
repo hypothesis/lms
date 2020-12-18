@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useState,
   useRef,
+  useReducer,
 } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -26,7 +27,34 @@ const GRADE_MULTIPLIER = 10;
  * @typedef {import('../config').StudentInfo} StudentInfo
  */
 
-const initialState = { grade: '', loading: false, errorMessage: '' };
+/**
+ * @param {{grade: string, isLoading: boolean, errorMessage: string}} state
+ * @param {{type: 'FETCH_INIT'|'FETCH_SUCCESS'|'FETCH_FAILURE'|'RESET_ERROR', payload?: string }} action
+ */
+function fetchGradeReducer(state, { type, payload }) {
+  switch (type) {
+    case 'FETCH_INIT':
+      return { ...state, isLoading: true, errorMessage: '' };
+    case 'RESET_ERROR':
+      return { ...state, errorMessage: '' };
+    case 'FETCH_SUCCESS':
+      return {
+        ...state,
+        grade: payload || '',
+        isLoading: false,
+        errorMessage: '',
+      };
+    case 'FETCH_FAILURE':
+      return {
+        ...state,
+        grade: '',
+        isLoading: false,
+        errorMessage: payload || 'Unknown error',
+      };
+    default:
+      throw new Error(`Unknown action type: ${type}`);
+  }
+}
 
 /**
  * Custom useEffect function that handles fetching a student's
@@ -39,7 +67,11 @@ const useFetchGrade = student => {
   const {
     api: { authToken },
   } = useContext(Config);
-  const [requestStatus, setRequestStatus] = useState(initialState);
+  const [state, dispatch] = useReducer(fetchGradeReducer, {
+    grade: '',
+    isLoading: false,
+    errorMessage: '',
+  });
 
   useEffect(() => {
     let ignoreResults = false;
@@ -49,21 +81,17 @@ const useFetchGrade = student => {
     }
 
     const fetchData = async () => {
-      setRequestStatus({ ...initialState, loading: true });
+      dispatch({ type: 'FETCH_INIT' });
       try {
         const { currentScore } = await fetchGrade({ student, authToken });
+
+        // Only set these values if we didn't 'cancel' this request
         if (!ignoreResults && currentScore) {
-          // Only set these values if we didn't cancel this request
           const grade = scaleGrade(currentScore, GRADE_MULTIPLIER);
-          setRequestStatus({ ...initialState, grade });
-        } else {
-          setRequestStatus(state => ({ ...state, loading: false }));
+          dispatch({ type: 'FETCH_SUCCESS', payload: grade });
         }
       } catch ({ errorMessage }) {
-        setRequestStatus({
-          ...initialState,
-          errorMessage: errorMessage || 'Unknown error',
-        });
+        dispatch({ type: 'FETCH_SUCCESS', payload: errorMessage });
       }
     };
 
@@ -73,13 +101,13 @@ const useFetchGrade = student => {
     };
   }, [student, authToken]);
 
-  const { grade, loading, errorMessage } = requestStatus;
+  const { grade, isLoading, errorMessage } = state;
 
   return {
     grade,
-    gradeLoading: loading,
+    gradeLoading: isLoading,
     fetchGradeError: errorMessage,
-    setRequestStatus,
+    dispatch,
   };
 };
 
@@ -96,12 +124,9 @@ const useFetchGrade = student => {
  */
 export default function SubmitGradeForm({ student }) {
   // State for loading the grade
-  const {
-    grade,
-    gradeLoading,
-    fetchGradeError,
-    setRequestStatus,
-  } = useFetchGrade(student);
+  const { grade, gradeLoading, fetchGradeError, dispatch } = useFetchGrade(
+    student
+  );
 
   // The following is state for saving the grade
   //
@@ -243,7 +268,7 @@ export default function SubmitGradeForm({ student }) {
           title="Fetch Grade Error"
           error={{ message: submitGradeError }}
           onCancel={() => {
-            setRequestStatus(initialState);
+            dispatch({ type: 'RESET_ERROR' });
           }}
           cancelLabel="Close"
         />
