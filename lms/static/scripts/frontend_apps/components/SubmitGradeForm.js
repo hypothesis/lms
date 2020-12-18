@@ -26,6 +26,8 @@ const GRADE_MULTIPLIER = 10;
  * @typedef {import('../config').StudentInfo} StudentInfo
  */
 
+const initialState = { grade: '', loading: false, errorMessage: '' };
+
 /**
  * Custom useEffect function that handles fetching a student's
  * grade and returning the result of that grade and the loading
@@ -37,9 +39,7 @@ const useFetchGrade = student => {
   const {
     api: { authToken },
   } = useContext(Config);
-  const [grade, setGrade] = useState('');
-  const [gradeLoading, setGradeLoading] = useState(false);
-  const [fetchGradeError, setFetchGradeError] = useState('');
+  const [requestStatus, setRequestStatus] = useState(initialState);
 
   useEffect(() => {
     let ignoreResults = false;
@@ -48,32 +48,39 @@ const useFetchGrade = student => {
       return () => {};
     }
 
-    // Fetch the grade from the service api
-    // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
     const fetchData = async () => {
-      setGradeLoading(true);
-      setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
+      setRequestStatus({ ...initialState, loading: true });
       try {
         const { currentScore } = await fetchGrade({ student, authToken });
         if (!ignoreResults && currentScore) {
           // Only set these values if we didn't cancel this request
-          setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+          const grade = scaleGrade(currentScore, GRADE_MULTIPLIER);
+          setRequestStatus({ ...initialState, grade });
+        } else {
+          setRequestStatus(state => ({ ...state, loading: false }));
         }
-      } catch (e) {
-        setFetchGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
-      } finally {
-        setGradeLoading(false);
+      } catch ({ errorMessage }) {
+        setRequestStatus({
+          ...initialState,
+          errorMessage: errorMessage || 'Unknown error',
+        });
       }
     };
 
     fetchData();
-    // Called when unmounting the component
     return () => {
-      // Set a flag to ignore the the fetchGrade response from saving to state
       ignoreResults = true;
     };
   }, [student, authToken]);
-  return { grade, gradeLoading, fetchGradeError, setFetchGradeError };
+
+  const { grade, loading, errorMessage } = requestStatus;
+
+  return {
+    grade,
+    gradeLoading: loading,
+    fetchGradeError: errorMessage,
+    setRequestStatus,
+  };
 };
 
 /**
@@ -93,7 +100,7 @@ export default function SubmitGradeForm({ student }) {
     grade,
     gradeLoading,
     fetchGradeError,
-    setFetchGradeError,
+    setRequestStatus,
   } = useFetchGrade(student);
 
   // The following is state for saving the grade
@@ -236,7 +243,7 @@ export default function SubmitGradeForm({ student }) {
           title="Fetch Grade Error"
           error={{ message: submitGradeError }}
           onCancel={() => {
-            setFetchGradeError('');
+            setRequestStatus(initialState);
           }}
           cancelLabel="Close"
         />
