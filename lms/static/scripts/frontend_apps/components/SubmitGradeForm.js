@@ -42,31 +42,31 @@ const useFetchGrade = student => {
   const [fetchGradeError, setFetchGradeError] = useState('');
 
   useEffect(() => {
-    /** @type {boolean} */
-    let ignoreResults;
-    if (student) {
-      // Fetch the grade from the service api
-      // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
-      const fetchData = async () => {
-        setGradeLoading(true);
-        setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
-        try {
-          const { currentScore } = await fetchGrade({ student, authToken });
-          if (!ignoreResults && currentScore) {
-            // Only set these values if we didn't cancel this request
-            setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
-          }
-        } catch (e) {
-          setFetchGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
-        } finally {
-          setGradeLoading(false);
-        }
-      };
-      fetchData();
-    } else {
-      // If there is no valid student, don't show a grade
-      setGrade('');
+    let ignoreResults = false;
+
+    if (!student) {
+      return () => {};
     }
+
+    // Fetch the grade from the service api
+    // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
+    const fetchData = async () => {
+      setGradeLoading(true);
+      setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
+      try {
+        const { currentScore } = await fetchGrade({ student, authToken });
+        if (!ignoreResults && currentScore) {
+          // Only set these values if we didn't cancel this request
+          setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+        }
+      } catch (e) {
+        setFetchGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
+      } finally {
+        setGradeLoading(false);
+      }
+    };
+
+    fetchData();
     // Called when unmounting the component
     return () => {
       // Set a flag to ignore the the fetchGrade response from saving to state
