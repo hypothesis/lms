@@ -45,6 +45,11 @@ class ApplicationInstance(BASE):
         "OAuth2Token", back_populates="application_instance"
     )
 
+    #: A list of all the Canvas files for this application instance.
+    canvas_files = sa.orm.relationship(
+        "CanvasFile", back_populates="application_instance"
+    )
+
     #: A list of all the courses for this application instance.
     courses = sa.orm.relationship("Course", back_populates="application_instance")
 
