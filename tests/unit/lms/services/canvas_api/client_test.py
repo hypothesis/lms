@@ -12,12 +12,11 @@ from lms.services import (
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
 
+pytestmark = pytest.mark.usefixtures("http_session", "oauth_token")
 
-class TestCanvasAPIClientGetToken:
-    # This is the only test where we fake out the underlying class, because
-    # this _one_ call is just a pass through.
 
-    def test_get_token(self, canvas_api_client, authenticated_client):
+class TestGetToken:
+    def test_it(self, canvas_api_client, authenticated_client):
         token = canvas_api_client.get_token(sentinel.authorization_code)
 
         authenticated_client.get_token.assert_called_once_with(
@@ -30,9 +29,8 @@ class TestCanvasAPIClientGetToken:
         return patch("lms.services.canvas_api._authenticated.AuthenticatedClient")
 
 
-@pytest.mark.usefixtures("http_session", "oauth_token")
-class TestCanvasAPIClient:
-    def test_authenticated_users_sections(self, canvas_api_client, http_session):
+class TestAuthenticatedUsersSections:
+    def test_it(self, canvas_api_client, http_session):
         sections = [{"id": 1, "name": "name_1"}, {"id": 2, "name": "name_2"}]
         http_session.set_response({"sections": sections})
 
@@ -49,9 +47,7 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    def test_authenticated_users_sections_deduplicates_sections(
-        self, canvas_api_client, http_session
-    ):
+    def test_it_deduplicates_sections(self, canvas_api_client, http_session):
         http_session.set_response(
             {"sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]}
         )
@@ -60,7 +56,7 @@ class TestCanvasAPIClient:
 
         assert sections == [{"id": 1, "name": "name"}]
 
-    def test_authenticated_users_sections_raises_CanvasAPIError_with_conflicting_duplicates(
+    def test_it_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
     ):
         http_session.set_response(
@@ -70,7 +66,9 @@ class TestCanvasAPIClient:
         with pytest.raises(CanvasAPIError):
             canvas_api_client.authenticated_users_sections("course_id")
 
-    def test_course_sections(self, canvas_api_client, http_session):
+
+class TestCourseSections:
+    def test_it(self, canvas_api_client, http_session):
         sections = [
             {"id": 101, "name": "name_1"},
             {"id": 102, "name": "name_2"},
@@ -91,9 +89,7 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    def test_course_sections_deduplicates_sections(
-        self, canvas_api_client, http_session
-    ):
+    def test_it_deduplicates_sections(self, canvas_api_client, http_session):
         http_session.set_response(
             [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]
         )
@@ -102,7 +98,7 @@ class TestCanvasAPIClient:
 
         assert sections == [{"id": 1, "name": "name"}]
 
-    def test_course_sections_raises_CanvasAPIError_with_conflicting_duplicates(
+    def test_it_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
     ):
         http_session.set_response(
@@ -112,7 +108,7 @@ class TestCanvasAPIClient:
         with pytest.raises(CanvasAPIError):
             canvas_api_client.course_sections("course_id")
 
-    def test_course_sections_raises_CanvasAPIError_with_too_few_returned(
+    def test_it_raises_CanvasAPIError_with_too_few_returned(
         self, canvas_api_client, http_session
     ):
         http_session.set_response([])
@@ -120,7 +116,9 @@ class TestCanvasAPIClient:
         with pytest.raises(CanvasAPIError):
             canvas_api_client.course_sections("dummy")
 
-    def test_users_sections(self, canvas_api_client, http_session):
+
+class TestUsersSections:
+    def test_it(self, canvas_api_client, http_session):
         http_session.set_response(
             {
                 "enrollments": [
@@ -143,9 +141,7 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    def test_users_sections_deduplicates_sections(
-        self, canvas_api_client, http_session
-    ):
+    def test_it_deduplicates_sections(self, canvas_api_client, http_session):
         http_session.set_response(
             {"enrollments": [{"course_section_id": 1}, {"course_section_id": 1}]}
         )
@@ -154,7 +150,9 @@ class TestCanvasAPIClient:
 
         assert sections == [{"id": 1}]
 
-    def test_list_files(self, canvas_api_client, http_session):
+
+class TestListFiles:
+    def test_it(self, canvas_api_client, http_session):
         files = [
             {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
             {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
@@ -176,9 +174,10 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    @pytest.mark.usefixtures("list_files_response")
+
+class TestCheckFileInCourse:
     @pytest.mark.parametrize("file_id", [1, "1"])
-    def test_check_file_in_course_checks_that_the_file_is_in_the_course(
+    def test_it_checks_that_the_file_is_in_the_course(
         self, canvas_api_client, file_id, http_session
     ):
         canvas_api_client.check_file_in_course(
@@ -192,29 +191,13 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    @pytest.mark.usefixtures("list_files_response")
-    def test_check_file_in_course_raises_if_the_file_isnt_in_the_course(
-        self, canvas_api_client
-    ):
+    def test_it_raises_if_the_file_isnt_in_the_course(self, canvas_api_client):
         with pytest.raises(CanvasFileNotFoundInCourse):
             canvas_api_client.check_file_in_course(
                 file_id="not_in_course", course_id="test_course_id"
             )
 
-    def test_public_url(self, canvas_api_client, http_session):
-        http_session.set_response({"public_url": "public_url_value"})
-
-        response = canvas_api_client.public_url("FILE_ID")
-
-        assert response == "public_url_value"
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET", url=Any.url.with_path("api/v1/files/FILE_ID/public_url")
-            ),
-            timeout=Any(),
-        )
-
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def list_files_response(self, http_session):
         """Make the network send a valid Canvas API list files response."""
         http_session.send.return_value = factories.requests.Response(
@@ -231,6 +214,21 @@ class TestCanvasAPIClient:
                 },
             ],
             status_code=200,
+        )
+
+
+class TestPublicURL:
+    def test_it(self, canvas_api_client, http_session):
+        http_session.set_response({"public_url": "public_url_value"})
+
+        response = canvas_api_client.public_url("FILE_ID")
+
+        assert response == "public_url_value"
+        http_session.send.assert_called_once_with(
+            Any.request(
+                "GET", url=Any.url.with_path("api/v1/files/FILE_ID/public_url")
+            ),
+            timeout=Any(),
         )
 
 
