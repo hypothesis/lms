@@ -219,7 +219,9 @@ export default function SubmitGradeForm({ student }) {
       </button>
       {!!submitGradeError && (
         <ErrorDialog
-          title="Submit Grade Error"
+          title={`There was a problem submitting ${
+            student ? student.displayName : ' the student'
+          }'s grade.`}
           error={{ message: submitGradeError }}
           onCancel={() => {
             setSubmitGradeError('');
@@ -229,7 +231,9 @@ export default function SubmitGradeForm({ student }) {
       )}
       {!!fetchGradeError && (
         <ErrorDialog
-          title="Fetch Grade Error"
+          title={`There was a problem fetching ${
+            student ? student.displayName : ' the student'
+          }'s grade.`}
           error={{ message: submitGradeError }}
           onCancel={() => {
             setFetchGradeError('');

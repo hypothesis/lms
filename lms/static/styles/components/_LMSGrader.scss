@@ -3,11 +3,10 @@
 .LMSGrader {
   display: flex;
   flex-direction: column;
-  font-size: 16px;
+  font-size: var.$input-font-size;
   height: 100%;
   width: 100%;
   position: fixed;
-  color: var.$grey-6;
 }
 
 .LMSGrader__grading-components {
@@ -39,12 +38,12 @@
 }
 
 .LMSGrader__assignment {
-  font-size: 18px;
+  font-size: var.$title-font-size;
   margin: 0 0 10px 0;
 }
 
 .LMSGrader__name {
-  font-size: 16px;
+  font-size: var.$subtitle-font-size;
   margin: 0;
 }
 
