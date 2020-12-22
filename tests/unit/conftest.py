@@ -11,6 +11,7 @@ from lms.models import ApplicationSettings
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
+from lms.services.canvas_files import CanvasFilesService
 from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
@@ -190,6 +191,15 @@ def canvas_api_client(pyramid_config):
     )
     pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
     return canvas_api_client
+
+
+@pytest.fixture
+def canvas_files_service(pyramid_config):
+    canvas_files_service = mock.create_autospec(
+        CanvasFilesService, spec_set=True, instance=True
+    )
+    pyramid_config.register_service(canvas_files_service, name="canvas_files")
+    return canvas_files_service
 
 
 @pytest.fixture

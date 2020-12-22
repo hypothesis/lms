@@ -26,4 +26,6 @@ def canvas_api_client_factory(_context, request):
         redirect_uri=request.route_url("canvas_api.oauth.callback"),
     )
 
-    return CanvasAPIClient(authenticated_api)
+    return CanvasAPIClient(
+        authenticated_api, request.find_service(name="canvas_files"), request.lti_user
+    )

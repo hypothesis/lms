@@ -1,8 +1,9 @@
-from unittest.mock import sentinel
+from unittest.mock import call, sentinel
 
 import pytest
 from h_matchers import Any
 
+from lms.models import CanvasFile
 from lms.services import (
     CanvasAPIAccessTokenError,
     CanvasAPIError,
@@ -12,7 +13,9 @@ from lms.services import (
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("http_session", "oauth_token")
+pytestmark = pytest.mark.usefixtures(
+    "http_session", "oauth_token", "canvas_files_service"
+)
 
 
 class TestGetToken:
@@ -152,18 +155,31 @@ class TestUsersSections:
 
 
 class TestListFiles:
-    def test_it(self, canvas_api_client, http_session):
+    def test_it(
+        self, canvas_api_client, canvas_files_service, http_session, pyramid_request
+    ):
         files = [
-            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
-            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
+            {
+                "display_name": "display_name_1",
+                "filename": "filename_1",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 1024,
+            },
+            {
+                "display_name": "display_name_2",
+                "filename": "filename_2",
+                "id": 2,
+                "updated_at": "updated_at_2",
+                "size": 1024,
+            },
         ]
         files_with_noise = [dict(file, unexpected="ignored") for file in files]
         http_session.set_response(files_with_noise)
 
         response = canvas_api_client.list_files("COURSE_ID")
 
-        assert response == files
-
+        # It gets the files from the Canvas API
         http_session.send.assert_called_once_with(
             Any.request(
                 "GET",
@@ -173,6 +189,26 @@ class TestListFiles:
             ),
             timeout=Any(),
         )
+
+        # It upserts the files into the DB.
+        assert canvas_files_service.upsert.call_args_list == [
+            call(
+                Any.instance_of(CanvasFile).with_attrs(
+                    {
+                        "consumer_key": pyramid_request.lti_user.oauth_consumer_key,
+                        "tool_consumer_instance_guid": pyramid_request.lti_user.tool_consumer_instance_guid,
+                        "course_id": "COURSE_ID",
+                        "file_id": file_dict["id"],
+                        "filename": file_dict["filename"],
+                        "size": file_dict["size"],
+                    }
+                )
+            )
+            for file_dict in files
+        ]
+
+        # It returns the files.
+        assert response == files
 
 
 class TestCheckFileInCourse:
@@ -204,13 +240,17 @@ class TestCheckFileInCourse:
             json_data=[
                 {
                     "display_name": "display_name_1",
+                    "filename": "filename_1",
                     "id": 1,
                     "updated_at": "updated_at_1",
+                    "size": 1024,
                 },
                 {
                     "display_name": "display_name_2",
+                    "filename": "filename_2",
                     "id": 2,
                     "updated_at": "updated_at_2",
+                    "size": 1024,
                 },
             ],
             status_code=200,
@@ -275,5 +315,7 @@ class TestMetaBehavior:
 
 
 @pytest.fixture
-def canvas_api_client(authenticated_client):
-    return CanvasAPIClient(authenticated_client)
+def canvas_api_client(authenticated_client, canvas_files_service, pyramid_request):
+    return CanvasAPIClient(
+        authenticated_client, canvas_files_service, pyramid_request.lti_user
+    )

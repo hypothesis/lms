@@ -3,6 +3,7 @@
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
+from lms.models import CanvasFile
 from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.validation import RequestsResponseSchema
 
@@ -35,13 +36,17 @@ class CanvasAPIClient:
         Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_client):
+    def __init__(self, authenticated_client, canvas_files_svc, lti_user):
         """
         Create a new CanvasAPIClient.
 
-        :param authenticated_client: An instance of AuthenticatedClient
+        :param authenticated_client: an instance of AuthenticatedClient
+        :param canvas_files_svc: the "canvas_files" service
+        :param lti_user: the current models.LTIUser
         """
         self._client = authenticated_client
+        self._canvas_files_svc = canvas_files_svc
+        self._lti_user = lti_user
 
     def get_token(self, authorization_code):
         """
@@ -210,12 +215,26 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self._client.send(
+        files = self._client.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
         )
+
+        for file_dict in files:
+            self._canvas_files_svc.upsert(
+                CanvasFile(
+                    consumer_key=self._lti_user.oauth_consumer_key,
+                    tool_consumer_instance_guid=self._lti_user.tool_consumer_instance_guid,
+                    course_id=course_id,
+                    file_id=file_dict["id"],
+                    filename=file_dict["filename"],
+                    size=file_dict["size"],
+                )
+            )
+
+        return files
 
     class _ListFilesSchema(RequestsResponseSchema):
         """Schema for the list_files response."""
@@ -223,8 +242,10 @@ class CanvasAPIClient:
         many = True
 
         display_name = fields.Str(required=True)
+        filename = fields.Str(required=True)
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
+        size = fields.Int(required=True)
 
     def check_file_in_course(self, file_id, course_id):
         """
