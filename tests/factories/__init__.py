@@ -15,6 +15,7 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
+from tests.factories.canvas_file import CanvasFile
 from tests.factories.course import Course
 from tests.factories.grading_info import GradingInfo
 from tests.factories.h_group import HGroup
