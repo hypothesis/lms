@@ -14,7 +14,9 @@ class CanvasFile(BASE):
 
     __tablename__ = "canvas_file"
     __table_args__ = (
-        sa.UniqueConstraint("consumer_key", "tool_consumer_instance_guid", "file_id"),
+        sa.UniqueConstraint(
+            "consumer_key", "tool_consumer_instance_guid", "course_id", "file_id"
+        ),
     )
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -26,19 +28,31 @@ class CanvasFile(BASE):
     )
     tool_consumer_instance_guid = sa.Column(sa.UnicodeText, nullable=False)
     file_id = sa.Column(sa.Integer, nullable=False)
-
     course_id = sa.Column(sa.Integer, nullable=False)
-    filename = sa.Column(sa.UnicodeText, nullable=False)
-    size = sa.Column(sa.Integer, nullable=False)
-
-    # The file_id's of other Canvas files, in other courses, that we know this
-    # file was directly or indirectly copied from.
-    file_id_history = sa.Column(
-        MutableList.as_mutable(ARRAY(sa.Integer)),
-        server_default="{}",
-        nullable=False,
-    )
 
     application_instance = sa.orm.relationship(
         "ApplicationInstance", back_populates="canvas_files"
     )
+
+    type = sa.Column(sa.UnicodeText, nullable=False)
+
+    __mapper_args__ = {
+        "polymorphic_on": type,
+    }
+
+
+class CanvasFile(CanvasFileBase):
+    filename = sa.Column(sa.UnicodeText)
+    size = sa.Column(sa.Integer)
+    overrides = sa.orm.relationship(
+        "CanvasFileOverride",
+        backref=sa.orm.backref("canvas_file", remote_side=["id"]),
+    )
+
+    __mapper_args__ = {"polymorphic_identity": "CanvasFile"}
+
+
+class CanvasFileOverride(CanvasFileBase):
+    file_id_override = sa.Column(sa.Integer, ForeignKey("CanvasFile.file_id"))
+
+    __mapper_args__ = {"polymorphic_identity": "CanvasFileOverride"}

@@ -47,7 +47,7 @@ class ApplicationInstance(BASE):
 
     #: A list of all the Canvas files for this application instance.
     canvas_files = sa.orm.relationship(
-        "CanvasFile", back_populates="application_instance"
+        "CanvasFileBase", back_populates="application_instance"
     )
 
     #: A list of all the courses for this application instance.

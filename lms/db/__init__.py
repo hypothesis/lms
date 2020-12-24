@@ -55,15 +55,6 @@ class BaseClass:
             if key in data:
                 setattr(self, key, data[key])
 
-    def __repr__(self):
-        return "{class_}({kwargs})".format(
-            class_=self.__class__.__name__,
-            kwargs=", ".join(
-                f"{kwarg}={repr(getattr(self, kwarg))}"
-                for kwarg in self.__table__.columns.keys()  # pylint:disable=no-member
-            ),
-        )
-
 
 BASE = declarative_base(
     # Create a default metadata object with naming conventions for indexes and

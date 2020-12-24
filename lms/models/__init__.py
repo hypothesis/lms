@@ -1,6 +1,7 @@
 from lms.models.application_instance import ApplicationInstance
 from lms.models.application_settings import ApplicationSettings
 from lms.models.canvas_file import CanvasFile
+from lms.models.canvas_file import CanvasFileOverride
 from lms.models.course import Course
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
 from lms.models.grading_info import GradingInfo
