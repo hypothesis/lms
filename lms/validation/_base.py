@@ -84,6 +84,10 @@ class PyramidRequestSchema(PlainSchema):
         parser = pyramidparser.PyramidParser(
             location=kwargs.pop("location", self.location),
             error_handler=self._handle_error,
+            # Disable webargs's DEFAULT_UNKNOWN_BY_LOCATION feature and fall
+            # back to the Marshmallow schema's Meta.unknown instead.
+            # See https://webargs.readthedocs.io/en/latest/advanced.html#setting-unknown
+            unknown=None,
         )
         return parser.parse(self, self.context["request"], *args, **kwargs)
 
