@@ -63,7 +63,7 @@ translationstring==1.4    # via -r requirements/requirements.txt, pyramid
 urllib3==1.25.10          # via -r requirements/requirements.txt, requests, sentry-sdk
 venusian==3.0.0           # via -r requirements/requirements.txt, pyramid
 waitress==1.4.4           # via webtest
-webargs==6.1.1            # via -r requirements/requirements.txt
+webargs==7.0.1            # via -r requirements/requirements.txt
 webob==1.8.6              # via -r requirements/requirements.txt, pyramid, webtest
 webtest==2.0.35           # via -r requirements/functests.in
 wired==0.2.2              # via -r requirements/requirements.txt, pyramid-services
