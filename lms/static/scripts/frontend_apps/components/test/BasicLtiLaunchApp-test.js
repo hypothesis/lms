@@ -275,7 +275,7 @@ describe('BasicLtiLaunchApp', () => {
         'LaunchErrorDialog[errorState="error-fetching-canvas-file"]'
       );
 
-      // Click the "Try again" button and verify that files are re-fetched after re-authorizing.
+      // Click the "Try again" button. This should re-authorize and then re-fetch files.
       fakeApiCall.resetHistory();
       act(() => {
         errorDialog.prop('onRetry')();
@@ -284,6 +284,7 @@ describe('BasicLtiLaunchApp', () => {
         authToken: 'dummyAuthToken',
         authUrl,
       });
+      await waitFor(() => fakeApiCall.called);
 
       // We didn't change the API response, so it will fail the same way and the same error dialog
       // should be shown.
@@ -323,6 +324,7 @@ describe('BasicLtiLaunchApp', () => {
         'LaunchErrorDialog[errorState="canvas-file-not-found-in-course"]'
       );
 
+      // Click the "Try again" button. This should re-authorize and then re-fetch files.
       act(() => {
         errorDialog.prop('onRetry')();
       });
@@ -330,6 +332,7 @@ describe('BasicLtiLaunchApp', () => {
         authToken: 'dummyAuthToken',
         authUrl,
       });
+      await waitFor(() => fakeApiCall.called);
 
       // We didn't change the API response, so it will fail the same way and the same error dialog
       // should be shown.
