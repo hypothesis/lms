@@ -17,7 +17,7 @@ h-api==1.0.0              # via -r requirements/requirements.txt
 h-matchers==1.2.10        # via -r requirements/bddtests.in
 h-pyramid-sentry==1.2.1   # via -r requirements/requirements.txt
 httplib2==0.18.1          # via -r requirements/requirements.txt, oauth2, pylti
-httpretty==1.0.3          # via -r requirements/bddtests.in
+httpretty==1.0.5          # via -r requirements/bddtests.in
 hupper==1.10.2            # via -r requirements/requirements.txt, pyramid
 idna==2.10                # via -r requirements/requirements.txt, requests
 importlib-metadata==1.7.0  # via -r requirements/requirements.txt, jsonschema, pluggy, pytest
