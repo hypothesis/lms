@@ -279,13 +279,6 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     }
   }, [authToken, authUrl, fetchContentUrl, fetchGroups]);
 
-  const refetchContentUrl = useCallback(async () => {
-    const success = fetchContentUrl();
-    if (success) {
-      setErrorState(null);
-    }
-  }, [fetchContentUrl]);
-
   // Construct the <iframe> content
   let iFrameWrapper;
   const iFrame = (
@@ -324,16 +317,6 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     </div>
   );
 
-  let retryLaunch;
-  switch (errorState) {
-    case 'error-authorizing':
-    case 'error-fetching':
-      retryLaunch = authorizeAndFetchUrl;
-      break;
-    default:
-      retryLaunch = refetchContentUrl;
-  }
-
   return (
     <div className="BasicLtiLaunchApp">
       {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
@@ -342,7 +325,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
           busy={fetchCount > 0}
           errorState={errorState}
           error={error}
-          onRetry={retryLaunch}
+          onRetry={authorizeAndFetchUrl}
         />
       )}
       {content}
