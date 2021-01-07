@@ -86,6 +86,16 @@ class TestCanvasAPIError:
                 "401 Unauthorized",
                 CanvasAPIAccessTokenError,
             ),
+            # A 401 Unauthorized response from Canvas, because our access token had
+            # insufficient scopes;
+            (
+                401,
+                json.dumps(
+                    {"errors": [{"message": "Insufficient scopes on access token."}]}
+                ),
+                "401 Unauthorized",
+                CanvasAPIAccessTokenError,
+            ),
             # A 400 Bad Request response from Canvas, because our refresh token
             # was expired or deleted.
             (
