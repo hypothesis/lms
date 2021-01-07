@@ -153,6 +153,12 @@ class CanvasAPIError(ExternalRequestError):
         if error_description == "refresh_token not found":
             return CanvasAPIAccessTokenError
 
+        if (
+            status_code == 401
+            and {"message": "Insufficient scopes on access token."} in errors
+        ):
+            return CanvasAPIAccessTokenError
+
         if status_code == 401:
             return CanvasAPIPermissionError
 
