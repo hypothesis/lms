@@ -28,7 +28,7 @@ plaster-pastedeploy==0.7  # via pyramid
 plaster==1.0              # via plaster-pastedeploy, pyramid
 psycopg2==2.8.6           # via -r requirements/requirements.in
 pycrypto==2.6.1           # via -r requirements/requirements.in
-pyjwt==1.7.1              # via -r requirements/requirements.in
+pyjwt==2.0.1              # via -r requirements/requirements.in
 pylti==0.7.0              # via -r requirements/requirements.in
 pyramid-exclog==1.0       # via -r requirements/requirements.in
 pyramid-jinja2==2.8       # via -r requirements/requirements.in

@@ -40,7 +40,7 @@ pluggy==0.13.1            # via pytest
 psycopg2==2.8.6           # via -r requirements/requirements.txt
 py==1.9.0                 # via pytest
 pycrypto==2.6.1           # via -r requirements/requirements.txt
-pyjwt==1.7.1              # via -r requirements/requirements.txt
+pyjwt==2.0.1              # via -r requirements/requirements.txt
 pylti==0.7.0              # via -r requirements/requirements.txt
 pyparsing==2.4.7          # via packaging
 pyramid-exclog==1.0       # via -r requirements/requirements.txt
