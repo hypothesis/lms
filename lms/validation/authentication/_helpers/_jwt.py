@@ -57,12 +57,6 @@ def encode_jwt(payload, secret):
     payload = copy.deepcopy(payload)
     payload["exp"] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
-    jwt_bytes = jwt.encode(payload, secret, algorithm="HS256")
-
-    # PyJWT returns JWT's as UTF8-encoded byte strings (this isn't
-    # documented, but see
-    # https://github.com/jpadilla/pyjwt/blob/ed28e495f937f50165a252fd5696a82942cd83a7/jwt/api_jwt.py#L62).
-    # We need a unicode string, so decode it.
-    jwt_str = jwt_bytes.decode("utf-8")
+    jwt_str = jwt.encode(payload, secret, algorithm="HS256")
 
     return jwt_str

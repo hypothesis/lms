@@ -414,7 +414,7 @@ class JSConfig:
             claims,
             self._request.registry.settings["h_jwt_client_secret"],
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
     @property
     @functools.lru_cache()
