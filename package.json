@@ -73,7 +73,7 @@
     "eslint": "^7.18.0",
     "eslint-config-hypothesis": "^2.4.0",
     "eslint-plugin-jsx-a11y": "^6.4.1",
-    "karma": "^6.0.0",
+    "karma": "^6.0.1",
     "karma-browserify": "^8.0.0",
     "karma-chai": "^0.1.0",
     "karma-coverage-istanbul-reporter": "^3.0.3",
