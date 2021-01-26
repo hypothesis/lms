@@ -6,7 +6,7 @@
 var { mkdirSync } = require('fs');
 var path = require('path');
 
-var commander = require('commander');
+const { program } = require('commander');
 var gulp = require('gulp');
 var log = require('gulplog');
 var through = require('through2');
@@ -19,18 +19,19 @@ var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
 var SCRIPT_DIR = 'build/scripts';
 
 function parseCommandLine() {
-  commander
+  program
     // Test configuration.
     // See https://github.com/karma-runner/karma-mocha#configuration
-    .option('--grep [pattern]', 'Run only tests matching a given pattern')
+    .option('-g --grep [pattern]', 'Run only tests matching a given pattern')
     .parse(process.argv);
 
-  if (commander.grep) {
-    log.info(`Running tests matching pattern /${commander.grep}/`);
+  const options = program.opts();
+  if (options.grep) {
+    log.info(`Running tests matching pattern /${options.grep}/`);
   }
 
   return {
-    grep: commander.grep,
+    grep: options.grep,
   };
 }
 
