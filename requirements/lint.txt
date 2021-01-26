@@ -38,7 +38,7 @@ chardet==3.0.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   requests
-coverage==5.3.1
+coverage==5.4
     # via -r requirements/tests.txt
 factory-boy==3.2.0
     # via
