@@ -55,19 +55,13 @@ export function contentItemForLmsFile(ltiLaunchUrl, file) {
  * a user's selection.
  *
  * @param {string} ltiLaunchUrl
+ * @param {string} bookId
+ * @param {string} cfi
  */
-export function contentItemForVitalSourceBook(ltiLaunchUrl) {
-  // Book ID from `GET https://api.vitalsource.com/v4/products` response.
-  const bookId = 'BOOKSHELF-TUTORIAL';
-
-  // CFI from `GET https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
-  // response.
-  const chapterCfi =
-    '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
-
+export function contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi) {
   return contentItemWithParams(ltiLaunchUrl, {
     vitalsource_book: 'true',
     book_id: bookId,
-    cfi: chapterCfi,
+    cfi,
   });
 }

@@ -186,7 +186,12 @@ export default function FilePickerApp({
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
   } else if (vitalSourceBook) {
-    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl);
+    // Chosen from `https://api.vitalsource.com/v4/products` response.
+    const bookId = 'BOOKSHELF-TUTORIAL';
+    // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
+    // response.
+    const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
+    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi);
   }
   contentItem = JSON.stringify(contentItem);
 
