@@ -206,6 +206,9 @@ class JSConfig:
                 "developerKey": self._request.registry.settings["google_developer_key"],
                 "origin": google_picker_origin(),
             },
+            "vitalSource": {
+                "enabled": True,
+            }
         }
 
     def maybe_enable_grading(self):

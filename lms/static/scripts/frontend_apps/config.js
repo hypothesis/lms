@@ -64,6 +64,8 @@ import { createContext } from 'preact';
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
  *   @prop {string} google.origin
+ * @prop {Object} vitalSource
+ *   @prop {boolean} vitalSource.enabled
  */
 
 /**

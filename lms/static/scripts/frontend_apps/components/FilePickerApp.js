@@ -50,12 +50,9 @@ export default function FilePickerApp({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
+      vitalSource: { enabled: vitalSourceEnabled },
     },
   } = useContext(Config);
-
-  // TODO - This should depend on whether we have VS credentials for this
-  // app installation.
-  const vitalSourceEnabled = true;
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
