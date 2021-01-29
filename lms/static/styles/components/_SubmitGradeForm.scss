@@ -1,5 +1,6 @@
+@use "@hypothesis/frontend-shared/styles/mixins/focus";
+
 @use "../mixins";
-@use "../mixins/focus";
 @use "../variables" as var;
 
 @keyframes SubmitGradeForm__fadeAway {
