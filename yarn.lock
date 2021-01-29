@@ -944,6 +944,11 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@hypothesis/frontend-shared@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-1.4.0.tgz#d07a78bcfcd231e125c88a76cc97b0f3fc597fbc"
+  integrity sha512-SdT3wErrheSkthriwX0hgGdJGiXDj+2VMLs5v//GXUFEAk+Qsn7zI2J22lL7Sbf3gV/3TAZ1q/igr5f6De1J3Q==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
