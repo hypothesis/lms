@@ -1,9 +1,9 @@
 import { createElement, Fragment } from 'preact';
-import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import classNames from 'classnames';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
+import { useElementShouldClose } from '@hypothesis/frontend-shared';
 
 import Button from './Button';
-import useElementShouldClose from '../common/use-element-should-close';
 import { zIndexScale } from '../utils/style';
 import { useUniqueId } from '../utils/hooks';
 
