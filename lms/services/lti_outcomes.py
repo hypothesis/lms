@@ -1,3 +1,4 @@
+import logging
 from xml.parsers.expat import ExpatError
 
 import requests
@@ -5,6 +6,8 @@ import xmltodict
 from requests import RequestException
 
 from lms.services.exceptions import LTIOutcomesAPIError
+
+log = logging.getLogger(__name__)
 
 __all__ = ["LTIOutcomesClient"]
 
@@ -126,6 +129,7 @@ class LTIOutcomesClient:
             return self._get_body(data)
         except LTIOutcomesAPIError as err:
             err.response = response
+            log.exception("An error occurred in the LTI Outcomes response")
             raise
 
     @classmethod
