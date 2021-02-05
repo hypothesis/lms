@@ -57,7 +57,12 @@ export default function FilePickerApp({
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
+
+  // Whether the user chose a book from VitalSource. This is currently a
+  // boolean because there is no choice about which book is used. In future this
+  // will contain the selected book and chapter.
   const [vitalSourceBook, setVitalSourceBook] = useState(false);
+
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
     false
   );
