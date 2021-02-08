@@ -44,8 +44,10 @@ export default function VitalSourceBookViewer({
     });
     iframeDoc.body.appendChild(launchForm);
 
+    // Hook for tests to observe submitted form parameters.
     willSubmitLaunchForm?.(launchForm);
 
+    // Submit the form, triggering a navigation to the VitalSource book viewer.
     launchForm.submit();
   }, [launchParams, launchUrl, willSubmitLaunchForm]);
 

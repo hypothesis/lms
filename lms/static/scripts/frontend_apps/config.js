@@ -42,11 +42,14 @@ import { createContext } from 'preact';
  */
 
 /**
- * Data needed to display the VitalSource book viewer.
+ * Configuration used to launch the VitalSource book viewer.
  *
- * @typedef VitalsourceConfig
- * @prop {string} launchUrl
- * @prop {Object.<string,string>} launchParams
+ * See `VitalSourceService` in the backend for details of the configuration
+ * parameters.
+ *
+ * @typedef VitalSourceConfig
+ * @prop {string} launchUrl - URL for the `<form>` used to launch the viewer
+ * @prop {Object.<string,string>} launchParams - Form field names and values
  */
 
 /**
@@ -103,7 +106,7 @@ import { createContext } from 'preact';
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
  * @prop {CanvasAuthErrorConfig} canvasOAuth2RedirectError
- * @prop {VitalsourceConfig} [vitalSource]
+ * @prop {VitalSourceConfig} [vitalSource]
  */
 
 /**
