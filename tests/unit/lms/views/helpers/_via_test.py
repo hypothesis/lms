@@ -18,9 +18,12 @@ class TestViaURL:
 
         final_url = via_url(pyramid_request, url)
 
+        url_params = dict(self.DEFAULT_OPTIONS)
+        url_params["url"] = url
+        url_params["via.sec"] = Any.string()
         assert final_url == Any.url.matching(
             "http://test_via3_server.is/route"
-        ).with_query(dict(self.DEFAULT_OPTIONS, url=url))
+        ).with_query(url_params)
 
     pywb_test_params = pytest.mark.parametrize(
         "params,expected_extras",

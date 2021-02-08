@@ -42,6 +42,7 @@ TEST_SETTINGS = {
     "rpc_allowed_origins": ["http://localhost:5000"],
     "oauth2_state_secret": "test_oauth2_state_secret",
     "session_cookie_secret": "notasecret",
+    "via_secret": "not_a_secret",
 }
 
 

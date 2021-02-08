@@ -1,5 +1,5 @@
 """Via-related view helpers."""
-from h_vialib import ViaClient, ViaDoc
+from h_vialib import ViaClient
 
 __all__ = ["via_url"]
 
@@ -18,9 +18,8 @@ def via_url(request, document_url, content_type=None):
     :param content_type: Either "pdf" or "html" if known, None if not
     :return: A URL string
     """
-
-    doc = ViaDoc(document_url, content_type)
-
     return ViaClient(
-        service_url=request.registry.settings["via_url"], host_url=request.host_url
-    ).url_for(doc)
+        request.registry.settings["via_url"],
+        request.host_url,
+        request.registry.settings["via_secret"],
+    ).url_for(document_url, content_type)
