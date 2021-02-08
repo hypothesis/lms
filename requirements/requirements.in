@@ -1,6 +1,7 @@
 alembic
 h_pyramid_sentry
 h-api
+h-vialib
 newrelic
 pyramid
 pyramid_exclog
