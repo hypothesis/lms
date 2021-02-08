@@ -17,6 +17,7 @@ def configure(settings):
         # The URL of the https://github.com/hypothesis/via instance to
         # integrate with.
         "via_url": sg.get("VIA_URL"),
+        "via_secret": sg.get("VIA_SECRET"),
         "jwt_secret": sg.get("JWT_SECRET"),
         "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
         "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
