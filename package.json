@@ -28,7 +28,7 @@
   "dependencies": {
     "@babel/core": "^7.12.13",
     "@babel/preset-env": "^7.12.13",
-    "@babel/preset-react": "^7.12.10",
+    "@babel/preset-react": "^7.12.13",
     "@hypothesis/frontend-shared": "^1.4.0",
     "@types/gapi": "^0.0.39",
     "autoprefixer": "^10.2.4",
