@@ -20,6 +20,7 @@ help:
 	@echo "make run-docker        Run the app's Docker image locally"
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
+	@echo "make requirements      Compile all requirements files"
 
 .PHONY: services
 services: args?=up -d
@@ -118,6 +119,10 @@ clean:
 	@rm -f node_modules/.uptodate
 	@rm -rf build
 	@tox -qe tests --run-command 'coverage erase'
+
+.PHONY: requirements
+requirements:
+	@sh requirements/compile.sh
 
 .PHONY: backend-lint
 backend-lint: python
