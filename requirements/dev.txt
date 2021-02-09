@@ -35,7 +35,7 @@ h-api==1.0.0
     # via -r requirements/requirements.txt
 h-pyramid-sentry==1.2.1
     # via -r requirements/requirements.txt
-h-vialib==1.0.2
+h-vialib==1.0.4
     # via -r requirements/requirements.txt
 httplib2==0.19.0
     # via
@@ -122,7 +122,9 @@ pycrypto==2.6.1
 pygments==2.7.1
     # via ipython
 pyjwt==2.0.1
-    # via -r requirements/requirements.txt
+    # via
+    #   -r requirements/requirements.txt
+    #   h-vialib
 pylti==0.7.0
     # via -r requirements/requirements.txt
 pyparsing==2.4.7
