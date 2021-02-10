@@ -230,7 +230,7 @@ export default function SubmitGradeForm({ student }) {
       {!!fetchGradeError && (
         <ErrorDialog
           title="Fetch Grade Error"
-          error={{ message: submitGradeError }}
+          error={{ message: fetchGradeError }}
           onCancel={() => {
             setFetchGradeError('');
           }}
