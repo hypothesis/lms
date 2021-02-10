@@ -1,5 +1,6 @@
 @use "@hypothesis/frontend-shared/styles/mixins/focus";
 
+@use "../mixins";
 @use "../variables" as var;
 
 .Dialog__container {
@@ -22,6 +23,8 @@
 }
 
 .Dialog__content {
+  @include mixins.font-normal;
+  @include focus.outline-on-keyboard-focus;
   display: flex;
   flex-direction: column;
   max-height: 90vh;
@@ -49,7 +52,7 @@
   // enough to see easily and aligned with the right edge of the dialog.
   // Add negative margins so that the button does not force the dialog to
   // grow in height.
-  font-size: 20px;
+  font-size: var.$title-font-size;
   padding: 5px;
   margin: -10px 0px;
 
