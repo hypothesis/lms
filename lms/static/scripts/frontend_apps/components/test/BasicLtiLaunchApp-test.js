@@ -358,6 +358,29 @@ describe('BasicLtiLaunchApp', () => {
     });
   });
 
+  context('when VitalSource launch params are provided in the config', () => {
+    it('renders the VitalSource book viewer, passing along the launch params', () => {
+      fakeConfig.vitalSource = {
+        launchUrl: 'https://hypothesis.vitalsource.com/launcme',
+        launchParams: {
+          book_id: 'somebook',
+          location: 'chapter-2',
+        },
+      };
+
+      const wrapper = renderLtiLaunchApp();
+
+      const vsViewer = wrapper.find('VitalSourceBookViewer');
+      assert.isTrue(vsViewer.exists());
+      assert.isFalse(wrapper.exists('iframe'));
+      assert.deepEqual(vsViewer.props(), {
+        children: [],
+        launchUrl: fakeConfig.vitalSource.launchUrl,
+        launchParams: fakeConfig.vitalSource.launchParams,
+      });
+    });
+  });
+
   describe('speed grader config', () => {
     beforeEach(() => {
       fakeConfig.canvas.speedGrader = {
