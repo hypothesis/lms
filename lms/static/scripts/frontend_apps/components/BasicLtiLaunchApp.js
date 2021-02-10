@@ -16,6 +16,7 @@ import AuthWindow from '../utils/AuthWindow';
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import Spinner from './Spinner';
+import VitalSourceBookViewer from './VitalSourceBookViewer';
 
 /**
  * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
@@ -59,6 +60,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     // Content URL to show in the iframe.
     viaUrl,
     canvas,
+    vitalSource: vitalSourceConfig,
   } = useContext(Config);
 
   // Indicates what the application was doing when the error indicated by
@@ -87,7 +89,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
 
   // Show the assignment when the contentUrl has resolved and errorState
   // is falsely
-  const showIframe = contentUrl && !errorState;
+  const showIframe = (contentUrl || vitalSourceConfig) && !errorState;
 
   const showSpinner = fetchCount > 0 && !errorState;
 
@@ -281,7 +283,12 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
 
   // Construct the <iframe> content
   let iFrameWrapper;
-  const iFrame = (
+  const iFrame = vitalSourceConfig ? (
+    <VitalSourceBookViewer
+      launchUrl={vitalSourceConfig.launchUrl}
+      launchParams={vitalSourceConfig.launchParams}
+    />
+  ) : (
     <iframe
       className="BasicLtiLaunchApp__iframe"
       src={contentUrl || ''}

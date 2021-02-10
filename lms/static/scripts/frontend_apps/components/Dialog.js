@@ -1,7 +1,7 @@
-import { createElement, Fragment } from 'preact';
-import classNames from 'classnames';
-import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { useElementShouldClose } from '@hypothesis/frontend-shared';
+import { createElement, Fragment } from 'preact';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
+import classNames from 'classnames';
 
 import Button from './Button';
 import { zIndexScale } from '../utils/style';
