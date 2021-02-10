@@ -21,7 +21,7 @@ export default function ErrorDialog({ onCancel, title, error, cancelLabel }) {
   return (
     <Dialog
       role="alertdialog"
-      title="Something went wrong :("
+      title="Something went wrong"
       onCancel={onCancel}
       cancelLabel={cancelLabel}
     >
