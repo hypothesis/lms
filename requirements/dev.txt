@@ -15,7 +15,7 @@ faker==4.1.3              # via factory-boy
 gunicorn==20.0.4          # via -r requirements/requirements.txt
 h-api==1.0.0              # via -r requirements/requirements.txt
 h-pyramid-sentry==1.2.1   # via -r requirements/requirements.txt
-h-vialib==1.0.5           # via -r requirements/requirements.txt
+h-vialib==1.0.6           # via -r requirements/requirements.txt
 httplib2==0.18.1          # via -r requirements/requirements.txt, oauth2, pylti
 hupper==1.10.2            # via -r requirements/requirements.txt, pyramid
 idna==2.10                # via -r requirements/requirements.txt, requests
