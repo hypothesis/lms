@@ -35,7 +35,7 @@ h-api==1.0.0
     # via -r requirements/requirements.txt
 h-pyramid-sentry==1.2.1
     # via -r requirements/requirements.txt
-h-vialib==1.0.6
+h-vialib==1.0.10
     # via -r requirements/requirements.txt
 httplib2==0.19.0
     # via
@@ -219,6 +219,7 @@ webargs==7.0.1
 webob==1.8.6
     # via
     #   -r requirements/requirements.txt
+    #   h-vialib
     #   pyramid
 wired==0.2.2
     # via

@@ -36,7 +36,7 @@ h-matchers==1.2.10
     # via -r requirements/bddtests.in
 h-pyramid-sentry==1.2.1
     # via -r requirements/requirements.txt
-h-vialib==1.0.6
+h-vialib==1.0.10
     # via -r requirements/requirements.txt
 httplib2==0.19.0
     # via
@@ -223,6 +223,7 @@ webargs==7.0.1
 webob==1.8.6
     # via
     #   -r requirements/requirements.txt
+    #   h-vialib
     #   pyramid
     #   webtest
 webtest==2.0.35
