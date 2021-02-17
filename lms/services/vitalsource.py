@@ -3,9 +3,9 @@ from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
 
 class VitalSourceService:
-    def __init__(self, _context, request):
-        self._oauth_key = request.registry.settings["vitalsource_launch_key"]
-        self._oauth_secret = request.registry.settings["vitalsource_launch_secret"]
+    def __init__(self, oauth_key, oauth_secret):
+        self._oauth_key = oauth_key
+        self._oauth_secret = oauth_secret
 
     def get_launch_params(self, book_id, cfi, lti_user):
         """
@@ -58,3 +58,10 @@ def _launch_params(user_id, roles, context_id, location):
     }
 
     return params
+
+
+def factory(_context, request):
+    return VitalSourceService(
+        request.registry.settings["vitalsource_launch_key"],
+        request.registry.settings["vitalsource_launch_secret"],
+    )
