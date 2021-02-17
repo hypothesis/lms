@@ -43,8 +43,6 @@ TEST_SETTINGS = {
     "oauth2_state_secret": "test_oauth2_state_secret",
     "session_cookie_secret": "notasecret",
     "via_secret": "not_a_secret",
-    "vitalsource_launch_key": "test_vs_launch_key",
-    "vitalsource_launch_secret": "test_vs_launch_secret",
 }
 
 
