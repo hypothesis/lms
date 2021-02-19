@@ -1,0 +1,31 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "10:00"
+  open-pull-requests-limit: 10
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "10:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: query-string
+    versions:
+    - "> 5.1.1"
+  - dependency-name: superagent
+    versions:
+    - "> 3.8.3"
+  - dependency-name: "@types/query-string"
+    versions:
+    - ">= 6.a"
+    - "< 7"
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "10:00"
+  open-pull-requests-limit: 10
