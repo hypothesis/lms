@@ -23,3 +23,13 @@ tox -e functests --run-command "pip-compile requirements/functests.in"
 
 # Depends on requirements.txt and tests.txt and bddtests
 tox -e lint --run-command "pip-compile requirements/lint.in"
+
+# Reformat requirements files to match pip-tool>=5.0.5 format
+python requirements/reformat.py requirements/bddtests.txt
+python requirements/reformat.py requirements/dev.txt
+python requirements/reformat.py requirements/dockercompose.txt
+python requirements/reformat.py requirements/format.txt
+python requirements/reformat.py requirements/functests.txt
+python requirements/reformat.py requirements/lint.txt
+python requirements/reformat.py requirements/tests.txt
+python requirements/reformat.py requirements/requirements.txt
