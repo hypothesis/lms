@@ -274,7 +274,7 @@ pyramid-tm==2.4
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pyramid==1.10.5
+pyramid==1.10.7
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
