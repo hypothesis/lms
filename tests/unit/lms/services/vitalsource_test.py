@@ -32,8 +32,8 @@ class TestVitalSourceService:
         svc.get_launch_params("book-id", "/cfi", lti_user)
 
         OAuth1Client.assert_called_with(
-            "oauth_key",
-            "oauth_secret",
+            "lti_launch_key",
+            "lti_launch_secret",
             signature_method=SIGNATURE_HMAC_SHA1,
             signature_type=SIGNATURE_TYPE_BODY,
         )
@@ -45,7 +45,7 @@ class TestVitalSourceService:
         params = {k: v for (k, v) in params.items() if k.startswith("oauth_")}
 
         assert params == {
-            "oauth_consumer_key": "oauth_key",
+            "oauth_consumer_key": "lti_launch_key",
             "oauth_nonce": Any.string.matching("[0-9]+"),
             "oauth_signature": Any.string.matching("[0-9a-zA-Z+=]+"),
             "oauth_signature_method": "HMAC-SHA1",
@@ -55,7 +55,7 @@ class TestVitalSourceService:
 
     @pytest.fixture
     def svc(self):
-        return VitalSourceService("oauth_key", "oauth_secret")
+        return VitalSourceService("lti_launch_key", "lti_launch_secret")
 
     @pytest.fixture
     def lti_user(self):
@@ -71,13 +71,13 @@ class TestFactory:
         svc = factory(sentinel.context, pyramid_request)
 
         VitalSourceService.assert_called_once_with(
-            sentinel.oauth_key, sentinel.oauth_secret
+            sentinel.vs_lti_launch_key, sentinel.vs_lti_launch_secret
         )
         assert svc == VitalSourceService.return_value
 
     @pytest.mark.parametrize(
         "name_of_missing_envvar",
-        ["vitalsource_launch_key", "vitalsource_launch_secret"],
+        ["vitalsource_lti_launch_key", "vitalsource_lti_launch_secret"],
     )
     def test_it_raises_if_an_envvar_is_missing(
         self, pyramid_request, name_of_missing_envvar
@@ -89,10 +89,12 @@ class TestFactory:
 
     @pytest.fixture
     def pyramid_config(self, pyramid_config):
-        pyramid_config.registry.settings["vitalsource_launch_key"] = sentinel.oauth_key
         pyramid_config.registry.settings[
-            "vitalsource_launch_secret"
-        ] = sentinel.oauth_secret
+            "vitalsource_lti_launch_key"
+        ] = sentinel.vs_lti_launch_key
+        pyramid_config.registry.settings[
+            "vitalsource_lti_launch_secret"
+        ] = sentinel.vs_lti_launch_secret
         return pyramid_config
 
     @pytest.fixture(autouse=True)
