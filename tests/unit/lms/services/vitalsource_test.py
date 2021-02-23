@@ -9,6 +9,20 @@ from tests import factories
 
 
 class TestVitalSourceService:
+    @pytest.mark.parametrize(
+        "key,secret",
+        [
+            (None, "launch-secret"),
+            ("launch-key", None),
+            ("", ""),
+        ],
+    )
+    def test_init_raises_if_launch_credentials_invalid(self, key, secret):
+        with pytest.raises(
+            ValueError, match="VitalSource LTI launch credentials are invalid"
+        ):
+            VitalSourceService(key, secret)
+
     def test_it_generates_lti_launch_form_params(self, svc, lti_user):
         launch_url, params = svc.get_launch_params("book-id", "/abc", lti_user)
 

@@ -11,7 +11,11 @@ class VitalSourceService:
         :type lti_launch_key: str
         :param lti_launch_secret: OAuth consumer secret
         :type lti_launch_secret: str
+        :raises ValueError: If credentials are invalid
         """
+        if not lti_launch_key or not lti_launch_secret:
+            raise ValueError("VitalSource LTI launch credentials are invalid")
+
         self._lti_launch_key = lti_launch_key
         self._lti_launch_secret = lti_launch_secret
 
