@@ -5,6 +5,8 @@ from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 class VitalSourceService:
     def __init__(self, lti_launch_key, lti_launch_secret):
         """
+        Return a new VitalSourceService.
+
         :param lti_launch_key: OAuth consumer key
         :type lti_launch_key: str
         :param lti_launch_secret: OAuth consumer secret
