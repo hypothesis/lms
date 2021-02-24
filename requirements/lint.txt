@@ -9,7 +9,7 @@ alembic==1.5.5
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-astroid==2.4.2
+astroid==2.5.0
     # via pylint
 attrs==20.2.0
     # via
@@ -235,7 +235,7 @@ pyjwt==2.0.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-vialib
-pylint==2.6.2
+pylint==2.7.1
     # via -r requirements/lint.in
 pylti==0.7.0
     # via
@@ -331,7 +331,6 @@ six==1.15.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   astroid
     #   behave
     #   jsonschema
     #   packaging
