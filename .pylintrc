@@ -44,6 +44,9 @@ disable=
 
     too-few-public-methods,
 
+    # Issues to disable this for false positives, disabling it globally in the meantime https://github.com/PyCQA/pylint/issues/214
+    duplicate-code,
+
 good-names=
     # PyLint's default good names.
     i,j,k,ex,Run,_,
