@@ -13,7 +13,7 @@ class TestBase:
 
         with pytest.raises(
             TypeError,
-            match="Can't instantiate abstract class CustomPredicateFactory with abstract methods name",
+            match="Can't instantiate abstract class CustomPredicateFactory with abstract methods? name",
         ):
             CustomPredicateFactory("test_value", "test_config")
 
@@ -23,7 +23,7 @@ class TestBase:
 
         with pytest.raises(
             TypeError,
-            match="Can't instantiate abstract class CustomPredicateFactory with abstract methods __call__",
+            match="Can't instantiate abstract class CustomPredicateFactory with abstract methods? __call__",
         ):
             CustomPredicateFactory("test_value", "test_config")
 
