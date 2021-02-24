@@ -9,7 +9,6 @@ def canvas_api_client_factory(_context, request):
     """
     Get a CanvasAPIClient from a pyramid request.
 
-    :param _context: Pyramid context object
     :param request: Pyramid request object
     :return: An instance of CanvasAPIClient
     """
