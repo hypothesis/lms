@@ -59,6 +59,9 @@ disable=
     # released.
     not-callable,
 
+    # Issues to disable this for false positives, disabling it globally in the meantime https://github.com/PyCQA/pylint/issues/214
+    duplicate-code,
+
 # Just disable PyLint's name style checking for the tests, because we
 # frequently use lots of argument names that don't conform.
 # For example we frequently create pytest fixtures that aren't named in
