@@ -12,3 +12,6 @@ def test_favicon(pyramid_request):
         # See https://en.wikipedia.org/wiki/Favicon#Standardization
         "image/x-icon",
     )
+
+    # Avoid resource leak warning
+    response.app_iter.close()
