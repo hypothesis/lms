@@ -51,7 +51,9 @@ def get_lti_user(request):
         try:
             return schema()
         except ValidationError:
-            pass
+            continue
+
+    return None
 
 
 def groupfinder(userid, request):
