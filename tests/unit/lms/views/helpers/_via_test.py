@@ -21,6 +21,7 @@ class TestViaURL:
         url_params = dict(self.DEFAULT_OPTIONS)
         url_params["url"] = url
         url_params["via.sec"] = Any.string()
+        url_params["via.blocked_for"] = "lms"
         assert final_url == Any.url.matching(
             "http://test_via3_server.is/route"
         ).with_query(url_params)

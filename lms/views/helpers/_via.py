@@ -22,4 +22,4 @@ def via_url(request, document_url, content_type=None):
         service_url=request.registry.settings["via_url"],
         host_url=request.host_url,
         secret=request.registry.settings["via_secret"],
-    ).url_for(document_url, content_type)
+    ).url_for(document_url, content_type, blocked_for="lms")
