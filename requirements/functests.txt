@@ -34,7 +34,7 @@ h-matchers==1.2.10
     # via -r requirements/functests.in
 h-pyramid-sentry==1.2.1
     # via -r requirements/requirements.txt
-h-vialib==1.0.10
+h-vialib==1.0.12
     # via -r requirements/requirements.txt
 httplib2==0.19.0
     # via
