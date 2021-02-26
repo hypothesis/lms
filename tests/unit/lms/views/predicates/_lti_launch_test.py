@@ -166,7 +166,7 @@ class TestConfigured:
     def test_when_assignment_is_db_configured(
         self, pyramid_request, assignment_service, value, expected
     ):
-        assignment_service.get_document_url.return_value = "https://example.com"
+        assignment_service.get_document_url.return_value = mock.sentinel.document_url
 
         predicate = Configured(value, mock.sentinel.config)
 
@@ -199,7 +199,7 @@ class TestConfigured:
         }
         return pyramid_request
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def assignment_service(self, assignment_service):
         # Make sure that the assignment is *not* DB-configured by default in
         # these tests.
