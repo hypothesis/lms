@@ -236,6 +236,7 @@ class Configured(Base):
     def __init__(self, value, config):
         super().__init__(value, config)
         self.canvas_file = CanvasFile(True, config)
+        self.url_configured = URLConfigured(True, config)
         self.db_configured = DBConfigured(True, config)
         self.blackboard_copied = BlackboardCopied(True, config)
         self.brightspace_copied = BrightspaceCopied(True, config)
@@ -245,6 +246,7 @@ class Configured(Base):
         configured = any(
             [
                 self.canvas_file(context, request),
+                self.url_configured(context, request),
                 self.db_configured(context, request),
                 self.blackboard_copied(context, request),
                 self.brightspace_copied(context, request),
