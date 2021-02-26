@@ -172,6 +172,15 @@ class TestConfigured:
 
         assert predicate(mock.sentinel.context, pyramid_request) is expected
 
+    @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
+    def test_when_assignment_is_vitalsource_book(
+        self, pyramid_request, value, expected
+    ):
+        pyramid_request.params = {"vitalsource_book": True}
+        predicate = Configured(value, mock.sentinel.config)
+
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
+
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
     def test_when_assignment_is_unconfigured(
         self, assignment_service, pyramid_request, value, expected
