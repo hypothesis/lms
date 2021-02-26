@@ -163,7 +163,11 @@ class TestConfigured:
         assert predicate(mock.sentinel.context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_db_configured(self, pyramid_request, value, expected):
+    def test_when_assignment_is_db_configured(
+        self, pyramid_request, assignment_service, value, expected
+    ):
+        assignment_service.get_document_url.return_value = "https://example.com"
+
         predicate = Configured(value, mock.sentinel.config)
 
         assert predicate(mock.sentinel.context, pyramid_request) is expected
@@ -185,6 +189,13 @@ class TestConfigured:
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
         }
         return pyramid_request
+
+    @pytest.fixture
+    def assignment_service(self, assignment_service):
+        # Make sure that the assignment is *not* DB-configured by default in
+        # these tests.
+        assignment_service.get_document_url.return_value = None
+        return assignment_service
 
 
 class TestAuthorizedToConfigureAssignments:
