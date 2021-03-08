@@ -40,7 +40,7 @@
     "eslint-plugin-mocha": "^8.1.0",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "exorcist": "^1.0.1",
+    "exorcist": "^2.0.0",
     "focus-visible": "^5.2.0",
     "gulp": "^4.0.2",
     "gulplog": "^1.0.0",
