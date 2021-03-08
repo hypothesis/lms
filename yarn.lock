@@ -915,10 +915,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@hypothesis/frontend-shared@^1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-1.8.0.tgz#61c8875f817f59b049bfe536c9284ed3c348ba7b"
-  integrity sha512-E2mZAmVZdDB+Pr6VE9H8hWLNdkEt8eICgLJqhBg1swAZ0eo843oY9xu8Q6j6UB/oxt2OuFuVm7MWI9ZmIuJjww==
+"@hypothesis/frontend-shared@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-1.9.0.tgz#d63a26190b7849e1312d9a418ed9330ce9271428"
+  integrity sha512-il0R0vv3h04aaA5RbpfYlS+VQLVHZIzJvCQDXRmcGecNNnkah9OyW8S+SVq3Twro84O7UedCgqLw0Rc+b1+/Sg==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
