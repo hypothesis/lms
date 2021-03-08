@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements/lint.in
 #
-alembic==1.5.5
+alembic==1.5.6
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
