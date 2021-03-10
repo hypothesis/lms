@@ -1,10 +1,45 @@
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
+import { apiCall } from '../utils/api';
 
 /**
  * @typedef User
  * @prop {string} displayName
  * @prop {string} userid
  */
+
+/**
+ * @typedef ServiceConfig
+ * @prop {string} grantToken
+ */
+
+/**
+ * The subset of the Hypothesis client configuration that `ClientRpc` references.
+ *
+ * The backend will set other configuration which is just forwarded to the client
+ * and not touched by `ClientRpc`.
+ *
+ * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
+ *
+ * @typedef ClientConfig
+ * @prop {[ServiceConfig]} services
+ */
+
+/**
+ * Return the time at which a JWT token expires.
+ *
+ * @param {string} jwtToken
+ * @return {number} - JWT expiry timestamp in milliseconds. This can be compared
+ *   with `Date.now()`.
+ */
+function jwtExpiry(jwtToken) {
+  const [, payloadBase64] = jwtToken.split('.');
+  const payload = JSON.parse(atob(payloadBase64));
+  if (typeof payload.exp !== 'number') {
+    throw new Error('JWT token does not have a valid expiry ("exp") field');
+  }
+  // Convert from seconds to milliseconds to match JS timestamp conventions.
+  return payload.exp * 1000;
+}
 
 /**
  * Service for communicating with the Hypothesis client.
@@ -24,17 +59,37 @@ export class ClientRpc {
    * @param {Object} options
    *   @param {string[]} options.allowedOrigins -
    *     Origins that are allowed to request client configuration
-   *   @param {Object} options.clientConfig -
+   *   @param {string} options.authToken -
+   *     Auth token used in LMS backend API calls to refresh the grant token
+   *     in the `clientConfig` if it has expired
+   *   @param {ClientConfig} options.clientConfig -
    *     Configuration for the Hypothesis client. Whatever is provided here is
    *     passed directly to the client via `window.postMessage` when it requests
    *     configuration. It should be a subset of the config options specified at
    *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
-  constructor({ allowedOrigins, clientConfig }) {
+  constructor({ allowedOrigins, authToken, clientConfig }) {
     this._server = new Server(allowedOrigins);
 
-    // Handle the initial request for configuration from the Hypothesis client.
-    this._server.register('requestConfig', () => clientConfig);
+    // Handle the requests for configuration from the Hypothesis client.
+    this._server.register('requestConfig', async () => {
+      // Refresh the grant token used by the client to access the H API, if
+      // it expired.
+      const grantToken = clientConfig.services[0].grantToken;
+      const now = Date.now();
+      if (now > jwtExpiry(grantToken)) {
+        const response = await apiCall({
+          authToken,
+          path: '/api/grant_token',
+        });
+        if (typeof response.grant_token !== 'string') {
+          throw new Error('Invalid grant_token response');
+        }
+        clientConfig.services[0].grantToken = response.grant_token;
+      }
+
+      return clientConfig;
+    });
 
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;

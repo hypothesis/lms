@@ -64,6 +64,8 @@ def includeme(config):
     )
     config.add_route("canvas_api.sync", "/api/canvas/sync", request_method="POST")
 
+    config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
+
     config.add_route("lti_api.submissions.record", "/api/lti/submissions")
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")

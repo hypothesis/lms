@@ -10,6 +10,8 @@ import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectError
 import FilePickerApp from './components/FilePickerApp';
 import { ClientRpc } from './services/client-rpc';
 
+/** @typedef {import('./services/client-rpc').ClientConfig} ClientConfig */
+
 const rootEl = document.querySelector('#app');
 if (!rootEl) {
   throw new Error('#app container for LMS frontend is missing');
@@ -28,8 +30,9 @@ switch (config.mode) {
       <BasicLtiLaunchApp
         clientRpc={
           new ClientRpc({
+            authToken: config.api.authToken,
             allowedOrigins: config.rpcServer.allowedOrigins,
-            clientConfig: config.hypothesisClient,
+            clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
           })
         }
       />
