@@ -1,9 +1,28 @@
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
+import { apiCall } from '../utils/api';
+import { JWT } from '../utils/jwt';
 
 /**
  * @typedef User
  * @prop {string} displayName
  * @prop {string} userid
+ */
+
+/**
+ * @typedef ServiceConfig
+ * @prop {string} grantToken
+ */
+
+/**
+ * The subset of the Hypothesis client configuration that `ClientRpc` references.
+ *
+ * The backend will set other configuration which is just forwarded to the client
+ * and not touched by `ClientRpc`.
+ *
+ * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
+ *
+ * @typedef ClientConfig
+ * @prop {[ServiceConfig]} services
  */
 
 /**
@@ -24,17 +43,38 @@ export class ClientRpc {
    * @param {Object} options
    *   @param {string[]} options.allowedOrigins -
    *     Origins that are allowed to request client configuration
-   *   @param {Object} options.clientConfig -
+   *   @param {string} options.authToken -
+   *     Auth token used in LMS backend API calls to refresh the grant token
+   *     in the `clientConfig` if it has expired
+   *   @param {ClientConfig} options.clientConfig -
    *     Configuration for the Hypothesis client. Whatever is provided here is
    *     passed directly to the client via `window.postMessage` when it requests
    *     configuration. It should be a subset of the config options specified at
    *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
-  constructor({ allowedOrigins, clientConfig }) {
+  constructor({ allowedOrigins, authToken, clientConfig }) {
     this._server = new Server(allowedOrigins);
 
-    // Handle the initial request for configuration from the Hypothesis client.
-    this._server.register('requestConfig', () => clientConfig);
+    // A convervative estimate of when the grant token was issued.
+    // When this is older than the true value, the frontend will just consider it
+    // to "expire" earlier than it really does.
+    const issuedAt = Date.now() - 30 * 1000;
+    let grantToken = new JWT(clientConfig.services[0].grantToken, issuedAt);
+
+    // Handle the requests for configuration from the Hypothesis client.
+    this._server.register('requestConfig', async () => {
+      if (grantToken.hasExpired()) {
+        const issuedAt = Date.now();
+        const response = await apiCall({
+          authToken,
+          path: '/api/grant_token',
+        });
+        grantToken = new JWT(response.grant_token, issuedAt);
+      }
+
+      clientConfig.services[0].grantToken = grantToken.value();
+      return clientConfig;
+    });
 
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;
