@@ -15,7 +15,7 @@
   * https://h.readthedocs.io/en/latest/developing/install/
   * https://h.readthedocs.io/projects/client/en/latest/developers/developing/
   * https://github.com/hypothesis/via3 (Serves PDF content)
-  * https://github.com/hypothesis/via (Serves HTTP content)
+  * https://github.com/hypothesis/viahtml (Serves HTTP content)
 
 * [Git](https://git-scm.com/)
 
