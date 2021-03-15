@@ -220,7 +220,7 @@ py==1.9.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pytest
-pycodestyle==2.6.0
+pycodestyle==2.7.0
     # via -r requirements/lint.in
 pycrypto==2.6.1
     # via
