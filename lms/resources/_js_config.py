@@ -1,8 +1,4 @@
-import datetime
 import functools
-from urllib.parse import urlparse
-
-import jwt
 
 from lms.models import GroupInfo, HUser
 from lms.services import ConsumerKeyError, HAPIError
@@ -414,24 +410,6 @@ class JSConfig:
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
             }
 
-    def _grant_token(self, api_url):
-        """Return an OAuth 2 grant token the client can use to log in to h."""
-        now = datetime.datetime.utcnow()
-
-        claims = {
-            "aud": urlparse(api_url).hostname,
-            "iss": self._request.registry.settings["h_jwt_client_id"],
-            "sub": self._h_user.userid(self._authority),
-            "nbf": now,
-            "exp": now + datetime.timedelta(minutes=5),
-        }
-
-        return jwt.encode(
-            claims,
-            self._request.registry.settings["h_jwt_client_secret"],
-            algorithm="HS256",
-        )
-
     @property
     @functools.lru_cache()
     def _hypothesis_client(self):
@@ -456,6 +434,10 @@ class JSConfig:
 
         api_url = self._request.registry.settings["h_api_url_public"]
 
+        # Generate a short-lived login token for the Hypothesis client.
+        grant_token_svc = self._request.find_service(name="grant_token")
+        grant_token = grant_token_svc.generate_token(self._h_user)
+
         return {
             # For documentation of these Hypothesis client settings see:
             # https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
@@ -465,7 +447,7 @@ class JSConfig:
                     "apiUrl": api_url,
                     "authority": self._authority,
                     "enableShareLinks": False,
-                    "grantToken": self._grant_token(api_url),
+                    "grantToken": grant_token,
                     "groups": self._groups(),
                 }
             ]

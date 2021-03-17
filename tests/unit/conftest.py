@@ -13,6 +13,7 @@ from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
+from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
@@ -215,6 +216,15 @@ def grading_info_service(pyramid_config):
     grading_info_service.get_by_assignment.return_value = []
     pyramid_config.register_service(grading_info_service, name="grading_info")
     return grading_info_service
+
+
+@pytest.fixture
+def grant_token_service(pyramid_config):
+    grant_token_service = mock.create_autospec(
+        GrantTokenService, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(grant_token_service, name="grant_token")
+    return grant_token_service
 
 
 @pytest.fixture
