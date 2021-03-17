@@ -25,6 +25,8 @@ def includeme(config):
         factory="lms.resources.LTILaunchResource",
     )
 
+    config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
+
     config.add_route(
         "blackboard_api.oauth.authorize",
         "/api/blackboard/oauth/authorize",
