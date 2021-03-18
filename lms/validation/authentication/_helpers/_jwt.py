@@ -39,7 +39,10 @@ def decode_jwt(jwt_str, secret):
     return payload
 
 
-def encode_jwt(payload, secret):
+ONE_HOUR = datetime.timedelta(hours=1)
+
+
+def encode_jwt(payload, secret, lifetime=ONE_HOUR):
     """
     Return ``payload`` as a JWT encoded with ``secret``.
 
@@ -50,12 +53,14 @@ def encode_jwt(payload, secret):
     :type payload: dict
     :arg secret: the secret to sign the JWT with
     :type secret: str
+    :arg lifetime: how long the token should be valid for
+    :type lifetime: timedelta
 
     :return: the JWT string
     :rtype: str
     """
     payload = copy.deepcopy(payload)
-    payload["exp"] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    payload["exp"] = datetime.datetime.utcnow() + lifetime
 
     jwt_str = jwt.encode(payload, secret, algorithm="HS256")
 
