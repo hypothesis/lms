@@ -65,11 +65,17 @@ export class ClientRpc {
     this._server.register('requestConfig', async () => {
       if (grantToken.hasExpired()) {
         const issuedAt = Date.now();
-        const response = await apiCall({
-          authToken,
-          path: '/api/grant_token',
-        });
-        grantToken = new JWT(response.grant_token, issuedAt);
+        try {
+          const response = await apiCall({
+            authToken,
+            path: '/api/grant_token',
+          });
+          grantToken = new JWT(response.grant_token, issuedAt);
+        } catch (err) {
+          throw new Error(
+            'Unable to fetch Hypothesis login. Please reload the assignment.'
+          );
+        }
       }
 
       clientConfig.services[0].grantToken = grantToken.value();
