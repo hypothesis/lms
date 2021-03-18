@@ -86,3 +86,24 @@ class TestEncodeJWT:
         jwt_str = _jwt.encode_jwt({"TEST_KEY": "TEST_VALUE"}, "test_secret")
 
         assert isinstance(jwt_str, str)
+
+    def test_it_uses_one_hour_lifetime_by_default(self):
+        jwt_str = _jwt.encode_jwt({}, "test_secret")
+        decoded_payload = jwt.decode(jwt_str, "test_secret", algorithms=["HS256"])
+        lifetime_minutes = self._jwt_lifetime(decoded_payload) / 60
+
+        assert round(lifetime_minutes) == 60
+
+    def test_it_uses_custom_lifetime(self):
+        jwt_str = _jwt.encode_jwt(
+            {}, "test_secret", lifetime=datetime.timedelta(hours=24)
+        )
+        decoded_payload = jwt.decode(jwt_str, "test_secret", algorithms=["HS256"])
+        lifetime_hours = self._jwt_lifetime(decoded_payload) / (60 * 60)
+
+        assert round(lifetime_hours) == 24
+
+    @staticmethod
+    def _jwt_lifetime(payload):
+        now = datetime.datetime.utcnow().timestamp()
+        return payload["exp"] - now
