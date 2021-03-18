@@ -1,4 +1,6 @@
 """Schema for our bearer token-based LTI authentication."""
+from datetime import timedelta
+
 import marshmallow
 
 from lms.models import LTIUser
@@ -137,9 +139,10 @@ class BearerTokenSchema(PyramidRequestSchema):
 
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
-        return {
-            "authorization": f"Bearer {_jwt.encode_jwt(data, self.context['secret'])}"
-        }
+        token = _jwt.encode_jwt(
+            data, self.context["secret"], lifetime=timedelta(hours=24)
+        )
+        return {"authorization": f"Bearer {token}"}
 
     @marshmallow.pre_load
     def _decode_jwt(self, data, **_kwargs):
