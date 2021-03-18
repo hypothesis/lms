@@ -47,7 +47,7 @@ describe('ClientRpc', () => {
     });
 
     let grantTokenCounter = 0;
-    fakeApiCall = sinon.spy(async () => {
+    fakeApiCall = sinon.stub().callsFake(async () => {
       ++grantTokenCounter;
       return {
         grant_token: 'new.grant.token-' + grantTokenCounter,
@@ -146,6 +146,25 @@ describe('ClientRpc', () => {
 
       assert.calledWith(fakeApiCall, { authToken, path: '/api/grant_token' });
       assert.equal(config.services[0].grantToken, 'new.grant.token-2');
+    });
+
+    it('reports error to client if grant token fetch fails', async () => {
+      createClientRpc();
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'requestConfig'
+      );
+
+      fakeJwt.hasExpired.returns(true);
+      fakeApiCall.rejects(new Error('Something went wrong'));
+
+      try {
+        await callback();
+      } catch (err) {
+        assert.equal(
+          err.message,
+          'Unable to fetch Hypothesis login. Please reload the assignment.'
+        );
+      }
     });
   });
 
