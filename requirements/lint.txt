@@ -227,7 +227,7 @@ pycrypto==2.6.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pydocstyle==5.1.1
+pydocstyle==6.0.0
     # via -r requirements/lint.in
 pyjwt==2.0.1
     # via
