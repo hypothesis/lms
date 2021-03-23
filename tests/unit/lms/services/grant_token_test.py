@@ -22,6 +22,8 @@ class TestGrantTokenService:
 
         assert claims["iss"] == TEST_SETTINGS["h_jwt_client_id"]
         assert claims["sub"] == user.userid(TEST_SETTINGS["h_authority"])
+
+        assert claims["iat"] >= before
         assert claims["nbf"] >= before
         assert claims["exp"] >= before + datetime.timedelta(minutes=5).seconds
 
