@@ -18,21 +18,21 @@ function timestamp() {
 }
 
 function expiredJwt() {
-  const nbf = timestamp() - 5;
-  const token = makeToken({ nbf, exp: nbf + 2 });
-  return new JWT(token, nbf * 1000);
+  const iat = timestamp() - 5;
+  const token = makeToken({ iat, exp: iat + 2 });
+  return new JWT(token, iat * 1000);
 }
 
 function validJwt() {
-  const nbf = timestamp();
-  const token = makeToken({ nbf, exp: nbf + 5 });
+  const iat = timestamp();
+  const token = makeToken({ iat, exp: iat + 5 });
   return new JWT(token, Date.now());
 }
 
 describe('JWT', () => {
   describe('#payload', () => {
     it('returns parsed payload', () => {
-      const payload = { nbf: 100, exp: 500 };
+      const payload = { iat: 100, exp: 500 };
       const token = makeToken(payload);
 
       const jwt = new JWT(token, 120);
@@ -44,34 +44,34 @@ describe('JWT', () => {
   describe('#hasExpired', () => {
     [
       {
-        // `issuedAt` and `nbf` are equal, so the server and client clocks are
+        // `issuedAt` and `iat` are equal, so the server and client clocks are
         // assumed to be in-sync.
         issuedAt: 0,
-        token: makeToken({ nbf: 0, exp: 5 }),
+        token: makeToken({ iat: 0, exp: 5 }),
         now: 2000,
         expired: false,
       },
       {
-        // `issuedAt` and `nbf` are equal, so the server and client clocks are
+        // `issuedAt` and `iat` are equal, so the server and client clocks are
         // assumed to be in-sync.
         issuedAt: 0,
-        token: makeToken({ nbf: 0, exp: 5 }),
+        token: makeToken({ iat: 0, exp: 5 }),
         now: 7000,
         expired: true,
       },
       {
-        // `issuedAt` is behind `nbf`, so the server's clock is assumed to be
+        // `issuedAt` is behind `iat`, so the server's clock is assumed to be
         // 1 sec ahead of the client.
         issuedAt: 0,
-        token: makeToken({ nbf: 1, exp: 5 }),
+        token: makeToken({ iat: 1, exp: 5 }),
         now: 4500,
         expired: true,
       },
       {
-        // `issuedAt` is ahead of `nbf`, so the server's clock is assumed to be
+        // `issuedAt` is ahead of `iat`, so the server's clock is assumed to be
         // 1 sec behind the client.
         issuedAt: 1000,
-        token: makeToken({ nbf: 0, exp: 5 }),
+        token: makeToken({ iat: 0, exp: 5 }),
         now: 5500,
         expired: false,
       },
