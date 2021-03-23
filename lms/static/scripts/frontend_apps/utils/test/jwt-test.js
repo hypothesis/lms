@@ -30,6 +30,40 @@ function validJwt() {
 }
 
 describe('JWT', () => {
+  describe('#constructor', () => {
+    [
+      // Wrong number of fields
+      'not-valid',
+      // Payload that is not valid base 64
+      'z.z.z',
+      // Invalid JSON
+      `a.${btoa('{')}.c`,
+    ].forEach(token => {
+      it('throws if extracting and parsing JWT payload fails', () => {
+        assert.throws(() => {
+          new JWT(token);
+        }, 'Failed to parse payload from JWT');
+      });
+    });
+
+    [
+      [{}, 'Missing or invalid "iat" field in JWT payload'],
+      [{ iat: 123 }, 'Missing or invalid "exp" field in JWT payload'],
+      [
+        { iat: 456, exp: 'foo' },
+        'Missing or invalid "exp" field in JWT payload',
+      ],
+    ].forEach(([payload, expectedError]) => {
+      it('throws if payload is missing required field', () => {
+        assert.throws(() => {
+          const encoded = btoa(JSON.stringify(payload));
+          const token = `abc.${encoded}.def`;
+          new JWT(token, 120);
+        }, expectedError);
+      });
+    });
+  });
+
   describe('#payload', () => {
     it('returns parsed payload', () => {
       const payload = { iat: 100, exp: 500 };
