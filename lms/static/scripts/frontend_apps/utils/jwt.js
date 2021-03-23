@@ -1,11 +1,17 @@
 /**
+ * Standard JWT payload fields referenced by `JWT`.
+ *
+ * See https://tools.ietf.org/html/rfc7519#page-9
+ *
  * @typedef JWTPayload
- * @prop {number} exp
- * @prop {number} nbf
+ * @prop {number} exp - Expiration time
+ * @prop {number} iat - Issued at
  */
 
 /**
- * Value class for working with JSON Web Tokens issued by the server.
+ * Value class for working with JSON Web Tokens [1] issued by the server.
+ *
+ * [1] https://tools.ietf.org/html/rfc7519
  */
 export class JWT {
   /**
@@ -27,7 +33,7 @@ export class JWT {
     //
     // +ve if the server's clock is ahead of the client or -ve if the server's
     // clock is behind.
-    const skew = this._payload.nbf * 1000 - issuedAt;
+    const skew = this._payload.iat * 1000 - issuedAt;
 
     this._validUntil = this._payload.exp * 1000 - skew;
   }
