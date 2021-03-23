@@ -35,6 +35,7 @@ class GrantTokenService:
 
         claims = {
             "aud": urlparse(self._h_api_url_public).hostname,
+            "iat": now,
             "iss": self._h_jwt_client_id,
             "sub": h_user.userid(self._h_authority),
             "nbf": now,
