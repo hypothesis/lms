@@ -14,15 +14,17 @@ import { JWT } from '../utils/jwt';
  */
 
 /**
- * The subset of the Hypothesis client configuration that `ClientRpc` references.
+ * The subset of the Hypothesis client configuration that `ClientRpc` directly references.
  *
- * The backend will set other configuration which is just forwarded to the client
- * and not touched by `ClientRpc`.
+ * The backend will add other properties which are intentionally not included here,
+ * even as an index signature. This other configuration is simply forwarded to
+ * the client but not touched by `ClientRpc`.
  *
  * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
  *
  * @typedef ClientConfig
- * @prop {[ServiceConfig]} services
+ * @prop {[ServiceConfig]} services - Annotation configuration for the client.
+ *   In the LMS context this will always consist of exactly one entry.
  */
 
 /**
@@ -55,7 +57,7 @@ export class ClientRpc {
   constructor({ allowedOrigins, authToken, clientConfig }) {
     this._server = new Server(allowedOrigins);
 
-    // A convervative estimate of when the grant token was issued.
+    // A conservative estimate of when the grant token was issued.
     // When this is older than the true value, the frontend will just consider it
     // to "expire" earlier than it really does.
     const issuedAt = Date.now() - 30 * 1000;
