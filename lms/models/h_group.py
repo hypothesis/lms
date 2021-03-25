@@ -14,6 +14,26 @@ class HGroup(NamedTuple):
         return f"group:{self.authority_provided_id}@{authority}"
 
     @classmethod
+    def canvas_group(
+        cls, group_name, group_id, tool_consumer_instance_guid, context_id
+    ):
+        """
+        Create an HGroup for a canvas group.
+
+        :param group_name: The name of the group in canvas
+        :param group_id: The ID of the group in canvas
+        :param tool_consumer_instance_guid: Tool consumer GUID
+        :param context_id: Course id
+        """
+        return HGroup(
+            cls._name(group_name),
+            # TODO could we start including some of this data unhashed but we'll need to change
+            # does not match "^[a-zA-Z0-9._\\-+!~*()']{1,1024}$"
+            hashed_id(tool_consumer_instance_guid, context_id, group_id),
+            type="canvas_group",
+        )
+
+    @classmethod
     def course_group(cls, course_name, tool_consumer_instance_guid, context_id):
         """
         Create an HGroup for a course.
