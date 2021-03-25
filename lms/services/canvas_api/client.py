@@ -6,6 +6,13 @@ from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_
 from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.validation import RequestsResponseSchema
 
+from lms.services.canvas_api.schemas import (
+    ListGroups,
+    ListGroupCategories,
+    ListGroupMemberships,
+    Profile,
+)
+
 
 class _SectionSchema(Schema):
     """
@@ -215,6 +222,35 @@ class CanvasAPIClient:
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
+        )
+
+    def get_course_groups(self, course_id, only_own_groups=True):
+        return self._client.send(
+            "GET",
+            f"courses/{course_id}/groups",
+            params={"only_own_group": only_own_groups},
+            schema=ListGroups,
+        )
+
+    def get_course_group_categories(self, course_id):
+        return self._client.send(
+            "GET", f"courses/{course_id}/group_categories", schema=ListGroupCategories
+        )
+
+    def get_groups_in_group_category(self, group_category_id):
+        return self._client.send(
+            "GET", f"group_categories/{group_category_id}/groups", schema=ListGroups
+        )
+
+    def get_group_members(self, group_id):
+        return self._client.send(
+            "GET", f"groups/{group_id}/memberships", schema=ListGroupMemberships
+        )
+
+    def get_user_profile(self, user_id):
+        # https://community.canvaslms.com/t5/Question-Forum/lti-user-id-attribute-is-missed-in-Profile-API-response/td-p/145093/page/2
+        return self._client.send(
+            "GET", f"users/{user_id}/profile?as_user_id={user_id}", schema=Profile
         )
 
     class _ListFilesSchema(RequestsResponseSchema):

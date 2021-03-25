@@ -31,6 +31,16 @@ SECTIONS_SCOPES = (
 )
 
 
+#: The Canvas API scopes that we need for our groups feature.
+GROUPS_SCOPES = (
+    "url:GET|/api/v1/courses/:course_id/groups",
+    "url:GET|/api/v1/courses/:course_id/group_categories",
+    "url:GET|/api/v1/group_categories/:group_category_id/groups",
+    "url:GET|/api/v1/groups/:group_id/memberships",
+    "url:GET|/api/v1/users/:user_id/profile",
+)
+
+
 @view_config(
     request_method="GET", route_name="canvas_api.oauth.authorize", permission="api"
 )
@@ -47,6 +57,9 @@ def authorize(request):
         or course_service.any_with_setting("canvas", "sections_enabled", True)
     ):
         scopes += SECTIONS_SCOPES
+
+    if True:
+        scopes += GROUPS_SCOPES
 
     auth_url = urlunparse(
         (
@@ -114,7 +127,7 @@ def oauth2_redirect_error(request):
         auth_url=auth_url,
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
-        requested_scopes=FILES_SCOPES + SECTIONS_SCOPES,
+        requested_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
     )
 
     return {}
