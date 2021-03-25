@@ -23,6 +23,8 @@ from lms.validation import (
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.predicates import BlackboardCopied, BrightspaceCopied
 
+from lms.models import LTIUser, HGroup
+
 
 @view_defaults(
     permission="launch_lti_assignment",
@@ -41,9 +43,13 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-    def basic_lti_launch(self, document_url=None, grading_supported=True):
+    def basic_lti_launch(self, document_url=None, grading_supported=True, groups=None):
         """Do a basic LTI launch with the given document_url."""
-        self.sync_lti_data_to_h()
+        if groups:
+            self.context.js_config.set_groups(groups)
+        else:
+            # Fugly, it just happens here that if groups are passed, the sync already happen
+            self.sync_lti_data_to_h()
         self.store_lti_data()
         self.course_service.get_or_create(self.context.h_group.authority_provided_id)
 
@@ -188,7 +194,64 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        return self.basic_lti_launch(self.request.parsed_params["url"])
+        groups = None
+
+        lti_user = self.request.lti_user
+        canvas = self.request.find_service(name="canvas_api_client")
+        if True:  # "is_group_assigment":
+            group_set_id = 121  # comming from assigment config?
+            course_id = self.request.params["custom_canvas_course_id"]
+            if lti_user.is_learner:
+                student_groups = canvas.get_course_groups(
+                    course_id,
+                    only_own_groups=True,
+                )
+                assignment_group = [
+                    g for g in student_groups if g["group_category_id"] == group_set_id
+                ]
+                if not assignment_group:
+                    print(
+                        "Student't doesn't belong to any of the groups on the assigment group set"
+                    )
+                    # handle this in some way
+                    raise ValueError("mmmm")
+                else:
+                    assignment_group = assignment_group[0]
+
+                groups = [
+                    HGroup.canvas_group(
+                        assignment_group["name"],
+                        assignment_group["id"],
+                        self.request.params["tool_consumer_instance_guid"],
+                        course_id,
+                    )
+                ]
+
+                self.request.find_service(name="lti_h").sync(
+                    groups,
+                    self.request.params,
+                )
+            elif lti_user.is_instructor:
+                group_category_groups = canvas.get_groups_in_group_category(
+                    group_set_id,
+                )
+                groups = []
+                for group in group_category_groups:
+                    groups.append(
+                        HGroup.canvas_group(
+                            group["name"],
+                            group["id"],
+                            self.request.params["tool_consumer_instance_guid"],
+                            course_id,
+                        )
+                    )
+
+                self.request.find_service(name="lti_h").sync(
+                    groups,
+                    self.request.params,
+                )
+
+        return self.basic_lti_launch(self.request.parsed_params["url"], groups=groups)
 
     @view_config(
         authorized_to_configure_assignments=True,
