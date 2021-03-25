@@ -4,7 +4,9 @@ from urllib.parse import urlparse
 
 import jwt
 
-from lms.models import GroupInfo, HUser
+from typing import List
+
+from lms.models import GroupInfo, HUser, HGroup
 from lms.services import ConsumerKeyError, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
@@ -457,6 +459,11 @@ class JSConfig:
                 }
             ]
         }
+
+    def set_groups(self, groups: List[HGroup]):
+        self._hypothesis_client["services"][0]["groups"] = [
+            g.groupid(self._authority) for g in groups
+        ]
 
     def _groups(self):
         if self._context.canvas_sections_enabled:
