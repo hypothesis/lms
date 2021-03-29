@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/hypothesis/lms#readme",
   "dependencies": {
-    "@babel/core": "^7.13.10",
+    "@babel/core": "^7.13.13",
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-react": "^7.12.13",
     "@hypothesis/frontend-shared": "^1.10.0",
