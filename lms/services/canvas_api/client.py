@@ -228,7 +228,7 @@ class CanvasAPIClient:
         return self._client.send(
             "GET",
             f"courses/{course_id}/groups",
-            params={"only_own_group": only_own_groups},
+            params={"only_own_groups": only_own_groups},
             schema=ListGroups,
         )
 
