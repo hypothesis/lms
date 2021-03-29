@@ -61,5 +61,11 @@ def content_item_selection(context, request):
             "lti_version": request.params["lti_version"],
         },
     )
+    canvas = request.find_service(name="canvas_api_client")
+    group_categories = canvas.get_course_group_categories(
+        request.params["custom_canvas_course_id"]
+    )
+    print(group_categories)
+    context.js_config.yolo_group_categories(group_categories)
 
     return {}

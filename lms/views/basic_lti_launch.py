@@ -198,9 +198,11 @@ class BasicLTILaunchViews:
 
         lti_user = self.request.lti_user
         canvas = self.request.find_service(name="canvas_api_client")
-        if True:  # "is_group_assigment":
-            group_set_id = 121  # comming from assigment config?
+        group_set_id = self.request.params.get("canvas_group_set")
+
+        if True and group_set_id:
             course_id = self.request.params["custom_canvas_course_id"]
+            group_set_id = int(group_set_id)
             if lti_user.is_learner:
                 student_groups = canvas.get_course_groups(
                     course_id,
@@ -214,7 +216,9 @@ class BasicLTILaunchViews:
                         "Student't doesn't belong to any of the groups on the assigment group set"
                     )
                     # handle this in some way
-                    raise ValueError("mmmm")
+                    return self.basic_lti_launch(
+                        self.request.parsed_params["url"], groups=groups
+                    )
                 else:
                     assignment_group = assignment_group[0]
 
