@@ -465,6 +465,9 @@ class JSConfig:
             g.groupid(self._authority) for g in groups
         ]
 
+    def yolo_group_categories(self, group_categories):
+        self._config["filePicker"]["canvas"]["groupCategories"] = group_categories
+
     def _groups(self):
         if self._context.canvas_sections_enabled:
             return "$rpc:requestGroups"

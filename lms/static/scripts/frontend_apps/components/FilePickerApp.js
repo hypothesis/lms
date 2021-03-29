@@ -1,10 +1,11 @@
-import { createElement } from 'preact';
+import { Fragment, createElement } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import { Config } from '../config';
 import {
   contentItemForUrl,
   contentItemForLmsFile,
+  contentItemWithParams,
   contentItemForVitalSourceBook,
 } from '../utils/content-item';
 import {
@@ -17,6 +18,7 @@ import ErrorDialog from './ErrorDialog';
 import LMSFilePicker from './LMSFilePicker';
 import Spinner from './Spinner';
 import URLPicker from './URLPicker';
+import Table from './Table';
 
 /**
  * @typedef {import('../api-types').File} File
@@ -44,7 +46,7 @@ export default function FilePickerApp({
     filePicker: {
       formAction,
       formFields,
-      canvas: { enabled: canvasEnabled, listFiles: listFilesApi, ltiLaunchUrl },
+      canvas: { enabled: canvasEnabled, listFiles: listFilesApi, ltiLaunchUrl, groupCategories: groupCategories },
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
@@ -56,6 +58,7 @@ export default function FilePickerApp({
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
   const [url, setUrl] = useState(/** @type {string|null} */ (null));
+  const [groupSet, setGroupSet] = useState(/** @type {string|null} */ (null));
   const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
 
   // Whether the user chose a book from VitalSource. This is currently a
@@ -124,8 +127,13 @@ export default function FilePickerApp({
   const selectURL = url => {
     cancelDialog();
     setUrl(url);
-    submit(true);
+    //submit(true);
   };
+
+  const selectGroupSet = groupSet => {
+    setGroupSet(groupSet.id);
+    submit(true);
+  }
 
   const showGooglePicker = async () => {
     try {
@@ -183,7 +191,9 @@ export default function FilePickerApp({
   }
 
   let contentItem = null;
-  if (url) {
+  if (url && groupSet){
+    contentItem = contentItemWithParams(ltiLaunchUrl, { url: url, canvas_group_set: groupSet });
+  } else if (url) {
     contentItem = contentItemForUrl(ltiLaunchUrl, url);
   } else if (lmsFile) {
     contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
@@ -247,6 +257,19 @@ export default function FilePickerApp({
               onClick={selectVitalSourceBook}
             />
           )}
+
+          <input name="canvas_group_set_id" type="hidden" value={groupSet || ''} />
+          { true && (
+            <Table 
+                 columns={[{label: "Group set", "className": "FileList__name-header"}]}
+                 items={[...[{"name": "Not a group assignment", "id": null}],...groupCategories]}
+                 renderItem={(groupSet, isSelected) => (
+                     <Fragment><td>{groupSet.name}</td></Fragment>
+
+                )}
+                onSelectItem={selectGroupSet}
+            />
+        )}
         </div>
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>

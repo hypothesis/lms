@@ -8,7 +8,7 @@ import { stringify } from 'querystring';
  * @param {string} ltiLaunchUrl
  * @param {Object.<string,string>} params - Query parameters for the generated URL
  */
-function contentItemWithParams(ltiLaunchUrl, params) {
+export function contentItemWithParams(ltiLaunchUrl, params) {
   return {
     '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
     '@graph': [
