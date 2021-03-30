@@ -1,5 +1,5 @@
 import copy
-import datetime
+import datetime as datetime_
 
 import jwt
 import pytest
@@ -32,7 +32,7 @@ class TestDecodeJWT:
         jwt_str = self.encode_jwt(
             {
                 "TEST_KEY": "TEST_VALUE",
-                "exp": datetime.datetime.utcnow() - datetime.timedelta(hours=1),
+                "exp": datetime_.datetime.utcnow() - datetime_.timedelta(hours=1),
             }
         )
 
@@ -61,7 +61,7 @@ class TestDecodeJWT:
             # Insert an unexpired expiry time into the given payload dict, if
             # it doesn't already contain an expiry time.
             payload.setdefault(
-                "exp", datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+                "exp", datetime_.datetime.utcnow() + datetime_.timedelta(hours=1)
             )
 
         jwt_str = jwt.encode(
@@ -87,23 +87,32 @@ class TestEncodeJWT:
 
         assert isinstance(jwt_str, str)
 
-    def test_it_uses_one_hour_lifetime_by_default(self):
-        jwt_str = _jwt.encode_jwt({}, "test_secret")
-        decoded_payload = jwt.decode(jwt_str, "test_secret", algorithms=["HS256"])
-        lifetime_minutes = self._jwt_lifetime(decoded_payload) / 60
+    @pytest.mark.usefixtures("datetime")
+    def test_it_uses_one_hour_lifetime_by_default(self, jwt, utcnow):
+        _jwt.encode_jwt({}, "test_secret")
 
-        assert round(lifetime_minutes) == 60
-
-    def test_it_uses_custom_lifetime(self):
-        jwt_str = _jwt.encode_jwt(
-            {}, "test_secret", lifetime=datetime.timedelta(hours=24)
+        assert jwt.encode.call_args[0][0]["exp"] == utcnow + datetime_.timedelta(
+            hours=1
         )
-        decoded_payload = jwt.decode(jwt_str, "test_secret", algorithms=["HS256"])
-        lifetime_hours = self._jwt_lifetime(decoded_payload) / (60 * 60)
 
-        assert round(lifetime_hours) == 24
+    @pytest.mark.usefixtures("datetime")
+    def test_it_uses_custom_lifetime(self, jwt, utcnow):
+        _jwt.encode_jwt({}, "test_secret", lifetime=datetime_.timedelta(hours=24))
 
-    @staticmethod
-    def _jwt_lifetime(payload):
-        now = datetime.datetime.utcnow().timestamp()
-        return payload["exp"] - now
+        assert jwt.encode.call_args[0][0]["exp"] == utcnow + datetime_.timedelta(
+            hours=24
+        )
+
+    @pytest.fixture
+    def utcnow(self):
+        return datetime_.datetime(year=2021, month=1, day=1)
+
+    @pytest.fixture
+    def datetime(self, patch, utcnow):
+        datetime = patch("lms.validation.authentication._helpers._jwt.datetime")
+        datetime.datetime.utcnow.return_value = utcnow
+        return datetime
+
+    @pytest.fixture
+    def jwt(self, patch):
+        return patch("lms.validation.authentication._helpers._jwt.jwt")
