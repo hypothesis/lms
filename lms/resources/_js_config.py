@@ -480,7 +480,7 @@ class JSConfig:
                 "group_info": {
                     key: value
                     for key, value in req.params.items()
-                    if key in GroupInfo.columns()  # pylint:disable=no-member
+                    if key in GroupInfo.columns()
                 },
             },
         }
