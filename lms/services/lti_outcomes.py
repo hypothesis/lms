@@ -146,7 +146,7 @@ class LTIOutcomesClient:
         except KeyError as err:
             raise LTIOutcomesAPIError("Malformed LTI outcome response") from err
 
-        if status == "success":
+        if status != "success":
             raise LTIOutcomesAPIError(explanation="LTI outcome request failed", response=data, details=data)
 
         return body
