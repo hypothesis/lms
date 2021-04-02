@@ -6,7 +6,7 @@ from pyramid.view import view_config
 LOG = logging.getLogger(__name__)
 
 
-@view_config(route_name="status", renderer="json")
+@view_config(route_name="status", renderer="json", http_cache=0)
 def status(request):
     try:
         request.db.execute("SELECT 1")
