@@ -24,6 +24,7 @@ const GRADE_MULTIPLIER = 10;
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
+ * @typedef {import('./ErrorDisplay').ErrorLike} ErrorLike
  */
 
 /**
@@ -32,7 +33,7 @@ const GRADE_MULTIPLIER = 10;
  * and error status of that fetch request.
  *
  * @param {StudentInfo|null} student
- * @param {(value: string) => void} setFetchGradeError
+ * @param {(value: ErrorLike) => void} setFetchGradeError
  */
 const useFetchGrade = (student, setFetchGradeError) => {
   const {
@@ -57,7 +58,7 @@ const useFetchGrade = (student, setFetchGradeError) => {
             setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
           }
         } catch (e) {
-          setFetchGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
+          setFetchGradeError(e);
         } finally {
           setGradeLoading(false);
         }
@@ -89,13 +90,17 @@ const useFetchGrade = (student, setFetchGradeError) => {
  */
 export default function SubmitGradeForm({ student }) {
   // State for loading the grade
-  const [fetchGradeError, setFetchGradeError] = useState('');
+  const [fetchGradeError, setFetchGradeError] = useState(
+    /** @type {ErrorLike|null} */ (null)
+  );
   const { grade, gradeLoading } = useFetchGrade(student, setFetchGradeError);
 
   // The following is state for saving the grade
   //
   // If there is an error when submitting a grade?
-  const [submitGradeError, setSubmitGradeError] = useState('');
+  const [submitGradeError, setSubmitGradeError] = useState(
+    /** @type {ErrorLike|null} */ (null)
+  );
   // Is set to true when the grade is being currently posted to the service
   const [gradeSaving, setGradeSaving] = useState(false);
   // Changes the input field's background to green for a short duration when true
@@ -151,7 +156,7 @@ export default function SubmitGradeForm({ student }) {
         });
         setGradeSaved(true);
       } catch (e) {
-        setSubmitGradeError(e.errorMessage ? e.errorMessage : 'Unknown error');
+        setSubmitGradeError(e);
       }
       setGradeSaving(false);
     }
@@ -220,9 +225,9 @@ export default function SubmitGradeForm({ student }) {
       {!!submitGradeError && (
         <ErrorDialog
           title="Submit Grade Error"
-          error={{ message: submitGradeError }}
+          error={submitGradeError}
           onCancel={() => {
-            setSubmitGradeError('');
+            setSubmitGradeError(null);
           }}
           cancelLabel="Close"
         />
@@ -230,9 +235,9 @@ export default function SubmitGradeForm({ student }) {
       {!!fetchGradeError && (
         <ErrorDialog
           title="Fetch Grade Error"
-          error={{ message: fetchGradeError }}
+          error={fetchGradeError}
           onCancel={() => {
-            setFetchGradeError('');
+            setFetchGradeError(null);
           }}
           cancelLabel="Close"
         />
