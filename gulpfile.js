@@ -6,7 +6,7 @@
 var { mkdirSync } = require('fs');
 var path = require('path');
 
-const { program } = require('commander');
+const commander = require('commander');
 var gulp = require('gulp');
 var log = require('gulplog');
 var through = require('through2');
@@ -19,23 +19,36 @@ var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
 var SCRIPT_DIR = 'build/scripts';
 
 function parseCommandLine() {
-  program
-    // Test configuration.
-    // See https://github.com/karma-runner/karma-mocha#configuration
-    .option('-g --grep [pattern]', 'Run only tests matching a given pattern')
+  commander
+    .option(
+      '--grep <pattern>',
+      'Run only tests where filename matches a regex pattern'
+    )
+    .option('--watch', 'Continuously run tests (default: false)', false)
+    .option('--browser <browser>', 'Run tests in browser of choice.')
+    .option(
+      '--no-browser',
+      "Don't launch default browser. Instead, navigate to http://localhost:9876/ to run the tests."
+    )
     .parse(process.argv);
 
-  const options = program.opts();
-  if (options.grep) {
-    log.info(`Running tests matching pattern /${options.grep}/`);
+  const { grep, watch, browser } = commander.opts();
+  const karmaOptions = {
+    grep: grep,
+    singleRun: !watch,
+  };
+
+  // browser option can be either false | undefined | string
+  if (browser === false) {
+    karmaOptions.browsers = null;
+  } else if (browser) {
+    karmaOptions.browsers = [browser];
   }
 
-  return {
-    grep: options.grep,
-  };
+  return karmaOptions;
 }
 
-var taskArgs = parseCommandLine();
+const karmaOptions = parseCommandLine();
 
 // We do not currently generate any vendor JS bundles, but the infrastructure
 // is left here in case we decide to add them in future.
@@ -165,47 +178,20 @@ gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
 
 gulp.task('watch', gulp.parallel(['watch-js', 'watch-css', 'watch-manifest']));
 
-function runKarma(baseConfig, opts, done) {
-  // See https://github.com/karma-runner/karma-mocha#configuration
-  var cliOpts = {
-    client: {
-      mocha: {
-        grep: taskArgs.grep,
-      },
-    },
-  };
-
-  var karma = require('karma');
+function runKarma(done) {
+  const karma = require('karma');
   new karma.Server(
-    Object.assign(
-      {},
-      {
-        configFile: path.resolve(__dirname, baseConfig),
-      },
-      cliOpts,
-      opts
-    ),
+    {
+      configFile: path.resolve(__dirname, './lms/static/scripts/karma.config.js'),
+      ...karmaOptions,
+    },
     done
   ).start();
 }
 
-// Unit/integration tests. Some tests (eg. a11y) depend on having CSS available,
-// so build those bundles first.
-
+// Unit and integration testing tasks.
+// Some (eg. a11y) tests rely on CSS bundles, so build these first.
 gulp.task(
   'test',
-  gulp.series('build-css', callback => {
-    runKarma(
-      './lms/static/scripts/karma.config.js',
-      { singleRun: true, autoWatch: false },
-      callback
-    );
-  })
-);
-
-gulp.task(
-  'test-watch',
-  gulp.series('build-css', callback => {
-    runKarma('./lms/static/scripts/karma.config.js', {}, callback);
-  })
+  gulp.series('build-css', done => runKarma(done))
 );
