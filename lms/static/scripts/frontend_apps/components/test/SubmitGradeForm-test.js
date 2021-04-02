@@ -164,9 +164,15 @@ describe('SubmitGradeForm', () => {
 
     it('shows the error dialog when the grade request throws an error', () => {
       const wrapper = renderForm();
-      fakeSubmitGrade.throws({ errorMessage: '' });
+      const error = {
+        errorMessage: 'message',
+        details: 'details',
+      };
+      fakeSubmitGrade.throws(error);
       wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(wrapper.find('ErrorDialog').exists());
+      // Ensure the error object passed to ErrorDialog is the same as the one thrown
+      assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
     });
 
     it('sets the `is-saved` class when the grade has posted', async () => {
@@ -228,10 +234,17 @@ describe('SubmitGradeForm', () => {
     });
 
     it('shows the error dialog when the grade request throws an error', () => {
-      fakeFetchGrade.throws({ errorMessage: '' });
+      const error = {
+        errorMessage: 'message',
+        details: 'details',
+      };
+      fakeFetchGrade.throws(error);
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
+
       assert.isTrue(wrapper.find('ErrorDialog').exists());
+      // Ensure the error object passed to ErrorDialog is the same as the one thrown
+      assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
     });
 
     it("sets the input defaultValue prop to the student's grade", async () => {
