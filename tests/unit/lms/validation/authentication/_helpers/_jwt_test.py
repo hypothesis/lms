@@ -105,5 +105,5 @@ class TestEncodeJWT:
 
     @staticmethod
     def _jwt_lifetime(payload):
-        now = datetime.datetime.utcnow().timestamp()
+        now = datetime.datetime.now(datetime.timezone.utc).timestamp()
         return payload["exp"] - now
