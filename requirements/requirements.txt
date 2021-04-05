@@ -113,7 +113,7 @@ six==1.15.0
     #   jsonschema
     #   pylti
     #   python-dateutil
-sqlalchemy==1.4.4
+sqlalchemy==1.4.5
     # via
     #   -r requirements/requirements.in
     #   alembic
