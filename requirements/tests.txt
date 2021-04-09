@@ -208,7 +208,7 @@ venusian==3.0.0
     # via
     #   -r requirements/requirements.txt
     #   pyramid
-webargs==7.0.1
+webargs==8.0.0
     # via -r requirements/requirements.txt
 webob==1.8.6
     # via

@@ -223,7 +223,7 @@ venusian==3.0.0
     #   pyramid
 waitress==1.4.4
     # via webtest
-webargs==7.0.1
+webargs==8.0.0
     # via -r requirements/requirements.txt
 webob==1.8.6
     # via

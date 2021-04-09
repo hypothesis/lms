@@ -130,7 +130,7 @@ urllib3==1.25.10
     #   sentry-sdk
 venusian==3.0.0
     # via pyramid
-webargs==7.0.1
+webargs==8.0.0
     # via -r requirements/requirements.in
 webob==1.8.6
     # via
