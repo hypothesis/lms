@@ -20,6 +20,13 @@ def via_url(request, document_url, content_type=None):
     """
     return ViaClient(
         service_url=request.registry.settings["via_url"],
-        host_url=request.host_url,
         secret=request.registry.settings["via_secret"],
-    ).url_for(document_url, content_type, blocked_for="lms")
+    ).url_for(
+        document_url,
+        content_type,
+        options={
+            "via.client.requestConfigFromFrame.origin": request.host_url,
+            "via.client.requestConfigFromFrame.ancestorLevel": 2,
+        },
+        blocked_for="lms",
+    )
