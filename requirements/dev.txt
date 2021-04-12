@@ -148,7 +148,7 @@ pyramid-services==2.2
     # via -r requirements/requirements.txt
 pyramid-tm==2.4
     # via -r requirements/requirements.txt
-pyramid==1.10.8
+pyramid==2.0
     # via
     #   -r requirements/requirements.txt
     #   h-pyramid-sentry
