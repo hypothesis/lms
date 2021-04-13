@@ -2,9 +2,10 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.views import helpers
+from lms.security import Permissions
 
 
-@view_defaults(permission="api", renderer="json")
+@view_defaults(permission=Permissions.API, renderer="json")
 class BlackboardFilesAPIViews:
     def __init__(self, request):
         self.request = request

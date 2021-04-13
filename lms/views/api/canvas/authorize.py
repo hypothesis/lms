@@ -15,6 +15,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
 from lms.services import CanvasAPIServerError
+from lms.security import Permissions
 from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 #: The Canvas API scopes that we need for our Canvas Files feature.
@@ -32,7 +33,9 @@ SECTIONS_SCOPES = (
 
 
 @view_config(
-    request_method="GET", route_name="canvas_api.oauth.authorize", permission="api"
+    request_method="GET",
+    route_name="canvas_api.oauth.authorize",
+    permission=Permissions.API,
 )
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
@@ -73,7 +76,7 @@ def authorize(request):
 @view_config(
     request_method="GET",
     route_name="canvas_api.oauth.callback",
-    permission="api",
+    permission=Permissions.API,
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
     schema=CanvasOAuthCallbackSchema,
 )

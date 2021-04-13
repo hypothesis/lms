@@ -3,6 +3,7 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
+from lms.security import Permissions
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -10,7 +11,7 @@ from lms.validation import (
 )
 
 
-@view_defaults(request_method="POST", renderer="json", permission="api")
+@view_defaults(request_method="POST", renderer="json", permission=Permissions.API)
 class LTIOutcomesViews:
     """Views for proxy APIs interacting with LTI Outcome Management APIs."""
 

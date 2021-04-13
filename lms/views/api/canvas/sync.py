@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 
 from lms.models import HGroup
+from lms.security import Permissions
 
 
 class Sync:
@@ -11,7 +12,7 @@ class Sync:
         route_name="canvas_api.sync",
         request_method="POST",
         renderer="json",
-        permission="api",
+        permission=Permissions.API,
     )
     def sync(self):
         groups = self._to_groups(self._get_sections())

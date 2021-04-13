@@ -35,13 +35,14 @@ Canvas LMS's Content Item docs are also useful:
 https://canvas.instructure.com/doc/api/file.content_item.html
 """
 from pyramid.view import view_config
+from lms.security import Permissions
 
 from lms.validation import ContentItemSelectionLTILaunchSchema
 
 
 @view_config(
     authorized_to_configure_assignments=True,
-    permission="launch_lti_assignment",
+    permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",

@@ -20,12 +20,13 @@ from lms.validation import (
     ConfigureModuleItemSchema,
     URLConfiguredBasicLTILaunchSchema,
 )
+from lms.security import Permissions
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.predicates import BlackboardCopied, BrightspaceCopied
 
 
 @view_defaults(
-    permission="launch_lti_assignment",
+    permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
     request_method="POST",
     route_name="lti_launches",
