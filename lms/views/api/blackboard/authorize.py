@@ -2,11 +2,14 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from lms.services import NoOAuth2Token
+from lms.security import Permissions
 from lms.validation.authentication import CanvasOAuthCallbackSchema
 
 
 @view_config(
-    request_method="GET", route_name="blackboard_api.oauth.authorize", permission="api"
+    request_method="GET",
+    route_name="blackboard_api.oauth.authorize",
+    permission=Permissions.API,
 )
 def authorize(request):
     return HTTPFound(
@@ -20,7 +23,7 @@ def authorize(request):
 @view_config(
     request_method="GET",
     route_name="blackboard_api.oauth.callback",
-    permission="api",
+    permission=Permissions.API,
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
 )
 def oauth2_redirect(request):

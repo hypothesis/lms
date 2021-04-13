@@ -1,7 +1,9 @@
 from pyramid.view import view_config
 
+from lms.security import Permissions
 
-@view_config(permission="api", renderer="json", route_name="api.grant_token")
+
+@view_config(permission=Permissions.API, renderer="json", route_name="api.grant_token")
 def grant_token(request):
     """
     Return a grant token that the Hypothesis client can use to log in to H.
