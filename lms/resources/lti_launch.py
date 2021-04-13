@@ -1,7 +1,6 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-from pyramid.security import Allow
 
 from lms.models import HGroup
 from lms.resources._js_config import JSConfig
@@ -18,8 +17,6 @@ class LTILaunchResource:
     example from views that have schema=BasicLTILaunchSchema in their view
     config).
     """
-
-    __acl__ = [(Allow, "lti_user", "launch_lti_assignment")]
 
     def __init__(self, request):
         """Return the context resource for an LTI launch request."""
