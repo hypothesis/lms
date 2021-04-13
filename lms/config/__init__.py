@@ -95,13 +95,7 @@ def configure(settings):
 
     settings.update(env_settings)
 
-    config = Configurator(
-        settings=settings, root_factory="lms.resources.DefaultResource"
-    )
-
-    # Security policies
-    authz_policy = ACLAuthorizationPolicy()
-    config.set_authorization_policy(authz_policy)
+    config = Configurator(settings=settings)
 
     return config
 
