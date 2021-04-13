@@ -67,7 +67,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     # and not try to create it, and the request will succeed.
     pyramid_retry.mark_error_retryable(IntegrityError)
 
-    config.include("lms.authentication")
+    config.include("lms.security")
     config.include("lms.extensions.feature_flags")
     config.add_feature_flag_providers(
         "lms.extensions.feature_flags.config_file_provider",
