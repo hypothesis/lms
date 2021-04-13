@@ -1,32 +1,12 @@
 from unittest import mock
 
 import pytest
-from pyramid.authorization import ACLAuthorizationPolicy
 from pytest import param
 
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
-
-
-class TestACL:
-    @pytest.mark.parametrize(
-        "principals,expected", ((["lti_user"], True), (["foo", "bar"], False))
-    )
-    def test_it_allows_the_correct_users_to_launch_LTI_assignments(
-        self, pyramid_config, pyramid_request, principals, expected
-    ):
-        policy = ACLAuthorizationPolicy()
-        pyramid_config.testing_securitypolicy("TEST_USERNAME", groupids=principals)
-        pyramid_config.set_authorization_policy(policy)
-
-        context = LTILaunchResource(pyramid_request)
-        has_permission = pyramid_request.has_permission(
-            "launch_lti_assignment", context
-        )
-
-        assert bool(has_permission) is expected
 
 
 class TestHGroup:

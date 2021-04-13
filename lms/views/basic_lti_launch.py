@@ -15,12 +15,12 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
+from lms.security import Permissions
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
     URLConfiguredBasicLTILaunchSchema,
 )
-from lms.security import Permissions
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.predicates import BlackboardCopied, BrightspaceCopied
 

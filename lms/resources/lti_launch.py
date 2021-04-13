@@ -1,7 +1,6 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-
 from lms.models import HGroup
 from lms.resources._js_config import JSConfig
 
