@@ -35,8 +35,8 @@ Canvas LMS's Content Item docs are also useful:
 https://canvas.instructure.com/doc/api/file.content_item.html
 """
 from pyramid.view import view_config
-from lms.security import Permissions
 
+from lms.security import Permissions
 from lms.validation import ContentItemSelectionLTILaunchSchema
 
 

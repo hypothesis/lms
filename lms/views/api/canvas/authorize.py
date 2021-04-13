@@ -14,8 +14,8 @@ from urllib.parse import urlencode, urlparse, urlunparse
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
-from lms.services import CanvasAPIServerError
 from lms.security import Permissions
+from lms.services import CanvasAPIServerError
 from lms.validation.authentication import BearerTokenSchema, CanvasOAuthCallbackSchema
 
 #: The Canvas API scopes that we need for our Canvas Files feature.

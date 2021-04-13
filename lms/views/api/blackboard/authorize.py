@@ -1,8 +1,8 @@
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
-from lms.services import NoOAuth2Token
 from lms.security import Permissions
+from lms.services import NoOAuth2Token
 from lms.validation.authentication import CanvasOAuthCallbackSchema
 
 

@@ -1,12 +1,13 @@
 import base64
 import functools
 from enum import Enum
+from functools import partial
 from typing import List, NamedTuple
 
 from pyramid.authentication import AuthTktCookieHelper
-from lms.validation import ValidationError
 from pyramid.security import Allowed, Denied
-from functools import partial
+
+from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
     CanvasOAuthCallbackSchema,
@@ -17,10 +18,6 @@ from lms.validation.authentication import (
 class Identity(NamedTuple):
     userid: str
     permissions: List[str]
-
-    @staticmethod
-    def unauthenticated():
-        return Identity("", [])
 
 
 class Permissions(Enum):
@@ -79,24 +76,23 @@ class TktSecurityPolicy:
         self.helper = AuthTktCookieHelper(lms_secret, hashalg=hashalg)
 
     def identity(self, request):
-        # pylint: disable=no-member
         identity = self.helper.identify(request)
 
-        if identity is None or not identity.userid:
-            return Identity.unauthenticated
+        if identity is None:
+            return Identity("", [])
 
-        userid = identity.userid
+        userid = identity["userid"]
         permissions = []
         settings = request.registry.settings
-        if userid == settings.get("username, None"):
+        if userid == settings.get("username", None):
             permissions = [Permissions.REPORTS_VIEW]
 
         return Identity(userid, permissions)
 
     @classmethod
     def authenticated_userid(cls, request):
-        identity = request.identity()
-        return identity.userid if identity.userid else None
+        identity = request.identity
+        return identity.userid if identity else None
 
     def permits(self, request, context, permission):
         return _permits(self, request, context, permission)
@@ -104,8 +100,8 @@ class TktSecurityPolicy:
     def remember(self, request, userid, **kw):
         return self.helper.remember(request, userid, **kw)
 
-    def forget(self, request, **kw):
-        return self.helper.forget(request, **kw)
+    def forget(self, request):
+        return self.helper.forget(request)
 
 
 class LTISecurityPolicy:
@@ -136,8 +132,8 @@ class LTISecurityPolicy:
         pass
 
 
-def _permits(policy, request, _context, permission):
-    if permission in policy.identity(request).permissions:
+def _permits(policy, request, _context, permission):  # pylint: disable=unused-argument
+    if permission in request.identity.permissions:
         return Allowed("allowed")
 
     return Denied("denied")

@@ -6,7 +6,7 @@ import pytest
 from lms.config import SettingError, configure
 
 
-@pytest.mark.usefixtures("SettingGetter", "ACLAuthorizationPolicy")
+@pytest.mark.usefixtures("SettingGetter")
 class TestConfigure:
     def test_it_returns_a_Configurator_with_the_deployment_settings_set(
         self, setting_getter
@@ -260,25 +260,6 @@ class TestConfigure:
         configurator = configure({"foo": "bar"})
 
         assert configurator.registry.settings["foo"] == "bar"
-
-    def test_it_sets_the_pyramid_authorization_policy(
-        self, ACLAuthorizationPolicy, config
-    ):
-        configure({})
-
-        ACLAuthorizationPolicy.assert_called_once_with()
-        config.set_authorization_policy.assert_called_once_with(
-            ACLAuthorizationPolicy.return_value
-        )
-
-    @pytest.fixture
-    def ACLAuthorizationPolicy(self, patch):
-        return patch("lms.config.ACLAuthorizationPolicy")
-
-    @pytest.fixture
-    def config(self, patch):
-        configurator_class = patch("lms.config.Configurator")
-        return configurator_class.return_value
 
     @pytest.fixture
     def SettingGetter(self, patch):

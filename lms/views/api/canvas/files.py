@@ -1,8 +1,8 @@
 """Proxy API views for files-related Canvas API endpoints."""
 from pyramid.view import view_config, view_defaults
 
-from lms.views import helpers
 from lms.security import Permissions
+from lms.views import helpers
 
 
 @view_defaults(permission=Permissions.API, renderer="json")
