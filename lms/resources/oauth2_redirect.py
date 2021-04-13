@@ -1,12 +1,8 @@
-from pyramid.security import Allow
-
 from lms.resources._js_config import JSConfig
 
 
 class OAuth2RedirectResource:
     """Resource for the OAuth 2 redirect popup."""
-
-    __acl__ = [(Allow, "lti_user", "api")]
 
     def __init__(self, request):
         # The frontend config is only used by the exception view, but it is OK
