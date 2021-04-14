@@ -26,6 +26,22 @@ class TestBasicLTILaunch:
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
 
+    def test_no_auth_blocks(self, app, lti_params):
+        unauthenticated_lti_params = dict(lti_params)
+        del unauthenticated_lti_params["oauth_signature"]
+        response = app.post(
+            "/lti_launches",
+            params=unauthenticated_lti_params,
+            headers={
+                "Accept": "text/html",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            status=403,
+        )
+
+        assert response.headers["Content-Type"] == Any.string.matching("^text/html")
+        assert response.html
+
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session):  # pylint:disable=unused-argument
         return factories.ApplicationInstance()
