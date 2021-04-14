@@ -1,6 +1,7 @@
 import contextlib
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from webtest import TestApp
 
 from lms import db
@@ -25,7 +26,16 @@ def clean_database(db_engine):
 
 
 @pytest.fixture(scope="session")
-def pyramid_app():
+def monkeysession():
+    # It's planned to include this on pytest directly
+    # https://github.com/pytest-dev/pytest/issues/363
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
+@pytest.fixture(scope="session")
+def pyramid_app(environment):  # pylint: disable=unused-argument
     return create_app(None, **TEST_SETTINGS)
 
 
@@ -34,6 +44,12 @@ def app(pyramid_app, db_engine):
     db.init(db_engine)
 
     return TestApp(pyramid_app)
+
+
+@pytest.fixture(scope="session")
+def environment(monkeysession):
+    monkeysession.setenv("LMS_SECRET", TEST_SETTINGS["lms_secret"])
+    monkeysession.setenv("USERNAME", TEST_SETTINGS["username"])
 
 
 @pytest.fixture
