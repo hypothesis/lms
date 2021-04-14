@@ -4,7 +4,7 @@ from pyramid.authentication import AuthTicket
 class TestReports:
     def test_it_allows_whitelisted_user(self, app):
         cookie_token = AuthTicket(
-            "TEST_LMS_SECRET", "jeremy", "0.0.0.0", hashalg="sha512"
+            "TEST_LMS_SECRET", "report_viewer", "0.0.0.0", hashalg="sha512"
         ).cookie_value()
 
         app.set_cookie("auth_tkt", cookie_token)
