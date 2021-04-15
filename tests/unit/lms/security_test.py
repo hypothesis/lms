@@ -6,13 +6,13 @@ from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
 from lms.security import (
+    AuthTktCookieSecurityPolicy,
     Identity,
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
-    TktSecurityPolicy,
-    authenticated_userid,
-    get_lti_user,
+    _authenticated_userid,
+    _get_lti_user,
     includeme,
 )
 from lms.validation import ValidationError
@@ -34,9 +34,9 @@ class TestIncludeMe:
         return patch("lms.security.SecurityPolicy")
 
 
-class TestTktSecurityPolicy:
+class TestAuthTktCookieSecurityPolicy:
     def test_it_returns_empty_identity_no_cookie(self, pyramid_request):
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         identity = policy.identity(pyramid_request)
 
@@ -48,7 +48,7 @@ class TestTktSecurityPolicy:
     ):
         AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
 
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         identity = policy.identity(pyramid_request)
 
@@ -62,7 +62,7 @@ class TestTktSecurityPolicy:
             "userid": "report_viewer"
         }
 
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         identity = policy.identity(pyramid_request)
 
@@ -74,7 +74,7 @@ class TestTktSecurityPolicy:
             "testuser", identity=Identity("testuser", [])
         )
 
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         userid = policy.authenticated_userid(pyramid_request)
 
@@ -85,7 +85,7 @@ class TestTktSecurityPolicy:
             "testuser", identity=Identity("testuser", ["some-permission"])
         )
 
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
@@ -96,19 +96,21 @@ class TestTktSecurityPolicy:
             "testuser", identity=Identity("testuser", [])
         )
 
-        policy = TktSecurityPolicy("TEST_LMS_SECRET")
+        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
         assert is_allowed == Denied("denied")
 
     def test_remember(self, pyramid_request, AuthTktCookieHelper):
-        TktSecurityPolicy("TEST_LMS_SECRET").remember(pyramid_request, "TEST_USERID")
+        AuthTktCookieSecurityPolicy("TEST_LMS_SECRET").remember(
+            pyramid_request, "TEST_USERID"
+        )
 
         AuthTktCookieHelper.return_value.remember.assert_called_once()
 
     def test_forget(self, pyramid_request, AuthTktCookieHelper):
-        TktSecurityPolicy("TEST_LMS_SECRET").forget(pyramid_request)
+        AuthTktCookieSecurityPolicy("TEST_LMS_SECRET").forget(pyramid_request)
 
         AuthTktCookieHelper.return_value.forget.assert_called_once()
 
@@ -178,7 +180,7 @@ class TestLTISecurityPolicy:
 
     @pytest.fixture(autouse=True)
     def _authenticated_userid(self, patch):
-        return patch("lms.security.authenticated_userid")
+        return patch("lms.security._authenticated_userid")
 
 
 class TestSecurityPolicy:
@@ -194,7 +196,7 @@ class TestSecurityPolicy:
         )
         assert user_id == "user"
 
-    def test_it_falls_back_on_TktSecurityPolicy(
+    def test_it_falls_back_on_AuthTktCookieSecurityPolicy(
         self,
         tkt_security_policy,
         lti_security_policy,
@@ -227,7 +229,7 @@ class TestSecurityPolicy:
         )
         tkt_security_policy.remember.assert_not_called()
 
-    def test_remember_falls_back_on_TktSecurityPolicy(
+    def test_remember_falls_back_on_AuthTktCookieSecurityPolicy(
         self, policy, lti_security_policy, tkt_security_policy
     ):
         lti_security_policy.authenticated_userid.return_value = None
@@ -253,7 +255,7 @@ class TestSecurityPolicy:
         lti_security_policy.forget.assert_called_once_with(mock.sentinel.request)
         tkt_security_policy.forget.assert_not_called()
 
-    def test_forget_falls_back_on_TktSecurityPolicy(
+    def test_forget_falls_back_on_AuthTktCookieSecurityPolicy(
         self, policy, lti_security_policy, tkt_security_policy
     ):
         lti_security_policy.authenticated_userid.return_value = None
@@ -295,12 +297,12 @@ class TestSecurityPolicy:
         return SecurityPolicy("TEST_SECRET")
 
     @pytest.fixture(autouse=True)
-    def TktSecurityPolicy(self, patch):
-        return patch("lms.security.TktSecurityPolicy")
+    def AuthTktCookieSecurityPolicy(self, patch):
+        return patch("lms.security.AuthTktCookieSecurityPolicy")
 
     @pytest.fixture
-    def tkt_security_policy(self, TktSecurityPolicy):
-        return TktSecurityPolicy.return_value
+    def tkt_security_policy(self, AuthTktCookieSecurityPolicy):
+        return AuthTktCookieSecurityPolicy.return_value
 
     @pytest.fixture(autouse=True)
     def LTISecurityPolicy(self, patch):
@@ -332,7 +334,7 @@ class TestAuthenticatedUserID:
         ],
     )
     def test_it(self, lti_user, expected_userid):
-        assert authenticated_userid(lti_user) == expected_userid
+        assert _authenticated_userid(lti_user) == expected_userid
 
 
 class TestGetLTIUser:
@@ -347,7 +349,7 @@ class TestGetLTIUser:
             ["TEST_ERROR_MESSAGE"]
         )
 
-        lti_user = get_lti_user(pyramid_request)
+        lti_user = _get_lti_user(pyramid_request)
 
         LaunchParamsAuthSchema.assert_called_once_with(pyramid_request)
         launch_params_auth_schema.lti_user.assert_called_once_with()
@@ -364,7 +366,7 @@ class TestGetLTIUser:
             ["TEST_ERROR_MESSAGE"]
         )
 
-        lti_user = get_lti_user(pyramid_request)
+        lti_user = _get_lti_user(pyramid_request)
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.lti_user.assert_called_once_with(location="headers")
@@ -383,7 +385,7 @@ class TestGetLTIUser:
             ValidationError(["TEST_ERROR_MESSAGE"]),
         ]
 
-        returned_lti_user = get_lti_user(pyramid_request)
+        returned_lti_user = _get_lti_user(pyramid_request)
 
         assert bearer_token_schema.lti_user.call_args_list == [
             call(location="headers"),
@@ -404,7 +406,7 @@ class TestGetLTIUser:
             lti_user,
         ]
 
-        returned_lti_user = get_lti_user(pyramid_request)
+        returned_lti_user = _get_lti_user(pyramid_request)
 
         assert bearer_token_schema.lti_user.call_args_list == [
             call(location="headers"),
@@ -428,7 +430,7 @@ class TestGetLTIUser:
             ["TEST_ERROR_MESSAGE"]
         )
 
-        lti_user = get_lti_user(pyramid_request)
+        lti_user = _get_lti_user(pyramid_request)
 
         CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
         canvas_oauth_callback_schema.lti_user.assert_called_once_with()
@@ -451,13 +453,13 @@ class TestGetLTIUser:
             ["TEST_ERROR_MESSAGE"]
         )
 
-        assert get_lti_user(pyramid_request) is None
+        assert _get_lti_user(pyramid_request) is None
 
     def test_LaunchParamsAuthSchema_overrides_BearerTokenSchema(
         self, launch_params_auth_schema, pyramid_request
     ):
         assert (
-            get_lti_user(pyramid_request)
+            _get_lti_user(pyramid_request)
             == launch_params_auth_schema.lti_user.return_value
         )
 
