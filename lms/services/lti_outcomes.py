@@ -147,7 +147,19 @@ class LTIOutcomesClient:
             raise LTIOutcomesAPIError("Malformed LTI outcome response") from err
 
         if status != "success":
-            raise LTIOutcomesAPIError("LTI outcome request failed")
+            description = None
+            try:
+                # Look for an imsx_description to pass along to the client, but it is possible this field
+                # may not exist.
+                description = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
+                    "imsx_description"
+                ]
+            except KeyError as err:
+                pass
+
+            raise LTIOutcomesAPIError(
+                explanation="LTI outcome request failed", details=description
+            )
 
         return body
 

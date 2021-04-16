@@ -127,24 +127,46 @@ class TestLTIOutcomesClient:
             content_type="application/json",
             priority=1,
         )
-        with pytest.raises(LTIOutcomesAPIError):
+        with pytest.raises(
+            LTIOutcomesAPIError,
+            match="Unable to parse XML response from LTI Outcomes service",
+        ):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_no_status(self, svc, respond_with):
         respond_with(include_status=False)
-        with pytest.raises(LTIOutcomesAPIError):
+        with pytest.raises(LTIOutcomesAPIError, match="Malformed LTI outcome response"):
+            svc.read_result(self.GRADING_ID)
+
+    def test_requests_fail_if_response_is_malformed(self, svc, respond_with):
+        respond_with(malformed=True)
+
+        with pytest.raises(LTIOutcomesAPIError, match="Malformed LTI outcome response"):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_status_is_not_success(self, svc, respond_with):
         respond_with(status_code="failure")
 
-        with pytest.raises(LTIOutcomesAPIError):
+        # LTI outcome request failed
+        with pytest.raises(
+            LTIOutcomesAPIError,
+            match="<imsx_description>An error occurred.</imsx_description>",
+        ):
+            svc.read_result(self.GRADING_ID)
+
+    def test_requests_fail_and_no_description_returned(self, svc, respond_with):
+        respond_with(status_code="failure", include_description=False)
+
+        # imsx_description is missing
+        with pytest.raises(LTIOutcomesAPIError, match="LTI outcome request failed"):
             svc.read_result(self.GRADING_ID)
 
     def test_it_gracefully_handles_RequestException(self, requests, svc):
         requests.post.side_effect = RequestException
 
-        with pytest.raises(LTIOutcomesAPIError):
+        with pytest.raises(
+            LTIOutcomesAPIError, match="Error calling LTI Outcomes service"
+        ):
             svc.read_result(self.GRADING_ID)
 
     @classmethod
@@ -167,17 +189,22 @@ class TestLTIOutcomesClient:
         assert message_id == "999999123"
 
     @classmethod
-    def make_response(cls, score, include_score, include_status, status_code):
+    def make_response(
+        cls, score, include_score, include_status, status_code, include_description
+    ):
         header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
 
         if include_status:
             header_info["imsx_statusInfo"] = {
                 "imsx_codeMajor": status_code,
                 "imsx_severity": "status",
-                "imsx_description": "Result read",
                 "imsx_messageRefIdentifier": "999999123",
                 "imsx_operationRefIdentifier": "readResult",
             }
+            if include_description:
+                header_info["imsx_statusInfo"][
+                    "imsx_description"
+                ] = "An error occurred."
 
         result_score = {"language": "en"}
         if include_score:
@@ -195,6 +222,20 @@ class TestLTIOutcomesClient:
             }
         )
 
+    @classmethod
+    def make_malformed_response(cls):
+        return xmltodict.unparse(
+            {
+                # "imsx_POXEnvelopeResponse" is the expected key. This erroneous value is inspired
+                # by Blackbaud.
+                "imsx_POXEnvelopeRequest": {
+                    "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
+                    "imsx_POXHeader": {},
+                    "imsx_POXBody": {},
+                }
+            }
+        )
+
     @pytest.fixture
     def response(self, respond_with):
         respond_with()
@@ -207,10 +248,21 @@ class TestLTIOutcomesClient:
             include_status=True,
             status_code="success",
             status=200,
+            malformed=False,
+            include_description=True,
         ):
-            response_body = self.make_response(
-                score, include_score, include_status, status_code
-            )
+            response_body = None
+
+            if malformed:
+                response_body = self.make_malformed_response()
+            else:
+                response_body = self.make_response(
+                    score,
+                    include_score,
+                    include_status,
+                    status_code,
+                    include_description,
+                )
 
             httpretty.register_uri(
                 httpretty.POST,
