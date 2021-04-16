@@ -67,7 +67,7 @@ h-api==1.0.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-h-matchers==1.2.10
+h-matchers==1.2.11
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
