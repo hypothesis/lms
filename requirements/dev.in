@@ -1,4 +1,4 @@
 factory-boy
-pyramid_ipython
+pyramid-ipython
 supervisor
 -r requirements.txt
