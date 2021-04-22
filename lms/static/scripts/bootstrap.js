@@ -9,8 +9,9 @@ import { Adapter } from 'enzyme-adapter-preact-pure';
 configure({ adapter: new Adapter() });
 
 // Register the same set of icons that is available in the app.
-import { registerIcons } from './frontend_apps/components/SvgIcon';
+import { registerIcons } from '@hypothesis/frontend-shared';
 import iconSet from './frontend_apps/icons';
+
 registerIcons(iconSet);
 
 // Ensure that uncaught exceptions between tests result in the tests failing.
