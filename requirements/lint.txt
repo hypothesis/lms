@@ -72,7 +72,7 @@ h-matchers==1.2.11
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-h-pyramid-sentry==1.2.1
+h-pyramid-sentry==1.2.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

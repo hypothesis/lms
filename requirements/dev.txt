@@ -37,7 +37,7 @@ gunicorn==20.1.0
     # via -r requirements/requirements.txt
 h-api==1.0.0
     # via -r requirements/requirements.txt
-h-pyramid-sentry==1.2.1
+h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.txt
 h-vialib==1.0.15
     # via -r requirements/requirements.txt
