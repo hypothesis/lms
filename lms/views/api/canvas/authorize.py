@@ -31,6 +31,8 @@ SECTIONS_SCOPES = (
     "url:GET|/api/v1/courses/:course_id/users/:id",
 )
 
+GROUPS_SCOPES = ("url:GET|/api/v1/courses/:course_id/group_categories",)
+
 
 @view_config(
     request_method="GET",
@@ -50,6 +52,9 @@ def authorize(request):
         or course_service.any_with_setting("canvas", "sections_enabled", True)
     ):
         scopes += SECTIONS_SCOPES
+
+    if ai_getter.settings().get("canvas", "groups_enabled"):
+        scopes += GROUPS_SCOPES
 
     auth_url = urlunparse(
         (

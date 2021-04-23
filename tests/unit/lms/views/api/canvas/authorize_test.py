@@ -8,6 +8,7 @@ from lms.models import ApplicationSettings
 from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
+from lms.views.api.canvas.authorize import GROUPS_SCOPES
 
 pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "canvas_api_client")
 
@@ -63,6 +64,10 @@ class TestAuthorize:
     ):
         self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
+    @pytest.mark.usefixtures("groups_enabled")
+    def test_course_with_groups_enabled_triggers_groups_scopes(self, pyramid_request):
+        self.assert_groups_scopes(authorize.authorize(pyramid_request))
+
     @pytest.mark.usefixtures("sections_not_supported")
     def test_no_sections_scopes_if_sections_is_disabled(self, pyramid_request):
         self.assert_file_scopes_only(authorize.authorize(pyramid_request))
@@ -95,6 +100,11 @@ class TestAuthorize:
             "url:GET|/api/v1/courses/:course_id/users/:id"
         ]
 
+    def assert_groups_scopes(self, response):
+        query_params = parse_qs(urlparse(response.location).query)
+
+        assert set(GROUPS_SCOPES).issubset(set(query_params["scope"][0].split()))
+
     def assert_file_scopes_only(self, response):
         query_params = parse_qs(urlparse(response.location).query)
         assert query_params["scope"] == [
@@ -108,6 +118,12 @@ class TestAuthorize:
     @pytest.fixture
     def sections_disabled(self, ai_getter):
         ai_getter.settings.return_value = ApplicationSettings({})
+
+    @pytest.fixture
+    def groups_enabled(self, ai_getter):
+        ai_getter.settings.return_value = ApplicationSettings(
+            {"canvas": {"groups_enabled": True}}
+        )
 
     @pytest.fixture
     def no_courses_with_sections_enabled(self, course_service):

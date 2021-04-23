@@ -120,6 +120,27 @@ class TestCanvasAPIClient:
         with pytest.raises(CanvasAPIError):
             canvas_api_client.course_sections("dummy")
 
+    def test_group_categories_list(self, canvas_api_client, http_session):
+        group_categories = [
+            {"id": 1, "name": "Group category 1"},
+            {"id": 2, "name": "Group category 2"},
+        ]
+        http_session.set_response(group_categories)
+
+        response = canvas_api_client.course_group_categories("COURSE_ID")
+
+        assert response == group_categories
+
+        http_session.send.assert_called_once_with(
+            Any.request(
+                "GET",
+                url=Any.url.with_path(
+                    "api/v1/courses/COURSE_ID/group_categories"
+                ).with_query({"per_page": Any.string()}),
+            ),
+            timeout=Any(),
+        )
+
     def test_users_sections(self, canvas_api_client, http_session):
         http_session.set_response(
             {
@@ -264,6 +285,7 @@ class TestMetaBehavior:
     methods = {
         "authenticated_users_sections": ["course_id"],
         "course_sections": ["course_id"],
+        "course_group_categories": ["course_id"],
         "users_sections": ["user_id", "course_id"],
         "list_files": ["course_id"],
         "public_url": ["file_id"],
