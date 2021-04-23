@@ -255,6 +255,19 @@ class CanvasAPIClient:
 
         public_url = fields.Str(required=True)
 
+    def course_group_categories(self, course_id):
+        return self._client.send(
+            "GET",
+            f"courses/{course_id}/group_categories",
+            schema=self._ListGroupCategories,
+        )
+
+    class _ListGroupCategories(RequestsResponseSchema):
+        many = True
+
+        id = fields.Integer(required=True)
+        name = fields.Str(required=True)
+
     @classmethod
     def _ensure_sections_unique(cls, sections):
         """
