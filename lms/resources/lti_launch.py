@@ -1,7 +1,6 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-from lms.models import HGroup
 from lms.resources._js_config import JSConfig
 
 
@@ -49,10 +48,11 @@ class LTILaunchResource:
         # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
         # and context_id uniquely identifies a course within an LMS. Together they
         # globally uniquely identify a course.
+        h_group_service = self._request.find_service(name="h_group_service")
 
         params = self._request.parsed_params
 
-        return HGroup.course_group(
+        return h_group_service.course_group(
             course_name=params["context_title"],
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],

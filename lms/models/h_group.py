@@ -1,61 +1,24 @@
-from typing import NamedTuple
+import sqlalchemy as sa
 
-from lms.models._hashed_id import hashed_id
-
-MAX_GROUP_NAME_LENGTH = 25
+from lms.db import BASE, TimestampedModelMixin
 
 
-class HGroup(NamedTuple):
-    name: str
-    authority_provided_id: str
-    type: str
+class HGroup(TimestampedModelMixin, BASE):
+    __tablename__ = "h_group"
+    __table_args__ = (sa.UniqueConstraint("name", "authority_provided_id"),)
+
+    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+
+    name = sa.Column(
+        sa.String(),
+        nullable=False,
+    )
+    authority_provided_id = sa.Column(sa.UnicodeText(), nullable=False)
+
+    type = sa.Column(
+        sa.String(),
+        nullable=False,
+    )
 
     def groupid(self, authority):
         return f"group:{self.authority_provided_id}@{authority}"
-
-    @classmethod
-    def course_group(cls, course_name, tool_consumer_instance_guid, context_id):
-        """
-        Create an HGroup for a course.
-
-        :param course_name: The name of the course
-        :param tool_consumer_instance_guid: Tool consumer GUID
-        :param context_id: Course id
-        """
-        return HGroup(
-            cls._name(course_name),
-            hashed_id(tool_consumer_instance_guid, context_id),
-            type="course_group",
-        )
-
-    @classmethod
-    def section_group(
-        cls, section_name, tool_consumer_instance_guid, context_id, section_id
-    ):
-        """
-        Create an HGroup for a course section.
-
-        :param section_name: The name of the section
-        :param tool_consumer_instance_guid: Tool consumer GUID
-        :param context_id: Course id the section is a part of
-        :param section_id: A section id for a section group
-        """
-        return HGroup(
-            cls._name(section_name),
-            hashed_id(tool_consumer_instance_guid, context_id, section_id),
-            type="section_group",
-        )
-
-    @classmethod
-    def _name(cls, name):
-        """Return an h-compatible group name from the given string."""
-
-        if name is None:
-            raise ValueError("Name is mandatory to create a group")
-
-        name = name.strip()
-
-        if len(name) > MAX_GROUP_NAME_LENGTH:
-            return name[: MAX_GROUP_NAME_LENGTH - 1].rstrip() + "…"
-
-        return name

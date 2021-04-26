@@ -54,3 +54,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.grant_token.factory", name="grant_token"
     )
+    config.register_service_factory(
+        "lms.services.h_group.factory", name="h_group_service"
+    )

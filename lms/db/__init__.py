@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
+from sqlalchemy.sql import func
 
 __all__ = ("BASE", "init")
 
@@ -86,6 +87,13 @@ BASE = declarative_base(
 
 
 SESSION = sessionmaker()
+
+
+class TimestampedModelMixin:
+    created_at = sqlalchemy.Column(sqlalchemy.DateTime, default=func.now())
+    updated_at = sqlalchemy.Column(
+        sqlalchemy.DateTime(timezone=True), onupdate=func.now()
+    )
 
 
 def init(engine, drop=False):

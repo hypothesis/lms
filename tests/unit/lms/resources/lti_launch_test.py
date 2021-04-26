@@ -6,15 +6,15 @@ from pytest import param
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
+pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "h_group_service")
 
 
 class TestHGroup:
     @pytest.mark.usefixtures("has_course")
-    def test_it(self, lti_launch, HGroup, pyramid_request):
-        assert lti_launch.h_group == HGroup.course_group.return_value
+    def test_it(self, lti_launch, pyramid_request, h_group_service):
+        assert lti_launch.h_group == h_group_service.course_group.return_value
 
-        HGroup.course_group.assert_called_once_with(
+        h_group_service.course_group.assert_called_once_with(
             course_name="test_context_title",
             tool_consumer_instance_guid=pyramid_request.parsed_params[
                 "tool_consumer_instance_guid"
@@ -173,11 +173,6 @@ class TestCanvasSectionsEnabled:
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)
-
-
-@pytest.fixture(autouse=True)
-def HGroup(patch):
-    return patch("lms.resources.lti_launch.HGroup")
 
 
 @pytest.fixture(autouse=True)

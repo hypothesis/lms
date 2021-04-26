@@ -16,6 +16,7 @@ from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
+from lms.services.h_group import HGroupService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
@@ -249,6 +250,13 @@ def lti_h_service(pyramid_config):
     lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
     pyramid_config.register_service(lti_h_service, name="lti_h")
     return lti_h_service
+
+
+@pytest.fixture
+def h_group_service(pyramid_config):
+    h_group_service = mock.create_autospec(HGroupService, instance=True, spec_set=True)
+    pyramid_config.register_service(h_group_service, name="h_group_service")
+    return h_group_service
 
 
 @pytest.fixture

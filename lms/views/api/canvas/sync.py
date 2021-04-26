@@ -1,12 +1,12 @@
 from pyramid.view import view_config
 
-from lms.models import HGroup
 from lms.security import Permissions
 
 
 class Sync:
     def __init__(self, request):
         self._request = request
+        self._h_group_service = self._request.find_service(name="h_group_service")
 
     @view_config(
         route_name="canvas_api.sync",
@@ -57,7 +57,7 @@ class Sync:
         context_id = self._request.json["course"]["context_id"]
 
         return [
-            HGroup.section_group(
+            self._h_group_service.section_group(
                 section_name=section["name"],
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
