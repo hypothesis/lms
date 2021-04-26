@@ -1,4 +1,4 @@
-pylint<2.8
+pylint<2.9
 pydocstyle
 pycodestyle
 -r tests.txt
