@@ -28,6 +28,9 @@
 // Element styles
 @use 'variables' as var;
 
+// Shared styles from frontend-shared package
+@use '@hypothesis/frontend-shared/styles';
+
 body {
   font-family: var.$sans-font-family;
   font-size: var.$normal-font-size;

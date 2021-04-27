@@ -66,18 +66,16 @@ describe('Dialog', () => {
     assert.called(onCancel);
   });
 
-  it(`defaults cancel button's label to "Cancel"`, () => {
+  it(`defaults cancel button's text to "Cancel"`, () => {
     const wrapper = mount(<Dialog onCancel={sinon.stub()} />);
-    wrapper.find('.Dialog__cancel-btn');
-    assert.equal(wrapper.find('Button').prop('label'), 'Cancel');
+    assert.equal(wrapper.find('LabeledButton').text(), 'Cancel');
   });
 
-  it('adds a custom label to the cancel button', () => {
+  it('adds custom text to the cancel button', () => {
     const wrapper = mount(
       <Dialog onCancel={sinon.stub()} cancelLabel="hello" />
     );
-    wrapper.find('.Dialog__cancel-btn');
-    assert.equal(wrapper.find('Button').prop('label'), 'hello');
+    assert.equal(wrapper.find('LabeledButton').text(), 'hello');
   });
 
   describe('initial focus', () => {

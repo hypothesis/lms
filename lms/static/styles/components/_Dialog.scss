@@ -1,3 +1,4 @@
+@use '@hypothesis/frontend-shared/styles/components/buttons';
 @use "@hypothesis/frontend-shared/styles/mixins/focus";
 
 @use "../mixins";
@@ -68,10 +69,8 @@
   justify-content: flex-end;
   margin-top: 10px;
 
-  .Button {
-    @include focus.outline-on-keyboard-focus;
-    &:not(:first-child) {
-      margin-left: 5px;
-    }
+  > *:not(:first-child) {
+    // Apply left margin to each action item of any DOM type except the first.
+    margin-left: 5px;
   }
 }
