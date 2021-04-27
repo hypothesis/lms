@@ -12,10 +12,6 @@ class LTILaunchVerificationError(ServiceError):
     """
 
 
-class NoConsumerKey(LTILaunchVerificationError):
-    """Raised when a launch request has no ``oauth_consumer_key`` parameter."""
-
-
 class ConsumerKeyError(LTILaunchVerificationError):
     """Raised when a given ``consumer_key`` doesn't exist in the DB."""
 

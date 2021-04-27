@@ -1,220 +1,209 @@
 import time
-from unittest import mock
+from collections import OrderedDict
+from unittest.mock import create_autospec, sentinel
 from urllib.parse import urlencode
 
 import oauthlib.common
 import oauthlib.oauth1
 import pytest
-from pylti.common import LTIException
+from oauthlib.oauth1 import SignatureOnlyEndpoint
 
 from lms.models import ApplicationInstance
-from lms.services import ConsumerKeyError, LTIOAuthError, NoConsumerKey
+from lms.services import ConsumerKeyError, LTIOAuthError
 from lms.services.launch_verifier import LaunchVerifier
 
 ONE_HOUR_AGO = str(int(time.time() - 60 * 60))
 
 
 class TestVerifyLaunchRequest:
-    def test_it_doesnt_raise_if_the_request_is_valid(self, launch_verifier):
-        launch_verifier.verify()
+    def test_it(self, verify, pyramid_request, ApplicationInstance):
+        verify()
 
-    def test_it_raises_if_theres_no_oauth_consumer_key(
-        self, launch_verifier, pyramid_request
-    ):
-        del pyramid_request.params["oauth_consumer_key"]
-
-        with pytest.raises(NoConsumerKey):
-            launch_verifier.verify()
-
-    def test_it_gets_the_shared_secret_from_the_db(
-        self, launch_verifier, pyramid_request, models
-    ):
-        launch_verifier.verify()
-
-        models.ApplicationInstance.get_by_consumer_key.assert_called_once_with(
+        ApplicationInstance.get_by_consumer_key.assert_called_once_with(
             pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY"
         )
 
-    def test_it_raises_if_the_consumer_key_isnt_in_the_db(
-        self, launch_verifier, models
+    def test_it_raises_if_the_request_is_a_get(self, verify, pyramid_request):
+        pyramid_request.method = "GET"
+
+        with pytest.raises(LTIOAuthError):
+            verify()
+
+    def test_it_raises_if_the_content_type_is_not_form(self, verify, pyramid_request):
+        del pyramid_request.headers["Content-Type"]
+
+        with pytest.raises(LTIOAuthError):
+            verify()
+
+    def test_it_raises_if_the_consumer_key_is_not_in_the_db(
+        self, verify, ApplicationInstance
     ):
-        models.ApplicationInstance.get_by_consumer_key.return_value = None
+        ApplicationInstance.get_by_consumer_key.return_value = None
 
         with pytest.raises(ConsumerKeyError):
-            launch_verifier.verify()
+            verify()
 
-    def test_it_raises_if_the_oauth_signature_is_wrong(
-        self, launch_verifier, pyramid_request
-    ):
-        pyramid_request.params["oauth_signature"] = "wrong"
+    def test_it_raises_if_the_oauth_signature_is_wrong(self, verify, form_values):
+        form_values["oauth_signature"] = "wrong"
 
         with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
+            verify()
 
-    def test_it_raises_if_the_oauth_timestamp_has_expired(
-        self, launch_verifier, pyramid_request
-    ):
-        pyramid_request.params["oauth_timestamp"] = ONE_HOUR_AGO
-        sign(pyramid_request)
+    def test_it_raises_if_theres_no_oauth_consumer_key(self, verify, form_values):
+        del form_values["oauth_consumer_key"]
 
         with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
+            verify()
 
-    def test_it_raises_if_theres_no_oauth_timestamp(
-        self, launch_verifier, pyramid_request
-    ):
-        del pyramid_request.params["oauth_timestamp"]
-        sign(pyramid_request)
+    def test_it_doesnt_raise_if_theres_no_oauth_version(self, verify, form_values):
+        # This defaults to the correct value if not given.
+        del form_values["oauth_version"]
+        form_values.sign()
 
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
+        verify()
 
-    def test_it_raises_if_theres_no_oauth_nonce(self, launch_verifier, pyramid_request):
-        del pyramid_request.params["oauth_nonce"]
-        sign(pyramid_request)
-
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-
-    def test_it_raises_if_oauth_version_is_wrong(
-        self, launch_verifier, pyramid_request
-    ):
-        pyramid_request.params["oauth_version"] = "wrong"
-        sign(pyramid_request)
+    @pytest.mark.parametrize(
+        "param", ("oauth_timestamp", "oauth_nonce", "oauth_signature_method")
+    )
+    def test_it_raises_if_oauth_param_missing(self, verify, form_values, param):
+        del form_values[param]
+        form_values.sign()
 
         with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
+            verify()
 
-    def test_it_doesnt_raise_if_theres_no_oauth_version(
-        self, launch_verifier, pyramid_request
-    ):
-        # oauth_version defaults to the correct value if not given.
-        del pyramid_request.params["oauth_version"]
-        sign(pyramid_request)
-
-        launch_verifier.verify()
-
-    def test_it_raises_if_oauth_signature_method_is_wrong(
-        self, launch_verifier, pyramid_request
-    ):
-        pyramid_request.params["oauth_signature_method"] = "wrong"
-        sign(pyramid_request)
+    @pytest.mark.parametrize(
+        "param,value",
+        (
+            ("oauth_timestamp", "ONE_HOUR_AGO"),
+            ("oauth_version", "wrong"),
+            ("oauth_signature_method", "wrong"),
+        ),
+    )
+    def test_it_raises_if_oauth_param_is_wrong(self, verify, form_values, param, value):
+        form_values[param] = value
+        form_values.sign()
 
         with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-
-    def test_it_raises_if_theres_no_oauth_signature_method(
-        self, launch_verifier, pyramid_request
-    ):
-        del pyramid_request.params["oauth_signature_method"]
-        sign(pyramid_request)
-
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-
-    def test_it_raises_if_pylti_returns_False(self, launch_verifier, pylti):
-        pylti.common.verify_request_common.return_value = False
-
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-
-    def test_it_caches_a_successful_verification_result(self, launch_verifier, pylti):
-        # Even if verify_lti_launch_request() is called multiple times, the
-        # actual verification is done only once per request.
-        launch_verifier.verify()
-        launch_verifier.verify()
-        launch_verifier.verify()
-
-        assert pylti.common.verify_request_common.call_count == 1
-
-    def test_it_caches_a_failed_verification_result(self, launch_verifier, pylti):
-        pylti.common.verify_request_common.side_effect = LTIException()
-
-        # Even if verify_lti_launch_request() is called multiple times, the
-        # actual verification is done only once per request.
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-        with pytest.raises(LTIOAuthError):
-            launch_verifier.verify()
-
-        assert pylti.common.verify_request_common.call_count == 1
+            verify()
 
     # See https://github.com/hypothesis/lms/issues/689
     def test_it_verifies_urls_with_percent_encoded_chars_in_params(
-        self, pyramid_request
+        self, verify, form_values
     ):
         # Add a "url" query parameter where the value, after decoding the query
         # string, contains percent-encoded chars.
-        params = {"url": "https://en.wikipedia.org/wiki/G%C3%B6reme_National_Park"}
-        pyramid_request.POST.update(params)
+        form_values["url"] = "https://en.wikipedia.org/wiki/G%C3%B6reme_National_Park"
+        form_values.sign()
 
-        # Sign the pyramid_request using oauthlib.
-        sign(pyramid_request)
-
-        # Update `pyramid_request.url` to include the query string.
-        # We do this after signing because oauthlib will, correctly,
-        # include both the "url" param from `pyramid_request.params` and the "url"
-        # param from the query string. PyLTI however will only retain one copy
-        # when generating the signature for verification.
-        pyramid_request.url += "?" + urlencode(params)
-
-        launch_verifier = LaunchVerifier(mock.sentinel.context, pyramid_request)
-        launch_verifier.verify()
+        verify()
 
     @pytest.fixture
-    def launch_verifier(self, pyramid_request):
-        return LaunchVerifier(mock.sentinel.context, pyramid_request)
+    def form_values(self, ApplicationInstance):
+        form_values = OrderedDict(
+            {
+                "oauth_nonce": "11860869681061452641619619597",
+                "oauth_timestamp": str(int(time.time())),
+                "oauth_version": "1.0",
+                "oauth_signature_method": "HMAC-SHA1",
+                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+            }
+        )
+
+        shared_secret = (
+            ApplicationInstance.get_by_consumer_key.return_value.shared_secret
+        )
+
+        def sign(form_values):
+            client = oauthlib.oauth1.Client(
+                form_values["oauth_consumer_key"], shared_secret
+            )
+            form_values["oauth_signature"] = client.get_oauth_signature(
+                oauthlib.common.Request(
+                    # Note the URL here does not match the `pyramid_request`
+                    uri="http://example.com",
+                    http_method="POST",
+                    body=form_values,
+                )
+            )
+
+        sign(form_values)
+        form_values.sign = lambda: sign(form_values)
+
+        return form_values
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        # `pyramid.testing.DummyRequest` sets `url` and `path_url` attrs without
-        # a path by default. oauthlib however normalizes the URL to include a
-        # path when it generates the signature base string, whereas PyLTI does
-        # not. Add an empty path to both to match a real application.
-        pyramid_request.url += "/"
-        pyramid_request.path_url += "/"
+    def verify(self, pyramid_request, form_values):
+        verifier = LaunchVerifier(sentinel.context, pyramid_request)
 
-        # Add the OAuth 1 params (version, nonce, timestamp, ...)
-        oauthlib_client = oauthlib.oauth1.Client(
-            pyramid_request.params["oauth_consumer_key"]
-        )
-        oauthlib_request = oauthlib.common.Request(
-            pyramid_request.url, pyramid_request.method
-        )
-        pyramid_request.params = dict(
-            oauthlib_client.get_oauth_params(oauthlib_request)
-        )
+        def verify():
+            # Make sure any changes to the form values are reflected in the
+            # body before we send it
+            pyramid_request.body = urlencode(form_values)
 
-        sign(pyramid_request)
+            verifier.verify()
 
-        return pyramid_request
+        return verify
+
+    @pytest.fixture(autouse=True)
+    def ApplicationInstance(self, patch):
+        models = patch("lms.services.launch_verifier.models")
+        models.ApplicationInstance.get_by_consumer_key.return_value = create_autospec(
+            ApplicationInstance,
+            instance=True,
+            spec_set=True,
+            shared_secret="TEST_SECRET",
+        )
+        return models.ApplicationInstance
+
+
+class TestVerifyLaunchRequestMocked:
+    def test_it_raises_if_pylti_returns_False(self, verifier, oauth_endpoint):
+        oauth_endpoint.validate_request.return_value = False, None
+
+        with pytest.raises(LTIOAuthError):
+            verifier.verify()
+
+    def test_it_caches_a_successful_verification_result(self, verifier, oauth_endpoint):
+        oauth_endpoint.validate_request.return_value = True, sentinel.request
+        # Even if verify_lti_launch_request() is called multiple times, the
+        # actual verification is done only once per request.
+        verifier.verify()
+        verifier.verify()
+
+        assert oauth_endpoint.validate_request.call_count == 1
+
+    def test_it_caches_a_failed_verification_result(self, verifier, oauth_endpoint):
+        oauth_endpoint.validate_request.side_effect = ConsumerKeyError()
+
+        # Even if verify_lti_launch_request() is called multiple times, the
+        # actual verification is done only once per request.
+        with pytest.raises(ConsumerKeyError):
+            verifier.verify()
+        with pytest.raises(ConsumerKeyError):
+            verifier.verify()
+
+        assert oauth_endpoint.validate_request.call_count == 1
 
     @pytest.fixture
-    def pylti(self, patch):
-        pylti = patch("lms.services.launch_verifier.pylti")
-        pylti.common.LTIException = LTIException
-        return pylti
+    def oauth_endpoint(self, verifier):
+        oauth_endpoint = create_autospec(
+            SignatureOnlyEndpoint, instance=True, spec_set=True
+        )
+        # pylint: disable=protected-access
+        verifier._oauth1_endpoint = oauth_endpoint
+
+        return oauth_endpoint
+
+    @pytest.fixture
+    def verifier(self, pyramid_request):
+        return LaunchVerifier(sentinel.context, pyramid_request)
 
 
-def sign(pyramid_request):
-    """Add or replace pyramid_request's OAuth 1 signature param."""
-    oauthlib_client = oauthlib.oauth1.Client(
-        pyramid_request.params["oauth_consumer_key"], "TEST_SECRET"
-    )
-    oauthlib_request = oauthlib.common.Request(
-        pyramid_request.url, pyramid_request.method, body=pyramid_request.params
-    )
-    pyramid_request.params["oauth_signature"] = oauthlib_client.get_oauth_signature(
-        oauthlib_request
-    )
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.method = "POST"
+    pyramid_request.headers["Content-Type"] = "application/x-www-form-urlencoded"
+    pyramid_request.url = "http://example.com?some=noise"
 
-
-@pytest.fixture(autouse=True)
-def models(patch):
-    models = patch("lms.services.launch_verifier.models")
-    models.ApplicationInstance.get_by_consumer_key.return_value = mock.create_autospec(
-        ApplicationInstance, instance=True, spec_set=True, shared_secret="TEST_SECRET"
-    )
-    return models
+    return pyramid_request
