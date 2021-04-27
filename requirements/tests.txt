@@ -117,7 +117,7 @@ psycopg2==2.8.6
     # via -r requirements/requirements.txt
 py==1.10.0
     # via pytest
-pycrypto==2.6.1
+pycryptodome==3.10.1
     # via -r requirements/requirements.txt
 pyjwt==2.0.1
     # via
