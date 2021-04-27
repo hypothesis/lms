@@ -17,6 +17,6 @@ PyLTI
 PyJWT
 requests-oauthlib
 requests
-pycrypto==2.6.1
+pycryptodome
 webargs
 xmltodict
