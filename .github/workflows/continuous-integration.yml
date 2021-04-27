@@ -43,7 +43,7 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Run tox
-      run: tox --parallel auto -e checkformatting,lint,tests,functests,bddtests
+      run: tox --parallel=auto -e checkformatting,lint,tests,functests,bddtests
   frontend:
     runs-on: ubuntu-latest
     steps:
