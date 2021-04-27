@@ -1,13 +1,8 @@
 """LTI launch request verifier service."""
-import pylti.common
+from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
 from lms import models
-from lms.services import (
-    ConsumerKeyError,
-    LTILaunchVerificationError,
-    LTIOAuthError,
-    NoConsumerKey,
-)
+from lms.services import ConsumerKeyError, LTILaunchVerificationError, LTIOAuthError
 
 __all__ = ["LaunchVerifier"]
 
@@ -17,6 +12,10 @@ class LaunchVerifier:
 
     def __init__(self, _context, request):
         self._request = request
+        self._oauth1_endpoint = SignatureOnlyEndpoint(
+            OAuthRequestValidator(db_session=self._request.db)
+        )
+
         self._request_verified = False
         self._exception = None
 
@@ -50,44 +49,86 @@ class LaunchVerifier:
             raise self._exception
 
     def _verify(self):
-        try:
-            consumer_key = self._request.params["oauth_consumer_key"]
-        except KeyError as err:
-            raise NoConsumerKey() from err
+        # As part of our parsing, LaunchParamsAuthSchema has been applied to
+        # the request before we get this far. This means that all of the
+        # results are in `params` but they might have come from either the body
+        # or GET params. `oauthlib` cares a great deal about where things
+        # should come from, so we need to put them back in the right place.
+
+        method = self._request.method
+        if method != "POST":
+            raise LTIOAuthError("LTI launches should use POST")
+
+        is_valid, _request = self._oauth1_endpoint.validate_request(
+            # The docs for `validate_request` say to send the full URL with
+            # params, but here we don't. I think LTI tool consumers sign
+            # without any params, but some times add some (looking at you
+            # Canvas)
+            uri=self._request.path_url,
+            http_method=method,
+            body=self._request.body,
+            headers=self._request.headers,
+        )
+
+        if not is_valid:
+            raise LTIOAuthError("OAuth signature is not valid")
+
+
+class OAuthRequestValidator(RequestValidator):
+    # Value lifted from `oauth2` which is an `oauth1` library as was used by
+    # PyLTI. The default in `oauthlib` is 600
+    timestamp_lifetime = 300  # In seconds, five minutes.
+
+    # Tell oauthlib we are chill about http for local testing
+    enforce_ssl = False
+
+    def __init__(self, db_session):
+        super().__init__()
+        self.db_session = db_session
+
+    def check_client_key(self, client_key):
+        """Check that the client key only contains safe characters."""
+
+        return True
+
+    def check_nonce(self, nonce):
+        """Check that the nonce only contains only safe characters."""
+
+        return True
+
+    def validate_timestamp_and_nonce(
+        # pylint: disable=too-many-arguments
+        # Not our design, we have to fit in with this API
+        self,
+        client_key,
+        timestamp,
+        nonce,
+        request,
+        request_token=None,
+        access_token=None,
+    ):
+        """Validate that the nonce has not been used before."""
+
+        return True
+
+    def validate_client_key(self, client_key, request):
+        """Validate that supplied client key is registered and valid."""
+
+        # This is slightly incorrect, but we are just going to say the client
+        # key is fine! Even though this might not be true. This is because
+        # we would have to look up the DB to find out, and we _have_ to do
+        # that in the next step `get_client_secret()`
+
+        return True
+
+    def get_client_secret(self, client_key, request):
+        """Retrieve the client secret associated with the client key."""
 
         application_instance = models.ApplicationInstance.get_by_consumer_key(
-            self._request.db, consumer_key
+            self.db_session, client_key
         )
 
         if not application_instance:
             raise ConsumerKeyError()
 
-        consumers = {}
-        consumers[consumer_key] = {"secret": application_instance.shared_secret}
-
-        try:
-            valid = pylti.common.verify_request_common(
-                consumers,
-                # We pass only the host + path of the URL (`request.path_url`)
-                # to `verify_request_common` in the `url` arg because:
-                #
-                # - Query params are also passed in `request.params` below
-                # - If query params are passed in both the URL and the `parameters`
-                #   dict, then the value from the URL is used
-                # - If values in the query param contain percent-encoded characters,
-                #   these are incorrectly _decoded_ in the result, whereas they
-                #   are handled correctly if passed in the `parameters` arg.
-                self._request.path_url,
-                self._request.method,
-                dict(self._request.headers),
-                dict(self._request.params),
-            )
-        except pylti.common.LTIException as err:
-            raise LTIOAuthError() from err
-        except KeyError as err:
-            # pylti crashes if certain params (e.g. oauth_nonce) are missing
-            # from the request.
-            raise LTIOAuthError() from err
-
-        if not valid:
-            raise LTIOAuthError()
+        return application_instance.shared_secret

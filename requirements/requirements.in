@@ -10,10 +10,10 @@ pyramid-jinja2
 pyramid-retry
 pyramid-services
 gunicorn
+oauthlib
 sqlalchemy
 psycopg2
 zope.sqlalchemy
-PyLTI
 PyJWT
 requests-oauthlib
 requests
