@@ -72,7 +72,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
   it(`closes the window when the dialog's "Close" button is clicked`, () => {
     const wrapper = renderApp();
-    wrapper.find('Button[label="Close"]').props().onClick();
+    wrapper.find('LabeledButton[data-test="close"]').props().onClick();
     assert.called(window.close);
   });
 
@@ -81,7 +81,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
     fakeConfig.authUrl = 'https://lms.hypothes.is/auth/url';
 
     const wrapper = renderApp();
-    const tryAgainButton = wrapper.find('Button[label="Try again"]');
+    const tryAgainButton = wrapper.find('LabeledButton[data-test="try-again"]');
     assert.isTrue(tryAgainButton.exists());
     assert.equal(fakeLocation.href, initialLocation);
 
@@ -92,6 +92,6 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
   it('does not show "Try again" button if no retry URL is provided', () => {
     const wrapper = renderApp();
-    assert.isFalse(wrapper.exists('Button[label="Try again"]'));
+    assert.isFalse(wrapper.exists('LabeledButton[data-test="try-again"]'));
   });
 });

@@ -1,9 +1,9 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { Fragment, createElement } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
 
-import Button from './Button';
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
@@ -45,16 +45,22 @@ export default function CanvasOAuth2RedirectErrorApp({
   };
 
   const buttons = [
-    <Button
-      className="Button--cancel"
-      key="close"
-      label="Close"
-      onClick={() => window.close()}
-    />,
+    <LabeledButton key="close" onClick={() => window.close()} data-test="close">
+      Close
+    </LabeledButton>,
   ];
 
   if (authUrl) {
-    buttons.push(<Button key="try-again" label="Try again" onClick={retry} />);
+    buttons.push(
+      <LabeledButton
+        key="try-again"
+        onClick={retry}
+        data-test="try-again"
+        variant="primary"
+      >
+        Try again
+      </LabeledButton>
+    );
   }
 
   return (
