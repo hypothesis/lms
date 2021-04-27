@@ -4,6 +4,11 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import MetaData, engine_from_config, pool
 
+# Import all model modules here in order to populate the metadata
+# for 'autogenerate' support
+from lms import models  # noqa
+from lms.db import BASE
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -12,25 +17,7 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-# FIXME: Import lms.db.BASE.metadata instead of duplicating the naming convention here.
-target_metadata = MetaData(
-    naming_convention={
-        "ix": "ix__%(column_0_label)s",
-        "uq": "uq__%(table_name)s__%(column_0_name)s",
-        "ck": "ck__%(table_name)s__%(constraint_name)s",
-        "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
-        "pk": "pk__%(table_name)s",
-    }
-)
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+target_metadata = BASE.metadata
 
 
 def get_database_url():
