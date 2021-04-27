@@ -33,16 +33,6 @@
   display: none;
 }
 
-.Button--cancel {
-  color: var.$grey-6;
-  background-color: var.$grey-2;
-
-  &:hover {
-    background-color: var.$grey-3;
-    color: var.$brand;
-  }
-}
-
 .Button--danger {
   background-color: var.$brand;
 }

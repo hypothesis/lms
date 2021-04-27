@@ -1,9 +1,11 @@
-import { useElementShouldClose } from '@hypothesis/frontend-shared';
+import {
+  LabeledButton,
+  useElementShouldClose,
+} from '@hypothesis/frontend-shared';
 import { createElement, Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import classNames from 'classnames';
 
-import Button from './Button';
 import { zIndexScale } from '../utils/style';
 import { useUniqueId } from '../utils/hooks';
 
@@ -131,11 +133,7 @@ export default function Dialog({
           <div className="u-stretch" />
           <div className="Dialog__actions">
             {onCancel && (
-              <Button
-                className="Button--cancel"
-                onClick={onCancel}
-                label={cancelLabel}
-              />
+              <LabeledButton onClick={onCancel}>{cancelLabel}</LabeledButton>
             )}
             {buttons}
           </div>
