@@ -29,7 +29,7 @@
     "@babel/core": "^7.13.16",
     "@babel/preset-env": "^7.13.15",
     "@babel/preset-react": "^7.13.13",
-    "@hypothesis/frontend-shared": "^1.11.0",
+    "@hypothesis/frontend-shared": "^1.12.0",
     "@types/gapi": "^0.0.39",
     "autoprefixer": "^10.2.5",
     "babel-plugin-transform-async-to-promises": "^0.8.15",
