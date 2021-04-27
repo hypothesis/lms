@@ -139,7 +139,7 @@ def db_session(db_engine):
     session.begin_nested()
 
     @sqlalchemy.event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(session, transaction):  # pylint:disable=unused-variable
+    def restart_savepoint(session, transaction):
         if (
             transaction.nested
             and not transaction._parent.nested  # pylint: disable=protected-access
