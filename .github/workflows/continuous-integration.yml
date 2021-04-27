@@ -1,8 +1,32 @@
 name: Continuous integration
 on: pull_request
 jobs:
-  backend:
+  metadata:
+    name: Metadata
     runs-on: ubuntu-latest
+    outputs:
+      python_headline_version: ${{ steps.list-python-versions.outputs.python_headline_version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: List Python versions
+        id: list-python-versions
+        run: |
+          pip install hdev
+          echo "::set-output name=python_headline_version::`hdev python_version --style plain --first`"
+
+  backend:
+    name: Backend
+    needs: metadata
+    runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:11.5-alpine
@@ -10,22 +34,28 @@ jobs:
         - 5433:5432
     env:
       TOX_PARALLEL_NO_SPINNER: 1
+
     steps:
-    - name: Set up Python
+    - name: Setup python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6.9
+        python-version: ${{ needs.metadata.outputs.python_headline_version }}
+
     - name: Update pip
       run: python -m pip install --upgrade pip
+
     - name: Install tox
       run: python -m pip install tox
+
     - name: Checkout git repo
       uses: actions/checkout@v2
+
     - name: Create test databases
       run: |
         psql -U postgres -h localhost -p 5433 -c 'CREATE DATABASE lms_test'
         psql -U postgres -h localhost -p 5433 -c 'CREATE DATABASE lms_functests'
         psql -U postgres -h localhost -p 5433 -c 'CREATE DATABASE lms_bddtests'
+
     - name: Cache the .tox dir
       uses: actions/cache@v2
       with:
@@ -33,34 +63,46 @@ jobs:
         key: ${{ runner.os }}-tox-${{ hashFiles('tox.ini') }}-${{ hashFiles('requirements/*') }}-${{ hashFiles('setup.py') }}-${{ hashFiles('setup.cfg') }}
         restore-keys: |
           ${{ runner.os }}-tox-
+
     - name: Cache the node_modules dir
       uses: actions/cache@v2
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
+
     - name: yarn install
       run: yarn install --frozen-lockfile
+
     - name: yarn build
       run: yarn build
+
     - name: Run tox
       run: tox --parallel auto -e checkformatting,lint,tests,functests,bddtests
+
   frontend:
+    name: Frontend
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
     - name: Cache the node_modules dir
       uses: actions/cache@v2
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
+
     - name: Install
       run: yarn install --frozen-lockfile
+
     - name: Format
       run: yarn checkformatting
+
     - name: Lint
       run: yarn lint
+
     - name: Typecheck
       run: yarn typecheck
+
     - name: Test
       run: gulp test
