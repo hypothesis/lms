@@ -145,7 +145,7 @@ def _session(request):  # pragma: no cover
     # So as a precaution add our own callback here to make sure db sessions are
     # always closed.
     @request.add_finished_callback
-    def close_the_sqlalchemy_session(_request):  # pylint: disable=unused-variable
+    def close_the_sqlalchemy_session(_request):
         connections = (
             session.transaction._connections  # pylint:disable=protected-access
         )
