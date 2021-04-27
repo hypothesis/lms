@@ -101,5 +101,8 @@ def _build_unique_key():
 
 def _encrypt_oauth_secret(oauth_secret, key, init_v):
     """Encrypt an oauth secrety via AES encryption."""
-    cipher = AES.new(key, AES.MODE_CFB, init_v)
-    return cipher.encrypt(oauth_secret)
+
+    if isinstance(oauth_secret, str):
+        oauth_secret = oauth_secret.encode("utf-8")
+
+    return AES.new(key, AES.MODE_CFB, init_v).encrypt(oauth_secret)
