@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 
 from lms import models
 from lms.services import ConsumerKeyError
