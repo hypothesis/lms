@@ -122,7 +122,7 @@ psycopg2==2.8.6
     # via -r requirements/requirements.txt
 ptyprocess==0.6.0
     # via pexpect
-pycryptodome==3.10.1
+pycryptodomex==3.10.1
     # via -r requirements/requirements.txt
 pygments==2.7.4
     # via ipython

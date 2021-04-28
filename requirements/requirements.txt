@@ -65,7 +65,7 @@ plaster==1.0
     #   pyramid
 psycopg2==2.8.6
     # via -r requirements/requirements.in
-pycryptodome==3.10.1
+pycryptodomex==3.10.1
     # via -r requirements/requirements.in
 pyjwt==2.0.1
     # via
