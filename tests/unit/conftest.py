@@ -102,6 +102,7 @@ def pyramid_config(pyramid_request):
         config.include("pyramid_jinja2")
         config.include("pyramid_services")
         config.include("pyramid_tm")
+        config.include("pyramid_googleauth")
 
         config.include("lms.sentry")
         config.include("lms.models")
