@@ -15,6 +15,7 @@ sqlalchemy
 psycopg2
 zope.sqlalchemy
 PyJWT
+pyramid-googleauth
 requests-oauthlib
 requests
 pycryptodomex
