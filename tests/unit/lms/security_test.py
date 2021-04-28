@@ -1,5 +1,5 @@
 from unittest import mock
-from unittest.mock import call
+from unittest.mock import call, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
@@ -8,6 +8,7 @@ from pyramid.security import Allowed, Denied
 from lms.security import (
     AuthTktCookieSecurityPolicy,
     Identity,
+    LMSGoogleSecurityPolicy,
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
@@ -34,6 +35,7 @@ class TestIncludeMe:
         return patch("lms.security.SecurityPolicy")
 
 
+@pytest.mark.usefixtures("pyramid_config")
 class TestAuthTktCookieSecurityPolicy:
     def test_it_returns_empty_identity_no_cookie(self, pyramid_request):
         policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
@@ -69,10 +71,10 @@ class TestAuthTktCookieSecurityPolicy:
         assert identity.userid == "report_viewer"
         assert identity.permissions == [Permissions.REPORTS_VIEW]
 
-    def test_it_returns_userid_matches_identity(self, pyramid_request, pyramid_config):
-        pyramid_config.testing_securitypolicy(
-            "testuser", identity=Identity("testuser", [])
-        )
+    def test_it_returns_userid_matches_identity(
+        self, pyramid_request, AuthTktCookieHelper
+    ):
+        AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
 
         policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
@@ -80,21 +82,19 @@ class TestAuthTktCookieSecurityPolicy:
 
         assert userid == "testuser"
 
-    def test_permits_allow(self, pyramid_request, pyramid_config):
-        pyramid_config.testing_securitypolicy(
-            "testuser", identity=Identity("testuser", ["some-permission"])
-        )
+    def test_permits_allow(self, pyramid_request, AuthTktCookieHelper):
+        AuthTktCookieHelper.return_value.identify.return_value = {
+            "userid": "report_viewer"
+        }
 
         policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
-        is_allowed = policy.permits(pyramid_request, None, "some-permission")
+        is_allowed = policy.permits(pyramid_request, None, Permissions.REPORTS_VIEW)
 
         assert is_allowed == Allowed("allowed")
 
-    def test_permits_denied(self, pyramid_request, pyramid_config):
-        pyramid_config.testing_securitypolicy(
-            "testuser", identity=Identity("testuser", [])
-        )
+    def test_permits_denied(self, pyramid_request, AuthTktCookieHelper):
+        AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
 
         policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
 
@@ -119,6 +119,54 @@ class TestAuthTktCookieSecurityPolicy:
         return patch("lms.security.AuthTktCookieHelper")
 
 
+class TestLMSGoogleSecurityPolicy:
+    @pytest.mark.parametrize(
+        "userid,expected_identity",
+        [
+            (
+                "testuser@hypothes.is",
+                Identity(
+                    userid="testuser@hypothes.is",
+                    permissions=[Permissions.ADMIN],
+                ),
+            ),
+            ("testuser@example.com", Identity(userid="", permissions=[])),
+        ],
+    )
+    def test_identity(self, policy, pyramid_request, userid, expected_identity):
+        pyramid_request.session["googleauth.userid"] = userid
+
+        assert policy.identity(pyramid_request) == expected_identity
+
+    def test_identity_when_no_user_is_logged_in(self, policy, pyramid_request):
+        assert policy.identity(pyramid_request) == Identity(userid="", permissions=[])
+
+    def test_authenticated_userid(self, policy, pyramid_request):
+        pyramid_request.session["googleauth.userid"] = "testuser@hypothes.is"
+
+        assert policy.authenticated_userid(pyramid_request) == "testuser@hypothes.is"
+
+    @pytest.mark.parametrize(
+        "permission,expected_result",
+        [
+            (Permissions.ADMIN, Allowed("allowed")),
+            ("some-other-permission", Denied("denied")),
+        ],
+    )
+    def test_permits(self, policy, pyramid_request, permission, expected_result):
+        pyramid_request.session["googleauth.userid"] = "testuser@hypothes.is"
+
+        assert (
+            policy.permits(pyramid_request, sentinel.context, permission)
+            == expected_result
+        )
+
+    @pytest.fixture
+    def policy(self):
+        return LMSGoogleSecurityPolicy()
+
+
+@pytest.mark.usefixtures("pyramid_config")
 class TestLTISecurityPolicy:
     def test_it_returns_the_lti_userid(self, pyramid_request, _authenticated_userid):
         policy = LTISecurityPolicy()
@@ -156,21 +204,21 @@ class TestLTISecurityPolicy:
     def test_forget(self, pyramid_request):
         LTISecurityPolicy().forget(pyramid_request)
 
-    def test_permits_allow(self, pyramid_request, pyramid_config):
-        pyramid_config.testing_securitypolicy(
-            "testuser", identity=Identity("testuser", ["some-permission"])
-        )
-
+    def test_permits_allow(
+        self,
+        pyramid_request,
+    ):
+        pyramid_request.lti_user = "some-user"
         policy = LTISecurityPolicy()
 
-        is_allowed = policy.permits(pyramid_request, None, "some-permission")
+        is_allowed = policy.permits(
+            pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
+        )
 
         assert is_allowed == Allowed("allowed")
 
-    def test_permits_denied(self, pyramid_request, pyramid_config):
-        pyramid_config.testing_securitypolicy(
-            "testuser", identity=Identity("testuser", [])
-        )
+    def test_permits_denied(self, pyramid_request):
+        pyramid_request.lti_user = None
 
         policy = LTISecurityPolicy()
 
@@ -207,10 +255,46 @@ class TestSecurityPolicy:
 
         user_id = policy.authenticated_userid(mock.sentinel.request)
 
-        tkt_security_policy.authenticated_userid.assert_called_once_with(
+        tkt_security_policy.authenticated_userid.assert_called_with(
             mock.sentinel.request
         )
         assert user_id == "tkt-user"
+
+    def test_it_falls_back_on_LMSGoogleSecurityPolicy(
+        self,
+        tkt_security_policy,
+        lti_security_policy,
+        google_security_policy,
+        policy,
+    ):
+        lti_security_policy.authenticated_userid.return_value = None
+        tkt_security_policy.authenticated_userid.return_value = None
+        google_security_policy.authenticated_userid.return_value = "google-oauth-user"
+
+        user_id = policy.authenticated_userid(mock.sentinel.request)
+
+        google_security_policy.authenticated_userid.assert_called_with(
+            mock.sentinel.request
+        )
+        assert user_id == "google-oauth-user"
+
+    def test_it_falls_back_to_last(
+        self,
+        tkt_security_policy,
+        lti_security_policy,
+        google_security_policy,
+        policy,
+    ):
+        lti_security_policy.authenticated_userid.return_value = None
+        tkt_security_policy.authenticated_userid.return_value = None
+        google_security_policy.authenticated_userid.return_value = None
+
+        user_id = policy.authenticated_userid(mock.sentinel.request)
+
+        google_security_policy.authenticated_userid.assert_called_with(
+            mock.sentinel.request
+        )
+        assert user_id == None
 
     def test_remember_delegates_to_LTISecurityPolicy(
         self,
@@ -308,9 +392,17 @@ class TestSecurityPolicy:
     def LTISecurityPolicy(self, patch):
         return patch("lms.security.LTISecurityPolicy")
 
+    @pytest.fixture(autouse=True)
+    def LMSGoogleSecurityPolicy(self, patch):
+        return patch("lms.security.LMSGoogleSecurityPolicy")
+
     @pytest.fixture
     def lti_security_policy(self, LTISecurityPolicy):
         return LTISecurityPolicy.return_value
+
+    @pytest.fixture
+    def google_security_policy(self, LMSGoogleSecurityPolicy):
+        return LMSGoogleSecurityPolicy.return_value
 
 
 class TestAuthenticatedUserID:
