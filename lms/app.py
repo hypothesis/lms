@@ -67,6 +67,18 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     # and not try to create it, and the request will succeed.
     pyramid_retry.mark_error_retryable(IntegrityError)
 
+    config.registry.settings["pyramid_googleauth.login_success_redirect_url"] = "/admin"
+    config.registry.settings["pyramid_googleauth.secret"] = config.registry.settings[
+        "lms_secret"
+    ]
+    config.registry.settings[
+        "pyramid_googleauth.google_client_id"
+    ] = config.registry.settings["admin_auth_google_client_id"]
+    config.registry.settings[
+        "pyramid_googleauth.google_client_secret"
+    ] = config.registry.settings["admin_auth_google_client_secret"]
+    config.include("pyramid_googleauth")
+
     config.include("lms.security")
     config.include("lms.extensions.feature_flags")
     config.add_feature_flag_providers(
