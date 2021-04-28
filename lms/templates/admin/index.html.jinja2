@@ -1,0 +1,23 @@
+<style>
+    code {
+        word-break: break-all;
+    }
+</style>
+
+<h1>Hello {{ request.session.user.name }}</h1>
+
+{% set user = request.session.user %}
+
+{% if user.picture %}
+<img alt="{{ user.name }} avatar" src="{{ user.picture }}">
+{% endif %}
+<br>
+
+<h2>Permissions</h2>
+<code>{{ request.identity.permissions }}</code>
+
+<h2>Session</h2>
+<code>{{ request.session }}</code>
+
+<hr>
+<a href="{{ request.route_url("pyramid_googleauth.logout") }}">Logout</a>
