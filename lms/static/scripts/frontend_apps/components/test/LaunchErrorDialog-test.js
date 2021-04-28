@@ -71,9 +71,9 @@ describe('LaunchErrorDialog', () => {
         const wrapper = renderDialog({ error, errorState });
 
         assert.include(wrapper.text(), expectedText);
-        assert.equal(wrapper.exists('Button'), retryAction !== null);
+        assert.equal(wrapper.exists('LabeledButton'), retryAction !== null);
         if (retryAction) {
-          assert.equal(wrapper.find('Button').prop('label'), retryAction);
+          assert.equal(wrapper.find('LabeledButton').text(), retryAction);
         }
         assert.equal(wrapper.exists('ErrorDisplay'), hasDetailedError);
       });
@@ -84,7 +84,7 @@ describe('LaunchErrorDialog', () => {
     const wrapper = renderDialog();
 
     act(() => {
-      wrapper.find('Button').prop('onClick')();
+      wrapper.find('LabeledButton').prop('onClick')();
     });
 
     assert.called(retryStub);
@@ -92,12 +92,12 @@ describe('LaunchErrorDialog', () => {
 
   it('enables "Try again" button if `busy` is false', () => {
     const wrapper = renderDialog({ busy: false });
-    assert.isFalse(wrapper.find('Button').prop('disabled'));
+    assert.isFalse(wrapper.find('LabeledButton').prop('disabled'));
   });
 
   it('disables "Try again" button if `busy` is true', () => {
     const wrapper = renderDialog({ busy: true });
-    assert.isTrue(wrapper.find('Button').prop('disabled'));
+    assert.isTrue(wrapper.find('LabeledButton').prop('disabled'));
   });
 
   it('shows error details', () => {
