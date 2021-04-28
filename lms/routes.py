@@ -74,3 +74,5 @@ def includeme(config):
     config.add_route("lti_api.submissions.record", "/api/lti/submissions")
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
+
+    config.add_route("admin.index", "/admin")
