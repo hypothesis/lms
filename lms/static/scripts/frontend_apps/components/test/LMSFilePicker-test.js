@@ -90,7 +90,7 @@ describe('LMSFilePicker', () => {
     assert.called(fakeApiCall);
 
     // Check that the "Authorize" button is shown.
-    const authButton = wrapper.find('Button[label="Authorize"]');
+    const authButton = wrapper.find('LabeledButton[data-test="authorize"]');
     assert.isTrue(authButton.exists());
 
     // Click the "Authorize" button and check that files are re-fetched.
@@ -132,7 +132,9 @@ describe('LMSFilePicker', () => {
     assert.called(fakeApiCall);
 
     // After first failed authentication request
-    const authorizeButton = wrapper.find('Button[label="Authorize"]');
+    const authorizeButton = wrapper.find(
+      'LabeledButton[data-test="authorize"]'
+    );
     assert.isTrue(authorizeButton.exists());
     assert.isTrue(wrapper.exists('p[data-testid="authorization warning"]'));
 
@@ -146,7 +148,7 @@ describe('LMSFilePicker', () => {
 
     // After second failed authentication request
     const authorizeAgainButton = wrapper.find(
-      'Button[label="Authorize again"]'
+      'LabeledButton[data-test="authorize-again"]'
     );
     assert.isTrue(authorizeAgainButton.exists());
     const errorDetails = wrapper.find('ErrorDisplay');
@@ -165,16 +167,20 @@ describe('LMSFilePicker', () => {
     const authWindowClosed2 = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
     });
-    wrapper.find('Button[label="Authorize again"]').prop('onClick')();
+    wrapper
+      .find('LabeledButton[data-test="authorize-again"]')
+      .prop('onClick')();
     await authWindowClosed2;
     wrapper.update();
 
     // After authorization completes, files should be fetched and then the
     // file list should be displayed.
     assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
-    assert.isFalse(wrapper.exists('Button[label="Authorize"]'));
+    assert.isFalse(wrapper.exists('LabeledButton[data-test="authorize"]'));
     assert.isFalse(wrapper.exists('p[data-testid="authorization warning"]'));
-    assert.isFalse(wrapper.exists('Button[label="Authorize again"]'));
+    assert.isFalse(
+      wrapper.exists('LabeledButton[data-test="authorize-again"]')
+    );
     assert.isFalse(wrapper.exists('ErrorDisplay'));
   });
 
@@ -209,7 +215,9 @@ describe('LMSFilePicker', () => {
 
       // The details of the error should be displayed, along with a "Try again"
       // button.
-      const tryAgainButton = wrapper.find('Button[label="Try again"]');
+      const tryAgainButton = wrapper.find(
+        'LabeledButton[data-test="try-again"]'
+      );
       assert.isTrue(tryAgainButton.exists());
 
       const errorDetails = wrapper.find(ErrorDisplay);
@@ -243,7 +251,7 @@ describe('LMSFilePicker', () => {
     wrapper.update();
     assert.called(fakeApiCall);
 
-    const reloadButton = wrapper.find('Button[label="Reload"]');
+    const reloadButton = wrapper.find('LabeledButton[data-test="reload"]');
     assert.isFalse(reloadButton.prop('disabled'));
 
     const waitMs = 3000;
@@ -254,13 +262,17 @@ describe('LMSFilePicker', () => {
     reloadButton.prop('onClick')();
     wrapper.update();
 
-    assert.isTrue(wrapper.find('Button[label="Reload"]').prop('disabled'));
+    assert.isTrue(
+      wrapper.find('LabeledButton[data-test="reload"]').prop('disabled')
+    );
 
     clock.tick(waitMs);
     await fakeApiCall;
     wrapper.update();
 
-    assert.isFalse(wrapper.find('Button[label="Reload"]').prop('disabled'));
+    assert.isFalse(
+      wrapper.find('LabeledButton[data-test="reload"]').prop('disabled')
+    );
 
     clock.restore();
   });
@@ -273,7 +285,7 @@ describe('LMSFilePicker', () => {
     wrapper.update();
     assert.called(fakeApiCall);
 
-    assert.isTrue(wrapper.exists('Button[label="Select"]'));
+    assert.isTrue(wrapper.exists('LabeledButton[data-test="select"]'));
   });
 
   it('closes the authorization window if open when canceling the dialog', async () => {
@@ -298,7 +310,7 @@ describe('LMSFilePicker', () => {
       authorize: sinon.stub().resolves(null),
       close: closePopup,
     });
-    wrapper.find('Button[label="Authorize"]').prop('onClick')();
+    wrapper.find('LabeledButton[data-test="authorize"]').prop('onClick')();
 
     // Dismiss the LMS file picker. This should close the auth popup.
     wrapper.find(FakeDialog).prop('onCancel')();
@@ -351,7 +363,10 @@ describe('LMSFilePicker', () => {
     await fakeApiCall;
     wrapper.update();
 
-    assert.equal(wrapper.find('Button[label="Select"]').prop('disabled'), true);
+    assert.equal(
+      wrapper.find('LabeledButton[data-test="select"]').prop('disabled'),
+      true
+    );
   });
 
   it('enables "Select" button when a file is selected', async () => {
@@ -363,7 +378,7 @@ describe('LMSFilePicker', () => {
     wrapper.update();
 
     assert.equal(
-      wrapper.find('Button[label="Select"]').prop('disabled'),
+      wrapper.find('LabeledButton[data-test="select"]').prop('disabled'),
       false
     );
   });
@@ -379,7 +394,7 @@ describe('LMSFilePicker', () => {
     wrapper.find('FileList').prop('onSelectFile')(file);
     wrapper.update();
 
-    wrapper.find('Button[label="Select"]').prop('onClick')();
+    wrapper.find('LabeledButton[data-test="select"]').prop('onClick')();
 
     assert.calledWith(onSelectFile, file);
   });

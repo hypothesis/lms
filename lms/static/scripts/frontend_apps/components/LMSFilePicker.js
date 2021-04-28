@@ -1,10 +1,10 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { ApiError, apiCall } from '../utils/api';
 
 import AuthWindow from '../utils/AuthWindow';
-import Button from './Button';
 import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
@@ -183,17 +183,26 @@ export default function LMSFilePicker({
   switch (dialogState.continueAction) {
     case 'select':
       continueButton = (
-        <Button
+        <LabeledButton
+          variant="primary"
           disabled={selectedFile === null}
           onClick={useSelectedFile}
-          label="Select"
-        />
+          data-test="select"
+        >
+          Select
+        </LabeledButton>
       );
       warningOrError = null;
       break;
     case 'authorize':
       continueButton = (
-        <Button onClick={authorizeAndFetchFiles} label="Authorize" />
+        <LabeledButton
+          onClick={authorizeAndFetchFiles}
+          variant="primary"
+          data-test="authorize"
+        >
+          Authorize
+        </LabeledButton>
       );
       warningOrError = (
         <p data-testid="authorization warning">
@@ -203,7 +212,13 @@ export default function LMSFilePicker({
       break;
     case 'authorize_retry':
       continueButton = (
-        <Button onClick={authorizeAndFetchFiles} label="Authorize again" />
+        <LabeledButton
+          onClick={authorizeAndFetchFiles}
+          variant="primary"
+          data-test="authorize-again"
+        >
+          Authorize again
+        </LabeledButton>
       );
       warningOrError = (
         <ErrorDisplay
@@ -214,10 +229,13 @@ export default function LMSFilePicker({
       break;
     case 'retry':
       continueButton = (
-        <Button
+        <LabeledButton
           onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
-          label="Try again"
-        />
+          variant="primary"
+          data-test="try-again"
+        >
+          Try again
+        </LabeledButton>
       );
       warningOrError = (
         <ErrorDisplay
@@ -228,11 +246,14 @@ export default function LMSFilePicker({
       break;
     case 'reload':
       continueButton = (
-        <Button
+        <LabeledButton
           disabled={dialogState.state === 'reloading'}
           onClick={fetchFiles}
-          label="Reload"
-        />
+          variant="primary"
+          data-test="reload"
+        >
+          Reload
+        </LabeledButton>
       );
       break;
     default:
