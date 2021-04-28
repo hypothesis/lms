@@ -2,8 +2,8 @@ import secrets
 from datetime import datetime
 
 import sqlalchemy as sa
-from Crypto import Random
-from Crypto.Cipher import AES
+from Cryptodome import Random
+from Cryptodome.Cipher import AES
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
