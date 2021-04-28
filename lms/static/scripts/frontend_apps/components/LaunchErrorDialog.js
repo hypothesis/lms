@@ -1,7 +1,7 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import Button from './Button';
 import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -45,12 +45,14 @@ function BaseDialog({
       role="alertdialog"
       buttons={
         onRetry && (
-          <Button
+          <LabeledButton
             buttonRef={focusedDialogButton}
             disabled={busy}
-            label={retryLabel}
             onClick={onRetry}
-          />
+            variant="primary"
+          >
+            {retryLabel}
+          </LabeledButton>
         )
       }
     >
