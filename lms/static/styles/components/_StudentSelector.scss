@@ -8,6 +8,8 @@
 
 .StudentSelector-change-student-svg {
   color: var.$grey-5;
+  width: 1em;
+  height: 1em;
 }
 
 .StudentSelector-change-student {
@@ -17,6 +19,7 @@
   border: none;
   background-color: var.$grey-2;
   border: 1px solid var.$grey-3;
+  font-size: 24px;
   transition: background-color 0.2s, border-color 0.2s;
 
   &:hover {
