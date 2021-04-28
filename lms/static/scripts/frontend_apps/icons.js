@@ -5,9 +5,12 @@
  * component.
  */
 export default {
-  'arrow-left': require('../../images/arrow-left.svg'),
-  'arrow-right': require('../../images/arrow-right.svg'),
+  // LMS icons
   'caret-down': require('../../images/caret-down.svg'),
   check: require('../../images/check.svg'),
   spinner: require('../../images/spinner.svg'),
+
+  // Shared icons
+  'arrow-left': require('@hypothesis/frontend-shared/images/icons/arrow-left.svg'),
+  'arrow-right': require('@hypothesis/frontend-shared/images/icons/arrow-right.svg'),
 };
