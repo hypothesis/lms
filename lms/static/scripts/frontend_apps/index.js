@@ -19,8 +19,9 @@ if (!rootEl) {
 
 const config = readConfig();
 
-import { registerIcons } from './components/SvgIcon';
+import { registerIcons } from '@hypothesis/frontend-shared';
 import iconSet from './icons';
+
 registerIcons(iconSet);
 
 let app;

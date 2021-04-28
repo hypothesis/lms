@@ -1,3 +1,4 @@
+import { SvgIcon } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import classNames from 'classnames';
 import {
@@ -11,7 +12,6 @@ import {
 import { Config } from '../config';
 import ErrorDialog from './ErrorDialog';
 import Spinner from './Spinner';
-import SvgIcon from './SvgIcon';
 import { fetchGrade, submitGrade } from '../utils/grader-service';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
