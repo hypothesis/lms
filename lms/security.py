@@ -5,6 +5,7 @@ from typing import List, NamedTuple
 
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
+from pyramid_googleauth import GoogleSecurityPolicy
 
 from lms.validation import ValidationError
 from lms.validation.authentication import (
@@ -23,16 +24,18 @@ class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
     REPORTS_VIEW = "report_viewers"
     API = "api"
+    ADMIN = "admin"
 
 
 class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
     def __init__(self, lms_secret):
-        self._lti_authentication_policy = LTISecurityPolicy()
-        self._auth_tkt_authentication_policy = AuthTktCookieSecurityPolicy(
-            lms_secret, hashalg="sha512"
-        )
+        self._subpolicies = [
+            LTISecurityPolicy(),
+            AuthTktCookieSecurityPolicy(lms_secret, hashalg="sha512"),
+            LMSGoogleSecurityPolicy(),
+        ]
 
     def authenticated_userid(self, request):
         return self._policy(request).authenticated_userid(request)
@@ -51,10 +54,11 @@ class SecurityPolicy:
 
     @lru_cache(maxsize=1)
     def _policy(self, request):
-        if self._lti_authentication_policy.authenticated_userid(request):
-            return self._lti_authentication_policy
+        for policy in self._subpolicies:
+            if policy.authenticated_userid(request):
+                return policy
 
-        return self._auth_tkt_authentication_policy
+        return self._subpolicies[-1]
 
 
 class AuthTktCookieSecurityPolicy:
@@ -75,9 +79,8 @@ class AuthTktCookieSecurityPolicy:
 
         return Identity(userid, permissions)
 
-    @classmethod
-    def authenticated_userid(cls, request):
-        identity = request.identity
+    def authenticated_userid(self, request):
+        identity = self.identity(request)
         return identity.userid if identity else None
 
     def permits(self, request, context, permission):
@@ -118,6 +121,19 @@ class LTISecurityPolicy:
         pass
 
 
+class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
+    def identity(self, request):
+        userid = self.authenticated_userid(request)
+
+        if userid and userid.endswith("@hypothes.is"):
+            return Identity(userid, permissions=[Permissions.ADMIN])
+
+        return Identity("", [])
+
+    def permits(self, request, context, permission):
+        return _permits(self, request, context, permission)
+
+
 def _authenticated_userid(lti_user):
     """Return a request.authenticated_userid string for lti_user."""
     # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
@@ -133,7 +149,8 @@ def _authenticated_userid(lti_user):
 
 
 def _permits(policy, request, _context, permission):  # pylint: disable=unused-argument
-    if permission in request.identity.permissions:
+    identity = policy.identity(request)
+    if identity and permission in identity.permissions:
         return Allowed("allowed")
 
     return Denied("denied")
