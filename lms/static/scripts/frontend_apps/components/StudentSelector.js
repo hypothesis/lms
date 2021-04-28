@@ -99,26 +99,26 @@ export default function StudentSelector({
   return (
     <div className="StudentSelector">
       <button
-        className="StudentSelector-change-student"
+        className="StudentSelector__change-student"
         aria-label="previous student"
         disabled={!hasPrevView}
         onClick={onPrevView}
       >
         <SvgIcon
-          className="StudentSelector-change-student-svg"
+          className="StudentSelector__svg"
           name="arrow-left"
           inline={true}
         />
       </button>
       {buildStudentList()}
       <button
-        className="StudentSelector-change-student"
+        className="StudentSelector__change-student"
         aria-label="next student"
         disabled={!hasNextView}
         onClick={onNextView}
       >
         <SvgIcon
-          className="StudentSelector-change-student-svg"
+          className="StudentSelector__svg"
           name="arrow-right"
           inline={true}
         />

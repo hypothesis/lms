@@ -6,13 +6,13 @@
   display: flex;
 }
 
-.StudentSelector-change-student-svg {
+.StudentSelector__svg {
   color: var.$grey-5;
   width: 1em;
   height: 1em;
 }
 
-.StudentSelector-change-student {
+.StudentSelector__change-student {
   @include focus.outline-on-keyboard-focus;
   min-width: 60px;
   height: 40px;
