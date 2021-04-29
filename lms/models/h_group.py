@@ -5,7 +5,7 @@ from lms.db import BASE, TimestampedModelMixin
 
 class HGroup(TimestampedModelMixin, BASE):
     __tablename__ = "h_group"
-    __table_args__ = (sa.UniqueConstraint("name", "authority_provided_id"),)
+    __table_args__ = (sa.UniqueConstraint("authority_provided_id"),)
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 

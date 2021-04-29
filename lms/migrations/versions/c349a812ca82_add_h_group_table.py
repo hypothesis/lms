@@ -25,9 +25,7 @@ def upgrade():
         sa.Column("authority_provided_id", sa.UnicodeText(), nullable=False),
         sa.Column("type", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk__h_group")),
-        sa.UniqueConstraint(
-            "name", "authority_provided_id", name=op.f("uq__h_group__name")
-        ),
+        sa.UniqueConstraint("authority_provided_id", name=op.f("uq__h_group__name")),
     )
     # ### end Alembic commands ###
 
