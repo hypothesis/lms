@@ -1,7 +1,7 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import Button from './Button';
 import Dialog from './Dialog';
 
 /**
@@ -36,7 +36,11 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       contentClass="URLPicker__dialog"
       title="Enter URL"
       onCancel={onCancel}
-      buttons={[<Button key="submit" label="Submit" onClick={submit} />]}
+      buttons={[
+        <LabeledButton key="submit" onClick={submit} variant="primary">
+          Submit
+        </LabeledButton>,
+      ]}
       initialFocus={input}
     >
       <p>Enter the URL of any publicly available web page or PDF.</p>
