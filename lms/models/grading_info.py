@@ -1,13 +1,12 @@
-import datetime
-
 import sqlalchemy as sa
 
 from lms.db import BASE
+from lms.models import CreatedUpdatedMixin
 
 __all__ = ["GradingInfo"]
 
 
-class GradingInfo(BASE):
+class GradingInfo(CreatedUpdatedMixin, BASE):
     """
     A record of a student's launch of a Hypothesis-configured LMS assignment.
 
@@ -46,19 +45,6 @@ class GradingInfo(BASE):
     )
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
-    created = sa.Column(
-        sa.DateTime(),
-        default=datetime.datetime.utcnow,
-        server_default=sa.func.now(),
-        nullable=False,
-    )
-    updated = sa.Column(
-        sa.DateTime(),
-        server_default=sa.func.now(),
-        default=datetime.datetime.utcnow,
-        onupdate=datetime.datetime.utcnow,
-        nullable=False,
-    )
     lis_result_sourcedid = sa.Column(sa.UnicodeText(), nullable=False)
     lis_outcome_service_url = sa.Column(sa.UnicodeText(), nullable=False)
     oauth_consumer_key = sa.Column(sa.UnicodeText(), nullable=False)
