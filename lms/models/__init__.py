@@ -1,3 +1,4 @@
+from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance
 from lms.models.application_settings import ApplicationSettings
 from lms.models.course import Course
