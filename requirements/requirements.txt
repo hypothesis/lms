@@ -24,10 +24,6 @@ h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.in
 h-vialib==1.0.15
     # via -r requirements/requirements.in
-httplib2==0.19.0
-    # via
-    #   oauth2
-    #   pylti
 hupper==1.10.2
     # via pyramid
 idna==2.10
@@ -51,10 +47,10 @@ marshmallow==3.8.0
     # via webargs
 newrelic==6.2.0.156
     # via -r requirements/requirements.in
-oauth2==1.9.0.post1
-    # via pylti
 oauthlib==3.1.0
-    # via requests-oauthlib
+    # via
+    #   -r requirements/requirements.in
+    #   requests-oauthlib
 pastedeploy==2.1.0
     # via plaster-pastedeploy
 plaster-pastedeploy==0.7
@@ -71,10 +67,6 @@ pyjwt==2.0.1
     # via
     #   -r requirements/requirements.in
     #   h-vialib
-pylti==0.7.0
-    # via -r requirements/requirements.in
-pyparsing==2.4.7
-    # via httplib2
 pyramid-exclog==1.0
     # via -r requirements/requirements.in
 pyramid-jinja2==2.8
@@ -111,7 +103,6 @@ sentry-sdk==0.17.6
 six==1.15.0
     # via
     #   jsonschema
-    #   pylti
     #   python-dateutil
 sqlalchemy==1.4.11
     # via

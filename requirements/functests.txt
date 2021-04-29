@@ -40,11 +40,6 @@ h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.txt
 h-vialib==1.0.15
     # via -r requirements/requirements.txt
-httplib2==0.19.0
-    # via
-    #   -r requirements/requirements.txt
-    #   oauth2
-    #   pylti
 httpretty==1.0.5
     # via -r requirements/functests.in
 hupper==1.10.2
@@ -88,10 +83,6 @@ marshmallow==3.8.0
     #   webargs
 newrelic==6.2.0.156
     # via -r requirements/requirements.txt
-oauth2==1.9.0.post1
-    # via
-    #   -r requirements/requirements.txt
-    #   pylti
 oauthlib==3.1.0
     # via
     #   -r requirements/requirements.txt
@@ -123,13 +114,8 @@ pyjwt==2.0.1
     # via
     #   -r requirements/requirements.txt
     #   h-vialib
-pylti==0.7.0
-    # via -r requirements/requirements.txt
 pyparsing==2.4.7
-    # via
-    #   -r requirements/requirements.txt
-    #   httplib2
-    #   packaging
+    # via packaging
 pyramid-exclog==1.0
     # via -r requirements/requirements.txt
 pyramid-jinja2==2.8
@@ -179,7 +165,6 @@ six==1.15.0
     #   -r requirements/requirements.txt
     #   jsonschema
     #   packaging
-    #   pylti
     #   python-dateutil
     #   webtest
 soupsieve==2.0.1
