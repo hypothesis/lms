@@ -1,14 +1,15 @@
 from lms.models import HGroup
 from lms.models._hashed_id import hashed_id
 
-MAX_GROUP_NAME_LENGTH = 25
-
 
 class HGroupService:
     def __init__(self, db):
         self._db = db
 
     def upsert(self, name: str, authority_provided_id: str, group_type: str) -> HGroup:
+
+        if not name:
+            raise ValueError("Name is mandatory to create a group")
 
         h_group = (
             self._db.query(HGroup)
@@ -17,12 +18,12 @@ class HGroupService:
         )
         if not h_group:
             h_group = HGroup(
-                authority_provided_id=authority_provided_id, name=name, type=group_type
+                authority_provided_id=authority_provided_id, _name=name, type=group_type
             )
             self._db.add(h_group)
         else:
             # Update any fields that might have changed
-            h_group.name = name
+            h_group._name = name  # pylint: disable=protected-access
             h_group.type = group_type
 
         return h_group
@@ -38,7 +39,7 @@ class HGroupService:
         :param context_id: Course id
         """
         return self.upsert(
-            self._name(course_name),
+            course_name,
             hashed_id(tool_consumer_instance_guid, context_id),
             "course_group",
         )
@@ -55,24 +56,10 @@ class HGroupService:
         :param section_id: A section id for a section group
         """
         return self.upsert(
-            self._name(section_name),
+            section_name,
             hashed_id(tool_consumer_instance_guid, context_id, section_id),
             "section_group",
         )
-
-    @staticmethod
-    def _name(name):
-        """Return an h-compatible group name from the given string."""
-
-        if name is None:
-            raise ValueError("Name is mandatory to create a group")
-
-        name = name.strip()
-
-        if len(name) > MAX_GROUP_NAME_LENGTH:
-            return name[: MAX_GROUP_NAME_LENGTH - 1].rstrip() + "…"
-
-        return name
 
 
 def factory(_context, request):

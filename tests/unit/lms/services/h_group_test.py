@@ -48,21 +48,6 @@ class TestHGroupService:
         )
         assert group.type == "section_group"
 
-    @pytest.mark.parametrize(
-        "name,expected_result",
-        (
-            ("Test Course", "Test Course"),
-            (" Test Course ", "Test Course"),
-            ("Test   Course", "Test   Course"),
-            ("Object Oriented Polymorphism 101", "Object Oriented Polymorp…"),
-            ("  Object Oriented Polymorphism 101  ", "Object Oriented Polymorp…"),
-        ),
-    )
-    def test_truncates_the_name(self, service, name, expected_result):
-        clean_name = service._name(name)
-
-        assert clean_name == expected_result
-
     @pytest.fixture
     def service(self, pyramid_request):
         return factory(

@@ -21,7 +21,7 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("_name", sa.String(), nullable=False),
         sa.Column("authority_provided_id", sa.UnicodeText(), nullable=False),
         sa.Column("type", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk__h_group")),

@@ -2,6 +2,8 @@ import sqlalchemy as sa
 
 from lms.db import BASE, TimestampedModelMixin
 
+MAX_GROUP_NAME_LENGTH = 25
+
 
 class HGroup(TimestampedModelMixin, BASE):
     __tablename__ = "h_group"
@@ -9,7 +11,8 @@ class HGroup(TimestampedModelMixin, BASE):
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
-    name = sa.Column(
+    # Full name of the group in the LMS
+    _name = sa.Column(
         sa.String(),
         nullable=False,
     )
@@ -22,3 +25,14 @@ class HGroup(TimestampedModelMixin, BASE):
 
     def groupid(self, authority):
         return f"group:{self.authority_provided_id}@{authority}"
+
+    @property
+    def name(self):
+        """Return an h-compatible group name from the given string."""
+
+        name = self._name.strip()
+
+        if len(name) > MAX_GROUP_NAME_LENGTH:
+            return name[: MAX_GROUP_NAME_LENGTH - 1].rstrip() + "…"
+
+        return name
