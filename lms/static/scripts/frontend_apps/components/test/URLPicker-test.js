@@ -1,7 +1,6 @@
 import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
-import Button from '../Button';
 import URLPicker, { $imports } from '../URLPicker';
 import { checkAccessibility } from '../../../test-util/accessibility';
 
@@ -30,7 +29,7 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'https://example.com/foo';
 
-    wrapper.find(Button).props().onClick(new Event('click'));
+    wrapper.find('LabeledButton').props().onClick(new Event('click'));
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
