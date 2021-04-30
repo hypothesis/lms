@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}LMS Admin{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
+  </head>
+  <body>
+
+  {% block base_navbar %}
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="{{ request.route_url("admin.index") }}">
+      <p class="is-size-4">ADMIN</p>
+    </a>
+  </div>
+
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" 
+          href="{{ request.route_url("admin.installations") }}" >
+        Installations
+      </a>
+
+    <div class="navbar-end">
+      <div class="navbar-item">
+        <div class="buttons">
+          <a class="button is-light" href="{{ request.route_url("pyramid_googleauth.logout") }}" >
+            Log out
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </nav>
+  {% endblock %}
+  <section class="section">
+    <div class="container">
+      <h1 class="title">{% block header %} Admin {% endblock %}</h1>
+      <p class="subtitle">{% block subtitle %}{% endblock %}</p>
+    </div>
+  </section>
+  {% if request.session.peek_flash("errors")  %}
+  <section class="section">
+    <div class="container">
+    <article class="message is-danger">
+    <div class="message-header">
+      <p>Errors</p>
+    </div>
+    <div class="message-body">
+    {% for error in request.session.pop_flash("errors") %}
+        <ul>{{ error }}</ul>
+    {% endfor %}
+    </div>
+    </article>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if request.session.peek_flash("messages")  %}
+  <section class="section">
+    <div class="container">
+    <article class="message is-success">
+    <div class="message-header">
+      <p>Info</p>
+    </div>
+    <div class="message-body">
+    {% for message in request.session.pop_flash("messages") %}
+        <ul>{{ message }}</ul>
+    {% endfor %}
+    </div>
+    </article>
+    </div>
+  </section>
+  {% endif %}
+
+
+  <section class="section">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+  </body>
+</html>
