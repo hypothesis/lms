@@ -53,3 +53,6 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.grant_token.factory", name="grant_token"
     )
+    config.register_service_factory(
+        "lms.services.application_instance.factory", name="application_instance"
+    )
