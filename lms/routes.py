@@ -76,3 +76,5 @@ def includeme(config):
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
 
     config.add_route("admin.index", "/admin")
+    config.add_route("admin.installations", "/admin/installations")
+    config.add_route("admin.installation", "/admin/installation/{id}")

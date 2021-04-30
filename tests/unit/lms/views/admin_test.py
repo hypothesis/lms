@@ -2,7 +2,8 @@ import pytest
 
 from lms.views.admin import AdminViews
 
-# from tests.unit.matchers import temporary_redirect_to
+from lms.views.admin import AdminViews, logged_out
+from tests.matchers import temporary_redirect_to
 
 
 @pytest.mark.usefixtures("pyramid_config")
@@ -14,8 +15,8 @@ class TestAdminViews:
 
         assert response == {"session": "session_value"}
 
-    def test_logged_out_redirects_to_login(self, pyramid_request, views):
-        response = views.logged_out()
+    def test_logged_out_redirects_to_login(self, pyramid_request):
+        response = logged_out(pyramid_request)
 
         assert response.status_code == 302
         assert response.location == pyramid_request.route_url(
