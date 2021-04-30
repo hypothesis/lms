@@ -8,6 +8,7 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms.models import ApplicationSettings
+from lms.services.application_instance import ApplicationInstanceService
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
@@ -170,6 +171,17 @@ def ai_getter(pyramid_config):
     ai_getter.settings().set("canvas", "sections_enabled", True)
     pyramid_config.register_service(ai_getter, name="ai_getter")
     return ai_getter
+
+
+@pytest.fixture
+def application_instance_service(pyramid_config):
+    application_instance_service = mock.create_autospec(
+        ApplicationInstanceService, instance=True, spec_set=True
+    )
+    pyramid_config.register_service(
+        application_instance_service, name="application_instance"
+    )
+    return application_instance_service
 
 
 @pytest.fixture
