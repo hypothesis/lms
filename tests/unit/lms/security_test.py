@@ -294,7 +294,7 @@ class TestSecurityPolicy:
         google_security_policy.authenticated_userid.assert_called_with(
             mock.sentinel.request
         )
-        assert user_id == None
+        assert user_id is None
 
     def test_remember_delegates_to_LTISecurityPolicy(
         self,
