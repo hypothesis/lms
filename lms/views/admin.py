@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPBadRequest, HTTPNotFound
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
 from lms.security import Permissions
@@ -11,6 +11,13 @@ def logged_out(request):
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminViews:
+    def _get_ai_or_404(self, consumer_key):
+        ai = self.application_instance_service.get(self.request.matchdict["id"])
+        if not ai:
+            raise HTTPNotFound()
+
+        return ai
+
     def __init__(self, request):
         self.request = request
         self.application_instance_service = request.find_service(
