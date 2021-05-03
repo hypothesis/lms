@@ -1,6 +1,7 @@
 from unittest.mock import Mock, sentinel
 
 import pytest
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from lms.views.admin import AdminViews, logged_out
 from tests.matchers import temporary_redirect_to
@@ -12,10 +13,10 @@ class TestAdminViews:
         response = AdminViews(pyramid_request).index()
 
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installations")
+            pyramid_request.route_url("admin.instances")
         )
 
-    @pytest.mark.parametrize("view_method,template_params", [("installations", {})])
+    @pytest.mark.parametrize("view_method,template_params", [("instances", {})])
     def test_template_views(self, view_method, template_params, views):
         response = getattr(views, view_method)()
 
@@ -29,52 +30,54 @@ class TestAdminViews:
             "pyramid_googleauth.login"
         )
 
-    def test_find_installation_no_query(self, pyramid_request):
-        response = AdminViews(pyramid_request).find_installation()
+    def test_find_instance_no_query(self, pyramid_request):
 
-        assert pyramid_request.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installations")
-        )
+        with pytest.raises(HTTPBadRequest):
+            response = AdminViews(pyramid_request).find_instance()
 
-    def test_find_installation_not_found(
+    def test_find_instance_not_found(
         self, pyramid_request, application_instance_service
     ):
         application_instance_service.find.return_value = None
         pyramid_request.params["query"] = "some-value"
-        response = AdminViews(pyramid_request).find_installation()
+        response = AdminViews(pyramid_request).find_instance()
 
         assert pyramid_request.session.peek_flash("errors")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installations")
+            pyramid_request.route_url("admin.instances")
         )
 
-    def test_find_installation_found(
-        self, pyramid_request, application_instance_service
-    ):
-        application_instance_service.find.return_value = Mock(id=1)
+    def test_find_instance_found(self, pyramid_request, application_instance_service):
+        application_instance_service.find.return_value = Mock(consumer_key="XXX")
         pyramid_request.params["query"] = "some-value"
-        response = AdminViews(pyramid_request).find_installation()
+        response = AdminViews(pyramid_request).find_instance()
 
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installation", id=1)
+            pyramid_request.route_url("admin.instance", consumer_key="XXX")
         )
 
-    def test_show_installation(self, pyramid_request, application_instance_service):
-        application_instance_service.get.return_value = sentinel.installation
-        pyramid_request.matchdict["id"] = "1"
-        response = AdminViews(pyramid_request).show_installation()
+    def test_show_instance(self, pyramid_request, application_instance_service):
+        application_instance_service.get.return_value = sentinel.instance
+        pyramid_request.matchdict["consumer_key"] = "XXX"
+        response = AdminViews(pyramid_request).show_instance()
 
-        assert response == {"installation": sentinel.installation}
+        assert response == {"instance": sentinel.instance}
 
-    def test_update_installation(self, pyramid_request, application_instance_service):
-        application_instance_service.get.return_value = Mock(id=1)
-        pyramid_request.matchdict["id"] = "1"
-        response = AdminViews(pyramid_request).update_installation()
+    def test_show_not_found(self, pyramid_request, application_instance_service):
+        application_instance_service.get.return_value = None
+        pyramid_request.matchdict["consumer_key"] = "XXX"
+
+        with pytest.raises(HTTPNotFound):
+            response = AdminViews(pyramid_request).show_instance()
+
+    def test_update_instance(self, pyramid_request, application_instance_service):
+        application_instance_service.get.return_value = Mock(consumer_key="XXX")
+        pyramid_request.matchdict["consumer_key"] = "XXX"
+        response = AdminViews(pyramid_request).update_instance()
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installation", id="1")
+            pyramid_request.route_url("admin.instance", consumer_key="XXX")
         )
 
     @pytest.fixture

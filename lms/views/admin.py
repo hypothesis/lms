@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPFound, HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
 from lms.security import Permissions
@@ -12,7 +12,9 @@ def logged_out(request):
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminViews:
     def _get_ai_or_404(self, consumer_key):
-        ai = self.application_instance_service.get(self.request.matchdict["id"])
+        ai = self.application_instance_service.find(
+            consumer_key,
+        )
         if not ai:
             raise HTTPNotFound()
 
@@ -28,57 +30,50 @@ class AdminViews:
         route_name="admin.index",
     )  # pylint: disable=no-self-use
     def index(self):
-        return HTTPFound(location=self.request.route_url("admin.installations"))
+        return HTTPFound(location=self.request.route_url("admin.instances"))
 
     @view_config(
-        route_name="admin.installations",
-        renderer="lms:templates/admin/installations.html.jinja2",
+        route_name="admin.instances",
+        renderer="lms:templates/admin/instances.html.jinja2",
     )  # pylint: disable=no-self-use
-    def installations(self):
+    def instances(self):
         return {}
 
     @view_config(
-        route_name="admin.installations",
+        route_name="admin.instances",
         request_method="POST",
     )
-    def find_installation(self):
+    def find_instance(self):
         if "query" not in self.request.params:
-            self.request.session.flash("Missing mandatory 'query'", "errors")
-            return HTTPFound(location=self.request.route_url("admin.installations"))
+            raise HTTPBadRequest()
 
-        installation = self.application_instance_service.find(
-            self.request.params["query"]
-        )
-        if installation:
+        ai = self.application_instance_service.find(self.request.params["query"])
+        if ai:
             return HTTPFound(
                 location=self.request.route_url(
-                    "admin.installation", id=installation.id
+                    "admin.instance", consumer_key=ai.consumer_key
                 ),
             )
         self.request.session.flash(
-            f'No installation found for {self.request.params["query"]}', "errors"
+            f'No application instance found for {self.request.params["query"]}',
+            "errors",
         )
-        return HTTPFound(location=self.request.route_url("admin.installations"))
+        return HTTPFound(location=self.request.route_url("admin.instances"))
 
     @view_config(
-        route_name="admin.installation",
-        renderer="lms:templates/admin/installation.html.jinja2",
+        route_name="admin.instance",
+        renderer="lms:templates/admin/instance.html.jinja2",
     )
-    def show_installation(self):
-
-        installation = self.application_instance_service.get(
-            self.request.matchdict["id"]
-        )
-        return {"installation": installation}
+    def show_instance(self):
+        ai = self._get_ai_or_404(self.request.matchdict["consumer_key"])
+        return {"instance": ai}
 
     @view_config(
-        route_name="admin.installation",
+        route_name="admin.instance",
         request_method="POST",
     )
-    def update_installation(self):
-        installation = self.application_instance_service.get(
-            self.request.matchdict["id"]
-        )
+    def update_instance(self):
+        ai = self._get_ai_or_404(self.request.matchdict["consumer_key"])
 
         sections_enabled = (
             "sections_enabled" in self.request.params
@@ -90,14 +85,16 @@ class AdminViews:
         )
 
         self.application_instance_service.update_settings(
-            installation,
+            ai,
             canvas_sections_enabled=sections_enabled,
             canvas_groups_enabled=groups_enabled,
         )
         self.request.session.flash(
-            f"Updated installation {installation.id}", "messages"
+            f"Updated application instance {ai.consumer_key}", "messages"
         )
 
         return HTTPFound(
-            location=self.request.route_url("admin.installation", id=installation.id)
+            location=self.request.route_url(
+                "admin.instance", consumer_key=ai.consumer_key
+            )
         )
