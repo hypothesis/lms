@@ -1,25 +1,12 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
-Installation {{ installation.id }} / {{installation.consumer_key}}
+Application instance {{instance.consumer_key}}
 {% endblock %}
 
 
 
 {% block content %}
-<form method="POST" action="{{ request.route_url("admin.installation", id=installation.id) }}">
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">ID</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{installation.id}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
+<form method="POST" action="{{ request.route_url("admin.instance", consumer_key=instance.consumer_key) }}">
     <div class="field is-horizontal">
       <div class="field-label is-normal">
         <label class="label">Consumer key</label>
@@ -27,7 +14,7 @@ Installation {{ installation.id }} / {{installation.consumer_key}}
       <div class="field-body">
         <div class="field">
           <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{installation.consumer_key}}">
+            <input class="input" disabled type="text" value="{{instance.consumer_key}}">
           </p>
         </div>
       </div>
@@ -40,7 +27,7 @@ Installation {{ installation.id }} / {{installation.consumer_key}}
       <div class="field-body">
         <div class="field">
           <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{installation.lms_url}}">
+            <input class="input" disabled type="text" value="{{instance.lms_url}}">
           </p>
         </div>
       </div>
@@ -55,7 +42,7 @@ Installation {{ installation.id }} / {{installation.consumer_key}}
         <div class="field is-narrow">
           <div class="control">
             <label class="checkbox">
-              <input {% if installation.settings.canvas.sections_enabled %}checked {% endif%} type="checkbox" name="sections_enabled">
+              <input {% if instance.settings.canvas.sections_enabled %}checked {% endif%} type="checkbox" name="sections_enabled">
             </label>
           </div>
         </div>
@@ -70,7 +57,7 @@ Installation {{ installation.id }} / {{installation.consumer_key}}
         <div class="field is-narrow">
           <div class="control">
             <label class="checkbox">
-              <input {% if installation.settings.canvas.groups_enabled %}checked {% endif%} type="checkbox" name="groups_enabled">
+              <input {% if instance.settings.canvas.groups_enabled %}checked {% endif%} type="checkbox" name="groups_enabled">
             </label>
           </div>
         </div>

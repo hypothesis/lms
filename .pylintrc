@@ -57,6 +57,9 @@ good-names=
     # request.db.
     db,
 
+    # ApplicationInstance
+    ai,
+
 [REPORTS]
 output-format=colorized
 # Deactivate the evaluation score: we don't care about it, we just enforce that

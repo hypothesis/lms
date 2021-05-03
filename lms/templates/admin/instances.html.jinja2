@@ -1,13 +1,13 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
-Installations
+Application instances
 {% endblock %}
 
 {% block content %}
-    <form method="POST" action="{{ request.route_url("admin.installations") }}">
+    <form method="POST" action="{{ request.route_url("admin.instances") }}">
         <div class="field has-addons">
            <div class="control">
-                <input class="input" name="query" type="text" placeholder="ID or consumer_key">
+                <input class="input" name="query" type="text" placeholder="Consumer_key">
             </div>
             <div class="control">
                 <input type="submit" class="button is-info" value="Find"/>
