@@ -967,10 +967,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@hypothesis/frontend-shared@^1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-1.12.0.tgz#5c35ec6171fdd10f4db8c2240c608439999bb0f3"
-  integrity sha512-o0ElUGxMjmNIWCQYDpZz9EYbV8w0jpt8tNkNZXmn/lwLGfRQ0/L3x2KOM93d0YMTj1Lya/wBKTLM2zjqxL3Ebg==
+"@hypothesis/frontend-shared@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-1.13.0.tgz#d34740b85a457a6028a22fb3d5db516c94bc9333"
+  integrity sha512-Khgsj87WQNnAPuLVtceWMRE395tlMbxuMcfUDeOwgGrvZ00taOCf7CkWifQEGe7FjesiRuV7N9HW5WmV+N6EDw==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
