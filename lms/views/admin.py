@@ -91,4 +91,6 @@ class AdminViews:
             f"Updated installation {installation.id}", "messages"
         )
 
-        return HTTPFound(location=self.request.route_url("admin.installations"))
+        return HTTPFound(
+            location=self.request.route_url("admin.installation", id=installation.id)
+        )
