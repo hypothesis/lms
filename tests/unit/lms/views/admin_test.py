@@ -2,17 +2,20 @@ from unittest.mock import Mock, sentinel
 
 import pytest
 
-from lms.views.admin import AdminViews
-
 from lms.views.admin import AdminViews, logged_out
 from tests.matchers import temporary_redirect_to
 
 
 @pytest.mark.usefixtures("pyramid_config", "application_instance_service")
 class TestAdminViews:
-    @pytest.mark.parametrize(
-        "view_method,template_params", [("index", {}), ("installations", {})]
-    )
+    def test_index(self, pyramid_request):
+        response = AdminViews(pyramid_request).index()
+
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.installations")
+        )
+
+    @pytest.mark.parametrize("view_method,template_params", [("installations", {})])
     def test_template_views(self, view_method, template_params, views):
         response = getattr(views, view_method)()
 

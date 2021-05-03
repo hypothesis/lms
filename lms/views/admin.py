@@ -19,10 +19,9 @@ class AdminViews:
 
     @view_config(
         route_name="admin.index",
-        renderer="lms:templates/admin/index.html.jinja2",
     )  # pylint: disable=no-self-use
     def index(self):
-        return {}
+        return HTTPFound(location=self.request.route_url("admin.installations"))
 
     @view_config(
         route_name="admin.installations",
