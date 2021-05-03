@@ -4,7 +4,12 @@ from pyramid.view import forbidden_view_config, view_config, view_defaults
 from lms.security import Permissions
 
 
-@view_defaults(request_method="GET")
+@forbidden_view_config(path_info="/admin/*")
+def logged_out(request):
+    return HTTPFound(location=request.route_url("pyramid_googleauth.login"))
+
+
+@view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminViews:
     def __init__(self, request):
         self.request = request
@@ -15,7 +20,6 @@ class AdminViews:
     @view_config(
         route_name="admin.index",
         renderer="lms:templates/admin/index.html.jinja2",
-        permission=Permissions.ADMIN,
     )  # pylint: disable=no-self-use
     def index(self):
         return {}
@@ -23,14 +27,12 @@ class AdminViews:
     @view_config(
         route_name="admin.installations",
         renderer="lms:templates/admin/installations.html.jinja2",
-        permission=Permissions.ADMIN,
     )  # pylint: disable=no-self-use
     def installations(self):
         return {}
 
     @view_config(
         route_name="admin.installations",
-        permission=Permissions.ADMIN,
         request_method="POST",
     )
     def find_installation(self):
@@ -55,7 +57,6 @@ class AdminViews:
     @view_config(
         route_name="admin.installation",
         renderer="lms:templates/admin/installation.html.jinja2",
-        permission=Permissions.ADMIN,
     )
     def show_installation(self):
 
@@ -66,7 +67,6 @@ class AdminViews:
 
     @view_config(
         route_name="admin.installation",
-        permission=Permissions.ADMIN,
         request_method="POST",
     )
     def update_installation(self):
@@ -93,7 +93,3 @@ class AdminViews:
         )
 
         return HTTPFound(location=self.request.route_url("admin.installations"))
-
-    @forbidden_view_config()
-    def logged_out(self):
-        return HTTPFound(location=self.request.route_url("pyramid_googleauth.login"))
