@@ -67,13 +67,14 @@ class TestAdminViews:
 
         assert response == {"installation": sentinel.installation}
 
-    def test_update_installation(self, pyramid_request):
+    def test_update_installation(self, pyramid_request, application_instance_service):
+        application_instance_service.get.return_value = Mock(id=1)
         pyramid_request.matchdict["id"] = "1"
         response = AdminViews(pyramid_request).update_installation()
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.installations")
+            pyramid_request.route_url("admin.installation", id="1")
         )
 
     @pytest.fixture
