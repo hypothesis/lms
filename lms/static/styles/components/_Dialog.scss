@@ -40,27 +40,13 @@
 .Dialog__title {
   display: flex;
   align-items: center;
+  line-height: 1em;
   font-size: var.$title-font-size;
 }
 
-.Dialog__cancel-btn {
-  @include focus.outline-on-keyboard-focus;
-  border: 0;
-  background: none;
-  color: var.$grey-6;
-
-  // Given the button a large hit target and ensure the 'X' label is large
-  // enough to see easily and aligned with the right edge of the dialog.
-  // Add negative margins so that the button does not force the dialog to
-  // grow in height.
-  font-size: var.$title-font-size;
-  padding: 5px;
-  margin: -10px 0px;
-
-  &:hover {
-    cursor: pointer;
-    color: var.$brand;
-  }
+.Dialog__cancel {
+  // Make the X icon just a tad larger
+  font-size: 1.25em;
 }
 
 .Dialog__actions {
