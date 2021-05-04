@@ -7,7 +7,7 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms.models import ApplicationSettings
+from lms.models import ApplicationInstance, ApplicationSettings
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.assignment import AssignmentService
@@ -178,6 +178,14 @@ def application_instance_service(pyramid_config):
     application_instance_service = mock.create_autospec(
         ApplicationInstanceService, instance=True, spec_set=True
     )
+
+    application_instance_service.get.return_value = mock.create_autospec(
+        ApplicationInstance,
+        instance=True,
+        spec_set=True,
+        consumer_key=mock.sentinel.consumer_key,
+    )
+
     pyramid_config.register_service(
         application_instance_service, name="application_instance"
     )
