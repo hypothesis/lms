@@ -5,6 +5,7 @@ Application instances
 
 {% block content %}
     <form method="POST" action="{{ request.route_url("admin.instances") }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
         <div class="field has-addons">
            <div class="control">
                 <input class="input" name="query" type="text" placeholder="Consumer_key">
