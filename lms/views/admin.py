@@ -12,7 +12,7 @@ def logged_out(request):
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminViews:
     def _get_ai_or_404(self, consumer_key):
-        ai = self.application_instance_service.find(
+        ai = self.application_instance_service.get(
             consumer_key,
         )
         if not ai:
@@ -47,13 +47,14 @@ class AdminViews:
         if "query" not in self.request.params:
             raise HTTPBadRequest()
 
-        ai = self.application_instance_service.find(self.request.params["query"])
+        ai = self.application_instance_service.get(self.request.params["query"])
         if ai:
             return HTTPFound(
                 location=self.request.route_url(
                     "admin.instance", consumer_key=ai.consumer_key
                 ),
             )
+
         self.request.session.flash(
             f'No application instance found for {self.request.params["query"]}',
             "errors",

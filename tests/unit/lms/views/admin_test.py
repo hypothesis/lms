@@ -33,12 +33,12 @@ class TestAdminViews:
     def test_find_instance_no_query(self, pyramid_request):
 
         with pytest.raises(HTTPBadRequest):
-            response = AdminViews(pyramid_request).find_instance()
+            AdminViews(pyramid_request).find_instance()
 
     def test_find_instance_not_found(
         self, pyramid_request, application_instance_service
     ):
-        application_instance_service.find.return_value = None
+        application_instance_service.get.return_value = None
         pyramid_request.params["query"] = "some-value"
         response = AdminViews(pyramid_request).find_instance()
 
@@ -48,7 +48,7 @@ class TestAdminViews:
         )
 
     def test_find_instance_found(self, pyramid_request, application_instance_service):
-        application_instance_service.find.return_value = Mock(consumer_key="XXX")
+        application_instance_service.get.return_value = Mock(consumer_key="XXX")
         pyramid_request.params["query"] = "some-value"
         response = AdminViews(pyramid_request).find_instance()
 
@@ -68,7 +68,7 @@ class TestAdminViews:
         pyramid_request.matchdict["consumer_key"] = "XXX"
 
         with pytest.raises(HTTPNotFound):
-            response = AdminViews(pyramid_request).show_instance()
+            AdminViews(pyramid_request).show_instance()
 
     def test_update_instance(self, pyramid_request, application_instance_service):
         application_instance_service.get.return_value = Mock(consumer_key="XXX")

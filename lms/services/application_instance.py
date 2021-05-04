@@ -1,7 +1,5 @@
 from typing import Optional
 
-from sqlalchemy import or_
-
 from lms.models import ApplicationInstance
 
 
@@ -9,43 +7,25 @@ class ApplicationInstanceService:
     def __init__(self, db):
         self._db = db
 
-    def find(self, query: str) -> Optional[ApplicationInstance]:
-        """Query an ApplicationInstance by both the unique pk and consumer_key."""
-        return (
-            self._db.query(ApplicationInstance)
-            .filter(
-                or_(
-                    ApplicationInstance.id == query if query.isdigit() else None,
-                    ApplicationInstance.consumer_key == query,
-                )
-            )
-            .one_or_none()
-        )
+    def get(self, consumer_key: str) -> Optional[ApplicationInstance]:
+        """Query one ApplicationInstance by consumer_key."""
 
-    # pylint: disable=invalid-name
-    def get(self, id_: int) -> Optional[ApplicationInstance]:
-        """Query an ApplicationInstance by primary key."""
-
-        return self._db.query(ApplicationInstance).get(id_)
+        return ApplicationInstance.get_by_consumer_key(self._db, consumer_key)
 
     @staticmethod
-    def update_settings(
-        installation, canvas_sections_enabled=None, canvas_groups_enabled=None
-    ):
+    def update_settings(ai, canvas_sections_enabled=None, canvas_groups_enabled=None):
         """
         Update ApplicationInstance.settings.
 
         For not nullable values only changes the params passed with a not None value
         """
         if canvas_sections_enabled is not None:
-            installation.settings.set(
-                "canvas", "sections_enabled", canvas_sections_enabled
-            )
+            ai.settings.set("canvas", "sections_enabled", canvas_sections_enabled)
 
         if canvas_groups_enabled is not None:
-            installation.settings.set("canvas", "groups_enabled", canvas_groups_enabled)
+            ai.settings.set("canvas", "groups_enabled", canvas_groups_enabled)
 
-        return installation
+        return ai
 
 
 def factory(_context, request):

@@ -9,22 +9,13 @@ from tests import factories
 
 class TestApplicationInstanceGetter:
     def test_get_one(self, ai_service, test_application_instance):
-        assert ai_service.get(test_application_instance.id) == test_application_instance
+        assert (
+            ai_service.get(test_application_instance.consumer_key)
+            == test_application_instance
+        )
 
     def test_get_none(self, ai_service):
-        assert ai_service.get(1000000) is None
-
-    def test_get_find_by_id_one(self, ai_service, test_application_instance):
-        assert (
-            ai_service.find(str(test_application_instance.id))
-            == test_application_instance
-        )
-
-    def test_get_find_by_consumer_key_one(self, ai_service, test_application_instance):
-        assert (
-            ai_service.find(test_application_instance.consumer_key)
-            == test_application_instance
-        )
+        assert ai_service.get("NOPE") is None
 
     def test_update_settings_no_update(
         self, ai_service, test_application_instance, db_session
