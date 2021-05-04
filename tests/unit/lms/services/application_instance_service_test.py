@@ -8,19 +8,18 @@ from tests import factories
 
 
 class TestApplicationInstanceGetter:
-    def test_get_one(self, ai_service, test_application_instance):
+    def test_get_one(self, svc, test_application_instance):
         assert (
-            ai_service.get(test_application_instance.consumer_key)
-            == test_application_instance
+            svc.get(test_application_instance.consumer_key) == test_application_instance
         )
 
-    def test_get_none(self, ai_service):
-        assert ai_service.get("NOPE") is None
+    def test_get_none(self, svc):
+        assert svc.get("NOPE") is None
 
     def test_update_settings_no_update(
-        self, ai_service, test_application_instance, db_session
+        self, svc, test_application_instance, db_session
     ):
-        ai_service.update_settings(test_application_instance)
+        svc.update_settings(test_application_instance)
 
         # Let's re-query to get the state form the DB
         ai = db_session.query(ApplicationInstance).get(test_application_instance.id)
@@ -38,17 +37,17 @@ class TestApplicationInstanceGetter:
         self,
         setting_name,
         setting_location,
-        ai_service,
+        svc,
         test_application_instance,
         db_session,
     ):
-        ai_service.update_settings(test_application_instance, **{setting_name: True})
+        svc.update_settings(test_application_instance, **{setting_name: True})
 
         # Let's re-query to get the state form the DB
         ai = db_session.query(ApplicationInstance).get(test_application_instance.id)
         assert ai.settings.get(*setting_location.split(".")) is True
 
-        ai_service.update_settings(test_application_instance, **{setting_name: False})
+        svc.update_settings(test_application_instance, **{setting_name: False})
 
         # Re-query again
         ai = db_session.query(ApplicationInstance).get(test_application_instance.id)
@@ -59,7 +58,7 @@ class TestApplicationInstanceGetter:
         )
 
     @pytest.fixture
-    def ai_service(self, pyramid_request):
+    def svc(self, pyramid_request):
         return factory(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)

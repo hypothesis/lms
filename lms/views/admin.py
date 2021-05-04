@@ -11,24 +11,13 @@ def logged_out(request):
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminViews:
-    def _get_ai_or_404(self, consumer_key):
-        ai = self.application_instance_service.get(
-            consumer_key,
-        )
-        if not ai:
-            raise HTTPNotFound()
-
-        return ai
-
     def __init__(self, request):
         self.request = request
         self.application_instance_service = request.find_service(
             name="application_instance"
         )
 
-    @view_config(
-        route_name="admin.index",
-    )  # pylint: disable=no-self-use
+    @view_config(route_name="admin.index")  # pylint: disable=no-self-use
     def index(self):
         return HTTPFound(location=self.request.route_url("admin.instances"))
 
@@ -99,3 +88,12 @@ class AdminViews:
                 "admin.instance", consumer_key=ai.consumer_key
             )
         )
+
+    def _get_ai_or_404(self, consumer_key):
+        ai = self.application_instance_service.get(
+            consumer_key,
+        )
+        if not ai:
+            raise HTTPNotFound()
+
+        return ai
