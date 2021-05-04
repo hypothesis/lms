@@ -72,6 +72,7 @@ export default function LMSFilePicker({
   listFilesApi,
   onCancel,
   onSelectFile,
+  lmsName,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
