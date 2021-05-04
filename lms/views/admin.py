@@ -31,6 +31,7 @@ class AdminViews:
     @view_config(
         route_name="admin.instances",
         request_method="POST",
+        require_csrf=True,
     )
     def find_instance(self):
         if "query" not in self.request.params:
@@ -61,6 +62,7 @@ class AdminViews:
     @view_config(
         route_name="admin.instance",
         request_method="POST",
+        require_csrf=True,
     )
     def update_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["consumer_key"])

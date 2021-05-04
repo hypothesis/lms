@@ -7,6 +7,7 @@ Application instance {{instance.consumer_key}}
 
 {% block content %}
 <form method="POST" action="{{ request.route_url("admin.instance", consumer_key=instance.consumer_key) }}">
+    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
     <div class="field is-horizontal">
       <div class="field-label is-normal">
         <label class="label">Consumer key</label>
