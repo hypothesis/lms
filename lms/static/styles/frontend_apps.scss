@@ -37,3 +37,10 @@ body {
   line-height: var.$normal-line-height;
   color: var.$color-text;
 }
+
+button,
+input[type='button'],
+input[type='reset'],
+input[type='submit'] {
+  cursor: pointer;
+}

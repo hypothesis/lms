@@ -38,13 +38,12 @@
   border: none;
   animation-duration: 0.3s;
   animation-fill-mode: forwards;
-  &:hover {
-    cursor: pointer;
-  }
 }
+
 .ValidationMessage--open {
   animation-name: validationErrorOpen;
 }
+
 .ValidationMessage--closed {
   animation-name: validationErrorClose;
 }
