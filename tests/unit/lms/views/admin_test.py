@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
-from lms.views.admin import AdminViews, logged_out
+from lms.views.admin import AdminViews, logged_out, notfound
 from tests.matchers import temporary_redirect_to
 
 
@@ -85,3 +85,9 @@ def test_logged_out_redirects_to_login(pyramid_request):
     assert response == temporary_redirect_to(
         pyramid_request.route_url("pyramid_googleauth.login")
     )
+
+
+def test_not_found_view(pyramid_request):
+    response = notfound(pyramid_request)
+
+    assert response.status_code == 404
