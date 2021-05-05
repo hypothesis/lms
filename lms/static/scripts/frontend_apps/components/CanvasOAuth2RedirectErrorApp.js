@@ -45,7 +45,12 @@ export default function CanvasOAuth2RedirectErrorApp({
   };
 
   const buttons = [
-    <LabeledButton key="close" onClick={() => window.close()} data-test="close">
+    <LabeledButton
+      type="button"
+      key="close"
+      onClick={() => window.close()}
+      data-test="close"
+    >
       Close
     </LabeledButton>,
   ];
@@ -53,6 +58,7 @@ export default function CanvasOAuth2RedirectErrorApp({
   if (authUrl) {
     buttons.push(
       <LabeledButton
+        type="button"
         key="try-again"
         onClick={retry}
         data-test="try-again"

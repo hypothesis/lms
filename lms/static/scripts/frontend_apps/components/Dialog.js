@@ -122,7 +122,12 @@ export default function Dialog({
             <span className="u-stretch" />
             {onCancel && (
               <span className="Dialog__cancel">
-                <IconButton title="Close" icon="cancel" onClick={onCancel} />
+                <IconButton
+                  type="button"
+                  title="Close"
+                  icon="cancel"
+                  onClick={onCancel}
+                />
               </span>
             )}
           </h1>
@@ -130,7 +135,7 @@ export default function Dialog({
           <div className="u-stretch" />
           <div className="Dialog__actions">
             {onCancel && (
-              <LabeledButton title="Cancel" onClick={onCancel}>
+              <LabeledButton type="button" title="Cancel" onClick={onCancel}>
                 {cancelLabel}
               </LabeledButton>
             )}

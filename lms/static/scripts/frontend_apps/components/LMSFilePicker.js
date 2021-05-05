@@ -184,6 +184,7 @@ export default function LMSFilePicker({
     case 'select':
       continueButton = (
         <LabeledButton
+          type="button"
           variant="primary"
           disabled={selectedFile === null}
           onClick={useSelectedFile}
@@ -197,6 +198,7 @@ export default function LMSFilePicker({
     case 'authorize':
       continueButton = (
         <LabeledButton
+          type="button"
           onClick={authorizeAndFetchFiles}
           variant="primary"
           data-test="authorize"
@@ -213,6 +215,7 @@ export default function LMSFilePicker({
     case 'authorize_retry':
       continueButton = (
         <LabeledButton
+          type="button"
           onClick={authorizeAndFetchFiles}
           variant="primary"
           data-test="authorize-again"
@@ -230,6 +233,7 @@ export default function LMSFilePicker({
     case 'retry':
       continueButton = (
         <LabeledButton
+          type="button"
           onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
           variant="primary"
           data-test="try-again"
@@ -247,6 +251,7 @@ export default function LMSFilePicker({
     case 'reload':
       continueButton = (
         <LabeledButton
+          type="button"
           disabled={dialogState.state === 'reloading'}
           onClick={fetchFiles}
           variant="primary"

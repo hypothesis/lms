@@ -37,7 +37,12 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       title="Enter URL"
       onCancel={onCancel}
       buttons={[
-        <LabeledButton key="submit" onClick={submit} variant="primary">
+        <LabeledButton
+          type="button"
+          key="submit"
+          onClick={submit}
+          variant="primary"
+        >
           Submit
         </LabeledButton>,
       ]}

@@ -46,6 +46,7 @@ function BaseDialog({
       buttons={
         onRetry && (
           <LabeledButton
+            type="button"
             buttonRef={focusedDialogButton}
             disabled={busy}
             onClick={onRetry}
