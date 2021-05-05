@@ -71,7 +71,7 @@ pyasn1==0.4.8
     #   rsa
 pycryptodomex==3.10.1
     # via -r requirements/requirements.in
-pyjwt==2.0.1
+pyjwt==2.1.0
     # via
     #   -r requirements/requirements.in
     #   h-vialib
