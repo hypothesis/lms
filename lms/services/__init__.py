@@ -1,5 +1,4 @@
 from lms.services.exceptions import (
-    CanvasAPIAccessTokenError,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
@@ -11,6 +10,8 @@ from lms.services.exceptions import (
     LTIOAuthError,
     LTIOutcomesAPIError,
     NoOAuth2Token,
+    ProxyAPIAccessTokenError,
+    ProxyAPIError,
     ServiceError,
 )
 

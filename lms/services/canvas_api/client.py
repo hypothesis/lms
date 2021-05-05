@@ -29,7 +29,7 @@ class CanvasAPIClient:
 
     All methods may raise:
 
-    :raise CanvasAPIAccessTokenError: if we can't get the list of sections
+    :raise ProxyAPIAccessTokenError: if we can't get the list of sections
         because we don't have a working Canvas API access token for the user
     :raise CanvasAPIServerError: if we do have an access token but the
         Canvas API request fails for any other reason

@@ -3,7 +3,7 @@
 import marshmallow
 from marshmallow import fields
 
-from lms.services import CanvasAPIAccessTokenError, NoOAuth2Token
+from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.validation import RequestsResponseSchema
 
 
@@ -13,7 +13,7 @@ class AuthenticatedClient:
 
     All methods in the authenticated client may raise:
 
-    :raise CanvasAPIAccessTokenError: if the request fails because our
+    :raise ProxyAPIAccessTokenError: if the request fails because our
          Canvas API access token for the user is missing, expired, or has
          been deleted
     :raise CanvasAPIServerError: if the request fails for any other reason
@@ -47,11 +47,11 @@ class AuthenticatedClient:
         :param path: The path in the API to make a request to
         :param schema: Schema to apply to the return values
         :param params: Any query parameters to add to the request
-        :raise CanvasAPIAccessTokenError: if the request fails because our
+        :raise ProxyAPIAccessTokenError: if the request fails because our
             Canvas API access token for the user is missing, expired, or has
             been deleted
         :return: JSON deserialised object
-        :raise CanvasAPIAccessTokenError: If a token is required and cannot be
+        :raise ProxyAPIAccessTokenError: If a token is required and cannot be
             found / refreshed
         """
         call_args = (method, path, schema, params)
@@ -59,7 +59,7 @@ class AuthenticatedClient:
         try:
             oauth2_token = self._oauth2_token_service.get()
         except NoOAuth2Token as err:
-            raise CanvasAPIAccessTokenError(
+            raise ProxyAPIAccessTokenError(
                 explanation="We don't have a Canvas API access token for this user",
                 response=None,
             ) from err
@@ -72,7 +72,7 @@ class AuthenticatedClient:
                 *call_args,
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-        except CanvasAPIAccessTokenError:
+        except ProxyAPIAccessTokenError:
             if not refresh_token:
                 raise
 

@@ -8,11 +8,10 @@ from pyramid.view import (
 )
 
 from lms.services import (
-    CanvasAPIAccessTokenError,
-    CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
-    LTIOutcomesAPIError,
+    ProxyAPIAccessTokenError,
+    ProxyAPIError,
 )
 from lms.validation import ValidationError
 
@@ -99,8 +98,14 @@ class ExceptionViews:
             422, message=self.context.explanation, details=self.context.messages
         )
 
-    @exception_view_config(context=CanvasAPIAccessTokenError)
-    def canvas_api_access_token_error(self):
+    @exception_view_config(context=ProxyAPIError)
+    def proxy_api_error(self):
+        return self.error_response(
+            message=self.context.explanation, details=self.context.details
+        )
+
+    @exception_view_config(context=ProxyAPIAccessTokenError)
+    def proxy_api_access_token_error(self):
         return self.error_response()
 
     @exception_view_config(context=CanvasAPIPermissionError)
@@ -108,13 +113,6 @@ class ExceptionViews:
     def canvas_api_permission_error(self):
         return self.error_response(
             error_code=self.context.error_code, details=self.context.details
-        )
-
-    @exception_view_config(context=CanvasAPIError)
-    @exception_view_config(context=LTIOutcomesAPIError)
-    def proxy_api_error(self):
-        return self.error_response(
-            message=self.context.explanation, details=self.context.details
         )
 
     @exception_view_config(path_info="/api/*", context=Exception)
