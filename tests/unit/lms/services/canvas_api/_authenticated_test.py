@@ -3,7 +3,7 @@ from unittest.mock import call, create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIAccessTokenError, CanvasAPIServerError, NoOAuth2Token
+from lms.services import CanvasAPIServerError, NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
 
@@ -24,13 +24,13 @@ class TestAuthenticatedClient:
 
         assert result == basic_client.send.return_value
 
-    def test_send_raises_CanvasAPIAccessTokenError_if_we_dont_have_an_access_token_for_the_user(
+    def test_send_raises_ProxyAPIAccessTokenError_if_we_dont_have_an_access_token_for_the_user(
         self, authenticated_client, oauth2_token_service
     ):
         oauth2_token_service.get.side_effect = NoOAuth2Token()
 
         with pytest.raises(
-            CanvasAPIAccessTokenError,
+            ProxyAPIAccessTokenError,
             match="^We don't have a Canvas API access token for this user$",
         ) as exc_info:
             authenticated_client.send(
@@ -39,11 +39,11 @@ class TestAuthenticatedClient:
 
         assert exc_info.value.response is None
 
-    def test_send_refreshes_and_retries_for_CanvasAPIAccessTokenError(
+    def test_send_refreshes_and_retries_for_ProxyAPIAccessTokenError(
         self, authenticated_client, basic_client, token_response, oauth_token
     ):
         basic_client.send.side_effect = (
-            CanvasAPIAccessTokenError,  # The first call should fail
+            ProxyAPIAccessTokenError,  # The first call should fail
             token_response,  # Then we expect a refresh call
             "success",  # Then finally our successful content request
         )
@@ -75,13 +75,13 @@ class TestAuthenticatedClient:
 
         assert result == "success"
 
-    def test_send_raises_CanvasAPIAccessTokenError_if_it_cannot_refresh(
+    def test_send_raises_ProxyAPIAccessTokenError_if_it_cannot_refresh(
         self, authenticated_client, basic_client, oauth_token
     ):
         oauth_token.refresh_token = None
-        basic_client.send.side_effect = CanvasAPIAccessTokenError
+        basic_client.send.side_effect = ProxyAPIAccessTokenError
 
-        with pytest.raises(CanvasAPIAccessTokenError):
+        with pytest.raises(ProxyAPIAccessTokenError):
             authenticated_client.send(
                 "METHOD", "/path", sentinel.schema, sentinel.params
             )

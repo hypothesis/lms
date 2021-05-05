@@ -3,21 +3,21 @@ from unittest import mock
 import pytest
 from h_pyramid_sentry.event import Event
 
-from lms.sentry import filter_canvas_api_access_token_error
-from lms.services import CanvasAPIAccessTokenError
+from lms.sentry import filter_proxy_api_access_token_error
+from lms.services import ProxyAPIAccessTokenError
 
 
-class TestFilterCanvasAPIAccessTokenError:
-    def test_it_filters_canvas_api_access_token_error(self):
+class TestFilterProxyAPIAccessTokenError:
+    def test_it_filters_proxy_api_access_token_error(self):
         event = exception_event(
-            CanvasAPIAccessTokenError(
+            ProxyAPIAccessTokenError(
                 "We don't have a Canvas API access token for this user"
             )
         )
-        assert filter_canvas_api_access_token_error(event)
+        assert filter_proxy_api_access_token_error(event)
 
     def test_it_doesnt_filter_other_exception_events(self, unexpected_exception_event):
-        assert not filter_canvas_api_access_token_error(unexpected_exception_event)
+        assert not filter_proxy_api_access_token_error(unexpected_exception_event)
 
 
 @pytest.fixture

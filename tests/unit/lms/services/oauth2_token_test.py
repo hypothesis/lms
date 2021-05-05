@@ -37,7 +37,7 @@ class TestOAuth2TokenService:
         assert result == oauth_token
 
     @pytest.mark.parametrize("wrong_param", ("consumer_key", "user_id"))
-    def test_get_raises_CanvasAPIAccessTokenError_with_no_token(
+    def test_get_raises_NoOAuth2Token_with_no_token(
         self, db_session, wrong_param, application_instance, lti_user
     ):
         store = OAuth2TokenService(

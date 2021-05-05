@@ -4,10 +4,10 @@ import pytest
 from h_matchers import Any
 
 from lms.services import (
-    CanvasAPIAccessTokenError,
     CanvasAPIError,
     CanvasAPIServerError,
     CanvasFileNotFoundInCourse,
+    ProxyAPIAccessTokenError,
 )
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
@@ -257,11 +257,11 @@ class TestCanvasAPIClient:
 
 class TestMetaBehavior:
     def test_methods_require_access_token(self, data_method, oauth2_token_service):
-        oauth2_token_service.get.side_effect = CanvasAPIAccessTokenError(
+        oauth2_token_service.get.side_effect = ProxyAPIAccessTokenError(
             "We don't have a Canvas API access token for this user"
         )
 
-        with pytest.raises(CanvasAPIAccessTokenError):
+        with pytest.raises(ProxyAPIAccessTokenError):
             data_method()
 
     @pytest.mark.usefixtures("oauth_token")

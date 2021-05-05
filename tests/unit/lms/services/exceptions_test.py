@@ -6,11 +6,11 @@ import pytest
 import requests
 
 from lms.services import (
-    CanvasAPIAccessTokenError,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     ExternalRequestError,
+    ProxyAPIAccessTokenError,
 )
 from lms.validation import ValidationError
 
@@ -84,7 +84,7 @@ class TestCanvasAPIError:
                 401,
                 json.dumps({"errors": [{"message": "Invalid access token."}]}),
                 "401 Unauthorized",
-                CanvasAPIAccessTokenError,
+                ProxyAPIAccessTokenError,
             ),
             # A 401 Unauthorized response from Canvas, because our access token had
             # insufficient scopes;
@@ -94,7 +94,7 @@ class TestCanvasAPIError:
                     {"errors": [{"message": "Insufficient scopes on access token."}]}
                 ),
                 "401 Unauthorized",
-                CanvasAPIAccessTokenError,
+                ProxyAPIAccessTokenError,
             ),
             # A 400 Bad Request response from Canvas, because our refresh token
             # was expired or deleted.
@@ -107,7 +107,7 @@ class TestCanvasAPIError:
                     }
                 ),
                 "400 Bad Request",
-                CanvasAPIAccessTokenError,
+                ProxyAPIAccessTokenError,
             ),
             # A permissions error from Canvas, because the Canvas user doesn't
             # have permission to make the API call.
