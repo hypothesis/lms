@@ -1,5 +1,10 @@
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
-from pyramid.view import forbidden_view_config, view_config, view_defaults
+from pyramid.view import (
+    forbidden_view_config,
+    notfound_view_config,
+    view_config,
+    view_defaults,
+)
 
 from lms.security import Permissions
 
@@ -7,6 +12,11 @@ from lms.security import Permissions
 @forbidden_view_config(path_info="/admin/*")
 def logged_out(request):
     return HTTPFound(location=request.route_url("pyramid_googleauth.login"))
+
+
+@notfound_view_config(path_info="/admin/*", append_slash=True)
+def notfound(_request):
+    return HTTPNotFound()
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)

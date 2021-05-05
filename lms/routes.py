@@ -75,6 +75,6 @@ def includeme(config):
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
 
-    config.add_route("admin.index", "/admin")
-    config.add_route("admin.instances", "/admin/instances")
-    config.add_route("admin.instance", "/admin/instance/{consumer_key}")
+    config.add_route("admin.index", "/admin/")
+    config.add_route("admin.instances", "/admin/instances/")
+    config.add_route("admin.instance", "/admin/instance/{consumer_key}/")
