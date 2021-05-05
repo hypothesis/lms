@@ -13,7 +13,6 @@ from lms.services import (
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
     LTIOutcomesAPIError,
-    NoOAuth2Token,
 )
 from lms.validation import ValidationError
 
@@ -100,7 +99,6 @@ class ExceptionViews:
             422, message=self.context.explanation, details=self.context.messages
         )
 
-    @exception_view_config(context=NoOAuth2Token)
     @exception_view_config(context=CanvasAPIAccessTokenError)
     def canvas_api_access_token_error(self):
         return self.error_response()
