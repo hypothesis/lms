@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 from lms.services.canvas_api._authenticated import AuthenticatedClient
 from lms.services.canvas_api._basic import BasicClient
 from lms.services.canvas_api.client import CanvasAPIClient
@@ -14,8 +12,7 @@ def canvas_api_client_factory(_context, request):
     """
     ai_getter = request.find_service(name="ai_getter")
 
-    canvas_host = urlparse(ai_getter.lms_url()).netloc
-    basic_client = BasicClient(canvas_host)
+    basic_client = BasicClient(ai_getter.lms_host())
 
     authenticated_api = AuthenticatedClient(
         basic_client=basic_client,

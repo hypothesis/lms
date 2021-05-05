@@ -57,6 +57,18 @@ class ApplicationInstanceGetter:
         """
         return self._get_by_consumer_key().lms_url
 
+    def lms_host(self):
+        """
+        Return the hostname part of the current request's LMS URL.
+
+        :raise ConsumerKeyError: if the request's consumer key isn't in the DB
+        :raise ValueError: if the request's LMS URL can't be parsed
+
+        :return: the matching LMS host
+        :rtype: str
+        """
+        return self._get_by_consumer_key().lms_host()
+
     def provisioning_enabled(self):
         """
         Return ``True`` if provisioning is enabled for the current request.

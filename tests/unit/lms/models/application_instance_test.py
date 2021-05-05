@@ -73,6 +73,18 @@ class TestApplicationInstance:
         with pytest.raises(IntegrityError, match="requesters_email"):
             db_session.flush()
 
+    def test_lms_host(self, application_instance):
+        application_instance.lms_url = "https://example.com/lms/"
+
+        assert application_instance.lms_host() == "example.com"
+
+    @pytest.mark.parametrize("lms_url", ["", "foo", "https://example[.com/foo"])
+    def test_lms_host_raises_ValueError(self, application_instance, lms_url):
+        application_instance.lms_url = lms_url
+
+        with pytest.raises(ValueError):
+            application_instance.lms_host()
+
     def test_get_returns_the_matching_ApplicationInstance(
         self, db_session, application_instance
     ):

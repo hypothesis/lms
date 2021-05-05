@@ -17,11 +17,9 @@ class TestCanvasAPIClientFactory:
         assert canvas_api == CanvasAPIClient.return_value
 
     def test_building_the_BasicClient(self, pyramid_request, BasicClient, ai_getter):
-        ai_getter.lms_url.return_value = "https://example.com/path"
-
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
-        BasicClient.assert_called_once_with("example.com")
+        BasicClient.assert_called_once_with(ai_getter.lms_host.return_value)
 
     def test_building_the_AuthenticatedClient(
         self,

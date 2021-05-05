@@ -58,6 +58,20 @@ class TestApplicationInstanceGetter:
         with pytest.raises(ConsumerKeyError):
             ai_getter.lms_url()
 
+    def test_lms_host_returns_the_lms_host(self, ai_getter, test_application_instance):
+        assert ai_getter.lms_host() == test_application_instance.lms_host()
+
+    def test_lms_host_raises_ValueError(self, ai_getter, test_application_instance):
+        test_application_instance.lms_url = ""  # Not a valid URL.
+
+        with pytest.raises(ValueError):
+            assert ai_getter.lms_host()
+
+    @pytest.mark.usefixtures("unknown_consumer_key")
+    def test_lms_host_raises_if_consumer_key_unknown(self, ai_getter):
+        with pytest.raises(ConsumerKeyError):
+            ai_getter.lms_url()
+
     @pytest.mark.parametrize("flag", [True, False])
     def test_provisioning_returns_the_provisioning_flag(
         self, ai_getter, flag, test_application_instance
