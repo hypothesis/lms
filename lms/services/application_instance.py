@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from lms.models import ApplicationInstance
 from lms.services import ConsumerKeyError
 
@@ -6,6 +8,7 @@ class ApplicationInstanceService:
     def __init__(self, db):
         self._db = db
 
+    @lru_cache
     def get(self, consumer_key: str) -> ApplicationInstance:
         """
         Return the ApplicationInstance with the given consumer_key.
