@@ -16,13 +16,17 @@ def canvas_api_client_factory(_context, request):
     application_instance = application_instance_service.get()
 
     canvas_host = urlparse(application_instance.lms_url).netloc
+    developer_secret = application_instance.decrypted_developer_secret(
+        request.registry.settings["aes_secret"]
+    )
+
     basic_client = BasicClient(canvas_host)
 
     authenticated_api = AuthenticatedClient(
         basic_client=basic_client,
         oauth2_token_service=request.find_service(name="oauth2_token"),
         client_id=application_instance.developer_key,
-        client_secret=application_instance_service.developer_secret(),
+        client_secret=developer_secret,
         redirect_uri=request.route_url("canvas_api.oauth.callback"),
     )
 

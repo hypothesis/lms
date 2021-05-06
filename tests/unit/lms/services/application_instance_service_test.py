@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 
 from lms.models import ApplicationInstance
-from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from lms.services import ConsumerKeyError
 from lms.services.application_instance import factory
 from tests import factories
@@ -28,32 +27,6 @@ class TestApplicationInstanceService:
 
         with pytest.raises(ConsumerKeyError):
             svc.get(None)
-
-    def test_developer_secret_returns_the_decrypted_developer_secret(
-        self, svc, pyramid_request, default_application_instance
-    ):
-        default_application_instance.aes_cipher_iv = _build_aes_iv()
-        default_application_instance.developer_secret = _encrypt_oauth_secret(
-            b"TEST_DEVELOPER_SECRET",
-            pyramid_request.registry.settings["aes_secret"],
-            default_application_instance.aes_cipher_iv,
-        )
-
-        assert svc.developer_secret() == b"TEST_DEVELOPER_SECRET"
-
-    def test_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
-        self, svc
-    ):
-        assert svc.developer_secret() is None
-
-    def test_developer_secret_raises_if_consumer_key_unknown(self, pyramid_request):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(
-            oauth_consumer_key="unknown"
-        )
-        svc = factory(mock.sentinel.context, pyramid_request)
-
-        with pytest.raises(ConsumerKeyError):
-            svc.developer_secret()
 
     def test_update_settings_no_update(
         self, svc, test_application_instance, db_session
@@ -127,9 +100,7 @@ class TestFactory:
         application_instance_service = factory(mock.sentinel.context, pyramid_request)
 
         ApplicationInstanceService.assert_called_once_with(
-            pyramid_request.registry.settings["aes_secret"],
-            pyramid_request.db,
-            pyramid_request.lti_user.oauth_consumer_key,
+            pyramid_request.db, pyramid_request.lti_user.oauth_consumer_key
         )
         assert application_instance_service == ApplicationInstanceService.return_value
 
@@ -138,9 +109,7 @@ class TestFactory:
 
         application_instance_service = factory(mock.sentinel.context, pyramid_request)
 
-        ApplicationInstanceService.assert_called_once_with(
-            pyramid_request.registry.settings["aes_secret"], pyramid_request.db, None
-        )
+        ApplicationInstanceService.assert_called_once_with(pyramid_request.db, None)
         assert application_instance_service == ApplicationInstanceService.return_value
 
     @pytest.fixture(autouse=True)
