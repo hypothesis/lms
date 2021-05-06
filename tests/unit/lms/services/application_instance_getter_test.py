@@ -35,18 +35,6 @@ class TestApplicationInstanceGetter:
         with pytest.raises(ConsumerKeyError):
             ai_getter.lms_url()
 
-    @pytest.mark.parametrize("flag", [True, False])
-    def test_provisioning_returns_the_provisioning_flag(
-        self, ai_getter, flag, test_application_instance
-    ):
-        test_application_instance.provisioning = flag
-
-        assert ai_getter.provisioning_enabled() == flag
-
-    @pytest.mark.usefixtures("unknown_consumer_key")
-    def test_provisioning_returns_False_if_consumer_key_unknown(self, ai_getter):
-        assert not ai_getter.provisioning_enabled()
-
     @pytest.mark.parametrize(
         "developer_key,expected_result", [("test_developer_key", True), (None, False)]
     )

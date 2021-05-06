@@ -9,14 +9,16 @@ from lms.services import HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "h_api", "group_info_service")
+pytestmark = pytest.mark.usefixtures(
+    "application_instance_service", "h_api", "group_info_service"
+)
 
 
 class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
-        self, ai_getter, lti_h_svc, h_api, h_group
+        self, application_instance_service, lti_h_svc, h_api, h_group
     ):
-        ai_getter.provisioning_enabled.return_value = False
+        application_instance_service.provisioning_enabled.return_value = False
 
         lti_h_svc.sync([h_group], sentinel.params)
 
