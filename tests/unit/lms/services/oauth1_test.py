@@ -5,7 +5,7 @@ from requests import Request
 
 from lms.services.oauth1 import OAuth1Service
 
-pytestmark = pytest.mark.usefixtures("ai_getter")
+pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestOAuth1Service:
