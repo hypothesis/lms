@@ -1,9 +1,6 @@
 import pytest
 
 from lms.services import includeme, vitalsource
-from lms.services.application_instance_getter import (
-    application_instance_getter_service_factory,
-)
 from lms.services.canvas_api import canvas_api_client_factory
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
@@ -18,7 +15,6 @@ class TestIncludeme:
     @pytest.mark.parametrize(
         "name,service_class",
         (
-            ("ai_getter", application_instance_getter_service_factory),
             ("canvas_api_client", canvas_api_client_factory),
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),

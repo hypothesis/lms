@@ -5,7 +5,7 @@ import pytest
 from lms.services.canvas_api.factory import canvas_api_client_factory
 
 pytestmark = pytest.mark.usefixtures(
-    "ai_getter", "application_instance_service", "oauth2_token_service"
+    "application_instance_service", "oauth2_token_service"
 )
 
 
@@ -18,8 +18,12 @@ class TestCanvasAPIClientFactory:
         CanvasAPIClient.assert_called_once_with(AuthenticatedClient.return_value)
         assert canvas_api == CanvasAPIClient.return_value
 
-    def test_building_the_BasicClient(self, pyramid_request, BasicClient, ai_getter):
-        ai_getter.lms_url.return_value = "https://example.com/path"
+    def test_building_the_BasicClient(
+        self, pyramid_request, BasicClient, application_instance_service
+    ):
+        application_instance_service.get.return_value.lms_url = (
+            "https://example.com/path"
+        )
 
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
@@ -28,7 +32,6 @@ class TestCanvasAPIClientFactory:
     def test_building_the_AuthenticatedClient(
         self,
         pyramid_request,
-        ai_getter,
         application_instance_service,
         AuthenticatedClient,
         BasicClient,
@@ -39,7 +42,7 @@ class TestCanvasAPIClientFactory:
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
             oauth2_token_service=oauth2_token_service,
-            client_id=ai_getter.developer_key.return_value,
+            client_id=application_instance_service.get.return_value.developer_key,
             client_secret=application_instance_service.developer_secret.return_value,
             redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
         )

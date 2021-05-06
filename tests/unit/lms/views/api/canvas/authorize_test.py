@@ -4,38 +4,39 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.models import ApplicationSettings
 from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
 from lms.views.api.canvas.authorize import GROUPS_SCOPES
 
 pytestmark = pytest.mark.usefixtures(
-    "ai_getter", "application_instance_service", "course_service", "canvas_api_client"
+    "application_instance_service", "course_service", "canvas_api_client"
 )
 
 
 class TestAuthorize:
     def test_it_redirects_to_the_right_Canvas_endpoint(
-        self, ai_getter, pyramid_request
+        self, application_instance_service, pyramid_request
     ):
         response = authorize.authorize(pyramid_request)
 
         assert response.status_code == 302
-        ai_getter.lms_url.assert_called_once_with()
+        application_instance_service.get.assert_called_once_with()
         assert response.location.startswith(
-            f"{ai_getter.lms_url.return_value}/login/oauth2/auth"
+            f"{application_instance_service.get.return_value.lms_url}/login/oauth2/auth"
         )
 
     def test_it_includes_the_client_id_in_a_query_param(
-        self, ai_getter, pyramid_request
+        self, application_instance_service, pyramid_request
     ):
         response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        ai_getter.developer_key.assert_called_once_with()
-        assert query_params["client_id"] == [str(ai_getter.developer_key.return_value)]
+        application_instance_service.get.assert_called_once_with()
+        assert query_params["client_id"] == [
+            str(application_instance_service.get.return_value.developer_key)
+        ]
 
     def test_it_includes_the_response_type_in_a_query_param(self, pyramid_request):
         response = authorize.authorize(pyramid_request)
@@ -118,13 +119,15 @@ class TestAuthorize:
         application_instance_service.canvas_sections_supported.return_value = False
 
     @pytest.fixture
-    def sections_disabled(self, ai_getter):
-        ai_getter.settings.return_value = ApplicationSettings({})
+    def sections_disabled(self, application_instance_service):
+        application_instance_service.get.return_value.settings.set(
+            "canvas", "sections_enabled", False
+        )
 
     @pytest.fixture
-    def groups_enabled(self, ai_getter):
-        ai_getter.settings.return_value = ApplicationSettings(
-            {"canvas": {"groups_enabled": True}}
+    def groups_enabled(self, application_instance_service):
+        application_instance_service.get.return_value.settings.set(
+            "canvas", "groups_enabled", True
         )
 
     @pytest.fixture

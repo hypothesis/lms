@@ -18,10 +18,6 @@ from lms.services.exceptions import (
 
 def includeme(config):
     config.register_service_factory(
-        "lms.services.application_instance_getter.application_instance_getter_service_factory",
-        name="ai_getter",
-    )
-    config.register_service_factory(
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
     config.register_service_factory("lms.services.h_api.HAPI", name="h_api")

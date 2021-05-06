@@ -9,7 +9,6 @@ from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
 
 pytestmark = pytest.mark.usefixtures(
-    "ai_getter",
     "application_instance_service",
     "grading_info_service",
     "grant_token_service",
@@ -55,7 +54,7 @@ class TestEnableContentItemSelectionMode:
         }
 
     def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
-        self, ai_getter, context, js_config
+        self, application_instance_service, context, js_config
     ):
         context.custom_canvas_api_domain = None
 
@@ -63,10 +62,9 @@ class TestEnableContentItemSelectionMode:
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
 
-        ai_getter.lms_url.assert_called_once_with()
         assert (
             js_config.asdict()["filePicker"]["google"]["origin"]
-            == ai_getter.lms_url.return_value
+            == application_instance_service.get.return_value.lms_url
         )
 
     def test_it_doesnt_enable_the_blackboard_file_picker_if_the_feature_flag_is_off(
@@ -90,9 +88,9 @@ class TestEnableContentItemSelectionMode:
         self.assert_canvas_file_picker_not_enabled(js_config)
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_the_consumer_key_isnt_found_in_the_db(
-        self, ai_getter, js_config
+        self, application_instance_service, js_config
     ):
-        ai_getter.developer_key.side_effect = ConsumerKeyError()
+        application_instance_service.get.side_effect = ConsumerKeyError()
 
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
@@ -101,9 +99,9 @@ class TestEnableContentItemSelectionMode:
         self.assert_canvas_file_picker_not_enabled(js_config)
 
     def test_it_doesnt_enable_the_canvas_file_picker_if_we_dont_have_a_developer_key(
-        self, ai_getter, js_config
+        self, application_instance_service, js_config
     ):
-        ai_getter.developer_key.return_value = None
+        application_instance_service.get.return_value.developer_key = None
 
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields

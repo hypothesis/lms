@@ -40,32 +40,32 @@ GROUPS_SCOPES = ("url:GET|/api/v1/courses/:course_id/group_categories",)
     permission=Permissions.API,
 )
 def authorize(request):
-    ai_getter = request.find_service(name="ai_getter")
     application_instance_service = request.find_service(name="application_instance")
+    application_instance = application_instance_service.get()
     course_service = request.find_service(name="course")
 
     scopes = FILES_SCOPES
 
     if application_instance_service.canvas_sections_supported() and (
         # If the instance could add a new course with sections...
-        ai_getter.settings().get("canvas", "sections_enabled")
+        application_instance.settings.get("canvas", "sections_enabled")
         # ... or any of it's existing courses have sections
         or course_service.any_with_setting("canvas", "sections_enabled", True)
     ):
         scopes += SECTIONS_SCOPES
 
-    if ai_getter.settings().get("canvas", "groups_enabled"):
+    if application_instance.settings.get("canvas", "groups_enabled"):
         scopes += GROUPS_SCOPES
 
     auth_url = urlunparse(
         (
             "https",
-            urlparse(ai_getter.lms_url()).netloc,
+            urlparse(application_instance.lms_url).netloc,
             "login/oauth2/auth",
             "",
             urlencode(
                 {
-                    "client_id": ai_getter.developer_key(),
+                    "client_id": application_instance.developer_key,
                     "response_type": "code",
                     "redirect_uri": request.route_url("canvas_api.oauth.callback"),
                     "state": CanvasOAuthCallbackSchema(request).state_param(),

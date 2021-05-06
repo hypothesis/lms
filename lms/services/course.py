@@ -5,8 +5,8 @@ from lms.models import Course, CourseGroupsExportedFromH
 
 
 class CourseService:
-    def __init__(self, ai_getter, consumer_key, db):
-        self._ai_getter = ai_getter
+    def __init__(self, application_instance, consumer_key, db):
+        self._application_instance = application_instance
         self._consumer_key = consumer_key
         self._db = db
 
@@ -40,7 +40,7 @@ class CourseService:
     def _create(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
         # as the application instance
-        course_settings = deepcopy(self._ai_getter.settings())
+        course_settings = deepcopy(self._application_instance.settings)
 
         # Unless! The group was pre-sections, and we've just seen it for the
         # first time in which case turn sections off
@@ -67,7 +67,7 @@ class CourseService:
 
 def course_service_factory(_context, request):
     return CourseService(
-        request.find_service(name="ai_getter"),
+        request.find_service(name="application_instance").get(),
         request.lti_user.oauth_consumer_key,
         request.db,
     )

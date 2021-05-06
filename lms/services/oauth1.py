@@ -6,7 +6,9 @@ class OAuth1Service:
 
     def __init__(self, _context, request):
         self.request = request
-        self.ai_getter_service = request.find_service(name="ai_getter")
+        self.application_instance = request.find_service(
+            name="application_instance"
+        ).get()
 
     def get_client(self):
         """
@@ -19,7 +21,7 @@ class OAuth1Service:
         """
 
         consumer_key = self.request.lti_user.oauth_consumer_key
-        shared_secret = self.ai_getter_service.shared_secret()
+        shared_secret = self.application_instance.shared_secret
 
         return OAuth1(
             client_key=consumer_key,
