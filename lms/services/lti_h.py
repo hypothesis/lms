@@ -23,7 +23,9 @@ class LTIHService:
         self._h_user = request.lti_user.h_user
 
         self._authority = request.registry.settings["h_authority"]
-        self._ai_getter = request.find_service(name="ai_getter")
+        self._application_instance_service = request.find_service(
+            name="application_instance"
+        )
         self._h_api = request.find_service(name="h_api")
         self._group_info_service = request.find_service(name="group_info")
 
@@ -41,7 +43,7 @@ class LTIHService:
         :raise HTTPInternalServerError: if we can't sync to h for any reason
         """
 
-        if not self._ai_getter.provisioning_enabled():
+        if not self._application_instance_service.provisioning_enabled():
             return
 
         try:

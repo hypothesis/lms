@@ -35,19 +35,6 @@ class ApplicationInstanceGetter:
         """
         return self._get_by_consumer_key().lms_url
 
-    def provisioning_enabled(self):
-        """
-        Return ``True`` if provisioning is enabled for the current request.
-
-        Return ``True`` if the provisioning feature is enabled for the current
-        request, ``False`` otherwise.
-        """
-        try:
-            provisioning = self._get_by_consumer_key().provisioning
-        except ConsumerKeyError:
-            provisioning = False
-        return provisioning
-
     def canvas_sections_supported(self):
         """Return True if the application instance has Canvas sections is enabled."""
         try:
