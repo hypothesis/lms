@@ -12,7 +12,9 @@ help:
 	@echo "make lint              Run the code linter(s) and print any warnings"
 	@echo "make format            Correctly format the code"
 	@echo "make checkformatting   Crash if the code isn't correctly formatted"
-	@echo "make test              Run the unit tests"
+	@echo "make test              Run all unit tests"
+	@echo "make backend-tests     Run the backend unit tests"
+	@echo "make frontend-tests    Run the frontend unit tests"
 	@echo "make functests         Run the functional tests"
 	@echo "make bddtests          Run the gherkin tests"
 	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
@@ -41,8 +43,6 @@ supervisor: python
 .PHONY: devdata
 devdata: build/manifest.json  python
 	@tox -qe dev --run-command 'python bin/update_dev_data.py conf/development.ini'
-
-GULP := node_modules/.bin/gulp
 
 .PHONY: shell
 shell: build/manifest.json python
@@ -134,7 +134,11 @@ sure: checkformatting backend-lint frontend-lint backend-tests frontend-tests fu
 
 .PHONY: frontend-tests
 frontend-tests: node_modules/.uptodate
-	@$(GULP) test
+ifdef ARGS
+	yarn test $(ARGS)
+else
+	yarn test
+endif
 
 DOCKER_TAG = dev
 
