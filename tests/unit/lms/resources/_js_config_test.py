@@ -657,7 +657,7 @@ def pyramid_request(pyramid_request):
 
 @pytest.fixture
 def provisioning_disabled(application_instance_service):
-    application_instance_service.provisioning_enabled.return_value = False
+    application_instance_service.get.return_value.provisioning = False
 
 
 @pytest.fixture(autouse=True)

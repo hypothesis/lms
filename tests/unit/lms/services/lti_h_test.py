@@ -18,7 +18,7 @@ class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
         self, application_instance_service, lti_h_svc, h_api, h_group
     ):
-        application_instance_service.provisioning_enabled.return_value = False
+        application_instance_service.get.return_value.provisioning = False
 
         lti_h_svc.sync([h_group], sentinel.params)
 

@@ -171,14 +171,13 @@ def application_instance_service(pyramid_config):
         consumer_key=mock.sentinel.consumer_key,
         lms_url="https://example.com",
         shared_secret="TEST_SECRET",
+        provisioning=True,
         settings=ApplicationSettings({}),
     )
 
     application_instance_service.get.return_value.settings.set(
         "canvas", "sections_enabled", True
     )
-
-    application_instance_service.provisioning_enabled.return_value = True
 
     pyramid_config.register_service(
         application_instance_service, name="application_instance"
