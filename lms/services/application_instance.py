@@ -51,13 +51,6 @@ class ApplicationInstanceService:
         )
         return cipher.decrypt(application_instance.developer_secret)
 
-    def canvas_sections_supported(self):
-        """Return True if the current request's application instance has Canvas sections enabled."""
-        try:
-            return bool(self.get().developer_key)
-        except ConsumerKeyError:
-            return False
-
     @staticmethod
     def update_settings(ai, canvas_sections_enabled=None, canvas_groups_enabled=None):
         """

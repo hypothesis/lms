@@ -3,6 +3,7 @@ import functools
 
 from lms.models import HGroup
 from lms.resources._js_config import JSConfig
+from lms.services import ConsumerKeyError
 
 
 class LTILaunchResource:
@@ -101,9 +102,13 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        return self._request.find_service(
+        application_instance_service = self._request.find_service(
             name="application_instance"
-        ).canvas_sections_supported()
+        )
+        try:
+            return bool(application_instance_service.get().developer_key)
+        except ConsumerKeyError:
+            return False
 
     @property
     def canvas_sections_enabled(self):

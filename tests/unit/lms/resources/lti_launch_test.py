@@ -5,6 +5,7 @@ from pytest import param
 
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
+from lms.services import ConsumerKeyError
 
 pytestmark = pytest.mark.usefixtures("application_instance_service", "course_service")
 
@@ -120,18 +121,21 @@ class TestCanvasSectionsSupported:
     def test_it_depends_on_application_instance_service(
         self, lti_launch, application_instance_service
     ):
-        application_instance_service.canvas_sections_supported.return_value = False
+        application_instance_service.get.return_value.developer_key = None
+        assert not lti_launch.canvas_sections_supported()
+
+    def test_if_application_instance_service_raises(
+        self, lti_launch, application_instance_service
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
         assert not lti_launch.canvas_sections_supported()
 
     @pytest.fixture(autouse=True)
-    def sections_supported(self, application_instance_service, pyramid_request):
+    def sections_supported(self, pyramid_request):
         # We are in canvas
         pyramid_request.parsed_params[
             "tool_consumer_info_product_family_code"
         ] = "canvas"
-
-        # The AI getter returns true
-        application_instance_service.canvas_sections_supported.return_value = True
 
 
 @pytest.mark.usefixtures("has_course")
