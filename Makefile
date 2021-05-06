@@ -18,8 +18,6 @@ help:
 	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
 	@echo "make docker            Make the app's Docker image"
 	@echo "make run-docker        Run the app's Docker image locally"
-	@echo "make clean             Delete development artefacts (cached files, "
-	@echo "                       dependencies, etc)"
 
 .PHONY: services
 services: args?=up -d
@@ -110,14 +108,6 @@ run-docker:
 		-e OAUTH2_STATE_SECRET \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)
-
-.PHONY: clean
-clean:
-	@find . -type f -name "*.py[co]" -delete
-	@find . -type d -name "__pycache__" -delete
-	@rm -f node_modules/.uptodate
-	@rm -rf build
-	@tox -qe tests --run-command 'coverage erase'
 
 .PHONY: backend-lint
 backend-lint: python
