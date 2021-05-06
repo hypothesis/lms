@@ -115,7 +115,7 @@ describe('LMSFilePicker', () => {
     assert.equal(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the "Authorize" and "Authorize again" buttons after 2 failed authorization requests', async () => {
+  it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
     fakeApiCall.rejects(
       new ApiError('Not authorized', {
         /** without errorMessage */
@@ -148,9 +148,10 @@ describe('LMSFilePicker', () => {
 
     // After second failed authentication request
     const authorizeAgainButton = wrapper.find(
-      'LabeledButton[data-test="authorize-again"]'
+      'LabeledButton[data-test="try-again"]'
     );
     assert.isTrue(authorizeAgainButton.exists());
+    assert.equal(authorizeAgainButton.text(), 'Try again');
     const errorDetails = wrapper.find('ErrorDisplay');
     assert.equal(
       errorDetails.prop('message'),
@@ -167,9 +168,7 @@ describe('LMSFilePicker', () => {
     const authWindowClosed2 = new Promise(resolve => {
       fakeAuthWindowInstance.close = resolve;
     });
-    wrapper
-      .find('LabeledButton[data-test="authorize-again"]')
-      .prop('onClick')();
+    wrapper.find('LabeledButton[data-test="try-again"]').prop('onClick')();
     await authWindowClosed2;
     wrapper.update();
 
@@ -178,9 +177,7 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
     assert.isFalse(wrapper.exists('LabeledButton[data-test="authorize"]'));
     assert.isFalse(wrapper.exists('p[data-testid="authorization warning"]'));
-    assert.isFalse(
-      wrapper.exists('LabeledButton[data-test="authorize-again"]')
-    );
+    assert.isFalse(wrapper.exists('LabeledButton[data-test="try-again"]'));
     assert.isFalse(wrapper.exists('ErrorDisplay'));
   });
 

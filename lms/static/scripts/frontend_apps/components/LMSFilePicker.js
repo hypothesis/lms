@@ -215,9 +215,9 @@ export default function LMSFilePicker({
         <LabeledButton
           onClick={authorizeAndFetchFiles}
           variant="primary"
-          data-test="authorize-again"
+          data-test="try-again"
         >
-          Authorize again
+          Try again
         </LabeledButton>
       );
       warningOrError = (
