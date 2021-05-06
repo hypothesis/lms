@@ -2,6 +2,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import ConsumerKeyError
 
 
 @forbidden_view_config(path_info="/admin/*")
@@ -37,19 +38,20 @@ class AdminViews:
         if "query" not in self.request.params:
             raise HTTPBadRequest()
 
-        ai = self.application_instance_service.get(self.request.params["query"])
-        if ai:
+        try:
+            ai = self.application_instance_service.get(self.request.params["query"])
+        except ConsumerKeyError:
+            self.request.session.flash(
+                f'No application instance found for {self.request.params["query"]}',
+                "errors",
+            )
+            return HTTPFound(location=self.request.route_url("admin.instances"))
+        else:
             return HTTPFound(
                 location=self.request.route_url(
                     "admin.instance", consumer_key=ai.consumer_key
                 ),
             )
-
-        self.request.session.flash(
-            f'No application instance found for {self.request.params["query"]}',
-            "errors",
-        )
-        return HTTPFound(location=self.request.route_url("admin.instances"))
 
     @view_config(
         route_name="admin.instance",
@@ -92,10 +94,7 @@ class AdminViews:
         )
 
     def _get_ai_or_404(self, consumer_key):
-        ai = self.application_instance_service.get(
-            consumer_key,
-        )
-        if not ai:
-            raise HTTPNotFound()
-
-        return ai
+        try:
+            return self.application_instance_service.get(consumer_key)
+        except ConsumerKeyError as err:
+            raise HTTPNotFound() from err

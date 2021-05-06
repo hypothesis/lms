@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.models import ApplicationInstance
+from lms.services import ConsumerKeyError
 from lms.services.application_instance import factory
 from tests import factories
 
@@ -13,8 +14,9 @@ class TestApplicationInstanceGetter:
             svc.get(test_application_instance.consumer_key) == test_application_instance
         )
 
-    def test_get_none(self, svc):
-        assert svc.get("NOPE") is None
+    def test_get_raises_ConsumerKeyError_if_consumer_key_doesnt_exist(self, svc):
+        with pytest.raises(ConsumerKeyError):
+            assert svc.get("NOPE") is None
 
     def test_update_settings_no_update(
         self, svc, test_application_instance, db_session
