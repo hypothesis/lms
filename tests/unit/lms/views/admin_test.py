@@ -3,6 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
+from lms.services import ConsumerKeyError
 from lms.views.admin import AdminViews, logged_out, notfound
 from tests.matchers import temporary_redirect_to
 
@@ -29,7 +30,7 @@ class TestAdminViews:
     def test_find_instance_not_found(
         self, pyramid_request, application_instance_service
     ):
-        application_instance_service.get.return_value = None
+        application_instance_service.get.side_effect = ConsumerKeyError
         pyramid_request.params["query"] = "some-value"
         response = AdminViews(pyramid_request).find_instance()
 
@@ -55,7 +56,7 @@ class TestAdminViews:
         assert response["instance"].consumer_key == sentinel.consumer_key
 
     def test_show_not_found(self, pyramid_request, application_instance_service):
-        application_instance_service.get.return_value = None
+        application_instance_service.get.side_effect = ConsumerKeyError
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
 
         with pytest.raises(HTTPNotFound):
@@ -71,6 +72,15 @@ class TestAdminViews:
                 "admin.instance", consumer_key=sentinel.consumer_key
             )
         )
+
+    def test_update_instance_not_found(
+        self, pyramid_request, application_instance_service
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
+        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+
+        with pytest.raises(HTTPNotFound):
+            AdminViews(pyramid_request).update_instance()
 
     @pytest.fixture
     def views(self, pyramid_request):
