@@ -185,7 +185,7 @@ export default function LMSFilePicker({
           variant="primary"
           disabled={selectedFile === null}
           onClick={useSelectedFile}
-          data-test="select"
+          data-testid="select"
         >
           Select
         </LabeledButton>
@@ -197,7 +197,7 @@ export default function LMSFilePicker({
         <LabeledButton
           onClick={authorizeAndFetchFiles}
           variant="primary"
-          data-test="authorize"
+          data-testid="authorize"
         >
           Authorize
         </LabeledButton>
@@ -213,7 +213,7 @@ export default function LMSFilePicker({
         <LabeledButton
           onClick={authorizeAndFetchFiles}
           variant="primary"
-          data-test="try-again"
+          data-testid="try-again"
         >
           Try again
         </LabeledButton>
@@ -230,7 +230,7 @@ export default function LMSFilePicker({
         <LabeledButton
           onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
           variant="primary"
-          data-test="try-again"
+          data-testid="try-again"
         >
           Try again
         </LabeledButton>
@@ -248,7 +248,7 @@ export default function LMSFilePicker({
           disabled={dialogState.state === 'reloading'}
           onClick={fetchFiles}
           variant="primary"
-          data-test="reload"
+          data-testid="reload"
         >
           Reload
         </LabeledButton>
