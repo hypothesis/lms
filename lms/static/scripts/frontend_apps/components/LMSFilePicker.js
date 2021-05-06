@@ -178,11 +178,9 @@ export default function LMSFilePicker({
   const useSelectedFile = () =>
     onSelectFile(/** @type {File} */ (selectedFile));
 
-  let continueButton;
-  let warningOrError;
-  switch (dialogState.continueAction) {
-    case 'select':
-      continueButton = (
+  const options = {
+    select: {
+      continueButton: (
         <LabeledButton
           variant="primary"
           disabled={selectedFile === null}
@@ -191,11 +189,11 @@ export default function LMSFilePicker({
         >
           Select
         </LabeledButton>
-      );
-      warningOrError = null;
-      break;
-    case 'authorize':
-      continueButton = (
+      ),
+      warningOrError: null,
+    },
+    authorize: {
+      continueButton: (
         <LabeledButton
           onClick={authorizeAndFetchFiles}
           variant="primary"
@@ -203,15 +201,15 @@ export default function LMSFilePicker({
         >
           Authorize
         </LabeledButton>
-      );
-      warningOrError = (
+      ),
+      warningOrError: (
         <p data-testid="authorization warning">
           To select a file, you must authorize Hypothesis to access your files.
         </p>
-      );
-      break;
-    case 'authorize_retry':
-      continueButton = (
+      ),
+    },
+    authorize_retry: {
+      continueButton: (
         <LabeledButton
           onClick={authorizeAndFetchFiles}
           variant="primary"
@@ -219,16 +217,16 @@ export default function LMSFilePicker({
         >
           Try again
         </LabeledButton>
-      );
-      warningOrError = (
+      ),
+      warningOrError: (
         <ErrorDisplay
           message={'Failed to authorize file access'}
           error={new Error('')}
         />
-      );
-      break;
-    case 'retry':
-      continueButton = (
+      ),
+    },
+    retry: {
+      continueButton: (
         <LabeledButton
           onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
           variant="primary"
@@ -236,16 +234,16 @@ export default function LMSFilePicker({
         >
           Try again
         </LabeledButton>
-      );
-      warningOrError = (
+      ),
+      warningOrError: (
         <ErrorDisplay
           message="There was a problem fetching files"
           error={/** @type {Error} */ (dialogState.error)}
         />
-      );
-      break;
-    case 'reload':
-      continueButton = (
+      ),
+    },
+    reload: {
+      continueButton: (
         <LabeledButton
           disabled={dialogState.state === 'reloading'}
           onClick={fetchFiles}
@@ -254,13 +252,14 @@ export default function LMSFilePicker({
         >
           Reload
         </LabeledButton>
-      );
-      break;
-    default:
-      continueButton = null;
-      warningOrError = null;
-      break;
-  }
+      ),
+      warningOrError: null,
+    },
+  };
+
+  const { continueButton, warningOrError } = options[
+    dialogState.continueAction
+  ];
 
   if (dialogState.state === 'fetching') {
     return null;
