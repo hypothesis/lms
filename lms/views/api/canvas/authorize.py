@@ -41,11 +41,12 @@ GROUPS_SCOPES = ("url:GET|/api/v1/courses/:course_id/group_categories",)
 )
 def authorize(request):
     ai_getter = request.find_service(name="ai_getter")
+    application_instance_service = request.find_service(name="application_instance")
     course_service = request.find_service(name="course")
 
     scopes = FILES_SCOPES
 
-    if ai_getter.canvas_sections_supported() and (
+    if application_instance_service.canvas_sections_supported() and (
         # If the instance could add a new course with sections...
         ai_getter.settings().get("canvas", "sections_enabled")
         # ... or any of it's existing courses have sections

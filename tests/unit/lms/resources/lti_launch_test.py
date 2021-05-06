@@ -6,7 +6,7 @@ from pytest import param
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "course_service")
+pytestmark = pytest.mark.usefixtures("application_instance_service", "course_service")
 
 
 class TestHGroup:
@@ -117,19 +117,21 @@ class TestCanvasSectionsSupported:
 
         assert lti_launch.canvas_sections_supported() is expected
 
-    def test_it_depends_on_ai_getter(self, lti_launch, ai_getter):
-        ai_getter.canvas_sections_supported.return_value = False
+    def test_it_depends_on_application_instance_service(
+        self, lti_launch, application_instance_service
+    ):
+        application_instance_service.canvas_sections_supported.return_value = False
         assert not lti_launch.canvas_sections_supported()
 
     @pytest.fixture(autouse=True)
-    def sections_supported(self, ai_getter, pyramid_request):
+    def sections_supported(self, application_instance_service, pyramid_request):
         # We are in canvas
         pyramid_request.parsed_params[
             "tool_consumer_info_product_family_code"
         ] = "canvas"
 
         # The AI getter returns true
-        ai_getter.canvas_sections_supported.return_value = True
+        application_instance_service.canvas_sections_supported.return_value = True
 
 
 @pytest.mark.usefixtures("has_course")

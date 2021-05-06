@@ -73,6 +73,31 @@ class TestApplicationInstanceService:
 
         assert not svc.provisioning_enabled()
 
+    @pytest.mark.parametrize(
+        "developer_key,expected_result", [("test_developer_key", True), (None, False)]
+    )
+    def test_canvas_sections_supported(
+        self,
+        pyramid_request,
+        default_application_instance,
+        developer_key,
+        expected_result,
+    ):
+        svc = factory(mock.sentinel.context, pyramid_request)
+        default_application_instance.developer_key = developer_key
+
+        assert svc.canvas_sections_supported() == expected_result
+
+    def test_canvas_sections_supported_returns_False_if_consumer_key_unknown(
+        self, pyramid_request
+    ):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(
+            oauth_consumer_key="unknown"
+        )
+        svc = factory(mock.sentinel.context, pyramid_request)
+
+        assert not svc.canvas_sections_supported()
+
     def test_update_settings_no_update(
         self, svc, test_application_instance, db_session
     ):

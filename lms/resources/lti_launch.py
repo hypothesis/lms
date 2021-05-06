@@ -101,7 +101,9 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        return self._request.find_service(name="ai_getter").canvas_sections_supported()
+        return self._request.find_service(
+            name="application_instance"
+        ).canvas_sections_supported()
 
     @property
     def canvas_sections_enabled(self):

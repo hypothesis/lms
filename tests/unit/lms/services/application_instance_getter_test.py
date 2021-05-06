@@ -35,25 +35,6 @@ class TestApplicationInstanceGetter:
         with pytest.raises(ConsumerKeyError):
             ai_getter.lms_url()
 
-    @pytest.mark.parametrize(
-        "developer_key,expected_result", [("test_developer_key", True), (None, False)]
-    )
-    def test_canvas_sections_supported(
-        self, pyramid_request, test_application_instance, developer_key, expected_result
-    ):
-        ai_getter = application_instance_getter_service_factory(
-            mock.sentinel.context, pyramid_request
-        )
-        test_application_instance.developer_key = developer_key
-
-        assert ai_getter.canvas_sections_supported() == expected_result
-
-    @pytest.mark.usefixtures("unknown_consumer_key")
-    def test_canvas_sections_supported_returns_False_if_consumer_key_unknown(
-        self, ai_getter
-    ):
-        assert not ai_getter.canvas_sections_supported()
-
     def test_settings(self, ai_getter, test_application_instance):
         assert ai_getter.settings() == test_application_instance.settings
 
