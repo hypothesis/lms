@@ -29,6 +29,10 @@ class JSConfig:
     def _ai_getter(self):
         return self._request.find_service(name="ai_getter")
 
+    @property
+    def _application_instance_service(self):
+        return self._request.find_service(name="application_instance")
+
     def add_canvas_file_id(self, course_id, canvas_file_id):
         """
         Set the document to the Canvas file with the given canvas_file_id.
@@ -429,7 +433,7 @@ class JSConfig:
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._ai_getter.provisioning_enabled():
+        if not self._application_instance_service.provisioning_enabled():
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]

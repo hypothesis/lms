@@ -51,6 +51,18 @@ class ApplicationInstanceService:
         )
         return cipher.decrypt(application_instance.developer_secret)
 
+    def provisioning_enabled(self):
+        """
+        Return ``True`` if provisioning is enabled for the current request.
+
+        Return ``True`` if the provisioning feature is enabled for the current
+        request, ``False`` otherwise.
+        """
+        try:
+            return self.get().provisioning
+        except ConsumerKeyError:
+            return False
+
     @staticmethod
     def update_settings(ai, canvas_sections_enabled=None, canvas_groups_enabled=None):
         """

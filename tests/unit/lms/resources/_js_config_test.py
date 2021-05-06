@@ -10,6 +10,7 @@ from lms.services import ConsumerKeyError, HAPIError
 
 pytestmark = pytest.mark.usefixtures(
     "ai_getter",
+    "application_instance_service",
     "grading_info_service",
     "grant_token_service",
     "h_api",
@@ -657,8 +658,8 @@ def pyramid_request(pyramid_request):
 
 
 @pytest.fixture
-def provisioning_disabled(ai_getter):
-    ai_getter.provisioning_enabled.return_value = False
+def provisioning_disabled(application_instance_service):
+    application_instance_service.provisioning_enabled.return_value = False
 
 
 @pytest.fixture(autouse=True)

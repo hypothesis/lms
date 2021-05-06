@@ -164,7 +164,6 @@ def ai_getter(pyramid_config):
     ai_getter = mock.create_autospec(
         ApplicationInstanceGetter, spec_set=True, instance=True
     )
-    ai_getter.provisioning_enabled.return_value = True
     ai_getter.lms_url.return_value = "https://example.com"
     ai_getter.shared_secret.return_value = "TEST_SECRET"
     ai_getter.settings.return_value = ApplicationSettings({})
@@ -185,6 +184,8 @@ def application_instance_service(pyramid_config):
         spec_set=True,
         consumer_key=mock.sentinel.consumer_key,
     )
+
+    application_instance_service.provisioning_enabled.return_value = True
 
     pyramid_config.register_service(
         application_instance_service, name="application_instance"
