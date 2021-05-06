@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from lms.services import ConsumerKeyError
 from lms.services.application_instance_getter import (
     application_instance_getter_service_factory,
@@ -27,28 +26,6 @@ class TestApplicationInstanceGetter:
     def test_developer_key_raises_if_consumer_key_unknown(self, ai_getter):
         with pytest.raises(ConsumerKeyError):
             ai_getter.developer_key()
-
-    def test_developer_secret_returns_the_decrypted_developer_secret(
-        self, ai_getter, pyramid_request, test_application_instance
-    ):
-        test_application_instance.aes_cipher_iv = _build_aes_iv()
-        test_application_instance.developer_secret = _encrypt_oauth_secret(
-            b"TEST_DEVELOPER_SECRET",
-            pyramid_request.registry.settings["aes_secret"],
-            test_application_instance.aes_cipher_iv,
-        )
-
-        assert ai_getter.developer_secret() == b"TEST_DEVELOPER_SECRET"
-
-    def test_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
-        self, ai_getter
-    ):
-        assert ai_getter.developer_secret() is None
-
-    @pytest.mark.usefixtures("unknown_consumer_key")
-    def test_developer_secret_raises_if_consumer_key_unknown(self, ai_getter):
-        with pytest.raises(ConsumerKeyError):
-            ai_getter.developer_secret()
 
     def test_lms_url_returns_the_lms_url(self, ai_getter, test_application_instance):
         assert ai_getter.lms_url() == test_application_instance.lms_url
