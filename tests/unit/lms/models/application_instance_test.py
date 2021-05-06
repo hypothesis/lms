@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance, ApplicationSettings
+from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from tests import factories
 
 
@@ -91,6 +92,27 @@ class TestApplicationInstance:
             ApplicationInstance.get_by_consumer_key(db_session, "unknown_consumer_key")
             is None
         )
+
+    def test_decrypted_developer_secret_returns_the_decrypted_developer_secret(
+        self, application_instance, pyramid_request
+    ):
+        aes_secret = pyramid_request.registry.settings["aes_secret"]
+        application_instance.aes_cipher_iv = _build_aes_iv()
+        application_instance.developer_secret = _encrypt_oauth_secret(
+            b"TEST_DEVELOPER_SECRET", aes_secret, application_instance.aes_cipher_iv
+        )
+
+        assert (
+            application_instance.decrypted_developer_secret(aes_secret)
+            == b"TEST_DEVELOPER_SECRET"
+        )
+
+    def test_decryped_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
+        self, application_instance, pyramid_request
+    ):
+        aes_secret = pyramid_request.registry.settings["aes_secret"]
+
+        assert application_instance.decrypted_developer_secret(aes_secret) is None
 
     @pytest.fixture
     def application_instance(self):

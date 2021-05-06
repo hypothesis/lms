@@ -39,11 +39,15 @@ class TestCanvasAPIClientFactory:
     ):
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
+        application_instance_service.get.return_value.decrypted_developer_secret.assert_called_once_with(
+            pyramid_request.registry.settings["aes_secret"]
+        )
+
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
             oauth2_token_service=oauth2_token_service,
             client_id=application_instance_service.get.return_value.developer_key,
-            client_secret=application_instance_service.developer_secret.return_value,
+            client_secret=application_instance_service.get.return_value.decrypted_developer_secret.return_value,
             redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
         )
 
