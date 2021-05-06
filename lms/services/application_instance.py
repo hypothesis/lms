@@ -31,21 +31,6 @@ class ApplicationInstanceService:
 
         return application_instance
 
-    @staticmethod
-    def update_settings(ai, canvas_sections_enabled=None, canvas_groups_enabled=None):
-        """
-        Update ApplicationInstance.settings.
-
-        For not-nullable values only changes the params passed with a not-None value
-        """
-        if canvas_sections_enabled is not None:
-            ai.settings.set("canvas", "sections_enabled", canvas_sections_enabled)
-
-        if canvas_groups_enabled is not None:
-            ai.settings.set("canvas", "groups_enabled", canvas_groups_enabled)
-
-        return ai
-
 
 def factory(_context, request):
     if request.lti_user:
