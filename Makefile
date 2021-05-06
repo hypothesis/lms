@@ -45,7 +45,7 @@ devdata: build/manifest.json  python
 GULP := node_modules/.bin/gulp
 
 .PHONY: shell
-shell: python
+shell: build/manifest.json python
 	@tox -qe dev --run-command 'pshell conf/development.ini'
 
 .PHONY: sql
