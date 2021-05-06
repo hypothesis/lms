@@ -1,3 +1,4 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
@@ -12,7 +13,6 @@ import {
   PickerCanceledError,
 } from '../utils/google-picker-client';
 
-import Button from './Button';
 import ErrorDialog from './ErrorDialog';
 import LMSFilePicker from './LMSFilePicker';
 import Spinner from './Spinner';
@@ -221,31 +221,47 @@ export default function FilePickerApp({
         </p>
         <input name="document_url" type="hidden" value={url || ''} />
         <div className="FilePickerApp__document-source-buttons">
-          <Button
-            className="FilePickerApp__source-button"
-            label="Enter URL of web page or PDF"
+          <LabeledButton
+            variant="primary"
+            className="FilePickerButton"
             onClick={() => selectDialog('url')}
-          />
+            type="button"
+            data-test="url-button"
+          >
+            Enter URL of web page or PDF
+          </LabeledButton>
           {canvasEnabled && (
-            <Button
-              className="FilePickerApp__source-button"
-              label={`Select PDF from Canvas`}
+            <LabeledButton
+              variant="primary"
+              className="FilePickerButton"
               onClick={() => selectDialog('lms')}
-            />
+              type="button"
+              data-test="pdf-button"
+            >
+              Select PDF from Canvas
+            </LabeledButton>
           )}
           {googlePicker && (
-            <Button
-              className="FilePickerApp__source-button"
-              label="Select PDF from Google Drive"
+            <LabeledButton
+              variant="primary"
+              className="FilePickerButton"
               onClick={showGooglePicker}
-            />
+              type="button"
+              data-test="drive-button"
+            >
+              Select PDF from Google Drive
+            </LabeledButton>
           )}
           {vitalSourceEnabled && (
-            <Button
-              className="FilePickerApp__source-button"
-              label="Select book from VitalSource"
+            <LabeledButton
+              variant="primary"
+              className="FilePickerButton"
               onClick={selectVitalSourceBook}
-            />
+              type="button"
+              data-test="vitalsource-button"
+            >
+              Select book from VitalSource
+            </LabeledButton>
           )}
         </div>
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />

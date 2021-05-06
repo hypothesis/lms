@@ -1,0 +1,27 @@
+@use "sass:map";
+
+// Button styling for the sidebar extending common button-component styles
+@use '@hypothesis/frontend-shared/styles/components/buttons';
+
+@use 'variables' as var;
+
+$app-buttons-primary: map.merge(
+  buttons.colors-for('LabeledButton', 'primary'),
+  (
+    'hover-background': var.$brand,
+  )
+);
+
+// Main application file picker buttons with red hover color.
+.FilePickerButton {
+  $-options: (
+    'colormap--primary': $app-buttons-primary,
+  );
+
+  @include buttons.LabeledButton($-options) {
+    min-width: 16em;
+    margin-bottom: 0.75em;
+    justify-content: flex-start; // left align text
+    padding: 0.5em 1em;
+  }
+}
