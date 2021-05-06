@@ -83,16 +83,14 @@ class AdminViews:
             "sections_enabled" in self.request.params
             and self.request.params["sections_enabled"] == "on"
         )
+        ai.settings.set("canvas", "sections_enabled", sections_enabled)
+
         groups_enabled = (
             "groups_enabled" in self.request.params
             and self.request.params["groups_enabled"] == "on"
         )
+        ai.settings.set("canvas", "groups_enabled", groups_enabled)
 
-        self.application_instance_service.update_settings(
-            ai,
-            canvas_sections_enabled=sections_enabled,
-            canvas_groups_enabled=groups_enabled,
-        )
         self.request.session.flash(
             f"Updated application instance {ai.consumer_key}", "messages"
         )
