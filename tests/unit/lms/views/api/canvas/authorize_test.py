@@ -116,7 +116,7 @@ class TestAuthorize:
 
     @pytest.fixture
     def sections_not_supported(self, application_instance_service):
-        application_instance_service.canvas_sections_supported.return_value = False
+        application_instance_service.get.return_value.developer_key = None
 
     @pytest.fixture
     def sections_disabled(self, application_instance_service):

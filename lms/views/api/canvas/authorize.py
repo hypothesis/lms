@@ -46,7 +46,7 @@ def authorize(request):
 
     scopes = FILES_SCOPES
 
-    if application_instance_service.canvas_sections_supported() and (
+    if application_instance.developer_key and (
         # If the instance could add a new course with sections...
         application_instance.settings.get("canvas", "sections_enabled")
         # ... or any of it's existing courses have sections
