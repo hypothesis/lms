@@ -8,7 +8,7 @@ from lms.services.application_instance import factory
 from tests import factories
 
 
-class TestApplicationInstanceGetter:
+class TestApplicationInstanceService:
     def test_get_one(self, svc, test_application_instance):
         assert (
             svc.get(test_application_instance.consumer_key) == test_application_instance
