@@ -1,7 +1,5 @@
 from functools import lru_cache
 
-from Cryptodome.Cipher import AES
-
 from lms import models
 from lms.services import ConsumerKeyError
 
@@ -11,9 +9,8 @@ __all__ = ["ApplicationInstanceGetter"]
 class ApplicationInstanceGetter:
     """Methods for getting properties from application instances."""
 
-    def __init__(self, db, aes_secret, consumer_key):
+    def __init__(self, db, consumer_key):
         self._db = db
-        self._aes_secret = aes_secret
         self._consumer_key = consumer_key
 
     def developer_key(self):
@@ -26,25 +23,6 @@ class ApplicationInstanceGetter:
         :rtype: str or ``None``
         """
         return self._get_by_consumer_key().developer_key
-
-    def developer_secret(self):
-        """
-        Return the Canvas developer secret for the current request or None.
-
-        :raise ConsumerKeyError: if the request's consumer key isn't in the DB
-
-        :return: the matching Canvas API developer secret or ``None``
-        :rtype: str or ``None``
-        """
-        application_instance = self._get_by_consumer_key()
-
-        if application_instance.developer_secret is None:
-            return None
-
-        cipher = AES.new(
-            self._aes_secret, AES.MODE_CFB, application_instance.aes_cipher_iv
-        )
-        return cipher.decrypt(application_instance.developer_secret)
 
     def lms_url(self):
         """
@@ -117,8 +95,4 @@ class ApplicationInstanceGetter:
 
 
 def application_instance_getter_service_factory(_context, request):
-    return ApplicationInstanceGetter(
-        request.db,
-        request.registry.settings["aes_secret"],
-        request.lti_user.oauth_consumer_key,
-    )
+    return ApplicationInstanceGetter(request.db, request.lti_user.oauth_consumer_key)
