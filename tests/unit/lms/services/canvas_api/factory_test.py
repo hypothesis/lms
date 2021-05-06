@@ -4,7 +4,9 @@ import pytest
 
 from lms.services.canvas_api.factory import canvas_api_client_factory
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "oauth2_token_service")
+pytestmark = pytest.mark.usefixtures(
+    "ai_getter", "application_instance_service", "oauth2_token_service"
+)
 
 
 class TestCanvasAPIClientFactory:
@@ -27,6 +29,7 @@ class TestCanvasAPIClientFactory:
         self,
         pyramid_request,
         ai_getter,
+        application_instance_service,
         AuthenticatedClient,
         BasicClient,
         oauth2_token_service,
@@ -36,8 +39,8 @@ class TestCanvasAPIClientFactory:
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
             oauth2_token_service=oauth2_token_service,
-            client_id=ai_getter.developer_key(),
-            client_secret=ai_getter.developer_secret(),
+            client_id=ai_getter.developer_key.return_value,
+            client_secret=application_instance_service.developer_secret.return_value,
             redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
         )
 
