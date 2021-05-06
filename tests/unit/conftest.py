@@ -9,7 +9,6 @@ from pyramid.request import apply_request_extensions
 
 from lms.models import ApplicationInstance, ApplicationSettings
 from lms.services.application_instance import ApplicationInstanceService
-from lms.services.application_instance_getter import ApplicationInstanceGetter
 from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
@@ -160,19 +159,6 @@ def db_session(db_engine):
 
 
 @pytest.fixture
-def ai_getter(pyramid_config):
-    ai_getter = mock.create_autospec(
-        ApplicationInstanceGetter, spec_set=True, instance=True
-    )
-    ai_getter.lms_url.return_value = "https://example.com"
-    ai_getter.shared_secret.return_value = "TEST_SECRET"
-    ai_getter.settings.return_value = ApplicationSettings({})
-    ai_getter.settings().set("canvas", "sections_enabled", True)
-    pyramid_config.register_service(ai_getter, name="ai_getter")
-    return ai_getter
-
-
-@pytest.fixture
 def application_instance_service(pyramid_config):
     application_instance_service = mock.create_autospec(
         ApplicationInstanceService, instance=True, spec_set=True
@@ -183,6 +169,13 @@ def application_instance_service(pyramid_config):
         instance=True,
         spec_set=True,
         consumer_key=mock.sentinel.consumer_key,
+        lms_url="https://example.com",
+        shared_secret="TEST_SECRET",
+        settings=ApplicationSettings({}),
+    )
+
+    application_instance_service.get.return_value.settings.set(
+        "canvas", "sections_enabled", True
     )
 
     application_instance_service.provisioning_enabled.return_value = True

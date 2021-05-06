@@ -26,10 +26,6 @@ class JSConfig:
         return self._lti_user.oauth_consumer_key
 
     @property
-    def _ai_getter(self):
-        return self._request.find_service(name="ai_getter")
-
-    @property
     def _application_instance_service(self):
         return self._request.find_service(name="application_instance")
 
@@ -171,7 +167,10 @@ class JSConfig:
             # When we're being launched in an iframe within the LMS our JavaScript
             # needs to pass this URL (which is the URL of the top-most page) to Google
             # Picker, otherwise Picker refuses to launch inside an iframe.
-            return self._context.custom_canvas_api_domain or self._ai_getter.lms_url()
+            return (
+                self._context.custom_canvas_api_domain
+                or self._application_instance_service.get().lms_url
+            )
 
         self._config["filePicker"] = {
             "formAction": form_action,
@@ -327,7 +326,7 @@ class JSConfig:
             return False
 
         try:
-            developer_key = self._ai_getter.developer_key()
+            developer_key = self._application_instance_service.get().developer_key
         except ConsumerKeyError:
             return False
 

@@ -8,7 +8,6 @@ from lms.views.basic_lti_launch import BasicLTILaunchViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
-    "ai_getter",
     "assignment_service",
     "course_service",
     "h_api",
