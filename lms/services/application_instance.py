@@ -1,15 +1,11 @@
 from functools import lru_cache
-from typing import Optional
-
-from Cryptodome.Cipher import AES
 
 from lms.models import ApplicationInstance
 from lms.services import ConsumerKeyError
 
 
 class ApplicationInstanceService:
-    def __init__(self, aes_secret, db, default_consumer_key):
-        self._aes_secret = aes_secret
+    def __init__(self, db, default_consumer_key):
         self._db = db
         self._default_consumer_key = default_consumer_key
 
@@ -35,22 +31,6 @@ class ApplicationInstanceService:
 
         return application_instance
 
-    def developer_secret(self) -> Optional[str]:
-        """
-        Return the Canvas developer secret for the current request or None.
-
-        :raise ConsumerKeyError: if the request's consumer key isn't in the DB
-        """
-        application_instance = self.get()
-
-        if application_instance.developer_secret is None:
-            return None
-
-        cipher = AES.new(
-            self._aes_secret, AES.MODE_CFB, application_instance.aes_cipher_iv
-        )
-        return cipher.decrypt(application_instance.developer_secret)
-
     @staticmethod
     def update_settings(ai, canvas_sections_enabled=None, canvas_groups_enabled=None):
         """
@@ -73,6 +53,4 @@ def factory(_context, request):
     else:
         consumer_key = None
 
-    return ApplicationInstanceService(
-        request.registry.settings["aes_secret"], request.db, consumer_key
-    )
+    return ApplicationInstanceService(request.db, consumer_key)

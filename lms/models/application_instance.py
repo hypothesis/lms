@@ -53,6 +53,14 @@ class ApplicationInstance(BASE):
         "GroupInfo", back_populates="application_instance"
     )
 
+    def decrypted_developer_secret(self, aes_secret):
+        if self.developer_secret is None:
+            return None
+
+        cipher = AES.new(aes_secret, AES.MODE_CFB, self.aes_cipher_iv)
+
+        return cipher.decrypt(self.developer_secret)
+
     @classmethod
     def get_by_consumer_key(cls, db, consumer_key):
         """Return the ApplicationInstance with the given consumer_key or None."""
