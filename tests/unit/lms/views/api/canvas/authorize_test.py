@@ -10,7 +10,9 @@ from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
 from lms.views.api.canvas.authorize import GROUPS_SCOPES
 
-pytestmark = pytest.mark.usefixtures("ai_getter", "course_service", "canvas_api_client")
+pytestmark = pytest.mark.usefixtures(
+    "ai_getter", "application_instance_service", "course_service", "canvas_api_client"
+)
 
 
 class TestAuthorize:
@@ -112,8 +114,8 @@ class TestAuthorize:
         ]
 
     @pytest.fixture
-    def sections_not_supported(self, ai_getter):
-        ai_getter.canvas_sections_supported.return_value = False
+    def sections_not_supported(self, application_instance_service):
+        application_instance_service.canvas_sections_supported.return_value = False
 
     @pytest.fixture
     def sections_disabled(self, ai_getter):

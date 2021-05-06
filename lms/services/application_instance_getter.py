@@ -35,16 +35,6 @@ class ApplicationInstanceGetter:
         """
         return self._get_by_consumer_key().lms_url
 
-    def canvas_sections_supported(self):
-        """Return True if the application instance has Canvas sections is enabled."""
-        try:
-            app_instance = self._get_by_consumer_key()
-        except ConsumerKeyError:
-            return False
-
-        # We need a developer key to call the API
-        return bool(app_instance.developer_key)
-
     def settings(self):
         return self._get_by_consumer_key().settings
 
