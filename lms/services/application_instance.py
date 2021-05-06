@@ -52,12 +52,7 @@ class ApplicationInstanceService:
         return cipher.decrypt(application_instance.developer_secret)
 
     def provisioning_enabled(self):
-        """
-        Return ``True`` if provisioning is enabled for the current request.
-
-        Return ``True`` if the provisioning feature is enabled for the current
-        request, ``False`` otherwise.
-        """
+        """Return True if provisioning is enabled for the current request."""
         try:
             return self.get().provisioning
         except ConsumerKeyError:
@@ -75,7 +70,7 @@ class ApplicationInstanceService:
         """
         Update ApplicationInstance.settings.
 
-        For not nullable values only changes the params passed with a not None value
+        For not-nullable values only changes the params passed with a not-None value
         """
         if canvas_sections_enabled is not None:
             ai.settings.set("canvas", "sections_enabled", canvas_sections_enabled)
