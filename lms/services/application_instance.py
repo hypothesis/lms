@@ -51,13 +51,6 @@ class ApplicationInstanceService:
         )
         return cipher.decrypt(application_instance.developer_secret)
 
-    def provisioning_enabled(self):
-        """Return True if provisioning is enabled for the current request."""
-        try:
-            return self.get().provisioning
-        except ConsumerKeyError:
-            return False
-
     def canvas_sections_supported(self):
         """Return True if the current request's application instance has Canvas sections enabled."""
         try:

@@ -43,7 +43,7 @@ class LTIHService:
         :raise HTTPInternalServerError: if we can't sync to h for any reason
         """
 
-        if not self._application_instance_service.provisioning_enabled():
+        if not self._application_instance_service.get().provisioning:
             return
 
         try:

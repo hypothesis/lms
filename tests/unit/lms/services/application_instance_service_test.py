@@ -55,24 +55,6 @@ class TestApplicationInstanceService:
         with pytest.raises(ConsumerKeyError):
             svc.developer_secret()
 
-    @pytest.mark.parametrize("flag", [True, False])
-    def test_provisioning__enabled_returns_the_provisioning_flag(
-        self, svc, flag, default_application_instance
-    ):
-        default_application_instance.provisioning = flag
-
-        assert svc.provisioning_enabled() == flag
-
-    def test_provisioning_enabled_returns_False_if_consumer_key_unknown(
-        self, pyramid_request
-    ):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(
-            oauth_consumer_key="unknown"
-        )
-        svc = factory(mock.sentinel.context, pyramid_request)
-
-        assert not svc.provisioning_enabled()
-
     @pytest.mark.parametrize(
         "developer_key,expected_result", [("test_developer_key", True), (None, False)]
     )
