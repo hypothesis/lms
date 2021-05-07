@@ -5,7 +5,6 @@ source =
     lms
     tests/unit
 omit =
-    lms/scripts/*
     lms/pshell.py
 
     # Don't bother covering these files as they just contain feature flags test
