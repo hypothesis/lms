@@ -1,6 +1,25 @@
 from typing import NamedTuple
 
+import sqlalchemy as sa
+
+from lms.db import BASE
 from lms.models import HUser
+
+
+class _LTIUser(BASE):
+    __tablename__ = "lti_user"
+    __table_args__ = (sa.UniqueConstraint("lms_id", "provider_unique_id"),)
+
+    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+
+    lms_id = sa.Column(
+        sa.Integer, sa.ForeignKey("lms.id", ondelete="cascade"), nullable=True
+    )
+
+    # provider = sa.Column(sa.UnicodeText(), nullable=False)  this is the lms.tool_consumer_instance_guid
+    provider_unique_id = sa.Column(sa.UnicodeText(), nullable=False)
+
+    name = sa.Column(sa.UnicodeText(), nullable=False)
 
 
 class LTIUser(NamedTuple):

@@ -41,3 +41,7 @@ class ModuleItemConfiguration(BASE):
 
     document_url = sa.Column(sa.String, nullable=False)
     """The URL of the document to be annotated for this assignment."""
+
+    lms_id = sa.Column(
+        sa.Integer, sa.ForeignKey("lms.id", ondelete="cascade"), nullable=True
+    )

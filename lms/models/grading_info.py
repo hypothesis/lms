@@ -69,3 +69,11 @@ class GradingInfo(BASE):
     tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText(), nullable=True)
     h_username = sa.Column(sa.UnicodeText(), nullable=False)
     h_display_name = sa.Column(sa.UnicodeText(), nullable=False)
+
+    lms_id = sa.Column(
+        sa.Integer, sa.ForeignKey("lms.id", ondelete="cascade"), nullable=True
+    )
+
+    lti_user_id = sa.Column(
+        sa.Integer, sa.ForeignKey("lti_user.id", ondelete="cascade"), nullable=True
+    )
