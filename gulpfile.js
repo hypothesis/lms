@@ -181,10 +181,10 @@ gulp.task('watch', gulp.parallel(['watch-js', 'watch-css', 'watch-manifest']));
 function runKarma(done) {
   const karma = require('karma');
   new karma.Server(
-    {
-      configFile: path.resolve(__dirname, './lms/static/scripts/karma.config.js'),
-      ...karmaOptions,
-    },
+    karma.config.parseConfig(
+      path.resolve(__dirname, './lms/static/scripts/karma.config.js'),
+      karmaOptions
+    ),
     done
   ).start();
 }
