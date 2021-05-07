@@ -4,6 +4,9 @@
 @use 'utils';
 @use 'typography';
 
+// Custom styling for buttons
+@use 'buttons';
+
 // HTML components
 @use 'components/browser-check-warning';
 @use 'components/heading';

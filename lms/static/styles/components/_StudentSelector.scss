@@ -6,30 +6,12 @@
   display: flex;
 }
 
-.StudentSelector__svg {
-  color: var.$grey-5;
-  width: 1em;
-  height: 1em;
-}
-
-.StudentSelector__change-student {
-  @include focus.outline-on-keyboard-focus;
-  min-width: 60px;
-  height: 40px;
-  border: none;
-  background-color: var.$grey-2;
-  border: 1px solid var.$grey-3;
+.StudentSelector__button {
   font-size: 24px;
-  transition: background-color 0.2s, border-color 0.2s;
 
-  &:hover {
-    background-color: var.$grey-3;
-  }
-
-  &:disabled {
-    background-color: var.$grey-1;
-    cursor: default;
-    opacity: 0.5;
+  svg {
+    width: 1em;
+    height: 1em;
   }
 }
 
@@ -41,8 +23,6 @@
     @include focus.outline-on-keyboard-focus;
     appearance: none;
     border: 1px solid var.$grey-3;
-    border-left: none;
-    border-right: none;
     border-radius: 0;
     height: 40px;
     padding: 5px 35px 5px 20px;

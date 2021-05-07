@@ -34,6 +34,16 @@ $subtitle-font-size: 15px;
 
 $input-font-size: 15px;
 
+// Layout spacing
+// -------------------------
+$layout-space: 1em;
+$layout-space--xxsmall: $layout-space * (1/4);
+$layout-space--xsmall: $layout-space * (1/2);
+$layout-space--small: $layout-space * (3/4);
+$layout-space--medium: $layout-space;
+$layout-space--large: $layout-space * 2;
+$layout-space--xlarge: $layout-space * 4;
+
 // Minimum font size for <input> fields on iOS. If the font size is smaller than
 // this, iOS will zoom into the field when focused.
 $touch-input-font-size: 16px;

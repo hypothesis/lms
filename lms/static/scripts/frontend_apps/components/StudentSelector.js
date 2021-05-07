@@ -1,4 +1,4 @@
-import { SvgIcon } from '@hypothesis/frontend-shared';
+import { SvgIcon, IconButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 
 /**
@@ -98,31 +98,25 @@ export default function StudentSelector({
 
   return (
     <div className="StudentSelector">
-      <button
-        className="StudentSelector__change-student"
-        aria-label="previous student"
-        disabled={!hasPrevView}
-        onClick={onPrevView}
-      >
-        <SvgIcon
-          className="StudentSelector__svg"
-          name="arrow-left"
-          inline={true}
+      <span className="StudentSelector__button">
+        <IconButton
+          className="InputButton--left"
+          icon="arrow-left"
+          disabled={!hasPrevView}
+          onClick={onPrevView}
+          title="Previous Student"
         />
-      </button>
+      </span>
       {buildStudentList()}
-      <button
-        className="StudentSelector__change-student"
-        aria-label="next student"
-        disabled={!hasNextView}
-        onClick={onNextView}
-      >
-        <SvgIcon
-          className="StudentSelector__svg"
-          name="arrow-right"
-          inline={true}
+      <span className="StudentSelector__button">
+        <IconButton
+          className="InputButton--right"
+          icon="arrow-right"
+          disabled={!hasNextView}
+          onClick={onNextView}
+          title="Next Student"
         />
-      </button>
+      </span>
     </div>
   );
 }
