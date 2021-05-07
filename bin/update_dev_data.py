@@ -126,3 +126,7 @@ def devdata():
                     open(os.path.join(git_dir, "lms", "devdata.json"), "r").read()
                 ),
             ).create_all()
+
+
+if __name__ == "__main__":
+    devdata()
