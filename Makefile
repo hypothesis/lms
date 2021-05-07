@@ -27,7 +27,7 @@ services: python
 .PHONY: db
 db: args?=upgrade head
 db: python
-	@tox -qqe dev --run-command 'initdb conf/development.ini'  # See setup.py for what initdb is.
+	@tox -qqe dev --run-command 'python bin/initialize_db.py conf/development.ini'
 	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
@@ -40,7 +40,7 @@ supervisor: python
 
 .PHONY: devdata
 devdata: build/manifest.json  python
-	@tox -qe dev --run-command 'devdata conf/development.ini'  # See setup.py for what devdata is.
+	@tox -qe dev --run-command 'python bin/update_dev_data.py conf/development.ini'
 
 GULP := node_modules/.bin/gulp
 
