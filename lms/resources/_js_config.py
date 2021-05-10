@@ -210,6 +210,10 @@ class JSConfig:
             },
             "canvas": {
                 "enabled": self._canvas_files_available(),
+                "groupsEnabled": self._ai_getter.settings().get(
+                    "canvas", "groups_enabled"
+                )
+                or False,
                 # The "content item selection" that we submit to Canvas's
                 # content_item_return_url is actually an LTI launch URL with
                 # the selected document URL or file_id as a query parameter. To
@@ -220,6 +224,13 @@ class JSConfig:
                     "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
                     "path": self._request.route_path(
                         "canvas_api.courses.files.list",
+                        course_id=self._request.params.get("custom_canvas_course_id"),
+                    ),
+                },
+                "listGroupCategories": {
+                    "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
+                    "path": self._request.route_path(
+                        "canvas_api.courses.group_categories.list",
                         course_id=self._request.params.get("custom_canvas_course_id"),
                     ),
                 },

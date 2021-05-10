@@ -42,10 +42,15 @@ class TestEnableContentItemSelectionMode:
             },
             "canvas": {
                 "enabled": True,
+                "groupsEnabled": False,
                 "ltiLaunchUrl": "http://example.com/lti_launches",
                 "listFiles": {
                     "authUrl": "http://example.com/api/canvas/oauth/authorize",
                     "path": "/api/canvas/courses/test_course_id/files",
+                },
+                "listGroupCategories": {
+                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
+                    "path": "/api/canvas/courses/test_course_id/group_categories",
                 },
             },
             "vitalSource": {

@@ -174,6 +174,9 @@ def application_instance_service(pyramid_config):
     application_instance_service.get.return_value.settings.set(
         "canvas", "sections_enabled", True
     )
+    application_instance_service.get.return_value.settings.set(
+        "canvas", "groups_enabled", False
+    )
 
     pyramid_config.register_service(
         application_instance_service, name="application_instance"
