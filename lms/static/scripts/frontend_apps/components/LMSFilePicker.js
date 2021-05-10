@@ -98,10 +98,12 @@ export default function LMSFilePicker({
         state: continueAction === 'reload' ? 'reloading' : 'fetching',
         continueAction,
       }));
-      const files = /** @type {File[]} */ (await apiCall({
-        authToken,
-        path: listFilesApi.path,
-      }));
+      const files = /** @type {File[]} */ (
+        await apiCall({
+          authToken,
+          path: listFilesApi.path,
+        })
+      );
       const continueAction =
         files.length === 0 ? 'reload' : INITIAL_DIALOG_STATE.continueAction;
       setDialogState({
@@ -257,9 +259,8 @@ export default function LMSFilePicker({
     },
   };
 
-  const { continueButton, warningOrError } = options[
-    dialogState.continueAction
-  ];
+  const { continueButton, warningOrError } =
+    options[dialogState.continueAction];
 
   if (dialogState.state === 'fetching') {
     return null;

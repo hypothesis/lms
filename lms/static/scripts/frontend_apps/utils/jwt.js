@@ -28,9 +28,9 @@ export class JWT {
 
     try {
       const [, payloadBase64] = token.split('.');
-      this._payload = /** @type {JWTPayload} */ (JSON.parse(
-        atob(payloadBase64)
-      ));
+      this._payload = /** @type {JWTPayload} */ (
+        JSON.parse(atob(payloadBase64))
+      );
     } catch (err) {
       throw new Error('Failed to parse payload from JWT');
     }

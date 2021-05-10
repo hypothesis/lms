@@ -63,9 +63,8 @@ export default function FilePickerApp({
   // will contain the selected book and chapter.
   const [vitalSourceBook, setVitalSourceBook] = useState(false);
 
-  const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] = useState(
-    false
-  );
+  const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
+    useState(false);
 
   /**
    * @typedef ErrorInfo
