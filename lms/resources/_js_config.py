@@ -25,9 +25,8 @@ class JSConfig:
     def _consumer_key(self):
         return self._lti_user.oauth_consumer_key
 
-    @property
-    def _application_instance_service(self):
-        return self._request.find_service(name="application_instance")
+    def _application_instance(self):
+        return self._request.find_service(name="application_instance").get()
 
     def add_canvas_file_id(self, course_id, canvas_file_id):
         """
@@ -169,7 +168,7 @@ class JSConfig:
             # Picker, otherwise Picker refuses to launch inside an iframe.
             return (
                 self._context.custom_canvas_api_domain
-                or self._application_instance_service.get().lms_url
+                or self._application_instance().lms_url
             )
 
         self._config["filePicker"] = {
@@ -326,7 +325,7 @@ class JSConfig:
             return False
 
         try:
-            developer_key = self._application_instance_service.get().developer_key
+            developer_key = self._application_instance().developer_key
         except ConsumerKeyError:
             return False
 
@@ -432,7 +431,7 @@ class JSConfig:
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._application_instance_service.get().provisioning:
+        if not self._application_instance().provisioning:
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]

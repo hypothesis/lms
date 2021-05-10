@@ -102,11 +102,12 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        application_instance_service = self._request.find_service(
-            name="application_instance"
-        )
         try:
-            return bool(application_instance_service.get().developer_key)
+            return bool(
+                self._request.find_service(name="application_instance")
+                .get()
+                .developer_key
+            )
         except ConsumerKeyError:
             return False
 
