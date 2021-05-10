@@ -12,8 +12,7 @@ def canvas_api_client_factory(_context, request):
     :param request: Pyramid request object
     :return: An instance of CanvasAPIClient
     """
-    application_instance_service = request.find_service(name="application_instance")
-    application_instance = application_instance_service.get()
+    application_instance = request.find_service(name="application_instance").get()
 
     canvas_host = urlparse(application_instance.lms_url).netloc
     developer_secret = application_instance.decrypted_developer_secret(
