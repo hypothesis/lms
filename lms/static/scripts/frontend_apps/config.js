@@ -61,8 +61,10 @@ import { createContext } from 'preact';
  * @prop {Object.<string,string>} formFields
  * @prop {Object} canvas
  *   @prop {boolean} canvas.enabled
+ *   @prop {boolean} canvas.groupsEnabled
  *   @prop {string} canvas.ltiLaunchUrl
  *   @prop {ApiCallInfo} canvas.listFiles
+ *   @prop {ApiCallInfo} canvas.listGroupCategories
  * @prop {Object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
