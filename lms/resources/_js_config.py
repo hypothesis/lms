@@ -26,6 +26,11 @@ class JSConfig:
         return self._lti_user.oauth_consumer_key
 
     def _application_instance(self):
+        """
+        Return the current request's ApplicationInstance.
+
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
+        """
         return self._request.find_service(name="application_instance").get()
 
     def add_canvas_file_id(self, course_id, canvas_file_id):
@@ -130,6 +135,13 @@ class JSConfig:
         )
 
     def enable_lti_launch_mode(self):
+        """
+        Put the JavaScript code into "LTI launch" mode.
+
+        This mode launches an assignment.
+
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
+        """
         self._config["mode"] = "basic-lti-launch"
 
         self._config["api"]["sync"] = self._sync_api()
@@ -158,10 +170,20 @@ class JSConfig:
         :param form_fields: the fields (keys and values) to include in the
             HTML form that we'll use to submit the user's chosen document
         :type form_fields: dict
+
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
         """
         self._config["mode"] = "content-item-selection"
 
         def google_picker_origin():
+            """
+            Return the URL of the top-most page that the LMS app is running in.
+
+            The frontend has to pass this to Google Picker, otherwise Google
+            Picker refuses to launch in an iframe.
+
+            :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
+            """
             # Pass the URL of the LMS that is launching us to our JavaScript code.
             # When we're being launched in an iframe within the LMS our JavaScript
             # needs to pass this URL (which is the URL of the top-most page) to Google
@@ -255,6 +277,7 @@ class JSConfig:
         In theory, though, the focused_user param could work outside of Canvas
         as well if we ever want it to.
 
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
         """
         focused_user = self._request.params.get("focused_user")
 
@@ -319,7 +342,11 @@ class JSConfig:
         return self._request.feature("blackboard_files")
 
     def _canvas_files_available(self):
-        """Return True if the Canvas Files API is available to this request."""
+        """
+        Return True if the Canvas Files API is available to this request.
+
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
+        """
 
         if not self._context.is_canvas:
             return False
@@ -420,6 +447,8 @@ class JSConfig:
 
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
+
+        :raise ConsumerKeyError: if request.lti_user.consumer_key isn't in the DB
         """
         # This is a lazy-computed property so that if it's going to raise an
         # exception that doesn't happen until someone actually reads it.
