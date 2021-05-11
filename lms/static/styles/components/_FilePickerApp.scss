@@ -36,4 +36,8 @@
   display: inline-flex;
   flex-direction: column;
   margin-top: 30px;
+
+  & > :not(:first-child) {
+    margin-top: 10px;
+  }
 }

@@ -12,5 +12,17 @@
  * @prop {string} updated_at - An ISO 8601 date string
  */
 
+/**
+ * Object representing a set of groups in the LMS.
+ *
+ * Many LMSes have some entity that is a named set of groups into which
+ * students can be divided for an assignment. The terminology depends on the
+ * LMS. In Canvas and Blackboard this is called a "Group Set".
+ *
+ * @typedef GroupSet
+ * @prop {string} id
+ * @prop {string} name
+ */
+
 // Make TS treat this file as a module.
 export {};
