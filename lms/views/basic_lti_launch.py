@@ -100,9 +100,23 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
+        file_id = self.request.params["file_id"]
+        canvas_course_id = self.request.params["custom_canvas_course_id"]
         self.context.js_config.add_canvas_file_id(
-            self.request.params["custom_canvas_course_id"],
-            self.request.params["file_id"],
+            canvas_course_id,
+            file_id,
+        )
+
+        # We store our own API url (not the resulting via one) on the assignment
+        # that will stay constant across launches.
+        document_url = self.request.route_path(
+            "canvas_api.files.via_url", course_id=canvas_course_id, file_id=file_id
+        )
+
+        self.assignment_service.set_document_url(
+            self.request.parsed_params["tool_consumer_instance_guid"],
+            self.request.parsed_params["resource_link_id"],
+            document_url,
         )
         return self.basic_lti_launch(grading_supported=False)
 
@@ -209,7 +223,13 @@ class BasicLTILaunchViews:
         LMS, which passes it back to us in each launch request. All we have to
         do is pass the URL to Via.
         """
-        return self.basic_lti_launch(self.request.parsed_params["url"])
+        document_url = self.request.parsed_params["url"]
+        self.assignment_service.set_document_url(
+            self.request.parsed_params["tool_consumer_instance_guid"],
+            self.request.parsed_params["resource_link_id"],
+            document_url,
+        )
+        return self.basic_lti_launch(document_url)
 
     @view_config(
         authorized_to_configure_assignments=True,

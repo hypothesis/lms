@@ -29,6 +29,11 @@ def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     # canvas_file_basic_lti_launch() is called: Canvas always includes this
     # param because we request it in our config.xml.
     pyramid_request.params["custom_canvas_course_id"] = "TEST_COURSE_ID"
+    pyramid_request.parsed_params = {
+        "resource_link_id": "TEST_RESOURCE_LINK_ID",
+        "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+    }
+
     # The file_id param is always present when canvas_file_basic_lti_launch()
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
@@ -89,7 +94,11 @@ def url_configured_basic_lti_launch_caller(context, pyramid_request):
     # The `url` parsed param is always present when
     # url_configured_basic_lti_launch() is called. The url_configured=True view
     # predicate and URLConfiguredBasicLTILaunchSchema ensure this.
-    pyramid_request.parsed_params = {"url": "TEST_URL"}
+    pyramid_request.parsed_params = {
+        "url": "TEST_URL",
+        "resource_link_id": "TEST_RESOURCE_LINK_ID",
+        "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+    }
 
     views = BasicLTILaunchViews(context, pyramid_request)
 
