@@ -131,6 +131,17 @@ class TestEnableContentItemSelectionMode:
 
         assert js_config.asdict()["filePicker"]["vitalSource"]["enabled"]
 
+    def test_it_raises_if_theres_no_ApplicationInstance(
+        self, application_instance_service, context, js_config
+    ):
+        context.custom_canvas_api_domain = None
+        application_instance_service.get.side_effect = ConsumerKeyError
+
+        with pytest.raises(ConsumerKeyError):
+            js_config.enable_content_item_selection_mode(
+                mock.sentinel.form_action, mock.sentinel.form_fields
+            )
+
     def assert_canvas_file_picker_not_enabled(self, js_config):
         assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
         assert "courseId" not in js_config.asdict()
@@ -138,6 +149,43 @@ class TestEnableContentItemSelectionMode:
     @pytest.fixture
     def blackboard_files_enabled(self, pyramid_request):
         pyramid_request.feature = lambda feature: feature == "blackboard_files"
+
+
+class TestEnableLTILaunchMode:
+    def test_it(self, bearer_token_schema, context, grant_token_service, js_config):
+        js_config.enable_lti_launch_mode()
+
+        assert js_config.asdict() == {
+            "api": {
+                "authToken": bearer_token_schema.authorization_param.return_value,
+                "sync": None,
+            },
+            "canvas": {},
+            "debug": {"tags": [Any.string.matching("^role:.*")]},
+            "dev": False,
+            "hypothesisClient": {
+                "services": [
+                    {
+                        "allowLeavingGroups": False,
+                        "apiUrl": "https://example.com/api/",
+                        "authority": "TEST_AUTHORITY",
+                        "enableShareLinks": False,
+                        "grantToken": grant_token_service.generate_token.return_value,
+                        "groups": [context.h_group.groupid.return_value],
+                    }
+                ]
+            },
+            "mode": "basic-lti-launch",
+            "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
+        }
+
+    def test_it_raises_if_theres_no_ApplicationInstance(
+        self, application_instance_service, js_config
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
+
+        with pytest.raises(ConsumerKeyError):
+            js_config.enable_lti_launch_mode()
 
 
 class TestAddCanvasFileID:
