@@ -45,23 +45,25 @@ class AdminViews:
         require_csrf=True,
     )
     def find_instance(self):
-        if "query" not in self.request.params:
-            raise HTTPBadRequest()
+        try:
+            consumer_key = self.request.params["query"]
+        except KeyError as err:
+            raise HTTPBadRequest() from err
 
         try:
-            ai = self.application_instance_service.get(self.request.params["query"])
+            ai = self.application_instance_service.get(consumer_key)
         except ConsumerKeyError:
             self.request.session.flash(
                 f'No application instance found for {self.request.params["query"]}',
                 "errors",
             )
             return HTTPFound(location=self.request.route_url("admin.instances"))
-        else:
-            return HTTPFound(
-                location=self.request.route_url(
-                    "admin.instance", consumer_key=ai.consumer_key
-                ),
-            )
+
+        return HTTPFound(
+            location=self.request.route_url(
+                "admin.instance", consumer_key=ai.consumer_key
+            ),
+        )
 
     @view_config(
         route_name="admin.instance",
