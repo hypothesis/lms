@@ -9,6 +9,6 @@ ApplicationInstance = make_factory(
     FACTORY_CLASS=SQLAlchemyModelFactory,
     consumer_key=OAUTH_CONSUMER_KEY,
     shared_secret=SHARED_SECRET,
-    lms_url=Faker("uri"),
+    lms_url=Faker("url", schemes=["https"]),
     requesters_email=Faker("email"),
 )

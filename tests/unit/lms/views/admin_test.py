@@ -39,21 +39,25 @@ class TestAdminViews:
             pyramid_request.route_url("admin.instances")
         )
 
-    def test_find_instance_found(self, pyramid_request):
+    def test_find_instance_found(self, pyramid_request, application_instance_service):
         pyramid_request.params["query"] = sentinel.consumer_key
 
         response = AdminViews(pyramid_request).find_instance()
 
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance", consumer_key=sentinel.consumer_key
+                "admin.instance",
+                consumer_key=application_instance_service.get.return_value.consumer_key,
             )
         )
 
-    def test_show_instance(self, pyramid_request):
+    def test_show_instance(self, pyramid_request, application_instance_service):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
         response = AdminViews(pyramid_request).show_instance()
-        assert response["instance"].consumer_key == sentinel.consumer_key
+        assert (
+            response["instance"].consumer_key
+            == application_instance_service.get.return_value.consumer_key
+        )
 
     def test_show_not_found(self, pyramid_request, application_instance_service):
         application_instance_service.get.side_effect = ConsumerKeyError
@@ -62,14 +66,15 @@ class TestAdminViews:
         with pytest.raises(HTTPNotFound):
             AdminViews(pyramid_request).show_instance()
 
-    def test_update_instance(self, pyramid_request):
+    def test_update_instance(self, pyramid_request, application_instance_service):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
         response = AdminViews(pyramid_request).update_instance()
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance", consumer_key=sentinel.consumer_key
+                "admin.instance",
+                consumer_key=application_instance_service.get.return_value.consumer_key,
             )
         )
 
