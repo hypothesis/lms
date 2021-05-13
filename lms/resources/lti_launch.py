@@ -102,14 +102,16 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
+        application_instance_service = self._request.find_service(
+            name="application_instance"
+        )
+
         try:
-            return bool(
-                self._request.find_service(name="application_instance")
-                .get()
-                .developer_key
-            )
+            application_instance = application_instance_service.get()
         except ConsumerKeyError:
             return False
+
+        return bool(application_instance.developer_key)
 
     @property
     def canvas_sections_enabled(self):
