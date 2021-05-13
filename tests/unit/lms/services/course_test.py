@@ -4,6 +4,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.models import Course, CourseGroupsExportedFromH
+from lms.services import ConsumerKeyError
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -62,6 +63,14 @@ class TestCourseService:
 
         course = db_session.query(Course).one()
         assert not course.settings.get("canvas", "sections_enabled")
+
+    def test_get_or_create_raises_if_theres_no_ApplicationInstance(
+        self, application_instance_service, svc
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
+
+        with pytest.raises(ConsumerKeyError):
+            svc.get_or_create("test_authority_provided_id")
 
     @pytest.mark.parametrize(
         "settings_set,value,expected",
