@@ -8,21 +8,17 @@ from tests import factories
 
 
 class TestApplicationInstanceService:
-    def test_get_one(self, svc, test_application_instance):
-        assert (
-            svc.get(test_application_instance.consumer_key) == test_application_instance
-        )
+    def test_get_one(self, svc, application_instance):
+        assert svc.get(application_instance.consumer_key) == application_instance
 
     def test_get_with_default_consumer_key(
-        self, svc, test_application_instance, pyramid_request
+        self, svc, application_instance, pyramid_request
     ):
         # Make sure the DB *does* contain an ApplicationInstance matching the
         # request's consumer key.
-        test_application_instance.consumer_key = (
-            pyramid_request.lti_user.oauth_consumer_key
-        )
+        application_instance.consumer_key = pyramid_request.lti_user.oauth_consumer_key
 
-        assert svc.get() == test_application_instance
+        assert svc.get() == application_instance
 
     def test_get_raises_ConsumerKeyError_if_consumer_key_doesnt_exist(self, svc):
         with pytest.raises(ConsumerKeyError):
@@ -40,13 +36,13 @@ class TestApplicationInstanceService:
         return factory(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)
-    def test_application_instance(self, db_session):
+    def application_instance(self, db_session):
         ai = factories.ApplicationInstance()
         db_session.flush()
         return ai
 
     @pytest.fixture(autouse=True)
-    def application_instances(self):
+    def noise_application_instances(self):
         """Add some "noise" application instances."""
         # Add some "noise" application instances to the DB for every test, to
         # make the tests more realistic.
