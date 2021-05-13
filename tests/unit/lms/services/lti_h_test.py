@@ -5,7 +5,7 @@ from h_api.bulk_api import CommandBuilder
 from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import HGroup
-from lms.services import HAPIError
+from lms.services import ConsumerKeyError, HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
@@ -73,6 +73,14 @@ class TestSync:
             CommandBuilder.group_membership.create("user_0", "group_0").raw,
             CommandBuilder.group_membership.create("user_0", "group_1").raw,
         ]
+
+    def test_sync_raises_if_theres_no_ApplicationInstance(
+        self, application_instance_service, h_group, lti_h_svc
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
+
+        with pytest.raises(ConsumerKeyError):
+            lti_h_svc.sync([h_group], sentinel.params)
 
 
 class TestGroupInfoUpdating:
