@@ -23,7 +23,7 @@ class TestAuthorize:
         assert response.status_code == 302
         application_instance_service.get.assert_called_once_with()
         assert response.location.startswith(
-            f"{application_instance_service.get.return_value.lms_url}/login/oauth2/auth"
+            f"{application_instance_service.get.return_value.lms_url}login/oauth2/auth"
         )
 
     def test_it_includes_the_client_id_in_a_query_param(

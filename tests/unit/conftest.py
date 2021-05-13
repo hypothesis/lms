@@ -7,7 +7,7 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms.models import ApplicationInstance, ApplicationSettings
+from lms.models import ApplicationSettings
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.canvas_api import CanvasAPIClient
@@ -164,13 +164,9 @@ def application_instance_service(pyramid_config):
         ApplicationInstanceService, instance=True, spec_set=True
     )
 
-    application_instance_service.get.return_value = mock.create_autospec(
-        ApplicationInstance,
-        instance=True,
-        spec_set=True,
-        consumer_key=mock.sentinel.consumer_key,
-        lms_url="https://example.com",
-        shared_secret="TEST_SECRET",
+    application_instance_service.get.return_value = factories.ApplicationInstance(
+        consumer_key="TEST_OAUTH_CONSUMER_KEY",
+        developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
         settings=ApplicationSettings({}),
     )
