@@ -6,7 +6,7 @@ from lms.models import Course, CourseGroupsExportedFromH
 
 class CourseService:
     def __init__(self, application_instance, consumer_key, db):
-        self._application_instance = application_instance
+        self._application_instance_settings = application_instance.settings
         self._consumer_key = consumer_key
         self._db = db
 
@@ -40,7 +40,7 @@ class CourseService:
     def _create(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
         # as the application instance
-        course_settings = deepcopy(self._application_instance.settings)
+        course_settings = deepcopy(self._application_instance_settings)
 
         # Unless! The group was pre-sections, and we've just seen it for the
         # first time in which case turn sections off
