@@ -5,10 +5,10 @@ class OAuth1Service:
     """Provides OAuth1 convenience functions."""
 
     def __init__(self, _context, request):
-        self.request = request
-        self.application_instance = request.find_service(
+        self._request = request
+        self._application_instance_service = request.find_service(
             name="application_instance"
-        ).get()
+        )
 
     def get_client(self):
         """
@@ -20,8 +20,8 @@ class OAuth1Service:
         :rtype: OAuth1
         """
 
-        consumer_key = self.request.lti_user.oauth_consumer_key
-        shared_secret = self.application_instance.shared_secret
+        consumer_key = self._request.lti_user.oauth_consumer_key
+        shared_secret = self._application_instance_service.get().shared_secret
 
         return OAuth1(
             client_key=consumer_key,
