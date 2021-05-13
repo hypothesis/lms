@@ -85,9 +85,6 @@ class TestJSConfig:
 
 
 class TestCanvasSectionsSupported:
-    def test_its_supported_when_everything_is_right(self, lti_launch):
-        assert lti_launch.canvas_sections_supported()
-
     @pytest.mark.parametrize("is_canvas", [True, False])
     def test_support_for_canvas(self, lti_launch, is_canvas):
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
