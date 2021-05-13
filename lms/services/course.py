@@ -11,7 +11,11 @@ class CourseService:
         self._db = db
 
     def get_or_create(self, authority_provided_id):
-        """Add the current course to the `course` table if it's not there already."""
+        """
+        Add the current course to the `course` table if it's not there already.
+
+        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        """
         return self._get(authority_provided_id) or self._create(authority_provided_id)
 
     def any_with_setting(self, group, key, value=True):
