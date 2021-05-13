@@ -1,8 +1,9 @@
 import pytest
+from Cryptodome import Random
+from Cryptodome.Cipher import AES
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance, ApplicationSettings
-from lms.models.application_instance import _build_aes_iv, _encrypt_oauth_secret
 from tests import factories
 
 
@@ -97,10 +98,10 @@ class TestApplicationInstance:
         self, application_instance, pyramid_request
     ):
         aes_secret = pyramid_request.registry.settings["aes_secret"]
-        application_instance.aes_cipher_iv = _build_aes_iv()
-        application_instance.developer_secret = _encrypt_oauth_secret(
-            b"TEST_DEVELOPER_SECRET", aes_secret, application_instance.aes_cipher_iv
-        )
+        application_instance.aes_cipher_iv = Random.new().read(AES.block_size)
+        application_instance.developer_secret = AES.new(
+            aes_secret, AES.MODE_CFB, application_instance.aes_cipher_iv
+        ).encrypt(b"TEST_DEVELOPER_SECRET")
 
         assert (
             application_instance.decrypted_developer_secret(aes_secret)
