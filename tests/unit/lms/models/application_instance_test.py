@@ -115,6 +115,31 @@ class TestApplicationInstance:
 
         assert application_instance.decrypted_developer_secret(aes_secret) is None
 
+    @pytest.mark.parametrize(
+        "developer_secret",
+        [
+            "TEST_DEVELOPER_SECRET",
+            b"TEST_DEVELOPER_SECRET",
+        ],
+    )
+    def test_build_from_lms_url(self, developer_secret, pyramid_request):
+        application_instance = ApplicationInstance.build_from_lms_url(
+            "https://example.com/",
+            "example@example.com",
+            "TEST_DEVELOPER_KEY",
+            developer_secret,
+            pyramid_request.registry.settings["aes_secret"],
+            {},
+        )
+
+        assert application_instance.consumer_key
+        assert application_instance.shared_secret
+        assert application_instance.lms_url == "https://example.com/"
+        assert application_instance.requesters_email == "example@example.com"
+        assert application_instance.developer_key == "TEST_DEVELOPER_KEY"
+        assert application_instance.developer_secret
+        assert application_instance.settings == {}
+
     @pytest.fixture
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""
