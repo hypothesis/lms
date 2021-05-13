@@ -368,6 +368,11 @@ class TestMaybeSetFocusedUser:
         self, js_config, pyramid_request
     ):
         del pyramid_request.params["focused_user"]
+        # maybe_set_focused_user() doesn't work properly unless
+        # enable_lti_launch_mode() has been called first because it depends on
+        # enable_lti_launch_mode() having inserted the "hypothesisClient"
+        # section into the config.
+        js_config.enable_lti_launch_mode()
 
         js_config.maybe_set_focused_user()
 
@@ -376,6 +381,12 @@ class TestMaybeSetFocusedUser:
     def test_it_sets_the_focused_user_if_theres_a_focused_user_param(
         self, h_api, js_config
     ):
+        # maybe_set_focused_user() doesn't work properly unless
+        # enable_lti_launch_mode() has been called first because it depends on
+        # enable_lti_launch_mode() having inserted the "hypothesisClient"
+        # section into the config.
+        js_config.enable_lti_launch_mode()
+
         js_config.maybe_set_focused_user()
 
         # It gets the display name from the h API.
@@ -390,6 +401,11 @@ class TestMaybeSetFocusedUser:
 
     def test_display_name_falls_back_to_a_default_value(self, h_api, js_config):
         h_api.get_user.side_effect = HAPIError()
+        # maybe_set_focused_user() doesn't work properly unless
+        # enable_lti_launch_mode() has been called first because it depends on
+        # enable_lti_launch_mode() having inserted the "hypothesisClient"
+        # section into the config.
+        js_config.enable_lti_launch_mode()
 
         js_config.maybe_set_focused_user()
 
@@ -455,7 +471,11 @@ class TestJSConfigAPISync:
         assert sync is None
 
     @pytest.fixture
-    def sync(self, config):
+    def sync(self, config, js_config):
+        # Call enable_lti_launch_mode() so that the api.sync section gets
+        # inserted into the config.
+        js_config.enable_lti_launch_mode()
+
         return config["api"]["sync"]
 
     @pytest.fixture
@@ -531,7 +551,11 @@ class TestJSConfigHypothesisClient:
         assert config["a_key"] == "a_value"
 
     @pytest.fixture
-    def config(self, config):
+    def config(self, config, js_config):
+        # Call enable_lti_launch_mode() so that the "hypothesisClient" section
+        # gets inserted into the config.
+        js_config.enable_lti_launch_mode()
+
         return config["hypothesisClient"]
 
 
@@ -542,7 +566,11 @@ class TestJSConfigRPCServer:
         assert config == {"allowedOrigins": ["http://localhost:5000"]}
 
     @pytest.fixture
-    def config(self, config):
+    def config(self, config, js_config):
+        # Call enable_lti_launch_mode() so that the "rpcServer" section gets
+        # inserted into the config.
+        js_config.enable_lti_launch_mode()
+
         return config["rpcServer"]
 
 
@@ -610,7 +638,6 @@ def bearer_token_schema(BearerTokenSchema):
 @pytest.fixture
 def js_config(context, pyramid_request):
     config = JSConfig(context, pyramid_request)
-    config.enable_lti_launch_mode()
     return config
 
 
