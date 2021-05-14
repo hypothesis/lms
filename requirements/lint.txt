@@ -100,7 +100,7 @@ h-vialib==1.0.15
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-httpretty==1.1.0
+httpretty==1.1.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
