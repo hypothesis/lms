@@ -6,7 +6,9 @@ from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.content_item_selection import content_item_selection
 
-pytestmark = pytest.mark.usefixtures("course_service", "lti_h_service")
+pytestmark = pytest.mark.usefixtures(
+    "application_instance_service", "course_service", "lti_h_service"
+)
 
 
 class TestContentItemSelection:
