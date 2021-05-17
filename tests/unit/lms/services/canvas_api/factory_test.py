@@ -21,13 +21,11 @@ class TestCanvasAPIClientFactory:
     def test_building_the_BasicClient(
         self, pyramid_request, BasicClient, application_instance_service
     ):
-        application_instance_service.get.return_value.lms_url = (
-            "https://example.com/path"
-        )
-
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
-        BasicClient.assert_called_once_with("example.com")
+        BasicClient.assert_called_once_with(
+            application_instance_service.get.return_value.lms_host()
+        )
 
     def test_building_the_AuthenticatedClient(
         self,
