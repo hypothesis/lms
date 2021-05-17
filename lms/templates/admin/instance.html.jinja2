@@ -67,6 +67,21 @@ Application instance {{instance.consumer_key}}
 
     <div class="field is-horizontal">
       <div class="field-label">
+        <label class="label">Blackboard files enabled
+      </div>
+      <div class="field-body">
+        <div class="field is-narrow">
+          <div class="control">
+            <label class="checkbox">
+              <input {% if instance.settings.get("blackboard", "files_enabled") %}checked {% endif%} type="checkbox" name="blackboard_files_enabled">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
         <!-- Left empty for spacing -->
       </div>
       <div class="field-body">

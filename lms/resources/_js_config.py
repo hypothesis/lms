@@ -1,7 +1,7 @@
 import functools
 
 from lms.models import GroupInfo, HUser
-from lms.services import ConsumerKeyError, HAPIError
+from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -197,7 +197,7 @@ class JSConfig:
             "formAction": form_action,
             "formFields": form_fields,
             "blackboard": {
-                "enabled": self._blackboard_files_available(),
+                "enabled": self._blackboard_files_enabled(),
                 "listFiles": {
                     "authUrl": self._request.route_url(
                         "blackboard_api.oauth.authorize"
@@ -337,9 +337,13 @@ class JSConfig:
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
-    def _blackboard_files_available(self):
-        """Return True if the Blackboard Files API is available to this request."""
-        return self._request.feature("blackboard_files")
+    def _blackboard_files_enabled(self):
+        """
+        Return True if the Blackboard Files API is enabled for this request.
+
+        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        """
+        return self._application_instance().settings.get("blackboard", "files_enabled")
 
     def _canvas_files_available(self):
         """
