@@ -1,5 +1,6 @@
 import secrets
 from datetime import datetime
+from urllib.parse import urlparse
 
 import sqlalchemy as sa
 from Cryptodome import Random
@@ -60,6 +61,27 @@ class ApplicationInstance(BASE):
         cipher = AES.new(aes_secret, AES.MODE_CFB, self.aes_cipher_iv)
 
         return cipher.decrypt(self.developer_secret)
+
+    def lms_host(self):
+        """
+        Return the hostname part of this ApplicationInstance's lms_url.
+
+        For example if application_instance.lms_url is
+        "https://example.com/lms/" then application_instance.lms_host() will
+        return "example.com".
+
+        :raise ValueError: if the ApplicationInstance's lms_url can't be parsed
+        """
+        # urlparse() or .netloc will raise ValueError for some invalid URLs.
+        lms_host = urlparse(self.lms_url).netloc
+
+        # For some URLs urlparse(url).netloc returns an empty string.
+        if not lms_host:
+            raise ValueError(
+                f"Couldn't parse self.lms_url ({self.lms_url}): urlparse() returned an empty netloc"
+            )
+
+        return lms_host
 
     @classmethod
     def get_by_consumer_key(cls, db, consumer_key):
