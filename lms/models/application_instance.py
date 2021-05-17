@@ -39,6 +39,35 @@ class ApplicationInstance(BASE):
         nullable=False,
     )
 
+    #: A unique identifier for the LMS instance.
+    tool_consumer_instance_guid = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: The LMS product name, e.g. "canvas" or "moodle".
+    tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: A plain text description of the LMS instance, e.g. "University of Hypothesis"
+    tool_consumer_instance_description = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: The URL of the LMS instance, e.g. "https://hypothesis.instructure.com".
+    tool_consumer_instance_url = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: The name of the LMS instance, e.g. "HypothesisU".
+    tool_consumer_instance_name = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: An contact email, e.g. "System.Admin@school.edu"
+    tool_consumer_instance_contact_email = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: Version of the LMS, e.g. "9.1.7081"
+    tool_consumer_info_version = sa.Column(sa.UnicodeText, nullable=True)
+
+    #: This Canvas custom variable substitution $Canvas.api.domain.
+    #: We request this in our config.xml file and name it "custom_canvas_api_domain":
+    #:
+    #: https://github.com/hypothesis/lms/blob/5394cf2bfb92cb219e177f3c0a7991add024f242/lms/templates/config.xml.jinja2#L20
+    #:
+    #: See https://canvas.instructure.com/doc/api/file.tools_variable_substitutions.html
+    custom_canvas_api_domain = sa.Column(sa.UnicodeText, nullable=True)
+
     #: A list of all the OAuth2Tokens for this application instance
     #: (each token belongs to a different user of this application
     #: instance's LMS).
@@ -87,6 +116,44 @@ class ApplicationInstance(BASE):
     def get_by_consumer_key(cls, db, consumer_key):
         """Return the ApplicationInstance with the given consumer_key or None."""
         return db.query(cls).filter_by(consumer_key=consumer_key).one_or_none()
+
+    def update_lms_data(self, params: dict):
+        """
+        Update all the LMS-related attributes present in `params`.
+
+        If the current instance already has a `tool_consumer_instance_guid`
+        report it on logging and don't update any of the columns.
+        """
+
+        tool_consumer_instance_guid = params.get("tool_consumer_instance_guid")
+        if not tool_consumer_instance_guid:
+            # guid identifies the rest of the LMS data, if not there skip any updates
+            return
+
+        if (
+            self.tool_consumer_instance_guid
+            and self.tool_consumer_instance_guid != tool_consumer_instance_guid
+        ):
+            # If we already have a LMS guid linked to the AI
+            # and we found a different one report it to sentry
+            LOG.exception(
+                "Application Instance ID:%s launched in a different LMS install",
+                self.id,
+            )
+            return
+
+        self.tool_consumer_instance_guid = tool_consumer_instance_guid
+        for attr in [
+            "tool_consumer_info_product_family_code",
+            "tool_consumer_instance_description",
+            "tool_consumer_instance_url",
+            "tool_consumer_instance_name",
+            "tool_consumer_instance_contact_email",
+            "tool_consumer_info_version",
+            "custom_canvas_api_domain",
+        ]:
+
+            setattr(self, attr, params.get(attr))
 
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments
