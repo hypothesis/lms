@@ -43,7 +43,7 @@ Application instance {{instance.consumer_key}}
         <div class="field is-narrow">
           <div class="control">
             <label class="checkbox">
-              <input {% if instance.settings.canvas.sections_enabled %}checked {% endif%} type="checkbox" name="sections_enabled">
+              <input {% if instance.settings.get("canvas", "sections_enabled") %}checked {% endif%} type="checkbox" name="sections_enabled">
             </label>
           </div>
         </div>
@@ -58,7 +58,7 @@ Application instance {{instance.consumer_key}}
         <div class="field is-narrow">
           <div class="control">
             <label class="checkbox">
-              <input {% if instance.settings.canvas.groups_enabled %}checked {% endif%} type="checkbox" name="groups_enabled">
+              <input {% if instance.settings.get("canvas", "groups_enabled") %}checked {% endif%} type="checkbox" name="groups_enabled">
             </label>
           </div>
         </div>
