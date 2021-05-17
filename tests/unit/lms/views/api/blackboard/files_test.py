@@ -1,18 +1,18 @@
 import pytest
 
-from lms.services import NoOAuth2Token
+from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.views.api.blackboard.files import BlackboardFilesAPIViews
 
 pytestmark = pytest.mark.usefixtures("oauth2_token_service")
 
 
 class CommonTests:
-    def test_it_raises_NoOAuth2Token_if_theres_no_access_token_for_the_user(
+    def test_it_raises_ProxyAPIAccessTokenError_if_theres_no_access_token_for_the_user(
         self, oauth2_token_service, view
     ):
         oauth2_token_service.get.side_effect = NoOAuth2Token()
 
-        with pytest.raises(NoOAuth2Token):
+        with pytest.raises(ProxyAPIAccessTokenError):
             view()
 
 

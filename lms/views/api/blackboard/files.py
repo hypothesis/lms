@@ -2,6 +2,7 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.views import helpers
 
 
@@ -13,7 +14,15 @@ class BlackboardFilesAPIViews:
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
     def list_files(self):
         """Return the list of files in the given course."""
-        self.request.find_service(name="oauth2_token").get()
+        # Get the user's access token from the DB.
+        # We're not actually going to *use* the access token, since this view
+        # just returns a list of hard-coded files. But we want to *get* the
+        # access token so that we can raise an exception if it's missing and
+        # trigger the authentication flow.
+        try:
+            self.request.find_service(name="oauth2_token").get()
+        except NoOAuth2Token as err:
+            raise ProxyAPIAccessTokenError() from err
 
         # Return a temporary hard-coded list of files.
         return [
@@ -37,7 +46,15 @@ class BlackboardFilesAPIViews:
     @view_config(request_method="GET", route_name="blackboard_api.files.via_url")
     def via_url(self):
         """Return the Via URL for annotating the given Blackboard file."""
-        self.request.find_service(name="oauth2_token").get()
+        # Get the user's access token from the DB.
+        # We're not actually going to *use* the access token, since this view
+        # just returns hard-coded URLs. But we want to *get* the access token
+        # so that we can raise an exception if it's missing and trigger the
+        # authentication flow.
+        try:
+            self.request.find_service(name="oauth2_token").get()
+        except NoOAuth2Token as err:
+            raise ProxyAPIAccessTokenError() from err
 
         # Look up the file_id in a temporary hard-coded list of public URLs.
         public_url = {
