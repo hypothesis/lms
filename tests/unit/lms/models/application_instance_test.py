@@ -152,10 +152,42 @@ class TestApplicationInstance:
         assert application_instance.developer_secret
         assert application_instance.settings == {}
 
+    def test_update_lms_data(self, application_instance, lms_data):
+        lms_data["tool_consumer_instance_guid"] = "GUID"
+        application_instance.update_lms_data(lms_data)
+
+        for k, v in lms_data.items():
+            assert getattr(application_instance, k) == v
+
+    def test_update_lms_data_no_guid_doesnt_change_values(
+        self, application_instance, lms_data
+    ):
+        application_instance.update_lms_data(lms_data)
+
+        assert application_instance.tool_consumer_instance_guid is None
+        assert application_instance.tool_consumer_info_product_family_code is None
+
+    def test_update_lms_data_existing_guid(self, application_instance, lms_data):
+        application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
+        lms_data["tool_consumer_instance_guid"] = "NEW GUID"
+
+        application_instance.update_lms_data(lms_data)
+
+        assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
+
     @pytest.fixture
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""
         return factories.ApplicationInstance()
+
+    @pytest.fixture
+    def lms_data(self):
+        return {
+            "tool_consumer_info_product_family_code": "FAMILY",
+            "tool_consumer_instance_description": "DESCRIPTION",
+            "tool_consumer_instance_url": "URL",
+            "tool_consumer_instance_name": "NAME",
+        }
 
 
 class TestApplicationSettings:

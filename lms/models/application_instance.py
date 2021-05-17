@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime
 from urllib.parse import urlparse
@@ -9,6 +10,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
+
+LOG = logging.getLogger(__name__)
 
 
 class ApplicationInstance(BASE):
