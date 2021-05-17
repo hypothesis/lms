@@ -351,14 +351,9 @@ class JSConfig:
         if not self._context.is_canvas:
             return False
 
-        try:
-            developer_key = self._application_instance().developer_key
-        except ConsumerKeyError:
-            return False
-
         return (
             "custom_canvas_course_id" in self._request.params
-            and developer_key is not None
+            and self._application_instance().developer_key is not None
         )
 
     @property
