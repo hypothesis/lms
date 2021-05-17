@@ -9,7 +9,7 @@ https://canvas.instructure.com/doc/api/file.oauth.html
 The received access tokens are saved to the DB and used by proxy API views to
 authenticated server-to-server requests to Canvas.
 """
-from urllib.parse import urlencode, urlparse, urlunparse
+from urllib.parse import urlencode, urlunparse
 
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
@@ -59,7 +59,7 @@ def authorize(request):
     auth_url = urlunparse(
         (
             "https",
-            urlparse(application_instance.lms_url).netloc,
+            application_instance.lms_host(),
             "login/oauth2/auth",
             "",
             urlencode(
