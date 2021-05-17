@@ -87,17 +87,6 @@ class TestEnableContentItemSelectionMode:
 
         self.assert_canvas_file_picker_not_enabled(js_config)
 
-    def test_it_doesnt_enable_the_canvas_file_picker_if_the_consumer_key_isnt_found_in_the_db(
-        self, application_instance_service, js_config
-    ):
-        application_instance_service.get.side_effect = ConsumerKeyError()
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-
-        self.assert_canvas_file_picker_not_enabled(js_config)
-
     def test_it_doesnt_enable_the_canvas_file_picker_if_we_dont_have_a_developer_key(
         self, application_instance_service, js_config
     ):
