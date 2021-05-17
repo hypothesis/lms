@@ -1,5 +1,4 @@
 import {
-  IconButton,
   LabeledButton,
   useElementShouldClose,
 } from '@hypothesis/frontend-shared';
@@ -123,18 +122,20 @@ export default function Dialog({
             {title}
             <span className="u-stretch" />
             {onCancel && (
-              <span className="Dialog__cancel">
-                <IconButton title="Close" icon="cancel" onClick={onCancel} />
-              </span>
+              <button
+                aria-label="Close"
+                className="Dialog__cancel-btn"
+                onClick={onCancel}
+              >
+                ✕
+              </button>
             )}
           </h1>
           {children}
           <div className="u-stretch" />
           <div className="Dialog__actions">
             {onCancel && (
-              <LabeledButton title="Cancel" onClick={onCancel}>
-                {cancelLabel}
-              </LabeledButton>
+              <LabeledButton onClick={onCancel}>{cancelLabel}</LabeledButton>
             )}
             {buttons}
           </div>

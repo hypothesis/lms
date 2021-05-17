@@ -61,7 +61,7 @@ describe('Dialog', () => {
     const onCancel = sinon.stub();
     const wrapper = mount(<Dialog title="Test dialog" onCancel={onCancel} />);
 
-    wrapper.find('IconButton button').simulate('click');
+    wrapper.find('.Dialog__cancel-btn').simulate('click');
 
     assert.called(onCancel);
   });
