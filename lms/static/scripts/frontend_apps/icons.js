@@ -7,7 +7,6 @@
 export default {
   // LMS icons
   'caret-down': require('../../images/caret-down.svg'),
-  cancel: require('../../images/cancel.svg'),
   check: require('../../images/check.svg'),
   spinner: require('../../images/spinner.svg'),
 
