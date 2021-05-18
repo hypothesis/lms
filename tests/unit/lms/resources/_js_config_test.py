@@ -136,8 +136,9 @@ class TestEnableContentItemSelectionMode:
         assert "courseId" not in js_config.asdict()
 
     @pytest.fixture
-    def blackboard_files_enabled(self, pyramid_request):
-        pyramid_request.feature = lambda feature: feature == "blackboard_files"
+    def blackboard_files_enabled(self, application_instance_service):
+        application_instance = application_instance_service.get.return_value
+        application_instance.settings.set("blackboard", "files_enabled", True)
 
 
 class TestEnableLTILaunchMode:
