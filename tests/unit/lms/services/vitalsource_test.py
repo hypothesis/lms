@@ -58,10 +58,11 @@ class TestVitalSourceService:
         # Ignore non-OAuth signature params in this test.
         params = {k: v for (k, v) in params.items() if k.startswith("oauth_")}
 
+        base64_char = "[0-9a-zA-Z+=/]"
         assert params == {
             "oauth_consumer_key": "lti_launch_key",
             "oauth_nonce": Any.string.matching("[0-9]+"),
-            "oauth_signature": Any.string.matching("[0-9a-zA-Z+=]+"),
+            "oauth_signature": Any.string.matching(f"{base64_char}+"),
             "oauth_signature_method": "HMAC-SHA1",
             "oauth_timestamp": Any.string.matching("[0-9]+"),
             "oauth_version": "1.0",
