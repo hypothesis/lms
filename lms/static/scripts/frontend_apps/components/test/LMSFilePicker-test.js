@@ -1,5 +1,6 @@
-import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
+import { Fragment, createElement } from 'preact';
+import { act } from 'preact/test-utils';
 
 import { ApiError } from '../../utils/api';
 
@@ -15,10 +16,8 @@ describe('LMSFilePicker', () => {
     </Fragment>
   );
 
-  let FakeAuthWindow;
   let fakeApiCall;
   let fakeListFilesApi;
-  let fakeAuthWindowInstance;
 
   const renderFilePicker = (props = {}) => {
     return mount(
@@ -35,11 +34,6 @@ describe('LMSFilePicker', () => {
 
   beforeEach(() => {
     fakeApiCall = sinon.stub().resolves(['one file']);
-    fakeAuthWindowInstance = {
-      authorize: sinon.stub().resolves(null),
-      close: () => {},
-    };
-    FakeAuthWindow = sinon.stub().returns(fakeAuthWindowInstance);
 
     fakeListFilesApi = {
       path: 'https://lms.anno.co/files/course123',
@@ -48,7 +42,6 @@ describe('LMSFilePicker', () => {
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {
         apiCall: fakeApiCall,
       },
@@ -90,27 +83,22 @@ describe('LMSFilePicker', () => {
     assert.called(fakeApiCall);
 
     // Check that the "Authorize" button is shown.
-    const authButton = wrapper.find('LabeledButton[data-testid="authorize"]');
+    const authButton = wrapper.find('AuthButton');
     assert.isTrue(authButton.exists());
 
     // Click the "Authorize" button and check that files are re-fetched.
-    const authWindowClosed = new Promise(resolve => {
-      fakeAuthWindowInstance.close = resolve;
-    });
     const expectedFiles = [];
     fakeApiCall.reset();
     fakeApiCall.resolves(expectedFiles);
 
-    authButton.prop('onClick')();
-    // Wait for auth to complete, signaled by the window being closed.
-    await authWindowClosed;
+    await act(() => authButton.prop('onAuthComplete')());
     wrapper.update();
 
     assert.calledWith(fakeApiCall, {
       authToken: 'auth-token',
       path: fakeListFilesApi.path,
     });
-    wrapper.update();
+
     const fileList = wrapper.find('FileList');
     assert.equal(fileList.prop('files'), expectedFiles);
   });
@@ -131,27 +119,20 @@ describe('LMSFilePicker', () => {
     wrapper.update();
     assert.called(fakeApiCall);
 
-    // After first failed authentication request
-    const authorizeButton = wrapper.find(
-      'LabeledButton[data-testid="authorize"]'
-    );
-    assert.isTrue(authorizeButton.exists());
+    // Make initial authorization request, which fails.
+    const authButton = wrapper.find('AuthButton');
+    assert.isTrue(authButton.exists());
     assert.isTrue(wrapper.exists('p[data-testid="authorization warning"]'));
 
-    // Make unsuccessful authorization attempt and wait for the auth window to close.
-    const authWindowClosed = new Promise(resolve => {
-      fakeAuthWindowInstance.close = resolve;
-    });
-    authorizeButton.prop('onClick')();
-    await authWindowClosed;
+    // Make unsuccessful authorization attempt and wait for re-fetching files
+    // to fail.
+    await act(() => authButton.prop('onAuthComplete')());
     wrapper.update();
 
-    // After second failed authentication request
-    const authorizeAgainButton = wrapper.find(
-      'LabeledButton[data-testid="try-again"]'
-    );
-    assert.isTrue(authorizeAgainButton.exists());
-    assert.equal(authorizeAgainButton.text(), 'Try again');
+    // Make second authorization request, which succeeds.
+    const tryAgainButton = wrapper.find('AuthButton');
+    assert.isTrue(tryAgainButton.exists());
+    assert.equal(tryAgainButton.prop('label'), 'Try again');
     const errorDetails = wrapper.find('ErrorDisplay');
     assert.equal(
       errorDetails.prop('message'),
@@ -165,19 +146,14 @@ describe('LMSFilePicker', () => {
     await fakeApiCall;
     wrapper.update();
 
-    const authWindowClosed2 = new Promise(resolve => {
-      fakeAuthWindowInstance.close = resolve;
-    });
-    wrapper.find('LabeledButton[data-testid="try-again"]').prop('onClick')();
-    await authWindowClosed2;
+    await act(() => tryAgainButton.prop('onAuthComplete')());
     wrapper.update();
 
     // After authorization completes, files should be fetched and then the
     // file list should be displayed.
-    assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
-    assert.isFalse(wrapper.exists('LabeledButton[data-testid="authorize"]'));
+    assert.isTrue(wrapper.exists('FileList'));
+    assert.isFalse(wrapper.exists('AuthButton'));
     assert.isFalse(wrapper.exists('p[data-testid="authorization warning"]'));
-    assert.isFalse(wrapper.exists('LabeledButton[data-testid="try-again"]'));
     assert.isFalse(wrapper.exists('ErrorDisplay'));
   });
 
@@ -196,10 +172,6 @@ describe('LMSFilePicker', () => {
     it(`shows error details and "Try again" button if fetching files fails with ${description}`, async () => {
       fakeApiCall.rejects(error);
 
-      const authWindowClosed = new Promise(resolve => {
-        fakeAuthWindowInstance.close = resolve;
-      });
-
       // When the dialog is initially displayed, it should try to fetch files.
       const wrapper = renderFilePicker();
       try {
@@ -213,7 +185,7 @@ describe('LMSFilePicker', () => {
       // The details of the error should be displayed, along with a "Try again"
       // button.
       const tryAgainButton = wrapper.find(
-        'LabeledButton[data-testid="try-again"]'
+        'AuthButton[data-testid="try-again"]'
       );
       assert.isTrue(tryAgainButton.exists());
 
@@ -227,8 +199,7 @@ describe('LMSFilePicker', () => {
       fakeApiCall.reset();
       fakeApiCall.resolves([]);
 
-      tryAgainButton.prop('onClick')();
-      await authWindowClosed;
+      await act(() => tryAgainButton.prop('onAuthComplete')());
       wrapper.update();
 
       // After authorization completes, files should be fetched and then the
@@ -283,42 +254,6 @@ describe('LMSFilePicker', () => {
     assert.called(fakeApiCall);
 
     assert.isTrue(wrapper.exists('LabeledButton[data-testid="select"]'));
-  });
-
-  it('closes the authorization window if open when canceling the dialog', async () => {
-    // Make the initial file list request fail, to trigger a prompt to authorize.
-    fakeApiCall.rejects(
-      new ApiError('Not authorized', {
-        /** without errorMessage */
-      })
-    );
-
-    // Click the "Authorize" button to show the authorization popup.
-    const wrapper = renderFilePicker();
-    try {
-      await fakeApiCall;
-    } catch {
-      /* unused  */
-    }
-    wrapper.update();
-
-    const closePopup = sinon.stub();
-    FakeAuthWindow.returns({
-      authorize: sinon.stub().resolves(null),
-      close: closePopup,
-    });
-    wrapper.find('LabeledButton[data-testid="authorize"]').prop('onClick')();
-
-    // Dismiss the LMS file picker. This should close the auth popup.
-    wrapper.find(FakeDialog).prop('onCancel')();
-
-    assert.called(closePopup);
-  });
-
-  it('does not show an authorization window when mounted', () => {
-    const wrapper = renderFilePicker();
-    assert.notCalled(FakeAuthWindow);
-    assert.isFalse(wrapper.exists('Button[label="Authorize"]'));
   });
 
   it('fetches and displays files from the LMS', async () => {
