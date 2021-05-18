@@ -93,6 +93,12 @@ class AdminViews:
             self.request.params.get("groups_enabled") == "on",
         )
 
+        ai.settings.set(
+            "blackboard",
+            "files_enabled",
+            self.request.params.get("blackboard_files_enabled") == "on",
+        )
+
         self.request.session.flash(
             f"Updated application instance {ai.consumer_key}", "messages"
         )
