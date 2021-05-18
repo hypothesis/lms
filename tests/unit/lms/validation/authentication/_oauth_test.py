@@ -9,11 +9,11 @@ from lms.validation.authentication import (
     InvalidStateParamError,
     MissingStateParamError,
 )
-from lms.validation.authentication._oauth import CanvasOAuthCallbackSchema
+from lms.validation.authentication._oauth import OAuthCallbackSchema
 from tests import factories
 
 
-class TestCanvasOauthCallbackSchema:
+class TestOauthCallbackSchema:
     def test_state_param_encodes_lti_user_and_csrf_token_into_state_jwt(
         self, schema, secrets, _jwt, lti_user
     ):
@@ -142,7 +142,7 @@ class TestCanvasOauthCallbackSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return CanvasOAuthCallbackSchema(pyramid_request)
+        return OAuthCallbackSchema(pyramid_request)
 
     @pytest.fixture
     def pyramid_request(self, lti_user):

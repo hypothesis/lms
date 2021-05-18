@@ -11,4 +11,4 @@ from lms.validation.authentication._exceptions import (
     MissingStateParamError,
 )
 from lms.validation.authentication._launch_params import LaunchParamsAuthSchema
-from lms.validation.authentication._oauth import CanvasOAuthCallbackSchema
+from lms.validation.authentication._oauth import OAuthCallbackSchema

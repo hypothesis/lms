@@ -511,7 +511,7 @@ class TestGetLTIUser:
         self,
         launch_params_auth_schema,
         bearer_token_schema,
-        CanvasOAuthCallbackSchema,
+        OAuthCallbackSchema,
         canvas_oauth_callback_schema,
         pyramid_request,
     ):
@@ -524,7 +524,7 @@ class TestGetLTIUser:
 
         lti_user = _get_lti_user(pyramid_request)
 
-        CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
+        OAuthCallbackSchema.assert_called_once_with(pyramid_request)
         canvas_oauth_callback_schema.lti_user.assert_called_once_with()
         assert lti_user == canvas_oauth_callback_schema.lti_user.return_value
 
@@ -564,12 +564,12 @@ class TestGetLTIUser:
         return BearerTokenSchema.return_value
 
     @pytest.fixture(autouse=True)
-    def CanvasOAuthCallbackSchema(self, patch):
-        return patch("lms.security.CanvasOAuthCallbackSchema")
+    def OAuthCallbackSchema(self, patch):
+        return patch("lms.security.OAuthCallbackSchema")
 
     @pytest.fixture
-    def canvas_oauth_callback_schema(self, CanvasOAuthCallbackSchema):
-        return CanvasOAuthCallbackSchema.return_value
+    def canvas_oauth_callback_schema(self, OAuthCallbackSchema):
+        return OAuthCallbackSchema.return_value
 
     @pytest.fixture(autouse=True)
     def LaunchParamsAuthSchema(self, patch):

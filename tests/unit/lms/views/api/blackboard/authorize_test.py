@@ -18,11 +18,11 @@ class TestAuthorize:
         )
 
     def test_it_authenticates_the_redirect_with_an_OAuth2_state_param(
-        self, pyramid_request, CanvasOAuthCallbackSchema
+        self, pyramid_request, OAuthCallbackSchema
     ):
         response = authorize(pyramid_request)
 
-        CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
+        OAuthCallbackSchema.assert_called_once_with(pyramid_request)
         state = parse_qs(urlparse(response.location).query).get("state")
         assert state == ["test_state"]
 
@@ -51,9 +51,9 @@ class TestOAuth2Redirect:
 
 
 @pytest.fixture(autouse=True)
-def CanvasOAuthCallbackSchema(patch):
-    CanvasOAuthCallbackSchema = patch(
-        "lms.views.api.blackboard.authorize.CanvasOAuthCallbackSchema"
+def OAuthCallbackSchema(patch):
+    OAuthCallbackSchema = patch(
+        "lms.views.api.blackboard.authorize.OAuthCallbackSchema"
     )
-    CanvasOAuthCallbackSchema.return_value.state_param.return_value = "test_state"
-    return CanvasOAuthCallbackSchema
+    OAuthCallbackSchema.return_value.state_param.return_value = "test_state"
+    return OAuthCallbackSchema

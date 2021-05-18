@@ -10,8 +10,8 @@ from pyramid_googleauth import GoogleSecurityPolicy
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
-    CanvasOAuthCallbackSchema,
     LaunchParamsAuthSchema,
+    OAuthCallbackSchema,
 )
 
 
@@ -175,7 +175,7 @@ def _get_lti_user(request):
         partial(bearer_token_schema.lti_user, location="headers"),
         partial(bearer_token_schema.lti_user, location="querystring"),
         partial(bearer_token_schema.lti_user, location="form"),
-        CanvasOAuthCallbackSchema(request).lti_user,
+        OAuthCallbackSchema(request).lti_user,
     ]
 
     for schema in schemas:

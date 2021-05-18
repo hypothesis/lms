@@ -3,7 +3,7 @@ from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services import NoOAuth2Token
-from lms.validation.authentication import CanvasOAuthCallbackSchema
+from lms.validation.authentication import OAuthCallbackSchema
 
 
 @view_config(
@@ -15,7 +15,7 @@ def authorize(request):
     return HTTPFound(
         location=request.route_url(
             "blackboard_api.oauth.callback",
-            _query={"state": CanvasOAuthCallbackSchema(request).state_param()},
+            _query={"state": OAuthCallbackSchema(request).state_param()},
         )
     )
 
