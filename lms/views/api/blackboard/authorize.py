@@ -1,8 +1,9 @@
+from urllib.parse import urlencode, urlunparse
+
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.services import NoOAuth2Token
 from lms.validation.authentication import OAuthCallbackSchema
 
 
@@ -12,10 +13,30 @@ from lms.validation.authentication import OAuthCallbackSchema
     permission=Permissions.API,
 )
 def authorize(request):
+    application_instance = request.find_service(name="application_instance").get()
+    client_id = request.registry.settings["blackboard_api_client_id"]
+    state = OAuthCallbackSchema(request).state_param()
+
     return HTTPFound(
-        location=request.route_url(
-            "blackboard_api.oauth.callback",
-            _query={"state": OAuthCallbackSchema(request).state_param()},
+        location=urlunparse(
+            (
+                "https",
+                application_instance.lms_host(),
+                "learn/api/public/v1/oauth2/authorizationcode",
+                "",
+                urlencode(
+                    {
+                        "client_id": client_id,
+                        "response_type": "code",
+                        "redirect_uri": request.route_url(
+                            "blackboard_api.oauth.callback"
+                        ),
+                        "state": state,
+                        "scope": "read offline",
+                    }
+                ),
+                "",
+            )
         )
     )
 
@@ -27,11 +48,9 @@ def authorize(request):
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
 )
 def oauth2_redirect(request):
-    oauth2_token_service = request.find_service(name="oauth2_token")
+    authorization_code = request.params["code"]
+    blackboard_api_client = request.find_service(name="blackboard_api_client")
 
-    try:
-        oauth2_token_service.get()
-    except NoOAuth2Token:
-        oauth2_token_service.save("fake_access_token", "fake_refresh_token", 9999)
+    blackboard_api_client.get_token(authorization_code)
 
     return {}
