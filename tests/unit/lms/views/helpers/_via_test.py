@@ -23,7 +23,7 @@ class TestViaURL:
         url_params["via.sec"] = Any.string()
         url_params["via.blocked_for"] = "lms"
         assert final_url == Any.url.matching(
-            "http://test_via3_server.is/route"
+            "http://test_via_server.is/route"
         ).with_query(url_params)
 
     pywb_test_params = pytest.mark.parametrize(
@@ -46,21 +46,21 @@ class TestViaURL:
         ),
     )
 
-    def test_it_redirects_to_via3_view_pdf_directly_for_google_drive(
+    def test_it_redirects_to_via_view_pdf_directly_for_google_drive(
         self, pyramid_request
     ):
         google_drive_url = "https://drive.google.com/uc?id=<SOME-ID>&export=download"
         final_url = via_url(pyramid_request, google_drive_url)
 
         assert final_url == Any.url.matching(
-            "http://test_via3_server.is/pdf"
+            "http://test_via_server.is/pdf"
         ).containing_query({"url": google_drive_url})
 
-    def test_it_redirects_to_via3_view_pdf_directly_if_content_type_is_pdf(
+    def test_it_redirects_to_via_view_pdf_directly_if_content_type_is_pdf(
         self, pyramid_request
     ):
         final_url = via_url(pyramid_request, "any url", content_type="pdf")
 
         assert (
-            final_url == Any.url.matching("http://test_via3_server.is/pdf").with_query()
+            final_url == Any.url.matching("http://test_via_server.is/pdf").with_query()
         )
