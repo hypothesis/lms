@@ -227,10 +227,10 @@ class JSConfig:
                         course_id=self._request.params.get("custom_canvas_course_id"),
                     ),
                 },
-                "listGroupCategories": {
+                "listGroupSets": {
                     "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
                     "path": self._request.route_path(
-                        "canvas_api.courses.group_categories.list",
+                        "canvas_api.courses.group_sets.list",
                         course_id=self._request.params.get("custom_canvas_course_id"),
                     ),
                 },

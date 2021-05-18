@@ -48,9 +48,9 @@ class TestEnableContentItemSelectionMode:
                     "authUrl": "http://example.com/api/canvas/oauth/authorize",
                     "path": "/api/canvas/courses/test_course_id/files",
                 },
-                "listGroupCategories": {
+                "listGroupSets": {
                     "authUrl": "http://example.com/api/canvas/oauth/authorize",
-                    "path": "/api/canvas/courses/test_course_id/group_categories",
+                    "path": "/api/canvas/courses/test_course_id/group_sets",
                 },
             },
             "vitalSource": {

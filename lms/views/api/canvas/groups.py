@@ -10,12 +10,10 @@ class GroupsAPIViews:
         self.request = request
         self.canvas_api_client = request.find_service(name="canvas_api_client")
 
-    @view_config(
-        request_method="GET", route_name="canvas_api.courses.group_categories.list"
-    )
-    def course_group_categories(self):
+    @view_config(request_method="GET", route_name="canvas_api.courses.group_sets.list")
+    def course_group_sets(self):
         """
-        Return the list of group categories in the given course.
+        Return the list of group sets in the given course.
 
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.

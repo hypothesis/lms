@@ -65,8 +65,8 @@ def includeme(config):
         "/api/canvas/courses/{course_id}/files/{file_id}/via_url",
     )
     config.add_route(
-        "canvas_api.courses.group_categories.list",
-        "/api/canvas/courses/{course_id}/group_categories",
+        "canvas_api.courses.group_sets.list",
+        "/api/canvas/courses/{course_id}/group_sets",
     )
 
     config.add_route("canvas_api.sync", "/api/canvas/sync", request_method="POST")
