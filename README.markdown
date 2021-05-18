@@ -14,7 +14,7 @@
 
   * https://h.readthedocs.io/en/latest/developing/install/
   * https://h.readthedocs.io/projects/client/en/latest/developers/developing/
-  * https://github.com/hypothesis/via (Serves PDF content)
+  * https://github.com/hypothesis/via
 
 * [Git](https://git-scm.com/)
 
