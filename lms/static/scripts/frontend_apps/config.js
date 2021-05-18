@@ -64,7 +64,7 @@ import { createContext } from 'preact';
  *   @prop {boolean} canvas.groupsEnabled
  *   @prop {string} canvas.ltiLaunchUrl
  *   @prop {ApiCallInfo} canvas.listFiles
- *   @prop {ApiCallInfo} canvas.listGroupCategories
+ *   @prop {ApiCallInfo} canvas.listGroupSets
  * @prop {Object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
