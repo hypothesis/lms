@@ -29,6 +29,23 @@ import URLPicker from './URLPicker';
  */
 
 /**
+ * @typedef FileContent
+ * @prop {'file'} type
+ * @prop {File} file
+ *
+ * @typedef URLContent
+ * @prop {'url'} type
+ * @prop {string} url
+ *
+ * @typedef VitalSourceBookContent
+ * @prop {'vitalsource'} type
+ * @prop {string} bookID
+ * @prop {string} cfi
+ *
+ * @typedef {FileContent|URLContent|VitalSourceBookContent} Content
+ */
+
+/**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
  *
@@ -55,13 +72,7 @@ export default function FilePickerApp({
   } = useContext(Config);
 
   const [activeDialog, setActiveDialog] = useState(defaultActiveDialog);
-  const [url, setUrl] = useState(/** @type {string|null} */ (null));
-  const [lmsFile, setLmsFile] = useState(/** @type {File|null} */ (null));
-
-  // Whether the user chose a book from VitalSource. This is currently a
-  // boolean because there is no choice about which book is used. In future this
-  // will contain the selected book and chapter.
-  const [vitalSourceBook, setVitalSourceBook] = useState(false);
+  const [content, setContent] = useState(/** @type {Content|null} */ (null));
 
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
     useState(false);
@@ -115,14 +126,14 @@ export default function FilePickerApp({
   /** @param {File} file */
   const selectLMSFile = file => {
     cancelDialog();
-    setLmsFile(file);
+    setContent({ type: 'file', file });
     submit(true);
   };
 
   /** @param {string} url */
   const selectURL = url => {
     cancelDialog();
-    setUrl(url);
+    setContent({ type: 'url', url });
     submit(true);
   };
 
@@ -132,7 +143,7 @@ export default function FilePickerApp({
       const picker = /** @type {GooglePickerClient} */ (googlePicker);
       const { id, url } = await picker.showPicker();
       await picker.enablePublicViewing(id);
-      setUrl(url);
+      setContent({ type: 'url', url });
       submit(true);
     } catch (error) {
       setLoadingIndicatorVisible(false);
@@ -147,7 +158,13 @@ export default function FilePickerApp({
   };
 
   const selectVitalSourceBook = () => {
-    setVitalSourceBook(true);
+    // Chosen from `https://api.vitalsource.com/v4/products` response.
+    const bookID = 'BOOKSHELF-TUTORIAL';
+    // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
+    // response.
+    const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
+
+    setContent({ type: 'vitalsource', bookID, cfi });
     submit(true);
   };
 
@@ -182,17 +199,20 @@ export default function FilePickerApp({
   }
 
   let contentItem = null;
-  if (url) {
-    contentItem = contentItemForUrl(ltiLaunchUrl, url);
-  } else if (lmsFile) {
-    contentItem = contentItemForLmsFile(ltiLaunchUrl, lmsFile);
-  } else if (vitalSourceBook) {
-    // Chosen from `https://api.vitalsource.com/v4/products` response.
-    const bookId = 'BOOKSHELF-TUTORIAL';
-    // CFI chosen from `https://api.vitalsource.com/v4/products/BOOKSHELF-TUTORIAL/toc`
-    // response.
-    const cfi = '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]';
-    contentItem = contentItemForVitalSourceBook(ltiLaunchUrl, bookId, cfi);
+  switch (content?.type) {
+    case 'url':
+      contentItem = contentItemForUrl(ltiLaunchUrl, content.url);
+      break;
+    case 'file':
+      contentItem = contentItemForLmsFile(ltiLaunchUrl, content.file);
+      break;
+    case 'vitalsource':
+      contentItem = contentItemForVitalSourceBook(
+        ltiLaunchUrl,
+        content.bookID,
+        content.cfi
+      );
+      break;
   }
   contentItem = JSON.stringify(contentItem);
 
@@ -218,7 +238,6 @@ export default function FilePickerApp({
           You can select content for your assignment from one of the following
           sources:
         </p>
-        <input name="document_url" type="hidden" value={url || ''} />
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
