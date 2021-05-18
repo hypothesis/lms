@@ -1,10 +1,10 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { ApiError, apiCall } from '../utils/api';
 
-import AuthWindow from '../utils/AuthWindow';
+import AuthButton from './AuthButton';
 import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
@@ -82,11 +82,6 @@ export default function LMSFilePicker({
   // The file within `files` which is currently selected.
   const [selectedFile, selectFile] = useState(/** @type {File|null} */ (null));
 
-  // `AuthWindow` instance, set only when waiting for the user to approve
-  // the app's access to the user's files in the LMS.
-  /** @type {import('preact').Ref<AuthWindow>} */
-  const authWindow = useRef(null);
-
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
     try {
@@ -140,42 +135,12 @@ export default function LMSFilePicker({
     }
   }, [authToken, listFilesApi, authorizationAttempted]);
 
-  // Execute the authorization flow in a popup window and then attempt to
-  // fetch files.
-  const authorizeAndFetchFiles = useCallback(async () => {
-    if (authWindow.current) {
-      authWindow.current.focus();
-      return;
-    }
-
-    // We assume here that the API call to list files will always require
-    // authentication. This is true for the LMSes (Canvas, Blackboard) that
-    // we currently support.
-    const authUrl = /** @type {string} */ (listFilesApi.authUrl);
-    authWindow.current = new AuthWindow({ authToken, authUrl });
-
-    try {
-      await authWindow.current.authorize();
-      await fetchFiles();
-    } finally {
-      authWindow.current.close();
-      authWindow.current = null;
-    }
-  }, [fetchFiles, authToken, listFilesApi]);
-
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
   useEffect(() => {
     fetchFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const cancel = () => {
-    if (authWindow.current) {
-      authWindow.current.close();
-    }
-    onCancel();
-  };
 
   const useSelectedFile = () =>
     onSelectFile(/** @type {File} */ (selectedFile));
@@ -196,13 +161,11 @@ export default function LMSFilePicker({
     },
     authorize: {
       continueButton: (
-        <LabeledButton
-          onClick={authorizeAndFetchFiles}
-          variant="primary"
-          data-testid="authorize"
-        >
-          Authorize
-        </LabeledButton>
+        <AuthButton
+          authURL={/** @type {string} */ (listFilesApi.authUrl)}
+          authToken={authToken}
+          onAuthComplete={fetchFiles}
+        />
       ),
       warningOrError: (
         <p data-testid="authorization warning">
@@ -212,13 +175,13 @@ export default function LMSFilePicker({
     },
     authorize_retry: {
       continueButton: (
-        <LabeledButton
-          onClick={authorizeAndFetchFiles}
-          variant="primary"
+        <AuthButton
+          authURL={/** @type {string} */ (listFilesApi.authUrl)}
+          authToken={authToken}
+          label="Try again"
+          onAuthComplete={fetchFiles}
           data-testid="try-again"
-        >
-          Try again
-        </LabeledButton>
+        />
       ),
       warningOrError: (
         <ErrorDisplay
@@ -229,13 +192,13 @@ export default function LMSFilePicker({
     },
     retry: {
       continueButton: (
-        <LabeledButton
-          onClick={authorizeAndFetchFiles} // maybe it should use fetchFile function instead
-          variant="primary"
+        <AuthButton
+          authURL={/** @type {string} */ (listFilesApi.authUrl)}
+          authToken={authToken}
+          label="Try again"
+          onAuthComplete={fetchFiles}
           data-testid="try-again"
-        >
-          Try again
-        </LabeledButton>
+        />
       ),
       warningOrError: (
         <ErrorDisplay
@@ -270,7 +233,7 @@ export default function LMSFilePicker({
     <Dialog
       contentClass="LMSFilePicker__dialog"
       title={dialogState.title}
-      onCancel={cancel}
+      onCancel={onCancel}
       buttons={continueButton}
     >
       {warningOrError}
