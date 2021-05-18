@@ -238,6 +238,11 @@ export default function FilePickerApp({
           You can select content for your assignment from one of the following
           sources:
         </p>
+        {content?.type === 'url' && (
+          // Set the `document_url` form field which is used by the `configure_module_item`
+          // view. Used in LMSes where assignments are configured on first launch.
+          <input name="document_url" type="hidden" value={content.url} />
+        )}
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
