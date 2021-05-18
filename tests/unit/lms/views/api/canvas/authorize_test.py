@@ -81,13 +81,13 @@ class TestAuthorize:
         self.assert_file_scopes_only(authorize.authorize(pyramid_request))
 
     def test_it_includes_the_state_in_a_query_param(
-        self, pyramid_request, CanvasOAuthCallbackSchema, canvas_oauth_callback_schema
+        self, pyramid_request, OAuthCallbackSchema, canvas_oauth_callback_schema
     ):
         response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        CanvasOAuthCallbackSchema.assert_called_once_with(pyramid_request)
+        OAuthCallbackSchema.assert_called_once_with(pyramid_request)
         canvas_oauth_callback_schema.state_param.assert_called_once_with()
         assert query_params["state"] == [
             canvas_oauth_callback_schema.state_param.return_value
@@ -225,12 +225,12 @@ def BearerTokenSchema(patch):
 
 
 @pytest.fixture(autouse=True)
-def CanvasOAuthCallbackSchema(patch):
-    return patch("lms.views.api.canvas.authorize.CanvasOAuthCallbackSchema")
+def OAuthCallbackSchema(patch):
+    return patch("lms.views.api.canvas.authorize.OAuthCallbackSchema")
 
 
 @pytest.fixture
-def canvas_oauth_callback_schema(CanvasOAuthCallbackSchema):
-    schema = CanvasOAuthCallbackSchema.return_value
+def canvas_oauth_callback_schema(OAuthCallbackSchema):
+    schema = OAuthCallbackSchema.return_value
     schema.state_param.return_value = "test_state"
     return schema

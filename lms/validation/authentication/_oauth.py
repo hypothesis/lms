@@ -1,4 +1,3 @@
-"""Validation for OAuth views."""
 import secrets
 
 import marshmallow
@@ -16,27 +15,27 @@ from lms.validation.authentication._exceptions import (
 from lms.validation.authentication._helpers import _jwt
 
 
-class CanvasOAuthCallbackSchema(PyramidRequestSchema):
+class OAuthCallbackSchema(PyramidRequestSchema):
     """
-    Schema for validating OAuth 2 redirect_uri requests from Canvas.
+    Schema for validating OAuth 2 redirect_uri requests.
 
     This schema provides two convenience methods:
 
-    First, :meth:`CanvasOAuthCallbackSchema.state_param` returns a string
+    First, :meth:`OAuthCallbackSchema.state_param` returns a string
     suitable for passing to an authorization server's authorization endpoint as
     the ``state`` query parameter::
 
-       >>> schema = CanvasOAuthCallbackSchema()
+       >>> schema = OAuthCallbackSchema()
        >>> schema.context['request'] = request
        >>> schema.state_param(request.lti_user)
        'xyz...123'
 
-    Calling :meth:`CanvasOAuthCallbackSchema.state_param` also has the side
+    Calling :meth:`OAuthCallbackSchema.state_param` also has the side
     effect of inserting a CSRF token into the session that will be checked
     against the ``state`` parameter when the authorization server returns the
     ``state`` parameter to us in a later ``redirect_uri`` request.
 
-    Second, :meth:`CanvasOAuthCallbackSchema.lti_user` returns the
+    Second, :meth:`OAuthCallbackSchema.lti_user` returns the
     models.LTIUser authenticated by the ``state`` param in the
     current request. This will raise if the request doesn't contain a ``state``
     query parameter or if the ``state`` is expired or invalid::
@@ -44,10 +43,10 @@ class CanvasOAuthCallbackSchema(PyramidRequestSchema):
        >>> schema.lti_user()
        LTIUser(user_id='...', oauth_consumer_key='...')
 
-    Finally, :class:`CanvasOAuthCallbackSchema` can also be used as a schema to
+    Finally, :class:`OAuthCallbackSchema` can also be used as a schema to
     guard a ``redirect_uri`` view, for example::
 
-        @view_config(..., schema=CanvasOAuthCallbackSchema)
+        @view_config(..., schema=OAuthCallbackSchema)
         def redirect_uri_view(request):
             # The authorization code and state sent by the authorization server
             # are available in request.parsed_params.
