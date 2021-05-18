@@ -162,6 +162,20 @@ describe('FilePickerApp', () => {
     );
   });
 
+  it('sets `document_url` form field when a URL is selected', () => {
+    const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+    const wrapper = renderFilePicker({ defaultActiveDialog: 'url', onSubmit });
+
+    const picker = wrapper.find('URLPicker');
+    interact(wrapper, () => {
+      picker.props().onSelectURL('https://example.com');
+    });
+
+    assert.called(onSubmit);
+    const documentURLField = wrapper.find('input[name="document_url"]');
+    assert.equal(documentURLField.prop('value'), 'https://example.com');
+  });
+
   it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
     const wrapper = renderFilePicker();
 
