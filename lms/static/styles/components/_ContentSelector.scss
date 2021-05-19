@@ -1,0 +1,38 @@
+@use "../variables" as var;
+
+.ContentSelector__loading-backdrop {
+  background-color: white;
+  bottom: 0;
+  left: 0;
+  opacity: 0.5;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.ContentSelector__loading-spinner {
+  position: absolute;
+  width: var.$spinner-size;
+  height: var.$spinner-size;
+  left: calc(50% - #{var.$spinner-size / 2});
+  top: calc(50% - #{var.$spinner-size / 2});
+}
+
+.ContentSelector__actions {
+  // A flex container (row) with two children: a column of buttons and a
+  // "spacer" to take up the rest of the row space not needed by the buttons.
+  // The spacer prevents the button container from stretching full width.
+  display: flex;
+  // Add some white space before we start rendering the buttons
+  margin-top: 3em;
+
+  &-buttons {
+    // Display buttons in a column with a vertical margin between each button
+    display: flex;
+    flex-direction: column;
+    & > * + * {
+      // Margin reset on button makes `!important` necessary here
+      margin-top: 0.5em !important;
+    }
+  }
+}
