@@ -12,5 +12,14 @@
  * @prop {string} updated_at - An ISO 8601 date string
  */
 
+/**
+ * Object representing a set of groups that students can be divided into for
+ * an assignment.
+ *
+ * @typedef GroupSet
+ * @prop {string} id
+ * @prop {string} name
+ */
+
 // Make TS treat this file as a module.
 export {};

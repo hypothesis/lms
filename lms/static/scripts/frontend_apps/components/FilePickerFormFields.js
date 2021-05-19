@@ -4,6 +4,7 @@ import { contentItemForContent } from '../utils/content-item';
 
 /**
  * @typedef {import('../utils/content-item').Content} Content
+ * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
  */
 
 /**
@@ -13,6 +14,7 @@ import { contentItemForContent } from '../utils/content-item';
  * @prop {Content} content - Content for the assignment
  * @prop {Record<string,string>} formFields - Form fields provided by the backend
  *   that should be included in the response without any changes
+ * @prop {string|null} groupSet
  */
 
 /**
@@ -32,10 +34,13 @@ import { contentItemForContent } from '../utils/content-item';
 export default function FilePickerFormFields({
   content,
   formFields,
+  groupSet,
   ltiLaunchURL,
 }) {
+  /** @type {Record<string,string>} */
+  const extraParams = groupSet ? { group_set: groupSet } : {};
   const contentItem = JSON.stringify(
-    contentItemForContent(ltiLaunchURL, content)
+    contentItemForContent(ltiLaunchURL, content, extraParams)
   );
   return (
     <Fragment>

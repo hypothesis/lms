@@ -36,6 +36,7 @@ describe('FilePickerApp', () => {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
         canvas: {
+          groupsEnabled: false,
           ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
         },
       },
@@ -55,12 +56,13 @@ describe('FilePickerApp', () => {
   /**
    * Check that the expected hidden form fields were set.
    */
-  function checkFormFields(wrapper, expectedContent) {
+  function checkFormFields(wrapper, expectedContent, expectedGroupSet) {
     const formFields = wrapper.find('FilePickerFormFields');
     assert.deepEqual(formFields.props(), {
       children: [],
       content: expectedContent,
       formFields: fakeConfig.filePicker.formFields,
+      groupSet: expectedGroupSet,
       ltiLaunchURL: fakeConfig.filePicker.canvas.ltiLaunchUrl,
     });
   }
@@ -76,22 +78,93 @@ describe('FilePickerApp', () => {
     assert.isTrue(wrapper.exists('ContentSelector'));
   });
 
-  it('submits content when selected', () => {
-    const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-    const wrapper = renderFilePicker({ onSubmit });
-
+  function selectContent(wrapper, url) {
     const picker = wrapper.find('ContentSelector');
     interact(wrapper, () => {
       picker.props().onSelectContent({
         type: 'url',
-        url: 'https://example.com',
+        url,
       });
     });
+  }
 
-    assert.called(onSubmit);
-    checkFormFields(wrapper, {
-      type: 'url',
-      url: 'https://example.com',
+  function selectGroupConfig(wrapper, useGroups, groupSet = null) {
+    const groupSelector = wrapper.find('GroupConfigSelector');
+    interact(wrapper, () => {
+      groupSelector.props().onChangeGroupConfig({
+        useGroups,
+        groupSet,
+      });
+    });
+  }
+
+  context('when groups are not enabled', () => {
+    it('submits form when content is selected', () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      assert.called(onSubmit);
+      checkFormFields(
+        wrapper,
+        {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        null /* groupSet */
+      );
+    });
+  });
+
+  context('when groups are enabled', () => {
+    beforeEach(() => {
+      fakeConfig.filePicker.canvas.groupsEnabled = true;
+    });
+
+    it('does not submit form when content is selected', () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      assert.notCalled(onSubmit);
+    });
+
+    it('disables "Continue" button when groups are enabled but no group set is selected', () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, true, null);
+
+      assert.isTrue(
+        wrapper.find('LabeledButton[children="Continue"]').prop('disabled')
+      );
+    });
+
+    [true, false].forEach(useGroups => {
+      it('submits form when "Continue" button is clicked', () => {
+        const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+        const wrapper = renderFilePicker({ onSubmit });
+
+        selectContent(wrapper, 'https://example.com');
+        selectGroupConfig(wrapper, useGroups, 'groupSet1');
+
+        assert.notCalled(onSubmit);
+        interact(wrapper, () => {
+          wrapper.find('LabeledButton[children="Continue"]').props().onClick();
+        });
+
+        assert.called(onSubmit);
+        checkFormFields(
+          wrapper,
+          {
+            type: 'url',
+            url: 'https://example.com',
+          },
+          useGroups ? 'groupSet1' : null
+        );
+      });
     });
   });
 
