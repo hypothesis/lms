@@ -79,7 +79,7 @@ class ApplicationInstance(BASE):
     )
 
     #: A list of all the courses for this application instance.
-    courses = sa.orm.relationship("Course", back_populates="application_instance")
+    courses = sa.orm.relationship("_Course", back_populates="application_instance")
 
     #: A list of all the GroupInfo's for this application instance.
     group_infos = sa.orm.relationship(
