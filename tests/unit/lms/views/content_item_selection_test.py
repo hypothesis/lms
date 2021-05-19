@@ -24,19 +24,20 @@ class TestContentItemSelection:
         )
 
     def test_it_records_the_course_in_the_DB(
-        self, context, pyramid_request, course_service
+        self,
+        context,
+        pyramid_request,
     ):
         content_item_selection(context, pyramid_request)
 
-        course_service.get_or_create.assert_called_once_with(
-            context.h_group.authority_provided_id
-        )
+        context.get_or_create_course.assert_called_once_with()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {
             "content_item_return_url": "TEST_CONTENT_ITEM_RETURN_URL",
             "lti_version": "TEST_LTI_VERSION",
+            "context_title": "CONTEXT_TITLE",
         }
         return pyramid_request
 

@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.models import Course, CourseGroupsExportedFromH
-from lms.services import ConsumerKeyError
+from lms.models import _Course as LegacyCourse
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -20,7 +20,7 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.get_or_create("test_authority_provided_id")
+        svc.get_or_create("test_authority_provided_id", "context_id", "course name")
 
         course = db_session.query(Course).one()
         assert (
@@ -35,13 +35,15 @@ class TestCourseService:
             authority_provided_id="test_authority_provided_id",
             settings={},
         )
+        # Immediately  the the newly crated course so all objects have the right IDs
+        existing_course = pyramid_request.db.query(Course).one()
+
         existing_course.settings.set("canvas", "sections_enabled", False)
         application_instance_service.get.return_value.settings.set(
             "canvas", "sections_enabled", True
         )
 
-        svc.get_or_create("test_authority_provided_id")
-
+        svc.get_or_create("test_authority_provided_id", "context_id", "course name")
         existing_course = pyramid_request.db.query(Course).one()
         assert not existing_course.settings.get("canvas", "sections_enabled")
 
@@ -59,18 +61,10 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.get_or_create("test_authority_provided_id")
+        svc.get_or_create("test_authority_provided_id", "context_id", "course name")
 
         course = db_session.query(Course).one()
         assert not course.settings.get("canvas", "sections_enabled")
-
-    def test_get_or_create_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, svc
-    ):
-        application_instance_service.get.side_effect = ConsumerKeyError
-
-        with pytest.raises(ConsumerKeyError):
-            svc.get_or_create("test_authority_provided_id")
 
     @pytest.mark.parametrize(
         "settings_set,value,expected",
@@ -94,8 +88,31 @@ class TestCourseService:
             [{"group": {"key": value}}],
             application_instance=factories.ApplicationInstance(),
         )
+        # Factory created models won't have IDs until we flush them
+        svc._db.flush()  # pylint: disable=protected-access
 
         assert svc.any_with_setting("group", "key", value) is expected
+
+    def test_get_deletes_old_course_record(self, application_instance, db_session, svc):
+        legacy_course = factories.LegacyCourse(
+            application_instance=application_instance
+        )
+
+        # There's now a course on the `courses` table
+        assert db_session.query(LegacyCourse).count() == 1
+
+        course = svc._get(  # pylint: disable=protected-access
+            legacy_course.authority_provided_id,
+            "context_id",
+            "name",
+            {},
+        )
+
+        # Row on `courses` has been removed
+        assert not db_session.query(LegacyCourse).count()
+        # and added to the grouping one
+        assert db_session.query(Course).count() == 1
+        assert course.lms_name == "name"
 
     @pytest.fixture
     def add_courses_with_settings(self, application_instance):
@@ -110,11 +127,12 @@ class TestCourseService:
         return add_courses_with_settings
 
     @pytest.fixture
-    def svc(self, pyramid_request):
+    def svc(self, pyramid_request, application_instance_service, application_instance):
+        application_instance_service.get.return_value = application_instance
         return course_service_factory(sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)
     def application_instance(self, pyramid_request):
         return factories.ApplicationInstance(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key, settings={}
         )
