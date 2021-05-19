@@ -148,7 +148,7 @@ def _authenticated_userid(lti_user):
     return ":".join([safe_user_id, lti_user.oauth_consumer_key])
 
 
-def _permits(policy, request, _context, permission):  # pylint: disable=unused-argument
+def _permits(policy, request, _context, permission):
     identity = policy.identity(request)
     if identity and permission in identity.permissions:
         return Allowed("allowed")

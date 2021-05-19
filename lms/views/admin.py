@@ -28,7 +28,7 @@ class AdminViews:
             name="application_instance"
         )
 
-    @view_config(route_name="admin.index")  # pylint: disable=no-self-use
+    @view_config(route_name="admin.index")
     def index(self):
         return HTTPFound(location=self.request.route_url("admin.instances"))
 
