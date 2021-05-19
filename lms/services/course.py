@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 
-from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import CourseGroupsExportedFromH, LegacyCourse
 
 
 class CourseService:
@@ -31,15 +31,17 @@ class CourseService:
         """
 
         return bool(
-            self._db.query(Course)
-            .filter(Course.consumer_key == self._consumer_key)
-            .filter(Course.settings[group][key] == json.dumps(value))
+            self._db.query(LegacyCourse)
+            .filter(LegacyCourse.consumer_key == self._consumer_key)
+            .filter(LegacyCourse.settings[group][key] == json.dumps(value))
             .limit(1)
             .count()
         )
 
     def _get(self, authority_provided_id):
-        return self._db.query(Course).get((self._consumer_key, authority_provided_id))
+        return self._db.query(LegacyCourse).get(
+            (self._consumer_key, authority_provided_id)
+        )
 
     def _create(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
@@ -53,7 +55,7 @@ class CourseService:
         ):
             course_settings.set("canvas", "sections_enabled", False)
 
-        course = Course(
+        course = LegacyCourse(
             consumer_key=self._consumer_key,
             authority_provided_id=authority_provided_id,
             settings=course_settings,
