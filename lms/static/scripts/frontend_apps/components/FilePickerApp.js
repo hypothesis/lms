@@ -1,3 +1,4 @@
+import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
@@ -7,7 +8,6 @@ import {
   PickerCanceledError,
 } from '../utils/google-picker-client';
 
-import Button from './Button';
 import ErrorDialog from './ErrorDialog';
 import FilePickerFormFields from './FilePickerFormFields';
 import LMSFilePicker from './LMSFilePicker';
@@ -207,33 +207,49 @@ export default function FilePickerApp({
           You can select content for your assignment from one of the following
           sources:
         </p>
-        <div className="FilePickerApp__document-source-buttons">
-          <Button
-            className="FilePickerApp__source-button"
-            label="Enter URL of web page or PDF"
-            onClick={() => selectDialog('url')}
-          />
-          {canvasEnabled && (
-            <Button
-              className="FilePickerApp__source-button"
-              label={`Select PDF from Canvas`}
-              onClick={() => selectDialog('lms')}
-            />
-          )}
-          {googlePicker && (
-            <Button
-              className="FilePickerApp__source-button"
-              label="Select PDF from Google Drive"
-              onClick={showGooglePicker}
-            />
-          )}
-          {vitalSourceEnabled && (
-            <Button
-              className="FilePickerApp__source-button"
-              label="Select book from VitalSource"
-              onClick={selectVitalSourceBook}
-            />
-          )}
+        {content?.type === 'url' && (
+          // Set the `document_url` form field which is used by the `configure_module_item`
+          // view. Used in LMSes where assignments are configured on first launch.
+          <input name="document_url" type="hidden" value={content.url} />
+        )}
+        <div className="FilePickerApp__actions">
+          <div className="FilePickerApp__actions-buttons">
+            <LabeledButton
+              variant="primary"
+              onClick={() => selectDialog('url')}
+              data-test="url-button"
+            >
+              Enter URL of web page or PDF
+            </LabeledButton>
+            {canvasEnabled && (
+              <LabeledButton
+                variant="primary"
+                onClick={() => selectDialog('lms')}
+                data-test="pdf-button"
+              >
+                Select PDF from Canvas
+              </LabeledButton>
+            )}
+            {googlePicker && (
+              <LabeledButton
+                variant="primary"
+                onClick={showGooglePicker}
+                data-test="drive-button"
+              >
+                Select PDF from Google Drive
+              </LabeledButton>
+            )}
+            {vitalSourceEnabled && (
+              <LabeledButton
+                variant="primary"
+                onClick={selectVitalSourceBook}
+                data-test="vitalsource-button"
+              >
+                Select book from VitalSource
+              </LabeledButton>
+            )}
+          </div>
+          <div className="u-stretch" />
         </div>
         {content && (
           <FilePickerFormFields
