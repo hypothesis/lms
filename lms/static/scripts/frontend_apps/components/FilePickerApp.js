@@ -1,16 +1,26 @@
-import { createElement } from 'preact';
-import { useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { LabeledButton } from '@hypothesis/frontend-shared';
+import { Fragment, createElement } from 'preact';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import { Config } from '../config';
 
 import ContentSelector from './ContentSelector';
 import ErrorDialog from './ErrorDialog';
 import FilePickerFormFields from './FilePickerFormFields';
+import GroupConfigSelector from './GroupConfigSelector';
 
 /**
  * @typedef {import('../api-types').File} File
  * @typedef {import('../utils/content-item').Content} Content
  * @typedef {'lms'|'url'|null} DialogType
+ *
+ * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
  *
  * @typedef FilePickerAppProps
  * @prop {DialogType} [defaultActiveDialog] -
@@ -30,11 +40,18 @@ export default function FilePickerApp({ onSubmit }) {
     filePicker: {
       formAction,
       formFields,
-      canvas: { ltiLaunchUrl },
+      canvas: { groupsEnabled, ltiLaunchUrl },
     },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
+
+  const [groupConfig, setGroupConfig] = useState(
+    /** @type {GroupConfig} */ ({
+      useGroups: false,
+      groupSet: null,
+    })
+  );
 
   /**
    * @typedef ErrorInfo
@@ -50,7 +67,8 @@ export default function FilePickerApp({ onSubmit }) {
    * Flag indicating whether the form should be auto-submitted on the next
    * render.
    */
-  const [shouldSubmit, submit] = useState(false);
+  const [shouldSubmit, setShouldSubmit] = useState(false);
+  const submit = useCallback(() => setShouldSubmit(true), []);
 
   // Submit the form after a selection is made via one of the available
   // methods.
@@ -63,11 +81,16 @@ export default function FilePickerApp({ onSubmit }) {
     }
   }, [shouldSubmit]);
 
-  /** @param {Content} content */
-  const selectContent = content => {
-    setContent(content);
-    submit(true);
-  };
+  /** @type {(c: Content) => void} */
+  const selectContent = useCallback(
+    content => {
+      setContent(content);
+      if (!groupsEnabled) {
+        submit();
+      }
+    },
+    [groupsEnabled, submit]
+  );
 
   return (
     <main>
@@ -77,20 +100,41 @@ export default function FilePickerApp({ onSubmit }) {
         method="POST"
         onSubmit={onSubmit}
       >
-        <h1 className="heading-1">Select web page or PDF</h1>
-        <p>
-          You can select content for your assignment from one of the following
-          sources:
-        </p>
-        <ContentSelector
-          onSelectContent={selectContent}
-          onError={setErrorInfo}
-        />
+        {!content && (
+          <Fragment>
+            <h1 className="heading-1">Select web page or PDF</h1>
+            <p>
+              You can select content for your assignment from one of the
+              following sources:
+            </p>
+            <ContentSelector
+              onSelectContent={selectContent}
+              onError={setErrorInfo}
+            />
+          </Fragment>
+        )}
+        {content && groupsEnabled && (
+          <Fragment>
+            <h1 className="heading-1">Group settings</h1>
+            <GroupConfigSelector
+              groupConfig={groupConfig}
+              onChangeGroupConfig={setGroupConfig}
+            />
+            <LabeledButton
+              disabled={groupConfig.useGroups && !groupConfig.groupSet}
+              variant="primary"
+              onClick={submit}
+            >
+              Continue
+            </LabeledButton>
+          </Fragment>
+        )}
         {content && (
           <FilePickerFormFields
             ltiLaunchURL={ltiLaunchUrl}
             content={content}
             formFields={formFields}
+            groupSet={groupConfig.useGroups ? groupConfig.groupSet : null}
           />
         )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
