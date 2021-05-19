@@ -23,6 +23,17 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
 
+    def get_or_create_course(self):
+        params = self._request.parsed_params
+        course = self._request.find_service(name="course").get_or_create(
+            self.h_group.authority_provided_id,
+            params["context_id"],
+            params["context_title"],
+            extra=self.course_extra,
+        )
+
+        return course
+
     @property
     def h_group(self):
         """
@@ -53,8 +64,9 @@ class LTILaunchResource:
 
         params = self._request.parsed_params
 
-        return HGroup.course_group(
-            course_name=params["context_title"],
+        grouping_service = self._request.find_service(name="grouping")
+
+        return grouping_service.course_grouping(
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
         )
