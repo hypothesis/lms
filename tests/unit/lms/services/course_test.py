@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import CourseGroupsExportedFromH, LegacyCourse
 from lms.services import ConsumerKeyError
 from lms.services.course import course_service_factory
 from tests import factories
@@ -22,7 +22,7 @@ class TestCourseService:
 
         svc.get_or_create("test_authority_provided_id")
 
-        course = db_session.query(Course).one()
+        course = db_session.query(LegacyCourse).one()
         assert (
             course.settings.get("canvas", "sections_enabled") == canvas_sections_enabled
         )
@@ -30,7 +30,7 @@ class TestCourseService:
     def test_it_does_nothing_if_theres_already_a_matching_row(
         self, application_instance_service, application_instance, pyramid_request, svc
     ):
-        existing_course = factories.Course(
+        existing_course = factories.LegacyCourse(
             application_instance=application_instance,
             authority_provided_id="test_authority_provided_id",
             settings={},
@@ -42,7 +42,7 @@ class TestCourseService:
 
         svc.get_or_create("test_authority_provided_id")
 
-        existing_course = pyramid_request.db.query(Course).one()
+        existing_course = pyramid_request.db.query(LegacyCourse).one()
         assert not existing_course.settings.get("canvas", "sections_enabled")
 
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
@@ -61,7 +61,7 @@ class TestCourseService:
 
         svc.get_or_create("test_authority_provided_id")
 
-        course = db_session.query(Course).one()
+        course = db_session.query(LegacyCourse).one()
         assert not course.settings.get("canvas", "sections_enabled")
 
     def test_get_or_create_raises_if_theres_no_ApplicationInstance(
@@ -103,7 +103,7 @@ class TestCourseService:
             settings_set, application_instance=application_instance
         ):
             for settings in settings_set:
-                factories.Course(
+                factories.LegacyCourse(
                     application_instance=application_instance, settings=settings
                 )
 

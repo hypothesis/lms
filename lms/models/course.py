@@ -5,7 +5,7 @@ from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
 
 
-class Course(BASE):
+class LegacyCourse(BASE):
     """An LTI course."""
 
     __tablename__ = "course"
