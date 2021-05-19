@@ -1,7 +1,6 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-from lms.models import HGroup
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError
 
@@ -65,11 +64,18 @@ class LTILaunchResource:
 
         params = self._request.parsed_params
 
-        return HGroup.course_group(
-            course_name=params["context_title"],
+        application_instance = self._request.find_service(
+            name="application_instance"
+        ).get()
+
+        grouping_service = self._request.find_service(name="grouping")
+
+        return grouping_service.course_grouping(
+            application_instance=application_instance,
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
             extra=self.course_extra,
+            course_name=params["context_title"],
         )
 
     @property
@@ -149,6 +155,4 @@ class LTILaunchResource:
         if not self.canvas_sections_supported():
             return False
 
-        course_id = self.h_group.authority_provided_id
-        course = self._request.find_service(name="course").get_or_create(course_id)
-        return course.settings.get("canvas", "sections_enabled")
+        return self.get_or_create_course().settings.get("canvas", "sections_enabled")

@@ -8,6 +8,8 @@ class Sync:
     def __init__(self, request):
         self._request = request
 
+        self._grouping_service = self._request.find_service(name="grouping")
+
     @view_config(
         route_name="canvas_api.sync",
         request_method="POST",
