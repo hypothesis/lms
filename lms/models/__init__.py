@@ -1,10 +1,11 @@
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance
 from lms.models.application_settings import ApplicationSettings
-from lms.models.course import Course
+from lms.models.course import _Course
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
 from lms.models.grading_info import GradingInfo
 from lms.models.group_info import GroupInfo
+from lms.models.grouping import Course, Grouping
 from lms.models.h_group import HGroup
 from lms.models.h_user import HUser
 from lms.models.lti_launches import LtiLaunches
