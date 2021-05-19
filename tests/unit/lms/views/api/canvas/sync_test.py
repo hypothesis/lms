@@ -4,7 +4,9 @@ from lms.models import HGroup
 from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
-pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
+pytestmark = pytest.mark.usefixtures(
+    "canvas_api_client", "lti_h_service", "grouping_service"
+)
 
 
 @pytest.mark.usefixtures("user_is_learner")

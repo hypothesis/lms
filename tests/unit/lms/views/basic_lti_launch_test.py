@@ -243,13 +243,11 @@ class TestCommon:
 
 class TestCourseRecording:
     def test_it_records_the_course_in_the_DB(
-        self, context, pyramid_request, view_caller, course_service
+        self, context, pyramid_request, view_caller
     ):
         view_caller(context, pyramid_request)
 
-        course_service.get_or_create.assert_called_once_with(
-            context.h_group.authority_provided_id
-        )
+        context.get_or_create_course.assert_called_once_with()
 
     @pytest.fixture(
         params=[
