@@ -5,11 +5,6 @@ import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-import {
-  contentItemForLmsFile,
-  contentItemForUrl,
-  contentItemForVitalSourceBook,
-} from '../../utils/content-item';
 import { PickerCanceledError } from '../../utils/google-picker-client';
 import FilePickerApp, { $imports } from '../FilePickerApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
@@ -36,9 +31,6 @@ describe('FilePickerApp', () => {
       }
     );
   };
-
-  const getContentItem = wrapper =>
-    JSON.parse(wrapper.find('input[name="content_items"]').prop('value'));
 
   beforeEach(() => {
     fakeConfig = {
@@ -82,20 +74,23 @@ describe('FilePickerApp', () => {
     container.remove();
   });
 
-  it('renders form with correct action and hidden fields', () => {
+  /**
+   * Check that the expected hidden form fields were set.
+   */
+  function checkFormFields(wrapper, expectedContent) {
+    const formFields = wrapper.find('FilePickerFormFields');
+    assert.deepEqual(formFields.props(), {
+      children: [],
+      content: expectedContent,
+      formFields: fakeConfig.filePicker.formFields,
+      ltiLaunchURL: fakeConfig.filePicker.canvas.ltiLaunchUrl,
+    });
+  }
+
+  it('renders form with correct action', () => {
     const wrapper = renderFilePicker();
     const form = wrapper.find('form');
-
     assert.equal(form.prop('action'), 'https://www.shinylms.com/');
-
-    Object.keys(fakeConfig.filePicker.formFields).forEach(fieldName => {
-      const field = form.find(`input[name="${fieldName}"]`);
-      assert.equal(field.length, 1);
-      assert.equal(
-        field.prop('value'),
-        fakeConfig.filePicker.formFields[fieldName]
-      );
-    });
   });
 
   it('renders buttons to choose assignment source', () => {
@@ -153,27 +148,10 @@ describe('FilePickerApp', () => {
     });
 
     assert.called(onSubmit);
-    assert.deepEqual(
-      getContentItem(wrapper),
-      contentItemForUrl(
-        fakeConfig.filePicker.canvas.ltiLaunchUrl,
-        'https://example.com'
-      )
-    );
-  });
-
-  it('sets `document_url` form field when a URL is selected', () => {
-    const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-    const wrapper = renderFilePicker({ defaultActiveDialog: 'url', onSubmit });
-
-    const picker = wrapper.find('URLPicker');
-    interact(wrapper, () => {
-      picker.props().onSelectURL('https://example.com');
+    checkFormFields(wrapper, {
+      type: 'url',
+      url: 'https://example.com',
     });
-
-    assert.called(onSubmit);
-    const documentURLField = wrapper.find('input[name="document_url"]');
-    assert.equal(documentURLField.prop('value'), 'https://example.com');
   });
 
   it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
@@ -213,10 +191,10 @@ describe('FilePickerApp', () => {
     });
 
     assert.called(onSubmit);
-    assert.deepEqual(
-      getContentItem(wrapper),
-      contentItemForLmsFile(fakeConfig.filePicker.canvas.ltiLaunchUrl, file)
-    );
+    checkFormFields(wrapper, {
+      type: 'file',
+      file,
+    });
   });
 
   describe('Google picker', () => {
@@ -286,13 +264,10 @@ describe('FilePickerApp', () => {
       await submitted;
 
       wrapper.update();
-      assert.deepEqual(
-        getContentItem(wrapper),
-        contentItemForUrl(
-          fakeConfig.filePicker.canvas.ltiLaunchUrl,
-          'https://files.google.com/doc1'
-        )
-      );
+      checkFormFields(wrapper, {
+        type: 'url',
+        url: 'https://files.google.com/doc1',
+      });
     });
 
     it('shows loading indicator while waiting for user to pick file', () => {
@@ -393,14 +368,11 @@ describe('FilePickerApp', () => {
       });
 
       assert.called(onSubmit);
-      assert.deepEqual(
-        getContentItem(wrapper),
-        contentItemForVitalSourceBook(
-          fakeConfig.filePicker.canvas.ltiLaunchUrl,
-          'BOOKSHELF-TUTORIAL',
-          '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]'
-        )
-      );
+      checkFormFields(wrapper, {
+        type: 'vitalsource',
+        bookID: 'BOOKSHELF-TUTORIAL',
+        cfi: '/6/8[;vnd.vst.idref=vst-70a6f9d3-0932-45ba-a583-6060eab3e536]',
+      });
     });
   });
 

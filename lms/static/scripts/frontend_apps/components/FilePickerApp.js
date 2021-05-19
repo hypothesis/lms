@@ -3,17 +3,13 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import { Config } from '../config';
 import {
-  contentItemForUrl,
-  contentItemForLmsFile,
-  contentItemForVitalSourceBook,
-} from '../utils/content-item';
-import {
   GooglePickerClient,
   PickerCanceledError,
 } from '../utils/google-picker-client';
 
 import Button from './Button';
 import ErrorDialog from './ErrorDialog';
+import FilePickerFormFields from './FilePickerFormFields';
 import LMSFilePicker from './LMSFilePicker';
 import Spinner from './Spinner';
 import URLPicker from './URLPicker';
@@ -198,24 +194,6 @@ export default function FilePickerApp({
       dialog = null;
   }
 
-  let contentItem = null;
-  switch (content?.type) {
-    case 'url':
-      contentItem = contentItemForUrl(ltiLaunchUrl, content.url);
-      break;
-    case 'file':
-      contentItem = contentItemForLmsFile(ltiLaunchUrl, content.file);
-      break;
-    case 'vitalsource':
-      contentItem = contentItemForVitalSourceBook(
-        ltiLaunchUrl,
-        content.bookID,
-        content.cfi
-      );
-      break;
-  }
-  contentItem = JSON.stringify(contentItem);
-
   return (
     <main>
       <form
@@ -224,25 +202,11 @@ export default function FilePickerApp({
         method="POST"
         onSubmit={onSubmit}
       >
-        <input type="hidden" name="content_items" value={contentItem} />
-        {Object.keys(formFields).map(field => (
-          <input
-            key={field}
-            type="hidden"
-            name={field}
-            value={formFields[field]}
-          />
-        ))}
         <h1 className="heading-1">Select web page or PDF</h1>
         <p>
           You can select content for your assignment from one of the following
           sources:
         </p>
-        {content?.type === 'url' && (
-          // Set the `document_url` form field which is used by the `configure_module_item`
-          // view. Used in LMSes where assignments are configured on first launch.
-          <input name="document_url" type="hidden" value={content.url} />
-        )}
         <div className="FilePickerApp__document-source-buttons">
           <Button
             className="FilePickerApp__source-button"
@@ -271,6 +235,13 @@ export default function FilePickerApp({
             />
           )}
         </div>
+        {content && (
+          <FilePickerFormFields
+            ltiLaunchURL={ltiLaunchUrl}
+            content={content}
+            formFields={formFields}
+          />
+        )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
       {isLoadingIndicatorVisible && (
