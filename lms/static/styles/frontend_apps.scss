@@ -9,9 +9,6 @@
 @use 'components/heading';
 @use 'components/label';
 
-// Styling for components rendered both by Preact and other HTML (eg. server-rendered templates)
-@use 'components/Button';
-
 // Preact components
 @use 'components/BasicLtiLaunchApp';
 @use 'components/Dialog';
