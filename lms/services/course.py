@@ -12,7 +12,7 @@ class CourseService:
         self._db = db
 
     def get_or_create(self, authority_provided_id, context_id, name, extra=None):
-        """Add the current course to the `course` table if it's not there already."""
+        """Add the current course to the `grouping` table if it's not there already."""
         return self._get(
             authority_provided_id, context_id, name, extra
         ) or self._create(authority_provided_id, context_id, name, extra)
@@ -54,7 +54,7 @@ class CourseService:
         course = (
             self._db.query(Course)
             .filter_by(
-                application_instance_id=self._application_instance.id,
+                application_instance=self._application_instance,
                 authority_provided_id=authority_provided_id,
             )
             .one_or_none()
