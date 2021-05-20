@@ -1,4 +1,3 @@
-from lms.models import Course, Grouping
 from lms.models._hashed_id import hashed_id
 
 
@@ -9,20 +8,18 @@ class GroupingService:
 
     def course_grouping(
         self,
-        application_instance,
         tool_consumer_instance_guid,
         course_name,
         context_id,
-        settings=None,
         extra=None,
     ):
         """
         Get / update / create a Grouping for a course.
 
-        :param application_instance: The AI this course belongs to
         :param tool_consumer_instance_guid: Tool consumer GUID
         :param course_name: The name of the course
-        :param course_lms_id: Course id on the LMS
+        :param context_id: Course id on the LMS
+        :param extra: Any other extra information of the course
         """
         authority_provided_id = hashed_id(tool_consumer_instance_guid, context_id)
 
