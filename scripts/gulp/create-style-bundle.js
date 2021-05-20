@@ -8,9 +8,16 @@ const postcss = require('postcss');
 const sass = require('sass');
 
 /**
+ * @typedef Options
+ * @prop {string} input - Input file path
+ * @prop {boolean} minify - Whether to minify the generated bundle
+ * @prop {string} output - Output file path
+ */
+
+/**
  * Compile a SASS file and postprocess the result.
  *
- * @param {options} options - Object specifying the input and output paths and
+ * @param {Options} options - Object specifying the input and output paths and
  *                  whether to minify the result.
  * @return {Promise} Promise for completion of the build.
  */
