@@ -1,7 +1,8 @@
 import json
 from copy import deepcopy
 
-from lms.models import CourseGroupsExportedFromH, _Course as LegacyCourse, Course
+from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import _Course as LegacyCourse
 
 
 class CourseService:
@@ -16,7 +17,7 @@ class CourseService:
             authority_provided_id, context_id, name, extra
         ) or self._create(authority_provided_id, context_id, name, extra)
 
-    def any_with_setting(self, group, key, value=True):
+    def any_with_setting(self, group, key, value=True) -> bool:
         """
         Return whether any course has the specified setting.
 
@@ -27,11 +28,16 @@ class CourseService:
         :param key: Setting key
         :param value: Expected value
         """
-
         return bool(
-            self._db.query(_Course)
-            .filter(_Course.consumer_key == self._consumer_key)
-            .filter(_Course.settings[group][key] == json.dumps(value))
+            self._db.query(Course)
+            .filter(Course.application_instance_id == self._application_instance.id)
+            .filter(Course.settings[group][key] == json.dumps(value))
+            .limit(1)
+            .count()
+        ) or bool(
+            self._db.query(LegacyCourse)
+            .filter(LegacyCourse.consumer_key == self._consumer_key)
+            .filter(LegacyCourse.settings[group][key] == json.dumps(value))
             .limit(1)
             .count()
         )
