@@ -69,7 +69,24 @@ class LTILaunchResource:
         return grouping_service.course_grouping(
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
+            extra=self.course_extra,
         )
+
+    @property
+    def course_extra(self):
+        """Extra information to store for courses."""
+        extra = {}
+
+        if self.is_canvas:
+            extra = {
+                "canvas": {
+                    "custom_canvas_course_id": self._request.parsed_params.get(
+                        "custom_canvas_course_id"
+                    )
+                }
+            }
+
+        return extra
 
     @property
     def is_canvas(self):
