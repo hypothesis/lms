@@ -101,13 +101,13 @@ describe('FilePickerApp', () => {
   it('renders Canvas file picker button if Canvas file picker enabled', () => {
     fakeConfig.filePicker.canvas.enabled = true;
     const wrapper = renderFilePicker();
-    assert.isTrue(wrapper.exists('LabeledButton[data-test="pdf-button"]'));
+    assert.isTrue(wrapper.exists('LabeledButton[data-testid="pdf-button"]'));
   });
 
   it('does not render Canvas file picker button if Canvas file picker not enabled', () => {
     fakeConfig.filePicker.canvas.enabled = false;
     const wrapper = renderFilePicker();
-    assert.isFalse(wrapper.exists('LabeledButton[data-test="pdf-button"]'));
+    assert.isFalse(wrapper.exists('LabeledButton[data-testid="pdf-button"]'));
   });
 
   it('renders initial form with no dialog visible', () => {
@@ -123,7 +123,7 @@ describe('FilePickerApp', () => {
 
     assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
 
-    const btn = wrapper.find('LabeledButton[data-test="url-button"]');
+    const btn = wrapper.find('LabeledButton[data-testid="url-button"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
@@ -159,7 +159,7 @@ describe('FilePickerApp', () => {
 
     assert.isFalse(wrapper.find('.FilePickerApp__loading-backdrop').exists());
 
-    const btn = wrapper.find('LabeledButton[data-test="pdf-button"]');
+    const btn = wrapper.find('LabeledButton[data-testid="pdf-button"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
@@ -222,7 +222,7 @@ describe('FilePickerApp', () => {
     });
 
     function clickGoogleDriveButton(wrapper) {
-      const btn = wrapper.find('LabeledButton[data-test="drive-button"]');
+      const btn = wrapper.find('LabeledButton[data-testid="drive-button"]');
       interact(wrapper, () => {
         btn.props().onClick();
       });
@@ -235,7 +235,7 @@ describe('FilePickerApp', () => {
 
     it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
       const wrapper = renderFilePicker();
-      assert.isTrue(wrapper.exists('LabeledButton[data-test="pdf-button"]'));
+      assert.isTrue(wrapper.exists('LabeledButton[data-testid="pdf-button"]'));
     });
 
     it('shows Google Picker when "Select PDF from Google Drive" is clicked', async () => {
@@ -349,7 +349,7 @@ describe('FilePickerApp', () => {
       fakeConfig.filePicker.vitalSource.enabled = true;
       const wrapper = renderFilePicker();
       assert.isTrue(
-        wrapper.exists('LabeledButton[data-test="vitalsource-button"]')
+        wrapper.exists('LabeledButton[data-testid="vitalsource-button"]')
       );
     });
 
@@ -359,7 +359,7 @@ describe('FilePickerApp', () => {
       const wrapper = renderFilePicker({ onSubmit });
 
       const button = wrapper.find(
-        'LabeledButton[data-test="vitalsource-button"]'
+        'LabeledButton[data-testid="vitalsource-button"]'
       );
       interact(wrapper, () => {
         button.props().onClick();
