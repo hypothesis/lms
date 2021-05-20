@@ -484,6 +484,7 @@ class JSConfig:
             # https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
             "services": [
                 {
+                    "allowFlagging": False,
                     "allowLeavingGroups": False,
                     "apiUrl": api_url,
                     "authority": self._authority,

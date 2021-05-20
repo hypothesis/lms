@@ -161,6 +161,7 @@ class TestEnableLTILaunchMode:
             "hypothesisClient": {
                 "services": [
                     {
+                        "allowFlagging": False,
                         "allowLeavingGroups": False,
                         "apiUrl": "https://example.com/api/",
                         "authority": "TEST_AUTHORITY",
