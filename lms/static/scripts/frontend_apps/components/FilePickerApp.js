@@ -217,7 +217,7 @@ export default function FilePickerApp({
             <LabeledButton
               variant="primary"
               onClick={() => selectDialog('url')}
-              data-test="url-button"
+              data-testid="url-button"
             >
               Enter URL of web page or PDF
             </LabeledButton>
@@ -225,7 +225,7 @@ export default function FilePickerApp({
               <LabeledButton
                 variant="primary"
                 onClick={() => selectDialog('lms')}
-                data-test="pdf-button"
+                data-testid="pdf-button"
               >
                 Select PDF from Canvas
               </LabeledButton>
@@ -234,7 +234,7 @@ export default function FilePickerApp({
               <LabeledButton
                 variant="primary"
                 onClick={showGooglePicker}
-                data-test="drive-button"
+                data-testid="drive-button"
               >
                 Select PDF from Google Drive
               </LabeledButton>
@@ -243,7 +243,7 @@ export default function FilePickerApp({
               <LabeledButton
                 variant="primary"
                 onClick={selectVitalSourceBook}
-                data-test="vitalsource-button"
+                data-testid="vitalsource-button"
               >
                 Select book from VitalSource
               </LabeledButton>
