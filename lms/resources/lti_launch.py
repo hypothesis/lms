@@ -23,6 +23,18 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
 
+    def get_or_create_course(self):
+        params = self._request.parsed_params
+        course_name = params["context_title"]
+        course = self._request.find_service(name="course").get_or_create(
+            self.h_group.authority_provided_id,
+            params["context_id"],
+            params["context_title"],
+            extra=self.course_extra,
+        )
+
+        return course
+
     @property
     def h_group(self):
         """
@@ -57,7 +69,24 @@ class LTILaunchResource:
             course_name=params["context_title"],
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
+            extra=self.course_extra,
         )
+
+    @property
+    def course_extra(self):
+        """Extra information to store for courses."""
+        extra = {}
+
+        if self.is_canvas:
+            extra = {
+                "canvas": {
+                    "custom_canvas_course_id": self._request.parsed_params.get(
+                        "custom_canvas_course_id"
+                    )
+                }
+            }
+
+        return extra
 
     @property
     def is_canvas(self):
