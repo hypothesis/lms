@@ -4,8 +4,8 @@ import os
 import re
 from glob import glob
 
+import importlib_resources
 from behave.parser import parse_file
-from pkg_resources import resource_filename
 
 __ALL__ = ["Injector"]
 
@@ -45,7 +45,7 @@ class Injector:
 
     @classmethod
     def _scan_dir(cls, target_dir):
-        for feature_file in glob(target_dir + "*.feature"):
+        for feature_file in glob(target_dir + "/*.feature"):
             yield from Parser.parse_feature_file(feature_file)
 
 
@@ -90,7 +90,9 @@ class Renderer:
     def render_steps(cls, feature_steps, source_dir):
         # Make the source_dir relative to the project to prevent us from adding
         # local file layout details
-        source_dir = os.path.relpath(source_dir, resource_filename("tests", "../"))
+
+        root_dir = str(importlib_resources.files("tests") / "../")
+        source_dir = os.path.relpath(source_dir, root_dir)
 
         python_code = (
             f'"""\nAuto-generated.\n\nFrom {source_dir}/.\n"""'
