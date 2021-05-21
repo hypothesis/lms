@@ -2,7 +2,7 @@ import configparser
 import json
 import os
 
-from pkg_resources import resource_filename
+import importlib_resources
 from pyramid.settings import aslist
 from pyramid.static import static_view
 
@@ -14,6 +14,8 @@ class _CachedFile:
     _CachedFile reads a file at a given path and parses the content using a
     provided loader.
     """
+
+    ROOT_DIR = importlib_resources.files("lms") / ".."
 
     def __init__(self, path, loader, auto_reload=False):
         """
@@ -34,7 +36,7 @@ class _CachedFile:
 
     @classmethod
     def _find_file(cls, path):
-        path = os.path.abspath(os.path.join(resource_filename("lms", "."), "..", path))
+        path = str(cls.ROOT_DIR / path)
 
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Expected to find a file at '{path}'")
