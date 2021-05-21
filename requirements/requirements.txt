@@ -35,7 +35,9 @@ hupper==1.10.2
 idna==2.10
     # via requests
 importlib-resources==5.1.4
-    # via h-api
+    # via
+    #   -r requirements/requirements.in
+    #   h-api
 jinja2==2.11.3
     # via pyramid-jinja2
 jsonschema==3.2.0
