@@ -1,41 +1,10 @@
 import { Fragment, createElement } from 'preact';
 
-import {
-  contentItemForUrl,
-  contentItemForLmsFile,
-  contentItemForVitalSourceBook,
-} from '../utils/content-item';
+import { contentItemForContent } from '../utils/content-item';
 
 /**
- * @typedef {import('./FilePickerApp').Content} Content
+ * @typedef {import('../utils/content-item').Content} Content
  */
-
-/**
- * Generate an LTI launch URL for a given piece of content.
- *
- * @param {string} ltiLaunchURL
- * @param {Content} content
- */
-function contentItemString(ltiLaunchURL, content) {
-  let contentItem = null;
-
-  switch (content.type) {
-    case 'url':
-      contentItem = contentItemForUrl(ltiLaunchURL, content.url);
-      break;
-    case 'file':
-      contentItem = contentItemForLmsFile(ltiLaunchURL, content.file);
-      break;
-    case 'vitalsource': {
-      contentItem = contentItemForVitalSourceBook(
-        ltiLaunchURL,
-        content.bookID,
-        content.cfi
-      );
-    }
-  }
-  return JSON.stringify(contentItem);
-}
 
 /**
  * @typedef FilePickerFormFieldsProps
@@ -65,16 +34,15 @@ export default function FilePickerFormFields({
   formFields,
   ltiLaunchURL,
 }) {
+  const contentItem = JSON.stringify(
+    contentItemForContent(ltiLaunchURL, content)
+  );
   return (
     <Fragment>
       {Object.entries(formFields).map(([field, value]) => (
         <input key={field} type="hidden" name={field} value={value} />
       ))}
-      <input
-        type="hidden"
-        name="content_items"
-        value={contentItemString(ltiLaunchURL, content)}
-      />
+      <input type="hidden" name="content_items" value={contentItem} />
       {content.type === 'url' && (
         // Set the `document_url` form field which is used by the `configure_module_item`
         // view. Used in LMSes where assignments are configured on first launch.

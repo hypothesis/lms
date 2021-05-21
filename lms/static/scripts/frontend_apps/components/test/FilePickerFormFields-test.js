@@ -1,11 +1,7 @@
 import { mount } from 'enzyme';
 import { createElement } from 'preact';
 
-import {
-  contentItemForLmsFile,
-  contentItemForUrl,
-  contentItemForVitalSourceBook,
-} from '../../utils/content-item';
+import { contentItemForContent } from '../../utils/content-item';
 
 import FilePickerFormFields from '../FilePickerFormFields';
 
@@ -44,35 +40,13 @@ describe('FilePickerFormFields', () => {
   });
 
   describe('content_items field', () => {
-    it('renders content_items field for URL content', () => {
+    it('renders content_items field for content', () => {
+      const content = { type: 'url', url: 'https://example.com/' };
       const formFields = createComponent({
-        content: { type: 'url', url: 'https://example.com/' },
+        content,
       });
       const contentItems = getContentItem(formFields);
-      assert.deepEqual(
-        contentItems,
-        contentItemForUrl(launchURL, 'https://example.com/')
-      );
-    });
-
-    it('renders content_items field for LMS file content', () => {
-      const file = { id: 123 };
-      const formFields = createComponent({
-        content: { type: 'file', file },
-      });
-      const contentItems = getContentItem(formFields);
-      assert.deepEqual(contentItems, contentItemForLmsFile(launchURL, file));
-    });
-
-    it('renders content_items field for VitalSource book content', () => {
-      const formFields = createComponent({
-        content: { type: 'vitalsource', bookID: 'test-book', cfi: 'test-cfi' },
-      });
-      const contentItems = getContentItem(formFields);
-      assert.deepEqual(
-        contentItems,
-        contentItemForVitalSourceBook(launchURL, 'test-book', 'test-cfi')
-      );
+      assert.deepEqual(contentItems, contentItemForContent(launchURL, content));
     });
   });
 
