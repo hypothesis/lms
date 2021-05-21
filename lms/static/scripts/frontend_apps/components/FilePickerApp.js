@@ -16,29 +16,13 @@ import URLPicker from './URLPicker';
 
 /**
  * @typedef {import('../api-types').File} File
+ * @typedef {import('../utils/content-item').Content} Content
  * @typedef {'lms'|'url'|null} DialogType
  *
  * @typedef FilePickerAppProps
  * @prop {DialogType} [defaultActiveDialog] -
  *   The dialog that should be shown when the app is first opened.
  * @prop {() => any} [onSubmit] - Callback invoked when the form is submitted.
- */
-
-/**
- * @typedef FileContent
- * @prop {'file'} type
- * @prop {File} file
- *
- * @typedef URLContent
- * @prop {'url'} type
- * @prop {string} url
- *
- * @typedef VitalSourceBookContent
- * @prop {'vitalsource'} type
- * @prop {string} bookID
- * @prop {string} cfi
- *
- * @typedef {FileContent|URLContent|VitalSourceBookContent} Content
  */
 
 /**
