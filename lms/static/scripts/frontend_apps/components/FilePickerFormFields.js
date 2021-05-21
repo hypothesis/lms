@@ -11,15 +11,6 @@ import {
  */
 
 /**
- * @typedef FilePickerFormFieldsProps
- * @prop {string} ltiLaunchURL - URL that the LMS should use to launch the
- *   assignment.
- * @prop {Content} content - Content for the assignment
- * @prop {Record<string,string>} formFields - Form fields provided by the backend
- *   that should be included in the response without any changes
- */
-
-/**
  * Generate an LTI launch URL for a given piece of content.
  *
  * @param {string} ltiLaunchURL
@@ -45,6 +36,15 @@ function contentItemString(ltiLaunchURL, content) {
   }
   return JSON.stringify(contentItem);
 }
+
+/**
+ * @typedef FilePickerFormFieldsProps
+ * @prop {string} ltiLaunchURL - URL that the LMS should use to launch the
+ *   assignment.
+ * @prop {Content} content - Content for the assignment
+ * @prop {Record<string,string>} formFields - Form fields provided by the backend
+ *   that should be included in the response without any changes
+ */
 
 /**
  * Render the hidden form fields in the file picker form containing information
