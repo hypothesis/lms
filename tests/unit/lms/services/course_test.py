@@ -1,9 +1,8 @@
 import datetime
 from unittest.mock import sentinel
-
 import pytest
 
-from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import Course, CourseGroupsExportedFromH, _Course as LegacyCourse
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -91,6 +90,21 @@ class TestCourseService:
         svc._db.flush()  # pylint: disable=protected-access
 
         assert svc.any_with_setting("group", "key", value) is expected
+
+    def test_get_deletes_old_course_record(self, application_instance, db_session, svc):
+        legacy_course = factories.LegacyCourse(
+            application_instance=application_instance
+        )
+
+        # There's now a course on the `courses` table
+        assert db_session.query(LegacyCourse).count() == 1
+
+        course = svc._get(legacy_course.authority_provided_id, "context_id", "name", {})
+
+        # Row on `courses` has been removed and added to the grouping one
+        assert db_session.query(LegacyCourse).count() == 0
+        assert db_session.query(Course).count() == 1
+        assert course.lms_name == "name"
 
     @pytest.fixture
     def add_courses_with_settings(self, application_instance):
