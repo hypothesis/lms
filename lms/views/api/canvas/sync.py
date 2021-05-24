@@ -1,6 +1,5 @@
 from pyramid.view import view_config
 
-from lms.models import HGroup
 from lms.security import Permissions
 
 

@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo, HGroup
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError

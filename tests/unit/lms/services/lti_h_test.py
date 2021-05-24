@@ -4,7 +4,6 @@ import pytest
 from h_api.bulk_api import CommandBuilder
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.models import HGroup
 from lms.services import ConsumerKeyError, HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories

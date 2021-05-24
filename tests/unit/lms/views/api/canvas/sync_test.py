@@ -1,6 +1,5 @@
 import pytest
 
-from lms.models import HGroup
 from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
