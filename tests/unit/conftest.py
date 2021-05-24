@@ -1,4 +1,3 @@
-import re
 from unittest import mock
 
 import httpretty
@@ -323,24 +322,7 @@ def httpretty_():
     all with mock responses. This handles requests sent using the standard
     urllib2 library and the third-party httplib2 and requests libraries.
     """
-    httpretty.enable()
-
-    # Tell httpretty which HTTP requests we want it to mock (all of them).
-    for method in (
-        httpretty.GET,
-        httpretty.PUT,
-        httpretty.POST,
-        httpretty.DELETE,
-        httpretty.HEAD,
-        httpretty.PATCH,
-        httpretty.OPTIONS,
-        httpretty.CONNECT,
-    ):
-        httpretty.register_uri(
-            method=method,
-            uri=re.compile(r"http(s?)://.*"),  # Matches all http:// and https:// URLs.
-            body="",
-        )
+    httpretty.enable(allow_net_connect=False)
 
     yield
 

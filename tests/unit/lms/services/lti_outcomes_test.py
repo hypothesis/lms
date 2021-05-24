@@ -125,7 +125,6 @@ class TestLTIOutcomesClient:
             self.SERVICE_URL,
             body='{"not":"xml"}',
             content_type="application/json",
-            priority=1,
         )
         with pytest.raises(
             LTIOutcomesAPIError,
@@ -269,7 +268,6 @@ class TestLTIOutcomesClient:
                 self.SERVICE_URL,
                 body=response_body,
                 content_type="application/xml",
-                priority=1,
                 status=status,
             )
 
