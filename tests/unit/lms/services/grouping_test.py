@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import sentinel
 
+import pytest
 
 from lms.services.grouping import GroupingService, factory
 from tests import factories

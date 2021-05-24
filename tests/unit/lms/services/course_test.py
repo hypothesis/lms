@@ -1,8 +1,10 @@
 import datetime
 from unittest.mock import sentinel
+
 import pytest
 
-from lms.models import Course, CourseGroupsExportedFromH, _Course as LegacyCourse
+from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import _Course as LegacyCourse
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -99,10 +101,16 @@ class TestCourseService:
         # There's now a course on the `courses` table
         assert db_session.query(LegacyCourse).count() == 1
 
-        course = svc._get(legacy_course.authority_provided_id, "context_id", "name", {})
+        course = svc._get(  # pylint: disable=protected-access
+            legacy_course.authority_provided_id,
+            "context_id",
+            "name",
+            {},
+        )
 
-        # Row on `courses` has been removed and added to the grouping one
-        assert db_session.query(LegacyCourse).count() == 0
+        # Row on `courses` has been removed
+        assert not db_session.query(LegacyCourse).count()
+        # and added to the grouping one
         assert db_session.query(Course).count() == 1
         assert course.lms_name == "name"
 

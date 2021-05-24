@@ -1,10 +1,9 @@
 import factory
-from factory import Faker, make_factory
+from factory import make_factory
 from factory.alchemy import SQLAlchemyModelFactory
-from tests.factories import ApplicationInstance
 
 from lms import models
-from tests.factories.attributes import OAUTH_CONSUMER_KEY, SHARED_SECRET
+from tests.factories import ApplicationInstance
 
 Grouping = make_factory(
     models.Grouping,

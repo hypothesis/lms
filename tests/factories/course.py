@@ -1,7 +1,8 @@
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
-from lms.models import Course, _Course as LegacyCourse
+from lms.models import Course
+from lms.models import _Course as LegacyCourse
 from tests.factories import ApplicationInstance
 
 Course = factory.make_factory(
