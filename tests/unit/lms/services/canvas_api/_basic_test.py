@@ -76,7 +76,7 @@ class TestBasicClient:
     def test_send_raises_CanvasAPIError_for_request_errors(
         self, basic_client, http_session, Schema
     ):
-        http_session.set_response(status_code=501)
+        http_session.send.return_value = factories.requests.Response(status_code=501)
 
         with pytest.raises(CanvasAPIError):
             basic_client.send("METHOD", "path/", schema=Schema)
@@ -126,7 +126,7 @@ class TestBasicClient:
 
     @pytest.fixture(autouse=True)
     def has_ok_response(self, http_session):
-        http_session.set_response()
+        http_session.send.return_value = factories.requests.Response(status_code=200)
 
     @pytest.fixture
     def Schema(self):

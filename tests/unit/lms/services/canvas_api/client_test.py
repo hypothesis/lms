@@ -34,7 +34,9 @@ class TestCanvasAPIClientGetToken:
 class TestCanvasAPIClient:
     def test_authenticated_users_sections(self, canvas_api_client, http_session):
         sections = [{"id": 1, "name": "name_1"}, {"id": 2, "name": "name_2"}]
-        http_session.set_response({"sections": sections})
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data={"sections": sections}
+        )
 
         response = canvas_api_client.authenticated_users_sections("COURSE_ID")
 
@@ -52,10 +54,12 @@ class TestCanvasAPIClient:
     def test_authenticated_users_sections_deduplicates_sections(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response(
-            {"sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]}
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data={
+                "sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]
+            },
         )
-
         sections = canvas_api_client.authenticated_users_sections("course_id")
 
         assert sections == [{"id": 1, "name": "name"}]
@@ -63,8 +67,11 @@ class TestCanvasAPIClient:
     def test_authenticated_users_sections_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response(
-            {"sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "DIFFERENT"}]}
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data={
+                "sections": [{"id": 1, "name": "name"}, {"id": 1, "name": "DIFFERENT"}]
+            },
         )
 
         with pytest.raises(CanvasAPIError):
@@ -79,7 +86,9 @@ class TestCanvasAPIClient:
             dict(section, unexpected="ignored") for section in sections
         ]
 
-        http_session.set_response(sections_with_noise)
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=sections_with_noise
+        )
 
         response = canvas_api_client.course_sections("COURSE_ID")
 
@@ -94,8 +103,9 @@ class TestCanvasAPIClient:
     def test_course_sections_deduplicates_sections(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response(
-            [{"id": 1, "name": "name"}, {"id": 1, "name": "name"}]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data=[{"id": 1, "name": "name"}, {"id": 1, "name": "name"}],
         )
 
         sections = canvas_api_client.course_sections("course_id")
@@ -105,8 +115,9 @@ class TestCanvasAPIClient:
     def test_course_sections_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response(
-            [{"id": 1, "name": "name"}, {"id": 1, "name": "DIFFERENT"}]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data=[{"id": 1, "name": "name"}, {"id": 1, "name": "DIFFERENT"}],
         )
 
         with pytest.raises(CanvasAPIError):
@@ -115,7 +126,9 @@ class TestCanvasAPIClient:
     def test_course_sections_raises_CanvasAPIError_with_too_few_returned(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response([])
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=[]
+        )
 
         with pytest.raises(CanvasAPIError):
             canvas_api_client.course_sections("dummy")
@@ -125,7 +138,9 @@ class TestCanvasAPIClient:
             {"id": 1, "name": "Group category 1"},
             {"id": 2, "name": "Group category 2"},
         ]
-        http_session.set_response(group_categories)
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=group_categories
+        )
 
         response = canvas_api_client.course_group_categories("COURSE_ID")
 
@@ -142,13 +157,14 @@ class TestCanvasAPIClient:
         )
 
     def test_users_sections(self, canvas_api_client, http_session):
-        http_session.set_response(
-            {
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data={
                 "enrollments": [
                     {"course_section_id": 101, "unexpected": "ignored"},
                     {"course_section_id": 102, "unexpected": "ignored"},
                 ]
-            }
+            },
         )
 
         response = canvas_api_client.users_sections("USER_ID", "COURSE_ID")
@@ -167,8 +183,11 @@ class TestCanvasAPIClient:
     def test_users_sections_deduplicates_sections(
         self, canvas_api_client, http_session
     ):
-        http_session.set_response(
-            {"enrollments": [{"course_section_id": 1}, {"course_section_id": 1}]}
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200,
+            json_data={
+                "enrollments": [{"course_section_id": 1}, {"course_section_id": 1}]
+            },
         )
 
         sections = canvas_api_client.users_sections("user_id", "course_id")
@@ -181,7 +200,9 @@ class TestCanvasAPIClient:
             {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
         ]
         files_with_noise = [dict(file, unexpected="ignored") for file in files]
-        http_session.set_response(files_with_noise)
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=files_with_noise
+        )
 
         response = canvas_api_client.list_files("COURSE_ID")
 
@@ -223,7 +244,9 @@ class TestCanvasAPIClient:
             )
 
     def test_public_url(self, canvas_api_client, http_session):
-        http_session.set_response({"public_url": "public_url_value"})
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data={"public_url": "public_url_value"}
+        )
 
         response = canvas_api_client.public_url("FILE_ID")
 
@@ -268,7 +291,9 @@ class TestMetaBehavior:
     def test_methods_raise_CanvasAPIServerError_if_the_response_json_has_the_wrong_format(
         self, data_method, http_session
     ):
-        http_session.set_response({})
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data={}
+        )
 
         with pytest.raises(CanvasAPIServerError):
             data_method()
@@ -277,7 +302,9 @@ class TestMetaBehavior:
     def test_methods_raise_CanvasAPIServerError_if_the_response_is_invalid_json(
         self, data_method, http_session
     ):
-        http_session.set_response(raw="[broken json")
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, raw="[broken json"
+        )
 
         with pytest.raises(CanvasAPIServerError):
             data_method()

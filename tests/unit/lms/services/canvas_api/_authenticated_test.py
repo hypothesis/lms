@@ -6,6 +6,7 @@ from h_matchers import Any
 from lms.services import CanvasAPIServerError, NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
+from tests import factories
 
 
 class TestAuthenticatedClient:
@@ -154,7 +155,9 @@ class TestAuthenticatedClientIntegrated:
     """Tests which include the real basic client and Schema."""
 
     def test_ok(self, token_method, http_session, token_response):
-        http_session.set_response(token_response)
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=token_response
+        )
         token = token_method("code")
         assert token == token_response["access_token"]
 
@@ -162,7 +165,9 @@ class TestAuthenticatedClientIntegrated:
     def test_bad_expires_in(
         self, token_method, http_session, token_response, bad_value
     ):
-        http_session.set_response(dict(token_response, expires_in=bad_value))
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=dict(token_response, expires_in=bad_value)
+        )
 
         with pytest.raises(CanvasAPIServerError):
             token_method("code")
