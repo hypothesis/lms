@@ -1,3 +1,5 @@
+import { stringify } from 'querystring';
+
 /** @typedef {import('../api-types').File} File */
 
 /**
@@ -20,8 +22,6 @@
  *
  * @typedef {FileContent|URLContent|VitalSourceBookContent} Content
  */
-
-import { stringify } from 'querystring';
 
 /**
  * Return a JSON-LD `ContentItem` representation of the LTI activity launch
