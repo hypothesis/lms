@@ -45,7 +45,7 @@ greenlet==1.0.0
     #   sqlalchemy
 gunicorn==20.1.0
     # via -r requirements/requirements.txt
-h-api==1.0.0
+h-api==1.0.1
     # via -r requirements/requirements.txt
 h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.txt
@@ -59,6 +59,10 @@ idna==2.10
     # via
     #   -r requirements/requirements.txt
     #   requests
+importlib-resources==5.1.4
+    # via
+    #   -r requirements/requirements.txt
+    #   h-api
 ipython-genutils==0.2.0
     # via traitlets
 ipython==7.23.0
@@ -244,6 +248,10 @@ wired==0.2.2
     #   pyramid-services
 xmltodict==0.12.0
     # via -r requirements/requirements.txt
+zipp==3.4.1
+    # via
+    #   -r requirements/requirements.txt
+    #   importlib-resources
 zope.deprecation==4.3.0
     # via
     #   -r requirements/requirements.txt
