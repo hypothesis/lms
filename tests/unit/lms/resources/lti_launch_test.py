@@ -182,6 +182,25 @@ class TestCanvasSectionsEnabled:
             yield canvas_sections_supported
 
 
+class TestCourseExtra:
+    def test_empty_in_non_canvas(self, pyramid_request):
+        parsed_params = {}
+        pyramid_request.parsed_params = parsed_params
+
+        assert LTILaunchResource(pyramid_request).course_extra == {}
+
+    def test_includes_course_coure_id(self, pyramid_request):
+        parsed_params = {
+            "tool_consumer_info_product_family_code": "canvas",
+            "custom_canvas_course_id": "ID",
+        }
+        pyramid_request.parsed_params = parsed_params
+
+        assert LTILaunchResource(pyramid_request).course_extra == {
+            "canvas": {"custom_canvas_course_id": "ID"}
+        }
+
+
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)
