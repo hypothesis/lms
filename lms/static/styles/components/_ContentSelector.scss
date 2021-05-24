@@ -1,3 +1,5 @@
+@use "sass:math";
+
 @use "../variables" as var;
 
 .ContentSelector__loading-backdrop {
@@ -14,8 +16,8 @@
   position: absolute;
   width: var.$spinner-size;
   height: var.$spinner-size;
-  left: calc(50% - #{var.$spinner-size / 2});
-  top: calc(50% - #{var.$spinner-size / 2});
+  left: calc(50% - #{math.div(var.$spinner-size, 2)});
+  top: calc(50% - #{math.div(var.$spinner-size, 2)});
 }
 
 .ContentSelector__actions {
