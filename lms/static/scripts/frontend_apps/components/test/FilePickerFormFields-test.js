@@ -24,9 +24,6 @@ describe('FilePickerFormFields', () => {
     );
   }
 
-  const getContentItem = wrapper =>
-    JSON.parse(wrapper.find('input[name="content_items"]').prop('value'));
-
   it('renders static form fields provided by backend', () => {
     const formFields = createComponent();
 
@@ -45,8 +42,14 @@ describe('FilePickerFormFields', () => {
       const formFields = createComponent({
         content,
       });
-      const contentItems = getContentItem(formFields);
-      assert.deepEqual(contentItems, contentItemForContent(launchURL, content));
+      const contentItems = formFields
+        .find('input[name="content_items"]')
+        .prop('value');
+
+      assert.deepEqual(
+        JSON.parse(contentItems),
+        contentItemForContent(launchURL, content)
+      );
     });
   });
 
