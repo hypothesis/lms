@@ -1,3 +1,5 @@
+@use "sass:math";
+
 @use "variables" as var;
 
 // Typography
@@ -39,7 +41,7 @@
   position: absolute;
   width: $size;
   height: $size;
-  left: calc(50% - #{$size / 2});
-  top: calc(50% - #{$size / 2});
+  left: calc(50% - #{math.div($size, 2)});
+  top: calc(50% - #{math.div($size, 2)});
   color: $color;
 }
