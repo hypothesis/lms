@@ -1,30 +1,20 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
+import requests
 
 from lms.services.canvas_api._authenticated import AuthenticatedClient
 from lms.services.canvas_api._basic import BasicClient
-from tests import factories
 
 
 @pytest.fixture
-def basic_client():
-    return BasicClient("canvas_host")
+def basic_client(http_session):
+    return BasicClient("canvas_host", session=http_session)
 
 
 @pytest.fixture
-def http_session(patch):
-    session = patch("lms.services.canvas_api._basic.Session")
-    session = session()
-
-    def set_response(json_data=None, raw=None, status_code=200):
-        session.send.return_value = factories.requests.Response(
-            json_data=json_data, raw=raw, status_code=status_code
-        )
-
-    session.set_response = set_response
-
-    return session
+def http_session():
+    return create_autospec(requests.Session, spec_set=True, instance=True)
 
 
 @pytest.fixture

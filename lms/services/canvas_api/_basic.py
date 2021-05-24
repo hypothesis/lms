@@ -29,15 +29,17 @@ class BasicClient:
     PAGINATION_MAXIMUM_REQUESTS = 25
     """The maximum number of calls to make before giving up."""
 
-    def __init__(self, canvas_host):
+    def __init__(self, canvas_host, session=None):
         """
         Create a new BasicClient for making calls to the Canvas API.
 
         :param canvas_host: Hostname of the Canvas instance
+        :param session: The requests Session to use
+        :type session: requests.Session
         """
 
         # This is a requests Session object, not a DB session etc.
-        self._session = Session()
+        self._session = session or Session()
         self._canvas_host = canvas_host
 
     def send(
