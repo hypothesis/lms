@@ -215,7 +215,6 @@ class TestCanvasAPIError:
         httpretty.register_uri(
             httpretty.GET,
             "https://example.com",
-            priority=1,
             status=200,
             body="x" * 2000,
         )
@@ -225,7 +224,7 @@ class TestCanvasAPIError:
     def canvas_api_invalid_response(self):
         """Return a successful (200 OK) response with an invalid body."""
         httpretty.register_uri(
-            httpretty.GET, "https://example.com", priority=1, status=200, body="Invalid"
+            httpretty.GET, "https://example.com", status=200, body="Invalid"
         )
         return requests.get("https://example.com")
 
@@ -235,7 +234,6 @@ class TestCanvasAPIError:
         httpretty.register_uri(
             httpretty.GET,
             "https://example.com",
-            priority=1,
             body=kwargs.pop("body", json.dumps({"foo": "bar"})),
             **kwargs
         )
