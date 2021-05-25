@@ -65,12 +65,7 @@ class LTILaunchResource:
 
         grouping_service = self._request.find_service(name="grouping")
 
-        application_instance = self._request.find_service(
-            name="application_instance"
-        ).get()
-
         return grouping_service.course_grouping(
-            application_instance=application_instance,
             tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
             context_id=params["context_id"],
             extra=self.course_extra,

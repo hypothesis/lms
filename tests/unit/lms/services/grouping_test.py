@@ -18,7 +18,7 @@ class TestGroupingService:
         # Start with no groupings
         assert not svc._db.query(Grouping).count()
 
-        grouping = svc.upsert(
+        svc.upsert(
             Grouping(
                 application_instance=factories.ApplicationInstance(),
                 authority_provided_id="ID",
