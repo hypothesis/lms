@@ -24,6 +24,16 @@ class TestHTTPService:
             {"url": url, "method": method}
         )
 
+    @pytest.mark.parametrize("method", ["GET", "PUT", "POST", "PATCH", "DELETE"])
+    def test_convenience_methods(self, svc, url, method):
+        httpretty.register_uri(method, url, body="test_response")
+
+        getattr(svc, method.lower())(url)
+
+        assert httpretty.last_request() == Any.object.with_attrs(
+            {"url": url, "method": method}
+        )
+
     def test_it_sends_request_params(self, svc, url):
         svc.request("GET", url, params={"test_param": "test_value"})
 
@@ -130,7 +140,7 @@ class TestHTTPService:
     @pytest.fixture(autouse=True)
     def test_response(self, url):
         httpretty.register_uri(
-            "GET", url, body='{"test_response_key": "TEST_RESPONSE_VALUE"}'
+            "GET", url, body='{"test_response_key": "test_response_value"}', priority=-1
         )
 
     @pytest.fixture
