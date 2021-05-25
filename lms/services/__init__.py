@@ -6,6 +6,8 @@ from lms.services.exceptions import (
     ConsumerKeyError,
     ExternalRequestError,
     HAPIError,
+    HTTPError,
+    HTTPValidationError,
     LTILaunchVerificationError,
     LTIOAuthError,
     LTIOutcomesAPIError,
@@ -17,6 +19,7 @@ from lms.services.exceptions import (
 
 
 def includeme(config):
+    config.register_service_factory("lms.services.http.factory", name="http")
     config.register_service_factory(
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )

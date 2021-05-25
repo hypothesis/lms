@@ -15,6 +15,7 @@ from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
+from lms.services.http import HTTPService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
@@ -212,6 +213,14 @@ def course_service(pyramid_config):
     course_service = mock.create_autospec(CourseService, spec_set=True, instance=True)
     pyramid_config.register_service(course_service, name="course")
     return course_service
+
+
+@pytest.fixture
+def http_service(pyramid_config):
+    http_service = mock.create_autospec(HTTPService, instance=True, spec_set=True)
+    http_service.request.return_value = factories.requests.Response()
+    pyramid_config.register_service(http_service, name="http")
+    return http_service
 
 
 @pytest.fixture
