@@ -31,6 +31,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         sa.ForeignKey("grouping.id", ondelete="cascade"),
         nullable=True,
     )
+    parent = sa.orm.relationship("Grouping", uselist=False)
 
     #: ID on the LMS, not unique across LMS or even in the same LMS instance
     lms_id = sa.Column(sa.String(), nullable=False)
