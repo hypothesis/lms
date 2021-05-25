@@ -1,4 +1,4 @@
-from lms.models import CanvasSection
+from lms.models import CanvasSection, Grouping
 from lms.models._hashed_id import hashed_id
 
 
@@ -7,6 +7,24 @@ class GroupingService:
         self._db = db
         self._application_instance = application_instance_service.get()
         self._course_service = course_service
+
+    def upsert(self, grouping):
+        db_grouping = (
+            self._db.query(Grouping)
+            .filter_by(
+                application_instance_id=grouping.application_instance.id,
+                authority_provided_id=grouping.authority_provided_id,
+                type=grouping.type,
+            )
+            .one_or_none()
+        )
+        if not db_grouping:
+            self._db.add(grouping)
+        else:
+            # Update any fields that might have changed
+            db_grouping.lms_name = grouping.name
+
+        return db_grouping or grouping
 
     def course_grouping(
         self,
@@ -59,16 +77,15 @@ class GroupingService:
             course_authority_provided_id, context_id, None, None
         )
 
-        cs = CanvasSection(
-            application_instance_id=self._application_instance.id,
-            authority_provided_id=section_authority_provided_id,
-            lms_id=section_id,
-            lms_name=section_name,
-            parent_id=course.id,
+        return self.upsert(
+            CanvasSection(
+                application_instance_id=self._application_instance.id,
+                authority_provided_id=section_authority_provided_id,
+                lms_id=section_id,
+                lms_name=section_name,
+                parent_id=course.id,
+            )
         )
-
-        self._db.add(cs)
-        return cs
 
 
 def factory(_context, request):
