@@ -21,6 +21,15 @@ $table-item-height: 40px;
   }
 }
 
+.Table__spinner {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 .Table__table {
   @include focus.outline-on-keyboard-focus;
 
