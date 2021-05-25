@@ -3,11 +3,13 @@ from unittest.mock import call, patch, sentinel
 import pytest
 from h_api.bulk_api.model.command import ConfigCommand
 from h_matchers import Any
-from requests import RequestException
 
 from lms.models import HUser
 from lms.services import HAPIError
 from lms.services.h_api import HAPI
+from lms.services.http import HTTPError
+
+pytestmark = pytest.mark.usefixtures("http_service")
 
 
 class TestHAPI:
@@ -60,10 +62,10 @@ class TestHAPI:
 
         assert user == HUser(username="username", display_name=sentinel.display_name)
 
-    def test__api_request(self, h_api, requests):
+    def test__api_request(self, h_api, http_service):
         h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)
 
-        assert requests.request.call_args_list == [
+        assert http_service.request.call_args_list == [
             call(
                 method=sentinel.method,
                 url="https://example.com/private/api/dummy-path",
@@ -75,18 +77,20 @@ class TestHAPI:
             )
         ]
 
-    def test_if_given_custom_headers__api_request_adds_them(self, h_api, requests):
+    def test_if_given_custom_headers__api_request_adds_them(self, h_api, http_service):
         h_api._api_request(
             sentinel.method, "dummy-path", headers={"X-Header": sentinel.header}
         )
 
-        assert requests.request.call_args[1]["headers"] == Any.mapping.containing(
+        assert http_service.request.call_args[1]["headers"] == Any.mapping.containing(
             {"X-Header": sentinel.header}
         )
 
-    def test__api_request_raises_HAPIError_for_request_errors(self, h_api, requests):
-        exception = RequestException()
-        requests.request.side_effect = exception
+    def test__api_request_raises_HAPIError_for_request_errors(
+        self, h_api, http_service
+    ):
+        exception = HTTPError()
+        http_service.request.side_effect = exception
 
         with pytest.raises(HAPIError) as exc_info:
             h_api._api_request(sentinel.method, "dummy-path")
@@ -94,8 +98,8 @@ class TestHAPI:
         # It records the requests exception that caused the HAPIError.
         assert exc_info.value.__cause__ == exception
 
-    def test__api_request_raises_other_exceptions_normally(self, h_api, requests):
-        requests.request.side_effect = OSError()
+    def test__api_request_raises_other_exceptions_normally(self, h_api, http_service):
+        http_service.request.side_effect = OSError()
 
         with pytest.raises(OSError):
             h_api._api_request(sentinel.method, "dummy-path")
@@ -112,8 +116,3 @@ class TestHAPI:
     def _api_request(self, h_api):
         with patch.object(h_api, "_api_request", autospec=True):
             yield h_api._api_request
-
-
-@pytest.fixture(autouse=True)
-def requests(patch):
-    return patch("lms.services.h_api.requests")

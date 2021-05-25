@@ -1,11 +1,9 @@
 """The H API service."""
 
-import requests
 from h_api.bulk_api import BulkAPI, CommandBuilder
-from requests import RequestException
 
 from lms.models import HUser
-from lms.services import HAPIError
+from lms.services import HAPIError, HTTPError
 
 __all__ = ["HAPI"]
 
@@ -25,6 +23,7 @@ class HAPI:
         self._authority = settings["h_authority"]
         self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
         self._base_url = settings["h_api_url_private"]
+        self._http_service = request.find_service(name="http")
 
     def execute_bulk(self, commands):
         """
@@ -81,7 +80,7 @@ class HAPI:
             request_args["data"] = body
 
         try:
-            response = requests.request(
+            response = self._http_service.request(
                 method=method,
                 url=self._base_url + path.lstrip("/"),
                 auth=self._http_auth,
@@ -89,9 +88,7 @@ class HAPI:
                 headers=headers,
                 **request_args,
             )
-            response.raise_for_status()
-
-        except RequestException as err:
+        except HTTPError as err:
             response = getattr(err, "response", None)
 
             raise HAPIError("Connecting to Hypothesis failed", response) from err

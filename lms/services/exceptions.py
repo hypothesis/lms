@@ -218,3 +218,15 @@ class CanvasFileNotFoundInCourse(ServiceError):
     def __init__(self, file_id):
         self.details = {"file_id": file_id}
         super().__init__(self.details)
+
+
+class HTTPError(ServiceError):
+    """A problem with an HTTP request to an external service."""
+
+    def __init__(self, response=None):
+        super().__init__(response)
+        self.response = response
+
+
+class HTTPValidationError(HTTPError):
+    """An invalid HTTP response from an external service."""

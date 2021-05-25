@@ -1,11 +1,9 @@
 import logging
 from xml.parsers.expat import ExpatError
 
-import requests
 import xmltodict
-from requests import RequestException
 
-from lms.services.exceptions import LTIOutcomesAPIError
+from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +19,8 @@ class LTIOutcomesClient:
 
     def __init__(self, _context, request):
         self.oauth1_service = request.find_service(name="oauth1")
+        self.http_service = request.find_service(name="http")
+
         self.service_url = request.parsed_params["lis_outcome_service_url"]
 
     def read_result(self, lis_result_sourcedid):
@@ -102,18 +102,14 @@ class LTIOutcomesClient:
         response = None
 
         try:
-            response = requests.post(
-                url=self.service_url,
+            response = self.http_service.request(
+                "POST",
+                self.service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
-                timeout=9,
             )
-
-            # Raise an exception if the status is bad
-            response.raise_for_status()
-
-        except RequestException as err:
+        except HTTPError as err:
             raise LTIOutcomesAPIError(
                 "Error calling LTI Outcomes service", response
             ) from err

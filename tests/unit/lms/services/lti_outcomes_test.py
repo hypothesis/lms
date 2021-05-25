@@ -1,30 +1,31 @@
 from collections import OrderedDict
 from unittest.mock import Mock
 
-import httpretty
 import pytest
 import xmltodict
 from h_matchers import Any
-from requests import RequestException
 
-from lms.services.exceptions import LTIOutcomesAPIError
+from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient
+from tests import factories
 
-pytestmark = pytest.mark.usefixtures("oauth1_service")
+pytestmark = pytest.mark.usefixtures("oauth1_service", "http_service")
 
 
 class TestLTIOutcomesClient:
     SERVICE_URL = "http://example.com/service_url"
     GRADING_ID = "lis_result_sourcedid"
 
-    def test_read_result_sends_expected_request(self, svc, respond_with):
+    def test_read_result_sends_expected_request(self, svc, respond_with, http_service):
         respond_with(score=0.95)
 
         svc.read_result(self.GRADING_ID)
 
-        self.assert_sent_header_ok()
+        self.assert_sent_header_ok(http_service)
 
-        result_record = self.sent_pox_body()["readResultRequest"]["resultRecord"]
+        result_record = self.sent_pox_body(http_service)["readResultRequest"][
+            "resultRecord"
+        ]
         sourced_id = result_record["sourcedGUID"]["sourcedId"]
         assert sourced_id == self.GRADING_ID
 
@@ -53,12 +54,14 @@ class TestLTIOutcomesClient:
         assert score is None
 
     @pytest.mark.usefixtures("response")
-    def test_record_result_sends_sourcedid(self, svc):
+    def test_record_result_sends_sourcedid(self, svc, http_service):
         svc.record_result(self.GRADING_ID)
 
-        self.assert_sent_header_ok()
+        self.assert_sent_header_ok(http_service)
 
-        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
+        result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
+            "resultRecord"
+        ]
         sourced_id = result_record["sourcedGUID"]["sourcedId"]
 
         assert sourced_id == self.GRADING_ID
@@ -71,22 +74,26 @@ class TestLTIOutcomesClient:
             (0, "0"),  # test the zero value
         ],
     )
-    def test_record_result_sends_score(self, svc, score_provided, score_in_record):
+    def test_record_result_sends_score(
+        self, svc, score_provided, score_in_record, http_service
+    ):
         svc.record_result(self.GRADING_ID, score=score_provided)
 
-        result_record = self.sent_pox_body()["replaceResultRequest"]["resultRecord"]
+        result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
+            "resultRecord"
+        ]
         score = result_record["result"]["resultScore"]["textString"]
 
         assert score == score_in_record
 
     @pytest.mark.usefixtures("response")
-    def test_record_result_calls_hook(self, svc):
+    def test_record_result_calls_hook(self, svc, http_service):
         my_hook = Mock(return_value={"my_dict": 1})
 
         svc.record_result(self.GRADING_ID, score=1.5, pre_record_hook=my_hook)
 
         my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
-        assert self.sent_pox_body()["replaceResultRequest"] == OrderedDict(
+        assert self.sent_pox_body(http_service)["replaceResultRequest"] == OrderedDict(
             {"my_dict": "1"}
         )
 
@@ -97,32 +104,31 @@ class TestLTIOutcomesClient:
                 self.GRADING_ID, pre_record_hook=lambda *args, **kwargs: hook_result
             )
 
-    def test_it_signs_request_with_oauth1(self, svc, requests, oauth1_service):
-        requests.post.side_effect = OSError()
+    def test_it_signs_request_with_oauth1(self, svc, http_service, oauth1_service):
+        http_service.request.side_effect = OSError()
 
         # We don't care if this actually does anything afterwards, so just
         # fail here so we can see how we were called
         with pytest.raises(OSError):
             svc.record_result(self.GRADING_ID)
 
-        requests.post.assert_called_with(
+        http_service.request.assert_called_once_with(
+            "POST",
             url=Any(),
             data=Any(),
             headers=Any(),
             auth=oauth1_service.get_client.return_value,
-            timeout=Any(),
         )
 
-    def test_requests_fail_if_http_status_is_error(self, svc, respond_with):
-        respond_with(status=400)
+    def test_requests_fail_if_the_third_party_request_fails(self, svc, http_service):
+        http_service.request.side_effect = HTTPError
 
         with pytest.raises(LTIOutcomesAPIError):
             svc.read_result(self.GRADING_ID)
 
-    def test_requests_fail_if_body_not_xml(self, svc):
-        httpretty.register_uri(
-            httpretty.POST,
-            self.SERVICE_URL,
+    def test_requests_fail_if_body_not_xml(self, svc, http_service):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200,
             body='{"not":"xml"}',
             content_type="application/json",
         )
@@ -160,27 +166,19 @@ class TestLTIOutcomesClient:
         with pytest.raises(LTIOutcomesAPIError, match="LTI outcome request failed"):
             svc.read_result(self.GRADING_ID)
 
-    def test_it_gracefully_handles_RequestException(self, requests, svc):
-        requests.post.side_effect = RequestException
-
-        with pytest.raises(
-            LTIOutcomesAPIError, match="Error calling LTI Outcomes service"
-        ):
-            svc.read_result(self.GRADING_ID)
+    @classmethod
+    def sent_body(cls, http_service):
+        return xmltodict.parse(http_service.request.call_args[1]["data"])
 
     @classmethod
-    def sent_body(cls):
-        return xmltodict.parse(httpretty.last_request().body)
+    def sent_pox_body(cls, http_service):
+        return cls.sent_body(http_service)["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
 
     @classmethod
-    def sent_pox_body(cls):
-        return cls.sent_body()["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
-
-    @classmethod
-    def assert_sent_header_ok(cls):
+    def assert_sent_header_ok(cls, http_service):
         """Check standard header fields of the request body."""
 
-        body = cls.sent_body()
+        body = cls.sent_body(http_service)
 
         header = body["imsx_POXEnvelopeRequest"]["imsx_POXHeader"]
         message_id = header["imsx_POXRequestHeaderInfo"]["imsx_messageIdentifier"]
@@ -240,7 +238,7 @@ class TestLTIOutcomesClient:
         respond_with()
 
     @pytest.fixture
-    def respond_with(self):
+    def respond_with(self, http_service):
         def configure(
             score=None,
             include_score=True,
@@ -263,12 +261,10 @@ class TestLTIOutcomesClient:
                     include_description,
                 )
 
-            httpretty.register_uri(
-                httpretty.POST,
-                self.SERVICE_URL,
-                body=response_body,
+            http_service.request.return_value = factories.requests.Response(
+                status_code=status,
+                raw=response_body,
                 content_type="application/xml",
-                status=status,
             )
 
         return configure
@@ -282,7 +278,3 @@ class TestLTIOutcomesClient:
     @pytest.fixture
     def svc(self, pyramid_request):
         return LTIOutcomesClient({}, pyramid_request)
-
-    @pytest.fixture
-    def requests(self, patch):
-        return patch("lms.services.lti_outcomes.requests")
