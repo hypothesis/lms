@@ -184,10 +184,9 @@ describe('LMSFilePicker', () => {
 
       // The details of the error should be displayed, along with a "Try again"
       // button.
-      const tryAgainButton = wrapper.find(
-        'AuthButton[data-testid="try-again"]'
-      );
+      const tryAgainButton = wrapper.find('AuthButton');
       assert.isTrue(tryAgainButton.exists());
+      assert.equal(tryAgainButton.prop('label'), 'Try again');
 
       const errorDetails = wrapper.find(ErrorDisplay);
       assert.include(errorDetails.props(), {
@@ -220,7 +219,6 @@ describe('LMSFilePicker', () => {
     assert.called(fakeApiCall);
 
     const reloadButton = wrapper.find('LabeledButton[data-testid="reload"]');
-    assert.isFalse(reloadButton.prop('disabled'));
 
     const waitMs = 3000;
     fakeApiCall
@@ -230,17 +228,20 @@ describe('LMSFilePicker', () => {
     reloadButton.prop('onClick')();
     wrapper.update();
 
-    assert.isTrue(
-      wrapper.find('LabeledButton[data-testid="reload"]').prop('disabled')
-    );
+    // While re-fetching files the "Reload" button will be replaced by the
+    // select button, but the label will change to "Reload" until a non-empty
+    // file list is returned to avoid a "Reload => Select => Reload" transition
+    // if the file list still comes back empty.
+    const selectButton = wrapper.find('LabeledButton[data-testid="select"]');
+    assert.equal(selectButton.text(), 'Reload');
+    assert.isTrue(selectButton.prop('disabled'));
 
     clock.tick(waitMs);
     await fakeApiCall;
     wrapper.update();
 
-    assert.isFalse(
-      wrapper.find('LabeledButton[data-testid="reload"]').prop('disabled')
-    );
+    // The file list is empty, so the reload button should be shown again.
+    assert.isTrue(wrapper.exists('LabeledButton[data-testid="reload"]'));
 
     clock.restore();
   });

@@ -25,22 +25,39 @@ import FileList from './FileList';
  */
 
 /**
- * @typedef DialogState
- * @prop {'fetching'|'reloading'|'fetched'|'authorizing'|'error'} state
- * @prop {string} title - Dialog title
- * @prop {'select'|'authorize'|'authorize_retry'|'retry'|'reload'} continueAction - Action for the continue button
- * @prop {File[]|null} files - List of fetched files
- * @prop {Error|null} error - Details of current error, if `state` is 'error'
+ * @typedef FetchingState
+ * @prop {'fetching'} state
+ * @prop {boolean} isReload - Flag indicating that files are being re-fetched after clicking "Reload"
+ *
+ * @typedef FetchedState
+ * @prop {'fetched'} state
+ * @prop {File[]} files
+ *
+ * @typedef AuthorizingState
+ * @prop {'authorizing'} state
+ *
+ * @typedef ErrorState
+ * @prop {'error'} state
+ * @prop {Error} error
+ *
+ * @typedef {FetchingState|FetchedState|AuthorizingState|ErrorState} DialogState
  */
 
-/** @type {DialogState} */
-const INITIAL_DIALOG_STATE = {
-  state: 'fetching',
-  title: 'Select a file',
-  continueAction: 'select',
-  files: null,
-  error: null,
-};
+/**
+ * @typedef AuthorizeAction
+ * @prop {'authorize'} type
+ * @prop {string} label
+ *
+ * @typedef ReloadAction
+ * @prop {'reload'} type
+ *
+ * @typedef SelectAction
+ * @prop {'select'} type
+ * @prop {string} label
+ * @prop {boolean} disabled
+ *
+ * @typedef {AuthorizeAction|ReloadAction|SelectAction} ContinueAction
+ */
 
 const CanvasNoFiles = (
   <div className="FileList__no-files-message">
@@ -73,67 +90,44 @@ export default function LMSFilePicker({
   onCancel,
   onSelectFile,
 }) {
-  // The main state of the dialog and associated data.
-  const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
+  const [dialogState, setDialogState] = useState(
+    /** @type {DialogState} */ ({
+      state: 'fetching',
+      isReload: false,
+    })
+  );
 
-  // Authorization attempt was made. Set after state transitions to "authorizing".
-  const [authorizationAttempted, setAuthorizationAttempted] = useState(false);
+  // Has the first attempted to fetch the list of files in the LMS completed?
+  const [initialFetch, setInitialFetch] = useState(true);
 
-  // The file within `files` which is currently selected.
   const [selectedFile, selectFile] = useState(/** @type {File|null} */ (null));
 
   // Fetches files or shows a prompt to authorize access.
-  const fetchFiles = useCallback(async () => {
-    try {
-      // Show the fetching state, but preserve the existing continueAction to
-      // prevent the button label changing. See:
-      // https://github.com/hypothesis/lms/pull/2219#issuecomment-721833947
-      setDialogState(({ continueAction }) => ({
-        ...INITIAL_DIALOG_STATE,
-        state: continueAction === 'reload' ? 'reloading' : 'fetching',
-        continueAction,
-      }));
-      const files = /** @type {File[]} */ (
-        await apiCall({
-          authToken,
-          path: listFilesApi.path,
-        })
-      );
-      const continueAction =
-        files.length === 0 ? 'reload' : INITIAL_DIALOG_STATE.continueAction;
-      setDialogState({
-        ...INITIAL_DIALOG_STATE,
-        state: 'fetched',
-        files,
-        continueAction,
-      });
-    } catch (e) {
-      if (e instanceof ApiError && !e.errorMessage) {
-        const continueAction = authorizationAttempted
-          ? 'authorize_retry'
-          : 'authorize';
-
-        // If the server returned an error, but provided no details, assume
-        // an authorization failure.
-        setDialogState({
-          ...INITIAL_DIALOG_STATE,
-          state: 'authorizing',
-          title: 'Allow file access',
-          continueAction,
-        });
-        setAuthorizationAttempted(true);
-      } else {
-        // Otherwise, display the error to the user.
-        setDialogState({
-          ...INITIAL_DIALOG_STATE,
-          state: 'error',
-          title: 'Error accessing files',
-          error: e,
-          continueAction: 'retry',
-        });
+  const fetchFiles = useCallback(
+    async (isReload = false) => {
+      try {
+        setDialogState({ state: 'fetching', isReload });
+        const files = /** @type {File[]} */ (
+          await apiCall({
+            authToken,
+            path: listFilesApi.path,
+          })
+        );
+        setDialogState({ state: 'fetched', files });
+      } catch (error) {
+        if (error instanceof ApiError && !error.errorMessage) {
+          // If the server returned an error, but provided no details, assume
+          // an authorization failure.
+          setDialogState({ state: 'authorizing' });
+        } else {
+          // Otherwise, display the error to the user.
+          setDialogState({ state: 'error', error });
+        }
       }
-    }
-  }, [authToken, listFilesApi, authorizationAttempted]);
+      setInitialFetch(false);
+    },
+    [authToken, listFilesApi]
+  );
 
   // On the initial load, fetch files or prompt to authorize if we know that
   // authorization will be required.
@@ -145,103 +139,119 @@ export default function LMSFilePicker({
   const useSelectedFile = () =>
     onSelectFile(/** @type {File} */ (selectedFile));
 
-  const options = {
-    select: {
-      continueButton: (
+  // During the initial fetch, no dialog is rendered. This avoids UI flicker
+  // due to a transition between the "fetching" state and the "authorizing" state
+  // in the case where authorization is needed.
+  //
+  // The parent component is responsible for rendering a loading indicator behind
+  // the dialog in this state.
+  if (dialogState.state === 'fetching' && initialFetch) {
+    return null;
+  }
+
+  // Determine the continue action for the current state.
+  /** @type {ContinueAction} */
+  let continueAction;
+  switch (dialogState.state) {
+    case 'fetching':
+      continueAction = {
+        type: 'select',
+
+        // When the user clicks the "Reload" button, we maintain the button label
+        // until the file list is fetched.
+        label: dialogState.isReload ? 'Reload' : 'Select file',
+
+        disabled: true,
+      };
+      break;
+    case 'fetched':
+      if (dialogState.files.length === 0) {
+        continueAction = { type: 'reload' };
+      } else {
+        continueAction = {
+          type: 'select',
+          label: 'Select file',
+          disabled: selectedFile === null,
+        };
+      }
+      break;
+    case 'authorizing':
+      continueAction = {
+        type: 'authorize',
+        label: 'Authorize',
+      };
+      break;
+    case 'error':
+      continueAction = {
+        type: 'authorize',
+        label: 'Try again',
+      };
+      break;
+  }
+
+  // Render the determined continue action.
+  let continueButton;
+  switch (continueAction.type) {
+    case 'authorize':
+      continueButton = (
+        <AuthButton
+          authURL={/** @type {string} */ (listFilesApi.authUrl)}
+          authToken={authToken}
+          label={continueAction.label}
+          onAuthComplete={fetchFiles}
+        />
+      );
+      break;
+    case 'reload':
+      continueButton = (
         <LabeledButton
           variant="primary"
-          disabled={selectedFile === null}
-          onClick={useSelectedFile}
-          data-testid="select"
-        >
-          Select
-        </LabeledButton>
-      ),
-      warningOrError: null,
-    },
-    authorize: {
-      continueButton: (
-        <AuthButton
-          authURL={/** @type {string} */ (listFilesApi.authUrl)}
-          authToken={authToken}
-          onAuthComplete={fetchFiles}
-        />
-      ),
-      warningOrError: (
-        <p data-testid="authorization warning">
-          To select a file, you must authorize Hypothesis to access your files.
-        </p>
-      ),
-    },
-    authorize_retry: {
-      continueButton: (
-        <AuthButton
-          authURL={/** @type {string} */ (listFilesApi.authUrl)}
-          authToken={authToken}
-          label="Try again"
-          onAuthComplete={fetchFiles}
-          data-testid="try-again"
-        />
-      ),
-      warningOrError: (
-        <ErrorDisplay
-          message={'Failed to authorize file access'}
-          error={new Error('')}
-        />
-      ),
-    },
-    retry: {
-      continueButton: (
-        <AuthButton
-          authURL={/** @type {string} */ (listFilesApi.authUrl)}
-          authToken={authToken}
-          label="Try again"
-          onAuthComplete={fetchFiles}
-          data-testid="try-again"
-        />
-      ),
-      warningOrError: (
-        <ErrorDisplay
-          message="There was a problem fetching files"
-          error={/** @type {Error} */ (dialogState.error)}
-        />
-      ),
-    },
-    reload: {
-      continueButton: (
-        <LabeledButton
-          disabled={dialogState.state === 'reloading'}
-          onClick={fetchFiles}
-          variant="primary"
+          onClick={() => fetchFiles(true /* reload */)}
           data-testid="reload"
         >
           Reload
         </LabeledButton>
-      ),
-      warningOrError: null,
-    },
-  };
-
-  const { continueButton, warningOrError } =
-    options[dialogState.continueAction];
-
-  if (dialogState.state === 'fetching') {
-    return null;
+      );
+      break;
+    case 'select':
+      continueButton = (
+        <LabeledButton
+          variant="primary"
+          disabled={continueAction.disabled}
+          onClick={useSelectedFile}
+          data-testid="select"
+        >
+          {continueAction.label}
+        </LabeledButton>
+      );
+      break;
   }
 
   return (
     <Dialog
       contentClass="LMSFilePicker__dialog"
-      title={dialogState.title}
+      title="Select file"
       onCancel={onCancel}
       buttons={continueButton}
     >
-      {warningOrError}
+      {dialogState.state === 'authorizing' && (
+        <p data-testid="authorization warning">
+          To select a file, you must authorize Hypothesis to access your files.
+        </p>
+      )}
 
-      {['reloading', 'fetched'].includes(dialogState.state) && (
+      {dialogState.state === 'error' && (
+        <ErrorDisplay
+          message="There was a problem fetching files"
+          error={/** @type {Error} */ (dialogState.error)}
+        />
+      )}
+
+      {(dialogState.state === 'fetching' ||
+        dialogState.state === 'fetched') && (
         <FileList
-          files={dialogState.files ?? []}
-          isLoading={dialogState.state === 'reloading'}
+          files={dialogState.state === 'fetched' ? dialogState.files : []}
+          isLoading={dialogState.state === 'fetching'}
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
           onSelectFile={selectFile}
