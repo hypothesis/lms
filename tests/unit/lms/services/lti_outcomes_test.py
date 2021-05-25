@@ -105,15 +105,14 @@ class TestLTIOutcomesClient:
             )
 
     def test_it_signs_request_with_oauth1(self, svc, http_service, oauth1_service):
-        http_service.request.side_effect = OSError()
+        http_service.post.side_effect = OSError()
 
         # We don't care if this actually does anything afterwards, so just
         # fail here so we can see how we were called
         with pytest.raises(OSError):
             svc.record_result(self.GRADING_ID)
 
-        http_service.request.assert_called_once_with(
-            "POST",
+        http_service.post.assert_called_once_with(
             url=Any(),
             data=Any(),
             headers=Any(),
@@ -121,13 +120,13 @@ class TestLTIOutcomesClient:
         )
 
     def test_requests_fail_if_the_third_party_request_fails(self, svc, http_service):
-        http_service.request.side_effect = HTTPError
+        http_service.post.side_effect = HTTPError
 
         with pytest.raises(LTIOutcomesAPIError):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_body_not_xml(self, svc, http_service):
-        http_service.request.return_value = factories.requests.Response(
+        http_service.post.return_value = factories.requests.Response(
             status_code=200,
             body='{"not":"xml"}',
             content_type="application/json",
@@ -168,7 +167,7 @@ class TestLTIOutcomesClient:
 
     @classmethod
     def sent_body(cls, http_service):
-        return xmltodict.parse(http_service.request.call_args[1]["data"])
+        return xmltodict.parse(http_service.post.call_args[1]["data"])
 
     @classmethod
     def sent_pox_body(cls, http_service):
@@ -261,7 +260,7 @@ class TestLTIOutcomesClient:
                     include_description,
                 )
 
-            http_service.request.return_value = factories.requests.Response(
+            http_service.post.return_value = factories.requests.Response(
                 status_code=status,
                 raw=response_body,
                 content_type="application/xml",

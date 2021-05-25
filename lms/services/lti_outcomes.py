@@ -102,9 +102,8 @@ class LTIOutcomesClient:
         response = None
 
         try:
-            response = self.http_service.request(
-                "POST",
-                self.service_url,
+            response = self.http_service.post(
+                url=self.service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),

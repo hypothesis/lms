@@ -17,6 +17,21 @@ class HTTPService:
         # See https://docs.python-requests.org/en/latest/user/advanced/#session-objects
         self._session = _session or requests.Session()
 
+    def get(self, *args, **kwargs):
+        return self.request("GET", *args, **kwargs)
+
+    def put(self, *args, **kwargs):
+        return self.request("PUT", *args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        return self.request("POST", *args, **kwargs)
+
+    def patch(self, *args, **kwargs):
+        return self.request("PATCH", *args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return self.request("DELETE", *args, **kwargs)
+
     def request(
         self,
         method,
