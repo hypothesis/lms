@@ -116,6 +116,16 @@ describe('Table', () => {
     assert.notCalled(onSelectItem);
   });
 
+  it('hides spinner if data is fetched', () => {
+    const wrapper = renderTable({ isLoading: false });
+    assert.isFalse(wrapper.exists('Spinner'));
+  });
+
+  it('shows spinner if data is loading', () => {
+    const wrapper = renderTable({ isLoading: true });
+    assert.isTrue(wrapper.exists('Spinner'));
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
