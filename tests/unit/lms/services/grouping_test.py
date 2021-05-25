@@ -10,7 +10,7 @@ from tests import factories
 pytestmark = pytest.mark.usefixtures("course_service", "application_instance_service")
 
 
-class TestGroupingService:
+class TestGroupingService:  # pylint: disable=protected-access
     CONTEXT_ID = "context_id"
     TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
 
