@@ -84,7 +84,6 @@ class HAPI:
                 method=method,
                 url=self._base_url + path.lstrip("/"),
                 auth=self._http_auth,
-                timeout=10,
                 headers=headers,
                 **request_args,
             )

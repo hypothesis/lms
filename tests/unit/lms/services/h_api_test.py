@@ -71,7 +71,6 @@ class TestHAPI:
                 url="https://example.com/private/api/dummy-path",
                 # It adds the authentication headers.
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-                timeout=10,
                 headers={"Hypothesis-Application": "lms"},
                 data=sentinel.raw_body,
             )

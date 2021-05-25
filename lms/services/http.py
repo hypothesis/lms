@@ -41,7 +41,7 @@ class HTTPService:
         json=None,
         headers=None,
         auth=None,
-        timeout=9,
+        timeout=(10, 10),
         schema=None,
         **kwargs,
     ):  # pylint:disable=too-many-arguments
@@ -108,6 +108,10 @@ class HTTPService:
             This can be a (connect_timeout, read_timeout) 2-tuple or it can be
             a single float that will be used as both the connect and read
             timeout.
+
+            Good practice is to set this to slightly larger than a multiple of
+            3, which is the default TCP packet retransmission window. See:
+            https://docs.python-requests.org/en/master/user/advanced/#timeouts
 
             Note that the read_timeout is *not* a time limit on the entire
             response download. It's a time limit on how long to wait *between
