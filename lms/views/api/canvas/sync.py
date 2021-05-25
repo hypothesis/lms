@@ -58,11 +58,11 @@ class Sync:
         context_id = self._request.json["course"]["context_id"]
 
         return [
-            HGroup.section_group(
-                section_name=section["name"],
+            self._grouping_service.section_grouping(
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
                 section_id=section["id"],
+                section_name=section["name"],
             )
             for section in sections
         ]
