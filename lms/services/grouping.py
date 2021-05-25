@@ -12,7 +12,7 @@ class GroupingService:
         db_grouping = (
             self._db.query(Grouping)
             .filter_by(
-                application_instance_id=grouping.application_instance.id,
+                application_instance=grouping.application_instance,
                 authority_provided_id=grouping.authority_provided_id,
                 type=grouping.type,
             )
@@ -79,11 +79,11 @@ class GroupingService:
 
         return self.upsert(
             CanvasSection(
-                application_instance_id=self._application_instance.id,
+                application_instance=self._application_instance,
                 authority_provided_id=section_authority_provided_id,
                 lms_id=section_id,
                 lms_name=section_name,
-                parent_id=course.id,
+                parent=course,
             )
         )
 
