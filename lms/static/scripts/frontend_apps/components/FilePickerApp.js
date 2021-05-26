@@ -93,6 +93,13 @@ export default function FilePickerApp({ onSubmit }) {
             formFields={formFields}
           />
         )}
+        {content && (
+          <input
+            name="document_url"
+            type="hidden"
+            value={content.file.id}
+          />
+        )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
       {errorInfo && (

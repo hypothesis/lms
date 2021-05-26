@@ -43,6 +43,7 @@ export default function ContentSelector({
   const {
     api: { authToken },
     filePicker: {
+      blackboard: { enabled: blackboardEnabled, listFiles: blackboardListFilesApi },
       canvas: { enabled: canvasEnabled, listFiles: listFilesApi },
       google: {
         clientId: googleClientId,
@@ -115,6 +116,16 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'blackboardLmsFile':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={blackboardListFilesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectLMSFile}
+        />
+      );
+      break;
     default:
       dialog = null;
   }
@@ -172,6 +183,15 @@ export default function ContentSelector({
               data-testid="lms-file-button"
             >
               Select PDF from Canvas
+            </LabeledButton>
+          )}
+          {blackboardEnabled && (
+            <LabeledButton
+              onClick={() => selectDialog('blackboardLmsFile')}
+              variant="primary"
+              data-testid="lms-file-button"
+            >
+              Select PDF from Blackboard
             </LabeledButton>
           )}
           {googlePicker && (
