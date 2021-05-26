@@ -1,30 +1,46 @@
-from urllib.parse import parse_qs, urlparse
-
 import pytest
+from h_matchers import Any
 
 from lms.services import NoOAuth2Token
 from lms.views.api.blackboard.authorize import authorize, oauth2_redirect
+from tests.matchers import temporary_redirect_to
 
-pytestmark = pytest.mark.usefixtures("oauth2_token_service")
+pytestmark = pytest.mark.usefixtures(
+    "application_instance_service", "oauth2_token_service"
+)
 
 
 class TestAuthorize:
-    def test_it_just_redirects_to_the_oauth2_redirect_view(self, pyramid_request):
-        response = authorize(pyramid_request)
-
-        assert response.status_int == 302
-        assert response.location.startswith(
-            pyramid_request.route_url("blackboard_api.oauth.callback")
-        )
-
-    def test_it_authenticates_the_redirect_with_an_OAuth2_state_param(
-        self, pyramid_request, OAuthCallbackSchema
+    def test_it_redirects_to_the_Blackboard_authorization_page(
+        self,
+        application_instance_service,
+        OAuthCallbackSchema,
+        oauth_callback_schema,
+        pyramid_request,
     ):
+        application_instance = application_instance_service.get.return_value
+
         response = authorize(pyramid_request)
 
         OAuthCallbackSchema.assert_called_once_with(pyramid_request)
-        state = parse_qs(urlparse(response.location).query).get("state")
-        assert state == ["test_state"]
+        assert response == temporary_redirect_to(
+            Any.url(
+                scheme="https",
+                host=application_instance.lms_host(),
+                path="learn/api/public/v1/oauth2/authorizationcode",
+                query={
+                    "client_id": pyramid_request.registry.settings[
+                        "blackboard_api_client_id"
+                    ],
+                    "response_type": "code",
+                    "redirect_uri": pyramid_request.route_url(
+                        "blackboard_api.oauth.callback"
+                    ),
+                    "state": str(oauth_callback_schema.state_param.return_value),
+                    "scope": "read offline",
+                },
+            )
+        )
 
 
 class TestOAuth2Redirect:
@@ -55,5 +71,9 @@ def OAuthCallbackSchema(patch):
     OAuthCallbackSchema = patch(
         "lms.views.api.blackboard.authorize.OAuthCallbackSchema"
     )
-    OAuthCallbackSchema.return_value.state_param.return_value = "test_state"
     return OAuthCallbackSchema
+
+
+@pytest.fixture
+def oauth_callback_schema(OAuthCallbackSchema):
+    return OAuthCallbackSchema.return_value

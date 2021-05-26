@@ -1,3 +1,5 @@
+from urllib.parse import urlencode, urlunparse
+
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
@@ -12,10 +14,30 @@ from lms.validation.authentication import OAuthCallbackSchema
     permission=Permissions.API,
 )
 def authorize(request):
+    application_instance = request.find_service(name="application_instance").get()
+    client_id = request.registry.settings["blackboard_api_client_id"]
+    state = OAuthCallbackSchema(request).state_param()
+
     return HTTPFound(
-        location=request.route_url(
-            "blackboard_api.oauth.callback",
-            _query={"state": OAuthCallbackSchema(request).state_param()},
+        location=urlunparse(
+            (
+                "https",
+                application_instance.lms_host(),
+                "learn/api/public/v1/oauth2/authorizationcode",
+                "",
+                urlencode(
+                    {
+                        "client_id": client_id,
+                        "response_type": "code",
+                        "redirect_uri": request.route_url(
+                            "blackboard_api.oauth.callback"
+                        ),
+                        "state": state,
+                        "scope": "read offline",
+                    }
+                ),
+                "",
+            )
         )
     )
 

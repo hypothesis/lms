@@ -68,6 +68,8 @@ def configure(settings):
         "vitalsource_lti_launch_secret": sg.get("VITALSOURCE_LTI_LAUNCH_SECRET"),
         "admin_auth_google_client_id": sg.get("ADMIN_AUTH_GOOGLE_CLIENT_ID"),
         "admin_auth_google_client_secret": sg.get("ADMIN_AUTH_GOOGLE_CLIENT_SECRET"),
+        "blackboard_api_client_id": sg.get("BLACKBOARD_API_CLIENT_ID"),
+        "blackboard_api_client_secret": sg.get("BLACKBOARD_API_CLIENT_SECRET"),
     }
 
     env_settings["dev"] = asbool(env_settings["dev"])
