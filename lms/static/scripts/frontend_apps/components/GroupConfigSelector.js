@@ -17,7 +17,9 @@ import AuthButton from './AuthButton';
  * assignment.
  *
  * @typedef GroupConfig
- * @prop {boolean} useGroupSet - Whether students are divided into groups
+ * @prop {boolean} useGroupSet - Whether students are divided into groups based
+ *   on a grouping/group set defined in the LMS (the terminology varies depending
+ *   on the LMS).
  * @prop {string|null} groupSet - The ID of the grouping to use. This should
  *   be the `id` of a `GroupSet` returned by the LMS backend.
  */
@@ -31,6 +33,19 @@ import AuthButton from './AuthButton';
 /**
  * Component that allows instructors to configure how students are divided into
  * groups for an assignment.
+ *
+ * In Canvas, there are three possibilities:
+ *
+ *  1. Use one group for the whole course
+ *  2. Use one group per Canvas Section
+ *  3. Divide students into multiple groups based on a Canvas Group Set
+ *
+ * The choice between (1) and (2) is currently part of the configuration of an
+ * installation of the Hypothesis LMS app. The choice between 1/2 and 3 is done
+ * per assignment by the instructor.
+ *
+ * Other LMSes have similar concepts to a Group Set, although the terminology
+ * varies (eg. Moodle has "Groupings").
  *
  * @param {GroupConfigSelectorProps} props
  */
@@ -90,7 +105,9 @@ export default function GroupConfigSelector({
         <LabeledCheckbox
           checked={useGroupSet}
           id={checkboxID}
-          name="groupsEnabled"
+          // The `name` prop is required by LabeledCheckbox but is unimportant
+          // as this field is not actually part of the submitted form.
+          name="use_group_set"
           onInput={e =>
             onChangeGroupConfig({
               useGroupSet: /** @type {HTMLInputElement} */ (e.target).checked,
