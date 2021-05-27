@@ -4,6 +4,7 @@ h-api
 h-pyramid-sentry
 h-vialib
 importlib_resources
+marshmallow
 newrelic
 oauthlib
 psycopg2
