@@ -17,13 +17,13 @@ import AuthButton from './AuthButton';
  * assignment.
  *
  * @typedef GroupConfig
- * @prop {boolean} useGroups - Whether students are divided into groups
+ * @prop {boolean} useGroupSet - Whether students are divided into groups
  * @prop {string|null} groupSet - The ID of the grouping to use. This should
  *   be the `id` of a `GroupSet` returned by the LMS backend.
  */
 
 /**
- * @typedef GroupSetSelectorProps
+ * @typedef GroupConfigSelectorProps
  * @prop {GroupConfig} groupConfig
  * @prop {(g: GroupConfig) => void} onChangeGroupConfig
  */
@@ -32,7 +32,7 @@ import AuthButton from './AuthButton';
  * Component that allows instructors to configure how students are divided into
  * groups for an assignment.
  *
- * @param {GroupSetSelectorProps} props
+ * @param {GroupConfigSelectorProps} props
  */
 export default function GroupConfigSelector({
   groupConfig,
@@ -69,31 +69,31 @@ export default function GroupConfigSelector({
     }
   }, [authToken, listGroupSetsAPI]);
 
-  const useGroups = groupConfig.useGroups;
+  const useGroupSet = groupConfig.useGroupSet;
   const haveFetchedGroups = groupSets !== null;
 
   useEffect(() => {
-    if (useGroups && !haveFetchedGroups) {
+    if (useGroupSet && !haveFetchedGroups) {
       fetchGroupSets();
     }
-  }, [fetchGroupSets, useGroups, haveFetchedGroups]);
+  }, [fetchGroupSets, useGroupSet, haveFetchedGroups]);
 
   const checkboxID = useUniqueId('GroupSetSelector__enabled');
   const selectID = useUniqueId('GroupSetSelector__select');
 
-  const groupSet = groupConfig.useGroups ? groupConfig.groupSet : null;
-  const fetchingGroupSets = !groupSets && !fetchError && useGroups;
+  const groupSet = groupConfig.useGroupSet ? groupConfig.groupSet : null;
+  const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 
   return (
     <Fragment>
       <div>
         <LabeledCheckbox
-          checked={useGroups}
+          checked={useGroupSet}
           id={checkboxID}
           name="groupsEnabled"
           onInput={e =>
             onChangeGroupConfig({
-              useGroups: /** @type {HTMLInputElement} */ (e.target).checked,
+              useGroupSet: /** @type {HTMLInputElement} */ (e.target).checked,
               groupSet: groupSet ?? null,
             })
           }
@@ -113,7 +113,7 @@ export default function GroupConfigSelector({
           />
         </Fragment>
       )}
-      {!fetchError && useGroups && (
+      {!fetchError && useGroupSet && (
         <div>
           <label htmlFor={selectID}>Group set:</label>
           <select
@@ -121,7 +121,7 @@ export default function GroupConfigSelector({
             id={selectID}
             onInput={e =>
               onChangeGroupConfig({
-                useGroups,
+                useGroupSet,
                 groupSet:
                   /** @type {HTMLInputElement} */ (e.target).value || null,
               })
