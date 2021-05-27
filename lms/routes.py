@@ -5,6 +5,7 @@ def includeme(config):
     config.add_route("assets", "/assets/*subpath")
     config.add_route("status", "/_status")
     config.add_route("favicon", "/favicon.ico")
+    config.add_route("ui-playground", "/ui-playground/*remainder")
 
     config.add_route("login", "/login")
     config.add_route("logout", "/logout")

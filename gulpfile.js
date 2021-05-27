@@ -94,6 +94,10 @@ var bundles = [
     name: 'browser_check',
     entry: './lms/static/scripts/browser_check/index.js',
   },
+  {
+    name: 'ui-playground',
+    entry: './lms/static/scripts/ui-playground/index.js',
+  },
 ];
 
 var bundleConfigs = bundles.map(function(config) {
@@ -124,6 +128,7 @@ var cssBundles = [
   './lms/static/styles/lms.css',
   './lms/static/styles/reports.css',
   './lms/static/styles/frontend_apps.scss',
+  './lms/static/styles/ui-playground/ui-playground.scss',
 ];
 
 gulp.task('build-css', () => {
