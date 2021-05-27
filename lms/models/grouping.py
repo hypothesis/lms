@@ -24,15 +24,29 @@ class Grouping(CreatedUpdatedMixin, BASE):
     )
     application_instance = sa.orm.relationship("ApplicationInstance")
 
+    #: The authority_provided_id of the Group that was created for this Grouping in h's DB.
     authority_provided_id = sa.Column(sa.UnicodeText(), nullable=False)
 
-    parent_id = sa.Column(
+        #: The id of the parent grouping that this grouping belongs to.
+        #:
+        #: For example if the grouping represents a Canvas section or group then parent_id
+        #: will reference the grouping for the course that the section or group belongs to.
+        parent_id = sa.Column(
         sa.Integer(),
         sa.ForeignKey("grouping.id", ondelete="cascade"),
         nullable=True,
     )
 
-    #: ID on the LMS, not unique across LMS or even in the same LMS instance
+    #: The LMS's ID for the grouping.
+    #:
+    #: For example for a course this is the value of the context_id launch param.
+    #: For a Canvas section or group this is the value of the section or group's id
+    #: from the Canvas API.
+    #:
+    #: lms_id may not be unique without `parent_id`. For example a Canvas instance may
+    #: have multiple sections or groups with the same id in different courses. In this
+    #: case multiple Grouping's would have the same lms_id but they will have different
+    #: parent_id's.
     lms_id = sa.Column(sa.String(), nullable=False)
 
     #: Full name given on the LMS (e.g. "A course name 101")
