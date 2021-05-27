@@ -88,7 +88,10 @@ describe('FilePickerApp', () => {
     });
   }
 
-  function selectGroupConfig(wrapper, useGroupSet, groupSet = null) {
+  function selectGroupConfig(
+    wrapper,
+    { useGroupSet = false, groupSet = null }
+  ) {
     const groupSelector = wrapper.find('GroupConfigSelector');
     interact(wrapper, () => {
       groupSelector.props().onChangeGroupConfig({
@@ -117,7 +120,7 @@ describe('FilePickerApp', () => {
     });
   });
 
-  context('when groups are enabled', () => {
+  context('when group configuration is enabled', () => {
     beforeEach(() => {
       fakeConfig.filePicker.canvas.groupsEnabled = true;
     });
@@ -131,11 +134,11 @@ describe('FilePickerApp', () => {
       assert.notCalled(onSubmit);
     });
 
-    it('disables "Continue" button when groups are enabled but no group set is selected', () => {
+    it('disables "Continue" button when group sets are enabled but no group set is selected', () => {
       const wrapper = renderFilePicker();
 
       selectContent(wrapper, 'https://example.com');
-      selectGroupConfig(wrapper, true, null);
+      selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
 
       assert.isTrue(
         wrapper.find('LabeledButton[children="Continue"]').prop('disabled')
@@ -148,7 +151,7 @@ describe('FilePickerApp', () => {
         const wrapper = renderFilePicker({ onSubmit });
 
         selectContent(wrapper, 'https://example.com');
-        selectGroupConfig(wrapper, useGroupSet, 'groupSet1');
+        selectGroupConfig(wrapper, { useGroupSet, groupSet: 'groupSet1' });
 
         assert.notCalled(onSubmit);
         interact(wrapper, () => {
