@@ -88,11 +88,11 @@ describe('FilePickerApp', () => {
     });
   }
 
-  function selectGroupConfig(wrapper, useGroups, groupSet = null) {
+  function selectGroupConfig(wrapper, useGroupSet, groupSet = null) {
     const groupSelector = wrapper.find('GroupConfigSelector');
     interact(wrapper, () => {
       groupSelector.props().onChangeGroupConfig({
-        useGroups,
+        useGroupSet,
         groupSet,
       });
     });
@@ -142,13 +142,13 @@ describe('FilePickerApp', () => {
       );
     });
 
-    [true, false].forEach(useGroups => {
+    [true, false].forEach(useGroupSet => {
       it('submits form when "Continue" button is clicked', () => {
         const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
         const wrapper = renderFilePicker({ onSubmit });
 
         selectContent(wrapper, 'https://example.com');
-        selectGroupConfig(wrapper, useGroups, 'groupSet1');
+        selectGroupConfig(wrapper, useGroupSet, 'groupSet1');
 
         assert.notCalled(onSubmit);
         interact(wrapper, () => {
@@ -162,7 +162,7 @@ describe('FilePickerApp', () => {
             type: 'url',
             url: 'https://example.com',
           },
-          useGroups ? 'groupSet1' : null
+          useGroupSet ? 'groupSet1' : null
         );
       });
     });

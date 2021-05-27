@@ -65,7 +65,7 @@ describe('GroupConfigSelector', () => {
     return mount(
       <Config.Provider value={fakeConfig}>
         <GroupConfigSelector
-          groupConfig={{ useGroups: false, groupSet: null }}
+          groupConfig={{ useGroupSet: false, groupSet: null }}
           onChangeGroupConfig={noop}
           {...props}
         />
@@ -80,10 +80,10 @@ describe('GroupConfigSelector', () => {
   }
 
   [
-    [{ useGroups: false, groupSet: null }, false],
-    [{ useGroups: true, groupSet: null }, true],
+    [{ useGroupSet: false, groupSet: null }, false],
+    [{ useGroupSet: true, groupSet: null }, true],
   ].forEach(([groupConfig, shouldBeChecked], index) => {
-    it(`sets checkbox state to reflect \`useGroups\` state (${index})`, () => {
+    it(`sets checkbox state to reflect \`useGroupSet\` state (${index})`, () => {
       const wrapper = createComponent({ groupConfig });
       assert.equal(
         wrapper.find('LabeledCheckbox').prop('checked'),
@@ -98,21 +98,21 @@ describe('GroupConfigSelector', () => {
 
     toggleCheckbox(wrapper);
     assert.calledWith(onChangeGroupConfig, {
-      useGroups: true,
+      useGroupSet: true,
       groupSet: null,
     });
 
     onChangeGroupConfig.resetHistory();
     toggleCheckbox(wrapper);
     assert.calledWith(onChangeGroupConfig, {
-      useGroups: false,
+      useGroupSet: false,
       groupSet: null,
     });
   });
 
   it('fetches available group sets when checkbox is checked', async () => {
     const wrapper = createComponent({
-      groupConfig: { useGroups: true, groupConfig: null },
+      groupConfig: { useGroupSet: true, groupConfig: null },
     });
 
     // While groups are being fetched, the `<select>` should be visible but disabled
@@ -139,7 +139,7 @@ describe('GroupConfigSelector', () => {
   it('invokes `onChangeGroupConfig` callback when a group set is selected', async () => {
     const onChangeGroupConfig = sinon.stub();
     const wrapper = createComponent({
-      groupConfig: { useGroups: true, groupConfig: null },
+      groupConfig: { useGroupSet: true, groupSet: null },
       onChangeGroupConfig,
     });
 
@@ -159,7 +159,7 @@ describe('GroupConfigSelector', () => {
       select.dispatchEvent(new Event('input'));
 
       assert.calledWith(onChangeGroupConfig, {
-        useGroups: true,
+        useGroupSet: true,
         groupSet: fakeGroupSets[i].id,
       });
     });
@@ -170,7 +170,7 @@ describe('GroupConfigSelector', () => {
       .withArgs(groupSetsAPIRequest)
       .rejects(new Error('Authorization failed'));
     const wrapper = createComponent({
-      groupConfig: { useGroups: true, groupSet: null },
+      groupConfig: { useGroupSet: true, groupSet: null },
     });
 
     // Check that authorization prompt is shown if initial group set fetch fails.

@@ -40,7 +40,7 @@ export default function FilePickerApp({ onSubmit }) {
     filePicker: {
       formAction,
       formFields,
-      canvas: { groupsEnabled, ltiLaunchUrl },
+      canvas: { groupsEnabled: enableGroupConfig, ltiLaunchUrl },
     },
   } = useContext(Config);
 
@@ -48,7 +48,7 @@ export default function FilePickerApp({ onSubmit }) {
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({
-      useGroups: false,
+      useGroupSet: false,
       groupSet: null,
     })
   );
@@ -85,11 +85,11 @@ export default function FilePickerApp({ onSubmit }) {
   const selectContent = useCallback(
     content => {
       setContent(content);
-      if (!groupsEnabled) {
+      if (!enableGroupConfig) {
         submit();
       }
     },
-    [groupsEnabled, submit]
+    [enableGroupConfig, submit]
   );
 
   return (
@@ -113,7 +113,7 @@ export default function FilePickerApp({ onSubmit }) {
             />
           </Fragment>
         )}
-        {content && groupsEnabled && (
+        {content && enableGroupConfig && (
           <Fragment>
             <h1 className="heading-1">Group settings</h1>
             <GroupConfigSelector
@@ -121,7 +121,7 @@ export default function FilePickerApp({ onSubmit }) {
               onChangeGroupConfig={setGroupConfig}
             />
             <LabeledButton
-              disabled={groupConfig.useGroups && !groupConfig.groupSet}
+              disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
               variant="primary"
               onClick={submit}
             >
@@ -134,7 +134,7 @@ export default function FilePickerApp({ onSubmit }) {
             ltiLaunchURL={ltiLaunchUrl}
             content={content}
             formFields={formFields}
-            groupSet={groupConfig.useGroups ? groupConfig.groupSet : null}
+            groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
           />
         )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
