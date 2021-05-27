@@ -41,8 +41,8 @@ import AuthButton from './AuthButton';
  *  3. Divide students into multiple groups based on a Canvas Group Set
  *
  * The choice between (1) and (2) is currently part of the configuration of an
- * installation of the Hypothesis LMS app. The choice between 1/2 and 3 is done
- * per assignment by the instructor.
+ * installation of the Hypothesis LMS app. The choice between (1 or 2) and (3)
+ * is done per assignment by the instructor.
  *
  * Other LMSes have similar concepts to a Group Set, although the terminology
  * varies (eg. Moodle has "Groupings").
