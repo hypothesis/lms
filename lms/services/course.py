@@ -19,7 +19,7 @@ class CourseService:
     def upsert(
         self, authority_provided_id, context_id, name, extra, settings=None
     ):  # pylint: disable=too-many-arguments
-        course = self._get(authority_provided_id)
+        course = self.get(authority_provided_id)
 
         if not course:
             course = self._create(
@@ -61,7 +61,7 @@ class CourseService:
             (self._consumer_key, authority_provided_id)
         )
 
-    def _get(self, authority_provided_id):
+    def get(self, authority_provided_id):
         return (
             self._db.query(Course)
             .filter_by(
