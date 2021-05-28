@@ -1,22 +1,40 @@
 import json
 from copy import deepcopy
 
-from lms.models import CourseGroupsExportedFromH, LegacyCourse
+from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
 
 
 class CourseService:
     def __init__(self, application_instance_service, consumer_key, db):
-        self._application_instance_service = application_instance_service
+        self._application_instance = application_instance_service.get()
         self._consumer_key = consumer_key
         self._db = db
 
     def get_or_create(self, authority_provided_id):
-        """
-        Add the current course to the `course` table if it's not there already.
+        """Add the current course to the `course` table if it's not there already."""
+        return self._get_legacy(authority_provided_id) or self._create_legacy(
+            authority_provided_id
+        )
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
-        """
-        return self._get(authority_provided_id) or self._create(authority_provided_id)
+    def upsert(
+        self, authority_provided_id, context_id, name, extra, settings=None
+    ):  # pylint: disable=too-many-arguments
+        course = self._get(authority_provided_id)
+
+        if not course:
+            course = self._create(
+                authority_provided_id,
+                context_id,
+                name,
+                extra,
+                settings,
+            )
+
+        # Update any values that might have changed
+        course.lms_name = name
+        course.extra = extra
+
+        return course
 
     def any_with_setting(self, group, key, value=True):
         """
@@ -38,15 +56,52 @@ class CourseService:
             .count()
         )
 
-    def _get(self, authority_provided_id):
+    def _get_legacy(self, authority_provided_id):
         return self._db.query(LegacyCourse).get(
             (self._consumer_key, authority_provided_id)
         )
 
-    def _create(self, authority_provided_id):
+    def _get(self, authority_provided_id):
+        return (
+            self._db.query(Course)
+            .filter_by(
+                application_instance=self._application_instance,
+                authority_provided_id=authority_provided_id,
+            )
+            .one_or_none()
+        )
+
+    def _create_legacy(self, authority_provided_id):
+        course = LegacyCourse(
+            consumer_key=self._consumer_key,
+            authority_provided_id=authority_provided_id,
+            settings=self._new_course_settings(authority_provided_id),
+        )
+
+        self._db.add(course)
+
+        return course
+
+    def _create(
+        self, authority_provided_id, context_id, name, extra, settings=None
+    ):  # pylint: disable=too-many-arguments
+        course = Course(
+            application_instance_id=self._application_instance.id,
+            authority_provided_id=authority_provided_id,
+            lms_id=context_id,
+            lms_name=name,
+            settings=settings or self._new_course_settings(authority_provided_id),
+            extra=extra,
+        )
+
+        self._db.add(course)
+
+        return course
+
+    def _new_course_settings(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
         # as the application instance
-        course_settings = deepcopy(self._application_instance_service.get().settings)
+        course_settings = deepcopy(self._application_instance.settings)
 
         # Unless! The group was pre-sections, and we've just seen it for the
         # first time in which case turn sections off
@@ -55,15 +110,7 @@ class CourseService:
         ):
             course_settings.set("canvas", "sections_enabled", False)
 
-        course = LegacyCourse(
-            consumer_key=self._consumer_key,
-            authority_provided_id=authority_provided_id,
-            settings=course_settings,
-        )
-
-        self._db.add(course)
-
-        return course
+        return course_settings
 
     def _is_pre_sections(self, authority_provided_id):
         return bool(
