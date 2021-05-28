@@ -115,7 +115,7 @@ export default function GroupConfigSelector({
             })
           }
         >
-          Use groups for this assignment
+          This is a group assignment
         </LabeledCheckbox>
       </div>
       {fetchError && (
