@@ -29,6 +29,25 @@ import GroupConfigSelector from './GroupConfigSelector';
  */
 
 /**
+ * Return a human-readable description of the selected content for an assignment.
+ *
+ * @param {Content} content
+ * @return {string}
+ */
+function contentDescription(content) {
+  switch (content.type) {
+    case 'url':
+      return content.url;
+    case 'file':
+      return 'PDF file in Canvas';
+    case 'vitalsource':
+      return 'Book from VitalSource';
+    default:
+      return 'Other content';
+  }
+}
+
+/**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
  *
@@ -100,33 +119,42 @@ export default function FilePickerApp({ onSubmit }) {
         method="POST"
         onSubmit={onSubmit}
       >
-        {!content && (
-          <Fragment>
-            <h1 className="heading-1">Select web page or PDF</h1>
-            <p>
-              You can select content for your assignment from one of the
-              following sources:
-            </p>
-            <ContentSelector
-              onSelectContent={selectContent}
-              onError={setErrorInfo}
-            />
-          </Fragment>
-        )}
+        <h1 className="FilePickerApp__heading">Assignment details</h1>
+        <div className="FilePickerApp__left-col">Assignment content</div>
+        <div className="FilePickerApp__right-col">
+          {content ? (
+            <i>{contentDescription(content)}</i>
+          ) : (
+            <Fragment>
+              <p>
+                You can select content for your assignment from one of the
+                following sources:
+              </p>
+              <ContentSelector
+                onSelectContent={selectContent}
+                onError={setErrorInfo}
+              />
+            </Fragment>
+          )}
+        </div>
         {content && enableGroupConfig && (
           <Fragment>
-            <h1 className="heading-1">Group settings</h1>
-            <GroupConfigSelector
-              groupConfig={groupConfig}
-              onChangeGroupConfig={setGroupConfig}
-            />
-            <LabeledButton
-              disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
-              variant="primary"
-              onClick={submit}
-            >
-              Continue
-            </LabeledButton>
+            <div className="FilePickerApp__left-col">Group assignment</div>
+            <div className="FilePickerApp__right-col">
+              <GroupConfigSelector
+                groupConfig={groupConfig}
+                onChangeGroupConfig={setGroupConfig}
+              />
+            </div>
+            <div className="FilePickerApp__footer">
+              <LabeledButton
+                disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
+                variant="primary"
+                onClick={submit}
+              >
+                Continue
+              </LabeledButton>
+            </div>
           </Fragment>
         )}
         {content && (
