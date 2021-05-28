@@ -15,6 +15,11 @@ class GroupInfoService:
         group_info.upsert(authority_provided_id, consumer_key, request.params)
     """
 
+    GROUPING_TYPES = {
+        "course": "course_group",
+        "canvas_section": "section_group",
+    }
+
     def __init__(self, _context, request):
         self._db = request.db
         self._lti_user = request.lti_user
@@ -65,4 +70,4 @@ class GroupInfoService:
                 dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
             )
 
-        group_info.type = h_group.type
+        group_info.type = self.GROUPING_TYPES[h_group.type]
