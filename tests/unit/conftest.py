@@ -14,6 +14,7 @@ from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
+from lms.services.grouping import GroupingService
 from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
 from lms.services.launch_verifier import LaunchVerifier
@@ -213,6 +214,15 @@ def course_service(pyramid_config):
     course_service = mock.create_autospec(CourseService, spec_set=True, instance=True)
     pyramid_config.register_service(course_service, name="course")
     return course_service
+
+
+@pytest.fixture
+def grouping_service(pyramid_config):
+    grouping_service = mock.create_autospec(
+        GroupingService, spec_set=True, instance=True
+    )
+    pyramid_config.register_service(grouping_service, name="grouping")
+    return grouping_service
 
 
 @pytest.fixture
