@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo, HGroup
+from lms.models import GradingInfo, Grouping
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError, HAPIError
@@ -701,7 +701,7 @@ def context():
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_group=mock.create_autospec(HGroup, instance=True, spec_set=True),
+        h_group=mock.create_autospec(Grouping, instance=True, spec_set=True),
         is_canvas=True,
         canvas_sections_enabled=False,
     )
