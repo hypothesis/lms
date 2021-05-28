@@ -12,16 +12,10 @@ pytestmark = pytest.mark.usefixtures("application_instance_service", "course_ser
 
 class TestHGroup:
     @pytest.mark.usefixtures("has_course")
-    def test_it(self, lti_launch, HGroup, pyramid_request):
-        assert lti_launch.h_group == HGroup.course_group.return_value
+    def test_it(self, lti_launch, course_service):
+        course_service.upsert.return_value = mock.sentinel.course
 
-        HGroup.course_group.assert_called_once_with(
-            course_name="test_context_title",
-            tool_consumer_instance_guid=pyramid_request.parsed_params[
-                "tool_consumer_instance_guid"
-            ],
-            context_id=pyramid_request.parsed_params["context_id"],
-        )
+        assert lti_launch.h_group == mock.sentinel.course
 
 
 class TestIsCanvas:
@@ -137,11 +131,15 @@ class TestCanvasSectionsSupported:
 
 @pytest.mark.usefixtures("has_course")
 class TestCanvasSectionsEnabled:
-    def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
+    def test_its_enabled_when_everything_is_right(
+        self, lti_launch, course_service, hashed_id
+    ):
+        hashed_id.return_value = mock.sentinel.authority_provided_id
+
         assert lti_launch.canvas_sections_enabled
 
-        course_service.get_or_create.assert_called_once_with(
-            lti_launch.h_group.authority_provided_id
+        course_service.get_or_create.assert_called_with(
+            mock.sentinel.authority_provided_id
         )
 
     def test_its_disabled_if_sections_are_not_supported(
@@ -164,6 +162,10 @@ class TestCanvasSectionsEnabled:
 
         return settings
 
+    @pytest.fixture
+    def hashed_id(self, patch):
+        return patch("lms.resources.lti_launch.hashed_id")
+
     @pytest.fixture(autouse=True)
     def canvas_sections_supported(self):
         with mock.patch.object(
@@ -173,14 +175,29 @@ class TestCanvasSectionsEnabled:
             yield canvas_sections_supported
 
 
+class TestCourseExtra:
+    # pylint: disable=protected-access
+    def test_empty_in_non_canvas(self, pyramid_request):
+        parsed_params = {}
+        pyramid_request.parsed_params = parsed_params
+
+        assert LTILaunchResource(pyramid_request)._course_extra() == {}
+
+    def test_includes_course_id(self, pyramid_request):
+        parsed_params = {
+            "tool_consumer_info_product_family_code": "canvas",
+            "custom_canvas_course_id": "ID",
+        }
+        pyramid_request.parsed_params = parsed_params
+
+        assert LTILaunchResource(pyramid_request)._course_extra() == {
+            "canvas": {"custom_canvas_course_id": "ID"}
+        }
+
+
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)
-
-
-@pytest.fixture(autouse=True)
-def HGroup(patch):
-    return patch("lms.resources.lti_launch.HGroup")
 
 
 @pytest.fixture(autouse=True)
