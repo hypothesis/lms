@@ -3,8 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import CourseGroupsExportedFromH, LegacyCourse
-from lms.services import ConsumerKeyError
+from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
 from lms.services.course import course_service_factory
 from tests import factories
 
@@ -64,14 +63,6 @@ class TestCourseService:
         course = db_session.query(LegacyCourse).one()
         assert not course.settings.get("canvas", "sections_enabled")
 
-    def test_get_or_create_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, svc
-    ):
-        application_instance_service.get.side_effect = ConsumerKeyError
-
-        with pytest.raises(ConsumerKeyError):
-            svc.get_or_create("test_authority_provided_id")
-
     @pytest.mark.parametrize(
         "settings_set,value,expected",
         (
@@ -97,6 +88,30 @@ class TestCourseService:
 
         assert svc.any_with_setting("group", "key", value) is expected
 
+    def test_upsert_returns_existing(self, svc, application_instance, db_session):
+        existing_course = factories.Course(application_instance=application_instance)
+
+        course = svc.upsert(
+            existing_course.authority_provided_id, "context_id", "new course name", {}
+        )
+
+        # No new courses created
+        assert db_session.query(Course).count() == 1
+
+        # And existing course has been updated
+        assert course.lms_name == "new course name"
+
+    def test_upsert_creates_new(self, svc, db_session):
+        # Starting with a fresh DB
+        assert not db_session.query(Course).count()
+
+        course = svc.upsert(
+            "new authority_provided_id", "context_id", "new course name", {}
+        )
+
+        assert db_session.query(Course).count() == 1
+        assert course.authority_provided_id == "new authority_provided_id"
+
     @pytest.fixture
     def add_courses_with_settings(self, application_instance):
         def add_courses_with_settings(
@@ -110,11 +125,12 @@ class TestCourseService:
         return add_courses_with_settings
 
     @pytest.fixture
-    def svc(self, pyramid_request):
+    def svc(self, pyramid_request, application_instance_service, application_instance):
+        application_instance_service.get.return_value = application_instance
         return course_service_factory(sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)
     def application_instance(self, pyramid_request):
         return factories.ApplicationInstance(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key
+            consumer_key=pyramid_request.lti_user.oauth_consumer_key, settings={}
         )
