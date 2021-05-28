@@ -1,7 +1,7 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-from lms.models import HGroup
+from lms.models._hashed_id import hashed_id
 from lms.resources._js_config import JSConfig
 from lms.services import ConsumerKeyError
 
@@ -23,6 +23,34 @@ class LTILaunchResource:
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
 
+    def get_or_create_course(self):
+        """Get the course this LTI launch based on the request's params."""
+        course_service = self._request.find_service(name="course")
+        params = self._request.parsed_params
+
+        tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
+        context_id = params["context_id"]
+
+        # Generate the authority_provided_id based on the LTI
+        # tool_consumer_instance_guid and context_id parameters.
+        # These are "recommended" LTI parameters (according to the spec) that in
+        # practice are provided by all of the major LMS's.
+        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        # and context_id uniquely identifies a course within an LMS. Together they
+        # globally uniquely identify a course.
+        authority_provided_id = hashed_id(tool_consumer_instance_guid, context_id)
+
+        legacy_course = course_service.get_or_create(authority_provided_id)
+        course = course_service.upsert(
+            authority_provided_id,
+            context_id,
+            params["context_title"],
+            self._course_extra(),
+            legacy_course.settings,
+        )
+
+        return legacy_course, course
+
     @property
     def h_group(self):
         """
@@ -43,21 +71,9 @@ class LTILaunchResource:
         different params will always return a different groupid and
         authority_provided_id.
         """
-        # Generate the authority_provided_id based on the LTI
-        # tool_consumer_instance_guid and context_id parameters.
-        # These are "recommended" LTI parameters (according to the spec) that in
-        # practice are provided by all of the major LMS's.
-        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
-        # and context_id uniquely identifies a course within an LMS. Together they
-        # globally uniquely identify a course.
+        _, course = self.get_or_create_course()
 
-        params = self._request.parsed_params
-
-        return HGroup.course_group(
-            course_name=params["context_title"],
-            tool_consumer_instance_guid=params["tool_consumer_instance_guid"],
-            context_id=params["context_id"],
-        )
+        return course
 
     @property
     def is_canvas(self):
@@ -120,6 +136,21 @@ class LTILaunchResource:
         if not self.canvas_sections_supported():
             return False
 
-        course_id = self.h_group.authority_provided_id
-        course = self._request.find_service(name="course").get_or_create(course_id)
-        return course.settings.get("canvas", "sections_enabled")
+        legacy_course, _ = self.get_or_create_course()
+
+        return legacy_course.settings.get("canvas", "sections_enabled")
+
+    def _course_extra(self):
+        """Extra information to store for courses."""
+        extra = {}
+
+        if self.is_canvas:
+            extra = {
+                "canvas": {
+                    "custom_canvas_course_id": self._request.parsed_params.get(
+                        "custom_canvas_course_id"
+                    )
+                }
+            }
+
+        return extra
