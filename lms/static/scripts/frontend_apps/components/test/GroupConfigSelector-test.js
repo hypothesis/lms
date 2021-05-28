@@ -60,9 +60,10 @@ describe('GroupConfigSelector', () => {
     $imports.$restore();
   });
 
-  function createComponent(props = {}) {
+  // Helper that simulates GroupConfigSelector's containing component.
+  function Container(props) {
     const noop = () => {};
-    return mount(
+    return (
       <Config.Provider value={fakeConfig}>
         <GroupConfigSelector
           groupConfig={{ useGroupSet: false, groupSet: null }}
@@ -71,6 +72,10 @@ describe('GroupConfigSelector', () => {
         />
       </Config.Provider>
     );
+  }
+
+  function createComponent(props = {}) {
+    return mount(<Container {...props} />);
   }
 
   function toggleCheckbox(wrapper) {
@@ -187,5 +192,23 @@ describe('GroupConfigSelector', () => {
       'option[data-testid="groupset-option"]'
     );
     assert.equal(options.length, fakeGroupSets.length);
+  });
+
+  it('hides authorization prompt if checkbox is de-selected', async () => {
+    fakeAPICall
+      .withArgs(groupSetsAPIRequest)
+      .rejects(new Error('Authorization failed'));
+    const wrapper = createComponent({
+      groupConfig: { useGroupSet: true, groupSet: null },
+    });
+
+    await waitForElement(wrapper, 'AuthButton');
+
+    // De-activate group sets. In the actual app this would be done by the user
+    // toggling the checkbox. The checkbox state lives in the parent component
+    // though.
+    wrapper.setProps({ groupConfig: { useGroupSet: false, groupSet: null } });
+
+    assert.isFalse(wrapper.exists('AuthButton'));
   });
 });

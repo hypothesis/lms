@@ -118,7 +118,7 @@ export default function GroupConfigSelector({
           This is a group assignment
         </LabeledCheckbox>
       </div>
-      {fetchError && (
+      {fetchError && useGroupSet && (
         // Currently all fetch errors are handled by attempting to re-authorize
         // and then re-fetch group sets.
         <Fragment>
