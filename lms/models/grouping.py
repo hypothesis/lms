@@ -37,7 +37,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         sa.ForeignKey("grouping.id", ondelete="cascade"),
         nullable=True,
     )
-    parent = sa.orm.relationship("Grouping")
+    parent = sa.orm.relationship("Grouping", remote_side=[id])
 
     #: The LMS's ID for the grouping.
     #:
