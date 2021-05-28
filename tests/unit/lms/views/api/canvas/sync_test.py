@@ -1,10 +1,11 @@
 import pytest
 
-from lms.models import HGroup
 from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
-pytestmark = pytest.mark.usefixtures("canvas_api_client", "lti_h_service")
+pytestmark = pytest.mark.usefixtures(
+    "canvas_api_client", "lti_h_service", "grouping_service"
+)
 
 
 @pytest.mark.usefixtures("user_is_learner")
@@ -47,17 +48,17 @@ def test_sync_when_in_SpeedGrader(
 
 
 @pytest.fixture
-def assert_sync_and_return(lti_h_service, request_json):
+def assert_sync_and_return(lti_h_service, request_json, grouping_service):
     tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
     context_id = request_json["course"]["context_id"]
 
     def assert_return_values(groupids, sections):
         expected_groups = [
-            HGroup.section_group(
-                section_name=section.get("name", f"Section {section['id']}"),
+            grouping_service.canvas_section(
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
                 section_id=section["id"],
+                section_name=section.get("name", f"Section {section['id']}"),
             )
             for section in sections
         ]
