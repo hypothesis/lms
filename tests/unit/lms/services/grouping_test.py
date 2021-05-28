@@ -45,7 +45,7 @@ class TestGroupingService:  # pylint: disable=protected-access
         application_instance_service.get.return_value = factories.ApplicationInstance()
         course_service.get.return_value = factories.Course()
 
-        grouping = svc.section_grouping(
+        grouping = svc.canvas_section(
             self.TOOL_CONSUMER_INSTANCE_GUID,
             self.CONTEXT_ID,
             "section_id",
