@@ -37,7 +37,6 @@ class BasicLTILaunchViews:
         self.context = context
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
-        self.course_service = request.find_service(name="course")
 
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
@@ -50,7 +49,7 @@ class BasicLTILaunchViews:
         """Do a basic LTI launch with the given document_url."""
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
+        self.context.get_or_create_course()
 
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
@@ -236,7 +235,7 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        self.course_service.get_or_create(self.context.h_group.authority_provided_id)
+        self.context.get_or_create_course()
 
         form_fields = {
             param: value

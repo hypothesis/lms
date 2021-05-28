@@ -53,9 +53,7 @@ def content_item_selection(context, request):
         request.params
     )
 
-    request.find_service(name="course").get_or_create(
-        context.h_group.authority_provided_id
-    )
+    context.get_or_create_course()
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
 
