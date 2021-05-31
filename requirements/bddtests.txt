@@ -88,7 +88,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   pyramid-jinja2
-marshmallow==3.8.0
+marshmallow==3.12.1
     # via
     #   -r requirements/requirements.txt
     #   webargs
