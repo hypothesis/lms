@@ -31,7 +31,11 @@ SECTIONS_SCOPES = (
     "url:GET|/api/v1/courses/:course_id/users/:id",
 )
 
-GROUPS_SCOPES = ("url:GET|/api/v1/courses/:course_id/group_categories",)
+GROUPS_SCOPES = (
+    "url:GET|/api/v1/courses/:course_id/group_categories",
+    "url:GET|/api/v1/group_categories/:group_category_id/groups",
+    "url:GET|/api/v1/courses/:course_id/groups",
+)
 
 
 @view_config(

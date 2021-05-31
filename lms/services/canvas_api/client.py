@@ -268,6 +268,29 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         name = fields.Str(required=True)
 
+    def group_category_groups(self, group_category_id):
+        """List groups that belong to the group category/group set `group_category_id`."""
+        return self._client.send(
+            "GET",
+            f"group_categories/{group_category_id}/groups",
+            schema=self._ListGroups,
+        )
+
+    def course_groups(self, course_id, only_own_groups=True):
+        return self._client.send(
+            "GET",
+            f"courses/{course_id}/groups",
+            params={"only_own_groups": only_own_groups},
+            schema=self._ListGroups,
+        )
+
+    class _ListGroups(RequestsResponseSchema):
+        many = True
+        id = fields.Integer(required=True)
+        name = fields.Str(required=True)
+        description = fields.String(default=None, allow_none=True)
+        group_category_id = fields.Integer(required=True)
+
     @classmethod
     def _ensure_sections_unique(cls, sections):
         """
