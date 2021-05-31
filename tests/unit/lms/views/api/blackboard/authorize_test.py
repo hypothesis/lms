@@ -1,15 +1,11 @@
 import pytest
 from h_matchers import Any
 
-from lms.services import NoOAuth2Token
 from lms.views.api.blackboard.authorize import authorize, oauth2_redirect
 from tests.matchers import temporary_redirect_to
 
-pytestmark = pytest.mark.usefixtures(
-    "application_instance_service", "oauth2_token_service"
-)
 
-
+@pytest.mark.usefixtures("application_instance_service")
 class TestAuthorize:
     def test_it_redirects_to_the_Blackboard_authorization_page(
         self,
@@ -43,27 +39,17 @@ class TestAuthorize:
         )
 
 
+@pytest.mark.usefixtures("blackboard_api_client")
 class TestOAuth2Redirect:
-    def test_it_saves_an_access_token_if_none_exists(
-        self, pyramid_request, oauth2_token_service
+    def test_it_gets_a_new_access_token_for_the_user(
+        self, pyramid_request, blackboard_api_client
     ):
-        oauth2_token_service.get.side_effect = NoOAuth2Token()
+        pyramid_request.params["code"] = "test_code"
 
-        oauth2_redirect(pyramid_request)
+        result = oauth2_redirect(pyramid_request)
 
-        oauth2_token_service.save.assert_called_once_with(
-            "fake_access_token", "fake_refresh_token", 9999
-        )
-
-    def test_it_doesnt_save_an_access_token_if_there_already_is_one(
-        self, pyramid_request, oauth2_token_service
-    ):
-        oauth2_redirect(pyramid_request)
-
-        oauth2_token_service.save.assert_not_called()
-
-    def test_it_returns_an_empty_dict(self, pyramid_request):
-        assert oauth2_redirect(pyramid_request) == {}
+        blackboard_api_client.get_token.assert_called_once_with("test_code")
+        assert result == {}
 
 
 @pytest.fixture(autouse=True)

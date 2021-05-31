@@ -9,6 +9,7 @@ from pyramid.request import apply_request_extensions
 from lms.models import ApplicationSettings
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
+from lms.services.blackboard_api import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService
@@ -192,6 +193,15 @@ def assignment_service(pyramid_config):
     )
     pyramid_config.register_service(assignment_service, name="assignment")
     return assignment_service
+
+
+@pytest.fixture
+def blackboard_api_client(pyramid_config):
+    blackboard_api_client = mock.create_autospec(
+        BlackboardAPIClient, spec_set=True, instance=True
+    )
+    pyramid_config.register_service(blackboard_api_client, name="blackboard_api_client")
+    return blackboard_api_client
 
 
 @pytest.fixture
