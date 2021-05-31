@@ -4,7 +4,6 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.services import NoOAuth2Token
 from lms.validation.authentication import OAuthCallbackSchema
 
 
@@ -47,13 +46,8 @@ def authorize(request):
     route_name="blackboard_api.oauth.callback",
     permission=Permissions.API,
     renderer="lms:templates/api/oauth2/redirect.html.jinja2",
+    schema=OAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    oauth2_token_service = request.find_service(name="oauth2_token")
-
-    try:
-        oauth2_token_service.get()
-    except NoOAuth2Token:
-        oauth2_token_service.save("fake_access_token", "fake_refresh_token", 9999)
-
+    request.find_service(name="blackboard_api_client").get_token(request.params["code"])
     return {}
