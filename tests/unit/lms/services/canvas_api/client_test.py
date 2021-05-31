@@ -156,6 +156,75 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
+    @pytest.mark.parametrize("only_own_groups", [True, False])
+    def test_course_groups(self, only_own_groups, canvas_api_client, http_session):
+        groups = [
+            {
+                "id": 1,
+                "name": "Group 1",
+                "description": "Group 1",
+                "group_category_id": 1,
+            },
+            {
+                "id": 2,
+                "name": "Group 2",
+                "description": "Group 2",
+                "group_category_id": 1,
+            },
+        ]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=groups
+        )
+
+        response = canvas_api_client.course_groups(
+            "COURSE_ID", only_own_groups=only_own_groups
+        )
+
+        assert response == groups
+
+        http_session.send.assert_called_once_with(
+            Any.request(
+                "GET",
+                url=Any.url.with_path("api/v1/courses/COURSE_ID/groups").with_query(
+                    {"per_page": Any.string(), "only_own_groups": str(only_own_groups)}
+                ),
+            ),
+            timeout=Any(),
+        )
+
+    def test_group_category_groups(self, canvas_api_client, http_session):
+        groups = [
+            {
+                "id": 1,
+                "name": "Group 1",
+                "description": "Group 1",
+                "group_category_id": 1,
+            },
+            {
+                "id": 2,
+                "name": "Group 2",
+                "description": "Group 2",
+                "group_category_id": 1,
+            },
+        ]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=groups
+        )
+
+        response = canvas_api_client.group_category_groups("GROUP_CATEGORY")
+
+        assert response == groups
+
+        http_session.send.assert_called_once_with(
+            Any.request(
+                "GET",
+                url=Any.url.with_path(
+                    "api/v1/group_categories/GROUP_CATEGORY/groups"
+                ).with_query({"per_page": Any.string()}),
+            ),
+            timeout=Any(),
+        )
+
     def test_users_sections(self, canvas_api_client, http_session):
         http_session.send.return_value = factories.requests.Response(
             status_code=200,
