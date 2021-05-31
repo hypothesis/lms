@@ -4,8 +4,8 @@ import pytest
 from h_matchers import Any
 
 from lms.services import CanvasAPIServerError, NoOAuth2Token, ProxyAPIAccessTokenError
-from lms.services.canvas_api._authenticated import TokenResponseSchema
 from lms.services.canvas_api._basic import BasicClient
+from lms.validation.authentication import OAuthTokenResponseSchema
 from tests import factories
 
 
@@ -105,7 +105,7 @@ class TestAuthenticatedClient:
                 "redirect_uri": sentinel.redirect_uri,
                 "replace_tokens": True,
             },
-            schema=TokenResponseSchema,
+            schema=OAuthTokenResponseSchema,
             url_stub="",
         )
 
@@ -131,7 +131,7 @@ class TestAuthenticatedClient:
                 "client_secret": sentinel.client_secret,
                 "refresh_token": "refresh_token",
             },
-            schema=TokenResponseSchema,
+            schema=OAuthTokenResponseSchema,
             url_stub="",
         )
 
@@ -161,12 +161,13 @@ class TestAuthenticatedClientIntegrated:
         token = token_method("code")
         assert token == token_response["access_token"]
 
-    @pytest.mark.parametrize("bad_value", [-1, 0, "string"])
-    def test_bad_expires_in(
-        self, token_method, http_session, token_response, bad_value
+    def test_invalid_access_token_response(
+        self, token_method, http_session, token_response
     ):
+        del token_response["access_token"]
+
         http_session.send.return_value = factories.requests.Response(
-            status_code=200, json_data=dict(token_response, expires_in=bad_value)
+            status_code=200, json_data=dict(token_response)
         )
 
         with pytest.raises(CanvasAPIServerError):

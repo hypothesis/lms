@@ -9,7 +9,10 @@ from lms.validation.authentication import (
     InvalidStateParamError,
     MissingStateParamError,
 )
-from lms.validation.authentication._oauth import OAuthCallbackSchema
+from lms.validation.authentication._oauth import (
+    OAuthCallbackSchema,
+    OAuthTokenResponseSchema,
+)
 from tests import factories
 
 
@@ -165,6 +168,92 @@ class TestOauthCallbackSchema:
         with testing.testConfig(request=pyramid_request, settings=settings) as config:
             config.include("pyramid_services")
             yield config
+
+
+class TestOAuthTokenResponseSchema:
+    @pytest.mark.parametrize(
+        "json_data",
+        [
+            {
+                "access_token": "test_access_token",
+                "refresh_token": "test_refresh_token",
+                "expires_in": 3600,
+            },
+            {
+                "access_token": "test_access_token",
+            },
+            {
+                "access_token": "test_access_token",
+                "expires_in": 1,
+            },
+        ],
+    )
+    def test_valid(self, json_data):
+        schema = OAuthTokenResponseSchema(
+            factories.requests.Response(json_data=json_data)
+        )
+
+        result = schema.parse()
+
+        assert result == json_data
+
+    @pytest.mark.parametrize(
+        "json_data,messages",
+        [
+            (
+                {
+                    "refresh_token": "test_refresh_token",
+                    "expires_in": 3600,
+                },
+                {"access_token": ["Missing data for required field."]},
+            ),
+            (
+                {
+                    "access_token": 123,
+                },
+                {"access_token": ["Not a valid string."]},
+            ),
+            (
+                {
+                    "access_token": "test_access_token",
+                    "refresh_token": 123,
+                    "expires_in": 3600,
+                },
+                {"refresh_token": ["Not a valid string."]},
+            ),
+            (
+                {
+                    "access_token": "test_access_token",
+                    "refresh_token": "test_refresh_token",
+                    "expires_in": "foo",
+                },
+                {"expires_in": ["Not a valid integer."]},
+            ),
+            (
+                {
+                    "access_token": "test_access_token",
+                    "expires_in": 0,
+                },
+                {"expires_in": ["expires_in must be greater than 0"]},
+            ),
+            (
+                {
+                    "access_token": "test_access_token",
+                    "expires_in": -1,
+                },
+                {"expires_in": ["expires_in must be greater than 0"]},
+            ),
+        ],
+    )
+    def test_invalid(self, json_data, messages):
+        schema = OAuthTokenResponseSchema(
+            factories.requests.Response(json_data=json_data)
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        assert exc_info.value.messages == messages
 
 
 @pytest.fixture(autouse=True)
