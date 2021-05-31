@@ -126,7 +126,7 @@ def oauth2_redirect_error(request):
         auth_url=auth_url,
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
-        requested_scopes=FILES_SCOPES + SECTIONS_SCOPES,
+        requested_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
     )
 
     return {}

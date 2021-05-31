@@ -176,6 +176,9 @@ class TestOAuth2RedirectError:
             "url:GET|/api/v1/courses/:id",
             "url:GET|/api/v1/courses/:course_id/sections",
             "url:GET|/api/v1/courses/:course_id/users/:id",
+            "url:GET|/api/v1/courses/:course_id/group_categories",
+            "url:GET|/api/v1/group_categories/:group_category_id/groups",
+            "url:GET|/api/v1/courses/:course_id/groups",
         )
 
         authorize.oauth2_redirect_error(pyramid_request)
