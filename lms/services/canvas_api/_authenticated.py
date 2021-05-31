@@ -1,10 +1,7 @@
 """Access to the authenticated parts of the Canvas API."""
 
-import marshmallow
-from marshmallow import fields
-
 from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
-from lms.validation import RequestsResponseSchema
+from lms.validation.authentication import OAuthTokenResponseSchema
 
 
 class AuthenticatedClient:
@@ -128,7 +125,7 @@ class AuthenticatedClient:
             "login/oauth2/token",
             url_stub="",
             params=params,
-            schema=TokenResponseSchema,
+            schema=OAuthTokenResponseSchema,
         )
 
         self._oauth2_token_service.save(
@@ -138,16 +135,3 @@ class AuthenticatedClient:
         )
 
         return parsed_params["access_token"]
-
-
-class TokenResponseSchema(RequestsResponseSchema):
-    """Schema for validating OAuth 2 token responses from Canvas."""
-
-    access_token = fields.Str(required=True)
-    refresh_token = fields.Str()
-    expires_in = fields.Integer()
-
-    @marshmallow.validates("expires_in")
-    def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if expires_in <= 0:
-            raise marshmallow.ValidationError("expires_in must be greater than 0")

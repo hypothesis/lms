@@ -4,7 +4,7 @@ import marshmallow
 from webargs import fields
 
 from lms.models import LTIUser
-from lms.validation._base import PyramidRequestSchema
+from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
     ExpiredStateParamError,
@@ -131,3 +131,16 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             raise ExpiredStateParamError() from err
         except InvalidJWTError as err:
             raise InvalidStateParamError() from err
+
+
+class OAuthTokenResponseSchema(RequestsResponseSchema):
+    """Schema for token responses from OAuth 2 authentication servers."""
+
+    access_token = fields.Str(required=True)
+    refresh_token = fields.Str()
+    expires_in = fields.Integer()
+
+    @marshmallow.validates("expires_in")
+    def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
+        if expires_in <= 0:
+            raise marshmallow.ValidationError("expires_in must be greater than 0")
