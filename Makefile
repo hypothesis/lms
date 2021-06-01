@@ -29,7 +29,6 @@ services: python
 .PHONY: db
 db: args?=upgrade head
 db: python
-	@tox -qqe dev --run-command 'python bin/initialize_db.py conf/development.ini'
 	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
 .PHONY: dev
