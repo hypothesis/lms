@@ -88,7 +88,7 @@ BASE = declarative_base(
 SESSION = sessionmaker()
 
 
-def init(engine, drop=False):
+def init(engine, drop=False):  # pragma: nocover
     """
     Create all the database tables if they don't already exist.
 
@@ -102,20 +102,6 @@ def init(engine, drop=False):
     if drop:
         BASE.metadata.drop_all(engine)
     BASE.metadata.create_all(engine)
-
-
-def _stamp_db(engine):  # pragma: nocover
-    """
-    Stamp the database with the latest revision if it isn't already stamped.
-
-    This is convenient in development environments to automatically stamp a new
-    database after initializing it.
-
-    """
-    try:
-        engine.execute("select 1 from alembic_version")
-    except sqlalchemy.exc.ProgrammingError:
-        alembic.command.stamp(alembic.config.Config("conf/alembic.ini"), "head")
 
 
 def make_engine(settings):
@@ -160,10 +146,6 @@ def includeme(config):
     # Create the SQLAlchemy engine and save a reference in the app registry.
     engine = make_engine(config.registry.settings)
     config.registry["sqlalchemy.engine"] = engine
-    init(engine)
-
-    if config.registry.settings["dev"]:  # pragma: nocover
-        _stamp_db(engine)
 
     # Add a property to all requests for easy access to the session. This means
     # that view functions need only refer to ``request.db`` in order to
