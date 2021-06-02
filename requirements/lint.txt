@@ -172,7 +172,7 @@ newrelic==6.4.0.157
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-oauthlib==3.1.0
+oauthlib==3.1.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
