@@ -493,6 +493,7 @@ class TestJSConfigAPISync:
                 "course": {
                     "context_id": "test_context_id",
                     "custom_canvas_course_id": "test_custom_canvas_course_id",
+                    "group_set": None,
                 },
                 "lms": {
                     "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
@@ -511,7 +512,7 @@ class TestJSConfigAPISync:
             "canvas_user_id": "test_learner_canvas_user_id",
         }
 
-    def test_its_None_if_section_groups_isnt_enabled(self, sync):
+    def test_its_None_if_section_and_groups_arent_enabled(self, sync):
         assert sync is None
 
     @pytest.fixture
@@ -704,12 +705,18 @@ def context():
         h_group=mock.create_autospec(Grouping, instance=True, spec_set=True),
         is_canvas=True,
         canvas_sections_enabled=False,
+        canvas_groups_enabled=False,
     )
 
 
 @pytest.fixture
 def section_groups_on(context):
     context.canvas_sections_enabled = True
+
+
+@pytest.fixture
+def canvas_groups_on(context):
+    context.canvas_groups_enabled = True
 
 
 @pytest.fixture
