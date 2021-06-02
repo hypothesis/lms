@@ -407,7 +407,7 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-urllib3==1.25.10
+urllib3==1.26.5
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
