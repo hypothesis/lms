@@ -29,9 +29,9 @@ import GroupConfigSelector from './GroupConfigSelector';
  */
 
 /**
- * Return a human-readable description of the selected content for an assignment.
+ * Return a human-readable description of assignment content.
  *
- * @param {Content} content
+ * @param {Content} content - Type and details of assignment content
  * @return {string}
  */
 function contentDescription(content) {
