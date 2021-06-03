@@ -39,7 +39,7 @@ class HTTPService:
         timeout=(10, 10),
         schema=None,
         **kwargs,
-    ):  # pylint:disable=too-many-arguments
+    ):
         """
         Send a request with `requests` and return the requests.Response object.
 
