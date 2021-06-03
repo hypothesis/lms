@@ -134,6 +134,31 @@ describe('FilePickerApp', () => {
       assert.notCalled(onSubmit);
     });
 
+    it('displays a summary of the assignment content', () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(wrapper, 'https://example.com');
+
+      assert.equal(
+        wrapper.find('[data-testid="content-summary"]').text(),
+        'https://example.com'
+      );
+    });
+
+    it('truncates long URLs in assignment content summary', () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(
+        wrapper,
+        'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash'
+      );
+
+      assert.equal(
+        wrapper.find('[data-testid="content-summary"]').text(),
+        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_…'
+      );
+    });
+
     it('disables "Continue" button when group sets are enabled but no group set is selected', () => {
       const wrapper = renderFilePicker();
 

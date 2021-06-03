@@ -9,6 +9,7 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
+import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
 import ErrorDialog from './ErrorDialog';
@@ -37,7 +38,7 @@ import GroupConfigSelector from './GroupConfigSelector';
 function contentDescription(content) {
   switch (content.type) {
     case 'url':
-      return content.url;
+      return truncateURL(content.url, 65 /* maxLength */);
     case 'file':
       return 'PDF file in Canvas';
     case 'vitalsource':
@@ -123,7 +124,7 @@ export default function FilePickerApp({ onSubmit }) {
         <div className="FilePickerApp__left-col">Assignment content</div>
         <div className="FilePickerApp__right-col">
           {content ? (
-            <i>{contentDescription(content)}</i>
+            <i data-testid="content-summary">{contentDescription(content)}</i>
           ) : (
             <Fragment>
               <p>
