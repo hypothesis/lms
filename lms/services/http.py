@@ -8,7 +8,9 @@ from lms.validation import ValidationError
 class HTTPService:
     """Send HTTP requests with `requests` and receive the responses."""
 
-    def __init__(self, _session=None):
+    def __init__(self, oauth2_token_service, _session=None):
+        self._oauth2_token_service = oauth2_token_service
+
         # A requests session is used so that cookies are persisted across
         # requests and urllib3 connection pooling is used (which means that
         # underlying TCP connections are re-used when making multiple requests
@@ -38,6 +40,7 @@ class HTTPService:
         url,
         timeout=(10, 10),
         schema=None,
+        oauth=False,
         **kwargs,
     ):
         """
@@ -64,6 +67,12 @@ class HTTPService:
 
         :param schema: A schema class to use to validate the response
         :type schema: lms.validation.RequestsResponseSchema
+
+        :param oauth: Include an OAuth 2 access token in the request.
+            If oauth=True the current user's access token will be looked up in
+            the database and included in an Authorization header in the
+            request.
+        :type oauth: bool
 
         :param kwargs: Any other keyword arguments will be passed directly to
             requests.Session().request():
@@ -93,8 +102,17 @@ class HTTPService:
 
             The invalid response will be available as
             HTTPValidationError.response.
+
+        :raise NoOAuth2Token: If oauth=True was given but we don't have an
+            access token for the current user in our DB
         """
         response = None
+
+        if oauth:
+            kwargs.setdefault("headers", {})
+            assert "Authorization" not in kwargs["headers"]
+            access_token = self._oauth2_token_service.get().access_token
+            kwargs["headers"]["Authorization"] = f"Bearer {access_token}"
 
         try:
             response = self._session.request(
@@ -116,5 +134,5 @@ class HTTPService:
         return response
 
 
-def factory(_context, _request):
-    return HTTPService()
+def factory(_context, request):
+    return HTTPService(request.find_service(name="oauth2_token"))
