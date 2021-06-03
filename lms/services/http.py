@@ -43,15 +43,6 @@ class HTTPService:
         """
         Send a request with `requests` and return the requests.Response object.
 
-        Also supports validating the response with a `marshmallow` schema. If a
-        `schema` argument is given the response will be validated using the
-        schema and the schema output will be added to the returned response as
-        response.validated_data.
-
-        The schema must be a RequestsResponseSchema sub-class.
-
-        HTTPValidationError will be raised if schema validation fails.
-
         :param method: The HTTP method to use, one of "GET", "PUT", "POST",
             "PATCH", "DELETE", "OPTIONS" or "HEAD"
 
