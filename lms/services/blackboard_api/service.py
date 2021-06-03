@@ -1,3 +1,4 @@
+from lms.services.blackboard_api._schemas import BlackboardListFilesSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 
@@ -28,7 +29,7 @@ class BlackboardAPIClient:
         """
         # Send a request to Blackboard to get an access token.
         response = self._http_service.post(
-            f"https://{self.blackboard_host}/learn/api/public/v1/oauth2/token",
+            self._api_url("oauth2/token"),
             data={
                 "grant_type": "authorization_code",
                 "redirect_uri": self.redirect_uri,
@@ -44,6 +45,23 @@ class BlackboardAPIClient:
             response.validated_data.get("refresh_token"),
             response.validated_data.get("expires_in"),
         )
+
+    def list_files(self, course_id):
+        """
+        Return the list of files in the given course.
+
+        :raise ProxyAPIAccessTokenError: if we don't have a Blackboard API
+            access token for the current user
+        """
+        return self._http_service.get(
+            self._api_url(f"courses/uuid:{course_id}/resources"),
+            oauth=True,
+            schema=BlackboardListFilesSchema,
+        ).validated_data
+
+    def _api_url(self, path):
+        """Return the full Blackboard API URL for the given path."""
+        return f"https://{self.blackboard_host}/learn/api/public/v1/{path}"
 
 
 def factory(_context, request):

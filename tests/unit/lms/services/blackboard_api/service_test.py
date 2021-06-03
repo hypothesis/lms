@@ -3,12 +3,13 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import HTTPError, HTTPValidationError
-from lms.services.blackboard_api import BlackboardAPIClient, factory
+from lms.services.blackboard_api._schemas import BlackboardListFilesSchema
+from lms.services.blackboard_api.service import BlackboardAPIClient, factory
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 
 class TestBlackboardAPIClient:
-    def test_it(self, svc, http_service, oauth2_token_service):
+    def test_get_token(self, svc, http_service, oauth2_token_service):
         http_service.post.return_value.validated_data = {
             "access_token": sentinel.access_token,
             "refresh_token": sentinel.refresh_token,
@@ -35,13 +36,15 @@ class TestBlackboardAPIClient:
         )
 
     @pytest.mark.parametrize("exception_class", [HTTPError, HTTPValidationError])
-    def test_it_raises_if_http_service_raises(self, svc, http_service, exception_class):
+    def test_get_token_raises_if_HTTPService_raises(
+        self, svc, http_service, exception_class
+    ):
         http_service.post.side_effect = exception_class
 
         with pytest.raises(exception_class):
             svc.get_token(sentinel.authorization_code)
 
-    def test_if_theres_no_refresh_token_or_expires_in(
+    def test_get_token_if_theres_no_refresh_token_or_expires_in(
         self, svc, http_service, oauth2_token_service
     ):
         # refresh_token and expires_in are optional fields in
@@ -56,6 +59,25 @@ class TestBlackboardAPIClient:
         oauth2_token_service.save.assert_called_once_with(
             sentinel.access_token, None, None
         )
+
+    def test_list_files(self, svc, http_service):
+        files = svc.list_files("TEST_COURSE_ID")
+
+        http_service.get.assert_called_once_with(
+            "https://blackboard.example.com/learn/api/public/v1/courses/uuid:TEST_COURSE_ID/resources",
+            oauth=True,
+            schema=BlackboardListFilesSchema,
+        )
+        assert files == http_service.get.return_value.validated_data
+
+    @pytest.mark.parametrize("exception_class", [HTTPError, HTTPValidationError])
+    def test_list_files_raises_if_HTTPService_raises(
+        self, svc, http_service, exception_class
+    ):
+        http_service.get.side_effect = exception_class
+
+        with pytest.raises(exception_class):
+            svc.list_files(sentinel.course_id)
 
     @pytest.fixture
     def svc(self, http_service, oauth2_token_service):
@@ -98,4 +120,4 @@ class TestFactory:
 
     @pytest.fixture(autouse=True)
     def BlackboardAPIClient(self, patch):
-        return patch("lms.services.blackboard_api.BlackboardAPIClient")
+        return patch("lms.services.blackboard_api.service.BlackboardAPIClient")
