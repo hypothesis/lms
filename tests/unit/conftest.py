@@ -9,7 +9,7 @@ from pyramid.request import apply_request_extensions
 from lms.models import ApplicationSettings
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
-from lms.services.blackboard_api import BlackboardAPIClient
+from lms.services.blackboard_api.service import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.grading_info import GradingInfoService

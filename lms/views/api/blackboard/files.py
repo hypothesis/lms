@@ -10,38 +10,14 @@ from lms.views import helpers
 class BlackboardFilesAPIViews:
     def __init__(self, request):
         self.request = request
+        self.blackboard_api_client = request.find_service(name="blackboard_api_client")
 
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
     def list_files(self):
         """Return the list of files in the given course."""
-        # Get the user's access token from the DB.
-        # We're not actually going to *use* the access token, since this view
-        # just returns a list of hard-coded files. But we want to *get* the
-        # access token so that we can raise an exception if it's missing and
-        # trigger the authentication flow.
-        try:
-            self.request.find_service(name="oauth2_token").get()
-        except NoOAuth2Token as err:
-            raise ProxyAPIAccessTokenError() from err
-
-        # Return a temporary hard-coded list of files.
-        return [
-            {
-                "id": "blackboard://content-resource/123",
-                "display_name": "Fake Blackboard File 1",
-                "updated_at": "2020-06-10T16:49:19Z",
-            },
-            {
-                "id": "blackboard://content-resource/456",
-                "display_name": "Fake Blackboard File 2",
-                "updated_at": "2020-06-10T16:48:53Z",
-            },
-            {
-                "id": "blackboard://content-resource/789",
-                "display_name": "Fake Blackboard File 3",
-                "updated_at": "2020-08-03T14:06:00Z",
-            },
-        ]
+        return self.blackboard_api_client.list_files(
+            self.request.matchdict["course_id"]
+        )
 
     @view_config(request_method="GET", route_name="blackboard_api.files.via_url")
     def via_url(self):
