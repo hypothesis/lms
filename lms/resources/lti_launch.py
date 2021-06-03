@@ -22,6 +22,9 @@ class LTILaunchResource:
         """Return the context resource for an LTI launch request."""
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
+        self._application_instance_service = self._request.find_service(
+            name="application_instance"
+        )
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
@@ -118,12 +121,8 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        application_instance_service = self._request.find_service(
-            name="application_instance"
-        )
-
         try:
-            application_instance = application_instance_service.get()
+            application_instance = self._application_instance_service.get()
         except ConsumerKeyError:
             return False
 
@@ -143,16 +142,12 @@ class LTILaunchResource:
     @property
     def canvas_groups_enabled(self):
         """Return True if Canvas groups is enabled for this request."""
-        application_instance_service = self._request.find_service(
-            name="application_instance"
-        )
-
         try:
-            application_instance = application_instance_service.get()
+            application_instance = self._application_instance_service.get()
         except ConsumerKeyError:
             return False
 
-        return application_instance.settings.get("canvas", "groups_enabled") or False
+        return bool(application_instance.settings.get("canvas", "groups_enabled"))
 
     def _course_extra(self):
         """Extra information to store for courses."""
