@@ -1,5 +1,6 @@
 @use "sass:math";
 
+@use "../mixins";
 @use "../variables" as var;
 
 .BasicLtiLaunchApp {
@@ -7,11 +8,7 @@
 }
 
 .BasicLtiLaunchApp__spinner {
-  position: absolute;
-  width: var.$spinner-size;
-  height: var.$spinner-size;
-  left: calc(50% - #{math.div(var.$spinner-size, 2)});
-  top: calc(50% - #{math.div(var.$spinner-size, 2)});
+  @include mixins.spinner($size: var.$spinner-size);
 }
 
 .BasicLtiLaunchApp__content {
