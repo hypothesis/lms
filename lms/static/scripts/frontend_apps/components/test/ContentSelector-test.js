@@ -65,6 +65,9 @@ describe('ContentSelector', () => {
     );
   };
 
+  const isLoadingIndicatorVisible = wrapper =>
+    wrapper.exists('FullScreenSpinner');
+
   it('renders Canvas file picker button if Canvas file picker enabled', () => {
     fakeConfig.filePicker.canvas.enabled = true;
     const wrapper = renderContentSelector();
@@ -92,7 +95,7 @@ describe('ContentSelector', () => {
   it('shows URL selection dialog when "Enter URL" button is clicked', () => {
     const wrapper = renderContentSelector();
 
-    assert.isFalse(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isFalse(isLoadingIndicatorVisible(wrapper));
 
     const btn = wrapper.find('LabeledButton[data-testid="url-button"]');
     interact(wrapper, () => {
@@ -101,12 +104,12 @@ describe('ContentSelector', () => {
 
     const urlPicker = wrapper.find('URLPicker');
     assert.isTrue(urlPicker.exists());
-    assert.isTrue(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isTrue(isLoadingIndicatorVisible(wrapper));
 
     interact(wrapper, () => {
       urlPicker.props().onCancel();
     });
-    assert.isFalse(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isFalse(isLoadingIndicatorVisible(wrapper));
   });
 
   it('supports selecting a URL', () => {
@@ -130,14 +133,14 @@ describe('ContentSelector', () => {
   it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
     const wrapper = renderContentSelector();
 
-    assert.isFalse(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isFalse(isLoadingIndicatorVisible(wrapper));
 
     const btn = wrapper.find('LabeledButton[data-testid="lms-file-button"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
 
-    assert.isTrue(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isTrue(isLoadingIndicatorVisible(wrapper));
 
     const filePicker = wrapper.find('LMSFilePicker');
     assert.isTrue(filePicker.exists());
@@ -150,7 +153,7 @@ describe('ContentSelector', () => {
     interact(wrapper, () => {
       filePicker.props().onCancel();
     });
-    assert.isFalse(wrapper.find('.ContentSelector__loading-backdrop').exists());
+    assert.isFalse(isLoadingIndicatorVisible(wrapper));
   });
 
   it('supports selecting an LMS file', () => {
@@ -245,9 +248,9 @@ describe('ContentSelector', () => {
 
     it('shows loading indicator while waiting for user to pick file', () => {
       const wrapper = renderContentSelector();
-      assert.isFalse(wrapper.exists('Spinner'));
+      assert.isFalse(isLoadingIndicatorVisible(wrapper));
       clickGoogleDriveButton(wrapper);
-      assert.isTrue(wrapper.exists('Spinner'));
+      assert.isTrue(isLoadingIndicatorVisible(wrapper));
     });
 
     it('shows error message if Google Picker fails to load', async () => {
@@ -296,7 +299,7 @@ describe('ContentSelector', () => {
       }
 
       wrapper.setProps({}); // Force re-render.
-      assert.isFalse(wrapper.exists('Spinner'));
+      assert.isFalse(isLoadingIndicatorVisible(wrapper));
     });
   });
 

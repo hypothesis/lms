@@ -7,8 +7,8 @@ import {
   GooglePickerClient,
   PickerCanceledError,
 } from '../utils/google-picker-client';
+import FullScreenSpinner from './FullScreenSpinner';
 import LMSFilePicker from './LMSFilePicker';
-import Spinner from './Spinner';
 import URLPicker from './URLPicker';
 
 /**
@@ -150,11 +150,7 @@ export default function ContentSelector({
 
   return (
     <Fragment>
-      {isLoadingIndicatorVisible && (
-        <div className="ContentSelector__loading-backdrop">
-          <Spinner className="ContentSelector__loading-spinner" />
-        </div>
-      )}
+      {isLoadingIndicatorVisible && <FullScreenSpinner />}
       <div className="ContentSelector__actions">
         <div className="ContentSelector__actions-buttons">
           <LabeledButton

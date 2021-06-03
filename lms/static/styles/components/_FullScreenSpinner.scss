@@ -1,0 +1,18 @@
+@use "sass:math";
+
+@use "../mixins";
+@use "../variables" as var;
+
+.FullScreenSpinner__backdrop {
+  background-color: white;
+  bottom: 0;
+  left: 0;
+  opacity: 0.5;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.FullScreenSpinner__spinner {
+  @include mixins.spinner($size: var.$spinner-size);
+}
