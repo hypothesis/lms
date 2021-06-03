@@ -36,11 +36,6 @@ class HTTPService:
         self,
         method,
         url,
-        params=None,
-        data=None,
-        json=None,
-        headers=None,
-        auth=None,
         timeout=(10, 10),
         schema=None,
         **kwargs,
@@ -61,47 +56,6 @@ class HTTPService:
             "PATCH", "DELETE", "OPTIONS" or "HEAD"
 
         :param url: The URL to request
-
-        :param params: Query params to append to the URL.
-
-            This can be a dict or list of tuples and it'll be serialized into a
-            query string.
-
-            Or it can be a byte string and it'll be used directly as the query
-            string.
-
-        :param data: Form data to send in the body of the request.
-
-            This can be a dict or list of tuples and it'll be serialized into a
-            form body.
-
-            Or it can be bytes or a file-like object (e.g. a JSON byte string)
-            it'll be used directly as the request body.
-
-        :param json: Data to send in the body of the request as JSON.
-
-            Using this changes the request's content-type to application/json.
-
-            This can't be used at the same time as the `data` argument.
-
-        :type json: Any JSON-serializable object (e.g. a list or dict)
-
-        :param headers: Headers to send in the request.
-
-            Header values should be byte strings not unicode.
-
-        :type headers: dict
-
-        :param auth: Authorization to send in the request's Authorization header.
-
-            This can be a (user, pass) 2-tuple which will be serialized using
-            HTTP Basic Authentication.
-
-            Or it can be a callable in order to implement other authentication
-            schemes. `requests` itself and libraries like `requests_oauthlib`
-            provide auth callables that you can use or you can write your own.
-
-            See: https://docs.python-requests.org/en/master/user/authentication/
 
         :param timeout: How long (in seconds) to wait before raising an error.
 
@@ -155,11 +109,6 @@ class HTTPService:
             response = self._session.request(
                 method,
                 url,
-                params=params,
-                data=data,
-                json=json,
-                headers=headers,
-                auth=auth,
                 timeout=timeout,
                 **kwargs,
             )
