@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy.orm import make_transient
 
 from lms.models import Grouping
 from lms.models._hashed_id import hashed_id
@@ -10,39 +11,42 @@ from tests import factories
 pytestmark = pytest.mark.usefixtures("course_service", "application_instance_service")
 
 
-class TestGroupingService:  # pylint: disable=protected-access
+class TestGroupingService:
     CONTEXT_ID = "context_id"
     TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
 
-    def test_upsert_inserts(self, svc):
+    def test_upsert_inserts(self, svc, db_session):
         # Start with no groupings
-        assert not svc._db.query(Grouping).count()
+        assert not db_session.query(Grouping).count()
 
-        svc.upsert(
-            Grouping(
-                application_instance=factories.ApplicationInstance(),
-                authority_provided_id="ID",
-                lms_id="lms_id",
-                lms_name="lms_name",
-            )
+        test_grouping = Grouping(
+            application_instance=factories.ApplicationInstance(),
+            authority_provided_id="ID",
+            lms_id="lms_id",
+            lms_name="lms_name",
         )
-        assert svc._db.query(Grouping).count() == 1
 
-    def test_upsert_updates(self, svc):
+        svc.upsert(test_grouping)
+
+        assert db_session.query(Grouping).one() == test_grouping
+
+    def test_upsert_updates(self, svc, db_session):
         grouping = factories.Grouping()
-        svc._db.flush()
+        db_session.flush()
+
+        # Treat `grouping` as it was a freshly created object
+        make_transient(grouping)
 
         grouping.lms_name = "new_name"
+        grouping.extra = {"extra": "extra"}
 
         grouping = svc.upsert(grouping)
 
-        db_grouping = svc._db.query(Grouping).one()
+        db_grouping = db_session.query(Grouping).one()
         assert db_grouping.lms_name == "new_name"
+        assert db_grouping.extra == {"extra": "extra"}
 
-    def test_section_grouping_finds_course(
-        self, svc, course_service, application_instance_service
-    ):
-        application_instance_service.get.return_value = factories.ApplicationInstance()
+    def test_canvas_section_finds_course(self, svc, course_service):
         course_service.get.return_value = factories.Course()
 
         grouping = svc.canvas_section(
