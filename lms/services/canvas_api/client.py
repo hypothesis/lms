@@ -3,7 +3,7 @@
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
-from lms.services import CanvasAPIError, CanvasFileNotFoundInCourse
+from lms.services.exceptions import CanvasAPIError, CanvasFileNotFoundInCourse
 from lms.validation import RequestsResponseSchema
 
 

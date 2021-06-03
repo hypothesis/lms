@@ -2,6 +2,7 @@ from pyramid.view import view_config
 
 from lms.models import HGroup
 from lms.security import Permissions
+from lms.services import CanvasAPIClient, LTIHService
 
 
 class Sync:
@@ -27,7 +28,7 @@ class Sync:
         return "learner" in self._request.json
 
     def _get_sections(self):
-        canvas_api = self._request.find_service(name="canvas_api_client")
+        canvas_api = self._request.find_service(CanvasAPIClient)
         course_id = self._request.json["course"]["custom_canvas_course_id"]
         lti_user = self._request.lti_user
 
@@ -67,6 +68,6 @@ class Sync:
         ]
 
     def _sync_to_h(self, groups):
-        lti_h_svc = self._request.find_service(name="lti_h")
+        lti_h_svc = self._request.find_service(LTIHService)
         group_info = self._request.json["group_info"]
         lti_h_svc.sync(groups, group_info)

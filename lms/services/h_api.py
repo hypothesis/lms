@@ -3,7 +3,8 @@
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
-from lms.services import HAPIError, HTTPError
+from lms.services.exceptions import HAPIError, HTTPError
+from lms.services.http import HTTPService
 
 __all__ = ["HAPI"]
 
@@ -23,7 +24,7 @@ class HAPI:
         self._authority = settings["h_authority"]
         self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
         self._base_url = settings["h_api_url_private"]
-        self._http_service = request.find_service(name="http")
+        self._http_service = request.find_service(HTTPService)
 
     def execute_bulk(self, commands):
         """

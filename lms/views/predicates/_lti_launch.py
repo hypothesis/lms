@@ -1,6 +1,7 @@
 """Predicates for use with LTI launch views."""
 from abc import ABC
 
+from lms.services import AssignmentService
 from lms.views.predicates._helpers import Base
 
 
@@ -31,7 +32,7 @@ class DBConfigured(Base):
     name = "db_configured"
 
     def __call__(self, context, request):
-        assignment_svc = request.find_service(name="assignment")
+        assignment_svc = request.find_service(AssignmentService)
         resource_link_id = request.params.get("resource_link_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
@@ -110,7 +111,7 @@ class _CourseCopied(Base, ABC):
             else:
                 # Look for the document URL of the previous assignment that
                 # this one was copied from.
-                assignment_service = request.find_service(name="assignment")
+                assignment_service = request.find_service(AssignmentService)
                 previous_document_url = assignment_service.get_document_url(
                     tool_consumer_instance_guid, original_resource_link_id
                 )

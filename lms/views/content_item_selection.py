@@ -37,6 +37,7 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 from pyramid.view import view_config
 
 from lms.security import Permissions
+from lms.services import ApplicationInstanceService, LTIHService
 from lms.validation import ContentItemSelectionLTILaunchSchema
 
 
@@ -49,13 +50,13 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
-    request.find_service(name="application_instance").get().update_lms_data(
+    request.find_service(ApplicationInstanceService).get().update_lms_data(
         request.params
     )
 
     context.get_or_create_course()
 
-    request.find_service(name="lti_h").sync([context.h_group], request.params)
+    request.find_service(LTIHService).sync([context.h_group], request.params)
 
     context.js_config.enable_content_item_selection_mode(
         form_action=request.params["content_item_return_url"],

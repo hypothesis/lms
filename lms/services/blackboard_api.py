@@ -1,3 +1,6 @@
+from lms.services.application_instance import ApplicationInstanceService
+from lms.services.http import HTTPService
+from lms.services.oauth2_token import OAuth2TokenService
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 
@@ -47,7 +50,7 @@ class BlackboardAPIClient:
 
 
 def factory(_context, request):
-    application_instance = request.find_service(name="application_instance").get()
+    application_instance = request.find_service(ApplicationInstanceService).get()
     settings = request.registry.settings
 
     return BlackboardAPIClient(
@@ -55,6 +58,6 @@ def factory(_context, request):
         client_id=settings["blackboard_api_client_id"],
         client_secret=settings["blackboard_api_client_secret"],
         redirect_uri=request.route_url("blackboard_api.oauth.callback"),
-        http_service=request.find_service(name="http"),
-        oauth2_token_service=request.find_service(name="oauth2_token"),
+        http_service=request.find_service(HTTPService),
+        oauth2_token_service=request.find_service(OAuth2TokenService),
     )

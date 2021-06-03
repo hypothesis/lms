@@ -2,6 +2,7 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import CanvasAPIClient
 from lms.views import helpers
 
 
@@ -9,7 +10,7 @@ from lms.views import helpers
 class FilesAPIViews:
     def __init__(self, request):
         self.request = request
-        self.canvas_api_client = request.find_service(name="canvas_api_client")
+        self.canvas_api_client = request.find_service(CanvasAPIClient)
 
     @view_config(request_method="GET", route_name="canvas_api.courses.files.list")
     def list_files(self):

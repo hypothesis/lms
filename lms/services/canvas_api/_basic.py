@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 import requests
 from requests import RequestException, Session
 
-from lms.services import CanvasAPIError
+from lms.services.exceptions import CanvasAPIError
 from lms.validation import ValidationError
 
 

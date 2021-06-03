@@ -4,6 +4,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from lms.security import Permissions
+from lms.services import ApplicationInstanceService, BlackboardAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
 
 
@@ -13,7 +14,7 @@ from lms.validation.authentication import OAuthCallbackSchema
     permission=Permissions.API,
 )
 def authorize(request):
-    application_instance = request.find_service(name="application_instance").get()
+    application_instance = request.find_service(ApplicationInstanceService).get()
     client_id = request.registry.settings["blackboard_api_client_id"]
     state = OAuthCallbackSchema(request).state_param()
 
@@ -49,5 +50,5 @@ def authorize(request):
     schema=OAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    request.find_service(name="blackboard_api_client").get_token(request.params["code"])
+    request.find_service(BlackboardAPIClient).get_token(request.params["code"])
     return {}

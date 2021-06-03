@@ -3,7 +3,7 @@ import functools
 
 from lms.models._hashed_id import hashed_id
 from lms.resources._js_config import JSConfig
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceService, ConsumerKeyError, CourseService
 
 
 class LTILaunchResource:
@@ -25,7 +25,7 @@ class LTILaunchResource:
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
-        course_service = self._request.find_service(name="course")
+        course_service = self._request.find_service(CourseService)
         params = self._request.parsed_params
 
         tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
@@ -119,7 +119,7 @@ class LTILaunchResource:
             return False
 
         application_instance_service = self._request.find_service(
-            name="application_instance"
+            ApplicationInstanceService
         )
 
         try:

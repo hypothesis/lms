@@ -1,7 +1,10 @@
 from h_api.bulk_api import CommandBuilder
 from pyramid.httpexceptions import HTTPInternalServerError
 
-from lms.services import HAPIError
+from lms.services.application_instance import ApplicationInstanceService
+from lms.services.exceptions import HAPIError
+from lms.services.group_info import GroupInfoService
+from lms.services.h_api import HAPI
 
 
 class LTIHService:
@@ -24,10 +27,10 @@ class LTIHService:
 
         self._authority = request.registry.settings["h_authority"]
         self._application_instance_service = request.find_service(
-            name="application_instance"
+            ApplicationInstanceService
         )
-        self._h_api = request.find_service(name="h_api")
-        self._group_info_service = request.find_service(name="group_info")
+        self._h_api = request.find_service(HAPI)
+        self._group_info_service = request.find_service(GroupInfoService)
 
     def sync(self, h_groups, group_info_params):
         """

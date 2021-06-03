@@ -2,7 +2,11 @@
 from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
 from lms import models
-from lms.services import ConsumerKeyError, LTILaunchVerificationError, LTIOAuthError
+from lms.services.exceptions import (
+    ConsumerKeyError,
+    LTILaunchVerificationError,
+    LTIOAuthError,
+)
 
 __all__ = ["LaunchVerifier"]
 

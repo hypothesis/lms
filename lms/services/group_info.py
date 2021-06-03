@@ -11,7 +11,7 @@ class GroupInfoService:
 
     Usage::
 
-        group_info = request.find_service(name="group_info")
+        group_info = request.find_service(GroupInfoService)
         group_info.upsert(authority_provided_id, consumer_key, request.params)
     """
 

@@ -15,7 +15,12 @@ from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
 from lms.security import Permissions
-from lms.services import CanvasAPIServerError
+from lms.services import (
+    ApplicationInstanceService,
+    CanvasAPIClient,
+    CanvasAPIServerError,
+    CourseService,
+)
 from lms.validation.authentication import BearerTokenSchema, OAuthCallbackSchema
 
 #: The Canvas API scopes that we need for our Canvas Files feature.
@@ -44,8 +49,8 @@ GROUPS_SCOPES = (
     permission=Permissions.API,
 )
 def authorize(request):
-    application_instance = request.find_service(name="application_instance").get()
-    course_service = request.find_service(name="course")
+    application_instance = request.find_service(ApplicationInstanceService).get()
+    course_service = request.find_service(CourseService)
 
     scopes = FILES_SCOPES
 
@@ -91,7 +96,7 @@ def authorize(request):
 )
 def oauth2_redirect(request):
     authorization_code = request.parsed_params["code"]
-    canvas_api_client = request.find_service(name="canvas_api_client")
+    canvas_api_client = request.find_service(CanvasAPIClient)
 
     try:
         canvas_api_client.get_token(authorization_code)

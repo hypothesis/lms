@@ -1,6 +1,6 @@
 """Access to the authenticated parts of the Canvas API."""
 
-from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
+from lms.services.exceptions import NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 

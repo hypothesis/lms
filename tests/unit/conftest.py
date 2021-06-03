@@ -181,7 +181,7 @@ def application_instance_service(pyramid_config):
     )
 
     pyramid_config.register_service(
-        application_instance_service, name="application_instance"
+        application_instance_service, iface=ApplicationInstanceService
     )
     return application_instance_service
 
@@ -191,7 +191,7 @@ def assignment_service(pyramid_config):
     assignment_service = mock.create_autospec(
         AssignmentService, spec_set=True, instance=True
     )
-    pyramid_config.register_service(assignment_service, name="assignment")
+    pyramid_config.register_service(assignment_service, iface=AssignmentService)
     return assignment_service
 
 
@@ -200,7 +200,7 @@ def blackboard_api_client(pyramid_config):
     blackboard_api_client = mock.create_autospec(
         BlackboardAPIClient, spec_set=True, instance=True
     )
-    pyramid_config.register_service(blackboard_api_client, name="blackboard_api_client")
+    pyramid_config.register_service(blackboard_api_client, iface=BlackboardAPIClient)
     return blackboard_api_client
 
 
@@ -214,14 +214,14 @@ def canvas_api_client(pyramid_config):
         "test_refresh_token",
         3600,
     )
-    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
+    pyramid_config.register_service(canvas_api_client, iface=CanvasAPIClient)
     return canvas_api_client
 
 
 @pytest.fixture
 def course_service(pyramid_config):
     course_service = mock.create_autospec(CourseService, spec_set=True, instance=True)
-    pyramid_config.register_service(course_service, name="course")
+    pyramid_config.register_service(course_service, iface=CourseService)
     return course_service
 
 
@@ -229,14 +229,14 @@ def course_service(pyramid_config):
 def http_service(pyramid_config):
     http_service = mock.create_autospec(HTTPService, instance=True, spec_set=True)
     http_service.request.return_value = factories.requests.Response()
-    pyramid_config.register_service(http_service, name="http")
+    pyramid_config.register_service(http_service, iface=HTTPService)
     return http_service
 
 
 @pytest.fixture
 def launch_verifier(pyramid_config):
     launch_verifier = mock.create_autospec(LaunchVerifier, spec_set=True, instance=True)
-    pyramid_config.register_service(launch_verifier, name="launch_verifier")
+    pyramid_config.register_service(launch_verifier, iface=LaunchVerifier)
     return launch_verifier
 
 
@@ -246,7 +246,7 @@ def grading_info_service(pyramid_config):
         GradingInfoService, instance=True, spec_set=True
     )
     grading_info_service.get_by_assignment.return_value = []
-    pyramid_config.register_service(grading_info_service, name="grading_info")
+    pyramid_config.register_service(grading_info_service, iface=GradingInfoService)
     return grading_info_service
 
 
@@ -255,7 +255,7 @@ def grant_token_service(pyramid_config):
     grant_token_service = mock.create_autospec(
         GrantTokenService, instance=True, spec_set=True
     )
-    pyramid_config.register_service(grant_token_service, name="grant_token")
+    pyramid_config.register_service(grant_token_service, iface=GrantTokenService)
     return grant_token_service
 
 
@@ -264,7 +264,7 @@ def group_info_service(pyramid_config):
     group_info_service = mock.create_autospec(
         GroupInfoService, instance=True, spec_set=True
     )
-    pyramid_config.register_service(group_info_service, name="group_info")
+    pyramid_config.register_service(group_info_service, iface=GroupInfoService)
     return group_info_service
 
 
@@ -272,14 +272,14 @@ def group_info_service(pyramid_config):
 def h_api(pyramid_config):
     h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
     h_api.get_user.return_value = factories.HUser()
-    pyramid_config.register_service(h_api, name="h_api")
+    pyramid_config.register_service(h_api, iface=HAPI)
     return h_api
 
 
 @pytest.fixture
 def lti_h_service(pyramid_config):
     lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
-    pyramid_config.register_service(lti_h_service, name="lti_h")
+    pyramid_config.register_service(lti_h_service, iface=LTIHService)
     return lti_h_service
 
 
@@ -288,14 +288,14 @@ def lti_outcomes_client(pyramid_config):
     lti_outcomes_client = mock.create_autospec(
         LTIOutcomesClient, instance=True, spec_set=True
     )
-    pyramid_config.register_service(lti_outcomes_client, name="lti_outcomes_client")
+    pyramid_config.register_service(lti_outcomes_client, iface=LTIOutcomesClient)
     return lti_outcomes_client
 
 
 @pytest.fixture
 def oauth1_service(pyramid_config):
     oauth1_service = mock.create_autospec(OAuth1Service, instance=True, spec_set=True)
-    pyramid_config.register_service(oauth1_service, name="oauth1")
+    pyramid_config.register_service(oauth1_service, iface=OAuth1Service)
     return oauth1_service
 
 
@@ -305,7 +305,7 @@ def oauth2_token_service(oauth_token, pyramid_config):
         OAuth2TokenService, instance=True, spec_set=True
     )
     oauth2_token_service.get.return_value = oauth_token
-    pyramid_config.register_service(oauth2_token_service, name="oauth2_token")
+    pyramid_config.register_service(oauth2_token_service, iface=OAuth2TokenService)
     return oauth2_token_service
 
 
@@ -314,7 +314,7 @@ def vitalsource_service(pyramid_config):
     vitalsource_service = mock.create_autospec(
         VitalSourceService, instance=True, spec_set=True
     )
-    pyramid_config.register_service(vitalsource_service, name="vitalsource")
+    pyramid_config.register_service(vitalsource_service, iface=VitalSourceService)
     return vitalsource_service
 
 

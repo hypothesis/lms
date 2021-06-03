@@ -2,13 +2,14 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import CanvasAPIClient
 
 
 @view_defaults(permission=Permissions.API, renderer="json")
 class GroupsAPIViews:
     def __init__(self, request):
         self.request = request
-        self.canvas_api_client = request.find_service(name="canvas_api_client")
+        self.canvas_api_client = request.find_service(CanvasAPIClient)
 
     @view_config(request_method="GET", route_name="canvas_api.courses.group_sets.list")
     def course_group_sets(self):

@@ -4,6 +4,8 @@ from xml.parsers.expat import ExpatError
 import xmltodict
 
 from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
+from lms.services.http import HTTPService
+from lms.services.oauth1 import OAuth1Service
 
 log = logging.getLogger(__name__)
 
@@ -18,8 +20,8 @@ class LTIOutcomesClient:
     """
 
     def __init__(self, _context, request):
-        self.oauth1_service = request.find_service(name="oauth1")
-        self.http_service = request.find_service(name="http")
+        self.oauth1_service = request.find_service(OAuth1Service)
+        self.http_service = request.find_service(HTTPService)
 
         self.service_url = request.parsed_params["lis_outcome_service_url"]
 

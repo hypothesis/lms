@@ -1,7 +1,14 @@
 import functools
 
 from lms.models import GroupInfo, HUser
-from lms.services import HAPIError
+from lms.services import (
+    HAPI,
+    ApplicationInstanceService,
+    GradingInfoService,
+    GrantTokenService,
+    HAPIError,
+    VitalSourceService,
+)
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -13,8 +20,8 @@ class JSConfig:
         self._context = context
         self._request = request
         self._authority = request.registry.settings["h_authority"]
-        self._grading_info_service = request.find_service(name="grading_info")
-        self._h_api = request.find_service(name="h_api")
+        self._grading_info_service = request.find_service(GradingInfoService)
+        self._h_api = request.find_service(HAPI)
         self._lti_user = request.lti_user
 
     @property
@@ -31,7 +38,7 @@ class JSConfig:
 
         :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
         """
-        return self._request.find_service(name="application_instance").get()
+        return self._request.find_service(ApplicationInstanceService).get()
 
     def add_canvas_file_id(self, course_id, canvas_file_id):
         """
@@ -76,7 +83,7 @@ class JSConfig:
             self._add_canvas_speedgrader_settings(document_url=document_url)
 
     def add_vitalsource_launch_config(self, book_id, cfi=None):
-        vitalsource_svc = self._request.find_service(name="vitalsource")
+        vitalsource_svc = self._request.find_service(VitalSourceService)
         launch_url, launch_params = vitalsource_svc.get_launch_params(
             book_id, cfi, self._request.lti_user
         )
@@ -476,7 +483,7 @@ class JSConfig:
         api_url = self._request.registry.settings["h_api_url_public"]
 
         # Generate a short-lived login token for the Hypothesis client.
-        grant_token_svc = self._request.find_service(name="grant_token")
+        grant_token_svc = self._request.find_service(GrantTokenService)
         grant_token = grant_token_svc.generate_token(self._h_user)
 
         return {

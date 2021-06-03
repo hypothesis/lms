@@ -1,5 +1,7 @@
 from requests_oauthlib import OAuth1
 
+from lms.services.application_instance import ApplicationInstanceService
+
 
 class OAuth1Service:
     """Provides OAuth1 convenience functions."""
@@ -7,7 +9,7 @@ class OAuth1Service:
     def __init__(self, _context, request):
         self._request = request
         self._application_instance_service = request.find_service(
-            name="application_instance"
+            ApplicationInstanceService
         )
 
     def get_client(self):

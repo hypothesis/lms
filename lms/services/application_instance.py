@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from lms.models import ApplicationInstance
-from lms.services import ConsumerKeyError
+from lms.services.exceptions import ConsumerKeyError
 
 
 class ApplicationInstanceService:

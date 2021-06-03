@@ -1,32 +1,55 @@
 import pytest
 
-from lms.services import includeme, vitalsource
-from lms.services.canvas_api import canvas_api_client_factory
-from lms.services.grading_info import GradingInfoService
-from lms.services.group_info import GroupInfoService
-from lms.services.h_api import HAPI
-from lms.services.launch_verifier import LaunchVerifier
-from lms.services.lti_h import LTIHService
-from lms.services.lti_outcomes import LTIOutcomesClient
-from lms.services.oauth1 import OAuth1Service
+from lms.services import (
+    application_instance,
+    assignment,
+    blackboard_api,
+    canvas_api,
+    course,
+    grading_info,
+    grant_token,
+    group_info,
+    h_api,
+    http,
+    includeme,
+    launch_verifier,
+    lti_h,
+    lti_outcomes,
+    oauth1,
+    oauth2_token,
+    vitalsource,
+)
 
 
 class TestIncludeme:
     @pytest.mark.parametrize(
-        "name,service_class",
+        "iface,factory",
         (
-            ("canvas_api_client", canvas_api_client_factory),
-            ("h_api", HAPI),
-            ("launch_verifier", LaunchVerifier),
-            ("grading_info", GradingInfoService),
-            ("lti_outcomes_client", LTIOutcomesClient),
-            ("group_info", GroupInfoService),
-            ("lti_h", LTIHService),
-            ("oauth1", OAuth1Service),
-            ("vitalsource", vitalsource.factory),
+            (
+                application_instance.ApplicationInstanceService,
+                application_instance.factory,
+            ),
+            (assignment.AssignmentService, assignment.factory),
+            (blackboard_api.BlackboardAPIClient, blackboard_api.factory),
+            (canvas_api.CanvasAPIClient, canvas_api.canvas_api_client_factory),
+            (course.CourseService, course.course_service_factory),
+            (grading_info.GradingInfoService, grading_info.GradingInfoService),
+            (grant_token.GrantTokenService, grant_token.factory),
+            (group_info.GroupInfoService, group_info.GroupInfoService),
+            (h_api.HAPI, h_api.HAPI),
+            (http.HTTPService, http.factory),
+            (launch_verifier.LaunchVerifier, launch_verifier.LaunchVerifier),
+            (lti_h.LTIHService, lti_h.LTIHService),
+            (lti_outcomes.LTIOutcomesClient, lti_outcomes.LTIOutcomesClient),
+            (oauth1.OAuth1Service, oauth1.OAuth1Service),
+            (
+                oauth2_token.OAuth2TokenService,
+                oauth2_token.oauth2_token_service_factory,
+            ),
+            (vitalsource.VitalSourceService, vitalsource.factory),
         ),
     )
-    def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
+    def test_it_has_the_expected_service(self, iface, factory, pyramid_config):
         includeme(pyramid_config)
 
-        assert pyramid_config.find_service_factory(name=name) == service_class
+        assert pyramid_config.find_service_factory(iface) == factory

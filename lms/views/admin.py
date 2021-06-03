@@ -7,7 +7,7 @@ from pyramid.view import (
 )
 
 from lms.security import Permissions
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceService, ConsumerKeyError
 
 
 @forbidden_view_config(path_info="/admin/*")
@@ -25,7 +25,7 @@ class AdminViews:
     def __init__(self, request):
         self.request = request
         self.application_instance_service = request.find_service(
-            name="application_instance"
+            ApplicationInstanceService
         )
 
     @view_config(route_name="admin.index")

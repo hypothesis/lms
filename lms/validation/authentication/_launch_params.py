@@ -3,7 +3,8 @@
 import marshmallow
 
 from lms.models import LTIUser, display_name
-from lms.services import LTILaunchVerificationError
+from lms.services.exceptions import LTILaunchVerificationError
+from lms.services.launch_verifier import LaunchVerifier
 from lms.validation._base import PyramidRequestSchema
 
 __all__ = ("LaunchParamsAuthSchema",)
@@ -45,7 +46,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
     def __init__(self, request):
         super().__init__(request)
-        self._launch_verifier = request.find_service(name="launch_verifier")
+        self._launch_verifier = request.find_service(LaunchVerifier)
 
     def lti_user(self):
         """

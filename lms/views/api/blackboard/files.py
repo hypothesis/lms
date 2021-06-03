@@ -2,7 +2,7 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
-from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
+from lms.services import NoOAuth2Token, OAuth2TokenService, ProxyAPIAccessTokenError
 from lms.views import helpers
 
 
@@ -20,7 +20,7 @@ class BlackboardFilesAPIViews:
         # access token so that we can raise an exception if it's missing and
         # trigger the authentication flow.
         try:
-            self.request.find_service(name="oauth2_token").get()
+            self.request.find_service(OAuth2TokenService).get()
         except NoOAuth2Token as err:
             raise ProxyAPIAccessTokenError() from err
 
@@ -52,7 +52,7 @@ class BlackboardFilesAPIViews:
         # so that we can raise an exception if it's missing and trigger the
         # authentication flow.
         try:
-            self.request.find_service(name="oauth2_token").get()
+            self.request.find_service(OAuth2TokenService).get()
         except NoOAuth2Token as err:
             raise ProxyAPIAccessTokenError() from err
 

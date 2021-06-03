@@ -4,6 +4,7 @@ from datetime import timezone
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import LTIOutcomesClient
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -18,7 +19,7 @@ class LTIOutcomesViews:
     def __init__(self, request):
         self.request = request
         self.parsed_params = self.request.parsed_params
-        self.lti_outcomes_client = self.request.find_service(name="lti_outcomes_client")
+        self.lti_outcomes_client = self.request.find_service(LTIOutcomesClient)
 
     @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
     def record_result(self):

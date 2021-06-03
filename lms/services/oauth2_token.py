@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
-from lms.services import NoOAuth2Token
+from lms.services.exceptions import NoOAuth2Token
 
 
 class OAuth2TokenService:

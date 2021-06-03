@@ -16,6 +16,12 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
 from lms.security import Permissions
+from lms.services import (
+    ApplicationInstanceService,
+    AssignmentService,
+    GradingInfoService,
+    LTIHService,
+)
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureModuleItemSchema,
@@ -36,12 +42,12 @@ class BasicLTILaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.assignment_service = request.find_service(name="assignment")
+        self.assignment_service = request.find_service(AssignmentService)
 
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-        request.find_service(name="application_instance").get().update_lms_data(
+        request.find_service(ApplicationInstanceService).get().update_lms_data(
             self.request.params
         )
 
@@ -67,7 +73,7 @@ class BasicLTILaunchViews:
         and group corresponding to the LTI user and course.
         """
 
-        self.request.find_service(name="lti_h").sync(
+        self.request.find_service(LTIHService).sync(
             [self.context.h_group], self.request.params
         )
 
@@ -87,7 +93,7 @@ class BasicLTILaunchViews:
 
         if not lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
-            request.find_service(name="grading_info").upsert_from_request(
+            request.find_service(GradingInfoService).upsert_from_request(
                 request, h_user=lti_user.h_user, lti_user=lti_user
             )
 

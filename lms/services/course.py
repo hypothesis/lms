@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 
 from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
+from lms.services.application_instance import ApplicationInstanceService
 
 
 class CourseService:
@@ -120,7 +121,7 @@ class CourseService:
 
 def course_service_factory(_context, request):
     return CourseService(
-        request.find_service(name="application_instance"),
+        request.find_service(ApplicationInstanceService),
         request.lti_user.oauth_consumer_key,
         request.db,
     )
