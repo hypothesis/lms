@@ -156,8 +156,12 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    @pytest.mark.parametrize("only_own_groups", [True, False])
-    def test_course_groups(self, only_own_groups, canvas_api_client, http_session):
+    @pytest.mark.parametrize(
+        "only_own_groups,include_users", [(True, False), (False, True)]
+    )
+    def test_course_groups(
+        self, only_own_groups, include_users, canvas_api_client, http_session
+    ):
         groups = [
             {
                 "id": 1,
@@ -177,16 +181,23 @@ class TestCanvasAPIClient:
         )
 
         response = canvas_api_client.course_groups(
-            "COURSE_ID", only_own_groups=only_own_groups
+            "COURSE_ID", only_own_groups=only_own_groups, include_users=include_users
         )
 
         assert response == groups
+
+        expected_params = {
+            "per_page": Any.string(),
+            "only_own_groups": str(only_own_groups),
+        }
+        if include_users:
+            expected_params["include[]"] = "users"
 
         http_session.send.assert_called_once_with(
             Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/groups").with_query(
-                    {"per_page": Any.string(), "only_own_groups": str(only_own_groups)}
+                    expected_params
                 ),
             ),
             timeout=Any(),
