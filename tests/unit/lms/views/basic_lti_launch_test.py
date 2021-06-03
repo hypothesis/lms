@@ -273,13 +273,21 @@ class TestCourseRecording:
 
 @pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
-    @pytest.mark.usefixtures("is_canvas")
-    def test_it_adds_the_canvas_file_id(self, context, pyramid_request):
+    def test_it(self, context, pyramid_request, assignment_service):
         canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         context.js_config.add_canvas_file_id.assert_called_once_with(
             pyramid_request.params["custom_canvas_course_id"],
             pyramid_request.params["file_id"],
+        )
+
+        course_id = pyramid_request.params["custom_canvas_course_id"]
+        file_id = pyramid_request.params["file_id"]
+
+        assignment_service.set_document_url.assert_called_once_with(
+            pyramid_request.params["tool_consumer_instance_guid"],
+            pyramid_request.params["resource_link_id"],
+            document_url=f"canvas_file://course/{course_id}/file_id/{file_id}",
         )
 
 
