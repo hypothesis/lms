@@ -14,6 +14,7 @@ import { truncateURL } from '../utils/format';
 import ContentSelector from './ContentSelector';
 import ErrorDialog from './ErrorDialog';
 import FilePickerFormFields from './FilePickerFormFields';
+import FullScreenSpinner from './FullScreenSpinner';
 import GroupConfigSelector from './GroupConfigSelector';
 
 /**
@@ -168,6 +169,7 @@ export default function FilePickerApp({ onSubmit }) {
         )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
+      {shouldSubmit && <FullScreenSpinner />}
       {errorInfo && (
         <ErrorDialog
           title={errorInfo.title}

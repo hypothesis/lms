@@ -117,6 +117,7 @@ describe('FilePickerApp', () => {
         },
         null /* groupSet */
       );
+      assert.isTrue(wrapper.exists('FullScreenSpinner'));
     });
   });
 
@@ -192,6 +193,7 @@ describe('FilePickerApp', () => {
           },
           useGroupSet ? 'groupSet1' : null
         );
+        assert.isTrue(wrapper.exists('FullScreenSpinner'));
       });
     });
   });
