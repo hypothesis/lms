@@ -46,8 +46,9 @@ class TestGroupingService:
         assert db_grouping.lms_name == "new_name"
         assert db_grouping.extra == {"extra": "extra"}
 
-    def test_canvas_section_finds_course(self, svc, course_service):
+    def test_canvas_section_finds_course(self, svc, course_service, db_session):
         course_service.get.return_value = factories.Course()
+        db_session.flush()
 
         grouping = svc.canvas_section(
             self.TOOL_CONSUMER_INSTANCE_GUID,
@@ -59,7 +60,7 @@ class TestGroupingService:
         course_service.get.assert_called_once_with(
             hashed_id(self.TOOL_CONSUMER_INSTANCE_GUID, self.CONTEXT_ID),
         )
-        assert grouping.parent == course_service.get.return_value
+        assert grouping.parent_id == course_service.get.return_value.id
 
     @pytest.fixture
     def svc(self, db_session, course_service, application_instance_service):
