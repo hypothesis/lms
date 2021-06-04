@@ -11,18 +11,25 @@
  * @param {number} maxLength
  */
 export function truncateURL(url, maxLength) {
+  // The URL is progressively shortened in stages until its length becomes <=
+  // `maxLength` and then returned:
+  //
+  // 1. https://example.com/foobar/baz/quux?query#fragment
+  // 2. example.com/foobar/baz/quux?query#fragment (strip protocol)
+  // 3. example.com/foobar/baz/quux (strip query and fragment)
+  // 4. example.com/…/baz/quux (elide path segments incrementally)
+  // 5. example.com/…/quux
+  // 6. example.com/…/qu… (elide end of URL)
+
   if (url.length <= maxLength) {
     return url;
   }
 
-  // Strip the protocol and return if that is sufficient.
   const urlWithoutScheme = url.replace(/^[^:]+:\/\//, '');
   if (urlWithoutScheme.length <= maxLength) {
     return urlWithoutScheme;
   }
 
-  // Strip the query string and fragment, then continue removing path segments
-  // until the result is shorter than `maxLength`.
   let parsed;
   try {
     parsed = new URL(url);
@@ -41,7 +48,6 @@ export function truncateURL(url, maxLength) {
     pathSegments.shift();
   }
 
-  // If the final URL is still too long, just elide it.
   let result = getCandidate();
   if (result.length > maxLength) {
     result = result.slice(0, maxLength - 1) + '…';
