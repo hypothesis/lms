@@ -14,7 +14,6 @@ class GroupingService:
             .filter_by(
                 application_instance=grouping.application_instance,
                 authority_provided_id=grouping.authority_provided_id,
-                type=grouping.type,
             )
             .one_or_none()
         )
