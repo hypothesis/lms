@@ -26,7 +26,7 @@ class GroupingService:
 
         return db_grouping or grouping
 
-    def canvas_section(
+    def upsert_canvas_section(
         self, tool_consumer_instance_guid, context_id, section_id, section_name
     ):
         """
