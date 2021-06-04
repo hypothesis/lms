@@ -39,6 +39,12 @@ class Sync:
 
     @property
     def _is_group_launch(self):
+        application_instance = self._request.find_service(
+            name="application_instance"
+        ).get()
+        if not application_instance.settings.get("canvas", "groups_enabled"):
+            return False
+
         try:
             self.group_set
         except (KeyError, ValueError, TypeError):
