@@ -55,7 +55,7 @@ class GroupingService:
                 authority_provided_id=section_authority_provided_id,
                 lms_id=section_id,
                 lms_name=section_name,
-                parent=course,
+                parent_id=course.id,
             )
         )
 
