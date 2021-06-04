@@ -49,7 +49,7 @@ class TestGroupingService:
     def test_canvas_section_finds_course(self, svc, course_service):
         course_service.get.return_value = factories.Course()
 
-        grouping = svc.canvas_section(
+        grouping = svc.upsert_canvas_section(
             self.TOOL_CONSUMER_INSTANCE_GUID,
             self.CONTEXT_ID,
             "section_id",

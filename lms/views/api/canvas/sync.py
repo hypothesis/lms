@@ -15,7 +15,7 @@ class Sync:
         permission=Permissions.API,
     )
     def sync(self):
-        groups = self._to_groups(self._get_sections())
+        groups = self._to_groupings(self._get_sections())
 
         self._sync_to_h(groups)
 
@@ -52,12 +52,12 @@ class Sync:
 
         return [sec for sec in sections if sec["id"] in learner_section_ids]
 
-    def _to_groups(self, sections):
+    def _to_groupings(self, sections):
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
         context_id = self._request.json["course"]["context_id"]
 
         return [
-            self._grouping_service.canvas_section(
+            self._grouping_service.upsert_canvas_section(
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
                 section_id=section["id"],
