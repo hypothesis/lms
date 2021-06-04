@@ -50,7 +50,7 @@ class TestGroupingService:
         course_service.get.return_value = factories.Course()
         db_session.flush()
 
-        grouping = svc.canvas_section(
+        grouping = svc.upsert_canvas_section(
             self.TOOL_CONSUMER_INSTANCE_GUID,
             self.CONTEXT_ID,
             "section_id",
