@@ -118,52 +118,56 @@ export default function GroupConfigSelector({
           This is a group assignment
         </LabeledCheckbox>
       </div>
-      {fetchError && useGroupSet && (
-        // Currently all fetch errors are handled by attempting to re-authorize
-        // and then re-fetch group sets.
-        <Fragment>
-          <p>Canvas needs your permission to fetch group sets</p>
-          <AuthButton
-            authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
-            authToken={authToken}
-            onAuthComplete={fetchGroupSets}
-          />
-        </Fragment>
-      )}
-      {!fetchError && useGroupSet && (
-        <div>
-          <label htmlFor={selectID}>Group set:</label>
-          <select
-            disabled={fetchingGroupSets}
-            id={selectID}
-            onInput={e =>
-              onChangeGroupConfig({
-                useGroupSet,
-                groupSet:
-                  /** @type {HTMLInputElement} */ (e.target).value || null,
-              })
-            }
-          >
-            {fetchingGroupSets && <option>Fetching group sets…</option>}
-            {groupSets && (
-              <Fragment>
-                <option disabled selected={groupSet === null}>
-                  Select group set
-                </option>
-                <hr />
-                {groupSets.map(gs => (
-                  <option
-                    key={gs.id}
-                    value={gs.id}
-                    selected={gs.id === groupSet}
-                    data-testid="groupset-option"
-                  >
-                    {gs.name}
-                  </option>
-                ))}
-              </Fragment>
-            )}
-          </select>
+      {useGroupSet && (
+        <div className="GroupConfigSelector__select">
+          {fetchError && (
+            // Currently all fetch errors are handled by attempting to re-authorize
+            // and then re-fetch group sets.
+            <Fragment>
+              <p>Canvas needs your permission to fetch group sets</p>
+              <AuthButton
+                authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
+                authToken={authToken}
+                onAuthComplete={fetchGroupSets}
+              />
+            </Fragment>
+          )}
+          {!fetchError && (
+            <Fragment>
+              <label htmlFor={selectID}>Group set: </label>
+              <select
+                disabled={fetchingGroupSets}
+                id={selectID}
+                onInput={e =>
+                  onChangeGroupConfig({
+                    useGroupSet,
+                    groupSet:
+                      /** @type {HTMLInputElement} */ (e.target).value || null,
+                  })
+                }
+              >
+                {fetchingGroupSets && <option>Fetching group sets…</option>}
+                {groupSets && (
+                  <Fragment>
+                    <option disabled selected={groupSet === null}>
+                      Select group set
+                    </option>
+                    <hr />
+                    {groupSets.map(gs => (
+                      <option
+                        key={gs.id}
+                        value={gs.id}
+                        selected={gs.id === groupSet}
+                        data-testid="groupset-option"
+                      >
+                        {gs.name}
+                      </option>
+                    ))}
+                  </Fragment>
+                )}
+              </select>
+            </Fragment>
+          )}
         </div>
       )}
     </Fragment>

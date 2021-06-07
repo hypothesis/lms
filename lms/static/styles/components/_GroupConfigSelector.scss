@@ -1,0 +1,7 @@
+// Control below checkbox for choosing group set or authorizing with the LMS
+// if needed.
+.GroupConfigSelector__select {
+  // This margin matches that of `<p>` elements and ensures that the "Group set"
+  // select label has the same vertical alignment as the authorization prompt text.
+  margin-top: 1em;
+}
