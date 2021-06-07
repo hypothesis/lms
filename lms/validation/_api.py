@@ -33,6 +33,7 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     """
 
     group_set = fields.Int(required=False)
+    """Canvas group_set ID for assignments that use the small groups feature."""
 
 
 class APIReadResultSchema(PyramidRequestSchema):
