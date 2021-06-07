@@ -117,6 +117,14 @@ describe('FilePickerApp', () => {
         },
         null /* groupSet */
       );
+    });
+
+    it('shows activity indicator when form is submitted', () => {
+      const wrapper = renderFilePicker();
+      assert.isFalse(wrapper.exists('FullScreenSpinner'));
+
+      selectContent(wrapper, 'https://example.com');
+
       assert.isTrue(wrapper.exists('FullScreenSpinner'));
     });
   });
@@ -193,8 +201,20 @@ describe('FilePickerApp', () => {
           },
           useGroupSet ? 'groupSet1' : null
         );
-        assert.isTrue(wrapper.exists('FullScreenSpinner'));
       });
+    });
+
+    it('shows activity indicator when form is submitted', () => {
+      const wrapper = renderFilePicker();
+      assert.isFalse(wrapper.exists('FullScreenSpinner'));
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, { useGroupSet: true, groupSet: 'groupSet1' });
+      interact(wrapper, () => {
+        wrapper.find('LabeledButton[children="Continue"]').props().onClick();
+      });
+
+      assert.isTrue(wrapper.exists('FullScreenSpinner'));
     });
   });
 
