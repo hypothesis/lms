@@ -220,6 +220,16 @@ class CanvasFileNotFoundInCourse(ServiceError):
         super().__init__(self.details)
 
 
+class CanvasGroupSetNotFound(ServiceError):
+    """A Canvas file ID wasn't found in the current course."""
+
+    error_code = "canvas_group_set_not_found"
+
+    def __init__(self, group_set):
+        self.details = {"group_set": group_set}
+        super().__init__(self.details)
+
+
 class HTTPError(ServiceError):
     """A problem with an HTTP request to an external service."""
 

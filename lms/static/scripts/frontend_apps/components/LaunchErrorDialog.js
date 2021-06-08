@@ -157,6 +157,23 @@ export default function LaunchErrorDialog({
           </p>
         </BaseDialog>
       );
+
+    case 'canvas-group-set-not-found':
+      // nb. There is no retry action here as we just suggest reloading the entire
+      // page.
+      return (
+        <BaseDialog busy={busy} error={error}>
+          <p>
+            There was a problem loading the group set for this Hypothesis
+            assignment.{' '}
+            <b>
+              To fix this problem, double check the group set linked to this
+              assigment still exists.
+            </b>
+          </p>
+        </BaseDialog>
+      );
+
     case 'error-fetching':
       return (
         <BaseDialog busy={busy} error={error} onRetry={onRetry}>
