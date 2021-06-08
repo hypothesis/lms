@@ -159,8 +159,6 @@ export default function LaunchErrorDialog({
       );
 
     case 'canvas-group-set-not-found':
-      // nb. There is no retry action here as we just suggest reloading the entire
-      // page.
       return (
         <BaseDialog busy={busy} error={error}>
           <p>
@@ -168,7 +166,20 @@ export default function LaunchErrorDialog({
             assignment.{' '}
             <b>
               To fix this problem, double check the group set linked to this
-              assigment still exists.
+              assignment still exists.
+            </b>
+          </p>
+        </BaseDialog>
+      );
+
+    case 'canvas-group-set-empty':
+      return (
+        <BaseDialog busy={busy} error={error}>
+          <p>
+            There group set for this Hypothesis assignment is empty.{' '}
+            <b>
+              To fix this problem, create the necessary groups on the group set
+              or use a different group set for the assignment.
             </b>
           </p>
         </BaseDialog>

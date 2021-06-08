@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 
 from lms.security import Permissions
+from lms.services import CanvasGroupSetEmpty
 
 
 class Sync:
@@ -18,6 +19,8 @@ class Sync:
     def sync(self):
         if self._is_group_launch:
             groups = self._to_groups_groupings(self._get_canvas_groups())
+            if not groups:
+                raise CanvasGroupSetEmpty(group_set=self.group_set)
         else:
             groups = self._to_section_groupings(self._get_sections())
 
