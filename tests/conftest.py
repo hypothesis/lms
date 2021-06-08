@@ -53,7 +53,7 @@ def db_engine():
     # the current models. Doing this at the beginning of each test run ensures
     # that any schema changes made to the models since the last test run will
     # be applied to the test DB schema before running the tests again.
-    db.init(engine, drop=True)
+    db.init(engine, drop=True, stamp=False)
 
     return engine
 

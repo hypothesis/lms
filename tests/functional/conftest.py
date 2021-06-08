@@ -42,7 +42,7 @@ def pyramid_app(environment):  # pylint: disable=unused-argument
 
 @pytest.fixture
 def app(pyramid_app, db_engine):
-    db.init(db_engine)
+    db.init(db_engine, stamp=False)
 
     return TestApp(pyramid_app)
 
