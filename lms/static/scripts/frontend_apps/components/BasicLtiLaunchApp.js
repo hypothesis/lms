@@ -128,6 +128,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
         'canvas_file_not_found_in_course',
         'canvas_group_set_not_found',
         'canvas_group_set_empty',
+        'canvas_student_not_in_group',
       ].includes(e.errorCode)
     ) {
       setError(e);

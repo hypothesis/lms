@@ -10,12 +10,11 @@ from pyramid.view import (
 from lms.services import (
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
-    CanvasGroupSetEmpty,
-    CanvasGroupSetNotFound,
     ProxyAPIAccessTokenError,
     ProxyAPIError,
 )
 from lms.validation import ValidationError
+from lms.views import CanvasGroupError
 
 _ = i18n.TranslationStringFactory(__package__)
 
@@ -112,8 +111,7 @@ class ExceptionViews:
 
     @exception_view_config(context=CanvasAPIPermissionError)
     @exception_view_config(context=CanvasFileNotFoundInCourse)
-    @exception_view_config(context=CanvasGroupSetNotFound)
-    @exception_view_config(context=CanvasGroupSetEmpty)
+    @exception_view_config(context=CanvasGroupError)
     def canvas_api_error(self):
         return self.error_response(
             error_code=self.context.error_code, details=self.context.details

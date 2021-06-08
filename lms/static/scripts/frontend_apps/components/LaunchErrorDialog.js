@@ -185,6 +185,20 @@ export default function LaunchErrorDialog({
         </BaseDialog>
       );
 
+    case 'canvas-student-not-in-group':
+      return (
+        <BaseDialog busy={busy} error={error}>
+          <p>
+            This is a group assignment and you don&apos;t belong to any of the
+            groups in the group set.
+            <b>
+              To fix this problem, an instructor needs to add you to any of the
+              groups.
+            </b>
+          </p>
+        </BaseDialog>
+      );
+
     case 'error-fetching':
       return (
         <BaseDialog busy={busy} error={error} onRetry={onRetry}>
