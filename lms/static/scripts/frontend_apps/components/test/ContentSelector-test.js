@@ -27,11 +27,18 @@ describe('ContentSelector', () => {
     fakeConfig = {
       api: { authToken: 'dummy-auth-token' },
       filePicker: {
+        blackboard: {
+          enabled: true,
+          listFiles: {
+            authUrl: 'https://lms.anno.co/blackboard/authorize',
+            path: 'https://lms.anno.co/api/blackboard/files',
+          },
+        },
         canvas: {
           enabled: true,
           listFiles: {
-            authUrl: 'https://lms.anno.co/authorize',
-            path: 'https://lms.anno.co/api/files',
+            authUrl: 'https://lms.anno.co/canvas/authorize',
+            path: 'https://lms.anno.co/api/canvas/files',
           },
         },
         google: {},
@@ -72,7 +79,7 @@ describe('ContentSelector', () => {
     fakeConfig.filePicker.canvas.enabled = true;
     const wrapper = renderContentSelector();
     assert.isTrue(
-      wrapper.exists('LabeledButton[data-testid="lms-file-button"]')
+      wrapper.exists('LabeledButton[data-testid="canvas-file-button"]')
     );
   });
 
@@ -80,7 +87,7 @@ describe('ContentSelector', () => {
     fakeConfig.filePicker.canvas.enabled = false;
     const wrapper = renderContentSelector();
     assert.isFalse(
-      wrapper.exists('LabeledButton[data-testid="lms-file-button"]')
+      wrapper.exists('LabeledButton[data-testid="canvas-file-button"]')
     );
   });
 
@@ -89,7 +96,10 @@ describe('ContentSelector', () => {
 
     assert.isFalse(wrapper.exists('LMSFilePicker'));
     assert.isFalse(wrapper.exists('URLPicker'));
-    assert.equal(wrapper.find('LabeledButton').length, 2);
+    assert.deepEqual(
+      wrapper.find('LabeledButton').map(button => button.prop('data-testid')),
+      ['url-button', 'canvas-file-button', 'blackboard-file-button']
+    );
   });
 
   it('shows URL selection dialog when "Enter URL" button is clicked', () => {
@@ -130,48 +140,80 @@ describe('ContentSelector', () => {
     });
   });
 
-  it('shows LMS file dialog when "Select PDF from Canvas" is clicked', () => {
-    const wrapper = renderContentSelector();
+  describe('LMS file dialog', () => {
+    [
+      {
+        name: 'Canvas',
+        buttonTestId: 'canvas-file-button',
+        files: () => fakeConfig.filePicker.canvas.listFiles,
+      },
+      {
+        name: 'Blackboard',
+        buttonTestId: 'blackboard-file-button',
+        files: () => fakeConfig.filePicker.blackboard.listFiles,
+      },
+    ].forEach(test => {
+      it(`shows LMS file dialog when "Select PDF from ${test.name}" is clicked`, () => {
+        const wrapper = renderContentSelector();
 
-    assert.isFalse(isLoadingIndicatorVisible(wrapper));
+        assert.isFalse(isLoadingIndicatorVisible(wrapper));
 
-    const btn = wrapper.find('LabeledButton[data-testid="lms-file-button"]');
-    interact(wrapper, () => {
-      btn.props().onClick();
+        const btn = wrapper.find(
+          `LabeledButton[data-testid="${test.buttonTestId}"]`
+        );
+        interact(wrapper, () => {
+          btn.props().onClick();
+        });
+
+        assert.isTrue(isLoadingIndicatorVisible(wrapper));
+
+        const filePicker = wrapper.find('LMSFilePicker');
+        assert.isTrue(filePicker.exists());
+        assert.equal(filePicker.prop('authToken'), fakeConfig.api.authToken);
+
+        assert.equal(filePicker.prop('listFilesApi'), test.files());
+
+        interact(wrapper, () => {
+          filePicker.props().onCancel();
+        });
+        assert.isFalse(isLoadingIndicatorVisible(wrapper));
+      });
     });
 
-    assert.isTrue(isLoadingIndicatorVisible(wrapper));
+    [
+      {
+        name: 'canvas',
+        dialogName: 'canvasFile',
+        file: { id: 123 },
+        result: {
+          type: 'file',
+          file: { id: 123 },
+        },
+      },
+      {
+        name: 'blackboard',
+        dialogName: 'blackboardFile',
+        file: { id: 'blackboard://content-resource/123' },
+        result: {
+          type: 'url',
+          url: 'blackboard://content-resource/123',
+        },
+      },
+    ].forEach(test => {
+      it(`supports selecting a file from the ${test.name} file dialog`, () => {
+        const onSelectContent = sinon.stub();
+        const wrapper = renderContentSelector({
+          defaultActiveDialog: test.dialogName,
+          onSelectContent,
+        });
 
-    const filePicker = wrapper.find('LMSFilePicker');
-    assert.isTrue(filePicker.exists());
-    assert.equal(filePicker.prop('authToken'), fakeConfig.api.authToken);
-    assert.equal(
-      filePicker.prop('listFilesApi'),
-      fakeConfig.filePicker.canvas.listFiles
-    );
+        const picker = wrapper.find('LMSFilePicker');
+        interact(wrapper, () => {
+          picker.props().onSelectFile(test.file);
+        });
 
-    interact(wrapper, () => {
-      filePicker.props().onCancel();
-    });
-    assert.isFalse(isLoadingIndicatorVisible(wrapper));
-  });
-
-  it('supports selecting an LMS file', () => {
-    const onSelectContent = sinon.stub();
-    const wrapper = renderContentSelector({
-      defaultActiveDialog: 'lmsFile',
-      onSelectContent,
-    });
-    const file = { id: 123 };
-
-    const picker = wrapper.find('LMSFilePicker');
-    interact(wrapper, () => {
-      picker.props().onSelectFile(file);
-    });
-
-    assert.calledWith(onSelectContent, {
-      type: 'file',
-      file,
+        assert.calledWith(onSelectContent, test.result);
+      });
     });
   });
 

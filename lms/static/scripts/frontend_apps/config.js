@@ -59,6 +59,9 @@ import { createContext } from 'preact';
  * @typedef FilePickerConfig
  * @prop {string} formAction
  * @prop {Object.<string,string>} formFields
+ * @prop {Object} blackboard
+ *   @prop {boolean} blackboard.enabled
+ *   @prop {ApiCallInfo} blackboard.listFiles
  * @prop {Object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {boolean} canvas.groupsEnabled
