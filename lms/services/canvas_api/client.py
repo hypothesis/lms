@@ -259,11 +259,14 @@ class CanvasAPIClient:
 
     def group_category_groups(self, group_category_id):
         """List groups that belong to the group category/group set `group_category_id`."""
-        return self._client.send(
-            "GET",
-            f"group_categories/{group_category_id}/groups",
-            schema=self._ListGroups,
-        )
+        try:
+            return self._client.send(
+                "GET",
+                f"group_categories/{group_category_id}/groups",
+                schema=self._ListGroups,
+            )
+        except CanvasAPIError:
+            raise CanvasGroupSetNotFound(group_set=group_category_id)
 
     def course_groups(self, course_id, only_own_groups=True, include_users=False):
         """

@@ -124,10 +124,13 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       setErrorState('error-fetching-canvas-file');
     } else if (
       e instanceof ApiError &&
-      e.errorCode === 'canvas_file_not_found_in_course'
+      [
+        'canvas_file_not_found_in_course',
+        'canvas_group_set_not_found',
+      ].includes(e.errorCode)
     ) {
       setError(e);
-      setErrorState('canvas-file-not-found-in-course');
+      setErrorState(e.errorCode.replace(/_/g, '-'));
     } else if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
