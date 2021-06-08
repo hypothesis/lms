@@ -125,7 +125,7 @@ gulp.task(
 );
 
 var cssBundles = [
-  './lms/static/styles/lms.css',
+  './lms/static/styles/lms.scss',
   './lms/static/styles/reports.css',
   './lms/static/styles/frontend_apps.scss',
   './lms/static/styles/ui-playground/ui-playground.scss',
