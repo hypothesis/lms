@@ -1,7 +1,12 @@
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.services import CanvasGroupSetEmpty
+from lms.services import CanvasAPIError
+from lms.views import (
+    CanvasGroupSetEmpty,
+    CanvasGroupSetNotFound,
+    CanvasStudentNotInGroup,
+)
 
 
 class Sync:
@@ -19,8 +24,6 @@ class Sync:
     def sync(self):
         if self._is_group_launch:
             groups = self._to_groups_groupings(self._get_canvas_groups())
-            if not groups:
-                raise CanvasGroupSetEmpty(group_set=self.group_set)
         else:
             groups = self._to_section_groupings(self._get_sections())
 
@@ -56,12 +59,17 @@ class Sync:
 
     def _get_canvas_groups(self):
         lti_user = self._request.lti_user
+        group_set_id = self.group_set()
         if lti_user.is_learner:
             # For learners, the groups they belong within the course
-            return self._canvas_api.current_user_groups(
+            learner_groups = self._canvas_api.current_user_groups(
                 self._request.json["course"]["custom_canvas_course_id"],
-                self.group_set(),
+                group_set_id,
             )
+            if not learner_groups:
+                raise CanvasStudentNotInGroup(group_set=group_set_id)
+
+            return learner_groups
 
         if self._is_speedgrader:
             # SpeedGrader requests are made by the teacher, get the student we are grading
@@ -71,8 +79,16 @@ class Sync:
                 self.group_set(),
             )
 
-        # If not grading return all the groups in the course so the teacher can toggle between them.
-        return self._canvas_api.group_category_groups(self.group_set())
+        try:
+            # If not grading return all the groups in the course so the teacher can toggle between them.
+            groups = self._canvas_api.group_category_groups(group_set_id)
+        except CanvasAPIError as canvas_api_error:
+            raise CanvasGroupSetNotFound(group_set=group_set_id) from canvas_api_error
+
+        if not groups:
+            raise CanvasGroupSetEmpty(group_set=group_set_id)
+
+        return groups
 
     def _get_sections(self):
         course_id = self._request.json["course"]["custom_canvas_course_id"]

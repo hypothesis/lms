@@ -30,7 +30,7 @@ class TestProxyAPIAccessTokenError:
 
 class TestCanvasAPIPermissionError:
     def test_it(self, context, pyramid_request, views):
-        json_data = views.canvas_api_permission_error()
+        json_data = views.canvas_api_error()
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {

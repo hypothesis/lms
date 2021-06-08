@@ -220,26 +220,6 @@ class CanvasFileNotFoundInCourse(ServiceError):
         super().__init__(self.details)
 
 
-class CanvasGroupSetNotFound(ServiceError):
-    """A Canvas GroupSet not found on Canvas API"""
-
-    error_code = "canvas_group_set_not_found"
-
-    def __init__(self, group_set):
-        self.details = {"group_set": group_set}
-        super().__init__(self.details)
-
-
-class CanvasGroupSetEmpty(ServiceError):
-    """Canvas GroupSet doesn't contain any groups"""
-
-    error_code = "canvas_group_set_empty"
-
-    def __init__(self, group_set):
-        self.details = {"group_set": group_set}
-        super().__init__(self.details)
-
-
 class HTTPError(ServiceError):
     """A problem with an HTTP request to an external service."""
 

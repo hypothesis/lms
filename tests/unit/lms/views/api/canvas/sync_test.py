@@ -2,6 +2,12 @@ from unittest import mock
 
 import pytest
 
+from lms.services import CanvasAPIError
+from lms.views import (
+    CanvasGroupSetEmpty,
+    CanvasGroupSetNotFound,
+    CanvasStudentNotInGroup,
+)
 from lms.views.api.canvas.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
@@ -75,6 +81,15 @@ def test_get_canvas_groups_learner(pyramid_request, canvas_api_client):
     canvas_api_client.current_user_groups.assert_called_once_with(course_id, group_set)
 
 
+@pytest.mark.usefixtures("user_is_learner", "is_group_launch")
+def test_get_canvas_groups_learner_empty(pyramid_request, canvas_api_client):
+    # pylint: disable=protected-access
+    canvas_api_client.current_user_groups.return_value = []
+
+    with pytest.raises(CanvasStudentNotInGroup):
+        Sync(pyramid_request)._get_canvas_groups()
+
+
 @pytest.mark.usefixtures("is_group_and_speedgrader", "user_is_instructor")
 def test_get_canvas_groups_speedgrader(pyramid_request, canvas_api_client):
     # pylint: disable=protected-access
@@ -97,6 +112,26 @@ def test_get_canvas_groups_instructor(pyramid_request, canvas_api_client):
     Sync(pyramid_request)._get_canvas_groups()
 
     canvas_api_client.group_category_groups.assert_called_once_with(group_set)
+
+
+@pytest.mark.usefixtures("user_is_instructor", "is_group_launch")
+def test_get_canvas_groups_instructor_empty(pyramid_request, canvas_api_client):
+    # pylint: disable=protected-access
+    canvas_api_client.group_category_groups.return_value = []
+
+    with pytest.raises(CanvasGroupSetEmpty):
+        Sync(pyramid_request)._get_canvas_groups()
+
+
+@pytest.mark.usefixtures("user_is_instructor", "is_group_launch")
+def test_get_canvas_groups_instructor_not_found_group_set(
+    pyramid_request, canvas_api_client
+):
+    # pylint: disable=protected-access
+    canvas_api_client.group_category_groups.side_effect = CanvasAPIError
+
+    with pytest.raises(CanvasGroupSetNotFound):
+        Sync(pyramid_request)._get_canvas_groups()
 
 
 @pytest.mark.parametrize(
