@@ -1,24 +1,17 @@
+@use 'normalize.css/normalize';
+
+@use 'variables' as var;
+
 * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
-  vertical-align: top;
 }
-html,
-html a {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
-}
-html {
-  height: 100%;
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-}
+
 body {
-  height: 100%;
-  margin: 0;
+  font-family: var.$sans-font-family;
+  font-size: var.$normal-font-size;
+  color: var.$color-text;
 }
+
 .data {
   font-family: 'Inconsolata', 'Hack', 'Courier New', 'Courier', monospace;
 }
@@ -33,11 +26,10 @@ body {
   padding: 80px 30px;
 }
 .modal-text {
-  margin: 0 0 20px;
-  font-size: 18px;
   color: #333;
-  font-weight: 500;
   max-width: 550px;
+  font-size: 18px;
+  line-height: 1.4em;
 }
 .modal-subtext {
   margin: -10px 0 20px;
