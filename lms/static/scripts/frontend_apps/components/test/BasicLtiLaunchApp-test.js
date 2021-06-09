@@ -272,7 +272,7 @@ describe('BasicLtiLaunchApp', () => {
       // Verify that the expected error dialog is shown.
       let errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-fetching-canvas-file"]'
+        'LaunchErrorDialog[errorState="canvas_api_permission_error"]'
       );
 
       // Click the "Try again" button. This should re-authorize and then re-fetch files.
@@ -290,7 +290,7 @@ describe('BasicLtiLaunchApp', () => {
       // should be shown.
       errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-fetching-canvas-file"]'
+        'LaunchErrorDialog[errorState="canvas_api_permission_error"]'
       );
 
       // Change the API call to succeed and try again.
@@ -321,7 +321,7 @@ describe('BasicLtiLaunchApp', () => {
       // Verify that the expected error dialog is shown.
       let errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas-file-not-found-in-course"]'
+        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]'
       );
 
       // Click the "Try again" button. This should re-authorize and then re-fetch files.
@@ -338,7 +338,7 @@ describe('BasicLtiLaunchApp', () => {
       // should be shown.
       errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas-file-not-found-in-course"]'
+        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]'
       );
 
       // Change the API call to succeed and try again.

@@ -102,7 +102,7 @@ export default function LaunchErrorDialog({
           <p>Hypothesis needs your authorization to launch this assignment.</p>
         </BaseDialog>
       );
-    case 'error-fetching-canvas-file':
+    case 'canvas_api_permission_error':
       return (
         <BaseDialog
           busy={busy}
@@ -129,7 +129,7 @@ export default function LaunchErrorDialog({
           </ul>
         </BaseDialog>
       );
-    case 'canvas-file-not-found-in-course':
+    case 'canvas_file_not_found_in_course':
       return (
         <BaseDialog
           busy={busy}
@@ -158,7 +158,7 @@ export default function LaunchErrorDialog({
         </BaseDialog>
       );
 
-    case 'canvas-group-set-not-found':
+    case 'canvas_group_set_not_found':
       return (
         <BaseDialog busy={busy} error={error}>
           <p>
@@ -172,27 +172,27 @@ export default function LaunchErrorDialog({
         </BaseDialog>
       );
 
-    case 'canvas-group-set-empty':
+    case 'canvas_group_set_empty':
       return (
         <BaseDialog busy={busy} error={error}>
           <p>
-            There group set for this Hypothesis assignment is empty.{' '}
+            The group set for this Hypothesis assignment is empty.{' '}
             <b>
-              To fix this problem, create the necessary groups on the group set
-              or use a different group set for the assignment.
+              To fix this problem, add groups to the group set or use a
+              different group set for the assignment.
             </b>
           </p>
         </BaseDialog>
       );
 
-    case 'canvas-student-not-in-group':
+    case 'canvas_student_not_in_group':
       return (
         <BaseDialog busy={busy} error={error}>
           <p>
             This is a group assignment and you don&apos;t belong to any of the
-            groups in the group set.
+            groups in the group set.{' '}
             <b>
-              To fix this problem, an instructor needs to add you to any of the
+              To fix this problem, an instructor needs to add you to one of the
               groups.
             </b>
           </p>
