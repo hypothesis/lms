@@ -128,11 +128,13 @@ body {
   color: #444;
   background: #dedede;
 }
+
 .copy:focus {
   border-color: #52a7e7;
   outline: none;
   box-shadow: 0 0 5px #52a7e7;
 }
+
 .form-controls {
   max-width: 500px;
   display: flex;
@@ -162,33 +164,31 @@ body {
   background: #d00032;
 }
 
-/* A few table styles */
-
-table {
+.table {
   border-spacing: 0.5rem;
   border-collapse: collapse;
   max-width: 100%;
-}
 
-th {
-  border-bottom: 2px solid #dddddd;
-}
+  & th {
+    border-bottom: 2px solid #dddddd;
+  }
 
-th,
-td {
-  padding: 0.25em;
-  border: 1px solid #ddd;
-}
+  & tr:nth-child(odd) {
+    /* Zebra-stripe the rows */
+    background: #eee;
+  }
 
-table tr:nth-child(odd) {
-  /* Zebra-stripe the rows */
-  background: #eee;
-}
+  & th,
+  & td {
+    padding: 0.25em;
+    border: 1px solid #ddd;
+  }
 
-td.wrap {
-  /* wrap veryyyyyyyy long data */
-  white-space: normal;
-  word-break: break-all;
+  & td.wrap {
+    /* wrap veryyyyyyyy long data */
+    white-space: normal;
+    word-break: break-all;
+  }
 }
 
 /* Horizontally center an element's direct children. */
