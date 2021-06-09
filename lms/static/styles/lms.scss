@@ -135,11 +135,7 @@ body {
 .form-controls {
   max-width: 500px;
   display: flex;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   justify-content: flex-end;
-  -webkit-justify-content: flex-end;
 }
 
 .btn:hover {
