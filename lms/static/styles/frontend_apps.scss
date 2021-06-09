@@ -31,6 +31,13 @@
 // Shared styles from frontend-shared package
 @use '@hypothesis/frontend-shared/styles';
 
+// This ensures that root components which set `width: 100%; height: 100%`
+// (eg. the `BasicLtiLaunchApp`) will fill the viewport.
+html,
+body {
+  height: 100%;
+}
+
 body {
   font-family: var.$sans-font-family;
   font-size: var.$normal-font-size;
