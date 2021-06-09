@@ -28,7 +28,18 @@ import VitalSourceBookViewer from './VitalSourceBookViewer';
  * These affect the message that is shown to users and the actions
  * offered to remedy the problem.
  *
- * @typedef {'error-fetching'|'error-authorizing'|'error-reporting-submission'|'error-fetching-canvas-file'|'canvas-file-not-found-in-course'} ErrorState
+ * Note the two different naming conventions here:
+ *  - "canvas_*" for the canvas specific cases where ErrorState matches the string coming from the backend and are all handled the same way
+ *  - "error-*" for the rest
+ *
+ * @typedef {'error-fetching'|
+ *           'error-authorizing'|
+ *           'error-reporting-submission'|
+ *           'canvas_api_permission_error'|
+ *           'canvas_file_not_found_in_course'|
+ *           'canvas_group_set_not_found'|
+ *           'canvas_group_set_empty'|
+ *           'canvas_student_not_in_group'} ErrorState
  */
 
 /**
@@ -118,13 +129,9 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
 
     if (
       e instanceof ApiError &&
-      e.errorCode === 'canvas_api_permission_error'
-    ) {
-      setError(e);
-      setErrorState('error-fetching-canvas-file');
-    } else if (
-      e instanceof ApiError &&
+      e.errorCode !== null &&
       [
+        'canvas_api_permission_error',
         'canvas_file_not_found_in_course',
         'canvas_group_set_not_found',
         'canvas_group_set_empty',
@@ -132,7 +139,7 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
       ].includes(e.errorCode)
     ) {
       setError(e);
-      setErrorState(e.errorCode.replace(/_/g, '-'));
+      setErrorState(/** @type {ErrorState} */ (e.errorCode));
     } else if (e instanceof ApiError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {

@@ -42,11 +42,11 @@ describe('LaunchErrorDialog', () => {
       retryAction: 'Authorize',
     },
     {
-      errorState: 'error-fetching-canvas-file',
+      errorState: 'canvas_api_permission_error',
       expectedText: "Hypothesis couldn't get the assignment's file from Canvas",
     },
     {
-      errorState: 'canvas-file-not-found-in-course',
+      errorState: 'canvas_file_not_found_in_course',
       expectedText: 'edit the assignment and re-select the file',
     },
     {
@@ -56,6 +56,23 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'error-reporting-submission',
       expectedText: 'There was a problem submitting this Hypothesis assignment',
+      retryAction: null,
+    },
+    {
+      errorState: 'canvas_group_set_not_found',
+      expectedText:
+        'There was a problem loading the group set for this Hypothesis assignment.',
+      retryAction: null,
+    },
+    {
+      errorState: 'canvas_group_set_empty',
+      expectedText: 'The group set for this Hypothesis assignment is empty.',
+      retryAction: null,
+    },
+    {
+      errorState: 'canvas_student_not_in_group',
+      expectedText:
+        "This is a group assignment and you don't belong to any of the groups in the group set.",
       retryAction: null,
     },
   ].forEach(
@@ -103,7 +120,7 @@ describe('LaunchErrorDialog', () => {
   it('shows error details', () => {
     const error = new Error('Oh no');
     const wrapper = renderDialog({
-      errorState: 'error-fetching-canvas-file',
+      errorState: 'canvas_api_permission_error',
       error,
     });
     assert.equal(wrapper.find('ErrorDisplay').prop('error'), error);
