@@ -42,7 +42,7 @@ class HTTPService:
         schema=None,
         oauth=False,
         **kwargs,
-    ):
+    ):  # pylint:disable=too-many-arguments
         """
         Send a request with `requests` and return the requests.Response object.
 
