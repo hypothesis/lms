@@ -7,18 +7,18 @@ li {
   margin-bottom: 20px;
 }
 
-table {
-    font-size: 1.2em;
-    border-collapse: collapse;
-}
-
 input[type=radio] {
-    transform: scale(1.5);
+  transform: scale(1.5);
 }
 
-table td, table th {
-    padding: 8px 16px;
-    text-align: center;
+.table {
+  font-size: 1.2em;
+  border-collapse: collapse;
+}
 
-    border:2px solid #ccc;
+.table td, .table th {
+  padding: 8px 16px;
+  text-align: center;
+
+  border:2px solid #ccc;
 }
