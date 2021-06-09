@@ -30,7 +30,7 @@ class GroupingService:
         self, tool_consumer_instance_guid, context_id, section_id, section_name
     ):
         """
-        Create an HGroup for a course section.
+        Upsert a Grouping for a course section.
 
         :param tool_consumer_instance_guid: Tool consumer GUID
         :param context_id: Course id the section is a part of
@@ -67,12 +67,12 @@ class GroupingService:
         group_set_id,
     ):
         """
-        Create an HGroup for a course section.
+        Upserst a Grouping for a canvas group.
 
         :param tool_consumer_instance_guid: Tool consumer GUID
-        :param context_id: Course id the section is a part of
-        :param group_id: A section id for a section group
-        :param group_name: The name of the section
+        :param context_id: Course id the group is a part of
+        :param group_id: Canvas group id
+        :param group_name: The name of the group
         :param group_set_id: Id of the canvas group set this group belongs to
         """
 
