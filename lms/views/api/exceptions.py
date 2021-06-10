@@ -8,6 +8,7 @@ from pyramid.view import (
 )
 
 from lms.services import (
+    BlackboardFileNotFoundInCourse,
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
     ProxyAPIAccessTokenError,
@@ -100,6 +101,7 @@ class ExceptionViews:
         )
 
     @exception_view_config(context=ProxyAPIError)
+    @exception_view_config(context=BlackboardFileNotFoundInCourse)
     def proxy_api_error(self):
         return self.error_response(
             message=self.context.explanation, details=self.context.details

@@ -219,7 +219,7 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "path": "/api/blackboard/courses/test_course_id/files/xyz123/via_url",
+            "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
     def test_it_sets_the_document_url(self, js_config, submission_params):

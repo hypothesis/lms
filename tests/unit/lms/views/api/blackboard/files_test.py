@@ -1,6 +1,7 @@
+from unittest.mock import sentinel
+
 import pytest
 
-from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
 from lms.views.api.blackboard.files import BlackboardFilesAPIViews
 
 pytestmark = pytest.mark.usefixtures("oauth2_token_service", "blackboard_api_client")
@@ -18,28 +19,24 @@ class TestListFiles:
 
 class TestViaURL:
     def test_it_returns_the_Via_URL_for_the_selected_hardcoded_PDF_URL(
-        self, helpers, pyramid_request, view
+        self, helpers, pyramid_request, view, blackboard_api_client
     ):
         response = view()
 
+        blackboard_api_client.public_url.assert_called_once_with(
+            sentinel.course_id, sentinel.document_url
+        )
         helpers.via_url.assert_called_once_with(
             pyramid_request,
-            "https://h.readthedocs.io/_/downloads/client/en/latest/pdf/",
+            blackboard_api_client.public_url.return_value,
             content_type="pdf",
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
-    def test_it_raises_ProxyAPIAccessTokenError_if_theres_no_access_token_for_the_user(
-        self, oauth2_token_service, view
-    ):
-        oauth2_token_service.get.side_effect = NoOAuth2Token()
-
-        with pytest.raises(ProxyAPIAccessTokenError):
-            view()
-
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.matchdict["file_id"] = "456"
+        pyramid_request.matchdict["course_id"] = sentinel.course_id
+        pyramid_request.params["document_url"] = sentinel.document_url
         return pyramid_request
 
     @pytest.fixture

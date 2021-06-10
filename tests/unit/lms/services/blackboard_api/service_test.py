@@ -2,10 +2,14 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services import HTTPError, HTTPValidationError
-from lms.services.blackboard_api._schemas import BlackboardListFilesSchema
+from lms.services import BlackboardFileNotFoundInCourse, HTTPError, HTTPValidationError
+from lms.services.blackboard_api._schemas import (
+    BlackboardListFilesSchema,
+    BlackboardPublicURLSchema,
+)
 from lms.services.blackboard_api.service import BlackboardAPIClient, factory
 from lms.validation.authentication import OAuthTokenResponseSchema
+from tests import factories
 
 
 class TestBlackboardAPIClient:
@@ -78,6 +82,43 @@ class TestBlackboardAPIClient:
 
         with pytest.raises(exception_class):
             svc.list_files(sentinel.course_id)
+
+    def test_public_url(self, svc, http_service):
+        public_url = svc.public_url(
+            "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
+        )
+
+        http_service.get.assert_called_once_with(
+            "https://blackboard.example.com/learn/api/public/v1/courses/uuid:TEST_COURSE_ID/resources/TEST_FILE_ID",
+            oauth=True,
+            schema=BlackboardPublicURLSchema,
+        )
+
+        assert public_url == http_service.get.return_value.validated_data
+
+    def test_public_url_raises_BlackboardFileNotFoundInCourse_if_the_file_isnt__in_the_course(
+        self, svc, http_service
+    ):
+        response = factories.requests.Response(status_code=404)
+        http_service.get.side_effect = HTTPError(response)
+
+        with pytest.raises(BlackboardFileNotFoundInCourse):
+            svc.public_url(
+                "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
+            )
+
+    @pytest.mark.parametrize("exception_class", [HTTPError, HTTPValidationError])
+    def test_public_url_raises_if_HTTPService_raises(
+        self, svc, http_service, exception_class
+    ):
+        http_service.get.side_effect = exception_class(
+            factories.requests.Response(status_code=400)
+        )
+
+        with pytest.raises(exception_class):
+            svc.public_url(
+                "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
+            )
 
     @pytest.fixture
     def svc(self, http_service, oauth2_token_service):

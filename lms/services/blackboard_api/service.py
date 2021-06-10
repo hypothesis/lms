@@ -1,5 +1,17 @@
-from lms.services.blackboard_api._schemas import BlackboardListFilesSchema
+import re
+
+from lms.services.blackboard_api._schemas import (
+    BlackboardListFilesSchema,
+    BlackboardPublicURLSchema,
+)
+from lms.services.exceptions import BlackboardFileNotFoundInCourse, HTTPError
 from lms.validation.authentication import OAuthTokenResponseSchema
+
+#: A regex for parsing just the file_id part out of one of our custom
+#: blackboard://content-resource/<file_id>/ URLs.
+DOCUMENT_URL_REGEX = re.compile(
+    r"blackboard:\/\/content-resource\/(?P<file_id>[^\/]*)\/"
+)
 
 
 class BlackboardAPIClient:
@@ -58,6 +70,20 @@ class BlackboardAPIClient:
             oauth=True,
             schema=BlackboardListFilesSchema,
         ).validated_data
+
+    def public_url(self, course_id, document_url):
+        file_id = DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+
+        try:
+            return self._http_service.get(
+                self._api_url(f"courses/uuid:{course_id}/resources/{file_id}"),
+                oauth=True,
+                schema=BlackboardPublicURLSchema,
+            ).validated_data
+        except HTTPError as err:
+            if err.response.status_code == 404:
+                raise BlackboardFileNotFoundInCourse(file_id) from err
+            raise
 
     def _api_url(self, path):
         """Return the full Blackboard API URL for the given path."""
