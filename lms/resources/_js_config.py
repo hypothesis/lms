@@ -67,7 +67,7 @@ class JSConfig:
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
                     course_id=self._request.params["context_id"],
-                    file_id=document_url.split("/")[3],
+                    _query={"document_url": document_url},
                 ),
             }
         else:
