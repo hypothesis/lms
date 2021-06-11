@@ -1,11 +1,14 @@
+// Height of cover images, chosen to work when the file picker app is shown
+// inside the shortest expected window (~340px in Canvas).
+$-cover-image-height: 180px;
+
 .BookList {
   display: flex;
   flex-direction: row;
 }
 
 .BookList__cover {
-  width: 160px;
-  height: auto;
+  height: $-cover-image-height;
 }
 
 .BookList__cover-container {
@@ -14,9 +17,15 @@
   // Align top of cover image with top edge of table.
   margin-top: 10px;
 
+  // Set a min width that is large enough to keep the cover container's width
+  // constant as the user navigates between books, as long as the cover image's
+  // aspect ratio is not greater than 1:1.
+  min-width: $-cover-image-height;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
 
   background-color: #eee;
 }
