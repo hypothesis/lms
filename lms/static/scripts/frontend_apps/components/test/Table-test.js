@@ -105,6 +105,11 @@ describe('Table', () => {
     wrapper.setProps({ selectedItem: items[items.length - 1] });
     assertKeySelectsItem('ArrowDown', items.length - 1);
 
+    // Up or down arrow should select the first item if no item is selected.
+    wrapper.setProps({ selectedItem: null });
+    assertKeySelectsItem('ArrowUp', 0);
+    assertKeySelectsItem('ArrowDown', 0);
+
     // Other keys should do nothing.
     onSelectItem.reset();
     wrapper.find('table').simulate('keydown', { key: 'Tab' });

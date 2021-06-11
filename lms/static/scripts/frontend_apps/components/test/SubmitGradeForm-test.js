@@ -123,21 +123,28 @@ describe('SubmitGradeForm', () => {
   });
 
   context('validation messages', () => {
+    beforeEach(() => {
+      $imports.$mock({
+        '../utils/validation': {
+          validateGrade: sinon.stub().returns('err'),
+        },
+      });
+    });
+
     it('does not render the validation message by default', () => {
       const wrapper = renderForm();
       assert.isFalse(wrapper.find('ValidationMessage').exists());
     });
 
     it('shows the validation message when the validator returns an error', () => {
-      $imports.$mock({
-        '../utils/validation': {
-          validateGrade: sinon.stub().returns('err'),
-        },
-      });
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(wrapper.find('ValidationMessage').prop('open'));
       assert.equal(wrapper.find('ValidationMessage').prop('message'), 'err');
+
+      // Clicking the error message should dismiss it.
+      wrapper.find('ValidationMessage').invoke('onClose')();
+      assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
     });
 
     it('hides the validation message after it was opened when input is detected', () => {
@@ -173,6 +180,10 @@ describe('SubmitGradeForm', () => {
       assert.isTrue(wrapper.find('ErrorDialog').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
       assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
+
+      // Error message should be hidden when its close action is triggered.
+      wrapper.find('ErrorDialog').invoke('onCancel')();
+      assert.isFalse(wrapper.exists('ErrorDialog'));
     });
 
     it('sets the `is-saved` class when the grade has posted', async () => {
@@ -245,6 +256,10 @@ describe('SubmitGradeForm', () => {
       assert.isTrue(wrapper.find('ErrorDialog').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
       assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
+
+      // Error message should be hidden when its close action is triggered.
+      wrapper.find('ErrorDialog').invoke('onCancel')();
+      assert.isFalse(wrapper.exists('ErrorDialog'));
     });
 
     it("sets the input defaultValue prop to the student's grade", async () => {

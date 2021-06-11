@@ -45,7 +45,8 @@ function contentDescription(content) {
     case 'vitalsource':
       return 'Book from VitalSource';
     default:
-      return 'Other content';
+      /* istanbul ignore next */
+      throw new Error('Unknown content type');
   }
 }
 

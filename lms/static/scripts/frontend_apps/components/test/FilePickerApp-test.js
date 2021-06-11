@@ -78,13 +78,17 @@ describe('FilePickerApp', () => {
     assert.isTrue(wrapper.exists('ContentSelector'));
   });
 
-  function selectContent(wrapper, url) {
+  function selectContent(wrapper, content) {
     const picker = wrapper.find('ContentSelector');
     interact(wrapper, () => {
-      picker.props().onSelectContent({
-        type: 'url',
-        url,
-      });
+      picker.props().onSelectContent(
+        typeof content === 'string'
+          ? {
+              type: 'url',
+              url: content,
+            }
+          : content
+      );
     });
   }
 
@@ -143,15 +147,30 @@ describe('FilePickerApp', () => {
       assert.notCalled(onSubmit);
     });
 
-    it('displays a summary of the assignment content', () => {
-      const wrapper = renderFilePicker();
+    [
+      {
+        content: 'https://example.com',
+        summary: 'https://example.com',
+      },
+      {
+        content: { type: 'file', id: 'abcd' },
+        summary: 'PDF file in Canvas',
+      },
+      {
+        content: { type: 'vitalsource', bookID: 'abc', cfi: '/1/2' },
+        summary: 'Book from VitalSource',
+      },
+    ].forEach(({ content, summary }) => {
+      it('displays a summary of the assignment content', () => {
+        const wrapper = renderFilePicker();
 
-      selectContent(wrapper, 'https://example.com');
+        selectContent(wrapper, content);
 
-      assert.equal(
-        wrapper.find('[data-testid="content-summary"]').text(),
-        'https://example.com'
-      );
+        assert.equal(
+          wrapper.find('[data-testid="content-summary"]').text(),
+          summary
+        );
+      });
     });
 
     it('truncates long URLs in assignment content summary', () => {
