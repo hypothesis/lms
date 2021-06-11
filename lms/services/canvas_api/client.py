@@ -3,6 +3,7 @@
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
+from lms.events import FilesDiscoveredEvent
 from lms.services import CanvasAPIError
 from lms.validation import RequestsResponseSchema
 
@@ -35,13 +36,15 @@ class CanvasAPIClient:
         Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_client):
+    def __init__(self, authenticated_client, request):
         """
         Create a new CanvasAPIClient.
 
         :param authenticated_client: An instance of AuthenticatedClient
+        :param request: For reporting events
         """
         self._client = authenticated_client
+        self._request = request
 
     def get_token(self, authorization_code):
         """
@@ -210,12 +213,31 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
 
-        return self._client.send(
+        files = self._client.send(
             "GET",
             f"courses/{course_id}/files",
             params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
         )
+
+        # Notify that we've found some files
+        self._request.registry.notify(
+            FilesDiscoveredEvent(
+                request=self._request,
+                values=[
+                    {
+                        "type": "canvas_file",
+                        "course_id": course_id,
+                        "lms_id": file["id"],
+                        "name": file["display_name"],
+                        "size": file["size"],
+                    }
+                    for file in files
+                ],
+            )
+        )
+
+        return files
 
     class _ListFilesSchema(RequestsResponseSchema):
         """Schema for the list_files response."""
@@ -225,6 +247,7 @@ class CanvasAPIClient:
         display_name = fields.Str(required=True)
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
+        size = fields.Integer(required=True)
 
     def public_url(self, file_id):
         """

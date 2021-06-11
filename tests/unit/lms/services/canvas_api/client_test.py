@@ -324,8 +324,18 @@ class TestCanvasAPIClient:
 
     def test_list_files(self, canvas_api_client, http_session):
         files = [
-            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
-            {"display_name": "display_name_1", "id": 1, "updated_at": "updated_at_1"},
+            {
+                "display_name": "display_name_1",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 12345,
+            },
+            {
+                "display_name": "display_name_1",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 12345,
+            },
         ]
         files_with_noise = [dict(file, unexpected="ignored") for file in files]
         http_session.send.return_value = factories.requests.Response(
@@ -452,5 +462,5 @@ class TestMetaBehavior:
 
 
 @pytest.fixture
-def canvas_api_client(authenticated_client):
-    return CanvasAPIClient(authenticated_client)
+def canvas_api_client(authenticated_client, pyramid_request):
+    return CanvasAPIClient(authenticated_client, pyramid_request)

@@ -15,7 +15,9 @@ class TestCanvasAPIClientFactory:
     ):
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
-        CanvasAPIClient.assert_called_once_with(AuthenticatedClient.return_value)
+        CanvasAPIClient.assert_called_once_with(
+            AuthenticatedClient.return_value, pyramid_request
+        )
         assert canvas_api == CanvasAPIClient.return_value
 
     def test_building_the_BasicClient(
