@@ -23,29 +23,47 @@ from lms.services.vitalsource import VitalSourceService
 from tests import factories
 
 __all__ = (
+    # Meta fixture for creating service fixtures
+    "mock_service",
+    # Individual services
     "application_instance_service",
     "assignment_service",
     "blackboard_api_client",
     "canvas_api_client",
     "course_service",
-    "http_service",
-    "launch_verifier",
     "grading_info_service",
     "grant_token_service",
     "group_info_service",
+    "grouping_service",
+    "http_service",
+    "launch_verifier",
     "lti_h_service",
+    "lti_outcomes_client",
     "oauth1_service",
     "oauth2_token_service",
-    "vitalsource_service",
     "h_api",
-    "lti_outcomes_client",
+    "vitalsource_service",
 )
 
 
 @pytest.fixture
-def application_instance_service(pyramid_config):
-    application_instance_service = mock.create_autospec(
-        ApplicationInstanceService, instance=True, spec_set=True
+def mock_service(pyramid_config):
+    def mock_service(service_class, service_name=None):
+        mock_service = mock.create_autospec(service_class, spec_set=True, instance=True)
+        if service_name:
+            pyramid_config.register_service(mock_service, name=service_name)
+        else:  # pragma: no cover
+            pyramid_config.register_service(mock_service, iface=service_class)
+
+        return mock_service
+
+    return mock_service
+
+
+@pytest.fixture
+def application_instance_service(mock_service):
+    application_instance_service = mock_service(
+        ApplicationInstanceService, service_name="application_instance"
     )
 
     application_instance_service.get.return_value = factories.ApplicationInstance(
@@ -63,148 +81,100 @@ def application_instance_service(pyramid_config):
         "canvas", "groups_enabled", False
     )
 
-    pyramid_config.register_service(
-        application_instance_service, name="application_instance"
-    )
     return application_instance_service
 
 
 @pytest.fixture
-def assignment_service(pyramid_config):
-    assignment_service = mock.create_autospec(
-        AssignmentService, spec_set=True, instance=True
-    )
-    pyramid_config.register_service(assignment_service, name="assignment")
-    return assignment_service
+def assignment_service(mock_service):
+    return mock_service(AssignmentService, service_name="assignment")
 
 
 @pytest.fixture
-def blackboard_api_client(pyramid_config):
-    blackboard_api_client = mock.create_autospec(
-        BlackboardAPIClient, spec_set=True, instance=True
-    )
-    pyramid_config.register_service(blackboard_api_client, name="blackboard_api_client")
-    return blackboard_api_client
+def blackboard_api_client(mock_service):
+    return mock_service(BlackboardAPIClient, service_name="blackboard_api_client")
 
 
 @pytest.fixture
-def canvas_api_client(pyramid_config):
-    canvas_api_client = mock.create_autospec(
-        CanvasAPIClient, spec_set=True, instance=True
-    )
+def canvas_api_client(mock_service):
+    canvas_api_client = mock_service(CanvasAPIClient, service_name="canvas_api_client")
+
     canvas_api_client.get_token.return_value = (
         "test_access_token",
         "test_refresh_token",
         3600,
     )
-    pyramid_config.register_service(canvas_api_client, name="canvas_api_client")
     return canvas_api_client
 
 
 @pytest.fixture
-def course_service(pyramid_config):
-    course_service = mock.create_autospec(CourseService, spec_set=True, instance=True)
-    pyramid_config.register_service(course_service, name="course")
-    return course_service
+def course_service(mock_service):
+    return mock_service(CourseService, service_name="course")
 
 
 @pytest.fixture
-def grading_info_service(pyramid_config):
-    grading_info_service = mock.create_autospec(
-        GradingInfoService, instance=True, spec_set=True
-    )
-    grading_info_service.get_by_assignment.return_value = []
-    pyramid_config.register_service(grading_info_service, name="grading_info")
-    return grading_info_service
+def grading_info_service(mock_service):
+    return mock_service(GradingInfoService, service_name="grading_info")
 
 
 @pytest.fixture
-def grant_token_service(pyramid_config):
-    grant_token_service = mock.create_autospec(
-        GrantTokenService, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(grant_token_service, name="grant_token")
-    return grant_token_service
+def grant_token_service(mock_service):
+    return mock_service(GrantTokenService, service_name="grant_token")
 
 
 @pytest.fixture
-def group_info_service(pyramid_config):
-    group_info_service = mock.create_autospec(
-        GroupInfoService, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(group_info_service, name="group_info")
-    return group_info_service
+def group_info_service(mock_service):
+    return mock_service(GroupInfoService, service_name="group_info")
 
 
 @pytest.fixture
-def grouping_service(pyramid_config):
-    grouping_service = mock.create_autospec(
-        GroupingService, spec_set=True, instance=True
-    )
-    pyramid_config.register_service(grouping_service, name="grouping")
-    return grouping_service
+def grouping_service(mock_service):
+    return mock_service(GroupingService, service_name="grouping")
 
 
 @pytest.fixture
-def h_api(pyramid_config):
-    h_api = mock.create_autospec(HAPI, spec_set=True, instance=True)
+def h_api(mock_service):
+    h_api = mock_service(HAPI, service_name="h_api")
     h_api.get_user.return_value = factories.HUser()
-    pyramid_config.register_service(h_api, name="h_api")
+
     return h_api
 
 
 @pytest.fixture
-def http_service(pyramid_config):
-    http_service = mock.create_autospec(HTTPService, instance=True, spec_set=True)
+def http_service(mock_service):
+    http_service = mock_service(HTTPService, service_name="http")
     http_service.request.return_value = factories.requests.Response()
-    pyramid_config.register_service(http_service, name="http")
+
     return http_service
 
 
 @pytest.fixture
-def launch_verifier(pyramid_config):
-    launch_verifier = mock.create_autospec(LaunchVerifier, spec_set=True, instance=True)
-    pyramid_config.register_service(launch_verifier, name="launch_verifier")
-    return launch_verifier
+def launch_verifier(mock_service):
+    return mock_service(LaunchVerifier, service_name="launch_verifier")
 
 
 @pytest.fixture
-def lti_outcomes_client(pyramid_config):
-    lti_outcomes_client = mock.create_autospec(
-        LTIOutcomesClient, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(lti_outcomes_client, name="lti_outcomes_client")
-    return lti_outcomes_client
+def lti_outcomes_client(mock_service):
+    return mock_service(LTIOutcomesClient, service_name="lti_outcomes_client")
 
 
 @pytest.fixture
-def lti_h_service(pyramid_config):
-    lti_h_service = mock.create_autospec(LTIHService, instance=True, spec_set=True)
-    pyramid_config.register_service(lti_h_service, name="lti_h")
-    return lti_h_service
+def lti_h_service(mock_service):
+    return mock_service(LTIHService, service_name="lti_h")
 
 
 @pytest.fixture
-def oauth1_service(pyramid_config):
-    oauth1_service = mock.create_autospec(OAuth1Service, instance=True, spec_set=True)
-    pyramid_config.register_service(oauth1_service, name="oauth1")
-    return oauth1_service
+def oauth1_service(mock_service):
+    return mock_service(OAuth1Service, service_name="oauth1")
 
 
 @pytest.fixture
-def oauth2_token_service(oauth_token, pyramid_config):
-    oauth2_token_service = mock.create_autospec(
-        OAuth2TokenService, instance=True, spec_set=True
-    )
+def oauth2_token_service(mock_service, oauth_token):
+    oauth2_token_service = mock_service(OAuth2TokenService, service_name="oauth2_token")
     oauth2_token_service.get.return_value = oauth_token
-    pyramid_config.register_service(oauth2_token_service, name="oauth2_token")
+
     return oauth2_token_service
 
 
 @pytest.fixture
-def vitalsource_service(pyramid_config):
-    vitalsource_service = mock.create_autospec(
-        VitalSourceService, instance=True, spec_set=True
-    )
-    pyramid_config.register_service(vitalsource_service, name="vitalsource")
-    return vitalsource_service
+def vitalsource_service(mock_service):
+    return mock_service(VitalSourceService, service_name="vitalsource")
