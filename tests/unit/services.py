@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.models import ApplicationSettings
+from lms.services import CanvasService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.blackboard_api.service import BlackboardAPIClient
@@ -30,6 +31,7 @@ __all__ = (
     "assignment_service",
     "blackboard_api_client",
     "canvas_api_client",
+    "canvas_service",
     "course_service",
     "grading_info_service",
     "grant_token_service",
@@ -50,9 +52,10 @@ __all__ = (
 def mock_service(pyramid_config):
     def mock_service(service_class, service_name=None):
         mock_service = mock.create_autospec(service_class, spec_set=True, instance=True)
+
         if service_name:
             pyramid_config.register_service(mock_service, name=service_name)
-        else:  # pragma: no cover
+        else:
             pyramid_config.register_service(mock_service, iface=service_class)
 
         return mock_service
@@ -104,6 +107,14 @@ def canvas_api_client(mock_service):
         3600,
     )
     return canvas_api_client
+
+
+@pytest.fixture
+def canvas_service(mock_service, canvas_api_client):
+    canvas_service = mock_service(CanvasService)
+    canvas_service.api = canvas_api_client
+
+    return canvas_service
 
 
 @pytest.fixture
