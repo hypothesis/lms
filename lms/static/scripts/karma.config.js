@@ -76,7 +76,7 @@ module.exports = function (config) {
               [
                 'babel-plugin-istanbul',
                 {
-                  exclude: ['**/test/**/*.js'],
+                  exclude: ['**/test/**/*.js', '**/test-util/**/*.js'],
                 },
               ],
             ],
@@ -90,6 +90,11 @@ module.exports = function (config) {
       reports: ['json', 'html'],
       'report-config': {
         json: { subdir: './' },
+      },
+      thresholds: {
+        global: {
+          statements: 100,
+        },
       },
     },
 
