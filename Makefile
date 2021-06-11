@@ -71,7 +71,25 @@ checkformatting: python
 	@tox -qe checkformatting
 
 .PHONY: test
-test: backend-tests frontend-tests
+test: backend-tests coverage frontend-tests
+
+# Backend and frontend tests are split into separate targets because on Jenkins
+# we need to run them with different Docker images, but `make test` runs both.
+.PHONY: backend-tests
+backend-tests: python
+	@tox -qe tests
+
+.PHONY: coverage
+coverage: python
+	@tox -qe coverage
+
+.PHONY: frontend-tests
+frontend-tests: node_modules/.uptodate
+ifdef ARGS
+	yarn test $(ARGS)
+else
+	yarn test
+endif
 
 .PHONY: functests
 functests: build/manifest.json functests-only
@@ -119,26 +137,14 @@ frontend-lint: node_modules/.uptodate
 	@yarn lint
 	@yarn typecheck
 
-# Backend and frontend tests are split into separate targets because on Jenkins
-# we need to run them with different Docker images, but `make test` runs both.
-.PHONY: backend-tests
-backend-tests: python
-	@tox -qe tests
 
 .PHONY: bddtests
 bddtests: python
 	@tox -qe bddtests
 
 .PHONY: sure
-sure: checkformatting backend-lint frontend-lint backend-tests frontend-tests functests bddtests
+sure: checkformatting backend-lint frontend-lint backend-tests coverage frontend-tests functests bddtests
 
-.PHONY: frontend-tests
-frontend-tests: node_modules/.uptodate
-ifdef ARGS
-	yarn test $(ARGS)
-else
-	yarn test
-endif
 
 DOCKER_TAG = dev
 
