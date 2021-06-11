@@ -11,13 +11,16 @@ import Table from './Table';
  * @prop {Chapter[]} chapters - List of available chapters
  * @prop {boolean} [isLoading] - Whether to show a loading indicator
  * @prop {Chapter|null} selectedChapter - The chapter within `chapters` which is currently selected
- * @prop {(c: Chapter) => void} onSelectChapter -
- *   Callback invoked when the user clicks on a chapter
+ * @prop {(c: Chapter) => void} onSelectChapter - Callback invoked when the user selects a chapter
  * @prop {(c: Chapter) => void} onUseChapter -
- *   Callback invoked when the user double-clicks a chapter
+ *   Callback invoked when user confirms they want to use the selected chapter for
+ *   an assignment.
  */
 
 /**
+ * Component that presents a list of chapters from a book and allows the user
+ * to choose one for an assignment.
+ *
  * @param {ChapterListProps} props
  */
 export default function ChapterList({

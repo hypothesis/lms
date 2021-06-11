@@ -50,9 +50,9 @@ function nextItem(items, currentItem, step) {
  *   A function called to render each item as the contents of a table row.
  *   The result should be a list of `<td>` elements (one per column) wrapped inside a Fragment.
  * @prop {Item|null} selectedItem - The currently selected item from `items`
- * @prop {(it: Item) => any} onSelectItem -
+ * @prop {(it: Item) => void} onSelectItem -
  *   Callback invoked when the user changes the selected item
- * @prop {(it: Item) => any} onUseItem -
+ * @prop {(it: Item) => void} onUseItem -
  *   Callback invoked when a user chooses to use an item by double-clicking it
  *   or pressing Enter while it is selected
  */
