@@ -5,11 +5,8 @@ from unittest import mock
 import factory.random
 import pytest
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
 
 from lms import db
-
-SESSION = sessionmaker()
 
 
 def get_test_database_url(default):
