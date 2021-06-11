@@ -81,6 +81,7 @@ function createGoogleLibFakes() {
     },
 
     // Additional helpers for tests.
+    pickerBuilder,
     pickerVisible,
   };
 }
@@ -89,11 +90,15 @@ describe('GooglePickerClient', () => {
   let fakeLoadLibraries;
   let fakeGoogleLibs;
 
-  function createClient() {
+  function createClient({
+    developerKey = 'john.developer',
+    clientId = '12345',
+    origin = 'https://eldorado.instructure.com',
+  } = {}) {
     return new GooglePickerClient({
-      developerKey: 'john.developer',
-      clientId: '12345',
-      origin: 'https://eldorado.instructure.com',
+      developerKey,
+      clientId,
+      origin,
     });
   }
 
@@ -136,6 +141,23 @@ describe('GooglePickerClient', () => {
       await fakeGoogleLibs.pickerVisible;
     });
 
+    [
+      ['https://foobar.instructure.com', 'https://foobar.instructure.com'],
+
+      // If the `origin` value passed to the constructor is just a domain it
+      // should be converted to a URL.
+      ['foobar.instructure.com', 'https://foobar.instructure.com'],
+    ].forEach(([origin, pickerOrigin]) => {
+      it('sets the origin of the picker', async () => {
+        const client = createClient({ origin });
+
+        client.showPicker();
+        await fakeGoogleLibs.pickerVisible;
+
+        assert.calledWith(fakeGoogleLibs.pickerBuilder.setOrigin, pickerOrigin);
+      });
+    });
+
     it('rejects with a `PickerCanceledError` if the user cancels authorization', async () => {
       const client = createClient();
       const auth = fakeGoogleLibs.auth2.init();
@@ -151,20 +173,30 @@ describe('GooglePickerClient', () => {
       assert.instanceOf(err, PickerCanceledError);
     });
 
-    it('rejects with the upstream Error if authorization fails for other reasons', async () => {
-      const client = createClient();
-      const auth = fakeGoogleLibs.auth2.init();
-      const expectedError = { error: 'something-went-wrong' };
-      auth.signIn.rejects(expectedError);
+    [
+      {
+        makeError: () => ({ error: 'something-went-wrong' }),
+        expectedMessage: 'something-went-wrong',
+      },
+      {
+        makeError: () => new Error('Something failed'),
+        expectedMessage: 'Something failed',
+      },
+    ].forEach(({ makeError, expectedMessage }) => {
+      it('rejects with the upstream Error if authorization fails for other reasons', async () => {
+        const client = createClient();
+        const auth = fakeGoogleLibs.auth2.init();
+        auth.signIn.rejects(makeError());
 
-      let err;
-      try {
-        await client.showPicker();
-      } catch (e) {
-        err = e;
-      }
+        let err;
+        try {
+          await client.showPicker();
+        } catch (e) {
+          err = e;
+        }
 
-      assert.equal(err.message, 'something-went-wrong');
+        assert.equal(err.message, expectedMessage);
+      });
     });
 
     it('resolves with the file ID and URL when a file is chosen', async () => {

@@ -111,10 +111,16 @@ describe('ErrorDisplay', () => {
     const details = wrapper.find('details');
     const scrollIntoView = sinon.stub(details.getDOMNode(), 'scrollIntoView');
 
+    // Details should be scrolled into view if details is opened.
     details.getDOMNode().open = true;
     details.simulate('toggle');
-
     assert.called(scrollIntoView);
+
+    // Details should not be scrolled into view if details is closed.
+    scrollIntoView.resetHistory();
+    details.getDOMNode().open = false;
+    details.simulate('toggle');
+    assert.notCalled(scrollIntoView);
   });
 
   [

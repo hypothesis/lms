@@ -2,7 +2,16 @@ import { loadLibraries } from './google-api-client';
 
 export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 
-/** @param {string} origin */
+/**
+ * Convert a domain (example.com) into a valid web origin (https://example.com).
+ *
+ * This is needed because the origin value may ultimately come from the
+ * `custom_canvas_api_domain` LTI launch parameter on the backend, in which
+ * case it may be a domain rather than a URL. If so, this should really be handled
+ * on the backend.
+ *
+ * @param {string} origin
+ */
 function addHttps(origin) {
   if (origin.indexOf('://') !== -1) {
     return origin;
@@ -50,7 +59,7 @@ export class GooglePickerClient {
   constructor({ developerKey, clientId, origin }) {
     this._clientId = clientId;
     this._developerKey = developerKey;
-    this._origin = origin;
+    this._origin = addHttps(origin);
 
     const libs = loadLibraries(['auth2', 'client', 'picker']);
 
@@ -133,7 +142,7 @@ export class GooglePickerClient {
       .setDeveloperKey(this._developerKey)
       .setMaxItems(1)
       .setOAuthToken(accessToken)
-      .setOrigin(addHttps(this._origin))
+      .setOrigin(this._origin)
       .build();
     picker.setVisible(true);
 
