@@ -1,3 +1,4 @@
+from lms.services.canvas import CanvasService
 from lms.services.exceptions import (
     CanvasAPIError,
     CanvasAPIPermissionError,
@@ -26,6 +27,8 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
+    config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
+
     config.register_service_factory("lms.services.h_api.HAPI", name="h_api")
     config.register_service_factory(
         "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
