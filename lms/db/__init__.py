@@ -6,10 +6,12 @@ import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
-__all__ = ("BASE", "init")
+from lms.db._bulk_action import BulkAction
+
+__all__ = ("BASE", "init", "BulkAction")
 
 
 LOG = logging.getLogger(__name__)
@@ -85,9 +87,6 @@ BASE = declarative_base(
 )
 
 
-SESSION = sessionmaker()
-
-
 def init(engine, drop=False):
     """
     Create all the database tables if they don't already exist.
@@ -121,6 +120,13 @@ def _stamp_db(engine):  # pragma: nocover
 def make_engine(settings):
     """Construct a sqlalchemy engine from the passed ``settings``."""
     return sqlalchemy.create_engine(settings["sqlalchemy.url"])
+
+
+class CustomSession(Session):
+    bulk = BulkAction()
+
+
+SESSION = sessionmaker(class_=CustomSession)
 
 
 def _session(request):  # pragma: no cover
