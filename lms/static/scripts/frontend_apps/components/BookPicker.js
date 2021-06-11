@@ -68,7 +68,7 @@ export default function BookPicker({ authToken, onCancel, onSelectBook }) {
   return (
     <Dialog
       onCancel={onCancel}
-      title="Select book from VitalSource"
+      title={step === 'select-book' ? 'Select book' : 'Select chapter'}
       buttons={[
         <LabeledButton
           key="submit"
