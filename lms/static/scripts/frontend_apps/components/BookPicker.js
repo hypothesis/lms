@@ -15,12 +15,15 @@ import ErrorDisplay from './ErrorDisplay';
  *
  * @typedef BookPickerProps
  * @prop {string} authToken
- * @prop {() => any} onCancel
- * @prop {(b: Book, c: Chapter) => any} onSelectBook
+ * @prop {() => void} onCancel
+ * @prop {(b: Book, c: Chapter) => void} onSelectBook
  */
 
 /**
- * A dialog that allows the user to select a book from VitalSource
+ * A dialog that allows the user to select a book and chapter to use in an assignment.
+ *
+ * The list of available books is fetched from VitalSource, but this component
+ * could be adapted to work with other book sources in future.
  *
  * @param {BookPickerProps} props
  */

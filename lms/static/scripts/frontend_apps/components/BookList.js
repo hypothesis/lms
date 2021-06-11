@@ -8,14 +8,19 @@ import Table from './Table';
 
 /**
  * @typedef BookListProps
- * @prop {Book[]} books
- * @prop {boolean} isLoading
- * @prop {Book|null} selectedBook
- * @prop {(b: Book) => any} onSelectBook
- * @prop {(b: Book) => any} onUseBook
+ * @prop {Book[]} books - List of available books
+ * @prop {boolean} isLoading - Whether to show a loading indicator
+ * @prop {Book|null} selectedBook - Book within `books` which is currently selected
+ * @prop {(b: Book) => void} onSelectBook - Callback invoked when user selects a book
+ * @prop {(b: Book) => void} onUseBook -
+ *   Callback invoked when user confirms they want to use the selected book for
+ *   an assignment.
  */
 
 /**
+ * Component that presents the user with a list of books from a source (eg. VitalSource)
+ * and allows them to choose one for an assignment.
+ *
  * @param {BookListProps} props
  */
 export default function BookList({
