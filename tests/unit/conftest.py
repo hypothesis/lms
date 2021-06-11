@@ -6,8 +6,9 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
+from lms.db import SESSION
 from tests import factories
-from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
+from tests.conftest import TEST_SETTINGS, get_test_database_url
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(

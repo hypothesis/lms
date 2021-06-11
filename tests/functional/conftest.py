@@ -6,8 +6,9 @@ from webtest import TestApp
 
 from lms import db
 from lms.app import create_app
+from lms.db import SESSION
 from tests import factories
-from tests.conftest import SESSION, TEST_SETTINGS, get_test_database_url
+from tests.conftest import TEST_SETTINGS, get_test_database_url
 
 TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
     default="postgresql://postgres@localhost:5433/lms_functests"
