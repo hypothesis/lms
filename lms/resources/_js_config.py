@@ -14,7 +14,6 @@ class JSConfig:
         self._request = request
         self._authority = request.registry.settings["h_authority"]
         self._grading_info_service = request.find_service(name="grading_info")
-        self._h_api = request.find_service(name="h_api")
         self._lti_user = request.lti_user
 
     @property
@@ -298,7 +297,11 @@ class JSConfig:
         # Hypothesis client, and we need to make a request to the h API to
         # retrieve that display name.
         try:
-            display_name = self._h_api.get_user(focused_user).display_name
+            display_name = (
+                self._request.find_service(name="h_api")
+                .get_user(focused_user)
+                .display_name
+            )
         except HAPIError:
             display_name = "(Couldn't fetch student name)"
 
