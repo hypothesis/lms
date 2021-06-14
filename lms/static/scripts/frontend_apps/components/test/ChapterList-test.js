@@ -35,7 +35,7 @@ describe('ChapterList', () => {
   });
 
   [true, false].forEach(isLoading => {
-    it('shows loading indicator if chapters are being fetched', () => {
+    it('shows loading indicator in table if chapters are being fetched', () => {
       const chapterList = renderChapterList({ isLoading });
       assert.equal(chapterList.find('Table').prop('isLoading'), isLoading);
     });

@@ -34,9 +34,9 @@ describe('BookPicker', () => {
     $imports.$restore();
   });
 
-  const selectBook = wrapper => {
+  const selectBook = (wrapper, index = 0) => {
     const bookList = wrapper.find('BookList');
-    const book = bookList.prop('books')[0];
+    const book = bookList.prop('books')[index];
     act(() => {
       bookList.prop('onSelectBook')(book);
     });
@@ -44,9 +44,9 @@ describe('BookPicker', () => {
     return book;
   };
 
-  const selectChapter = wrapper => {
+  const selectChapter = (wrapper, index = 0) => {
     const chapterList = wrapper.find('ChapterList');
-    const chapter = chapterList.prop('chapters')[0];
+    const chapter = chapterList.prop('chapters')[index];
     act(() => {
       chapterList.prop('onSelectChapter')(chapter);
     });
@@ -66,6 +66,7 @@ describe('BookPicker', () => {
   it('fetches and displays book list when picker is opened', async () => {
     const picker = renderBookPicker();
 
+    // The book list should initially be empty and in a loading state.
     let bookList = picker.find('BookList');
     assert.deepEqual(bookList.prop('books'), []);
     assert.isTrue(bookList.prop('isLoading'));
@@ -73,17 +74,20 @@ describe('BookPicker', () => {
 
     await waitForElement(picker, 'BookList[isLoading=false]');
 
+    // The book list should display details of books once fetched.
     bookList = picker.find('BookList');
     assert.deepEqual(bookList.prop('books'), bookData.bookList);
   });
 
   it('fetches and displays chapter list when a book is chosen', async () => {
+    // Wait for books to load and then pick the first one.
     const picker = renderBookPicker();
     await waitForElement(picker, 'BookList[isLoading=false]');
 
     const book = selectBook(picker);
     clickSelectButton(picker);
 
+    // After a book is chosen, the chapter list should appear in a loading state.
     assert.isFalse(picker.exists('BookList'));
     let chapterList = picker.find('ChapterList');
     assert.isTrue(chapterList.exists());
@@ -92,6 +96,7 @@ describe('BookPicker', () => {
 
     await waitForElement(picker, 'ChapterList[isLoading=false]');
 
+    // The list of chapters for the selected book should be presented once fetched.
     chapterList = picker.find('ChapterList');
     assert.equal(chapterList.prop('chapters'), bookData.chapterData[book.id]);
   });

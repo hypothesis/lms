@@ -370,7 +370,7 @@ describe('ContentSelector', () => {
     assert.isTrue(wrapper.exists('BookPicker'));
   });
 
-  it('submits selecting a book from VitalSource', () => {
+  it('submits VitalSource book ID and chapter CFI', () => {
     const onSelectContent = sinon.stub();
     const wrapper = renderContentSelector({
       defaultActiveDialog: 'vitalSourceBook',

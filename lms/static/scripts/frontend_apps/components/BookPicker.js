@@ -16,7 +16,8 @@ import ErrorDisplay from './ErrorDisplay';
  * @typedef BookPickerProps
  * @prop {string} authToken
  * @prop {() => void} onCancel
- * @prop {(b: Book, c: Chapter) => void} onSelectBook
+ * @prop {(b: Book, c: Chapter) => void} onSelectBook - Callback invoked when
+ *   a book and chapter have been selected
  */
 
 /**
@@ -24,6 +25,10 @@ import ErrorDisplay from './ErrorDisplay';
  *
  * The list of available books is fetched from VitalSource, but this component
  * could be adapted to work with other book sources in future.
+ *
+ * The dialog has two steps: The user first chooses a book to use and then chooses
+ * which chapter to use from that book. Once both are chosen the `onSelectBook`
+ * callback is called.
  *
  * @param {BookPickerProps} props
  */
@@ -78,6 +83,9 @@ export default function BookPicker({ authToken, onCancel, onSelectBook }) {
           data-testid="select-button"
           disabled={!canSubmit}
           onClick={() => {
+            // nb. The `book` and `chapter` checks should be redundant, as the button
+            // should not be clickable if no book/chapter is selected, but they
+            // keep TS happy.
             if (step === 'select-book' && book) {
               confirmBook(book);
             } else if (step === 'select-chapter' && chapter) {
