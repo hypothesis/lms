@@ -295,43 +295,6 @@ class CanvasAPIClient:
             schema=self._ListGroups,
         )
 
-    def current_user_groups(self, course_id, group_category_id=None):
-        """
-        Get all groups the current user belongs in a course and optionally in a group_category.
-
-        :param course_id: Course canvas ID
-        :param group_category_id: Only return groups that belong to this group category
-        """
-        user_groups = self.course_groups(course_id, only_own_groups=True)
-
-        if group_category_id:
-            user_groups = [
-                g for g in user_groups if g["group_category_id"] == group_category_id
-            ]
-
-        return user_groups
-
-    def user_groups(self, course_id, user_id, group_category_id=None):
-        """
-        Get the groups a `user_id` belongs to in an specific `course_id`.
-
-        Optionally return only the groups that belong to a `group_category_id`
-        """
-        canvas_groups = self.course_groups(
-            course_id, only_own_groups=False, include_users=True
-        )
-        groups = []
-        # Look for the student we are grading in all the groups
-        for group in canvas_groups:
-            if group_category_id and group["group_category_id"] != group_category_id:
-                continue
-
-            for user in group["users"]:
-                if user["id"] == user_id:
-                    groups.append(group)
-
-        return groups
-
     class _ListGroups(RequestsResponseSchema):
         class _Users(Schema):
             """Schema for extracting a section ID from an enrollment dict."""
