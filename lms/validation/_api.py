@@ -32,8 +32,6 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     typically encodes the assignment context and LMS user.
     """
 
-    group_set = fields.Int(required=False)
-
 
 class APIReadResultSchema(PyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for reading grades."""

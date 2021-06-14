@@ -510,7 +510,6 @@ class TestJSConfigAPISync:
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
         assert sync["data"]["learner"] == {
             "canvas_user_id": "test_learner_canvas_user_id",
-            "group_set": None,
         }
 
     def test_its_None_if_section_and_groups_arent_enabled(self, sync):
@@ -713,6 +712,11 @@ def context():
 @pytest.fixture
 def section_groups_on(context):
     context.canvas_sections_enabled = True
+
+
+@pytest.fixture
+def canvas_groups_on(context):
+    context.canvas_groups_enabled = True
 
 
 @pytest.fixture

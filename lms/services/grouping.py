@@ -58,7 +58,7 @@ class GroupingService:
             )
         )
 
-    def upsert_canvas_group(  # pylint: disable=too-many-arguments
+    def canvas_group(  # pylint: disable=too-many-arguments
         self,
         tool_consumer_instance_guid,
         context_id,
