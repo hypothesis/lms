@@ -209,10 +209,7 @@ class JSConfig:
             },
             "canvas": {
                 "enabled": self._canvas_files_available(),
-                "groupsEnabled": self._application_instance().settings.get(
-                    "canvas", "groups_enabled"
-                )
-                or False,
+                "groupsEnabled": self._context.canvas_groups_enabled,
                 # The "content item selection" that we submit to Canvas's
                 # content_item_return_url is actually an LTI launch URL with
                 # the selected document URL or file_id as a query parameter. To
@@ -343,6 +340,7 @@ class JSConfig:
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
                 "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
+                "group_set": self._request.params.get("group_set"),
                 **kwargs,
             },
         }
@@ -504,7 +502,10 @@ class JSConfig:
         return [self._context.h_group.groupid(self._authority)]
 
     def _sync_api(self):
-        if not self._context.canvas_sections_enabled:
+        if (
+            not self._context.canvas_sections_enabled
+            and not self._context.canvas_groups_enabled
+        ):
             return None
 
         req = self._request
@@ -521,6 +522,7 @@ class JSConfig:
                 "course": {
                     "context_id": req.params["context_id"],
                     "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                    "group_set": req.params.get("group_set"),
                 },
                 "group_info": {
                     key: value
@@ -533,6 +535,7 @@ class JSConfig:
         if "learner_canvas_user_id" in req.params:
             sync_api_config["data"]["learner"] = {
                 "canvas_user_id": req.params["learner_canvas_user_id"],
+                "group_set": req.params.get("group_set"),
             }
 
         return sync_api_config
