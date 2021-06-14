@@ -277,13 +277,6 @@ class CanvasAPIClient:
         )
 
     def course_groups(self, course_id, only_own_groups=True, include_users=False):
-        """
-        Get all the groups of a course.
-
-        :param course_id: Course canvas ID
-        :param only_own_groups: Only return groups the current users belongs to
-        :param include_users: Optionally include all the users in each group
-        """
         params = {"only_own_groups": only_own_groups}
         if include_users:
             params["include[]"] = "users"
