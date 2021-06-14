@@ -1,4 +1,4 @@
-from lms.models import CanvasGroup, CanvasSection, Grouping
+from lms.models import CanvasSection, Grouping
 from lms.models._hashed_id import hashed_id
 
 
@@ -69,15 +69,14 @@ class GroupingService:
         """
         Create an HGroup for a course section.
 
+        :param section_name: The name of the section
         :param tool_consumer_instance_guid: Tool consumer GUID
         :param context_id: Course id the section is a part of
         :param group_id: A section id for a section group
-        :param group_name: The name of the section
-        :param group_set_id: Id of the canvas group set this group belongs to
         """
 
         group_authority_provided_id = hashed_id(
-            tool_consumer_instance_guid, context_id, "canvas_group", group_id
+            tool_consumer_instance_guid, context_id, group_id
         )
 
         course_authority_provided_id = hashed_id(
@@ -87,12 +86,12 @@ class GroupingService:
         course = self._course_service.get(course_authority_provided_id)
 
         return self.upsert(
-            CanvasGroup(
+            CanvasSection(
                 application_instance=self._application_instance,
                 authority_provided_id=group_authority_provided_id,
                 lms_id=group_id,
                 lms_name=group_name,
-                parent_id=course.id,
+                parent=course,
                 extra={"group_set_id": group_set_id},
             )
         )
