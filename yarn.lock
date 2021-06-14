@@ -971,10 +971,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@hypothesis/frontend-shared@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-3.0.0.tgz#95e0a10e2d347e74ba6d3149320372954029de9e"
-  integrity sha512-l0B7Ch+Jcp0b89lFm3ePpyudFCCwam0LwLlldFlrvMkH+PC6NbShUG3YB+VVSwbsu/YF0d/RSzzeyhqp9+Zljg==
+"@hypothesis/frontend-shared@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-3.1.1.tgz#e84c26e6266abde203d86fabb72c4d425ce0d92a"
+  integrity sha512-DHShN4RtaP0hFRGDugZECy80N+ODz2IHn3R8T4lMa+XqBg+rwaXqfn+2x2p0UrK060jHSyQeo/rFl3uLPqpe7Q==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
