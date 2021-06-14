@@ -16,7 +16,7 @@ class Sync:
         permission=Permissions.API,
     )
     def sync(self):
-        if self._is_group_launch:
+        if self.is_group_launch:
             groups = self._to_groups_groupings(self._get_canvas_groups())
         else:
             groups = self._to_section_groupings(self._get_sections())
@@ -31,32 +31,17 @@ class Sync:
         return "learner" in self._request.json
 
     @property
-    def group_set(self):
-        if self._is_speedgrader:
-            return int(self._request.json["learner"].get("group_set"))
-
-        return int(self._request.json["course"].get("group_set"))
-
-    @property
-    def _is_group_launch(self):
-        try:
-            self.group_set
-        except (KeyError, ValueError, TypeError):
-            return False
-        else:
-            return True
+    def is_group_launch(self):
+        return self._request.json["course"].get("group_set") is not None
 
     def _get_canvas_groups(self):
         lti_user = self._request.lti_user
         if lti_user.is_learner:
-            # For learners only one group, the one the student belongs to.
-            return [self._canvas_learner_group()]
+            groups = [self._canvas_learner_group()]
+        else:
+            groups = self._canvas_course_groups()
 
-        if self._is_speedgrader:
-            return [self._canvas_speedgrader_group()]
-
-        # If not grading return all the groups in the course so the teacher can toggle between them.
-        return self._canvas_course_groups()
+        return groups
 
     def _get_sections(self):
         course_id = self._request.json["course"]["custom_canvas_course_id"]
@@ -88,7 +73,7 @@ class Sync:
         context_id = self._request.json["course"]["context_id"]
 
         return [
-            self._grouping_service.upsert_canvas_group(
+            self._grouping_service.canvas_group(
                 tool_consumer_instance_guid=tool_guid,
                 context_id=context_id,
                 group_name=group["name"],
@@ -118,7 +103,11 @@ class Sync:
         lti_h_svc.sync(groups, group_info)
 
     def _canvas_learner_group(self):
-        group_set_id = self.group_set
+        lti_user = self._request.lti_user
+        if not lti_user.is_learner:
+            return None
+
+        group_set_id = int(self._request.json["course"]["group_set"])
         course_id = self._request.json["course"]["custom_canvas_course_id"]
 
         student_groups = self._canvas_api.course_groups(course_id, only_own_groups=True)
@@ -135,21 +124,3 @@ class Sync:
         group_set_id = int(self._request.json["course"]["group_set"])
 
         return self._canvas_api.group_category_groups(group_set_id)
-
-    def _canvas_speedgrader_group(self):
-        # SpeedGrader requests are made by the teacher, get the student we are grading
-        grading_user_id = int(self._request.json["learner"]["canvas_user_id"])
-        group_category_id = self.group_set
-
-        course_id = self._request.json["course"]["custom_canvas_course_id"]
-        canvas_groups = self._canvas_api.course_groups(
-            course_id, only_own_groups=False, include_users=True
-        )
-        # Look for the student we are grading in all the groups
-        for group in canvas_groups:
-            if group["group_category_id"] != group_category_id:
-                continue
-
-            for user in group["users"]:
-                if user["id"] == grading_user_id:
-                    return group

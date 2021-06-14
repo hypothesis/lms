@@ -62,23 +62,6 @@ class TestGroupingService:
         )
         assert grouping.parent_id == course_service.get.return_value.id
 
-    def test_canvas_group_finds_course(self, svc, course_service, db_session):
-        course_service.get.return_value = factories.Course()
-        db_session.flush()
-
-        grouping = svc.upsert_canvas_group(
-            self.TOOL_CONSUMER_INSTANCE_GUID,
-            self.CONTEXT_ID,
-            "group_id",
-            "group_name",
-            "group_set_id",
-        )
-
-        course_service.get.assert_called_once_with(
-            hashed_id(self.TOOL_CONSUMER_INSTANCE_GUID, self.CONTEXT_ID),
-        )
-        assert grouping.parent_id == course_service.get.return_value.id
-
     @pytest.fixture
     def svc(self, db_session, course_service, application_instance_service):
         return GroupingService(db_session, application_instance_service, course_service)

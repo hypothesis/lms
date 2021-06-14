@@ -276,32 +276,15 @@ class CanvasAPIClient:
             schema=self._ListGroups,
         )
 
-    def course_groups(self, course_id, only_own_groups=True, include_users=False):
-        params = {"only_own_groups": only_own_groups}
-        if include_users:
-            params["include[]"] = "users"
-
+    def course_groups(self, course_id, only_own_groups=True):
         return self._client.send(
             "GET",
             f"courses/{course_id}/groups",
-            params=params,
+            params={"only_own_groups": only_own_groups},
             schema=self._ListGroups,
         )
 
     class _ListGroups(RequestsResponseSchema):
-        class _Users(Schema):
-            """Schema for extracting a section ID from an enrollment dict."""
-
-            class Meta:
-                unknown = EXCLUDE
-
-            id = fields.Integer(required=True)
-
-        users = fields.List(
-            fields.Nested(_Users),
-            required=False,
-        )
-
         many = True
         id = fields.Integer(required=True)
         name = fields.Str(required=True)
