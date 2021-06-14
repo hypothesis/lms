@@ -198,29 +198,82 @@ class TestCanvasAPIClient:
             timeout=Any(),
         )
 
-    def test_group_category_groups(self, canvas_api_client, http_session):
-        groups = [
-            {
-                "id": 1,
-                "name": "Group 1",
-                "description": "Group 1",
-                "group_category_id": 1,
-            },
-            {
-                "id": 2,
-                "name": "Group 2",
-                "description": "Group 2",
-                "group_category_id": 1,
-            },
-        ]
-        http_session.send.return_value = factories.requests.Response(
-            status_code=200, json_data=groups
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_current_user_groups(self, canvas_api_client):
+        course_id = 1
+        group_category_id = 1
+
+        response = canvas_api_client.current_user_groups(course_id, group_category_id)
+
+        assert len(response) == 1
+        assert response[0]["group_category_id"] == group_category_id
+
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_current_user_groups_no_group_category(self, canvas_api_client):
+        course_id = 1
+
+        response = canvas_api_client.current_user_groups(
+            course_id, group_category_id=None
         )
 
+        assert len(response) == 2
+
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_current_user_groups_empty(self, canvas_api_client):
+        course_id = 1
+        group_category_id = 10000
+
+        response = canvas_api_client.current_user_groups(course_id, group_category_id)
+
+        assert not response
+
+    @pytest.mark.usefixtures("list_groups_with_users_response")
+    def test_user_groups_none_match_group_category_id(self, canvas_api_client):
+        course_id = 1
+        user_id = 10000
+        group_category_id = 10000
+
+        response = canvas_api_client.user_groups(course_id, user_id, group_category_id)
+
+        assert not response
+
+    @pytest.mark.usefixtures("list_groups_with_users_response")
+    def test_user_groups_none_match_user_id(self, canvas_api_client):
+        course_id = 1
+        user_id = 10000
+        group_category_id = 2
+
+        response = canvas_api_client.user_groups(course_id, user_id, group_category_id)
+
+        assert not response
+
+    @pytest.mark.usefixtures("list_groups_with_users_response")
+    def test_user_groups_no_group_category(self, canvas_api_client):
+        course_id = 1
+        user_id = 1
+
+        response = canvas_api_client.user_groups(course_id, user_id)
+
+        assert len(response) == 1
+        assert user_id in [u["id"] for u in response[0]["users"]]
+
+    @pytest.mark.usefixtures("list_groups_with_users_response")
+    def test_user_groups(self, canvas_api_client):
+        course_id = 1
+        user_id = 1
+        group_category_id = 2
+
+        response = canvas_api_client.user_groups(course_id, user_id, group_category_id)
+
+        assert len(response) == 1
+        assert user_id in [u["id"] for u in response[0]["users"]]
+        assert response[0]["group_category_id"] == group_category_id
+
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_group_category_groups(self, canvas_api_client, http_session):
         response = canvas_api_client.group_category_groups("GROUP_CATEGORY")
 
-        assert response == groups
-
+        assert len(response) == 2
         http_session.send.assert_called_once_with(
             Any.request(
                 "GET",
@@ -306,6 +359,67 @@ class TestCanvasAPIClient:
                 "GET", url=Any.url.with_path("api/v1/files/FILE_ID/public_url")
             ),
             timeout=Any(),
+        )
+
+    @pytest.fixture
+    def list_groups_response(self, http_session):
+        http_session.send.return_value = factories.requests.Response(
+            json_data=[
+                {
+                    "id": 1,
+                    "name": "Group 1",
+                    "description": "Group 1",
+                    "group_category_id": 1,
+                },
+                {
+                    "id": 2,
+                    "name": "Group 2",
+                    "description": "Group 2",
+                    "group_category_id": 2,
+                },
+            ],
+            status_code=200,
+        )
+
+    @pytest.fixture
+    def list_groups_with_users_response(self, http_session):
+        http_session.send.return_value = factories.requests.Response(
+            json_data=[
+                {
+                    "id": 1,
+                    "name": "Group 1",
+                    "description": "Group 1",
+                    "group_category_id": 1,
+                    "users": [],
+                },
+                {
+                    "id": 2,
+                    "name": "Group 2",
+                    "description": "Group 2",
+                    "group_category_id": 2,
+                    "users": [{"id": 1}],
+                },
+            ],
+            status_code=200,
+        )
+
+    @pytest.fixture
+    def list_files_response(self, http_session):
+        """Make the network send a valid Canvas API list files response."""
+        http_session.send.return_value = factories.requests.Response(
+            json_data=[
+                {
+                    "display_name": "display_name_1",
+                    "id": 1,
+                    "updated_at": "updated_at_1",
+                },
+                {
+                    "display_name": "display_name_2",
+                    "id": 2,
+                    "updated_at": "updated_at_2",
+                },
+            ],
+            status_code=200,
         )
 
 
