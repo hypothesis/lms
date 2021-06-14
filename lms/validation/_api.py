@@ -32,7 +32,7 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     typically encodes the assignment context and LMS user.
     """
 
-    group_set = fields.Int(required=False)
+    group_set = fields.Int(required=False, allow_none=True)
     """Canvas group_set ID for assignments that use the small groups feature."""
 
 
