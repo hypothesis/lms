@@ -140,20 +140,6 @@ class LTILaunchResource:
 
         return legacy_course.settings.get("canvas", "sections_enabled")
 
-    @property
-    def canvas_groups_enabled(self):
-        """Return True if Canvas groups is enabled for this request."""
-        application_instance_service = self._request.find_service(
-            name="application_instance"
-        )
-
-        try:
-            application_instance = application_instance_service.get()
-        except ConsumerKeyError:
-            return False
-
-        return application_instance.settings.get("canvas", "groups_enabled") or False
-
     def _course_extra(self):
         """Extra information to store for courses."""
         extra = {}
