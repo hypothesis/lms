@@ -403,25 +403,6 @@ class TestCanvasAPIClient:
             status_code=200,
         )
 
-    @pytest.fixture
-    def list_files_response(self, http_session):
-        """Make the network send a valid Canvas API list files response."""
-        http_session.send.return_value = factories.requests.Response(
-            json_data=[
-                {
-                    "display_name": "display_name_1",
-                    "id": 1,
-                    "updated_at": "updated_at_1",
-                },
-                {
-                    "display_name": "display_name_2",
-                    "id": 2,
-                    "updated_at": "updated_at_2",
-                },
-            ],
-            status_code=200,
-        )
-
 
 class TestMetaBehavior:
     def test_methods_require_access_token(self, data_method, oauth2_token_service):
