@@ -58,6 +58,44 @@ class GroupingService:
             )
         )
 
+    def canvas_group(  # pylint: disable=too-many-arguments
+        self,
+        tool_consumer_instance_guid,
+        context_id,
+        group_id,
+        group_name,
+        group_set_id,
+    ):
+        """
+        Create an HGroup for a course section.
+
+        :param section_name: The name of the section
+        :param tool_consumer_instance_guid: Tool consumer GUID
+        :param context_id: Course id the section is a part of
+        :param group_id: A section id for a section group
+        """
+
+        group_authority_provided_id = hashed_id(
+            tool_consumer_instance_guid, context_id, group_id
+        )
+
+        course_authority_provided_id = hashed_id(
+            tool_consumer_instance_guid, context_id
+        )
+
+        course = self._course_service.get(course_authority_provided_id)
+
+        return self.upsert(
+            CanvasSection(
+                application_instance=self._application_instance,
+                authority_provided_id=group_authority_provided_id,
+                lms_id=group_id,
+                lms_name=group_name,
+                parent=course,
+                extra={"group_set_id": group_set_id},
+            )
+        )
+
 
 def factory(_context, request):
     return GroupingService(
