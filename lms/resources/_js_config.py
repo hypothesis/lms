@@ -501,10 +501,7 @@ class JSConfig:
         return [self._context.h_group.groupid(self._authority)]
 
     def _sync_api(self):
-        if (
-            not self._context.canvas_sections_enabled
-            and not self._context.canvas_groups_enabled
-        ):
+        if not self._context.canvas_sections_enabled:
             return None
 
         req = self._request
