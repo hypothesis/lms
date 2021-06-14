@@ -6,6 +6,8 @@
 #
 alembic==1.6.5
     # via -r requirements/requirements.txt
+appnope==0.1.2
+    # via ipython
 attrs==20.2.0
     # via
     #   -r requirements/requirements.txt
@@ -49,7 +51,7 @@ h-api==1.0.1
     # via -r requirements/requirements.txt
 h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.txt
-h-vialib==1.0.15
+h-vialib==1.0.16
     # via -r requirements/requirements.txt
 hupper==1.10.2
     # via
