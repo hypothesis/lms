@@ -48,16 +48,16 @@ export default function BookList({
         renderItem={book => <td>{book.title}</td>}
         selectedItem={selectedBook}
       />
-      {selectedBook && (
-        <div className="BookList__cover-container">
+      <div className="BookList__cover-container">
+        {selectedBook && (
           <img
             className="BookList__cover"
             alt="Book cover"
             src={selectedBook.cover_image}
             data-testid="cover-image"
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
