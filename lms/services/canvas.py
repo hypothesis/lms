@@ -18,16 +18,15 @@ class CanvasService:
 
         :param file_id: The file to look up
         :param course_id: The course the file should be in
-        :param check_in_course: Enable pre-emptive checking for the file in the
-            course regardless of whether the user has permission to see it
+        :param check_in_course: Raise CanvasFileNotFoundInCourse if file_id isn't in
+            course_id
         :return: A URL suitable for public presentation of the file
-        :raises  CanvasFileNotFoundInCourse: If we determine the file should
+        :raise  CanvasFileNotFoundInCourse: if check_in_course=True and file_id isn't in course_id
             be in the course but isn't.
         """
 
         if check_in_course:
             if not self._file_in_course(file_id, course_id):
-                # Looks like a course copy
                 raise CanvasFileNotFoundInCourse(file_id)
 
         return self.api.public_url(file_id)
