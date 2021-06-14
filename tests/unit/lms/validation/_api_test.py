@@ -45,6 +45,13 @@ class TestAPIRecordSpeedgraderSchema:
 
         APIRecordSpeedgraderSchema(request).parse()
 
+    def test_it_doesnt_raise_null_group_set(self, json_request, all_fields):
+        all_fields["group_set"] = None  # Present, but set to None
+
+        request = json_request(all_fields)
+
+        APIRecordSpeedgraderSchema(request).parse()
+
     @pytest.fixture
     def all_fields(self):
         return {
@@ -54,6 +61,7 @@ class TestAPIRecordSpeedgraderSchema:
             "learner_canvas_user_id": "canvas_user_123",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
+            "group_set": 1,
         }
 
 
