@@ -195,6 +195,25 @@ class TestCourseExtra:
         }
 
 
+@pytest.mark.usefixtures("has_course")
+class TestCanvasGroupsEnabled:
+    def test_false_when_no_application_instance(
+        self, application_instance_service, lti_launch
+    ):
+        application_instance_service.get.side_effect = ConsumerKeyError
+
+        assert not lti_launch.canvas_groups_enabled
+
+    @pytest.mark.parametrize("settings_value", [True, False])
+    def test_returns_settings_value(
+        self, settings_value, application_instance_service, lti_launch
+    ):
+        settings = ApplicationSettings({"canvas": {"groups_enabled": settings_value}})
+        application_instance_service.get.return_value.settings = settings
+
+        assert lti_launch.canvas_groups_enabled == settings_value
+
+
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)

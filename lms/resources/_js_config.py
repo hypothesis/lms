@@ -340,6 +340,7 @@ class JSConfig:
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
                 "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
+                "group_set": self._request.params.get("group_set"),
                 **kwargs,
             },
         }
@@ -534,6 +535,7 @@ class JSConfig:
         if "learner_canvas_user_id" in req.params:
             sync_api_config["data"]["learner"] = {
                 "canvas_user_id": req.params["learner_canvas_user_id"],
+                "group_set": req.params.get("group_set"),
             }
 
         return sync_api_config
