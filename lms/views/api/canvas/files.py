@@ -33,9 +33,9 @@ class FilesAPIViews:
         public_url = self.canvas.public_url_for_file(
             file_id=self.request.matchdict["file_id"],
             course_id=self.request.matchdict["course_id"],
-            # For teachers we can do a pre-emptive check to see if the file is
-            # in the course or not, to catch course copy scenarios even though
-            # the teacher has permission to see the file
+            # Teachers can have broad permissions and see files that aren't in
+            # the course. So do this slower check (extra API call) to warn the
+            # teacher that their students might not be able to see the file.
             check_in_course=self.request.lti_user.is_instructor,
         )
 
