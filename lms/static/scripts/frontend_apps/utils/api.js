@@ -102,6 +102,9 @@ function delay(ms) {
 /**
  * Fetch a list of available ebooks to use in assignments.
  *
+ * This is currently a fake that waits for a fixed time before returning
+ * hard-coded data.
+ *
  * @param {string} authToken
  * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
  * @return {Promise<Book[]>}
@@ -114,6 +117,9 @@ export async function fetchBooks(authToken, fetchDelay = 500) {
 /**
  * Fetch a list of chapters that can be used as the target location for an
  * ebook assignment.
+ *
+ * This is currently a fake that waits for a fixed time before returning
+ * hard-coded data.
  *
  * @param {string} authToken
  * @param {string} bookId

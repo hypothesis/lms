@@ -31,7 +31,7 @@ describe('BookList', () => {
   });
 
   [true, false].forEach(isLoading => {
-    it('shows loading indicator if books are being fetched', () => {
+    it('shows loading indicator in table if books are being fetched', () => {
       const bookList = renderBookList({ isLoading });
       assert.equal(bookList.find('Table').prop('isLoading'), isLoading);
     });
