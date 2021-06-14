@@ -323,7 +323,7 @@ class CanvasAPIClient:
 
     class _ListGroups(RequestsResponseSchema):
         class _Users(Schema):
-            """Schema for extracting a section ID from an enrollment dict."""
+            """Users that belong to each group. Only present when using include[]=users."""
 
             class Meta:
                 unknown = EXCLUDE
