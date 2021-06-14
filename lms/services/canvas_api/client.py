@@ -265,15 +265,76 @@ class CanvasAPIClient:
             schema=self._ListGroups,
         )
 
-    def course_groups(self, course_id, only_own_groups=True):
+    def course_groups(self, course_id, only_own_groups=True, include_users=False):
+        """
+        Get all the groups of a course.
+
+        :param course_id: Course canvas ID
+        :param only_own_groups: Only return groups the current users belongs to
+        :param include_users: Optionally include all the users in each group
+        """
+        params = {"only_own_groups": only_own_groups}
+        if include_users:
+            params["include[]"] = "users"
+
         return self._client.send(
             "GET",
             f"courses/{course_id}/groups",
-            params={"only_own_groups": only_own_groups},
+            params=params,
             schema=self._ListGroups,
         )
 
+    def current_user_groups(self, course_id, group_category_id=None):
+        """
+        Get all groups the current user belongs in a course and optionally in a group_category.
+
+        :param course_id: Course canvas ID
+        :param group_category_id: Only return groups that belong to this group category
+        """
+        user_groups = self.course_groups(course_id, only_own_groups=True)
+
+        if group_category_id:
+            user_groups = [
+                g for g in user_groups if g["group_category_id"] == group_category_id
+            ]
+
+        return user_groups
+
+    def user_groups(self, course_id, user_id, group_category_id=None):
+        """
+        Get the groups a `user_id` belongs to in an specific `course_id`.
+
+        Optionally return only the groups that belong to a `group_category_id`
+        """
+        canvas_groups = self.course_groups(
+            course_id, only_own_groups=False, include_users=True
+        )
+        groups = []
+        # Look for the student we are grading in all the groups
+        for group in canvas_groups:
+            if group_category_id and group["group_category_id"] != group_category_id:
+                continue
+
+            for user in group["users"]:
+                if user["id"] == user_id:
+                    groups.append(group)
+
+        return groups
+
     class _ListGroups(RequestsResponseSchema):
+        class _Users(Schema):
+            """Users that belong to each group. Only present when using include[]=users."""
+
+            class Meta:
+                unknown = EXCLUDE
+
+            id = fields.Integer(required=True)
+
+        users = fields.List(
+            fields.Nested(_Users),
+            required=False,
+        )
+
         many = True
         id = fields.Integer(required=True)
         name = fields.Str(required=True)

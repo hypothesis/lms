@@ -114,6 +114,7 @@ class CanvasPreRecordHook:
         params = {
             "focused_user": parsed_params["h_username"],
             "learner_canvas_user_id": parsed_params["learner_canvas_user_id"],
+            "group_set": parsed_params.get("group_set"),
         }
 
         if parsed_params.get("document_url"):

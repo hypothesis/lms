@@ -1,4 +1,4 @@
-from lms.models import CanvasSection, Grouping
+from lms.models import CanvasGroup, CanvasSection, Grouping
 from lms.models._hashed_id import hashed_id
 
 
@@ -30,7 +30,7 @@ class GroupingService:
         self, tool_consumer_instance_guid, context_id, section_id, section_name
     ):
         """
-        Create an HGroup for a course section.
+        Upsert a Grouping for a course section.
 
         :param tool_consumer_instance_guid: Tool consumer GUID
         :param context_id: Course id the section is a part of
@@ -55,6 +55,45 @@ class GroupingService:
                 lms_id=section_id,
                 lms_name=section_name,
                 parent_id=course.id,
+            )
+        )
+
+    def upsert_canvas_group(  # pylint: disable=too-many-arguments
+        self,
+        tool_consumer_instance_guid,
+        context_id,
+        group_id,
+        group_name,
+        group_set_id,
+    ):
+        """
+        Upserst a Grouping for a canvas group.
+
+        :param tool_consumer_instance_guid: Tool consumer GUID
+        :param context_id: Course id the group is a part of
+        :param group_id: Canvas group id
+        :param group_name: The name of the group
+        :param group_set_id: Id of the canvas group set this group belongs to
+        """
+
+        group_authority_provided_id = hashed_id(
+            tool_consumer_instance_guid, context_id, "canvas_group", group_id
+        )
+
+        course_authority_provided_id = hashed_id(
+            tool_consumer_instance_guid, context_id
+        )
+
+        course = self._course_service.get(course_authority_provided_id)
+
+        return self.upsert(
+            CanvasGroup(
+                application_instance=self._application_instance,
+                authority_provided_id=group_authority_provided_id,
+                lms_id=group_id,
+                lms_name=group_name,
+                parent_id=course.id,
+                extra={"group_set_id": group_set_id},
             )
         )
 
