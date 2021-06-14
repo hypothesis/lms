@@ -13,6 +13,7 @@ class TestFilesAPIViews:
         assert result == canvas_service.api.list_files.return_value
         canvas_service.api.list_files.assert_called_once_with("test_course_id")
 
+    @pytest.mark.usefixtures("with_teacher_or_student")
     def test_via_url(self, pyramid_request, canvas_service, helpers):
         pyramid_request.matchdict = {
             "course_id": "test_course_id",
@@ -34,6 +35,10 @@ class TestFilesAPIViews:
             canvas_service.public_url_for_file.return_value,
             content_type="pdf",
         )
+
+    @pytest.fixture(params=("instructor", "learner"))
+    def with_teacher_or_student(self, request, pyramid_request):
+        pyramid_request.lti_user._replace(roles=request.param)
 
     @pytest.fixture
     def helpers(self, patch):
