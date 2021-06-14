@@ -209,10 +209,7 @@ class JSConfig:
             },
             "canvas": {
                 "enabled": self._canvas_files_available(),
-                "groupsEnabled": self._application_instance().settings.get(
-                    "canvas", "groups_enabled"
-                )
-                or False,
+                "groupsEnabled": self._context.canvas_groups_enabled,
                 # The "content item selection" that we submit to Canvas's
                 # content_item_return_url is actually an LTI launch URL with
                 # the selected document URL or file_id as a query parameter. To
@@ -521,6 +518,7 @@ class JSConfig:
                 "course": {
                     "context_id": req.params["context_id"],
                     "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                    "group_set": req.params.get("group_set"),
                 },
                 "group_info": {
                     key: value
