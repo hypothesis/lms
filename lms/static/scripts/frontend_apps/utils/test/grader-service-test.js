@@ -15,7 +15,7 @@ describe('grader-services', () => {
     $imports.$restore();
   });
 
-  context('submitGrade', () => {
+  describe('submitGrade', () => {
     it('returns a promise', async () => {
       const result = submitGrade({
         student: {
@@ -51,36 +51,29 @@ describe('grader-services', () => {
     });
   });
 
-  context('fetchGrade', () => {
-    it('returns a promise', async () => {
-      const result = fetchGrade({
-        student: {
-          LISResultSourcedId: 0,
-          LISOutcomeServiceUrl: 'url',
-        },
-        authToken: 'auth',
-      });
-      assert.isTrue(result instanceof Promise);
-    });
-
+  describe('fetchGrade', () => {
     it('calls fetchGrade with the provided parameters', async () => {
-      await submitGrade({
+      fakeApiCall.resolves({ currentScore: 9.0 });
+
+      const result = await fetchGrade({
         student: {
-          LISResultSourcedId: 0,
+          LISResultSourcedId: 'abcd',
           LISOutcomeServiceUrl: 'url',
         },
         authToken: 'auth',
       });
+
       assert.isTrue(
         fakeApiCall.calledWithMatch({
           authToken: 'auth',
           path: '/api/lti/result',
-          data: {
-            lis_result_sourcedid: 0,
+          params: {
+            lis_result_sourcedid: 'abcd',
             lis_outcome_service_url: 'url',
           },
         })
       );
+      assert.equal(result.currentScore, 9.0);
     });
   });
 });

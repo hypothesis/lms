@@ -30,6 +30,29 @@ describe('api', () => {
       });
     });
 
+    it('sets query params if `params` is passed', async () => {
+      const params = {
+        a_key: 'some value',
+        encode_me: 'https://example.com',
+      };
+
+      await apiCall({ path: '/api/test', authToken: 'auth', params });
+
+      assert.calledWith(
+        window.fetch,
+        `/api/test?a_key=some+value&encode_me=${encodeURIComponent(
+          params.encode_me
+        )}`,
+        {
+          method: 'GET',
+          body: undefined,
+          headers: {
+            Authorization: 'auth',
+          },
+        }
+      );
+    });
+
     it('makes a POST request if a body is provided', async () => {
       const data = { param: 'value' };
       await apiCall({ path: '/api/test', authToken: 'auth', data });
