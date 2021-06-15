@@ -287,7 +287,7 @@ class TestCanvasFileBasicLTILaunch:
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params["resource_link_id"],
-            document_url=f"canvas_file://course/{course_id}/file_id/{file_id}",
+            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
         )
 
 
