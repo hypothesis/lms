@@ -33,16 +33,16 @@ class File(CreatedUpdatedMixin, BASE):
     )
     """Link to the application instance."""
 
-    type = sa.Column(sa.String(), nullable=False)
+    type = sa.Column(sa.UnicodeText(), nullable=False)
     """What type of file is this? e.g. 'canvas_file'."""
 
-    lms_id = sa.Column(sa.String(), nullable=False)
+    lms_id = sa.Column(sa.UnicodeText(), nullable=False)
     """The natural id of the file in the LMS."""
 
-    course_id = sa.Column(sa.String())
+    course_id = sa.Column(sa.UnicodeText())
     """If the file is associated with a specific course set it here."""
 
-    name = sa.Column(sa.String())
+    name = sa.Column(sa.UnicodeText())
     """The user facing file name."""
 
     size = sa.Column(sa.Integer())
