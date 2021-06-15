@@ -117,7 +117,7 @@ class BasicLTILaunchViews:
             # This URL is mostly for show. We just want to ensure that a module
             # configuration exists. If we're going to do that we might as well
             # make sure this URL is meaningful.
-            document_url=f"canvas_file://course/{course_id}/file_id/{file_id}",
+            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
         )
 
         self.context.js_config.add_canvas_file_id(course_id, file_id)
