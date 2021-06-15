@@ -44,7 +44,11 @@ function submitGrade({ student, grade, authToken }) {
 function fetchGrade({ student, authToken }) {
   return apiCall({
     authToken,
-    path: `/api/lti/result?lis_result_sourcedid=${student.LISResultSourcedId}&lis_outcome_service_url=${student.LISOutcomeServiceUrl}`,
+    path: '/api/lti/result',
+    params: {
+      lis_result_sourcedid: student.LISResultSourcedId,
+      lis_outcome_service_url: student.LISOutcomeServiceUrl,
+    },
   });
 }
 export { fetchGrade, submitGrade };
