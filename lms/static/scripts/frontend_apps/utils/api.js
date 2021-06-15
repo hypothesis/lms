@@ -65,8 +65,8 @@ export class ApiError extends Error {
  * @param {Object} options
  *   @param {string} options.path - The `/api/...` path of the endpoint to call
  *   @param {string} options.authToken
- *   @param {Record<string, string>} [options.params] - Query parameters
  *   @param {Object} [options.data] - JSON-serializable body of the request
+ *   @param {Record<string, string>} [options.params] - Query parameters
  */
 export async function apiCall({ path, authToken, data, params }) {
   let body;
@@ -87,7 +87,7 @@ export async function apiCall({ path, authToken, data, params }) {
     Object.entries(params).forEach(([name, value]) =>
       urlParams.append(name, value)
     );
-    query = `?${urlParams}`;
+    query = '?' + urlParams.toString();
   }
 
   const result = await fetch(path + query, {
