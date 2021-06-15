@@ -2,9 +2,11 @@ from unittest import mock
 
 import pytest
 
+from lms.models import ApplicationInstance
 from lms.services import ConsumerKeyError
 from lms.services.application_instance import factory
 from tests import factories
+from tests.conftest import TEST_SETTINGS
 
 
 class TestApplicationInstanceService:
@@ -31,6 +33,80 @@ class TestApplicationInstanceService:
         with pytest.raises(ConsumerKeyError):
             svc.get(None)
 
+    def test_create(self, svc, new_application_instance_params, db_session):
+        ai = svc.create(**new_application_instance_params)
+        db_session.flush()
+
+        ai = db_session.query(ApplicationInstance).get(ai.id)
+        assert ai.lms_url == "canvas.example.com"
+        assert ai.requesters_email == "email@example.com"
+        assert ai.developer_key is None
+        assert ai.developer_secret is None
+
+    def test_create_saves_the_Canvas_developer_key_and_secret_if_given(
+        self, svc, new_application_instance_params, db_session
+    ):
+        new_application_instance_params["developer_key"] = "example_key"
+        new_application_instance_params["developer_secret"] = "example_secret"
+
+        ai = svc.create(**new_application_instance_params)
+        db_session.flush()
+
+        ai = db_session.query(ApplicationInstance).get(ai.id)
+        assert ai.developer_key == "example_key"
+        assert ai.developer_secret
+
+    @pytest.mark.parametrize(
+        "developer_key,developer_secret",
+        [
+            # A developer key is given but no secret. Neither should be saved.
+            ("example_key", ""),
+            # A developer secret is given but no key. Neither should be saved.
+            ("", "example_secret"),
+        ],
+    )
+    def test_create_if_developer_key_or_secret_is_missing_it_doesnt_save_either(
+        self,
+        developer_key,
+        developer_secret,
+        svc,
+        new_application_instance_params,
+        db_session,
+    ):
+        new_application_instance_params["developer_key"] = developer_key
+        new_application_instance_params["developer_secret"] = developer_secret
+
+        ai = svc.create(**new_application_instance_params)
+        db_session.flush()
+
+        ai = db_session.query(ApplicationInstance).get(ai.id)
+        assert ai.developer_key is None
+        assert ai.developer_secret is None
+
+    @pytest.mark.parametrize(
+        "developer_key,canvas_sections_enabled",
+        [("test_developer_key", True), ("", False)],
+    )
+    def test_create_sets_canvas_sections_enabled(
+        self,
+        developer_key,
+        canvas_sections_enabled,
+        svc,
+        new_application_instance_params,
+        db_session,
+    ):
+        new_application_instance_params["developer_secret"] = "example_secret"
+        new_application_instance_params["developer_key"] = developer_key
+
+        ai = svc.create(**new_application_instance_params)
+        db_session.flush()
+
+        ai = db_session.query(ApplicationInstance).get(ai.id)
+        assert (
+            bool(ai.settings.get("canvas", "sections_enabled"))
+            == canvas_sections_enabled
+        )
+
     @pytest.fixture
     def svc(self, pyramid_request):
         return factory(mock.sentinel.context, pyramid_request)
@@ -40,6 +116,16 @@ class TestApplicationInstanceService:
         ai = factories.ApplicationInstance()
         db_session.flush()
         return ai
+
+    @pytest.fixture
+    def new_application_instance_params(self):
+        return {
+            "lms_url": "canvas.example.com",
+            "email": "email@example.com",
+            "developer_key": "",
+            "developer_secret": "",
+            "aes_secret": TEST_SETTINGS["aes_secret"],
+        }
 
     @pytest.fixture(autouse=True)
     def noise_application_instances(self):

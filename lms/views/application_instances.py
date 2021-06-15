@@ -1,7 +1,5 @@
 from pyramid.view import view_config
 
-from lms.models import ApplicationInstance
-
 
 @view_config(
     route_name="welcome",
@@ -11,32 +9,18 @@ from lms.models import ApplicationInstance
     ),
 )
 def create_application_instance(request):
-    """Create application instance in the databse and respond with key and secret."""
+    """Create application instance in the database and respond with key and secret."""
 
-    # Default developer_key and developer_secret to None rather than letting
-    # them be empty strings.
-    developer_key = request.params["developer_key"].strip()
-    developer_secret = request.params["developer_secret"].strip()
-
-    # If either one of developer_key or developer_secret is missing, then we
-    # don't save the other one either.
-    if not developer_key or not developer_secret:
-        developer_key = None
-        developer_secret = None
-
-    instance = ApplicationInstance.build_from_lms_url(
+    ai = request.find_service(name="application_instance").create(
         request.params["lms_url"],
         request.params["email"],
-        developer_key,
-        developer_secret,
+        request.params["developer_key"].strip(),
+        request.params["developer_secret"].strip(),
         request.registry.settings["aes_secret"],
-        settings={"canvas": {"sections_enabled": bool(developer_key)}},
     )
-    request.db.add(instance)
-
     return {
-        "consumer_key": instance.consumer_key,
-        "shared_secret": instance.shared_secret,
+        "consumer_key": ai.consumer_key,
+        "shared_secret": ai.shared_secret,
     }
 
 

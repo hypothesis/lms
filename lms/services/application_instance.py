@@ -22,14 +22,39 @@ class ApplicationInstanceService:
         """
         consumer_key = consumer_key or self._default_consumer_key
 
-        application_instance = ApplicationInstance.get_by_consumer_key(
-            self._db, consumer_key
-        )
+        application_instance = self.get_by_consumer_key(consumer_key)
 
         if application_instance is None:
             raise ConsumerKeyError()
 
         return application_instance
+
+    def get_by_consumer_key(self, consumer_key):
+        """Return the ApplicationInstance with the given consumer_key or None."""
+
+        # TODO - Inline into get?
+        return (
+            self._db.query(ApplicationInstance)
+            .filter_by(consumer_key=consumer_key)
+            .one_or_none()
+        )
+
+    def create(  # pylint:disable=too-many-arguments
+        self, lms_url, email, developer_key, developer_secret, aes_secret
+    ):
+        ai = ApplicationInstance(
+            lms_url=lms_url,
+            requesters_email=email,
+            settings={
+                "canvas": {"sections_enabled": bool(developer_key and developer_secret)}
+            },
+        )
+
+        ai.encrypt_developer_secret(developer_key, developer_secret, aes_secret)
+
+        self._db.add(ai)
+
+        return ai
 
 
 def factory(_context, request):

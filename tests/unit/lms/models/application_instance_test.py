@@ -39,6 +39,16 @@ class TestApplicationInstance:
 
         assert settings is None
 
+    def test_consumer_key_default(self, application_instance):
+        consumer_key = application_instance.consumer_key
+
+        assert consumer_key.startswith("Hypothesis")
+
+    def test_shared_secret_default(self, application_instance):
+        shared_secret = application_instance.shared_secret
+
+        assert len(shared_secret) == 32 * 2  # n bytes * two chars per byte
+
     def test_settings_can_be_retrieved(self, application_instance):
         application_instance.settings = {"group": {"key": "value"}}
 
@@ -50,18 +60,6 @@ class TestApplicationInstance:
         application_instance.settings.set("group", "key", "new_value")
 
         assert application_instance.settings["group"]["key"] == "new_value"
-
-    def test_consumer_key_cant_be_null(self, db_session, application_instance):
-        application_instance.consumer_key = None
-
-        with pytest.raises(IntegrityError, match="consumer_key"):
-            db_session.flush()
-
-    def test_shared_secret_cant_be_null(self, db_session, application_instance):
-        application_instance.shared_secret = None
-
-        with pytest.raises(IntegrityError, match="shared_secret"):
-            db_session.flush()
 
     def test_lms_url_cant_be_null(self, db_session, application_instance):
         application_instance.lms_url = None
@@ -120,37 +118,57 @@ class TestApplicationInstance:
             == b"TEST_DEVELOPER_SECRET"
         )
 
-    def test_decryped_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
+    def test_decrypted_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
         self, application_instance, pyramid_request
     ):
         aes_secret = pyramid_request.registry.settings["aes_secret"]
 
         assert application_instance.decrypted_developer_secret(aes_secret) is None
 
-    @pytest.mark.parametrize(
-        "developer_secret",
-        [
-            "TEST_DEVELOPER_SECRET",
-            b"TEST_DEVELOPER_SECRET",
-        ],
-    )
-    def test_build_from_lms_url(self, developer_secret, pyramid_request):
-        application_instance = ApplicationInstance.build_from_lms_url(
-            "https://example.com/",
-            "example@example.com",
-            "TEST_DEVELOPER_KEY",
-            developer_secret,
-            pyramid_request.registry.settings["aes_secret"],
-            {},
+    def test_encrypt_developer_secret_with_no_input(self, application_instance):
+        application_instance.encrypt_developer_secret(None, "not none", "aes_secret")
+
+        assert (
+            application_instance.developer_secret
+            == application_instance.developer_key
+            == None
         )
 
-        assert application_instance.consumer_key
-        assert application_instance.shared_secret
-        assert application_instance.lms_url == "https://example.com/"
-        assert application_instance.requesters_email == "example@example.com"
+    def test_encrypt_developer_secret(
+        self, application_instance, pyramid_request, aes, random
+    ):
+        aes_secret = pyramid_request.registry.settings["aes_secret"]
+
+        application_instance.encrypt_developer_secret(
+            "TEST_DEVELOPER_KEY", "TEST_DEVELOPER_SECRET", aes_secret
+        )
+
+        random.new.return_value.read.assert_called_once()
         assert application_instance.developer_key == "TEST_DEVELOPER_KEY"
-        assert application_instance.developer_secret
-        assert application_instance.settings == {}
+        assert (
+            application_instance.developer_secret
+            == aes.new.return_value.encrypt.return_value
+        )
+        assert (
+            application_instance.aes_cipher_iv
+            == random.new.return_value.read.return_value
+        )
+
+    def test_encrypt_developer_secret_with_cipher(
+        self, application_instance, pyramid_request, aes
+    ):
+        aes_secret = pyramid_request.registry.settings["aes_secret"]
+
+        application_instance.aes_cipher_iv = Random.new().read(AES.block_size)
+        application_instance.encrypt_developer_secret(
+            "TEST_DEVELOPER_KEY", "TEST_DEVELOPER_SECRET", aes_secret
+        )
+
+        assert application_instance.developer_key == "TEST_DEVELOPER_KEY"
+        assert (
+            application_instance.developer_secret
+            == aes.new.return_value.encrypt.return_value
+        )
 
     def test_update_lms_data(self, application_instance, lms_data):
         lms_data["tool_consumer_instance_guid"] = "GUID"
@@ -188,6 +206,14 @@ class TestApplicationInstance:
             "tool_consumer_instance_url": "URL",
             "tool_consumer_instance_name": "NAME",
         }
+
+    @pytest.fixture
+    def aes(self, patch):
+        return patch("lms.models.application_instance.AES")
+
+    @pytest.fixture
+    def random(self, patch):
+        return patch("lms.models.application_instance.Random")
 
 
 class TestApplicationSettings:
