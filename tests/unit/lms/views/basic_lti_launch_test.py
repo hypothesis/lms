@@ -279,6 +279,7 @@ class TestCanvasFileBasicLTILaunch:
         context.js_config.add_canvas_file_id.assert_called_once_with(
             pyramid_request.params["custom_canvas_course_id"],
             pyramid_request.params["file_id"],
+            resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
         course_id = pyramid_request.params["custom_canvas_course_id"]

@@ -62,7 +62,7 @@ def includeme(config):
     )
     config.add_route(
         "canvas_api.files.via_url",
-        "/api/canvas/courses/{course_id}/files/{file_id}/via_url",
+        "/api/canvas/courses/{course_id}/files/{file_id}/via_url/resource/{resource_link_id}",
     )
     config.add_route(
         "canvas_api.courses.group_sets.list",

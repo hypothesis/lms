@@ -106,6 +106,7 @@ class BasicLTILaunchViews:
 
         course_id = self.request.params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
+        resource_link_id = self.request.params["resource_link_id"]
 
         # Normally this would be done during `configure_module_item()` but
         # Canvas skips that step. We are doing this to ensure that there is a
@@ -113,14 +114,16 @@ class BasicLTILaunchViews:
         # being around in future code.
         self.assignment_service.set_document_url(
             self.request.params["tool_consumer_instance_guid"],
-            self.request.params["resource_link_id"],
+            resource_link_id,
             # This URL is mostly for show. We just want to ensure that a module
             # configuration exists. If we're going to do that we might as well
             # make sure this URL is meaningful.
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
         )
 
-        self.context.js_config.add_canvas_file_id(course_id, file_id)
+        self.context.js_config.add_canvas_file_id(
+            course_id, file_id, resource_link_id=resource_link_id
+        )
 
         return self.basic_lti_launch(grading_supported=False)
 

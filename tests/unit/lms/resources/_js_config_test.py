@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 from h_matchers import Any
+from pytest import param
 
 from lms.models import GradingInfo, Grouping
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
@@ -187,31 +188,24 @@ class TestEnableLTILaunchMode:
 class TestAddCanvasFileID:
     """Unit tests for JSConfig.add_canvas_file_id()."""
 
-    def test_it_adds_the_viaUrl_api_config(self, js_config):
-        js_config.add_canvas_file_id(
-            "example_canvas_course_id", "example_canvas_file_id"
-        )
+    def test_it(self, js_config, submission_params):
+        js_config.add_canvas_file_id("COURSE_ID", "FILE_ID", "RESOURCE_LINK_ID")
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/courses/example_canvas_course_id/files/example_canvas_file_id/via_url",
+            "path": "/api/canvas/courses/COURSE_ID/files/FILE_ID/via_url/resource/RESOURCE_LINK_ID",
         }
 
-    def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
-        js_config.add_canvas_file_id(
-            "example_canvas_course_id", "example_canvas_file_id"
-        )
-
-        assert submission_params()["canvas_file_id"] == "example_canvas_file_id"
+        assert submission_params()["canvas_file_id"] == "FILE_ID"
 
 
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
     def test_it_adds_the_via_url(self, js_config, pyramid_request, via_url):
-        js_config.add_document_url("example_document_url")
+        js_config.add_document_url("DOCUMENT_URL")
 
-        via_url.assert_called_once_with(pyramid_request, "example_document_url")
+        via_url.assert_called_once_with(pyramid_request, "DOCUMENT_URL")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
     def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(self, js_config):
@@ -223,9 +217,9 @@ class TestAddDocumentURL:
         }
 
     def test_it_sets_the_document_url(self, js_config, submission_params):
-        js_config.add_document_url("example_document_url")
+        js_config.add_document_url("DOCUMENT_URL")
 
-        assert submission_params()["document_url"] == "example_document_url"
+        assert submission_params()["document_url"] == "DOCUMENT_URL"
 
 
 class TestAddVitalsourceLaunchConfig:
@@ -314,11 +308,17 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
 
     @pytest.fixture(
         params=[
-            {
-                "method": "add_canvas_file_id",
-                "args": ["example_canvas_course_id", "example_canvas_file_id"],
-            },
-            {"method": "add_document_url", "args": ["example_document_url"]},
+            param(
+                {
+                    "method": "add_canvas_file_id",
+                    "args": ["COURSE_ID", "FILE_ID", "RESOURCE_LINK_ID"],
+                },
+                id="add_canvas_file_id",
+            ),
+            param(
+                {"method": "add_document_url", "args": ["DOCUMENT_URL"]},
+                id="add_document_url",
+            ),
         ]
     )
     def method_caller(self, js_config, request):

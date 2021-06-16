@@ -1,3 +1,5 @@
+from unittest.mock import sentinel
+
 import pytest
 
 from lms.views.api.canvas.files import FilesAPIViews
@@ -6,18 +8,19 @@ from lms.views.api.canvas.files import FilesAPIViews
 @pytest.mark.usefixtures("canvas_service")
 class TestFilesAPIViews:
     def test_list_files(self, canvas_service, pyramid_request):
-        pyramid_request.matchdict = {"course_id": "test_course_id"}
+        pyramid_request.matchdict = {"course_id": sentinel.course_id}
 
         result = FilesAPIViews(pyramid_request).list_files()
 
         assert result == canvas_service.api.list_files.return_value
-        canvas_service.api.list_files.assert_called_once_with("test_course_id")
+        canvas_service.api.list_files.assert_called_once_with(sentinel.course_id)
 
     @pytest.mark.usefixtures("with_teacher_or_student")
     def test_via_url(self, pyramid_request, canvas_service, helpers):
         pyramid_request.matchdict = {
-            "course_id": "test_course_id",
-            "file_id": "test_file_id",
+            "course_id": sentinel.course_id,
+            "file_id": sentinel.file_id,
+            "resource_link_id": sentinel.resource_link_id,
         }
 
         result = FilesAPIViews(pyramid_request).via_url()
@@ -25,8 +28,9 @@ class TestFilesAPIViews:
         assert result["via_url"] == helpers.via_url.return_value
 
         canvas_service.public_url_for_file.assert_called_once_with(
-            file_id="test_file_id",
-            course_id="test_course_id",
+            file_id=sentinel.file_id,
+            course_id=sentinel.course_id,
+            resource_link_id=sentinel.resource_link_id,
             check_in_course=pyramid_request.lti_user.is_instructor,
         )
 

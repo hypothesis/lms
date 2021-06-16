@@ -33,6 +33,7 @@ class FilesAPIViews:
         public_url = self.canvas.public_url_for_file(
             file_id=self.request.matchdict["file_id"],
             course_id=self.request.matchdict["course_id"],
+            resource_link_id=self.request.matchdict["resource_link_id"],
             # Teachers can have broad permissions and see files that aren't in
             # the course. So do this slower check (extra API call) to warn the
             # teacher that their students might not be able to see the file.
