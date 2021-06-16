@@ -16,6 +16,7 @@ from tests.factories.attributes import (
     USER_ID,
 )
 from tests.factories.course import Course, LegacyCourse
+from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo
 from tests.factories.grouping import Grouping
 from tests.factories.h_user import HUser
