@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 from lms.models import CreatedUpdatedMixin
@@ -67,7 +68,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
 
     extra = sa.Column(
         "extra",
-        ApplicationSettings.as_mutable(JSONB),
+        MutableDict.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
