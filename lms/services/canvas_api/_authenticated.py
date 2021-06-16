@@ -1,6 +1,6 @@
 """Access to the authenticated parts of the Canvas API."""
 
-from lms.services import NoOAuth2Token, ProxyAPIAccessTokenError
+from lms.services import OAuth2TokenError
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 
@@ -10,9 +10,8 @@ class AuthenticatedClient:
 
     All methods in the authenticated client may raise:
 
-    :raise ProxyAPIAccessTokenError: if the request fails because our
-         Canvas API access token for the user is missing, expired, or has
-         been deleted
+    :raise OAuth2TokenError: if the request fails because our Canvas API access
+        token for the user is missing, expired, or has been deleted
     :raise CanvasAPIServerError: if the request fails for any other reason
     """
 
@@ -44,23 +43,13 @@ class AuthenticatedClient:
         :param path: The path in the API to make a request to
         :param schema: Schema to apply to the return values
         :param params: Any query parameters to add to the request
-        :raise ProxyAPIAccessTokenError: if the request fails because our
-            Canvas API access token for the user is missing, expired, or has
-            been deleted
+        :raise OAuth2TokenError: if the request fails because our Canvas API
+            access token for the user is missing, expired, or has been deleted
         :return: JSON deserialised object
-        :raise ProxyAPIAccessTokenError: If a token is required and cannot be
-            found / refreshed
         """
         call_args = (method, path, schema, params)
 
-        try:
-            oauth2_token = self._oauth2_token_service.get()
-        except NoOAuth2Token as err:
-            raise ProxyAPIAccessTokenError(
-                explanation="We don't have a Canvas API access token for this user",
-                response=None,
-            ) from err
-
+        oauth2_token = self._oauth2_token_service.get()
         access_token = oauth2_token.access_token
         refresh_token = oauth2_token.refresh_token
 
@@ -69,7 +58,7 @@ class AuthenticatedClient:
                 *call_args,
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-        except ProxyAPIAccessTokenError:
+        except OAuth2TokenError:
             if not refresh_token:
                 raise
 

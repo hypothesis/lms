@@ -20,10 +20,6 @@ class LTIOAuthError(LTILaunchVerificationError):
     """Raised when OAuth signature verification of a launch request fails."""
 
 
-class NoOAuth2Token(ServiceError):
-    """A requested OAuth 2 token wasn't found in the DB."""
-
-
 class ExternalRequestError(ServiceError):
     """
     A problem with a network request to an external service.
@@ -60,6 +56,16 @@ class ExternalRequestError(ServiceError):
         return " ".join([part for part in parts if part])
 
 
+class OAuth2TokenError(ExternalRequestError):
+    """
+    A problem with an OAuth 2 token for an external API.
+
+    This is raised when we don't have an access token for the current user or
+    when our access token doesn't work (e.g. because it's expired or been
+    revoked).
+    """
+
+
 class HAPIError(ExternalRequestError):
     """
     A problem with an h API request.
@@ -79,19 +85,6 @@ class ProxyAPIError(ExternalRequestError):
     """
 
 
-class ProxyAPIAccessTokenError(ProxyAPIError):
-    """
-    A problem with a third-party API access token.
-
-    Raised when a third-party API request fails because we don't have a
-    third-party access token for the user, or our access token is expired and
-    can't be refreshed, or our access token is otherwise not working.
-
-    If we can put the user through the OAuth grant flow to get a new access
-    token and then re-try the request, it might succeed.
-    """
-
-
 class CanvasAPIError(ProxyAPIError):
     """A problem with a Canvas API request."""
 
@@ -108,7 +101,7 @@ class CanvasAPIError(ProxyAPIError):
         If ``cause`` is a :mod:`requests` exception corresponding to a 401
         Unauthorized response from the Canvas API (indicating that the access token
         we used was expired or has been deleted) then
-        :exc:`lms.services.ProxyAPIAccessTokenError` will be raised.
+        :exc:`lms.services.OAuth2TokenError` will be raised.
 
         If ``cause`` indicates any other kind of unsuccessful or invalid response
         from Canvas, or a network error etc, then
@@ -162,16 +155,16 @@ class CanvasAPIError(ProxyAPIError):
         error_description = response_json.get("error_description", "")
 
         if {"message": "Invalid access token."} in errors:
-            return ProxyAPIAccessTokenError
+            return OAuth2TokenError
 
         if error_description == "refresh_token not found":
-            return ProxyAPIAccessTokenError
+            return OAuth2TokenError
 
         if (
             status_code == 401
             and {"message": "Insufficient scopes on access token."} in errors
         ):
-            return ProxyAPIAccessTokenError
+            return OAuth2TokenError
 
         if status_code == 401:
             return CanvasAPIPermissionError

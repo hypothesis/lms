@@ -103,7 +103,7 @@ class HTTPService:
             The invalid response will be available as
             HTTPValidationError.response.
 
-        :raise NoOAuth2Token: If oauth=True was given but we don't have an
+        :raise OAuth2TokenError: If oauth=True was given but we don't have an
             access token for the current user in our DB
         """
         response = None

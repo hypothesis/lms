@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
-from lms.services import NoOAuth2Token
+from lms.services import OAuth2TokenError
 
 
 class OAuth2TokenService:
@@ -31,7 +31,7 @@ class OAuth2TokenService:
         """
         try:
             oauth2_token = self.get()
-        except NoOAuth2Token:
+        except OAuth2TokenError:
             oauth2_token = OAuth2Token(
                 consumer_key=self._consumer_key, user_id=self._user_id
             )
@@ -46,7 +46,7 @@ class OAuth2TokenService:
         """
         Return the user's saved OAuth 2 token from the DB.
 
-        :raise NoOAuth2Token: if we don't have an OAuth 2 token for the user
+        :raise OAuth2TokenError: if we don't have an OAuth 2 token for the user
         """
         try:
             return (
@@ -55,7 +55,9 @@ class OAuth2TokenService:
                 .one()
             )
         except NoResultFound as err:
-            raise NoOAuth2Token("We don't have an OAuth 2 token for this user") from err
+            raise OAuth2TokenError(
+                "We don't have an OAuth 2 token for this user"
+            ) from err
 
 
 def oauth2_token_service_factory(_context, request):

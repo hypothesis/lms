@@ -3,7 +3,7 @@ from unittest.mock import call, create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIServerError, NoOAuth2Token, ProxyAPIAccessTokenError
+from lms.services import CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api._basic import BasicClient
 from lms.validation.authentication import OAuthTokenResponseSchema
 from tests import factories
@@ -28,12 +28,9 @@ class TestAuthenticatedClient:
     def test_send_raises_ProxyAPIAccessTokenError_if_we_dont_have_an_access_token_for_the_user(
         self, authenticated_client, oauth2_token_service
     ):
-        oauth2_token_service.get.side_effect = NoOAuth2Token()
+        oauth2_token_service.get.side_effect = OAuth2TokenError()
 
-        with pytest.raises(
-            ProxyAPIAccessTokenError,
-            match="^We don't have a Canvas API access token for this user$",
-        ) as exc_info:
+        with pytest.raises(OAuth2TokenError) as exc_info:
             authenticated_client.send(
                 "METHOD", "/path", sentinel.schema, sentinel.params
             )
@@ -44,7 +41,7 @@ class TestAuthenticatedClient:
         self, authenticated_client, basic_client, token_response, oauth_token
     ):
         basic_client.send.side_effect = (
-            ProxyAPIAccessTokenError,  # The first call should fail
+            OAuth2TokenError,  # The first call should fail
             token_response,  # Then we expect a refresh call
             "success",  # Then finally our successful content request
         )
@@ -80,9 +77,9 @@ class TestAuthenticatedClient:
         self, authenticated_client, basic_client, oauth_token
     ):
         oauth_token.refresh_token = None
-        basic_client.send.side_effect = ProxyAPIAccessTokenError
+        basic_client.send.side_effect = OAuth2TokenError
 
-        with pytest.raises(ProxyAPIAccessTokenError):
+        with pytest.raises(OAuth2TokenError):
             authenticated_client.send(
                 "METHOD", "/path", sentinel.schema, sentinel.params
             )

@@ -59,12 +59,7 @@ class BlackboardAPIClient:
         )
 
     def list_files(self, course_id):
-        """
-        Return the list of files in the given course.
-
-        :raise ProxyAPIAccessTokenError: if we don't have a Blackboard API
-            access token for the current user
-        """
+        """Return the list of files in the given course."""
         return self._http_service.get(
             self._api_url(f"courses/uuid:{course_id}/resources"),
             oauth=True,

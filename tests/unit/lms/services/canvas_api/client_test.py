@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.services import CanvasAPIError, CanvasAPIServerError, ProxyAPIAccessTokenError
+from lms.services import CanvasAPIError, CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
 
@@ -416,11 +416,11 @@ class TestCanvasAPIClient:
 
 class TestMetaBehavior:
     def test_methods_require_access_token(self, data_method, oauth2_token_service):
-        oauth2_token_service.get.side_effect = ProxyAPIAccessTokenError(
+        oauth2_token_service.get.side_effect = OAuth2TokenError(
             "We don't have a Canvas API access token for this user"
         )
 
-        with pytest.raises(ProxyAPIAccessTokenError):
+        with pytest.raises(OAuth2TokenError):
             data_method()
 
     @pytest.mark.usefixtures("oauth_token")
