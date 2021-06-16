@@ -11,7 +11,7 @@ from lms.services import (
     BlackboardFileNotFoundInCourse,
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
-    ProxyAPIAccessTokenError,
+    OAuth2TokenError,
     ProxyAPIError,
 )
 from lms.validation import ValidationError
@@ -107,7 +107,7 @@ class ExceptionViews:
             message=self.context.explanation, details=self.context.details
         )
 
-    @exception_view_config(context=ProxyAPIAccessTokenError)
+    @exception_view_config(context=OAuth2TokenError)
     def proxy_api_access_token_error(self):
         return self.error_response()
 

@@ -13,8 +13,7 @@ from lms.services.exceptions import (
     LTILaunchVerificationError,
     LTIOAuthError,
     LTIOutcomesAPIError,
-    NoOAuth2Token,
-    ProxyAPIAccessTokenError,
+    OAuth2TokenError,
     ProxyAPIError,
     ServiceError,
 )

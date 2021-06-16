@@ -6,7 +6,7 @@ import pytest
 import requests
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError, HTTPValidationError, NoOAuth2Token
+from lms.services.exceptions import HTTPError, HTTPValidationError, OAuth2TokenError
 from lms.services.http import HTTPService, factory
 from lms.validation import RequestsResponseSchema, ValidationError
 
@@ -156,9 +156,9 @@ class TestHTTPService:
     def test_oauth_raises_if_theres_no_access_token_for_the_user(
         self, svc, url, oauth2_token_service
     ):
-        oauth2_token_service.get.side_effect = NoOAuth2Token
+        oauth2_token_service.get.side_effect = OAuth2TokenError
 
-        with pytest.raises(NoOAuth2Token):
+        with pytest.raises(OAuth2TokenError):
             svc.request("GET", url, oauth=True)
 
     class Schema(RequestsResponseSchema):
