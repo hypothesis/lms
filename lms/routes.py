@@ -75,6 +75,11 @@ def includeme(config):
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
 
+    config.add_route("vitalsource_api.books.info", "/api/vitalsource/books/{book_id}")
+    config.add_route(
+        "vitalsource_api.books.toc", "/api/vitalsource/books/{book_id}/toc"
+    )
+
     config.add_route("admin.index", "/admin/")
     config.add_route("admin.instances", "/admin/instances/")
     config.add_route("admin.instance", "/admin/instance/{consumer_key}/")
