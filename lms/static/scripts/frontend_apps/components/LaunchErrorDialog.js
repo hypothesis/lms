@@ -160,13 +160,19 @@ export default function LaunchErrorDialog({
 
     case 'canvas_group_set_not_found':
       return (
-        <BaseDialog busy={busy} error={error}>
+        <BaseDialog
+          busy={busy}
+          error={error}
+          title="Assignment's group set no longer exists in Canvas"
+        >
           <p>
-            There was a problem loading the group set for this Hypothesis
-            assignment.{' '}
+            Hypothesis couldn&apos;t load this assignment because the
+            assignment&apos;s group set no longer exists in Canvas.
+          </p>
+          <p>
             <b>
-              To fix this problem, double check the group set linked to this
-              assignment still exists.
+              To fix this problem, an instructor needs to edit the assignment
+              settings and select a new group set.
             </b>
           </p>
         </BaseDialog>
@@ -175,11 +181,11 @@ export default function LaunchErrorDialog({
     case 'canvas_group_set_empty':
       return (
         <BaseDialog busy={busy} error={error}>
+          <p>The group set for this Hypothesis assignment is empty. </p>
           <p>
-            The group set for this Hypothesis assignment is empty.{' '}
             <b>
               To fix this problem, add groups to the group set or use a
-              different group set for the assignment.
+              different group set for this assignment.
             </b>
           </p>
         </BaseDialog>
@@ -187,13 +193,19 @@ export default function LaunchErrorDialog({
 
     case 'canvas_student_not_in_group':
       return (
-        <BaseDialog busy={busy} error={error}>
+        <BaseDialog
+          busy={busy}
+          error={error}
+          title="You're not in any of this assignment's groups"
+        >
           <p>
-            This is a group assignment and you don&apos;t belong to any of the
-            groups in the group set.{' '}
+            Hypothesis couldn&apos;t launch this assignment because you
+            aren&apos;t in any of the groups in the assignment&apos;s group set.
+          </p>
+          <p>
             <b>
-              To fix this problem, an instructor needs to add you to one of the
-              groups.
+              To fix the problem, an instructor needs to add your Canvas user
+              account to one of this assignment&apos;s groups.
             </b>
           </p>
         </BaseDialog>
