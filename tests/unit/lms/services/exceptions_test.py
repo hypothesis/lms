@@ -12,6 +12,7 @@ from lms.services import (
     ExternalRequestError,
     OAuth2TokenError,
 )
+from lms.services.exceptions import CanvasAPIResourceNotFound
 from lms.validation import ValidationError
 
 
@@ -123,6 +124,13 @@ class TestCanvasAPIError:
                 ),
                 "401 Unauthorized",
                 CanvasAPIPermissionError,
+            ),
+            # A missing resource response from Canvas
+            (
+                404,
+                json.dumps({"test": "body"}),
+                "404 Not Found",
+                CanvasAPIResourceNotFound,
             ),
             # A 400 Bad Request response from Canvas, because we sent an invalid
             # parameter or something.

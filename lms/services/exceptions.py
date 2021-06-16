@@ -139,12 +139,10 @@ class CanvasAPIError(ProxyAPIError):
         ) from cause
 
     @staticmethod
-    def _exception_class(response):
+    def _exception_class(response):  # pylint: disable=too-many-return-statements
         """Return the exception class to raise for the given response."""
         if response is None:
             return CanvasAPIServerError
-
-        status_code = getattr(response, "status_code", None)
 
         try:
             response_json = response.json()
@@ -152,14 +150,14 @@ class CanvasAPIError(ProxyAPIError):
             response_json = {}
 
         errors = response_json.get("errors", [])
-        error_description = response_json.get("error_description", "")
-
         if {"message": "Invalid access token."} in errors:
             return OAuth2TokenError
 
+        error_description = response_json.get("error_description", "")
         if error_description == "refresh_token not found":
             return OAuth2TokenError
 
+        status_code = getattr(response, "status_code", None)
         if (
             status_code == 401
             and {"message": "Insufficient scopes on access token."} in errors
@@ -168,6 +166,9 @@ class CanvasAPIError(ProxyAPIError):
 
         if status_code == 401:
             return CanvasAPIPermissionError
+
+        if status_code == 404:
+            return CanvasAPIResourceNotFound
 
         return CanvasAPIServerError
 
@@ -185,6 +186,10 @@ class CanvasAPIPermissionError(CanvasAPIError):
     error_code = "canvas_api_permission_error"
 
 
+class CanvasAPIResourceNotFound(CanvasAPIError):
+    """The Canvas API raised an error because something wasn't found."""
+
+
 class CanvasAPIServerError(CanvasAPIError):
     """
     A server error during a Canvas API request.
@@ -194,16 +199,7 @@ class CanvasAPIServerError(CanvasAPIError):
     """
 
 
-class LTIOutcomesAPIError(ExternalRequestError):
-    """
-    A problem with a request to an LTI Outcomes-compliant API.
-
-    Raised whenever an LTI outcomes API request times out or when an
-    unsuccessful, invalid or unexpected response is received from the API.
-    """
-
-
-class CanvasFileNotFoundInCourse(ServiceError):
+class CanvasFileNotFoundInCourse(CanvasAPIError):
     """A Canvas file ID wasn't found in the current course."""
 
     error_code = "canvas_file_not_found_in_course"
@@ -211,6 +207,15 @@ class CanvasFileNotFoundInCourse(ServiceError):
     def __init__(self, file_id):
         self.details = {"file_id": file_id}
         super().__init__(self.details)
+
+
+class LTIOutcomesAPIError(ExternalRequestError):
+    """
+    A problem with a request to an LTI Outcomes-compliant API.
+
+    Raised whenever an LTI outcomes API request times out or when an
+    unsuccessful, invalid or unexpected response is received from the API.
+    """
 
 
 class BlackboardFileNotFoundInCourse(ServiceError):
