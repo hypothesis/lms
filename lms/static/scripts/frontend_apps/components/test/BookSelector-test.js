@@ -3,8 +3,20 @@ import { createElement } from 'preact';
 
 import { waitFor, waitForElement } from '../../../test-util/wait';
 import { VitalSourceService, withServices } from '../../services';
-import * as bookData from '../../utils/vitalsource-sample-data';
 import BookSelector, { $imports } from '../BookSelector';
+
+const fakeBookData = {
+  book1: {
+    id: 'book1',
+    title: 'Book One',
+    cover_image: 'https://bookstore.com/covers/book1.jpg',
+  },
+  book2: {
+    id: 'book2',
+    title: 'Book Two',
+    cover_image: 'https://bookstore.com/covers/book2.jpg',
+  },
+};
 
 describe('BookSelector', () => {
   let fakeVitalSourceService;
@@ -18,9 +30,9 @@ describe('BookSelector', () => {
     mount(<BookSelectorWrapper onSelectBook={sinon.stub()} {...props} />);
 
   beforeEach(() => {
-    fakeBookIDFromURL = sinon.stub().returns('BOOKSHELF_TUTORIAL');
+    fakeBookIDFromURL = sinon.stub().returns('book1');
     fakeVitalSourceService = {
-      fetchBook: sinon.stub().callsFake(async () => bookData.bookList[0]),
+      fetchBook: sinon.stub().callsFake(async bookID => fakeBookData[bookID]),
     };
 
     $imports.$mock({
@@ -136,14 +148,14 @@ describe('BookSelector', () => {
 
       await waitFor(() => onSelectBook.called);
 
-      assert.calledWith(fakeVitalSourceService.fetchBook, 'BOOKSHELF_TUTORIAL');
+      assert.calledWith(fakeVitalSourceService.fetchBook, 'book1');
       assert.calledOnce(onSelectBook);
-      assert.calledWith(onSelectBook, bookData.bookList[0]);
+      assert.calledWith(onSelectBook, fakeBookData.book1);
     });
 
     it('clears any existing book metadata before loading and selecting new book', async () => {
       const onSelectBook = sinon.stub();
-      const selectedBook = bookData.bookList[0];
+      const selectedBook = fakeBookData.book1;
       const wrapper = renderBookSelector({ onSelectBook, selectedBook });
 
       updateURL(wrapper, 'a valid URL');
@@ -158,7 +170,7 @@ describe('BookSelector', () => {
       );
       assert.equal(
         onSelectBook.getCall(1).args[0],
-        bookData.bookList[0],
+        fakeBookData.book1,
         'selects the newly-fetched book'
       );
     });
@@ -195,13 +207,13 @@ describe('BookSelector', () => {
     context('a book has been loaded and selected', () => {
       it('sets the cover image and title when book is provided', async () => {
         const wrapper = renderBookSelector({
-          selectedBook: bookData.bookList[0],
+          selectedBook: fakeBookData.book1,
         });
 
         const selectedBook = wrapper.find('[data-testid="selected-book"]');
 
         assert.isTrue(wrapper.find('Thumbnail img').exists());
-        assert.include(selectedBook.text(), 'Bookshelf Tutorial');
+        assert.include(selectedBook.text(), 'Book One');
         assert.isTrue(selectedBook.find('SvgIcon[name="check"]').exists());
       });
     });

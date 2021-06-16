@@ -5,8 +5,50 @@ import { act } from 'preact/test-utils';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitForElement } from '../../../test-util/wait';
 import { VitalSourceService, withServices } from '../../services';
-import * as bookData from '../../utils/vitalsource-sample-data';
 import BookPicker, { $imports } from '../BookPicker';
+
+const fakeBookData = {
+  books: {
+    book1: {
+      id: 'book1',
+      title: 'Book One',
+      cover_image: 'https://bookstore.com/covers/book1.jpg',
+    },
+    book2: {
+      id: 'book2',
+      title: 'Book Two',
+      cover_image: 'https://bookstore.com/covers/book2.jpg',
+    },
+  },
+
+  chapters: {
+    book1: [
+      {
+        title: 'Chapter One',
+        cfi: '/1',
+        page: '1',
+      },
+      {
+        title: 'Chapter Two',
+        cfi: '/2',
+        page: '10',
+      },
+    ],
+
+    book2: [
+      {
+        title: 'Chapter A',
+        cfi: '/1',
+        page: '3',
+      },
+      {
+        title: 'Chapter B',
+        cfi: '/2',
+        page: '7',
+      },
+    ],
+  },
+};
 
 describe('BookPicker', () => {
   let fakeVitalSourceService;
@@ -22,7 +64,7 @@ describe('BookPicker', () => {
     fakeVitalSourceService = {
       fetchChapters: sinon
         .stub()
-        .callsFake(async bookID => bookData.chapterData[bookID]),
+        .callsFake(async bookID => fakeBookData.chapters[bookID]),
     };
 
     $imports.$mock(mockImportedComponents());
@@ -37,7 +79,7 @@ describe('BookPicker', () => {
 
   const selectBook = wrapper => {
     const bookSelector = wrapper.find('BookSelector');
-    const book = bookData.bookList[0];
+    const book = fakeBookData.books.book1;
 
     act(() => {
       bookSelector.props().onSelectBook(book);
@@ -94,19 +136,13 @@ describe('BookPicker', () => {
     let chapterList = picker.find('ChapterList');
     assert.isTrue(chapterList.exists());
     assert.equal(chapterList.prop('isLoading'), true);
-    assert.calledWith(
-      fakeVitalSourceService.fetchChapters,
-      'BOOKSHELF-TUTORIAL'
-    );
+    assert.calledWith(fakeVitalSourceService.fetchChapters, 'book1');
 
     await waitForElement(picker, 'ChapterList[isLoading=false]');
 
     // The list of chapters for the selected book should be presented once fetched.
     chapterList = picker.find('ChapterList');
-    assert.equal(
-      chapterList.prop('chapters'),
-      bookData.chapterData['BOOKSHELF-TUTORIAL']
-    );
+    assert.equal(chapterList.prop('chapters'), fakeBookData.chapters.book1);
   });
 
   it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
