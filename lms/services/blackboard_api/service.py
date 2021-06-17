@@ -48,37 +48,39 @@ class BlackboardAPIClient:
                 "code": authorization_code,
             },
             auth=(self.client_id, self.client_secret),
-            schema=OAuthTokenResponseSchema,
         )
+
+        validated_data = OAuthTokenResponseSchema(response).parse()
 
         # Save the access token to the DB.
         self._oauth2_token_service.save(
-            response.validated_data["access_token"],
-            response.validated_data.get("refresh_token"),
-            response.validated_data.get("expires_in"),
+            validated_data["access_token"],
+            validated_data.get("refresh_token"),
+            validated_data.get("expires_in"),
         )
 
     def list_files(self, course_id):
         """Return the list of files in the given course."""
-        return self._http_service.get(
-            self._api_url(f"courses/uuid:{course_id}/resources"),
-            oauth=True,
-            schema=BlackboardListFilesSchema,
-        ).validated_data
+        response = self._http_service.get(
+            self._api_url(f"courses/uuid:{course_id}/resources"), oauth=True
+        )
+
+        return BlackboardListFilesSchema(response).parse()
 
     def public_url(self, course_id, document_url):
         file_id = DOCUMENT_URL_REGEX.search(document_url)["file_id"]
 
         try:
-            return self._http_service.get(
+            response = self._http_service.get(
                 self._api_url(f"courses/uuid:{course_id}/resources/{file_id}"),
                 oauth=True,
-                schema=BlackboardPublicURLSchema,
-            ).validated_data
+            )
         except HTTPError as err:
             if err.response.status_code == 404:
                 raise BlackboardFileNotFoundInCourse(file_id) from err
             raise
+
+        return BlackboardPublicURLSchema(response).parse()
 
     def _api_url(self, path):
         """Return the full Blackboard API URL for the given path."""
