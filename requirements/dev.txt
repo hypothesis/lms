@@ -6,8 +6,6 @@
 #
 alembic==1.6.5
     # via -r requirements/requirements.txt
-appnope==0.1.2
-    # via ipython
 attrs==20.2.0
     # via
     #   -r requirements/requirements.txt
@@ -146,7 +144,7 @@ pyjwt==2.1.0
     #   pyramid-googleauth
 pyramid-exclog==1.0
     # via -r requirements/requirements.txt
-pyramid-googleauth==1.0.1
+pyramid-googleauth==1.0.2
     # via -r requirements/requirements.txt
 pyramid-ipython==0.2
     # via -r requirements/dev.in

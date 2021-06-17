@@ -137,7 +137,7 @@ pyparsing==2.4.7
     # via packaging
 pyramid-exclog==1.0
     # via -r requirements/requirements.txt
-pyramid-googleauth==1.0.1
+pyramid-googleauth==1.0.2
     # via -r requirements/requirements.txt
 pyramid-jinja2==2.8
     # via -r requirements/requirements.txt
