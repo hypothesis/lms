@@ -58,7 +58,6 @@ class TestFilesDiscovered:
                 request=pyramid_request, values=[dict(new_attrs)]
             )
         )
-
         assert (
             db_session.query(File).all()
             == Any.list.containing(

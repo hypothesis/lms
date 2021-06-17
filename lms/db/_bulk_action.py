@@ -11,9 +11,11 @@ Why is this here, rather than services?
 For more see: https://stackoverflow.com/c/hypothesis/questions/477
 """
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import List
 
+from sqlalchemy import inspect
 from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed
 
@@ -50,6 +52,9 @@ class BulkAction:
         upsert_update_elements: List[str]
         """Columns to update when a match is found."""
 
+        upsert_trigger_onupdate: bool = True
+        """Column to update with the current datetime"""
+
         def __set_name__(self, owner, name):
             if name != "BULK_CONFIG":
                 raise ValueError(
@@ -84,6 +89,24 @@ class BulkAction:
 
         config = model_class.BULK_CONFIG
 
+        upsert_update_elements = list(config.upsert_update_elements)
+
+        if config.upsert_trigger_onupdate:
+            onupdate_columns = self._get_columns_onupdate(model_class)
+            for column_name, onupdate_value in onupdate_columns:
+                upsert_update_elements.append(column_name)
+                # Copy the values, we don't want to mess with the caller's data
+                values = deepcopy(values)
+                for value_ in values:
+                    value_[column_name] = (
+                        # SQL alchemy wraps functions passed to onupdate or default and could potentially take a "context" argument
+                        # getting a suitable context at this point of the execution it's not possible so we don't support it so we just pass None
+                        # https://docs.sqlalchemy.org/en/14/core/defaults.html#context-sensitive-default-functions
+                        onupdate_value(None)
+                        if callable(onupdate_value)
+                        else onupdate_value
+                    )
+
         stmt = insert(model_class).values(values)
         stmt = stmt.on_conflict_do_update(
             # The columns to use to find matching rows.
@@ -91,7 +114,7 @@ class BulkAction:
             # The columns to update.
             set_={
                 element: getattr(stmt.excluded, element)
-                for element in config.upsert_update_elements
+                for element in upsert_update_elements
             },
         )
 
@@ -103,3 +126,10 @@ class BulkAction:
         mark_changed(self._session)
 
         return result
+
+    @staticmethod
+    def _get_columns_onupdate(model_class):
+        """Get which columns which have an onupdate clause and its value."""
+        model_details = inspect(model_class)
+
+        return [(c.name, c.onupdate.arg) for c in model_details.c if c.onupdate]
