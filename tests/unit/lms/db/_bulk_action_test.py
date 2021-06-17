@@ -11,12 +11,31 @@ class TestBulkAction:
         __tablename__ = "test_table_with_bulk_upsert"
 
         BULK_CONFIG = BulkAction.Config(
-            upsert_index_elements=["id"], upsert_update_elements=["name"]
+            upsert_index_elements=["id"],
+            upsert_update_elements=["name"],
+            upsert_trigger_onupdate=False,
         )
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.String, nullable=False)
         other = sa.Column(sa.String)
+        onupdate_column = sa.Column(sa.String, onupdate=42)
+
+    class TableWithBulkUpsertOnUpdate(BASE):
+        __tablename__ = "test_table_with_bulk_upsert_onupdates"
+
+        BULK_CONFIG = BulkAction.Config(
+            upsert_index_elements=["id"],
+            upsert_update_elements=["name"],
+            upsert_trigger_onupdate=True,
+        )
+
+        id = sa.Column(sa.Integer, primary_key=True)
+        name = sa.Column(sa.String)
+        scalar = sa.Column(sa.Integer, onupdate=42)
+        callable = sa.Column(sa.Integer, onupdate=lambda: 42)
+        sql = sa.Column(sa.Integer, onupdate=sa.select([42]))
+        default = sa.Column(sa.Integer, sa.schema.ColumnDefault(42, for_update=True))
 
     def test_upsert(self, db_session):
         db_session.add_all(
@@ -57,6 +76,60 @@ class TestBulkAction:
 
     def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
         assert BulkAction(db_session).upsert(self.TableWithBulkUpsert, []) == []
+
+    def test_upsert_with_onupdate_columns(self, db_session):
+        db_session.add_all(
+            [
+                self.TableWithBulkUpsertOnUpdate(
+                    id=1, name="existing", scalar=0, callable=0, sql=0, default=0
+                ),
+                self.TableWithBulkUpsertOnUpdate(
+                    id=2, name="existing", scalar=1, callable=1, sql=1, default=1
+                ),
+            ]
+        )
+        db_session.flush()
+
+        BulkAction(db_session).upsert(
+            self.TableWithBulkUpsertOnUpdate,
+            [
+                {"id": 1, "name": "update_existing"},
+            ],
+        )
+
+        rows = list(
+            db_session.query(self.TableWithBulkUpsertOnUpdate).order_by(
+                self.TableWithBulkUpsertOnUpdate.id.asc()
+            )
+        )
+        assert (
+            rows
+            == Any.iterable.containing(
+                [
+                    Any.instance_of(self.TableWithBulkUpsertOnUpdate).with_attrs(
+                        expected
+                    )
+                    for expected in [
+                        {
+                            "id": 1,
+                            "name": "update_existing",
+                            "scalar": 42,
+                            "callable": 42,
+                            "sql": 42,
+                            "default": 42,
+                        },
+                        {
+                            "id": 2,
+                            "name": "existing",
+                            "scalar": 1,
+                            "callable": 1,
+                            "sql": 1,
+                            "default": 1,
+                        },
+                    ]
+                ]
+            ).only()
+        )
 
     def test_it_fails_with_missing_config(self, db_session):
         with pytest.raises(AttributeError):
