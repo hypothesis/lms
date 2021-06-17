@@ -52,12 +52,12 @@ class Grouping(CreatedUpdatedMixin, BASE):
     #: have multiple sections or groups with the same id in different courses. In this
     #: case multiple Grouping's would have the same lms_id but they will have different
     #: parent_id's.
-    lms_id = sa.Column(sa.String(), nullable=False)
+    lms_id = sa.Column(sa.Unicode(), nullable=False)
 
     #: Full name given on the LMS (e.g. "A course name 101")
     lms_name = sa.Column(sa.UnicodeText(), nullable=False)
 
-    type = sa.Column(sa.String(), nullable=False)
+    type = sa.Column(sa.Unicode(), nullable=False)
 
     settings = sa.Column(
         "settings",
