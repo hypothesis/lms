@@ -1,8 +1,11 @@
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
 
 __all__ = ["ModuleItemConfiguration"]
+
+from lms.models import ApplicationSettings
 
 
 class ModuleItemConfiguration(BASE):
@@ -41,3 +44,11 @@ class ModuleItemConfiguration(BASE):
 
     document_url = sa.Column(sa.String, nullable=False)
     """The URL of the document to be annotated for this assignment."""
+
+    extra = sa.Column(
+        "settings",
+        ApplicationSettings.as_mutable(JSONB),
+        server_default=sa.text("'{}'::jsonb"),
+        nullable=False,
+    )
+    """Tool consumer specific settings."""
