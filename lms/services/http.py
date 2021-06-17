@@ -1,8 +1,7 @@
 import requests
 from requests import RequestException
 
-from lms.services.exceptions import HTTPError, HTTPValidationError
-from lms.validation import ValidationError
+from lms.services.exceptions import HTTPError
 
 
 class HTTPService:
@@ -34,15 +33,7 @@ class HTTPService:
     def delete(self, *args, **kwargs):
         return self.request("DELETE", *args, **kwargs)
 
-    def request(
-        self,
-        method,
-        url,
-        timeout=(10, 10),
-        schema=None,
-        oauth=False,
-        **kwargs,
-    ):  # pylint:disable=too-many-arguments
+    def request(self, method, url, timeout=(10, 10), oauth=False, **kwargs):
         """
         Send a request with `requests` and return the requests.Response object.
 
@@ -64,9 +55,6 @@ class HTTPService:
             Note that the read_timeout is *not* a time limit on the entire
             response download. It's a time limit on how long to wait *between
             bytes from the server*. The entire download can take much longer.
-
-        :param schema: A schema class to use to validate the response
-        :type schema: lms.validation.RequestsResponseSchema
 
         :param oauth: Include an OAuth 2 access token in the request.
             If oauth=True the current user's access token will be looked up in
@@ -94,15 +82,6 @@ class HTTPService:
 
             The error response will be available as HTTPError.response.
 
-        :raise HTTPValidationError: If a `schema` argument is given and the
-            response fails validation with the schema.
-
-            The original lms.validation.ValidationError will be available as
-            HTTPValidationError.__cause__.
-
-            The invalid response will be available as
-            HTTPValidationError.response.
-
         :raise OAuth2TokenError: If oauth=True was given but we don't have an
             access token for the current user in our DB
         """
@@ -124,12 +103,6 @@ class HTTPService:
             response.raise_for_status()
         except RequestException as err:
             raise HTTPError(response) from err
-
-        if schema:
-            try:
-                response.validated_data = schema(response).parse()
-            except ValidationError as err:
-                raise HTTPValidationError(response) from err
 
         return response
 

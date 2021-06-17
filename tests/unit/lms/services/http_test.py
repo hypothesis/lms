@@ -1,14 +1,12 @@
 from unittest.mock import Mock, create_autospec, sentinel
 
 import httpretty
-import marshmallow
 import pytest
 import requests
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError, HTTPValidationError, OAuth2TokenError
+from lms.services.exceptions import HTTPError, OAuth2TokenError
 from lms.services.http import HTTPService, factory
-from lms.validation import RequestsResponseSchema, ValidationError
 
 
 class TestHTTPService:
@@ -111,19 +109,6 @@ class TestHTTPService:
             {"status_code": status}
         )
 
-    def test_if_a_schema_is_given_it_returns_the_validated_data(self, svc, url):
-        response = svc.request("GET", url, schema=self.Schema)
-
-        assert response.validated_data == {"test_response_key": "TEST_RESPONSE_VALUE"}
-
-    def test_if_a_schema_is_given_it_raises_if_the_response_is_invalid(self, svc, url):
-        httpretty.register_uri("GET", url, body="")
-
-        with pytest.raises(HTTPValidationError) as exc_info:
-            svc.request("GET", url, schema=self.Schema)
-
-        assert isinstance(exc_info.value.__cause__, ValidationError)
-
     @pytest.mark.parametrize("method", ["GET", "PUT", "POST", "PATCH", "DELETE"])
     def test_if_oauth_is_True_it_adds_an_Authorization_header(
         self, svc, url, oauth2_token_service, method
@@ -160,14 +145,6 @@ class TestHTTPService:
 
         with pytest.raises(OAuth2TokenError):
             svc.request("GET", url, oauth=True)
-
-    class Schema(RequestsResponseSchema):
-        test_response_key = marshmallow.fields.String(required=True)
-
-        @marshmallow.post_load
-        def post_load(self, data, **_kwargs):
-            data["test_response_key"] = data["test_response_key"].upper()
-            return data
 
     @pytest.fixture
     def url(self):
