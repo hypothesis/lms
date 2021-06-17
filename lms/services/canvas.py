@@ -41,8 +41,6 @@ class CanvasService:
         :return: A URL suitable for public presentation of the file
         :raise CanvasFileNotFoundInCourse: if the file is not accessible and
             cannot be mapped to a file in the course
-        :raise CanvasAPIResourceNotFound: if the file is not valid at all, and
-            cannot be mapped to a file in the course
         :raise CanvasAPIPermissionError: If we cannot retrieve the file for
             any other reason
         """
