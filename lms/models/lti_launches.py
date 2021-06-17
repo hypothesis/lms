@@ -12,8 +12,8 @@ class LtiLaunches(BASE):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow)
-    context_id = sa.Column(sa.String)
-    lti_key = sa.Column(sa.String)
+    context_id = sa.Column(sa.Unicode)
+    lti_key = sa.Column(sa.Unicode)
 
     @classmethod
     def add(cls, db, context_id, oauth_consumer_key):

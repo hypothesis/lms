@@ -28,7 +28,7 @@ class OAuth2Token(BASE):
     #: The LTI consumer_key (oauth_consumer_key) of the application instance
     #: that this access token belongs to.
     consumer_key = sa.Column(
-        sa.String(),
+        sa.Unicode(),
         sa.ForeignKey("application_instances.consumer_key", ondelete="cascade"),
         nullable=False,
     )

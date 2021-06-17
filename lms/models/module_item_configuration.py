@@ -30,10 +30,10 @@ class ModuleItemConfiguration(BASE):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
-    resource_link_id = sa.Column(sa.String, nullable=False)
+    resource_link_id = sa.Column(sa.Unicode, nullable=False)
     """The resource_link_id launch param of the module item or assignment."""
 
-    tool_consumer_instance_guid = sa.Column(sa.String, nullable=False)
+    tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)
     """
     The tool_consumer_instance_guid launch param of the LMS.
 
@@ -41,7 +41,7 @@ class ModuleItemConfiguration(BASE):
     across different LMS's.
     """
 
-    document_url = sa.Column(sa.String, nullable=False)
+    document_url = sa.Column(sa.Unicode, nullable=False)
     """The URL of the document to be annotated for this assignment."""
 
     extra = sa.Column(

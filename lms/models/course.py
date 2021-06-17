@@ -13,7 +13,7 @@ class LegacyCourse(BASE):
     #: The LTI consumer_key (oauth_consumer_key) of the application instance
     #: that these course settings belong to.
     consumer_key = sa.Column(
-        sa.String(),
+        sa.Unicode(),
         sa.ForeignKey("application_instances.consumer_key", ondelete="cascade"),
         primary_key=True,
     )
