@@ -1,8 +1,7 @@
 """LTI launch request verifier service."""
 from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
-from lms import models
-from lms.services import ConsumerKeyError, LTILaunchVerificationError, LTIOAuthError
+from lms.services import LTILaunchVerificationError, LTIOAuthError
 
 __all__ = ["LaunchVerifier"]
 
@@ -13,7 +12,12 @@ class LaunchVerifier:
     def __init__(self, _context, request):
         self._request = request
         self._oauth1_endpoint = SignatureOnlyEndpoint(
-            OAuthRequestValidator(db_session=self._request.db)
+            OAuthRequestValidator(
+                db_session=self._request.db,
+                application_instance_service=self._request.find_service(
+                    name="application_instance"
+                ),
+            )
         )
 
         self._request_verified = False
@@ -82,9 +86,10 @@ class OAuthRequestValidator(RequestValidator):
     # Tell oauthlib we are chill about http for local testing
     enforce_ssl = False
 
-    def __init__(self, db_session):
+    def __init__(self, db_session, application_instance_service):
         super().__init__()
         self.db_session = db_session
+        self._application_instance_service = application_instance_service
 
     def check_client_key(self, client_key):
         """Check that the client key only contains safe characters."""
@@ -124,11 +129,4 @@ class OAuthRequestValidator(RequestValidator):
     def get_client_secret(self, client_key, request):
         """Retrieve the client secret associated with the client key."""
 
-        application_instance = models.ApplicationInstance.get_by_consumer_key(
-            self.db_session, client_key
-        )
-
-        if not application_instance:
-            raise ConsumerKeyError()
-
-        return application_instance.shared_secret
+        return self._application_instance_service.get(client_key).shared_secret

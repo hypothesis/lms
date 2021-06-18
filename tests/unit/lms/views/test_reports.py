@@ -1,4 +1,4 @@
-from lms.models import ApplicationInstance, LtiLaunches
+from lms.models import LtiLaunches
 from lms.views.reports import list_application_instances
 from tests import factories
 

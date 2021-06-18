@@ -8,19 +8,21 @@ import oauthlib.oauth1
 import pytest
 from oauthlib.oauth1 import SignatureOnlyEndpoint
 
-from lms.models import ApplicationInstance
 from lms.services import ConsumerKeyError, LTIOAuthError
 from lms.services.launch_verifier import LaunchVerifier
 
 ONE_HOUR_AGO = str(int(time.time() - 60 * 60))
 
 
+pytestmark = pytest.mark.usefixtures("application_instance_service")
+
+
 class TestVerifyLaunchRequest:
-    def test_it(self, verify, pyramid_request, ApplicationInstance):
+    def test_it(self, verify, application_instance_service):
         verify()
 
-        ApplicationInstance.get_by_consumer_key.assert_called_once_with(
-            pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY"
+        application_instance_service.get.assert_called_once_with(
+            "TEST_OAUTH_CONSUMER_KEY"
         )
 
     def test_it_raises_if_the_request_is_a_get(self, verify, pyramid_request):
@@ -36,9 +38,9 @@ class TestVerifyLaunchRequest:
             verify()
 
     def test_it_raises_if_the_consumer_key_is_not_in_the_db(
-        self, verify, ApplicationInstance
+        self, verify, application_instance_service
     ):
-        ApplicationInstance.get_by_consumer_key.return_value = None
+        application_instance_service.get.side_effect = ConsumerKeyError
 
         with pytest.raises(ConsumerKeyError):
             verify()
@@ -99,7 +101,7 @@ class TestVerifyLaunchRequest:
         verify()
 
     @pytest.fixture
-    def form_values(self, ApplicationInstance):
+    def form_values(self, application_instance_service):
         form_values = OrderedDict(
             {
                 "oauth_nonce": "11860869681061452641619619597",
@@ -110,9 +112,7 @@ class TestVerifyLaunchRequest:
             }
         )
 
-        shared_secret = (
-            ApplicationInstance.get_by_consumer_key.return_value.shared_secret
-        )
+        shared_secret = application_instance_service.get.return_value.shared_secret
 
         def sign(form_values):
             client = oauthlib.oauth1.Client(
@@ -144,17 +144,6 @@ class TestVerifyLaunchRequest:
             verifier.verify()
 
         return verify
-
-    @pytest.fixture(autouse=True)
-    def ApplicationInstance(self, patch):
-        models = patch("lms.services.launch_verifier.models")
-        models.ApplicationInstance.get_by_consumer_key.return_value = create_autospec(
-            ApplicationInstance,
-            instance=True,
-            spec_set=True,
-            shared_secret="TEST_SECRET",
-        )
-        return models.ApplicationInstance
 
 
 class TestVerifyLaunchRequestMocked:
