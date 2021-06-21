@@ -3,8 +3,55 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import HTTPError
-from lms.services.blackboard_api import BlackboardAPIClient, factory
+from lms.services.blackboard_api import (
+    BlackboardAPIClient,
+    BlackboardErrorResponseSchema,
+    OAuth2TokenError,
+    factory,
+)
 from lms.validation import ValidationError
+from tests import factories
+
+
+class TestBlackboardErrorResponseSchema:
+    @pytest.mark.parametrize(
+        "input_,output",
+        [
+            (
+                {"status": 401, "message": "Bearer token is invalid"},
+                {"status": 401, "message": "Bearer token is invalid"},
+            ),
+            (
+                {"status": "foo", "message": 42},
+                {"status": "foo", "message": 42},
+            ),
+            (
+                {"status": None, "message": None},
+                {"status": None, "message": None},
+            ),
+            (
+                {"message": "Bearer token is invalid"},
+                {"message": "Bearer token is invalid"},
+            ),
+            ({"status": 401}, {"status": 401}),
+            ({}, {}),
+            ([], {}),
+        ],
+    )
+    def test_it(self, input_, output):
+        response = factories.requests.Response(json_data=input_)
+
+        error_dict = BlackboardErrorResponseSchema(response).parse()
+
+        assert error_dict == output
+
+    def test_when_the_response_body_isnt_JSON(self):
+        assert (
+            BlackboardErrorResponseSchema(factories.requests.Response()).parse() == {}
+        )
+
+    def test_when_the_response_object_is_None(self):
+        assert BlackboardErrorResponseSchema(None).parse() == {}
 
 
 class TestBlackboardAPIClient:
@@ -85,10 +132,27 @@ class TestBlackboardAPIClient:
         )
         assert response == http_service.request.return_value
 
+    def test_request_raises_OAuth2TokenError_if_our_access_token_isnt_working(
+        self, svc, http_service
+    ):
+        http_service.request.side_effect = HTTPError(
+            factories.requests.Response(
+                json_data={"status": 401, "message": "Bearer token is invalid"}
+            )
+        )
+
+        with pytest.raises(OAuth2TokenError):
+            svc.request("GET", "foo/bar/")
+
     def test_request_raises_HTTPError_if_the_HTTP_request_fails(
         self, svc, http_service
     ):
-        http_service.request.side_effect = HTTPError
+        http_service.request.side_effect = HTTPError(
+            factories.requests.Response(
+                # Just some unrecognized error response from Blackboard.
+                json_data={"foo": "bar"}
+            )
+        )
 
         with pytest.raises(HTTPError):
             svc.request("GET", "foo/bar/")
