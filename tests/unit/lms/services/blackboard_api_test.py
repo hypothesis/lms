@@ -2,10 +2,9 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services import BlackboardFileNotFoundInCourse, HTTPError
-from lms.services.blackboard_api.service import BlackboardAPIClient, factory
+from lms.services import HTTPError
+from lms.services.blackboard_api import BlackboardAPIClient, factory
 from lms.validation import ValidationError
-from tests import factories
 
 
 class TestBlackboardAPIClient:
@@ -76,80 +75,23 @@ class TestBlackboardAPIClient:
             sentinel.access_token, None, None
         )
 
-    def test_list_files(
-        self, svc, http_service, BlackboardListFilesSchema, blackboard_list_files_schema
-    ):
-        files = svc.list_files("TEST_COURSE_ID")
+    def test_request(self, svc, http_service):
+        response = svc.request("GET", "foo/bar/")
 
-        http_service.get.assert_called_once_with(
-            "https://blackboard.example.com/learn/api/public/v1/courses/uuid:TEST_COURSE_ID/resources",
+        http_service.request.assert_called_once_with(
+            "GET",
+            "https://blackboard.example.com/learn/api/public/v1/foo/bar/",
             oauth=True,
         )
-        BlackboardListFilesSchema.assert_called_once_with(http_service.get.return_value)
-        assert files == blackboard_list_files_schema.parse.return_value
+        assert response == http_service.request.return_value
 
-    def test_list_files_raises_HTTPError_if_the_HTTP_request_fails(
+    def test_request_raises_HTTPError_if_the_HTTP_request_fails(
         self, svc, http_service
     ):
-        http_service.get.side_effect = HTTPError
+        http_service.request.side_effect = HTTPError
 
         with pytest.raises(HTTPError):
-            svc.list_files("TEST_COURSE_ID")
-
-    def test_list_files_raises_ValidationError_if_Blackboards_response_is_invalid(
-        self, svc, blackboard_list_files_schema
-    ):
-        blackboard_list_files_schema.parse.side_effect = ValidationError({})
-
-        with pytest.raises(ValidationError):
-            svc.list_files("TEST_COURSE_ID")
-
-    def test_public_url(
-        self, svc, http_service, BlackboardPublicURLSchema, blackboard_public_url_schema
-    ):
-        public_url = svc.public_url(
-            "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
-        )
-
-        http_service.get.assert_called_once_with(
-            "https://blackboard.example.com/learn/api/public/v1/courses/uuid:TEST_COURSE_ID/resources/TEST_FILE_ID",
-            oauth=True,
-        )
-        BlackboardPublicURLSchema.assert_called_once_with(http_service.get.return_value)
-        assert public_url == blackboard_public_url_schema.parse.return_value
-
-    def test_public_url_raises_HTTPError_if_the_HTTP_request_fails(
-        self, svc, http_service
-    ):
-        http_service.get.side_effect = HTTPError(
-            factories.requests.Response(status_code=400)
-        )
-
-        with pytest.raises(HTTPError):
-            svc.public_url(
-                "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
-            )
-
-    def test_public_url_raises_BlackboardFileNotFoundInCourse_if_the_file_isnt__in_the_course(
-        self, svc, http_service
-    ):
-        response = factories.requests.Response(status_code=404)
-        http_service.get.side_effect = HTTPError(response)
-
-        with pytest.raises(BlackboardFileNotFoundInCourse):
-            svc.public_url(
-                "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
-            )
-
-    def test_public_url_raises_ValidationError_if_Blackboards_response_is_invalid(
-        self, svc, blackboard_public_url_schema
-    ):
-        blackboard_public_url_schema.parse.side_effect = ValidationError({})
-
-        with pytest.raises(ValidationError):
-            svc.public_url(
-                "TEST_COURSE_ID", "blackboard://content-resource/TEST_FILE_ID/"
-            )
+            svc.request("GET", "foo/bar/")
 
     @pytest.fixture
     def svc(self, http_service, oauth2_token_service):
@@ -192,32 +134,12 @@ class TestFactory:
 
     @pytest.fixture(autouse=True)
     def BlackboardAPIClient(self, patch):
-        return patch("lms.services.blackboard_api.service.BlackboardAPIClient")
-
-
-@pytest.fixture(autouse=True)
-def BlackboardListFilesSchema(patch):
-    return patch("lms.services.blackboard_api.service.BlackboardListFilesSchema")
-
-
-@pytest.fixture
-def blackboard_list_files_schema(BlackboardListFilesSchema):
-    return BlackboardListFilesSchema.return_value
-
-
-@pytest.fixture(autouse=True)
-def BlackboardPublicURLSchema(patch):
-    return patch("lms.services.blackboard_api.service.BlackboardPublicURLSchema")
-
-
-@pytest.fixture
-def blackboard_public_url_schema(BlackboardPublicURLSchema):
-    return BlackboardPublicURLSchema.return_value
+        return patch("lms.services.blackboard_api.BlackboardAPIClient")
 
 
 @pytest.fixture(autouse=True)
 def OAuthTokenResponseSchema(patch):
-    return patch("lms.services.blackboard_api.service.OAuthTokenResponseSchema")
+    return patch("lms.services.blackboard_api.OAuthTokenResponseSchema")
 
 
 @pytest.fixture

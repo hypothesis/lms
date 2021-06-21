@@ -8,7 +8,6 @@ from pyramid.view import (
 )
 
 from lms.services import (
-    BlackboardFileNotFoundInCourse,
     CanvasAPIPermissionError,
     CanvasFileNotFoundInCourse,
     OAuth2TokenError,
@@ -16,6 +15,7 @@ from lms.services import (
 )
 from lms.validation import ValidationError
 from lms.views import CanvasGroupError
+from lms.views.api.blackboard.exceptions import BlackboardFileNotFoundInCourse
 
 _ = i18n.TranslationStringFactory(__package__)
 
