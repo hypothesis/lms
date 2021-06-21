@@ -1,10 +1,10 @@
 import pytest
 
-from lms.services.blackboard_api._schemas import (
+from lms.validation._exceptions import ValidationError
+from lms.views.api.blackboard._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
 )
-from lms.validation._exceptions import ValidationError
 from tests import factories
 
 

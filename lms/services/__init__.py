@@ -1,6 +1,5 @@
 from lms.services.canvas import CanvasService
 from lms.services.exceptions import (
-    BlackboardFileNotFoundInCourse,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
