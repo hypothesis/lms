@@ -1,4 +1,46 @@
+from marshmallow import INCLUDE, fields
+
+from lms.services.exceptions import HTTPError, OAuth2TokenError
+from lms.validation import RequestsResponseSchema, ValidationError
 from lms.validation.authentication import OAuthTokenResponseSchema
+
+
+class BlackboardErrorResponseSchema(RequestsResponseSchema):
+    """
+    Schema for validating error responses from the Blackboard API.
+
+    This schema's parse() method will return the given response's JSON body as
+    a dict (with whatever fields the response body from Blackboard had) and
+    will default to returning an empty dict if the given response's body isn't
+    a JSON dict, or isn't a dict at all, or if the response isn't a
+    requests.Response object (e.g. if it's None).
+
+    """
+
+    # Blackboard API error bodies have a "status" key whose value is the
+    # response's HTTP status code as an int.
+    #
+    # This schema is permissive and doesn't guarantee that the dict returned
+    # from parse() will have a "status" or that "status"'s value will be an
+    # int.
+    status = fields.Raw(required=False, allow_none=True)
+
+    # Blackboard API error bodies have a "message" key whose value is a
+    # human-readable error message string.
+    #
+    # This schema is permissive and doesn't guarantee that the dict returned
+    # from parse() will have a "message" or that "message"'s value will be a
+    # string.
+    message = fields.Raw(required=False, allow_none=True)
+
+    class Meta:
+        unknown = INCLUDE
+
+    def parse(self, *args, **kwargs):
+        try:
+            return super().parse(*args, **kwargs)
+        except ValidationError:
+            return {}
 
 
 class BlackboardAPIClient:
@@ -47,7 +89,15 @@ class BlackboardAPIClient:
         )
 
     def request(self, method, path):
-        return self._http_service.request(method, self._api_url(path), oauth=True)
+        try:
+            return self._http_service.request(method, self._api_url(path), oauth=True)
+        except HTTPError as err:
+            error_dict = BlackboardErrorResponseSchema(err.response).parse()
+
+            if error_dict.get("message") == "Bearer token is invalid":
+                raise OAuth2TokenError() from err
+
+            raise
 
     def _api_url(self, path):
         """Return the full Blackboard API URL for the given path."""

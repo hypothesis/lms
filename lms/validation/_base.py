@@ -149,7 +149,7 @@ class RequestsResponseSchema(PlainSchema):
     def _pre_load(self, response, **_kwargs):  # pylint: disable=no-self-use
         try:
             return response.json()
-        except ValueError as err:
+        except (AttributeError, ValueError) as err:
             raise marshmallow.ValidationError(
                 "response doesn't have a valid JSON body"
             ) from err
