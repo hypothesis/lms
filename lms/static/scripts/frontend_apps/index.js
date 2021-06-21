@@ -1,7 +1,4 @@
-// Polyfills.
 import 'focus-visible';
-
-// Setup app.
 import { createElement, render } from 'preact';
 
 import { readConfig, Config } from './config';
@@ -9,21 +6,25 @@ import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import { ClientRpc } from './services/client-rpc';
+import { GradingService, Services } from './services';
 
 /** @typedef {import('./services/client-rpc').ClientConfig} ClientConfig */
 
-const rootEl = document.querySelector('#app');
-if (!rootEl) {
-  throw new Error('#app container for LMS frontend is missing');
-}
-
-const config = readConfig();
-
 import { registerIcons } from '@hypothesis/frontend-shared';
 import iconSet from './icons';
-
 registerIcons(iconSet);
 
+// Read configuration embedded into page by backend.
+const config = readConfig();
+
+// Create services.
+const services = new Map(
+  /** @type {[Function, any][]} */ ([
+    [GradingService, new GradingService({ authToken: config.api.authToken })],
+  ])
+);
+
+// Render main component for current route.
 let app;
 switch (config.mode) {
   case 'basic-lti-launch':
@@ -47,4 +48,14 @@ switch (config.mode) {
     break;
 }
 
-render(<Config.Provider value={config}>{app}</Config.Provider>, rootEl);
+// Render frontend application.
+const rootEl = document.querySelector('#app');
+if (!rootEl) {
+  throw new Error('#app container for LMS frontend is missing');
+}
+render(
+  <Config.Provider value={config}>
+    <Services.Provider value={services}>{app}</Services.Provider>
+  </Config.Provider>,
+  rootEl
+);

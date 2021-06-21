@@ -1,18 +1,11 @@
 import { SvgIcon } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import classNames from 'classnames';
-import {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-  useRef,
-} from 'preact/hooks';
+import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
-import { Config } from '../config';
 import ErrorDialog from './ErrorDialog';
 import Spinner from './Spinner';
-import { fetchGrade, submitGrade } from '../utils/grader-service';
+import { useService, GradingService } from '../services';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 import ValidationMessage from './ValidationMessage';
@@ -36,9 +29,7 @@ const GRADE_MULTIPLIER = 10;
  * @param {(value: ErrorLike) => void} setFetchGradeError
  */
 const useFetchGrade = (student, setFetchGradeError) => {
-  const {
-    api: { authToken },
-  } = useContext(Config);
+  const gradingService = useService(GradingService);
   const [grade, setGrade] = useState('');
   const [gradeLoading, setGradeLoading] = useState(false);
 
@@ -52,7 +43,7 @@ const useFetchGrade = (student, setFetchGradeError) => {
         setGradeLoading(true);
         setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
         try {
-          const { currentScore } = await fetchGrade({ student, authToken });
+          const { currentScore } = await gradingService.fetchGrade({ student });
           if (!ignoreResults && currentScore) {
             // Only set these values if we didn't cancel this request
             setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
@@ -73,7 +64,7 @@ const useFetchGrade = (student, setFetchGradeError) => {
       // Set a flag to ignore the the fetchGrade response from saving to state
       ignoreResults = true;
     };
-  }, [student, authToken, setFetchGradeError]);
+  }, [gradingService, student, setFetchGradeError]);
   return { grade, gradeLoading };
 };
 
@@ -115,9 +106,7 @@ export default function SubmitGradeForm({ student }) {
   // Unique id attribute for <input>
   const gradeId = useUniqueId('SubmitGradeForm__grade:');
 
-  const {
-    api: { authToken },
-  } = useContext(Config);
+  const gradingService = useService(GradingService);
 
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
@@ -148,11 +137,10 @@ export default function SubmitGradeForm({ student }) {
     } else {
       setGradeSaving(true);
       try {
-        await submitGrade({
+        await gradingService.submitGrade({
           student: /** @type {StudentInfo} */ (student),
           // nb. `value` will be a number if there was no validation error.
           grade: /** @type {number} */ (value) / GRADE_MULTIPLIER,
-          authToken,
         });
         setGradeSaved(true);
       } catch (e) {

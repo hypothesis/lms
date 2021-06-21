@@ -1,6 +1,8 @@
 import { createContext, createElement } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
+export { GradingService } from './grading';
+
 /**
  * Directory of available services.
  *
