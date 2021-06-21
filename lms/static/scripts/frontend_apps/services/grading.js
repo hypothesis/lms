@@ -14,7 +14,7 @@ import { apiCall } from '../utils/api';
  */
 
 /**
- * Service for fetching and reporting student grades for an assignment.
+ * Service for fetching and submitting student grades for an assignment.
  */
 export class GradingService {
   /**
@@ -29,9 +29,9 @@ export class GradingService {
    * Submits a student's grade to the LTI endpoint.
    *
    * @param {object} options
-   *   @param {Student} options.student - Student object
+   *   @param {Student} options.student
    *   @param {number} options.grade - A number between 0 and 1
-   * @return {Promise<unknown>}
+   * @return {Promise<void>}
    */
   submitGrade({ student, grade }) {
     return apiCall({
