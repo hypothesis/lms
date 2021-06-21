@@ -5,9 +5,9 @@ from lms.services import ConsumerKeyError
 
 
 class ApplicationInstanceService:
-    def __init__(self, db, default_consumer_key):
+    def __init__(self, db, request):
         self._db = db
-        self._default_consumer_key = default_consumer_key
+        self._request = request
 
     @lru_cache
     def get(self, consumer_key=None) -> ApplicationInstance:
@@ -20,7 +20,12 @@ class ApplicationInstanceService:
 
         :raise ConsumerKeyError: if the consumer_key isn't in the database
         """
-        consumer_key = consumer_key or self._default_consumer_key
+        if not consumer_key:
+            consumer_key = (
+                self._request.lti_user.oauth_consumer_key
+                if self._request.lti_user
+                else None
+            )
 
         application_instance = (
             self._db.query(ApplicationInstance)
@@ -52,5 +57,4 @@ class ApplicationInstanceService:
 
 
 def factory(_context, request):
-    consumer_key = request.lti_user.oauth_consumer_key if request.lti_user else None
-    return ApplicationInstanceService(request.db, consumer_key)
+    return ApplicationInstanceService(request.db, request)

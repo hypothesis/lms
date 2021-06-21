@@ -1,11 +1,7 @@
 """LTI launch request verifier service."""
 from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
-from lms.services import (
-    LTILaunchVerificationError,
-    LTIOAuthError,
-)
-from lms.services.application_instance import ApplicationInstanceService
+from lms.services import LTILaunchVerificationError, LTIOAuthError
 
 __all__ = ["LaunchVerifier"]
 
@@ -18,6 +14,9 @@ class LaunchVerifier:
         self._oauth1_endpoint = SignatureOnlyEndpoint(
             OAuthRequestValidator(
                 db_session=self._request.db,
+                application_instance_service=self._request.find_service(
+                    name="application_instance"
+                ),
             )
         )
 
@@ -87,9 +86,10 @@ class OAuthRequestValidator(RequestValidator):
     # Tell oauthlib we are chill about http for local testing
     enforce_ssl = False
 
-    def __init__(self, db_session):
+    def __init__(self, db_session, application_instance_service):
         super().__init__()
-        self._db_session = db_session
+        self.db_session = db_session
+        self._application_instance_service = application_instance_service
 
     def check_client_key(self, client_key):
         """Check that the client key only contains safe characters."""
@@ -128,8 +128,5 @@ class OAuthRequestValidator(RequestValidator):
 
     def get_client_secret(self, client_key, request):
         """Retrieve the client secret associated with the client key."""
-        application_instance_service = ApplicationInstanceService(
-            self._db_session, client_key
-        )
 
-        return application_instance_service.get().shared_secret
+        return self._application_instance_service.get(client_key).shared_secret
