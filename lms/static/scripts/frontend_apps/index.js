@@ -5,8 +5,7 @@ import { readConfig, Config } from './config';
 import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
-import { ClientRpc } from './services/client-rpc';
-import { GradingService, Services } from './services';
+import { ClientRpc, GradingService, Services } from './services';
 
 /** @typedef {import('./services/client-rpc').ClientConfig} ClientConfig */
 
@@ -17,28 +16,34 @@ registerIcons(iconSet);
 // Read configuration embedded into page by backend.
 const config = readConfig();
 
-// Create services.
-const services = new Map(
-  /** @type {[Function, any][]} */ ([
-    [GradingService, new GradingService({ authToken: config.api.authToken })],
-  ])
-);
+/**
+ * Directory of services used by the current application.
+ *
+ * The necessary services for the different app types are currently initialized
+ * manually before rendering. If we end up with many services in future we may
+ * want to move to initializing them on-demand instead.
+ *
+ * @type {import('./services').ServiceMap}
+ */
+const services = new Map();
 
 // Render main component for current route.
 let app;
 switch (config.mode) {
   case 'basic-lti-launch':
-    app = (
-      <BasicLtiLaunchApp
-        clientRpc={
-          new ClientRpc({
-            authToken: config.api.authToken,
-            allowedOrigins: config.rpcServer.allowedOrigins,
-            clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
-          })
-        }
-      />
+    services.set(
+      ClientRpc,
+      new ClientRpc({
+        authToken: config.api.authToken,
+        allowedOrigins: config.rpcServer.allowedOrigins,
+        clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
+      })
     );
+    services.set(
+      GradingService,
+      new GradingService({ authToken: config.api.authToken })
+    );
+    app = <BasicLtiLaunchApp />;
     break;
   case 'content-item-selection':
     app = <FilePickerApp />;

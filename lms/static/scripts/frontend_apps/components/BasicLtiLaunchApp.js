@@ -11,16 +11,13 @@ import {
 
 import { ApiError, apiCall } from '../utils/api';
 import { Config } from '../config';
+import { ClientRpc, useService } from '../services';
 
 import AuthWindow from '../utils/AuthWindow';
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import Spinner from './Spinner';
 import VitalSourceBookViewer from './VitalSourceBookViewer';
-
-/**
- * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
- */
 
 /**
  * The categories of error that can happen when launching an assignment.
@@ -43,19 +40,12 @@ import VitalSourceBookViewer from './VitalSourceBookViewer';
  */
 
 /**
- * @typedef BasicLtiLaunchAppProps
- * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
- */
-
-/**
  * Application displayed when an assignment is launched if the LMS backend
  * is unable to directly render the content in an iframe. This happens when
  * the content URL needs to be fetched from a remote source (eg. the LMS's
  * file storage) first, which may require authorization from the user.
- *
- * @param {BasicLtiLaunchAppProps} props
  */
-export default function BasicLtiLaunchApp({ clientRpc }) {
+export default function BasicLtiLaunchApp() {
   const {
     api: {
       authToken,
@@ -73,6 +63,8 @@ export default function BasicLtiLaunchApp({ clientRpc }) {
     canvas,
     vitalSource: vitalSourceConfig,
   } = useContext(Config);
+
+  const clientRpc = useService(ClientRpc);
 
   // Indicates what the application was doing when the error indicated by
   // `error` occurred.
