@@ -1,10 +1,11 @@
 import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
-import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitFor } from '../../../test-util/wait';
+import { GradingService, withServices } from '../../services';
+import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
 
 describe('SubmitGradeForm', () => {
   const fakeStudent = {
@@ -21,15 +22,22 @@ describe('SubmitGradeForm', () => {
     LISOutcomeServiceUrl: '',
   };
 
+  const fakeGradingService = {
+    submitGrade: sinon.stub().resolves({}),
+    fetchGrade: sinon.stub().resolves({ currentScore: 1 }),
+  };
+
+  const SubmitGradeFormWrapper = withServices(SubmitGradeForm, () => [
+    [GradingService, fakeGradingService],
+  ]);
+
   let container;
   const renderForm = (props = {}) => {
-    return mount(<SubmitGradeForm student={fakeStudent} {...props} />, {
+    return mount(<SubmitGradeFormWrapper student={fakeStudent} {...props} />, {
       attachTo: container,
     });
   };
 
-  const fakeSubmitGrade = sinon.stub().resolves({});
-  const fakeFetchGrade = sinon.stub().resolves({ currentScore: 1 });
   const fakeValidateGrade = sinon.stub();
   const fakeFormatToNumber = sinon.stub();
 
@@ -49,15 +57,11 @@ describe('SubmitGradeForm', () => {
 
     // Reset the api grade stubs for each test because
     // some tests below will change these for specific cases.
-    fakeSubmitGrade.resolves({});
-    fakeFetchGrade.resolves({ currentScore: 1 });
+    fakeGradingService.submitGrade.resolves({});
+    fakeGradingService.fetchGrade.resolves({ currentScore: 1 });
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/grader-service': {
-        submitGrade: fakeSubmitGrade,
-        fetchGrade: fakeFetchGrade,
-      },
       '../utils/validation': {
         formatToNumber: fakeFormatToNumber,
         validateGrade: fakeValidateGrade,
@@ -175,7 +179,7 @@ describe('SubmitGradeForm', () => {
         errorMessage: 'message',
         details: 'details',
       };
-      fakeSubmitGrade.throws(error);
+      fakeGradingService.submitGrade.throws(error);
       wrapper.find('button[type="submit"]').simulate('click');
       assert.isTrue(wrapper.find('ErrorDialog').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
@@ -235,7 +239,7 @@ describe('SubmitGradeForm', () => {
 
   context('when fetching a grade', () => {
     it('sets the defaultValue prop to an empty string if the grade is falsey', async () => {
-      fakeFetchGrade.resolves({ currentScore: null });
+      fakeGradingService.fetchGrade.resolves({ currentScore: null });
       const wrapper = renderForm();
       await waitFor(() => !isFetchingGrade(wrapper));
       assert.equal(
@@ -249,7 +253,7 @@ describe('SubmitGradeForm', () => {
         errorMessage: 'message',
         details: 'details',
       };
-      fakeFetchGrade.throws(error);
+      fakeGradingService.fetchGrade.throws(error);
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
 
