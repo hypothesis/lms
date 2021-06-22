@@ -6,7 +6,7 @@ from sqlalchemy.engine import CursorResult
 from lms.db import BASE, BulkAction
 
 
-class TestBulkUpsertMixin:
+class TestBulkAction:
     class TableWithBulkUpsert(BASE):
         __tablename__ = "test_table_with_bulk_upsert"
 
@@ -15,7 +15,7 @@ class TestBulkUpsertMixin:
         )
 
         id = sa.Column(sa.Integer, primary_key=True)
-        name = sa.Column(sa.String)
+        name = sa.Column(sa.String, nullable=False)
         other = sa.Column(sa.String)
 
     def test_upsert(self, db_session):
@@ -55,9 +55,14 @@ class TestBulkUpsertMixin:
             ).only()
         )
 
+    def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
+        assert BulkAction(db_session).upsert(self.TableWithBulkUpsert, []) == []
+
     def test_it_fails_with_missing_config(self, db_session):
         with pytest.raises(AttributeError):
-            BulkAction(db_session).upsert("object_without_config", [])
+            BulkAction(db_session).upsert(
+                "object_without_config", [{"id": 1, "name": "name", "other": "other"}]
+            )
 
     def test_you_cannot_add_config_with_the_wrong_name(self):
         # Not sure why this isn't ValueError... must be a descriptor thing
