@@ -64,6 +64,23 @@ class BulkAction:
         :param model_class: The model type to upsert
         :param values: Dicts of values to upsert
         """
+        if not values:
+            # Don't attempt to upsert an empty list of values into the DB.
+            #
+            # This would be worse than pointless: it would actually crash in
+            # some cases. This SQLAlchemy code:
+            #
+            #     insert(MyModel).values([])
+            #
+            # produces this SQL:
+            #
+            #     INSERT INTO my_table DEFAULT VALUES RETURNING my_table.id
+            #
+            # which tells the DB to insert one row into my_table using the
+            # default values for all of the columns. If my_table has a column
+            # with a NOT NULLABLE constraint and no default value this will
+            # cause a "null value violates not-null constraint" crash.
+            return []
 
         config = model_class.BULK_CONFIG
 
