@@ -4,29 +4,31 @@ import { act } from 'preact/test-utils';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitForElement } from '../../../test-util/wait';
+import { VitalSourceService, withServices } from '../../services';
 import * as bookData from '../../utils/vitalsource-sample-data';
 import BookPicker, { $imports } from '../BookPicker';
 
 describe('BookPicker', () => {
-  let fakeAPI;
+  let fakeVitalSourceService;
+
+  const BookPickerWrapper = withServices(BookPicker, () => [
+    [VitalSourceService, fakeVitalSourceService],
+  ]);
 
   const renderBookPicker = (props = {}) =>
-    mount(<BookPicker authToken="dummy-auth-token" {...props} />);
+    mount(<BookPickerWrapper {...props} />);
 
   beforeEach(() => {
-    fakeAPI = {
+    fakeVitalSourceService = {
       fetchBooks: sinon.stub().resolves(bookData.bookList),
       fetchChapters: sinon
         .stub()
-        .callsFake(async (authToken, bookID) => bookData.chapterData[bookID]),
+        .callsFake(async bookID => bookData.chapterData[bookID]),
     };
 
     $imports.$mock(mockImportedComponents());
     $imports.$restore({
       './Dialog': true,
-    });
-    $imports.$mock({
-      '../utils/api': fakeAPI,
     });
   });
 
@@ -70,7 +72,7 @@ describe('BookPicker', () => {
     let bookList = picker.find('BookList');
     assert.deepEqual(bookList.prop('books'), []);
     assert.isTrue(bookList.prop('isLoading'));
-    assert.calledWith(fakeAPI.fetchBooks, 'dummy-auth-token');
+    assert.calledOnce(fakeVitalSourceService.fetchBooks);
 
     await waitForElement(picker, 'BookList[isLoading=false]');
 
@@ -92,7 +94,10 @@ describe('BookPicker', () => {
     let chapterList = picker.find('ChapterList');
     assert.isTrue(chapterList.exists());
     assert.equal(chapterList.prop('isLoading'), true);
-    assert.calledWith(fakeAPI.fetchChapters, 'dummy-auth-token');
+    assert.calledWith(
+      fakeVitalSourceService.fetchChapters,
+      'BOOKSHELF-TUTORIAL'
+    );
 
     await waitForElement(picker, 'ChapterList[isLoading=false]');
 
@@ -118,7 +123,7 @@ describe('BookPicker', () => {
 
   it('shows error that occurs while fetching books', async () => {
     const error = new Error('Something went wrong');
-    fakeAPI.fetchBooks.rejects(error);
+    fakeVitalSourceService.fetchBooks.rejects(error);
 
     const picker = renderBookPicker();
     const errorDisplay = await waitForElement(picker, 'ErrorDisplay');
@@ -130,7 +135,7 @@ describe('BookPicker', () => {
 
   it('shows error that occurs while fetching chapters', async () => {
     const error = new Error('Something went wrong');
-    fakeAPI.fetchChapters.rejects(error);
+    fakeVitalSourceService.fetchChapters.rejects(error);
 
     const picker = renderBookPicker();
     await waitForElement(picker, 'BookList[isLoading=false]');

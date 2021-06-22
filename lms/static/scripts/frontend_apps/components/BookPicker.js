@@ -2,7 +2,7 @@ import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { fetchBooks, fetchChapters } from '../utils/api';
+import { useService, VitalSourceService } from '../services';
 
 import BookList from './BookList';
 import ChapterList from './ChapterList';
@@ -14,7 +14,6 @@ import ErrorDisplay from './ErrorDisplay';
  * @typedef {import('../api-types').Book} Book
  *
  * @typedef BookPickerProps
- * @prop {string} authToken
  * @prop {() => void} onCancel
  * @prop {(b: Book, c: Chapter) => void} onSelectBook - Callback invoked when
  *   a book and chapter have been selected
@@ -32,7 +31,9 @@ import ErrorDisplay from './ErrorDisplay';
  *
  * @param {BookPickerProps} props
  */
-export default function BookPicker({ authToken, onCancel, onSelectBook }) {
+export default function BookPicker({ onCancel, onSelectBook }) {
+  const vsService = useService(VitalSourceService);
+
   const [bookList, setBookList] = useState(/** @type {Book[]|null} */ (null));
   const [chapterList, setChapterList] = useState(
     /** @type {Chapter[]|null} */ (null)
@@ -61,14 +62,15 @@ export default function BookPicker({ authToken, onCancel, onSelectBook }) {
 
   useEffect(() => {
     if (step === 'select-book' && !bookList) {
-      fetchBooks(authToken).then(setBookList).catch(setError);
+      vsService.fetchBooks().then(setBookList).catch(setError);
     } else if (step === 'select-chapter' && !chapterList) {
       const currentBook = /** @type {Book} */ (book);
-      fetchChapters(authToken, currentBook.id)
+      vsService
+        .fetchChapters(currentBook.id)
         .then(setChapterList)
         .catch(setError);
     }
-  }, [authToken, book, bookList, step, chapterList]);
+  }, [book, bookList, step, chapterList, vsService]);
 
   const canSubmit =
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);

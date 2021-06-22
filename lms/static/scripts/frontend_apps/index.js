@@ -5,7 +5,12 @@ import { readConfig, Config } from './config';
 import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
-import { ClientRpc, GradingService, Services } from './services';
+import {
+  ClientRpc,
+  GradingService,
+  Services,
+  VitalSourceService,
+} from './services';
 
 /** @typedef {import('./services/client-rpc').ClientConfig} ClientConfig */
 
@@ -46,6 +51,10 @@ switch (config.mode) {
     app = <BasicLtiLaunchApp />;
     break;
   case 'content-item-selection':
+    services.set(
+      VitalSourceService,
+      new VitalSourceService({ authToken: config.api.authToken })
+    );
     app = <FilePickerApp />;
     break;
   case 'canvas-oauth2-redirect-error':

@@ -1,12 +1,4 @@
 /**
- * @typedef {import('../api-types').Book} Book
- * @typedef {import('../api-types').Chapter} Chapter
- * @typedef {import('../api-types').File} File
- */
-
-import { bookList, chapterData } from './vitalsource-sample-data';
-
-/**
  * Error returned when an API call fails with a 4xx or 5xx response and
  * JSON body.
  */
@@ -102,44 +94,4 @@ export async function apiCall({ path, authToken, data, params }) {
   }
 
   return resultJson;
-}
-
-/** @param {number} ms */
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Fetch a list of available ebooks to use in assignments.
- *
- * This is currently a fake that waits for a fixed time before returning
- * hard-coded data.
- *
- * @param {string} authToken
- * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
- * @return {Promise<Book[]>}
- */
-export async function fetchBooks(authToken, fetchDelay = 500) {
-  await delay(fetchDelay);
-  return bookList;
-}
-
-/**
- * Fetch a list of chapters that can be used as the target location for an
- * ebook assignment.
- *
- * This is currently a fake that waits for a fixed time before returning
- * hard-coded data.
- *
- * @param {string} authToken
- * @param {string} bookId
- * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
- * @return {Promise<Chapter[]>}
- */
-export async function fetchChapters(authToken, bookId, fetchDelay = 500) {
-  await delay(fetchDelay);
-  if (!chapterData[bookId]) {
-    throw new ApiError(404, { message: 'Book not found' });
-  }
-  return chapterData[bookId];
 }
