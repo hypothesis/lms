@@ -365,8 +365,6 @@ describe('ContentSelector', () => {
       button.props().onClick();
     });
 
-    const bookPicker = wrapper.find('BookPicker');
-    assert.equal(bookPicker.prop('authToken'), fakeConfig.api.authToken);
     assert.isTrue(wrapper.exists('BookPicker'));
   });
 

@@ -151,7 +151,6 @@ export default function ContentSelector({
     case 'vitalSourceBook':
       dialog = (
         <BookPicker
-          authToken={authToken}
           onCancel={cancelDialog}
           onSelectBook={selectVitalSourceBook}
         />
