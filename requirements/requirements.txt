@@ -53,7 +53,7 @@ marshmallow==3.12.1
     # via
     #   -r requirements/requirements.in
     #   webargs
-newrelic==6.4.1.158
+newrelic==6.4.2.159
     # via -r requirements/requirements.in
 oauthlib==3.1.1
     # via
