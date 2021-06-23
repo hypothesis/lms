@@ -2,7 +2,7 @@ import 'focus-visible';
 import { createElement, render } from 'preact';
 
 import { readConfig, Config } from './config';
-import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
+import BasicLTILaunchApp from './components/BasicLTILaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import {
@@ -48,7 +48,7 @@ switch (config.mode) {
       GradingService,
       new GradingService({ authToken: config.api.authToken })
     );
-    app = <BasicLtiLaunchApp />;
+    app = <BasicLTILaunchApp />;
     break;
   case 'content-item-selection':
     services.set(

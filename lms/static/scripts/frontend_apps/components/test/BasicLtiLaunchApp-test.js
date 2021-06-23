@@ -6,23 +6,23 @@ import { Config } from '../../config';
 import { ClientRPC, Services } from '../../services';
 import { APIError } from '../../utils/api';
 
-import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
+import BasicLTILaunchApp, { $imports } from '../BasicLTILaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import { waitFor, waitForElement } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
-describe('BasicLtiLaunchApp', () => {
+describe('BasicLTILaunchApp', () => {
   let fakeApiCall;
   let FakeAuthWindow;
   let fakeConfig;
   let fakeRpcServer;
 
-  const renderLtiLaunchApp = (props = {}) => {
+  const renderLTILaunchApp = (props = {}) => {
     const services = new Map([[ClientRPC, fakeRpcServer]]);
     return mount(
       <Config.Provider value={fakeConfig}>
         <Services.Provider value={services}>
-          <BasicLtiLaunchApp {...props} />
+          <BasicLTILaunchApp {...props} />
         </Services.Provider>
       </Config.Provider>
     );
@@ -40,13 +40,13 @@ describe('BasicLtiLaunchApp', () => {
   }
 
   function contentHidden(wrapper) {
-    return waitForElement(wrapper, '.BasicLtiLaunchApp__content.is-hidden');
+    return waitForElement(wrapper, '.BasicLTILaunchApp__content.is-hidden');
   }
 
   function contentVisible(wrapper) {
     return waitForElement(
       wrapper,
-      '.BasicLtiLaunchApp__content:not(.is-hidden)'
+      '.BasicLTILaunchApp__content:not(.is-hidden)'
     );
   }
 
@@ -87,7 +87,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('displays the content URL in an iframe', () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
 
       const iframe = wrapper.find('iframe');
       assert.isTrue(iframe.exists());
@@ -111,7 +111,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('attempts to fetch the groups when mounted', async () => {
-      renderLtiLaunchApp({ rpcServer: fakeRpcServer });
+      renderLTILaunchApp({ rpcServer: fakeRpcServer });
       await waitFor(() => fakeApiCall.called);
       assert.calledWith(fakeApiCall, {
         authToken: 'dummyAuthToken',
@@ -127,7 +127,7 @@ describe('BasicLtiLaunchApp', () => {
 
     it('passes the groups array from api call to rpcServer.setGroups', async () => {
       const groups = await fakeApiCall.resolves(['group1', 'group2']);
-      renderLtiLaunchApp();
+      renderLTILaunchApp();
       await groups;
       assert.calledWith(fakeRpcServer.setGroups, ['group1', 'group2']);
     });
@@ -144,7 +144,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('attempts to fetch the content URL when mounted', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await spinnerVisible(wrapper);
       await waitFor(() => fakeApiCall.called);
 
@@ -160,7 +160,7 @@ describe('BasicLtiLaunchApp', () => {
         via_url: 'https://via.hypothes.is/123',
       });
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await contentVisible(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
@@ -172,7 +172,7 @@ describe('BasicLtiLaunchApp', () => {
       // Make the initial URL fetch request reject with an unspecified `APIError`.
       fakeApiCall.rejects(new APIError(400, {}));
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await spinnerVisible(wrapper);
       // Verify that an "Authorize" prompt is shown.
       const errorDialog = await waitForElement(
@@ -204,7 +204,7 @@ describe('BasicLtiLaunchApp', () => {
       // Make the initial URL fetch request reject with an unspecified `APIError`.
       fakeApiCall.rejects(new APIError(400, {}));
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       const errorDialog = await waitForElement(
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]'
@@ -240,7 +240,7 @@ describe('BasicLtiLaunchApp', () => {
         // Make the initial URL fetch request reject with the given error.
         fakeApiCall.rejects(error);
 
-        const wrapper = renderLtiLaunchApp();
+        const wrapper = renderLTILaunchApp();
         await spinnerVisible(wrapper);
 
         // Verify that an "Try again" prompt is shown.
@@ -270,7 +270,7 @@ describe('BasicLtiLaunchApp', () => {
         new APIError(400, { error_code: 'canvas_api_permission_error' })
       );
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await spinnerVisible(wrapper);
 
       // Verify that the expected error dialog is shown.
@@ -319,7 +319,7 @@ describe('BasicLtiLaunchApp', () => {
         new APIError(400, { error_code: 'canvas_file_not_found_in_course' })
       );
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await spinnerVisible(wrapper);
 
       // Verify that the expected error dialog is shown.
@@ -372,7 +372,7 @@ describe('BasicLtiLaunchApp', () => {
         },
       };
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
 
       const vsViewer = wrapper.find('VitalSourceBookViewer');
       assert.isTrue(vsViewer.exists());
@@ -396,7 +396,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('reports the submission when the content iframe starts loading', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       await waitFor(() => fakeApiCall.called);
 
       assert.calledWith(fakeApiCall, {
@@ -414,7 +414,7 @@ describe('BasicLtiLaunchApp', () => {
       const error = new APIError(400, {});
       fakeApiCall.rejects(error);
 
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
 
       // Wait for the API call to fail and check that an error is displayed.
       // There should be no "Try again" button in this context, instead we just
@@ -431,7 +431,7 @@ describe('BasicLtiLaunchApp', () => {
       // `submissionParams` config provided by the backend.
       fakeConfig.canvas.speedGrader.submissionParams = undefined;
 
-      renderLtiLaunchApp();
+      renderLTILaunchApp();
       await new Promise(resolve => setTimeout(resolve, 0));
 
       assert.notCalled(fakeApiCall);
@@ -440,7 +440,7 @@ describe('BasicLtiLaunchApp', () => {
     it('does not report a submission if `speedGrader` object is omitted', async () => {
       fakeConfig.canvas.speedGrader = undefined;
 
-      renderLtiLaunchApp();
+      renderLTILaunchApp();
       await new Promise(resolve => setTimeout(resolve, 0));
 
       assert.notCalled(fakeApiCall);
@@ -449,7 +449,7 @@ describe('BasicLtiLaunchApp', () => {
     it('does not report the submission when there is no `contentUrl`', async () => {
       // When present, viaUrl becomes the contentUrl
       fakeConfig.viaUrl = null;
-      renderLtiLaunchApp();
+      renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
     });
   });
@@ -464,7 +464,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('renders the LMSGrader component', () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       const LMSGrader = wrapper.find('LMSGrader');
       assert.isTrue(LMSGrader.exists());
     });
@@ -509,7 +509,7 @@ describe('BasicLtiLaunchApp', () => {
     };
 
     beforeEach(() => {
-      // When BasicLtiLaunchApp is rendered, it will attempt to fetch:
+      // When BasicLTILaunchApp is rendered, it will attempt to fetch:
       //  1. content url
       //  2. groups
       fakeConfig.api = {
@@ -532,7 +532,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('renders the spinner until contentUrl requests finish', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       // Spinner should not go away if only the groups resolves
       groupsCallResolve(['group1', 'group2']);
       await spinnerVisible(wrapper);
@@ -546,7 +546,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('renders the iframe after contentUrl succeeds but groups remains pending', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
       });
@@ -554,7 +554,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('shows an error dialog if the first request fails and second succeeds', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       // Should show an error after the first request fails
       contentUrlReject(new APIError(400, {}));
       await waitForElement(
@@ -572,7 +572,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('shows an error dialog if the first request succeeds and second fails', async () => {
-      const wrapper = renderLtiLaunchApp();
+      const wrapper = renderLTILaunchApp();
       // Should not show an error yet
       contentUrlResolve({
         via_url: 'https://via.hypothes.is/123',
@@ -611,7 +611,7 @@ describe('BasicLtiLaunchApp', () => {
       }
 
       it('shows an error dialog if the initial content/groups requests reject and second attempt also rejects', async () => {
-        const wrapper = renderLtiLaunchApp();
+        const wrapper = renderLTILaunchApp();
         // Both requests reject first
         contentUrlReject(new APIError(400, {}));
         groupsCallReject(new APIError(400, {}));
@@ -634,7 +634,7 @@ describe('BasicLtiLaunchApp', () => {
       });
 
       it('shows an error dialog if contentUrl succeeds but groups rejects first', async () => {
-        const wrapper = renderLtiLaunchApp();
+        const wrapper = renderLTILaunchApp();
         // Both requests reject first
         contentUrlReject(new APIError(400, {}));
         groupsCallReject(new APIError(400, {}));
@@ -655,7 +655,7 @@ describe('BasicLtiLaunchApp', () => {
       });
 
       it('disables "Authorize" button while re-fetching content and groups', async () => {
-        const wrapper = renderLtiLaunchApp();
+        const wrapper = renderLTILaunchApp();
 
         // Make initial content URL and groups requests fail.
         contentUrlReject(new APIError(400, {}));
@@ -704,7 +704,7 @@ describe('BasicLtiLaunchApp', () => {
             ...fakeConfig,
             viaUrl: 'https://via.hypothes.is/123',
           };
-          return renderLtiLaunchApp();
+          return renderLTILaunchApp();
         },
       },
       {
@@ -724,7 +724,7 @@ describe('BasicLtiLaunchApp', () => {
               assignmentName: 'assignmentName',
             },
           };
-          return renderLtiLaunchApp();
+          return renderLTILaunchApp();
         },
       },
     ])

@@ -45,7 +45,7 @@ import VitalSourceBookViewer from './VitalSourceBookViewer';
  * the content URL needs to be fetched from a remote source (eg. the LMS's
  * file storage) first, which may require authorization from the user.
  */
-export default function BasicLtiLaunchApp() {
+export default function BasicLTILaunchApp() {
   const {
     api: {
       authToken,
@@ -294,7 +294,7 @@ export default function BasicLtiLaunchApp() {
     />
   ) : (
     <iframe
-      className="BasicLtiLaunchApp__iframe"
+      className="BasicLTILaunchApp__iframe"
       src={contentUrl || ''}
       title="Course content with Hypothesis annotation viewer"
     />
@@ -320,7 +320,7 @@ export default function BasicLtiLaunchApp() {
   const content = (
     <div
       // Visually hide the iframe / grader if there is an error or no contentUrl.
-      className={classNames('BasicLtiLaunchApp__content', {
+      className={classNames('BasicLTILaunchApp__content', {
         'is-hidden': !showIframe,
       })}
     >
@@ -329,8 +329,8 @@ export default function BasicLtiLaunchApp() {
   );
 
   return (
-    <div className="BasicLtiLaunchApp">
-      {showSpinner && <Spinner className="BasicLtiLaunchApp__spinner" />}
+    <div className="BasicLTILaunchApp">
+      {showSpinner && <Spinner className="BasicLTILaunchApp__spinner" />}
       {errorState && (
         <LaunchErrorDialog
           busy={fetchCount > 0}
