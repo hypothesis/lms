@@ -1,6 +1,6 @@
-import { $imports, ClientRpc } from '../client-rpc';
+import { $imports, ClientRPC } from '../client-rpc';
 
-describe('ClientRpc', () => {
+describe('ClientRPC', () => {
   let authToken;
   let clientConfig;
   let fakeApiCall;
@@ -74,8 +74,8 @@ describe('ClientRpc', () => {
     $imports.$restore();
   });
 
-  function createClientRpc() {
-    return new ClientRpc({
+  function createClientRPC() {
+    return new ClientRPC({
       allowedOrigins: ['https://client.hypothes.is'],
       authToken,
       clientConfig,
@@ -83,18 +83,18 @@ describe('ClientRpc', () => {
   }
 
   it('initializes RPC server that accepts requests from specified origins', () => {
-    createClientRpc();
+    createClientRPC();
     assert.calledWith(FakeServer, ['https://client.hypothes.is']);
   });
 
   describe('"requestConfig" RPC handler', () => {
     it('is registered', () => {
-      createClientRpc();
+      createClientRPC();
       assert.calledWith(fakeServerInstance.register, 'requestConfig');
     });
 
     it('returns client config', async () => {
-      createClientRpc();
+      createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
         ([method]) => method === 'requestConfig'
       );
@@ -102,7 +102,7 @@ describe('ClientRpc', () => {
     });
 
     it('returns initial grant token if still valid', async () => {
-      createClientRpc();
+      createClientRPC();
 
       const [, callback] = fakeServerInstance.register.args.find(
         ([method]) => method === 'requestConfig'
@@ -115,7 +115,7 @@ describe('ClientRpc', () => {
     });
 
     it('fetches and returns new grant token if it has expired', async () => {
-      createClientRpc();
+      createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
         ([method]) => method === 'requestConfig'
       );
@@ -149,7 +149,7 @@ describe('ClientRpc', () => {
     });
 
     it('reports error to client if grant token fetch fails', async () => {
-      createClientRpc();
+      createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
         ([method]) => method === 'requestConfig'
       );
@@ -169,14 +169,14 @@ describe('ClientRpc', () => {
   });
 
   it('registers "requestGroups" RPC handler', () => {
-    createClientRpc();
+    createClientRPC();
     assert.calledWith(fakeServerInstance.register, 'requestGroups');
   });
 
   describe('setGroups', () => {
     it('sets the groups returned by "requestGroups" RPC handler', async () => {
-      const clientRpc = createClientRpc();
-      clientRpc.setGroups(['groupA', 'groupB']);
+      const clientRPC = createClientRPC();
+      clientRPC.setGroups(['groupA', 'groupB']);
 
       const [, callback] = fakeServerInstance.register.args.find(
         ([method]) => method === 'requestGroups'
@@ -189,9 +189,9 @@ describe('ClientRpc', () => {
 
   describe('setFocusedUser', () => {
     it('sets focused user in client when user is passed', async () => {
-      const clientRpc = createClientRpc();
+      const clientRPC = createClientRPC();
 
-      await clientRpc.setFocusedUser({
+      await clientRPC.setFocusedUser({
         userid: 'acct:123@lms.hypothes.is',
         displayName: 'Student A',
       });
@@ -211,9 +211,9 @@ describe('ClientRpc', () => {
     });
 
     it('clears focused user in client when user is `null`', async () => {
-      const clientRpc = createClientRpc();
+      const clientRPC = createClientRPC();
 
-      await clientRpc.setFocusedUser(null);
+      await clientRPC.setFocusedUser(null);
 
       assert.calledWith(
         fakeRpcCall,

@@ -11,7 +11,7 @@ import {
 
 import { APIError, apiCall } from '../utils/api';
 import { Config } from '../config';
-import { ClientRpc, useService } from '../services';
+import { ClientRPC, useService } from '../services';
 
 import AuthWindow from '../utils/AuthWindow';
 import LMSGrader from './LMSGrader';
@@ -64,7 +64,7 @@ export default function BasicLtiLaunchApp() {
     vitalSource: vitalSourceConfig,
   } = useContext(Config);
 
-  const clientRpc = useService(ClientRpc);
+  const clientRPC = useService(ClientRPC);
 
   // Indicates what the application was doing when the error indicated by
   // `error` occurred.
@@ -165,7 +165,7 @@ export default function BasicLtiLaunchApp() {
           path: apiSync.path,
           data: apiSync.data,
         });
-        clientRpc.setGroups(groups);
+        clientRPC.setGroups(groups);
         success = true;
       } catch (e) {
         handleError(e, 'error-fetching', true /* retry */, apiSync.authUrl);
@@ -178,7 +178,7 @@ export default function BasicLtiLaunchApp() {
 
       return success;
     },
-    [apiSync, authToken, clientRpc]
+    [apiSync, authToken, clientRPC]
   );
 
   /**
@@ -304,7 +304,7 @@ export default function BasicLtiLaunchApp() {
     // Use the LMS Grader
     iFrameWrapper = (
       <LMSGrader
-        clientRpc={clientRpc}
+        clientRPC={clientRPC}
         students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}

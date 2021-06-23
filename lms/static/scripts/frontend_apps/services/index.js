@@ -1,7 +1,7 @@
 import { createContext, createElement } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
-export { ClientRpc } from './client-rpc';
+export { ClientRPC } from './client-rpc';
 export { GradingService } from './grading';
 export { VitalSourceService } from './vitalsource';
 

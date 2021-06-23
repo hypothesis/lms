@@ -6,13 +6,13 @@ import SubmitGradeForm from './SubmitGradeForm';
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
- * @typedef {import('../services/client-rpc').ClientRpc} ClientRpc
+ * @typedef {import('../services/client-rpc').ClientRPC} ClientRPC
  */
 
 /**
  * @typedef LMSGraderProps
  * @prop {Object} children - The <iframe> element displaying the assignment
- * @prop {ClientRpc} clientRpc - Service for communicating with Hypothesis client
+ * @prop {ClientRPC} clientRPC - Service for communicating with Hypothesis client
  * @prop {string} courseName
  * @prop {string} assignmentName
  * @prop {StudentInfo[]} students - List of students to grade
@@ -26,7 +26,7 @@ import SubmitGradeForm from './SubmitGradeForm';
  */
 export default function LMSGrader({
   children,
-  clientRpc,
+  clientRPC,
   assignmentName,
   courseName,
   students: unorderedStudents,
@@ -59,8 +59,8 @@ export default function LMSGrader({
    */
   const changeFocusedUser = useCallback(
     /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
-    user => clientRpc.setFocusedUser(user),
-    [clientRpc]
+    user => clientRPC.setFocusedUser(user),
+    [clientRPC]
   );
 
   useEffect(() => {
