@@ -3,15 +3,15 @@
 @use "../mixins";
 @use "../variables" as var;
 
-.BasicLtiLaunchApp {
+.BasicLTILaunchApp {
   height: 100%;
 }
 
-.BasicLtiLaunchApp__spinner {
+.BasicLTILaunchApp__spinner {
   @include mixins.spinner($size: var.$spinner-size);
 }
 
-.BasicLtiLaunchApp__content {
+.BasicLTILaunchApp__content {
   &.is-hidden {
     visibility: hidden;
   }
@@ -21,10 +21,10 @@
   height: 100%;
 }
 
-.BasicLtiLaunchApp__iframe {
+.BasicLTILaunchApp__iframe {
   width: 100%;
 
-  // nb. This element may be contained directly in the `BasicLtiLaunchApp__content` element or
+  // nb. This element may be contained directly in the `BasicLTILaunchApp__content` element or
   // within an `LMSGrader` wrapper. In both cases it should fill whatever space remains.
   flex-grow: 1;
 }
