@@ -1,0 +1,15 @@
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block content %}
+  <div id="app"></div>
+{% endblock %}
+
+{% block styles %}
+  {% for url in  asset_urls("frontend_apps_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript" src="https://js.live.net/v7.2/OneDrive.js"></script>
+{% endblock %}
