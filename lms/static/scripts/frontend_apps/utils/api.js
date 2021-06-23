@@ -2,7 +2,7 @@
  * Error returned when an API call fails with a 4xx or 5xx response and
  * JSON body.
  */
-export class ApiError extends Error {
+export class APIError extends Error {
   /**
    * @param {number} status - HTTP status code
    * @param {any} data - Parsed JSON body from the API response
@@ -90,7 +90,7 @@ export async function apiCall({ path, authToken, data, params }) {
   const resultJson = await result.json();
 
   if (result.status >= 400 && result.status < 600) {
-    throw new ApiError(result.status, resultJson);
+    throw new APIError(result.status, resultJson);
   }
 
   return resultJson;

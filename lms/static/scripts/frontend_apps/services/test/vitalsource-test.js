@@ -1,4 +1,4 @@
-import { ApiError } from '../../utils/api';
+import { APIError } from '../../utils/api';
 import { VitalSourceService } from '../vitalsource';
 
 describe('VitalSourceService', () => {
@@ -30,7 +30,7 @@ describe('VitalSourceService', () => {
       } catch (e) {
         err = e;
       }
-      assert.instanceOf(err, ApiError);
+      assert.instanceOf(err, APIError);
       assert.equal(err.message, 'Book not found');
     });
   });

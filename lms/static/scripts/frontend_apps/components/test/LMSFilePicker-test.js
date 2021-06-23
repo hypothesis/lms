@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
-import { ApiError } from '../../utils/api';
+import { APIError } from '../../utils/api';
 
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import ErrorDisplay from '../ErrorDisplay';
@@ -65,9 +65,9 @@ describe('LMSFilePicker', () => {
     assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
-  it('shows the authorization prompt if fetching files fails with an ApiError that has no `errorMessage`', async () => {
+  it('shows the authorization prompt if fetching files fails with an APIError that has no `errorMessage`', async () => {
     fakeApiCall.rejects(
-      new ApiError('Not authorized', {
+      new APIError('Not authorized', {
         /** without errorMessage */
       })
     );
@@ -105,7 +105,7 @@ describe('LMSFilePicker', () => {
 
   it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
     fakeApiCall.rejects(
-      new ApiError('Not authorized', {
+      new APIError('Not authorized', {
         /** without errorMessage */
       })
     );
@@ -160,7 +160,7 @@ describe('LMSFilePicker', () => {
   [
     {
       description: 'a server error with details',
-      error: new ApiError('Not authorized', {
+      error: new APIError('Not authorized', {
         message: 'Some error detail',
       }),
     },

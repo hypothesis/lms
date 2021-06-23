@@ -1,4 +1,4 @@
-import { ApiError, apiCall } from '../api';
+import { APIError, apiCall } from '../api';
 
 describe('api', () => {
   let fakeResponse;
@@ -91,7 +91,7 @@ describe('api', () => {
         expectedMessage: 'Unknown endpoint',
       },
     ].forEach(({ status, body, expectedMessage }) => {
-      it('throws an `ApiError` if the request fails', async () => {
+      it('throws an `APIError` if the request fails', async () => {
         fakeResponse.status = status;
         fakeResponse.json.resolves(body);
 
@@ -103,14 +103,14 @@ describe('api', () => {
           reason = err;
         }
 
-        assert.instanceOf(reason, ApiError);
+        assert.instanceOf(reason, APIError);
         assert.equal(reason.message, expectedMessage, '`Error.message`');
         assert.equal(
           reason.errorMessage,
           body.message,
-          '`ApiError.errorMessage`'
+          '`APIError.errorMessage`'
         );
-        assert.equal(reason.details, body.details, '`ApiError.details`');
+        assert.equal(reason.details, body.details, '`APIError.details`');
         assert.equal(reason.errorCode, null);
       });
     });

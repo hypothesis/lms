@@ -9,7 +9,7 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { ApiError, apiCall } from '../utils/api';
+import { APIError, apiCall } from '../utils/api';
 import { Config } from '../config';
 import { ClientRpc, useService } from '../services';
 
@@ -120,7 +120,7 @@ export default function BasicLtiLaunchApp() {
     setAuthUrl(authUrl || null);
 
     if (
-      e instanceof ApiError &&
+      e instanceof APIError &&
       e.errorCode !== null &&
       [
         'canvas_api_permission_error',
@@ -132,7 +132,7 @@ export default function BasicLtiLaunchApp() {
     ) {
       setError(e);
       setErrorState(/** @type {ErrorState} */ (e.errorCode));
-    } else if (e instanceof ApiError && !e.errorMessage && retry) {
+    } else if (e instanceof APIError && !e.errorMessage && retry) {
       setErrorState('error-authorizing');
     } else {
       setError(e);

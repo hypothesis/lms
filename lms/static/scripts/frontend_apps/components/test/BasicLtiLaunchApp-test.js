@@ -4,7 +4,7 @@ import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ClientRpc, Services } from '../../services';
-import { ApiError } from '../../utils/api';
+import { APIError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
@@ -168,9 +168,9 @@ describe('BasicLtiLaunchApp', () => {
       );
     });
 
-    it('displays authorization prompt if content URL fetch fails with an `ApiError`', async () => {
-      // Make the initial URL fetch request reject with an unspecified `ApiError`.
-      fakeApiCall.rejects(new ApiError(400, {}));
+    it('displays authorization prompt if content URL fetch fails with an `APIError`', async () => {
+      // Make the initial URL fetch request reject with an unspecified `APIError`.
+      fakeApiCall.rejects(new APIError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
       await spinnerVisible(wrapper);
@@ -201,8 +201,8 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('does not create a second auth window when Authorize button is clicked twice', async () => {
-      // Make the initial URL fetch request reject with an unspecified `ApiError`.
-      fakeApiCall.rejects(new ApiError(400, {}));
+      // Make the initial URL fetch request reject with an unspecified `APIError`.
+      fakeApiCall.rejects(new APIError(400, {}));
 
       const wrapper = renderLtiLaunchApp();
       const errorDialog = await waitForElement(
@@ -229,7 +229,7 @@ describe('BasicLtiLaunchApp', () => {
     [
       {
         description: 'a specific server error',
-        error: new ApiError(400, { message: 'Server error' }),
+        error: new APIError(400, { message: 'Server error' }),
       },
       {
         description: 'a network or other generic error',
@@ -267,7 +267,7 @@ describe('BasicLtiLaunchApp', () => {
     it('shows Canvas file permission error if content URL fetch fails with "canvas_api_permission_error" error', async () => {
       // Make the initial URL fetch request reject with a Canvas API permission error.
       fakeApiCall.rejects(
-        new ApiError(400, { error_code: 'canvas_api_permission_error' })
+        new APIError(400, { error_code: 'canvas_api_permission_error' })
       );
 
       const wrapper = renderLtiLaunchApp();
@@ -316,7 +316,7 @@ describe('BasicLtiLaunchApp', () => {
     it('shows Canvas file not found in course error if content URL fetch fails with "canvas_file_not_found_in_course" error', async () => {
       // Make the initial URL fetch request reject with a Canvas API permission error.
       fakeApiCall.rejects(
-        new ApiError(400, { error_code: 'canvas_file_not_found_in_course' })
+        new APIError(400, { error_code: 'canvas_file_not_found_in_course' })
       );
 
       const wrapper = renderLtiLaunchApp();
@@ -411,7 +411,7 @@ describe('BasicLtiLaunchApp', () => {
     });
 
     it('displays an error if reporting the submission fails', async () => {
-      const error = new ApiError(400, {});
+      const error = new APIError(400, {});
       fakeApiCall.rejects(error);
 
       const wrapper = renderLtiLaunchApp();
@@ -556,7 +556,7 @@ describe('BasicLtiLaunchApp', () => {
     it('shows an error dialog if the first request fails and second succeeds', async () => {
       const wrapper = renderLtiLaunchApp();
       // Should show an error after the first request fails
-      contentUrlReject(new ApiError(400, {}));
+      contentUrlReject(new APIError(400, {}));
       await waitForElement(
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]'
@@ -580,7 +580,7 @@ describe('BasicLtiLaunchApp', () => {
       await contentVisible(wrapper);
 
       // Should show an error after failure
-      groupsCallReject(new ApiError(400, {}));
+      groupsCallReject(new APIError(400, {}));
       await waitForElement(
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]'
@@ -613,8 +613,8 @@ describe('BasicLtiLaunchApp', () => {
       it('shows an error dialog if the initial content/groups requests reject and second attempt also rejects', async () => {
         const wrapper = renderLtiLaunchApp();
         // Both requests reject first
-        contentUrlReject(new ApiError(400, {}));
-        groupsCallReject(new ApiError(400, {}));
+        contentUrlReject(new APIError(400, {}));
+        groupsCallReject(new APIError(400, {}));
 
         const errorDialog = await waitForElement(
           wrapper,
@@ -623,8 +623,8 @@ describe('BasicLtiLaunchApp', () => {
         resetApiCalls();
         await dialogShouldRemain(wrapper);
         // contentUrlReject rejects again
-        contentUrlReject(new ApiError(400, {}));
-        groupsCallReject(new ApiError(400, {}));
+        contentUrlReject(new APIError(400, {}));
+        groupsCallReject(new APIError(400, {}));
         // Click the "Authorize" button.
         act(() => {
           errorDialog.prop('onRetry')();
@@ -636,8 +636,8 @@ describe('BasicLtiLaunchApp', () => {
       it('shows an error dialog if contentUrl succeeds but groups rejects first', async () => {
         const wrapper = renderLtiLaunchApp();
         // Both requests reject first
-        contentUrlReject(new ApiError(400, {}));
-        groupsCallReject(new ApiError(400, {}));
+        contentUrlReject(new APIError(400, {}));
+        groupsCallReject(new APIError(400, {}));
 
         const errorDialog = await waitForElement(
           wrapper,
@@ -645,7 +645,7 @@ describe('BasicLtiLaunchApp', () => {
         );
         resetApiCalls();
         // groups still fails, but contentUrl does not.
-        groupsCallReject(new ApiError(400, {}));
+        groupsCallReject(new APIError(400, {}));
         // Click the "Authorize" button.
         act(() => {
           errorDialog.prop('onRetry')();
@@ -658,8 +658,8 @@ describe('BasicLtiLaunchApp', () => {
         const wrapper = renderLtiLaunchApp();
 
         // Make initial content URL and groups requests fail.
-        contentUrlReject(new ApiError(400, {}));
-        groupsCallReject(new ApiError(400, {}));
+        contentUrlReject(new APIError(400, {}));
+        groupsCallReject(new APIError(400, {}));
 
         resetApiCalls();
 
