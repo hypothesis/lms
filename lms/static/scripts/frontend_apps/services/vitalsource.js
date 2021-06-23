@@ -3,7 +3,7 @@
  * @typedef {import('../api-types').Chapter} Chapter
  */
 
-import { ApiError } from '../utils/api';
+import { APIError } from '../utils/api';
 import { bookList, chapterData } from '../utils/vitalsource-sample-data';
 
 /** @param {number} ms */
@@ -54,7 +54,7 @@ export class VitalSourceService {
   async fetchChapters(bookID, fetchDelay = 500) {
     await delay(fetchDelay);
     if (!chapterData[bookID]) {
-      throw new ApiError(404, { message: 'Book not found' });
+      throw new APIError(404, { message: 'Book not found' });
     }
     return chapterData[bookID];
   }

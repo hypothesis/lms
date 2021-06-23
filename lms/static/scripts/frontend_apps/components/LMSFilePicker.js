@@ -2,7 +2,7 @@ import { LabeledButton } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { ApiError, apiCall } from '../utils/api';
+import { APIError, apiCall } from '../utils/api';
 
 import AuthButton from './AuthButton';
 import Dialog from './Dialog';
@@ -108,7 +108,7 @@ export default function LMSFilePicker({
         continueAction,
       });
     } catch (e) {
-      if (e instanceof ApiError && !e.errorMessage) {
+      if (e instanceof APIError && !e.errorMessage) {
         const continueAction = authorizationAttempted
           ? 'authorize_retry'
           : 'authorize';
