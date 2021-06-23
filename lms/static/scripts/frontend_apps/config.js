@@ -7,7 +7,7 @@ import { createContext } from 'preact';
  * decides _when_ to make the call and what to show while waiting for the
  * response.
  *
- * @typedef ApiCallInfo
+ * @typedef APICallInfo
  * @prop {string} path - The complete URL or path of the API call
  * @prop {string} [authUrl] -
  *   URL to display in a popup window if the call fails due to an authorization
@@ -61,13 +61,13 @@ import { createContext } from 'preact';
  * @prop {Object.<string,string>} formFields
  * @prop {Object} blackboard
  *   @prop {boolean} blackboard.enabled
- *   @prop {ApiCallInfo} blackboard.listFiles
+ *   @prop {APICallInfo} blackboard.listFiles
  * @prop {Object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {boolean} canvas.groupsEnabled
  *   @prop {string} canvas.ltiLaunchUrl
- *   @prop {ApiCallInfo} canvas.listFiles
- *   @prop {ApiCallInfo} canvas.listGroupSets
+ *   @prop {APICallInfo} canvas.listFiles
+ *   @prop {APICallInfo} canvas.listGroupSets
  * @prop {Object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
@@ -99,8 +99,8 @@ import { createContext } from 'preact';
  * @prop {string} mode
  * @prop {Object} api
  *   @prop {string} api.authToken
- *   @prop {ApiCallInfo} api.sync
- *   @prop {ApiCallInfo} api.viaUrl
+ *   @prop {APICallInfo} api.sync
+ *   @prop {APICallInfo} api.viaUrl
  * @prop {Object} canvas
  *   @prop {SpeedGraderConfig} canvas.speedGrader
  * @prop {boolean} dev

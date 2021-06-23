@@ -11,13 +11,13 @@ import FileList from './FileList';
 
 /**
  * @typedef {import("./FileList").File} File
- * @typedef {import("../config").ApiCallInfo} ApiCallInfo
+ * @typedef {import("../config").APICallInfo} APICallInfo
  */
 
 /**
  * @typedef LMSFilePickerProps
  * @prop {string} authToken - Auth token for use in calls to the backend
- * @prop {ApiCallInfo} listFilesApi -
+ * @prop {APICallInfo} listFilesApi -
  *   Config for the API call to list available files
  * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
  * @prop {(f: File) => any} onSelectFile -
