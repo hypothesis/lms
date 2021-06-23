@@ -7,6 +7,9 @@ import {
   GooglePickerClient,
   PickerCanceledError,
 } from '../utils/google-picker-client';
+
+import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
+
 import BookPicker from './BookPicker';
 import FullScreenSpinner from './FullScreenSpinner';
 import LMSFilePicker from './LMSFilePicker';
@@ -56,6 +59,11 @@ export default function ContentSelector({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
+      onedrive: {
+        enabled: oneDriveFilesEnabled,
+        clientId: oneDriveClientId,
+        redirectURI: oneDriveRedirectURI,
+      },
       vitalSource: { enabled: vitalSourceEnabled },
     },
   } = useContext(Config);
@@ -94,6 +102,19 @@ export default function ContentSelector({
       origin: window === window.top ? window.location.href : googleOrigin,
     });
   }, [googleDeveloperKey, googleClientId, googleOrigin]);
+
+  // Initialize the OneDrive client if credentials have been provided.
+  // We do this eagerly to make the picker load faster if the user does click
+  // on the "Select from One Drive" button.
+  const oneDrivePicker = useMemo(() => {
+    if (!oneDriveClientId || !oneDriveRedirectURI) {
+      return null;
+    }
+    return new OneDrivePickerClient({
+      clientId: oneDriveClientId,
+      redirectURI: oneDriveRedirectURI,
+    });
+  }, [oneDriveClientId, oneDriveRedirectURI]);
 
   /** @param {string} url */
   const selectURL = url => {
@@ -179,6 +200,36 @@ export default function ContentSelector({
     }
   };
 
+  const showOneDrivePicker = async () => {
+    setLoadingIndicatorVisible(true);
+    const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
+    await picker.showPicker(
+      function (result) {
+        // TODO handle no selection
+        // TODO handle more permissions?
+        const sharedLink = result.value[0].permissions[0].link.webUrl;
+        // https://docs.microsoft.com/en-us/graph/api/shares-get?view=graph-rest-1.0&tabs=http#encoding-sharing-urls
+        // First, use base64 encode the URL.
+        // Convert the base64 encoded result to unpadded base64url format by removing = characters from the end of the value, replacing / with _ and + with -.)
+        const b64SharedLink = btoa(sharedLink)
+          .replace(/\//g, '_')
+          .replace(/\+/g, '-')
+          .replace(/=/g, '');
+        // Append u! to be beginning of the string.
+        const url = `https://api.onedrive.com/v1.0/shares/u!${b64SharedLink}/root/content`;
+
+        onSelectContent({ type: 'url', url });
+      },
+      function (error) {
+        console.error(error);
+        onError({
+          title: 'There was a problem choosing a file from One Drive',
+          error,
+        });
+      }
+    );
+  };
+
   return (
     <Fragment>
       {isLoadingIndicatorVisible && <FullScreenSpinner />}
@@ -219,6 +270,16 @@ export default function ContentSelector({
               Select PDF from Google Drive
             </LabeledButton>
           )}
+          {oneDriveFilesEnabled && (
+            <LabeledButton
+              onClick={showOneDrivePicker}
+              variant="primary"
+              data-testid="one-drive-button"
+            >
+              Select PDF from One Drive
+            </LabeledButton>
+          )}
+
           {vitalSourceEnabled && (
             <LabeledButton
               onClick={() => selectDialog('vitalSourceBook')}

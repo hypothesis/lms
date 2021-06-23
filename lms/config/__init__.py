@@ -22,6 +22,7 @@ def configure(settings):
         "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
         "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
         "google_app_id": sg.get("GOOGLE_APP_ID"),
+        "onedrive_client_id": sg.get("ONEDRIVE_CLIENT_ID"),
         "lms_secret": sg.get("LMS_SECRET"),
         "hashed_pw": sg.get("HASHED_PW"),
         "salt": sg.get("SALT"),

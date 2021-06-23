@@ -357,6 +357,14 @@ class JSConfig:
         """
         return self._application_instance().settings.get("blackboard", "files_enabled")
 
+    def _onedrive_files_enabled(self):
+        """
+        Return True if the OneDrive Files API is enabled for this request.
+
+        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        """
+        return self._application_instance().settings.get("onedrive", "files_enabled")
+
     def _canvas_files_available(self):
         """
         Return True if the Canvas Files API is available to this request.
