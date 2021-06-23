@@ -14,11 +14,11 @@ import { JWT } from '../utils/jwt';
  */
 
 /**
- * The subset of the Hypothesis client configuration that `ClientRpc` directly references.
+ * The subset of the Hypothesis client configuration that `ClientRPC` directly references.
  *
  * The backend will add other properties which are intentionally not included here,
  * even as an index signature. This other configuration is simply forwarded to
- * the client but not touched by `ClientRpc`.
+ * the client but not touched by `ClientRPC`.
  *
  * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
  *
@@ -38,7 +38,7 @@ import { JWT } from '../utils/jwt';
  *  - Updating the Hypothesis client configuration in response to input
  *    in the LMS frontend, such as changing the focused user in grading mode.
  */
-export class ClientRpc {
+export class ClientRPC {
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
    *

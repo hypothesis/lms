@@ -6,7 +6,7 @@ import BasicLtiLaunchApp from './components/BasicLtiLaunchApp';
 import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import {
-  ClientRpc,
+  ClientRPC,
   GradingService,
   Services,
   VitalSourceService,
@@ -37,8 +37,8 @@ let app;
 switch (config.mode) {
   case 'basic-lti-launch':
     services.set(
-      ClientRpc,
-      new ClientRpc({
+      ClientRPC,
+      new ClientRPC({
         authToken: config.api.authToken,
         allowedOrigins: config.rpcServer.allowedOrigins,
         clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),

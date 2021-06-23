@@ -9,7 +9,7 @@ import mockImportedComponents from '../../../test-util/mock-imported-components'
 describe('LMSGrader', () => {
   let fakeStudents;
   let fakeOnChange;
-  let fakeClientRpc;
+  let fakeClientRPC;
 
   /**
    * Helper to return a list of displayNames of the students.
@@ -42,7 +42,7 @@ describe('LMSGrader', () => {
       },
     ];
     fakeOnChange = sinon.spy();
-    fakeClientRpc = {
+    fakeClientRPC = {
       setFocusedUser: sinon.stub(),
     };
 
@@ -60,7 +60,7 @@ describe('LMSGrader', () => {
         students={fakeStudents}
         courseName={'course name'}
         assignmentName={'course assignment'}
-        clientRpc={fakeClientRpc}
+        clientRPC={fakeClientRPC}
         {...props}
       >
         <div title="The assignment content iframe" />
@@ -189,7 +189,7 @@ describe('LMSGrader', () => {
 
   it('does not set a focus user by default', () => {
     renderGrader();
-    assert.calledWith(fakeClientRpc.setFocusedUser, null);
+    assert.calledWith(fakeClientRPC.setFocusedUser, null);
   });
 
   it('sets the focused user when a valid index is passed', () => {
@@ -199,7 +199,7 @@ describe('LMSGrader', () => {
       wrapper.find('StudentSelector').props().onSelectStudent(0); // note: initial index is -1
     });
 
-    assert.calledWith(fakeClientRpc.setFocusedUser, fakeStudents[0]);
+    assert.calledWith(fakeClientRPC.setFocusedUser, fakeStudents[0]);
   });
 
   it('does not set a focus user when the user index is invalid', () => {
@@ -208,7 +208,7 @@ describe('LMSGrader', () => {
       wrapper.find('StudentSelector').props().onSelectStudent(-1); // invalid choice
     });
 
-    assert.calledWith(fakeClientRpc.setFocusedUser, null);
+    assert.calledWith(fakeClientRPC.setFocusedUser, null);
   });
 
   it(

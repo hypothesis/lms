@@ -3,7 +3,7 @@ import { createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
-import { ClientRpc, Services } from '../../services';
+import { ClientRPC, Services } from '../../services';
 import { APIError } from '../../utils/api';
 
 import BasicLtiLaunchApp, { $imports } from '../BasicLtiLaunchApp';
@@ -18,7 +18,7 @@ describe('BasicLtiLaunchApp', () => {
   let fakeRpcServer;
 
   const renderLtiLaunchApp = (props = {}) => {
-    const services = new Map([[ClientRpc, fakeRpcServer]]);
+    const services = new Map([[ClientRPC, fakeRpcServer]]);
     return mount(
       <Config.Provider value={fakeConfig}>
         <Services.Provider value={services}>
