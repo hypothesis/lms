@@ -60,6 +60,69 @@ class TestAssignmentService:
 
         assert assignment.document_url == "NEW_DOCUMENT_URL"
 
+    def test_get_canvas_mapped_file_id_returns_None_if_the_assignment_doesnt_exist(
+        self, svc
+    ):
+        assert not svc.get_canvas_mapped_file_id(
+            "unknown_resource_link_id", "unknown_resource_link_id", "file_id"
+        )
+
+    def test_set_canvas_mapped_file_id_creates_a_new_mapping_if_none_exists(
+        self, assignment, svc
+    ):
+        svc.set_canvas_mapped_file_id(
+            assignment.tool_consumer_instance_guid,
+            assignment.resource_link_id,
+            "original_file_id",
+            "mapped_file_id",
+        )
+
+        assert (
+            svc.get_canvas_mapped_file_id(
+                assignment.tool_consumer_instance_guid,
+                assignment.resource_link_id,
+                "original_file_id",
+            )
+            == "mapped_file_id"
+        )
+
+    def test_set_canvas_mapped_file_id_overwrites_an_existing_mapping_if_one_exists(
+        self, assignment, svc
+    ):
+        svc.set_canvas_mapped_file_id(
+            assignment.tool_consumer_instance_guid,
+            assignment.resource_link_id,
+            "original_file_id",
+            "mapped_file_id",
+        )
+
+        svc.set_canvas_mapped_file_id(
+            assignment.tool_consumer_instance_guid,
+            assignment.resource_link_id,
+            "original_file_id",
+            "new_mapped_file_id",
+        )
+
+        assert (
+            svc.get_canvas_mapped_file_id(
+                assignment.tool_consumer_instance_guid,
+                assignment.resource_link_id,
+                "original_file_id",
+            )
+            == "new_mapped_file_id"
+        )
+
+    def test_set_canvas_mapped_file_id_raises_ValueError_if_the_assignment_doesnt_exist(
+        self, svc
+    ):
+        with pytest.raises(ValueError):
+            svc.set_canvas_mapped_file_id(
+                "unknown_tool_consumer_instance_guid",
+                "unknown_resource_link_id",
+                "original_file_id",
+                "new_mapped_file_id",
+            )
+
     @pytest.fixture
     def assignment(self):
         return factories.ModuleItemConfiguration()
