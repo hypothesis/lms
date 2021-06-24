@@ -239,6 +239,11 @@ class JSConfig:
                     ),
                 },
             },
+            "onedrive": {
+                "enabled": self._onedrive_files_enabled(),
+                "clientId": self._request.registry.settings["onedrive_client_id"],
+                "redirectURI": self._request.route_url("onedrive.filepicker.authorize"),
+            },
             "google": {
                 "clientId": self._request.registry.settings["google_client_id"],
                 "developerKey": self._request.registry.settings["google_developer_key"],

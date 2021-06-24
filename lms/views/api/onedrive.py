@@ -54,15 +54,13 @@ def oauth_authorize(request):
     schema=OAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    print("CALLBACK")
-    print(request.params)
     request.find_service(name="onedrive").get_token(
         request.params["code"],
     )
     return {}
 
 
-@view_config(request_method="GET", route_name="onedrive.files.via_url")
+@view_config(request_method="GET", route_name="onedrive.files.via_url", renderer="json")
 def via_url(request):
     """Return the Via URL for annotating the given OneDrive file."""
     onedrive = request.find_service(name="onedrive")

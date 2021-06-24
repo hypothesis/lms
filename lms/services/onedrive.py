@@ -20,16 +20,6 @@ class OneDriveClient:
         self._redirect_uri = redirect_uri
 
     def get_token(self, code):
-        print("GET TOKEN")
-        print(
-            {
-                "client_id": self._client_id,
-                "redirect_uri": self._redirect_uri,
-                "client_secret": self._client_secret,
-                "code": code,
-                "grant_type": "authorization_code",
-            }
-        )
         response = self._http_service.post(
             "https://login.microsoftonline.com/common/oauth2/v2.0/token",
             data={
@@ -39,25 +29,26 @@ class OneDriveClient:
                 "code": code,
                 "grant_type": "authorization_code",
             },
-            schema=OAuthTokenResponseSchema,
         )
+        validated_data = OAuthTokenResponseSchema(response).parse()
 
         # Save the access token to the DB.
         self._oauth2_token_service.save(
             "graph.microsoft.com",
-            response.validated_data["access_token"],
-            response.validated_data.get("refresh_token"),
-            response.validated_data.get("expires_in"),
+            validated_data["access_token"],
+            validated_data.get("refresh_token"),
+            validated_data.get("expires_in"),
         )
 
     def download_url(self, document_url):
-        print(document_url)
         file_id = DOCUMENT_URL_REGEX.search(document_url)["file_id"]
 
         response = self._http_service.get(
             f"https://graph.microsoft.com/v1.0/me/drive/items/{file_id}/content",
             oauth=True,
+            allow_redirects=False,
         )
+        return response.headers["Location"]
 
 
 def factory(_context, request):
