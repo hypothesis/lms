@@ -86,6 +86,9 @@ class ApplicationInstance(BASE):
         "GroupInfo", back_populates="application_instance"
     )
 
+    #: A list of all the files for this application instance.
+    files = sa.orm.relationship("File", back_populates="application_instance")
+
     def decrypted_developer_secret(self, aes_secret):
         if self.developer_secret is None:
             return None
