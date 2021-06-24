@@ -1,4 +1,6 @@
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 
@@ -41,3 +43,10 @@ class ModuleItemConfiguration(BASE):
 
     document_url = sa.Column(sa.String, nullable=False)
     """The URL of the document to be annotated for this assignment."""
+
+    extra = sa.Column(
+        "extra",
+        MutableDict.as_mutable(JSONB),
+        server_default=sa.text("'{}'::jsonb"),
+        nullable=False,
+    )
