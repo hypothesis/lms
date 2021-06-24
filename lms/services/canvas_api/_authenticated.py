@@ -49,7 +49,8 @@ class AuthenticatedClient:
         """
         call_args = (method, path, schema, params)
 
-        oauth2_token = self._oauth2_token_service.get()
+        print(self._client._canvas_host)
+        oauth2_token = self._oauth2_token_service.get(self._client._canvas_host)
         access_token = oauth2_token.access_token
         refresh_token = oauth2_token.refresh_token
 
@@ -118,6 +119,7 @@ class AuthenticatedClient:
         )
 
         self._oauth2_token_service.save(
+            self._client._canvas_host,
             parsed_params["access_token"],
             parsed_params.get("refresh_token", refresh_token),
             parsed_params.get("expires_in"),

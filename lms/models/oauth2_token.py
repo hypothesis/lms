@@ -69,3 +69,5 @@ class OAuth2Token(BASE):
         server_default=sa.func.now(),
         nullable=False,
     )
+
+    api_host = sa.Column(sa.Unicode(), nullable=False)

@@ -1,5 +1,7 @@
 import requests
 from requests import RequestException
+from urllib.parse import urlparse
+
 
 from lms.services.exceptions import HTTPError
 
@@ -88,9 +90,12 @@ class HTTPService:
         response = None
 
         if oauth:
+            parsed_url = urlparse(url)
             kwargs.setdefault("headers", {})
             assert "Authorization" not in kwargs["headers"]
-            access_token = self._oauth2_token_service.get().access_token
+            access_token = self._oauth2_token_service.get(
+                parsed_url.netloc
+            ).access_token
             kwargs["headers"]["Authorization"] = f"Bearer {access_token}"
 
         try:

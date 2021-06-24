@@ -21,7 +21,7 @@ class OAuth2TokenService:
         self._consumer_key = consumer_key
         self._user_id = user_id
 
-    def save(self, access_token, refresh_token, expires_in):
+    def save(self, api_host, access_token, refresh_token, expires_in):
         """
         Save an OAuth 2 token to the DB.
 
@@ -30,10 +30,12 @@ class OAuth2TokenService:
         add it to the DB.
         """
         try:
-            oauth2_token = self.get()
+            oauth2_token = self.get(api_host)
         except OAuth2TokenError:
             oauth2_token = OAuth2Token(
-                consumer_key=self._consumer_key, user_id=self._user_id
+                consumer_key=self._consumer_key,
+                user_id=self._user_id,
+                api_host=api_host,
             )
             self._db.add(oauth2_token)
 
@@ -42,16 +44,21 @@ class OAuth2TokenService:
         oauth2_token.expires_in = expires_in
         oauth2_token.received_at = datetime.datetime.utcnow()
 
-    def get(self):
+    def get(self, api_host):
         """
         Return the user's saved OAuth 2 token from the DB.
 
         :raise OAuth2TokenError: if we don't have an OAuth 2 token for the user
         """
+        print(self._consumer_key, self._user_id, api_host)
         try:
             return (
                 self._db.query(OAuth2Token)
-                .filter_by(consumer_key=self._consumer_key, user_id=self._user_id)
+                .filter_by(
+                    consumer_key=self._consumer_key,
+                    user_id=self._user_id,
+                    api_host=api_host,
+                )
                 .one()
             )
         except NoResultFound as err:
