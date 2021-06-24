@@ -31,7 +31,12 @@ class File(CreatedUpdatedMixin, BASE):
         sa.ForeignKey("application_instances.id", ondelete="cascade"),
         nullable=False,
     )
-    """Link to the application instance."""
+    """The ID of this file's application instance."""
+
+    application_instance = sa.orm.relationship(
+        "ApplicationInstance", back_populates="files"
+    )
+    """This file's application instance."""
 
     type = sa.Column(sa.UnicodeText(), nullable=False)
     """What type of file is this? e.g. 'canvas_file'."""
