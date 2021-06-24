@@ -33,6 +33,10 @@ class File(CreatedUpdatedMixin, BASE):
     )
     """Link to the application instance."""
 
+    application_instance = sa.orm.relationship(
+        "ApplicationInstance", back_populates="files"
+    )
+
     type = sa.Column(sa.UnicodeText(), nullable=False)
     """What type of file is this? e.g. 'canvas_file'."""
 

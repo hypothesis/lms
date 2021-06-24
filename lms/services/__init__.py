@@ -62,3 +62,4 @@ def includeme(config):
         "lms.services.application_instance.factory", name="application_instance"
     )
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
+    config.register_service_factory("lms.services.file.factory", name="file")

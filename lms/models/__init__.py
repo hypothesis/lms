@@ -10,7 +10,10 @@ from lms.models.grouping import CanvasGroup, CanvasSection, Course, Grouping
 from lms.models.h_user import HUser
 from lms.models.lti_launches import LtiLaunches
 from lms.models.lti_user import LTIUser, display_name
-from lms.models.module_item_configuration import ModuleItemConfiguration
+from lms.models.module_item_configuration import (
+    CanvasModuleItemConfiguration,
+    ModuleItemConfiguration,
+)
 from lms.models.oauth2_token import OAuth2Token
 
 
