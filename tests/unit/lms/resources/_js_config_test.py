@@ -189,17 +189,21 @@ class TestAddCanvasFileID:
 
     def test_it_adds_the_viaUrl_api_config(self, js_config):
         js_config.add_canvas_file_id(
-            "example_canvas_course_id", "example_canvas_file_id"
+            "example_canvas_course_id",
+            "example_resource_link_id",
+            "example_canvas_file_id",
         )
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/courses/example_canvas_course_id/files/example_canvas_file_id/via_url",
+            "path": "/api/canvas/courses/example_canvas_course_id/assignments/example_resource_link_id/files/example_canvas_file_id/via_url",
         }
 
     def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
         js_config.add_canvas_file_id(
-            "example_canvas_course_id", "example_canvas_file_id"
+            "example_canvas_course_id",
+            "example_resource_link_id",
+            "example_canvas_file_id",
         )
 
         assert submission_params()["canvas_file_id"] == "example_canvas_file_id"
@@ -316,7 +320,11 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         params=[
             {
                 "method": "add_canvas_file_id",
-                "args": ["example_canvas_course_id", "example_canvas_file_id"],
+                "args": [
+                    "example_canvas_course_id",
+                    "example_resource_link_id",
+                    "example_canvas_file_id",
+                ],
             },
             {"method": "add_document_url", "args": ["example_document_url"]},
         ]
