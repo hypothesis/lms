@@ -1,4 +1,4 @@
-import { Fragment, createElement } from 'preact';
+import { createElement } from 'preact';
 
 /**
  * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
@@ -15,6 +15,8 @@ function emailLink({ address, subject = '', body = '' }) {
 }
 
 /**
+ * Adds punctuation to a string if missing.
+ *
  * @param {string} str
  */
 function toSentence(str) {
@@ -34,8 +36,13 @@ function toSentence(str) {
  * @prop {string|null} [message] -
  *   A short message to display explaining that a problem happened. This is
  *   typically a general message like "There was a problem fetching this assignment".
+ *   In cases where the the error originates from the server, this message may not
+ *   be necessary, but in other cases where the `error.message` is generic and perhaps
+ *   originates from an exception in the client, then this prop can be used to
+ *   provide additional specifics.
  * @prop {ErrorLike} error -
- *   An `Error`-like object with specific details of the problem
+ *   An `Error`-like object with specific details of the problem. If `error` contains
+ *   a `message` property, then that string will be rendered.
  */
 
 /**
@@ -84,15 +91,22 @@ export default function ErrorDisplay({ message, error }) {
   return (
     // nb. Wrapper `<div>` here exists to apply block layout to contents.
     <div className="ErrorDisplay">
-      {message && (
-        <p>
-          {!error.message && toSentence(message)}
-          {error.message && (
-            <Fragment>
-              {message}: <i>{toSentence(error.message)}</i>
-            </Fragment>
-          )}
+      {message && error.message && (
+        // Display both error messages if they are both provided
+        <p data-testid="message">
+          {message}: <i>{toSentence(error.message)}</i>
         </p>
+      )}
+      {message && !error.message && (
+        // Only the component's message prop is provided
+        <p data-testid="message">{toSentence(message)}</p>
+      )}
+      {!message && error.message && (
+        // Only the error's message property is provided
+        <p data-testid="message">{toSentence(error.message)}</p>
+      )}
+      {!message && !error.message && (
+        <p data-testid="message">An unknown error occurred.</p>
       )}
       <p className="ErrorDisplay__links">
         If the problem persists,{' '}

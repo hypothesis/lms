@@ -61,7 +61,7 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'canvas_group_set_not_found',
       expectedText:
-        "Assignment's group set no longer exists in CanvasHypothesis couldn't load this assignment because the assignment's group set no longer exists in Canvas.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.If the problem persists, send us an email or open a support ticket. You can also visit our help documents.",
+        "Assignment's group set no longer exists in CanvasHypothesis couldn't load this assignment because the assignment's group set no longer exists in Canvas.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.Detailed error info.If the problem persists, send us an email or open a support ticket. You can also visit our help documents.",
       retryAction: null,
     },
     {
@@ -72,7 +72,7 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'canvas_student_not_in_group',
       expectedText:
-        "You're not in any of this assignment's groupsHypothesis couldn't launch this assignment because you aren't in any of the groups in the assignment's group set.To fix the problem, an instructor needs to add your Canvas user account to one of this assignment's groups.If the problem persists, send us an email or open a support ticket. You can also visit our help documents.",
+        "You're not in any of this assignment's groupsHypothesis couldn't launch this assignment because you aren't in any of the groups in the assignment's group set.To fix the problem, an instructor needs to add your Canvas user account to one of this assignment's groups.Detailed error info.If the problem persists, send us an email or open a support ticket. You can also visit our help documents.",
       retryAction: null,
     },
   ].forEach(
