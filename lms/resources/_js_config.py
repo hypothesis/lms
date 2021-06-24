@@ -70,6 +70,14 @@ class JSConfig:
                     _query={"document_url": document_url},
                 ),
             }
+        elif document_url.startswith("onedrive://"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": self._request.route_url("onedrive.oauth.authorize"),
+                "path": self._request.route_path(
+                    "onedrive.files.via_url",
+                    _query={"document_url": document_url},
+                ),
+            }
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
             self._add_canvas_speedgrader_settings(document_url=document_url)

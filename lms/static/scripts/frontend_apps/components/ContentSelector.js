@@ -207,16 +207,8 @@ export default function ContentSelector({
       function (result) {
         // TODO handle no selection
         // TODO handle more permissions?
-        const sharedLink = result.value[0].permissions[0].link.webUrl;
-        // https://docs.microsoft.com/en-us/graph/api/shares-get?view=graph-rest-1.0&tabs=http#encoding-sharing-urls
-        // First, use base64 encode the URL.
-        // Convert the base64 encoded result to unpadded base64url format by removing = characters from the end of the value, replacing / with _ and + with -.)
-        const b64SharedLink = btoa(sharedLink)
-          .replace(/\//g, '_')
-          .replace(/\+/g, '-')
-          .replace(/=/g, '');
-        // Append u! to be beginning of the string.
-        const url = `https://api.onedrive.com/v1.0/shares/u!${b64SharedLink}/root/content`;
+        const fileID = result.value[0].id
+        const url = `onedrive://content-resource/${fileID}`;
 
         onSelectContent({ type: 'url', url });
       },

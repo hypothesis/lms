@@ -6,7 +6,7 @@ export class OneDrivePickerClient {
 
     this._filePickerOptions = {
       clientId: clientId,
-      action: 'share',
+      action: 'query',
       multiSelect: false,
       viewType: 'files', //  	The type of item that can be selected.
       advanced: {
