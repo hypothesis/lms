@@ -151,6 +151,33 @@ describe('ErrorDisplay', () => {
     });
   });
 
+  [
+    {
+      message: 'Provided by client',
+      error: 'Provided by server',
+      output: 'Provided by client: Provided by server.',
+    },
+    {
+      message: 'Provided by client',
+      output: 'Provided by client.',
+    },
+    {
+      error: 'Provided by server',
+      output: 'Provided by server.',
+    },
+    {
+      // Should not show any messages
+      output: 'An unknown error occurred.',
+    },
+  ].forEach(({ message, error, output }, index) => {
+    it(`shows the appropriate error message if provided (${index})`, () => {
+      const wrapper = mount(
+        <ErrorDisplay message={message} error={{ message: error }} />
+      );
+      assert.equal(wrapper.find('p[data-testid="message"]').text(), output);
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
