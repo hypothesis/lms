@@ -353,6 +353,7 @@ class TestCanvasAPIClient:
                     {
                         "content_types[]": "application/pdf",
                         "per_page": Any.string(),
+                        "sort": "position",
                     }
                 ),
             ),

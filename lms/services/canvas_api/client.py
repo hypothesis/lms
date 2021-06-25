@@ -209,11 +209,14 @@ class CanvasAPIClient:
             ]
 
     @lru_cache
-    def list_files(self, course_id):
+    def list_files(self, course_id, sort="position"):
         """
         Return the list of files for the given `course_id`.
 
         :param course_id: the Canvas course_id of the course to look in
+        :param sort: field to sort by (on Canvas' API side).
+            Defaults to "position" which is an undocumented option but that it should be the most stable of the options available as it sorts by both "position" and "name" on Canvas' side.
+            https://github.com/instructure/canvas-lms/blob/d43feb92d40d2c69684c4536f74dec37992c557a/app/controllers/files_controller.rb#L305
         :rtype: list(dict)
         """
         # For documentation of this request see:
@@ -222,10 +225,10 @@ class CanvasAPIClient:
         files = self._client.send(
             "GET",
             f"courses/{course_id}/files",
-            params={"content_types[]": "application/pdf"},
+            params={"content_types[]": "application/pdf", "sort": sort},
             schema=self._ListFilesSchema,
         )
-        # Canvas' pagination its broken as it sorts by fields that allow duplicates.
+        # Canvas' pagination is broken as it sorts by fields that allows duplicates.
         # This can lead to objects being skipped or duplicated across pages.
         # We can't detected objects that are not returned but we can detect the duplicates,
         #   remove them and notify sentry to see how often this happens after using a different sort parameter.
@@ -255,8 +258,7 @@ class CanvasAPIClient:
                 ],
             )
         )
-
-        return files
+        return sorted(files, key=lambda file_: file_["display_name"])
 
     class _ListFilesSchema(RequestsResponseSchema):
         """Schema for the list_files response."""
