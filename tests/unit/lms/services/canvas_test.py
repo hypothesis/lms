@@ -4,6 +4,7 @@ import pytest
 
 from lms.services import CanvasFileNotFoundInCourse, CanvasService
 from lms.services.canvas import factory
+from tests import factories
 
 
 class TestPublicURLForFile:
@@ -34,6 +35,33 @@ class TestCanSeeFileInCourse:
         canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
 
 
+class TestFindMatchingFileInCourse:
+    def test_it_returns_the_id_if_theres_a_matching_file_in_the_course(
+        self, canvas_service, canvas_api_client
+    ):
+        # The file dict from the Canvas API that we expect the search to match.
+        matching_file_dict = canvas_api_client.list_files.return_value[1]
+
+        file_ = factories.File(
+            name=matching_file_dict["display_name"],
+            size=matching_file_dict["size"],
+        )
+
+        matching_file_id = canvas_service.find_matching_file_in_course(
+            sentinel.course_id, file_
+        )
+
+        canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
+        assert matching_file_id == str(matching_file_dict["id"])
+
+    def test_it_returns_None_if_theres_no_matching_file_in_the_course(
+        self, canvas_service
+    ):
+        assert not canvas_service.find_matching_file_in_course(
+            sentinel.course_id, factories.File()
+        )
+
+
 class TestFactory:
     def test_it(self, pyramid_request, CanvasService, canvas_api_client):
         result = factory("*any*", request=pyramid_request)
@@ -53,5 +81,9 @@ def canvas_service(canvas_api_client):
 
 @pytest.fixture
 def canvas_api_client(canvas_api_client):
-    canvas_api_client.list_files.return_value = [{"id": 1}, {"id": 2}, {"id": 3}]
+    canvas_api_client.list_files.return_value = [
+        {"id": 1, "display_name": "File 1", "size": 1024},
+        {"id": 2, "display_name": "File 2", "size": 2048},
+        {"id": 3, "display_name": "File 3", "size": 3072},
+    ]
     return canvas_api_client

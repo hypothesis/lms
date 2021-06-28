@@ -1,3 +1,6 @@
+from typing import Optional
+
+from lms import models
 from lms.services.exceptions import CanvasFileNotFoundInCourse
 
 
@@ -53,6 +56,29 @@ class CanvasService:
                 return True
 
         return False
+
+    def find_matching_file_in_course(
+        self, course_id: str, file_: models.File
+    ) -> Optional[str]:
+        """
+        Return the ID of a file in course_id that matches file_.
+
+        Search for a file that the current Canvas user can see in course_id and
+        that matches the given file_ (same filename and size) and return the
+        matching file's ID.
+
+        Return None if no matching file is found.
+        """
+        file_dicts = self.api.list_files(course_id)
+
+        for file_dict in file_dicts:
+            display_name = file_dict["display_name"]
+            size = file_dict["size"]
+
+            if display_name == file_.name and size == file_.size:
+                return str(file_dict["id"])
+
+        return None
 
 
 def factory(_context, request):
