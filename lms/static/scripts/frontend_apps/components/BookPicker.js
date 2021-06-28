@@ -1,4 +1,4 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
@@ -6,7 +6,6 @@ import { useService, VitalSourceService } from '../services';
 
 import BookList from './BookList';
 import ChapterList from './ChapterList';
-import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 
 /**
@@ -76,7 +75,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
 
   return (
-    <Dialog
+    <Modal
       onCancel={onCancel}
       title={step === 'select-book' ? 'Select book' : 'Select chapter'}
       buttons={[
@@ -128,6 +127,6 @@ export default function BookPicker({ onCancel, onSelectBook }) {
           error={error}
         />
       )}
-    </Dialog>
+    </Modal>
   );
 }
