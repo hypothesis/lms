@@ -36,7 +36,7 @@
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "classnames": "^2.3.1",
-    "commander": "^7.2.0",
+    "commander": "^8.0.0",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
