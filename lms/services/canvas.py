@@ -26,15 +26,33 @@ class CanvasService:
         """
 
         if check_in_course:
-            if not self._file_in_course(file_id, course_id):
+            if not self.can_see_file_in_course(file_id, course_id):
                 raise CanvasFileNotFoundInCourse(file_id)
 
         return self.api.public_url(file_id)
 
-    def _file_in_course(self, file_id, course_id):
-        return any(
-            str(file_["id"]) == str(file_id) for file_ in self.api.list_files(course_id)
-        )
+    def can_see_file_in_course(self, file_id: str, course_id: str) -> bool:
+        """
+        Return True if the current user can see file_id in course_id.
+
+        Return False if the current user cannot currently see a file with ID
+        file_id in the course with ID course_id. This could be because the file
+        is in another course, because the file was in course_id but has been
+        deleted, or because the file is in course_id but the current user
+        doesn't have permission to see it (for example files that are marked as
+        "unpublished" in Canvas can only be seen by teachers, not students).
+        """
+        files_in_course = self.api.list_files(course_id)
+
+        for file_ in files_in_course:
+
+            # The Canvas API returns file IDs as ints but the file_id param
+            # that this method receives (from our proxy API) is a string.
+            # Convert ints to strings so that we can compare them.
+            if str(file_["id"]) == file_id:
+                return True
+
+        return False
 
 
 def factory(_context, request):

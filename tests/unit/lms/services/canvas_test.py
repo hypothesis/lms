@@ -6,31 +6,32 @@ from lms.services import CanvasFileNotFoundInCourse, CanvasService
 from lms.services.canvas import factory
 
 
-class TestCanvasService:
+class TestPublicURLForFile:
     @pytest.mark.parametrize("check_in_course", (True, False))
     def test_public_url_for_file(self, canvas_service, check_in_course):
-        canvas_service.api.list_files.return_value = [{"id": sentinel.file_id}]
-
         result = canvas_service.public_url_for_file(
-            file_id=sentinel.file_id, check_in_course=check_in_course, course_id="*any*"
+            file_id="2", check_in_course=check_in_course, course_id="*any*"
         )
 
         assert result == canvas_service.api.public_url.return_value
-        canvas_service.api.public_url.assert_called_once_with(sentinel.file_id)
+        canvas_service.api.public_url.assert_called_once_with("2")
 
     def test_public_url_for_file_with_unsuccessful_file_check(self, canvas_service):
         canvas_service.api.list_files.return_value = []
 
         with pytest.raises(CanvasFileNotFoundInCourse):
             canvas_service.public_url_for_file(
-                file_id=sentinel.file_id,
-                course_id=sentinel.course_id,
-                check_in_course=True,
+                file_id="2", course_id=sentinel.course_id, check_in_course=True
             )
 
-    @pytest.fixture
-    def canvas_service(self, canvas_api_client):
-        return CanvasService(canvas_api=canvas_api_client)
+
+class TestCanSeeFileInCourse:
+    @pytest.mark.parametrize("file_id,expected_result", [("2", True), ("4", False)])
+    def test_it(self, canvas_service, canvas_api_client, file_id, expected_result):
+        result = canvas_service.can_see_file_in_course(file_id, sentinel.course_id)
+
+        assert result == expected_result
+        canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
 
 
 class TestFactory:
@@ -43,3 +44,14 @@ class TestFactory:
     @pytest.fixture
     def CanvasService(self, patch):
         return patch("lms.services.canvas.CanvasService")
+
+
+@pytest.fixture
+def canvas_service(canvas_api_client):
+    return CanvasService(canvas_api=canvas_api_client)
+
+
+@pytest.fixture
+def canvas_api_client(canvas_api_client):
+    canvas_api_client.list_files.return_value = [{"id": 1}, {"id": 2}, {"id": 3}]
+    return canvas_api_client
