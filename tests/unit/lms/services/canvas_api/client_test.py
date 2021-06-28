@@ -332,7 +332,7 @@ class TestCanvasAPIClient:
             },
             {
                 "display_name": "display_name_1",
-                "id": 1,
+                "id": 2,
                 "updated_at": "updated_at_1",
                 "size": 12345,
             },
@@ -350,11 +350,37 @@ class TestCanvasAPIClient:
             Any.request(
                 "GET",
                 url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
-                    {"content_types[]": "application/pdf", "per_page": Any.string()}
+                    {
+                        "content_types[]": "application/pdf",
+                        "per_page": Any.string(),
+                    }
                 ),
             ),
             timeout=Any(),
         )
+
+    def test_list_duplicate_files(self, canvas_api_client, http_session):
+        files = [
+            {
+                "display_name": "display_name_1",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 12345,
+            },
+            {
+                "display_name": "display_name_1",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 12345,
+            },
+        ]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=files
+        )
+
+        response = canvas_api_client.list_files("COURSE_ID")
+
+        assert response == [files[0]]
 
     def test_public_url(self, canvas_api_client, http_session):
         http_session.send.return_value = factories.requests.Response(
