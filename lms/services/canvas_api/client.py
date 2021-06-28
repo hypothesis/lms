@@ -1,11 +1,15 @@
 """High level access to Canvas API methods."""
 
+import logging
+
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
 from lms.events import FilesDiscoveredEvent
 from lms.services import CanvasAPIError
 from lms.validation import RequestsResponseSchema
+
+log = logging.getLogger(__name__)
 
 
 class _SectionSchema(Schema):
@@ -219,6 +223,19 @@ class CanvasAPIClient:
             params={"content_types[]": "application/pdf"},
             schema=self._ListFilesSchema,
         )
+        # Canvas' pagination its broken as it sorts by fields that allow duplicates.
+        # This can lead to objects being skipped or duplicated across pages.
+        # We can't detected objects that are not returned but we can detect the duplicates,
+        #   remove them and notify sentry to see how often this happens after using a different sort parameter.
+        raw_count = len(files)
+        files = list(
+            {file_["id"]: file_ for file_ in files}.values()
+        )  # De_duplicate by ID
+        de_duplicated_count = len(files)
+        if raw_count != de_duplicated_count:
+            log.exception(
+                "Duplicates files found in Canvas courses/{course_id}/files endpoint"
+            )
 
         # Notify that we've found some files
         self._request.registry.notify(
