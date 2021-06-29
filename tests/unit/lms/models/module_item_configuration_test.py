@@ -18,6 +18,11 @@ class TestModuleItemConfiguration:
 
         assert mic.get_canvas_mapped_file_id("original_file_id") == "new_mapped_file_id"
 
+    def test_get_canvas_mapped_file_id_returns_the_given_file_id_if_no_mapping_exists(
+        self, mic
+    ):
+        assert mic.get_canvas_mapped_file_id("file_id") == "file_id"
+
     @pytest.fixture
     def mic(self, db_session):
         mic = ModuleItemConfiguration(
