@@ -30,12 +30,19 @@ class FilesAPIViews:
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.
         """
+        application_instance = self.request.find_service(
+            name="application_instance"
+        ).get()
+
+        module_item_configuration = self.request.find_service(name="assignment").get(
+            application_instance.tool_consumer_instance_guid,
+            self.request.matchdict["resource_link_id"],
+        )
+
         public_url = self.canvas.public_url_for_file(
-            file_id=self.request.matchdict["file_id"],
-            course_id=self.request.matchdict["course_id"],
-            # Teachers can have broad permissions and see files that aren't in
-            # the course. So do this slower check (extra API call) to warn the
-            # teacher that their students might not be able to see the file.
+            module_item_configuration,
+            self.request.matchdict["file_id"],
+            self.request.matchdict["course_id"],
             check_in_course=self.request.lti_user.is_instructor,
         )
 

@@ -9,6 +9,7 @@ from lms.services.assignment import AssignmentService
 from lms.services.blackboard_api import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
+from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
@@ -45,6 +46,7 @@ __all__ = (
     "oauth2_token_service",
     "h_api",
     "vitalsource_service",
+    "file_service",
 )
 
 
@@ -189,3 +191,8 @@ def oauth2_token_service(mock_service, oauth_token):
 @pytest.fixture
 def vitalsource_service(mock_service):
     return mock_service(VitalSourceService, service_name="vitalsource")
+
+
+@pytest.fixture
+def file_service(mock_service):
+    return mock_service(FileService, service_name="file")
