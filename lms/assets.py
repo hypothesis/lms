@@ -119,23 +119,6 @@ class Environment:
         return "{}/{}".format(self.assets_base_url, manifest[path])
 
 
-def _add_cors_header(wrapped):
-    def wrapper(context, request):  # pragma: no cover
-        # Add a CORS header to the response because static assets from
-        # the sidebar are loaded into pages served by a different origin:
-        # The domain hosting the page into which the sidebar has been injected
-        # or embedded.
-        #
-        # Some browsers enforce cross-origin restrictions on certain types of
-        # resources, eg. Firefox enforces same-domain policy for @font-face
-        # unless a CORS header is provided.
-        response = wrapped(context, request)
-        response.headers.extend({"Access-Control-Allow-Origin": "*"})
-        return response
-
-    return wrapper
-
-
 def _load_bundles(file_):  # pragma: no cover
     """Read an asset bundle config from a file object."""
     parser = configparser.ConfigParser()
@@ -144,9 +127,7 @@ def _load_bundles(file_):  # pragma: no cover
 
 
 # Site assets
-ASSETS_VIEW = _add_cors_header(
-    static_view("lms:../build", cache_max_age=None, use_subpath=True)
-)
+ASSETS_VIEW = static_view("lms:../build", cache_max_age=None, use_subpath=True)
 
 
 def includeme(config):  # pragma: no cover
