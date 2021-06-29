@@ -12,19 +12,17 @@ class TestGet:
     ):
         file_ = factories.File(application_instance=application_instance)
 
-        assert svc.get(application_instance, file_.lms_id, file_.type) == file_
+        assert svc.get(file_.lms_id, file_.type) == file_
 
-    def test_it_returns_None_if_theres_no_matching_file(
-        self, application_instance, svc
-    ):
-        assert not svc.get(application_instance, "unknown_file_id", "canvas_file")
+    def test_it_returns_None_if_theres_no_matching_file(self, svc):
+        assert not svc.get("unknown_file_id", "canvas_file")
 
     def test_it_doesnt_return_matching_files_from_other_application_instances(
-        self, application_instance, svc
+        self, svc
     ):
         file_ = factories.File()
 
-        assert not svc.get(application_instance, file_.lms_id, file_.type)
+        assert not svc.get(file_.lms_id, file_.type)
 
 
 @pytest.mark.usefixtures("application_instance_service")
@@ -46,5 +44,5 @@ def noise(application_instance):
 
 
 @pytest.fixture
-def svc(db_session):
-    return FileService(db_session)
+def svc(application_instance, db_session):
+    return FileService(application_instance, db_session)
