@@ -3,6 +3,7 @@ import json
 import os
 
 import importlib_resources
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.settings import aslist
 from pyramid.static import static_view
 
@@ -118,6 +119,35 @@ class Environment:
         manifest = self.manifest.load()
         return "{}/{}".format(self.assets_base_url, manifest[path])
 
+    def check_cache_buster(self, path, query):
+        """
+        Verify that the cache buster in an asset request URL matches the manifest.
+
+        :param path: Path component of asset request
+        :param query: Query string from asset request
+        """
+        if path.startswith(self.assets_base_url):
+            # Strip asset root (eg. `/assets/`) from path.
+            path = path[len(self.assets_base_url) + 1 :]
+
+        manifest = self.manifest.load()
+        if path not in manifest:
+            return False
+
+        _, expected_query = manifest[path].split("?")
+        return query == expected_query
+
+
+def _check_cache_buster(wrapped):
+    def wrapper(context, request):  # pragma: no cover
+        asset_env = request.registry["assets_env"]
+        if not asset_env.check_cache_buster(request.path, request.query_string):
+            return HTTPNotFound()
+
+        return wrapped(context, request)
+
+    return wrapper
+
 
 def _load_bundles(file_):  # pragma: no cover
     """Read an asset bundle config from a file object."""
@@ -126,8 +156,9 @@ def _load_bundles(file_):  # pragma: no cover
     return {k: aslist(v) for k, v in parser.items("bundles")}
 
 
-# Site assets
-ASSETS_VIEW = static_view("lms:../build", cache_max_age=None, use_subpath=True)
+ASSETS_VIEW = _check_cache_buster(
+    static_view("lms:../build", cache_max_age=None, use_subpath=True)
+)
 
 
 def includeme(config):  # pragma: no cover
