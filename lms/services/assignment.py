@@ -59,26 +59,6 @@ class AssignmentService:
         # just one key from the cache, you have to clear the entire cache.)
         self.get.cache_clear()
 
-    def get_canvas_mapped_file_id(
-        self, tool_consumer_instance_guid, resource_link_id, file_id
-    ):
-        mic = self.get(tool_consumer_instance_guid, resource_link_id)
-
-        if not mic:
-            return None
-
-        return mic.extra.get("canvas_file_mappings", {}).get(file_id)
-
-    def set_canvas_mapped_file_id(
-        self, tool_consumer_instance_guid, resource_link_id, file_id, mapped_file_id
-    ):
-        mic = self.get(tool_consumer_instance_guid, resource_link_id)
-
-        if not mic:
-            raise ValueError("ModuleItemConfiguration not found")
-
-        mic.extra.setdefault("canvas_file_mappings", {})[file_id] = mapped_file_id
-
 
 def factory(_context, request):
     return AssignmentService(db=request.db)
