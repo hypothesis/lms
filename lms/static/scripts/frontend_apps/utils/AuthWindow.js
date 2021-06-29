@@ -40,7 +40,7 @@ export default class AuthWindow {
    */
   async authorize() {
     const width = 775;
-    const height = 475;
+    const height = 560;
     const left = Math.round(window.screen.width / 2 - width / 2);
     const top = Math.round(window.screen.height / 2 - height / 2);
     const settings = queryString
