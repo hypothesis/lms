@@ -50,3 +50,9 @@ class ModuleItemConfiguration(BASE):
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
+
+    def get_canvas_mapped_file_id(self, file_id):
+        return self.extra.get("canvas_file_mappings", {}).get(file_id)
+
+    def set_canvas_mapped_file_id(self, file_id, mapped_file_id):
+        self.extra.setdefault("canvas_file_mappings", {})[file_id] = mapped_file_id
