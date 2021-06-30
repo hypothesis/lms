@@ -82,6 +82,7 @@ class BlackboardAPIClient:
         validated_data = OAuthTokenResponseSchema(response).parse()
 
         # Save the access token to the DB.
+        # pylint: disable=no-member
         self._oauth2_token_service.save(
             validated_data["access_token"],
             validated_data.get("refresh_token"),
