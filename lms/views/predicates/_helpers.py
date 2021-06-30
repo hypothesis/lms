@@ -1,5 +1,5 @@
 """Private helpers for view predicates."""
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 __all__ = ["Base"]
 
@@ -27,7 +27,8 @@ class Base(metaclass=ABCMeta):
         """
         return self.text()
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def name(self):
         """
         Return the name of this predicate.
