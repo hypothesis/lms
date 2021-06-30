@@ -30,7 +30,12 @@ def create_application_instance(request):
         developer_key,
         developer_secret,
         request.registry.settings["aes_secret"],
-        settings={"canvas": {"sections_enabled": bool(developer_key)}},
+        settings={
+            "canvas": {
+                "sections_enabled": bool(developer_key),
+                "groups_enabled": bool(developer_key),
+            }
+        },
     )
     request.db.add(instance)
 

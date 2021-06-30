@@ -68,6 +68,24 @@ class TestCreateApplicationInstance:
             == canvas_sections_enabled
         )
 
+    @pytest.mark.parametrize(
+        "developer_key,canvas_groups_enabled",
+        [("test_developer_key", True), ("", False)],
+    )
+    def test_it_sets_canvas_groups_enabled(
+        self, pyramid_request, developer_key, canvas_groups_enabled
+    ):
+        pyramid_request.params["developer_key"] = developer_key
+        pyramid_request.params["developer_secret"] = "test_developer_secret"
+
+        create_application_instance(pyramid_request)
+
+        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        assert (
+            bool(application_instance.settings.get("canvas", "groups_enabled"))
+            == canvas_groups_enabled
+        )
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.method = "POST"
