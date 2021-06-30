@@ -45,6 +45,10 @@ class CanvasService:
             file_ = self._file_service.get(effective_file_id, type_="canvas_file")
 
             if not file_:
+                # We don't have a record of the assignment's file in our DB.
+                # This can happen, for example, if Hypothesis has not been
+                # launched in the original assignment's course since we
+                # deployed the code that started recording files in the DB.
                 raise
 
             # Look for a copy of the assignment's file that the current user
@@ -52,6 +56,10 @@ class CanvasService:
             found_file_id = self.find_matching_file_in_course(course_id, file_)
 
             if not found_file_id:
+                # We didn't find a matching file in the current course.
+                # This could mean that the file has been deleted, has been
+                # renamed, or the current user doesn't have permission to see
+                # the file.
                 raise
 
             # We found a matching copy of the assignment's file that the
