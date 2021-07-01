@@ -18,7 +18,7 @@ from lms.models import LtiLaunches
 from lms.security import Permissions
 from lms.validation import (
     BasicLTILaunchSchema,
-    ConfigureModuleItemSchema,
+    ConfigureAssignmentSchema,
     URLConfiguredBasicLTILaunchSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
@@ -108,7 +108,7 @@ class BasicLTILaunchViews:
         file_id = self.request.params["file_id"]
         resource_link_id = self.request.params["resource_link_id"]
 
-        # Normally this would be done during `configure_module_item()` but
+        # Normally this would be done during `configure_assignment()` but
         # Canvas skips that step. We are doing this to ensure that there is a
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
@@ -264,7 +264,7 @@ class BasicLTILaunchViews:
         ).authorization_param(self.request.lti_user)
 
         self.context.js_config.enable_content_item_selection_mode(
-            form_action=self.request.route_url("module_item_configurations"),
+            form_action=self.request.route_url("configure_assignment"),
             form_fields=form_fields,
         )
 
@@ -289,10 +289,10 @@ class BasicLTILaunchViews:
 
     @view_config(
         authorized_to_configure_assignments=True,
-        route_name="module_item_configurations",
-        schema=ConfigureModuleItemSchema,
+        route_name="configure_assignment",
+        schema=ConfigureAssignmentSchema,
     )
-    def configure_module_item(self):
+    def configure_assignment(self):
         """
         Respond to a configure module item request.
 

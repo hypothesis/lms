@@ -34,13 +34,13 @@ class FilesAPIViews:
             name="application_instance"
         ).get()
 
-        module_item_configuration = self.request.find_service(name="assignment").get(
+        assignment = self.request.find_service(name="assignment").get(
             application_instance.tool_consumer_instance_guid,
             self.request.matchdict["resource_link_id"],
         )
 
         public_url = self.canvas.public_url_for_file(
-            module_item_configuration,
+            assignment,
             self.request.matchdict["file_id"],
             self.request.matchdict["course_id"],
             check_in_course=self.request.lti_user.is_instructor,

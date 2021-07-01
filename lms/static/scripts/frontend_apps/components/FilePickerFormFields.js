@@ -27,7 +27,7 @@ import { contentItemForContent } from '../utils/content-item';
  *    case the form will look like "Section 3.2, Example Response" in
  *    https://www.imsglobal.org/specs/lticiv1p0/specification
  *  - When an assignment without any content configuration is launched.
- *    See the `configure_module_item` view.
+ *    See the `configure_assignment` view.
  *
  * @param {FilePickerFormFieldsProps} props
  */
@@ -49,7 +49,7 @@ export default function FilePickerFormFields({
       ))}
       <input type="hidden" name="content_items" value={contentItem} />
       {content.type === 'url' && (
-        // Set the `document_url` form field which is used by the `configure_module_item`
+        // Set the `document_url` form field which is used by the `configure_assignment`
         // view. Used in LMSes where assignments are configured on first launch.
         <input name="document_url" type="hidden" value={content.url} />
       )}

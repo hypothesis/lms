@@ -7,7 +7,7 @@ import pytest
 from h_matchers import Any
 from httpretty import httpretty
 
-from lms.models import ModuleItemConfiguration
+from lms.models import Assignment
 from tests import factories
 
 
@@ -47,17 +47,17 @@ class TestBasicLTILaunch:
         return factories.ApplicationInstance()
 
     @pytest.fixture(autouse=True, params=["configured", "unconfigured"])
-    def module_item_configuration(self, request, db_session):
+    def assignment(self, request, db_session):
         if request.param == "unconfigured":
             return
 
-        module_item_configuration = ModuleItemConfiguration(
+        assignment = Assignment(
             resource_link_id="rli-1234",
             tool_consumer_instance_guid="IMS Testing",
             document_url="http://example.com",
         )
 
-        db_session.add(module_item_configuration)
+        db_session.add(assignment)
         db_session.commit()
 
     @pytest.fixture

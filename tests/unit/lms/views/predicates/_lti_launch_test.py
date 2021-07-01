@@ -70,8 +70,8 @@ class TestFooCopied:
 
         assignment_service.get_document_url.side_effect = get_document_url
 
-        # If there's no ModuleItemConfiguration for resource_link_id in the DB
-        # but there *is* a ModuleItemConfiguration for resource_link_id_history
+        # If there's no Assignment for resource_link_id in the DB
+        # but there *is* a Assignment for resource_link_id_history
         # then we have a Blackboard copied assignment.
         expected_result = (
             resource_link_id_history_exists and not resource_link_id_exists
