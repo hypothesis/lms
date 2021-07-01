@@ -27,6 +27,25 @@ export class VitalSourceService {
   }
 
   /**
+   * Fetch a book by bookID ("vbid")
+   *
+   * This is currently a fake that waits for a fixed time before returning
+   * hard-coded data.
+   *
+   * @param {string} bookID
+   * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
+   * @return {Promise<Book|null>}
+   */
+  async fetchBook(bookID, fetchDelay = 500) {
+    await delay(fetchDelay);
+    const book = bookList.find(b => b.id === bookID);
+    if (!book) {
+      throw new APIError(404, { message: 'Book not found' });
+    }
+    return book;
+  }
+
+  /**
    * Fetch a list of available ebooks to use in assignments.
    *
    * This is currently a fake that waits for a fixed time before returning
