@@ -38,10 +38,12 @@ class CanvasService:
         effective_file_id = mapped_file_id or file_id
 
         try:
-            return self._public_url(
-                effective_file_id,
-                course_id=course_id if check_in_course else None,
-            )
+            if check_in_course and not self.can_see_file_in_course(
+                effective_file_id, course_id
+            ):
+                raise CanvasFileNotFoundInCourse(effective_file_id)
+
+            return self.api.public_url(effective_file_id)
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
             # Either the user can't see the file in the current course's list
             # of files or the user got a permissions error from the Canvas API
@@ -85,13 +87,7 @@ class CanvasService:
             module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
 
             # Try again using the found matching file.
-            return self._public_url(found_file_id)
-
-    def _public_url(self, file_id, course_id=None):
-        if course_id and not self.can_see_file_in_course(file_id, course_id):
-            raise CanvasFileNotFoundInCourse(file_id)
-
-        return self.api.public_url(file_id)
+            return self.api.public_url(found_file_id)
 
     def can_see_file_in_course(self, file_id: str, course_id: str) -> bool:
         """
