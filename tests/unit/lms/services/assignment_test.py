@@ -62,11 +62,11 @@ class TestAssignmentService:
 
     @pytest.fixture
     def assignment(self):
-        return factories.ModuleItemConfiguration()
+        return factories.Assignment()
 
     @pytest.fixture(autouse=True)
     def noise(self):
-        factories.ModuleItemConfiguration.create_batch(size=3)
+        factories.Assignment.create_batch(size=3)
 
     @pytest.fixture
     def svc(self, db_session):

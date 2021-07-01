@@ -4,19 +4,17 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
 
-__all__ = ["ModuleItemConfiguration"]
 
-
-class ModuleItemConfiguration(BASE):
+class Assignment(BASE):
     """
-    A module item or assignment configuration.
+    An assignment configuration.
 
     When an LMS doesn't support LTI content-item selection/deep linking (so it
     doesn't support storing an assignment's document URL in the LMS and passing
     it back to us in launch requests) then we store the document URL in the
     database instead.
 
-    Each persisted ModuleItemConfiguration object represents a DB-stored
+    Each persisted Assignment object represents a DB-stored
     assignment configuration, with the
     ``(tool_consumer_instance_guid, resource_link_id)`` launch params
     identifying the LTI resource (module item or assignment) and the
@@ -31,7 +29,7 @@ class ModuleItemConfiguration(BASE):
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
     resource_link_id = sa.Column(sa.Unicode, nullable=False)
-    """The resource_link_id launch param of the module item or assignment."""
+    """The resource_link_id launch param of the assignment."""
 
     tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)
     """

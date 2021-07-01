@@ -54,8 +54,8 @@ class _CourseCopied(Base, ABC):
     new resource_link_id's.
 
     Some LMS's then give us the resource_link_id of the original assignment as
-    well, so that we can find the assignment settings (ModuleItemConfiguration)
-    in our DB when the new assignment is launched.
+    well, so that we can find the assignment settings in our DB when the new
+    assignment is launched.
 
     Subclasses of this predicate allow invoking views only for newly
     course-copied assignments where we don't yet have a document_url for the

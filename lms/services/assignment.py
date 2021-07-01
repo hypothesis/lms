@@ -1,10 +1,10 @@
 from functools import lru_cache
 
-from lms.models import ModuleItemConfiguration
+from lms.models import Assignment
 
 
 class AssignmentService:
-    """A service for getting and setting assignments (ModuleItemConfiguration's)."""
+    """A service for getting and setting assignments."""
 
     def __init__(self, db):
         self._db = db
@@ -12,7 +12,7 @@ class AssignmentService:
     @lru_cache(maxsize=128)
     def get(self, tool_consumer_instance_guid, resource_link_id):
         return (
-            self._db.query(ModuleItemConfiguration)
+            self._db.query(Assignment)
             .filter_by(
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 resource_link_id=resource_link_id,
@@ -27,9 +27,9 @@ class AssignmentService:
         Return the document URL for the assignment with the given
         tool_consumer_instance_guid and resource_link_id, or None.
         """
-        mic = self.get(tool_consumer_instance_guid, resource_link_id)
+        assignment = self.get(tool_consumer_instance_guid, resource_link_id)
 
-        return mic.document_url if mic else None
+        return assignment.document_url if assignment else None
 
     def set_document_url(
         self, tool_consumer_instance_guid, resource_link_id, document_url
@@ -41,13 +41,13 @@ class AssignmentService:
         tool_consumer_instance_guid and resource_link_id. Any existing document
         URL for this assignment will be overwritten.
         """
-        mic = self.get(tool_consumer_instance_guid, resource_link_id)
+        assignment = self.get(tool_consumer_instance_guid, resource_link_id)
 
-        if mic:
-            mic.document_url = document_url
+        if assignment:
+            assignment.document_url = document_url
         else:
             self._db.add(
-                ModuleItemConfiguration(
+                Assignment(
                     document_url=document_url,
                     resource_link_id=resource_link_id,
                     tool_consumer_instance_guid=tool_consumer_instance_guid,

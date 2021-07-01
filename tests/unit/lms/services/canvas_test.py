@@ -52,7 +52,7 @@ class TestPublicURLForFile:
         self,
         canvas_api_client,
         canvas_file_finder,
-        module_item_configuration,
+        assignment,
         public_url_for_file,
     ):
         canvas_file_finder.assert_file_in_course.side_effect = (
@@ -68,7 +68,7 @@ class TestPublicURLForFile:
             sentinel.course_id, sentinel.mapped_file_id
         )
         assert (
-            module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
+            assignment.get_canvas_mapped_file_id(sentinel.file_id)
             == sentinel.found_file_id
         )
         canvas_api_client.public_url.assert_called_once_with(sentinel.found_file_id)
@@ -91,7 +91,7 @@ class TestPublicURLForFile:
         self,
         canvas_api_client,
         canvas_file_finder,
-        module_item_configuration,
+        assignment,
         public_url_for_file,
     ):
         canvas_api_client.public_url.side_effect = [
@@ -108,7 +108,7 @@ class TestPublicURLForFile:
             sentinel.course_id, sentinel.mapped_file_id
         )
         assert (
-            module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
+            assignment.get_canvas_mapped_file_id(sentinel.file_id)
             == sentinel.found_file_id
         )
         assert canvas_api_client.public_url.call_args_list == [
@@ -131,7 +131,7 @@ class TestPublicURLForFile:
         self,
         canvas_api_client,
         canvas_file_finder,
-        module_item_configuration,
+        assignment,
         public_url_for_file,
     ):
         canvas_api_client.public_url.side_effect = CanvasAPIPermissionError
@@ -143,27 +143,24 @@ class TestPublicURLForFile:
             public_url_for_file(sentinel.file_id)
 
         assert (
-            module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
-            == sentinel.file_id
+            assignment.get_canvas_mapped_file_id(sentinel.file_id) == sentinel.file_id
         )
 
     @pytest.fixture
-    def module_item_configuration(self, db_session):
-        module_item_configuration = factories.ModuleItemConfiguration()
+    def assignment(self, db_session):
+        assignment = factories.Assignment()
         db_session.flush()
-        return module_item_configuration
+        return assignment
 
     @pytest.fixture
-    def with_mapped_file_id(self, module_item_configuration):
-        module_item_configuration.set_canvas_mapped_file_id(
-            sentinel.file_id, sentinel.mapped_file_id
-        )
+    def with_mapped_file_id(self, assignment):
+        assignment.set_canvas_mapped_file_id(sentinel.file_id, sentinel.mapped_file_id)
 
     @pytest.fixture
-    def public_url_for_file(self, canvas_service, module_item_configuration):
+    def public_url_for_file(self, canvas_service, assignment):
         return partial(
             canvas_service.public_url_for_file,
-            module_item_configuration,
+            assignment,
             course_id=sentinel.course_id,
         )
 

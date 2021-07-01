@@ -49,8 +49,8 @@ class DevDataFactory:
 
             if type_ == "application_instance":
                 self.upsert_application_instance(data_dict)
-            elif type_ == "module_item_configuration":
-                self.upsert_module_item_configuration(data_dict)
+            elif type_ == "assignment":
+                self.upsert_assignment(data_dict)
             else:
                 raise RuntimeError(f"Unrecognized type: {type_}")
 
@@ -85,18 +85,18 @@ class DevDataFactory:
 
         self.setattrs(application_instance, data)
 
-    def upsert_module_item_configuration(self, data):
-        module_item_configuration = (
-            self.db.query(models.ModuleItemConfiguration)
+    def upsert_assignment(self, data):
+        assignment = (
+            self.db.query(models.Assignment)
             .filter_by(resource_link_id=data["resource_link_id"])
             .one_or_none()
         )
 
-        if not module_item_configuration:
-            module_item_configuration = models.ModuleItemConfiguration()
-            self.db.add(module_item_configuration)
+        if not assignment:
+            assignment = models.Assignment()
+            self.db.add(assignment)
 
-        self.setattrs(module_item_configuration, data)
+        self.setattrs(assignment, data)
 
     @staticmethod
     def setattrs(object_, attrs):

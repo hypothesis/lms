@@ -1,14 +1,12 @@
-"""Validation for the configure_module_item() view."""
+"""Validation for the configure_assignment() view."""
 
 from webargs import fields
 
 from lms.validation._base import PyramidRequestSchema
 
-__all__ = ["ConfigureModuleItemSchema"]
 
-
-class ConfigureModuleItemSchema(PyramidRequestSchema):
-    """Schema for validating requests to the configure_module_item() view."""
+class ConfigureAssignmentSchema(PyramidRequestSchema):
+    """Schema for validating requests to the configure_assignment() view."""
 
     location = "form"
 

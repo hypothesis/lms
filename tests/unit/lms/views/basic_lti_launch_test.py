@@ -108,17 +108,17 @@ def unconfigured_basic_lti_launch_caller(context, pyramid_request):
     return views.unconfigured_basic_lti_launch()
 
 
-def configure_module_item_caller(context, pyramid_request):
+def configure_assignment_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.configure_module_item().
+    Call BasicLTILaunchViews.configure_assignment().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.configure_module_item(), and return whatever
-    BasicLTILaunchViews.configure_module_item() returns.
+    BasicLTILaunchViews.configure_assignment(), and return whatever
+    BasicLTILaunchViews.configure_assignment() returns.
     """
     # The document_url, resource_link_id and tool_consumer_instance_guid parsed
-    # params are always present when configure_module_item() is called.
-    # ConfigureModuleItemSchema ensures this.
+    # params are always present when configure_assignment() is called.
+    # ConfigureAssignmentSchema ensures this.
     pyramid_request.parsed_params = {
         "document_url": "TEST_DOCUMENT_URL",
         "resource_link_id": "TEST_RESOURCE_LINK_ID",
@@ -127,7 +127,7 @@ def configure_module_item_caller(context, pyramid_request):
 
     views = BasicLTILaunchViews(context, pyramid_request)
 
-    return views.configure_module_item()
+    return views.configure_assignment()
 
 
 def vitalsource_lti_launch_caller(context, pyramid_request):
@@ -225,7 +225,7 @@ class TestCommon:
             blackboard_copied_basic_lti_launch_caller,
             brightspace_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
-            configure_module_item_caller,
+            configure_assignment_caller,
             vitalsource_lti_launch_caller,
         ]
     )
@@ -329,7 +329,7 @@ class TestFooCopiedBasicLTILaunch:
     ):
         caller(context, pyramid_request)
 
-        # It gets the original assignment settings (ModuleItemConfiguration)
+        # It gets the original assignment settings
         # from the DB.
         assignment_service.get_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
@@ -364,11 +364,11 @@ class TestURLConfiguredBasicLTILaunch:
         )
 
 
-class TestConfigureModuleItem:
+class TestConfigureAssignment:
     def test_it_saves_the_assignments_document_url_to_the_db(
         self, assignment_service, context, pyramid_request
     ):
-        configure_module_item_caller(context, pyramid_request)
+        configure_assignment_caller(context, pyramid_request)
 
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
@@ -377,12 +377,12 @@ class TestConfigureModuleItem:
         )
 
     def test_it_enables_frontend_grading(self, context, pyramid_request):
-        configure_module_item_caller(context, pyramid_request)
+        configure_assignment_caller(context, pyramid_request)
 
         context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(self, context, pyramid_request):
-        configure_module_item_caller(context, pyramid_request)
+        configure_assignment_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
             pyramid_request.parsed_params["document_url"]
@@ -400,7 +400,7 @@ class TestUnconfiguredBasicLTILaunch:
             pyramid_request.lti_user
         )
         context.js_config.enable_content_item_selection_mode.assert_called_once_with(
-            form_action="http://example.com/module_item_configurations",
+            form_action="http://example.com/assignment",
             form_fields=dict(
                 self.form_fields(),
                 authorization=bearer_token_schema.authorization_param.return_value,

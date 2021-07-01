@@ -150,7 +150,7 @@ def routes(pyramid_config):
     pyramid_config.add_route("welcome", "/welcome")
     pyramid_config.add_route("config_xml", "/config_xml")
     pyramid_config.add_route(
-        "module_item_configurations", "/module_item_configurations"
+        "configure_assignment", "/assignment", request_method="POST"
     )
 
     # lms routes

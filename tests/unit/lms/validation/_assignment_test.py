@@ -1,10 +1,10 @@
 import pytest
 from pyramid import testing
 
-from lms.validation import ConfigureModuleItemSchema, ValidationError
+from lms.validation import ConfigureAssignmentSchema, ValidationError
 
 
-class TestConfigureModuleItemSchema:
+class TestConfigureAssignmentSchema:
     def test_that_validation_succeeds_for_valid_requests(self, schema):
         schema.parse()
 
@@ -40,4 +40,4 @@ class TestConfigureModuleItemSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return ConfigureModuleItemSchema(pyramid_request)
+        return ConfigureAssignmentSchema(pyramid_request)

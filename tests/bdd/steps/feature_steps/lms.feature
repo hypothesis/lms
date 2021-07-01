@@ -14,7 +14,7 @@ Feature: Steps for our app
     Then the response body matches 'role:learner'
 
   Scenario: the assignment has been launched before
-    Given I create an LMS DB 'ModuleItemConfiguration'
+    Given I create an LMS DB 'Assignment'
       | Field                       | Value              |
       | resource_link_id            | rli-1234           |
       | tool_consumer_instance_guid | IMS Testing        |

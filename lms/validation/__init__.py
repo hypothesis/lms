@@ -48,6 +48,7 @@ from lms.validation._api import (
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
 )
+from lms.validation._assignment import ConfigureAssignmentSchema
 from lms.validation._base import (
     PlainSchema,
     PyramidRequestSchema,
@@ -59,7 +60,6 @@ from lms.validation._lti_launch_params import (
     ContentItemSelectionLTILaunchSchema,
     URLConfiguredBasicLTILaunchSchema,
 )
-from lms.validation._module_item_configuration import ConfigureModuleItemSchema
 
 
 def _validated_view(view, info):

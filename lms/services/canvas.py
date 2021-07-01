@@ -11,13 +11,12 @@ class CanvasService:
         self._finder = CanvasFileFinder(canvas_api, file_service)
 
     def public_url_for_file(
-        self, module_item_configuration, file_id, course_id, check_in_course=False
+        self, assignment, file_id, course_id, check_in_course=False
     ):
         """
         Return a public URL for file_id.
 
-        :param module_item_configuration: the ModuleItemConfiguration for the
-            current assignment
+        :param assignment: the current assignment
         :param file_id: the Canvas API ID of the file
         :param course_id: the Canvas API ID of the course that the file is in
         :param check_in_course: whether to check that file_id is in course_id
@@ -29,7 +28,7 @@ class CanvasService:
             from the Canvas API when trying to get a public URL for file_id
         """
         # If there's a previously stored mapping for file_id use that instead.
-        effective_file_id = module_item_configuration.get_canvas_mapped_file_id(file_id)
+        effective_file_id = assignment.get_canvas_mapped_file_id(file_id)
 
         try:
             if check_in_course:
@@ -57,7 +56,7 @@ class CanvasService:
             url = self.api.public_url(found_file_id)
 
             # Store a mapping so we don't have to re-search next time.
-            module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
+            assignment.set_canvas_mapped_file_id(file_id, found_file_id)
 
             return url
 

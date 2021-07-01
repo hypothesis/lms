@@ -25,7 +25,7 @@ class TestFilesAPIViews:
         helpers,
     ):
         application_instance = application_instance_service.get.return_value
-        module_item_configuration = assignment_service.get.return_value
+        assignment = assignment_service.get.return_value
         pyramid_request.matchdict = {
             "course_id": "test_course_id",
             "file_id": "test_file_id",
@@ -39,7 +39,7 @@ class TestFilesAPIViews:
             "test_resource_link_id",
         )
         canvas_service.public_url_for_file.assert_called_once_with(
-            module_item_configuration,
+            assignment,
             "test_file_id",
             "test_course_id",
             check_in_course=pyramid_request.lti_user.is_instructor,
