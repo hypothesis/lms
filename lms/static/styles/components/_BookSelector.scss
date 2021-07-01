@@ -1,0 +1,11 @@
+.BookSelector {
+  @media screen and (min-width: 42rem) {
+    // Where space allows, make the book selection UI comfortably wide
+    min-width: 36rem;
+  }
+
+  &__thumbnail {
+    width: 110px;
+    height: 150px;
+  }
+}
