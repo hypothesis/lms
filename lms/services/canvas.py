@@ -38,11 +38,8 @@ class CanvasService:
         effective_file_id = mapped_file_id or file_id
 
         try:
-            if check_in_course and not self.can_see_file_in_course(
-                effective_file_id, course_id
-            ):
-                raise CanvasFileNotFoundInCourse(effective_file_id)
-
+            if check_in_course:
+                self.assert_file_in_course(effective_file_id, course_id)
             return self.api.public_url(effective_file_id)
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
             # Either the user can't see the file in the current course's list
@@ -89,28 +86,26 @@ class CanvasService:
             # Try again using the found matching file.
             return self.api.public_url(found_file_id)
 
-    def can_see_file_in_course(self, file_id: str, course_id: str) -> bool:
+    def assert_file_in_course(self, file_id: str, course_id: str) -> bool:
         """
-        Return True if the current user can see file_id in course_id.
+        Raise if the current user can't see file_id in course_id.
 
-        Return False if the current user cannot currently see a file with ID
-        file_id in the course with ID course_id. This could be because the file
-        is in another course, because the file was in course_id but has been
-        deleted, or because the file is in course_id but the current user
-        doesn't have permission to see it (for example files that are marked as
-        "unpublished" in Canvas can only be seen by teachers, not students).
+        Raise CanvasFileNotFoundInCourse if the current user can't see a file
+        with ID file_id in the course with ID course_id. This could be because
+        the file is in another course, because the file was in course_id but
+        has been deleted, or because the file is in course_id but the current
+        user doesn't have permission to see it (for example files that are
+        marked as "unpublished" in Canvas can only be seen by teachers, not
+        students).
         """
-        files_in_course = self.api.list_files(course_id)
-
-        for file_ in files_in_course:
-
+        for file_ in self.api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
             # Convert ints to strings so that we can compare them.
             if str(file_["id"]) == file_id:
-                return True
+                return
 
-        return False
+        raise CanvasFileNotFoundInCourse(file_id)
 
     def find_matching_file_in_course(
         self, course_id: str, file_: models.File

@@ -366,13 +366,13 @@ class TestPublicURLForFile:
         return str(file_from_a_different_course["id"])
 
 
-class TestCanSeeFileInCourse:
-    @pytest.mark.parametrize("file_id,expected_result", [("2", True), ("4", False)])
-    def test_it(self, canvas_service, canvas_api_client, file_id, expected_result):
-        result = canvas_service.can_see_file_in_course(file_id, sentinel.course_id)
+class TestAssertFileInCourse:
+    def test_it_does_not_raise_if_the_file_is_in_the_course(self, canvas_service):
+        canvas_service.assert_file_in_course("2", sentinel.course_id)
 
-        assert result == expected_result
-        canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
+    def test_it_raises_if_the_file_isnt_in_the_course(self, canvas_service):
+        with pytest.raises(CanvasFileNotFoundInCourse):
+            canvas_service.assert_file_in_course("4", sentinel.course_id)
 
 
 class TestFindMatchingFileInCourse:
