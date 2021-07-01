@@ -73,7 +73,7 @@ class TestPublicURLForFile:
 
         # Store a mapped_file_id in the DB. This would have been done by a
         # previous request.
-        module_item_configuration.set_canvas_mapped_file_id(
+        module_item_configuration.set_mapped_file_id(
             file_id_from_a_different_course, file_id_from_current_course
         )
 
@@ -108,7 +108,7 @@ class TestPublicURLForFile:
 
         # Store a mapped_file_id in the DB. This would have been done by a
         # previous request.
-        module_item_configuration.set_canvas_mapped_file_id(
+        module_item_configuration.set_mapped_file_id(
             file_id_from_a_different_course, file_id_from_current_course
         )
 
@@ -176,7 +176,7 @@ class TestPublicURLForFile:
         # found_file_id so that it doesn't have to re-do the search the next
         # time the assignment is launched.
         assert (
-            module_item_configuration.get_canvas_mapped_file_id(
+            module_item_configuration.get_mapped_file_id(
                 file_id_from_a_different_course
             )
             == file_id_from_current_course
@@ -277,7 +277,7 @@ class TestPublicURLForFile:
         # found_file_id so that it doesn't have to re-do the search the next
         # time the assignment is launched.
         assert (
-            module_item_configuration.get_canvas_mapped_file_id(
+            module_item_configuration.get_mapped_file_id(
                 file_id_from_a_different_course
             )
             == file_id_from_current_course

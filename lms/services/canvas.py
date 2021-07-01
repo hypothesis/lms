@@ -32,7 +32,7 @@ class CanvasService:
             from the Canvas API when trying to get a public URL for file_id
         """
 
-        mapped_file_id = module_item_configuration.get_canvas_mapped_file_id(file_id)
+        mapped_file_id = module_item_configuration.get_mapped_file_id(file_id)
 
         # If there's a previously stored mapping for file_id use that instead.
         effective_file_id = mapped_file_id or file_id
@@ -67,7 +67,7 @@ class CanvasService:
             # see in the current course.
 
             # Store a mapping so we don't have to re-search next time.
-            module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
+            module_item_configuration.set_mapped_file_id(file_id, found_file_id)
 
             # Try again to return a public URL, this time using found_file_id.
             return self.api.public_url(found_file_id)
