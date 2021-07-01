@@ -1,5 +1,5 @@
 from functools import partial
-from unittest.mock import DEFAULT, call, patch, sentinel
+from unittest.mock import call, sentinel
 
 import pytest
 
