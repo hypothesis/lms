@@ -16,6 +16,22 @@ class CanvasService:
     def public_url_for_file(
         self, module_item_configuration, file_id, course_id, check_in_course=False
     ):
+        """
+        Return a public URL for file_id.
+
+        :param module_item_configuration: the ModuleItemConfiguration for the
+            current assignment
+        :param file_id: the Canvas API ID of the file
+        :param course_id: the Canvas API ID of the course that the file is in
+        :param check_in_course: whether to check that file_id is in course_id
+
+        :raise CanvasFileNotFoundInCourse: if check_in_course was True and the
+            current user can't see file_id in course_id's list of files
+
+        :raise CanvasAPIPermissionError: if the user gets a permissions error
+            from the Canvas API when trying to get a public URL for file_id
+        """
+
         mapped_file_id = module_item_configuration.get_canvas_mapped_file_id(file_id)
 
         # If there's a previously stored mapping for file_id use that instead.
