@@ -15,6 +15,31 @@ import FileList from './FileList';
  */
 
 /**
+ * @typedef NoFilesMessageProps
+ * @prop {string} href - Helpful documentation URL to link to
+ */
+
+/**
+ * Renders a helpful message with a link to documentation when there are no
+ * uploaded files.
+ *
+ * @param {NoFilesMessageProps} props
+ */
+function NoFilesMessage({ href }) {
+  return (
+    <div className="FileList__no-files-message">
+      <p>
+        There are no PDFs in this course.{' '}
+        <a href={href} target="_blank" rel="noreferrer">
+          Upload some files to the course
+        </a>{' '}
+        and try again.
+      </p>
+    </div>
+  );
+}
+
+/**
  * @typedef LMSFilePickerProps
  * @prop {string} authToken - Auth token for use in calls to the backend
  * @prop {APICallInfo} listFilesApi -
@@ -22,6 +47,9 @@ import FileList from './FileList';
  * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
  * @prop {(f: File) => any} onSelectFile -
  *   Callback invoked with the metadata of the selected file if the user makes a selection
+ * @prop {string} missingFilesHelpLink - A helpful URL to documentation that explains
+ *   how to upload files to an LMS such as Canvas or Blackboard. This link is only shown
+ *   when the API call to returns available files returns an empty list.
  */
 
 /**
@@ -42,22 +70,6 @@ const INITIAL_DIALOG_STATE = {
   error: null,
 };
 
-const CanvasNoFiles = (
-  <div className="FileList__no-files-message">
-    <p>
-      There are no PDFs in this course.{' '}
-      <a
-        href="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Upload some files to the course
-      </a>{' '}
-      and try again.
-    </p>
-  </div>
-);
-
 /**
  * A file picker dialog that allows the user to choose files from their
  * LMS's file storage.
@@ -72,6 +84,7 @@ export default function LMSFilePicker({
   listFilesApi,
   onCancel,
   onSelectFile,
+  missingFilesHelpLink,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
@@ -245,7 +258,7 @@ export default function LMSFilePicker({
           selectedFile={selectedFile}
           onUseFile={onSelectFile}
           onSelectFile={selectFile}
-          noFilesMessage={CanvasNoFiles} // Add Blackboard or other specific LMS warning messages here.
+          noFilesMessage={<NoFilesMessage href={missingFilesHelpLink} />}
         />
       )}
     </Dialog>

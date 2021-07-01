@@ -3,10 +3,11 @@ import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
 import { APIError } from '../../utils/api';
-
-import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import ErrorDisplay from '../ErrorDisplay';
+import FileList from '../FileList';
+import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { waitForElement } from '../../../test-util/wait';
 
 describe('LMSFilePicker', () => {
   // eslint-disable-next-line react/prop-types
@@ -27,6 +28,7 @@ describe('LMSFilePicker', () => {
         onAuthorized={sinon.stub()}
         onSelectFile={sinon.stub()}
         onCancel={sinon.stub()}
+        missingFilesHelpLink={'https://fake_help_link'}
         {...props}
       />
     );
@@ -46,6 +48,9 @@ describe('LMSFilePicker', () => {
         apiCall: fakeApiCall,
       },
       './Dialog': FakeDialog,
+      // Don't mock <FileList> because <NoFiles> requires
+      // it to render for code coverage.
+      './FileList': FileList,
     });
   });
 
@@ -338,5 +343,20 @@ describe('LMSFilePicker', () => {
     await fakeApiCall;
     wrapper.update();
     assert.isFalse(wrapper.isEmptyRender());
+  });
+
+  describe('when no files are provided', () => {
+    beforeEach(() => {
+      fakeApiCall = sinon.stub().resolves([]); // no files returned
+    });
+
+    it('renders no file message with a help link', async () => {
+      const wrapper = renderFilePicker();
+      const fileList = await waitForElement(wrapper, 'FileList');
+      assert.equal(
+        fileList.prop('noFilesMessage').props.href,
+        'https://fake_help_link'
+      );
+    });
   });
 });

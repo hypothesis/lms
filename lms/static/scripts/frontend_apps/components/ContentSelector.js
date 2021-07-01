@@ -135,6 +135,7 @@ export default function ContentSelector({
           listFilesApi={listFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectCanvasFile}
+          missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
         />
       );
       break;
@@ -145,6 +146,9 @@ export default function ContentSelector({
           listFilesApi={blackboardListFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectBlackboardFile}
+          // An alias we maintain that provides multiple external documentation links for
+          // different versions of Blackboard (Classic vs. Ultra)
+          missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
         />
       );
       break;

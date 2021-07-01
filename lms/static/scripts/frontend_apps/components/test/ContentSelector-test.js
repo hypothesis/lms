@@ -189,6 +189,8 @@ describe('ContentSelector', () => {
           type: 'file',
           file: { id: 123 },
         },
+        missingFilesHelpLink:
+          'https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618',
       },
       {
         name: 'blackboard',
@@ -198,6 +200,7 @@ describe('ContentSelector', () => {
           type: 'url',
           url: 'blackboard://content-resource/123',
         },
+        missingFilesHelpLink: 'https://web.hypothes.is/help/bb-files',
       },
     ].forEach(test => {
       it(`supports selecting a file from the ${test.name} file dialog`, () => {
@@ -213,6 +216,16 @@ describe('ContentSelector', () => {
         });
 
         assert.calledWith(onSelectContent, test.result);
+      });
+
+      it('passes the appropriate `missingFilesHelpLink` value to `LMSFilePicker`', () => {
+        const wrapper = renderContentSelector({
+          defaultActiveDialog: test.dialogName,
+        });
+        assert.equal(
+          wrapper.find('LMSFilePicker').prop('missingFilesHelpLink'),
+          test.missingFilesHelpLink
+        );
       });
     });
   });
