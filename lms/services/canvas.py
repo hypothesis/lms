@@ -57,9 +57,9 @@ class CanvasService:
             # user *can* see in the current course and use that instead.
 
             # Look for a previously saved record of the assignment's file in our DB.
-            file_ = self._file_service.get(effective_file_id, type_="canvas_file")
+            file = self._file_service.get(effective_file_id, type_="canvas_file")
 
-            if not file_:
+            if not file:
                 # We don't have a record of the assignment's file in our DB.
                 # This can happen, for example, if Hypothesis has not been
                 # launched in the original assignment's course since we
@@ -68,7 +68,7 @@ class CanvasService:
 
             # Look for a copy of the assignment's file that the current user
             # *can* see in the current course.
-            found_file_id = self.find_matching_file_in_course(course_id, file_)
+            found_file_id = self.find_matching_file_in_course(course_id, file)
 
             if not found_file_id:
                 # We didn't find a matching file in the current course.
@@ -98,23 +98,23 @@ class CanvasService:
         marked as "unpublished" in Canvas can only be seen by teachers, not
         students).
         """
-        for file_ in self.api.list_files(course_id):
+        for file in self.api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
             # Convert ints to strings so that we can compare them.
-            if str(file_["id"]) == file_id:
+            if str(file["id"]) == file_id:
                 return
 
         raise CanvasFileNotFoundInCourse(file_id)
 
     def find_matching_file_in_course(
-        self, course_id: str, file_: models.File
+        self, course_id: str, file: models.File
     ) -> Optional[str]:
         """
-        Return the ID of a file in course_id that matches file_.
+        Return the ID of a file in course_id that matches `file`.
 
         Search for a file that the current Canvas user can see in course_id and
-        that matches the given file_ (same filename and size) and return the
+        that matches the given `file` (same filename and size) and return the
         matching file's ID.
 
         Return None if no matching file is found.
@@ -125,7 +125,7 @@ class CanvasService:
             display_name = file_dict["display_name"]
             size = file_dict["size"]
 
-            if display_name == file_.name and size == file_.size:
+            if display_name == file.name and size == file.size:
                 return str(file_dict["id"])
 
         return None
