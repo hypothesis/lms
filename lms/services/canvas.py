@@ -42,62 +42,38 @@ class CanvasService:
                 self.assert_file_in_course(effective_file_id, course_id)
             return self.api.public_url(effective_file_id)
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
-            # Either the user can't see the file in the current course's list
-            # of files or the user got a permissions error from the Canvas API
-            # when trying to get a public URL for the file.
+            # The user can't see the file in the course. This could be because:
             #
-            # This can happen because the course has been copied and the
-            # assignment's file_id is from the original course. Or it can
-            # happen because the assignment's file has been deleted from
-            # Canvas. Or it can happen because the user doesn't have permission
-            # to see the file ("unpublished" files in Canvas are visible to
-            # instructors but not to students).
+            # * The course has been copied so the assignment's file_id is from
+            #   the original course (and the user isn't in the original course)
+            # * The assignment's file has been deleted from Canvas
+            # * The file *is* in the course but the user can't see it
+            #   (only instructors can see "unpublished" files in Canvas)
             #
             # We'll try to find another copy of the same file that the current
             # user *can* see in the current course and use that instead.
 
-            # Look for a previously saved record of the assignment's file in our DB.
             file = self._file_service.get(effective_file_id, type_="canvas_file")
 
             if not file:
-                # We don't have a record of the assignment's file in our DB.
-                # This can happen, for example, if Hypothesis has not been
-                # launched in the original assignment's course since we
-                # deployed the code that started recording files in the DB.
                 raise
 
-            # Look for a copy of the assignment's file that the current user
-            # *can* see in the current course.
             found_file_id = self.find_matching_file_in_course(course_id, file)
 
             if not found_file_id:
-                # We didn't find a matching file in the current course.
-                # This could mean that the file has been deleted, has been
-                # renamed, or the current user doesn't have permission to see
-                # the file.
                 raise
 
-            # We found a matching copy of the assignment's file that the
-            # current user *can* see in the current course. Store a mapping so
-            # that we don't have to re-do the search the next time the
-            # assignment is launched.
+            # found_file_id is a copy of file_id that the current user *can*
+            # see in the current course.
+
+            # Store a mapping so we don't have to re-search next time.
             module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
 
-            # Try again using the found matching file.
+            # Try again to return a public URL, this time using found_file_id.
             return self.api.public_url(found_file_id)
 
     def assert_file_in_course(self, file_id: str, course_id: str) -> bool:
-        """
-        Raise if the current user can't see file_id in course_id.
-
-        Raise CanvasFileNotFoundInCourse if the current user can't see a file
-        with ID file_id in the course with ID course_id. This could be because
-        the file is in another course, because the file was in course_id but
-        has been deleted, or because the file is in course_id but the current
-        user doesn't have permission to see it (for example files that are
-        marked as "unpublished" in Canvas can only be seen by teachers, not
-        students).
-        """
+        """Raise if the current user can't see file_id in course_id."""
         for file in self.api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
