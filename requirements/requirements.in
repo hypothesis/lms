@@ -1,6 +1,7 @@
 alembic
 gunicorn
 h-api
+h-assets
 h-pyramid-sentry
 h-vialib
 importlib_resources
