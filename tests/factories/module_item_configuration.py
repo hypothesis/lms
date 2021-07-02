@@ -10,4 +10,5 @@ ModuleItemConfiguration = make_factory(
     resource_link_id=RESOURCE_LINK_ID,
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     document_url=Faker("uri"),
+    extra={},
 )

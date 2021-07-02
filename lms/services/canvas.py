@@ -11,7 +11,7 @@ class CanvasService:
 
     def __init__(self, canvas_api, file_service):
         self.api = canvas_api
-        self._file_service = file_service
+        self.file_mapper = CanvasFileMapper(canvas_api, file_service)
 
     def public_url_for_file(
         self, module_item_configuration, file_id, course_id, check_in_course=False
@@ -39,8 +39,10 @@ class CanvasService:
 
         try:
             if check_in_course:
-                self.assert_file_in_course(effective_file_id, course_id)
+                self.file_mapper.assert_file_in_course(effective_file_id, course_id)
+
             return self.api.public_url(effective_file_id)
+
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
             # The user can't see the file in the course. This could be because:
             #
@@ -53,28 +55,31 @@ class CanvasService:
             # We'll try to find another copy of the same file that the current
             # user *can* see in the current course and use that instead.
 
-            file = self._file_service.get(effective_file_id, type_="canvas_file")
-
-            if not file:
-                raise
-
-            found_file_id = self.find_matching_file_in_course(course_id, file)
-
+            found_file_id = self.file_mapper.map_file(effective_file_id, course_id)
             if not found_file_id:
                 raise
 
-            # found_file_id is a copy of file_id that the current user *can*
-            # see in the current course.
+            # Try again to return a public URL, this time using found_file_id.
+            public_url = self.api.public_url(found_file_id)
 
-            # Store a mapping so we don't have to re-search next time.
+            # Store a mapping so we don't have to re-search next time and do
+            # it after attempting to retreive it to prove we can
             module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
 
-            # Try again to return a public URL, this time using found_file_id.
-            return self.api.public_url(found_file_id)
+            return public_url
+
+
+class CanvasFileMapper:
+    # Imagine this class had a good name, that somehow represents asserting
+    # files are in courses and mapping them
+
+    def __init__(self, canvas_api, file_service):
+        self._file_service = file_service
+        self._api = canvas_api
 
     def assert_file_in_course(self, file_id: str, course_id: str) -> bool:
         """Raise if the current user can't see file_id in course_id."""
-        for file in self.api.list_files(course_id):
+        for file in self._api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
             # Convert ints to strings so that we can compare them.
@@ -83,9 +88,7 @@ class CanvasService:
 
         raise CanvasFileNotFoundInCourse(file_id)
 
-    def find_matching_file_in_course(
-        self, course_id: str, file: models.File
-    ) -> Optional[str]:
+    def map_file(self, missing_file_id, course_id) -> Optional[str]:
         """
         Return the ID of a file in course_id that matches `file`.
 
@@ -95,7 +98,12 @@ class CanvasService:
 
         Return None if no matching file is found.
         """
-        file_dicts = self.api.list_files(course_id)
+
+        file = self._file_service.get(missing_file_id, type_="canvas_file")
+        if not file:
+            return None
+
+        file_dicts = self._api.list_files(course_id)
 
         for file_dict in file_dicts:
             display_name = file_dict["display_name"]
