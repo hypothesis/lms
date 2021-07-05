@@ -28,7 +28,7 @@ class TestPublicURLForFile:
         CanvasFileFinder.assert_called_once_with(canvas_api_client, file_service)
         if check_in_course:
             canvas_file_finder.assert_file_in_course.assert_called_once_with(
-                sentinel.file_id, sentinel.course_id
+                sentinel.course_id, sentinel.file_id
             )
         else:
             canvas_file_finder.assert_file_in_course.assert_not_called()
@@ -42,7 +42,7 @@ class TestPublicURLForFile:
         url = public_url_for_file(sentinel.file_id, check_in_course=True)
 
         canvas_file_finder.assert_file_in_course.assert_called_once_with(
-            sentinel.mapped_file_id, sentinel.course_id
+            sentinel.course_id, sentinel.mapped_file_id
         )
         canvas_api_client.public_url.assert_called_once_with(sentinel.mapped_file_id)
         assert url == canvas_api_client.public_url.return_value
@@ -180,11 +180,11 @@ class TestCanvasFileFinder:
     def test_assert_file_in_course_doesnt_raise_if_the_file_is_in_the_course(
         self, finder
     ):
-        finder.assert_file_in_course("2", sentinel.course_id)
+        finder.assert_file_in_course(sentinel.course_id, "2")
 
     def test_assert_file_in_course_raises_if_the_file_isnt_in_the_course(self, finder):
         with pytest.raises(CanvasFileNotFoundInCourse):
-            finder.assert_file_in_course("4", sentinel.course_id)
+            finder.assert_file_in_course(sentinel.course_id, "4")
 
     def test_find_matching_file_in_course_returns_the_matching_file_id(
         self, finder, canvas_api_client, file_service

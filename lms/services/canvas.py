@@ -35,7 +35,7 @@ class CanvasService:
 
         try:
             if check_in_course:
-                self._finder.assert_file_in_course(effective_file_id, course_id)
+                self._finder.assert_file_in_course(course_id, effective_file_id)
             return self.api.public_url(effective_file_id)
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
             # The user can't see the file in the course. This could be because:
@@ -71,7 +71,7 @@ class CanvasFileFinder:
         self._api = canvas_api
         self._file_service = file_service
 
-    def assert_file_in_course(self, file_id: str, course_id: str) -> bool:
+    def assert_file_in_course(self, course_id: str, file_id: str) -> bool:
         """Raise if the current user can't see file_id in course_id."""
         for file in self._api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
