@@ -1,6 +1,5 @@
 from typing import Optional
 
-from lms import models
 from lms.services.exceptions import CanvasAPIPermissionError, CanvasFileNotFoundInCourse
 
 
@@ -11,7 +10,7 @@ class CanvasService:
 
     def __init__(self, canvas_api, file_service):
         self.api = canvas_api
-        self._file_service = file_service
+        self._finder = CanvasFileFinder(canvas_api, file_service)
 
     def public_url_for_file(
         self, module_item_configuration, file_id, course_id, check_in_course=False
@@ -31,15 +30,12 @@ class CanvasService:
         :raise CanvasAPIPermissionError: if the user gets a permissions error
             from the Canvas API when trying to get a public URL for file_id
         """
-
-        mapped_file_id = module_item_configuration.get_canvas_mapped_file_id(file_id)
-
         # If there's a previously stored mapping for file_id use that instead.
-        effective_file_id = mapped_file_id or file_id
+        effective_file_id = module_item_configuration.get_canvas_mapped_file_id(file_id)
 
         try:
             if check_in_course:
-                self.assert_file_in_course(effective_file_id, course_id)
+                self._finder.assert_file_in_course(effective_file_id, course_id)
             return self.api.public_url(effective_file_id)
         except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
             # The user can't see the file in the course. This could be because:
@@ -52,19 +48,12 @@ class CanvasService:
             #
             # We'll try to find another copy of the same file that the current
             # user *can* see in the current course and use that instead.
-
-            file = self._file_service.get(effective_file_id, type_="canvas_file")
-
-            if not file:
-                raise
-
-            found_file_id = self.find_matching_file_in_course(course_id, file)
+            found_file_id = self._finder.find_matching_file_in_course(
+                course_id, effective_file_id
+            )
 
             if not found_file_id:
                 raise
-
-            # found_file_id is a copy of file_id that the current user *can*
-            # see in the current course.
 
             # Store a mapping so we don't have to re-search next time.
             module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
@@ -72,9 +61,17 @@ class CanvasService:
             # Try again to return a public URL, this time using found_file_id.
             return self.api.public_url(found_file_id)
 
+
+class CanvasFileFinder:
+    """A helper for finding file IDs in the Canvas API."""
+
+    def __init__(self, canvas_api, file_service):
+        self._api = canvas_api
+        self._file_service = file_service
+
     def assert_file_in_course(self, file_id: str, course_id: str) -> bool:
         """Raise if the current user can't see file_id in course_id."""
-        for file in self.api.list_files(course_id):
+        for file in self._api.list_files(course_id):
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
             # Convert ints to strings so that we can compare them.
@@ -84,7 +81,7 @@ class CanvasService:
         raise CanvasFileNotFoundInCourse(file_id)
 
     def find_matching_file_in_course(
-        self, course_id: str, file: models.File
+        self, course_id: str, file_id: str
     ) -> Optional[str]:
         """
         Return the ID of a file in course_id that matches `file`.
@@ -95,7 +92,12 @@ class CanvasService:
 
         Return None if no matching file is found.
         """
-        file_dicts = self.api.list_files(course_id)
+        file = self._file_service.get(file_id, type_="canvas_file")
+
+        if not file:
+            return None
+
+        file_dicts = self._api.list_files(course_id)
 
         for file_dict in file_dicts:
             display_name = file_dict["display_name"]
