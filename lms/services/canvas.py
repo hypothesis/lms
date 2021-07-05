@@ -86,7 +86,7 @@ class CanvasFileFinder:
         self, course_id: str, file_id: str
     ) -> Optional[str]:
         """
-        Return the ID of a file in course_id that matches `file`.
+        Return the ID of a file in course_id that matches the file with ID file_id.
 
         Search for a file that the current Canvas user can see in course_id and
         that matches the given `file` (same filename and size) and return the
