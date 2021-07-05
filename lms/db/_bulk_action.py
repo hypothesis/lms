@@ -93,19 +93,23 @@ class BulkAction:
 
         if config.upsert_trigger_onupdate:
             onupdate_columns = self._get_columns_onupdate(model_class)
+
             for column_name, onupdate_value in onupdate_columns:
                 upsert_update_elements.append(column_name)
+
+                # SQL alchemy wraps functions passed to onupdate or default and
+                # could potentially take a "context" argument getting a
+                # suitable context at this point of the execution it's not
+                # possible so we don't support it so we just pass None
+                # https://docs.sqlalchemy.org/en/14/core/defaults.html#context-sensitive-default-functions
+                default_value = (
+                    onupdate_value(None) if callable(onupdate_value) else onupdate_value
+                )
+
                 # Copy the values, we don't want to mess with the caller's data
                 values = deepcopy(values)
-                for value_ in values:
-                    value_[column_name] = (
-                        # SQL alchemy wraps functions passed to onupdate or default and could potentially take a "context" argument
-                        # getting a suitable context at this point of the execution it's not possible so we don't support it so we just pass None
-                        # https://docs.sqlalchemy.org/en/14/core/defaults.html#context-sensitive-default-functions
-                        onupdate_value(None)
-                        if callable(onupdate_value)
-                        else onupdate_value
-                    )
+                for row in values:
+                    row[column_name] = default_value
 
         stmt = insert(model_class).values(values)
         stmt = stmt.on_conflict_do_update(
