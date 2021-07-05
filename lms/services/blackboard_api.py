@@ -102,7 +102,13 @@ class BlackboardAPIClient:
 
     def _api_url(self, path):
         """Return the full Blackboard API URL for the given path."""
-        return f"https://{self.blackboard_host}/learn/api/public/v1/{path}"
+
+        if not path.startswith("/"):
+            # Paths that don't start with "/" are treated as relative to this
+            # common Blackboard API path prefix.
+            path = "/learn/api/public/v1/" + path
+
+        return f"https://{self.blackboard_host}{path}"
 
 
 def factory(_context, request):
