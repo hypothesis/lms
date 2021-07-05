@@ -55,11 +55,13 @@ class CanvasService:
             if not found_file_id:
                 raise
 
+            # Try again to return a public URL, this time using found_file_id.
+            url = self.api.public_url(found_file_id)
+
             # Store a mapping so we don't have to re-search next time.
             module_item_configuration.set_canvas_mapped_file_id(file_id, found_file_id)
 
-            # Try again to return a public URL, this time using found_file_id.
-            return self.api.public_url(found_file_id)
+            return url
 
 
 class CanvasFileFinder:

@@ -127,6 +127,26 @@ class TestPublicURLForFile:
         with pytest.raises(CanvasAPIPermissionError):
             public_url_for_file(sentinel.file_id)
 
+    def test_it_doesnt_save_a_mapped_file_id_if_getting_that_files_public_url_fails(
+        self,
+        canvas_api_client,
+        canvas_file_finder,
+        module_item_configuration,
+        public_url_for_file,
+    ):
+        canvas_api_client.public_url.side_effect = CanvasAPIPermissionError
+        canvas_file_finder.find_matching_file_in_course.return_value = (
+            sentinel.found_file_id
+        )
+
+        with pytest.raises(CanvasAPIPermissionError):
+            public_url_for_file(sentinel.file_id)
+
+        assert (
+            module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
+            == sentinel.file_id
+        )
+
     @pytest.fixture
     def module_item_configuration(self, db_session):
         module_item_configuration = factories.ModuleItemConfiguration()
