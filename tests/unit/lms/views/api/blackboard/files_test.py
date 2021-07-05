@@ -1,8 +1,13 @@
+from unittest.mock import call, sentinel
+
 import pytest
 
 from lms.services import HTTPError
 from lms.views.api.blackboard.exceptions import BlackboardFileNotFoundInCourse
-from lms.views.api.blackboard.files import BlackboardFilesAPIViews
+from lms.views.api.blackboard.files import (
+    PAGINATION_MAX_REQUESTS,
+    BlackboardFilesAPIViews,
+)
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("oauth2_token_service", "blackboard_api_client")
@@ -16,17 +21,86 @@ class TestListFiles:
         BlackboardListFilesSchema,
         blackboard_list_files_schema,
     ):
+        blackboard_api_client.request.return_value = factories.requests.Response(
+            json_data={}
+        )
+        blackboard_list_files_schema.parse.return_value = [
+            sentinel.file_1,
+            sentinel.file_2,
+            sentinel.file_3,
+        ]
+
         files = view()
 
         blackboard_api_client.request.assert_called_once_with(
-            "GET", "courses/uuid:COURSE_ID/resources"
+            "GET", "courses/uuid:COURSE_ID/resources?limit=200"
         )
         BlackboardListFilesSchema.assert_called_once_with(
             blackboard_api_client.request.return_value
         )
         assert files == blackboard_list_files_schema.parse.return_value
 
-    @pytest.fixture
+    def test_it_with_pagination(
+        self, view, blackboard_api_client, blackboard_list_files_schema
+    ):
+        # Each response from the Blackboard API includes the path to the next
+        # page in the JSON body. This is the whole path to the next page,
+        # including limit and offset query params, as a string. For example:
+        # "/learn/api/public/v1/courses/uuid:<ID>/resources?limit=200&offset=200"
+        #
+        blackboard_api_client.request.side_effect = [
+            factories.requests.Response(
+                json_data={"paging": {"nextPage": "PAGE_2_PATH"}}
+            ),
+            factories.requests.Response(
+                json_data={"paging": {"nextPage": "PAGE_3_PATH"}}
+            ),
+            factories.requests.Response(json_data={}),
+        ]
+
+        # Each Blackboard API response contains a page of results.
+        blackboard_list_files_schema.parse.side_effect = [
+            [sentinel.file_1, sentinel.file_2, sentinel.file_3],
+            [sentinel.file_4, sentinel.file_5, sentinel.file_6],
+            [sentinel.file_7, sentinel.file_8],
+        ]
+
+        files = view()
+
+        # It called the Blackboard API three times getting the three pages.
+        assert blackboard_api_client.request.call_args_list == [
+            call("GET", "courses/uuid:COURSE_ID/resources?limit=200"),
+            call("GET", "PAGE_2_PATH"),
+            call("GET", "PAGE_3_PATH"),
+        ]
+        # It returned all three pages of files as a single list.
+        assert files == [
+            sentinel.file_1,
+            sentinel.file_2,
+            sentinel.file_3,
+            sentinel.file_4,
+            sentinel.file_5,
+            sentinel.file_6,
+            sentinel.file_7,
+            sentinel.file_8,
+        ]
+
+    def test_it_doesnt_send_paginated_requests_forever(
+        self, view, blackboard_api_client, blackboard_list_files_schema
+    ):
+        # Make the Blackboard API send next page paths forever.
+        blackboard_api_client.request.return_value = factories.requests.Response(
+            json_data={"paging": {"nextPage": "NEXT_PAGE"}}
+        )
+
+        files = view()
+
+        assert blackboard_api_client.request.call_count == PAGINATION_MAX_REQUESTS
+        assert len(files) == PAGINATION_MAX_REQUESTS * len(
+            blackboard_list_files_schema.parse.return_value
+        )
+
+    @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
         pyramid_request.matchdict["course_id"] = "COURSE_ID"
         return pyramid_request

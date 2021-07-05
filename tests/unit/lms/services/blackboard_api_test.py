@@ -122,14 +122,21 @@ class TestBlackboardAPIClient:
             sentinel.access_token, None, None
         )
 
-    def test_request(self, svc, http_service):
-        response = svc.request("GET", "foo/bar/")
+    @pytest.mark.parametrize(
+        "path,expected_url",
+        [
+            ("foo/bar/", "https://blackboard.example.com/learn/api/public/v1/foo/bar/"),
+            (
+                "/learn/api/public/v1/foo/bar/",
+                "https://blackboard.example.com/learn/api/public/v1/foo/bar/",
+            ),
+            ("/foo/bar/", "https://blackboard.example.com/foo/bar/"),
+        ],
+    )
+    def test_request(self, svc, http_service, path, expected_url):
+        response = svc.request("GET", path)
 
-        http_service.request.assert_called_once_with(
-            "GET",
-            "https://blackboard.example.com/learn/api/public/v1/foo/bar/",
-            oauth=True,
-        )
+        http_service.request.assert_called_once_with("GET", expected_url, oauth=True)
         assert response == http_service.request.return_value
 
     def test_request_raises_OAuth2TokenError_if_our_access_token_isnt_working(
