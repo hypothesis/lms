@@ -102,8 +102,9 @@ class CanvasFileFinder:
         for file_dict in file_dicts:
             display_name = file_dict["display_name"]
             size = file_dict["size"]
+            id_ = str(file_dict["id"])
 
-            if display_name == file.name and size == file.size:
+            if display_name == file.name and size == file.size and id_ != file.lms_id:
                 return str(file_dict["id"])
 
         return None

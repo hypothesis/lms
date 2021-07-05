@@ -202,6 +202,24 @@ class TestCanvasFileFinder:
             sentinel.course_id, sentinel.file_id
         )
 
+    def test_find_matching_file_in_course_doesnt_return_the_same_file(
+        self, finder, canvas_api_client, file_service
+    ):
+        # If the response from the Canvas API contains a "matching" file dict
+        # that happens to be the *same* file as the one we're searching for (it
+        # has the same id) find_matching_file_in_course() should not return
+        # the same file_id as it was asked to search for a match for.
+        matching_file_dict = canvas_api_client.list_files.return_value[1]
+        file_service.get.return_value = factories.File(
+            lms_id=str(matching_file_dict["id"]),
+            name=matching_file_dict["display_name"],
+            size=matching_file_dict["size"],
+        )
+
+        assert not finder.find_matching_file_in_course(
+            sentinel.course_id, sentinel.file_id
+        )
+
     @pytest.fixture
     def finder(self, canvas_api_client, file_service):
         return CanvasFileFinder(canvas_api_client, file_service)
