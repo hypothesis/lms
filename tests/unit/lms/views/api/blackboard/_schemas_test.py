@@ -21,11 +21,19 @@ class TestBlackboardListFilesSchema:
                 "id": "blackboard://content-resource/_7851_0/",
                 "updated_at": "2008-05-06T07:26:35.000z",
                 "display_name": "File_0.pdf",
+                "type": "File",
             },
             {
                 "id": "blackboard://content-resource/_7851_1/",
                 "updated_at": "1983-05-26T02:37:23.000z",
                 "display_name": "File_1.pdf",
+                "type": "File",
+            },
+            {
+                "id": "blackboard://content-resource/_7851_2/",
+                "updated_at": "1983-05-26T02:37:23.000z",
+                "display_name": "Folder_1",
+                "type": "Folder",
             },
         ]
 
@@ -98,22 +106,32 @@ def list_files_response():
                 "modified": "2008-05-06T07:26:35.000z",
                 "name": "File_0.pdf",
                 "downloadUrl": "https://example.com/file0.pdf",
-                "unknown_field": "this_should_be_excluded",
+                "type": "File",
                 "mimeType": "application/pdf",
+                "unknown_field": "this_should_be_excluded",
             },
             {
                 "id": "_7851_1",
                 "modified": "1983-05-26T02:37:23.000z",
                 "name": "File_1.pdf",
                 "downloadUrl": "https://example.com/file1.pdf",
+                "type": "File",
                 "mimeType": "application/pdf",
+            },
+            # A folder (notice: these have no downloadUrl or mimeType).
+            {
+                "id": "_7851_2",
+                "modified": "1983-05-26T02:37:23.000z",
+                "name": "Folder_1",
+                "type": "Folder",
             },
             # A non-PDF file. This should get filtered out.
             {
-                "id": "_7851_2",
+                "id": "_7851_3",
                 "modified": "1980-05-26T02:37:23.000z",
                 "name": "NOT_A_PDF.jpeg",
                 "downloadUrl": "https://example.com/NOT_A_PDF.jpeg",
+                "type": "File",
                 "mimeType": "image/jpeg",
             },
         ]

@@ -33,14 +33,26 @@ class BlackboardFilesAPIViews:
         self.blackboard_api_client = request.find_service(name="blackboard_api_client")
 
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
+    @view_config(
+        request_method="GET", route_name="blackboard_api.courses.files.list_folder"
+    )
     def list_files(self):
         """Return the list of files in the given course."""
         course_id = self.request.matchdict["course_id"]
+        folder_id = self.request.matchdict.get("folder_id")
 
         files = []
-        path = f"courses/uuid:{course_id}/resources?type=file&limit={PAGINATION_LIMIT}"
+        path = f"courses/uuid:{course_id}/resources"
+
+        if folder_id:
+            # Get the files and folders in the given folder instead of the
+            # course's top-level files and folders.
+            path += f"/{folder_id}/children"
+
+        path += f"?limit={PAGINATION_LIMIT}"
 
         for _ in range(PAGINATION_MAX_REQUESTS):
+            import pdb; pdb.set_trace()
             response = self.blackboard_api_client.request("GET", path)
             files.extend(BlackboardListFilesSchema(response).parse())
             path = response.json().get("paging", {}).get("nextPage")

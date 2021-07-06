@@ -17,6 +17,7 @@ class _FileSchema(Schema):
     id = fields.Str(required=True)
     display_name = fields.Str(data_key="name", required=True)
     updated_at = fields.Str(data_key="modified", required=True)
+    type = fields.Str(required=True)
     mime_type = fields.Str(data_key="mimeType")
 
     @post_load
@@ -34,11 +35,15 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
     def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
         pdf_files = []
 
-        for file in data["results"]:
-            if file.get("mime_type") == "application/pdf":
+        for result in data["results"]:
+            if (
+                result["type"] == "Folder"
+                or result.get("mime_type") == "application/pdf"
+            ):
+                pdf_files.append(result)
+
                 # Delete mime_type: we don't want to send it to the frontend.
-                del file["mime_type"]
-                pdf_files.append(file)
+                result.pop("mime_type", None)
 
         return pdf_files
 
