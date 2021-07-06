@@ -99,12 +99,22 @@ def list_files_response():
                 "name": "File_0.pdf",
                 "downloadUrl": "https://example.com/file0.pdf",
                 "unknown_field": "this_should_be_excluded",
+                "mimeType": "application/pdf",
             },
             {
                 "id": "_7851_1",
                 "modified": "1983-05-26T02:37:23.000z",
                 "name": "File_1.pdf",
                 "downloadUrl": "https://example.com/file1.pdf",
+                "mimeType": "application/pdf",
+            },
+            # A non-PDF file. This should get filtered out.
+            {
+                "id": "_7851_2",
+                "modified": "1980-05-26T02:37:23.000z",
+                "name": "NOT_A_PDF.jpeg",
+                "downloadUrl": "https://example.com/NOT_A_PDF.jpeg",
+                "mimeType": "image/jpeg",
             },
         ]
     }
