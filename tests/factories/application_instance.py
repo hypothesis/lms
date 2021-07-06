@@ -11,4 +11,5 @@ ApplicationInstance = make_factory(
     shared_secret=SHARED_SECRET,
     lms_url=Faker("url", schemes=["https"]),
     requesters_email=Faker("email"),
+    settings={},
 )
