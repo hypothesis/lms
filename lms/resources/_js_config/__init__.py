@@ -1,6 +1,7 @@
 import functools
 
 from lms.models import GroupInfo, HUser
+from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
@@ -164,85 +165,30 @@ class JSConfig:
         This mode shows teachers an assignment configuration UI where they can
         choose the document to be annotated for the assignment.
 
-        :param form_action: the HTML `action` attribute for the form that we'll
-            use to submit the user's chosen document (the `action` is the URL
-            that the form gets submitted to)
-        :type form_action: str
-
+        :param form_action: the HTML `action` attribute for the URL that we'll
+            submit the user's chosen document to
         :param form_fields: the fields (keys and values) to include in the
-            HTML form that we'll use to submit the user's chosen document
-        :type form_fields: dict
+            HTML form that we submit
 
         :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
         """
-        self._config["mode"] = "content-item-selection"
 
-        def google_picker_origin():
-            """
-            Return the URL of the top-most page that the LMS app is running in.
+        args = self._context, self._request, self._application_instance()
 
-            The frontend has to pass this to Google Picker, otherwise Google
-            Picker refuses to launch in an iframe.
-
-            :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
-            """
-            # Pass the URL of the LMS that is launching us to our JavaScript code.
-            # When we're being launched in an iframe within the LMS our JavaScript
-            # needs to pass this URL (which is the URL of the top-most page) to Google
-            # Picker, otherwise Picker refuses to launch inside an iframe.
-            return (
-                self._context.custom_canvas_api_domain
-                or self._application_instance().lms_url
-            )
-
-        self._config["filePicker"] = {
-            "formAction": form_action,
-            "formFields": form_fields,
-            "blackboard": {
-                "enabled": self._blackboard_files_enabled(),
-                "listFiles": {
-                    "authUrl": self._request.route_url(
-                        "blackboard_api.oauth.authorize"
-                    ),
-                    "path": self._request.route_path(
-                        "blackboard_api.courses.files.list",
-                        course_id=self._request.params.get("context_id"),
-                    ),
+        self._config.update(
+            {
+                "mode": "content-item-selection",
+                "filePicker": {
+                    "formAction": form_action,
+                    "formFields": form_fields,
+                    # Specific config for pickers
+                    "blackboard": FilePickerConfig.blackboard_config(*args),
+                    "canvas": FilePickerConfig.canvas_config(*args),
+                    "google": FilePickerConfig.google_files_config(*args),
+                    "vitalSource": FilePickerConfig.vital_source_config(*args),
                 },
-            },
-            "canvas": {
-                "enabled": self._canvas_files_available(),
-                "groupsEnabled": self._context.canvas_groups_enabled,
-                # The "content item selection" that we submit to Canvas's
-                # content_item_return_url is actually an LTI launch URL with
-                # the selected document URL or file_id as a query parameter. To
-                # construct these launch URLs our JavaScript code needs the
-                # base URL of our LTI launch endpoint.
-                "ltiLaunchUrl": self._request.route_url("lti_launches"),
-                "listFiles": {
-                    "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
-                    "path": self._request.route_path(
-                        "canvas_api.courses.files.list",
-                        course_id=self._request.params.get("custom_canvas_course_id"),
-                    ),
-                },
-                "listGroupSets": {
-                    "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
-                    "path": self._request.route_path(
-                        "canvas_api.courses.group_sets.list",
-                        course_id=self._request.params.get("custom_canvas_course_id"),
-                    ),
-                },
-            },
-            "google": {
-                "clientId": self._request.registry.settings["google_client_id"],
-                "developerKey": self._request.registry.settings["google_developer_key"],
-                "origin": google_picker_origin(),
-            },
-            "vitalSource": {
-                "enabled": self._request.feature("vitalsource"),
-            },
-        }
+            }
+        )
 
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""
@@ -351,29 +297,6 @@ class JSConfig:
     def _auth_token(self):
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
-
-    def _blackboard_files_enabled(self):
-        """
-        Return True if the Blackboard Files API is enabled for this request.
-
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
-        """
-        return self._application_instance().settings.get("blackboard", "files_enabled")
-
-    def _canvas_files_available(self):
-        """
-        Return True if the Canvas Files API is available to this request.
-
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
-        """
-
-        if not self._context.is_canvas:
-            return False
-
-        return (
-            "custom_canvas_course_id" in self._request.params
-            and self._application_instance().developer_key is not None
-        )
 
     @property
     @functools.lru_cache()

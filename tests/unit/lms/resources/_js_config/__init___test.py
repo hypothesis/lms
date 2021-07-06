@@ -18,132 +18,59 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestEnableContentItemSelectionMode:
-    @pytest.mark.usefixtures("blackboard_files_enabled")
-    def test_it(self, context, js_config):
+    def test_it(self, js_config):
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
+        config = js_config.asdict()
 
-        assert js_config.asdict()["mode"] == "content-item-selection"
-        assert js_config.asdict()["filePicker"] == {
-            "formAction": mock.sentinel.form_action,
-            "formFields": mock.sentinel.form_fields,
-            "google": {
-                "clientId": "fake_client_id",
-                "developerKey": "fake_developer_key",
-                "origin": context.custom_canvas_api_domain,
-            },
-            "blackboard": {
-                "enabled": True,
-                "listFiles": {
-                    "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-                    "path": "/api/blackboard/courses/test_course_id/files",
-                },
-            },
-            "canvas": {
-                "enabled": True,
-                "groupsEnabled": False,
-                "ltiLaunchUrl": "http://example.com/lti_launches",
-                "listFiles": {
-                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
-                    "path": "/api/canvas/courses/test_course_id/files",
-                },
-                "listGroupSets": {
-                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
-                    "path": "/api/canvas/courses/test_course_id/group_sets",
-                },
-            },
-            "vitalSource": {
-                "enabled": False,
-            },
-        }
-
-    def test_google_picker_origin_falls_back_to_lms_url_if_theres_no_custom_canvas_api_domain(
-        self, application_instance_service, context, js_config
-    ):
-        context.custom_canvas_api_domain = None
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
+        assert config == Any.dict.containing(
+            {
+                "mode": "content-item-selection",
+                "filePicker": Any.dict.containing(
+                    {
+                        "formAction": mock.sentinel.form_action,
+                        "formFields": mock.sentinel.form_fields,
+                    }
+                ),
+            }
         )
 
-        assert (
-            js_config.asdict()["filePicker"]["google"]["origin"]
-            == application_instance_service.get.return_value.lms_url
-        )
-
-    def test_it_doesnt_enable_the_blackboard_file_picker_if_the_feature_flag_is_off(
-        self, js_config
+    @pytest.mark.parametrize(
+        "config_function,key",
+        (
+            ("blackboard_config", "blackboard"),
+            ("canvas_config", "canvas"),
+            ("google_files_config", "google"),
+            ("vital_source_config", "vitalSource"),
+        ),
+    )
+    def test_it_adds_picker_config(
+        self,
+        js_config,
+        context,
+        pyramid_request,
+        FilePickerConfig,
+        application_instance_service,
+        config_function,
+        key,
     ):
         js_config.enable_content_item_selection_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
+        config = js_config.asdict()
 
-        assert not js_config.asdict()["filePicker"]["blackboard"]["enabled"]
-
-    def test_it_doesnt_enable_the_canvas_file_picker_if_the_lms_isnt_Canvas(
-        self, context, js_config
-    ):
-        context.is_canvas = False
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
+        config_provider = getattr(FilePickerConfig, config_function)
+        assert config["filePicker"][key] == config_provider.return_value
+        config_provider.assert_called_once_with(
+            context,
+            pyramid_request,
+            application_instance_service.get.return_value,
         )
 
-        self.assert_canvas_file_picker_not_enabled(js_config)
-
-    def test_it_doesnt_enable_the_canvas_file_picker_if_we_dont_have_a_developer_key(
-        self, application_instance_service, js_config
-    ):
-        application_instance_service.get.return_value.developer_key = None
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-
-        self.assert_canvas_file_picker_not_enabled(js_config)
-
-    def test_it_doesnt_enable_the_canvas_file_picker_if_theres_no_custom_canvas_course_id(
-        self, pyramid_request, js_config
-    ):
-        del pyramid_request.params["custom_canvas_course_id"]
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-
-        self.assert_canvas_file_picker_not_enabled(js_config)
-
-    def test_it_enables_vitalsource_picker_if_feature_enabled(
-        self, pyramid_request, js_config
-    ):
-        pyramid_request.feature = lambda feature: feature == "vitalsource"
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-
-        assert js_config.asdict()["filePicker"]["vitalSource"]["enabled"]
-
-    def test_it_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, context, js_config
-    ):
-        context.custom_canvas_api_domain = None
-        application_instance_service.get.side_effect = ConsumerKeyError
-
-        with pytest.raises(ConsumerKeyError):
-            js_config.enable_content_item_selection_mode(
-                mock.sentinel.form_action, mock.sentinel.form_fields
-            )
-
-    def assert_canvas_file_picker_not_enabled(self, js_config):
-        assert not js_config.asdict()["filePicker"]["canvas"]["enabled"]
-        assert "courseId" not in js_config.asdict()
-
-    @pytest.fixture
-    def blackboard_files_enabled(self, application_instance_service):
-        application_instance = application_instance_service.get.return_value
-        application_instance.settings.set("blackboard", "files_enabled", True)
+    @pytest.fixture(autouse=True)
+    def FilePickerConfig(self, patch):
+        return patch("lms.resources._js_config.FilePickerConfig")
 
 
 class TestEnableLTILaunchMode:
