@@ -33,7 +33,7 @@ class TestListFiles:
         files = view()
 
         blackboard_api_client.request.assert_called_once_with(
-            "GET", "courses/uuid:COURSE_ID/resources?limit=200"
+            "GET", "courses/uuid:COURSE_ID/resources?type=file&limit=200"
         )
         BlackboardListFilesSchema.assert_called_once_with(
             blackboard_api_client.request.return_value
@@ -69,7 +69,7 @@ class TestListFiles:
 
         # It called the Blackboard API three times getting the three pages.
         assert blackboard_api_client.request.call_args_list == [
-            call("GET", "courses/uuid:COURSE_ID/resources?limit=200"),
+            call("GET", "courses/uuid:COURSE_ID/resources?type=file&limit=200"),
             call("GET", "PAGE_2_PATH"),
             call("GET", "PAGE_3_PATH"),
         ]

@@ -38,7 +38,7 @@ class BlackboardFilesAPIViews:
         course_id = self.request.matchdict["course_id"]
 
         files = []
-        path = f"courses/uuid:{course_id}/resources?limit={PAGINATION_LIMIT}"
+        path = f"courses/uuid:{course_id}/resources?type=file&limit={PAGINATION_LIMIT}"
 
         for _ in range(PAGINATION_MAX_REQUESTS):
             response = self.blackboard_api_client.request("GET", path)
