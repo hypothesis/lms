@@ -81,23 +81,13 @@ class AdminViews:
     def update_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["consumer_key"])
 
-        ai.settings.set(
-            "canvas",
-            "sections_enabled",
-            self.request.params.get("sections_enabled") == "on",
-        )
-
-        ai.settings.set(
-            "canvas",
-            "groups_enabled",
-            self.request.params.get("groups_enabled") == "on",
-        )
-
-        ai.settings.set(
-            "blackboard",
-            "files_enabled",
-            self.request.params.get("blackboard_files_enabled") == "on",
-        )
+        for setting, sub_setting, form_field in (
+            ("canvas", "sections_enabled", "sections_enabled"),
+            ("canvas", "groups_enabled", "groups_enabled"),
+            ("blackboard", "files_enabled", "blackboard_files_enabled"),
+        ):
+            enabled = self.request.params.get(form_field) == "on"
+            ai.settings.set(setting, sub_setting, enabled)
 
         self.request.session.flash(
             f"Updated application instance {ai.consumer_key}", "messages"

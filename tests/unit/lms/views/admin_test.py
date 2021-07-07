@@ -66,70 +66,47 @@ class TestAdminViews:
         with pytest.raises(HTTPNotFound):
             AdminViews(pyramid_request).show_instance()
 
-    @pytest.mark.parametrize("sections_enabled", [True, False])
-    @pytest.mark.parametrize("groups_enabled", [True, False])
-    @pytest.mark.parametrize("blackboard_files_enabled", [True, False])
-    def test_update_instance(
-        self,
-        pyramid_request,
-        application_instance_service,
-        sections_enabled,
-        groups_enabled,
-        blackboard_files_enabled,
-    ):
+    def test_update_instance(self, pyramid_request, application_instance_service):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-
-        if sections_enabled:
-            # If the user checks the "Sections enabled" box then request.params
-            # contains the string "on" for "sections_enabled".
-            pyramid_request.params["sections_enabled"] = "on"
-        else:
-            # If the "Sections enabled" box is un-checked then
-            # "sections_enabled" is missing from request.params.
-            pass
-
-        if groups_enabled:
-            # If the user checks the "Groups enabled" box then request.params
-            # contains the string "on" for "groups_enabled".
-            pyramid_request.params["groups_enabled"] = "on"
-        else:
-            # If the "Groups enabled" box is un-checked then
-            # "groups_enabled" is missing from request.params.
-            pass
-
-        if blackboard_files_enabled:
-            # If the user checks the "Blackboard files enabled" box then
-            # request.params contains the string "on" for
-            # "blackboard_files_enabled".
-            pyramid_request.params["blackboard_files_enabled"] = "on"
-        else:
-            # If the "Blackboard files enabled" box is un-checked then
-            # "blackboard_files_enabled" is missing from request.params.
-            pass
 
         response = AdminViews(pyramid_request).update_instance()
 
         application_instance_service.get.assert_called_once_with(sentinel.consumer_key)
         application_instance = application_instance_service.get.return_value
-        assert (
-            application_instance.settings.get("canvas", "groups_enabled")
-            == groups_enabled
-        )
-        assert (
-            application_instance.settings.get("canvas", "sections_enabled")
-            == sections_enabled
-        )
-        assert (
-            application_instance.settings.get("blackboard", "files_enabled")
-            == blackboard_files_enabled
-        )
+
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance",
-                consumer_key=application_instance_service.get.return_value.consumer_key,
+                "admin.instance", consumer_key=application_instance.consumer_key
             )
         )
+
+    @pytest.mark.parametrize(
+        "setting,sub_setting,field_name",
+        (
+            ("canvas", "groups_enabled", "groups_enabled"),
+            ("canvas", "sections_enabled", "sections_enabled"),
+            ("blackboard", "files_enabled", "blackboard_files_enabled"),
+        ),
+    )
+    @pytest.mark.parametrize("enabled", (True, False))
+    def test_update_instance_saves_ai_settings(
+        self,
+        pyramid_request,
+        application_instance_service,
+        setting,
+        sub_setting,
+        field_name,
+        enabled,
+    ):
+        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        if enabled:
+            pyramid_request.params[field_name] = "on"
+
+        AdminViews(pyramid_request).update_instance()
+
+        application_instance = application_instance_service.get.return_value
+        assert application_instance.settings.get(setting, sub_setting) == enabled
 
     def test_update_instance_not_found(
         self, pyramid_request, application_instance_service
