@@ -59,7 +59,7 @@ idna==2.10
     # via
     #   -r requirements/requirements.txt
     #   requests
-importlib_resources==5.2.0
+importlib-resources==5.2.0
     # via
     #   -r requirements/requirements.txt
     #   h-api
@@ -93,7 +93,7 @@ marshmallow==3.12.1
     #   webargs
 matplotlib-inline==0.1.2
     # via ipython
-newrelic==6.4.3.160
+newrelic==6.4.4.161
     # via -r requirements/requirements.txt
 oauthlib==3.1.1
     # via

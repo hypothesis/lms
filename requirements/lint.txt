@@ -117,7 +117,7 @@ idna==2.10
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   requests
-importlib_resources==5.2.0
+importlib-resources==5.2.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -167,7 +167,7 @@ marshmallow==3.12.1
     #   webargs
 mccabe==0.6.1
     # via pylint
-newrelic==6.4.3.160
+newrelic==6.4.4.161
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
