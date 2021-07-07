@@ -27,7 +27,7 @@
 {%  macro checkbox_field(label, setting, sub_setting, field_name) %}
     {% call field_body(label) %}
         <label class="checkbox">
-          <input {% if instance.settings.get(setting, sub_setting) %}checked {% endif%} type="checkbox" name="{{ field_name }}">
+          <input {% if instance.settings.get(setting, sub_setting) %}checked {% endif%} type="checkbox" name="{{ setting }}.{{ sub_setting }}">
         </label>
     {% endcall %}
 {% endmacro %}
@@ -49,10 +49,10 @@
 
     {{ text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
 
-    {{ checkbox_field("Sections enabled", "canvas", "sections_enabled", "sections_enabled") }}
-    {{ checkbox_field("Groups enabled", "canvas", "groups_enabled", "groups_enabled") }}
-    {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled", "blackboard_files_enabled") }}
-    {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", "microsoft_onedrive.files_enabled") }}
+    {{ checkbox_field("Sections enabled", "canvas", "sections_enabled") }}
+    {{ checkbox_field("Groups enabled", "canvas", "groups_enabled") }}
+    {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled") }}
+    {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled") }}
 
     {% call field_body(label="") %}
         <input type="submit" class="button is-primary" value="Save" />
