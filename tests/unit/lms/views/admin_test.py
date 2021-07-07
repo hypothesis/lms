@@ -87,6 +87,7 @@ class TestAdminViews:
             ("canvas", "groups_enabled", "groups_enabled"),
             ("canvas", "sections_enabled", "sections_enabled"),
             ("blackboard", "files_enabled", "blackboard_files_enabled"),
+            ("microsoft_onedrive", "files_enabled", "microsoft_onedrive.files_enabled"),
         ),
     )
     @pytest.mark.parametrize("enabled", (True, False))

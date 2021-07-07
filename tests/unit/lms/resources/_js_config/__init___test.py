@@ -42,6 +42,7 @@ class TestEnableContentItemSelectionMode:
             ("blackboard_config", "blackboard"),
             ("canvas_config", "canvas"),
             ("google_files_config", "google"),
+            ("microsoft_onedrive", "microsoftOneDrive"),
             ("vital_source_config", "vitalSource"),
         ),
     )

@@ -72,6 +72,19 @@ class FilePickerConfig:
         }
 
     @classmethod
+    def microsoft_onedrive(cls, _context, request, application_instance):
+        enabled = application_instance.settings.get(
+            "microsoft_onedrive", "files_enabled"
+        )
+        if not enabled:
+            return {"enabled": False}
+
+        return {
+            "enabled": True,
+            "clientId": request.registry.settings["onedrive_client_id"],
+        }
+
+    @classmethod
     def vital_source_config(cls, _context, request, _application_instance):
         """Get Vital Source config."""
 

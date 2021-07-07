@@ -89,6 +89,25 @@ class TestFilePickerConfig:
             "origin": sentinel.origin if origin_from else None,
         }
 
+    @pytest.mark.parametrize("enabled", (True, False))
+    def test_microsoft_onedrive(
+        self, context, pyramid_request, application_instance, enabled
+    ):
+        pyramid_request.registry.settings["onedrive_client_id"] = sentinel.client_id
+        application_instance.settings.set(
+            "microsoft_onedrive", "files_enabled", enabled
+        )
+
+        config = FilePickerConfig.microsoft_onedrive(
+            context, pyramid_request, application_instance
+        )
+
+        expected = {"enabled": enabled}
+        if enabled:
+            expected["clientId"] = sentinel.client_id
+
+        assert config == expected
+
     def test_vital_source_config(self, context, pyramid_request, application_instance):
         pyramid_request.feature.return_value = sentinel.enabled
 
