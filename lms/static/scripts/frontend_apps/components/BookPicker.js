@@ -76,7 +76,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       onCancel={onCancel}
       title={
         step === 'select-book'
-          ? 'Paste URL to VitalSource book'
+          ? 'Paste link to VitalSource book'
           : 'Select chapter'
       }
       buttons={[

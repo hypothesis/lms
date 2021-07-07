@@ -11,17 +11,30 @@ import { useRef, useState } from 'preact/hooks';
 import { useService, VitalSourceService } from '../services';
 
 /**
- * @typedef {import('../api-types').Book} Book
+ * A naive regex matcher for a VBID in a URL-like string.
+ *
+ * @param {string} url
+ * @returns {string|null} VBID, or `null` if nothing looks like a VBID in `url`
  */
+const bookIDFromURL = url => {
+  const bookIdPattern = /book\/([0-9A-Z-]+)\/?/;
+  const matches = url.match(bookIdPattern);
+  if (!matches) {
+    return null;
+  }
+  return matches[1];
+};
 
 /**
+ * @typedef {import('../api-types').Book} Book
+ *
  * @typedef BookSelectorProps
  * @prop {Book|null} selectedBook
  * @prop {(b: Book|null) => void} onSelectBook - Callback invoked when user selects a book
  */
 
 /**
- * Component that prompts a user to enter/paste a URL to a VitalSource book.
+ * Component that prompts a user to paste a URL to a VitalSource book.
  *
  * @param {BookSelectorProps} props
  */
@@ -29,35 +42,29 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
   const vsService = useService(VitalSourceService);
 
   const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingBook, setIsLoadingBook] = useState(false);
 
   const [error, setError] = useState(/** @type {string|null} */ (null));
   const previousURL = useRef(/** @type {string|null} */ (null));
-
-  /**
-   * A naive regex matcher for a VBID in a URL-like string
-   *
-   * @param {string} url
-   * @returns {string|false}
-   */
-  const bookIDFromURL = url => {
-    const bookIdPattern = /book\/([0-9A-Z-]+)\/?/;
-    const matches = url.match(bookIdPattern);
-    return !!matches && matches[1];
-  };
 
   /**
    * Attempt to retrieve a book by bookID (vbid) via service
    *
    * @param {string} bookID
    */
-  const fetchBook = bookID => {
-    setIsLoading(true);
-    vsService
-      .fetchBook(bookID)
-      .then(onSelectBook)
-      .catch(err => setError(err.message))
-      .finally(() => setIsLoading(false));
+  const fetchBook = async bookID => {
+    if (isLoadingBook) {
+      return;
+    }
+    setIsLoadingBook(true);
+    try {
+      const book = await vsService.fetchBook(bookID);
+      onSelectBook(book);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoadingBook(false);
+    }
   };
 
   // Respond to changes in the input field
@@ -80,14 +87,14 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
       // Don't try to fetch, or set any errors, if the input field is empty
       const bookID = bookIDFromURL(url);
       if (!bookID) {
-        setError("That doesn't look like a VitalSource book URL");
+        setError("That doesn't look like a VitalSource book link");
         return;
       }
       fetchBook(bookID);
     }
   };
 
-  // Capture "Enter" and make sure it does not submit the whole shebang
+  // Capture "Enter" keystrokes, and avoid submitting the entire parent `<form>`
   /** @param {KeyboardEvent} event */
   const onKeyDown = event => {
     let handled = false;
@@ -104,7 +111,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
   return (
     <div className="hyp-u-layout-row hyp-u-horizontal-spacing BookSelector">
       <div className="BookSelector__thumbnail">
-        <Thumbnail isLoading={isLoading}>
+        <Thumbnail isLoading={isLoadingBook}>
           {selectedBook && (
             <img
               alt={`Book cover for ${selectedBook.title}`}
@@ -119,6 +126,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
 
         <TextInputWithButton>
           <TextInput
+            disabled={isLoadingBook}
             error={!!error}
             inputRef={inputRef}
             onChange={onChangeURL}
@@ -126,6 +134,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
             placeholder="e.g. https://bookshelf.vitalsource.com/#/book/012345678..."
           />
           <IconButton
+            disabled={isLoadingBook}
             icon="arrow-right"
             variant="dark"
             onClick={onChangeURL}
