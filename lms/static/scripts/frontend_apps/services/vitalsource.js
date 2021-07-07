@@ -34,7 +34,7 @@ export class VitalSourceService {
    *
    * @param {string} bookID
    * @param {number} [fetchDelay] - Dummy delay to simulate slow third-party
-   * @return {Promise<Book|null>}
+   * @return {Promise<Book>}
    */
   async fetchBook(bookID, fetchDelay = 500) {
     await delay(fetchDelay);
