@@ -30,7 +30,9 @@ PAGINATION_LIMIT = 200
 class BlackboardFilesAPIViews:
     def __init__(self, request):
         self.request = request
-        self.blackboard_api_client = request.find_service(name="blackboard_api_client")
+        self.blackboard_api_client = request.find_service(
+            name="basic_blackboard_api_client"
+        )
 
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
     def list_files(self):

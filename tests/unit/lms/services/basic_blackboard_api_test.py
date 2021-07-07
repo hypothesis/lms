@@ -3,8 +3,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import HTTPError
-from lms.services.blackboard_api import (
-    BlackboardAPIClient,
+from lms.services.basic_blackboard_api import (
+    BasicBlackboardAPIClient,
     BlackboardErrorResponseSchema,
     OAuth2TokenError,
     factory,
@@ -166,7 +166,7 @@ class TestBlackboardAPIClient:
 
     @pytest.fixture
     def svc(self, http_service, oauth2_token_service):
-        return BlackboardAPIClient(
+        return BasicBlackboardAPIClient(
             blackboard_host="blackboard.example.com",
             client_id=sentinel.client_id,
             client_secret=sentinel.client_secret,
@@ -186,14 +186,14 @@ class TestFactory:
         http_service,
         oauth2_token_service,
         pyramid_request,
-        BlackboardAPIClient,
+        BasicBlackboardAPIClient,
     ):
         application_instance = application_instance_service.get.return_value
         settings = pyramid_request.registry.settings
 
         service = factory(sentinel.context, pyramid_request)
 
-        BlackboardAPIClient.assert_called_once_with(
+        BasicBlackboardAPIClient.assert_called_once_with(
             blackboard_host=application_instance.lms_host(),
             client_id=settings["blackboard_api_client_id"],
             client_secret=settings["blackboard_api_client_secret"],
@@ -201,16 +201,16 @@ class TestFactory:
             http_service=http_service,
             oauth2_token_service=oauth2_token_service,
         )
-        assert service == BlackboardAPIClient.return_value
+        assert service == BasicBlackboardAPIClient.return_value
 
     @pytest.fixture(autouse=True)
-    def BlackboardAPIClient(self, patch):
-        return patch("lms.services.blackboard_api.BlackboardAPIClient")
+    def BasicBlackboardAPIClient(self, patch):
+        return patch("lms.services.basic_blackboard_api.BasicBlackboardAPIClient")
 
 
 @pytest.fixture(autouse=True)
 def OAuthTokenResponseSchema(patch):
-    return patch("lms.services.blackboard_api.OAuthTokenResponseSchema")
+    return patch("lms.services.basic_blackboard_api.OAuthTokenResponseSchema")
 
 
 @pytest.fixture
