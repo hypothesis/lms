@@ -18,19 +18,19 @@ class TestBlackboardListFilesSchema:
 
         assert result == [
             {
-                "id": "blackboard://content-resource/_7851_0/",
+                "id": "_7851_0",
                 "updated_at": "2008-05-06T07:26:35.000z",
                 "display_name": "File_0.pdf",
                 "type": "File",
             },
             {
-                "id": "blackboard://content-resource/_7851_1/",
+                "id": "_7851_1",
                 "updated_at": "1983-05-26T02:37:23.000z",
                 "display_name": "File_1.pdf",
                 "type": "File",
             },
             {
-                "id": "blackboard://content-resource/_7851_2/",
+                "id": "_7851_2",
                 "updated_at": "1983-05-26T02:37:23.000z",
                 "display_name": "Folder_1",
                 "type": "Folder",

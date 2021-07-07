@@ -44,6 +44,8 @@ class BlackboardErrorResponseSchema(RequestsResponseSchema):
 
 
 class BlackboardAPIClient:
+    """A low-level Blackboard API client."""
+
     def __init__(
         self,
         blackboard_host,

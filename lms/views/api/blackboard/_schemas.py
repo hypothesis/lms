@@ -20,11 +20,6 @@ class _FileSchema(Schema):
     type = fields.Str(required=True)
     mime_type = fields.Str(data_key="mimeType")
 
-    @post_load
-    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
-        data["id"] = f"blackboard://content-resource/{data['id']}/"
-        return data
-
 
 class BlackboardListFilesSchema(RequestsResponseSchema):
     """Schema for Blackboard API /courses/{courseId}/resources responses."""
@@ -33,19 +28,7 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
 
     @post_load
     def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
-        pdf_files = []
-
-        for result in data["results"]:
-            if (
-                result["type"] == "Folder"
-                or result.get("mime_type") == "application/pdf"
-            ):
-                pdf_files.append(result)
-
-                # Delete mime_type: we don't want to send it to the frontend.
-                result.pop("mime_type", None)
-
-        return pdf_files
+        return data["results"]
 
 
 class BlackboardPublicURLSchema(RequestsResponseSchema, _FileSchema):

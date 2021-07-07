@@ -24,6 +24,9 @@ def includeme(config):
         "lms.services.blackboard_api.factory", name="blackboard_api_client"
     )
     config.register_service_factory(
+        "lms.services.blackboard.factory", name="blackboard"
+    )
+    config.register_service_factory(
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
