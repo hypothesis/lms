@@ -93,7 +93,7 @@ marshmallow==3.12.2
     #   webargs
 matplotlib-inline==0.1.2
     # via ipython
-newrelic==6.4.3.160
+newrelic==6.4.4.161
     # via -r requirements/requirements.txt
 oauthlib==3.1.1
     # via
