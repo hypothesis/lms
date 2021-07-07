@@ -82,12 +82,12 @@ class TestAdminViews:
         )
 
     @pytest.mark.parametrize(
-        "setting,sub_setting,field_name",
+        "setting,sub_setting",
         (
-            ("canvas", "groups_enabled", "groups_enabled"),
-            ("canvas", "sections_enabled", "sections_enabled"),
-            ("blackboard", "files_enabled", "blackboard_files_enabled"),
-            ("microsoft_onedrive", "files_enabled", "microsoft_onedrive.files_enabled"),
+            ("canvas", "groups_enabled"),
+            ("canvas", "sections_enabled"),
+            ("blackboard", "files_enabled"),
+            ("microsoft_onedrive", "files_enabled"),
         ),
     )
     @pytest.mark.parametrize("enabled", (True, False))
@@ -97,12 +97,11 @@ class TestAdminViews:
         application_instance_service,
         setting,
         sub_setting,
-        field_name,
         enabled,
     ):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
         if enabled:
-            pyramid_request.params[field_name] = "on"
+            pyramid_request.params[f"{setting}.{sub_setting}"] = "on"
 
         AdminViews(pyramid_request).update_instance()
 

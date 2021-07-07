@@ -81,13 +81,13 @@ class AdminViews:
     def update_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["consumer_key"])
 
-        for setting, sub_setting, form_field in (
-            ("canvas", "sections_enabled", "sections_enabled"),
-            ("canvas", "groups_enabled", "groups_enabled"),
-            ("blackboard", "files_enabled", "blackboard_files_enabled"),
-            ("microsoft_onedrive", "files_enabled", "microsoft_onedrive.files_enabled"),
+        for setting, sub_setting in (
+            ("canvas", "sections_enabled"),
+            ("canvas", "groups_enabled"),
+            ("blackboard", "files_enabled"),
+            ("microsoft_onedrive", "files_enabled"),
         ):
-            enabled = self.request.params.get(form_field) == "on"
+            enabled = self.request.params.get(f"{setting}.{sub_setting}") == "on"
             ai.settings.set(setting, sub_setting, enabled)
 
         self.request.session.flash(
