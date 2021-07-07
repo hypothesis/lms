@@ -34,7 +34,7 @@ hupper==1.10.2
     # via pyramid
 idna==2.10
     # via requests
-importlib_resources==5.2.0
+importlib-resources==5.2.0
     # via
     #   -r requirements/requirements.in
     #   h-api
@@ -49,7 +49,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   pyramid-jinja2
-marshmallow==3.12.1
+marshmallow==3.12.2
     # via
     #   -r requirements/requirements.in
     #   webargs
