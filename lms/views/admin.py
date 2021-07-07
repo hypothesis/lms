@@ -85,6 +85,7 @@ class AdminViews:
             ("canvas", "sections_enabled", "sections_enabled"),
             ("canvas", "groups_enabled", "groups_enabled"),
             ("blackboard", "files_enabled", "blackboard_files_enabled"),
+            ("microsoft_onedrive", "files_enabled", "microsoft_onedrive.files_enabled"),
         ):
             enabled = self.request.params.get(form_field) == "on"
             ai.settings.set(setting, sub_setting, enabled)
