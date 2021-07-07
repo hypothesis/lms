@@ -43,7 +43,9 @@ class BlackboardErrorResponseSchema(RequestsResponseSchema):
             return {}
 
 
-class BlackboardAPIClient:
+class BasicBlackboardAPIClient:
+    """A low-level Blackboard API client."""
+
     def __init__(
         self,
         blackboard_host,
@@ -115,7 +117,7 @@ def factory(_context, request):
     application_instance = request.find_service(name="application_instance").get()
     settings = request.registry.settings
 
-    return BlackboardAPIClient(
+    return BasicBlackboardAPIClient(
         blackboard_host=application_instance.lms_host(),
         client_id=settings["blackboard_api_client_id"],
         client_secret=settings["blackboard_api_client_secret"],
