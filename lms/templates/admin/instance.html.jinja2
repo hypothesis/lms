@@ -1,199 +1,60 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
-Application instance {{instance.consumer_key}}
+    Application instance {{instance.consumer_key}}
 {% endblock %}
 
+{% macro field_body(label) %}
+    <div class="field is-horizontal">
+        <div class="field-label is-normal">
+            <label class="label">{{ label }}</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <div class="control is-expanded">
+                    {{ caller() }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
 
+{% macro text_field(label, value) %}
+    {% call field_body(label) %}
+        <input class="input" disabled type="text" value="{{value}}">
+    {% endcall %}
+{% endmacro %}
+
+{%  macro checkbox_field(label, setting, sub_setting, field_name) %}
+    {% call field_body(label) %}
+        <label class="checkbox">
+          <input {% if instance.settings.get(setting, sub_setting) %}checked {% endif%} type="checkbox" name="{{ field_name }}">
+        </label>
+    {% endcall %}
+{% endmacro %}
 
 {% block content %}
 <form method="POST" action="{{ request.route_url("admin.instance", consumer_key=instance.consumer_key) }}">
-    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">Consumer key</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.consumer_key}}">
-          </p>
-        </div>
-      </div>
-    </div>
+    <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">LMS URL</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.lms_url}}">
-          </p>
-        </div>
-      </div>
-    </div>
+    {{ text_field("Consumer key", instance.consumer_key) }}
+    {{ text_field("LMS URL", instance.lms_url) }}
 
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer instance guid</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_instance_guid}}">
-          </p>
-        </div>
-      </div>
-    </div>
+    {{ text_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
+    {{ text_field("Tool consumer info product family code", instance.tool_consumer_info_product_family_code) }}
+    {{ text_field("Tool consumer instance description", instance.tool_consumer_instance_description) }}
+    {{ text_field("Tool consumer instance URL", instance.tool_consumer_instance_url) }}
+    {{ text_field("Tool consumer instance name", instance.tool_consumer_instance_name) }}
+    {{ text_field("Tool consumer instance contact email", instance.tool_consumer_instance_contact_email) }}
+    {{ text_field("Tool consumer info version", instance.tool_consumer_info_version) }}
 
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer info product family code</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_info_product_family_code}}">
-          </p>
-        </div>
-      </div>
-    </div>
+    {{ text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
 
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer instance description</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_instance_description}}">
-          </p>
-        </div>
-      </div>
-    </div>
+    {{ checkbox_field("Sections enabled", "canvas", "sections_enabled", "sections_enabled") }}
+    {{ checkbox_field("Groups enabled", "canvas", "groups_enabled", "groups_enabled") }}
+    {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled", "blackboard_files_enabled") }}
 
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer instance url</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_instance_url}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer instance name</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_instance_name}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer instance contact email</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_instance_contact_email}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">tool consumer info version</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.tool_consumer_info_version}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label is-normal">
-        <label class="label">custom canvas api domain</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control is-expanded">
-            <input class="input" disabled type="text" value="{{instance.custom_canvas_api_domain}}">
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">Sections enabled
-      </div>
-      <div class="field-body">
-        <div class="field is-narrow">
-          <div class="control">
-            <label class="checkbox">
-              <input {% if instance.settings.get("canvas", "sections_enabled") %}checked {% endif%} type="checkbox" name="sections_enabled">
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">Groups enabled
-      </div>
-      <div class="field-body">
-        <div class="field is-narrow">
-          <div class="control">
-            <label class="checkbox">
-              <input {% if instance.settings.get("canvas", "groups_enabled") %}checked {% endif%} type="checkbox" name="groups_enabled">
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">Blackboard files enabled
-      </div>
-      <div class="field-body">
-        <div class="field is-narrow">
-          <div class="control">
-            <label class="checkbox">
-              <input {% if instance.settings.get("blackboard", "files_enabled") %}checked {% endif%} type="checkbox" name="blackboard_files_enabled">
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <!-- Left empty for spacing -->
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            <input type="submit" class="button is-primary" value="Save"/>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% call field_body(label="") %}
+        <input type="submit" class="button is-primary" value="Save" />
+    {% endcall %}
 </form>
 {% endblock %}
