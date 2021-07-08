@@ -18,14 +18,22 @@ class TestBlackboardListFilesSchema:
 
         assert result == [
             {
-                "id": "blackboard://content-resource/_7851_0/",
-                "updated_at": "2008-05-06T07:26:35.000z",
-                "display_name": "File_0.pdf",
+                "id": "_7851_0",
+                "modified": "2008-05-06T07:26:35.000z",
+                "name": "File_0.pdf",
+                "mimeType": "application/pdf",
             },
             {
-                "id": "blackboard://content-resource/_7851_1/",
-                "updated_at": "1983-05-26T02:37:23.000z",
-                "display_name": "File_1.pdf",
+                "id": "_7851_1",
+                "modified": "1983-05-26T02:37:23.000z",
+                "name": "File_1.pdf",
+                "mimeType": "application/pdf",
+            },
+            {
+                "id": "_7851_2",
+                "modified": "1980-05-26T02:37:23.000z",
+                "name": "NOT_A_PDF.jpeg",
+                "mimeType": "image/jpeg",
             },
         ]
 
@@ -67,7 +75,7 @@ class TestBlackboardPublicURLSchema:
     def test_it_raises_if_a_the_body_isnt_a_dict(self):
         assert_raises(BlackboardPublicURLSchema, [])
 
-    @pytest.mark.parametrize("missing_field", ["id", "modified", "name"])
+    @pytest.mark.parametrize("missing_field", ["downloadUrl"])
     def test_it_raises_if_a_required_field_is_missing(
         self, single_file_response, missing_field
     ):
@@ -75,7 +83,7 @@ class TestBlackboardPublicURLSchema:
 
         assert_raises(BlackboardPublicURLSchema, single_file_response)
 
-    @pytest.mark.parametrize("invalid_field", ["id", "modified", "name"])
+    @pytest.mark.parametrize("invalid_field", ["downloadUrl"])
     def test_it_raises_if_a_field_is_invalid(self, single_file_response, invalid_field):
         single_file_response[invalid_field] = 23
 

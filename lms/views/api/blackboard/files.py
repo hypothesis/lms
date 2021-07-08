@@ -23,9 +23,25 @@ class BlackboardFilesAPIViews:
     def list_files(self):
         """Return the list of files in the given course."""
 
-        return self.blackboard_api_client.list_files(
+        files = self.blackboard_api_client.list_files(
             self.request.matchdict["course_id"]
         )
+
+        pdf_files = []
+
+        for file in files:
+            if file.get("mimeType") != "application/pdf":
+                continue
+
+            pdf_files.append(
+                {
+                    "id": f"blackboard://content-resource/{file['id']}/",
+                    "display_name": file["name"],
+                    "updated_at": file["modified"],
+                }
+            )
+
+        return pdf_files
 
     @view_config(request_method="GET", route_name="blackboard_api.files.via_url")
     def via_url(self):
