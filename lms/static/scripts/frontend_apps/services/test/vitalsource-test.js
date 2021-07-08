@@ -2,6 +2,27 @@ import { APIError } from '../../utils/api';
 import { VitalSourceService } from '../vitalsource';
 
 describe('VitalSourceService', () => {
+  describe('#fetchBook', () => {
+    it('returns book data', async () => {
+      const service = new VitalSourceService({ authToken: 'dummy-token' });
+      const data = await service.fetchBook('BOOKSHELF-TUTORIAL', 1 /* delay */);
+
+      assert.hasAllKeys(data, ['id', 'title', 'cover_image']);
+    });
+
+    it('throws if a book is not found', async () => {
+      const service = new VitalSourceService({ authToken: 'dummy-token' });
+      let err;
+      try {
+        await service.fetchBook('unknown-book-id', 1 /* delay */);
+      } catch (e) {
+        err = e;
+      }
+      assert.instanceOf(err, APIError);
+      assert.equal(err.message, 'Book not found');
+    });
+  });
+
   describe('#fetchBooks', () => {
     it('returns book data', async () => {
       const service = new VitalSourceService({ authToken: 'dummy-token' });
