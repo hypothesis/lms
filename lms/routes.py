@@ -43,6 +43,10 @@ def includeme(config):
         "blackboard_api.courses.files.list", "/api/blackboard/courses/{course_id}/files"
     )
     config.add_route(
+        "blackboard_api.courses.folders.files.list",
+        "/api/blackboard/courses/{course_id}/folders/{folder_id}/files",
+    )
+    config.add_route(
         "blackboard_api.files.via_url", "/api/blackboard/courses/{course_id}/via_url"
     )
 
