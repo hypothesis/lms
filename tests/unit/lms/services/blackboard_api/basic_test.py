@@ -2,13 +2,8 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services import HTTPError
-from lms.services.basic_blackboard_api import (
-    BasicBlackboardAPIClient,
-    BlackboardErrorResponseSchema,
-    OAuth2TokenError,
-    factory,
-)
+from lms.services.blackboard_api.basic import BasicClient, BlackboardErrorResponseSchema
+from lms.services.exceptions import HTTPError, OAuth2TokenError
 from lms.validation import ValidationError
 from tests import factories
 
@@ -54,10 +49,10 @@ class TestBlackboardErrorResponseSchema:
         assert BlackboardErrorResponseSchema(None).parse() == {}
 
 
-class TestBlackboardAPIClient:
+class TestBasicClient:
     def test_get_token(
         self,
-        svc,
+        basic_client,
         http_service,
         oauth2_token_service,
         OAuthTokenResponseSchema,
@@ -69,7 +64,7 @@ class TestBlackboardAPIClient:
             "expires_in": sentinel.expires_in,
         }
 
-        svc.get_token(sentinel.authorization_code)
+        basic_client.get_token(sentinel.authorization_code)
 
         # It calls the Blackboard API to get the access token.
         http_service.post.assert_called_once_with(
@@ -91,23 +86,23 @@ class TestBlackboardAPIClient:
         )
 
     def test_get_token_raises_HTTPError_if_the_HTTP_request_fails(
-        self, svc, http_service
+        self, basic_client, http_service
     ):
         http_service.post.side_effect = HTTPError
 
         with pytest.raises(HTTPError):
-            svc.get_token(sentinel.authorization_code)
+            basic_client.get_token(sentinel.authorization_code)
 
     def test_get_token_raises_ValidationError_if_Blackboards_response_is_invalid(
-        self, svc, oauth_token_response_schema
+        self, basic_client, oauth_token_response_schema
     ):
         oauth_token_response_schema.parse.side_effect = ValidationError({})
 
         with pytest.raises(ValidationError):
-            svc.get_token(sentinel.authorization_code)
+            basic_client.get_token(sentinel.authorization_code)
 
     def test_get_token_if_theres_no_refresh_token_or_expires_in(
-        self, svc, oauth2_token_service, oauth_token_response_schema
+        self, basic_client, oauth2_token_service, oauth_token_response_schema
     ):
         # refresh_token and expires_in are optional fields in
         # OAuthTokenResponseSchema so get_token() has to still work if they're
@@ -116,7 +111,7 @@ class TestBlackboardAPIClient:
             "access_token": sentinel.access_token
         }
 
-        svc.get_token(sentinel.authorization_code)
+        basic_client.get_token(sentinel.authorization_code)
 
         oauth2_token_service.save.assert_called_once_with(
             sentinel.access_token, None, None
@@ -133,14 +128,14 @@ class TestBlackboardAPIClient:
             ("/foo/bar/", "https://blackboard.example.com/foo/bar/"),
         ],
     )
-    def test_request(self, svc, http_service, path, expected_url):
-        response = svc.request("GET", path)
+    def test_request(self, basic_client, http_service, path, expected_url):
+        response = basic_client.request("GET", path)
 
         http_service.request.assert_called_once_with("GET", expected_url, oauth=True)
         assert response == http_service.request.return_value
 
     def test_request_raises_OAuth2TokenError_if_our_access_token_isnt_working(
-        self, svc, http_service
+        self, basic_client, http_service
     ):
         http_service.request.side_effect = HTTPError(
             factories.requests.Response(
@@ -149,10 +144,10 @@ class TestBlackboardAPIClient:
         )
 
         with pytest.raises(OAuth2TokenError):
-            svc.request("GET", "foo/bar/")
+            basic_client.request("GET", "foo/bar/")
 
     def test_request_raises_HTTPError_if_the_HTTP_request_fails(
-        self, svc, http_service
+        self, basic_client, http_service
     ):
         http_service.request.side_effect = HTTPError(
             factories.requests.Response(
@@ -162,11 +157,11 @@ class TestBlackboardAPIClient:
         )
 
         with pytest.raises(HTTPError):
-            svc.request("GET", "foo/bar/")
+            basic_client.request("GET", "foo/bar/")
 
     @pytest.fixture
-    def svc(self, http_service, oauth2_token_service):
-        return BasicBlackboardAPIClient(
+    def basic_client(self, http_service, oauth2_token_service):
+        return BasicClient(
             blackboard_host="blackboard.example.com",
             client_id=sentinel.client_id,
             client_secret=sentinel.client_secret,
@@ -176,41 +171,9 @@ class TestBlackboardAPIClient:
         )
 
 
-@pytest.mark.usefixtures(
-    "application_instance_service", "http_service", "oauth2_token_service"
-)
-class TestFactory:
-    def test_it(
-        self,
-        application_instance_service,
-        http_service,
-        oauth2_token_service,
-        pyramid_request,
-        BasicBlackboardAPIClient,
-    ):
-        application_instance = application_instance_service.get.return_value
-        settings = pyramid_request.registry.settings
-
-        service = factory(sentinel.context, pyramid_request)
-
-        BasicBlackboardAPIClient.assert_called_once_with(
-            blackboard_host=application_instance.lms_host(),
-            client_id=settings["blackboard_api_client_id"],
-            client_secret=settings["blackboard_api_client_secret"],
-            redirect_uri=pyramid_request.route_url("blackboard_api.oauth.callback"),
-            http_service=http_service,
-            oauth2_token_service=oauth2_token_service,
-        )
-        assert service == BasicBlackboardAPIClient.return_value
-
-    @pytest.fixture(autouse=True)
-    def BasicBlackboardAPIClient(self, patch):
-        return patch("lms.services.basic_blackboard_api.BasicBlackboardAPIClient")
-
-
 @pytest.fixture(autouse=True)
 def OAuthTokenResponseSchema(patch):
-    return patch("lms.services.basic_blackboard_api.OAuthTokenResponseSchema")
+    return patch("lms.services.blackboard_api.basic.OAuthTokenResponseSchema")
 
 
 @pytest.fixture

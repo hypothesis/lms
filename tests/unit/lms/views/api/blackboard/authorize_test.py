@@ -39,16 +39,16 @@ class TestAuthorize:
         )
 
 
-@pytest.mark.usefixtures("basic_blackboard_api_client")
+@pytest.mark.usefixtures("blackboard_api_client")
 class TestOAuth2Redirect:
     def test_it_gets_a_new_access_token_for_the_user(
-        self, pyramid_request, basic_blackboard_api_client
+        self, pyramid_request, blackboard_api_client
     ):
         pyramid_request.params["code"] = "test_code"
 
         result = oauth2_redirect(pyramid_request)
 
-        basic_blackboard_api_client.get_token.assert_called_once_with("test_code")
+        blackboard_api_client.api.get_token.assert_called_once_with("test_code")
         assert result == {}
 
 
