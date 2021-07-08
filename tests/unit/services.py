@@ -6,7 +6,7 @@ from lms.models import ApplicationSettings
 from lms.services import CanvasService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
-from lms.services.basic_blackboard_api import BasicBlackboardAPIClient
+from lms.services.blackboard_api.basic import BasicClient
 from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
@@ -31,7 +31,6 @@ __all__ = (
     # Individual services
     "application_instance_service",
     "assignment_service",
-    "basic_blackboard_api_client",
     "blackboard_api_client",
     "canvas_api_client",
     "canvas_service",
@@ -97,15 +96,14 @@ def assignment_service(mock_service):
 
 
 @pytest.fixture
-def basic_blackboard_api_client(mock_service):
-    return mock_service(
-        BasicBlackboardAPIClient, service_name="basic_blackboard_api_client"
-    )
-
-
-@pytest.fixture
 def blackboard_api_client(mock_service):
-    return mock_service(BlackboardAPIClient, service_name="blackboard_api_client")
+    blackboard_api_client = mock_service(
+        BlackboardAPIClient, service_name="blackboard_api_client"
+    )
+    blackboard_api_client.api = mock.create_autospec(
+        BasicClient, instance=True, spec_set=True
+    )
+    return blackboard_api_client
 
 
 @pytest.fixture

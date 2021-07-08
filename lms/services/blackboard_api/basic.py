@@ -43,7 +43,7 @@ class BlackboardErrorResponseSchema(RequestsResponseSchema):
             return {}
 
 
-class BasicBlackboardAPIClient:
+class BasicClient:
     """A low-level Blackboard API client."""
 
     def __init__(
@@ -84,10 +84,10 @@ class BasicBlackboardAPIClient:
         validated_data = OAuthTokenResponseSchema(response).parse()
 
         # Save the access token to the DB.
-        # pylint: disable=no-member
         self._oauth2_token_service.save(
             validated_data["access_token"],
             validated_data.get("refresh_token"),
+            # pylint:disable=no-member
             validated_data.get("expires_in"),
         )
 
@@ -111,17 +111,3 @@ class BasicBlackboardAPIClient:
             path = "/learn/api/public/v1/" + path
 
         return f"https://{self.blackboard_host}{path}"
-
-
-def factory(_context, request):
-    application_instance = request.find_service(name="application_instance").get()
-    settings = request.registry.settings
-
-    return BasicBlackboardAPIClient(
-        blackboard_host=application_instance.lms_host(),
-        client_id=settings["blackboard_api_client_id"],
-        client_secret=settings["blackboard_api_client_secret"],
-        redirect_uri=request.route_url("blackboard_api.oauth.callback"),
-        http_service=request.find_service(name="http"),
-        oauth2_token_service=request.find_service(name="oauth2_token"),
-    )

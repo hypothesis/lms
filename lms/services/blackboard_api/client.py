@@ -15,6 +15,8 @@ PAGINATION_LIMIT = 200
 class BlackboardAPIClient:
     """A high-level Blackboard API client."""
 
+    api = None
+
     def __init__(self, basic_client):
         self.api = basic_client
 
