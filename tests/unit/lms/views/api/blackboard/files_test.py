@@ -6,43 +6,77 @@ pytestmark = pytest.mark.usefixtures("oauth2_token_service", "blackboard_api_cli
 
 
 class TestListFiles:
-    def test_it(self, view, blackboard_api_client):
+    def test_it_returns_the_courses_top_level_contents(
+        self, view, blackboard_api_client, pyramid_request
+    ):
+        files = view()
+
+        blackboard_api_client.list_files.assert_called_once_with("COURSE_ID", None)
+        assert files == [
+            {
+                "id": "blackboard://content-resource/_7851_0/",
+                "updated_at": "2008-05-06T07:26:35.000z",
+                "display_name": "File_1.pdf",
+                "type": "File",
+                "parent_id": None,
+            },
+            {
+                "id": "_7851_1",
+                "updated_at": "1983-05-26T02:37:23.000z",
+                "display_name": "Folder_1",
+                "type": "Folder",
+                "parent_id": None,
+                "contents": {
+                    "authUrl": pyramid_request.route_url(
+                        "blackboard_api.oauth.authorize"
+                    ),
+                    "path": pyramid_request.route_path(
+                        "blackboard_api.courses.folders.files.list",
+                        course_id="COURSE_ID",
+                        folder_id="_7851_1",
+                    ),
+                },
+            },
+        ]
+
+    def test_if_given_a_folder_id_it_returns_the_folders_contents(
+        self, view, blackboard_api_client, pyramid_request
+    ):
+        pyramid_request.matchdict["folder_id"] = "FOLDER_ID"
+
+        files = view()
+
+        blackboard_api_client.list_files.assert_called_once_with(
+            "COURSE_ID", "FOLDER_ID"
+        )
+        for file in files:
+            assert file["parent_id"] == "FOLDER_ID"
+
+    @pytest.fixture
+    def blackboard_api_client(self, blackboard_api_client):
         blackboard_api_client.list_files.return_value = [
             {
                 "id": "_7851_0",
                 "modified": "2008-05-06T07:26:35.000z",
-                "name": "File_0.pdf",
+                "name": "File_1.pdf",
                 "mimeType": "application/pdf",
+                "type": "File",
             },
             {
                 "id": "_7851_1",
                 "modified": "1983-05-26T02:37:23.000z",
-                "name": "File_1.pdf",
-                "mimeType": "application/pdf",
+                "name": "Folder_1",
+                "type": "Folder",
             },
             {
                 "id": "_7851_2",
                 "modified": "1980-05-26T02:37:23.000z",
                 "name": "NOT_A_PDF.jpeg",
                 "mimeType": "image/jpeg",
+                "type": "File",
             },
         ]
-
-        files = view()
-
-        blackboard_api_client.list_files.assert_called_once_with("COURSE_ID")
-        assert files == [
-            {
-                "id": "blackboard://content-resource/_7851_0/",
-                "updated_at": "2008-05-06T07:26:35.000z",
-                "display_name": "File_0.pdf",
-            },
-            {
-                "id": "blackboard://content-resource/_7851_1/",
-                "updated_at": "1983-05-26T02:37:23.000z",
-                "display_name": "File_1.pdf",
-            },
-        ]
+        return blackboard_api_client
 
     @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):

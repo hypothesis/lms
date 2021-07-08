@@ -29,26 +29,37 @@ class BlackboardAPIClient:
         """
         self._api.get_token(authorization_code)
 
-    def list_files(self, course_id):
-        """Return the list of files in the given course."""
+    def list_files(self, course_id, folder_id=None):
+        """Return the list of files in the given course or folder."""
 
-        files = []
-        path = f"courses/uuid:{course_id}/resources?" + urlencode(
-            {
-                "type": "file",
-                "limit": PAGINATION_LIMIT,
-                "fields": "id,name,modified,mimeType",
-            }
+        path = f"courses/uuid:{course_id}/resources"
+
+        if folder_id:
+            # Get the files and folders in the given folder instead of the
+            # course's top-level files and folders.
+            path += f"/{folder_id}/children"
+
+        path = (
+            path
+            + "?"
+            + urlencode(
+                {
+                    "limit": PAGINATION_LIMIT,
+                    "fields": "id,name,type,modified,mimeType",
+                }
+            )
         )
+
+        results = []
 
         for _ in range(PAGINATION_MAX_REQUESTS):
             response = self._api.request("GET", path)
-            files.extend(BlackboardListFilesSchema(response).parse())
+            results.extend(BlackboardListFilesSchema(response).parse())
             path = response.json().get("paging", {}).get("nextPage")
             if not path:
                 break
 
-        return files
+        return results
 
     def public_url(self, course_id, file_id):
         """Return a public URL for the given file."""

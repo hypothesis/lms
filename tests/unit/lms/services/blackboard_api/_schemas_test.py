@@ -20,20 +20,22 @@ class TestBlackboardListFilesSchema:
             {
                 "id": "_7851_0",
                 "modified": "2008-05-06T07:26:35.000z",
-                "name": "File_0.pdf",
+                "name": "File_1.pdf",
                 "mimeType": "application/pdf",
+                "type": "File",
             },
             {
                 "id": "_7851_1",
                 "modified": "1983-05-26T02:37:23.000z",
-                "name": "File_1.pdf",
-                "mimeType": "application/pdf",
+                "name": "Folder_1",
+                "type": "Folder",
             },
             {
                 "id": "_7851_2",
                 "modified": "1980-05-26T02:37:23.000z",
                 "name": "NOT_A_PDF.jpeg",
                 "mimeType": "image/jpeg",
+                "type": "File",
             },
         ]
 
@@ -104,25 +106,27 @@ def list_files_response():
             {
                 "id": "_7851_0",
                 "modified": "2008-05-06T07:26:35.000z",
-                "name": "File_0.pdf",
+                "name": "File_1.pdf",
                 "downloadUrl": "https://example.com/file0.pdf",
                 "unknown_field": "this_should_be_excluded",
                 "mimeType": "application/pdf",
+                "type": "File",
             },
+            # A folder.
             {
                 "id": "_7851_1",
                 "modified": "1983-05-26T02:37:23.000z",
-                "name": "File_1.pdf",
-                "downloadUrl": "https://example.com/file1.pdf",
-                "mimeType": "application/pdf",
+                "name": "Folder_1",
+                "type": "Folder",
             },
-            # A non-PDF file. This should get filtered out.
+            # A non-PDF file.
             {
                 "id": "_7851_2",
                 "modified": "1980-05-26T02:37:23.000z",
                 "name": "NOT_A_PDF.jpeg",
                 "downloadUrl": "https://example.com/NOT_A_PDF.jpeg",
                 "mimeType": "image/jpeg",
+                "type": "File",
             },
         ]
     }

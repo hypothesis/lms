@@ -19,7 +19,7 @@ class TestGetToken:
 
 
 class TestListFiles:
-    def test_it(
+    def test_it_returns_the_courses_top_level_contents(
         self,
         svc,
         basic_client,
@@ -37,12 +37,26 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
+            "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
         )
         BlackboardListFilesSchema.assert_called_once_with(
             basic_client.request.return_value
         )
         assert files == blackboard_list_files_schema.parse.return_value
+
+    def test_if_given_a_folder_id_it_returns_the_folders_contents(
+        self,
+        svc,
+        basic_client,
+    ):
+        basic_client.request.return_value = factories.requests.Response(json_data={})
+
+        svc.list_files("COURSE_ID", "FOLDER_ID")
+
+        basic_client.request.assert_called_once_with(
+            "GET",
+            "courses/uuid:COURSE_ID/resources/FOLDER_ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
+        )
 
     def test_it_with_pagination(self, svc, basic_client, blackboard_list_files_schema):
         # Each response from the Blackboard API includes the path to the next
@@ -73,7 +87,7 @@ class TestListFiles:
         assert basic_client.request.call_args_list == [
             call(
                 "GET",
-                "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
+                "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
             ),
             call("GET", "PAGE_2_PATH"),
             call("GET", "PAGE_3_PATH"),

@@ -20,28 +20,45 @@ class BlackboardFilesAPIViews:
         self.blackboard_api_client = request.find_service(name="blackboard_api_client")
 
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
+    @view_config(
+        request_method="GET", route_name="blackboard_api.courses.folders.files.list"
+    )
     def list_files(self):
-        """Return the list of files in the given course."""
+        """Return the list of files in the given course or folder."""
 
-        files = self.blackboard_api_client.list_files(
-            self.request.matchdict["course_id"]
-        )
+        course_id = self.request.matchdict["course_id"]
+        folder_id = self.request.matchdict.get("folder_id")
 
-        pdf_files = []
+        results = self.blackboard_api_client.list_files(course_id, folder_id)
 
-        for file in files:
-            if file.get("mimeType") != "application/pdf":
-                continue
+        response_results = []
 
-            pdf_files.append(
-                {
-                    "id": f"blackboard://content-resource/{file['id']}/",
-                    "display_name": file["name"],
-                    "updated_at": file["modified"],
+        auth_url = self.request.route_url("blackboard_api.oauth.authorize")
+
+        for result in results:
+            response_result = {
+                "display_name": result["name"],
+                "updated_at": result["modified"],
+                "type": result["type"],
+                "parent_id": folder_id,
+            }
+
+            if result["type"] == "File" and result.get("mimeType") == "application/pdf":
+                response_result["id"] = f"blackboard://content-resource/{result['id']}/"
+                response_results.append(response_result)
+            elif result["type"] == "Folder":
+                response_result["id"] = result["id"]
+                response_result["contents"] = {
+                    "authUrl": auth_url,
+                    "path": self.request.route_path(
+                        "blackboard_api.courses.folders.files.list",
+                        course_id=course_id,
+                        folder_id=result["id"],
+                    ),
                 }
-            )
+                response_results.append(response_result)
 
-        return pdf_files
+        return response_results
 
     @view_config(request_method="GET", route_name="blackboard_api.files.via_url")
     def via_url(self):
