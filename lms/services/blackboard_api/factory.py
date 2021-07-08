@@ -1,4 +1,4 @@
-from lms.services.blackboard_api.basic import BasicClient
+from lms.services.blackboard_api._basic import BasicClient
 from lms.services.blackboard_api.client import BlackboardAPIClient
 
 

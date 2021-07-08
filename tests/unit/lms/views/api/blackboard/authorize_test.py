@@ -48,7 +48,7 @@ class TestOAuth2Redirect:
 
         result = oauth2_redirect(pyramid_request)
 
-        blackboard_api_client.api.get_token.assert_called_once_with("test_code")
+        blackboard_api_client.get_token.assert_called_once_with("test_code")
         assert result == {}
 
 

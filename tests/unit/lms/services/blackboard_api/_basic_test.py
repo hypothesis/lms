@@ -2,7 +2,10 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.blackboard_api.basic import BasicClient, BlackboardErrorResponseSchema
+from lms.services.blackboard_api._basic import (
+    BasicClient,
+    BlackboardErrorResponseSchema,
+)
 from lms.services.exceptions import HTTPError, OAuth2TokenError
 from lms.validation import ValidationError
 from tests import factories
@@ -173,7 +176,7 @@ class TestBasicClient:
 
 @pytest.fixture(autouse=True)
 def OAuthTokenResponseSchema(patch):
-    return patch("lms.services.blackboard_api.basic.OAuthTokenResponseSchema")
+    return patch("lms.services.blackboard_api._basic.OAuthTokenResponseSchema")
 
 
 @pytest.fixture

@@ -64,12 +64,6 @@ class BasicClient:
         self._oauth2_token_service = oauth2_token_service
 
     def get_token(self, authorization_code):
-        """
-        Get an access token from Blackboard and save it in the DB.
-
-        :raise services.HTTPError: if something goes wrong with the access
-            token request to Blackboard
-        """
         # Send a request to Blackboard to get an access token.
         response = self._http_service.post(
             self._api_url("oauth2/token"),
