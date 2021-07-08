@@ -2,13 +2,20 @@ from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 
-from lms.services.blackboard_api.basic import BasicClient
+from lms.services.blackboard_api._basic import BasicClient
 from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
     BlackboardAPIClient,
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, HTTPError
 from tests import factories
+
+
+class TestGetToken:
+    def test_it(self, svc, basic_client):
+        svc.get_token(sentinel.authorization_code)
+
+        basic_client.get_token.assert_called_once_with(sentinel.authorization_code)
 
 
 class TestListFiles:

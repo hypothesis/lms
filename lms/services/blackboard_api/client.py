@@ -15,10 +15,17 @@ PAGINATION_LIMIT = 200
 class BlackboardAPIClient:
     """A high-level Blackboard API client."""
 
-    api = None
-
     def __init__(self, basic_client):
-        self.api = basic_client
+        self._api = basic_client
+
+    def get_token(self, authorization_code):
+        """
+        Save a new Blackboard access token for the current user to the DB.
+
+        :raise services.HTTPError: if something goes wrong with the access
+            token request to Blackboard
+        """
+        self._api.get_token(authorization_code)
 
     def list_files(self, course_id):
         """Return the list of files in the given course."""
@@ -27,7 +34,7 @@ class BlackboardAPIClient:
         path = f"courses/uuid:{course_id}/resources?type=file&limit={PAGINATION_LIMIT}"
 
         for _ in range(PAGINATION_MAX_REQUESTS):
-            response = self.api.request("GET", path)
+            response = self._api.request("GET", path)
             files.extend(BlackboardListFilesSchema(response).parse())
             path = response.json().get("paging", {}).get("nextPage")
             if not path:
@@ -39,7 +46,7 @@ class BlackboardAPIClient:
         """Return a public URL for the given file."""
 
         try:
-            response = self.api.request(
+            response = self._api.request(
                 "GET", f"courses/uuid:{course_id}/resources/{file_id}"
             )
         except HTTPError as err:

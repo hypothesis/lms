@@ -49,7 +49,5 @@ def authorize(request):
     schema=OAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    request.find_service(name="blackboard_api_client").api.get_token(
-        request.params["code"]
-    )
+    request.find_service(name="blackboard_api_client").get_token(request.params["code"])
     return {}
