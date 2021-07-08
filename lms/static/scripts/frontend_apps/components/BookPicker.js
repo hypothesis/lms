@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { useService, VitalSourceService } from '../services';
 
-import BookList from './BookList';
+import BookSelector from './BookSelector';
 import ChapterList from './ChapterList';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -33,7 +33,6 @@ import ErrorDisplay from './ErrorDisplay';
 export default function BookPicker({ onCancel, onSelectBook }) {
   const vsService = useService(VitalSourceService);
 
-  const [bookList, setBookList] = useState(/** @type {Book[]|null} */ (null));
   const [chapterList, setChapterList] = useState(
     /** @type {Chapter[]|null} */ (null)
   );
@@ -60,16 +59,14 @@ export default function BookPicker({ onCancel, onSelectBook }) {
   );
 
   useEffect(() => {
-    if (step === 'select-book' && !bookList) {
-      vsService.fetchBooks().then(setBookList).catch(setError);
-    } else if (step === 'select-chapter' && !chapterList) {
+    if (step === 'select-chapter' && !chapterList) {
       const currentBook = /** @type {Book} */ (book);
       vsService
         .fetchChapters(currentBook.id)
         .then(setChapterList)
         .catch(setError);
     }
-  }, [book, bookList, step, chapterList, vsService]);
+  }, [book, step, chapterList, vsService]);
 
   const canSubmit =
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
@@ -77,7 +74,11 @@ export default function BookPicker({ onCancel, onSelectBook }) {
   return (
     <Modal
       onCancel={onCancel}
-      title={step === 'select-book' ? 'Select book' : 'Select chapter'}
+      title={
+        step === 'select-book'
+          ? 'Paste link to VitalSource book'
+          : 'Select chapter'
+      }
       buttons={[
         <LabeledButton
           key="submit"
@@ -100,13 +101,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       ]}
     >
       {step === 'select-book' && !error && (
-        <BookList
-          books={bookList || []}
-          isLoading={!bookList}
-          selectedBook={book}
-          onSelectBook={setBook}
-          onUseBook={confirmBook}
-        />
+        <BookSelector selectedBook={book} onSelectBook={setBook} />
       )}
       {step === 'select-chapter' && !error && (
         <ChapterList

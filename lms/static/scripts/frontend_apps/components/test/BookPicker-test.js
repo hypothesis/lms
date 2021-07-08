@@ -20,7 +20,6 @@ describe('BookPicker', () => {
 
   beforeEach(() => {
     fakeVitalSourceService = {
-      fetchBooks: sinon.stub().resolves(bookData.bookList),
       fetchChapters: sinon
         .stub()
         .callsFake(async bookID => bookData.chapterData[bookID]),
@@ -36,12 +35,14 @@ describe('BookPicker', () => {
     $imports.$restore();
   });
 
-  const selectBook = (wrapper, index = 0) => {
-    const bookList = wrapper.find('BookList');
-    const book = bookList.prop('books')[index];
+  const selectBook = wrapper => {
+    const bookSelector = wrapper.find('BookSelector');
+    const book = bookData.bookList[0];
+
     act(() => {
-      bookList.prop('onSelectBook')(book);
+      bookSelector.props().onSelectBook(book);
     });
+
     wrapper.update();
     return book;
   };
@@ -65,32 +66,31 @@ describe('BookPicker', () => {
     wrapper.update();
   };
 
-  it('fetches and displays book list when picker is opened', async () => {
+  it('renders book-selector component when picker is opened', () => {
     const picker = renderBookPicker();
 
-    // The book list should initially be empty and in a loading state.
-    let bookList = picker.find('BookList');
-    assert.deepEqual(bookList.prop('books'), []);
-    assert.isTrue(bookList.prop('isLoading'));
-    assert.calledOnce(fakeVitalSourceService.fetchBooks);
-
-    await waitForElement(picker, 'BookList[isLoading=false]');
-
-    // The book list should display details of books once fetched.
-    bookList = picker.find('BookList');
-    assert.deepEqual(bookList.prop('books'), bookData.bookList);
+    const bookSelector = picker.find('BookSelector');
+    // No book has been selected yet
+    assert.isNull(bookSelector.prop('selectedBook'));
   });
 
-  it('fetches and displays chapter list when a book is chosen', async () => {
-    // Wait for books to load and then pick the first one.
+  it('enables submit button when a book is selected', () => {
     const picker = renderBookPicker();
-    await waitForElement(picker, 'BookList[isLoading=false]');
+    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
 
-    const book = selectBook(picker);
+    assert.isTrue(picker.find(buttonSelector).props().disabled);
+    selectBook(picker);
+
+    assert.isFalse(picker.find(buttonSelector).props().disabled);
+    assert.equal(picker.find(buttonSelector).text(), 'Select book');
+  });
+
+  it('fetches chapters and renders chapter list when a book is selected', async () => {
+    const picker = renderBookPicker();
+    selectBook(picker);
+
     clickSelectButton(picker);
 
-    // After a book is chosen, the chapter list should appear in a loading state.
-    assert.isFalse(picker.exists('BookList'));
     let chapterList = picker.find('ChapterList');
     assert.isTrue(chapterList.exists());
     assert.equal(chapterList.prop('isLoading'), true);
@@ -103,13 +103,15 @@ describe('BookPicker', () => {
 
     // The list of chapters for the selected book should be presented once fetched.
     chapterList = picker.find('ChapterList');
-    assert.equal(chapterList.prop('chapters'), bookData.chapterData[book.id]);
+    assert.equal(
+      chapterList.prop('chapters'),
+      bookData.chapterData['BOOKSHELF-TUTORIAL']
+    );
   });
 
   it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
     const onSelectBook = sinon.stub();
     const picker = renderBookPicker({ onSelectBook });
-    await waitForElement(picker, 'BookList[isLoading=false]');
 
     const book = selectBook(picker);
     clickSelectButton(picker);
@@ -121,25 +123,11 @@ describe('BookPicker', () => {
     assert.calledWith(onSelectBook, book, chapter);
   });
 
-  it('shows error that occurs while fetching books', async () => {
-    const error = new Error('Something went wrong');
-    fakeVitalSourceService.fetchBooks.rejects(error);
-
-    const picker = renderBookPicker();
-    const errorDisplay = await waitForElement(picker, 'ErrorDisplay');
-
-    assert.equal(errorDisplay.prop('message'), 'Unable to fetch books');
-    assert.equal(errorDisplay.prop('error'), error);
-    assert.isFalse(picker.exists('BookList'));
-  });
-
   it('shows error that occurs while fetching chapters', async () => {
     const error = new Error('Something went wrong');
     fakeVitalSourceService.fetchChapters.rejects(error);
 
     const picker = renderBookPicker();
-    await waitForElement(picker, 'BookList[isLoading=false]');
-
     selectBook(picker);
     clickSelectButton(picker);
 

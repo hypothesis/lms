@@ -13,4 +13,5 @@ export default {
   // Shared icons
   'arrow-left': require('@hypothesis/frontend-shared/images/icons/arrow-left.svg'),
   'arrow-right': require('@hypothesis/frontend-shared/images/icons/arrow-right.svg'),
+  cancel: require('@hypothesis/frontend-shared/images/icons/cancel.svg'),
 };
