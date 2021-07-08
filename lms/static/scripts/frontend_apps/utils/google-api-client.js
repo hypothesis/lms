@@ -29,7 +29,7 @@ async function loadGAPI() {
  *   The `gapi` object with properties corresponding to each of the named
  *   libraries' entry points.
  */
-async function loadLibraries(names) {
+export async function loadLibraries(names) {
   const gapi = await loadGAPI();
 
   return new Promise((resolve, reject) => {
@@ -45,7 +45,3 @@ async function loadLibraries(names) {
     });
   });
 }
-
-// Separate function declaration from export to work around
-// https://github.com/robertknight/babel-plugin-mockable-imports/issues/9.
-export { loadLibraries };
