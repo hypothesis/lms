@@ -52,7 +52,7 @@ class BulkAction:
         upsert_update_elements: List[str]
         """Columns to update when a match is found."""
 
-        upsert_trigger_onupdate: bool = True
+        upsert_use_onupdate: bool = True
         """Column to update with the current datetime"""
 
         def __set_name__(self, owner, name):
@@ -91,7 +91,7 @@ class BulkAction:
 
         upsert_update_elements = list(config.upsert_update_elements)
 
-        if config.upsert_trigger_onupdate:
+        if config.upsert_use_onupdate:
             onupdate_columns = self._get_columns_onupdate(model_class)
 
             for column_name, onupdate_value in onupdate_columns:
