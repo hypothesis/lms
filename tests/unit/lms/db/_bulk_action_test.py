@@ -13,7 +13,7 @@ class TestBulkAction:
         BULK_CONFIG = BulkAction.Config(
             upsert_index_elements=["id"],
             upsert_update_elements=["name"],
-            upsert_trigger_onupdate=False,
+            upsert_use_onupdate=False,
         )
 
         id = sa.Column(sa.Integer, primary_key=True)
@@ -58,7 +58,7 @@ class TestBulkAction:
         assert BulkAction(db_session).upsert(self.TableWithBulkUpsert, []) == []
 
     @pytest.mark.parametrize("column", ("scalar", "callable", "sql", "default"))
-    @pytest.mark.usefixtures("with_upsert_trigger_onupdate")
+    @pytest.mark.usefixtures("with_upsert_use_onupdate")
     def test_upsert_with_onupdate_columns(self, db_session, column):
         db_session.add_all(
             [
@@ -108,7 +108,7 @@ class TestBulkAction:
         )
 
     @pytest.fixture
-    def with_upsert_trigger_onupdate(self):
-        self.TableWithBulkUpsert.BULK_CONFIG.upsert_trigger_onupdate = True
+    def with_upsert_use_onupdate(self):
+        self.TableWithBulkUpsert.BULK_CONFIG.upsert_use_onupdate = True
         yield
-        self.TableWithBulkUpsert.BULK_CONFIG.upsert_trigger_onupdate = False
+        self.TableWithBulkUpsert.BULK_CONFIG.upsert_use_onupdate = False
