@@ -62,7 +62,7 @@
   "devDependencies": {
     "@types/classnames": "^2.3.1",
     "@types/gapi": "^0.0.39",
-    "@types/prop-types": "^15.7.3",
+    "@types/prop-types": "^15.7.4",
     "@types/query-string": "^5.0.0",
     "axe-core": "^4.2.3",
     "babel-plugin-istanbul": "^6.0.0",
