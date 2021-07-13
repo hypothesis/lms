@@ -32,7 +32,6 @@
     "@hypothesis/frontend-shared": "3.4.0",
     "@types/gapi": "^0.0.39",
     "autoprefixer": "^10.3.0",
-    "babel-plugin-transform-async-to-promises": "^0.8.15",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "classnames": "^2.3.1",
