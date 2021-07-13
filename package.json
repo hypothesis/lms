@@ -49,7 +49,6 @@
     "normalize.css": "^8.0.1",
     "postcss": "^8.3.5",
     "preact": "10.5.13",
-    "prop-types": "^15.7.2",
     "query-string": "^5.0.0",
     "sass": "^1.35.2",
     "stringify": "^5.2.0",
@@ -62,7 +61,6 @@
   "devDependencies": {
     "@types/classnames": "^2.3.1",
     "@types/gapi": "^0.0.39",
-    "@types/prop-types": "^15.7.3",
     "@types/query-string": "^5.0.0",
     "axe-core": "^4.2.3",
     "babel-plugin-istanbul": "^6.0.0",
