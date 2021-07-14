@@ -38,7 +38,7 @@ certifi==2020.6.20
     #   -r requirements/tests.txt
     #   requests
     #   sentry-sdk
-chardet==3.0.4
+charset-normalizer==2.0.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -332,7 +332,7 @@ python-editor==1.0.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
-requests==2.25.1
+requests==2.26.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
