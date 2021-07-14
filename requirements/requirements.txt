@@ -14,7 +14,7 @@ certifi==2020.6.20
     # via
     #   requests
     #   sentry-sdk
-chardet==3.0.4
+charset-normalizer==2.0.1
     # via requests
 google-auth==1.30.0
     # via google-auth-oauthlib
@@ -110,7 +110,7 @@ python-dateutil==2.8.1
     # via alembic
 python-editor==1.0.4
     # via alembic
-requests==2.25.1
+requests==2.26.0
     # via
     #   -r requirements/requirements.in
     #   requests-oauthlib

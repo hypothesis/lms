@@ -15,16 +15,16 @@ cffi==1.14.5
     #   bcrypt
     #   cryptography
     #   pynacl
-chardet==4.0.0
+charset-normalizer==2.0.1
     # via requests
 cryptography==3.4.7
     # via paramiko
 distro==1.5.0
     # via docker-compose
-docker-compose==1.29.2
-    # via -r requirements/dockercompose.in
 docker[ssh]==5.0.0
     # via docker-compose
+docker-compose==1.29.2
+    # via -r requirements/dockercompose.in
 dockerpty==0.4.1
     # via docker-compose
 docopt==0.6.2
@@ -45,7 +45,7 @@ python-dotenv==0.17.1
     # via docker-compose
 pyyaml==5.4.1
     # via docker-compose
-requests==2.25.1
+requests==2.26.0
     # via
     #   docker
     #   docker-compose

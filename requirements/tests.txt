@@ -20,7 +20,7 @@ certifi==2020.6.20
     #   -r requirements/requirements.txt
     #   requests
     #   sentry-sdk
-chardet==3.0.4
+charset-normalizer==2.0.1
     # via
     #   -r requirements/requirements.txt
     #   requests
@@ -172,7 +172,7 @@ python-editor==1.0.4
     # via
     #   -r requirements/requirements.txt
     #   alembic
-requests==2.25.1
+requests==2.26.0
     # via
     #   -r requirements/requirements.txt
     #   requests-oauthlib
