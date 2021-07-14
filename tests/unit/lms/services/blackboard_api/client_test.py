@@ -36,7 +36,8 @@ class TestListFiles:
         files = svc.list_files("COURSE_ID")
 
         basic_client.request.assert_called_once_with(
-            "GET", "courses/uuid:COURSE_ID/resources?type=file&limit=200"
+            "GET",
+            "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
         )
         BlackboardListFilesSchema.assert_called_once_with(
             basic_client.request.return_value
@@ -70,7 +71,10 @@ class TestListFiles:
 
         # It called the Blackboard API three times getting the three pages.
         assert basic_client.request.call_args_list == [
-            call("GET", "courses/uuid:COURSE_ID/resources?type=file&limit=200"),
+            call(
+                "GET",
+                "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
+            ),
             call("GET", "PAGE_2_PATH"),
             call("GET", "PAGE_3_PATH"),
         ]
@@ -113,7 +117,7 @@ class TestPublicURL:
         public_url = svc.public_url("COURSE_ID", "FILE_ID")
 
         basic_client.request.assert_called_once_with(
-            "GET", "courses/uuid:COURSE_ID/resources/FILE_ID"
+            "GET", "courses/uuid:COURSE_ID/resources/FILE_ID?fields=downloadUrl"
         )
         BlackboardPublicURLSchema.assert_called_once_with(
             basic_client.request.return_value

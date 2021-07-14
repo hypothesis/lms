@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
@@ -31,7 +33,13 @@ class BlackboardAPIClient:
         """Return the list of files in the given course."""
 
         files = []
-        path = f"courses/uuid:{course_id}/resources?type=file&limit={PAGINATION_LIMIT}"
+        path = f"courses/uuid:{course_id}/resources?" + urlencode(
+            {
+                "type": "file",
+                "limit": PAGINATION_LIMIT,
+                "fields": "id,name,modified,mimeType",
+            }
+        )
 
         for _ in range(PAGINATION_MAX_REQUESTS):
             response = self._api.request("GET", path)
@@ -47,7 +55,8 @@ class BlackboardAPIClient:
 
         try:
             response = self._api.request(
-                "GET", f"courses/uuid:{course_id}/resources/{file_id}"
+                "GET",
+                f"courses/uuid:{course_id}/resources/{file_id}?fields=downloadUrl",
             )
         except HTTPError as err:
             if err.response.status_code == 404:
