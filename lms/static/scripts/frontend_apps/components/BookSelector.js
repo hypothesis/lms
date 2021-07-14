@@ -131,7 +131,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
         <TextInputWithButton>
           <TextInput
             disabled={isLoadingBook}
-            error={!!error}
+            hasError={!!error}
             inputRef={inputRef}
             name="vitalSourceURL"
             onChange={onChangeURL}
