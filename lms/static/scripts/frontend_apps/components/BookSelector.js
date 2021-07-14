@@ -136,7 +136,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
             name="vitalSourceURL"
             onChange={onChangeURL}
             onKeyDown={onKeyDown}
-            placeholder="e.g. https://bookshelf.vitalsource.com/#/book/012345678..."
+            placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
           />
           <IconButton
             disabled={isLoadingBook}
