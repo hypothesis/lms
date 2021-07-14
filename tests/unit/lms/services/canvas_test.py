@@ -65,7 +65,7 @@ class TestPublicURLForFile:
         url = public_url_for_file(sentinel.file_id, check_in_course=True)
 
         canvas_file_finder.find_matching_file_in_course.assert_called_once_with(
-            sentinel.course_id, sentinel.mapped_file_id
+            sentinel.course_id, {sentinel.file_id, sentinel.mapped_file_id}
         )
         assert (
             module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
@@ -105,7 +105,7 @@ class TestPublicURLForFile:
         url = public_url_for_file(sentinel.file_id)
 
         canvas_file_finder.find_matching_file_in_course.assert_called_once_with(
-            sentinel.course_id, sentinel.mapped_file_id
+            sentinel.course_id, {sentinel.file_id, sentinel.mapped_file_id}
         )
         assert (
             module_item_configuration.get_canvas_mapped_file_id(sentinel.file_id)
@@ -209,20 +209,53 @@ class TestCanvasFileFinder:
         ]
 
         matching_file_id = finder.find_matching_file_in_course(
-            sentinel.course_id, sentinel.file_id
+            sentinel.course_id, [sentinel.file_id]
         )
 
         file_service.get.assert_called_once_with(sentinel.file_id, type_="canvas_file")
         canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
         assert matching_file_id == str(sentinel.matching_file_id)
 
-    def test_find_matching_file_in_course_returns_None_if_theres_file_in_the_db(
+    def test_find_matching_file_in_course_with_multiple_file_ids(
+        self, finder, canvas_api_client, file_service
+    ):
+        matching_file = factories.File()
+        file_service.get.side_effect = [
+            # The first file_id isn't found in the DB.
+            None,
+            # The second file_id is in the DB but not found in the course.
+            factories.File(),
+            # The third file_id *will* be found in the course.
+            matching_file,
+        ]
+        canvas_api_client.list_files.return_value = [
+            {
+                "id": sentinel.matching_file_id,
+                "display_name": matching_file.name,
+                "size": matching_file.size,
+            },
+        ]
+
+        matching_file_id = finder.find_matching_file_in_course(
+            sentinel.course_id,
+            [sentinel.file_id_1, sentinel.file_id_2, sentinel.file_id_3],
+        )
+
+        # It looked up each file_id in the DB in turn.
+        assert file_service.get.call_args_list == [
+            call(sentinel.file_id_1, type_="canvas_file"),
+            call(sentinel.file_id_2, type_="canvas_file"),
+            call(sentinel.file_id_3, type_="canvas_file"),
+        ]
+        assert matching_file_id == str(sentinel.matching_file_id)
+
+    def test_find_matching_file_in_course_returns_None_if_theres_no_file_in_the_db(
         self, finder, file_service
     ):
         file_service.get.return_value = None
 
         assert not finder.find_matching_file_in_course(
-            sentinel.course_id, sentinel.file_id
+            sentinel.course_id, [sentinel.file_id]
         )
 
     def test_find_matching_file_in_course_returns_None_if_theres_no_match(
@@ -231,7 +264,7 @@ class TestCanvasFileFinder:
         file_service.get.return_value = factories.File(name="foo")
 
         assert not finder.find_matching_file_in_course(
-            sentinel.course_id, sentinel.file_id
+            sentinel.course_id, [sentinel.file_id]
         )
 
     def test_find_matching_file_in_course_doesnt_return_the_same_file(
@@ -249,7 +282,7 @@ class TestCanvasFileFinder:
         )
 
         assert not finder.find_matching_file_in_course(
-            sentinel.course_id, sentinel.file_id
+            sentinel.course_id, [sentinel.file_id]
         )
 
     @pytest.fixture
