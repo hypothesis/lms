@@ -47,7 +47,10 @@ class CanvasService:
             # We'll try to find another copy of the same file that the current
             # user *can* see in the current course and use that instead.
             found_file_id = self._finder.find_matching_file_in_course(
-                course_id, effective_file_id
+                course_id,
+                # Use a set to avoid searching for the same ID twice if file_id
+                # and effective_file_id are the same.
+                {file_id, effective_file_id},
             )
 
             if not found_file_id:
@@ -80,30 +83,33 @@ class CanvasFileFinder:
 
         raise CanvasFileNotFoundInCourse(file_id)
 
-    def find_matching_file_in_course(self, course_id, file_id):
+    def find_matching_file_in_course(self, course_id, file_ids):
         """
-        Return the ID of a file in course_id that matches the file with ID file_id.
+        Return the ID of a file in course_id that matches one of the files in file_ids.
 
         Search for a file that the current Canvas user can see in course_id and
-        that matches the given `file` (same filename and size) and return the
-        matching file's ID.
+        that matches one of the files in file_id's (same filename and size) and
+        return the matching file's ID.
 
         Return None if no matching file is found.
         """
-        file = self._file_service.get(file_id, type_="canvas_file")
+        for file_id in file_ids:
+            file = self._file_service.get(file_id, type_="canvas_file")
 
-        if not file:
-            return None
+            if not file:
+                continue
 
-        file_dicts = self._api.list_files(course_id)
+            for file_dict in self._api.list_files(course_id):
+                display_name = file_dict["display_name"]
+                size = file_dict["size"]
+                id_ = str(file_dict["id"])
 
-        for file_dict in file_dicts:
-            display_name = file_dict["display_name"]
-            size = file_dict["size"]
-            id_ = str(file_dict["id"])
-
-            if display_name == file.name and size == file.size and id_ != file.lms_id:
-                return str(file_dict["id"])
+                if (
+                    display_name == file.name
+                    and size == file.size
+                    and id_ != file.lms_id
+                ):
+                    return str(file_dict["id"])
 
         return None
 
