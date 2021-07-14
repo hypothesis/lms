@@ -13,6 +13,7 @@ def blackboard_api_client_factory(_context, request):
             client_secret=settings["blackboard_api_client_secret"],
             redirect_uri=request.route_url("blackboard_api.oauth.callback"),
             http_service=request.find_service(name="http"),
+            oauth_http_service=request.find_service(name="oauth_http"),
             oauth2_token_service=request.find_service(name="oauth2_token"),
         )
     )

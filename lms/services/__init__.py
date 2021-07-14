@@ -22,6 +22,9 @@ from lms.services.exceptions import (
 def includeme(config):
     config.register_service_factory("lms.services.http.factory", name="http")
     config.register_service_factory(
+        "lms.services.oauth_http.factory", name="oauth_http"
+    )
+    config.register_service_factory(
         "lms.services.blackboard_api.blackboard_api_client_factory",
         name="blackboard_api_client",
     )
