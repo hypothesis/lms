@@ -100,14 +100,10 @@ class CanvasFileFinder:
                 continue
 
             for file_dict in self._api.list_files(course_id):
-                display_name = file_dict["display_name"]
-                size = file_dict["size"]
-                id_ = str(file_dict["id"])
-
                 if (
-                    display_name == file.name
-                    and size == file.size
-                    and id_ != file.lms_id
+                    file_dict["display_name"] == file.name
+                    and file_dict["size"] == file.size
+                    and str(file_dict["id"]) != file.lms_id
                 ):
                     return str(file_dict["id"])
 
