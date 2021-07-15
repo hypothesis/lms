@@ -1,22 +1,22 @@
 'use strict';
 
 /* eslint-env node */
-/* eslint-disable no-var, prefer-arrow-callback */
 
-var { mkdirSync } = require('fs');
-var path = require('path');
+const { mkdirSync, writeFileSync } = require('fs');
+const path = require('path');
 
 const commander = require('commander');
-var gulp = require('gulp');
-var log = require('gulplog');
-var through = require('through2');
+const glob = require('glob');
+const gulp = require('gulp');
+const log = require('gulplog');
+const rollup = require('rollup');
+const loadConfigFile = require('rollup/dist/loadConfigFile');
+const through = require('through2');
 
-var createBundle = require('./scripts/gulp/create-bundle');
-var createStyleBundle = require('./scripts/gulp/create-style-bundle');
-var manifest = require('./scripts/gulp/manifest');
+const createStyleBundle = require('./scripts/gulp/create-style-bundle');
+const manifest = require('./scripts/gulp/manifest');
 
-var IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
-var SCRIPT_DIR = 'build/scripts';
+const IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
 
 function parseCommandLine() {
   commander
@@ -50,81 +50,54 @@ function parseCommandLine() {
 
 const karmaOptions = parseCommandLine();
 
-// We do not currently generate any vendor JS bundles, but the infrastructure
-// is left here in case we decide to add them in future.
-var vendorBundles = {
-  // bundleName: ['<import-name>'],
-};
-var vendorModules = [];
+async function buildJS(rollupConfig) {
+  const { options, warnings } = await loadConfigFile(
+    require.resolve(rollupConfig)
+  );
+  warnings.flush();
 
-// Builds the bundles containing vendor JS code
-gulp.task('build-vendor-js', function() {
-  var finished = [];
-  Object.keys(vendorBundles).forEach(function(name) {
-    finished.push(
-      createBundle({
-        name: name,
-        require: vendorBundles[name],
-        minify: IS_PRODUCTION_BUILD,
-        path: SCRIPT_DIR,
-        noParse: [],
-      })
-    );
-  });
-  return Promise.all(finished);
-});
+  await Promise.all(
+    options.map(async inputs => {
+      const bundle = await rollup.rollup(inputs);
+      await Promise.all(inputs.output.map(output => bundle.write(output)));
+      warnings.flush();
+    })
+  );
+}
 
-var bundleBaseConfig = {
-  path: SCRIPT_DIR,
-  external: vendorModules,
-  minify: IS_PRODUCTION_BUILD,
-  noParse: [],
-};
+async function watchJS(rollupConfig) {
+  const { options, warnings } = await loadConfigFile(
+    require.resolve(rollupConfig)
+  );
+  warnings.flush();
+  const watcher = rollup.watch(options);
 
-var bundles = [
-  {
-    name: 'frontend_apps',
-    entry: './lms/static/scripts/frontend_apps/index.js',
-  },
-  {
-    name: 'new_application_instance',
-    entry: './lms/static/scripts/new-application-instance.js',
-  },
-  {
-    name: 'browser_check',
-    entry: './lms/static/scripts/browser_check/index.js',
-  },
-  {
-    name: 'ui-playground',
-    entry: './lms/static/scripts/ui-playground/index.js',
-  },
-];
-
-var bundleConfigs = bundles.map(function(config) {
-  return Object.assign({}, bundleBaseConfig, config);
-});
-
-gulp.task(
-  'build-js',
-  gulp.series(['build-vendor-js'], function() {
-    return Promise.all(
-      bundleConfigs.map(function(config) {
-        return createBundle(config);
-      })
-    );
-  })
-);
-
-gulp.task(
-  'watch-js',
-  gulp.series(['build-vendor-js'], function() {
-    bundleConfigs.forEach(function(config) {
-      createBundle(config, { watch: true });
+  return new Promise(resolve => {
+    watcher.on('event', event => {
+      switch (event.code) {
+        case 'START':
+          log.info('JS build starting...');
+          break;
+        case 'BUNDLE_END':
+          event.result.close();
+          break;
+        case 'ERROR':
+          log.info('JS build error', event.error);
+          break;
+        case 'END':
+          log.info('JS build completed.');
+          warnings.flush();
+          resolve(); // Resolve once the initial build completes.
+          break;
+      }
     });
-  })
-);
+  });
+}
 
-var cssBundles = [
+gulp.task('build-js', () => buildJS('./rollup.config.js'));
+gulp.task('watch-js', () => watchJS('./rollup.config.js'));
+
+const cssBundles = [
   './lms/static/styles/lms.scss',
   './lms/static/styles/reports.css',
   './lms/static/styles/frontend_apps.scss',
@@ -151,7 +124,7 @@ gulp.task('watch-css', () => {
   );
 });
 
-var MANIFEST_SOURCE_FILES = [
+const MANIFEST_SOURCE_FILES = [
   'build/**/*.css',
   'build/**/*.js',
   'build/**/*.map',
@@ -166,7 +139,7 @@ function generateManifest() {
     .src(MANIFEST_SOURCE_FILES)
     .pipe(manifest({ name: 'manifest.json' }))
     .pipe(
-      through.obj(function(file, enc, callback) {
+      through.obj(function (file, enc, callback) {
         log.info('Updated asset manifest');
         this.push(file);
         callback();
@@ -175,7 +148,7 @@ function generateManifest() {
     .pipe(gulp.dest('build/'));
 }
 
-gulp.task('watch-manifest', function() {
+gulp.task('watch-manifest', () => {
   gulp.watch(MANIFEST_SOURCE_FILES, generateManifest);
 });
 
@@ -183,29 +156,58 @@ gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
 
 gulp.task('watch', gulp.parallel(['watch-js', 'watch-css', 'watch-manifest']));
 
-function runKarma(done) {
-  const karma = require('karma');
-  new karma.Server(
-    karma.config.parseConfig(
-      path.resolve(__dirname, './lms/static/scripts/karma.config.js'),
-      karmaOptions
-    ),
-    done
-  ).start();
+async function buildAndRunTests() {
+  const { grep, singleRun } = karmaOptions;
 
-  process.on('SIGINT', () => {
-    // Give Karma a chance to handle SIGINT and cleanup, but forcibly
-    // exit if it takes too long.
-    setTimeout(() => {
-      done();
-      process.exit(1);
-    }, 5000);
+  // Generate an entry file for the test bundle. This imports all the test
+  // modules, filtered by the pattern specified by the `--grep` CLI option.
+  const testFiles = [
+    'lms/static/scripts/bootstrap.js',
+    ...glob
+      .sync('lms/static/scripts/**/*-test.js')
+      .filter(path => (grep ? path.match(grep) : true)),
+  ];
+
+  const testSource = testFiles
+    .map(path => `import "../../${path}";`)
+    .join('\n');
+
+  mkdirSync('build/scripts', { recursive: true });
+  writeFileSync('build/scripts/test-inputs.js', testSource);
+
+  // Build the test bundle.
+  log.info(`Building test bundle... (${testFiles.length} files)`);
+  if (singleRun) {
+    await buildJS('./rollup-tests.config.js');
+  } else {
+    await watchJS('./rollup-tests.config.js');
+  }
+
+  // Run the tests.
+  log.info('Starting Karma...');
+  return new Promise(resolve => {
+    const karma = require('karma');
+    new karma.Server(
+      karma.config.parseConfig(
+        path.resolve(__dirname, './lms/static/scripts/karma.config.js'),
+        { singleRun }
+      ),
+      resolve
+    ).start();
+
+    process.on('SIGINT', () => {
+      // Give Karma a chance to handle SIGINT and cleanup, but forcibly
+      // exit if it takes too long.
+      setTimeout(() => {
+        resolve();
+        process.exit(1);
+      }, 5000);
+    });
   });
 }
 
 // Unit and integration testing tasks.
-// Some (eg. a11y) tests rely on CSS bundles, so build these first.
-gulp.task(
-  'test',
-  gulp.series('build-css', done => runKarma(done))
-);
+//
+// Some (eg. a11y) tests rely on CSS bundles. We assume that JS will always take
+// longer to build than CSS, so build in parallel.
+gulp.task('test', gulp.parallel('build-css', buildAndRunTests));

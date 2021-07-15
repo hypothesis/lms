@@ -32,58 +32,20 @@ module.exports = function (config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['browserify', 'mocha', 'chai', 'sinon'],
+    frameworks: ['mocha', 'chai', 'sinon', 'source-map-support'],
 
     // list of files / patterns to load in the browser
     files: [
-      // Test setup
-      './bootstrap.js',
+      // Test bundles.
+      { pattern: '../../../build/scripts/tests.bundle.js', type: 'module' },
 
-      // Test modules.
-      ...testFiles.map(pattern => ({
-        pattern,
-
-        // Disable watching because karma-browserify handles this.
-        watched: false,
-
-        type: 'js',
-      })),
+      // Sourcemaps for test bundles.
+      { pattern: '../../../build/scripts/*.js.map', included: false },
 
       // CSS bundles.
       // Accessibility tests rely on having styles available.
       '../../../build/styles/*.css',
     ],
-
-    // list of files to exclude
-    exclude: [],
-
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-      './bootstrap.js': ['browserify'],
-      './**/*-test.js': ['browserify'],
-    },
-
-    browserify: {
-      debug: true,
-
-      transform: [
-        [
-          'babelify',
-          {
-            plugins: [
-              'mockable-imports',
-              [
-                'babel-plugin-istanbul',
-                {
-                  exclude: ['**/test/**/*.js', '**/test-util/**/*.js'],
-                },
-              ],
-            ],
-          },
-        ],
-      ],
-    },
 
     coverageIstanbulReporter: {
       dir: path.join(__dirname, '../../../coverage'),
