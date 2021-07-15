@@ -1,5 +1,3 @@
-import { stringify } from 'querystring';
-
 /** @typedef {import('../api-types').File} File */
 
 /**
@@ -37,7 +35,6 @@ import { stringify } from 'querystring';
  */
 export function contentItemForContent(ltiLaunchURL, content, extraParams) {
   const params = { ...extraParams };
-
   switch (content.type) {
     case 'file':
       params.canvas_file = 'true';
@@ -53,13 +50,18 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
       break;
   }
 
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) =>
+    queryParams.append(key, value)
+  );
+
   return {
     '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
     '@graph': [
       {
         '@type': 'LtiLinkItem',
         mediaType: 'application/vnd.ims.lti.v1.ltilink',
-        url: `${ltiLaunchURL}?${stringify(params)}`,
+        url: `${ltiLaunchURL}?${queryParams}`,
       },
     ],
   };

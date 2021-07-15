@@ -1,5 +1,3 @@
-import * as queryString from 'query-string';
-
 /**
  * Manages an LMS authentication popup window.
  */
@@ -43,11 +41,12 @@ export default class AuthWindow {
     const height = 560;
     const left = Math.round(window.screen.width / 2 - width / 2);
     const top = Math.round(window.screen.height / 2 - height / 2);
-    const settings = queryString
-      .stringify({ left, top, width, height })
-      .replace(/&/g, ',');
-    const authQuery = queryString.stringify({ authorization: this._authToken });
-    const authUrl = `${this._authUrl}?${authQuery}`;
+    const settings = `left=${left},top=${top},width=${width},height=${height}`;
+
+    const params = new URLSearchParams();
+    params.set('authorization', this._authToken);
+    const authUrl = `${this._authUrl}?${params}`;
+
     this._authWin = window.open(
       authUrl,
       `Allow access to Canvas files`,
