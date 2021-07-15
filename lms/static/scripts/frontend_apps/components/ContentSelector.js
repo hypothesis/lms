@@ -59,7 +59,7 @@ export default function ContentSelector({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
-      onedrive: {
+      microsoftOneDrive: {
         enabled: oneDriveFilesEnabled,
         clientId: oneDriveClientId,
         redirectURI: oneDriveRedirectURI,

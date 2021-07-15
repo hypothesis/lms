@@ -82,6 +82,7 @@ class FilePickerConfig:
         return {
             "enabled": True,
             "clientId": request.registry.settings["onedrive_client_id"],
+            "redirectURI": request.route_url("onedrive.filepicker.authorize"),
         }
 
     @classmethod
