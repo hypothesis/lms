@@ -74,7 +74,7 @@ module.exports = function createBundle(config, buildOpts) {
     //
     // See node_modules/browserify/lib/builtins.js to find out which
     // modules provide the implementations of these.
-    builtins: ['console', '_process', 'querystring'],
+    builtins: ['console', '_process'],
     insertGlobalVars: {
       // The Browserify polyfill for the `Buffer` global is large and
       // unnecessary, but can get pulled into the bundle by modules that can
