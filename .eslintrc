@@ -13,5 +13,12 @@
 
     // Prop validation is performed by TypeScript + JSDoc.
     "react/prop-types": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": "rollup*.js",
+      "env": { "node": true },
+      "parserOptions": { "sourceType": "module" }
+    }
+  ]
 }
