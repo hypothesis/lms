@@ -1,4 +1,4 @@
-from unittest.mock import call, create_autospec, sentinel
+from unittest.mock import ANY, call, create_autospec, sentinel
 
 import pytest
 
@@ -37,7 +37,12 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
+            "courses/uuid:COURSE_ID/resources",
+            params={
+                "type": "file",
+                "limit": 200,
+                "fields": "id,name,modified,mimeType",
+            },
         )
         BlackboardListFilesSchema.assert_called_once_with(
             basic_client.request.return_value
@@ -73,10 +78,11 @@ class TestListFiles:
         assert basic_client.request.call_args_list == [
             call(
                 "GET",
-                "courses/uuid:COURSE_ID/resources?type=file&limit=200&fields=id%2Cname%2Cmodified%2CmimeType",
+                "courses/uuid:COURSE_ID/resources",
+                params=ANY,
             ),
-            call("GET", "PAGE_2_PATH"),
-            call("GET", "PAGE_3_PATH"),
+            call("GET", "PAGE_2_PATH", params=ANY),
+            call("GET", "PAGE_3_PATH", params=ANY),
         ]
         # It returned all three pages of files as a single list.
         assert files == [

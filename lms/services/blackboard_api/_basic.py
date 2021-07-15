@@ -85,9 +85,11 @@ class BasicClient:
             validated_data.get("expires_in"),
         )
 
-    def request(self, method, path):
+    def request(self, method, path, **kwargs):
         try:
-            return self._http_service.request(method, self._api_url(path), oauth=True)
+            return self._http_service.request(
+                method, self._api_url(path), oauth=True, **kwargs
+            )
         except HTTPError as err:
             error_dict = BlackboardErrorResponseSchema(err.response).parse()
 

@@ -1,5 +1,3 @@
-from urllib.parse import urlencode
-
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
@@ -33,16 +31,18 @@ class BlackboardAPIClient:
         """Return the list of files in the given course."""
 
         files = []
-        path = f"courses/uuid:{course_id}/resources?" + urlencode(
-            {
-                "type": "file",
-                "limit": PAGINATION_LIMIT,
-                "fields": "id,name,modified,mimeType",
-            }
-        )
+        path = f"courses/uuid:{course_id}/resources"
 
         for _ in range(PAGINATION_MAX_REQUESTS):
-            response = self._api.request("GET", path)
+            response = self._api.request(
+                "GET",
+                path,
+                params={
+                    "type": "file",
+                    "limit": PAGINATION_LIMIT,
+                    "fields": "id,name,modified,mimeType",
+                },
+            )
             files.extend(BlackboardListFilesSchema(response).parse())
             path = response.json().get("paging", {}).get("nextPage")
             if not path:
