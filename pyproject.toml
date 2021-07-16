@@ -1,3 +1,7 @@
+[tool.hdev]
+project_name = "lms"
+project_type = "application"
+
 [tool.hdev.clean]
 # File and directory patterns relative to the root to remove.
 # These support shell expansions and patterns
