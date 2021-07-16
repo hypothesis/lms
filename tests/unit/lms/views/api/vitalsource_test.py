@@ -1,6 +1,7 @@
 import pytest
 
-from lms.views.api.vitalsource import BookNotFoundError, VitalSourceAPIViews
+from lms.services.exceptions import ProxyAPIError
+from lms.views.api.vitalsource import VitalSourceAPIViews
 
 
 class TestVitalSourceAPIViews:
@@ -18,7 +19,7 @@ class TestVitalSourceAPIViews:
     def test_book_info_raises_if_book_not_found(self, pyramid_request):
         pyramid_request.matchdict["book_id"] = "invalid-book-id"
 
-        with pytest.raises(BookNotFoundError) as exc_info:
+        with pytest.raises(ProxyAPIError) as exc_info:
             VitalSourceAPIViews(pyramid_request).book_info()
 
         assert exc_info.value.explanation == "Book invalid-book-id not found"
@@ -31,7 +32,7 @@ class TestVitalSourceAPIViews:
     def test_table_of_contents_raises_if_book_not_found(self, pyramid_request):
         pyramid_request.matchdict["book_id"] = "invalid-book-id"
 
-        with pytest.raises(BookNotFoundError) as exc_info:
+        with pytest.raises(ProxyAPIError) as exc_info:
             VitalSourceAPIViews(pyramid_request).table_of_contents()
 
         assert exc_info.value.explanation == "Book invalid-book-id not found"
