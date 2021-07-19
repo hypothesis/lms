@@ -420,7 +420,7 @@ class TestJSConfigAuthToken:
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
-    @pytest.mark.usefixtures("section_groups_on")
+    @pytest.mark.usefixtures("canvas_sections_on")
     def test_it(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
@@ -442,7 +442,7 @@ class TestJSConfigAPISync:
             },
         }
 
-    @pytest.mark.usefixtures("section_groups_on", "learner_canvas_user_id")
+    @pytest.mark.usefixtures("canvas_sections_on", "learner_canvas_user_id")
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
         assert sync["data"]["learner"] == {
             "canvas_user_id": "test_learner_canvas_user_id",
@@ -519,8 +519,16 @@ class TestJSConfigHypothesisClient:
 
         assert groups == [context.h_group.groupid.return_value]
 
-    @pytest.mark.usefixtures("section_groups_on")
-    def test_it_configures_the_client_to_fetch_the_groups_over_RPC(self, config):
+    @pytest.mark.usefixtures("canvas_sections_on")
+    def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
+        self, config
+    ):
+        assert config["services"][0]["groups"] == "$rpc:requestGroups"
+
+    @pytest.mark.usefixtures("canvas_groups_on")
+    def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
+        self, config
+    ):
         assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
     @pytest.mark.usefixtures("provisioning_disabled")
@@ -647,8 +655,13 @@ def context():
 
 
 @pytest.fixture
-def section_groups_on(context):
+def canvas_sections_on(context):
     context.canvas_sections_enabled = True
+
+
+@pytest.fixture
+def canvas_groups_on(context):
+    context.canvas_groups_enabled = True
 
 
 @pytest.fixture
