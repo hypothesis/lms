@@ -6,7 +6,7 @@ import {
   Thumbnail,
 } from '@hypothesis/frontend-shared';
 import { createElement } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useService, VitalSourceService } from '../services';
 import { bookIDFromURL } from '../utils/vitalsource';
@@ -94,6 +94,14 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
     }
     fetchBook(bookID);
   };
+
+  useEffect(() => {
+    // Focus the input field when the component is first rendered
+    inputRef.current.focus();
+    // We only want to run this effect once.
+    //
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Capture "Enter" keystrokes, and avoid submitting the entire parent `<form>`
