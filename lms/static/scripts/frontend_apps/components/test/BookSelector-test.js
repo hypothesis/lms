@@ -61,6 +61,36 @@ describe('BookSelector', () => {
     input.simulate('change');
   };
 
+  describe('initial focus', () => {
+    let container;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+    });
+
+    it('focuses the URL text input element', () => {
+      const beforeFocused = document.activeElement;
+
+      const wrapper = mount(
+        <BookSelectorWrapper onSelectBook={sinon.stub()} />,
+        {
+          attachTo: container,
+        }
+      );
+
+      const focused = document.activeElement;
+      const input = wrapper.find('input[name="vitalSourceURL"]').getDOMNode();
+
+      assert.notEqual(beforeFocused, focused);
+      assert.equal(focused, input);
+    });
+  });
+
   context('entering, changing and submitting book URL', () => {
     it('validates entered URL when the value of the text input changes', () => {
       const wrapper = renderBookSelector();

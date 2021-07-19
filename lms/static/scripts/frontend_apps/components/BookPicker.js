@@ -73,6 +73,9 @@ export default function BookPicker({ onCancel, onSelectBook }) {
 
   return (
     <Modal
+      // Opt out of Modal's automatic focus handling; route focus manually in
+      // sub-components
+      initialFocus={null}
       onCancel={onCancel}
       title={
         step === 'select-book'
