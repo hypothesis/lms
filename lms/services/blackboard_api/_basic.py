@@ -53,6 +53,7 @@ class BasicClient:
         client_secret,
         redirect_uri,
         http_service,
+        oauth_http_service,
         oauth2_token_service,
     ):  # pylint:disable=too-many-arguments
         self.blackboard_host = blackboard_host
@@ -61,6 +62,7 @@ class BasicClient:
         self.redirect_uri = redirect_uri
 
         self._http_service = http_service
+        self._oauth_http_service = oauth_http_service
         self._oauth2_token_service = oauth2_token_service
 
     def get_token(self, authorization_code):
@@ -87,7 +89,7 @@ class BasicClient:
 
     def request(self, method, path):
         try:
-            return self._http_service.request(method, self._api_url(path), oauth=True)
+            return self._oauth_http_service.request(method, self._api_url(path))
         except HTTPError as err:
             error_dict = BlackboardErrorResponseSchema(err.response).parse()
 

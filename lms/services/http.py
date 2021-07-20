@@ -7,9 +7,7 @@ from lms.services.exceptions import HTTPError
 class HTTPService:
     """Send HTTP requests with `requests` and receive the responses."""
 
-    def __init__(self, oauth2_token_service, _session=None):
-        self._oauth2_token_service = oauth2_token_service
-
+    def __init__(self, _session=None):
         # A requests session is used so that cookies are persisted across
         # requests and urllib3 connection pooling is used (which means that
         # underlying TCP connections are re-used when making multiple requests
@@ -33,7 +31,7 @@ class HTTPService:
     def delete(self, *args, **kwargs):
         return self.request("DELETE", *args, **kwargs)
 
-    def request(self, method, url, timeout=(10, 10), oauth=False, **kwargs):
+    def request(self, method, url, timeout=(10, 10), **kwargs):
         """
         Send a request with `requests` and return the requests.Response object.
 
@@ -56,12 +54,6 @@ class HTTPService:
             response download. It's a time limit on how long to wait *between
             bytes from the server*. The entire download can take much longer.
 
-        :param oauth: Include an OAuth 2 access token in the request.
-            If oauth=True the current user's access token will be looked up in
-            the database and included in an Authorization header in the
-            request.
-        :type oauth: bool
-
         :param kwargs: Any other keyword arguments will be passed directly to
             requests.Session().request():
             https://docs.python-requests.org/en/latest/api/#requests.Session.request
@@ -81,17 +73,8 @@ class HTTPService:
             HTTPError.__cause__.
 
             The error response will be available as HTTPError.response.
-
-        :raise OAuth2TokenError: If oauth=True was given but we don't have an
-            access token for the current user in our DB
         """
         response = None
-
-        if oauth:
-            kwargs.setdefault("headers", {})
-            assert "Authorization" not in kwargs["headers"]
-            access_token = self._oauth2_token_service.get().access_token
-            kwargs["headers"]["Authorization"] = f"Bearer {access_token}"
 
         try:
             response = self._session.request(
@@ -107,5 +90,5 @@ class HTTPService:
         return response
 
 
-def factory(_context, request):
-    return HTTPService(request.find_service(name="oauth2_token"))
+def factory(_context, _request):
+    return HTTPService()

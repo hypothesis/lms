@@ -21,6 +21,7 @@ from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
+from lms.services.oauth_http import OAuthHTTPService
 from lms.services.vitalsource import VitalSourceService
 from tests import factories
 
@@ -39,6 +40,7 @@ __all__ = (
     "group_info_service",
     "grouping_service",
     "http_service",
+    "oauth_http_service",
     "launch_verifier",
     "lti_h_service",
     "lti_outcomes_client",
@@ -158,6 +160,13 @@ def http_service(mock_service):
     http_service.request.return_value = factories.requests.Response()
 
     return http_service
+
+
+@pytest.fixture
+def oauth_http_service(mock_service):
+    oauth_http_service = mock_service(OAuthHTTPService, service_name="oauth_http")
+    oauth_http_service.request.return_value = factories.requests.Response()
+    return oauth_http_service
 
 
 @pytest.fixture
