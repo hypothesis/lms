@@ -104,7 +104,11 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       ]}
     >
       {step === 'select-book' && !error && (
-        <BookSelector selectedBook={book} onSelectBook={setBook} />
+        <BookSelector
+          selectedBook={book}
+          onConfirmBook={confirmBook}
+          onSelectBook={setBook}
+        />
       )}
       {step === 'select-chapter' && !error && (
         <ChapterList

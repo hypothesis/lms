@@ -16,6 +16,9 @@ import { bookIDFromURL } from '../utils/vitalsource';
  *
  * @typedef BookSelectorProps
  * @prop {Book|null} selectedBook - The currently-selected book, if any
+ * @prop {(b: Book) => void} onConfirmBook - Callback to confirm a fetched book
+ *   and move on to the chapter-selection step. This is subsequent to selecting
+ *   a book.
  * @prop {(b: Book|null) => void} onSelectBook - Callback invoked when a book
  *   corresponding to a user-entered VitalSource URL is successfully fetched.
  */
@@ -29,7 +32,11 @@ import { bookIDFromURL } from '../utils/vitalsource';
  *
  * @param {BookSelectorProps} props
  */
-export default function BookSelector({ selectedBook, onSelectBook }) {
+export default function BookSelector({
+  selectedBook,
+  onConfirmBook,
+  onSelectBook,
+}) {
   const vsService = useService(VitalSourceService);
 
   const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
@@ -45,7 +52,7 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
   const previousURL = useRef(/** @type {string|null} */ (null));
 
   /**
-   * Attempt to retrieve a book by bookID (vbid) via service
+   * Fetch a book using a VBID
    *
    * @param {string} bookID
    */
@@ -64,10 +71,29 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
     }
   };
 
-  // Respond to changes in the input field
-  const onChangeURL = () => {
+  /**
+   * Evaluate the current value in the text input (URL) and fetch book metadata.
+   * Do not fetch book metadata if the value hasn't changed since last processed,
+   * or is empty.
+   *
+   * A `true` value for `confirmSelectedBook` indicates that a book should
+   * be confirmed (and move on to the select-chapter step) if the following
+   * conditions are met:
+   *
+   *  - There have been no changes to the input's URL value since last check AND
+   *  - There is a valid selected book
+   *
+   * This is used to allow subsequent "Enter" to submit a book that has been
+   * selected/fetched already.
+   *
+   * @param {boolean} [confirmSelectedBook=false]
+   */
+  const onUpdateURL = (confirmSelectedBook = false) => {
     const url = inputRef.current.value;
     if (url && url === previousURL.current) {
+      if (selectedBook && confirmSelectedBook) {
+        onConfirmBook(selectedBook);
+      }
       // Do nothing if there is no real change. This situation can arise if the
       // user "submits" a URL by typing "Enter" and then interacts elsewhere in
       // the UI (a spurious change event can be triggered).
@@ -105,16 +131,14 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
 
   /**
    * Capture "Enter" keystrokes, and avoid submitting the entire parent `<form>`
-   *
-   * TODO: A subsequent "Enter" keystroke after a book is successfully loaded,
-   * and there have been no changes to the pasted URL, should "confirm" the book
-   * and move to the chapter-selection step. See
-   * https://github.com/hypothesis/lms/issues/2952
+   * If "Enter" is pressed and there is already a valid, fetched book, and no
+   * changes to the URL entered in the text input, "confirm" the book selection
+   * and move to the select-chapter step.
    *
    * @param {KeyboardEvent} event */
   const onKeyDown = event => {
     if (event.key === 'Enter') {
-      onChangeURL();
+      onUpdateURL(true /* confirmSelectedBook */);
       event.preventDefault();
       event.stopPropagation();
     }
@@ -138,19 +162,18 @@ export default function BookSelector({ selectedBook, onSelectBook }) {
 
         <TextInputWithButton>
           <TextInput
-            disabled={isLoadingBook}
+            readOnly={isLoadingBook}
             hasError={!!error}
             inputRef={inputRef}
             name="vitalSourceURL"
-            onChange={onChangeURL}
+            onChange={() => onUpdateURL(false /* confirmSelectedBook */)}
             onKeyDown={onKeyDown}
             placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
           />
           <IconButton
-            disabled={isLoadingBook}
             icon="arrow-right"
             variant="dark"
-            onClick={onChangeURL}
+            onClick={() => onUpdateURL(false /* confirmSelectedBook */)}
             title="Find book"
           />
         </TextInputWithButton>
