@@ -27,7 +27,13 @@ describe('BookSelector', () => {
   ]);
 
   const renderBookSelector = (props = {}) =>
-    mount(<BookSelectorWrapper onSelectBook={sinon.stub()} {...props} />);
+    mount(
+      <BookSelectorWrapper
+        onConfirmBook={sinon.stub()}
+        onSelectBook={sinon.stub()}
+        {...props}
+      />
+    );
 
   beforeEach(() => {
     fakeBookIDFromURL = sinon.stub().returns('book1');
@@ -132,6 +138,29 @@ describe('BookSelector', () => {
       assert.calledWith(fakeBookIDFromURL, 'http://www.example.com');
     });
 
+    it('confirms the selected book if "Enter" is pressed subsequently', () => {
+      const onConfirmBook = sinon.stub();
+      const selectedBook = fakeBookData.book1;
+      const wrapper = renderBookSelector({ onConfirmBook, selectedBook });
+      const input = getInput(wrapper);
+      const keyEvent = new Event('keydown');
+      keyEvent.key = 'Enter';
+
+      setURL(wrapper, 'http://www.example.com');
+
+      // First enter press will "look up" book from entered URL
+      input.getDOMNode().dispatchEvent(keyEvent);
+
+      assert.calledOnce(fakeBookIDFromURL);
+
+      // Second enter press should "confirm" the book looked up after the
+      // first press
+      input.getDOMNode().dispatchEvent(keyEvent);
+
+      assert.calledOnce(onConfirmBook);
+      assert.calledWith(onConfirmBook, selectedBook);
+    });
+
     it('validates entered URL when `IconButton` is clicked', () => {
       const wrapper = renderBookSelector();
       setURL(wrapper, 'foo');
@@ -205,20 +234,16 @@ describe('BookSelector', () => {
       );
     });
 
-    it('disables input and associated button while fetching', async () => {
+    it('makes input read-only while fetching', async () => {
       const onSelectBook = sinon.stub();
       const wrapper = renderBookSelector({ onSelectBook });
+      assert.isFalse(getInput(wrapper).props().readOnly);
+
       updateURL(wrapper, 'a valid URL');
 
       const input = getInput(wrapper);
-      const iconButton = wrapper.find('IconButton button[title="Find book"]');
-
-      assert.isTrue(input.props().disabled);
-      assert.isTrue(iconButton.props().disabled);
-
-      await waitForElement(wrapper, 'IconButton[disabled=false]');
-
-      assert.isFalse(getInput(wrapper).props().disabled);
+      assert.isTrue(input.props().readOnly);
+      await waitForElement(wrapper, 'input[readOnly=false]');
     });
 
     it('shows cover thumbnail in loading state while fetching', async () => {
