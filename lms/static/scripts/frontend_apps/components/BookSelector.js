@@ -184,10 +184,8 @@ export default function BookSelector({
             data-testid="selected-book"
           >
             <SvgIcon name="check" className="hyp-u-color--success" />
-            <div className="hyp-u-stretch">
-              <strong>
-                <em>{selectedBook.title}</em>
-              </strong>
+            <div className="hyp-u-stretch BookSelector__title">
+              {selectedBook.title}
             </div>
           </div>
         )}

@@ -12,4 +12,12 @@
     width: 110px;
     height: 150px;
   }
+
+  // TODO: These class-based rules should be replaced with an appropriate
+  // utility class or font pattern when available from the `frontend-shared`
+  // package
+  &__title {
+    font-weight: bold;
+    font-style: italic;
+  }
 }
