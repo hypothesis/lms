@@ -63,18 +63,26 @@ class BasicClient:
         self._http_service = http_service
         self._oauth2_token_service = oauth2_token_service
 
-    def get_token(self, authorization_code):
+    def get_token(self, authorization_code=None, refresh_token=None):
+        data = {"redirect_uri": self.redirect_uri}
+
+        if authorization_code:
+            data["grant_type"] = "authorization_code"
+            data["code"] = authorization_code
+        elif refresh_token:
+            data["grant_type"] = "refresh_token"
+            data["refresh_token"] = refresh_token
+        else:
+            raise AssertionError(
+                "Either one of authorization_code or refresh_token must be given."
+            )
+
         # Send a request to Blackboard to get an access token.
         response = self._http_service.post(
             self._api_url("oauth2/token"),
-            data={
-                "grant_type": "authorization_code",
-                "redirect_uri": self.redirect_uri,
-                "code": authorization_code,
-            },
+            data=data,
             auth=(self.client_id, self.client_secret),
         )
-
         validated_data = OAuthTokenResponseSchema(response).parse()
 
         # Save the access token to the DB.
@@ -84,6 +92,8 @@ class BasicClient:
             # pylint:disable=no-member
             validated_data.get("expires_in"),
         )
+
+        return validated_data["access_token"]
 
     def request(self, method, path):
         try:
