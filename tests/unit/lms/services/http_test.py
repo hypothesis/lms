@@ -5,7 +5,7 @@ import pytest
 import requests
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError, OAuth2TokenError
+from lms.services.exceptions import HTTPError
 from lms.services.http import HTTPService, factory
 
 
@@ -64,7 +64,7 @@ class TestHTTPService:
         assert httpretty.last_request().headers["Authorization"] == "Basic dXNlcjpwYXNz"
 
     def test_it_uses_custom_timeouts(self, session):
-        svc = HTTPService(sentinel.oauth2_token_service, session)
+        svc = HTTPService(session)
 
         svc.request("GET", "https://example.com", timeout=3)
 
@@ -72,7 +72,7 @@ class TestHTTPService:
 
     def test_it_passes_arbitrary_kwargs_to_requests(self, svc):
         session = Mock()
-        svc = HTTPService(sentinel.oauth2_token_service, session)
+        svc = HTTPService(session)
 
         svc.request("GET", "https://example.com", foo="bar")
 
@@ -89,7 +89,7 @@ class TestHTTPService:
     )
     def test_it_raises_if_sending_the_request_fails(self, exception, session):
         session.request.side_effect = exception
-        svc = HTTPService(sentinel.oauth2_token_service, session)
+        svc = HTTPService(session)
 
         with pytest.raises(HTTPError) as exc_info:
             svc.request("GET", "https://example.com")
@@ -109,43 +109,6 @@ class TestHTTPService:
             {"status_code": status}
         )
 
-    @pytest.mark.parametrize("method", ["GET", "PUT", "POST", "PATCH", "DELETE"])
-    def test_if_oauth_is_True_it_adds_an_Authorization_header(
-        self, svc, url, oauth2_token_service, method
-    ):
-        oauth2_token_service.get.return_value.access_token = "TEST_ACCESS_TOKEN"
-        httpretty.register_uri(method, url)
-
-        svc.request(method, url, oauth=True)
-
-        request_headers = httpretty.last_request().headers
-        assert request_headers.get("Authorization") == "Bearer TEST_ACCESS_TOKEN"
-
-    def test_oauth_with_custom_header(self, svc, url, oauth2_token_service):
-        # You can use oauth=True (which will inject an Authorization header) at
-        # the same time as passing your own custom headers.
-        oauth2_token_service.get.return_value.access_token = "TEST_ACCESS_TOKEN"
-
-        svc.request("GET", url, oauth=True, headers={"foo": "FOO"})
-
-        request_headers = httpretty.last_request().headers
-        assert request_headers.get("Authorization") == "Bearer TEST_ACCESS_TOKEN"
-        assert request_headers.get("foo") == "FOO"
-
-    def test_oauth_raises_with_a_custom_Authorization_header(self, svc, url):
-        # You can't use oauth=True at the same time as a custom Authorization
-        # header.
-        with pytest.raises(AssertionError):
-            svc.request("GET", url, oauth=True, headers={"Authorization": "foo"})
-
-    def test_oauth_raises_if_theres_no_access_token_for_the_user(
-        self, svc, url, oauth2_token_service
-    ):
-        oauth2_token_service.get.side_effect = OAuth2TokenError
-
-        with pytest.raises(OAuth2TokenError):
-            svc.request("GET", url, oauth=True)
-
     @pytest.fixture
     def url(self):
         """Return the URL that we'll be sending test requests to."""
@@ -162,11 +125,10 @@ class TestHTTPService:
         return create_autospec(requests.Session, instance=True, spec_set=True)
 
     @pytest.fixture
-    def svc(self, oauth2_token_service):
-        return HTTPService(oauth2_token_service)
+    def svc(self):
+        return HTTPService()
 
 
-@pytest.mark.usefixtures("oauth2_token_service")
 class TestFactory:
     def test_it(self, pyramid_request):
         assert isinstance(factory(sentinel.context, pyramid_request), HTTPService)

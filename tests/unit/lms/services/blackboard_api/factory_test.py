@@ -8,6 +8,7 @@ from lms.services.blackboard_api.factory import blackboard_api_client_factory
 def test_blackboard_api_client_factory(
     application_instance_service,
     http_service,
+    oauth_http_service,
     oauth2_token_service,
     pyramid_request,
     BasicClient,
@@ -24,6 +25,7 @@ def test_blackboard_api_client_factory(
         client_secret=settings["blackboard_api_client_secret"],
         redirect_uri=pyramid_request.route_url("blackboard_api.oauth.callback"),
         http_service=http_service,
+        oauth_http_service=oauth_http_service,
         oauth2_token_service=oauth2_token_service,
     )
     BlackboardAPIClient.assert_called_once_with(BasicClient.return_value)
