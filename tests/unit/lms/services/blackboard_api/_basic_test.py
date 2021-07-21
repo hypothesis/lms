@@ -51,8 +51,8 @@ class TestBlackboardErrorResponseSchema:
         assert BlackboardErrorResponseSchema(None).parse() == {}
 
 
-class TestBasicClient:
-    def test_get_token(self, basic_client, oauth_http_service):
+class TestBasicClientGetToken:
+    def test_it(self, basic_client, oauth_http_service):
         basic_client.get_token(sentinel.authorization_code)
 
         oauth_http_service.get_access_token.assert_called_once_with(
@@ -62,6 +62,8 @@ class TestBasicClient:
             authorization_code=sentinel.authorization_code,
         )
 
+
+class TestBasicClientRequest:
     @pytest.mark.parametrize(
         "path,expected_url",
         [
@@ -73,13 +75,13 @@ class TestBasicClient:
             ("/foo/bar/", "https://blackboard.example.com/foo/bar/"),
         ],
     )
-    def test_request(self, basic_client, oauth_http_service, path, expected_url):
+    def test_it(self, basic_client, oauth_http_service, path, expected_url):
         response = basic_client.request("GET", path)
 
         oauth_http_service.request.assert_called_once_with("GET", expected_url)
         assert response == oauth_http_service.request.return_value
 
-    def test_request_raises_OAuth2TokenError_if_our_access_token_isnt_working(
+    def test_it_raises_OAuth2TokenError_if_our_access_token_isnt_working(
         self, basic_client, oauth_http_service
     ):
         oauth_http_service.request.side_effect = HTTPError(
@@ -91,7 +93,7 @@ class TestBasicClient:
         with pytest.raises(OAuth2TokenError):
             basic_client.request("GET", "foo/bar/")
 
-    def test_request_raises_HTTPError_if_the_HTTP_request_fails(
+    def test_it_raises_HTTPError_if_the_HTTP_request_fails(
         self, basic_client, oauth_http_service
     ):
         oauth_http_service.request.side_effect = HTTPError(
@@ -104,13 +106,14 @@ class TestBasicClient:
         with pytest.raises(HTTPError):
             basic_client.request("GET", "foo/bar/")
 
-    @pytest.fixture
-    def basic_client(self, http_service, oauth_http_service):
-        return BasicClient(
-            blackboard_host="blackboard.example.com",
-            client_id=sentinel.client_id,
-            client_secret=sentinel.client_secret,
-            redirect_uri=sentinel.redirect_uri,
-            http_service=http_service,
-            oauth_http_service=oauth_http_service,
-        )
+
+@pytest.fixture
+def basic_client(http_service, oauth_http_service):
+    return BasicClient(
+        blackboard_host="blackboard.example.com",
+        client_id=sentinel.client_id,
+        client_secret=sentinel.client_secret,
+        redirect_uri=sentinel.redirect_uri,
+        http_service=http_service,
+        oauth_http_service=oauth_http_service,
+    )
