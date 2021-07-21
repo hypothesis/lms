@@ -1,4 +1,14 @@
+from marshmallow import fields
+
+from lms.services import HTTPError, OAuth2TokenError
+from lms.validation import RequestsResponseSchema, ValidationError
 from lms.validation.authentication import OAuthTokenResponseSchema
+
+
+class _OAuthAccessTokenErrorResponseSchema(RequestsResponseSchema):
+    """Schema for parsing OAuth 2 access token error response bodies."""
+
+    error = fields.String(required=True)
 
 
 class OAuthHTTPService:
@@ -66,6 +76,42 @@ class OAuthHTTPService:
             },
         )
 
+    def refresh_access_token(self, token_url, redirect_uri, auth):
+        """
+        Make a refresh token request and save the new token in the DB.
+
+        Send an OAuth 2.0 "refresh token request"
+        (https://datatracker.ietf.org/doc/html/rfc6749#section-6) to get a new
+        access token for the current user and save it to the DB.
+
+        :raise OAuth2TokenError: if we don't have a refresh token for the user
+        :raise HTTPError: if the HTTP request fails
+        :raise ValidationError: if the server's access token response is invalid
+        """
+        refresh_token = self._oauth2_token_service.get().refresh_token
+
+        try:
+            return self._token_request(
+                token_url=token_url,
+                auth=auth,
+                data={
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                },
+            )
+        except HTTPError as err:
+            try:
+                error_dict = _OAuthAccessTokenErrorResponseSchema(err.response).parse()
+            except ValidationError:
+                pass
+            else:
+                if error_dict["error"] == "invalid_grant":
+                    # Looks like our refresh token has expired or been revoked.
+                    raise OAuth2TokenError() from err
+
+            raise
+
     def _token_request(self, token_url, data, auth):
         response = self._http_service.post(token_url, data=data, auth=auth)
 
@@ -74,8 +120,7 @@ class OAuthHTTPService:
         self._oauth2_token_service.save(
             validated_data["access_token"],
             validated_data.get("refresh_token"),
-            # pylint:disable=no-member
-            validated_data.get("expires_in"),
+            validated_data.get("expires_in"),  # pylint:disable=no-member
         )
 
         return validated_data["access_token"]
