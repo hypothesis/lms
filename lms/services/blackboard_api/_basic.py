@@ -2,7 +2,6 @@ from marshmallow import INCLUDE, fields
 
 from lms.services.exceptions import HTTPError, OAuth2TokenError
 from lms.validation import RequestsResponseSchema, ValidationError
-from lms.validation.authentication import OAuthTokenResponseSchema
 
 
 class BlackboardErrorResponseSchema(RequestsResponseSchema):
@@ -54,7 +53,6 @@ class BasicClient:
         redirect_uri,
         http_service,
         oauth_http_service,
-        oauth2_token_service,
     ):  # pylint:disable=too-many-arguments
         self.blackboard_host = blackboard_host
         self.client_id = client_id
@@ -63,28 +61,13 @@ class BasicClient:
 
         self._http_service = http_service
         self._oauth_http_service = oauth_http_service
-        self._oauth2_token_service = oauth2_token_service
 
     def get_token(self, authorization_code):
-        # Send a request to Blackboard to get an access token.
-        response = self._http_service.post(
-            self._api_url("oauth2/token"),
-            data={
-                "grant_type": "authorization_code",
-                "redirect_uri": self.redirect_uri,
-                "code": authorization_code,
-            },
+        self._oauth_http_service.get_access_token(
+            token_url=self._api_url("oauth2/token"),
+            redirect_uri=self.redirect_uri,
             auth=(self.client_id, self.client_secret),
-        )
-
-        validated_data = OAuthTokenResponseSchema(response).parse()
-
-        # Save the access token to the DB.
-        self._oauth2_token_service.save(
-            validated_data["access_token"],
-            validated_data.get("refresh_token"),
-            # pylint:disable=no-member
-            validated_data.get("expires_in"),
+            authorization_code=authorization_code,
         )
 
     def request(self, method, path):

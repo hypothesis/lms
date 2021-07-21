@@ -1,3 +1,6 @@
+from lms.validation.authentication import OAuthTokenResponseSchema
+
+
 class OAuthHTTPService:
     """Send OAuth 2.0 requests and return the responses."""
 
@@ -41,6 +44,41 @@ class OAuthHTTPService:
         headers["Authorization"] = f"Bearer {access_token}"
 
         return self._http_service.request(method, url, headers=headers, **kwargs)
+
+    def get_access_token(self, token_url, redirect_uri, auth, authorization_code):
+        """
+        Make an access token request and save the token in the DB.
+
+        Send an OAuth 2.0 "access token request"
+        (https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3) to get a
+        new access token for the current user and save it to the DB.
+
+        :raise HTTPError: if the HTTP request fails
+        :raise ValidationError: if the server's access token response is invalid
+        """
+        self._token_request(
+            token_url=token_url,
+            auth=auth,
+            data={
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+                "code": authorization_code,
+            },
+        )
+
+    def _token_request(self, token_url, data, auth):
+        response = self._http_service.post(token_url, data=data, auth=auth)
+
+        validated_data = OAuthTokenResponseSchema(response).parse()
+
+        self._oauth2_token_service.save(
+            validated_data["access_token"],
+            validated_data.get("refresh_token"),
+            # pylint:disable=no-member
+            validated_data.get("expires_in"),
+        )
+
+        return validated_data["access_token"]
 
 
 def factory(_context, request):
