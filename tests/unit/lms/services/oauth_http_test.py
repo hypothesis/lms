@@ -5,6 +5,7 @@ import pytest
 from lms.services.exceptions import HTTPError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService, factory
 from lms.validation import ValidationError
+from tests import factories
 
 
 class TestOAuthHTTPService:
@@ -63,12 +64,6 @@ class TestOAuthHTTPService:
         oauth_token_response_schema,
         oauth2_token_service,
     ):
-        validated_data = oauth_token_response_schema.parse.return_value = {
-            "access_token": "access_token",
-            "refresh_token": "refresh_token",
-            "expires_in": 1234,
-        }
-
         call_get_access_token()
 
         http_service.post.assert_called_once_with(
@@ -81,6 +76,7 @@ class TestOAuthHTTPService:
             auth=sentinel.auth,
         )
         OAuthTokenResponseSchema.assert_called_once_with(http_service.post.return_value)
+        validated_data = oauth_token_response_schema.parse.return_value
         oauth2_token_service.save.assert_called_once_with(
             validated_data["access_token"],
             validated_data["refresh_token"],
@@ -117,6 +113,105 @@ class TestOAuthHTTPService:
         with pytest.raises(ValidationError):
             call_get_access_token()
 
+    def test_refresh_access_token(
+        self,
+        svc,
+        http_service,
+        OAuthTokenResponseSchema,
+        oauth_token_response_schema,
+        oauth2_token_service,
+    ):
+        svc.refresh_access_token(
+            sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+        )
+
+        http_service.post.assert_called_once_with(
+            sentinel.token_url,
+            data={
+                "grant_type": "refresh_token",
+                "redirect_uri": sentinel.redirect_uri,
+                "refresh_token": oauth2_token_service.get.return_value.refresh_token,
+            },
+            auth=sentinel.auth,
+        )
+        OAuthTokenResponseSchema.assert_called_once_with(http_service.post.return_value)
+        validated_data = oauth_token_response_schema.parse.return_value
+        oauth2_token_service.save.assert_called_once_with(
+            validated_data["access_token"],
+            validated_data["refresh_token"],
+            validated_data["expires_in"],
+        )
+
+    def test_refresh_access_token_if_theres_no_refresh_token_or_expires_in(
+        self, svc, oauth_token_response_schema, oauth2_token_service
+    ):
+        # refresh_token and expires_in are optional fields in
+        # OAuthTokenResponseSchema so refresh_access_token() has to still work
+        # if they're missing from the validated data.
+        oauth_token_response_schema.parse.return_value = {
+            "access_token": "access_token"
+        }
+
+        svc.refresh_access_token(
+            sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+        )
+
+        oauth2_token_service.save.assert_called_once_with("access_token", None, None)
+
+    def test_refresh_access_token_raises_if_we_dont_have_a_refresh_token(
+        self, svc, oauth2_token_service
+    ):
+        oauth2_token_service.get.side_effect = OAuth2TokenError
+
+        with pytest.raises(OAuth2TokenError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
+    def test_refresh_access_token_raises_HTTPError_if_the_HTTP_request_fails(
+        self, svc, http_service
+    ):
+        http_service.post.side_effect = HTTPError
+
+        with pytest.raises(HTTPError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
+    def test_refresh_access_token_raises_OAuth2TokenError_if_our_refresh_token_is_invalid(
+        self, svc, http_service
+    ):
+        http_service.post.side_effect = HTTPError(
+            factories.requests.Response(json_data={"error": "invalid_grant"})
+        )
+
+        with pytest.raises(OAuth2TokenError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
+    def test_refresh_access_token_raises_HTTPError_if_theres_an_unknown_OAuth_error_message(
+        self, svc, http_service
+    ):
+        http_service.post.side_effect = HTTPError(
+            factories.requests.Response(json_data={"error": "unknown_error"})
+        )
+
+        with pytest.raises(HTTPError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
+    def test_refresh_access_token_raises_ValidationError_if_the_response_is_invalid(
+        self, svc, oauth_token_response_schema
+    ):
+        oauth_token_response_schema.parse.side_effect = ValidationError({})
+
+        with pytest.raises(ValidationError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
     @pytest.fixture
     def svc(self, http_service, oauth2_token_service):
         return OAuthHTTPService(http_service, oauth2_token_service)
@@ -150,7 +245,13 @@ class TestFactory:
 
 @pytest.fixture(autouse=True)
 def OAuthTokenResponseSchema(patch):
-    return patch("lms.services.oauth_http.OAuthTokenResponseSchema")
+    OAuthTokenResponseSchema = patch("lms.services.oauth_http.OAuthTokenResponseSchema")
+    OAuthTokenResponseSchema.return_value.parse.return_value = {
+        "access_token": "access_token",
+        "refresh_token": "refresh_token",
+        "expires_in": 1234,
+    }
+    return OAuthTokenResponseSchema
 
 
 @pytest.fixture
