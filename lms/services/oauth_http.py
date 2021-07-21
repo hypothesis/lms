@@ -120,7 +120,7 @@ class OAuthHTTPService:
         self._oauth2_token_service.save(
             validated_data["access_token"],
             validated_data.get("refresh_token"),
-            validated_data.get("expires_in"),  # pylint:disable=no-member
+            validated_data.get("expires_in"),
         )
 
         return validated_data["access_token"]

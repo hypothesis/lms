@@ -64,22 +64,28 @@ class BasicClient:
 
     def get_token(self, authorization_code):
         self._oauth_http_service.get_access_token(
-            token_url=self._api_url("oauth2/token"),
+            token_url=self.token_url,
             redirect_uri=self.redirect_uri,
             auth=(self.client_id, self.client_secret),
             authorization_code=authorization_code,
         )
 
     def request(self, method, path):
+        url = self._api_url(path)
+
         try:
-            return self._oauth_http_service.request(method, self._api_url(path))
-        except HTTPError as err:
-            error_dict = BlackboardErrorResponseSchema(err.response).parse()
+            return self._send(method, url)
+        except (OAuth2TokenError, HTTPError):
+            self._oauth_http_service.refresh_access_token(
+                self.token_url,
+                self.redirect_uri,
+                auth=(self.client_id, self.client_secret),
+            )
+            return self._send(method, url)
 
-            if error_dict.get("message") == "Bearer token is invalid":
-                raise OAuth2TokenError() from err
-
-            raise
+    @property
+    def token_url(self):
+        return self._api_url("oauth2/token")
 
     def _api_url(self, path):
         """Return the full Blackboard API URL for the given path."""
@@ -90,3 +96,14 @@ class BasicClient:
             path = "/learn/api/public/v1/" + path
 
         return f"https://{self.blackboard_host}{path}"
+
+    def _send(self, method, url):
+        try:
+            return self._oauth_http_service.request(method, url)
+        except HTTPError as err:
+            error_dict = BlackboardErrorResponseSchema(err.response).parse()
+
+            if error_dict.get("message") == "Bearer token is invalid":
+                raise OAuth2TokenError() from err
+
+            raise
