@@ -11,7 +11,7 @@ export default class AuthWindow {
    */
   constructor({ authToken, authUrl }) {
     this._authToken = authToken;
-    this._authUrl = authUrl;
+    this._authURL = authUrl;
   }
 
   close() {
@@ -45,10 +45,10 @@ export default class AuthWindow {
 
     const params = new URLSearchParams();
     params.set('authorization', this._authToken);
-    const authUrl = `${this._authUrl}?${params}`;
+    const authURL = `${this._authURL}?${params}`;
 
     this._authWin = window.open(
-      authUrl,
+      authURL,
       `Allow access to Canvas files`,
       settings
     );
