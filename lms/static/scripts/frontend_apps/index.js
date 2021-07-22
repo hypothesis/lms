@@ -3,7 +3,7 @@ import { createElement, render } from 'preact';
 
 import { readConfig, Config } from './config';
 import BasicLTILaunchApp from './components/BasicLTILaunchApp';
-import CanvasOAuth2RedirectErrorApp from './components/CanvasOAuth2RedirectErrorApp';
+import OAuth2RedirectErrorApp from './components/OAuth2RedirectErrorApp';
 import FilePickerApp from './components/FilePickerApp';
 import {
   ClientRPC,
@@ -57,8 +57,8 @@ switch (config.mode) {
     );
     app = <FilePickerApp />;
     break;
-  case 'canvas-oauth2-redirect-error':
-    app = <CanvasOAuth2RedirectErrorApp />;
+  case 'oauth2-redirect-error':
+    app = <OAuth2RedirectErrorApp />;
     break;
 }
 
