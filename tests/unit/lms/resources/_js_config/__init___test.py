@@ -567,46 +567,52 @@ class TestJSConfigRPCServer:
 class TestEnableOAuth2RedirectErrorMode:
     def test_scope_error(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(
-            auth_url=None,
+            auth_route="auth_route",
             error_details="Technical error",
             is_scope_invalid=True,
             canvas_scopes=["scope_a", "scope_b"],
         )
 
         config = js_config.asdict()
-
         assert config["mode"] == "oauth2-redirect-error"
         assert config["OAuth2RedirectError"] == {
-            "authUrl": None,
+            "authUrl": "http://example.com/auth?authorization=xyz123",
             "invalidScope": True,
             "errorDetails": "Technical error",
             "canvasScopes": ["scope_a", "scope_b"],
         }
 
     def test_other_error(self, js_config):
-        auth_url = "https://lms.hypothes.is/auth/url"
         js_config.enable_oauth2_redirect_error_mode(
-            auth_url=auth_url, error_details="Some error"
+            auth_route="auth_route", error_details="Some error"
         )
 
         config = js_config.asdict()
 
         assert config["mode"] == "oauth2-redirect-error"
         assert config["OAuth2RedirectError"] == {
-            "authUrl": auth_url,
+            "authUrl": "http://example.com/auth?authorization=xyz123",
             "invalidScope": False,
             "errorDetails": "Some error",
             "canvasScopes": [],
         }
 
+    @pytest.mark.usefixtures("no_user")
+    def test_auth_url(self, js_config):
+        js_config.enable_oauth2_redirect_error_mode(
+            auth_route="auth_route", error_details="Some error"
+        )
+
+        config = js_config.asdict()
+        assert config["OAuth2RedirectError"]["authUrl"] is None
+
+    @pytest.fixture
+    def no_user(self, pyramid_request):
+        pyramid_request.lti_user = None
+
     @pytest.fixture
     def js_config(self, context, pyramid_request):
         return JSConfig(context, pyramid_request)
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_user = None
-        return pyramid_request
 
     @pytest.fixture
     def context(self):
@@ -614,10 +620,16 @@ class TestEnableOAuth2RedirectErrorMode:
             OAuth2RedirectResource, spec_set=True, instance=True
         )
 
+    @pytest.fixture(autouse=True)
+    def auth_route(self, pyramid_config):
+        pyramid_config.add_route("auth_route", "/auth")
+
 
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
-    return patch("lms.resources._js_config.BearerTokenSchema")
+    BearerTokenSchema = patch("lms.resources._js_config.BearerTokenSchema")
+    BearerTokenSchema.return_value.authorization_param.return_value = "xyz123"
+    return BearerTokenSchema
 
 
 @pytest.fixture

@@ -185,30 +185,11 @@ class TestOAuth2RedirectError:
 
         js_config = pyramid_request.context.js_config
         js_config.enable_oauth2_redirect_error_mode.assert_called_with(
-            auth_url=None,
+            auth_route="canvas_api.oauth.authorize",
             error_details=params.get("error_description"),
             is_scope_invalid=invalid_scope,
             canvas_scopes=scopes,
         )
-
-    # Test the URL that the backend provides to the frontend for the "Try again"
-    # button.
-    def test_it_configures_auth_url(self, pyramid_request, BearerTokenSchema):
-        schema = BearerTokenSchema.return_value
-        schema.authorization_param.return_value = "auth-param"
-
-        authorize.oauth2_redirect_error(pyramid_request)
-
-        BearerTokenSchema.assert_called_once_with(pyramid_request)
-        schema.authorization_param.assert_called_once_with(pyramid_request.lti_user)
-
-        expected_auth_url = pyramid_request.route_url(
-            "canvas_api.oauth.authorize", _query=[("authorization", "auth-param")]
-        )
-        js_config = pyramid_request.context.js_config
-        js_config.enable_oauth2_redirect_error_mode.assert_called_once()
-        _, kwargs = js_config.enable_oauth2_redirect_error_mode.call_args
-        assert kwargs["auth_url"] == expected_auth_url
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, OAuth2RedirectResource):
@@ -220,11 +201,6 @@ class TestOAuth2RedirectError:
     @pytest.fixture(autouse=True)
     def OAuth2RedirectResource(self, patch):
         return patch("lms.resources.OAuth2RedirectResource")
-
-
-@pytest.fixture(autouse=True)
-def BearerTokenSchema(patch):
-    return patch("lms.views.api.canvas.authorize.BearerTokenSchema")
 
 
 @pytest.fixture(autouse=True)
