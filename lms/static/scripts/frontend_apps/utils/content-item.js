@@ -50,9 +50,9 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
       break;
   }
 
-  const queryParams = new URLSearchParams();
+  const url = new URL(ltiLaunchURL);
   Object.entries(params).forEach(([key, value]) =>
-    queryParams.append(key, value)
+    url.searchParams.append(key, value)
   );
 
   return {
@@ -61,7 +61,7 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
       {
         '@type': 'LtiLinkItem',
         mediaType: 'application/vnd.ims.lti.v1.ltilink',
-        url: `${ltiLaunchURL}?${queryParams}`,
+        url: url.toString(),
       },
     ],
   };
