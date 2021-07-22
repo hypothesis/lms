@@ -8,25 +8,23 @@ import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
 /**
- * @typedef CanvasOAuth2RedirectErrorAppProps
+ * @typedef OAuth2RedirectErrorAppProps
  * @prop {Location} [location] - Test seam
  */
 
 /**
- * Error dialog displayed when authorization of Canvas API access via OAuth
+ * Error dialog displayed when authorization with a third-party API via OAuth
  * fails.
  *
- * @param {CanvasOAuth2RedirectErrorAppProps} props
+ * @param {OAuth2RedirectErrorAppProps} props
  */
-export default function CanvasOAuth2RedirectErrorApp({
-  location = window.location,
-}) {
+export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const {
-    canvasOAuth2RedirectError: {
+    oAuth2RedirectError: {
       authUrl = /** @type {string|null} */ (null),
       invalidScope = false,
       errorDetails = '',
-      scopes = /** @type {string[]} */ ([]),
+      canvas_scopes = /** @type {string[]} */ ([]),
     },
   } = useContext(Config);
 
@@ -76,7 +74,7 @@ export default function CanvasOAuth2RedirectErrorApp({
             these scopes:
           </p>
           <ol>
-            {scopes.map(scope => (
+            {canvas_scopes.map(scope => (
               <li key={scope}>
                 <code>{scope}</code>
               </li>

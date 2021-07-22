@@ -102,18 +102,19 @@ class JSConfig:
         """
         return self._config
 
-    def enable_canvas_oauth2_redirect_error_mode(
+    def enable_oauth2_redirect_error_mode(
         self,
         error_details,
         auth_url=None,
         is_scope_invalid=False,
-        requested_scopes=None,
+        canvas_scopes=None,
     ):
         """
-        Configure the frontend to show the "Canvas authorization failed" dialog.
+        Configure the frontend to show the "Authorization failed" dialog.
 
-        This is shown when authorizing with the Canvas API fails, following the
-        redirect to Canvas's OAuth 2 authorization endpoint.
+        This is shown when authorizing with a third-party OAuth API like the
+        Canvas API or the Blackboard API fails after the redirect to the
+        third-party authorization endpoint.
 
         :param error_details: Technical details of the error
         :type error_details: str
@@ -122,17 +123,17 @@ class JSConfig:
         :param is_scope_invalid: `True` if authorization failed because the
           OAuth client does not have access to all the necessary scopes
         :type is_scope_invalid: bool
-        :param requested_scopes: List of Canvas API scopes that were requested
-        :type requested_scopes: list(str)
+        :param canvas_scopes: List of scopes that were requested
+        :type canvas_scopes: list(str)
         """
         self._config.update(
             {
-                "mode": "canvas-oauth2-redirect-error",
-                "canvasOAuth2RedirectError": {
+                "mode": "oauth2-redirect-error",
+                "oAuth2RedirectError": {
                     "authUrl": auth_url,
                     "invalidScope": is_scope_invalid,
                     "errorDetails": error_details,
-                    "scopes": requested_scopes or [],
+                    "canvas_scopes": canvas_scopes or [],
                 },
             }
         )

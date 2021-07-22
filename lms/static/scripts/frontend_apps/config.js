@@ -77,14 +77,14 @@ import { createContext } from 'preact';
  */
 
 /**
- * Configuration for the error dialog shown if authorizing access to the
- * Canvas API fails.
+ * Configuration for the error dialog shown if authorizing access to an
+ * OAuth API fails.
  *
- * @typedef CanvasAuthErrorConfig
+ * @typedef oAuthErrorConfig
  * @prop {string|null} authUrl
  * @prop {boolean} invalidScope
  * @prop {string} errorDetails
- * @prop {string[]} scopes
+ * @prop {string[]} canvas_scopes
  */
 
 /**
@@ -110,7 +110,7 @@ import { createContext } from 'preact';
  * @prop {Object} rpcServer
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
- * @prop {CanvasAuthErrorConfig} canvasOAuth2RedirectError
+ * @prop {oAuthErrorConfig} oAuth2RedirectError
  * @prop {VitalSourceConfig} [vitalSource]
  */
 

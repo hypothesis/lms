@@ -3,20 +3,20 @@ import { createElement } from 'preact';
 
 import { Config } from '../../config';
 
-import CanvasOAuth2RedirectErrorApp from '../CanvasOAuth2RedirectErrorApp';
+import OAuth2RedirectErrorApp from '../OAuth2RedirectErrorApp';
 
-describe('CanvasOAuth2RedirectErrorApp', () => {
+describe('OAuth2RedirectErrorApp', () => {
   let fakeConfig;
   let fakeLocation;
 
   const renderApp = () => {
     const config = {
-      canvasOAuth2RedirectError: fakeConfig,
+      oAuth2RedirectError: fakeConfig,
     };
 
     return mount(
       <Config.Provider value={config}>
-        <CanvasOAuth2RedirectErrorApp location={fakeLocation} />
+        <OAuth2RedirectErrorApp location={fakeLocation} />
       </Config.Provider>
     );
   };
@@ -25,7 +25,7 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
     fakeConfig = {
       invalidScope: false,
       authUrl: null,
-      scopes: [],
+      canvas_scopes: [],
     };
 
     fakeLocation = {
@@ -41,14 +41,16 @@ describe('CanvasOAuth2RedirectErrorApp', () => {
 
   it('shows a scope error if the scope is invalid', () => {
     fakeConfig.invalidScope = true;
-    fakeConfig.scopes = ['scope_a', 'scope_b'];
+    fakeConfig.canvas_scopes = ['scope_a', 'scope_b'];
 
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
       "A Canvas admin needs to edit Hypothesis's developer key"
     );
-    fakeConfig.scopes.forEach(scope => assert.include(wrapper.text(), scope));
+    fakeConfig.canvas_scopes.forEach(scope =>
+      assert.include(wrapper.text(), scope)
+    );
   });
 
   it('shows a generic error if the scope is valid', () => {

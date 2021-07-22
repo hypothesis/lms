@@ -122,11 +122,11 @@ def oauth2_redirect_error(request):
             _query=[("authorization", authorization_param)],
         )
 
-    request.context.js_config.enable_canvas_oauth2_redirect_error_mode(
+    request.context.js_config.enable_oauth2_redirect_error_mode(
         auth_url=auth_url,
         error_details=request.params.get("error_description"),
         is_scope_invalid=request.params.get("error") == "invalid_scope",
-        requested_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
+        canvas_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
     )
 
     return {}
