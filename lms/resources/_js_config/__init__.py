@@ -105,7 +105,7 @@ class JSConfig:
     def enable_oauth2_redirect_error_mode(
         self,
         error_details,
-        auth_url=None,
+        auth_route,
         is_scope_invalid=False,
         canvas_scopes=None,
     ):
@@ -118,14 +118,29 @@ class JSConfig:
 
         :param error_details: Technical details of the error
         :type error_details: str
-        :param auth_url: URL for the "Try again" button in the dialog
-        :type auth_url: str
+        :param auth_route: route for the "Try again" button in the dialog
+        :type auth_route: str
         :param is_scope_invalid: `True` if authorization failed because the
           OAuth client does not have access to all the necessary scopes
         :type is_scope_invalid: bool
         :param canvas_scopes: List of scopes that were requested
         :type canvas_scopes: list(str)
         """
+        if self._lti_user:
+            auth_url = self._request.route_url(
+                auth_route,
+                _query=[
+                    (
+                        "authorization",
+                        BearerTokenSchema(self._request).authorization_param(
+                            self._lti_user
+                        ),
+                    )
+                ],
+            )
+        else:
+            auth_url = None
+
         self._config.update(
             {
                 "mode": "oauth2-redirect-error",
