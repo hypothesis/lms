@@ -225,13 +225,11 @@ class HTTPValidationError(HTTPError):
     """An invalid HTTP response from an external service."""
 
 
-class BlackboardFileNotFoundInCourse(Exception):
+class BlackboardFileNotFoundInCourse(ServiceError):
     """A Blackboard file ID wasn't found in the current course."""
 
-    explanation = (
-        "Hypothesis couldn't find the assignment's PDF file in the Blackboard course."
-    )
+    error_code = "blackboard_file_not_found_in_course"
 
-    def __init__(self, document_url):
-        self.details = {"document_url": document_url}
+    def __init__(self, file_id):
+        self.details = {"file_id": file_id}
         super().__init__(self.details)

@@ -360,6 +360,54 @@ describe('BasicLTILaunchApp', () => {
         'https://via.hypothes.is/123'
       );
     });
+
+    it('shows Blackboard file not found in course error if content URL fetch fails with "blackboard_file_not_found_in_course" error', async () => {
+      // Make the initial URL fetch request reject with a Blackboard API permission error.
+      fakeApiCall.rejects(
+        new APIError(400, { error_code: 'blackboard_file_not_found_in_course' })
+      );
+
+      const wrapper = renderLTILaunchApp();
+      await spinnerVisible(wrapper);
+
+      // Verify that the expected error dialog is shown.
+      let errorDialog = await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]'
+      );
+
+      // Click the "Try again" button. This should re-authorize and then re-fetch files.
+      act(() => {
+        errorDialog.prop('onRetry')();
+      });
+      assert.calledWith(FakeAuthWindow, {
+        authToken: 'dummyAuthToken',
+        authUrl,
+      });
+      await waitFor(() => fakeApiCall.called);
+
+      // We didn't change the API response, so it will fail the same way and the same error dialog
+      // should be shown.
+      errorDialog = await waitForElement(
+        wrapper,
+        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]'
+      );
+
+      // Change the API call to succeed and try again.
+      fakeApiCall.reset();
+      fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
+      act(() => {
+        errorDialog.prop('onRetry')();
+      });
+
+      // When the request succeeds, the content should now be shown.
+      await contentVisible(wrapper);
+      await spinnerHidden(wrapper);
+      assert.equal(
+        wrapper.find('iframe').prop('src'),
+        'https://via.hypothes.is/123'
+      );
+    });
   });
 
   context('when VitalSource launch params are provided in the config', () => {

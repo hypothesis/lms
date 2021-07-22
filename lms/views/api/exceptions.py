@@ -101,7 +101,6 @@ class ExceptionViews:
         )
 
     @exception_view_config(context=ProxyAPIError)
-    @exception_view_config(context=BlackboardFileNotFoundInCourse)
     def proxy_api_error(self):
         return self.error_response(
             message=self.context.explanation, details=self.context.details
@@ -111,6 +110,7 @@ class ExceptionViews:
     def proxy_api_access_token_error(self):
         return self.error_response()
 
+    @exception_view_config(context=BlackboardFileNotFoundInCourse)
     @exception_view_config(context=CanvasAPIPermissionError)
     @exception_view_config(context=CanvasFileNotFoundInCourse)
     @exception_view_config(context=CanvasGroupError)
