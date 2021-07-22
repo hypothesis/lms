@@ -565,49 +565,41 @@ class TestJSConfigRPCServer:
 
 
 class TestEnableOAuth2RedirectErrorMode:
-    def test_scope_error(self, js_config):
+    @pytest.mark.parametrize(
+        "error_details,is_scope_invalid,canvas_scopes",
+        [
+            ("Technical error", True, ["scope_a", "scope_b"]),
+            ("Some error", False, None),
+        ],
+    )
+    def test_scope_error(
+        self, js_config, error_details, is_scope_invalid, canvas_scopes
+    ):
         js_config.enable_oauth2_redirect_error_mode(
             auth_route="auth_route",
-            error_details="Technical error",
-            is_scope_invalid=True,
-            canvas_scopes=["scope_a", "scope_b"],
+            error_details=error_details,
+            is_scope_invalid=is_scope_invalid,
+            canvas_scopes=canvas_scopes,
         )
 
         config = js_config.asdict()
         assert config["mode"] == "oauth2-redirect-error"
         assert config["OAuth2RedirectError"] == {
-            "authUrl": "http://example.com/auth?authorization=xyz123",
-            "invalidScope": True,
-            "errorDetails": "Technical error",
-            "canvasScopes": ["scope_a", "scope_b"],
+            "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
+            "invalidScope": is_scope_invalid,
+            "errorDetails": error_details,
+            "canvasScopes": canvas_scopes if canvas_scopes is not None else [],
         }
 
-    def test_other_error(self, js_config):
-        js_config.enable_oauth2_redirect_error_mode(
-            auth_route="auth_route", error_details="Some error"
-        )
-
-        config = js_config.asdict()
-
-        assert config["mode"] == "oauth2-redirect-error"
-        assert config["OAuth2RedirectError"] == {
-            "authUrl": "http://example.com/auth?authorization=xyz123",
-            "invalidScope": False,
-            "errorDetails": "Some error",
-            "canvasScopes": [],
-        }
-
-    @pytest.mark.usefixtures("no_user")
+    @pytest.mark.usefixtures("with_no_user")
     def test_auth_url(self, js_config):
-        js_config.enable_oauth2_redirect_error_mode(
-            auth_route="auth_route", error_details="Some error"
-        )
+        js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
 
         config = js_config.asdict()
         assert config["OAuth2RedirectError"]["authUrl"] is None
 
     @pytest.fixture
-    def no_user(self, pyramid_request):
+    def with_no_user(self, pyramid_request):
         pyramid_request.lti_user = None
 
     @pytest.fixture
@@ -628,7 +620,9 @@ class TestEnableOAuth2RedirectErrorMode:
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
     BearerTokenSchema = patch("lms.resources._js_config.BearerTokenSchema")
-    BearerTokenSchema.return_value.authorization_param.return_value = "xyz123"
+    BearerTokenSchema.return_value.authorization_param.return_value = (
+        "Bearer: token_value"
+    )
     return BearerTokenSchema
 
 

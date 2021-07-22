@@ -1,7 +1,7 @@
 from urllib.parse import urlencode, urlunparse
 
 from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config
+from pyramid.view import exception_view_config, view_config
 
 from lms.security import Permissions
 from lms.validation.authentication import OAuthCallbackSchema
@@ -50,4 +50,22 @@ def authorize(request):
 )
 def oauth2_redirect(request):
     request.find_service(name="blackboard_api_client").get_token(request.params["code"])
+    return {}
+
+
+@exception_view_config(
+    request_method="GET",
+    route_name="blackboard_api.oauth.callback",
+    renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
+)
+@exception_view_config(
+    request_method="GET",
+    route_name="blackboard_api.oauth.authorize",
+    renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
+)
+def oauth2_redirect_error(request):
+    request.context.js_config.enable_oauth2_redirect_error_mode(
+        auth_route="blackboard_api.oauth.authorize"
+    )
+
     return {}

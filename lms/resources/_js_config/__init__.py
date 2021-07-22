@@ -104,8 +104,8 @@ class JSConfig:
 
     def enable_oauth2_redirect_error_mode(
         self,
-        error_details,
         auth_route,
+        error_details="",
         is_scope_invalid=False,
         canvas_scopes=None,
     ):
@@ -127,16 +127,12 @@ class JSConfig:
         :type canvas_scopes: list(str)
         """
         if self._lti_user:
+            bearer_token = BearerTokenSchema(self._request).authorization_param(
+                self._lti_user
+            )
             auth_url = self._request.route_url(
                 auth_route,
-                _query=[
-                    (
-                        "authorization",
-                        BearerTokenSchema(self._request).authorization_param(
-                            self._lti_user
-                        ),
-                    )
-                ],
+                _query=[("authorization", bearer_token)],
             )
         else:
             auth_url = None
