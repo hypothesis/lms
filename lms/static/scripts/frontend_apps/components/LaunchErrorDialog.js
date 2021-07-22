@@ -102,6 +102,35 @@ export default function LaunchErrorDialog({
           <p>Hypothesis needs your authorization to launch this assignment.</p>
         </BaseDialog>
       );
+    case 'blackboard_file_not_found_in_course':
+      return (
+        <BaseDialog
+          busy={busy}
+          error={error}
+          onRetry={onRetry}
+          title="Hypothesis couldn't find the file in the course"
+        >
+          <p>This might have happened because:</p>
+
+          <ul>
+            <li>
+              The file has been deleted from Blackboard: an instructor needs to
+              re-create the assignment with a new file
+            </li>
+            <li>
+              You don{"'"}t have permission to read the file: an instructor
+              needs to{' '}
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="https://web.hypothes.is/help/creating-hypothesis-enabled-readings-in-blackboard/"
+              >
+                give students read permission for the file
+              </a>
+            </li>
+          </ul>
+        </BaseDialog>
+      );
     case 'canvas_api_permission_error':
       return (
         <BaseDialog

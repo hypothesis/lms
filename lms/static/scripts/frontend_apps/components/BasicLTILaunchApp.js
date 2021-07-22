@@ -26,12 +26,14 @@ import VitalSourceBookViewer from './VitalSourceBookViewer';
  * offered to remedy the problem.
  *
  * Note the two different naming conventions here:
+ *  - "blackboard_*" for the Blackboard specific cases where ErrorState matches the string coming from the backend and are all handled the same way
  *  - "canvas_*" for the canvas specific cases where ErrorState matches the string coming from the backend and are all handled the same way
  *  - "error-*" for the rest
  *
  * @typedef {'error-fetching'|
  *           'error-authorizing'|
  *           'error-reporting-submission'|
+ *           'blackboard_file_not_found_in_course'|
  *           'canvas_api_permission_error'|
  *           'canvas_file_not_found_in_course'|
  *           'canvas_group_set_not_found'|
@@ -123,6 +125,7 @@ export default function BasicLTILaunchApp() {
       e instanceof APIError &&
       e.errorCode !== null &&
       [
+        'blackboard_file_not_found_in_course',
         'canvas_api_permission_error',
         'canvas_file_not_found_in_course',
         'canvas_group_set_not_found',

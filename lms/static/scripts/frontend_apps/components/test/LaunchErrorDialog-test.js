@@ -42,6 +42,10 @@ describe('LaunchErrorDialog', () => {
       retryAction: 'Authorize',
     },
     {
+      errorState: 'blackboard_file_not_found_in_course',
+      expectedText: 'The file has been deleted from Blackboard',
+    },
+    {
       errorState: 'canvas_api_permission_error',
       expectedText: "Hypothesis couldn't get the assignment's file from Canvas",
     },
