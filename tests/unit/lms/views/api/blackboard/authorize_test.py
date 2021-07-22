@@ -1,7 +1,15 @@
+from unittest.mock import create_autospec
+
 import pytest
 from h_matchers import Any
 
-from lms.views.api.blackboard.authorize import authorize, oauth2_redirect
+from lms.resources._js_config import JSConfig
+from lms.resources.oauth2_redirect import OAuth2RedirectResource
+from lms.views.api.blackboard.authorize import (
+    authorize,
+    oauth2_redirect,
+    oauth2_redirect_error,
+)
 from tests.matchers import temporary_redirect_to
 
 
@@ -37,6 +45,25 @@ class TestAuthorize:
                 },
             )
         )
+
+
+class TestOAuth2RedirectError:
+    def test_it(self, pyramid_request):
+        template_variables = oauth2_redirect_error(pyramid_request)
+
+        pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_once_with(
+            auth_route="blackboard_api.oauth.authorize"
+        )
+        assert template_variables == {}
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.context = create_autospec(
+            OAuth2RedirectResource,
+            instance=True,
+            js_config=create_autospec(JSConfig, spec_set=True, instance=True),
+        )
+        return pyramid_request
 
 
 @pytest.mark.usefixtures("blackboard_api_client")
