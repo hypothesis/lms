@@ -4,12 +4,21 @@
  */
 
 /**
- * Object representing a file in the LMS's file storage.
+ * @typedef {import("./config").APICallInfo} APICallInfo
+ */
+
+/**
+ * Object representing a file or folder resource in the LMS's file storage.
  *
  * @typedef File
- * @prop {string} id - Identifier for the file within the LMS's file storage
- * @prop {string} display_name - Name of the file to present in the file picker
+ * @prop {string} id - Identifier for the resource within the LMS's file storage
+ * @prop {string} display_name - Name of the resource to present in the file picker
  * @prop {string} updated_at - An ISO 8601 date string
+ * @prop {'File'|'Folder'} [type]
+ * @prop {APICallInfo} [contents] - APICallInfo for fetching a folders's
+ *   content. Only present if `type` is 'Folder'.
+ * @prop {string|null} [parent_id] - Only present if `type` is 'Folder'. A
+ *   folder may have a parent folder.
  */
 
 /**
