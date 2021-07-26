@@ -112,12 +112,23 @@ export default function LMSFilePicker({
           path: listFilesApi.path,
         })
       );
+
+      // FIXME: This is a temporary fix for the updated file API response for
+      // BlackBoard files. A File returned by the BlackBoard files API may be
+      // either a `File` or a `Folder`. Until `FileList` and this component
+      // have has been updated to render and handle `Folder`-type objects,
+      // filter them out of the file list: i.e. hide them.
+
+      const filteredFiles = files.filter(
+        file => !file.type || file.type === 'File'
+      );
+
       const continueAction =
         files.length === 0 ? 'reload' : INITIAL_DIALOG_STATE.continueAction;
       setDialogState({
         ...INITIAL_DIALOG_STATE,
         state: 'fetched',
-        files,
+        files: filteredFiles,
         continueAction,
       });
     } catch (e) {

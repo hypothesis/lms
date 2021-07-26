@@ -34,7 +34,10 @@ describe('LMSFilePicker', () => {
   };
 
   beforeEach(() => {
-    fakeApiCall = sinon.stub().resolves(['one file']);
+    fakeApiCall = sinon.stub().resolves([
+      { type: 'File', display_name: 'A file' },
+      { type: 'Folder', display_name: 'A folder' },
+    ]);
 
     fakeListFilesApi = {
       path: 'https://lms.anno.co/files/course123',
@@ -63,7 +66,9 @@ describe('LMSFilePicker', () => {
       authToken: 'auth-token',
       path: fakeListFilesApi.path,
     });
-    const expectedFiles = await fakeApiCall.returnValues[0];
+    const returnedFiles = await fakeApiCall.returnValues[0];
+    // Component currently filters out Folders
+    const expectedFiles = returnedFiles.filter(file => file.type !== 'Folder');
     wrapper.update();
     const fileList = wrapper.find('FileList');
     assert.deepEqual(fileList.prop('files'), expectedFiles);
@@ -91,7 +96,7 @@ describe('LMSFilePicker', () => {
     assert.isTrue(authButton.exists());
 
     // Click the "Authorize" button and check that files are re-fetched.
-    const expectedFiles = [];
+    const expectedFiles = ['a file'];
     fakeApiCall.reset();
     fakeApiCall.resolves(expectedFiles);
 
@@ -104,7 +109,7 @@ describe('LMSFilePicker', () => {
     });
 
     const fileList = wrapper.find('FileList');
-    assert.equal(fileList.prop('files'), expectedFiles);
+    assert.deepEqual(fileList.prop('files'), expectedFiles);
   });
 
   it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
@@ -262,7 +267,9 @@ describe('LMSFilePicker', () => {
 
   it('fetches and displays files from the LMS', async () => {
     const wrapper = renderFilePicker();
-    const expectedFiles = await fakeApiCall.returnValues[0];
+    const returnedFiles = await fakeApiCall.returnValues[0];
+    // Component currently filters out Folders
+    const expectedFiles = returnedFiles.filter(file => file.type !== 'Folder');
     wrapper.update();
     assert.called(fakeApiCall);
 
