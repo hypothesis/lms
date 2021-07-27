@@ -10,18 +10,19 @@ from tests import factories
 
 class TestVitalSourceService:
     @pytest.mark.parametrize(
-        "key,secret",
+        "lti_key,lti_secret,api_key",
         [
-            (None, "launch-secret"),
-            ("launch-key", None),
-            ("", ""),
+            (None, "launch-secret", "api-key"),
+            ("launch-key", "launch-secret", None),
+            ("launch-key", None, "api-key"),
+            ("", "", ""),
         ],
     )
-    def test_init_raises_if_launch_credentials_invalid(self, key, secret):
+    def test_init_raises_if_launch_credentials_invalid(self, http_service, lti_key, lti_secret, api_key):
         with pytest.raises(
-            ValueError, match="VitalSource LTI launch credentials are invalid"
+            ValueError, match="VitalSource credentials are invalid"
         ):
-            VitalSourceService(key, secret)
+            VitalSourceService(http_service, lti_key, lti_secret, api_key)
 
     def test_it_generates_lti_launch_form_params(self, svc, lti_user):
         launch_url, params = svc.get_launch_params("book-id", "/abc", lti_user)
@@ -69,8 +70,8 @@ class TestVitalSourceService:
         }
 
     @pytest.fixture
-    def svc(self):
-        return VitalSourceService("lti_launch_key", "lti_launch_secret")
+    def svc(self, http_service):
+        return VitalSourceService(http_service, "lti_launch_key", "lti_launch_secret", "api_key")
 
     @pytest.fixture
     def lti_user(self):
@@ -82,20 +83,20 @@ class TestVitalSourceService:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, VitalSourceService):
+    def test_it(self, http_service, pyramid_request, VitalSourceService):
         svc = factory(sentinel.context, pyramid_request)
 
         VitalSourceService.assert_called_once_with(
-            sentinel.vs_lti_launch_key, sentinel.vs_lti_launch_secret
+            http_service, sentinel.vs_lti_launch_key, sentinel.vs_lti_launch_secret, sentinel.vs_api_key
         )
         assert svc == VitalSourceService.return_value
 
     @pytest.mark.parametrize(
         "name_of_missing_envvar",
-        ["vitalsource_lti_launch_key", "vitalsource_lti_launch_secret"],
+        ["vitalsource_lti_launch_key", "vitalsource_lti_launch_secret", "vitalsource_api_key"],
     )
     def test_it_raises_if_an_envvar_is_missing(
-        self, pyramid_request, name_of_missing_envvar
+        self, pyramid_request, http_service, name_of_missing_envvar
     ):
         del pyramid_request.registry.settings[name_of_missing_envvar]
 
@@ -110,6 +111,10 @@ class TestFactory:
         pyramid_config.registry.settings[
             "vitalsource_lti_launch_secret"
         ] = sentinel.vs_lti_launch_secret
+        pyramid_config.registry.settings[
+            "vitalsource_api_key"
+        ] = sentinel.vs_api_key
+
         return pyramid_config
 
     @pytest.fixture(autouse=True)
