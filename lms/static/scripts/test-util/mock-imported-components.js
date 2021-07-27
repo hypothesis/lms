@@ -1,15 +1,19 @@
 /**
- * Return true if `value` "looks like" a React/Preact component.
+ * Return true if an imported `value` "looks like" a Preact function component.
+ *
+ * This check can have false positives (ie. match values which are not really components).
+ * That's OK because typical usage in a test is to first mock all components with
+ * `$imports.$mock(mockImportedComponents())` and then mock other things with
+ * `$imports.$mock(...)`. The more specific mocks will override the generic
+ * component mocks.
  */
 function isComponent(value) {
   return (
     typeof value === 'function' &&
     value.name.match(/^[A-Z]/) &&
-    // A crude test to check that the function returns a JSX expression.
-    //
-    // This won't work if the component is an arrow function, or if `createElement`
-    // is imported under a different name.
-    value.toString().match(/\breturn\b.*\bcreateElement\b/)
+    // Check that function is not an ES class. Note this only works with real
+    // ES classes and may not work with ones transpiled to ES5.
+    !value.toString().match(/^class\b/)
   );
 }
 
@@ -34,7 +38,9 @@ function getDisplayName(component) {
 
 /**
  * Helper for use with `babel-plugin-mockable-imports` that mocks components
- * imported by a file.
+ * imported by a file. This will only mock components that are local to the
+ * package; it will not mock external components. This is to aid in catching
+ * integration issues, at the slight cost of unit isolation.
  *
  * Mocked components will have the same display name as the original component,
  * minus any wrappers (eg. `Widget` and `withServices(Widget)` both become
@@ -42,25 +48,30 @@ function getDisplayName(component) {
  * `Fragment`.
  *
  * @example
+ *   import ComponentUnderTest, { $imports } from '../component-under-test';
+ *
  *   beforeEach(() => {
- *     ComponentUnderTest.$imports.$mock(mockImportedComponents());
+ *     $imports.$mock(mockImportedComponents());
  *
  *     // Add additional mocks or overrides here.
  *   });
  *
  *   afterEach(() => {
- *     ComponentUnderTest.$imports.$restore();
+ *     $imports.$restore();
  *   });
  *
  * @return {Function} - A function that can be passed to `$imports.$mock`.
  */
 export default function mockImportedComponents() {
   return (source, symbol, value) => {
-    if (!isComponent(value)) {
+    if (!isComponent(value) || !source.startsWith('.')) {
       return null;
     }
 
     const mock = props => props.children;
+
+    // Make it possible to do `wrapper.find('ComponentName')` where `wrapper`
+    // is an Enzyme wrapper.
     mock.displayName = getDisplayName(value);
 
     return mock;
