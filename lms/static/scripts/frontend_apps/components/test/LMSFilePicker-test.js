@@ -3,7 +3,6 @@ import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
 import { APIError } from '../../utils/api';
-import ErrorDisplay from '../ErrorDisplay';
 import FileList from '../FileList';
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
@@ -194,7 +193,7 @@ describe('LMSFilePicker', () => {
       );
       assert.isTrue(tryAgainButton.exists());
 
-      const errorDetails = wrapper.find(ErrorDisplay);
+      const errorDetails = wrapper.find('ErrorDisplay');
       assert.include(errorDetails.props(), {
         message: 'There was a problem fetching files',
         error,
