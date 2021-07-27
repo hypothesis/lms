@@ -3,7 +3,7 @@ from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
 
 class VitalSourceService:
-    def __init__(self, lti_launch_key, lti_launch_secret):
+    def __init__(self, http_service, lti_launch_key, lti_launch_secret, api_key):
         """
         Return a new VitalSourceService.
 
@@ -18,6 +18,10 @@ class VitalSourceService:
 
         self._lti_launch_key = lti_launch_key
         self._lti_launch_secret = lti_launch_secret
+        self._api_key = api_key
+
+        self._http_service = http_service
+
 
     def get_launch_params(self, book_id, cfi, lti_user):
         """
@@ -83,6 +87,8 @@ class VitalSourceService:
 
 def factory(_context, request):
     return VitalSourceService(
+        request.find_service(name="http"),
         request.registry.settings["vitalsource_lti_launch_key"],
         request.registry.settings["vitalsource_lti_launch_secret"],
+        request.registry.settings["vitalsource_api_key"],
     )
