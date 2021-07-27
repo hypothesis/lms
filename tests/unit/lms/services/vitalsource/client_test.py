@@ -78,7 +78,7 @@ class TestVitalSourceService:
 
     @pytest.fixture
     def OAuth1Client(self, patch):
-        return patch("lms.services.vitalsource.oauthlib.oauth1.Client")
+        return patch("lms.services.vitalsource.client.oauthlib.oauth1.Client")
 
 
 class TestFactory:
@@ -114,4 +114,4 @@ class TestFactory:
 
     @pytest.fixture(autouse=True)
     def VitalSourceService(self, patch):
-        return patch("lms.services.vitalsource.VitalSourceService")
+        return patch("lms.services.vitalsource.client.VitalSourceService")
