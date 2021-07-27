@@ -1,0 +1,26 @@
+.Breadcrumbs {
+  margin: 0;
+  padding: 0;
+  // FIXME: For now, allow crumbs to wrap onto a second line if they
+  // run out of room. This could be more elegant.
+  flex-wrap: wrap;
+
+  &__crumb {
+    display: inline-flex;
+    list-style-type: none;
+  }
+
+  &__crumb-divider {
+    margin: 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  &__crumb--current {
+    button {
+      // The button is disabled, so don't show a pointer cursor
+      // FIXME: The shared button components should handle their cursors
+      // correctly
+      cursor: default;
+    }
+  }
+}
