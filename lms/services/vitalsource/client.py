@@ -1,6 +1,9 @@
 import oauthlib
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
+from lms.services.exceptions import HTTPError
+from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
+
 
 class VitalSourceService:
     def __init__(self, http_service, lti_launch_key, lti_launch_secret, api_key):
@@ -20,8 +23,27 @@ class VitalSourceService:
         self._lti_launch_secret = lti_launch_secret
         self._api_key = api_key
 
-        self._http_service = http_service
+    def book_info(self, book_id: str):
+        try:
+            response = self._api_get(f"products/{book_id}")
+        except lms.services.exceptions.HTTPError as exp:
+            if exp.response.status_code == 404:
+                return None
 
+            raise
+
+        return BookInfoSchema(response).parse()
+
+    def book_toc(self, book_id: str):
+        try:
+            response = self._api_get(f"products/{book_id}/toc")
+        except lms.services.exceptions.HTTPError as exp:
+            if exp.response.status_code == 404:
+                return None
+
+            raise
+
+        return BookTOCSchema(response).parse()
 
     def get_launch_params(self, book_id, cfi, lti_user):
         """
