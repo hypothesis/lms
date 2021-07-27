@@ -6,7 +6,7 @@ import { APIError } from '../../utils/api';
 import FileList from '../FileList';
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitForElement } from '../../../test-util/wait';
+import { waitFor, waitForElement } from '../../../test-util/wait';
 
 describe('LMSFilePicker', () => {
   // eslint-disable-next-line react/prop-types
@@ -18,6 +18,8 @@ describe('LMSFilePicker', () => {
 
   let fakeApiCall;
   let fakeListFilesApi;
+  let fakeFiles;
+  let fakeFolders;
 
   const renderFilePicker = (props = {}) => {
     return mount(
@@ -33,16 +35,41 @@ describe('LMSFilePicker', () => {
     );
   };
 
+  const changePath = (wrapper, folder) => {
+    act(() => wrapper.find('Breadcrumbs').props().onSelectItem(folder));
+  };
+
   beforeEach(() => {
-    fakeApiCall = sinon.stub().resolves([
+    fakeFiles = [
       { type: 'File', display_name: 'A file' },
       { type: 'Folder', display_name: 'A folder' },
-    ]);
+    ];
+
+    fakeFolders = [
+      {
+        display_name: 'Subfolder',
+        id: 'subfolder',
+        type: 'Folder',
+        contents: {
+          path: 'folder-path',
+        },
+      },
+      {
+        display_name: 'Subfolder2',
+        id: 'subfolder2',
+        type: 'Folder',
+        contents: {
+          path: 'folder2-path',
+        },
+      },
+    ];
 
     fakeListFilesApi = {
       path: 'https://lms.anno.co/files/course123',
       authUrl: 'https://lms.anno.co/authorize-lms',
     };
+
+    fakeApiCall = sinon.stub().resolves(fakeFiles);
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
@@ -62,16 +89,90 @@ describe('LMSFilePicker', () => {
 
   it('fetches files when the dialog first appears', async () => {
     const wrapper = renderFilePicker();
+
     assert.calledWith(fakeApiCall, {
       authToken: 'auth-token',
       path: fakeListFilesApi.path,
     });
-    const returnedFiles = await fakeApiCall.returnValues[0];
-    // Component currently filters out Folders
-    const expectedFiles = returnedFiles.filter(file => file.type !== 'Folder');
-    wrapper.update();
-    const fileList = wrapper.find('FileList');
+
+    const expectedFiles = await fakeApiCall.returnValues[0];
+    const fileList = await waitForElement(wrapper, 'FileList');
     assert.deepEqual(fileList.prop('files'), expectedFiles);
+  });
+
+  it('shows breadcrumbs if `withBreadcrumbs` enabled', async () => {
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+
+    const breadcrumbs = await waitForElement(wrapper, 'Breadcrumbs');
+
+    const items = breadcrumbs.props().items;
+    assert.lengthOf(items, 1);
+    assert.include(
+      items[0],
+      {
+        display_name: 'Files',
+        id: '__root__',
+      },
+      'The only initial breadcrumb is the top-level "Files" crumb'
+    );
+
+    assert.equal(
+      breadcrumbs.props().renderItem(fakeFolders[0]),
+      'Subfolder',
+      'The `renderItem` callback passed to Breadcrumbs renders a File `display_name`'
+    );
+  });
+
+  it('fetches files in indicated sub-folder if folder path is changed', async () => {
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+
+    const breadcrumbs = await waitForElement(wrapper, 'Breadcrumbs');
+    fakeApiCall.reset();
+    // Simulate changing the folder path, as if a user clicked on a "crumb"
+    act(() => breadcrumbs.props().onSelectItem(fakeFolders[0]));
+
+    await waitFor(() => fakeApiCall.calledOnce);
+
+    assert.calledWith(fakeApiCall, {
+      authToken: 'auth-token',
+      path: fakeFolders[0].contents.path,
+    });
+  });
+
+  it('updates Breadcrumbs when folder path changes', async () => {
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+    await waitForElement(wrapper, 'Breadcrumbs');
+
+    // Simulate changing the path into subfolder `fakeFolders[0]`
+    changePath(wrapper, fakeFolders[0]);
+    wrapper.update();
+
+    const breadcrumbs = wrapper.find('Breadcrumbs');
+    const pathItems = breadcrumbs.props().items;
+
+    // Now there is the top "Files" item and a single subfolder
+    assert.lengthOf(pathItems, 2);
+    // The last item is the sub-folder just changed to, `fakeFolders[0]`
+    assert.deepEqual(pathItems[1], fakeFolders[0]);
+
+    // Simulate changing the path again into a nested subfolder `fakeFolders[1]`
+    changePath(wrapper, fakeFolders[1]);
+    wrapper.update();
+    const pathItems2 = wrapper.find('Breadcrumbs').props().items;
+
+    // Now there are three breadcrumbs, with `fakeFolders[1]` as the last item
+    assert.lengthOf(pathItems2, 3);
+    assert.deepEqual(pathItems2[2], fakeFolders[1]);
+
+    // Now head back "up" the hierarchy one level (`fakeFolders[0]`)
+    changePath(wrapper, fakeFolders[0]);
+    wrapper.update();
+    const pathItems3 = wrapper.find('Breadcrumbs').props().items;
+
+    // This removes `fakeFolders[1]` from the path items, and the last item is
+    // the folder path just switched to (`fakeFolders[0]`)
+    assert.lengthOf(pathItems3, 2);
+    assert.deepEqual(pathItems3[1], fakeFolders[0]);
   });
 
   it('shows the authorization prompt if fetching files fails with an APIError that has no `errorMessage`', async () => {
@@ -267,9 +368,7 @@ describe('LMSFilePicker', () => {
 
   it('fetches and displays files from the LMS', async () => {
     const wrapper = renderFilePicker();
-    const returnedFiles = await fakeApiCall.returnValues[0];
-    // Component currently filters out Folders
-    const expectedFiles = returnedFiles.filter(file => file.type !== 'Folder');
+    const expectedFiles = await fakeApiCall.returnValues[0];
     wrapper.update();
     assert.called(fakeApiCall);
 
@@ -301,9 +400,39 @@ describe('LMSFilePicker', () => {
     assert.calledWith(onSelectFile, file);
   });
 
+  it('does not invoke `onSelectFile` if chosen file is empty', async () => {
+    const onSelectFile = sinon.stub();
+    const wrapper = renderFilePicker({ onSelectFile });
+    await waitFor(() => fakeApiCall.called);
+    wrapper.update();
+
+    const file = null;
+    wrapper.find('FileList').prop('onUseFile')(file);
+    assert.notCalled(onSelectFile);
+  });
+
+  it('updates the folder path when a user chooses a folder', async () => {
+    const onSelectFile = sinon.stub();
+    const wrapper = renderFilePicker({ onSelectFile, withBreadcrumbs: true });
+    await waitFor(() => fakeApiCall.called);
+    wrapper.update();
+
+    const file = fakeFiles[1]; // This is a folder
+    wrapper.find('FileList').prop('onUseFile')(file);
+    // Folders cannot be selected as a file...
+    assert.notCalled(onSelectFile);
+
+    await waitFor(() => fakeApiCall.calledTwice);
+    wrapper.update();
+
+    // ...Instead, the path state is updated (and "navigated to") and added
+    // to the set of breadcrumb path elements
+    assert.equal(wrapper.find('Breadcrumbs').props().items[1], fakeFiles[1]);
+  });
+
   it('disables "Select" button when no file is selected', async () => {
     const wrapper = renderFilePicker();
-    await fakeApiCall;
+    await waitFor(() => fakeApiCall.called);
     wrapper.update();
 
     assert.equal(
@@ -314,7 +443,7 @@ describe('LMSFilePicker', () => {
 
   it('enables "Select" button when a file is selected', async () => {
     const wrapper = renderFilePicker();
-    await fakeApiCall;
+    await waitFor(() => fakeApiCall.called);
     wrapper.update();
 
     wrapper.find('FileList').prop('onSelectFile')({ id: 123 });
@@ -329,7 +458,7 @@ describe('LMSFilePicker', () => {
   it('chooses selected file when uses clicks "Select" button', async () => {
     const onSelectFile = sinon.stub();
     const wrapper = renderFilePicker({ onSelectFile });
-    await fakeApiCall;
+    await waitFor(() => fakeApiCall.called);
     wrapper.update();
 
     const file = { id: 123 };
@@ -346,7 +475,7 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker();
     assert.isTrue(wrapper.isEmptyRender());
 
-    await fakeApiCall;
+    await waitFor(() => fakeApiCall.called);
     wrapper.update();
     assert.isFalse(wrapper.isEmptyRender());
   });
@@ -358,11 +487,29 @@ describe('LMSFilePicker', () => {
 
     it('renders no file message with a help link', async () => {
       const wrapper = renderFilePicker();
-      const fileList = await waitForElement(wrapper, 'FileList');
+      const fileList = await waitForElement(
+        wrapper,
+        'FileList[isLoading=false]'
+      );
       assert.equal(
         fileList.prop('noFilesMessage').props.href,
         'https://fake_help_link'
       );
+      // After first file fetch, we're at the top level, so the no-files message
+      // should operate in its "course" context
+      assert.isFalse(fileList.prop('noFilesMessage').props.inSubfolder);
+    });
+
+    it('renders no-file message in folder context if in a subfolder', async () => {
+      const wrapper = renderFilePicker({ withBreadcrumbs: true });
+      await waitForElement(wrapper, 'FileList[isLoading=false]');
+
+      changePath(wrapper, fakeFolders[0]);
+      const fileList = await waitForElement(wrapper, 'FileList');
+
+      // After first file fetch, we're at the top level, so the no-files message
+      // should operate in its "course" context
+      assert.isTrue(fileList.prop('noFilesMessage').props.inSubfolder);
     });
   });
 });

@@ -149,6 +149,7 @@ export default function ContentSelector({
           // An alias we maintain that provides multiple external documentation links for
           // different versions of Blackboard (Classic vs. Ultra)
           missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
+          withBreadcrumbs
         />
       );
       break;
