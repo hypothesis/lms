@@ -1,10 +1,11 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+import { createElement, Fragment } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { APIError, apiCall } from '../utils/api';
 
 import AuthButton from './AuthButton';
+import Breadcrumbs from './Breadcrumbs';
 import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
@@ -17,6 +18,7 @@ import FileList from './FileList';
 /**
  * @typedef NoFilesMessageProps
  * @prop {string} href - Helpful documentation URL to link to
+ * @prop {boolean} inSubfolder - has the user navigated to a sub-folder?
  */
 
 /**
@@ -25,13 +27,14 @@ import FileList from './FileList';
  *
  * @param {NoFilesMessageProps} props
  */
-function NoFilesMessage({ href }) {
+function NoFilesMessage({ href, inSubfolder }) {
+  const documentContext = inSubfolder ? 'folder' : 'course';
   return (
     <div className="FileList__no-files-message">
       <p>
-        There are no PDFs in this course.{' '}
+        There are no PDFs in this {documentContext}.{' '}
         <a href={href} target="_blank" rel="noreferrer">
-          Upload some files to the course
+          Upload some files to the {documentContext}
         </a>{' '}
         and try again.
       </p>
@@ -50,6 +53,8 @@ function NoFilesMessage({ href }) {
  * @prop {string} missingFilesHelpLink - A helpful URL to documentation that explains
  *   how to upload files to an LMS such as Canvas or Blackboard. This link is only shown
  *   when the API call to returns available files returns an empty list.
+ * @prop {boolean} [withBreadcrumbs=false] - Render path breadcrumbs and allow
+ *   sub-folder navigation?
  */
 
 /**
@@ -85,6 +90,7 @@ export default function LMSFilePicker({
   onCancel,
   onSelectFile,
   missingFilesHelpLink,
+  withBreadcrumbs = false,
 }) {
   // The main state of the dialog and associated data.
   const [dialogState, setDialogState] = useState(INITIAL_DIALOG_STATE);
@@ -92,35 +98,75 @@ export default function LMSFilePicker({
   // Authorization attempt was made. Set after state transitions to "authorizing".
   const [authorizationAttempted, setAuthorizationAttempted] = useState(false);
 
-  // The file within `files` which is currently selected.
-  const [selectedFile, selectFile] = useState(/** @type {File|null} */ (null));
+  // The file or folder within `files` which is currently selected.
+  const [selectedFile, setSelectedFile] = useState(
+    /** @type {File|null} */ (null)
+  );
+
+  // An array of File objects representing the "path" to the current
+  // list of files being displayed. This always starts at the root. The last
+  // element represents the current directory path.
+  const [folderPath, setFolderPath] = useState(
+    /** @type {File[]} */ ([
+      {
+        display_name: 'Files',
+        type: 'Folder',
+        contents: listFilesApi,
+        id: '__root__',
+      },
+    ])
+  );
+
+  /**
+   * Change to a new folder path. This will update the breadcrumb path history
+   * and cause a new fetch to be initiated to retrieve files in that folder path.
+   *
+   * @param {File} folder
+   */
+  const onChangePath = folder => {
+    const currentIndex = folderPath.findIndex(file => file.id === folder.id);
+    if (currentIndex >= 0) {
+      // If the selected folder is already in the path, remove any entries
+      // below (after) it to make it the last entry
+      setFolderPath(folderPath.slice(0, currentIndex + 1));
+    } else {
+      // Otherwise, append it to the current path
+      setFolderPath([...folderPath, folder]);
+    }
+  };
 
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(async () => {
+    const getNextAPICallInfo = () => {
+      return folderPath[folderPath.length - 1]?.contents || listFilesApi;
+    };
     try {
       // Show the fetching state, but preserve the existing continueAction to
       // prevent the button label changing. See:
       // https://github.com/hypothesis/lms/pull/2219#issuecomment-721833947
-      setDialogState(({ continueAction }) => ({
-        ...INITIAL_DIALOG_STATE,
-        state: continueAction === 'reload' ? 'reloading' : 'fetching',
-        continueAction,
-      }));
+      setDialogState(({ continueAction, state }) => {
+        // Determine the appropriate state to move to. If files have been
+        // fetched, or a reload is indicated by continueAction, put the dialog
+        // in a "reloading" state instead of a (fresh) "fetching" state. This
+        // applies the appropriate loading state while the fetch request is in
+        // flight. "fetching" will not render the Dialog, while "reloading" will
+        // render the Dialog, with a loading indicator.
+        const nextState =
+          state === 'fetched' || continueAction === 'reload'
+            ? 'reloading'
+            : 'fetching';
+        return {
+          ...INITIAL_DIALOG_STATE,
+          state: nextState,
+          continueAction,
+        };
+      });
+
       const files = /** @type {File[]} */ (
         await apiCall({
           authToken,
-          path: listFilesApi.path,
+          path: getNextAPICallInfo().path,
         })
-      );
-
-      // FIXME: This is a temporary fix for the updated file API response for
-      // BlackBoard files. A File returned by the BlackBoard files API may be
-      // either a `File` or a `Folder`. Until `FileList` and this component
-      // have has been updated to render and handle `Folder`-type objects,
-      // filter them out of the file list: i.e. hide them.
-
-      const filteredFiles = files.filter(
-        file => !file.type || file.type === 'File'
       );
 
       const continueAction =
@@ -128,7 +174,7 @@ export default function LMSFilePicker({
       setDialogState({
         ...INITIAL_DIALOG_STATE,
         state: 'fetched',
-        files: filteredFiles,
+        files,
         continueAction,
       });
     } catch (e) {
@@ -157,17 +203,25 @@ export default function LMSFilePicker({
         });
       }
     }
-  }, [authToken, listFilesApi, authorizationAttempted]);
+  }, [authToken, folderPath, authorizationAttempted, listFilesApi]);
 
-  // On the initial load, fetch files or prompt to authorize if we know that
-  // authorization will be required.
+  // Update the file list any time the path changes
   useEffect(() => {
     fetchFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [folderPath]);
 
-  const useSelectedFile = () =>
-    onSelectFile(/** @type {File} */ (selectedFile));
+  /** @param {File|null} file */
+  const confirmSelectedItem = (file = selectedFile) => {
+    if (!file) {
+      return;
+    }
+    if (!file.type || file.type === 'File') {
+      onSelectFile(file);
+    } else if (file.type === 'Folder') {
+      onChangePath(file);
+    }
+  };
 
   const options = {
     select: {
@@ -175,7 +229,7 @@ export default function LMSFilePicker({
         <LabeledButton
           variant="primary"
           disabled={selectedFile === null}
-          onClick={useSelectedFile}
+          onClick={() => confirmSelectedItem()}
           data-testid="select"
         >
           Select
@@ -263,14 +317,28 @@ export default function LMSFilePicker({
       {warningOrError}
 
       {['reloading', 'fetched'].includes(dialogState.state) && (
-        <FileList
-          files={dialogState.files ?? []}
-          isLoading={dialogState.state === 'reloading'}
-          selectedFile={selectedFile}
-          onUseFile={onSelectFile}
-          onSelectFile={selectFile}
-          noFilesMessage={<NoFilesMessage href={missingFilesHelpLink} />}
-        />
+        <Fragment>
+          {withBreadcrumbs && (
+            <Breadcrumbs
+              items={folderPath}
+              onSelectItem={onChangePath}
+              renderItem={item => item.display_name}
+            />
+          )}
+          <FileList
+            files={dialogState.files ?? []}
+            isLoading={dialogState.state === 'reloading'}
+            selectedFile={selectedFile}
+            onUseFile={confirmSelectedItem}
+            onSelectFile={setSelectedFile}
+            noFilesMessage={
+              <NoFilesMessage
+                href={missingFilesHelpLink}
+                inSubfolder={folderPath.length > 1}
+              />
+            }
+          />
+        </Fragment>
       )}
     </Dialog>
   );
