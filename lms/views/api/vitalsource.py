@@ -1,4 +1,3 @@
-from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
@@ -18,7 +17,7 @@ class VitalSourceAPIViews:
         book_info = self.vitalsource_service.book_info(book_id)
 
         if not book_info:
-            raise HTTPNotFound()
+            raise ProxyAPIError(f"Book {book_id} not found")
 
         return {
             "id": book_info["vbid"],
@@ -32,6 +31,6 @@ class VitalSourceAPIViews:
 
         book_toc = self.vitalsource_service.book_toc(book_id)
         if not book_toc:
-            raise HTTPNotFound()
+            raise ProxyAPIError(f"Book {book_id} not found")
 
         return book_toc["table_of_contents"]

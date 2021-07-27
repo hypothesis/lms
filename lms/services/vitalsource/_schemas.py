@@ -1,7 +1,7 @@
 """
 Schemas for VitalSource API responses.
 
-See: https://developer.vitalsource.com/hc/en-us/categories/360001974433 
+See: https://developer.vitalsource.com/hc/en-us/categories/360001974433
 """
 from marshmallow import EXCLUDE, Schema, fields
 
