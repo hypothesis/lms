@@ -16,8 +16,10 @@ class VitalSourceService:
         :type lti_launch_secret: str
         :raises ValueError: If credentials are invalid
         """
-        if not lti_launch_key or not lti_launch_secret:
-            raise ValueError("VitalSource LTI launch credentials are invalid")
+        if not all([lti_launch_key, lti_launch_secret, api_key]):
+            raise ValueError("VitalSource credentials are invalid")
+
+        self._http_service = http_service
 
         self._lti_launch_key = lti_launch_key
         self._lti_launch_secret = lti_launch_secret
