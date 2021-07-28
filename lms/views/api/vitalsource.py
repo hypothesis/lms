@@ -1,7 +1,6 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
-from lms.services.exceptions import ProxyAPIError
 
 
 @view_defaults(renderer="json", permission=Permissions.API)
@@ -15,10 +14,6 @@ class VitalSourceAPIViews:
         book_id = self.request.matchdict["book_id"]
 
         book_info = self.vitalsource_service.book_info(book_id)
-
-        if not book_info:
-            raise ProxyAPIError(f"Book {book_id} not found")
-
         return {
             "id": book_info["vbid"],
             "title": book_info["title"],
@@ -30,7 +25,4 @@ class VitalSourceAPIViews:
         book_id = self.request.matchdict["book_id"]
 
         book_toc = self.vitalsource_service.book_toc(book_id)
-        if not book_toc:
-            raise ProxyAPIError(f"Book {book_id} not found")
-
         return book_toc["table_of_contents"]
