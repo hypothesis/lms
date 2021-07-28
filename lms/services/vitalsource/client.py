@@ -25,7 +25,7 @@ class VitalSourceService:
         self._lti_launch_secret = lti_launch_secret
         self._api_key = api_key
 
-    def _api_get(self, endpoint):
+    def get(self, endpoint):
         url = f"https://api.vitalsource.com/v4/{endpoint}"
 
         return self._http_service.get(
@@ -34,7 +34,7 @@ class VitalSourceService:
 
     def book_info(self, book_id: str):
         try:
-            response = self._api_get(f"products/{book_id}")
+            response = self.get(f"products/{book_id}")
         except HTTPError as exp:
             if exp.response.status_code == 404:
                 return None
@@ -45,7 +45,7 @@ class VitalSourceService:
 
     def book_toc(self, book_id: str):
         try:
-            response = self._api_get(f"products/{book_id}/toc")
+            response = self.get(f"products/{book_id}/toc")
         except HTTPError as exp:
             if exp.response.status_code == 404:
                 return None
