@@ -164,9 +164,9 @@ class TestFactory:
 
         VitalSourceService.assert_called_once_with(
             http_service,
-            sentinel.vs_lti_launch_key,
-            sentinel.vs_lti_launch_secret,
-            sentinel.vs_api_key,
+            "test_vs_lti_launch_key",
+            "test_vs_lti_launch_secret",
+            "test_vs_api_key",
         )
         assert svc == VitalSourceService.return_value
 
@@ -186,18 +186,6 @@ class TestFactory:
 
         with pytest.raises(KeyError):
             factory(sentinel.context, pyramid_request)
-
-    @pytest.fixture
-    def pyramid_config(self, pyramid_config):
-        pyramid_config.registry.settings[
-            "vitalsource_lti_launch_key"
-        ] = sentinel.vs_lti_launch_key
-        pyramid_config.registry.settings[
-            "vitalsource_lti_launch_secret"
-        ] = sentinel.vs_lti_launch_secret
-        pyramid_config.registry.settings["vitalsource_api_key"] = sentinel.vs_api_key
-
-        return pyramid_config
 
     @pytest.fixture(autouse=True)
     def VitalSourceService(self, patch):
