@@ -1,6 +1,5 @@
 import pytest
 
-from lms.services.exceptions import ProxyAPIError
 from lms.views.api.vitalsource import VitalSourceAPIViews
 
 pytestmark = pytest.mark.usefixtures("http_service")
@@ -22,18 +21,6 @@ class TestVitalSourceAPIViews:
             "cover_image": api_book_info["resource_links"]["cover_image"],
         }
 
-    def test_book_info_raises_if_book_not_found(
-        self, pyramid_request, vitalsource_service
-    ):
-        vitalsource_service.book_info.return_value = None
-
-        pyramid_request.matchdict["book_id"] = "invalid-book-id"
-
-        with pytest.raises(ProxyAPIError) as exc_info:
-            VitalSourceAPIViews(pyramid_request).book_info()
-
-        assert exc_info.value.explanation == "Book invalid-book-id not found"
-
     def test_table_of_contents_returns_chapter_data(
         self, pyramid_request, vitalsource_service, api_book_table_of_contents
     ):
@@ -42,18 +29,6 @@ class TestVitalSourceAPIViews:
         pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
         toc = VitalSourceAPIViews(pyramid_request).table_of_contents()
         assert toc == api_book_table_of_contents["table_of_contents"]
-
-    def test_table_of_contents_raises_if_book_not_found(
-        self, pyramid_request, vitalsource_service
-    ):
-        vitalsource_service.book_toc.return_value = None
-
-        pyramid_request.matchdict["book_id"] = "invalid-book-id"
-
-        with pytest.raises(ProxyAPIError) as exc_info:
-            VitalSourceAPIViews(pyramid_request).table_of_contents()
-
-        assert exc_info.value.explanation == "Book invalid-book-id not found"
 
     @pytest.fixture
     def api_book_table_of_contents(self):

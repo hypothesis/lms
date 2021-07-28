@@ -5,7 +5,7 @@ import pytest
 from h_matchers import Any
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
-from lms.services.exceptions import HTTPError
+from lms.services.exceptions import HTTPError, ProxyAPIError
 from lms.services.vitalsource import VitalSourceService, factory
 from tests import factories
 
@@ -92,7 +92,8 @@ class TestVitalSourceService:
             "get",
             side_effect=HTTPError(factories.requests.Response(status_code=404)),
         ):
-            assert svc.book_info("BOOK_ID") is None
+            with pytest.raises(ProxyAPIError):
+                svc.book_info("BOOK_ID")
 
     def test_book_info_error(self, svc):
         with mock.patch.object(
@@ -116,7 +117,8 @@ class TestVitalSourceService:
             "get",
             side_effect=HTTPError(factories.requests.Response(status_code=404)),
         ):
-            assert svc.book_toc("BOOK_ID") is None
+            with pytest.raises(ProxyAPIError):
+                svc.book_toc("BOOK_ID")
 
     def test_book_toc_error(self, svc):
         with mock.patch.object(
