@@ -71,8 +71,8 @@ class TestVitalSourceService:
             "oauth_version": "1.0",
         }
 
-    def test_api_get(self, svc, http_service):
-        svc._api_get("endpoint/path")  # pylint: disable=protected-access
+    def test_get(self, svc, http_service):
+        svc.get("endpoint/path")
 
         http_service.get.assert_called_once_with(
             "https://api.vitalsource.com/v4/endpoint/path",
@@ -80,16 +80,16 @@ class TestVitalSourceService:
         )
 
     def test_book_info_api(self, svc, book_info_schema):
-        with mock.patch.object(VitalSourceService, "_api_get") as api_get:
+        with mock.patch.object(VitalSourceService, "get") as get:
             book_toc = svc.book_info("BOOK_ID")
-            api_get.assert_called_once_with("products/BOOK_ID")
+            get.assert_called_once_with("products/BOOK_ID")
 
         assert book_toc == book_info_schema.parse.return_value
 
     def test_book_info_not_found(self, svc):
         with mock.patch.object(
             VitalSourceService,
-            "_api_get",
+            "get",
             side_effect=HTTPError(factories.requests.Response(status_code=404)),
         ):
             assert svc.book_info("BOOK_ID") is None
@@ -97,23 +97,23 @@ class TestVitalSourceService:
     def test_book_info_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
-            "_api_get",
+            "get",
             side_effect=HTTPError(factories.requests.Response(status_code=500)),
         ):
             with pytest.raises(HTTPError):
                 svc.book_info("BOOK_ID")
 
     def test_book_toc_api(self, svc, book_toc_schema):
-        with mock.patch.object(VitalSourceService, "_api_get") as api_get:
+        with mock.patch.object(VitalSourceService, "get") as get:
             book_toc = svc.book_toc("BOOK_ID")
-            api_get.assert_called_once_with("products/BOOK_ID/toc")
+            get.assert_called_once_with("products/BOOK_ID/toc")
 
         assert book_toc == book_toc_schema.parse.return_value
 
     def test_book_toc_not_found(self, svc):
         with mock.patch.object(
             VitalSourceService,
-            "_api_get",
+            "get",
             side_effect=HTTPError(factories.requests.Response(status_code=404)),
         ):
             assert svc.book_toc("BOOK_ID") is None
@@ -121,7 +121,7 @@ class TestVitalSourceService:
     def test_book_toc_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
-            "_api_get",
+            "get",
             side_effect=HTTPError(factories.requests.Response(status_code=500)),
         ):
             with pytest.raises(HTTPError):
