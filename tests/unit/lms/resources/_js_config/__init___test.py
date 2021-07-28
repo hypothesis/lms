@@ -576,11 +576,11 @@ class TestEnableOAuth2RedirectErrorMode:
         config = js_config.asdict()
 
         assert config["mode"] == "oauth2-redirect-error"
-        assert config["oAuth2RedirectError"] == {
+        assert config["OAuth2RedirectError"] == {
             "authUrl": None,
             "invalidScope": True,
             "errorDetails": "Technical error",
-            "canvas_scopes": ["scope_a", "scope_b"],
+            "canvasScopes": ["scope_a", "scope_b"],
         }
 
     def test_other_error(self, js_config):
@@ -592,11 +592,11 @@ class TestEnableOAuth2RedirectErrorMode:
         config = js_config.asdict()
 
         assert config["mode"] == "oauth2-redirect-error"
-        assert config["oAuth2RedirectError"] == {
+        assert config["OAuth2RedirectError"] == {
             "authUrl": auth_url,
             "invalidScope": False,
             "errorDetails": "Some error",
-            "canvas_scopes": [],
+            "canvasScopes": [],
         }
 
     @pytest.fixture

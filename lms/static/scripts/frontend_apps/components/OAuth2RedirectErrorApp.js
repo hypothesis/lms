@@ -20,11 +20,11 @@ import Dialog from './Dialog';
  */
 export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const {
-    oAuth2RedirectError: {
+    OAuth2RedirectError: {
       authUrl = /** @type {string|null} */ (null),
       invalidScope = false,
       errorDetails = '',
-      canvas_scopes = /** @type {string[]} */ ([]),
+      canvasScopes = /** @type {string[]} */ ([]),
     },
   } = useContext(Config);
 
@@ -74,7 +74,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             these scopes:
           </p>
           <ol>
-            {canvas_scopes.map(scope => (
+            {canvasScopes.map(scope => (
               <li key={scope}>
                 <code>{scope}</code>
               </li>

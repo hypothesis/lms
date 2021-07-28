@@ -129,11 +129,11 @@ class JSConfig:
         self._config.update(
             {
                 "mode": "oauth2-redirect-error",
-                "oAuth2RedirectError": {
+                "OAuth2RedirectError": {
                     "authUrl": auth_url,
                     "invalidScope": is_scope_invalid,
                     "errorDetails": error_details,
-                    "canvas_scopes": canvas_scopes or [],
+                    "canvasScopes": canvas_scopes or [],
                 },
             }
         )

@@ -11,7 +11,7 @@ describe('OAuth2RedirectErrorApp', () => {
 
   const renderApp = () => {
     const config = {
-      oAuth2RedirectError: fakeConfig,
+      OAuth2RedirectError: fakeConfig,
     };
 
     return mount(
@@ -25,7 +25,7 @@ describe('OAuth2RedirectErrorApp', () => {
     fakeConfig = {
       invalidScope: false,
       authUrl: null,
-      canvas_scopes: [],
+      canvasScopes: [],
     };
 
     fakeLocation = {
@@ -41,14 +41,14 @@ describe('OAuth2RedirectErrorApp', () => {
 
   it('shows a scope error if the scope is invalid', () => {
     fakeConfig.invalidScope = true;
-    fakeConfig.canvas_scopes = ['scope_a', 'scope_b'];
+    fakeConfig.canvasScopes = ['scope_a', 'scope_b'];
 
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
       "A Canvas admin needs to edit Hypothesis's developer key"
     );
-    fakeConfig.canvas_scopes.forEach(scope =>
+    fakeConfig.canvasScopes.forEach(scope =>
       assert.include(wrapper.text(), scope)
     );
   });

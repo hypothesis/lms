@@ -80,11 +80,11 @@ import { createContext } from 'preact';
  * Configuration for the error dialog shown if authorizing access to an
  * OAuth API fails.
  *
- * @typedef oAuthErrorConfig
+ * @typedef OAuthErrorConfig
  * @prop {string|null} authUrl
  * @prop {boolean} invalidScope
  * @prop {string} errorDetails
- * @prop {string[]} canvas_scopes
+ * @prop {string[]} canvasScopes
  */
 
 /**
@@ -110,7 +110,7 @@ import { createContext } from 'preact';
  * @prop {Object} rpcServer
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
- * @prop {oAuthErrorConfig} oAuth2RedirectError
+ * @prop {OAuthErrorConfig} OAuth2RedirectError
  * @prop {VitalSourceConfig} [vitalSource]
  */
 
