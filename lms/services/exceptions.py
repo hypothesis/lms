@@ -221,10 +221,6 @@ class HTTPError(ServiceError):
         self.response = response
 
 
-class HTTPValidationError(HTTPError):
-    """An invalid HTTP response from an external service."""
-
-
 class BlackboardFileNotFoundInCourse(ServiceError):
     """A Blackboard file ID wasn't found in the current course."""
 

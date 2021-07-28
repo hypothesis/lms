@@ -9,7 +9,6 @@ from lms.services.exceptions import (
     ExternalRequestError,
     HAPIError,
     HTTPError,
-    HTTPValidationError,
     LTILaunchVerificationError,
     LTIOAuthError,
     LTIOutcomesAPIError,
