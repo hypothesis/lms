@@ -17,7 +17,7 @@ class VitalSourceService:
         :raises ValueError: If credentials are invalid
         """
         if not all([lti_launch_key, lti_launch_secret, api_key]):
-            raise ValueError("VitalSource credentials are invalid")
+            raise ValueError("VitalSource credentials are missing")
 
         self._http_service = http_service
 
