@@ -23,7 +23,7 @@ class TestVitalSourceService:
     def test_init_raises_if_launch_credentials_invalid(
         self, http_service, lti_key, lti_secret, api_key
     ):
-        with pytest.raises(ValueError, match="VitalSource credentials are invalid"):
+        with pytest.raises(ValueError, match="VitalSource credentials are missing"):
             VitalSourceService(http_service, lti_key, lti_secret, api_key)
 
     def test_it_generates_lti_launch_form_params(self, svc, lti_user):
