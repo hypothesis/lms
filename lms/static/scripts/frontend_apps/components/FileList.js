@@ -1,3 +1,5 @@
+import { SvgIcon } from '@hypothesis/frontend-shared';
+
 import classnames from 'classnames';
 import { Fragment, createElement } from 'preact';
 
@@ -59,15 +61,16 @@ export default function FileList({
         renderItem={(file, isSelected) => (
           <Fragment>
             <td aria-label={file.display_name} className="FileList__name-col">
-              <img
-                className={classnames(
-                  'FileList__icon',
-                  isSelected && 'is-selected'
-                )}
-                src="/static/images/file-pdf.svg"
-                alt="PDF icon"
-              />
-              <span className="FileList__name">{file.display_name}</span>
+              <div className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-padding--left--2">
+                <SvgIcon
+                  inline
+                  name={file.type && file.type === 'Folder' ? 'folder' : 'pdf'}
+                  className={classnames('FileList__icon', {
+                    'is-selected': isSelected,
+                  })}
+                />
+                <span className="FileList__name">{file.display_name}</span>
+              </div>
             </td>
             <td className="FileList__date-col">
               {file.updated_at && formatDate(file.updated_at)}
