@@ -1,6 +1,6 @@
 from marshmallow import INCLUDE, fields
 
-from lms.services.exceptions import HTTPError, OAuth2TokenError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.validation import RequestsResponseSchema, ValidationError
 
 
@@ -75,7 +75,7 @@ class BasicClient:
 
         try:
             return self._send(method, url)
-        except (OAuth2TokenError, HTTPError):
+        except ExternalRequestError:
             self._oauth_http_service.refresh_access_token(
                 self.token_url,
                 self.redirect_uri,
@@ -100,7 +100,7 @@ class BasicClient:
     def _send(self, method, url):
         try:
             return self._oauth_http_service.request(method, url)
-        except HTTPError as err:
+        except ExternalRequestError as err:
             error_dict = BlackboardErrorResponseSchema(err.response).parse()
 
             if error_dict.get("message") == "Bearer token is invalid":

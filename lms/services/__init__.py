@@ -8,7 +8,6 @@ from lms.services.exceptions import (
     ConsumerKeyError,
     ExternalRequestError,
     HAPIError,
-    HTTPError,
     LTILaunchVerificationError,
     LTIOAuthError,
     LTIOutcomesAPIError,

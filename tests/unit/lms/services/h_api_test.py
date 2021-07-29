@@ -7,7 +7,7 @@ from h_matchers import Any
 from lms.models import HUser
 from lms.services import HAPIError
 from lms.services.h_api import HAPI
-from lms.services.http import HTTPError
+from lms.services.http import ExternalRequestError
 
 pytestmark = pytest.mark.usefixtures("http_service")
 
@@ -88,7 +88,7 @@ class TestHAPI:
     def test__api_request_raises_HAPIError_for_request_errors(
         self, h_api, http_service
     ):
-        exception = HTTPError()
+        exception = ExternalRequestError()
         http_service.request.side_effect = exception
 
         with pytest.raises(HAPIError) as exc_info:

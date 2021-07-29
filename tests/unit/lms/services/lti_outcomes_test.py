@@ -5,7 +5,7 @@ import pytest
 import xmltodict
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
+from lms.services.exceptions import ExternalRequestError, LTIOutcomesAPIError
 from lms.services.lti_outcomes import LTIOutcomesClient
 from tests import factories
 
@@ -120,7 +120,7 @@ class TestLTIOutcomesClient:
         )
 
     def test_requests_fail_if_the_third_party_request_fails(self, svc, http_service):
-        http_service.post.side_effect = HTTPError
+        http_service.post.side_effect = ExternalRequestError
 
         with pytest.raises(LTIOutcomesAPIError):
             svc.read_result(self.GRADING_ID)
