@@ -117,7 +117,7 @@ idna==2.10
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   requests
-importlib-resources==5.2.0
+importlib_resources==5.2.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
