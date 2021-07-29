@@ -8,6 +8,8 @@ export default {
   // LMS icons
   'caret-down': require('../../images/caret-down.svg'),
   check: require('../../images/check.svg'),
+  folder: require('../../images/folder.svg'),
+  pdf: require('../../images/file-pdf.svg'),
   spinner: require('../../images/spinner.svg'),
 
   // Shared icons

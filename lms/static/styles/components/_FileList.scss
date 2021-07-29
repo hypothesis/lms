@@ -1,7 +1,5 @@
 @use "../variables" as var;
 
-$file-list-icon-size: 24px;
-
 .FileList {
   position: relative;
 
@@ -24,17 +22,10 @@ $file-list-icon-size: 24px;
 }
 
 .FileList__icon {
-  margin-left: 10px;
-  margin-right: 10px;
-  width: $file-list-icon-size;
-  height: $file-list-icon-size;
-  vertical-align: middle;
-
-  &.is-selected {
-    // nb. Argument must be passed to `invert` even though "1" is the default
-    // to work around https://bugs.chromium.org/p/chromium/issues/detail?id=964696.
-    filter: #{'invert(1)'}; // Quoted to avoid conflict with SASS mixin.
-  }
+  // TODO: Update when updated SVGIcon component is available and has sizing
+  // patterns
+  width: 1.5em;
+  height: 1.5em;
 }
 
 .FileList__name-col {
