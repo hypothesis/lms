@@ -258,7 +258,7 @@ pyjwt==2.1.0
     #   -r requirements/tests.txt
     #   h-vialib
     #   pyramid-googleauth
-pylint==2.9.5
+pylint==2.9.6
     # via -r requirements/lint.in
 pyparsing==2.4.7
     # via
