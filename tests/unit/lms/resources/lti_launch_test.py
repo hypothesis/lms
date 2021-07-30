@@ -214,6 +214,33 @@ class TestCanvasGroupsEnabled:
         assert lti_launch.canvas_groups_enabled == settings_value
 
 
+class TestCanvasIsGroupLaunch:
+    def test_false_when_no_application_instance(self, lti_launch_groups_enabled):
+        lti_launch_groups_enabled.canvas_groups_enabled = False
+
+        assert not lti_launch_groups_enabled.canvas_is_group_launch
+
+    @pytest.mark.parametrize("group_set", ["", "not a number", None])
+    def test_false_invalid_group_set_param(
+        self, pyramid_request, lti_launch_groups_enabled, group_set
+    ):
+        pyramid_request.params.update({"group_set": group_set})
+
+        assert not lti_launch_groups_enabled.canvas_is_group_launch
+
+    def test_it(self, pyramid_request, lti_launch_groups_enabled):
+        pyramid_request.params.update({"group_set": 1})
+
+        assert lti_launch_groups_enabled.canvas_is_group_launch
+
+    @pytest.fixture
+    def lti_launch_groups_enabled(self, pyramid_request):
+        class TestableLTILaunchResource(LTILaunchResource):
+            canvas_groups_enabled = True
+
+        return TestableLTILaunchResource(pyramid_request)
+
+
 @pytest.fixture
 def lti_launch(pyramid_request):
     return LTILaunchResource(pyramid_request)

@@ -519,13 +519,21 @@ class TestJSConfigHypothesisClient:
 
         assert groups == [context.h_group.groupid.return_value]
 
+    @pytest.mark.usefixtures("canvas_groups_on")
+    def test_it_includes_the_group_with_canvas_group_on_but_no_group_launch(
+        self, config, context
+    ):
+        groups = config["services"][0]["groups"]
+
+        assert groups == [context.h_group.groupid.return_value]
+
     @pytest.mark.usefixtures("canvas_sections_on")
     def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
         self, config
     ):
         assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
-    @pytest.mark.usefixtures("canvas_groups_on")
+    @pytest.mark.usefixtures("canvas_groups_on", "canvas_groups_launch")
     def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
         self, config
     ):
@@ -547,6 +555,15 @@ class TestJSConfigHypothesisClient:
         js_config.enable_lti_launch_mode()
 
         return config["hypothesisClient"]
+
+    @pytest.fixture
+    def canvas_groups_launch(self, context):
+        context.canvas_is_group_launch = True
+
+    @pytest.fixture
+    def canvas_groups_on(self, context):
+        """Canvas groups feature enabled but not used in the current lti launch."""
+        context.canvas_groups_enabled = True
 
 
 class TestJSConfigRPCServer:
@@ -657,17 +674,13 @@ def context():
         is_canvas=True,
         canvas_sections_enabled=False,
         canvas_groups_enabled=False,
+        canvas_is_group_launch=False,
     )
 
 
 @pytest.fixture
 def canvas_sections_on(context):
     context.canvas_sections_enabled = True
-
-
-@pytest.fixture
-def canvas_groups_on(context):
-    context.canvas_groups_enabled = True
 
 
 @pytest.fixture
