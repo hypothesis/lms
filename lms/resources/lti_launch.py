@@ -141,13 +141,26 @@ class LTILaunchResource:
 
     @property
     def canvas_groups_enabled(self):
-        """Return True if Canvas groups is enabled for this request."""
+        """Return True if Canvas groups are enabled at the school/installation level."""
         try:
             application_instance = self._application_instance_service.get()
         except ConsumerKeyError:
             return False
 
         return bool(application_instance.settings.get("canvas", "groups_enabled"))
+
+    @property
+    def canvas_is_group_launch(self):
+        """Return True if the current assignment uses canvas groups."""
+        if not self.canvas_groups_enabled:
+            return False
+
+        try:
+            int(self._request.params["group_set"])
+        except (KeyError, ValueError, TypeError):
+            return False
+        else:
+            return True
 
     def _course_extra(self):
         """Extra information to store for courses."""
