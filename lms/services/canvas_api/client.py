@@ -383,7 +383,7 @@ class CanvasAPIClient:
         many = True
         id = fields.Integer(required=True)
         name = fields.Str(required=True)
-        description = fields.String(default=None, allow_none=True)
+        description = fields.String(load_default=None, allow_none=True)
         group_category_id = fields.Integer(required=True)
 
     @classmethod
