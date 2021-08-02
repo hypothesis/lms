@@ -17,7 +17,7 @@ class GradingInfoService:
         lis_outcome_service_url = fields.Str(required=True)
         context_id = fields.Str(required=True)
         resource_link_id = fields.Str(required=True)
-        tool_consumer_info_product_family_code = fields.Str(missing="")
+        tool_consumer_info_product_family_code = fields.Str(load_default="")
 
     def __init__(self, _context, request):
         self._db = request.db
