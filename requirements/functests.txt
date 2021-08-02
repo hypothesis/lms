@@ -62,7 +62,7 @@ idna==2.10
     # via
     #   -r requirements/requirements.txt
     #   requests
-importlib_resources==5.2.1
+importlib_resources==5.2.2
     # via
     #   -r requirements/requirements.txt
     #   h-api
