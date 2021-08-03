@@ -22,6 +22,8 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
         modified = fields.Str(required=True)
         type = fields.Str(required=True)
         mimeType = fields.Str()
+        size = fields.Integer()
+        parentId = fields.Str()
 
     results = fields.List(fields.Nested(FileSchema), required=True)
 
