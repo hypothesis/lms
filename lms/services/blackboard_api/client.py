@@ -45,7 +45,7 @@ class BlackboardAPIClient:
             + urlencode(
                 {
                     "limit": PAGINATION_LIMIT,
-                    "fields": "id,name,type,modified,mimeType",
+                    "fields": "id,name,type,modified,mimeType,size,parentId",
                 }
             )
         )
