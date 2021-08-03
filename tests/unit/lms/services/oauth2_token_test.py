@@ -62,9 +62,7 @@ class TestOAuth2TokenService:
         oauth_token = factories.OAuth2Token.build(
             user_id=lti_user.user_id,
             consumer_key=application_instance.consumer_key,
-            # Don't link to an application instance directly, or factoryboy
-            # will add this token whether we like it or not
-            application_instance=None,
+            application_instance=application_instance,
         )
 
         if request.param:
