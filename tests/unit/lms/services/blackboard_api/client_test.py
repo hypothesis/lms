@@ -37,7 +37,7 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
+            "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
         )
         BlackboardListFilesSchema.assert_called_once_with(
             basic_client.request.return_value
@@ -55,7 +55,7 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources/FOLDER_ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
+            "courses/uuid:COURSE_ID/resources/FOLDER_ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
         )
 
     def test_it_with_pagination(self, svc, basic_client, blackboard_list_files_schema):
@@ -87,7 +87,7 @@ class TestListFiles:
         assert basic_client.request.call_args_list == [
             call(
                 "GET",
-                "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType",
+                "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
             ),
             call("GET", "PAGE_2_PATH"),
             call("GET", "PAGE_3_PATH"),
