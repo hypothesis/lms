@@ -446,7 +446,7 @@ class JSConfig:
     def _sync_api(self):
         if (
             not self._context.canvas_sections_enabled
-            and not self._context.canvas_groups_enabled
+            and not self._context.canvas_is_group_launch
         ):
             return None
 
