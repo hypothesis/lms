@@ -449,6 +449,10 @@ class TestJSConfigAPISync:
             "group_set": None,
         }
 
+    @pytest.mark.usefixtures("canvas_groups_launch")
+    def test_present_if_group_assignment(self, sync):
+        assert sync is not None
+
     def test_its_None_if_section_and_groups_arent_enabled(self, sync):
         assert sync is None
 
@@ -555,10 +559,6 @@ class TestJSConfigHypothesisClient:
         js_config.enable_lti_launch_mode()
 
         return config["hypothesisClient"]
-
-    @pytest.fixture
-    def canvas_groups_launch(self, context):
-        context.canvas_is_group_launch = True
 
     @pytest.fixture
     def canvas_groups_on(self, context):
@@ -681,6 +681,11 @@ def context():
 @pytest.fixture
 def canvas_sections_on(context):
     context.canvas_sections_enabled = True
+
+
+@pytest.fixture
+def canvas_groups_launch(context):
+    context.canvas_is_group_launch = True
 
 
 @pytest.fixture
