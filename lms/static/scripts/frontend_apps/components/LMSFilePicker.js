@@ -152,7 +152,9 @@ export default function LMSFilePicker({
         // flight. "fetching" will not render the Dialog, while "reloading" will
         // render the Dialog, with a loading indicator.
         const nextState =
-          state === 'fetched' || continueAction === 'reload'
+          state === 'fetched' ||
+          state === 'reloading' ||
+          continueAction === 'reload'
             ? 'reloading'
             : 'fetching';
         return {
@@ -168,6 +170,19 @@ export default function LMSFilePicker({
           path: getNextAPICallInfo().path,
         })
       );
+
+      // Handle the case in which a subsequent fetch request for a
+      // different path's files was dispatched before this request resolved.
+      // Give preference to the later request: If the path has changed
+      // since this request was made, ignore the results of this request.
+      let pathChanged = false;
+      setFolderPath(path => {
+        pathChanged = path !== folderPath;
+        return path;
+      });
+      if (pathChanged) {
+        return;
+      }
 
       const continueAction =
         files.length === 0 ? 'reload' : INITIAL_DIALOG_STATE.continueAction;
