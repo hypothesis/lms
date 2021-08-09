@@ -26,7 +26,9 @@ def test_blackboard_api_client_factory(
         http_service=http_service,
         oauth_http_service=oauth_http_service,
     )
-    BlackboardAPIClient.assert_called_once_with(BasicClient.return_value)
+    BlackboardAPIClient.assert_called_once_with(
+        BasicClient.return_value, pyramid_request
+    )
     assert service == BlackboardAPIClient.return_value
 
 
