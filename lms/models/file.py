@@ -44,6 +44,9 @@ class File(CreatedUpdatedMixin, BASE):
     lms_id = sa.Column(sa.UnicodeText(), nullable=False)
     """The natural id of the file in the LMS."""
 
+    parent_lms_id = sa.Column(sa.UnicodeText(), nullable=True)
+    """Parent ID of the file in the LMS for LMSes that support file/folder hierarchies"""
+
     course_id = sa.Column(sa.UnicodeText())
     """If the file is associated with a specific course set it here."""
 
