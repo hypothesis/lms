@@ -1,4 +1,4 @@
-from unittest.mock import call, create_autospec, sentinel
+from unittest.mock import MagicMock, call, create_autospec, sentinel
 
 import pytest
 
@@ -27,11 +27,8 @@ class TestListFiles:
         blackboard_list_files_schema,
     ):
         basic_client.request.return_value = factories.requests.Response(json_data={})
-        blackboard_list_files_schema.parse.return_value = [
-            sentinel.file_1,
-            sentinel.file_2,
-            sentinel.file_3,
-        ]
+        blackboard_files = [MagicMock() for _ in range(3)]
+        blackboard_list_files_schema.parse.return_value = blackboard_files
 
         files = svc.list_files("COURSE_ID")
 
@@ -73,12 +70,13 @@ class TestListFiles:
             ),
             factories.requests.Response(json_data={}),
         ]
+        blackboard_files = [MagicMock() for _ in range(8)]
 
         # Each Blackboard API response contains a page of results.
         blackboard_list_files_schema.parse.side_effect = [
-            [sentinel.file_1, sentinel.file_2, sentinel.file_3],
-            [sentinel.file_4, sentinel.file_5, sentinel.file_6],
-            [sentinel.file_7, sentinel.file_8],
+            blackboard_files[0:3],
+            blackboard_files[3:6],
+            blackboard_files[6:8],
         ]
 
         files = svc.list_files("COURSE_ID")
@@ -93,16 +91,7 @@ class TestListFiles:
             call("GET", "PAGE_3_PATH"),
         ]
         # It returned all three pages of files as a single list.
-        assert files == [
-            sentinel.file_1,
-            sentinel.file_2,
-            sentinel.file_3,
-            sentinel.file_4,
-            sentinel.file_5,
-            sentinel.file_6,
-            sentinel.file_7,
-            sentinel.file_8,
-        ]
+        assert files == blackboard_files
 
     def test_it_doesnt_send_paginated_requests_forever(
         self, svc, basic_client, blackboard_list_files_schema
