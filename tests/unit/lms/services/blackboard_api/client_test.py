@@ -165,8 +165,8 @@ def basic_client():
 
 
 @pytest.fixture
-def svc(basic_client):
-    return BlackboardAPIClient(basic_client)
+def svc(basic_client, pyramid_request):
+    return BlackboardAPIClient(basic_client, pyramid_request)
 
 
 @pytest.fixture(autouse=True)
