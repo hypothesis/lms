@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+from lms.events import FilesDiscoveredEvent
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
@@ -59,6 +60,26 @@ class BlackboardAPIClient:
             path = response.json().get("paging", {}).get("nextPage")
             if not path:
                 break
+
+        # Notify that we've found some files
+        self._request.registry.notify(
+            FilesDiscoveredEvent(
+                request=self._request,
+                values=[
+                    {
+                        "type": "blackboard_file"
+                        if file["type"] == "File"
+                        else "blackboard_folder",
+                        "course_id": course_id,
+                        "lms_id": file["id"],
+                        "name": file["name"],
+                        "size": file["size"],
+                        "parent_lms_id": file["parentId"],
+                    }
+                    for file in results
+                ],
+            )
+        )
 
         return results
 
