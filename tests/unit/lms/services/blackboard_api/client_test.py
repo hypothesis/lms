@@ -1,7 +1,10 @@
 from unittest.mock import MagicMock, call, create_autospec, sentinel
 
 import pytest
+from h_matchers import Any
 
+from lms.events import FilesDiscoveredEvent
+from pyramid.registry import Registry
 from lms.services.blackboard_api._basic import BasicClient
 from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
@@ -34,8 +37,14 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
+            Any.url.with_path("courses/uuid:COURSE_ID/resources").with_query(
+                {
+                    "limit": "200",
+                    "fields": "id,name,type,modified,mimeType,size,parentId",
+                }
+            ),
         )
+
         BlackboardListFilesSchema.assert_called_once_with(
             basic_client.request.return_value
         )
@@ -52,7 +61,14 @@ class TestListFiles:
 
         basic_client.request.assert_called_once_with(
             "GET",
-            "courses/uuid:COURSE_ID/resources/FOLDER_ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
+            Any.url.with_path(
+                "courses/uuid:COURSE_ID/resources/FOLDER_ID/children"
+            ).with_query(
+                {
+                    "limit": "200",
+                    "fields": "id,name,type,modified,mimeType,size,parentId",
+                }
+            ),
         )
 
     def test_it_with_pagination(self, svc, basic_client, blackboard_list_files_schema):
@@ -74,9 +90,9 @@ class TestListFiles:
 
         # Each Blackboard API response contains a page of results.
         blackboard_list_files_schema.parse.side_effect = [
-            blackboard_files[0:3],
+            blackboard_files[:3],
             blackboard_files[3:6],
-            blackboard_files[6:8],
+            blackboard_files[6:],
         ]
 
         files = svc.list_files("COURSE_ID")
@@ -85,7 +101,12 @@ class TestListFiles:
         assert basic_client.request.call_args_list == [
             call(
                 "GET",
-                "courses/uuid:COURSE_ID/resources?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId",
+                Any.url.with_path("courses/uuid:COURSE_ID/resources").with_query(
+                    {
+                        "limit": "200",
+                        "fields": "id,name,type,modified,mimeType,size,parentId",
+                    }
+                ),
             ),
             call("GET", "PAGE_2_PATH"),
             call("GET", "PAGE_3_PATH"),
