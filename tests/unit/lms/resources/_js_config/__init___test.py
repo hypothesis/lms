@@ -604,6 +604,7 @@ class TestEnableOAuth2RedirectErrorMode:
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
             "invalidScope": is_scope_invalid,
+            "errorCode": None,
             "errorDetails": error_details,
             "canvasScopes": canvas_scopes if canvas_scopes is not None else [],
         }

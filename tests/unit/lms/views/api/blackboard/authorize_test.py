@@ -52,7 +52,9 @@ class TestOAuth2RedirectError:
         template_variables = oauth2_redirect_error(pyramid_request)
 
         pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_once_with(
-            auth_route="blackboard_api.oauth.authorize"
+            error_code=None,
+            error_details=None,
+            auth_route="blackboard_api.oauth.authorize",
         )
         assert template_variables == {}
 

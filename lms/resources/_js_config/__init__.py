@@ -1,4 +1,5 @@
 import functools
+from typing import List
 
 from lms.models import GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
@@ -102,12 +103,13 @@ class JSConfig:
         """
         return self._config
 
-    def enable_oauth2_redirect_error_mode(
+    def enable_oauth2_redirect_error_mode(  # pylint: disable=too-many-arguments
         self,
-        auth_route,
-        error_details="",
-        is_scope_invalid=False,
-        canvas_scopes=None,
+        auth_route: str,
+        error_code=None,
+        error_details: str = "",
+        is_scope_invalid: bool = False,
+        canvas_scopes: List[str] = None,
     ):
         """
         Configure the frontend to show the "Authorization failed" dialog.
@@ -116,15 +118,12 @@ class JSConfig:
         Canvas API or the Blackboard API fails after the redirect to the
         third-party authorization endpoint.
 
+        :param error_code: Code identifying a particular error
         :param error_details: Technical details of the error
-        :type error_details: str
         :param auth_route: route for the "Try again" button in the dialog
-        :type auth_route: str
         :param is_scope_invalid: `True` if authorization failed because the
           OAuth client does not have access to all the necessary scopes
-        :type is_scope_invalid: bool
         :param canvas_scopes: List of scopes that were requested
-        :type canvas_scopes: list(str)
         """
         if self._lti_user:
             bearer_token = BearerTokenSchema(self._request).authorization_param(
@@ -143,6 +142,7 @@ class JSConfig:
                 "OAuth2RedirectError": {
                     "authUrl": auth_url,
                     "invalidScope": is_scope_invalid,
+                    "errorCode": error_code,
                     "errorDetails": error_details,
                     "canvasScopes": canvas_scopes or [],
                 },
