@@ -23,20 +23,32 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
     OAuth2RedirectError: {
       authUrl = /** @type {string|null} */ (null),
       invalidScope = false,
+      errorCode = /** @type {string|null} */ (null),
       errorDetails = '',
       canvasScopes = /** @type {string[]} */ ([]),
     },
   } = useContext(Config);
 
-  const title = invalidScope
-    ? 'Developer key scopes missing'
-    : 'Authorization failed';
+  const error = { code: errorCode, details: errorDetails };
 
-  const message = invalidScope
-    ? null
-    : 'Something went wrong when authorizing Hypothesis';
+  const title = (() => {
+    if (invalidScope) {
+      return 'Developer key scopes missing';
+    }
 
-  const error = { details: errorDetails };
+    if (errorCode === 'blackboard_missing_integration') {
+      return 'Missing Blackboard REST API integration';
+    }
+
+    return 'Authorization failed';
+  })();
+
+  const message = (() => {
+    if (invalidScope) {
+      return null;
+    }
+    return 'Something went wrong when authorizing Hypothesis';
+  })();
 
   const retry = () => {
     location.href = /** @type {string} */ (authUrl);
@@ -88,6 +100,26 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
               href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
             >
               Canvas API Endpoints Used by the Hypothesis LMS App
+            </a>
+            .
+          </p>
+        </Fragment>
+      )}
+
+      {error.code === 'blackboard_missing_integration' && (
+        <Fragment>
+          <p>
+            In order to allow Hypothesis to connect to files in Blackboard, your
+            Blackboard admin needs to add or enable a REST API integration.
+          </p>
+          <p>
+            For more information, please have your Blackboard admin read:{' '}
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
+            >
+              Enable the Hypothesis Integration With Blackboard Files
             </a>
             .
           </p>
