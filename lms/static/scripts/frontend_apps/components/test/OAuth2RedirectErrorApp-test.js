@@ -53,6 +53,16 @@ describe('OAuth2RedirectErrorApp', () => {
     );
   });
 
+  it('shows a different title and message for blackboard_missing_integration', () => {
+    fakeConfig.errorCode = 'blackboard_missing_integration';
+    const wrapper = renderApp();
+    assert.include(wrapper.text(), 'Missing Blackboard REST API integration');
+    assert.include(
+      wrapper.text(),
+      'Something went wrong when authorizing Hypothesis'
+    );
+  });
+
   it('shows a generic error if the scope is valid', () => {
     const wrapper = renderApp();
     assert.notInclude(wrapper.text(), 'A Canvas admin needs to edit');
@@ -69,6 +79,7 @@ describe('OAuth2RedirectErrorApp', () => {
     });
     assert.deepEqual(errorDisplay.prop('error'), {
       details: fakeConfig.errorDetails,
+      code: null,
     });
   });
 

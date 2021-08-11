@@ -77,6 +77,10 @@ import { createContext } from 'preact';
  */
 
 /**
+ * @typedef {'blackboard_missing_integration'} OAuthErrorCode
+ */
+
+/**
  * Configuration for the error dialog shown if authorizing access to an
  * OAuth API fails.
  *
@@ -84,6 +88,7 @@ import { createContext } from 'preact';
  * @prop {string|null} authUrl
  * @prop {boolean} invalidScope
  * @prop {string} errorDetails
+ * @prop {OAuthErrorCode|null} errorCode
  * @prop {string[]} canvasScopes
  */
 
