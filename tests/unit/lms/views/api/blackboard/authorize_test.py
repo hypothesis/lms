@@ -53,7 +53,19 @@ class TestOAuth2RedirectError:
 
         pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_once_with(
             error_code=None,
-            error_details=None,
+            auth_route="blackboard_api.oauth.authorize",
+        )
+        assert template_variables == {}
+
+    def test_missing_integration_error(self, pyramid_request):
+        pyramid_request.params = {
+            "error_description": "Application not enabled for site"
+        }
+
+        template_variables = oauth2_redirect_error(pyramid_request)
+
+        pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_once_with(
+            error_code="blackboard_missing_integration",
             auth_route="blackboard_api.oauth.authorize",
         )
         assert template_variables == {}
