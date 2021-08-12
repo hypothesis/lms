@@ -1,8 +1,10 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
+from pyramid.registry import Registry
 
+from lms.events import FilesDiscoveredEvent
 from lms.services import CanvasAPIError, CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
@@ -383,6 +385,40 @@ class TestCanvasAPIClient:
 
         assert response == [files[0]]
 
+    def test_list_files_emits_event(self, canvas_api_client, http_session, registry):
+        # pylint: disable=protected-access
+        canvas_api_client._request.registry = registry
+        files = [
+            {
+                "id": i,
+                "display_name": "display_name_{i}",
+                "updated_at": "updated_at_{i}",
+                "size": 1000 + i,
+            }
+            for i in range(2)
+        ]
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=files
+        )
+
+        canvas_api_client.list_files("COURSE_ID")
+
+        canvas_api_client._request.registry.notify.assert_called_once_with(
+            FilesDiscoveredEvent(
+                request=canvas_api_client._request,
+                values=[
+                    {
+                        "type": "canvas_file",
+                        "course_id": "COURSE_ID",
+                        "lms_id": file["id"],
+                        "name": file["display_name"],
+                        "size": file["size"],
+                    }
+                    for file in files
+                ],
+            )
+        )
+
     def test_public_url(self, canvas_api_client, http_session):
         http_session.send.return_value = factories.requests.Response(
             status_code=200, json_data={"public_url": "public_url_value"}
@@ -397,6 +433,10 @@ class TestCanvasAPIClient:
             ),
             timeout=Any(),
         )
+
+    @pytest.fixture
+    def registry(self):
+        return create_autospec(Registry, instance=True, spec_set=True)
 
     @pytest.fixture
     def list_groups_response(self, http_session):
