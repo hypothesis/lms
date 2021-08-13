@@ -6,8 +6,6 @@
 #
 alembic==1.6.5
     # via -r requirements/requirements.txt
-appnope==0.1.2
-    # via ipython
 attrs==20.2.0
     # via
     #   -r requirements/requirements.txt
@@ -240,7 +238,7 @@ venusian==3.0.0
     #   pyramid
 wcwidth==0.2.5
     # via prompt-toolkit
-webargs==8.0.0
+webargs==8.0.1
     # via -r requirements/requirements.txt
 webob==1.8.6
     # via

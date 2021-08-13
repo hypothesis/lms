@@ -431,7 +431,7 @@ waitress==2.0.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   webtest
-webargs==8.0.0
+webargs==8.0.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
