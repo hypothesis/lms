@@ -195,6 +195,7 @@ class TestOAuth2RedirectError:
     def pyramid_request(self, pyramid_request, OAuth2RedirectResource):
         context = OAuth2RedirectResource(pyramid_request)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
+        context.js_config.ErrorCode = JSConfig.ErrorCode
         pyramid_request.context = context
         return pyramid_request
 

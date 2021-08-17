@@ -34,7 +34,7 @@ Canvas LMS's Content Item docs are also useful:
 
 https://canvas.instructure.com/doc/api/file.content_item.html
 """
-from pyramid.view import view_config
+from pyramid.view import exception_view_config, view_config
 
 from lms.security import Permissions
 from lms.validation import ContentItemSelectionLTILaunchSchema
@@ -63,6 +63,20 @@ def content_item_selection(context, request):
             "lti_message_type": "ContentItemSelection",
             "lti_version": request.params["lti_version"],
         },
+    )
+
+    return {}
+
+
+@exception_view_config(
+    ValueError,
+    renderer="lms:templates/error_dialog.html.jinja2",
+    request_method="POST",
+    route_name="content_item_selection",
+)
+def application_instance_reused_guid(request):
+    request.context.js_config.enable_error_dialog_mode(
+        request.context.js_config.ErrorCode.REUSED_TOOL_GUID,
     )
 
     return {}

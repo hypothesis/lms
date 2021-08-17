@@ -12,7 +12,7 @@ from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
 
-from pyramid.view import view_config, view_defaults
+from pyramid.view import exception_view_config, view_config, view_defaults
 
 from lms.models import LtiLaunches
 from lms.security import Permissions
@@ -322,3 +322,17 @@ class BasicLTILaunchViews:
         self.context.js_config.maybe_enable_grading()
 
         return {}
+
+
+@exception_view_config(
+    ValueError,
+    renderer="lms:templates/error_dialog.html.jinja2",
+    request_method="POST",
+    route_name="lti_launches",
+)
+def application_instance_reused_tool_guid(request):
+    request.context.js_config.enable_error_dialog_mode(
+        request.context.js_config.ErrorCode.REUSED_TOOL_GUID,
+    )
+
+    return {}

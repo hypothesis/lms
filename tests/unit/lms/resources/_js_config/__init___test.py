@@ -581,7 +581,7 @@ class TestJSConfigRPCServer:
         return config["rpcServer"]
 
 
-class TestEnableOAuth2RedirectErrorMode:
+class TestEnableErrorModes:
     @pytest.mark.parametrize(
         "error_details,error_code,canvas_scopes",
         [
@@ -612,6 +612,21 @@ class TestEnableOAuth2RedirectErrorMode:
 
         config = js_config.asdict()
         assert config["OAuth2RedirectError"]["authUrl"] is None
+
+    def test_error_dialog_mode(self, js_config):
+        error_code, error_details = "ERROR", {}
+
+        js_config.enable_error_dialog_mode(
+            error_code=error_code,
+            error_details=error_details,
+        )
+
+        config = js_config.asdict()
+        assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
+        assert config["errorDialog"] == {
+            "errorCode": error_code,
+            "errorDetails": error_details,
+        }
 
     @pytest.fixture
     def with_no_user(self, pyramid_request):
