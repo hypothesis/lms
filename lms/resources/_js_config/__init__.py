@@ -16,10 +16,12 @@ class JSConfig:
         OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
         BASIC_LTI_LAUNCH = "basic-lti-launch"
         CONTENT_ITEM_SELECTION = "content-item-selection"
+        ERROR_DIALOG = "error-dialog"
 
     class ErrorCode(str, Enum):
         BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
         CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
+        REUSED_TOOL_GUID = "reused_tool_guid"
 
     def __init__(self, context, request):
         self._context = context
@@ -151,6 +153,17 @@ class JSConfig:
                     "errorCode": error_code,
                     "errorDetails": error_details,
                     "canvasScopes": canvas_scopes or [],
+                },
+            }
+        )
+
+    def enable_error_dialog_mode(self, error_code, error_details=""):
+        self._config.update(
+            {
+                "mode": JSConfig.Mode.ERROR_DIALOG,
+                "errorDialog": {
+                    "errorCode": error_code,
+                    "errorDetails": error_details,
                 },
             }
         )

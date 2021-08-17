@@ -65,17 +65,19 @@ class TestOAuth2RedirectError:
         template_variables = oauth2_redirect_error(pyramid_request)
 
         pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_once_with(
-            error_code="blackboard_missing_integration",
+            error_code=JSConfig.ErrorCode.BLACKBOARD_MISSING_INTEGRATION,
             auth_route="blackboard_api.oauth.authorize",
         )
         assert template_variables == {}
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
+        js_config = create_autospec(JSConfig, spec_set=True, instance=True)
+        js_config.ErrorCode = JSConfig.ErrorCode
         pyramid_request.context = create_autospec(
             OAuth2RedirectResource,
             instance=True,
-            js_config=create_autospec(JSConfig, spec_set=True, instance=True),
+            js_config=js_config,
         )
         return pyramid_request
 

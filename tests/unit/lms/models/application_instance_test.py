@@ -166,7 +166,8 @@ class TestApplicationInstance:
         application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
         lms_data["tool_consumer_instance_guid"] = "NEW GUID"
 
-        application_instance.update_lms_data(lms_data)
+        with pytest.raises(ValueError):
+            application_instance.update_lms_data(lms_data)
 
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 

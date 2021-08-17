@@ -4,6 +4,7 @@ import { createElement, render } from 'preact';
 import { readConfig, Config } from './config';
 import BasicLTILaunchApp from './components/BasicLTILaunchApp';
 import OAuth2RedirectErrorApp from './components/OAuth2RedirectErrorApp';
+import ErrorDialogApp from './components/ErrorDialogApp';
 import FilePickerApp from './components/FilePickerApp';
 import {
   ClientRPC,
@@ -56,6 +57,9 @@ switch (config.mode) {
       new VitalSourceService({ authToken: config.api.authToken })
     );
     app = <FilePickerApp />;
+    break;
+  case 'error-dialog':
+    app = <ErrorDialogApp />;
     break;
   case 'oauth2-redirect-error':
     app = <OAuth2RedirectErrorApp />;

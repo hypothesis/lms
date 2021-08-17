@@ -142,11 +142,7 @@ class ApplicationInstance(BASE):
         ):
             # If we already have a LMS guid linked to the AI
             # and we found a different one report it to sentry
-            LOG.exception(
-                "Application Instance ID:%s launched in a different LMS install",
-                self.id,
-            )
-            return
+            raise ValueError("Application Instance launched in a different LMS install")
 
         self.tool_consumer_instance_guid = tool_consumer_instance_guid
         for attr in [

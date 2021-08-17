@@ -93,6 +93,18 @@ import { createContext } from 'preact';
  */
 
 /**
+ * @typedef {'reused_tool_guid'} ErrorCode
+ */
+
+/**
+ * Configuration for general error dialogs
+ *
+ * @typedef ErrorDialogConfig
+ * @prop {string} errorDetails
+ * @prop {ErrorCode} errorCode
+ */
+
+/**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
  * the available configuration/data depends on the mode and LTI user role.
@@ -116,6 +128,7 @@ import { createContext } from 'preact';
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
  * @prop {OAuthErrorConfig} OAuth2RedirectError
+ * @prop {ErrorDialogConfig} errorDialog
  * @prop {VitalSourceConfig} [vitalSource]
  */
 
