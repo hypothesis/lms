@@ -1,4 +1,5 @@
 import functools
+from enum import Enum
 from typing import List
 
 from lms.models import GroupInfo, HUser
@@ -10,6 +11,11 @@ from lms.views.helpers import via_url
 
 class JSConfig:
     """The config for the app's JavaScript code."""
+
+    class Mode(str, Enum):
+        OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
+        BASIC_LTI_LAUNCH = "basic-lti-launch"
+        CONTENT_ITEM_SELECTION = "content-item-selection"
 
     def __init__(self, context, request):
         self._context = context
@@ -135,7 +141,7 @@ class JSConfig:
 
         self._config.update(
             {
-                "mode": "oauth2-redirect-error",
+                "mode": JSConfig.Mode.OAUTH2_REDIRECT_ERROR,
                 "OAuth2RedirectError": {
                     "authUrl": auth_url,
                     "errorCode": error_code,
@@ -153,7 +159,7 @@ class JSConfig:
 
         :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
         """
-        self._config["mode"] = "basic-lti-launch"
+        self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
 
         self._config["api"]["sync"] = self._sync_api()
 
@@ -185,7 +191,7 @@ class JSConfig:
 
         self._config.update(
             {
-                "mode": "content-item-selection",
+                "mode": JSConfig.Mode.CONTENT_ITEM_SELECTION,
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,
