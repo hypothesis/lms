@@ -115,7 +115,7 @@ def oauth2_redirect_error(request):
     request.context.js_config.enable_oauth2_redirect_error_mode(
         auth_route="canvas_api.oauth.authorize",
         error_details=request.params.get("error_description"),
-        error_code="canvas_invalid_scope"
+        error_code=request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
         if request.params.get("error") == "invalid_scope"
         else None,
         canvas_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
