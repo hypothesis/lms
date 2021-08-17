@@ -17,6 +17,10 @@ class JSConfig:
         BASIC_LTI_LAUNCH = "basic-lti-launch"
         CONTENT_ITEM_SELECTION = "content-item-selection"
 
+    class ErrorCode(str, Enum):
+        BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
+        CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
+
     def __init__(self, context, request):
         self._context = context
         self._request = request
