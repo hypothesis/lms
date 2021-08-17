@@ -22,7 +22,6 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const {
     OAuth2RedirectError: {
       authUrl = /** @type {string|null} */ (null),
-      invalidScope = false,
       errorCode = /** @type {string|null} */ (null),
       errorDetails = '',
       canvasScopes = /** @type {string[]} */ ([]),
@@ -32,7 +31,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const error = { code: errorCode, details: errorDetails };
 
   const title = (() => {
-    if (invalidScope) {
+    if (errorCode === 'canvas_invalid_scope') {
       return 'Developer key scopes missing';
     }
 
@@ -43,12 +42,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
     return 'Authorization failed';
   })();
 
-  const message = (() => {
-    if (invalidScope) {
-      return null;
-    }
-    return 'Something went wrong when authorizing Hypothesis';
-  })();
+  const message = 'Something went wrong when authorizing Hypothesis';
 
   const retry = () => {
     location.href = /** @type {string} */ (authUrl);
@@ -79,7 +73,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
 
   return (
     <Dialog title={title} buttons={buttons}>
-      {invalidScope && (
+      {error.code === 'canvas_invalid_scope' && (
         <Fragment>
           <p>
             A Canvas admin needs to edit {"Hypothesis's"} developer key and add

@@ -157,15 +157,15 @@ class TestOAuth2Redirect:
 
 class TestOAuth2RedirectError:
     @pytest.mark.parametrize(
-        "params,invalid_scope",
+        "params,error_code",
         [
-            ({"error": "invalid_scope"}, True),
-            ({"error": "unknown_error"}, False),
-            ({"foo": "bar"}, False),
-            ({"error_description": "Something went wrong"}, False),
+            ({"error": "invalid_scope"}, "canvas_invalid_scope"),
+            ({"error": "unknown_error"}, None),
+            ({"foo": "bar"}, None),
+            ({"error_description": "Something went wrong"}, None),
         ],
     )
-    def test_it_configures_frontend_app(self, pyramid_request, params, invalid_scope):
+    def test_it_configures_frontend_app(self, pyramid_request, params, error_code):
         pyramid_request.params.clear()
         pyramid_request.params.update(params)
         pyramid_request.lti_user = None
@@ -186,8 +186,8 @@ class TestOAuth2RedirectError:
         js_config = pyramid_request.context.js_config
         js_config.enable_oauth2_redirect_error_mode.assert_called_with(
             auth_route="canvas_api.oauth.authorize",
+            error_code=error_code,
             error_details=params.get("error_description"),
-            is_scope_invalid=invalid_scope,
             canvas_scopes=scopes,
         )
 

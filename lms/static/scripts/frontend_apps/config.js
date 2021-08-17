@@ -77,7 +77,8 @@ import { createContext } from 'preact';
  */
 
 /**
- * @typedef {'blackboard_missing_integration'} OAuthErrorCode
+ * @typedef {'blackboard_missing_integration' |
+ *  'canvas_invalid_scope' } OAuthErrorCode
  */
 
 /**
@@ -86,7 +87,6 @@ import { createContext } from 'preact';
  *
  * @typedef OAuthErrorConfig
  * @prop {string|null} authUrl
- * @prop {boolean} invalidScope
  * @prop {string} errorDetails
  * @prop {OAuthErrorCode|null} errorCode
  * @prop {string[]} canvasScopes
