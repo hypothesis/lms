@@ -583,19 +583,17 @@ class TestJSConfigRPCServer:
 
 class TestEnableOAuth2RedirectErrorMode:
     @pytest.mark.parametrize(
-        "error_details,is_scope_invalid,canvas_scopes",
+        "error_details,error_code,canvas_scopes",
         [
-            ("Technical error", True, ["scope_a", "scope_b"]),
-            ("Some error", False, None),
+            ("Technical error", "canvas_invalid_scope", ["scope_a", "scope_b"]),
+            ("Some error", None, None),
         ],
     )
-    def test_scope_error(
-        self, js_config, error_details, is_scope_invalid, canvas_scopes
-    ):
+    def test_scope_error(self, js_config, error_details, error_code, canvas_scopes):
         js_config.enable_oauth2_redirect_error_mode(
             auth_route="auth_route",
+            error_code=error_code,
             error_details=error_details,
-            is_scope_invalid=is_scope_invalid,
             canvas_scopes=canvas_scopes,
         )
 
@@ -603,8 +601,7 @@ class TestEnableOAuth2RedirectErrorMode:
         assert config["mode"] == "oauth2-redirect-error"
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
-            "invalidScope": is_scope_invalid,
-            "errorCode": None,
+            "errorCode": error_code,
             "errorDetails": error_details,
             "canvasScopes": canvas_scopes if canvas_scopes is not None else [],
         }

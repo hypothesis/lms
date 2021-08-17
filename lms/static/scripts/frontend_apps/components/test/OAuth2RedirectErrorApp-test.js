@@ -23,7 +23,6 @@ describe('OAuth2RedirectErrorApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
-      invalidScope: false,
       authUrl: null,
       canvasScopes: [],
     };
@@ -40,7 +39,7 @@ describe('OAuth2RedirectErrorApp', () => {
   });
 
   it('shows a scope error if the scope is invalid', () => {
-    fakeConfig.invalidScope = true;
+    fakeConfig.errorCode = 'canvas_invalid_scope';
     fakeConfig.canvasScopes = ['scope_a', 'scope_b'];
 
     const wrapper = renderApp();
