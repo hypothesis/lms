@@ -3,6 +3,8 @@ from unittest import mock
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
 
+from lms.models import ReusedConsumerKey
+from lms.resources._js_config import JSConfig
 from lms.validation import ValidationError
 from lms.views import exceptions
 
@@ -104,6 +106,30 @@ class TestError(ExceptionViewTest):
     expected_result = {
         "message": "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
     }
+
+
+class TestReusedGuidErrorExceptionView:
+    def test_application_reused_tool_guid(self, pyramid_request):
+        exceptions.reused_tool_guid_error(
+            ReusedConsumerKey("existing_guid", "new_guid"),
+            pyramid_request,
+        )
+
+        js_config = pyramid_request.context.js_config
+        js_config.enable_error_dialog_mode.assert_called_with(
+            error_code=JSConfig.ErrorCode.REUSED_TOOL_GUID,
+            error_details={
+                "existing_tool_consumer_guid": "existing_guid",
+                "new_tool_consumer_guid": "new_guid",
+            },
+        )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
+        js_config.ErrorCode = JSConfig.ErrorCode
+        pyramid_request.context = mock.Mock(js_config=js_config)
+        return pyramid_request
 
 
 @pytest.fixture(autouse=True)

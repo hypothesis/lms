@@ -4,7 +4,6 @@ import pytest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views import basic_lti_launch
 from lms.views.basic_lti_launch import BasicLTILaunchViews
 from tests import factories
 
@@ -450,23 +449,10 @@ class TestVitalsourceLTILaunch:
         )
 
 
-class TestExceptionViews:
-    def test_application_reused_tool_guid(self, pyramid_request, context):
-        pyramid_request.context = context
-
-        basic_lti_launch.application_instance_reused_tool_guid(pyramid_request)
-
-        js_config = pyramid_request.context.js_config
-        js_config.enable_error_dialog_mode.assert_called_with(
-            error_code=JSConfig.ErrorCode.REUSED_TOOL_GUID,
-        )
-
-
 @pytest.fixture
 def context():
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
     context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
-    context.js_config.ErrorCode = JSConfig.ErrorCode
     context.is_canvas = False
     return context
 

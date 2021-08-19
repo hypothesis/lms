@@ -3,7 +3,7 @@ from Cryptodome import Random
 from Cryptodome.Cipher import AES
 from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance, ApplicationSettings
+from lms.models import ApplicationInstance, ApplicationSettings, ReusedConsumerKey
 from tests import factories
 
 
@@ -166,7 +166,7 @@ class TestApplicationInstance:
         application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
         lms_data["tool_consumer_instance_guid"] = "NEW GUID"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ReusedConsumerKey):
             application_instance.update_lms_data(lms_data)
 
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"

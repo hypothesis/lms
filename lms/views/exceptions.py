@@ -7,6 +7,7 @@ from pyramid.view import (
     notfound_view_config,
 )
 
+from lms.models import ReusedConsumerKey
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -58,6 +59,22 @@ def validation_error(exc, request):
     """Handle a ValidationError."""
     request.response.status_int = exc.status_int
     return {"error": exc}
+
+
+@exception_view_config(
+    ReusedConsumerKey,
+    renderer="lms:templates/error_dialog.html.jinja2",
+)
+def reused_tool_guid_error(exc, request):
+    request.context.js_config.enable_error_dialog_mode(
+        request.context.js_config.ErrorCode.REUSED_TOOL_GUID,
+        error_details={
+            "existing_tool_consumer_guid": exc.existing_guid,
+            "new_tool_consumer_guid": exc.new_guid,
+        },
+    )
+
+    return {}
 
 
 @exception_view_config(context=Exception, renderer=DEFAULT_RENDERER)

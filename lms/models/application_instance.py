@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
+from lms.models.exceptions import ReusedConsumerKey
 
 LOG = logging.getLogger(__name__)
 
@@ -142,7 +143,10 @@ class ApplicationInstance(BASE):
         ):
             # If we already have a LMS guid linked to the AI
             # and we found a different one report it to sentry
-            raise ValueError("Application Instance launched in a different LMS install")
+            raise ReusedConsumerKey(
+                existing_guid=self.tool_consumer_instance_guid,
+                new_guid=tool_consumer_instance_guid,
+            )
 
         self.tool_consumer_instance_guid = tool_consumer_instance_guid
         for attr in [
