@@ -372,7 +372,6 @@ six==1.15.0
     #   jsonschema
     #   parse-type
     #   python-dateutil
-    #   webtest
 snowballstemmer==2.1.0
     # via pydocstyle
 soupsieve==2.2.1
@@ -444,7 +443,7 @@ webob==1.8.6
     #   h-vialib
     #   pyramid
     #   webtest
-webtest==2.0.35
+webtest==3.0.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

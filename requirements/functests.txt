@@ -197,7 +197,6 @@ six==1.15.0
     #   google-auth
     #   jsonschema
     #   python-dateutil
-    #   webtest
 soupsieve==2.2.1
     # via beautifulsoup4
 sqlalchemy==1.4.23
@@ -237,7 +236,7 @@ webob==1.8.6
     #   h-vialib
     #   pyramid
     #   webtest
-webtest==2.0.35
+webtest==3.0.0
     # via -r requirements/functests.in
 wired==0.2.2
     # via
