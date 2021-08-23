@@ -9,7 +9,7 @@ alembic==1.6.5
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-astroid==2.6.5
+astroid==2.7.2
     # via pylint
 attrs==20.2.0
     # via
@@ -217,6 +217,8 @@ plaster-pastedeploy==0.7
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
+platformdirs==2.2.0
+    # via pylint
 pluggy==0.13.1
     # via
     #   -r requirements/bddtests.txt
@@ -263,7 +265,7 @@ pyjwt==2.1.0
     #   -r requirements/tests.txt
     #   h-vialib
     #   pyramid-googleauth
-pylint==2.9.6
+pylint==2.10.2
     # via -r requirements/lint.in
 pyparsing==2.4.7
     # via
