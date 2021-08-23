@@ -149,7 +149,7 @@ class LTIOutcomesClient:
                 description = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
                     "imsx_description"
                 ]
-            except KeyError as err:
+            except KeyError:
                 pass
 
             raise LTIOutcomesAPIError(

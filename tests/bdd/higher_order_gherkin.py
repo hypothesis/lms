@@ -40,7 +40,7 @@ class Injector:
             cls._scan_dir(source_dir), source_dir=source_dir
         )
 
-        with open(target_file, "w") as handle:
+        with open(target_file, "w", encoding="utf8") as handle:
             handle.write(python_code)
 
     @classmethod
@@ -56,7 +56,7 @@ class Parser:
 
     @classmethod
     def parse_feature_file(cls, feature_file):
-        with open(feature_file) as handle:
+        with open(feature_file, encoding="utf8") as handle:
             lines = list(handle)
 
         parsed = parse_file(feature_file)

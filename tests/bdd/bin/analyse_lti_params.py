@@ -80,7 +80,7 @@ def generate_most_common_values(fixture, threshold):
 
 
 def write_ini(filename, values):
-    with open(filename, "w") as handle:
+    with open(filename, "w", encoding="utf8") as handle:
         for key, value in values.items():
             handle.write(f"{key}={value}\n")
 
