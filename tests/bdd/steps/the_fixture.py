@@ -48,7 +48,7 @@ class TheFixture(StepContext):
 
     def load_ini(self, filename, fixture_name):
         values = {}
-        with open(self.get_path(filename)) as handle:
+        with open(self.get_path(filename), encoding="utf8") as handle:
             for line in handle:
                 line = line.strip()
                 if not line or line.startswith("#"):
