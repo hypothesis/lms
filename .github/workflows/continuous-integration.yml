@@ -77,7 +77,7 @@ jobs:
       run: yarn build
 
     - name: Run tox
-      run: tox --parallel auto -e checkformatting,lint,tests,functests,bddtests
+      run: tox --parallel auto -e checkformatting,lint,tests,coverage,functests,bddtests
 
   frontend:
     name: Frontend
