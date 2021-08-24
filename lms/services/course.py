@@ -5,9 +5,8 @@ from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
 
 
 class CourseService:
-    def __init__(self, application_instance_service, consumer_key, db):
+    def __init__(self, application_instance_service, db):
         self._application_instance = application_instance_service.get()
-        self._consumer_key = consumer_key
         self._db = db
 
     def get_or_create(self, authority_provided_id):
@@ -50,7 +49,9 @@ class CourseService:
 
         return bool(
             self._db.query(LegacyCourse)
-            .filter(LegacyCourse.consumer_key == self._consumer_key)
+            .filter(
+                LegacyCourse.consumer_key == self._application_instance.consumer_key
+            )
             .filter(LegacyCourse.settings[group][key] == json.dumps(value))
             .limit(1)
             .count()
@@ -58,7 +59,7 @@ class CourseService:
 
     def _get_legacy(self, authority_provided_id):
         return self._db.query(LegacyCourse).get(
-            (self._consumer_key, authority_provided_id)
+            (self._application_instance.consumer_key, authority_provided_id)
         )
 
     def get(self, authority_provided_id):
@@ -73,7 +74,7 @@ class CourseService:
 
     def _create_legacy(self, authority_provided_id):
         course = LegacyCourse(
-            consumer_key=self._consumer_key,
+            consumer_key=self._application_instance.consumer_key,
             authority_provided_id=authority_provided_id,
             settings=self._new_course_settings(authority_provided_id),
         )
@@ -121,6 +122,5 @@ class CourseService:
 def course_service_factory(_context, request):
     return CourseService(
         request.find_service(name="application_instance"),
-        request.lti_user.oauth_consumer_key,
         request.db,
     )
