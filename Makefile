@@ -13,6 +13,7 @@ help:
 	@echo "make format            Correctly format the code"
 	@echo "make checkformatting   Crash if the code isn't correctly formatted"
 	@echo "make test              Run all unit tests"
+	@echo "make coverage          Print the unit test coverage report"
 	@echo "make backend-tests     Run the backend unit tests"
 	@echo "make frontend-tests    Run the frontend unit tests"
 	@echo "make functests         Run the functional tests"
