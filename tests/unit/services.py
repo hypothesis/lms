@@ -22,6 +22,7 @@ from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
+from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
 from tests import factories
 
@@ -49,6 +50,7 @@ __all__ = (
     "h_api",
     "vitalsource_service",
     "file_service",
+    "user_service",
 )
 
 
@@ -200,6 +202,11 @@ def oauth2_token_service(mock_service, oauth_token):
 @pytest.fixture
 def vitalsource_service(mock_service):
     return mock_service(VitalSourceService, service_name="vitalsource")
+
+
+@pytest.fixture
+def user_service(mock_service):
+    return mock_service(UserService, service_name="user")
 
 
 @pytest.fixture

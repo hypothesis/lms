@@ -11,10 +11,9 @@ from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_f
 from tests import factories
 
 
-@pytest.mark.usefixtures("application_instance")
 class TestOAuth2TokenService:
     @pytest.mark.usefixtures("oauth_token_in_db_or_not")
-    def test_save(self, svc, db_session, application_instance, lti_user):
+    def test_save(self, svc, db_session, lti_user):
         svc.save(
             access_token="access_token", refresh_token="refresh_token", expires_in=1234
         )
@@ -22,7 +21,7 @@ class TestOAuth2TokenService:
         oauth2_token = db_session.query(OAuth2Token).one()
         assert oauth2_token == Any.object(OAuth2Token).with_attrs(
             {
-                "consumer_key": application_instance.consumer_key,
+                "consumer_key": lti_user.application_instance.consumer_key,
                 "user_id": lti_user.user_id,
                 "access_token": "access_token",
                 "refresh_token": "refresh_token",
@@ -38,12 +37,12 @@ class TestOAuth2TokenService:
 
     @pytest.mark.parametrize("wrong_param", ("consumer_key", "user_id"))
     def test_get_raises_OAuth2TokenError_with_no_token(
-        self, db_session, wrong_param, application_instance, lti_user
+        self, db_session, wrong_param, lti_user
     ):
         store = OAuth2TokenService(
             db_session,
             **{
-                "consumer_key": application_instance.consumer_key,
+                "consumer_key": lti_user.application_instance.consumer_key,
                 "user_id": lti_user.user_id,
                 wrong_param: "WRONG",
             }
@@ -55,14 +54,12 @@ class TestOAuth2TokenService:
     @pytest.fixture(
         params=(param(True, id="token in db"), param(False, id="token not in db"))
     )
-    def oauth_token_in_db_or_not(
-        self, request, db_session, lti_user, application_instance
-    ):
+    def oauth_token_in_db_or_not(self, request, db_session, lti_user):
         """Get an OAuthToken which either is, or isn't in the DB."""
         oauth_token = factories.OAuth2Token.build(
             user_id=lti_user.user_id,
-            consumer_key=application_instance.consumer_key,
-            application_instance=application_instance,
+            consumer_key=lti_user.application_instance.consumer_key,
+            application_instance=lti_user.application_instance,
         )
 
         if request.param:
@@ -74,7 +71,7 @@ class TestOAuth2TokenService:
     def svc(self, pyramid_request):
         return OAuth2TokenService(
             pyramid_request.db,
-            pyramid_request.lti_user.oauth_consumer_key,
+            pyramid_request.lti_user.application_instance.consumer_key,
             pyramid_request.lti_user.user_id,
         )
 

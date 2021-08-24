@@ -1,32 +1,40 @@
-from typing import NamedTuple
+import sqlalchemy as sa
 
+from lms.db import BASE
 from lms.models import HUser
+from lms.models._mixins import CreatedUpdatedMixin
 
 
-class LTIUser(NamedTuple):
+class LTIUser(CreatedUpdatedMixin, BASE):
     """An LTI user."""
 
-    user_id: str
+    __tablename__ = "lti_user"
+
+    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+
+    user_id = sa.Column(sa.UnicodeText(), nullable=False)
     """The user_id LTI launch parameter."""
 
-    oauth_consumer_key: str
-    """The oauth_consumer_key LTI launch parameter."""
-
-    roles: str
+    roles = sa.Column(sa.UnicodeText(), nullable=False)
     """The user's LTI roles."""
 
-    tool_consumer_instance_guid: str
-    """Unique ID of the LMS instance that this user belongs to."""
+    tool_consumer_instance_guid = sa.Column(sa.UnicodeText(), nullable=False)
 
-    display_name: str
+    application_instance_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("application_instances.id", ondelete="cascade"),
+        nullable=False,
+    )
+    application_instance = sa.orm.relationship("ApplicationInstance")
+
+    display_name = sa.Column(sa.UnicodeText(), nullable=True)
     """The user's display name."""
 
-    email: str = ""
+    email = sa.Column(sa.UnicodeText(), nullable=True)
     """The user's email address."""
 
     @property
     def h_user(self):
-        """Return a models.HUser generated from this LTIUser."""
         return HUser.from_lti_user(self)
 
     @property

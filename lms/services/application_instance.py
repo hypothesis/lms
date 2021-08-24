@@ -33,5 +33,7 @@ class ApplicationInstanceService:
 
 
 def factory(_context, request):
-    consumer_key = request.lti_user.oauth_consumer_key if request.lti_user else None
+    consumer_key = (
+        request.lti_user.application_instance.consumer_key if request.lti_user else None
+    )
     return ApplicationInstanceService(request.db, consumer_key)

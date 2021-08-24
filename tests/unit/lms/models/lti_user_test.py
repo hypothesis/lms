@@ -71,6 +71,7 @@ class TestLTIUser:
     ],
 )
 def test_display_name(given_name, family_name, full_name, expected_display_name):
+
     display_name_ = display_name(given_name, family_name, full_name)
 
     assert display_name_ == expected_display_name

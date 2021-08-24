@@ -11,7 +11,11 @@ class TestCreateApplicationInstance:
     def test_it_creates_an_application_instance(self, pyramid_request):
         create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        application_instance = (
+            pyramid_request.db.query(ApplicationInstance)
+            .order_by(ApplicationInstance.id.desc())
+            .first()
+        )
         assert application_instance.lms_url == "canvas.example.com"
         assert application_instance.requesters_email == "email@example.com"
         assert application_instance.developer_key is None
@@ -25,7 +29,12 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        application_instance = (
+            pyramid_request.db.query(ApplicationInstance)
+            .order_by(ApplicationInstance.id.desc())
+            .first()
+        )
+
         assert application_instance.developer_key == "example_key"
         assert application_instance.developer_secret
 
@@ -46,7 +55,12 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        application_instance = (
+            pyramid_request.db.query(ApplicationInstance)
+            .order_by(ApplicationInstance.id.desc())
+            .first()
+        )
+
         assert application_instance.developer_key is None
         assert application_instance.developer_secret is None
 
@@ -62,7 +76,12 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        application_instance = (
+            pyramid_request.db.query(ApplicationInstance)
+            .order_by(ApplicationInstance.id.desc())
+            .first()
+        )
+
         assert (
             bool(application_instance.settings.get("canvas", "sections_enabled"))
             == canvas_sections_enabled
@@ -80,7 +99,12 @@ class TestCreateApplicationInstance:
 
         create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
+        application_instance = (
+            pyramid_request.db.query(ApplicationInstance)
+            .order_by(ApplicationInstance.id.desc())
+            .first()
+        )
+
         assert (
             bool(application_instance.settings.get("canvas", "groups_enabled"))
             == canvas_groups_enabled

@@ -20,8 +20,9 @@ class OAuth1Service:
         :rtype: OAuth1
         """
 
-        consumer_key = self._request.lti_user.oauth_consumer_key
-        shared_secret = self._application_instance_service.get().shared_secret
+        ai = self._request.lti_user.application_instance
+        consumer_key = ai.consumer_key
+        shared_secret = ai.shared_secret
 
         return OAuth1(
             client_key=consumer_key,

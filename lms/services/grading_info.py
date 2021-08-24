@@ -70,7 +70,7 @@ class GradingInfoService:
             return
 
         grading_info = self._find_or_create(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
+            oauth_consumer_key=lti_user.application_instance.consumer_key,
             user_id=lti_user.user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],

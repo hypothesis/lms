@@ -11,14 +11,8 @@ class TestApplicationInstanceService:
     def test_get_one(self, svc, application_instance):
         assert svc.get(application_instance.consumer_key) == application_instance
 
-    def test_get_with_default_consumer_key(
-        self, svc, application_instance, pyramid_request
-    ):
-        # Make sure the DB *does* contain an ApplicationInstance matching the
-        # request's consumer key.
-        application_instance.consumer_key = pyramid_request.lti_user.oauth_consumer_key
-
-        assert svc.get() == application_instance
+    def test_get_with_default_consumer_key(self, svc, pyramid_request):
+        assert svc.get() == pyramid_request.lti_user.application_instance
 
     def test_get_raises_ConsumerKeyError_if_consumer_key_doesnt_exist(self, svc):
         with pytest.raises(ConsumerKeyError):
@@ -54,7 +48,8 @@ class TestFactory:
         application_instance_service = factory(mock.sentinel.context, pyramid_request)
 
         ApplicationInstanceService.assert_called_once_with(
-            pyramid_request.db, pyramid_request.lti_user.oauth_consumer_key
+            pyramid_request.db,
+            pyramid_request.lti_user.application_instance.consumer_key,
         )
         assert application_instance_service == ApplicationInstanceService.return_value
 

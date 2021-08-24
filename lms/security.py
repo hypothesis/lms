@@ -145,7 +145,7 @@ def _authenticated_userid(lti_user):
     # decode it.
     safe_user_id = safe_user_id_bytes.decode("ascii")
 
-    return ":".join([safe_user_id, lti_user.oauth_consumer_key])
+    return ":".join([safe_user_id, lti_user.application_instance.consumer_key])
 
 
 def _permits(policy, request, _context, permission):

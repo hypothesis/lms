@@ -85,14 +85,14 @@ class TestUpsertFromRequest:
         assert result.h_display_name == h_user.display_name
 
         # Check the LTI user data are there
-        assert result.oauth_consumer_key == lti_user.oauth_consumer_key
+        assert result.oauth_consumer_key == lti_user.application_instance.consumer_key
         assert result.user_id == lti_user.user_id
 
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, h_user, lti_user
     ):
         grading_info = factories.GradingInfo(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
+            oauth_consumer_key=lti_user.application_instance.consumer_key,
             user_id=lti_user.user_id,
             context_id=pyramid_request.params["context_id"],
             resource_link_id=pyramid_request.params["resource_link_id"],
@@ -153,7 +153,11 @@ class TestUpsertFromRequest:
 
 @pytest.fixture
 def lti_user():
-    return factories.LTIUser(oauth_consumer_key="matching_oauth_consumer_key")
+    return factories.LTIUser(
+        application_instance=factories.ApplicationInstance(
+            consumer_key="matching_oauth_consumer_key"
+        )
+    )
 
 
 @pytest.fixture

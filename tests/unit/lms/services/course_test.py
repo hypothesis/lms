@@ -131,6 +131,4 @@ class TestCourseService:
 
     @pytest.fixture(autouse=True)
     def application_instance(self, pyramid_request):
-        return factories.ApplicationInstance(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key, settings={}
-        )
+        return pyramid_request.lti_user.application_instance

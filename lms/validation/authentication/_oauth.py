@@ -3,7 +3,6 @@ import secrets
 import marshmallow
 from webargs import fields
 
-from lms.models import LTIUser
 from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredJWTError,
@@ -67,6 +66,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
     def __init__(self, request):
         super().__init__(request)
         self.context["secret"] = request.registry.settings["oauth2_state_secret"]
+        self.user_service = request.find_service(name="user")
 
     def state_param(self):
         """
@@ -79,7 +79,13 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         csrf = secrets.token_hex()
 
-        data = {"user": request.lti_user._asdict(), "csrf": csrf}
+        data = {
+            "user": {
+                "oauth_consumer_key": request.lti_user.application_instance.consumer_key,
+                "user_id": request.lti_user.user_id,
+            },
+            "csrf": csrf,
+        }
 
         jwt_str = _jwt.encode_jwt(data, secret)
 
@@ -109,7 +115,12 @@ class OAuthCallbackSchema(PyramidRequestSchema):
         except KeyError as err:
             raise MissingStateParamError() from err
 
-        return LTIUser(**self._decode_state(state)["user"])
+        decoded_state = self._decode_state(state)
+
+        return self.user_service.get(
+            decoded_state["user"]["oauth_consumer_key"],
+            decoded_state["user"]["user_id"],
+        )
 
     @marshmallow.validates("state")
     def validate_state(self, state):

@@ -67,3 +67,4 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
     config.register_service_factory("lms.services.file.factory", name="file")
+    config.register_service_factory("lms.services.user.factory", name="user")

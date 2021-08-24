@@ -3,7 +3,6 @@ from datetime import timedelta
 
 import marshmallow
 
-from lms.models import LTIUser
 from lms.validation import ValidationError
 from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
@@ -69,6 +68,7 @@ class BearerTokenSchema(PyramidRequestSchema):
     def __init__(self, request):
         super().__init__(request)
         self.context["secret"] = request.registry.settings["jwt_secret"]
+        self._user_service = request.find_service(name="user")
 
     def authorization_param(self, lti_user):
         """
@@ -172,6 +172,6 @@ class BearerTokenSchema(PyramidRequestSchema):
             ) from err
 
     @marshmallow.post_load
-    def _make_user(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def _make_user(self, data, **_kwargs):
         # See https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#deserializing-to-objects
-        return LTIUser(**data)
+        return self._user_service.upsert_from_lti(**data)

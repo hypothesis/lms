@@ -53,7 +53,7 @@ class TestFilesAPIViews:
 
     @pytest.fixture(params=("instructor", "learner"))
     def with_teacher_or_student(self, request, pyramid_request):
-        pyramid_request.lti_user._replace(roles=request.param)
+        pyramid_request.lti_user.roles = request.param
 
     @pytest.fixture
     def helpers(self, patch):

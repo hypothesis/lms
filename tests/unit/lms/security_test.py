@@ -405,28 +405,35 @@ class TestSecurityPolicy:
         return LMSGoogleSecurityPolicy.return_value
 
 
+@pytest.mark.usefixtures("db_session")
 class TestAuthenticatedUserID:
     @pytest.mark.parametrize(
-        "lti_user,expected_userid",
+        "user_id,consumer_key,expected_userid",
         [
             (
-                factories.LTIUser(
-                    user_id="sam",
-                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
-                ),
+                "sam",
+                "Hypothesisf301584250a2dece14f021ab8424018a",
                 "c2Ft:Hypothesisf301584250a2dece14f021ab8424018a",
             ),
             (
-                factories.LTIUser(
-                    user_id="Sam:Smith",
-                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
-                ),
+                "Sam:Smith",
+                "Hypothesisf301584250a2dece14f021ab8424018a",
                 "U2FtOlNtaXRo:Hypothesisf301584250a2dece14f021ab8424018a",
             ),
         ],
     )
-    def test_it(self, lti_user, expected_userid):
-        assert _authenticated_userid(lti_user) == expected_userid
+    def test_it(self, user_id, consumer_key, expected_userid):
+        assert (
+            _authenticated_userid(
+                factories.LTIUser(
+                    user_id=user_id,
+                    application_instance=factories.ApplicationInstance(
+                        consumer_key=consumer_key
+                    ),
+                )
+            )
+            == expected_userid
+        )
 
 
 class TestGetLTIUser:

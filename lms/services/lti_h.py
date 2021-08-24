@@ -57,7 +57,7 @@ class LTIHService:
         for h_group in h_groups:
             self._group_info_service.upsert(
                 h_group=h_group,
-                consumer_key=self._lti_user.oauth_consumer_key,
+                consumer_key=self._lti_user.application_instance.consumer_key,
                 params=group_info_params,
             )
 

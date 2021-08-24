@@ -1,7 +1,6 @@
 import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
-from lms.models import LTIUser
 from lms.services import LTILaunchVerificationError
 from lms.validation import ValidationError
 from lms.validation.authentication import LaunchParamsAuthSchema
@@ -9,26 +8,36 @@ from lms.validation.authentication import LaunchParamsAuthSchema
 pytestmark = pytest.mark.usefixtures("launch_verifier")
 
 
+@pytest.mark.usefixtures("user_service")
 class TestLaunchParamsAuthSchema:
-    def test_it_returns_the_lti_user_info(self, schema, display_name):
-        lti_user = schema.lti_user()
+    def test_it_returns_the_lti_user_info(self, schema, user_service):
+        schema.lti_user()
 
-        display_name.assert_called_once_with(
-            "TEST_GIVEN_NAME", "TEST_FAMILY_NAME", "TEST_FULL_NAME"
-        )
-        assert lti_user == LTIUser(
-            user_id="TEST_USER_ID",
+        user_service.upsert_from_lti.assert_called_once_with(
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            roles="TEST_ROLES",
+            user_id="TEST_USER_ID",
             tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            display_name=display_name.return_value,
+            roles="TEST_ROLES",
+            email="",
+            lis_person_name_given="TEST_GIVEN_NAME",
+            lis_person_name_family="TEST_FAMILY_NAME",
+            lis_person_name_full="TEST_FULL_NAME",
         )
 
     @pytest.mark.usefixtures("no_user_info")
-    def test_user_info_fields_default_to_empty_strings(self, schema, display_name):
+    def test_user_info_fields_default_to_empty_strings(self, schema, user_service):
         schema.lti_user()
 
-        display_name.assert_called_once_with("", "", "")
+        user_service.upsert_from_lti.assert_called_once_with(
+            oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            user_id="TEST_USER_ID",
+            tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            roles="TEST_ROLES",
+            email="",
+            lis_person_name_given="",
+            lis_person_name_family="",
+            lis_person_name_full="",
+        )
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
         schema.lti_user()
@@ -99,8 +108,3 @@ class TestLaunchParamsAuthSchema:
         del pyramid_request.POST["lis_person_name_given"]
         del pyramid_request.POST["lis_person_name_family"]
         del pyramid_request.POST["lis_person_name_full"]
-
-
-@pytest.fixture(autouse=True)
-def display_name(patch):
-    return patch("lms.validation.authentication._launch_params.display_name")

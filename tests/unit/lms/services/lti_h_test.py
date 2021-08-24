@@ -91,7 +91,7 @@ class TestGroupInfoUpdating:
 
         group_info_service.upsert.assert_called_once_with(
             h_group=grouping,
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            consumer_key=pyramid_request.lti_user.application_instance.consumer_key,
             params=sentinel.params,
         )
 

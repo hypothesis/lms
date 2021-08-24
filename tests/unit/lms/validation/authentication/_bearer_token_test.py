@@ -16,25 +16,35 @@ from lms.validation.authentication import (
 from tests import factories
 
 
+@pytest.mark.usefixtures("user_service")
 class TestBearerTokenSchema:
     def test_it_serializes_lti_users_into_bearer_tokens(self, lti_user, schema, _jwt):
         authorization_param_value = schema.authorization_param(lti_user)
 
         _jwt.encode_jwt.assert_called_once_with(
-            lti_user._asdict(), "test_secret", lifetime=datetime.timedelta(hours=24)
+            {
+                "display_name": lti_user.display_name,
+                "email": lti_user.email,
+                "roles": lti_user.roles,
+                "user_id": lti_user.user_id,
+                "tool_consumer_instance_guid": lti_user.tool_consumer_instance_guid,
+            },
+            "test_secret",
+            lifetime=datetime.timedelta(hours=24),
         )
         assert authorization_param_value == f"Bearer {_jwt.encode_jwt.return_value}"
 
     def test_it_deserializes_lti_users_from_authorization_headers(
-        self, lti_user, schema, _jwt
+        self, lti_user, schema, _jwt, user_service
     ):
-        assert schema.lti_user(location="headers") == lti_user
+        lti_user = schema.lti_user(location="headers")
         _jwt.decode_jwt.assert_called_once_with(
             _jwt.encode_jwt.return_value, "test_secret"
         )
+        assert lti_user == user_service.upsert_from_lti.return_value
 
     def test_it_deserializes_lti_users_from_authorization_query_params(
-        self, lti_user, pyramid_request, schema
+        self, pyramid_request, schema, user_service, _jwt
     ):
         # You can also put the authorization param in the query string, instead
         # of in the headers.
@@ -43,7 +53,12 @@ class TestBearerTokenSchema:
         ]
         del pyramid_request.headers["authorization"]
 
-        assert schema.lti_user(location="query") == lti_user
+        lti_user = schema.lti_user(location="query")
+
+        user_service.upsert_from_lti.assert_called_once_with(
+            **_jwt.decode_jwt.return_value
+        )
+        assert lti_user == user_service.upsert_from_lti.return_value
 
     def test_it_raises_if_theres_no_authorization_param(self, schema, pyramid_request):
         del pyramid_request.headers["authorization"]
@@ -105,16 +120,21 @@ class TestBearerTokenSchema:
             "headers": {"roles": ["Missing data for required field."]},
         }
 
-    def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
+    def test_serialize_and_deserialize_via_marshmallow_api(
+        self, lti_user, schema, user_service
+    ):
         serialized = schema.dump(lti_user)
         deserialized = schema.load(serialized)
 
-        assert deserialized == lti_user
+        assert deserialized == user_service.upsert_from_lti.return_value
 
-    def test_parse_via_webargs_api(self, lti_user, schema, pyramid_request):
+    def test_parse_via_webargs_api(self, _jwt, schema, pyramid_request, user_service):
         deserialized = parser.parse(schema, pyramid_request, location="headers")
 
-        assert deserialized == lti_user
+        user_service.upsert_from_lti.assert_called_once_with(
+            **_jwt.decode_jwt.return_value
+        )
+        assert deserialized == user_service.upsert_from_lti.return_value
 
     @pytest.fixture
     def schema(self, pyramid_request):
@@ -134,11 +154,19 @@ class TestBearerTokenSchema:
 def _jwt(patch, lti_user):
     _jwt = patch("lms.validation.authentication._bearer_token._jwt")
     _jwt.encode_jwt.return_value = "ENCODED_JWT"
-    _jwt.decode_jwt.return_value = lti_user._asdict()
+    _jwt.decode_jwt.return_value = {
+        "user_id": lti_user.user_id,
+        "oauth_consumer_key": lti_user.application_instance.consumer_key,
+        "display_name": lti_user.display_name,
+        "roles": lti_user.roles,
+        "tool_consumer_instance_guid": lti_user.tool_consumer_instance_guid,
+        "email": lti_user.email,
+    }
+
     return _jwt
 
 
 @pytest.fixture
-def lti_user():
+def lti_user(db_session):  # pylint:disable=unused-argument
     """Return the original LTIUser that was encoded as a JWT in the request."""
     return factories.LTIUser()

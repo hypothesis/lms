@@ -24,7 +24,7 @@ class JSConfig:
 
     @property
     def _consumer_key(self):
-        return self._lti_user.oauth_consumer_key
+        return self._lti_user.application_instance.consumer_key
 
     def _application_instance(self):
         """

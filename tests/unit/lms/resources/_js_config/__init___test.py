@@ -274,7 +274,7 @@ class TestMaybeEnableGrading:
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
-            oauth_consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            oauth_consumer_key=pyramid_request.lti_user.application_instance.consumer_key,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assert js_config.asdict()["grading"] == {
@@ -337,7 +337,7 @@ class TestMaybeEnableGrading:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+        pyramid_request.lti_user.roles = "Instructor"
         pyramid_request.params["context_title"] = "test_course_name"
         pyramid_request.params["resource_link_title"] = "test_assignment_name"
         return pyramid_request

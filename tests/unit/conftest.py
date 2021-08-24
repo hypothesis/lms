@@ -57,12 +57,12 @@ def pyramid_request(db_session):
 
 @pytest.fixture
 def user_is_learner(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
+    pyramid_request.lti_user.roles = "Learner"
 
 
 @pytest.fixture
 def user_is_instructor(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+    pyramid_request.lti_user.roles = "Instructor"
 
 
 def configure_jinja2_assets(config):
@@ -81,7 +81,6 @@ def pyramid_config(pyramid_request):
 
     The returned Configurator uses the dummy request from the pyramid_request
     fixture above.
-
     """
 
     with testing.testConfig(request=pyramid_request, settings=TEST_SETTINGS) as config:
@@ -178,7 +177,7 @@ def httpretty_():
 @pytest.fixture
 def application_instance(pyramid_request):
     return factories.ApplicationInstance(
-        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+        consumer_key=pyramid_request.lti_user.application_instance.consumer_key,
     )
 
 
@@ -188,7 +187,7 @@ def lti_user(pyramid_request):
 
 
 @pytest.fixture
-def oauth_token(lti_user, application_instance):
+def oauth_token(lti_user):
     return factories.OAuth2Token(
-        user_id=lti_user.user_id, application_instance=application_instance
+        user_id=lti_user.user_id, application_instance=lti_user.application_instance
     )

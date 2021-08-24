@@ -172,5 +172,5 @@ class TestGroupInfoUpsert:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(email="test_email")
+        pyramid_request.lti_user.email = "test_email"
         return pyramid_request

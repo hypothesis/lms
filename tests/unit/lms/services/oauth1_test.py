@@ -9,14 +9,12 @@ pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestOAuth1Service:
-    def test_we_configure_OAuth1_correctly(
-        self, service, OAuth1, pyramid_request, application_instance_service
-    ):
+    def test_we_configure_OAuth1_correctly(self, service, OAuth1, pyramid_request):
         service.get_client()
 
         OAuth1.assert_called_once_with(
-            client_key=pyramid_request.lti_user.oauth_consumer_key,
-            client_secret=application_instance_service.get.return_value.shared_secret,
+            client_key=pyramid_request.lti_user.application_instance.consumer_key,
+            client_secret=pyramid_request.lti_user.application_instance.shared_secret,
             signature_method="HMAC-SHA1",
             signature_type="auth_header",
             force_include_body=True,
@@ -37,7 +35,7 @@ class TestOAuth1Service:
         assert auth_header.startswith("OAuth")
         assert 'oauth_version="1.0"' in auth_header
         assert (
-            f'oauth_consumer_key="{pyramid_request.lti_user.oauth_consumer_key}"'
+            f'oauth_consumer_key="{pyramid_request.lti_user.application_instance.consumer_key}"'
             in auth_header
         )
         assert 'oauth_signature_method="HMAC-SHA1"' in auth_header

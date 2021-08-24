@@ -24,7 +24,13 @@ class TestOauthCallbackSchema:
 
         secrets.token_hex.assert_called_once_with()
         _jwt.encode_jwt.assert_called_once_with(
-            {"user": lti_user._asdict(), "csrf": secrets.token_hex.return_value},
+            {
+                "user": {
+                    "oauth_consumer_key": lti_user.application_instance.consumer_key,
+                    "user_id": lti_user.user_id,
+                },
+                "csrf": secrets.token_hex.return_value,
+            },
             "test_oauth2_state_secret",
         )
         assert state == _jwt.encode_jwt.return_value
@@ -38,13 +44,14 @@ class TestOauthCallbackSchema:
 
         assert pyramid_request.session["oauth2_csrf"] == secrets.token_hex.return_value
 
-    def test_lti_user_returns_the_lti_user_value(self, schema, _jwt, lti_user):
+    @pytest.mark.usefixtures("lti_user")
+    def test_lti_user_returns_the_lti_user_value(self, schema, _jwt, user_service):
         returned = schema.lti_user()
 
         _jwt.decode_jwt.assert_called_once_with(
             "test_state", "test_oauth2_state_secret"
         )
-        assert returned == lti_user
+        assert returned == user_service.get.return_value
 
     def test_lti_user_raises_if_theres_no_state_param(self, schema, pyramid_request):
         del pyramid_request.params["state"]
@@ -144,7 +151,9 @@ class TestOauthCallbackSchema:
         assert parsed_params == {"code": "test_code", "state": "test_state"}
 
     @pytest.fixture
-    def schema(self, pyramid_request):
+    def schema(  # pylint:disable=unused-argument
+        self, pyramid_request, pyramid_config, user_service
+    ):
         return OAuthCallbackSchema(pyramid_request)
 
     @pytest.fixture
@@ -159,15 +168,6 @@ class TestOauthCallbackSchema:
             "oauth2_state_secret": "test_oauth2_state_secret"
         }
         return pyramid_request
-
-    @pytest.fixture
-    def pyramid_config(self, pyramid_request):
-        # Override the global pyramid_config fixture with the minimum needed to
-        # make this test class pass.
-        settings = {"oauth2_state_secret": "test_oauth2_state_secret"}
-        with testing.testConfig(request=pyramid_request, settings=settings) as config:
-            config.include("pyramid_services")
-            yield config
 
 
 class TestOAuthTokenResponseSchema:
@@ -266,10 +266,16 @@ def secrets(patch):
 @pytest.fixture(autouse=True)
 def _jwt(patch, lti_user):
     _jwt = patch("lms.validation.authentication._oauth._jwt")
-    _jwt.decode_jwt.return_value = {"csrf": "test_csrf", "user": lti_user._asdict()}
+    _jwt.decode_jwt.return_value = {
+        "csrf": "test_csrf",
+        "user": {
+            "oauth_consumer_key": lti_user.application_instance.consumer_key,
+            "user_id": lti_user.user_id,
+        },
+    }
     return _jwt
 
 
 @pytest.fixture
-def lti_user():
+def lti_user(db_session):  # pylint:disable=unused-argument
     return factories.LTIUser()
