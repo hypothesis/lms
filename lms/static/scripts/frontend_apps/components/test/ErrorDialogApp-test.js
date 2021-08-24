@@ -38,7 +38,7 @@ describe('ErrorDialogApp', () => {
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
-      'The same Hypothesis Consumer Key and Shared Secret has been used previously in another LMS'
+      "This Hypothesis installation's consumer key appears to have"
     );
   });
 });
