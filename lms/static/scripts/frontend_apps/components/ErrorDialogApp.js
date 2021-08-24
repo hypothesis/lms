@@ -23,8 +23,7 @@ export default function ErrorDialogApp() {
 
   switch (errorCode) {
     case 'reused_tool_guid':
-      title =
-        'The Hypothesis credentials your install is using may have already been used in a different LMS instance';
+      title = 'Consumer key registered with another site';
       message = 'Reused tool_consumer_instance_guid';
       break;
     default:
@@ -36,22 +35,32 @@ export default function ErrorDialogApp() {
     <Dialog title={title}>
       {error.code === 'reused_tool_guid' && (
         <Fragment>
-          This may be due to one of the following:
+          This Hypothesis installation&apos;s consumer key appears to have
+          already been used on another site. This could be because:
           <ul>
             <li>
-              The same Hypothesis Consumer Key and Shared Secret has been used
-              previously in another LMS instance
-            </li>
-            <li>
-              The{' '}
+              This consumer key has already been used on another site. A site
+              admin must{' '}
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://www.imsglobal.org/specs/ltiv1p1p1/implementation-guide"
+                href="https://web.hypothes.is/get-help/"
               >
-                tool_consumer_instance_guid
+                request a new consumer key
               </a>{' '}
-              of your LMS has changed
+              for this site and re-install Hypothesis.
+            </li>
+            <li>
+              This site&apos;s tool_consumer_instance_guid has changed. A site
+              admin must{' '}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://web.hypothes.is/get-help/"
+              >
+                ask us to update the consumer key
+              </a>
+              .
             </li>
           </ul>
         </Fragment>
