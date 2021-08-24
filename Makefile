@@ -72,7 +72,7 @@ checkformatting: python
 	@tox -qe checkformatting
 
 .PHONY: test
-test: backend-tests coverage frontend-tests
+test: backend-tests frontend-tests
 
 # Backend and frontend tests are split into separate targets because on Jenkins
 # we need to run them with different Docker images, but `make test` runs both.
