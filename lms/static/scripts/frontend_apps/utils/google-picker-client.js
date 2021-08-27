@@ -36,6 +36,15 @@ export class PickerCanceledError extends Error {
  * @typedef PickerDocument
  * @prop {string} id
  * @prop {string} url
+ * @prop {string} [resourceKey] - A key which is present on a subset of older
+ *   Google Drive files. If present this needs to be provided to various
+ *   Google Drive APIs and share links (via the `resourcekey` query param).
+ *
+ *   As far as we understand, this key was added to old files to guard against
+ *   their IDs being guessed.
+ *
+ *   See https://developers.google.com/drive/api/v3/resource-keys and
+ *   https://support.google.com/drive/answer/10729743.
  */
 
 /**
@@ -117,17 +126,22 @@ export class GooglePickerClient {
     let reject;
 
     /**
-     * @param {Object} args
-     * @param {any} args.action
-     * @param {PickerDocument[]} args.docs
+     * @param {object} args
+     *   @param {string} args.action
+     *   @param {PickerDocument[]} args.docs
      */
     function pickerCallback({ action, docs }) {
       if (action === pickerLib.Action.PICKED) {
         const doc = docs[0];
         // nb. It would be better to get this URL from Google Drive instead of
         // hardcoding it if possible.
-        const url = `https://drive.google.com/uc?id=${doc.id}&export=download`;
-        resolve({ id: doc.id, url });
+        const url = new URL('https://drive.google.com/uc');
+        url.searchParams.append('id', doc.id);
+        url.searchParams.append('export', 'download');
+        if (doc.resourceKey) {
+          url.searchParams.append('resourcekey', doc.resourceKey);
+        }
+        resolve({ id: doc.id, url: url.toString() });
       } else if (action === pickerLib.Action.CANCEL) {
         reject(new PickerCanceledError());
       }
