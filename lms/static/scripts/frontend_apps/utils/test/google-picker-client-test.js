@@ -218,6 +218,28 @@ describe('GooglePickerClient', () => {
       });
     });
 
+    it('includes resource key if file has one', async () => {
+      const client = createClient();
+      let result = client.showPicker();
+
+      await fakeGoogleLibs.pickerVisible;
+
+      const pickerLib = fakeGoogleLibs.picker.api;
+      const builder = pickerLib.PickerBuilder();
+      const callback = builder.setCallback.getCall(0).callback;
+
+      callback({
+        action: pickerLib.Action.PICKED,
+        docs: [{ id: 'doc1', resourceKey: 'thekey' }],
+      });
+
+      result = await result;
+      assert.deepEqual(result, {
+        id: 'doc1',
+        url: 'https://drive.google.com/uc?id=doc1&export=download&resourcekey=thekey',
+      });
+    });
+
     it('rejects with a `PickerCanceledError` if the picker is canceled', async () => {
       const client = createClient();
       const result = client.showPicker();
