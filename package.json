@@ -59,7 +59,7 @@
   "devDependencies": {
     "@types/classnames": "^2.3.1",
     "@types/gapi": "^0.0.41",
-    "axe-core": "^4.3.2",
+    "axe-core": "^4.3.3",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-mockable-imports": "^1.7.1",
     "chai": "^4.3.4",
