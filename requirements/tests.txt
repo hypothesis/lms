@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements/tests.in
 #
-alembic==1.6.5
+alembic==1.7.1
     # via -r requirements/requirements.txt
 attrs==20.2.0
     # via
@@ -67,6 +67,7 @@ idna==2.10
 importlib-resources==5.2.2
     # via
     #   -r requirements/requirements.txt
+    #   alembic
     #   h-api
 iniconfig==1.1.1
     # via pytest
@@ -167,14 +168,7 @@ pyrsistent==0.17.3
 pytest==6.2.4
     # via -r requirements/tests.in
 python-dateutil==2.8.1
-    # via
-    #   -r requirements/requirements.txt
-    #   alembic
-    #   faker
-python-editor==1.0.4
-    # via
-    #   -r requirements/requirements.txt
-    #   alembic
+    # via faker
 requests==2.26.0
     # via
     #   -r requirements/requirements.txt
