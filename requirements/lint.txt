@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements/lint.in
 #
-alembic==1.6.5
+alembic==1.7.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -127,6 +127,7 @@ importlib-resources==5.2.2
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   alembic
     #   h-api
 iniconfig==1.1.1
     # via
@@ -332,14 +333,7 @@ python-dateutil==2.8.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   alembic
     #   faker
-python-editor==1.0.4
-    # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
-    #   alembic
 requests==2.26.0
     # via
     #   -r requirements/bddtests.txt
