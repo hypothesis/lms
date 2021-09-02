@@ -8,13 +8,6 @@ import mockImportedComponents from '../../../test-util/mock-imported-components'
 import { waitFor, waitForElement } from '../../../test-util/wait';
 
 describe('LMSFilePicker', () => {
-  // eslint-disable-next-line react/prop-types
-  const FakeDialog = ({ buttons, children }) => (
-    <>
-      {buttons} {children}
-    </>
-  );
-
   let fakeApiCall;
   let fakeListFilesApi;
   let fakeFiles;
@@ -75,7 +68,6 @@ describe('LMSFilePicker', () => {
       '../utils/api': {
         apiCall: fakeApiCall,
       },
-      './Dialog': FakeDialog,
       // Don't mock <FileList> because <NoFiles> requires
       // it to render for code coverage.
       './FileList': FileList,
@@ -86,7 +78,7 @@ describe('LMSFilePicker', () => {
     $imports.$restore();
   });
 
-  it('fetches files when the dialog first appears', async () => {
+  it('fetches files when the component is first rendered', async () => {
     const wrapper = renderFilePicker();
 
     assert.calledWith(fakeApiCall, {
@@ -97,6 +89,14 @@ describe('LMSFilePicker', () => {
     const expectedFiles = await fakeApiCall.returnValues[0];
     const fileList = await waitForElement(wrapper, 'FileList');
     assert.deepEqual(fileList.prop('files'), expectedFiles);
+  });
+
+  it('shows a full-screen spinner when the component is fetching', async () => {
+    const wrapper = renderFilePicker();
+    assert.isTrue(wrapper.find('FullScreenSpinner').exists());
+
+    await waitForElement(wrapper, 'FileList');
+    assert.isFalse(wrapper.find('FullScreenSpinner').exists());
   });
 
   it('shows breadcrumbs if `withBreadcrumbs` enabled', async () => {

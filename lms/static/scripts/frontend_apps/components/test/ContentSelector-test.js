@@ -114,7 +114,6 @@ describe('ContentSelector', () => {
 
     const urlPicker = wrapper.find('URLPicker');
     assert.isTrue(urlPicker.exists());
-    assert.isTrue(isLoadingIndicatorVisible(wrapper));
 
     interact(wrapper, () => {
       urlPicker.props().onCancel();
@@ -156,16 +155,12 @@ describe('ContentSelector', () => {
       it(`shows LMS file dialog when "Select PDF from ${test.name}" is clicked`, () => {
         const wrapper = renderContentSelector();
 
-        assert.isFalse(isLoadingIndicatorVisible(wrapper));
-
         const btn = wrapper.find(
           `LabeledButton[data-testid="${test.buttonTestId}"]`
         );
         interact(wrapper, () => {
           btn.props().onClick();
         });
-
-        assert.isTrue(isLoadingIndicatorVisible(wrapper));
 
         const filePicker = wrapper.find('LMSFilePicker');
         assert.isTrue(filePicker.exists());
@@ -176,7 +171,6 @@ describe('ContentSelector', () => {
         interact(wrapper, () => {
           filePicker.props().onCancel();
         });
-        assert.isFalse(isLoadingIndicatorVisible(wrapper));
       });
     });
 

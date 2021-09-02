@@ -1,0 +1,14 @@
+.LMSFilePicker {
+  // Set "preferred" height and width on the modal that displays a list of
+  // files in a table. (The Modal component styling also applies some max-width
+  // and max-height rules that will keep things within bounds). Setting these
+  // height and width rules keeps the file listing the same size no matter
+  // what its contents, and is larger than the default sizing of modals
+  // (because that is more convenient for browsing files).
+  height: min(90vh, 25rem);
+  width: min(90vw, 42rem);
+}
+
+.LMSFilePicker__no-files {
+  height: 100%;
+}

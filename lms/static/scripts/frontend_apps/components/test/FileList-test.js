@@ -31,7 +31,7 @@ describe('FileList', () => {
     const wrapper = renderFileList();
     const columns = wrapper
       .find('Table')
-      .prop('columns')
+      .prop('tableHeaders')
       .map(col => col.label);
     assert.deepEqual(columns, ['Name', 'Last modified']);
   });
@@ -50,16 +50,6 @@ describe('FileList', () => {
       testFiles[0].display_name
     );
     assert.equal(itemWrapper.find('td').at(1).text(), formattedDate);
-  });
-
-  it('shows a loading indicator if `isLoading` is true', () => {
-    const wrapper = renderFileList({ isLoading: true });
-    assert.isTrue(wrapper.exists('Spinner'));
-  });
-
-  it('does not show a loading indicator if `isLoading` is false', () => {
-    const wrapper = renderFileList({ isLoading: false });
-    assert.isFalse(wrapper.exists('Spinner'));
   });
 
   it('renders a explanatory message when there are no files', () => {
