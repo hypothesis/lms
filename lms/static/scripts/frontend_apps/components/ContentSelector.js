@@ -72,7 +72,6 @@ export default function ContentSelector({
 
   /** @param {DialogType} type */
   const selectDialog = type => {
-    setLoadingIndicatorVisible(true);
     setActiveDialog(type);
   };
   // Initialize the Google Picker client if credentials have been provided.

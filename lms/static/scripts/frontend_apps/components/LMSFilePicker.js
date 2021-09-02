@@ -1,13 +1,14 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { Frame, LabeledButton, Modal } from '@hypothesis/frontend-shared';
+
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { APIError, apiCall } from '../utils/api';
 
 import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';
-import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
+import FullScreenSpinner from './FullScreenSpinner';
 
 /**
  * @typedef {import("./FileList").File} File
@@ -29,15 +30,17 @@ import FileList from './FileList';
 function NoFilesMessage({ href, inSubfolder }) {
   const documentContext = inSubfolder ? 'folder' : 'course';
   return (
-    <div className="FileList__no-files-message">
-      <p>
-        There are no PDFs in this {documentContext}.{' '}
-        <a href={href} target="_blank" rel="noreferrer">
-          Upload some files to the {documentContext}
-        </a>{' '}
-        and try again.
-      </p>
-    </div>
+    <Frame classes="LMSFilePicker__no-files">
+      <div className="u-layout-column--align-center hyp-u-padding--6">
+        <div>
+          There are no PDFs in this {documentContext}.{' '}
+          <a href={href} target="_blank" rel="noreferrer">
+            Upload some files to the {documentContext}
+          </a>{' '}
+          and try again.
+        </div>
+      </div>
+    </Frame>
   );
 }
 
@@ -148,8 +151,7 @@ export default function LMSFilePicker({
         // fetched, or a reload is indicated by continueAction, put the dialog
         // in a "reloading" state instead of a (fresh) "fetching" state. This
         // applies the appropriate loading state while the fetch request is in
-        // flight. "fetching" will not render the Dialog, while "reloading" will
-        // render the Dialog, with a loading indicator.
+        // flight.
         const nextState =
           state === 'fetched' ||
           state === 'reloading' ||
@@ -317,20 +319,33 @@ export default function LMSFilePicker({
   const { continueButton, warningOrError } =
     options[dialogState.continueAction];
 
-  if (dialogState.state === 'fetching') {
-    return null;
+  // During the first fetch and load, we don't know yet whether we'll have
+  // success fetching files, or whether we'll need auth'z or hit another
+  // error. To avoid hopscotching between modals, show only
+  // a full-screen spinner during this state.
+  const isLoading = dialogState.state === 'fetching';
+  // During subsequent file/folder fetches, represent the loading state within
+  // the file list UI (do not show a full-screen spinner)
+  const isReloading = dialogState.state === 'reloading';
+  // Render the file list and breadcrumbs UI in certain states. This also
+  // requires more real estate in the <Modal>, and applies an appropriate CSS
+  // class
+  const withFileUI = ['reloading', 'fetched'].includes(dialogState.state);
+
+  if (isLoading) {
+    return <FullScreenSpinner />;
   }
 
   return (
-    <Dialog
-      contentClass="LMSFilePicker__dialog"
+    <Modal
+      contentClass={withFileUI ? 'LMSFilePicker' : ''}
       title={dialogState.title}
       onCancel={onCancel}
       buttons={continueButton}
     >
       {warningOrError}
 
-      {['reloading', 'fetched'].includes(dialogState.state) && (
+      {withFileUI && (
         <>
           {withBreadcrumbs && (
             <Breadcrumbs
@@ -341,7 +356,7 @@ export default function LMSFilePicker({
           )}
           <FileList
             files={dialogState.files ?? []}
-            isLoading={dialogState.state === 'reloading'}
+            isLoading={isReloading}
             selectedFile={selectedFile}
             onUseFile={confirmSelectedItem}
             onSelectFile={setSelectedFile}
@@ -354,6 +369,6 @@ export default function LMSFilePicker({
           />
         </>
       )}
-    </Dialog>
+    </Modal>
   );
 }

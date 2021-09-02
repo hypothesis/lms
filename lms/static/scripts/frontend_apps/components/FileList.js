@@ -1,8 +1,6 @@
-import { SvgIcon } from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
+import { SvgIcon, Table } from '@hypothesis/frontend-shared';
 
-import Spinner from './Spinner';
-import Table from './Table';
+import classnames from 'classnames';
 
 /**
  * @typedef {import('../api-types').File} File
@@ -39,49 +37,50 @@ export default function FileList({
   const columns = [
     {
       label: 'Name',
-      className: 'FileList__name-header',
     },
     {
       label: 'Last modified',
-      className: 'FileList__date-header',
+      classes: 'FileList__date-header',
     },
   ];
 
   return (
-    <div className="FileList">
-      <Table
-        accessibleLabel="File list"
-        columns={columns}
-        items={files}
-        selectedItem={selectedFile}
-        onSelectItem={onSelectFile}
-        onUseItem={onUseFile}
-        renderItem={(file, isSelected) => (
-          <>
-            <td aria-label={file.display_name} className="FileList__name-col">
-              <div className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-padding--left--2">
-                <SvgIcon
-                  inline
-                  name={file.type && file.type === 'Folder' ? 'folder' : 'pdf'}
-                  className={classnames('FileList__icon', {
-                    'is-selected': isSelected,
-                  })}
-                />
-                <span className="FileList__name">{file.display_name}</span>
-              </div>
-            </td>
-            <td className="FileList__date-col">
-              {file.updated_at && formatDate(file.updated_at)}
-            </td>
-          </>
-        )}
-      />
-      {!isLoading && files.length === 0 && noFilesMessage}
-      {isLoading && (
-        <div className="FileList__no-files-message">
-          <Spinner />
-        </div>
+    <>
+      {!isLoading && files.length === 0 ? (
+        noFilesMessage
+      ) : (
+        <Table
+          accessibleLabel="File list"
+          classes="FileList"
+          tableHeaders={columns}
+          isLoading={isLoading}
+          items={files}
+          selectedItem={selectedFile}
+          onSelectItem={onSelectFile}
+          onUseItem={onUseFile}
+          renderItem={(file, isSelected) => (
+            <>
+              <td aria-label={file.display_name}>
+                <div className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-padding--left--2">
+                  <SvgIcon
+                    inline
+                    name={
+                      file.type && file.type === 'Folder' ? 'folder' : 'pdf'
+                    }
+                    className={classnames('FileList__icon', {
+                      'is-selected': isSelected,
+                    })}
+                  />
+                  <span className="u-stretch u-overflow--ellipsis">
+                    {file.display_name}
+                  </span>
+                </div>
+              </td>
+              <td>{file.updated_at && formatDate(file.updated_at)}</td>
+            </>
+          )}
+        />
       )}
-    </div>
+    </>
   );
 }
