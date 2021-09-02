@@ -9,6 +9,9 @@
 @use 'components/heading';
 @use 'components/label';
 
+// Shared styles from frontend-shared package
+@use '@hypothesis/frontend-shared/styles';
+
 // Preact components
 @use 'components/BasicLTILaunchApp';
 @use 'components/BookSelector';
@@ -28,9 +31,6 @@
 
 // Element styles
 @use 'variables' as var;
-
-// Shared styles from frontend-shared package
-@use '@hypothesis/frontend-shared/styles';
 
 // Make the shared package utility styles available for
 // initial prototyping purposes.
