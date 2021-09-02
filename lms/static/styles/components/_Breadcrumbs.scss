@@ -5,6 +5,9 @@
   // FIXME: For now, allow crumbs to wrap onto a second line if they
   // run out of room. This could be more elegant.
   flex-wrap: wrap;
+  // Avoid one-pixel height changes as breadcrumb items and dividers are
+  // added. FIXME: remove this rule once typography patterns have been established.
+  line-height: 1;
 
   &__item {
     display: inline-flex;
