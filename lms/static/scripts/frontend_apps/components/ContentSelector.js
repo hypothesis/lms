@@ -235,7 +235,7 @@ export default function ContentSelector({
         </div>
         <div className="u-stretch" />
       </div>
-      {dialog}
+      <div>{dialog}</div>
     </>
   );
 }
