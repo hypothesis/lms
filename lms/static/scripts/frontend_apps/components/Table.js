@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { createElement } from 'preact';
+
 import { useRef } from 'preact/hooks';
 
 import Spinner from './Spinner';

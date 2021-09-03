@@ -1,5 +1,3 @@
-import { createElement } from 'preact';
-
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 

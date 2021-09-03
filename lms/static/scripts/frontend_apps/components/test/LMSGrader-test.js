@@ -1,5 +1,5 @@
 import { act } from 'preact/test-utils';
-import { createElement } from 'preact';
+
 import { mount } from 'enzyme';
 
 import LMSGrader, { $imports } from '../LMSGrader';

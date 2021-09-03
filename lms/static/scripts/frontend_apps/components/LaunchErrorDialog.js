@@ -1,5 +1,5 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+
 import { useRef } from 'preact/hooks';
 
 import Dialog from './Dialog';

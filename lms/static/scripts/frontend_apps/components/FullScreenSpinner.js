@@ -1,5 +1,3 @@
-import { createElement } from 'preact';
-
 import Spinner from './Spinner';
 
 /**

@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 
 import { mount } from 'enzyme';
-import { createElement } from 'preact';
+
 import { act } from 'preact/test-utils';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';

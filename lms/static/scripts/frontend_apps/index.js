@@ -1,5 +1,5 @@
 import 'focus-visible';
-import { createElement, render } from 'preact';
+import { render } from 'preact';
 
 import { readConfig, Config } from './config';
 import BasicLTILaunchApp from './components/BasicLTILaunchApp';

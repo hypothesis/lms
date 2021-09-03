@@ -1,5 +1,4 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { Fragment, createElement } from 'preact';
 import {
   useCallback,
   useContext,
@@ -128,7 +127,7 @@ export default function FilePickerApp({ onSubmit }) {
           {content ? (
             <i data-testid="content-summary">{contentDescription(content)}</i>
           ) : (
-            <Fragment>
+            <>
               <p>
                 You can select content for your assignment from one of the
                 following sources:
@@ -137,11 +136,11 @@ export default function FilePickerApp({ onSubmit }) {
                 onSelectContent={selectContent}
                 onError={setErrorInfo}
               />
-            </Fragment>
+            </>
           )}
         </div>
         {content && enableGroupConfig && (
-          <Fragment>
+          <>
             <div className="FilePickerApp__left-col">Group assignment</div>
             <div className="FilePickerApp__right-col">
               <GroupConfigSelector
@@ -158,7 +157,7 @@ export default function FilePickerApp({ onSubmit }) {
                 Continue
               </LabeledButton>
             </div>
-          </Fragment>
+          </>
         )}
         {content && (
           <FilePickerFormFields

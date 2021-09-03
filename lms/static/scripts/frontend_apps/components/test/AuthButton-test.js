@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import { createElement } from 'preact';
+
 import { act } from 'preact/test-utils';
 
 import AuthButton, { $imports } from '../AuthButton';

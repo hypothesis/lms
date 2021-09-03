@@ -1,5 +1,4 @@
 import { mount } from 'enzyme';
-import { createElement } from 'preact';
 
 import { waitFor, waitForElement } from '../../../test-util/wait';
 import { VitalSourceService, withServices } from '../../services';

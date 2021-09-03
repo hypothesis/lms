@@ -1,4 +1,4 @@
-import { createContext, createElement } from 'preact';
+import { createContext } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
 export { ClientRPC } from './client-rpc';

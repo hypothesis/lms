@@ -1,5 +1,5 @@
 import { SvgIcon } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+
 import classNames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 

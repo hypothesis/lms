@@ -5,7 +5,7 @@ import {
   TextInputWithButton,
   Thumbnail,
 } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useService, VitalSourceService } from '../services';

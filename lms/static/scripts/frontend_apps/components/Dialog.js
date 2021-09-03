@@ -2,7 +2,6 @@ import {
   LabeledButton,
   useElementShouldClose,
 } from '@hypothesis/frontend-shared';
-import { createElement, Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import classNames from 'classnames';
 
@@ -104,7 +103,7 @@ export default function Dialog({
   }, [dialogDescriptionId]);
 
   return (
-    <Fragment>
+    <>
       <div
         className="Dialog__background"
         style={{ zIndex: zIndexScale.dialogBackground }}
@@ -141,6 +140,6 @@ export default function Dialog({
           </div>
         </div>
       </div>
-    </Fragment>
+    </>
   );
 }

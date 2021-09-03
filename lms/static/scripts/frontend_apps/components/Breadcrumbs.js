@@ -1,5 +1,4 @@
 import { LinkButton } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
 
 /**
  * @template Item

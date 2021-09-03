@@ -1,4 +1,3 @@
-import { createElement } from 'preact';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';

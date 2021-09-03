@@ -1,5 +1,4 @@
 import { mount } from 'enzyme';
-import { createElement } from 'preact';
 
 import { contentItemForContent } from '../../utils/content-item';
 
