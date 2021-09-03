@@ -1,14 +1,15 @@
 {
-  "extends": [
-    "hypothesis",
-    "plugin:jsx-a11y/recommended"
-  ],
+  "extends": ["hypothesis", "plugin:jsx-a11y/recommended"],
   "rules": {
     "prefer-arrow-callback": "error",
     "prefer-const": ["error", { "destructuring": "all" }],
 
     // Handled by Prettier.
     "comma-dangle": "off",
+
+    // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html#eslint
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off",
 
     // Prop validation is performed by TypeScript + JSDoc.
     "react/prop-types": "off"
