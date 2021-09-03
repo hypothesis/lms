@@ -1,5 +1,3 @@
-import { createElement } from 'preact';
-
 /**
  * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
  *

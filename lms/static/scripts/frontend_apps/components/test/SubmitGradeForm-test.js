@@ -1,4 +1,3 @@
-import { createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import { checkAccessibility } from '../../../test-util/accessibility';

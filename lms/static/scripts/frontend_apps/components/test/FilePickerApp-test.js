@@ -1,6 +1,5 @@
 /* eslint-disable new-cap */
 
-import { createElement } from 'preact';
 import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 

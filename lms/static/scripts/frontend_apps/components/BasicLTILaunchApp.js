@@ -1,5 +1,4 @@
 import classNames from 'classnames';
-import { createElement } from 'preact';
 
 import {
   useCallback,

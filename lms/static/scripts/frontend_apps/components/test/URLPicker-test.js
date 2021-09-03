@@ -1,4 +1,3 @@
-import { Fragment, createElement } from 'preact';
 import { mount } from 'enzyme';
 
 import URLPicker, { $imports } from '../URLPicker';
@@ -7,9 +6,9 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 describe('URLPicker', () => {
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
-    <Fragment>
+    <>
       {buttons} {children}
-    </Fragment>
+    </>
   );
   const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);
 

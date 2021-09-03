@@ -1,5 +1,3 @@
-import { Fragment, createElement } from 'preact';
-
 import { contentItemForContent } from '../utils/content-item';
 
 /**
@@ -43,7 +41,7 @@ export default function FilePickerFormFields({
     contentItemForContent(ltiLaunchURL, content, extraParams)
   );
   return (
-    <Fragment>
+    <>
       {Object.entries(formFields).map(([field, value]) => (
         <input key={field} type="hidden" name={field} value={value} />
       ))}
@@ -53,6 +51,6 @@ export default function FilePickerFormFields({
         // view. Used in LMSes where assignments are configured on first launch.
         <input name="document_url" type="hidden" value={content.url} />
       )}
-    </Fragment>
+    </>
   );
 }

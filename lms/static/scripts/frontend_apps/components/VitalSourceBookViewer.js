@@ -1,4 +1,3 @@
-import { createElement } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
 /**

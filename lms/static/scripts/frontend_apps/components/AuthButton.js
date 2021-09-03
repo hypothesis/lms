@@ -1,5 +1,5 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+
 import { useCallback, useEffect, useRef } from 'preact/hooks';
 
 import AuthWindow from '../utils/AuthWindow';

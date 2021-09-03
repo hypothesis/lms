@@ -1,5 +1,4 @@
 import { mount } from 'enzyme';
-import { Fragment, createElement } from 'preact';
 import { act } from 'preact/test-utils';
 
 import { APIError } from '../../utils/api';
@@ -11,9 +10,9 @@ import { waitFor, waitForElement } from '../../../test-util/wait';
 describe('LMSFilePicker', () => {
   // eslint-disable-next-line react/prop-types
   const FakeDialog = ({ buttons, children }) => (
-    <Fragment>
+    <>
       {buttons} {children}
-    </Fragment>
+    </>
   );
 
   let fakeApiCall;

@@ -1,5 +1,4 @@
 import { LabeledCheckbox } from '@hypothesis/frontend-shared';
-import { Fragment, createElement } from 'preact';
 import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -100,7 +99,7 @@ export default function GroupConfigSelector({
   const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 
   return (
-    <Fragment>
+    <>
       <div>
         <LabeledCheckbox
           checked={useGroupSet}
@@ -123,17 +122,17 @@ export default function GroupConfigSelector({
           {fetchError && (
             // Currently all fetch errors are handled by attempting to re-authorize
             // and then re-fetch group sets.
-            <Fragment>
+            <>
               <p>Canvas needs your permission to fetch group sets</p>
               <AuthButton
                 authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
                 authToken={authToken}
                 onAuthComplete={fetchGroupSets}
               />
-            </Fragment>
+            </>
           )}
           {!fetchError && (
-            <Fragment>
+            <>
               <label htmlFor={selectID}>Group set: </label>
               <select
                 disabled={fetchingGroupSets}
@@ -148,7 +147,7 @@ export default function GroupConfigSelector({
               >
                 {fetchingGroupSets && <option>Fetching group sets…</option>}
                 {groupSets && (
-                  <Fragment>
+                  <>
                     <option disabled selected={groupSet === null}>
                       Select group set
                     </option>
@@ -163,13 +162,13 @@ export default function GroupConfigSelector({
                         {gs.name}
                       </option>
                     ))}
-                  </Fragment>
+                  </>
                 )}
               </select>
-            </Fragment>
+            </>
           )}
         </div>
       )}
-    </Fragment>
+    </>
   );
 }

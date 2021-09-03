@@ -1,5 +1,4 @@
 import { mount } from 'enzyme';
-import { createElement } from 'preact';
 
 import FileList, { $imports } from '../FileList';
 import { checkAccessibility } from '../../../test-util/accessibility';

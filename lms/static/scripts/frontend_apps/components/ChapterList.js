@@ -1,5 +1,3 @@
-import { Fragment, createElement } from 'preact';
-
 import Table from './Table';
 
 /**
@@ -49,10 +47,10 @@ export default function ChapterList({
       onUseItem={onUseChapter}
       selectedItem={selectedChapter}
       renderItem={chapter => (
-        <Fragment>
+        <>
           <td aria-label={chapter.title}>{chapter.title}</td>
           <td>{chapter.page}</td>
-        </Fragment>
+        </>
       )}
     />
   );

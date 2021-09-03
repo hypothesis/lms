@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import { createElement, createRef } from 'preact';
+import { createRef } from 'preact';
 
 import Dialog from '../Dialog';
 import { checkAccessibility } from '../../../test-util/accessibility';

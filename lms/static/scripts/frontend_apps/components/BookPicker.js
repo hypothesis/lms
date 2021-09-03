@@ -1,5 +1,5 @@
 import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
-import { createElement } from 'preact';
+
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { useService, VitalSourceService } from '../services';

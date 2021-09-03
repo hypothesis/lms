@@ -1,7 +1,5 @@
 import { SvgIcon } from '@hypothesis/frontend-shared';
-
 import classnames from 'classnames';
-import { Fragment, createElement } from 'preact';
 
 import Spinner from './Spinner';
 import Table from './Table';
@@ -59,7 +57,7 @@ export default function FileList({
         onSelectItem={onSelectFile}
         onUseItem={onUseFile}
         renderItem={(file, isSelected) => (
-          <Fragment>
+          <>
             <td aria-label={file.display_name} className="FileList__name-col">
               <div className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-padding--left--2">
                 <SvgIcon
@@ -75,7 +73,7 @@ export default function FileList({
             <td className="FileList__date-col">
               {file.updated_at && formatDate(file.updated_at)}
             </td>
-          </Fragment>
+          </>
         )}
       />
       {!isLoading && files.length === 0 && noFilesMessage}

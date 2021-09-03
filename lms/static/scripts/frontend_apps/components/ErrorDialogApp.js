@@ -1,4 +1,3 @@
-import { Fragment, createElement } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -34,7 +33,7 @@ export default function ErrorDialogApp() {
   return (
     <Dialog title={title}>
       {error.code === 'reused_tool_guid' && (
-        <Fragment>
+        <>
           This Hypothesis installation&apos;s consumer key appears to have
           already been used on another site. This could be because:
           <ul>
@@ -63,7 +62,7 @@ export default function ErrorDialogApp() {
               .
             </li>
           </ul>
-        </Fragment>
+        </>
       )}
       <ErrorDisplay message={message} error={error} />
     </Dialog>

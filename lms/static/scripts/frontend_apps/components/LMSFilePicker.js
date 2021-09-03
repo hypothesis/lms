@@ -1,5 +1,4 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { createElement, Fragment } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { APIError, apiCall } from '../utils/api';
@@ -332,7 +331,7 @@ export default function LMSFilePicker({
       {warningOrError}
 
       {['reloading', 'fetched'].includes(dialogState.state) && (
-        <Fragment>
+        <>
           {withBreadcrumbs && (
             <Breadcrumbs
               items={folderPath}
@@ -353,7 +352,7 @@ export default function LMSFilePicker({
               />
             }
           />
-        </Fragment>
+        </>
       )}
     </Dialog>
   );

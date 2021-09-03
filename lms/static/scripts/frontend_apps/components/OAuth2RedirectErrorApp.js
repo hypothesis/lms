@@ -1,5 +1,4 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { Fragment, createElement } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -74,7 +73,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   return (
     <Dialog title={title} buttons={buttons}>
       {error.code === 'canvas_invalid_scope' && (
-        <Fragment>
+        <>
           <p>
             A Canvas admin needs to edit {"Hypothesis's"} developer key and add
             these scopes:
@@ -97,11 +96,11 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             </a>
             .
           </p>
-        </Fragment>
+        </>
       )}
 
       {error.code === 'blackboard_missing_integration' && (
-        <Fragment>
+        <>
           <p>
             In order to allow Hypothesis to connect to files in Blackboard, your
             Blackboard admin needs to add or enable a REST API integration.
@@ -117,7 +116,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             </a>
             .
           </p>
-        </Fragment>
+        </>
       )}
       <ErrorDisplay message={message} error={error} />
     </Dialog>

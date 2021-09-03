@@ -1,5 +1,4 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-import { Fragment, createElement } from 'preact';
 import { useContext, useMemo, useState } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -185,7 +184,7 @@ export default function ContentSelector({
   };
 
   return (
-    <Fragment>
+    <>
       {isLoadingIndicatorVisible && <FullScreenSpinner />}
       <div className="ContentSelector__actions">
         <div className="ContentSelector__actions-buttons">
@@ -237,6 +236,6 @@ export default function ContentSelector({
         <div className="u-stretch" />
       </div>
       {dialog}
-    </Fragment>
+    </>
   );
 }
