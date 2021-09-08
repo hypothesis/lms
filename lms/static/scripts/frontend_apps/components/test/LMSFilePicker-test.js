@@ -126,7 +126,8 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ withBreadcrumbs: true });
 
     const breadcrumbs = await waitForElement(wrapper, 'Breadcrumbs');
-    fakeApiCall.reset();
+    fakeApiCall.resetHistory();
+
     // Simulate changing the folder path, as if a user clicked on a "crumb"
     act(() => breadcrumbs.props().onSelectItem(fakeFolders[0]));
 
@@ -242,12 +243,8 @@ describe('LMSFilePicker', () => {
     const tryAgainButton = wrapper.find('AuthButton');
     assert.isTrue(tryAgainButton.exists());
     assert.equal(tryAgainButton.prop('label'), 'Try again');
-    const errorDetails = wrapper.find('ErrorDisplay');
-    assert.equal(
-      errorDetails.prop('message'),
-      'Failed to authorize file access'
-    );
-    assert.equal(errorDetails.prop('error').message, '');
+    const errorDetails = wrapper.find('[data-testid="authorization warning"]');
+    assert.equal(errorDetails.text(), 'Unable to authorize file access.');
 
     // Make successful authorization attempt and wait for the auth window to close.
     fakeApiCall.reset();
@@ -293,9 +290,7 @@ describe('LMSFilePicker', () => {
 
       // The details of the error should be displayed, along with a "Try again"
       // button.
-      const tryAgainButton = wrapper.find(
-        'AuthButton[data-testid="try-again"]'
-      );
+      const tryAgainButton = wrapper.find('AuthButton');
       assert.isTrue(tryAgainButton.exists());
 
       const errorDetails = wrapper.find('ErrorDisplay');
@@ -320,38 +315,58 @@ describe('LMSFilePicker', () => {
   });
 
   it('shows "Reload" button when the request returns no files', async () => {
-    const clock = sinon.useFakeTimers();
     fakeApiCall.onFirstCall().resolves([]);
-    // When the dialog is initially displayed, it should try to fetch files.
+
+    // After first render, the component will kick off the first file API fetch
     const wrapper = renderFilePicker();
     await fakeApiCall;
     wrapper.update();
-    assert.called(fakeApiCall);
 
+    // The file list is empty. The continue button should have a "Reload" label.
     const reloadButton = wrapper.find('LabeledButton[data-testid="reload"]');
-    assert.isFalse(reloadButton.prop('disabled'));
+    assert.equal(reloadButton.text(), 'Reload');
+    assert.isNotOk(reloadButton.prop('disabled'));
 
-    const waitMs = 3000;
-    fakeApiCall
-      .onSecondCall()
-      .resolves(new Promise(resolve => setTimeout(() => resolve([]), waitMs)));
-
-    reloadButton.prop('onClick')();
+    // Simulate a user clicking the Reload button and dispatching another
+    // API request. Leave the next fetch (Promise) unsettled (as if
+    // loading is ongoing).
+    let outsideResolve;
+    fakeApiCall.onSecondCall().resolves(
+      new Promise(resolve => {
+        outsideResolve = resolve;
+      })
+    );
+    // Click the button to kick off the next request, which will hang...
+    act(() => {
+      reloadButton.prop('onClick')();
+    });
     wrapper.update();
 
-    assert.isTrue(
-      wrapper.find('LabeledButton[data-testid="reload"]').prop('disabled')
+    // Request Promise is still unsettled, so the component stays in a "fetching"
+    // state [1]. It should still show the "Reload" label on the continue button,
+    // but the button should be disabled.
+    //
+    // [1]: Because it's `fetching` and not `fetched`, the button's testid
+    // is "select" instead of "reload"
+    await waitForElement(wrapper, 'LabeledButton[data-testid="select"]');
+    const waitingReloadButton = wrapper.find(
+      'LabeledButton[data-testid="select"]'
     );
+    assert.isTrue(waitingReloadButton.prop('disabled'));
+    assert.equal(waitingReloadButton.text(), 'Reload');
 
-    clock.tick(waitMs);
-    await fakeApiCall;
+    // Now resolve that hanging API request Promise to an empty list (of files)
+    outsideResolve([]);
     wrapper.update();
 
-    assert.isFalse(
-      wrapper.find('LabeledButton[data-testid="reload"]').prop('disabled')
+    // The component will move into a `fetched` state, and will once again
+    // provide an enabled continue button to attempt a reload
+    await waitForElement(wrapper, 'LabeledButton[data-testid="reload"]');
+    const finalReloadButton = wrapper.find(
+      'LabeledButton[data-testid="reload"]'
     );
-
-    clock.restore();
+    assert.equal(finalReloadButton.text(), 'Reload');
+    assert.isNotOk(finalReloadButton.prop('disabled'));
   });
 
   it('shows a "Select" button when the request return a list with one or more files', async () => {
@@ -362,7 +377,10 @@ describe('LMSFilePicker', () => {
     wrapper.update();
     assert.called(fakeApiCall);
 
-    assert.isTrue(wrapper.exists('LabeledButton[data-testid="select"]'));
+    const continueButton = wrapper.find('LabeledButton[data-testid="select"]');
+    assert.equal(continueButton.text(), 'Select');
+    // No file is selected, so the button is disabled
+    assert.isTrue(continueButton.prop('disabled'));
   });
 
   it('fetches and displays files from the LMS', async () => {
@@ -472,7 +490,11 @@ describe('LMSFilePicker', () => {
 
   it('does not render anything while fetching', async () => {
     const wrapper = renderFilePicker();
+    // Note: this passes because `FullScreenSpinner` is mocked. However, the
+    // test accomplishes what it's trying to accomplish: we're not rendering
+    // the Modal
     assert.isTrue(wrapper.isEmptyRender());
+    assert.isTrue(wrapper.find('FullScreenSpinner').exists());
 
     await waitFor(() => fakeApiCall.called);
     wrapper.update();
