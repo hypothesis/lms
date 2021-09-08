@@ -15,6 +15,7 @@ import sys
 import tempfile
 
 from pyramid.paster import bootstrap
+from sqlalchemy.exc import MultipleResultsFound
 
 import lms
 from lms import models
@@ -88,7 +89,10 @@ class DevDataFactory:
     def upsert_assignment(self, data):
         assignment = (
             self.db.query(models.Assignment)
-            .filter_by(resource_link_id=data["resource_link_id"])
+            .filter_by(
+                resource_link_id=data["resource_link_id"],
+                tool_consumer_instance_guid=data["tool_consumer_instance_guid"]
+            )
             .one_or_none()
         )
 
