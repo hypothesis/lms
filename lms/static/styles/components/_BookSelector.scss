@@ -1,13 +1,4 @@
 .BookSelector {
-  // The containing `Modal` component will take up 90vw on narrow screens.
-  // For viewports that are wider, `Modal` sets a min-width, but it's a little
-  // narrow for this particular interface. The book-selector feels about right
-  // at 36em where space allows. 42em minimum here allows for at least 3em
-  // of horizontal breathing room on each side of the modal's contents.
-  @media screen and (min-width: 42rem) {
-    min-width: 36rem;
-  }
-
   &__thumbnail {
     width: 110px;
     height: 150px;

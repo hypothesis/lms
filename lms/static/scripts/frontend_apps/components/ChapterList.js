@@ -1,4 +1,4 @@
-import Table from './Table';
+import { Table } from '@hypothesis/frontend-shared';
 
 /**
  * @typedef {import('../api-types').Chapter} Chapter
@@ -34,13 +34,15 @@ export default function ChapterList({
     },
     {
       label: 'Page',
+      classes: 'ChapterList__page-heading',
     },
   ];
 
   return (
     <Table
       accessibleLabel="Table of Contents"
-      columns={columns}
+      classes="ChapterList"
+      tableHeaders={columns}
       isLoading={isLoading}
       items={chapters}
       onSelectItem={onSelectChapter}

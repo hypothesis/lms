@@ -14,7 +14,9 @@
 
 // Preact components
 @use 'components/BasicLTILaunchApp';
+@use 'components/BookPicker';
 @use 'components/BookSelector';
+@use 'components/ChapterList';
 @use 'components/Breadcrumbs';
 @use 'components/ContentSelector';
 @use 'components/Dialog';

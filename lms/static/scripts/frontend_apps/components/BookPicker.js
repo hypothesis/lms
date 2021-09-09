@@ -1,3 +1,5 @@
+import classnames from 'classnames';
+
 import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
@@ -77,6 +79,9 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       // sub-components
       initialFocus={null}
       onCancel={onCancel}
+      contentClass={classnames('BookPicker', {
+        'BookPicker--select-chapter': step === 'select-chapter',
+      })}
       title={
         step === 'select-book'
           ? 'Paste link to VitalSource book'
