@@ -1,8 +1,6 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { LabeledButton, Modal, TextInput } from '@hypothesis/frontend-shared';
 
 import { useRef } from 'preact/hooks';
-
-import Dialog from './Dialog';
 
 /**
  * @typedef URLPickerProps
@@ -32,8 +30,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
   };
 
   return (
-    <Dialog
-      contentClass="URLPicker__dialog"
+    <Modal
       title="Enter URL"
       onCancel={onCancel}
       buttons={[
@@ -44,19 +41,24 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       initialFocus={input}
     >
       <p>Enter the URL of any publicly available web page or PDF.</p>
-      <form ref={form} className="u-flex-row" onSubmit={submit}>
+      <form
+        ref={form}
+        className="hyp-u-layout-row--align-center"
+        onSubmit={submit}
+      >
         <label className="label" htmlFor="url">
           URL:{' '}
         </label>
-        <input
-          className="u-stretch u-cross-stretch"
-          name="path"
-          type="url"
+
+        <TextInput
+          classes="hyp-u-stretch"
+          inputRef={input}
+          name="url"
           placeholder="https://example.com/article.pdf"
-          required={true}
-          ref={input}
+          required
+          type="url"
         />
       </form>
-    </Dialog>
+    </Modal>
   );
 }
