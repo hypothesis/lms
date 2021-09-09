@@ -15,7 +15,6 @@ import sys
 import tempfile
 
 from pyramid.paster import bootstrap
-from sqlalchemy.exc import MultipleResultsFound
 
 import lms
 from lms import models
@@ -91,7 +90,7 @@ class DevDataFactory:
             self.db.query(models.Assignment)
             .filter_by(
                 resource_link_id=data["resource_link_id"],
-                tool_consumer_instance_guid=data["tool_consumer_instance_guid"]
+                tool_consumer_instance_guid=data["tool_consumer_instance_guid"],
             )
             .one_or_none()
         )
@@ -124,12 +123,10 @@ def devdata():
                 os.path.join(pathlib.Path(lms.__file__).parent.parent, ".devdata.env"),
             )
 
-            DevDataFactory(
-                env["request"],
-                json.loads(
-                    open(os.path.join(git_dir, "lms", "devdata.json"), "r").read()
-                ),
-            ).create_all()
+            with open(
+                os.path.join(git_dir, "lms", "devdata.json"), encoding="utf-8"
+            ) as handle:
+                DevDataFactory(env["request"], json.load(handle)).create_all()
 
 
 if __name__ == "__main__":
