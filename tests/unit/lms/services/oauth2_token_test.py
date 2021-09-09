@@ -58,14 +58,15 @@ class TestOAuth2TokenService:
     def oauth_token_in_db_or_not(
         self, request, db_session, lti_user, application_instance
     ):
-        """Get an OAuthToken which either is, or isn't in the DB."""
-        oauth_token = factories.OAuth2Token.build(
-            user_id=lti_user.user_id,
-            consumer_key=application_instance.consumer_key,
-            application_instance=application_instance,
-        )
-
+        """Get an OAuthToken or None based on the fixture params."""
+        oauth_token = None
         if request.param:
+            oauth_token = factories.OAuth2Token.build(
+                user_id=lti_user.user_id,
+                consumer_key=application_instance.consumer_key,
+                application_instance=application_instance,
+            )
+
             db_session.add(oauth_token)
 
         return oauth_token
