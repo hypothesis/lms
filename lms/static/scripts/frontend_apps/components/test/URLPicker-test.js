@@ -1,26 +1,11 @@
 import { mount } from 'enzyme';
 
-import URLPicker, { $imports } from '../URLPicker';
+import URLPicker from '../URLPicker';
 import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('URLPicker', () => {
   // eslint-disable-next-line react/prop-types
-  const FakeDialog = ({ buttons, children }) => (
-    <>
-      {buttons} {children}
-    </>
-  );
   const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);
-
-  beforeEach(() => {
-    $imports.$mock({
-      './Dialog': FakeDialog,
-    });
-  });
-
-  afterEach(() => {
-    $imports.$restore();
-  });
 
   it('invokes `onSelectURL` when user submits a URL', () => {
     const onSelectURL = sinon.stub();
