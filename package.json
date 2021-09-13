@@ -79,7 +79,7 @@
     "mocha": "^9.1.1",
     "prettier": "2.3.2",
     "sinon": "^11.1.2",
-    "typescript": "^4.4.2"
+    "typescript": "^4.4.3"
   },
   "browserslist": "chrome 57, edge 17, firefox 53, safari 10.1",
   "browserify": {
