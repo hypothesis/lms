@@ -11,7 +11,7 @@ RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.
 FROM python:3.8.12-alpine3.13
-MAINTAINER Hypothes.is Project and contributors
+LABEL authors="Hypothes.is Project and contributors"
 
 # Install system build and runtime dependencies.
 RUN apk add libpq supervisor
