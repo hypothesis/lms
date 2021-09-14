@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   postgres:
     image: postgres:11.5-alpine
@@ -7,3 +8,24 @@ services:
     healthcheck:
         test: ["CMD", "pg_isready", "-U", "postgres"]
         interval: 1s
+
+  web:
+    image: hypothesis/lms:dev
+    profiles: ["web"]
+    ports:
+      - '127.0.0.1:8001:8001'
+    # Unfortunately if we don't run as root `dev_host_bridge.sh` doesn't work
+    user: root
+    command: /bin/sh -c "/var/lib/lms/bin/dev_host_bridge.sh && bin/init-env supervisord -c conf/supervisord.conf"
+    env_file: .devdata.env
+    environment:
+      - DATABASE_URL=postgresql://postgres@lms_postgres_1/postgres
+      - FEATURE_FLAGS_COOKIE_SECRET=not_a_secret
+      - H_API_URL_PRIVATE=http://host.docker.internal:5000/api/
+      - H_API_URL_PUBLIC=http://localhost:5000/api/
+      - H_AUTHORITY=lms.hypothes.is
+      - RPC_ALLOWED_ORIGINS=http://localhost:5000
+      - VIA_URL=http://localhost:9083
+      - VIA_SECRET=not_a_secret
+      - SESSION_COOKIE_SECRET=notasecret
+      - OAUTH2_STATE_SECRET=notasecret
