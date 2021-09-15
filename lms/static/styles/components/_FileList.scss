@@ -1,9 +1,7 @@
 @use '../variables' as var;
 
 .FileList {
-  // FIXME: Reduce specificity when possible to do so
-  // See https://github.com/hypothesis/frontend-shared/issues/180
-  & &__date-header {
+  &__date-header {
     width: 10em;
   }
 
