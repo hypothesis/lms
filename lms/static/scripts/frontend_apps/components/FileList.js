@@ -45,42 +45,35 @@ export default function FileList({
   ];
 
   return (
-    <>
-      {!isLoading && files.length === 0 ? (
-        noFilesMessage
-      ) : (
-        <Table
-          accessibleLabel="File list"
-          classes="FileList"
-          tableHeaders={columns}
-          isLoading={isLoading}
-          items={files}
-          selectedItem={selectedFile}
-          onSelectItem={onSelectFile}
-          onUseItem={onUseFile}
-          renderItem={(file, isSelected) => (
-            <>
-              <td aria-label={file.display_name}>
-                <div className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-padding--left--2">
-                  <SvgIcon
-                    inline
-                    name={
-                      file.type && file.type === 'Folder' ? 'folder' : 'pdf'
-                    }
-                    className={classnames('FileList__icon', {
-                      'is-selected': isSelected,
-                    })}
-                  />
-                  <span className="u-stretch u-overflow--ellipsis">
-                    {file.display_name}
-                  </span>
-                </div>
-              </td>
-              <td>{file.updated_at && formatDate(file.updated_at)}</td>
-            </>
-          )}
-        />
+    <Table
+      accessibleLabel="File list"
+      classes="FileList"
+      emptyItemsMessage={noFilesMessage}
+      tableHeaders={columns}
+      isLoading={isLoading}
+      items={files}
+      selectedItem={selectedFile}
+      onSelectItem={onSelectFile}
+      onUseItem={onUseFile}
+      renderItem={(file, isSelected) => (
+        <>
+          <td aria-label={file.display_name}>
+            <div className="hyp-u-layout-row--align-center hyp-u-horizontal-spacing hyp-u-padding--left--2">
+              <SvgIcon
+                inline
+                name={file.type && file.type === 'Folder' ? 'folder' : 'pdf'}
+                className={classnames('FileList__icon', {
+                  'is-selected': isSelected,
+                })}
+              />
+              <span className="u-stretch u-line-height">
+                {file.display_name}
+              </span>
+            </div>
+          </td>
+          <td>{file.updated_at && formatDate(file.updated_at)}</td>
+        </>
       )}
-    </>
+    />
   );
 }
