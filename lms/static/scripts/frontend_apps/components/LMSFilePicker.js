@@ -1,4 +1,4 @@
-import { Frame, LabeledButton, Modal } from '@hypothesis/frontend-shared';
+import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
@@ -30,17 +30,13 @@ import FullScreenSpinner from './FullScreenSpinner';
 function NoFilesMessage({ href, inSubfolder }) {
   const documentContext = inSubfolder ? 'folder' : 'course';
   return (
-    <Frame classes="LMSFilePicker__no-files">
-      <div className="u-layout-column--align-center hyp-u-padding--6">
-        <div>
-          There are no PDFs in this {documentContext}.{' '}
-          <a href={href} target="_blank" rel="noreferrer">
-            Upload some files to the {documentContext}
-          </a>{' '}
-          and try again.
-        </div>
-      </div>
-    </Frame>
+    <div>
+      There are no PDFs in this {documentContext}.{' '}
+      <a href={href} target="_blank" rel="noreferrer">
+        Upload some files to the {documentContext}
+      </a>{' '}
+      and try again.
+    </div>
   );
 }
 
