@@ -296,7 +296,7 @@ export default function BasicLTILaunchApp() {
     />
   ) : (
     <iframe
-      className="BasicLTILaunchApp__iframe"
+      className="BasicLTILaunchApp__iframe hyp-u-border"
       src={contentUrl || ''}
       title="Course content with Hypothesis annotation viewer"
     />
