@@ -24,11 +24,19 @@ class Assignment(BASE):
     __tablename__ = "module_item_configurations"
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
+        sa.UniqueConstraint("ext_lti_assignment_id", "tool_consumer_instance_guid"),
+        sa.CheckConstraint(
+            "NOT(resource_link_id IS NULL AND hypothesis_assignment_id IS NULL)",
+            name="nullable_resource_link_id_hypothesis_assignment_id",
+        ),
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
-    resource_link_id = sa.Column(sa.Unicode, nullable=False)
+    ext_lti_assignment_id = sa.Column(sa.Unicode(36), nullable=True)
+    """TODO"""
+
+    resource_link_id = sa.Column(sa.Unicode, nullable=True)
     """The resource_link_id launch param of the assignment."""
 
     tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)

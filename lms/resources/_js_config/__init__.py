@@ -189,6 +189,18 @@ class JSConfig:
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
 
+    def _create_assignment_api(self):
+        if not self._context.is_canvas:
+            return None
+
+        return {
+            "authUrl": None,  #  TODO?
+            "path": self._request.route_path("assignment.create"),
+            "data": {
+                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"]
+            },
+        }
+
     def enable_content_item_selection_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "content item selection" mode.
@@ -212,7 +224,7 @@ class JSConfig:
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,
-                    # Specific config for pickers
+                    "createAssignmentAPI": self._create_assignment_api(),
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
                     "google": FilePickerConfig.google_files_config(*args),

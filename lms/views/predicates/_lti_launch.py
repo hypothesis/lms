@@ -33,14 +33,14 @@ class DBConfigured(Base):
     def __call__(self, context, request):
         assignment_svc = request.find_service(name="assignment")
         resource_link_id = request.params.get("resource_link_id")
+        ext_lti_assignment_id = request.params.get("ext_lti_assignment_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
         has_document_url = bool(
             assignment_svc.get_document_url(
-                tool_consumer_instance_guid, resource_link_id
+                tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
             )
         )
-
         return has_document_url == self.value
 
 
@@ -208,7 +208,9 @@ class URLConfigured(Base):
     name = "url_configured"
 
     def __call__(self, context, request):
-        return ("url" in request.params) == self.value
+        return (
+            "url" in request.params and "ext_lti_assignment_id" not in request.params
+        ) == self.value
 
 
 class Configured(Base):

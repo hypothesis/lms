@@ -54,7 +54,6 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
   Object.entries(params).forEach(([key, value]) =>
     url.searchParams.append(key, value)
   );
-
   return {
     '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
     '@graph': [
