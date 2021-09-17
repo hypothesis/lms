@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 
 import { mount } from 'enzyme';
+import { IntlProvider } from 'react-intl';
 
 import { act } from 'preact/test-utils';
 
@@ -62,13 +63,15 @@ describe('ContentSelector', () => {
   const renderContentSelector = (props = {}) => {
     const noop = () => {};
     return mount(
-      <Config.Provider value={fakeConfig}>
-        <ContentSelector
-          setErrorInfo={noop}
-          onSelectContent={noop}
-          {...props}
-        />
-      </Config.Provider>
+      <IntlProvider messages={{}} locale="en" defaultLocale="en">
+        <Config.Provider value={fakeConfig}>
+          <ContentSelector
+            setErrorInfo={noop}
+            onSelectContent={noop}
+            {...props}
+          />
+        </Config.Provider>
+      </IntlProvider>
     );
   };
 

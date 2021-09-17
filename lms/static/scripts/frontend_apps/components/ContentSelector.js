@@ -1,5 +1,6 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
 import { useContext, useMemo, useState } from 'preact/hooks';
+import { FormattedMessage } from 'react-intl';
 
 import { Config } from '../config';
 import {
@@ -193,7 +194,10 @@ export default function ContentSelector({
             variant="primary"
             data-testid="url-button"
           >
-            Enter URL of web page or PDF
+            <FormattedMessage
+              defaultMessage="Enter URL of web page or PDF"
+              description="button label: content selection"
+            />
           </LabeledButton>
           {canvasFilesEnabled && (
             <LabeledButton
@@ -201,7 +205,7 @@ export default function ContentSelector({
               variant="primary"
               data-testid="canvas-file-button"
             >
-              Select PDF from Canvas
+              <FormattedMessage defaultMessage="Select PDF from Canvas" />
             </LabeledButton>
           )}
           {blackboardFilesEnabled && (
@@ -210,7 +214,7 @@ export default function ContentSelector({
               variant="primary"
               data-testid="blackboard-file-button"
             >
-              Select PDF from Blackboard
+              <FormattedMessage defaultMessage="Select PDF from Blackboard" />
             </LabeledButton>
           )}
           {googlePicker && (
@@ -219,7 +223,7 @@ export default function ContentSelector({
               variant="primary"
               data-testid="google-drive-button"
             >
-              Select PDF from Google Drive
+              <FormattedMessage defaultMessage="Select PDF from Google Drive" />
             </LabeledButton>
           )}
           {vitalSourceEnabled && (
@@ -228,7 +232,10 @@ export default function ContentSelector({
               variant="primary"
               data-testid="vitalsource-button"
             >
-              Select book from VitalSource
+              <FormattedMessage
+                defaultMessage="Select book from VitalSource"
+                description="button label: select VitalSource book"
+              />
             </LabeledButton>
           )}
         </div>
