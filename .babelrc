@@ -31,5 +31,15 @@
         ]
       ]
     }
-  }
+  },
+  "plugins": [
+    [
+      "formatjs",
+      {
+        // Auto-generate IDs for ICU messages
+        "idInterpolationPattern": "[sha512:contenthash:base64:6]",
+        "ast": true
+      }
+    ]
+  ]
 }
