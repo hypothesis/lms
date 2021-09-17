@@ -9,7 +9,7 @@ alembic==1.7.3
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-astroid==2.7.2
+astroid==2.8.0
     # via pylint
 attrs==20.2.0
     # via
@@ -266,7 +266,7 @@ pyjwt==2.1.0
     #   -r requirements/tests.txt
     #   h-vialib
     #   pyramid-googleauth
-pylint==2.10.2
+pylint==2.11.1
     # via -r requirements/lint.in
 pyparsing==2.4.7
     # via
@@ -408,6 +408,10 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
+typing-extensions==3.10.0.2
+    # via
+    #   astroid
+    #   pylint
 urllib3==1.26.5
     # via
     #   -r requirements/bddtests.txt
