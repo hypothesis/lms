@@ -24,11 +24,23 @@ class Assignment(BASE):
     __tablename__ = "module_item_configurations"
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
+        sa.UniqueConstraint("tool_consumer_instance_guid", "ext_lti_assignment_id"),
+        sa.CheckConstraint(
+            "NOT(resource_link_id IS NULL AND ext_lti_assignment_id IS NULL)",
+            name="nullable_resource_link_id_ext_lti_assignment_id",
+        ),
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
-    resource_link_id = sa.Column(sa.Unicode, nullable=False)
+    ext_lti_assignment_id = sa.Column(sa.UnicodeText, nullable=True)
+    """
+    ID given for the assignment by Canvas.
+
+    Null for non canvas assignments and older Canvas ones.
+    """
+
+    resource_link_id = sa.Column(sa.Unicode, nullable=True)
     """The resource_link_id launch param of the assignment."""
 
     tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)
