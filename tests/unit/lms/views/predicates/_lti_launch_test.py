@@ -58,7 +58,7 @@ class TestFooCopied:
         resource_link_id_history_exists,
         context,
     ):
-        def exists(_, resource_link_id):
+        def exists(_, resource_link_id, _resource_link_id_exists=None):
             if resource_link_id == pyramid_request.params["resource_link_id"]:
                 if resource_link_id_exists:
                     # The database already has a document_url for the resource_link_id.
@@ -107,17 +107,23 @@ class TestFooCopied:
 
 class TestCanvasFile:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_canvas_file(self, value, expected):
-        request = DummyRequest(params={"canvas_file": 22})
+    def test_when_assignment_is_canvas_file(
+        self, value, expected, context, pyramid_request
+    ):
+        pyramid_request.params = {"canvas_file": 22}
         predicate = CanvasFile(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, request) is expected
+        assert predicate(context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_canvas_file(self, value, expected):
+    def test_when_assignment_is_not_canvas_file(
+        self, value, expected, pyramid_request, assignment_service, context
+    ):
+        assignment_service.exists.return_value = expected
+
         predicate = CanvasFile(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+        assert predicate(context, pyramid_request) is expected
 
 
 class TestVitalSourceBook:
@@ -129,25 +135,34 @@ class TestVitalSourceBook:
         assert predicate(mock.sentinel.context, request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_vitalsource_book(self, value, expected):
+    def test_when_assignment_is_not_vitalsource_book(
+        self, value, expected, pyramid_request
+    ):
         predicate = VitalSourceBook(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
 
 class TestURLConfigured:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_url_configured(self, value, expected, context):
-        request = DummyRequest(params={"url": "https://example.com"})
+    def test_when_assignment_is_url_configured(
+        self, value, expected, context, pyramid_request
+    ):
+        pyramid_request.params = {"url": "https://example.com"}
+
         predicate = URLConfigured(value, mock.sentinel.config)
 
-        assert predicate(context, request) is expected
+        assert predicate(context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_url_configured(self, value, expected, context):
+    def test_when_assignment_is_not_url_configured(
+        self, value, expected, context, pyramid_request, assignment_service
+    ):
+        assignment_service.exists.return_value = expected
+
         predicate = URLConfigured(value, mock.sentinel.config)
 
-        assert predicate(context, DummyRequest()) is expected
+        assert predicate(context, pyramid_request) is expected
 
 
 class TestConfigured:

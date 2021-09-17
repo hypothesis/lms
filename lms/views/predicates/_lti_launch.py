@@ -32,10 +32,15 @@ class DBConfigured(Base):
 
     def __call__(self, context, request):
         assignment_svc = request.find_service(name="assignment")
+        ext_lti_assignment_id = request.params.get("ext_lti_assignment_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
         return (
-            assignment_svc.exists(tool_consumer_instance_guid, context.resource_link_id)
+            assignment_svc.exists(
+                tool_consumer_instance_guid,
+                context.resource_link_id,
+                ext_lti_assignment_id,
+            )
             == self.value
         )
 
@@ -158,6 +163,8 @@ class CanvasFile(Base):
     """
     Allow invoking an LTI launch view only for Canvas file assignments.
 
+    Newer Canvas file assignment are already present in the DB so they behave like DB Configured ones.
+
     Pass ``canvas_file=True`` to a view config to allow invoking the view only
     for Canvas file assignments, or ``canvas_file=False`` to allow it only for
     other types of assignment. For example::
@@ -167,10 +174,16 @@ class CanvasFile(Base):
             ...
     """
 
+    def __init__(self, value, config):
+        super().__init__(value, config)
+        self.db_configured = DBConfigured(True, config)
+
     name = "canvas_file"
 
     def __call__(self, context, request):
-        return ("canvas_file" in request.params) == self.value
+        return ("canvas_file" in request.params) == self.value and self.db_configured(
+            context, request
+        ) != self.value
 
 
 class VitalSourceBook(Base):
@@ -202,8 +215,14 @@ class URLConfigured(Base):
 
     name = "url_configured"
 
+    def __init__(self, value, config):
+        super().__init__(value, config)
+        self.db_configured = DBConfigured(True, config)
+
     def __call__(self, context, request):
-        return ("url" in request.params) == self.value
+        return ("url" in request.params) == self.value and self.db_configured(
+            context, request
+        ) != self.value
 
 
 class Configured(Base):
