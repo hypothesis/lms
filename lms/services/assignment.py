@@ -60,7 +60,7 @@ class AssignmentService:
         else:
             return True
 
-    def set_document_url(
+    def set_document_url(  # pylint:disable=too-many-arguments
         self,
         tool_consumer_instance_guid,
         document_url,
