@@ -82,6 +82,16 @@ module.exports = function (config) {
             ],
           },
         ],
+        [
+          'aliasify',
+          {
+            aliases: {
+              react: 'preact/compat',
+              'react-dom': 'preact/compat',
+            },
+            global: true,
+          },
+        ],
       ],
     },
 
