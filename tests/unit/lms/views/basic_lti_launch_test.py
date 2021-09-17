@@ -287,8 +287,8 @@ class TestCanvasFileBasicLTILaunch:
 
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
-            pyramid_request.params["resource_link_id"],
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
 
@@ -340,8 +340,8 @@ class TestFooCopiedBasicLTILaunch:
         # DB.
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
-            pyramid_request.params["resource_link_id"],
             assignment_service.get_document_url.return_value,
+            resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
         # It adds the document URL to the JavaScript config.
@@ -372,8 +372,8 @@ class TestConfigureAssignment:
 
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
-            pyramid_request.parsed_params["resource_link_id"],
             pyramid_request.parsed_params["document_url"],
+            resource_link_id=pyramid_request.parsed_params["resource_link_id"],
         )
 
     def test_it_enables_frontend_grading(self, context, pyramid_request):
