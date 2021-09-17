@@ -1,5 +1,6 @@
 import 'focus-visible';
 import { render } from 'preact';
+import { IntlProvider } from 'react-intl';
 
 import { readConfig, Config } from './config';
 import BasicLTILaunchApp from './components/BasicLTILaunchApp';
@@ -72,8 +73,10 @@ if (!rootEl) {
   throw new Error('#app container for LMS frontend is missing');
 }
 render(
-  <Config.Provider value={config}>
-    <Services.Provider value={services}>{app}</Services.Provider>
-  </Config.Provider>,
+  <IntlProvider messages={{}} locale="en" defaultLocale="en">
+    <Config.Provider value={config}>
+      <Services.Provider value={services}>{app}</Services.Provider>
+    </Config.Provider>
+  </IntlProvider>,
   rootEl
 );
