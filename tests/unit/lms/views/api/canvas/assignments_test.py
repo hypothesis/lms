@@ -88,7 +88,7 @@ class TestAssignmentsAPIViews:
         }
 
     @pytest.mark.usefixtures("application_instance_service", "assignment_service")
-    def test_create_unkown_type(
+    def test_create_unknown_type(
         self,
         pyramid_request,
     ):

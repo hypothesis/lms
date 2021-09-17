@@ -44,7 +44,7 @@ class AssignmentsAPIViews:
         assignment = self.assignment_service.set_document_url(
             self.application_instance.tool_consumer_instance_guid,
             url,
-            ext_lti_assignment_id=params["ext_lti_assignment_id"],
+            ext_lti_assignment_id=self.request.json_body.get("ext_lti_assignment_id"),
             extra=extra,
         )
         return {"ext_lti_assignment_id": assignment.ext_lti_assignment_id}
