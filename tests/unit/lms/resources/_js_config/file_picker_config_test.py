@@ -105,6 +105,9 @@ class TestFilePickerConfig:
         expected = {"enabled": enabled}
         if enabled:
             expected["clientId"] = sentinel.client_id
+            expected["redirectURI"] = pyramid_request.route_url(
+                "onedrive.filepicker.redirect_uri"
+            )
 
         assert config == expected
 

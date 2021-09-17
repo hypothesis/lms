@@ -51,6 +51,10 @@ def includeme(config):
     )
 
     config.add_route(
+        "onedrive.filepicker.redirect_uri", "/onedrive/filepicker/redirect"
+    )
+
+    config.add_route(
         "canvas_api.oauth.authorize",
         "/api/canvas/oauth/authorize",
         factory="lms.resources.OAuth2RedirectResource",
