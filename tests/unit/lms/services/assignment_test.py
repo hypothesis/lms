@@ -47,15 +47,6 @@ class TestAssignmentService:
 
         assert retrieved_assignment == assignment_canvas_not_launched
 
-    def test_get_by_both_ids_no_results(self, svc):
-        retrieved_assignment = svc.get(
-            "tool_consumer_instance_guid",
-            resource_link_id="RESOURCE_LINK_ID",
-            ext_lti_assignment_id="ext_lti_assignment_id",
-        )
-
-        assert retrieved_assignment is None
-
     def test_get_by_both_ids_not_launched(self, svc, assignment_canvas_not_launched):
         assert assignment_canvas_not_launched.resource_link_id is None
 
@@ -142,6 +133,16 @@ class TestAssignmentService:
         )
 
         assert assignment.document_url == "NEW_DOCUMENT_URL"
+
+    def test_set_document_url_with_extra(self, svc, assignment):
+        svc.set_document_url(
+            assignment.tool_consumer_instance_guid,
+            "NEW_DOCUMENT_URL",
+            assignment.resource_link_id,
+            extra={"some": "value"},
+        )
+
+        assert assignment.extra["some"] == "value"
 
     @pytest.fixture
     def assignment(self):

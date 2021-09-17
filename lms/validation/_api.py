@@ -1,6 +1,7 @@
 """Schema for JSON APIs exposed to the frontend."""
 
 import marshmallow
+from marshmallow import Schema
 from webargs import fields
 
 from lms.validation._base import JSONPyramidRequestSchema, PyramidRequestSchema
@@ -69,3 +70,21 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
     """
     Score — i.e. grade — for this submission. A value between 0 and 1, inclusive.
     """
+
+
+class APICanvasCreateAssignment(PyramidRequestSchema):
+    class Content(Schema):
+        class File(Schema):
+            display_name = fields.Str(required=True)
+            id = fields.Integer(required=True)
+            updated_at = fields.String(required=True)
+            size = fields.Integer(required=True)
+
+        type = fields.Str(required=True)
+        url = fields.Str(required=False)
+        file = fields.Nested(File, required=False)
+
+    ext_lti_assignment_id = fields.Str(required=True)
+    course_id = fields.Integer(required=True)
+    content = fields.Nested(Content, required=True)
+    groupset = fields.Integer(required=False, allow_none=True)
