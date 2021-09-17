@@ -6,6 +6,7 @@
 var fs = require('fs');
 var path = require('path');
 
+var aliasify = require('aliasify');
 var browserify = require('browserify');
 var babelify = require('babelify');
 var exorcist = require('exorcist');
@@ -152,6 +153,18 @@ module.exports = function createBundle(config, buildOpts) {
   if (config.minify) {
     bundle.transform({ global: true }, uglifyify);
   }
+
+  // Alias all imports of `react` or `react-dom` to `preact/compat`, including
+  // vendor/dependencies
+  var aliasifyConfig = {
+    aliases: {
+      react: 'preact/compat',
+      'react-dom': 'preact/compat',
+    },
+    global: true,
+  };
+
+  bundle.transform(aliasify, aliasifyConfig);
 
   function build() {
     var output = fs.createWriteStream(bundlePath);
