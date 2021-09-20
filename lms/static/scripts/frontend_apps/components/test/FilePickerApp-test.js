@@ -31,6 +31,9 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
+      api: {
+        authToken: 'dummyAuthToken',
+      },
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
@@ -55,12 +58,19 @@ describe('FilePickerApp', () => {
   /**
    * Check that the expected hidden form fields were set.
    */
-  function checkFormFields(wrapper, expectedContent, expectedGroupSet) {
+  function checkFormFields(
+    wrapper,
+    expectedContent,
+    expectedGroupSet,
+    expectedExtLTIAssignmentId
+  ) {
     const formFields = wrapper.find('FilePickerFormFields');
     assert.deepEqual(formFields.props(), {
       children: [],
       content: expectedContent,
+      extLTIAssignmentId: expectedExtLTIAssignmentId,
       formFields: fakeConfig.filePicker.formFields,
+      extLTIAssignmentId: expectedExtLTIAssignmentId,
       groupSet: expectedGroupSet,
       ltiLaunchURL: fakeConfig.filePicker.canvas.ltiLaunchUrl,
     });
@@ -118,7 +128,8 @@ describe('FilePickerApp', () => {
           type: 'url',
           url: 'https://example.com',
         },
-        null /* groupSet */
+        null /* groupSet */,
+        null /* extLTIAssignmentId */
       );
     });
 
@@ -217,7 +228,8 @@ describe('FilePickerApp', () => {
             type: 'url',
             url: 'https://example.com',
           },
-          useGroupSet ? 'groupSet1' : null
+          useGroupSet ? 'groupSet1' : null,
+          null /* extLTIAssignmentId */
         );
       });
     });

@@ -13,7 +13,7 @@ import { createContext } from 'preact';
  *   URL to display in a popup window if the call fails due to an authorization
  *   error. This is used when the API call requires an OAuth 2 authorization
  *   flow to be completed with eg. an external LMS's API
- * @prop {Object} [data]
+ * @prop {object} [data]
  */
 
 /**

@@ -8,6 +8,7 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
+import { apiCall } from '../utils/api';
 import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
@@ -58,14 +59,17 @@ function contentDescription(content) {
 export default function FilePickerApp({ onSubmit }) {
   const submitButton = useRef(/** @type {HTMLInputElement|null} */ (null));
   const {
+    api: { authToken },
     filePicker: {
       formAction,
       formFields,
+      createAssignmentAPI: createAssignmentAPI,
       canvas: { groupsEnabled: enableGroupConfig, ltiLaunchUrl },
     },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
+  const [extLTIAssignmentId, setExtLTIAssignmentId] = useState(null);
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({
@@ -94,13 +98,43 @@ export default function FilePickerApp({ onSubmit }) {
   // Submit the form after a selection is made via one of the available
   // methods.
   useEffect(() => {
+    async function createAssignment() {
+      const data = {
+        ...createAssignmentAPI.data,
+        content,
+        groupset: groupConfig.groupSet,
+      };
+      try {
+        const assignment = await apiCall({
+          authToken,
+          path: createAssignmentAPI.path,
+          data,
+        });
+        setExtLTIAssignmentId(assignment.ext_lti_assignment_id);
+      } catch (error) {
+        setErrorInfo({ title: 'Creating or editing an assignment', error: error });
+      }
+    }
+
+    if (content && createAssignmentAPI && !extLTIAssignmentId) {
+      createAssignment();
+      return;
+    }
+
     if (shouldSubmit) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
       submitButton.current.click();
     }
-  }, [shouldSubmit]);
+  }, [
+    shouldSubmit,
+    extLTIAssignmentId,
+    authToken,
+    content,
+    createAssignmentAPI,
+    groupConfig.groupSet,
+  ]);
 
   /** @type {(c: Content) => void} */
   const selectContent = useCallback(
@@ -164,6 +198,7 @@ export default function FilePickerApp({ onSubmit }) {
             ltiLaunchURL={ltiLaunchUrl}
             content={content}
             formFields={formFields}
+            extLTIAssignmentId={extLTIAssignmentId}
             groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
           />
         )}
