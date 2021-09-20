@@ -13,7 +13,7 @@ import { createContext } from 'preact';
  *   URL to display in a popup window if the call fails due to an authorization
  *   error. This is used when the API call requires an OAuth 2 authorization
  *   flow to be completed with eg. an external LMS's API
- * @prop {Object} [data]
+ * @prop {object} [data]
  */
 
 /**
@@ -38,7 +38,7 @@ import { createContext } from 'preact';
  * Data needed to record an assignment submission.
  *
  * @typedef SpeedGraderConfig
- * @prop {Object} submissionParams
+ * @prop {object} submissionParams
  */
 
 /**
@@ -49,7 +49,7 @@ import { createContext } from 'preact';
  *
  * @typedef VitalSourceConfig
  * @prop {string} launchUrl - URL for the `<form>` used to launch the viewer
- * @prop {Object.<string,string>} launchParams - Form field names and values
+ * @prop {Record<string,string>} launchParams - Form field names and values
  */
 
 /**
@@ -58,21 +58,21 @@ import { createContext } from 'preact';
  *
  * @typedef FilePickerConfig
  * @prop {string} formAction
- * @prop {Object.<string,string>} formFields
- * @prop {Object} blackboard
+ * @prop {Record<string,string>} formFields
+ * @prop {object} blackboard
  *   @prop {boolean} blackboard.enabled
  *   @prop {APICallInfo} blackboard.listFiles
- * @prop {Object} canvas
+ * @prop {object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {boolean} canvas.groupsEnabled
  *   @prop {string} canvas.ltiLaunchUrl
  *   @prop {APICallInfo} canvas.listFiles
  *   @prop {APICallInfo} canvas.listGroupSets
- * @prop {Object} google
+ * @prop {object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
  *   @prop {string} google.origin
- * @prop {Object} vitalSource
+ * @prop {object} vitalSource
  *   @prop {boolean} vitalSource.enabled
  */
 
@@ -114,17 +114,17 @@ import { createContext } from 'preact';
  *
  * @typedef ConfigObject
  * @prop {string} mode
- * @prop {Object} api
+ * @prop {object} api
  *   @prop {string} api.authToken
  *   @prop {APICallInfo} api.sync
  *   @prop {APICallInfo} api.viaUrl
- * @prop {Object} canvas
+ * @prop {object} canvas
  *   @prop {SpeedGraderConfig} canvas.speedGrader
  * @prop {boolean} dev
  * @prop {FilePickerConfig} filePicker
  * @prop {GradingConfig} grading
- * @prop {Object} hypothesisClient
- * @prop {Object} rpcServer
+ * @prop {object} hypothesisClient
+ * @prop {object} rpcServer
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
  * @prop {OAuthErrorConfig} OAuth2RedirectError

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 /**
  * @typedef VitalSourceBookViewerProps
  * @prop {string} launchUrl - URL to submit the launch form to
- * @prop {Object.<string,string>} launchParams - Field names and values for the launch form
+ * @prop {Record<string,string>} launchParams - Field names and values for the launch form
  * @prop {(f: HTMLFormElement) => void} [willSubmitLaunchForm] - Test hook
  */
 

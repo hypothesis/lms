@@ -55,7 +55,7 @@ export class PickerCanceledError extends Error {
  */
 export class GooglePickerClient {
   /**
-   * @param {Object} options
+   * @param {object} options
    * @param {string} options.developerKey -
    *   API key obtained from the Google API console.
    * @param {string} options.clientId -

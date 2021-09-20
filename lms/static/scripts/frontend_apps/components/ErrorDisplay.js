@@ -1,7 +1,7 @@
 /**
  * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
  *
- * @param {Object} args
+ * @param {object} args
  * @param {string} args.address - Email address to sent to
  * @param {string} [args.subject] - Pre-filled subject line
  * @param {string} [args.body] - Pre-filled body
@@ -26,7 +26,7 @@ function toSentence(str) {
  *
  * @typedef ErrorLike
  * @prop {string} [message]
- * @prop {Object} [details] - Optional JSON-serializable details of the error
+ * @prop {object} [details] - Optional JSON-serializable details of the error
  */
 
 /**

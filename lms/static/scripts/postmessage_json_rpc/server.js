@@ -13,7 +13,7 @@
  *
  * @typedef JsonRpcResponse
  * @prop {'2.0'} jsonrpc
- * @prop {Object} [result]
+ * @prop {object} [result]
  * @prop {JsonRpcError} [error]
  * @prop {string|null} id
  */
@@ -24,7 +24,7 @@
  * @typedef JsonRpcError
  * @prop {number} code
  * @prop {string} message
- * @prop {Object} [data]
+ * @prop {object} [data]
  */
 
 /**
