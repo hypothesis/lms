@@ -26,7 +26,7 @@ function toSentence(str) {
  *
  * @typedef ErrorLike
  * @prop {string} [message]
- * @prop {object} [details] - Optional JSON-serializable details of the error
+ * @prop {object|string} [details] - Optional JSON-serializable details of the error
  */
 
 /**
