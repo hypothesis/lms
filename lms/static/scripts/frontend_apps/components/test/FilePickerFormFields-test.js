@@ -64,6 +64,23 @@ describe('FilePickerFormFields', () => {
     );
   });
 
+  it('adds `ext_lti_assignment_id` query param to LTI launch URL if `extLTIAssignmentId` prop is specified', () => {
+    const content = { type: 'url', url: 'https://example.com/' };
+    const formFields = createComponent({
+      content,
+      extLTIAssignmentId: 'EXT_LTI_ASSIGNMENT_ID',
+    });
+    const contentItems = JSON.parse(
+      formFields.find('input[name="content_items"]').prop('value')
+    );
+    assert.deepEqual(
+      contentItems,
+      contentItemForContent(launchURL, content, {
+        ext_lti_assignment_id: 'EXT_LTI_ASSIGNMENT_ID',
+      })
+    );
+  });
+
   it('renders `document_url` field for URL content', () => {
     const formFields = createComponent({
       content: { type: 'url', url: 'https://example.com/' },

@@ -13,6 +13,7 @@ import { contentItemForContent } from '../utils/content-item';
  * @prop {Record<string,string>} formFields - Form fields provided by the backend
  *   that should be included in the response without any changes
  * @prop {string|null} groupSet
+ * @prop {string|null} extLTIAssignmentId
  */
 
 /**
@@ -34,9 +35,13 @@ export default function FilePickerFormFields({
   formFields,
   groupSet,
   ltiLaunchURL,
+  extLTIAssignmentId,
 }) {
   /** @type {Record<string,string>} */
   const extraParams = groupSet ? { group_set: groupSet } : {};
+  if (extLTIAssignmentId) {
+    extraParams.ext_lti_assignment_id = extLTIAssignmentId;
+  }
   const contentItem = JSON.stringify(
     contentItemForContent(ltiLaunchURL, content, extraParams)
   );
