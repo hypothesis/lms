@@ -138,8 +138,6 @@ export default function FilePickerApp({ onSubmit }) {
         groupset: groupConfig.groupSet,
       };
 
-      data.content = content;
-      data.groupset = groupConfig.groupSet;
       const assignment = await apiCall({
         authToken,
         path: createAssignmentAPI.path,
