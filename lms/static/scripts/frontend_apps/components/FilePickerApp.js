@@ -8,6 +8,7 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
+import { apiCall } from '../utils/api';
 import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
@@ -64,14 +65,17 @@ function contentDescription(content) {
 export default function FilePickerApp({ onSubmit }) {
   const submitButton = useRef(/** @type {HTMLInputElement|null} */ (null));
   const {
+    api: { authToken },
     filePicker: {
       formAction,
       formFields,
+      createAssignmentAPI: createAssignmentAPI,
       canvas: { groupsEnabled: enableGroupConfig, ltiLaunchUrl },
     },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
+  const [extLTIAssignmentId, setExtLTIAssignmentId] = useState(null);
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({
@@ -89,7 +93,36 @@ export default function FilePickerApp({ onSubmit }) {
    * render.
    */
   const [shouldSubmit, setShouldSubmit] = useState(false);
-  const submit = useCallback(() => setShouldSubmit(true), []);
+  const submit = useCallback(
+    async (/** @type {Content} */ content) => {
+      async function createAssignment() {
+        const data = {
+          ...createAssignmentAPI.data,
+          content,
+          groupset: groupConfig.groupSet,
+        };
+        const assignment = await apiCall({
+          authToken,
+          path: createAssignmentAPI.path,
+          data,
+        });
+        setExtLTIAssignmentId(assignment.ext_lti_assignment_id);
+      }
+      if (content && createAssignmentAPI && !extLTIAssignmentId) {
+        try {
+          await createAssignment();
+        } catch (error) {
+          setErrorInfo({
+            message: 'Creating or editing an assignment',
+            error: error,
+          });
+          return;
+        }
+      }
+      setShouldSubmit(true);
+    },
+    [authToken, createAssignmentAPI, extLTIAssignmentId, groupConfig.groupSet]
+  );
 
   // Submit the form after a selection is made via one of the available
   // methods.
@@ -107,7 +140,7 @@ export default function FilePickerApp({ onSubmit }) {
     content => {
       setContent(content);
       if (!enableGroupConfig) {
-        submit();
+        submit(content);
       }
     },
     [enableGroupConfig, submit]
@@ -152,7 +185,7 @@ export default function FilePickerApp({ onSubmit }) {
               <LabeledButton
                 disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
                 variant="primary"
-                onClick={submit}
+                onClick={() => submit(content)}
               >
                 Continue
               </LabeledButton>
@@ -164,6 +197,7 @@ export default function FilePickerApp({ onSubmit }) {
             ltiLaunchURL={ltiLaunchUrl}
             content={content}
             formFields={formFields}
+            extLTIAssignmentId={extLTIAssignmentId}
             groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
           />
         )}
