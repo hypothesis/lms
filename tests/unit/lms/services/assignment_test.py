@@ -143,6 +143,16 @@ class TestAssignmentService:
 
         assert assignment.document_url == "NEW_DOCUMENT_URL"
 
+    def test_set_document_url_with_extra(self, svc, assignment):
+        svc.set_document_url(
+            assignment.tool_consumer_instance_guid,
+            "NEW_DOCUMENT_URL",
+            assignment.resource_link_id,
+            extra={"some": "value"},
+        )
+
+        assert assignment.extra["some"] == "value"
+
     @pytest.fixture
     def assignment(self):
         return factories.Assignment()

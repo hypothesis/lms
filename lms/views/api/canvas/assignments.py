@@ -35,6 +35,11 @@ class AssignmentsAPIViews:
         elif content_type == "file":
             url = f"canvas://file/course/{params['course_id']}/file_id/{params['content']['file']['id']}"
             extra = {"canvas_file": params["content"]["file"]}
+        else:
+            raise ValueError("Unhandled content type on assignment")
+
+        if groupset := params.get("groupset"):
+            extra["canvas_groupset"] = groupset
 
         assignment = self.assignment_service.set_document_url(
             self.application_instance.tool_consumer_instance_guid,

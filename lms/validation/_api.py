@@ -87,3 +87,4 @@ class APICanvasCreateAssignment(PyramidRequestSchema):
     ext_lti_assignment_id = fields.Str(required=True)
     course_id = fields.Integer(required=True)
     content = fields.Nested(Content, required=True)
+    groupset = fields.Integer(required=False)
