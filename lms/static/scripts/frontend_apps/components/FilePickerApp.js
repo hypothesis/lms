@@ -131,13 +131,42 @@ export default function FilePickerApp({ onSubmit }) {
   // Submit the form after a selection is made via one of the available
   // methods.
   useEffect(() => {
+    async function createAssignment() {
+      const data = {
+        ...createAssignmentAPI.data,
+        content,
+        groupset: groupConfig.groupSet,
+      };
+
+      data.content = content;
+      data.groupset = groupConfig.groupSet;
+      const assignment = await apiCall({
+        authToken,
+        path: createAssignmentAPI.path,
+        data,
+      });
+      setExtLTIAssignmentId(assignment.ext_lti_assignment_id);
+    }
+
+    if (content && createAssignmentAPI && !extLTIAssignmentId) {
+      createAssignment();
+      return;
+    }
+
     if (shouldSubmit) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
       submitButton.current.click();
     }
-  }, [shouldSubmit]);
+  }, [
+    shouldSubmit,
+    extLTIAssignmentId,
+    authToken,
+    content,
+    createAssignmentAPI,
+    groupConfig.groupSet,
+  ]);
 
   /** @type {(c: Content) => void} */
   const selectContent = useCallback(
