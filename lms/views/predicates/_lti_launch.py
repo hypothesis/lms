@@ -35,13 +35,10 @@ class DBConfigured(Base):
         resource_link_id = request.params.get("resource_link_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
-        has_document_url = bool(
-            assignment_svc.get_document_url(
-                tool_consumer_instance_guid, resource_link_id
-            )
+        return (
+            assignment_svc.exists(tool_consumer_instance_guid, resource_link_id)
+            == self.value
         )
-
-        return has_document_url == self.value
 
 
 class _CourseCopied(Base, ABC):
@@ -111,10 +108,9 @@ class _CourseCopied(Base, ABC):
                 # Look for the document URL of the previous assignment that
                 # this one was copied from.
                 assignment_service = request.find_service(name="assignment")
-                previous_document_url = assignment_service.get_document_url(
+                is_newly_copied = assignment_service.exists(
                     tool_consumer_instance_guid, original_resource_link_id
                 )
-                is_newly_copied = bool(previous_document_url)
 
         return is_newly_copied == self.value
 

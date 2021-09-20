@@ -21,8 +21,10 @@ pytestmark = pytest.mark.usefixtures("assignment_service")
 class TestDBConfigured:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
     def test_when_theres_a_matching_assignment_config_in_the_db(
-        self, pyramid_request, value, expected
+        self, assignment_service, pyramid_request, value, expected
     ):
+        assignment_service.exists.return_value = True
+
         predicate = DBConfigured(value, mock.sentinel.config)
 
         result = predicate(mock.sentinel.context, pyramid_request)
@@ -33,7 +35,8 @@ class TestDBConfigured:
     def test_when_theres_no_matching_assignment_config_in_the_db(
         self, assignment_service, pyramid_request, value, expected
     ):
-        assignment_service.get_document_url.return_value = None
+        assignment_service.exists.return_value = False
+
         predicate = DBConfigured(value, mock.sentinel.config)
 
         result = predicate(mock.sentinel.context, pyramid_request)
@@ -53,22 +56,20 @@ class TestFooCopied:
         resource_link_id_exists,
         resource_link_id_history_exists,
     ):
-        def get_document_url(_, resource_link_id):
-            document_url = None
-
+        def exists(_, resource_link_id):
             if resource_link_id == pyramid_request.params["resource_link_id"]:
                 if resource_link_id_exists:
                     # The database already has a document_url for the resource_link_id.
-                    document_url = mock.sentinel.document_url
+                    return True
 
             if resource_link_id == pyramid_request.params[PredicateClass.param_name]:
                 if resource_link_id_history_exists:
                     # The database has a document_url for the resource_link_id_history.
-                    document_url = mock.sentinel.previous_document_url
+                    return True
 
-            return document_url
+            return False
 
-        assignment_service.get_document_url.side_effect = get_document_url
+        assignment_service.exists.side_effect = exists
 
         # If there's no Assignment for resource_link_id in the DB
         # but there *is* a Assignment for resource_link_id_history
@@ -166,7 +167,7 @@ class TestConfigured:
     def test_when_assignment_is_db_configured(
         self, pyramid_request, assignment_service, value, expected
     ):
-        assignment_service.get_document_url.return_value = mock.sentinel.document_url
+        assignment_service.exists.return_value = True
 
         predicate = Configured(value, mock.sentinel.config)
 
@@ -185,7 +186,7 @@ class TestConfigured:
     def test_when_assignment_is_unconfigured(
         self, assignment_service, pyramid_request, value, expected
     ):
-        assignment_service.get_document_url.return_value = None
+        assignment_service.exists.return_value = False
 
         predicate = Configured(value, mock.sentinel.config)
 
@@ -203,7 +204,7 @@ class TestConfigured:
     def assignment_service(self, assignment_service):
         # Make sure that the assignment is *not* DB-configured by default in
         # these tests.
-        assignment_service.get_document_url.return_value = None
+        assignment_service.exists.return_value = False
         return assignment_service
 
 

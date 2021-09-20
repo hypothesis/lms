@@ -304,7 +304,7 @@ class TestDBConfiguredBasicLTILaunch:
         db_configured_basic_lti_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
-            assignment_service.get_document_url.return_value
+            assignment_service.get.return_value.document_url
         )
 
 
@@ -331,7 +331,7 @@ class TestFooCopiedBasicLTILaunch:
 
         # It gets the original assignment settings
         # from the DB.
-        assignment_service.get_document_url.assert_called_once_with(
+        assignment_service.get.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params[param_name],
         )
@@ -340,13 +340,13 @@ class TestFooCopiedBasicLTILaunch:
         # DB.
         assignment_service.set_document_url.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
-            assignment_service.get_document_url.return_value,
+            assignment_service.get.return_value.document_url,
             resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
         # It adds the document URL to the JavaScript config.
         context.js_config.add_document_url.assert_called_once_with(
-            assignment_service.get_document_url.return_value
+            assignment_service.get.return_value.document_url
         )
 
 

@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import Assignment
 from lms.services.assignment import AssignmentService, factory
@@ -10,20 +11,25 @@ from tests import factories
 
 class TestAssignmentService:
     def test_get_without_ids(self, svc, assignment):
-        assignment = svc.get(
-            assignment.tool_consumer_instance_guid,
-            resource_link_id=None,
-            ext_lti_assignment_id=None,
-        )
 
-        assert assignment is None
+        with pytest.raises(ValueError):
+            assignment = svc.get(
+                assignment.tool_consumer_instance_guid,
+                resource_link_id=None,
+                ext_lti_assignment_id=None,
+            )
 
     def test_get_returns_None_if_theres_no_matching_assignment(self, svc):
-        retrieved_assignment = svc.get(
-            "TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID"
-        )
+        with pytest.raises(NoResultFound):
+            svc.get("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
 
-        assert retrieved_assignment is None
+    def test_get_returns_None_if_theres_no_matching_assignment_with_two_ids(self, svc):
+        with pytest.raises(NoResultFound):
+            svc.get(
+                "TOOL_CONSUMER_INSTANCE_GUID",
+                "RESOURCE_LINK_ID",
+                "EXT_LTI_ASSIGNMENT_ID",
+            )
 
     def test_get_by_resource_link_id_only(self, svc, assignment):
         retrieved_assignment = svc.get(
@@ -100,21 +106,13 @@ class TestAssignmentService:
             == assignment
         )
 
-    def test_get_document_url_returns_the_document_url(self, svc, assignment):
-        document_url = svc.get_document_url(
+    def test_exist_with_no_assignment(self, svc):
+        assert not svc.exists("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
+
+    def test_exists_with_assignment(self, svc, assignment):
+        assert svc.exists(
             assignment.tool_consumer_instance_guid, assignment.resource_link_id
         )
-
-        assert document_url == assignment.document_url
-
-    def test_get_document_url_returns_None_if_theres_no_matching_document_url(
-        self, svc
-    ):
-        document_url = svc.get_document_url(
-            "TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID"
-        )
-
-        assert document_url is None
 
     def test_set_document_url_saves_the_document_url(self, svc):
         svc.set_document_url(
@@ -124,7 +122,7 @@ class TestAssignmentService:
         )
 
         assert (
-            svc.get_document_url("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
+            svc.get("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID").document_url
             == "NEW_DOCUMENT_URL"
         )
 
