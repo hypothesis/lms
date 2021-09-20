@@ -47,6 +47,15 @@ class TestAssignmentService:
 
         assert retrieved_assignment == assignment_canvas_not_launched
 
+    def test_get_by_both_ids_no_results(self, svc):
+        retrieved_assignment = svc.get(
+            "tool_consumer_instance_guid",
+            resource_link_id="RESOURCE_LINK_ID",
+            ext_lti_assignment_id="ext_lti_assignment_id",
+        )
+
+        assert retrieved_assignment is None
+
     def test_get_by_both_ids_not_launched(self, svc, assignment_canvas_not_launched):
         assert assignment_canvas_not_launched.resource_link_id is None
 

@@ -66,6 +66,7 @@ class AssignmentService:
         document_url,
         resource_link_id=None,
         ext_lti_assignment_id=None,
+        extra=None,
     ):
         """
         Save the given document_url in an existing assignment or create new one.
@@ -90,6 +91,9 @@ class AssignmentService:
             self._db.add(assignment)
 
         assignment.document_url = document_url
+
+        if extra:
+            assignment.extra = extra
 
         # Clear the cache (@lru_cache) on self.get because we've changed the
         # contents of the DB. (Python's @lru_cache doesn't have a way to remove
