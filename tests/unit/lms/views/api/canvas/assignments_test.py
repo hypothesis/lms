@@ -11,9 +11,20 @@ class TestAssignmentsAPIViews:
                 {
                     "content": {"type": "url", "url": "https://example.com"},
                     "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
+                    "course_id": "COURSE_ID",
                 },
                 "https://example.com",
                 {},
+            ),
+            (
+                {
+                    "content": {"type": "url", "url": "https://example.com"},
+                    "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
+                    "course_id": "COURSE_ID",
+                    "groupset": 25,
+                },
+                "https://example.com",
+                {"canvas_groupset": 25},
             ),
             (
                 {
@@ -22,6 +33,7 @@ class TestAssignmentsAPIViews:
                         "url": "https://drive.google.com/uc?id=DRIVE_ID&export=download",
                     },
                     "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
+                    "course_id": "COURSE_ID",
                 },
                 "https://drive.google.com/uc?id=DRIVE_ID&export=download",
                 {},
