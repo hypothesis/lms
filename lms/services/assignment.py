@@ -24,7 +24,6 @@ class AssignmentService:
         query = self._db.query(Assignment).filter(
             Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid
         )
-
         if resource_link_id and not ext_lti_assignment_id:
             # Non canvas assignments
             query = query.filter(Assignment.resource_link_id == resource_link_id)
@@ -34,13 +33,25 @@ class AssignmentService:
                 Assignment.ext_lti_assignment_id == ext_lti_assignment_id
             )
         elif resource_link_id and ext_lti_assignment_id:
-            # Canvas launch, potentially the first one where resource_link_id is not yet in the DB
             query = query.filter(
-                Assignment.ext_lti_assignment_id == ext_lti_assignment_id,
                 (
-                    (Assignment.resource_link_id == resource_link_id)
-                    | (Assignment.resource_link_id.is_(None))
-                ),
+                    # Regular canvas launch
+                    (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
+                    # Configuring a file assignment that was stored in the DB
+                    # before all canvas assignments were stored in the DB
+                    | (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id.is_(None))
+                    )
+                    #  First launch of a newly configured assignment
+                    | (
+                        (Assignment.resource_link_id.is_(None))
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
+                )
             )
         else:
             log.exception(
@@ -48,9 +59,26 @@ class AssignmentService:
             )
             return None
 
-        assignment = query.one_or_none()
-        if not assignment:
+        assignments = query.all()
+        if not assignments:
             return None
+
+        if len(assignments) == 2:
+            # We stored a canvas file assignment before (storing its resource_link_id)
+            # we later configured it (storing its ext_lti_assignment_id) in a new row
+            # and now we are launching it, we want to merge those two assignments
+            old_assignment = (
+                assignments[0] if assignments[0].resource_link_id else assignments[1]
+            )
+            assignment = (
+                assignments[0]
+                if assignments[0].ext_lti_assignment_id
+                else assignments[1]
+            )
+            self._db.delete(old_assignment)
+            self._db.flush()
+        else:
+            assignment = assignments[0]
 
         if resource_link_id and not assignment.resource_link_id:
             # First lunch of a canvas assignment, fill the resource_link_id now
