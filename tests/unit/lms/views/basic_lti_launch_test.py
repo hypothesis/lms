@@ -276,12 +276,6 @@ class TestCanvasFileBasicLTILaunch:
     def test_it(self, context, pyramid_request, assignment_service):
         canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
-        context.js_config.add_canvas_file_id.assert_called_once_with(
-            pyramid_request.params["custom_canvas_course_id"],
-            pyramid_request.params["resource_link_id"],
-            pyramid_request.params["file_id"],
-        )
-
         course_id = pyramid_request.params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
 

@@ -94,7 +94,7 @@ class BasicLTILaunchViews:
     @view_config(canvas_file=True)
     def canvas_file_basic_lti_launch(self):
         """
-        Respond to a Canvas file assignment launch.
+        Respond to a Canvas file assignment launch which is not db_configured.
 
         Canvas file assignment launch requests have a ``file_id`` request
         parameter, which is the Canvas instance's ID for the file. To display
@@ -102,28 +102,27 @@ class BasicLTILaunchViews:
         for the file from the Canvas API. We then pass that download URL to
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
-        """
 
+        Note that this only apply to assignments configured but not yet launched
+        after canvas assignments are also DB configured see: js_config._create_assignment_api
+        """
         course_id = self.request.params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
         resource_link_id = self.request.params["resource_link_id"]
 
-        # Normally this would be done during `configure_assignment()` but
-        # Canvas skips that step. We are doing this to ensure that there is a
-        # module item configuration. As a result of this we can rely on this
-        # being around in future code.
+        # This URL is mostly for show. We just want to ensure that a module
+        # configuration exists. If we're going to do that we might as well
+        # make sure this URL is meaningful.
+        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
+
+        # Newly configured canvas assignments make it to the database
+        # but for exiting ones that never got launched we keep this call to persist them.
         self.assignment_service.set_document_url(
             self.request.params["tool_consumer_instance_guid"],
-            # This URL is mostly for show. We just want to ensure that a module
-            # configuration exists. If we're going to do that we might as well
-            # make sure this URL is meaningful.
-            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            document_url=document_url,
             resource_link_id=resource_link_id,
         )
-
-        self.context.js_config.add_canvas_file_id(course_id, resource_link_id, file_id)
-
-        return self.basic_lti_launch(grading_supported=False)
+        return self.basic_lti_launch(document_url=document_url, grading_supported=False)
 
     @view_config(vitalsource_book=True)
     def vitalsource_lti_launch(self):
