@@ -101,6 +101,9 @@ class AssignmentService:
         if extra:
             assignment.extra = extra
 
+        if extra:
+            assignment.extra = extra
+
         # Clear the cache (@lru_cache) on self.get because we've changed the
         # contents of the DB. (Python's @lru_cache doesn't have a way to remove
         # just one key from the cache, you have to clear the entire cache.)
