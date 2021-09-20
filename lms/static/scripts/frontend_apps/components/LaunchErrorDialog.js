@@ -19,7 +19,7 @@ import ErrorDisplay from './ErrorDisplay';
  *  - An optional "Try again" button
  *  - An optional detailed error message for use when contacting support
  *
- * @param {Object} props
+ * @param {object} props
  * @param {boolean} props.busy
  * @param {Children} props.children
  * @param {Error|null} [props.error]

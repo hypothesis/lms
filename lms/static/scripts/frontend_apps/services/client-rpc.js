@@ -42,7 +42,7 @@ export class ClientRPC {
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
    *
-   * @param {Object} options
+   * @param {object} options
    *   @param {string[]} options.allowedOrigins -
    *     Origins that are allowed to request client configuration
    *   @param {string} options.authToken -

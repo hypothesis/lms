@@ -3,7 +3,7 @@
  */
 export default class AuthWindow {
   /**
-   * @param {Object} options
+   * @param {object} options
    * @param {string} options.authToken -
    *   Authorization token used for API requests between frontend and backend
    * @param {string} options.authUrl -
