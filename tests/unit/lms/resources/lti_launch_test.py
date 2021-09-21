@@ -5,7 +5,7 @@ from pytest import param
 
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceNotFound
 
 pytestmark = pytest.mark.usefixtures("application_instance_service", "course_service")
 
@@ -118,7 +118,7 @@ class TestCanvasSectionsSupported:
     def test_if_application_instance_service_raises(
         self, lti_launch, application_instance_service
     ):
-        application_instance_service.get.side_effect = ConsumerKeyError
+        application_instance_service.get.side_effect = ApplicationInstanceNotFound
         assert not lti_launch.canvas_sections_supported()
 
     @pytest.fixture(autouse=True)
@@ -200,7 +200,7 @@ class TestCanvasGroupsEnabled:
     def test_false_when_no_application_instance(
         self, application_instance_service, lti_launch
     ):
-        application_instance_service.get.side_effect = ConsumerKeyError
+        application_instance_service.get.side_effect = ApplicationInstanceNotFound
 
         assert not lti_launch.canvas_groups_enabled
 

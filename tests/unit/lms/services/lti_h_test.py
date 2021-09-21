@@ -5,7 +5,7 @@ from h_api.bulk_api import CommandBuilder
 from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import Grouping
-from lms.services import ConsumerKeyError, HAPIError
+from lms.services import ApplicationInstanceNotFound, HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
@@ -77,9 +77,9 @@ class TestSync:
     def test_sync_raises_if_theres_no_ApplicationInstance(
         self, application_instance_service, grouping, lti_h_svc
     ):
-        application_instance_service.get.side_effect = ConsumerKeyError
+        application_instance_service.get.side_effect = ApplicationInstanceNotFound
 
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ApplicationInstanceNotFound):
             lti_h_svc.sync([grouping], sentinel.params)
 
 
