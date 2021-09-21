@@ -7,7 +7,6 @@ from lms.services.exceptions import (
     CanvasFileNotFoundInCourse,
     ConsumerKeyError,
     ExternalRequestError,
-    HAPIError,
     HTTPError,
     LTILaunchVerificationError,
     LTIOAuthError,
@@ -15,6 +14,7 @@ from lms.services.exceptions import (
     OAuth2TokenError,
     ProxyAPIError,
 )
+from lms.services.h_api import HAPIError
 
 
 def includeme(config):

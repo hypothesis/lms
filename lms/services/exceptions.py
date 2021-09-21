@@ -62,15 +62,6 @@ class OAuth2TokenError(ExternalRequestError):
     """
 
 
-class HAPIError(ExternalRequestError):
-    """
-    A problem with an h API request.
-
-    Raised whenever an h API request times out or when an unsuccessful, invalid
-    or unexpected response is received from the h API.
-    """
-
-
 class ProxyAPIError(ExternalRequestError):
     """
     A problem with a third-party API request.
