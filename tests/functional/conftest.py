@@ -22,7 +22,7 @@ def clean_database(db_engine):
     with contextlib.closing(db_engine.connect()) as conn:
         transaction = conn.begin()
         tnames = ", ".join('"' + t.name + '"' for t in tables)
-        conn.execute("TRUNCATE {};".format(tnames))
+        conn.execute(f"TRUNCATE {tnames};")
         transaction.commit()
 
 
