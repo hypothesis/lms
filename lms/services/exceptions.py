@@ -1,8 +1,4 @@
-class ServiceError(Exception):
-    """Base class for all :mod:`lms.services` exceptions."""
-
-
-class LTILaunchVerificationError(ServiceError):
+class LTILaunchVerificationError(Exception):
     """
     Raised when LTI launch request verification fails.
 
@@ -20,7 +16,7 @@ class LTIOAuthError(LTILaunchVerificationError):
     """Raised when OAuth signature verification of a launch request fails."""
 
 
-class ExternalRequestError(ServiceError):
+class ExternalRequestError(Exception):
     """
     A problem with a network request to an external service.
 
@@ -203,7 +199,7 @@ class LTIOutcomesAPIError(ExternalRequestError):
     """
 
 
-class CanvasFileNotFoundInCourse(ServiceError):
+class CanvasFileNotFoundInCourse(Exception):
     """A Canvas file ID wasn't found in the current course."""
 
     error_code = "canvas_file_not_found_in_course"
@@ -213,7 +209,7 @@ class CanvasFileNotFoundInCourse(ServiceError):
         super().__init__(self.details)
 
 
-class HTTPError(ServiceError):
+class HTTPError(Exception):
     """A problem with an HTTP request to an external service."""
 
     def __init__(self, response=None):
@@ -221,7 +217,7 @@ class HTTPError(ServiceError):
         self.response = response
 
 
-class BlackboardFileNotFoundInCourse(ServiceError):
+class BlackboardFileNotFoundInCourse(Exception):
     """A Blackboard file ID wasn't found in the current course."""
 
     error_code = "blackboard_file_not_found_in_course"
