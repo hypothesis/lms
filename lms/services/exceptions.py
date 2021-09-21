@@ -1,21 +1,3 @@
-class LTILaunchVerificationError(Exception):
-    """
-    Raised when LTI launch request verification fails.
-
-    This is the base class for all LTI launch request verification errors.
-    Different subclasses of this exception class are raised for specific
-    failure types.
-    """
-
-
-class ConsumerKeyError(LTILaunchVerificationError):
-    """Raised when a given ``consumer_key`` doesn't exist in the DB."""
-
-
-class LTIOAuthError(LTILaunchVerificationError):
-    """Raised when OAuth signature verification of a launch request fails."""
-
-
 class ExternalRequestError(Exception):
     """
     A problem with a network request to an external service.

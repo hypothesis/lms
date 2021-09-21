@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceNotFound
 from lms.services.application_instance import factory
 from tests import factories
 
@@ -20,15 +20,19 @@ class TestApplicationInstanceService:
 
         assert svc.get() == application_instance
 
-    def test_get_raises_ConsumerKeyError_if_consumer_key_doesnt_exist(self, svc):
-        with pytest.raises(ConsumerKeyError):
+    def test_get_raises_ApplicationInstanceNotFound_if_consumer_key_doesnt_exist(
+        self, svc
+    ):
+        with pytest.raises(ApplicationInstanceNotFound):
             assert svc.get("NOPE") is None
 
-    def test_get_raises_ConsumerKeyError_if_consumer_key_is_None(self, pyramid_request):
+    def test_get_raises_ApplicationInstanceNotFound_if_consumer_key_is_None(
+        self, pyramid_request
+    ):
         pyramid_request.lti_user = None
         svc = factory(mock.sentinel.context, pyramid_request)
 
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ApplicationInstanceNotFound):
             svc.get(None)
 
     @pytest.fixture
