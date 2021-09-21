@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from lms.models import ApplicationInstance
-from lms.services import ConsumerKeyError
+from lms.services.exceptions import ApplicationInstanceNotFound
 
 
 class ApplicationInstanceService:
@@ -18,7 +18,8 @@ class ApplicationInstanceService:
         ApplicationInstance (the ApplicationInstance whose consumer_key matches
         request.lti_user.oauth_consumer_key).
 
-        :raise ConsumerKeyError: if the consumer_key isn't in the database
+        :raise ApplicationInstanceNotFound: if there's no ApplicationInstance
+            with consumer_key in the database
         """
         consumer_key = consumer_key or self._default_consumer_key
 
@@ -27,7 +28,7 @@ class ApplicationInstanceService:
         )
 
         if application_instance is None:
-            raise ConsumerKeyError()
+            raise ApplicationInstanceNotFound()
 
         return application_instance
 

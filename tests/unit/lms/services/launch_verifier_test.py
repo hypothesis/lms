@@ -9,7 +9,7 @@ import pytest
 from oauthlib.oauth1 import SignatureOnlyEndpoint
 
 from lms.models import ApplicationInstance
-from lms.services import ConsumerKeyError, LTIOAuthError
+from lms.services import ConsumerKeyLaunchVerificationError, LTIOAuthError
 from lms.services.launch_verifier import LaunchVerifier
 
 ONE_HOUR_AGO = str(int(time.time() - 60 * 60))
@@ -40,7 +40,7 @@ class TestVerifyLaunchRequest:
     ):
         ApplicationInstance.get_by_consumer_key.return_value = None
 
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ConsumerKeyLaunchVerificationError):
             verify()
 
     def test_it_raises_if_the_oauth_signature_is_wrong(self, verify, form_values):
@@ -174,13 +174,15 @@ class TestVerifyLaunchRequestMocked:
         assert oauth_endpoint.validate_request.call_count == 1
 
     def test_it_caches_a_failed_verification_result(self, verifier, oauth_endpoint):
-        oauth_endpoint.validate_request.side_effect = ConsumerKeyError()
+        oauth_endpoint.validate_request.side_effect = (
+            ConsumerKeyLaunchVerificationError()
+        )
 
         # Even if verify_lti_launch_request() is called multiple times, the
         # actual verification is done only once per request.
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ConsumerKeyLaunchVerificationError):
             verifier.verify()
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ConsumerKeyLaunchVerificationError):
             verifier.verify()
 
         assert oauth_endpoint.validate_request.call_count == 1

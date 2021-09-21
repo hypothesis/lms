@@ -42,7 +42,7 @@ class JSConfig:
         """
         Return the current request's ApplicationInstance.
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         return self._request.find_service(name="application_instance").get()
 
@@ -174,7 +174,7 @@ class JSConfig:
 
         This mode launches an assignment.
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
 
@@ -201,7 +201,7 @@ class JSConfig:
         :param form_fields: the fields (keys and values) to include in the
             HTML form that we submit
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
 
         args = self._context, self._request, self._application_instance()
@@ -265,7 +265,7 @@ class JSConfig:
         In theory, though, the focused_user param could work outside of Canvas
         as well if we ever want it to.
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         focused_user = self._request.params.get("focused_user")
 
@@ -417,7 +417,7 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
 
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         # This is a lazy-computed property so that if it's going to raise an
         # exception that doesn't happen until someone actually reads it.

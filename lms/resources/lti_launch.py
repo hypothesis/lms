@@ -3,7 +3,7 @@ import functools
 
 from lms.models._hashed_id import hashed_id
 from lms.resources._js_config import JSConfig
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceNotFound
 
 
 class LTILaunchResource:
@@ -123,7 +123,7 @@ class LTILaunchResource:
 
         try:
             application_instance = self._application_instance_service.get()
-        except ConsumerKeyError:
+        except ApplicationInstanceNotFound:
             return False
 
         return bool(application_instance.developer_key)
@@ -144,7 +144,7 @@ class LTILaunchResource:
         """Return True if Canvas groups are enabled at the school/installation level."""
         try:
             application_instance = self._application_instance_service.get()
-        except ConsumerKeyError:
+        except ApplicationInstanceNotFound:
             return False
 
         return bool(application_instance.settings.get("canvas", "groups_enabled"))

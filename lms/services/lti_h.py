@@ -41,7 +41,7 @@ class LTIHService:
             models.GroupInfo
 
         :raise HTTPInternalServerError: if we can't sync to h for any reason
-        :raise ConsumerKeyError: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
 
         if not self._application_instance_service.get().provisioning:

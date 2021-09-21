@@ -6,7 +6,7 @@ from h_matchers import Any
 from lms.models import GradingInfo, Grouping
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
-from lms.services import ConsumerKeyError, HAPIError
+from lms.services import ApplicationInstanceNotFound, HAPIError
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service",
@@ -106,9 +106,9 @@ class TestEnableLTILaunchMode:
     def test_it_raises_if_theres_no_ApplicationInstance(
         self, application_instance_service, js_config
     ):
-        application_instance_service.get.side_effect = ConsumerKeyError
+        application_instance_service.get.side_effect = ApplicationInstanceNotFound
 
-        with pytest.raises(ConsumerKeyError):
+        with pytest.raises(ApplicationInstanceNotFound):
             js_config.enable_lti_launch_mode()
 
 

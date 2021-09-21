@@ -2,6 +2,10 @@ class ServiceError(Exception):
     """Base class for all :mod:`lms.services` exceptions."""
 
 
+class ApplicationInstanceNotFound(ServiceError):
+    """The requested ApplicationInstance wasn't found in the database."""
+
+
 class LTILaunchVerificationError(ServiceError):
     """
     Raised when LTI launch request verification fails.
@@ -12,7 +16,7 @@ class LTILaunchVerificationError(ServiceError):
     """
 
 
-class ConsumerKeyError(LTILaunchVerificationError):
+class ConsumerKeyLaunchVerificationError(LTILaunchVerificationError):
     """Raised when a given ``consumer_key`` doesn't exist in the DB."""
 
 

@@ -2,7 +2,11 @@
 from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
 from lms import models
-from lms.services import ConsumerKeyError, LTILaunchVerificationError, LTIOAuthError
+from lms.services import (
+    ConsumerKeyLaunchVerificationError,
+    LTILaunchVerificationError,
+    LTIOAuthError,
+)
 
 __all__ = ["LaunchVerifier"]
 
@@ -30,9 +34,9 @@ class LaunchVerifier:
         :raise NoConsumerKey: If the request has no ``oauth_consumer_key``
           parameter (maybe it's not an LTI launch request at all?)
 
-        :raise ConsumerKeyError: If the request's ``oauth_consumer_key``
-          parameter isn't found in our database (this appears to be an invalid
-          LTI launch request).
+        :raise ConsumerKeyLaunchVerificationError: If the request's
+          ``oauth_consumer_key`` parameter isn't found in our database (this
+          appears to be an invalid LTI launch request).
 
         :raise LTIOAuthError: If OAuth 1.0 verification of the request and its
           signature fails
@@ -129,6 +133,6 @@ class OAuthRequestValidator(RequestValidator):
         )
 
         if not application_instance:
-            raise ConsumerKeyError()
+            raise ConsumerKeyLaunchVerificationError()
 
         return application_instance.shared_secret

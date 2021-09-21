@@ -1,11 +1,12 @@
 from lms.services.canvas import CanvasService
 from lms.services.exceptions import (
+    ApplicationInstanceNotFound,
     BlackboardFileNotFoundInCourse,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     CanvasFileNotFoundInCourse,
-    ConsumerKeyError,
+    ConsumerKeyLaunchVerificationError,
     ExternalRequestError,
     HAPIError,
     HTTPError,

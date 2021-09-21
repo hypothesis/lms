@@ -7,7 +7,7 @@ from pyramid.view import (
 )
 
 from lms.security import Permissions
-from lms.services import ConsumerKeyError
+from lms.services import ApplicationInstanceNotFound
 
 
 @forbidden_view_config(path_info="/admin/*")
@@ -52,7 +52,7 @@ class AdminViews:
 
         try:
             ai = self.application_instance_service.get(consumer_key)
-        except ConsumerKeyError:
+        except ApplicationInstanceNotFound:
             self.request.session.flash(
                 f'No application instance found for {self.request.params["query"]}',
                 "errors",
@@ -103,5 +103,5 @@ class AdminViews:
     def _get_ai_or_404(self, consumer_key):
         try:
             return self.application_instance_service.get(consumer_key)
-        except ConsumerKeyError as err:
+        except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
