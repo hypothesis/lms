@@ -3,9 +3,16 @@
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
-from lms.services import HAPIError, HTTPError
+from lms.services import ExternalRequestError, HTTPError
 
-__all__ = ["HAPI"]
+
+class HAPIError(ExternalRequestError):
+    """
+    A problem with an h API request.
+
+    Raised whenever an h API request times out or when an unsuccessful, invalid
+    or unexpected response is received from the h API.
+    """
 
 
 class HAPI:
