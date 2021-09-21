@@ -14,7 +14,6 @@ from lms.services.exceptions import (
     LTIOutcomesAPIError,
     OAuth2TokenError,
     ProxyAPIError,
-    ServiceError,
 )
 
 
