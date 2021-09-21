@@ -2,28 +2,6 @@ class ServiceError(Exception):
     """Base class for all :mod:`lms.services` exceptions."""
 
 
-class ApplicationInstanceNotFound(ServiceError):
-    """The requested ApplicationInstance wasn't found in the database."""
-
-
-class LTILaunchVerificationError(ServiceError):
-    """
-    Raised when LTI launch request verification fails.
-
-    This is the base class for all LTI launch request verification errors.
-    Different subclasses of this exception class are raised for specific
-    failure types.
-    """
-
-
-class ConsumerKeyLaunchVerificationError(LTILaunchVerificationError):
-    """Raised when a given ``consumer_key`` doesn't exist in the DB."""
-
-
-class LTIOAuthError(LTILaunchVerificationError):
-    """Raised when OAuth signature verification of a launch request fails."""
-
-
 class ExternalRequestError(ServiceError):
     """
     A problem with a network request to an external service.

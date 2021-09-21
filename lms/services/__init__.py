@@ -1,21 +1,23 @@
+from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.exceptions import (
-    ApplicationInstanceNotFound,
     BlackboardFileNotFoundInCourse,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     CanvasFileNotFoundInCourse,
-    ConsumerKeyLaunchVerificationError,
     ExternalRequestError,
     HAPIError,
     HTTPError,
-    LTILaunchVerificationError,
-    LTIOAuthError,
     LTIOutcomesAPIError,
     OAuth2TokenError,
     ProxyAPIError,
     ServiceError,
+)
+from lms.services.launch_verifier import (
+    ConsumerKeyLaunchVerificationError,
+    LTILaunchVerificationError,
+    LTIOAuthError,
 )
 
 

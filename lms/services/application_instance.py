@@ -1,7 +1,10 @@
 from functools import lru_cache
 
 from lms.models import ApplicationInstance
-from lms.services.exceptions import ApplicationInstanceNotFound
+
+
+class ApplicationInstanceNotFound(Exception):
+    """The requested ApplicationInstance wasn't found in the database."""
 
 
 class ApplicationInstanceService:
