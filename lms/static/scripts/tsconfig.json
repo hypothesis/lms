@@ -11,6 +11,6 @@
     "target": "ES2020",
     "useUnknownInCatchVariables": false
   },
-  "include": ["frontend_apps/**/*.js"],
+  "include": ["frontend_apps/**/*.js", "frontend_apps/**/*d.ts"],
   "exclude": ["frontend_apps/**/test/*.js"]
 }
