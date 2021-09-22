@@ -28,21 +28,6 @@ class TestProxyAPIAccessTokenError:
         assert json_data == {}
 
 
-class TestCanvasAPIPermissionError:
-    def test_it(self, context, pyramid_request, views):
-        json_data = views.canvas_api_error()
-
-        assert pyramid_request.response.status_code == 400
-        assert json_data == {
-            "error_code": context.error_code,
-            "details": context.details,
-        }
-
-    @pytest.fixture
-    def context(self):
-        return CanvasAPIPermissionError(details={"foo": "bar"})
-
-
 class TestCanvasAPIError:
     def test_it(self, pyramid_request, views):
         json_data = views.proxy_api_error()
@@ -100,7 +85,20 @@ class TestForbidden:
 
 
 class TestAPIError:
-    def test_it(self, pyramid_request, views):
+    def test_it_with_a_CanvasAPIPermissionError(self, pyramid_request, views):
+        context = views.context = CanvasAPIPermissionError(details={"foo": "bar"})
+
+        json_data = views.api_error()
+
+        assert pyramid_request.response.status_code == 400
+        assert json_data == {
+            "error_code": context.error_code,
+            "details": context.details,
+        }
+
+    def test_it_with_an_unexpected_error(self, pyramid_request, views):
+        views.context = RuntimeError("Totally unexpected")
+
         json_data = views.api_error()
 
         assert pyramid_request.response.status_code == 500

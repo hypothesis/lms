@@ -7,15 +7,8 @@ from pyramid.view import (
     view_defaults,
 )
 
-from lms.services import (
-    BlackboardFileNotFoundInCourse,
-    CanvasAPIPermissionError,
-    CanvasFileNotFoundInCourse,
-    OAuth2TokenError,
-    ProxyAPIError,
-)
+from lms.services import CanvasAPIPermissionError, OAuth2TokenError, ProxyAPIError
 from lms.validation import ValidationError
-from lms.views import CanvasGroupError
 
 _ = i18n.TranslationStringFactory(__package__)
 
@@ -110,18 +103,17 @@ class ExceptionViews:
     def proxy_api_access_token_error(self):
         return self.error_response()
 
-    @exception_view_config(context=BlackboardFileNotFoundInCourse)
     @exception_view_config(context=CanvasAPIPermissionError)
-    @exception_view_config(context=CanvasFileNotFoundInCourse)
-    @exception_view_config(context=CanvasGroupError)
-    def canvas_api_error(self):
-        return self.error_response(
-            error_code=self.context.error_code, details=self.context.details
-        )
-
     @exception_view_config(path_info="/api/*", context=Exception)
     def api_error(self):
         """Fallback error handler for frontend API requests."""
+
+        if hasattr(self.context, "error_code"):
+            return self.error_response(
+                error_code=self.context.error_code,
+                details=getattr(self.context, "details", None),
+            )
+
         # Exception details are not reported here to avoid leaking internal information.
         return self.error_response(
             500,
