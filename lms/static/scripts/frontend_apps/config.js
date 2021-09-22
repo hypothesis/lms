@@ -72,7 +72,11 @@ import { createContext } from 'preact';
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
  *   @prop {string} google.origin
- * @prop {object} vitalSource
+ * @prop {object} microsoftOneDrive
+ *   @prop {boolean} microsoftOneDrive.enabled
+ *   @prop {string} [microsoftOneDrive.clientId]
+ *   @prop {string} [microsoftOneDrive.redirectURI]
+ * @prop {Object} vitalSource
  *   @prop {boolean} vitalSource.enabled
  */
 
