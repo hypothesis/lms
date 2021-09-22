@@ -1,10 +1,11 @@
 from unittest import mock
 
 import pytest
-from pyramid.httpexceptions import HTTPBadRequest, HTTPServerError
+from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.models import ReusedConsumerKey
 from lms.resources._js_config import JSConfig
+from lms.services import HAPIError
 from lms.validation import ValidationError
 from lms.views import exceptions
 
@@ -75,13 +76,13 @@ class TestHTTPClientError(ExceptionViewTest):
     expected_result = {"message": exception.args[0]}
 
 
-class TestHTTPServerError(ExceptionViewTest):
-    view = exceptions.http_server_error
-    exception = HTTPServerError("This is the error message")
+class TestHAPIError(ExceptionViewTest):
+    view = exceptions.hapi_error
+    exception = HAPIError("This is the error message")
 
     response_status = 500
     report_to_sentry = True
-    expected_result = {"message": exception.args[0]}
+    expected_result = {"message": "This is the error message"}
 
 
 class TestValidationError(ExceptionViewTest):

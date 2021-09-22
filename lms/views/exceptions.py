@@ -1,6 +1,7 @@
 import h_pyramid_sentry
-from pyramid import httpexceptions, i18n
+from pyramid import i18n
 from pyramid.config import not_
+from pyramid.httpexceptions import HTTPClientError
 from pyramid.view import (
     exception_view_config,
     forbidden_view_config,
@@ -8,6 +9,7 @@ from pyramid.view import (
 )
 
 from lms.models import ReusedConsumerKey
+from lms.services import HAPIError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -33,21 +35,17 @@ def forbidden(_exc, request):
     return {"message": _("You're not authorized to view this page")}
 
 
-@exception_view_config(
-    context=httpexceptions.HTTPClientError, renderer=DEFAULT_RENDERER
-)
+@exception_view_config(context=HTTPClientError, renderer=DEFAULT_RENDERER)
 def http_client_error(exc, request):
     """Handle an HTTP 4xx (client error) exception."""
     return _http_error(exc, request)
 
 
-@exception_view_config(
-    context=httpexceptions.HTTPServerError, renderer=DEFAULT_RENDERER
-)
-def http_server_error(exc, request):
-    """Handle an HTTP 5xx (server error) exception."""
+@exception_view_config(context=HAPIError, renderer=DEFAULT_RENDERER)
+def hapi_error(exc, request):
     h_pyramid_sentry.report_exception()
-    return _http_error(exc, request)
+    request.response.status_int = 500
+    return {"message": str(exc)}
 
 
 @exception_view_config(

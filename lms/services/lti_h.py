@@ -1,7 +1,4 @@
 from h_api.bulk_api import CommandBuilder
-from pyramid.httpexceptions import HTTPInternalServerError
-
-from lms.services import HAPIError
 
 
 class LTIHService:
@@ -47,11 +44,7 @@ class LTIHService:
         if not self._application_instance_service.get().provisioning:
             return
 
-        try:
-            self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
-
-        except HAPIError as err:
-            raise HTTPInternalServerError(explanation=err.explanation) from err
+        self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
 
         # Keep a note of the groups locally for reporting purposes.
         for h_group in h_groups:

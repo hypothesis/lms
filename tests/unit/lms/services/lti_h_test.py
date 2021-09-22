@@ -2,7 +2,6 @@ from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_api.bulk_api import CommandBuilder
-from pyramid.httpexceptions import HTTPInternalServerError
 
 from lms.models import Grouping
 from lms.services import ApplicationInstanceNotFound, HAPIError
@@ -29,7 +28,7 @@ class TestSync:
     ):
         h_api.execute_bulk.side_effect = HAPIError
 
-        with pytest.raises(HTTPInternalServerError):
+        with pytest.raises(HAPIError):
             lti_h_svc.sync([grouping], sentinel.params)
 
         group_info_service.assert_not_called()
