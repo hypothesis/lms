@@ -17,12 +17,20 @@ function interact(wrapper, callback) {
 describe('ContentSelector', () => {
   let fakeConfig;
   let FakeGooglePickerClient;
+  let FakeOneDrivePickerClient;
 
   beforeEach(() => {
     FakeGooglePickerClient = sinon.stub().returns({
       showPicker: sinon.stub(),
       enablePublicViewing: sinon.stub(),
     });
+
+    FakeOneDrivePickerClient = sinon.stub().returns({
+      showPicker: sinon.stub(),
+    });
+    FakeOneDrivePickerClient.encodeSharingURL = sinon
+      .stub()
+      .callsFake(url => `https://api.onedrive.com/v1.0/shares/u!${url}`);
 
     fakeConfig = {
       api: { authToken: 'dummy-auth-token' },
@@ -42,6 +50,11 @@ describe('ContentSelector', () => {
           },
         },
         google: {},
+        microsoftOneDrive: {
+          enabled: true,
+          clientId: '12345',
+          redirectURI: 'https://myredirect.uri',
+        },
         vitalSource: {
           enabled: false,
         },
@@ -51,6 +64,9 @@ describe('ContentSelector', () => {
     $imports.$mock({
       '../utils/google-picker-client': {
         GooglePickerClient: FakeGooglePickerClient,
+      },
+      '../utils/onedrive-picker-client': {
+        OneDrivePickerClient: FakeOneDrivePickerClient,
       },
     });
   });
@@ -98,7 +114,12 @@ describe('ContentSelector', () => {
     assert.isFalse(wrapper.exists('URLPicker'));
     assert.deepEqual(
       wrapper.find('LabeledButton').map(button => button.prop('data-testid')),
-      ['url-button', 'canvas-file-button', 'blackboard-file-button']
+      [
+        'url-button',
+        'canvas-file-button',
+        'blackboard-file-button',
+        'onedrive-button',
+      ]
     );
   });
 
@@ -349,6 +370,139 @@ describe('ContentSelector', () => {
 
       wrapper.setProps({}); // Force re-render.
       assert.isFalse(isLoadingIndicatorVisible(wrapper));
+    });
+  });
+
+  describe('OneDrive picker', () => {
+    function clickOneDriveButton(wrapper) {
+      const btn = wrapper.find('LabeledButton[data-testid="onedrive-button"]');
+      interact(wrapper, () => {
+        btn.props().onClick();
+      });
+    }
+
+    beforeEach(() => {
+      const picker = FakeGooglePickerClient();
+      picker.showPicker.resolves({
+        id: 'doc1',
+        url: 'https://files.google.com/doc1',
+      });
+      picker.enablePublicViewing.resolves();
+      FakeGooglePickerClient.resetHistory();
+
+      // Silence errors logged if showing OneDrive Picker fails.
+      sinon.stub(console, 'error');
+    });
+
+    afterEach(() => {
+      console.error.restore();
+    });
+
+    it('skips initialization of OneDrive Picker client if parameters not provided', () => {
+      fakeConfig.filePicker.microsoftOneDrive = {
+        enabled: true,
+      };
+      renderContentSelector();
+
+      assert.notCalled(FakeOneDrivePickerClient);
+    });
+
+    it("doesn't show the OneDrive button if option is disabled", () => {
+      fakeConfig.filePicker.microsoftOneDrive = {
+        enabled: false,
+      };
+      const wrapper = renderContentSelector();
+
+      assert.isFalse(
+        wrapper.exists('LabeledButton[data-testid="onedrive-button"]')
+      );
+    });
+
+    it('initializes of OneDrive Picker client if parameters are provided', () => {
+      renderContentSelector();
+
+      const { clientId, redirectURI } = fakeConfig.filePicker.microsoftOneDrive;
+      assert.calledWith(FakeOneDrivePickerClient, { clientId, redirectURI });
+    });
+
+    it('shows the OneDrive button if option is enabled', () => {
+      const wrapper = renderContentSelector();
+
+      assert.isTrue(
+        wrapper.exists('LabeledButton[data-testid="onedrive-button"]')
+      );
+    });
+
+    it('shows OneDrive Picker when button is clicked', () => {
+      const wrapper = renderContentSelector();
+      clickOneDriveButton(wrapper);
+      const picker = FakeOneDrivePickerClient();
+
+      assert.calledOnce(picker.showPicker);
+      assert.calledWith(picker.showPicker, {
+        success: sinon.match.func,
+        cancel: sinon.match.func,
+        error: sinon.match.func,
+      });
+    });
+
+    it('shows loading indicator while waiting for user to pick file', () => {
+      const wrapper = renderContentSelector();
+      assert.isFalse(isLoadingIndicatorVisible(wrapper));
+      clickOneDriveButton(wrapper);
+      assert.isTrue(isLoadingIndicatorVisible(wrapper));
+    });
+
+    it('submits a OneDrive sharing URL when a file is selected', () => {
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({ onSelectContent });
+      clickOneDriveButton(wrapper);
+      const picker = FakeOneDrivePickerClient();
+      const successCallback = picker.showPicker.getCall(0).args[0].success;
+
+      // Emulate the invocation of the `success` callback.
+      const file = {
+        value: [
+          { permissions: [{ link: { webUrl: 'https://1drv.ms/b/s!AmH' } }] },
+        ],
+      };
+      successCallback(file);
+
+      assert.calledWith(onSelectContent, {
+        type: 'url',
+        url: 'https://api.onedrive.com/v1.0/shares/u!https://1drv.ms/b/s!AmH',
+      });
+    });
+
+    it('hides loading indicator if user cancels picker', () => {
+      const wrapper = renderContentSelector();
+      clickOneDriveButton(wrapper);
+      const picker = FakeOneDrivePickerClient();
+      const cancelCallback = picker.showPicker.getCall(0).args[0].cancel;
+
+      // Emulate the invocation of the `cancel` callback.
+      cancelCallback();
+      wrapper.update();
+
+      assert.isFalse(isLoadingIndicatorVisible(wrapper));
+    });
+
+    it('shows error message if OneDrive Picker errors', () => {
+      const onError = sinon.stub();
+      const wrapper = renderContentSelector({ onError });
+      clickOneDriveButton(wrapper);
+      const picker = FakeOneDrivePickerClient();
+      const errorCallback = picker.showPicker.getCall(0).args[0].error;
+
+      // Emulate the invocation of the `cancel` callback.
+      const error = new Error('Some failure');
+      errorCallback(error);
+
+      assert.calledWith(onError, {
+        title: 'There was a problem choosing a file from OneDrive',
+        error,
+      });
+      assert.calledWith(console.error, error);
     });
   });
 

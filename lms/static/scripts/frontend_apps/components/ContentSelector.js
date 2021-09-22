@@ -6,6 +6,8 @@ import {
   GooglePickerClient,
   PickerCanceledError,
 } from '../utils/google-picker-client';
+import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
+
 import BookPicker from './BookPicker';
 import FullScreenSpinner from './FullScreenSpinner';
 import LMSFilePicker from './LMSFilePicker';
@@ -55,6 +57,11 @@ export default function ContentSelector({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
+      microsoftOneDrive: {
+        enabled: oneDriveFilesEnabled,
+        clientId: oneDriveClientId,
+        redirectURI: oneDriveRedirectURI,
+      },
       vitalSource: { enabled: vitalSourceEnabled },
     },
   } = useContext(Config);
@@ -92,6 +99,20 @@ export default function ContentSelector({
       origin: window === window.top ? window.location.href : googleOrigin,
     });
   }, [googleDeveloperKey, googleClientId, googleOrigin]);
+
+  // Initialize the OneDrive client if credentials have been provided.
+  // We do this eagerly to make the picker load faster if the user does click
+  // on the "Select from OneDrive" button.
+  const oneDrivePicker = useMemo(() => {
+    if (!oneDriveClientId || !oneDriveRedirectURI) {
+      return null;
+    }
+
+    return new OneDrivePickerClient({
+      clientId: oneDriveClientId,
+      redirectURI: oneDriveRedirectURI,
+    });
+  }, [oneDriveClientId, oneDriveRedirectURI]);
 
   /** @param {string} url */
   const selectURL = url => {
@@ -182,6 +203,30 @@ export default function ContentSelector({
     }
   };
 
+  const showOneDrivePicker = () => {
+    setLoadingIndicatorVisible(true);
+    const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
+    /** @param {any} file */
+    const success = file => {
+      const sharingURL = file.value[0].permissions[0].link.webUrl;
+      const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
+      onSelectContent({ type: 'url', url });
+    };
+    const cancel = () => {
+      setLoadingIndicatorVisible(false);
+    };
+    /** @param {Error} error */
+    const error = error => {
+      setLoadingIndicatorVisible(false);
+      console.error(error);
+      onError({
+        title: 'There was a problem choosing a file from OneDrive',
+        error,
+      });
+    };
+    picker.showPicker({ success, cancel, error });
+  };
+
   return (
     <>
       {isLoadingIndicatorVisible && <FullScreenSpinner />}
@@ -220,6 +265,15 @@ export default function ContentSelector({
               data-testid="google-drive-button"
             >
               Select PDF from Google Drive
+            </LabeledButton>
+          )}
+          {oneDriveFilesEnabled && (
+            <LabeledButton
+              onClick={showOneDrivePicker}
+              variant="primary"
+              data-testid="onedrive-button"
+            >
+              Select PDF from OneDrive
             </LabeledButton>
           )}
           {vitalSourceEnabled && (
