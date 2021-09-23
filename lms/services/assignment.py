@@ -1,11 +1,8 @@
-import logging
 from functools import lru_cache
 
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import Assignment
-
-log = logging.getLogger(__name__)
 
 
 class AssignmentService:
@@ -123,10 +120,18 @@ class AssignmentService:
         assert not old_assignment.ext_lti_assignment_id
         assert not new_assignment.resource_link_id
 
+        old_extra = dict(old_assignment.extra)
+        assert not old_extra or (
+            len(old_extra) == 1 and "canvas_file_mappings" in old_extra
+        )
+
         self._db.delete(old_assignment)
         # Flushing early so the `resource_link_id` constraints doesn't
         # conflict between the deleted record and new_assignment .
         self._db.flush()
+
+        if old_canvas_file_mappings := old_extra.get("canvas_file_mappings"):
+            new_assignment.extra["canvas_file_mappings"] = old_canvas_file_mappings
 
         new_assignment.resource_link_id = old_assignment.resource_link_id
         return new_assignment

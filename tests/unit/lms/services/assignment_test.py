@@ -66,12 +66,21 @@ class TestAssignmentService:
         )
         assert retrieved_assignment == assignment_canvas
 
-    def test_get_merge_existing(self, svc, assignment, assignment_canvas_not_launched):
-        # pylint:disable=protected-access
+    @pytest.mark.parametrize(
+        "old_extra,new_extra",
+        [
+            ({}, {}),
+            ({"canvas_file_mappings": {1: 2}}, {"canvas_file_mappings": {1: 2}}),
+        ],
+    )
+    def test_get_merge_existing(
+        self, old_extra, new_extra, svc, assignment, assignment_canvas_not_launched
+    ):  # pylint:disable=protected-access
         # Make both assignments belong to the same school
         assignment.tool_consumer_instance_guid = (
             assignment_canvas_not_launched.tool_consumer_instance_guid
         )
+        assignment.extra = old_extra
         svc._db.flush()
         assert svc._db.query(Assignment).count() == 3 + 2  # noise + fixtures
 
@@ -84,6 +93,7 @@ class TestAssignmentService:
         # We merged both into the newest one, the one with a non-null ext_lti_assignment_id
         assert retrieved_assignment.id == assignment_canvas_not_launched.id
         assert retrieved_assignment.resource_link_id == assignment.resource_link_id
+        assert retrieved_assignment.extra == new_extra
         assert svc._db.query(Assignment).count() == 3 + 1  # Deleted one assigment
 
     def test_create(self, svc):
