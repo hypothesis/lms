@@ -11,7 +11,6 @@ from tests import factories
 
 class TestAssignmentService:
     def test_get_without_ids(self, svc, assignment):
-
         with pytest.raises(ValueError):
             assignment = svc.get(
                 assignment.tool_consumer_instance_guid,
@@ -19,11 +18,13 @@ class TestAssignmentService:
                 ext_lti_assignment_id=None,
             )
 
-    def test_get_returns_None_if_theres_no_matching_assignment(self, svc):
+    def test_get_raises_NoResultFound_if_theres_no_matching_assignment(self, svc):
         with pytest.raises(NoResultFound):
             svc.get("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
 
-    def test_get_returns_None_if_theres_no_matching_assignment_with_two_ids(self, svc):
+    def test_get_raises_NoResultFound_if_theres_no_matching_assignment_with_two_ids(
+        self, svc
+    ):
         with pytest.raises(NoResultFound):
             svc.get(
                 "TOOL_CONSUMER_INSTANCE_GUID",
@@ -74,15 +75,21 @@ class TestAssignmentService:
         ],
     )
     def test_get_merge_existing(
-        self, old_extra, new_extra, svc, assignment, assignment_canvas_not_launched
-    ):  # pylint:disable=protected-access
+        self,
+        old_extra,
+        new_extra,
+        svc,
+        assignment,
+        assignment_canvas_not_launched,
+        db_session,
+    ):
         # Make both assignments belong to the same school
         assignment.tool_consumer_instance_guid = (
             assignment_canvas_not_launched.tool_consumer_instance_guid
         )
         assignment.extra = old_extra
-        svc._db.flush()
-        assert svc._db.query(Assignment).count() == 3 + 2  # noise + fixtures
+        db_session.flush()
+        assert db_session.query(Assignment).count() == 3 + 2  # noise + fixtures
 
         retrieved_assignment = svc.get(
             assignment_canvas_not_launched.tool_consumer_instance_guid,
@@ -94,27 +101,7 @@ class TestAssignmentService:
         assert retrieved_assignment.id == assignment_canvas_not_launched.id
         assert retrieved_assignment.resource_link_id == assignment.resource_link_id
         assert retrieved_assignment.extra == new_extra
-        assert svc._db.query(Assignment).count() == 3 + 1  # Deleted one assigment
-
-    def test_create(self, svc):
-        assignment = svc.create(
-            "TOOL_CONSUMER_INSTANCE_GUID",
-            "NEW_DOCUMENT_URL",
-            "RESOURCE_LINK_ID",
-            "EXT_LTI_ASSIGNMENT_ID",
-        )
-
-        assert (
-            svc._db.query(Assignment)  # pylint:disable=protected-access
-            .filter_by(
-                tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
-                resource_link_id="RESOURCE_LINK_ID",
-                ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
-                document_url="NEW_DOCUMENT_URL",
-            )
-            .one()
-            == assignment
-        )
+        assert db_session.query(Assignment).count() == 3 + 1  # Deleted one assigment
 
     def test_exist_with_no_assignment(self, svc):
         assert not svc.exists("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
