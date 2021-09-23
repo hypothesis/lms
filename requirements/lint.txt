@@ -173,7 +173,7 @@ marshmallow==3.13.0
     #   webargs
 mccabe==0.6.1
     # via pylint
-newrelic==6.10.0.165
+newrelic==7.0.0.166
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
