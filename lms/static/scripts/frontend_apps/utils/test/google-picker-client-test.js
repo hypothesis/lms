@@ -113,8 +113,12 @@ describe('GooglePickerClient', () => {
     });
   });
 
+  afterEach(() => {
+    $imports.$restore();
+  });
+
   describe('#constructor', () => {
-    it('loads Google API client', async () => {
+    it('loads Google API client', () => {
       createClient();
       assert.calledWith(fakeLoadLibraries, ['auth2', 'client', 'picker']);
     });
