@@ -17,6 +17,15 @@ class TestAssignmentsAPIViews:
             ),
             (
                 {
+                    "content": {"type": "url", "url": "https://example.com"},
+                    "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
+                    "groupset": 125,
+                },
+                "https://example.com",
+                {"canvas_groupset": 125},
+            ),
+            (
+                {
                     "content": {
                         "type": "url",
                         "url": "https://drive.google.com/uc?id=DRIVE_ID&export=download",
