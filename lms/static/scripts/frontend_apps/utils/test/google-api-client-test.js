@@ -13,6 +13,7 @@ describe('loadLibraries', () => {
 
   afterEach(() => {
     document.createElement.restore();
+    dummyScript.remove();
   });
 
   it('loads API script', async () => {
