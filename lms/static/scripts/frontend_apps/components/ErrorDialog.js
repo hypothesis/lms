@@ -4,7 +4,7 @@ import Dialog from './Dialog';
 /**
  * @typedef ErrorDialogProps
  * @prop {() => any} [onCancel]
- * @prop {string} title
+ * @prop {string} [message] - Message to drill down to `ErrorDisplay`
  * @prop {import('./ErrorDisplay').ErrorLike} error
  * @prop {string} [cancelLabel]
  */
@@ -15,7 +15,12 @@ import Dialog from './Dialog';
  *
  * @param {ErrorDialogProps} props
  */
-export default function ErrorDialog({ onCancel, title, error, cancelLabel }) {
+export default function ErrorDialog({
+  onCancel,
+  message = 'Error',
+  error,
+  cancelLabel,
+}) {
   return (
     <Dialog
       role="alertdialog"
@@ -23,7 +28,7 @@ export default function ErrorDialog({ onCancel, title, error, cancelLabel }) {
       onCancel={onCancel}
       cancelLabel={cancelLabel}
     >
-      <ErrorDisplay message={title} error={error} />
+      <ErrorDisplay message={message} error={error} />
     </Dialog>
   );
 }

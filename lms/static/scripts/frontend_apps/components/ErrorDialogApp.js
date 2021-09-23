@@ -8,7 +8,8 @@ import Dialog from './Dialog';
 /**
  * A general-purpose error dialog displayed when a frontend application cannot be launched.
  *
- * There are more specific error dialogs for some use cases (eg. OAuth2RedirectErrorApp).
+ * There are more specific error dialogs for some use cases
+ * (e.g. OAuth2RedirectErrorApp, LaunchErrorDialog).
  */
 export default function ErrorDialogApp() {
   const {
@@ -18,16 +19,13 @@ export default function ErrorDialogApp() {
   const error = { code: errorCode, details: errorDetails };
 
   let title;
-  let message;
 
   switch (errorCode) {
     case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
-      message = 'Reused tool_consumer_instance_guid';
       break;
     default:
       title = 'An error occurred';
-      message = 'Unknown error occurred';
   }
 
   return (
@@ -62,9 +60,14 @@ export default function ErrorDialogApp() {
               .
             </li>
           </ul>
+          <ErrorDisplay error={error} />
         </>
+      ) : (
+        <ErrorDisplay
+          error={error}
+          message="An error occurred when launching the Hypothesis application"
+        />
       )}
-      <ErrorDisplay message={message} error={error} />
     </Dialog>
   );
 }

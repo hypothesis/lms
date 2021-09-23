@@ -14,7 +14,7 @@ describe('ErrorDialog', () => {
 
   it('displays details of the error', () => {
     const err = new Error('Something went wrong');
-    const wrapper = mount(<ErrorDialog title="Oh no!" error={err} />);
+    const wrapper = mount(<ErrorDialog message="Oh no!" error={err} />);
 
     assert.include(wrapper.find('ErrorDisplay').props(), {
       message: 'Oh no!',

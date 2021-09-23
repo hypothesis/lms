@@ -331,7 +331,7 @@ describe('ContentSelector', () => {
       }
 
       assert.calledWith(onError, {
-        title: 'There was a problem choosing a file from Google Drive',
+        message: 'There was a problem choosing a file from Google Drive',
         error,
       });
     });

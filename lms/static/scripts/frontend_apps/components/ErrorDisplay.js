@@ -30,6 +30,55 @@ function toSentence(str) {
  */
 
 /**
+ * JSON-stringify `error.details` if it is extant and an object
+ *
+ * @param {ErrorLike} error
+ */
+function formatErrorDetails(error) {
+  /** @type {string|object} */
+  let details = error.details ?? '';
+  if (error?.details && typeof error.details === 'object') {
+    try {
+      details = JSON.stringify(error.details, null, 2 /* indent */);
+    } catch (e) {
+      // ignore
+    }
+  }
+  return details;
+}
+
+/**
+ * @typedef ErrorDetailsProps
+ * @prop {ErrorLike} error
+ *
+ * Render pre-formatted JSON details of an error
+ *
+ * @param {ErrorDetailsProps} props
+ */
+function ErrorDetails({ error }) {
+  /** @param {Event} event */
+  const onDetailsToggle = event => {
+    const detailsEl = /** @type {HTMLDetailsElement} */ (event.target);
+    if (!detailsEl.open) {
+      return;
+    }
+    detailsEl.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const details = formatErrorDetails(error);
+  if (!details) {
+    return null;
+  }
+
+  return (
+    <details className="ErrorDisplay__details" onToggle={onDetailsToggle}>
+      <summary className="ErrorDisplay__details-summary">Error Details</summary>
+      <pre className="ErrorDisplay__details-content">{details}</pre>
+    </details>
+  );
+}
+
+/**
  * @typedef ErrorDisplayProps
  * @prop {string|null} [message] -
  *   A short message to display explaining that a problem happened. This is
@@ -50,61 +99,29 @@ function toSentence(str) {
  * @param {ErrorDisplayProps} props
  */
 export default function ErrorDisplay({ message, error }) {
-  /** @type {string|undefined} */
-  let details = '';
-
-  if (typeof error.details === 'object' && error.details !== null) {
-    try {
-      details = JSON.stringify(error.details, null, 2 /* indent */);
-    } catch (e) {
-      // ignore
-    }
-  } else {
-    details = error.details;
-  }
-
-  let supportEmailBody = '';
-  if (error.message) {
-    supportEmailBody += `\n\nError message: ${error.message}`;
-  }
-  if (details) {
-    supportEmailBody += `\n\nTechnical details:\n\n${details}`;
-  }
+  const details = formatErrorDetails(error);
 
   const supportLink = emailLink({
     address: 'support@hypothes.is',
     subject: 'Hypothesis LMS support',
-    body: supportEmailBody,
+    body: `
+Error message: ${error?.message || 'N/A'}
+Description: ${description || 'N/A'}
+Technical details: ${details || 'N/A'}
+    `,
   });
 
-  /** @param {Event} event */
-  const onDetailsToggle = event => {
-    const details = /** @type {HTMLDetailsElement} */ (event.target);
-    if (!details.open) {
-      return;
-    }
-    details.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
-    // nb. Wrapper `<div>` here exists to apply block layout to contents.
     <div className="ErrorDisplay">
-      {message && error.message && (
-        // Display both error messages if they are both provided
+      {message && (
         <p data-testid="message">
-          {message}: <i>{toSentence(error.message)}</i>
+          {message}
+          {error.message && (
+            <>
+              : <i>{toSentence(error.message)}</i>
+            </>
+          )}
         </p>
-      )}
-      {message && !error.message && (
-        // Only the component's message prop is provided
-        <p data-testid="message">{toSentence(message)}</p>
-      )}
-      {!message && error.message && (
-        // Only the error's message property is provided
-        <p data-testid="message">{toSentence(error.message)}</p>
-      )}
-      {!message && !error.message && (
-        <p data-testid="message">An unknown error occurred.</p>
       )}
       <p className="ErrorDisplay__links">
         If the problem persists,{' '}
@@ -129,14 +146,7 @@ export default function ErrorDisplay({ message, error }) {
         </a>
         .
       </p>
-      {!!details && (
-        <details className="ErrorDisplay__details" onToggle={onDetailsToggle}>
-          <summary className="ErrorDisplay__details-summary">
-            Error Details
-          </summary>
-          <pre className="ErrorDisplay__details-content">{details}</pre>
-        </details>
-      )}
+      <ErrorDetails error={error} />
     </div>
   );
 }
