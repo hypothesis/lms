@@ -68,7 +68,6 @@ describe('FilePickerApp', () => {
     assert.deepEqual(formFields.props(), {
       children: [],
       content: expectedContent,
-      extLTIAssignmentId: expectedExtLTIAssignmentId,
       formFields: fakeConfig.filePicker.formFields,
       extLTIAssignmentId: expectedExtLTIAssignmentId,
       groupSet: expectedGroupSet,

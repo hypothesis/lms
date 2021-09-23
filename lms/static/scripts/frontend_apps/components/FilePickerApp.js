@@ -93,11 +93,7 @@ export default function FilePickerApp({ onSubmit }) {
    * render.
    */
   const [shouldSubmit, setShouldSubmit] = useState(false);
-  const submit = useCallback(() => setShouldSubmit(true), []);
-
-  // Submit the form after a selection is made via one of the available
-  // methods.
-  useEffect(() => {
+  const submit = useCallback(() => {
     async function createAssignment() {
       const data = {
         ...createAssignmentAPI.data,
@@ -112,29 +108,36 @@ export default function FilePickerApp({ onSubmit }) {
         });
         setExtLTIAssignmentId(assignment.ext_lti_assignment_id);
       } catch (error) {
-        setErrorInfo({ title: 'Creating or editing an assignment', error: error });
+        setErrorInfo({
+          title: 'Creating or editing an assignment',
+          error: error,
+        });
       }
     }
-
     if (content && createAssignmentAPI && !extLTIAssignmentId) {
       createAssignment();
       return;
     }
 
+    setShouldSubmit(true);
+  }, [
+    authToken,
+    content,
+    createAssignmentAPI,
+    extLTIAssignmentId,
+    groupConfig.groupSet,
+  ]);
+
+  // Submit the form after a selection is made via one of the available
+  // methods.
+  useEffect(() => {
     if (shouldSubmit) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
       submitButton.current.click();
     }
-  }, [
-    shouldSubmit,
-    extLTIAssignmentId,
-    authToken,
-    content,
-    createAssignmentAPI,
-    groupConfig.groupSet,
-  ]);
+  }, [shouldSubmit]);
 
   /** @type {(c: Content) => void} */
   const selectContent = useCallback(
