@@ -34,10 +34,11 @@ describe('ErrorDisplay', () => {
     assert.equal(href.pathname, 'support@hypothes.is');
     assert.equal(href.searchParams.get('subject'), 'Hypothesis LMS support');
     assert.include(href.searchParams.get('body'), 'Canvas says no');
+    assert.include(href.searchParams.get('body'), 'Failed to fetch files');
     assert.include(href.searchParams.get('body'), '"someTechnicalDetail": 123');
   });
 
-  it('omits "Error message" from support email body if error has no message', () => {
+  it('handles missing error message when composing email body', () => {
     const error = new Error('');
     error.details = { someTechnicalDetail: 123 };
 
@@ -46,11 +47,10 @@ describe('ErrorDisplay', () => {
     );
     const href = getSupportEmailLink(wrapper);
 
-    assert.include(href.searchParams.get('body'), 'Technical details');
-    assert.notInclude(href.searchParams.get('body'), 'Error message');
+    assert.include(href.searchParams.get('body'), 'Error message: N/A');
   });
 
-  it('omits "Technical details" from support email body if error has no details', () => {
+  it('handles missing technical details when composing email body', () => {
     const error = new Error('Something went wrong');
 
     const wrapper = mount(
@@ -58,8 +58,7 @@ describe('ErrorDisplay', () => {
     );
     const href = getSupportEmailLink(wrapper);
 
-    assert.notInclude(href.searchParams.get('body'), 'Technical details');
-    assert.include(href.searchParams.get('body'), 'Error message');
+    assert.include(href.searchParams.get('body'), 'Technical details: N/A');
   });
 
   [
@@ -125,11 +124,11 @@ describe('ErrorDisplay', () => {
   [
     {
       message: 'Not a sentence',
-      output: 'Not a sentence.',
+      output: 'Not a sentence',
     },
     {
       message: 'A sentence',
-      output: 'A sentence.',
+      output: 'A sentence',
     },
     {
       message: 'Oh no',
@@ -142,7 +141,7 @@ describe('ErrorDisplay', () => {
       output: 'Oh no: Tech details.',
     },
   ].forEach(({ message, error, output }, index) => {
-    it(`formats errors as sentences (${index})`, () => {
+    it(`formats error.message as sentence (${index})`, () => {
       const wrapper = mount(
         <ErrorDisplay message={message} error={{ message: error }} />
       );
@@ -158,15 +157,7 @@ describe('ErrorDisplay', () => {
     },
     {
       message: 'Provided by client',
-      output: 'Provided by client.',
-    },
-    {
-      error: 'Provided by server',
-      output: 'Provided by server.',
-    },
-    {
-      // Should not show any messages
-      output: 'An unknown error occurred.',
+      output: 'Provided by client',
     },
   ].forEach(({ message, error, output }, index) => {
     it(`shows the appropriate error message if provided (${index})`, () => {

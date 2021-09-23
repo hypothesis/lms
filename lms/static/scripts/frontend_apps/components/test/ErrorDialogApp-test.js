@@ -28,7 +28,7 @@ describe('ErrorDialogApp', () => {
 
   it('shows dialog for unknown error code', () => {
     const wrapper = renderApp();
-    assert.include(wrapper.text(), 'Unknown error occurred');
+    assert.include(wrapper.text(), 'An error occurred');
   });
 
   it('shows dialog for reused_consumer_key', () => {

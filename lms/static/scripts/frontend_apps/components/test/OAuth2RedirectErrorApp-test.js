@@ -55,10 +55,6 @@ describe('OAuth2RedirectErrorApp', () => {
     fakeConfig.errorCode = 'blackboard_missing_integration';
     const wrapper = renderApp();
     assert.include(wrapper.text(), 'Missing Blackboard REST API integration');
-    assert.include(
-      wrapper.text(),
-      'Something went wrong when authorizing Hypothesis'
-    );
   });
 
   it('shows a generic error if the scope is valid', () => {

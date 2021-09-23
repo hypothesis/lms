@@ -172,7 +172,7 @@ export default function FilePickerApp({ onSubmit }) {
       {shouldSubmit && <FullScreenSpinner />}
       {errorInfo && (
         <ErrorDialog
-          title={errorInfo.title}
+          message={errorInfo.title}
           error={errorInfo.error}
           onCancel={() => setErrorInfo(null)}
         />

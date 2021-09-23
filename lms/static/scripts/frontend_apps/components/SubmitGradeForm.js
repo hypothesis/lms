@@ -212,7 +212,7 @@ export default function SubmitGradeForm({ student }) {
       </button>
       {!!submitGradeError && (
         <ErrorDialog
-          title="Unable to submit grade"
+          message="Unable to submit grade"
           error={submitGradeError}
           onCancel={() => {
             setSubmitGradeError(null);
@@ -222,7 +222,7 @@ export default function SubmitGradeForm({ student }) {
       )}
       {!!fetchGradeError && (
         <ErrorDialog
-          title="Unable to fetch grade"
+          message="Unable to fetch grade"
           error={fetchGradeError}
           onCancel={() => {
             setFetchGradeError(null);

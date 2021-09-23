@@ -29,19 +29,20 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
 
   const error = { code: errorCode, details: errorDetails };
 
-  const title = (() => {
-    if (errorCode === 'canvas_invalid_scope') {
-      return 'Developer key scopes missing';
-    }
-
-    if (errorCode === 'blackboard_missing_integration') {
-      return 'Missing Blackboard REST API integration';
-    }
-
-    return 'Authorization failed';
-  })();
-
-  const message = 'Something went wrong when authorizing Hypothesis';
+  let title;
+  let message;
+  switch (errorCode) {
+    case 'canvas_invalid_scope':
+      title = 'Developer key scopes missing';
+      break;
+    case 'blackboard_missing_integration':
+      title = 'Missing Blackboard REST API integration';
+      break;
+    default:
+      title = 'Authorization failed';
+      message = 'Something went wrong when authorizing Hypothesis';
+      break;
+  }
 
   const retry = () => {
     location.href = /** @type {string} */ (authUrl);
