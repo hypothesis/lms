@@ -185,8 +185,8 @@ export default function ContentSelector({
   }
 
   const showGooglePicker = async () => {
+    setLoadingIndicatorVisible(true);
     try {
-      setLoadingIndicatorVisible(true);
       const picker = /** @type {GooglePickerClient} */ (googlePicker);
       const { id, url } = await picker.showPicker();
       await picker.enablePublicViewing(id);
@@ -203,28 +203,22 @@ export default function ContentSelector({
     }
   };
 
-  const showOneDrivePicker = () => {
+  const showOneDrivePicker = async () => {
     setLoadingIndicatorVisible(true);
-    const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
-    /** @param {any} file */
-    const success = file => {
-      const sharingURL = file.value[0].permissions[0].link.webUrl;
-      const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
+    try {
+      const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
+      const { url } = await picker.showPicker();
       onSelectContent({ type: 'url', url });
-    };
-    const cancel = () => {
+    } catch (error) {
       setLoadingIndicatorVisible(false);
-    };
-    /** @param {Error} error */
-    const error = error => {
-      setLoadingIndicatorVisible(false);
-      console.error(error);
-      onError({
-        title: 'There was a problem choosing a file from OneDrive',
-        error,
-      });
-    };
-    picker.showPicker({ success, cancel, error });
+      if (!(error instanceof PickerCanceledError)) {
+        console.error(error);
+        onError({
+          title: 'There was a problem choosing a file from OneDrive',
+          error,
+        });
+      }
+    }
   };
 
   return (

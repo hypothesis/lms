@@ -61,3 +61,8 @@ export function waitForElement(wrapper, selector, timeout = 10) {
     `"${selector}" to render`
   );
 }
+
+/** @param {number} ms */
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
