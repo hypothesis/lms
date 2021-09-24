@@ -1,4 +1,5 @@
 import { loadOneDriveAPI } from './onedrive-api-client';
+import { PickerCanceledError } from './google-picker-client';
 
 export class OneDrivePickerClient {
   /**
@@ -25,12 +26,26 @@ export class OneDrivePickerClient {
   /**
    * Opens the OneDrive picker
    *
-   * @param {{success?: (file: any) => void, cancel?: () => void, error?: (e: Error) => void}} callbacks
-   * @throws {Error} - if the OneDrive client failed to load and hence
-   *   `window.OneDrive` is undefined
+   * @returns Promise<{url: string}> - the URL of the file
+   * @throws {Error} - there are two types of errors:
+   *   - PickerCancelledError: raise when the user cancels the OneDrive dialog picker
+   *   - Other errors: raise when (1) the OneDrive client fails to load (`window.OneDrive` is
+   *       undefined), or when (2) the picker fails in a different way.
    */
-  showPicker(callbacks = {}) {
-    window.OneDrive.open({ ...this._filePickerOptions, ...callbacks });
+  async showPicker() {
+    return new Promise((resolve, reject) => {
+      const success = (/** @type {any} */ file) => {
+        const sharingURL = file.value[0].permissions[0].link.webUrl;
+        const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
+        resolve({ url });
+      };
+      const cancel = () => reject(new PickerCanceledError());
+      const error = (/** @type {Error} */ error) => reject(error);
+      window.OneDrive.open({
+        ...this._filePickerOptions,
+        ...{ success, cancel, error },
+      });
+    });
   }
 
   /**

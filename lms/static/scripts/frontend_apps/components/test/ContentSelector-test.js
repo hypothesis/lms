@@ -5,6 +5,7 @@ import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { delay, waitFor } from '../../../test-util/wait';
 import { Config } from '../../config';
 import { PickerCanceledError } from '../../utils/google-picker-client';
 import ContentSelector, { $imports } from '../ContentSelector';
@@ -28,9 +29,6 @@ describe('ContentSelector', () => {
     FakeOneDrivePickerClient = sinon.stub().returns({
       showPicker: sinon.stub(),
     });
-    FakeOneDrivePickerClient.encodeSharingURL = sinon
-      .stub()
-      .callsFake(url => `https://api.onedrive.com/v1.0/shares/u!${url}`);
 
     fakeConfig = {
       api: { authToken: 'dummy-auth-token' },
@@ -79,11 +77,7 @@ describe('ContentSelector', () => {
     const noop = () => {};
     return mount(
       <Config.Provider value={fakeConfig}>
-        <ContentSelector
-          setErrorInfo={noop}
-          onSelectContent={noop}
-          {...props}
-        />
+        <ContentSelector onError={noop} onSelectContent={noop} {...props} />
       </Config.Provider>
     );
   };
@@ -374,6 +368,8 @@ describe('ContentSelector', () => {
   });
 
   describe('OneDrive picker', () => {
+    let picker;
+
     function clickOneDriveButton(wrapper) {
       const btn = wrapper.find('LabeledButton[data-testid="onedrive-button"]');
       interact(wrapper, () => {
@@ -382,14 +378,7 @@ describe('ContentSelector', () => {
     }
 
     beforeEach(() => {
-      const picker = FakeGooglePickerClient();
-      picker.showPicker.resolves({
-        id: 'doc1',
-        url: 'https://files.google.com/doc1',
-      });
-      picker.enablePublicViewing.resolves();
-      FakeGooglePickerClient.resetHistory();
-
+      picker = FakeOneDrivePickerClient();
       // Silence errors logged if showing OneDrive Picker fails.
       sinon.stub(console, 'error');
     });
@@ -399,8 +388,9 @@ describe('ContentSelector', () => {
     });
 
     it('skips initialization of OneDrive Picker client if parameters not provided', () => {
+      FakeOneDrivePickerClient.resetHistory();
       fakeConfig.filePicker.microsoftOneDrive = {
-        enabled: true,
+        enabled: true, // clientId and redirectURI are undefined
       };
       renderContentSelector();
 
@@ -408,9 +398,7 @@ describe('ContentSelector', () => {
     });
 
     it("doesn't show the OneDrive button if option is disabled", () => {
-      fakeConfig.filePicker.microsoftOneDrive = {
-        enabled: false,
-      };
+      fakeConfig.filePicker.microsoftOneDrive.enabled = false; // clientId and redirectURI are defined
       const wrapper = renderContentSelector();
 
       assert.isFalse(
@@ -418,7 +406,7 @@ describe('ContentSelector', () => {
       );
     });
 
-    it('initializes of OneDrive Picker client if parameters are provided', () => {
+    it('initializes OneDrive Picker client if parameters are provided', () => {
       renderContentSelector();
 
       const { clientId, redirectURI } = fakeConfig.filePicker.microsoftOneDrive;
@@ -433,40 +421,35 @@ describe('ContentSelector', () => {
       );
     });
 
-    it('shows OneDrive Picker when button is clicked', () => {
+    it('shows OneDrive Picker when button is clicked', async () => {
       const wrapper = renderContentSelector();
+      picker.showPicker.rejects(new PickerCanceledError());
+
       clickOneDriveButton(wrapper);
-      const picker = FakeOneDrivePickerClient();
+      await delay(0);
 
       assert.calledOnce(picker.showPicker);
-      assert.calledWith(picker.showPicker, {
-        success: sinon.match.func,
-        cancel: sinon.match.func,
-        error: sinon.match.func,
-      });
     });
 
     it('shows loading indicator while waiting for user to pick file', () => {
       const wrapper = renderContentSelector();
       assert.isFalse(isLoadingIndicatorVisible(wrapper));
+
       clickOneDriveButton(wrapper);
+
       assert.isTrue(isLoadingIndicatorVisible(wrapper));
     });
 
-    it('submits a OneDrive sharing URL when a file is selected', () => {
+    it('submits a OneDrive sharing URL when a file is selected', async () => {
       const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
-      clickOneDriveButton(wrapper);
-      const picker = FakeOneDrivePickerClient();
-      const successCallback = picker.showPicker.getCall(0).args[0].success;
+      // Emulates the selection of a file in the picker.
+      picker.showPicker.resolves({
+        url: 'https://api.onedrive.com/v1.0/shares/u!https://1drv.ms/b/s!AmH',
+      });
 
-      // Emulate the invocation of the `success` callback.
-      const file = {
-        value: [
-          { permissions: [{ link: { webUrl: 'https://1drv.ms/b/s!AmH' } }] },
-        ],
-      };
-      successCallback(file);
+      clickOneDriveButton(wrapper);
+      await delay(0);
 
       assert.calledWith(onSelectContent, {
         type: 'url',
@@ -474,29 +457,31 @@ describe('ContentSelector', () => {
       });
     });
 
-    it('hides loading indicator if user cancels picker', () => {
-      const wrapper = renderContentSelector();
-      clickOneDriveButton(wrapper);
-      const picker = FakeOneDrivePickerClient();
-      const cancelCallback = picker.showPicker.getCall(0).args[0].cancel;
-
-      // Emulate the invocation of the `cancel` callback.
-      cancelCallback();
-      wrapper.update();
-
-      assert.isFalse(isLoadingIndicatorVisible(wrapper));
-    });
-
-    it('shows error message if OneDrive Picker errors', () => {
+    it('hides loading indicator if user cancels picker', async () => {
       const onError = sinon.stub();
       const wrapper = renderContentSelector({ onError });
-      clickOneDriveButton(wrapper);
-      const picker = FakeOneDrivePickerClient();
-      const errorCallback = picker.showPicker.getCall(0).args[0].error;
+      // Emulates the cancellation of the picker.
+      picker.showPicker.rejects(new PickerCanceledError());
 
-      // Emulate the invocation of the `cancel` callback.
+      clickOneDriveButton(wrapper);
+      await waitFor(() => {
+        wrapper.update();
+        return isLoadingIndicatorVisible(wrapper) === false;
+      });
+
+      assert.isFalse(isLoadingIndicatorVisible(wrapper));
+      assert.notCalled(onError);
+    });
+
+    it('shows error message if OneDrive Picker errors', async () => {
       const error = new Error('Some failure');
-      errorCallback(error);
+      const onError = sinon.stub();
+      const wrapper = renderContentSelector({ onError });
+      // Emulates the invocation of a failure in the picker
+      picker.showPicker.rejects(error);
+
+      clickOneDriveButton(wrapper);
+      await delay(0);
 
       assert.calledWith(onError, {
         title: 'There was a problem choosing a file from OneDrive',
