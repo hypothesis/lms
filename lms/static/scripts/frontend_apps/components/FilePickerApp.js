@@ -30,6 +30,12 @@ import GroupConfigSelector from './GroupConfigSelector';
  */
 
 /**
+ * @typedef ErrorInfo
+ * @prop {string} message
+ * @prop {Error} error
+ */
+
+/**
  * Return a human-readable description of assignment content.
  *
  * @param {Content} content - Type and details of assignment content
@@ -73,12 +79,6 @@ export default function FilePickerApp({ onSubmit }) {
       groupSet: null,
     })
   );
-
-  /**
-   * @typedef ErrorInfo
-   * @prop {string} title
-   * @prop {Error} error
-   */
 
   const [errorInfo, setErrorInfo] = useState(
     /** @type {ErrorInfo|null} */ (null)
@@ -172,7 +172,7 @@ export default function FilePickerApp({ onSubmit }) {
       {shouldSubmit && <FullScreenSpinner />}
       {errorInfo && (
         <ErrorDialog
-          message={errorInfo.title}
+          message={errorInfo.message}
           error={errorInfo.error}
           onCancel={() => setErrorInfo(null)}
         />

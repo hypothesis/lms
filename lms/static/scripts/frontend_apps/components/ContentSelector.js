@@ -18,9 +18,7 @@ import URLPicker from './URLPicker';
  * @typedef {import('../api-types').File} File
  * @typedef {import('../api-types').Chapter} Chapter
  *
- * @typedef ErrorInfo
- * @prop {string} title
- * @prop {Error} error
+ * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
  *
  * @typedef {'blackboardFile'|'canvasFile'|'url'|'vitalSourceBook'|null} DialogType
  *
@@ -196,7 +194,7 @@ export default function ContentSelector({
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
         onError({
-          title: 'There was a problem choosing a file from Google Drive',
+          message: 'There was a problem choosing a file from Google Drive',
           error,
         });
       }
