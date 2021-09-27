@@ -42,11 +42,11 @@ class LaunchVerifier:
           launch request. Different :exc:`LTILaunchVerificationError`
           subclasses are raised for different types of verification failure.
 
-        :raise NoConsumerKey: If the request has no ``oauth_consumer_key``
+        :raise NoConsumerKey: If the request has no oauth_consumer_key
           parameter (maybe it's not an LTI launch request at all?)
 
         :raise ConsumerKeyLaunchVerificationError: If the request's
-          ``oauth_consumer_key`` parameter isn't found in our database (this
+          oauth_consumer_key parameter isn't found in our database (this
           appears to be an invalid LTI launch request).
 
         :raise LTIOAuthError: If OAuth 1.0 verification of the request and its
