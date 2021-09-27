@@ -103,7 +103,12 @@ class ExceptionViews:
     def proxy_api_access_token_error(self):
         return self.error_response()
 
-    @exception_view_config(context=CanvasAPIPermissionError)
+    @exception_view_config(
+        # It's unfortunately necessary to mention CanvasAPIPermissionError
+        # specifically here because otherwise the proxy_api_error() exception
+        # view above would catch CanvasAPIPermissionError's.
+        context=CanvasAPIPermissionError
+    )
     @exception_view_config(path_info="/api/*", context=Exception)
     def api_error(self):
         """
