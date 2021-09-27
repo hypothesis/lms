@@ -1,4 +1,3 @@
-import h_pyramid_sentry
 from pyramid import i18n
 from pyramid.config import not_
 from pyramid.httpexceptions import HTTPClientError
@@ -43,7 +42,6 @@ def http_client_error(exc, request):
 
 @exception_view_config(context=HAPIError, renderer=DEFAULT_RENDERER)
 def hapi_error(exc, request):
-    h_pyramid_sentry.report_exception()
     request.response.status_int = 500
     return {"message": str(exc)}
 
