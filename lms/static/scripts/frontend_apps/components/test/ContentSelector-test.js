@@ -253,7 +253,6 @@ describe('ContentSelector', () => {
         url: 'https://files.google.com/doc1',
       });
       picker.enablePublicViewing.resolves();
-      FakeGooglePickerClient.resetHistory();
 
       // Silence errors logged if showing Google Picker fails.
       sinon.stub(console, 'error');
@@ -286,25 +285,23 @@ describe('ContentSelector', () => {
 
     it('shows Google Picker when "Select PDF from Google Drive" is clicked', async () => {
       const wrapper = renderContentSelector();
-      clickGoogleDriveButton(wrapper);
       const picker = FakeGooglePickerClient();
-      assert.called(picker.showPicker);
 
-      const { id } = await picker.showPicker();
+      clickGoogleDriveButton(wrapper);
+      await delay(0);
 
-      assert.calledWith(picker.enablePublicViewing, id);
+      assert.calledOnce(picker.showPicker);
+      assert.calledWith(picker.enablePublicViewing, 'doc1');
     });
 
     it('submits a Google Drive download URL when a file is selected', async () => {
-      let resolveContent;
-      const contentPromise = new Promise(resolve => (resolveContent = resolve));
-      const onSelectContent = resolveContent;
+      const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
 
       clickGoogleDriveButton(wrapper);
-      const content = await contentPromise;
+      await delay(0);
 
-      assert.deepEqual(content, {
+      assert.calledWith(onSelectContent, {
         type: 'url',
         url: 'https://files.google.com/doc1',
       });
@@ -324,11 +321,7 @@ describe('ContentSelector', () => {
       const wrapper = renderContentSelector({ onError });
 
       clickGoogleDriveButton(wrapper);
-      try {
-        await FakeGooglePickerClient().showPicker();
-      } catch (e) {
-        /* noop */
-      }
+      await delay(0);
 
       assert.calledWith(onError, {
         message: 'There was a problem choosing a file from Google Drive',
@@ -342,11 +335,7 @@ describe('ContentSelector', () => {
       const wrapper = renderContentSelector({ onError });
 
       clickGoogleDriveButton(wrapper);
-      try {
-        await FakeGooglePickerClient().showPicker();
-      } catch (e) {
-        /* noop */
-      }
+      await delay(0);
 
       assert.notCalled(onError);
     });
@@ -356,11 +345,7 @@ describe('ContentSelector', () => {
       const wrapper = renderContentSelector();
 
       clickGoogleDriveButton(wrapper);
-      try {
-        await FakeGooglePickerClient().showPicker();
-      } catch (e) {
-        /* noop */
-      }
+      await delay(0);
 
       wrapper.setProps({}); // Force re-render.
       assert.isFalse(isLoadingIndicatorVisible(wrapper));
