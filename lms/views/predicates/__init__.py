@@ -9,10 +9,10 @@ from lms.views.predicates._lti_launch import (
     AuthorizedToConfigureAssignments,
     BlackboardCopied,
     BrightspaceCopied,
-    IsCanvas,
     CanvasFile,
     Configured,
     DBConfigured,
+    IsCanvas,
     URLConfigured,
     VitalSourceBook,
 )

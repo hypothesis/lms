@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from lms.models import Assignment
 
@@ -35,7 +36,6 @@ class AssignmentService:
                 raise MultipleResultsFound(
                     "Multiple assignments found. Should merge_canvas_assignments have been called"
                 )
-
             return assignments[0]
 
         if not resource_link_id:
@@ -169,14 +169,15 @@ class AssignmentService:
             .one()
         )
 
-    def _update_extra(self, old_extra, new_extra):
+    @staticmethod
+    def _update_extra(old_extra, new_extra):
         new_extra = new_extra if new_extra else {}
         if not old_extra:
             return new_extra
 
         old_extra = dict(old_extra)
         if old_canvas_file_mappings := old_extra.get("canvas_file_mappings"):
-            new_extra.extra["canvas_file_mappings"] = old_canvas_file_mappings
+            new_extra["canvas_file_mappings"] = old_canvas_file_mappings
 
         return new_extra
 
