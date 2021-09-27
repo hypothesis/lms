@@ -106,7 +106,26 @@ class ExceptionViews:
     @exception_view_config(context=CanvasAPIPermissionError)
     @exception_view_config(path_info="/api/*", context=Exception)
     def api_error(self):
-        """Fallback error handler for frontend API requests."""
+        """
+        General fallback error handler for API requests.
+
+        If the exception has an `error_code` attribute then:
+
+        1. The `error_code` attribute will be used as the "error_code" field in
+           the response's JSON body
+
+        2. The response's HTTP status will be 400
+
+        3. If the exception also has a `details` attribute this will be used as
+           "details" field in the response's body
+
+        If the exception does not have an `error_code` attribute then:
+
+        1. The response's HTTP status will be 500
+
+        2. A fixed string (see below) will be used as the "message" field in
+           the response's JSON body
+        """
 
         if hasattr(self.context, "error_code"):
             return self.error_response(
