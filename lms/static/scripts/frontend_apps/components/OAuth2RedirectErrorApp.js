@@ -6,6 +6,8 @@ import { Config } from '../config';
 import ErrorDisplay from './ErrorDisplay';
 import Dialog from './Dialog';
 
+/** @typedef {import('../config').OAuthErrorConfig} OAuthErrorConfig */
+
 /**
  * @typedef OAuth2RedirectErrorAppProps
  * @prop {Location} [location] - Test seam
@@ -18,14 +20,15 @@ import Dialog from './Dialog';
  * @param {OAuth2RedirectErrorAppProps} props
  */
 export default function OAuth2RedirectErrorApp({ location = window.location }) {
+  const { OAuth2RedirectError = /** @type {OAuthErrorConfig} */ ({}) } =
+    useContext(Config);
+
   const {
-    OAuth2RedirectError: {
-      authUrl = /** @type {string|null} */ (null),
-      errorCode = /** @type {string|null} */ (null),
-      errorDetails = '',
-      canvasScopes = /** @type {string[]} */ ([]),
-    },
-  } = useContext(Config);
+    authUrl = null,
+    errorCode = null,
+    errorDetails = '',
+    canvasScopes = /** @type {string[]} */ ([]),
+  } = OAuth2RedirectError ?? {};
 
   const error = { code: errorCode, details: errorDetails };
 
