@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from lms.models import Assignment
 
@@ -28,9 +28,15 @@ class AssignmentService:
         if all([resource_link_id, ext_lti_assignment_id]):
             # When launching an assignment in Canvas there are both resource_link_id and
             # ext_lti_assignment_id launch params.
-            return self._get_for_canvas_launch(
+            assignments = self.get_for_canvas_launch(
                 tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
             )
+            if len(assignments) > 1:
+                raise MultipleResultsFound(
+                    "Multiple assignments found. Should merge_canvas_assignments have been called"
+                )
+
+            return assignments[0]
 
         if not resource_link_id:
             # When creating or editing an assignment Canvas launches us with an
@@ -45,6 +51,44 @@ class AssignmentService:
             tool_consumer_instance_guid, resource_link_id
         )
 
+    @lru_cache(maxsize=128)
+    def get_for_canvas_launch(
+        self,
+        tool_consumer_instance_guid,
+        resource_link_id,
+        ext_lti_assignment_id,
+    ):
+        """Get a canvas assignment by both resource_link_id and ext_lti_assignment_id."""
+        assert resource_link_id and ext_lti_assignment_id
+
+        assignments = (
+            self._db.query(Assignment)
+            .filter(
+                Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
+                (
+                    (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
+                    | (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id.is_(None))
+                    )
+                    | (
+                        (Assignment.resource_link_id.is_(None))
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
+                ),
+            )
+            .order_by(Assignment.resource_link_id.asc())
+            .all()
+        )
+
+        if not assignments:
+            raise NoResultFound()
+
+        return assignments
+
     def exists(
         self,
         tool_consumer_instance_guid,
@@ -55,6 +99,9 @@ class AssignmentService:
             self.get(
                 tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
             )
+        except MultipleResultsFound:
+            # Merge needed but it exists
+            return True
         except (NoResultFound, ValueError):
             return False
         else:
@@ -91,18 +138,7 @@ class AssignmentService:
             self._db.add(assignment)
 
         assignment.document_url = document_url
-
-        if extra:
-            assignment.extra = extra
-
-        if extra:
-            assignment.extra = extra
-
-        if extra:
-            assignment.extra = extra
-
-        if extra:
-            assignment.extra = extra
+        assignment.extra = self._update_extra(assignment.extra, extra)
 
         # Clear the cache (@lru_cache) on self.get because we've changed the
         # contents of the DB. (Python's @lru_cache doesn't have a way to remove
@@ -121,73 +157,6 @@ class AssignmentService:
             .one()
         )
 
-    def _get_for_canvas_launch(
-        self,
-        tool_consumer_instance_guid,
-        resource_link_id,
-        ext_lti_assignment_id,
-    ):
-        """Get a canvas assignment by both resource_link_id and ext_lti_assignment_id."""
-        assert resource_link_id and ext_lti_assignment_id
-
-        assignments = (
-            self._db.query(Assignment)
-            .filter(
-                Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
-                (
-                    (
-                        (Assignment.resource_link_id == resource_link_id)
-                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
-                    )
-                    | (
-                        (Assignment.resource_link_id == resource_link_id)
-                        & (Assignment.ext_lti_assignment_id.is_(None))
-                    )
-                    | (
-                        (Assignment.resource_link_id.is_(None))
-                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
-                    )
-                ),
-            )
-            .order_by(Assignment.resource_link_id.asc())
-            .all()
-        )
-
-        if not assignments:
-            raise NoResultFound()
-
-        if len(assignments) == 2:
-            # We found two assignments: one with the matching resource_link_id and no ext_lti_assignment_id
-            # and one with the matching ext_lti_assignment_id and no resource_link_id.
-            #
-            # This happens because legacy code used to store Canvas assignments in the DB with a
-            # resource_link_id and no ext_lti_assignment_id, see https://github.com/hypothesis/lms/pull/2780
-            #
-            # Whereas current code stores Canvas assignments during content-item-selection with an
-            # ext_lti_assignment_id and no resource_link_id.
-            #
-            # We need to merge the two assignments into one.
-
-            # order is guaranteed by the query's `order by`
-            old_assignment, new_assignment = assignments
-
-            assert not old_assignment.ext_lti_assignment_id
-            assert not new_assignment.resource_link_id
-
-            assignment = self._merge_canvas_assignments(old_assignment, new_assignment)
-        else:
-            assignment = assignments[0]
-
-        if not assignment.resource_link_id:
-            # We found an assignment with an ext_lti_assignment_id but no resource_link_id.
-            # This happens the first time a new Canvas assignment is launched: the assignment got created
-            # during content-item-selection with an ext_lti_assignment_id but no resource_link_id,
-            # and then the first time the assignment is launched we add the resource_link_id.
-            assignment.resource_link_id = resource_link_id
-
-        # We found an assignment with the matching resource_link_id and ext_lti_assignment_id.kk
-        return assignment
-
     def _get_for_canvas_assignment_config(
         self, tool_consumer_instance_guid, ext_lti_assignment_id
     ):
@@ -200,27 +169,36 @@ class AssignmentService:
             .one()
         )
 
-    def _merge_canvas_assignments(self, old_assignment, new_assignment):
+    def _update_extra(self, old_extra, new_extra):
+        new_extra = new_extra if new_extra else {}
+        if not old_extra:
+            return new_extra
+
+        old_extra = dict(old_extra)
+        if old_canvas_file_mappings := old_extra.get("canvas_file_mappings"):
+            new_extra.extra["canvas_file_mappings"] = old_canvas_file_mappings
+
+        return new_extra
+
+    def merge_canvas_assignments(self, old_assignment, new_assignment):
         """
         Merge two Canvas assignments into one and return the merged assignment.
 
         Merge old_assignment into new_assignment, delete old_assignment, and return the updated
         new_assignment.
         """
-        old_extra = dict(old_assignment.extra)
-        # Legacy Canvas assignments in the DB were only ever saved with
-        # `"canvas_file_mappings"` or nothing in the `extra` column.
-        assert list(old_extra.keys()) in ([], ["canvas_file_mappings"])
+        new_extra = self._update_extra(old_assignment.extra, new_assignment.extra)
 
         self._db.delete(old_assignment)
         # Flushing early so the `resource_link_id` constraints doesn't
         # conflict between the deleted record and new_assignment .
         self._db.flush()
 
-        if old_canvas_file_mappings := old_extra.get("canvas_file_mappings"):
-            new_assignment.extra["canvas_file_mappings"] = old_canvas_file_mappings
-
+        new_assignment.extra = new_extra
         new_assignment.resource_link_id = old_assignment.resource_link_id
+
+        # Clear the cache, any subsequent call to get should return the now merged assignment
+        self.get.cache_clear()
         return new_assignment
 
 
