@@ -15,7 +15,7 @@ class LTILaunchVerificationError(Exception):
 
 
 class ConsumerKeyLaunchVerificationError(LTILaunchVerificationError):
-    """Raised when a given ``consumer_key`` doesn't exist in the DB."""
+    """Raised when the request's consumer_key doesn't exist in the DB."""
 
 
 class LTIOAuthError(LTILaunchVerificationError):
