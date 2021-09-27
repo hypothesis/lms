@@ -144,11 +144,10 @@ class BasicLTILaunchViews:
         )
         return {}
 
-    @view_config(db_configured=True)
+    @view_config(db_configured=True, is_canvas=False)
     def db_configured_basic_lti_launch(self):
         """
         Respond to a DB-configured assignment launch.
-
         DB-configured assignment launch requests don't have any kind of file ID
         or document URL in the request. Instead the document URL is stored in
         our own DB. This happens with LMS's that don't support LTI content item
@@ -172,46 +171,41 @@ class BasicLTILaunchViews:
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
         resource_link_id = self.request.params["resource_link_id"]
         ext_lti_assignment_id = self.request.params["ext_lti_assignment_id"]
-        if self.context.is_canvas:
-            assignments = self.assignment_service.get_for_canvas_launch(
-                tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+
+        assignments = self.assignment_service.get_for_canvas_launch(
+            tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+        )
+
+        if len(assignments) == 2:
+            # We found two assignments: one with the matching resource_link_id and no ext_lti_assignment_id
+            # and one with the matching ext_lti_assignment_id and no resource_link_id.
+            #
+            # This happens because legacy code used to store Canvas assignments in the DB with a
+            # resource_link_id and no ext_lti_assignment_id, see https://github.com/hypothesis/lms/pull/2780
+            #
+            # Whereas current code stores Canvas assignments during content-item-selection with an
+            # ext_lti_assignment_id and no resource_link_id.
+            #
+            # We need to merge the two assignments into one.
+
+            # order is guaranteed by the query's `order by`
+            old_assignment, new_assignment = assignments
+
+            assert not old_assignment.ext_lti_assignment_id
+            assert not new_assignment.resource_link_id
+
+            assignment = self.assignment_service.merge_canvas_assignments(
+                old_assignment, new_assignment
             )
-
-            if len(assignments) == 2:
-                # We found two assignments: one with the matching resource_link_id and no ext_lti_assignment_id
-                # and one with the matching ext_lti_assignment_id and no resource_link_id.
-                #
-                # This happens because legacy code used to store Canvas assignments in the DB with a
-                # resource_link_id and no ext_lti_assignment_id, see https://github.com/hypothesis/lms/pull/2780
-                #
-                # Whereas current code stores Canvas assignments during content-item-selection with an
-                # ext_lti_assignment_id and no resource_link_id.
-                #
-                # We need to merge the two assignments into one.
-
-                # order is guaranteed by the query's `order by`
-                old_assignment, new_assignment = assignments
-
-                assert not old_assignment.ext_lti_assignment_id
-                assert not new_assignment.resource_link_id
-
-                assignment = self.assignment_service.merge_canvas_assignments(
-                    old_assignment, new_assignment
-                )
-            else:
-                assignment = assignments[0]
-
-            if not assignment.resource_link_id:
-                # We found an assignment with an ext_lti_assignment_id but no resource_link_id.
-                # This happens the first time a new Canvas assignment is launched: the assignment got created
-                # during content-item-selection with an ext_lti_assignment_id but no resource_link_id,
-                # and then the first time the assignment is launched we add the resource_link_id.
-                assignment.resource_link_id = resource_link_id
-
         else:
-            assignment = self.assignment_service.get(
-                tool_consumer_instance_guid, resource_link_id
-            ).document_url
+            assignment = assignments[0]
+
+        if not assignment.resource_link_id:
+            # We found an assignment with an ext_lti_assignment_id but no resource_link_id.
+            # This happens the first time a new Canvas assignment is launched: the assignment got created
+            # during content-item-selection with an ext_lti_assignment_id but no resource_link_id,
+            # and then the first time the assignment is launched we add the resource_link_id.
+            assignment.resource_link_id = resource_link_id
 
         return self.basic_lti_launch(assignment.document_url)
 

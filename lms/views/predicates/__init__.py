@@ -9,6 +9,7 @@ from lms.views.predicates._lti_launch import (
     AuthorizedToConfigureAssignments,
     BlackboardCopied,
     BrightspaceCopied,
+    IsCanvas,
     CanvasFile,
     Configured,
     DBConfigured,
@@ -19,6 +20,7 @@ from lms.views.predicates._lti_launch import (
 
 def includeme(config):
     for view_predicate_factory in (
+        IsCanvas,
         DBConfigured,
         BlackboardCopied,
         BrightspaceCopied,

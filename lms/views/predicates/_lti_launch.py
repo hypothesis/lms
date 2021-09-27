@@ -36,12 +36,29 @@ class DBConfigured(Base):
         ext_lti_assignment_id = request.params.get("ext_lti_assignment_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
-        return (
+        value = (
             assignment_svc.exists(
                 tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
             )
             == self.value
         )
+        return value
+
+
+class IsCanvas(Base):
+    """Checks if the current launch is from Canvas"""
+
+    name = "is_canvas"
+
+    def __call__(self, context, request):
+        is_canvas = False
+        if request.params.get("tool_consumer_info_product_family_code") == "canvas":
+            is_canvas = True
+
+        if "custom_canvas_course_id" in request.params:
+            is_canvas = True
+
+        return is_canvas is self.value
 
 
 class _CourseCopied(Base, ABC):
