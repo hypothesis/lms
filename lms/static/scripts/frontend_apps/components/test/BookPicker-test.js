@@ -172,5 +172,12 @@ describe('BookPicker', () => {
     assert.equal(errorDisplay.prop('description'), 'Unable to fetch chapters');
     assert.equal(errorDisplay.prop('error'), error);
     assert.isFalse(picker.exists('ChapterList'));
+
+    // The modal content should not have the class applied for showing the
+    // list of chapters. That class makes the modal too tall for comfort when
+    // displaying an error
+    const modalContent = picker.find('div[role="dialog"]');
+    assert.isTrue(modalContent.hasClass('BookPicker'));
+    assert.isFalse(modalContent.hasClass('BookPicker--select-chapter'));
   });
 });

@@ -73,6 +73,9 @@ export default function BookPicker({ onCancel, onSelectBook }) {
   const canSubmit =
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
 
+  // Provide a spacious modal UI when listing chapters (taller modal)
+  const showChapters = step === 'select-chapter' && !error;
+
   return (
     <Modal
       // Opt out of Modal's automatic focus handling; route focus manually in
@@ -80,7 +83,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       initialFocus={null}
       onCancel={onCancel}
       contentClass={classnames('BookPicker', {
-        'BookPicker--select-chapter': step === 'select-chapter',
+        'BookPicker--select-chapter': showChapters,
       })}
       title={
         step === 'select-book'
