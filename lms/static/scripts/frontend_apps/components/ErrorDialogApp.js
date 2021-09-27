@@ -12,15 +12,16 @@ import Dialog from './Dialog';
  * (e.g. OAuth2RedirectErrorApp, LaunchErrorDialog).
  */
 export default function ErrorDialogApp() {
-  const {
-    errorDialog: { errorCode, errorDetails = '' },
-  } = useContext(Config);
+  const { errorDialog } = useContext(Config);
 
-  const error = { code: errorCode, details: errorDetails };
+  const error = {
+    code: errorDialog?.errorCode,
+    details: errorDialog?.errorDetails ?? '',
+  };
 
   let title;
 
-  switch (errorCode) {
+  switch (error.code) {
     case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
       break;
@@ -30,7 +31,7 @@ export default function ErrorDialogApp() {
 
   return (
     <Dialog title={title}>
-      {error.code === 'reused_consumer_key' && (
+      {error.code === 'reused_consumer_key' ? (
         <>
           This Hypothesis installation&apos;s consumer key appears to have
           already been used on another site. This could be because:
