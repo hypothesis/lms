@@ -252,7 +252,7 @@ pyasn1-modules==0.2.8
     #   google-auth
 pycodestyle==2.7.0
     # via -r requirements/lint.in
-pycryptodomex==3.10.1
+pycryptodomex==3.10.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

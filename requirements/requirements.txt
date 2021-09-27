@@ -78,7 +78,7 @@ pyasn1==0.4.8
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
-pycryptodomex==3.10.1
+pycryptodomex==3.10.4
     # via -r requirements/requirements.in
 pyjwt==2.1.0
     # via
