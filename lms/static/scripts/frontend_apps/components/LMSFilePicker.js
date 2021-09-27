@@ -314,7 +314,7 @@ export default function LMSFilePicker({
 
       {dialogState.state === 'error' && (
         <ErrorDisplay
-          message="There was a problem fetching files"
+          description="There was a problem fetching files"
           error={/** @type {Error} */ (dialogState.error)}
         />
       )}

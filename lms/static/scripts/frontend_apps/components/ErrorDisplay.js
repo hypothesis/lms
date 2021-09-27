@@ -35,7 +35,6 @@ function toSentence(str) {
  * @param {ErrorLike} error
  */
 function formatErrorDetails(error) {
-  /** @type {string|object} */
   let details = error.details ?? '';
   if (error?.details && typeof error.details === 'object') {
     try {
@@ -80,25 +79,41 @@ function ErrorDetails({ error }) {
 
 /**
  * @typedef ErrorDisplayProps
- * @prop {string|null} [message] -
- *   A short message to display explaining that a problem happened. This is
- *   typically a general message like "There was a problem fetching this assignment".
- *   In cases where the the error originates from the server, this message may not
- *   be necessary, but in other cases where the `error.message` is generic and perhaps
- *   originates from an exception in the client, then this prop can be used to
- *   provide additional specifics.
- * @prop {ErrorLike} error -
- *   An `Error`-like object with specific details of the problem. If `error` contains
- *   a `message` property, then that string will be rendered.
+ * @prop {string|null} [description] -
+ *   A short message explaining the error and its human-facing relevance.
+ *   This is typically a general message like
+ *   "There was a problem fetching this assignment". This description
+ *   always comes from (this) LMS client app.
+ *
+ *   The presence of a `description` indicates that this `ErrorDisplay` is
+ *   responsible for explaining the error to the user in some fashion. Along
+ *   with this `description`, anything available in `error.message` is also
+ *   shown.
+ *
+ *   When `description` is absent, it indicates that the main explaining of
+ *   the error's relevance to the user is handled elsewhere, and no additional
+ *   error messaging is necessary. This is the case, for example, with some
+ *   of the well-explained error states in `OAuth2RedirectErrorApp` or
+ *   `LaunchErrorDialog`: these don't need additional error messaging that is,
+ *   for the most part, redundant or useless.
+ *
+ *   Available `error.details` and support/email instructions are always
+ *   shown regardless of the presence of this prop.
+ *
+ * @prop {ErrorLike} error - Error-like object containing further `details`
+ *   or `message` about this error state. The value of `details` and `message`
+ *   may come from a server response.
  */
 
 /**
- * Displays details of an error, such as a failed API call and provide the user
- * with information on how to get help with it.
+ * Displays human-facing details of an error, including:
+ * - Explanation/message (if `description` is provided)
+ * - Instructions for contacting support and getting help
+ * - Stringified-JSON details of the error (if `error.details` is populated)
  *
  * @param {ErrorDisplayProps} props
  */
-export default function ErrorDisplay({ message, error }) {
+export default function ErrorDisplay({ description, error }) {
   const details = formatErrorDetails(error);
 
   const supportLink = emailLink({
@@ -113,9 +128,9 @@ Technical details: ${details || 'N/A'}
 
   return (
     <div className="ErrorDisplay">
-      {message && (
+      {description && (
         <p data-testid="message">
-          {message}
+          {description}
           {error.message && (
             <>
               : <i>{toSentence(error.message)}</i>

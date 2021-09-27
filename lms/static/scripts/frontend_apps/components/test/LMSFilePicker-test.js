@@ -295,7 +295,7 @@ describe('LMSFilePicker', () => {
 
       const errorDetails = wrapper.find('ErrorDisplay');
       assert.include(errorDetails.props(), {
-        message: 'There was a problem fetching files',
+        description: 'There was a problem fetching files',
         error,
       });
 

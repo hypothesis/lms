@@ -51,7 +51,7 @@ describe('OAuth2RedirectErrorApp', () => {
     );
   });
 
-  it('shows a different title and message for blackboard_missing_integration', () => {
+  it('shows a different title and description for blackboard_missing_integration', () => {
     fakeConfig.errorCode = 'blackboard_missing_integration';
     const wrapper = renderApp();
     assert.include(wrapper.text(), 'Missing Blackboard REST API integration');
@@ -69,7 +69,7 @@ describe('OAuth2RedirectErrorApp', () => {
 
     const errorDisplay = wrapper.find('ErrorDisplay');
     assert.include(errorDisplay.props(), {
-      message: 'Something went wrong when authorizing Hypothesis',
+      description: 'Something went wrong when authorizing Hypothesis',
     });
     assert.deepEqual(errorDisplay.prop('error'), {
       details: fakeConfig.errorDetails,

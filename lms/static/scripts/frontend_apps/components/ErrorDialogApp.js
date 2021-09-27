@@ -66,7 +66,7 @@ export default function ErrorDialogApp() {
       ) : (
         <ErrorDisplay
           error={error}
-          message="An error occurred when launching the Hypothesis application"
+          description="An error occurred when launching the Hypothesis application"
         />
       )}
     </Dialog>
