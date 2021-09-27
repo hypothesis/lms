@@ -61,6 +61,22 @@ class IsCanvas(Base):
         return is_canvas is self.value
 
 
+class IsCanvas(Base):
+    """Check if the current launch comes from Canvas."""
+
+    name = "is_canvas"
+
+    def __call__(self, context, request):
+        is_canvas = False
+        if request.params.get("tool_consumer_info_product_family_code") == "canvas":
+            is_canvas = True
+
+        if "custom_canvas_course_id" in request.params:
+            is_canvas = True
+
+        return is_canvas is self.value
+
+
 class _CourseCopied(Base, ABC):
     """
     Allow invoking an LTI launch view for newly course-copied assignments.

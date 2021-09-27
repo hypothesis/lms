@@ -10,12 +10,34 @@ from lms.views.predicates import (
     CanvasFile,
     Configured,
     DBConfigured,
+    IsCanvas,
     URLConfigured,
     VitalSourceBook,
 )
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("assignment_service")
+
+
+class TestIsCanvas:
+    @pytest.mark.parametrize(
+        "params,value,expected",
+        [
+            ({}, True, False),
+            ({}, False, True),
+            ({"tool_consumer_info_product_family_code": "other"}, True, False),
+            ({"tool_consumer_info_product_family_code": "canvas"}, True, True),
+            ({"custom_canvas_course_id": "any value"}, True, True),
+        ],
+    )
+    def test_when_family_code_is(self, pyramid_request, params, value, expected):
+        pyramid_request.params = params
+
+        predicate = IsCanvas(value, mock.sentinel.config)
+
+        result = predicate(mock.sentinel.context, pyramid_request)
+
+        assert result is expected
 
 
 class TestDBConfigured:
@@ -56,7 +78,7 @@ class TestFooCopied:
         resource_link_id_exists,
         resource_link_id_history_exists,
     ):
-        def exists(_, resource_link_id):
+        def exists(_, resource_link_id, _resource_link_id_exists=None):
             if resource_link_id == pyramid_request.params["resource_link_id"]:
                 if resource_link_id_exists:
                     # The database already has a document_url for the resource_link_id.
@@ -105,17 +127,21 @@ class TestFooCopied:
 
 class TestCanvasFile:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_canvas_file(self, value, expected):
-        request = DummyRequest(params={"canvas_file": 22})
+    def test_when_assignment_is_canvas_file(self, value, expected, pyramid_request):
+        pyramid_request.params = {"canvas_file": 22}
         predicate = CanvasFile(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, request) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_canvas_file(self, value, expected):
+    def test_when_assignment_is_not_canvas_file(
+        self, value, expected, pyramid_request, assignment_service
+    ):
+        assignment_service.exists.return_value = expected
+
         predicate = CanvasFile(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
 
 class TestVitalSourceBook:
@@ -127,25 +153,31 @@ class TestVitalSourceBook:
         assert predicate(mock.sentinel.context, request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_vitalsource_book(self, value, expected):
+    def test_when_assignment_is_not_vitalsource_book(
+        self, value, expected, pyramid_request
+    ):
         predicate = VitalSourceBook(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
 
 class TestURLConfigured:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_url_configured(self, value, expected):
-        request = DummyRequest(params={"url": "https://example.com"})
+    def test_when_assignment_is_url_configured(self, value, expected, pyramid_request):
+        pyramid_request.params = {"url": "https://example.com"}
         predicate = URLConfigured(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, request) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_url_configured(self, value, expected):
+    def test_when_assignment_is_not_url_configured(
+        self, value, expected, pyramid_request, assignment_service
+    ):
+        assignment_service.exists.return_value = expected
+
         predicate = URLConfigured(value, mock.sentinel.config)
 
-        assert predicate(mock.sentinel.context, DummyRequest()) is expected
+        assert predicate(mock.sentinel.context, pyramid_request) is expected
 
 
 class TestConfigured:
