@@ -126,7 +126,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       )}
       {error && (
         <ErrorDisplay
-          message={
+          description={
             step === 'select-book'
               ? 'Unable to fetch books'
               : 'Unable to fetch chapters'

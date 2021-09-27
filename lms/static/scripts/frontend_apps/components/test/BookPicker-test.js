@@ -169,7 +169,7 @@ describe('BookPicker', () => {
 
     const errorDisplay = await waitForElement(picker, 'ErrorDisplay');
 
-    assert.equal(errorDisplay.prop('message'), 'Unable to fetch chapters');
+    assert.equal(errorDisplay.prop('description'), 'Unable to fetch chapters');
     assert.equal(errorDisplay.prop('error'), error);
     assert.isFalse(picker.exists('ChapterList'));
   });

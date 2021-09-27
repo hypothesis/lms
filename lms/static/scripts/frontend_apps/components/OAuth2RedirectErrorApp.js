@@ -33,7 +33,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const error = { code: errorCode, details: errorDetails };
 
   let title;
-  let message;
+  let description;
   switch (errorCode) {
     case 'canvas_invalid_scope':
       title = 'Developer key scopes missing';
@@ -43,7 +43,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
       break;
     default:
       title = 'Authorization failed';
-      message = 'Something went wrong when authorizing Hypothesis';
+      description = 'Something went wrong when authorizing Hypothesis';
       break;
   }
 
@@ -122,7 +122,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
           </p>
         </>
       )}
-      <ErrorDisplay message={message} error={error} />
+      <ErrorDisplay description={description} error={error} />
     </Dialog>
   );
 }

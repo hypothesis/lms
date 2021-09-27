@@ -25,7 +25,7 @@ describe('ErrorDisplay', () => {
     error.details = { someTechnicalDetail: 123 };
 
     const wrapper = mount(
-      <ErrorDisplay message="Failed to fetch files" error={error} />
+      <ErrorDisplay description="Failed to fetch files" error={error} />
     );
 
     const href = getSupportEmailLink(wrapper);
@@ -43,7 +43,7 @@ describe('ErrorDisplay', () => {
     error.details = { someTechnicalDetail: 123 };
 
     const wrapper = mount(
-      <ErrorDisplay message="Failed to fetch files" error={error} />
+      <ErrorDisplay description="Failed to fetch files" error={error} />
     );
     const href = getSupportEmailLink(wrapper);
 
@@ -54,7 +54,7 @@ describe('ErrorDisplay', () => {
     const error = new Error('Something went wrong');
 
     const wrapper = mount(
-      <ErrorDisplay message="Failed to fetch files" error={error} />
+      <ErrorDisplay description="Failed to fetch files" error={error} />
     );
     const href = getSupportEmailLink(wrapper);
 
@@ -62,13 +62,16 @@ describe('ErrorDisplay', () => {
   });
 
   [
-    { message: '' },
-    { message: 'Oh no', details: null },
-    { message: 'Oh no', details: '' },
+    { description: '' },
+    { description: 'Oh no', details: null },
+    { description: 'Oh no', details: '' },
   ].forEach(error => {
     it('omits technical details if not provided', () => {
       const wrapper = mount(
-        <ErrorDisplay message="Something went wrong" error={error} />
+        <ErrorDisplay
+          message="Something went wrong"
+          error={{ message: '', details: error.details }}
+        />
       );
 
       const details = wrapper.find('pre');
@@ -123,27 +126,27 @@ describe('ErrorDisplay', () => {
 
   [
     {
-      message: 'Not a sentence',
+      description: 'Not a sentence',
       output: 'Not a sentence',
     },
     {
-      message: 'A sentence',
+      description: 'A sentence',
       output: 'A sentence',
     },
     {
-      message: 'Oh no',
+      description: 'Oh no',
       error: 'Tech details',
       output: 'Oh no: Tech details.',
     },
     {
-      message: 'Oh no',
+      description: 'Oh no',
       error: 'Tech details.',
       output: 'Oh no: Tech details.',
     },
-  ].forEach(({ message, error, output }, index) => {
+  ].forEach(({ description, error, output }, index) => {
     it(`formats error.message as sentence (${index})`, () => {
       const wrapper = mount(
-        <ErrorDisplay message={message} error={{ message: error }} />
+        <ErrorDisplay description={description} error={{ message: error }} />
       );
       assert.equal(wrapper.find('p').first().text(), output);
     });
@@ -151,18 +154,18 @@ describe('ErrorDisplay', () => {
 
   [
     {
-      message: 'Provided by client',
+      description: 'Provided by client',
       error: 'Provided by server',
       output: 'Provided by client: Provided by server.',
     },
     {
-      message: 'Provided by client',
+      description: 'Provided by client',
       output: 'Provided by client',
     },
-  ].forEach(({ message, error, output }, index) => {
+  ].forEach(({ description, error, output }, index) => {
     it(`shows the appropriate error message if provided (${index})`, () => {
       const wrapper = mount(
-        <ErrorDisplay message={message} error={{ message: error }} />
+        <ErrorDisplay description={description} error={{ message: error }} />
       );
       assert.equal(wrapper.find('p[data-testid="message"]').text(), output);
     });
