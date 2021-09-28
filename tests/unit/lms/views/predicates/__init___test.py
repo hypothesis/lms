@@ -8,7 +8,6 @@ from lms.views.predicates._lti_launch import (
     CanvasFile,
     Configured,
     DBConfigured,
-    IsCanvas,
     URLConfigured,
     VitalSourceBook,
 )
@@ -20,7 +19,6 @@ def test_includeme_adds_the_view_predicates():
     includeme(config)
 
     assert config.add_view_predicate.call_args_list == [
-        mock.call("is_canvas", IsCanvas),
         mock.call("db_configured", DBConfigured),
         mock.call("blackboard_copied", BlackboardCopied),
         mock.call("brightspace_copied", BrightspaceCopied),

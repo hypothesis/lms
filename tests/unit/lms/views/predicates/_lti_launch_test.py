@@ -10,34 +10,12 @@ from lms.views.predicates import (
     CanvasFile,
     Configured,
     DBConfigured,
-    IsCanvas,
     URLConfigured,
     VitalSourceBook,
 )
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("assignment_service")
-
-
-class TestIsCanvas:
-    @pytest.mark.parametrize(
-        "params,value,expected",
-        [
-            ({}, True, False),
-            ({}, False, True),
-            ({"tool_consumer_info_product_family_code": "other"}, True, False),
-            ({"tool_consumer_info_product_family_code": "canvas"}, True, True),
-            ({"custom_canvas_course_id": "any value"}, True, True),
-        ],
-    )
-    def test_when_family_code_is(self, pyramid_request, params, value, expected):
-        pyramid_request.params = params
-
-        predicate = IsCanvas(value, mock.sentinel.config)
-
-        result = predicate(mock.sentinel.context, pyramid_request)
-
-        assert result is expected
 
 
 class TestDBConfigured:

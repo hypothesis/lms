@@ -140,11 +140,7 @@ class AssignmentService:
         assignment.document_url = document_url
         assignment.extra = self._update_extra(assignment.extra, extra)
 
-        # Clear the cache (@lru_cache) on self.get because we've changed the
-        # contents of the DB. (Python's @lru_cache doesn't have a way to remove
-        # just one key from the cache, you have to clear the entire cache.)
-        self.get.cache_clear()
-
+        self._clear_cache()
         return assignment
 
     def _get_by_resource_link_id(self, tool_consumer_instance_guid, resource_link_id):
@@ -198,9 +194,18 @@ class AssignmentService:
         new_assignment.extra = new_extra
         new_assignment.resource_link_id = old_assignment.resource_link_id
 
-        # Clear the cache, any subsequent call to get should return the now merged assignment
-        self.get.cache_clear()
+        self._clear_cache()
         return new_assignment
+
+    def _clear_cache(self):
+        """
+        Clear the cache (@lru_cache) because we've changed the contents of the DB.
+
+        Python's @lru_cache doesn't have a way to remove
+        just one key from the cache, you have to clear the entire cache.)
+        """
+        self.get.cache_clear()
+        self.get_for_canvas_launch.cache_clear()
 
 
 def factory(_context, request):
