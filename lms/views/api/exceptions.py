@@ -13,8 +13,8 @@ from lms.validation import ValidationError
 _ = i18n.TranslationStringFactory(__package__)
 
 
-@view_defaults(renderer="json")
-class ExceptionViews:
+@view_defaults(path_info="^/api/.*", renderer="json")
+class APIExceptionViews:
     """
     Exception views for the API.
 
@@ -109,7 +109,7 @@ class ExceptionViews:
         # view above would catch CanvasAPIPermissionError's.
         context=CanvasAPIPermissionError
     )
-    @exception_view_config(path_info="/api/*", context=Exception)
+    @exception_view_config(context=Exception)
     def api_error(self):
         """
         General fallback error handler for API requests.
@@ -146,13 +146,13 @@ class ExceptionViews:
             ),
         )
 
-    @forbidden_view_config(path_info="/api/*")
+    @forbidden_view_config()
     def forbidden(self):
         return self.error_response(
             403, message=_("You're not authorized to view this page.")
         )
 
-    @notfound_view_config(path_info="/api/*")
+    @notfound_view_config()
     def notfound(self):
         return self.error_response(404, message=_("Endpoint not found."))
 

@@ -1,112 +1,138 @@
-from unittest import mock
+from unittest.mock import create_autospec, sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPBadRequest
+from pyramid import httpexceptions
 
 from lms.models import ReusedConsumerKey
+from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
 from lms.validation import ValidationError
-from lms.views import exceptions
+from lms.views.exceptions import ExceptionViews
 
 
-class ExceptionViewTest:
-    view = None
-    exception = None
+class TestNotFound:
+    def test_it(self, assert_response, exception_views):
+        assert_response(exception_views.notfound(), 404, message="Page not found")
 
-    expected_result = None
-    response_status = None
+    @pytest.fixture
+    def exception(self):
+        return httpexceptions.HTTPNotFound()
 
-    def handle(self, pyramid_request):
-        if self.exception is None:
-            return type(self).view(  # pylint:disable=not-callable
-                mock.sentinel.exception, pyramid_request
-            )
 
-        return type(self).view(  # pylint:disable=not-callable
-            self.exception, pyramid_request
+class TestForbidden:
+    def test_it(self, assert_response, exception_views):
+        assert_response(
+            exception_views.forbidden(),
+            403,
+            message="You're not authorized to view this page",
         )
 
-    def test_it_sets_response_status(self, pyramid_request):
-        self.handle(pyramid_request)
-
-        assert pyramid_request.response.status_int == self.response_status
-
-    def test_it_produces_the_expected_template_vars(self, pyramid_request):
-        result = self.handle(pyramid_request)
-
-        assert result == self.expected_result
+    @pytest.fixture
+    def exception(self):
+        return httpexceptions.HTTPForbidden()
 
 
-class TestNotFound(ExceptionViewTest):
-    view = exceptions.notfound
-    exception = None
-
-    response_status = 404
-    expected_result = {"message": "Page not found"}
-
-
-class TestForbidden(ExceptionViewTest):
-    view = exceptions.forbidden
-    exception = None
-
-    response_status = 403
-    expected_result = {"message": "You're not authorized to view this page"}
-
-
-class TestHTTPClientError(ExceptionViewTest):
-    view = exceptions.http_client_error
-    exception = HTTPBadRequest("This is the error message")
-
-    response_status = 400
-    expected_result = {"message": exception.args[0]}
-
-
-class TestHAPIError(ExceptionViewTest):
-    view = exceptions.hapi_error
-    exception = HAPIError("This is the error message")
-
-    response_status = 500
-    expected_result = {"message": "This is the error message"}
-
-
-class TestValidationError(ExceptionViewTest):
-    view = exceptions.validation_error
-    exception = ValidationError(mock.sentinel.messages)
-
-    response_status = 422
-    expected_result = {"error": exception}
-
-
-class TestError(ExceptionViewTest):
-    view = exceptions.error
-    exception = None
-
-    response_status = 500
-    expected_result = {
-        "message": "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
-    }
-
-
-class TestReusedGuidErrorExceptionView:
-    def test_application_reused_tool_guid(self, pyramid_request):
-        exceptions.reused_tool_guid_error(
-            ReusedConsumerKey("existing_guid", "new_guid"),
-            pyramid_request,
+class TestHTTPClientError:
+    def test_it(self, assert_response, exception, exception_views):
+        assert_response(
+            exception_views.http_client_error(),
+            status=exception.status_int,
+            message="http_client_error_test_explanation",
         )
 
-        js_config = pyramid_request.context.js_config
-        js_config.enable_error_dialog_mode.assert_called_with(
+    @pytest.fixture
+    def exception(self):
+        return httpexceptions.HTTPBadRequest("http_client_error_test_explanation")
+
+
+class TestHAPIError:
+    def test_it(self, assert_response, exception_views):
+        assert_response(
+            exception_views.hapi_error(), 500, message="hapi_error_test_explanation"
+        )
+
+    @pytest.fixture
+    def exception(self):
+        return HAPIError("hapi_error_test_explanation")
+
+
+class TestValidationError:
+    def test_it(self, assert_response, exception, exception_views):
+        assert_response(
+            exception_views.validation_error(),
+            status=exception.status_int,
+            error=exception,
+        )
+
+    @pytest.fixture
+    def exception(self):
+        return ValidationError(sentinel.messages)
+
+
+class TestReusedToolGUIDError:
+    def test_it(self, assert_response, exception_views, pyramid_request):
+        assert_response(exception_views.reused_tool_guid_error(), 200)
+
+        pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
             error_code=JSConfig.ErrorCode.REUSED_TOOL_GUID,
             error_details={
-                "existing_tool_consumer_guid": "existing_guid",
-                "new_tool_consumer_guid": "new_guid",
+                "existing_tool_consumer_guid": sentinel.existing_guid,
+                "new_tool_consumer_guid": sentinel.new_guid,
             },
         )
 
     @pytest.fixture
+    def exception(self):
+        return ReusedConsumerKey(sentinel.existing_guid, sentinel.new_guid)
+
+    @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
-        js_config.ErrorCode = JSConfig.ErrorCode
-        pyramid_request.context = mock.Mock(js_config=js_config)
+        pyramid_request.context = create_autospec(
+            LTILaunchResource,
+            instance=True,
+            spec_set=True,
+            js_config=create_autospec(
+                JSConfig,
+                instance=True,
+                spec_set=True,
+                ErrorCode=JSConfig.ErrorCode,
+            ),
+        )
         return pyramid_request
+
+
+class TestError:
+    def test_it(self, assert_response, exception_views):
+        assert_response(
+            exception_views.error(),
+            500,
+            message="Sorry, but something went wrong. The issue has been "
+            "reported and we'll try to fix it.",
+        )
+
+    @pytest.fixture
+    def exception(self):
+        return RuntimeError()
+
+
+@pytest.fixture
+def exception_views(exception, pyramid_request):
+    return ExceptionViews(exception, pyramid_request)
+
+
+@pytest.fixture
+def assert_response(pyramid_request):
+    def assert_response(template_data, status, message=None, error=None):
+        assert pyramid_request.response.status_int == status
+
+        if message:
+            assert template_data == {"message": message}
+
+        elif error:
+            assert template_data == {"error": error}
+
+        else:
+            assert template_data == {}
+
+    return assert_response
