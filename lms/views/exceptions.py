@@ -16,12 +16,6 @@ _ = i18n.TranslationStringFactory(__package__)
 DEFAULT_RENDERER = "lms:templates/error.html.jinja2"
 
 
-def _http_error(exc, request):
-    """Handle an HTTP 4xx or 5xx exception."""
-    request.response.status_int = exc.status_int
-    return {"message": str(exc)}
-
-
 @notfound_view_config(renderer=DEFAULT_RENDERER)
 def notfound(_exc, request):
     request.response.status_int = 404
@@ -37,7 +31,8 @@ def forbidden(_exc, request):
 @exception_view_config(context=HTTPClientError, renderer=DEFAULT_RENDERER)
 def http_client_error(exc, request):
     """Handle an HTTP 4xx (client error) exception."""
-    return _http_error(exc, request)
+    request.response.status_int = exc.status_int
+    return {"message": str(exc)}
 
 
 @exception_view_config(context=HAPIError, renderer=DEFAULT_RENDERER)
