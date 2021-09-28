@@ -2,7 +2,7 @@ import pytest
 
 from lms.services import CanvasAPIError, CanvasAPIPermissionError, LTIOutcomesAPIError
 from lms.validation import ValidationError
-from lms.views.api.exceptions import ExceptionViews
+from lms.views.api.exceptions import APIExceptionViews
 
 
 class TestSchemaValidationError:
@@ -117,4 +117,4 @@ def context():
 
 @pytest.fixture
 def views(context, pyramid_request):
-    return ExceptionViews(context, pyramid_request)
+    return APIExceptionViews(context, pyramid_request)
