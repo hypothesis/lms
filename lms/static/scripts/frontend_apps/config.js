@@ -97,7 +97,7 @@ import { createContext } from 'preact';
  */
 
 /**
- * @typedef {'reused_tool_guid'} ErrorCode
+ * @typedef {'reused_consumer_key'} ErrorCode
  */
 
 /**
