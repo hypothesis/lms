@@ -31,8 +31,8 @@ describe('ErrorDialogApp', () => {
     assert.include(wrapper.text(), 'Unknown error occurred');
   });
 
-  it('shows dialog for reused tool_consumer_guid', () => {
-    fakeConfig.errorCode = 'reused_tool_guid';
+  it('shows dialog for reused_consumer_key', () => {
+    fakeConfig.errorCode = 'reused_consumer_key';
 
     const wrapper = renderApp();
     assert.include(
