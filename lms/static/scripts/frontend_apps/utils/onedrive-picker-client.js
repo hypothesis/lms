@@ -1,5 +1,5 @@
-import { loadOneDriveAPI } from './onedrive-api-client';
 import { PickerCanceledError } from './google-picker-client';
+import { loadOneDriveAPI } from './onedrive-api-client';
 
 export class OneDrivePickerClient {
   /**
@@ -8,19 +8,9 @@ export class OneDrivePickerClient {
    * @param {string} options.redirectURI - the URL that is used to launch the picker
    */
   constructor({ clientId, redirectURI }) {
-    loadOneDriveAPI();
-
-    this._filePickerOptions = {
-      clientId,
-      action: 'share',
-      multiSelect: false,
-      viewType: 'files', // The type of item that can be selected.
-      advanced: {
-        redirectUri: redirectURI,
-        filter: '.pdf',
-        createLinkParameters: { type: 'view', scope: 'anonymous' },
-      },
-    };
+    this._onLoadOneDriveAPI = loadOneDriveAPI();
+    this._clientId = clientId;
+    this._redirectURI = redirectURI;
   }
 
   /**
@@ -28,11 +18,12 @@ export class OneDrivePickerClient {
    *
    * @returns Promise<{url: string}> - the URL of the file
    * @throws {Error} - there are two types of errors:
-   *   - PickerCancelledError: raise when the user cancels the OneDrive dialog picker
-   *   - Other errors: raise when (1) the OneDrive client fails to load (`window.OneDrive` is
-   *       undefined), or when (2) the picker fails in a different way.
+   *   - PickerCancelledError: raised when the user cancels the OneDrive dialog picker
+   *   - Error: raised when (1) the OneDrive client fails to load, or when (2)
+   *       the picker fails with internal or backend problem.
    */
   async showPicker() {
+    const oneDrive = await this._onLoadOneDriveAPI;
     return new Promise((resolve, reject) => {
       const success = (/** @type {any} */ file) => {
         const sharingURL = file.value[0].permissions[0].link.webUrl;
@@ -41,10 +32,22 @@ export class OneDrivePickerClient {
       };
       const cancel = () => reject(new PickerCanceledError());
       const error = (/** @type {Error} */ error) => reject(error);
-      window.OneDrive.open({
-        ...this._filePickerOptions,
-        ...{ success, cancel, error },
-      });
+
+      const filePickerOptions = {
+        clientId: this._clientId,
+        action: 'share',
+        multiSelect: false,
+        viewType: 'files', // The type of item that can be selected.
+        advanced: {
+          redirectUri: this._redirectURI,
+          filter: '.pdf',
+          createLinkParameters: { type: 'view', scope: 'anonymous' },
+        },
+        success,
+        cancel,
+        error,
+      };
+      oneDrive.open(filePickerOptions);
     });
   }
 
