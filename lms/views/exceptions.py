@@ -66,21 +66,6 @@ class ExceptionViews:
 
     @exception_view_config(context=Exception)
     def error(self):
-        """
-        Handle an unexpected exception.
-
-        If the code raises an unexpected exception (anything not caught by any
-        of the more specific exception views above) then we assume it was a
-        bug. When this happens we:
-
-        1. Set the response status to 500 Server Error.
-        2. Show the user an error page containing only a generic error message
-        (don't show them the exception message).
-
-        These issues also get reported to Sentry but we don't have to
-        do that here -- non-HTTPError exceptions are automatically
-        reported by the Pyramid Sentry integration.
-        """
         self.request.response.status_int = 500
         return {
             "message": _(
