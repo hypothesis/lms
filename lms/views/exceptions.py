@@ -23,23 +23,19 @@ class ExceptionViews:
 
     @notfound_view_config()
     def notfound(self):
-        self.request.response.status_int = 404
-        return {"message": _("Page not found")}
+        return self.error_response(404, _("Page not found"))
 
     @forbidden_view_config()
     def forbidden(self):
-        self.request.response.status_int = 403
-        return {"message": _("You're not authorized to view this page")}
+        return self.error_response(403, _("You're not authorized to view this page"))
 
     @exception_view_config(context=HTTPClientError)
     def http_client_error(self):
-        self.request.response.status_int = self.exception.status_int
-        return {"message": str(self.exception)}
+        return self.error_response(self.exception.status_int, str(self.exception))
 
     @exception_view_config(context=HAPIError)
     def hapi_error(self):
-        self.request.response.status_int = 500
-        return {"message": str(self.exception)}
+        return self.error_response(500, str(self.exception))
 
     @exception_view_config(
         context=ValidationError, renderer="lms:templates/validation_error.html.jinja2"
@@ -64,11 +60,16 @@ class ExceptionViews:
 
     @exception_view_config(context=Exception)
     def error(self):
-        self.request.response.status_int = 500
-        return {
-            "message": _(
+        return self.error_response(
+            500,
+            _(
                 "Sorry, but something went wrong. "
                 "The issue has been reported and we'll try to "
                 "fix it."
-            )
-        }
+            ),
+        )
+
+    def error_response(self, status, message):
+        """Set the response status and return template data for error.html.jinja2."""
+        self.request.response.status_int = status
+        return {"message": message}
