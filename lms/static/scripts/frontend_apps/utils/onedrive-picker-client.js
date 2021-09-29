@@ -1,6 +1,12 @@
 import { PickerCanceledError } from './google-picker-client';
 import { loadOneDriveAPI } from './onedrive-api-client';
 
+/**
+ * A wrapper around the Microsoft OneDrive file picker.
+ *
+ * See https://docs.microsoft.com/en-us/onedrive/developer/controls/file-pickers/js-v72/open-file?view=odsp-graph-online
+ * for documentation on the underlying library.
+ */
 export class OneDrivePickerClient {
   /**
    * @param {object} options
@@ -8,7 +14,7 @@ export class OneDrivePickerClient {
    * @param {string} options.redirectURI - the URL that is used to launch the picker
    */
   constructor({ clientId, redirectURI }) {
-    this._onLoadOneDriveAPI = loadOneDriveAPI();
+    this._oneDriveAPI = loadOneDriveAPI();
     this._clientId = clientId;
     this._redirectURI = redirectURI;
   }
@@ -23,7 +29,7 @@ export class OneDrivePickerClient {
    *       the picker fails with internal or backend problem.
    */
   async showPicker() {
-    const oneDrive = await this._onLoadOneDriveAPI;
+    const oneDrive = await this._oneDriveAPI;
     return new Promise((resolve, reject) => {
       const success = (/** @type {any} */ file) => {
         const sharingURL = file.value[0].permissions[0].link.webUrl;
