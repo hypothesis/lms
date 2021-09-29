@@ -65,7 +65,7 @@ class TestExceptionViews:
             "reported and we'll try to fix it.",
         )
 
-    def test_reused_tool_guid_error(self, assert_response, pyramid_request):
+    def test_reused_consumer_key(self, assert_response, pyramid_request):
         pyramid_request.context = create_autospec(
             LTILaunchResource,
             instance=True,
@@ -79,16 +79,14 @@ class TestExceptionViews:
         )
         exception = ReusedConsumerKey(sentinel.existing_guid, sentinel.new_guid)
 
-        template_data = ExceptionViews(
-            exception, pyramid_request
-        ).reused_tool_guid_error()
+        template_data = ExceptionViews(exception, pyramid_request).reused_consumer_key()
 
         assert_response(template_data, 400)
         pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
-            error_code=JSConfig.ErrorCode.REUSED_TOOL_GUID,
+            error_code=JSConfig.ErrorCode.REUSED_CONSUMER_KEY,
             error_details={
-                "existing_tool_consumer_guid": sentinel.existing_guid,
-                "new_tool_consumer_guid": sentinel.new_guid,
+                "existing_tool_consumer_instance_guid": sentinel.existing_guid,
+                "new_tool_consumer_instance_guid": sentinel.new_guid,
             },
         )
 

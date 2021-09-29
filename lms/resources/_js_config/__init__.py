@@ -21,7 +21,7 @@ class JSConfig:
     class ErrorCode(str, Enum):
         BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
         CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
-        REUSED_TOOL_GUID = "reused_tool_guid"
+        REUSED_CONSUMER_KEY = "reused_consumer_key"
 
     def __init__(self, context, request):
         self._context = context

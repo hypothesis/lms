@@ -21,7 +21,7 @@ export default function ErrorDialogApp() {
   let message;
 
   switch (errorCode) {
-    case 'reused_tool_guid':
+    case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
       message = 'Reused tool_consumer_instance_guid';
       break;
@@ -32,7 +32,7 @@ export default function ErrorDialogApp() {
 
   return (
     <Dialog title={title}>
-      {error.code === 'reused_tool_guid' && (
+      {error.code === 'reused_consumer_key' && (
         <>
           This Hypothesis installation&apos;s consumer key appears to have
           already been used on another site. This could be because:
