@@ -45,7 +45,6 @@ class ExceptionViews:
         context=ValidationError, renderer="lms:templates/validation_error.html.jinja2"
     )
     def validation_error(self):
-        """Handle a ValidationError."""
         self.request.response.status_int = self.exception.status_int
         return {"error": self.exception}
 
