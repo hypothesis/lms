@@ -119,12 +119,13 @@ class AssignmentService:
         except ValueError:
             return False
 
-    def set_document_url(
+    def set_document_url(  # pylint:disable=too-many-arguments
         self,
         document_url,
         tool_consumer_instance_guid,
         resource_link_id=None,
         ext_lti_assignment_id=None,
+        extra=None,
     ):
         """
         Save the given document_url in an existing assignment or create new one.
@@ -148,6 +149,7 @@ class AssignmentService:
             self._db.add(assignment)
 
         assignment.document_url = document_url
+        assignment.extra = self._update_extra(assignment.extra, extra)
 
         self._clear_cache()
         return assignment
@@ -215,6 +217,11 @@ class AssignmentService:
         Python's @lru_cache doesn't have a way to remove
         just one key from the cache, you have to clear the entire cache.)
         """
+        # Private methods are cached so different but equivalent args to get
+        # (default values, args vs kwargs) still don't hit the database.
+        self._get_by_resource_link_id.cache_clear()
+        self._get_for_canvas_assignment_config.cache_clear()
+
         self.get.cache_clear()
         # Private methods are cached so different but equivalent args to get
         # (default values, args vs kwargs) still don't hit the database.
