@@ -33,7 +33,6 @@ class ExceptionViews:
 
     @exception_view_config(context=HTTPClientError)
     def http_client_error(self):
-        """Handle an HTTP 4xx (client error) exception."""
         self.request.response.status_int = self.exception.status_int
         return {"message": str(self.exception)}
 
