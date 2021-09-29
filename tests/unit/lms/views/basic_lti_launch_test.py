@@ -286,9 +286,11 @@ class TestCanvasFileBasicLTILaunch:
         file_id = pyramid_request.params["file_id"]
 
         assignment_service.set_document_url.assert_called_once_with(
-            pyramid_request.params["tool_consumer_instance_guid"],
-            pyramid_request.params["resource_link_id"],
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            tool_consumer_instance_guid=pyramid_request.params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
 
@@ -304,7 +306,7 @@ class TestDBConfiguredBasicLTILaunch:
         db_configured_basic_lti_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
-            assignment_service.get_document_url.return_value
+            assignment_service.get.return_value.document_url
         )
 
 
@@ -331,7 +333,7 @@ class TestFooCopiedBasicLTILaunch:
 
         # It gets the original assignment settings
         # from the DB.
-        assignment_service.get_document_url.assert_called_once_with(
+        assignment_service.get.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params[param_name],
         )
@@ -339,14 +341,14 @@ class TestFooCopiedBasicLTILaunch:
         # It copies the assignment settings to the new resource_link_id in the
         # DB.
         assignment_service.set_document_url.assert_called_once_with(
+            assignment_service.get.return_value.document_url,
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params["resource_link_id"],
-            assignment_service.get_document_url.return_value,
         )
 
         # It adds the document URL to the JavaScript config.
         context.js_config.add_document_url.assert_called_once_with(
-            assignment_service.get_document_url.return_value
+            assignment_service.get.return_value.document_url
         )
 
 
@@ -371,9 +373,9 @@ class TestConfigureAssignment:
         configure_assignment_caller(context, pyramid_request)
 
         assignment_service.set_document_url.assert_called_once_with(
+            pyramid_request.parsed_params["document_url"],
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],
-            pyramid_request.parsed_params["document_url"],
         )
 
     def test_it_enables_frontend_grading(self, context, pyramid_request):

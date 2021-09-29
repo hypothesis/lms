@@ -113,12 +113,14 @@ class BasicLTILaunchViews:
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
         self.assignment_service.set_document_url(
-            self.request.params["tool_consumer_instance_guid"],
-            resource_link_id,
             # This URL is mostly for show. We just want to ensure that a module
             # configuration exists. If we're going to do that we might as well
             # make sure this URL is meaningful.
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            tool_consumer_instance_guid=self.request.params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=resource_link_id,
         )
 
         self.context.js_config.add_canvas_file_id(course_id, resource_link_id, file_id)
@@ -162,9 +164,9 @@ class BasicLTILaunchViews:
         # here we can safely assume that the document_url exists.
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
         resource_link_id = self.request.params["resource_link_id"]
-        document_url = self.assignment_service.get_document_url(
+        document_url = self.assignment_service.get(
             tool_consumer_instance_guid, resource_link_id
-        )
+        ).document_url
         return self.basic_lti_launch(document_url)
 
     @view_config(blackboard_copied=True)
@@ -206,12 +208,12 @@ class BasicLTILaunchViews:
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
         resource_link_id = self.request.params["resource_link_id"]
 
-        document_url = self.assignment_service.get_document_url(
+        document_url = self.assignment_service.get(
             tool_consumer_instance_guid, original_resource_link_id
-        )
+        ).document_url
 
         self.assignment_service.set_document_url(
-            tool_consumer_instance_guid, resource_link_id, document_url
+            document_url, tool_consumer_instance_guid, resource_link_id
         )
 
         return self.basic_lti_launch(document_url)
@@ -309,9 +311,9 @@ class BasicLTILaunchViews:
         document_url = self.request.parsed_params["document_url"]
 
         self.assignment_service.set_document_url(
+            document_url,
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.request.parsed_params["resource_link_id"],
-            document_url,
         )
 
         self.context.js_config.add_document_url(document_url)
