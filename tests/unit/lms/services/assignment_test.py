@@ -2,7 +2,6 @@ import uuid
 from unittest.mock import sentinel
 
 import pytest
-from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import Assignment
 from lms.services.assignment import AssignmentService, factory
@@ -18,19 +17,8 @@ class TestAssignmentService:
                 ext_lti_assignment_id=None,
             )
 
-    def test_get_raises_NoResultFound_if_theres_no_matching_assignment(self, svc):
-        with pytest.raises(NoResultFound):
-            svc.get("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
-
-    def test_get_raises_NoResultFound_if_theres_no_matching_assignment_with_two_ids(
-        self, svc
-    ):
-        with pytest.raises(NoResultFound):
-            svc.get(
-                "TOOL_CONSUMER_INSTANCE_GUID",
-                "RESOURCE_LINK_ID",
-                "EXT_LTI_ASSIGNMENT_ID",
-            )
+    def test_get_returns_None_if_theres_no_matching_assignment(self, svc):
+        assert not svc.get("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
 
     def test_get_by_resource_link_id_only(self, svc, assignment):
         retrieved_assignment = svc.get(
@@ -47,13 +35,12 @@ class TestAssignmentService:
 
         assert retrieved_assignment == assignment_canvas_not_launched
 
-    def test_get_by_both_ids_no_results(self, svc):
-        with pytest.raises(NoResultFound):
-            svc.get(
-                "tool_consumer_instance_guid",
-                resource_link_id="RESOURCE_LINK_ID",
-                ext_lti_assignment_id="ext_lti_assignment_id",
-            )
+    def test_get_by_both_ids_no_results_return_None(self, svc):
+        assert not svc.get(
+            "tool_consumer_instance_guid",
+            resource_link_id="RESOURCE_LINK_ID",
+            ext_lti_assignment_id="ext_lti_assignment_id",
+        )
 
     def test_get_by_both_ids_not_launched(self, svc, assignment_canvas_not_launched):
         assert assignment_canvas_not_launched.resource_link_id is None
@@ -107,6 +94,9 @@ class TestAssignmentService:
         assert merged_assignment.resource_link_id == assignment.resource_link_id
         assert merged_assignment.extra == new_extra
         assert db_session.query(Assignment).count() == 3 + 1  # Deleted one assignment
+
+    def test_exists_without_ids(self, svc):
+        assert not svc.exists("TOOL_CONSUMER_INSTANCE_GUID", None, None)
 
     def test_exist_with_no_assignment(self, svc):
         assert not svc.exists("TOOL_CONSUMER_INSTANCE_GUID", "RESOURCE_LINK_ID")
