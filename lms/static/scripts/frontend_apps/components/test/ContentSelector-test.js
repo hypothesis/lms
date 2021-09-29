@@ -443,7 +443,7 @@ describe('ContentSelector', () => {
     it('submits a OneDrive sharing URL when a file is selected', async () => {
       const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
-      // Emulates the selection of a file in the picker.
+      // Emulate the selection of a file in the picker.
       picker.showPicker.resolves({
         url: 'https://api.onedrive.com/v1.0/shares/u!https://1drv.ms/b/s!AmH',
       });
@@ -460,7 +460,7 @@ describe('ContentSelector', () => {
     it('hides loading indicator if user cancels picker', async () => {
       const onError = sinon.stub();
       const wrapper = renderContentSelector({ onError });
-      // Emulates the cancellation of the picker.
+      // Emulate the cancellation of the picker.
       picker.showPicker.rejects(new PickerCanceledError());
 
       clickOneDriveButton(wrapper);
@@ -469,7 +469,6 @@ describe('ContentSelector', () => {
         return isLoadingIndicatorVisible(wrapper) === false;
       });
 
-      assert.isFalse(isLoadingIndicatorVisible(wrapper));
       assert.notCalled(onError);
     });
 
@@ -477,7 +476,7 @@ describe('ContentSelector', () => {
       const error = new Error('Some failure');
       const onError = sinon.stub();
       const wrapper = renderContentSelector({ onError });
-      // Emulates the invocation of a failure in the picker
+      // Emulate a failure in the picker
       picker.showPicker.rejects(error);
 
       clickOneDriveButton(wrapper);

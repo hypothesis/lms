@@ -51,8 +51,8 @@ describe('OneDrivePickerClient', () => {
       fakeLoadOneDriveAPI.resolves(fakeOneDrive);
       const oneDrive = createClient();
 
-      // Emulates the user selecting a file.
-      const onSuccess = oneDrive.showPicker();
+      // Emulate the user selecting a file.
+      const pickResult = oneDrive.showPicker();
       await delay(0);
       const { success } = fakeOneDrive.open.getCall(0).args[0];
       success({
@@ -60,7 +60,7 @@ describe('OneDrivePickerClient', () => {
           { permissions: [{ link: { webUrl: 'https://1drv.ms/b/s!AmH' } }] },
         ],
       });
-      const { url } = await onSuccess;
+      const { url } = await pickResult;
 
       const { clientId, redirectURI: redirectUri } = clientOptions;
       assert.calledWith(
@@ -81,13 +81,13 @@ describe('OneDrivePickerClient', () => {
       fakeLoadOneDriveAPI.resolves(fakeOneDrive);
       const oneDrive = createClient();
 
-      // Emulates the user cancelling the picker.
-      const onCancel = oneDrive.showPicker();
+      // Emulate the user cancelling the picker.
+      const pickResult = oneDrive.showPicker();
       await delay(0);
       const { cancel } = fakeOneDrive.open.getCall(0).args[0];
       cancel();
       try {
-        await onCancel;
+        await pickResult;
       } catch (error) {
         expectedError = error;
       }
@@ -101,13 +101,13 @@ describe('OneDrivePickerClient', () => {
       const oneDrive = createClient();
       let expectedError;
 
-      // Emulates the picker erroring while the user interacts with it.
-      const onError = oneDrive.showPicker();
+      // Emulate the picker erroring while the user interacts with it.
+      const pickResult = oneDrive.showPicker();
       await delay(0);
       const { error } = fakeOneDrive.open.getCall(0).args[0];
       error(oneDriveError);
       try {
-        await onError;
+        await pickResult;
       } catch (error) {
         expectedError = error;
       }
@@ -116,25 +116,28 @@ describe('OneDrivePickerClient', () => {
     });
   });
 
-  describe('#encodeSharingURL', () => {
+  describe('.encodeSharingURL', () => {
     [
       {
-        sharingURL: 'https://1drv.ms/b/s!AmH',
+        sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2IvaQ=='),
         expectedResult:
-          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvcyFBbUg/root/content',
+          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvaQ/root/content',
+        reason: 'removing the trailing `=` characters ',
       },
       {
-        sharingURL: 'https://1drv.ms/b/?x=%D1%88%D0%B5',
+        sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2Iv++8='),
         expectedResult:
-          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvP3g9JUQxJTg4JUQwJUI1/root/content',
+          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2Iv--8/root/content',
+        reason: 'removing the `+` characters ',
       },
       {
-        sharingURL: 'https://1drv.ms/b/s!a%20a',
+        sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2Iva///'),
         expectedResult:
-          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvcyFhJTIwYQ/root/content',
+          'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2Iva___/root/content',
+        reason: 'removing the `/` characters ',
       },
-    ].forEach(({ sharingURL, expectedResult }) => {
-      it('calls `loadOneDriveAPI`', () => {
+    ].forEach(({ sharingURL, expectedResult, reason }) => {
+      it(`encodes the sharing URL by ${reason}`, () => {
         const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
 
         assert.equal(url, expectedResult);
