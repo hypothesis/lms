@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from unittest import mock
 
@@ -32,46 +31,6 @@ class TestOAuth2TokenService:
             }
         )
 
-    @pytest.mark.parametrize(
-        "original_token,expect_log", [(None, False), ("token", True)]
-    )
-    def test_save_new_refresh_token(
-        self,
-        original_token,
-        expect_log,
-        svc,
-        db_session,
-        application_instance,
-        lti_user,
-        caplog,
-    ):
-        oauth_token = factories.OAuth2Token.build(
-            user_id=lti_user.user_id,
-            consumer_key=application_instance.consumer_key,
-            application_instance=application_instance,
-            refresh_token=original_token,
-        )
-
-        db_session.add(oauth_token)
-
-        svc.save(
-            access_token=oauth_token.access_token,
-            refresh_token="NEW REFRESH TOKEN",
-            expires_in=1234,
-        )
-
-        oauth2_token = db_session.query(OAuth2Token).one()
-
-        assert oauth2_token.refresh_token == "NEW REFRESH TOKEN"
-        if expect_log:
-            assert caplog.record_tuples == [
-                (
-                    "lms.services.oauth2_token",
-                    logging.WARNING,
-                    f"Oauth2 refresh token new value for {oauth2_token.consumer_key}:{svc._user_id}",  # pylint:disable=protected-access
-                )
-            ]
-
     def test_get_returns_token_when_present(self, svc, oauth_token):
         result = svc.get()
 
@@ -87,7 +46,7 @@ class TestOAuth2TokenService:
                 "consumer_key": application_instance.consumer_key,
                 "user_id": lti_user.user_id,
                 wrong_param: "WRONG",
-            },
+            }
         )
 
         with pytest.raises(OAuth2TokenError):

@@ -1,12 +1,9 @@
 import datetime
-import logging
 
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.services import OAuth2TokenError
-
-logger = logging.getLogger(__name__)
 
 
 class OAuth2TokenService:
@@ -39,16 +36,6 @@ class OAuth2TokenService:
                 consumer_key=self._consumer_key, user_id=self._user_id
             )
             self._db.add(oauth2_token)
-        else:
-            if (
-                oauth2_token.refresh_token
-                and oauth2_token.refresh_token != refresh_token
-            ):
-                logger.warning(
-                    "Oauth2 refresh token new value for %s:%s",
-                    self._consumer_key,
-                    self._user_id,
-                )
 
         oauth2_token.access_token = access_token
         oauth2_token.refresh_token = refresh_token
