@@ -48,6 +48,8 @@ class ExceptionViews:
         ReusedConsumerKey, renderer="lms:templates/error_dialog.html.jinja2"
     )
     def reused_tool_guid_error(self):
+        self.request.response.status_int = 400
+
         self.request.context.js_config.enable_error_dialog_mode(
             self.request.context.js_config.ErrorCode.REUSED_TOOL_GUID,
             error_details={

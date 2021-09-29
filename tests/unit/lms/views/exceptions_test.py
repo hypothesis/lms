@@ -83,7 +83,7 @@ class TestExceptionViews:
             exception, pyramid_request
         ).reused_tool_guid_error()
 
-        assert_response(template_data, 200)
+        assert_response(template_data, 400)
         pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
             error_code=JSConfig.ErrorCode.REUSED_TOOL_GUID,
             error_details={
