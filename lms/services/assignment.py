@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from sqlalchemy import or_
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.orm.exc import MultipleResultsFound
 
 from lms.models import Assignment
 
@@ -36,9 +36,9 @@ class AssignmentService:
                 raise MultipleResultsFound(
                     "Multiple assignments found. Should merge_canvas_assignments have been called"
                 )
-            return assignments[0]
+            return assignments[0] if assignments else None
 
-        if not resource_link_id:
+        if ext_lti_assignment_id:
             # When creating or editing an assignment Canvas launches us with an
             # ext_lti_assignment_id but no resource_link_id.
             return self._get_for_canvas_assignment_config(
@@ -58,10 +58,27 @@ class AssignmentService:
         resource_link_id,
         ext_lti_assignment_id,
     ):
-        """Get a canvas assignment by both resource_link_id and ext_lti_assignment_id."""
+        """
+        Return the assignment(s) with resource_link_id or ext_lti_assignment_id.
+
+        Return all the assignments in the DB that have the given tool_consumer_instance_guid and
+        either the given resource_link_id or ext_lti_assignment_id or both. This could be:
+
+        1. A single assignment in the DB that has either the given resource_link_id or
+           ext_lti_assignment_id or both
+
+        2. Or two assignments:
+
+           i.  One with the matching resource_link_id and no ext_lti_assignment_id
+           ii. And one with the matching ext_lti_assignment_id and no resource_link_id
+
+           The assignment with the resource_link_id will always be first in the sequence.
+
+        :rtype: sequence of either 0, 1 or 2 models.Assignment objects
+        """
         assert resource_link_id and ext_lti_assignment_id
 
-        assignments = (
+        return (
             self._db.query(Assignment)
             .filter(
                 Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
@@ -73,11 +90,7 @@ class AssignmentService:
             .order_by(Assignment.resource_link_id.asc())
         ).all()
 
-        if not assignments:
-            raise NoResultFound()
-
-        return assignments
-
+    @lru_cache(maxsize=128)
     def exists(
         self,
         tool_consumer_instance_guid,
@@ -85,16 +98,16 @@ class AssignmentService:
         ext_lti_assignment_id=None,
     ) -> bool:
         try:
-            self.get(
-                tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+            return bool(
+                self.get(
+                    tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+                )
             )
         except MultipleResultsFound:
             # Merge needed but it exists
             return True
-        except (NoResultFound, ValueError):
+        except ValueError:
             return False
-        else:
-            return True
 
     def set_document_url(  # pylint:disable=too-many-arguments
         self,
@@ -113,11 +126,10 @@ class AssignmentService:
 
         Any existing document URL for this assignment will be overwritten.
         """
-        try:
-            assignment = self.get(
-                tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
-            )
-        except NoResultFound:
+        assignment = self.get(
+            tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+        )
+        if not assignment:
             assignment = Assignment(
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 document_url=document_url,
@@ -132,6 +144,7 @@ class AssignmentService:
         self._clear_cache()
         return assignment
 
+    @lru_cache(maxsize=128)
     def _get_by_resource_link_id(self, tool_consumer_instance_guid, resource_link_id):
         return (
             self._db.query(Assignment)
@@ -139,9 +152,10 @@ class AssignmentService:
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 resource_link_id=resource_link_id,
             )
-            .one()
+            .one_or_none()
         )
 
+    @lru_cache(maxsize=128)
     def _get_for_canvas_assignment_config(
         self, tool_consumer_instance_guid, ext_lti_assignment_id
     ):
@@ -151,7 +165,7 @@ class AssignmentService:
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 ext_lti_assignment_id=ext_lti_assignment_id,
             )
-            .one()
+            .one_or_none()
         )
 
     @staticmethod
@@ -194,7 +208,12 @@ class AssignmentService:
         just one key from the cache, you have to clear the entire cache.)
         """
         self.get.cache_clear()
+        # Private methods are cached so different but equivalent args to get
+        # (default values, args vs kwargs) still don't hit the database.
+        self._get_by_resource_link_id.cache_clear()
+        self._get_for_canvas_assignment_config.cache_clear()
         self.get_for_canvas_launch.cache_clear()
+        self.exists.cache_clear()
 
 
 def factory(_context, request):
