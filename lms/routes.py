@@ -53,6 +53,10 @@ def includeme(config):
     config.add_route(
         "onedrive.filepicker.redirect_uri", "/onedrive/filepicker/redirect"
     )
+    config.add_route(
+        "onedrive.filepicker.verify_domain",
+        "/.well-known/microsoft-identity-association.json",
+    )
 
     config.add_route(
         "canvas_api.oauth.authorize",
