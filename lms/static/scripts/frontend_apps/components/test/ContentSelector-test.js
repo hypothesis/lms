@@ -483,7 +483,7 @@ describe('ContentSelector', () => {
       await delay(0);
 
       assert.calledWith(onError, {
-        title: 'There was a problem choosing a file from OneDrive',
+        message: 'There was a problem choosing a file from OneDrive',
         error,
       });
       assert.calledWith(console.error, error);

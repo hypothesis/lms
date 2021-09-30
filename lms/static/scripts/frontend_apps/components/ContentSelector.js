@@ -212,7 +212,7 @@ export default function ContentSelector({
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
         onError({
-          title: 'There was a problem choosing a file from OneDrive',
+          message: 'There was a problem choosing a file from OneDrive',
           error,
         });
       }
