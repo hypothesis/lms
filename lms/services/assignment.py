@@ -119,13 +119,12 @@ class AssignmentService:
         except ValueError:
             return False
 
-    def set_document_url(  # pylint:disable=too-many-arguments
+    def set_document_url(
         self,
         document_url,
         tool_consumer_instance_guid,
         resource_link_id=None,
         ext_lti_assignment_id=None,
-        extra=None,
     ):
         """
         Save the given document_url in an existing assignment or create new one.
@@ -149,7 +148,6 @@ class AssignmentService:
             self._db.add(assignment)
 
         assignment.document_url = document_url
-        assignment.extra = self._update_extra(assignment.extra, extra)
 
         self._clear_cache()
         return assignment
