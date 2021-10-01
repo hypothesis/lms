@@ -2,10 +2,8 @@ import { LabeledButton } from '@hypothesis/frontend-shared';
 import { useContext, useMemo, useState } from 'preact/hooks';
 
 import { Config } from '../config';
-import {
-  GooglePickerClient,
-  PickerCanceledError,
-} from '../utils/google-picker-client';
+import { PickerCanceledError } from '../errors';
+import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
 
 import BookPicker from './BookPicker';

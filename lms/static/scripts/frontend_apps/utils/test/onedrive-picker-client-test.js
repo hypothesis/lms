@@ -1,5 +1,5 @@
 import { delay } from '../../../test-util/wait';
-import { PickerCanceledError } from '../google-picker-client';
+import { PickerCanceledError } from '../../errors';
 import { OneDrivePickerClient, $imports } from '../onedrive-picker-client';
 
 describe('OneDrivePickerClient', () => {

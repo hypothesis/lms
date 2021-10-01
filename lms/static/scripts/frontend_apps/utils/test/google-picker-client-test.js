@@ -1,9 +1,9 @@
 /* eslint-disable new-cap */
 
+import { PickerCanceledError } from '../../errors';
 import {
   GOOGLE_DRIVE_SCOPE,
   GooglePickerClient,
-  PickerCanceledError,
   $imports,
 } from '../google-picker-client';
 

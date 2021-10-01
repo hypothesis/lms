@@ -1,4 +1,4 @@
-import { PickerCanceledError } from './google-picker-client';
+import { PickerCanceledError } from '../errors';
 import { loadOneDriveAPI } from './onedrive-api-client';
 
 /**

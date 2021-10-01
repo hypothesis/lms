@@ -1,3 +1,4 @@
+import { PickerCanceledError } from '../errors';
 import { loadLibraries } from './google-api-client';
 
 export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
@@ -17,15 +18,6 @@ function addHttps(origin) {
     return origin;
   }
   return 'https://' + origin;
-}
-
-/**
- * Error thrown when the user cancels file selection.
- */
-export class PickerCanceledError extends Error {
-  constructor() {
-    super('Dialog was canceled');
-  }
 }
 
 /**
