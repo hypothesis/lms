@@ -7,7 +7,7 @@ import { act } from 'preact/test-utils';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { delay, waitFor } from '../../../test-util/wait';
 import { Config } from '../../config';
-import { PickerCanceledError } from '../../utils/google-picker-client';
+import { PickerCanceledError } from '../../errors';
 import ContentSelector, { $imports } from '../ContentSelector';
 
 function interact(wrapper, callback) {
