@@ -146,46 +146,6 @@ describe('FilePickerApp', () => {
       assert.notCalled(onSubmit);
     });
 
-    [
-      {
-        content: 'https://example.com',
-        summary: 'https://example.com',
-      },
-      {
-        content: { type: 'file', id: 'abcd' },
-        summary: 'PDF file in Canvas',
-      },
-      {
-        content: { type: 'vitalsource', bookID: 'abc', cfi: '/1/2' },
-        summary: 'Book from VitalSource',
-      },
-    ].forEach(({ content, summary }) => {
-      it('displays a summary of the assignment content', () => {
-        const wrapper = renderFilePicker();
-
-        selectContent(wrapper, content);
-
-        assert.equal(
-          wrapper.find('[data-testid="content-summary"]').text(),
-          summary
-        );
-      });
-    });
-
-    it('truncates long URLs in assignment content summary', () => {
-      const wrapper = renderFilePicker();
-
-      selectContent(
-        wrapper,
-        'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash'
-      );
-
-      assert.equal(
-        wrapper.find('[data-testid="content-summary"]').text(),
-        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_…'
-      );
-    });
-
     it('disables "Continue" button when group sets are enabled but no group set is selected', () => {
       const wrapper = renderFilePicker();
 

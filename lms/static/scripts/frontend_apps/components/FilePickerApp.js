@@ -8,7 +8,6 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
-import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
 import ErrorDialog from './ErrorDialog';
@@ -34,26 +33,6 @@ import GroupConfigSelector from './GroupConfigSelector';
  * @prop {string} message
  * @prop {Error} error
  */
-
-/**
- * Return a human-readable description of assignment content.
- *
- * @param {Content} content - Type and details of assignment content
- * @return {string}
- */
-function contentDescription(content) {
-  switch (content.type) {
-    case 'url':
-      return truncateURL(content.url, 65 /* maxLength */);
-    case 'file':
-      return 'PDF file in Canvas';
-    case 'vitalsource':
-      return 'Book from VitalSource';
-    default:
-      /* istanbul ignore next */
-      throw new Error('Unknown content type');
-  }
-}
 
 /**
  * An application that allows the user to choose the web page or PDF for an
@@ -122,23 +101,18 @@ export default function FilePickerApp({ onSubmit }) {
         onSubmit={onSubmit}
       >
         <h1 className="FilePickerApp__heading">Assignment details</h1>
-        <div className="FilePickerApp__left-col">Assignment content</div>
-        <div className="FilePickerApp__right-col">
-          {content ? (
-            <i data-testid="content-summary">{contentDescription(content)}</i>
-          ) : (
-            <>
-              <p>
-                You can select content for your assignment from one of the
-                following sources:
-              </p>
-              <ContentSelector
-                onSelectContent={selectContent}
-                onError={setErrorInfo}
-              />
-            </>
-          )}
-        </div>
+        {!content && (
+          <div className="FilePickerApp__one-col">
+            <p>
+              You can select content for your assignment from one of the
+              following sources:
+            </p>
+            <ContentSelector
+              onSelectContent={selectContent}
+              onError={setErrorInfo}
+            />
+          </div>
+        )}
         {content && enableGroupConfig && (
           <>
             <div className="FilePickerApp__left-col">Group assignment</div>

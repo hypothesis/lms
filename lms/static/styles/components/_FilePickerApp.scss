@@ -24,6 +24,21 @@
   text-align: end;
 }
 
+.FilePickerApp__one-col {
+  grid-column: 1 / span 2;
+
+  // Make sure that the text at the top of the right column is aligned with
+  // the label in the left column, whether that text is part of a `<p>` or not.
+  & > p:first-child {
+    margin-top: 0;
+  }
+
+  // Vertical spacing for child elements
+  & > :not(:first-child) {
+    margin-top: 0.5rem;
+  }
+}
+
 .FilePickerApp__right-col {
   grid-column: 2;
 
