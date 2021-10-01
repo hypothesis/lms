@@ -188,7 +188,6 @@ export default function ContentSelector({
       await picker.enablePublicViewing(id);
       onSelectContent({ type: 'url', url });
     } catch (error) {
-      setLoadingIndicatorVisible(false);
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
         onError({
@@ -196,6 +195,8 @@ export default function ContentSelector({
           error,
         });
       }
+    } finally {
+      setLoadingIndicatorVisible(false);
     }
   };
 
@@ -206,7 +207,6 @@ export default function ContentSelector({
       const { url } = await picker.showPicker();
       onSelectContent({ type: 'url', url });
     } catch (error) {
-      setLoadingIndicatorVisible(false);
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
         onError({
@@ -214,6 +214,8 @@ export default function ContentSelector({
           error,
         });
       }
+    } finally {
+      setLoadingIndicatorVisible(false);
     }
   };
 
