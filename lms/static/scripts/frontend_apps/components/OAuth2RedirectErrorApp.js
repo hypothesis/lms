@@ -76,53 +76,55 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
 
   return (
     <Dialog title={title} buttons={buttons}>
-      {error.code === 'canvas_invalid_scope' && (
-        <>
-          <p>
-            A Canvas admin needs to edit {"Hypothesis's"} developer key and add
-            these scopes:
-          </p>
-          <ol>
-            {canvasScopes.map(scope => (
-              <li key={scope}>
-                <code>{scope}</code>
-              </li>
-            ))}
-          </ol>
-          <p>
-            For more information see:{' '}
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
-            >
-              Canvas API Endpoints Used by the Hypothesis LMS App
-            </a>
-            .
-          </p>
-        </>
-      )}
+      <ErrorDisplay error={error} description={description}>
+        {error.code === 'canvas_invalid_scope' && (
+          <>
+            <p>
+              A Canvas admin needs to edit {"Hypothesis's"} developer key and
+              add these scopes:
+            </p>
+            <ol>
+              {canvasScopes.map(scope => (
+                <li key={scope}>
+                  <code>{scope}</code>
+                </li>
+              ))}
+            </ol>
+            <p>
+              For more information see:{' '}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
+              >
+                Canvas API Endpoints Used by the Hypothesis LMS App
+              </a>
+              .
+            </p>
+          </>
+        )}
 
-      {error.code === 'blackboard_missing_integration' && (
-        <>
-          <p>
-            In order to allow Hypothesis to connect to files in Blackboard, your
-            Blackboard admin needs to add or enable a REST API integration.
-          </p>
-          <p>
-            For more information, please have your Blackboard admin read:{' '}
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
-            >
-              Enable the Hypothesis Integration With Blackboard Files
-            </a>
-            .
-          </p>
-        </>
-      )}
-      <ErrorDisplay description={description} error={error} />
+        {error.code === 'blackboard_missing_integration' && (
+          <>
+            <p>
+              In order to allow Hypothesis to connect to files in Blackboard,
+              your Blackboard admin needs to add or enable a REST API
+              integration.
+            </p>
+            <p>
+              For more information, please have your Blackboard admin read:{' '}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
+              >
+                Enable the Hypothesis Integration With Blackboard Files
+              </a>
+              .
+            </p>
+          </>
+        )}
+      </ErrorDisplay>
     </Dialog>
   );
 }
