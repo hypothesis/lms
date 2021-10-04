@@ -53,5 +53,6 @@ class File(CreatedUpdatedMixin, BASE):
     name = sa.Column(sa.UnicodeText())
     """The user facing file name."""
 
-    size = sa.Column(sa.Integer())
+    # Use a big int here to allow files over 2GB in size.
+    size = sa.Column(sa.BigInteger())
     """The size of the file in bytes."""
