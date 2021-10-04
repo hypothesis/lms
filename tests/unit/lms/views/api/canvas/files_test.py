@@ -24,14 +24,13 @@ class TestFilesAPIViews:
         canvas_service,
         helpers,
     ):
+        document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
         application_instance = application_instance_service.get.return_value
         assignment = assignment_service.get.return_value
+        assignment.document_url = document_url
         pyramid_request.matchdict = {
-            "course_id": "test_course_id",
-            "file_id": "test_file_id",
             "resource_link_id": "test_resource_link_id",
         }
-
         result = FilesAPIViews(pyramid_request).via_url()
 
         assignment_service.get.assert_called_once_with(
@@ -40,8 +39,8 @@ class TestFilesAPIViews:
         )
         canvas_service.public_url_for_file.assert_called_once_with(
             assignment,
-            "test_file_id",
-            "test_course_id",
+            "FILE_ID",
+            "COURSE_ID",
             check_in_course=pyramid_request.lti_user.is_instructor,
         )
         helpers.via_url.assert_called_once_with(
