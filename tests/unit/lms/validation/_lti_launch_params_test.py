@@ -137,6 +137,10 @@ class TestURLConfiguredBasicLTILaunchSchema:
                 "http%3a%2F%2Fexample.com%2Fpath%3Fparam%3Dvalue",
                 "http://example.com/path?param=value",
             ),
+            (
+                "canvas%3A%2F%2Ffile%2Fcourse_id%2FCOURSE_ID%2Ffile_if%2FFILE_ID",
+                "canvas://file/course_id/COURSE_ID/file_if/FILE_ID",
+            ),
         ],
     )
     def test_it_decodes_url_if_percent_encoded(
