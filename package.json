@@ -61,7 +61,7 @@
     "@types/gapi": "^0.0.41",
     "axe-core": "^4.3.3",
     "babel-plugin-istanbul": "^6.0.0",
-    "babel-plugin-mockable-imports": "^1.7.1",
+    "babel-plugin-mockable-imports": "^1.8.0",
     "chai": "^4.3.4",
     "diff": "^5.0.0",
     "enzyme": "^3.11.0",
