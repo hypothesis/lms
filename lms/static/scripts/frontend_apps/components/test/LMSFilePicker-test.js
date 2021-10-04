@@ -431,7 +431,7 @@ describe('LMSFilePicker', () => {
   it('updates the folder path when a user chooses a folder', async () => {
     const onSelectFile = sinon.stub();
     const wrapper = renderFilePicker({ onSelectFile, withBreadcrumbs: true });
-    await waitFor(() => fakeApiCall.called);
+    await waitFor(() => fakeApiCall.calledOnce);
     wrapper.update();
 
     const file = fakeFiles[1]; // This is a folder
@@ -439,7 +439,7 @@ describe('LMSFilePicker', () => {
     // Folders cannot be selected as a file...
     assert.notCalled(onSelectFile);
 
-    await waitFor(() => fakeApiCall.calledTwice);
+    await waitFor(() => fakeApiCall.calledTwice, 50);
     wrapper.update();
 
     // ...Instead, the path state is updated (and "navigated to") and added
