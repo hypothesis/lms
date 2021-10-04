@@ -2,7 +2,8 @@ import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { APIError, apiCall } from '../utils/api';
+import { APIError } from '../errors';
+import { apiCall } from '../utils/api';
 
 import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';

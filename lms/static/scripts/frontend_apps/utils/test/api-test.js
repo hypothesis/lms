@@ -1,4 +1,5 @@
-import { APIError, apiCall } from '../api';
+import { APIError } from '../../errors';
+import { apiCall } from '../api';
 
 describe('api', () => {
   let fakeResponse;
