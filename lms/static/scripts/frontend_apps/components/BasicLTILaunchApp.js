@@ -8,11 +8,12 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { APIError, apiCall } from '../utils/api';
 import { Config } from '../config';
+import { APIError } from '../errors';
 import { ClientRPC, useService } from '../services';
-
+import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
+
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import Spinner from './Spinner';

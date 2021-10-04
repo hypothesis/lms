@@ -1,11 +1,11 @@
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { APIError } from '../../utils/api';
-import FileList from '../FileList';
-import LMSFilePicker, { $imports } from '../LMSFilePicker';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitFor, waitForElement } from '../../../test-util/wait';
+import { APIError } from '../../errors';
+import FileList from '../FileList';
+import LMSFilePicker, { $imports } from '../LMSFilePicker';
 
 describe('LMSFilePicker', () => {
   let fakeApiCall;

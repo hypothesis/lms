@@ -1,4 +1,4 @@
-import { APIError } from '../../utils/api';
+import { APIError } from '../../errors';
 import { VitalSourceService, $imports } from '../vitalsource';
 
 describe('VitalSourceService', () => {

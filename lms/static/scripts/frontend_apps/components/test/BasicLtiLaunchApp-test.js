@@ -4,7 +4,7 @@ import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import { ClientRPC, Services } from '../../services';
-import { APIError } from '../../utils/api';
+import { APIError } from '../../errors';
 
 import BasicLTILaunchApp, { $imports } from '../BasicLTILaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
