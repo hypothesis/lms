@@ -87,6 +87,12 @@ class JSConfig:
                     _query={"document_url": document_url},
                 ),
             }
+        elif document_url.startswith("canvas://"):
+            course_id = self._request.params["custom_canvas_course_id"]
+            file_id = self._request.params["file_id"]
+            resource_link_id = self._request.params["resource_link_id"]
+
+            self.add_canvas_file_id(course_id, resource_link_id, file_id)
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
             self._add_canvas_speedgrader_settings(document_url=document_url)

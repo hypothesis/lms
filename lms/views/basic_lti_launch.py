@@ -45,7 +45,7 @@ class BasicLTILaunchViews:
             self.request.params
         )
 
-    def basic_lti_launch(self, document_url=None, grading_supported=True):
+    def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
         self.sync_lti_data_to_h()
         self.store_lti_data()
@@ -54,8 +54,7 @@ class BasicLTILaunchViews:
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
 
-        if document_url is not None:
-            self.context.js_config.add_document_url(document_url)
+        self.context.js_config.add_document_url(document_url)
 
         return {}
 
@@ -112,18 +111,16 @@ class BasicLTILaunchViews:
         # Canvas skips that step. We are doing this to ensure that there is a
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
+        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
         self.assignment_service.set_document_url(
             self.request.params["tool_consumer_instance_guid"],
             resource_link_id,
             # This URL is mostly for show. We just want to ensure that a module
             # configuration exists. If we're going to do that we might as well
             # make sure this URL is meaningful.
-            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            document_url=document_url,
         )
-
-        self.context.js_config.add_canvas_file_id(course_id, resource_link_id, file_id)
-
-        return self.basic_lti_launch(grading_supported=False)
+        return self.basic_lti_launch(document_url=document_url, grading_supported=False)
 
     @view_config(vitalsource_book=True)
     def vitalsource_lti_launch(self):

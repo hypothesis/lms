@@ -154,6 +154,22 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
+    def test_it_adds_the_viaUrl_api_config_for_Canvas_documents(
+        self, js_config, pyramid_request
+    ):
+        course_id, file_id = "125", "100"
+        pyramid_request.params["custom_canvas_course_id"] = course_id
+        pyramid_request.params["file_id"] = file_id
+
+        js_config.add_document_url(
+            f"canvas://file/course/{course_id}/file_id/{file_id}"
+        )
+
+        assert js_config.asdict()["api"]["viaUrl"] == {
+            "authUrl": "http://example.com/api/canvas/oauth/authorize",
+            "path": "/api/canvas/courses/125/assignments/TEST_RESOURCE_LINK_ID/files/100/via_url",
+        }
+
     def test_it_sets_the_document_url(self, js_config, submission_params):
         js_config.add_document_url("example_document_url")
 
