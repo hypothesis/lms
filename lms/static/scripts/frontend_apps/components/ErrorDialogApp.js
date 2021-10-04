@@ -19,6 +19,7 @@ export default function ErrorDialogApp() {
     details: errorDialog?.errorDetails ?? '',
   };
 
+  let description;
   let title;
 
   switch (error.code) {
@@ -26,49 +27,49 @@ export default function ErrorDialogApp() {
       title = 'Consumer key registered with another site';
       break;
     default:
+      description =
+        'An error occurred when launching the Hypothesis application';
       title = 'An error occurred';
   }
 
   return (
     <Dialog title={title}>
-      {error.code === 'reused_consumer_key' ? (
-        <>
-          This Hypothesis installation&apos;s consumer key appears to have
-          already been used on another site. This could be because:
-          <ul>
-            <li>
-              This consumer key has already been used on another site. A site
-              admin must{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://web.hypothes.is/get-help/"
-              >
-                request a new consumer key
-              </a>{' '}
-              for this site and re-install Hypothesis.
-            </li>
-            <li>
-              This site&apos;s tool_consumer_instance_guid has changed. A site
-              admin must{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://web.hypothes.is/get-help/"
-              >
-                ask us to update the consumer key
-              </a>
-              .
-            </li>
-          </ul>
-          <ErrorDisplay error={error} />
-        </>
-      ) : (
-        <ErrorDisplay
-          error={error}
-          description="An error occurred when launching the Hypothesis application"
-        />
-      )}
+      <ErrorDisplay error={error} description={description}>
+        {error.code === 'reused_consumer_key' && (
+          <>
+            <p>
+              This Hypothesis {"installation's"} consumer key appears to have
+              already been used on another site. This could be because:
+            </p>
+            <ul>
+              <li>
+                This consumer key has already been used on another site. A site
+                admin must{' '}
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://web.hypothes.is/get-help/"
+                >
+                  request a new consumer key
+                </a>{' '}
+                for this site and re-install Hypothesis.
+              </li>
+              <li>
+                This {"site's"} tool_consumer_instance_guid has changed. A site
+                admin must{' '}
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://web.hypothes.is/get-help/"
+                >
+                  ask us to update the consumer key
+                </a>
+                .
+              </li>
+            </ul>
+          </>
+        )}
+      </ErrorDisplay>
     </Dialog>
   );
 }

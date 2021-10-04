@@ -56,8 +56,7 @@ function BaseDialog({
         )
       }
     >
-      {children}
-      {error && <ErrorDisplay error={error} />}
+      {error ? <ErrorDisplay error={error}>{children}</ErrorDisplay> : children}
     </Dialog>
   );
 }

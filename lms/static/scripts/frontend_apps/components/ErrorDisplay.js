@@ -78,7 +78,10 @@ function ErrorDetails({ error }) {
 }
 
 /**
+ * @typedef {import("preact").ComponentChildren} Children
+ *
  * @typedef ErrorDisplayProps
+ * @prop {Children} [children]
  * @prop {string|null} [description] -
  *   A short message explaining the error and its human-facing relevance.
  *   This is typically a general message like
@@ -113,7 +116,7 @@ function ErrorDetails({ error }) {
  *
  * @param {ErrorDisplayProps} props
  */
-export default function ErrorDisplay({ description, error }) {
+export default function ErrorDisplay({ children, description, error }) {
   const details = formatErrorDetails(error);
 
   const supportLink = emailLink({
@@ -128,6 +131,7 @@ Technical details: ${details || 'N/A'}
 
   return (
     <div className="ErrorDisplay">
+      {children}
       {description && (
         <p data-testid="message">
           {description}
