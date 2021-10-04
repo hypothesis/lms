@@ -1,6 +1,5 @@
 from functools import lru_cache
 
-from sqlalchemy import or_
 from sqlalchemy.orm.exc import MultipleResultsFound
 
 from lms.models import Assignment
@@ -82,13 +81,24 @@ class AssignmentService:
             self._db.query(Assignment)
             .filter(
                 Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
-                or_(
-                    Assignment.resource_link_id == resource_link_id,
-                    Assignment.ext_lti_assignment_id == ext_lti_assignment_id,
+                (
+                    (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
+                    | (
+                        (Assignment.resource_link_id == resource_link_id)
+                        & (Assignment.ext_lti_assignment_id.is_(None))
+                    )
+                    | (
+                        (Assignment.resource_link_id.is_(None))
+                        & (Assignment.ext_lti_assignment_id == ext_lti_assignment_id)
+                    )
                 ),
             )
             .order_by(Assignment.resource_link_id.asc())
-        ).all()
+            .all()
+        )
 
     @lru_cache(maxsize=128)
     def exists(
