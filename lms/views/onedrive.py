@@ -1,3 +1,6 @@
+import textwrap
+
+from pyramid.response import Response
 from pyramid.view import view_config
 
 
@@ -21,8 +24,15 @@ def redirect_uri(_request):
     renderer="json",
 )
 def verify_domain(request):
-    return {
-        "associatedApplications": [
-            {"applicationId": request.registry.settings["onedrive_client_id"]}
-        ]
-    }
+    application_id = request.registry.settings["onedrive_client_id"]
+    response_text = textwrap.dedent(
+        f"""\
+    {{
+      "associatedApplications": [
+        {{
+          "applicationId": "{application_id}"
+        }}
+      ]
+    }}"""
+    )
+    return Response(text=response_text, content_type="application/json")
