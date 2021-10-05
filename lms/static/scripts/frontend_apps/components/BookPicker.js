@@ -82,7 +82,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       // sub-components
       initialFocus={null}
       onCancel={onCancel}
-      contentClass={classnames('LMS-Dialog--wide', {
+      contentClass={classnames('LMS-Dialog LMS-Dialog--wide', {
         'LMS-Dialog--tall': showChapters,
       })}
       title={

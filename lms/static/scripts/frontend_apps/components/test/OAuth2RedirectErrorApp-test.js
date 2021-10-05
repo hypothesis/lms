@@ -79,7 +79,7 @@ describe('OAuth2RedirectErrorApp', () => {
 
   it(`closes the window when the dialog's "Close" button is clicked`, () => {
     const wrapper = renderApp();
-    wrapper.find('LabeledButton[data-testid="close"]').props().onClick();
+    wrapper.find('Modal').props().onCancel();
     assert.called(window.close);
   });
 

@@ -1,12 +1,12 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 
 import { useRef } from 'preact/hooks';
 
-import Dialog from './Dialog';
 import ErrorDisplay from './ErrorDisplay';
 
 /**
  * @typedef {import("preact").ComponentChildren} Children
+ *
  * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
  */
 
@@ -39,10 +39,7 @@ function BaseDialog({
     /** @type {HTMLButtonElement | null} */ (null)
   );
   return (
-    <Dialog
-      initialFocus={focusedDialogButton}
-      title={title}
-      role="alertdialog"
+    <Modal
       buttons={
         onRetry && (
           <LabeledButton
@@ -55,9 +52,17 @@ function BaseDialog({
           </LabeledButton>
         )
       }
+      contentClass="LMS-Dialog LMS-Dialog--medium"
+      initialFocus={focusedDialogButton}
+      onCancel={() => null}
+      role="alertdialog"
+      title={title}
+      withCancelButton={false}
+      withCloseButton={false}
     >
-      {error ? <ErrorDisplay error={error}>{children}</ErrorDisplay> : children}
-    </Dialog>
+      {error && <ErrorDisplay error={error}>{children}</ErrorDisplay>}
+      {!error && children}
+    </Modal>
   );
 }
 

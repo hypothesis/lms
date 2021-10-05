@@ -1,3 +1,5 @@
+import { Scrollbox } from '@hypothesis/frontend-shared';
+
 /**
  * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
  *
@@ -70,9 +72,13 @@ function ErrorDetails({ error }) {
   }
 
   return (
-    <details className="ErrorDisplay__details" onToggle={onDetailsToggle}>
-      <summary className="ErrorDisplay__details-summary">Error Details</summary>
-      <pre className="ErrorDisplay__details-content">{details}</pre>
+    <details className="hyp-u-border" onToggle={onDetailsToggle}>
+      <summary className="hyp-u-bg-color--grey-1 hyp-u-padding ErrorDetails__summary">
+        Error Details
+      </summary>
+      <pre className="hyp-u-padding hyp-u-margin--0 ErrorDetails__details">
+        {details}
+      </pre>
     </details>
   );
 }
@@ -130,42 +136,44 @@ Technical details: ${details || 'N/A'}
   });
 
   return (
-    <div className="ErrorDisplay">
-      {children}
-      {description && (
-        <p data-testid="message">
-          {description}
-          {error.message && (
-            <>
-              : <i>{toSentence(error.message)}</i>
-            </>
-          )}
+    <Scrollbox classes="LMS-Scrollbox">
+      <div className="hyp-u-vertical-spacing hyp-u-padding--top--4">
+        {children}
+        {description && (
+          <p data-testid="error-message">
+            {description}
+            {error.message && (
+              <>
+                : <i>{toSentence(error.message)}</i>
+              </>
+            )}
+          </p>
+        )}
+        <p data-testid="error-links">
+          If the problem persists,{' '}
+          <a href={supportLink} target="_blank" rel="noopener noreferrer">
+            send us an email
+          </a>{' '}
+          or{' '}
+          <a
+            href="https://web.hypothes.is/get-help/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            open a support ticket
+          </a>
+          . You can also visit our{' '}
+          <a
+            href="https://web.hypothes.is/help/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            help documents
+          </a>
+          .
         </p>
-      )}
-      <p className="ErrorDisplay__links">
-        If the problem persists,{' '}
-        <a href={supportLink} target="_blank" rel="noopener noreferrer">
-          send us an email
-        </a>{' '}
-        or{' '}
-        <a
-          href="https://web.hypothes.is/get-help/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          open a support ticket
-        </a>
-        . You can also visit our{' '}
-        <a
-          href="https://web.hypothes.is/help/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          help documents
-        </a>
-        .
-      </p>
-      <ErrorDetails error={error} />
-    </div>
+        <ErrorDetails error={error} />
+      </div>
+    </Scrollbox>
   );
 }

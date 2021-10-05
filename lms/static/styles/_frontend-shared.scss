@@ -8,6 +8,11 @@
   // The containing `Modal` component will take up 90vw on narrow screens.
   // For viewports that are wider, `Modal` sets a min-width, but it's a little
   // narrow for several LMS Dialog interfaces.
+
+  &--medium {
+    width: min(90vw, 36rem);
+  }
+
   &--wide {
     width: min(90vw, 42rem);
   }
@@ -17,5 +22,24 @@
   // from jumping around height-wise if content changes.
   &--tall {
     height: min(90vh, 25rem);
+  }
+
+  // This application does not have a CSS reset. Heading elements still retain
+  // browser defaults, including a margin that is problematic in Dialog and
+  // Modal headings.
+  // TODO: Re-assess after implementing typography/reset strategy
+  & h2 {
+    margin: 0;
+  }
+
+  & > .LMS-Scrollbox {
+    // Dialogs apply vertical spacing such that their immediate children are
+    // evenly spaced. This is a good thing, however, there is a certain edge case
+    // when we have a Scrollbox and we want it to scroll up flush against the
+    // bottom border of the Dialog header. In this case we want to explicitly
+    // disable the top margin so that it can be up against the header.
+    margin-top: 0;
+    // The Scrollbox border in this case is distracting.
+    border: none;
   }
 }

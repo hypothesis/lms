@@ -2,45 +2,17 @@
 
 @use '../variables' as var;
 
-.ErrorDisplay {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding-right: 5px;
-  margin-bottom: 10px;
-
-  &__links {
-    white-space: normal;
+.ErrorDetails {
+  &__summary {
+    @include focus.outline-on-keyboard-focus($inset: true);
+    cursor: pointer;
+    position: sticky;
+    top: 0;
   }
 
   &__details {
-    padding: 4px; // prevents focus ring from getting cut off
-    &-summary {
-      @include focus.outline-on-keyboard-focus;
-      &:hover {
-        cursor: pointer;
-      }
-    }
-  }
-
-  &__details-content {
-    background-color: var.$grey-1;
-    border: 1px solid var.$grey-3;
     white-space: pre-wrap;
     /* Prevent very long single words from breaking out of the box */
     overflow-wrap: break-word;
-    padding: 10px;
-    margin-bottom: 0;
-
-    // When the `ErrorDisplay` is embedded in a container (eg. a dialog) whose
-    // size depends on the preferred width of its children, we want to avoid the
-    // container changing size when the `ErrorDisplay` is opened or closed.
-    //
-    // Therefore we override the instrinsic width of the content with a small
-    // value using `width` and set `min-width` to make the `ErrorDisplay` still
-    // fill the final width of the container.
-    width: 200px;
-    min-width: 100%;
   }
 }
