@@ -14,7 +14,10 @@ export class PickerCanceledError extends Error {
 export class APIError extends Error {
   /**
    * @param {number} status - HTTP status code
-   * @param {any} data - Parsed JSON body from the API response
+   * @param {object} data - Parsed JSON body from the API response
+   * @param {string} [data.message]
+   * @param {string} [data.error_code]
+   * @param {any} [data.details]
    */
   constructor(status, data) {
     // If message is omitted, pass a default error message.
@@ -23,8 +26,6 @@ export class APIError extends Error {
 
     /**
      * HTTP response status.
-     *
-     * @type {number}
      */
     this.status = status;
 
@@ -32,8 +33,6 @@ export class APIError extends Error {
      * Identifier for the specific error that happened.
      *
      * This can be used to show custom error dialogs for specific issues.
-     *
-     * @type {string|null}
      */
     this.errorCode = data.error_code || null;
 
@@ -42,8 +41,6 @@ export class APIError extends Error {
      *
      * May be `null` if the server did not provide any details about what the
      * problem was.
-     *
-     * @type {string|null}
      */
     this.errorMessage = data.message || null;
 
@@ -53,8 +50,6 @@ export class APIError extends Error {
      * If provided, this will contain technical information about what the
      * problem was on the backend. This may be useful when handling eg.
      * support requests.
-     *
-     * @type {any}
      */
     this.details = data.details;
   }
