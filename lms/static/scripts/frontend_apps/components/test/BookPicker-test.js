@@ -177,7 +177,7 @@ describe('BookPicker', () => {
     // list of chapters. That class makes the modal too tall for comfort when
     // displaying an error
     const modalContent = picker.find('div[role="dialog"]');
-    assert.isTrue(modalContent.hasClass('BookPicker'));
-    assert.isFalse(modalContent.hasClass('BookPicker--select-chapter'));
+    assert.isTrue(modalContent.hasClass('LMS-Dialog--wide'));
+    assert.isFalse(modalContent.hasClass('LMS-Dialog--tall'));
   });
 });

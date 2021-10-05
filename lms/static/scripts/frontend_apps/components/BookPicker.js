@@ -82,8 +82,8 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       // sub-components
       initialFocus={null}
       onCancel={onCancel}
-      contentClass={classnames('BookPicker', {
-        'BookPicker--select-chapter': showChapters,
+      contentClass={classnames('LMS-Dialog--wide', {
+        'LMS-Dialog--tall': showChapters,
       })}
       title={
         step === 'select-book'

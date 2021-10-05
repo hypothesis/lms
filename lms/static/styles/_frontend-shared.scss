@@ -1,0 +1,21 @@
+// Extensions and/or overrides to shared component styles from the
+// `@hypothesis/frontend-shared` package
+
+// Provide control over preferred width and height for Dialogs and Modals
+// This extends auto width and height rules set by the `Modal` component
+// (`.Hyp-Modal`).
+.LMS-Dialog {
+  // The containing `Modal` component will take up 90vw on narrow screens.
+  // For viewports that are wider, `Modal` sets a min-width, but it's a little
+  // narrow for several LMS Dialog interfaces.
+  &--wide {
+    width: min(90vw, 42rem);
+  }
+
+  // Set a preferred height on interfaces that should take up a good chunk
+  // of vertical real estate, e.g. lists of files. This can keep the Dialog
+  // from jumping around height-wise if content changes.
+  &--tall {
+    height: min(90vh, 25rem);
+  }
+}
