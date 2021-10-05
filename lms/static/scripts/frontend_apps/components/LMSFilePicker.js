@@ -295,7 +295,7 @@ export default function LMSFilePicker({
 
   return (
     <Modal
-      contentClass={withFileUI ? 'LMSFilePicker' : ''}
+      contentClass={withFileUI ? 'LMS-Dialog--wide LMS-Dialog--tall' : ''}
       title="Select file"
       onCancel={onCancel}
       buttons={continueButton}
