@@ -37,6 +37,6 @@ def verify_domain(request):
     )
     return Response(
         text=response_text,
+        content_length=str(len(response_text)),
         content_type="application/json",
-        headers={"Content-Length": str(len(response_text))},
     )
