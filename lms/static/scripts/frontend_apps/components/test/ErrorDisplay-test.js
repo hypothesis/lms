@@ -167,7 +167,10 @@ describe('ErrorDisplay', () => {
       const wrapper = mount(
         <ErrorDisplay description={description} error={{ message: error }} />
       );
-      assert.equal(wrapper.find('p[data-testid="message"]').text(), output);
+      assert.equal(
+        wrapper.find('p[data-testid="error-message"]').text(),
+        output
+      );
     });
   });
 

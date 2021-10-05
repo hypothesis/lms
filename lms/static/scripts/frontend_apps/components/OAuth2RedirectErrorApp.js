@@ -1,10 +1,9 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
 
 import ErrorDisplay from './ErrorDisplay';
-import Dialog from './Dialog';
 
 /** @typedef {import('../config').OAuthErrorConfig} OAuthErrorConfig */
 
@@ -14,8 +13,10 @@ import Dialog from './Dialog';
  */
 
 /**
- * Error dialog displayed when authorization with a third-party API via OAuth
+ * Error Modal displayed when authorization with a third-party API via OAuth
  * fails.
+ *
+ * Dismissing the Modal will close the window.
  *
  * @param {OAuth2RedirectErrorAppProps} props
  */
@@ -51,15 +52,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
     location.href = /** @type {string} */ (authUrl);
   };
 
-  const buttons = [
-    <LabeledButton
-      key="close"
-      onClick={() => window.close()}
-      data-testid="close"
-    >
-      Close
-    </LabeledButton>,
-  ];
+  const buttons = [];
 
   if (authUrl) {
     buttons.push(
@@ -75,7 +68,13 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   }
 
   return (
-    <Dialog title={title} buttons={buttons}>
+    <Modal
+      buttons={buttons}
+      cancelLabel="Close"
+      contentClass="LMS-Dialog LMS-Dialog--wide"
+      onCancel={() => window.close()}
+      title={title}
+    >
       <ErrorDisplay error={error} description={description}>
         {error.code === 'canvas_invalid_scope' && (
           <>
@@ -125,6 +124,6 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
           </>
         )}
       </ErrorDisplay>
-    </Dialog>
+    </Modal>
   );
 }

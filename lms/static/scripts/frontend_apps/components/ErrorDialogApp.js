@@ -1,12 +1,14 @@
 import { useContext } from 'preact/hooks';
+import { Modal } from '@hypothesis/frontend-shared';
 
 import { Config } from '../config';
 
 import ErrorDisplay from './ErrorDisplay';
-import Dialog from './Dialog';
 
 /**
  * A general-purpose error dialog displayed when a frontend application cannot be launched.
+ *
+ * This is rendered as a non-closeable Modal. It cannot be dismissed.
  *
  * There are more specific error dialogs for some use cases
  * (e.g. OAuth2RedirectErrorApp, LaunchErrorDialog).
@@ -33,7 +35,13 @@ export default function ErrorDialogApp() {
   }
 
   return (
-    <Dialog title={title}>
+    <Modal
+      onCancel={() => null}
+      title={title}
+      withCloseButton={false}
+      withCancelButton={false}
+      contentClass="LMS-Dialog LMS-Dialog--medium"
+    >
       <ErrorDisplay error={error} description={description}>
         {error.code === 'reused_consumer_key' && (
           <>
@@ -70,6 +78,6 @@ export default function ErrorDialogApp() {
           </>
         )}
       </ErrorDisplay>
-    </Dialog>
+    </Modal>
   );
 }

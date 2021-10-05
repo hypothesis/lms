@@ -1,9 +1,10 @@
+import { Modal } from '@hypothesis/frontend-shared';
+
 import ErrorDisplay from './ErrorDisplay';
-import Dialog from './Dialog';
 
 /**
  * @typedef ErrorDialogProps
- * @prop {() => any} [onCancel]
+ * @prop {() => any} onCancel
  * @prop {string} [description] - Message to drill down to `ErrorDisplay`
  * @prop {import('./ErrorDisplay').ErrorLike} error
  * @prop {string} [cancelLabel]
@@ -22,13 +23,14 @@ export default function ErrorDialog({
   cancelLabel,
 }) {
   return (
-    <Dialog
+    <Modal
+      cancelLabel={cancelLabel}
+      contentClass="LMS-Dialog LMS-Dialog--medium"
+      onCancel={onCancel}
       role="alertdialog"
       title="Something went wrong"
-      onCancel={onCancel}
-      cancelLabel={cancelLabel}
     >
       <ErrorDisplay description={description} error={error} />
-    </Dialog>
+    </Modal>
   );
 }

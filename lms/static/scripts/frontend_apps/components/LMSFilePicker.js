@@ -1,4 +1,5 @@
 import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
@@ -295,7 +296,9 @@ export default function LMSFilePicker({
 
   return (
     <Modal
-      contentClass={withFileUI ? 'LMS-Dialog--wide LMS-Dialog--tall' : ''}
+      contentClass={classnames('LMS-Dialog', {
+        'LMS-Dialog--wide LMS-Dialog--tall': withFileUI,
+      })}
       title="Select file"
       onCancel={onCancel}
       buttons={continueButton}
