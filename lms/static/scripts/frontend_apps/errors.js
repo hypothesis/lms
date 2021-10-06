@@ -15,9 +15,9 @@ export class APIError extends Error {
   /**
    * @param {number} status - HTTP status code
    * @param {object} data - Parsed JSON body from the API response
-   * @param {string} [data.message]
-   * @param {string} [data.error_code]
-   * @param {any} [data.details]
+   *   @param {string} [data.message]
+   *   @param {string} [data.error_code]
+   *   @param {any} [data.details]
    */
   constructor(status, data) {
     // If message is omitted, pass a default error message.
