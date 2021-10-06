@@ -1,5 +1,5 @@
 """
-Use a wider integer type for file.type .
+Use a wider integer type for file.size to account for files over 2GB.
 
 Revision ID: 490952a3fbe8
 Revises: d9c9e65c463e
