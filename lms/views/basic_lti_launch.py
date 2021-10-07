@@ -112,7 +112,7 @@ class BasicLTILaunchViews:
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-        self.assignment_service.set_document_url(
+        self.assignment_service.upsert(
             # This URL is mostly for show. We just want to ensure that a module
             # configuration exists. If we're going to do that we might as well
             # make sure this URL is meaningful.
@@ -209,7 +209,7 @@ class BasicLTILaunchViews:
             tool_consumer_instance_guid, original_resource_link_id
         ).document_url
 
-        self.assignment_service.set_document_url(
+        self.assignment_service.upsert(
             document_url, tool_consumer_instance_guid, resource_link_id
         )
 
@@ -307,7 +307,7 @@ class BasicLTILaunchViews:
         """
         document_url = self.request.parsed_params["document_url"]
 
-        self.assignment_service.set_document_url(
+        self.assignment_service.upsert(
             document_url,
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.request.parsed_params["resource_link_id"],

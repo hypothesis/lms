@@ -451,14 +451,12 @@ class TestExists:
         assert not result
 
 
-class TestSetDocumentURL:
+class TestUpsertDocumentURL:
     def test_at_least_one_of_resource_link_id_or_ext_lti_assignment_id_is_required(
         self, svc
     ):
         with pytest.raises(ValueError):
-            svc.set_document_url(
-                "new_document_url", MATCHING_TOOL_CONSUMER_INSTANCE_GUID
-            )
+            svc.upsert("new_document_url", MATCHING_TOOL_CONSUMER_INSTANCE_GUID)
 
     def test_it_raises_if_there_are_multiple_matching_assignments(self, svc):
         factories.Assignment(
@@ -473,7 +471,7 @@ class TestSetDocumentURL:
         )
 
         with pytest.raises(MultipleResultsFound):
-            svc.set_document_url(
+            svc.upsert(
                 "new_document_url",
                 MATCHING_TOOL_CONSUMER_INSTANCE_GUID,
                 MATCHING_RESOURCE_LINK_ID,
@@ -491,7 +489,7 @@ class TestSetDocumentURL:
     def test_if_theres_no_matching_assignment_it_creates_one(
         self, svc, resource_link_id, ext_lti_assignment_id
     ):
-        svc.set_document_url(
+        svc.upsert(
             "new_document_url",
             MATCHING_TOOL_CONSUMER_INSTANCE_GUID,
             resource_link_id,
@@ -525,7 +523,7 @@ class TestSetDocumentURL:
             document_url="old_document_url",
         )
 
-        svc.set_document_url(
+        svc.upsert(
             "new_document_url",
             MATCHING_TOOL_CONSUMER_INSTANCE_GUID,
             resource_link_id,

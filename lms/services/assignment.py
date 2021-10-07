@@ -119,7 +119,7 @@ class AssignmentService:
         except ValueError:
             return False
 
-    def set_document_url(  # pylint:disable=too-many-arguments
+    def upsert(  # pylint:disable=too-many-arguments
         self,
         document_url,
         tool_consumer_instance_guid,
@@ -128,13 +128,13 @@ class AssignmentService:
         extra=None,
     ):
         """
-        Save the given document_url in an existing assignment or create new one.
+        Update or create an assignment with the given document_url.
 
         Set the document_url for the assignment that matches
         tool_consumer_instance_guid and resource_link_id/ext_lti_assignment_id
         or create a new one if none exist on the DB.
 
-        Any existing document URL for this assignment will be overwritten.
+        Any existing document_url for this assignment will be overwritten.
         """
         assignment = self.get(
             tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id

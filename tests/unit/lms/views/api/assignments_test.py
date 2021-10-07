@@ -75,14 +75,14 @@ class TestAssignmentsAPIViews:
 
         result = AssignmentsAPIViews(pyramid_request).create()
 
-        assignment_service.set_document_url.assert_called_once_with(
+        assignment_service.upsert.assert_called_once_with(
             expected_url,
             application_instance_service.get.return_value.tool_consumer_instance_guid,
             ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
             extra=expected_extra,
         )
         assert result == {
-            "ext_lti_assignment_id": assignment_service.set_document_url.return_value.ext_lti_assignment_id
+            "ext_lti_assignment_id": assignment_service.upsert.return_value.ext_lti_assignment_id
         }
 
     @pytest.mark.usefixtures("application_instance_service", "assignment_service")
