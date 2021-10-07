@@ -279,7 +279,7 @@ class TestCanvasFileBasicLTILaunch:
         course_id = pyramid_request.params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
 
-        assignment_service.set_document_url.assert_called_once_with(
+        assignment_service.upsert.assert_called_once_with(
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
             tool_consumer_instance_guid=pyramid_request.params[
                 "tool_consumer_instance_guid"
@@ -334,7 +334,7 @@ class TestFooCopiedBasicLTILaunch:
 
         # It copies the assignment settings to the new resource_link_id in the
         # DB.
-        assignment_service.set_document_url.assert_called_once_with(
+        assignment_service.upsert.assert_called_once_with(
             assignment_service.get.return_value.document_url,
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params["resource_link_id"],
@@ -366,7 +366,7 @@ class TestConfigureAssignment:
     ):
         configure_assignment_caller(context, pyramid_request)
 
-        assignment_service.set_document_url.assert_called_once_with(
+        assignment_service.upsert.assert_called_once_with(
             pyramid_request.parsed_params["document_url"],
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],

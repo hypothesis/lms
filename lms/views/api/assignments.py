@@ -42,7 +42,7 @@ class AssignmentsAPIViews:
         if groupset := params.get("groupset"):
             extra["canvas_groupset"] = groupset
 
-        assignment = self.assignment_service.set_document_url(
+        assignment = self.assignment_service.upsert(
             url,
             self.application_instance.tool_consumer_instance_guid,
             ext_lti_assignment_id=params["ext_lti_assignment_id"],
