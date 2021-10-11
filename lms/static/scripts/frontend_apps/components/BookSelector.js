@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useService, VitalSourceService } from '../services';
-import { bookIDFromURL } from '../utils/vitalsource';
+import { extractBookID } from '../utils/vitalsource';
 
 /**
  * @typedef {import('../api-types').Book} Book
@@ -113,9 +113,9 @@ export default function BookSelector({
       return;
     }
 
-    const bookID = bookIDFromURL(url);
+    const bookID = extractBookID(url);
     if (!bookID) {
-      setError("That doesn't look like a VitalSource book link");
+      setError("That doesn't look like a VitalSource book link or ISBN");
       return;
     }
     fetchBook(bookID);
@@ -158,7 +158,9 @@ export default function BookSelector({
         </Thumbnail>
       </div>
       <div className="hyp-u-stretch hyp-u-vertical-spacing--3">
-        <div>Paste a link to the VitalSource book you&apos;d like to use:</div>
+        <div>
+          Paste a link or ISBN for the VitalSource book you&apos;d like to use:
+        </div>
 
         <TextInputWithButton>
           <TextInput
