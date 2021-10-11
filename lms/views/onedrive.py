@@ -1,5 +1,6 @@
 import textwrap
 
+import newrelic.agent
 from pyramid.response import Response
 from pyramid.view import view_config
 
@@ -15,6 +16,9 @@ def redirect_uri(_request):
 
     This view's URL is provided to One Drive's frontend config as target to open the filepicker in.
     """
+    # Disable newrelic for this view, we don't need extra JS
+    newrelic.agent.disable_browser_autorum()
+
     return {}
 
 
