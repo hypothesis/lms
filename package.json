@@ -47,7 +47,7 @@
     "mkdirp": "^1.0.4",
     "normalize.css": "^8.0.1",
     "postcss": "^8.3.9",
-    "preact": "10.5.13",
+    "preact": "10.5.14",
     "sass": "^1.42.1",
     "stringify": "^5.2.0",
     "through2": "^4.0.2",
