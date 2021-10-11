@@ -19,7 +19,7 @@ const fakeBookData = {
 
 describe('BookSelector', () => {
   let fakeVitalSourceService;
-  let fakeBookIDFromURL;
+  let fakeExtractBookID;
 
   const BookSelectorWrapper = withServices(BookSelector, () => [
     [VitalSourceService, fakeVitalSourceService],
@@ -35,14 +35,14 @@ describe('BookSelector', () => {
     );
 
   beforeEach(() => {
-    fakeBookIDFromURL = sinon.stub().returns('book1');
+    fakeExtractBookID = sinon.stub().returns('book1');
     fakeVitalSourceService = {
       fetchBook: sinon.stub().callsFake(async bookID => fakeBookData[bookID]),
     };
 
     $imports.$mock({
       '../utils/vitalsource': {
-        bookIDFromURL: fakeBookIDFromURL,
+        extractBookID: fakeExtractBookID,
       },
     });
   });
@@ -102,22 +102,22 @@ describe('BookSelector', () => {
 
       updateURL(wrapper, 'foo');
 
-      assert.calledOnce(fakeBookIDFromURL);
-      assert.calledWith(fakeBookIDFromURL, 'foo');
+      assert.calledOnce(fakeExtractBookID);
+      assert.calledWith(fakeExtractBookID, 'foo');
 
       updateURL(wrapper, 'bar');
 
       assert.equal(
-        fakeBookIDFromURL.callCount,
+        fakeExtractBookID.callCount,
         2,
         're-validates if entered URL value changes'
       );
-      assert.calledWith(fakeBookIDFromURL, 'bar');
+      assert.calledWith(fakeExtractBookID, 'bar');
 
       updateURL(wrapper, 'bar');
 
       assert.equal(
-        fakeBookIDFromURL.callCount,
+        fakeExtractBookID.callCount,
         2,
         'Does not validate URL if it has not changed from previous value'
       );
@@ -133,8 +133,8 @@ describe('BookSelector', () => {
 
       input.getDOMNode().dispatchEvent(keyEvent);
 
-      assert.calledOnce(fakeBookIDFromURL);
-      assert.calledWith(fakeBookIDFromURL, 'http://www.example.com');
+      assert.calledOnce(fakeExtractBookID);
+      assert.calledWith(fakeExtractBookID, 'http://www.example.com');
     });
 
     it('confirms the selected book if "Enter" is pressed subsequently', () => {
@@ -150,7 +150,7 @@ describe('BookSelector', () => {
       // First enter press will "look up" book from entered URL
       input.getDOMNode().dispatchEvent(keyEvent);
 
-      assert.calledOnce(fakeBookIDFromURL);
+      assert.calledOnce(fakeExtractBookID);
 
       // Second enter press should "confirm" the book looked up after the
       // first press
@@ -166,23 +166,23 @@ describe('BookSelector', () => {
 
       wrapper.find('IconButton button[title="Find book"]').simulate('click');
 
-      assert.calledOnce(fakeBookIDFromURL);
-      assert.calledWith(fakeBookIDFromURL, 'foo');
+      assert.calledOnce(fakeExtractBookID);
+      assert.calledWith(fakeExtractBookID, 'foo');
     });
 
     it('does not attempt to check the URL format if the field value is empty', () => {
       const wrapper = renderBookSelector();
       updateURL(wrapper, 'foo');
 
-      assert.calledOnce(fakeBookIDFromURL);
+      assert.calledOnce(fakeExtractBookID);
 
       updateURL(wrapper, '');
 
-      assert.calledOnce(fakeBookIDFromURL);
+      assert.calledOnce(fakeExtractBookID);
     });
 
     it('shows an error if entered URL format is invalid', () => {
-      fakeBookIDFromURL.returns(null);
+      fakeExtractBookID.returns(null);
 
       const wrapper = renderBookSelector();
       updateURL(wrapper, 'foo');
