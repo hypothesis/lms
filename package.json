@@ -31,7 +31,7 @@
     "@babel/preset-react": "^7.14.5",
     "@hypothesis/frontend-shared": "3.13.0",
     "@types/gapi": "^0.0.41",
-    "autoprefixer": "^10.3.6",
+    "autoprefixer": "^10.3.7",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "classnames": "^2.3.1",
