@@ -29,7 +29,7 @@ RUN apk add --virtual build-deps \
     build-base \
     postgresql-dev \
     python3-dev \
-  && pip3 install --no-cache-dir -U pip \
+  && pip3 install --no-cache-dir -U pip==21.2.4 \
   && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
 
