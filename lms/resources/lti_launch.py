@@ -79,6 +79,10 @@ class LTILaunchResource:
         return course
 
     @property
+    def resource_link_id(self):
+        return self._request.params.get("resource_link_id")
+
+    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         if (
