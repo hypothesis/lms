@@ -102,10 +102,8 @@ class BasicLTILaunchViews:
         Via. We have to re-do this file-ID-for-download-URL exchange on every
         single launch because Canvas's download URLs are temporary.
         """
-
         course_id = self.request.params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
-        resource_link_id = self.request.params["resource_link_id"]
 
         # Normally this would be done during `configure_assignment()` but
         # Canvas skips that step. We are doing this to ensure that there is a
@@ -120,7 +118,7 @@ class BasicLTILaunchViews:
             tool_consumer_instance_guid=self.request.params[
                 "tool_consumer_instance_guid"
             ],
-            resource_link_id=resource_link_id,
+            resource_link_id=self.context.resource_link_id,
         )
         return self.basic_lti_launch(document_url=document_url, grading_supported=False)
 
@@ -160,9 +158,8 @@ class BasicLTILaunchViews:
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
-        resource_link_id = self.request.params["resource_link_id"]
         document_url = self.assignment_service.get(
-            tool_consumer_instance_guid, resource_link_id
+            tool_consumer_instance_guid, self.context.resource_link_id
         ).document_url
         return self.basic_lti_launch(document_url)
 
@@ -203,14 +200,13 @@ class BasicLTILaunchViews:
             assignment that this assignment was copied from
         """
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
-        resource_link_id = self.request.params["resource_link_id"]
 
         document_url = self.assignment_service.get(
             tool_consumer_instance_guid, original_resource_link_id
         ).document_url
 
         self.assignment_service.upsert(
-            document_url, tool_consumer_instance_guid, resource_link_id
+            document_url, tool_consumer_instance_guid, self.context.resource_link_id
         )
 
         return self.basic_lti_launch(document_url)
@@ -310,7 +306,7 @@ class BasicLTILaunchViews:
         self.assignment_service.upsert(
             document_url,
             self.request.parsed_params["tool_consumer_instance_guid"],
-            self.request.parsed_params["resource_link_id"],
+            self.context.resource_link_id,
         )
 
         self.context.js_config.add_document_url(document_url)

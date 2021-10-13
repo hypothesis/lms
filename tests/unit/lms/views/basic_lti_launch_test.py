@@ -446,10 +446,12 @@ class TestVitalsourceLTILaunch:
 
 
 @pytest.fixture
-def context():
+def context(pyramid_request):
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
     context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
     context.is_canvas = False
+
+    context.resource_link_id = pyramid_request.params["resource_link_id"]
     return context
 
 

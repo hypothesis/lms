@@ -18,6 +18,14 @@ class TestHGroup:
         assert lti_launch.h_group == mock.sentinel.course
 
 
+class TestResouceLinkIdk:
+    def test_it(self, pyramid_request):
+        assert (
+            LTILaunchResource(pyramid_request).resource_link_id
+            == pyramid_request.params["resource_link_id"]
+        )
+
+
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "parsed_params,is_canvas",
