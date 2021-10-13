@@ -36,6 +36,13 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     group_set = fields.Int(required=False, allow_none=True)
     """Canvas group_set ID for assignments that use the small groups feature."""
 
+    resource_link_id = fields.Str(required=False, allow_none=True)
+    """Canvas doesn't seen the right value on speed grader launches
+    so we keep track of the correct one ourselves"""
+
+    ext_lti_assignment_id = fields.Str(required=False, allow_none=True)
+    """Canvas doesn't send this value on speed grader launches"""
+
 
 class APIReadResultSchema(PyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for reading grades."""

@@ -341,6 +341,13 @@ class JSConfig:
                 "lis_outcome_service_url": lis_outcome_service_url,
                 "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
                 "group_set": self._request.params.get("group_set"),
+                # Canvas doesn't send the right value for this on speed grader launches
+                # sending instead the same value as for "context_id"
+                "resource_link_id": self._request.params.get("resource_link_id"),
+                # Canvas doesn't send this value at all on speed grader submissions
+                "ext_lti_assignment_id": self._request.params.get(
+                    "ext_lti_assignment_id"
+                ),
                 **kwargs,
             },
         }
