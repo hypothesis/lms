@@ -46,6 +46,27 @@ class JSConfig:
         """
         return self._request.find_service(name="application_instance").get()
 
+    def add_canvas_file_id(self, course_id, resource_link_id, canvas_file_id):
+        """
+        Set the document to the Canvas file with the given canvas_file_id.
+
+        This configures the frontend to make an API call to get the URL to use
+        as the src for the Via iframe.
+
+        :raise HTTPBadRequest: if a request param needed to generate the config
+            is missing
+        """
+        self._config["api"]["viaUrl"] = {
+            "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
+            "path": self._request.route_path(
+                "canvas_api.files.via_url",
+                course_id=course_id,
+                resource_link_id=resource_link_id,
+                file_id=canvas_file_id,
+            ),
+        }
+        self._add_canvas_speedgrader_settings(canvas_file_id=canvas_file_id)
+
     def add_document_url(self, document_url):
         """
         Set the document to the document at the given document_url.
@@ -67,17 +88,14 @@ class JSConfig:
                 ),
             }
         elif document_url.startswith("canvas://"):
-            self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
-                "path": self._request.route_path(
-                    "canvas_api.files.via_url",
-                    resource_link_id=self._request.params["resource_link_id"],
-                ),
-            }
+            course_id = self._request.params["custom_canvas_course_id"]
+            file_id = self._request.params["file_id"]
+            resource_link_id = self._request.params["resource_link_id"]
+
+            self.add_canvas_file_id(course_id, resource_link_id, file_id)
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
-
-        self._add_canvas_speedgrader_settings(document_url=document_url)
+            self._add_canvas_speedgrader_settings(document_url=document_url)
 
     def add_vitalsource_launch_config(self, book_id, cfi=None):
         vitalsource_svc = self._request.find_service(name="vitalsource")

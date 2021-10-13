@@ -152,6 +152,31 @@ class TestEnableLTILaunchMode:
             js_config.enable_lti_launch_mode()
 
 
+class TestAddCanvasFileID:
+    """Unit tests for JSConfig.add_canvas_file_id()."""
+
+    def test_it_adds_the_viaUrl_api_config(self, js_config):
+        js_config.add_canvas_file_id(
+            "example_canvas_course_id",
+            "example_resource_link_id",
+            "example_canvas_file_id",
+        )
+
+        assert js_config.asdict()["api"]["viaUrl"] == {
+            "authUrl": "http://example.com/api/canvas/oauth/authorize",
+            "path": "/api/canvas/courses/example_canvas_course_id/assignments/example_resource_link_id/files/example_canvas_file_id/via_url",
+        }
+
+    def test_it_sets_the_canvas_file_id(self, js_config, submission_params):
+        js_config.add_canvas_file_id(
+            "example_canvas_course_id",
+            "example_resource_link_id",
+            "example_canvas_file_id",
+        )
+
+        assert submission_params()["canvas_file_id"] == "example_canvas_file_id"
+
+
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
@@ -182,60 +207,13 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
+            "path": "/api/canvas/courses/125/assignments/TEST_RESOURCE_LINK_ID/files/100/via_url",
         }
 
     def test_it_sets_the_document_url(self, js_config, submission_params):
         js_config.add_document_url("example_document_url")
 
         assert submission_params()["document_url"] == "example_document_url"
-
-    def test_it_sets_the_canvas_submission_params(
-        self, pyramid_request, submission_params, js_config
-    ):
-
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
-
-        assert (
-            submission_params()["h_username"]
-            == pyramid_request.lti_user.h_user.username
-        )
-        assert (
-            submission_params()["lis_outcome_service_url"]
-            == "example_lis_outcome_service_url"
-        )
-        assert (
-            submission_params()["lis_result_sourcedid"]
-            == "example_lis_result_sourcedid"
-        )
-        assert submission_params()["learner_canvas_user_id"] == "test_user_id"
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
-        self, context, js_config
-    ):
-        context.is_canvas = False
-
-        js_config.add_document_url("example_document_url")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
-        self, js_config, pyramid_request
-    ):
-        del pyramid_request.params["lis_result_sourcedid"]
-
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
-        self, js_config, pyramid_request
-    ):
-        del pyramid_request.params["lis_outcome_service_url"]
-
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
 
 
 class TestAddVitalsourceLaunchConfig:
@@ -271,6 +249,77 @@ class TestAddVitalsourceLaunchConfig:
             mock.sentinel.launch_params,
         )
         return vitalsource_service
+
+
+class TestAddCanvasFileIDAddDocumentURLCommon:
+    """Tests common to both add_canvas_file_id() and add_document_url()."""
+
+    def test_it_sets_the_canvas_submission_params(
+        self, pyramid_request, method_caller, submission_params
+    ):
+        method_caller()
+
+        assert (
+            submission_params()["h_username"]
+            == pyramid_request.lti_user.h_user.username
+        )
+        assert (
+            submission_params()["lis_outcome_service_url"]
+            == "example_lis_outcome_service_url"
+        )
+        assert (
+            submission_params()["lis_result_sourcedid"]
+            == "example_lis_result_sourcedid"
+        )
+        assert submission_params()["learner_canvas_user_id"] == "test_user_id"
+
+    def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
+        self, context, method_caller, js_config
+    ):
+        context.is_canvas = False
+
+        method_caller()
+
+        assert "speedGrader" not in js_config.asdict()["canvas"]
+
+    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
+        self, method_caller, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_result_sourcedid"]
+
+        method_caller()
+
+        assert "speedGrader" not in js_config.asdict()["canvas"]
+
+    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
+        self, method_caller, js_config, pyramid_request
+    ):
+        del pyramid_request.params["lis_outcome_service_url"]
+
+        method_caller()
+
+        assert "speedGrader" not in js_config.asdict()["canvas"]
+
+    @pytest.fixture(
+        params=[
+            {
+                "method": "add_canvas_file_id",
+                "args": [
+                    "example_canvas_course_id",
+                    "example_resource_link_id",
+                    "example_canvas_file_id",
+                ],
+            },
+            {"method": "add_document_url", "args": ["example_document_url"]},
+        ]
+    )
+    def method_caller(self, js_config, request):
+        """Return a function that calls the method-under-test with default args."""
+
+        def method_caller():
+            return getattr(js_config, request.param["method"])(*request.param["args"])
+
+        return method_caller
 
 
 class TestMaybeEnableGrading:
