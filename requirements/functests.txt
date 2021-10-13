@@ -133,7 +133,7 @@ pyasn1-modules==0.2.8
     # via
     #   -r requirements/requirements.txt
     #   google-auth
-pycryptodomex==3.10.4
+pycryptodomex==3.11.0
     # via -r requirements/requirements.txt
 pyjwt==2.2.0
     # via
