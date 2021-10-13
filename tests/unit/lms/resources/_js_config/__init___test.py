@@ -273,6 +273,15 @@ class TestAddCanvasFileIDAddDocumentURLCommon:
         )
         assert submission_params()["learner_canvas_user_id"] == "test_user_id"
 
+        assert (
+            submission_params()["resource_link_id"]
+            == pyramid_request.params["resource_link_id"]
+        )
+        assert (
+            submission_params()["ext_lti_assignment_id"]
+            == pyramid_request.params["ext_lti_assignment_id"]
+        )
+
     def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
         self, context, method_caller, js_config
     ):
