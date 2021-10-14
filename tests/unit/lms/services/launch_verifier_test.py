@@ -8,19 +8,23 @@ import oauthlib.oauth1
 import pytest
 from oauthlib.oauth1 import SignatureOnlyEndpoint
 
-from lms.models import ApplicationInstance
-from lms.services import ConsumerKeyLaunchVerificationError, LTIOAuthError
+from lms.services import (
+    ApplicationInstanceNotFound,
+    ConsumerKeyLaunchVerificationError,
+    LTIOAuthError,
+)
 from lms.services.launch_verifier import LaunchVerifier
+from tests import factories
 
 ONE_HOUR_AGO = str(int(time.time() - 60 * 60))
 
 
 class TestVerifyLaunchRequest:
-    def test_it(self, verify, pyramid_request, ApplicationInstance):
+    def test_it(self, verify, application_instance_service):
         verify()
 
-        ApplicationInstance.get_by_consumer_key.assert_called_once_with(
-            pyramid_request.db, "TEST_OAUTH_CONSUMER_KEY"
+        application_instance_service.get_by_consumer_key.assert_called_once_with(
+            "TEST_OAUTH_CONSUMER_KEY"
         )
 
     def test_it_raises_if_the_request_is_a_get(self, verify, pyramid_request):
@@ -36,9 +40,11 @@ class TestVerifyLaunchRequest:
             verify()
 
     def test_it_raises_if_the_consumer_key_is_not_in_the_db(
-        self, verify, ApplicationInstance
+        self, verify, application_instance_service
     ):
-        ApplicationInstance.get_by_consumer_key.return_value = None
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
+        )
 
         with pytest.raises(ConsumerKeyLaunchVerificationError):
             verify()
@@ -99,7 +105,7 @@ class TestVerifyLaunchRequest:
         verify()
 
     @pytest.fixture
-    def form_values(self, ApplicationInstance):
+    def form_values(self, application_instance):
         form_values = OrderedDict(
             {
                 "oauth_nonce": "11860869681061452641619619597",
@@ -110,13 +116,9 @@ class TestVerifyLaunchRequest:
             }
         )
 
-        shared_secret = (
-            ApplicationInstance.get_by_consumer_key.return_value.shared_secret
-        )
-
         def sign(form_values):
             client = oauthlib.oauth1.Client(
-                form_values["oauth_consumer_key"], shared_secret
+                form_values["oauth_consumer_key"], application_instance.shared_secret
             )
             form_values["oauth_signature"] = client.get_oauth_signature(
                 oauthlib.common.Request(
@@ -145,18 +147,22 @@ class TestVerifyLaunchRequest:
 
         return verify
 
+    @pytest.fixture
+    def application_instance(self):
+        return factories.ApplicationInstance()
+
     @pytest.fixture(autouse=True)
-    def ApplicationInstance(self, patch):
-        models = patch("lms.services.launch_verifier.models")
-        models.ApplicationInstance.get_by_consumer_key.return_value = create_autospec(
-            ApplicationInstance,
-            instance=True,
-            spec_set=True,
-            shared_secret="TEST_SECRET",
+    def application_instance_service(
+        self, application_instance_service, application_instance
+    ):
+        application_instance_service.get_by_consumer_key.return_value = (
+            application_instance
         )
-        return models.ApplicationInstance
+
+        return application_instance_service
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestVerifyLaunchRequestMocked:
     def test_it_raises_if_pylti_returns_False(self, verifier, oauth_endpoint):
         oauth_endpoint.validate_request.return_value = False, None
