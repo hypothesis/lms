@@ -51,7 +51,7 @@ class AdminViews:
             raise HTTPBadRequest() from err
 
         try:
-            ai = self.application_instance_service.get(consumer_key)
+            ai = self.application_instance_service.get_by_consumer_key(consumer_key)
         except ApplicationInstanceNotFound:
             self.request.session.flash(
                 f'No application instance found for {self.request.params["query"]}',
@@ -102,6 +102,6 @@ class AdminViews:
 
     def _get_ai_or_404(self, consumer_key):
         try:
-            return self.application_instance_service.get(consumer_key)
+            return self.application_instance_service.get_by_consumer_key(consumer_key)
         except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
