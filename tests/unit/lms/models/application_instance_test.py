@@ -82,25 +82,6 @@ class TestApplicationInstance:
         with pytest.raises(ValueError):
             application_instance.lms_host()
 
-    def test_get_returns_the_matching_ApplicationInstance(
-        self, db_session, application_instance
-    ):
-        assert (
-            ApplicationInstance.get_by_consumer_key(
-                db_session, application_instance.consumer_key
-            )
-            == application_instance
-        )
-
-    @pytest.mark.usefixtures("application_instance")
-    def test_get_returns_None_if_theres_no_matching_ApplicationInstance(
-        self, db_session
-    ):
-        assert (
-            ApplicationInstance.get_by_consumer_key(db_session, "unknown_consumer_key")
-            is None
-        )
-
     def test_decrypted_developer_secret_returns_the_decrypted_developer_secret(
         self, application_instance, pyramid_request
     ):

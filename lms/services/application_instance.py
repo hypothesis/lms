@@ -1,5 +1,7 @@
 from functools import lru_cache
 
+from sqlalchemy.exc import NoResultFound
+
 from lms.models import ApplicationInstance
 
 
@@ -8,34 +10,48 @@ class ApplicationInstanceNotFound(Exception):
 
 
 class ApplicationInstanceService:
-    def __init__(self, db, default_consumer_key):
+    def __init__(self, db, request):
         self._db = db
-        self._default_consumer_key = default_consumer_key
+        self._request = request
 
     @lru_cache
     def get(self, consumer_key=None) -> ApplicationInstance:
         """
-        Return the ApplicationInstance with the given consumer_key.
+        Return the `ApplicationInstance` with the given consumer_key.
 
-        If no consumer_key is given return the current request's
-        ApplicationInstance (the ApplicationInstance whose consumer_key matches
-        request.lti_user.oauth_consumer_key).
+        If no `consumer_key` is given the current request's
+        ApplicationInstance with `consumer_key` matching
+        `request.lti_user.oauth_consumer_key` is returned.
 
-        :raise ApplicationInstanceNotFound: if there's no ApplicationInstance
-            with consumer_key in the database
+        :raise ApplicationInstanceNotFound: if there's no `ApplicationInstance`
+            with `consumer_key` in the database
         """
-        consumer_key = consumer_key or self._default_consumer_key
 
-        application_instance = ApplicationInstance.get_by_consumer_key(
-            self._db, consumer_key
-        )
+        if not consumer_key and self._request.lti_user:
+            consumer_key = self._request.lti_user.oauth_consumer_key
 
-        if application_instance is None:
+        return self.get_by_consumer_key(consumer_key)
+
+    @lru_cache
+    def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
+        """
+        Return the `ApplicationInstance` with the given consumer_key.
+
+        :raise ApplicationInstanceNotFound: if there's no `ApplicationInstance`
+            with `consumer_key` in the database
+        """
+        if not consumer_key:
             raise ApplicationInstanceNotFound()
 
-        return application_instance
+        try:
+            return (
+                self._db.query(ApplicationInstance)
+                .filter_by(consumer_key=consumer_key)
+                .one()
+            )
+        except NoResultFound as err:
+            raise ApplicationInstanceNotFound() from err
 
 
 def factory(_context, request):
-    consumer_key = request.lti_user.oauth_consumer_key if request.lti_user else None
-    return ApplicationInstanceService(request.db, consumer_key)
+    return ApplicationInstanceService(request.db, request)

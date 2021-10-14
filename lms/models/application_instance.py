@@ -119,11 +119,6 @@ class ApplicationInstance(BASE):
 
         return lms_host
 
-    @classmethod
-    def get_by_consumer_key(cls, db, consumer_key):
-        """Return the ApplicationInstance with the given consumer_key or None."""
-        return db.query(cls).filter_by(consumer_key=consumer_key).one_or_none()
-
     def update_lms_data(self, params: dict):
         """
         Update all the LMS-related attributes present in `params`.
