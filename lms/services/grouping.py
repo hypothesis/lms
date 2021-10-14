@@ -5,7 +5,7 @@ from lms.models._hashed_id import hashed_id
 class GroupingService:
     def __init__(self, db, application_instance_service, course_service):
         self._db = db
-        self._application_instance = application_instance_service.get()
+        self._application_instance = application_instance_service.get_current()
         self._course_service = course_service
 
     def upsert(self, grouping):

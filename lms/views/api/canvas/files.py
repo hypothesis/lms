@@ -40,7 +40,8 @@ class FilesAPIViews:
         """
         application_instance = self.request.find_service(
             name="application_instance"
-        ).get()
+        ).get_current()
+
         assignment = self.request.find_service(name="assignment").get(
             application_instance.tool_consumer_instance_guid,
             self.request.matchdict["resource_link_id"],

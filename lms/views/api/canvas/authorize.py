@@ -44,7 +44,9 @@ GROUPS_SCOPES = (
     permission=Permissions.API,
 )
 def authorize(request):
-    application_instance = request.find_service(name="application_instance").get()
+    application_instance = request.find_service(
+        name="application_instance"
+    ).get_current()
     course_service = request.find_service(name="course")
 
     scopes = FILES_SCOPES

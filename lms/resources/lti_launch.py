@@ -155,7 +155,7 @@ class LTILaunchResource:
             return False
 
         try:
-            application_instance = self._application_instance_service.get()
+            application_instance = self._application_instance_service.get_current()
         except ApplicationInstanceNotFound:
             return False
 
@@ -176,7 +176,7 @@ class LTILaunchResource:
     def canvas_groups_enabled(self):
         """Return True if Canvas groups are enabled at the school/installation level."""
         try:
-            application_instance = self._application_instance_service.get()
+            application_instance = self._application_instance_service.get_current()
         except ApplicationInstanceNotFound:
             return False
 

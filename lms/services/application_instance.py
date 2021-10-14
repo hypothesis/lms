@@ -15,30 +15,30 @@ class ApplicationInstanceService:
         self._request = request
 
     @lru_cache
-    def get(self, consumer_key=None) -> ApplicationInstance:
+    def get_current(self) -> ApplicationInstance:
         """
-        Return the `ApplicationInstance` with the given consumer_key.
+        Return the the current request's `ApplicationInstance`.
 
-        If no `consumer_key` is given the current request's
-        ApplicationInstance with `consumer_key` matching
-        `request.lti_user.oauth_consumer_key` is returned.
+        This is the `ApplicationInstance` with `consumer_key` matching
+        `request.lti_user.oauth_consumer_key`.
 
-        :raise ApplicationInstanceNotFound: if there's no `ApplicationInstance`
-            with `consumer_key` in the database
+        :raise ApplicationInstanceNotFound: if there's no matching
+            `ApplicationInstance`
         """
 
-        if not consumer_key and self._request.lti_user:
-            consumer_key = self._request.lti_user.oauth_consumer_key
+        if self._request.lti_user:
+            return self.get_by_consumer_key(self._request.lti_user.oauth_consumer_key)
 
-        return self.get_by_consumer_key(consumer_key)
+        raise ApplicationInstanceNotFound()
 
     @lru_cache
     def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
         """
-        Return the `ApplicationInstance` with the given consumer_key.
+        Return the `ApplicationInstance` with the given `consumer_key`.
 
-        :raise ApplicationInstanceNotFound: if there's no `ApplicationInstance`
-            with `consumer_key` in the database
+        :param consumer_key: Consumer key to search by
+        :raise ApplicationInstanceNotFound: if there's no matching
+            `ApplicationInstance`
         """
         if not consumer_key:
             raise ApplicationInstanceNotFound()

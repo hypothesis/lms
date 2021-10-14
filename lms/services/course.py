@@ -6,7 +6,7 @@ from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
 
 class CourseService:
     def __init__(self, application_instance_service, db):
-        self._application_instance = application_instance_service.get()
+        self._application_instance = application_instance_service.get_current()
         self._db = db
 
     def get_or_create(self, authority_provided_id):

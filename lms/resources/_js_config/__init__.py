@@ -44,7 +44,7 @@ class JSConfig:
 
         :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
-        return self._request.find_service(name="application_instance").get()
+        return self._request.find_service(name="application_instance").get_current()
 
     def add_document_url(self, document_url):
         """

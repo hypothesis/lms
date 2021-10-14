@@ -77,7 +77,7 @@ class TestAssignmentsAPIViews:
 
         assignment_service.upsert.assert_called_once_with(
             expected_url,
-            application_instance_service.get.return_value.tool_consumer_instance_guid,
+            application_instance_service.get_current.return_value.tool_consumer_instance_guid,
             ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
             extra=expected_extra,
         )

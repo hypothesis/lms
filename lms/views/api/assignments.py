@@ -12,7 +12,7 @@ class AssignmentsAPIViews:
         self.assignment_service = request.find_service(name="assignment")
         self.application_instance = request.find_service(
             name="application_instance"
-        ).get()
+        ).get_current()
 
     @view_config(
         route_name="api.assignments.create",

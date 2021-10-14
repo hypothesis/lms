@@ -22,7 +22,7 @@ class TestAuthorize:
         oauth_callback_schema,
         pyramid_request,
     ):
-        application_instance = application_instance_service.get.return_value
+        application_instance = application_instance_service.get_current.return_value
 
         response = authorize(pyramid_request)
 

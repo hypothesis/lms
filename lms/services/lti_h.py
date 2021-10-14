@@ -41,7 +41,7 @@ class LTIHService:
         :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
 
-        if not self._application_instance_service.get().provisioning:
+        if not self._application_instance_service.get_current().provisioning:
             return
 
         self._h_api.execute_bulk(commands=self._yield_commands(h_groups))

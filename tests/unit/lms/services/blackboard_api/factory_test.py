@@ -13,7 +13,7 @@ def test_blackboard_api_client_factory(
     BasicClient,
     BlackboardAPIClient,
 ):
-    application_instance = application_instance_service.get.return_value
+    application_instance = application_instance_service.get_current.return_value
     settings = pyramid_request.registry.settings
 
     service = blackboard_api_client_factory(sentinel.context, pyramid_request)

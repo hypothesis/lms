@@ -152,7 +152,7 @@ def test_is_group_launch(
     request_json,
     application_instance_service,
 ):
-    application_instance_service.get.return_value.settings = {
+    application_instance_service.get_current.return_value.settings = {
         "canvas": {"groups_enabled": groups_enabled}
     }
     # pylint: disable=protected-access
@@ -179,7 +179,7 @@ def test_is_group_launch_in_speed_grader(
     request_json,
     application_instance_service,
 ):
-    application_instance_service.get.return_value.settings = {
+    application_instance_service.get_current.return_value.settings = {
         "canvas": {"groups_enabled": groups_enabled}
     }
     # pylint: disable=protected-access
@@ -315,7 +315,7 @@ def is_speedgrader(request_json):
 @pytest.fixture
 def is_group_launch(application_instance_service, request_json):
     request_json["course"]["group_set"] = 1
-    application_instance_service.get.return_value.settings = {
+    application_instance_service.get_current.return_value.settings = {
         "canvas": {"groups_enabled": True}
     }
 

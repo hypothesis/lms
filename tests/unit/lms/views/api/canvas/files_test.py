@@ -25,7 +25,7 @@ class TestFilesAPIViews:
         helpers,
     ):
         document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
-        application_instance = application_instance_service.get.return_value
+        application_instance = application_instance_service.get_current.return_value
         assignment = assignment_service.get.return_value
         assignment.document_url = document_url
         pyramid_request.matchdict = {

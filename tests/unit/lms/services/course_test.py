@@ -15,7 +15,7 @@ class TestCourseService:
     def test_inserting_True_and_False(
         self, application_instance_service, db_session, svc, canvas_sections_enabled
     ):
-        application_instance_service.get.return_value.settings.set(
+        application_instance_service.get_current.return_value.settings.set(
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
@@ -35,7 +35,7 @@ class TestCourseService:
             settings={},
         )
         existing_course.settings.set("canvas", "sections_enabled", False)
-        application_instance_service.get.return_value.settings.set(
+        application_instance_service.get_current.return_value.settings.set(
             "canvas", "sections_enabled", True
         )
 
@@ -54,7 +54,7 @@ class TestCourseService:
                 created=datetime.datetime.utcnow(),
             )
         )
-        application_instance_service.get.return_value.settings.set(
+        application_instance_service.get_current.return_value.settings.set(
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
@@ -126,7 +126,7 @@ class TestCourseService:
 
     @pytest.fixture
     def svc(self, pyramid_request, application_instance_service, application_instance):
-        application_instance_service.get.return_value = application_instance
+        application_instance_service.get_current.return_value = application_instance
         return course_service_factory(sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)

@@ -151,13 +151,15 @@ class TestCanvasSectionsSupported:
     def test_it_depends_on_application_instance_service(
         self, lti_launch, application_instance_service
     ):
-        application_instance_service.get.return_value.developer_key = None
+        application_instance_service.get_current.return_value.developer_key = None
         assert not lti_launch.canvas_sections_supported()
 
     def test_if_application_instance_service_raises(
         self, lti_launch, application_instance_service
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_current.side_effect = (
+            ApplicationInstanceNotFound
+        )
         assert not lti_launch.canvas_sections_supported()
 
     @pytest.fixture(autouse=True)
@@ -239,7 +241,9 @@ class TestCanvasGroupsEnabled:
     def test_false_when_no_application_instance(
         self, application_instance_service, lti_launch
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_current.side_effect = (
+            ApplicationInstanceNotFound
+        )
 
         assert not lti_launch.canvas_groups_enabled
 
@@ -248,7 +252,7 @@ class TestCanvasGroupsEnabled:
         self, settings_value, application_instance_service, lti_launch
     ):
         settings = ApplicationSettings({"canvas": {"groups_enabled": settings_value}})
-        application_instance_service.get.return_value.settings = settings
+        application_instance_service.get_current.return_value.settings = settings
 
         assert lti_launch.canvas_groups_enabled == settings_value
 

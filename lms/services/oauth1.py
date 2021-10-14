@@ -21,7 +21,7 @@ class OAuth1Service:
         """
 
         consumer_key = self._request.lti_user.oauth_consumer_key
-        shared_secret = self._application_instance_service.get().shared_secret
+        shared_secret = self._application_instance_service.get_current().shared_secret
 
         return OAuth1(
             client_key=consumer_key,
