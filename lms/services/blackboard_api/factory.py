@@ -3,7 +3,9 @@ from lms.services.blackboard_api.client import BlackboardAPIClient
 
 
 def blackboard_api_client_factory(_context, request):
-    application_instance = request.find_service(name="application_instance").get()
+    application_instance = request.find_service(
+        name="application_instance"
+    ).get_current()
     settings = request.registry.settings
 
     return BlackboardAPIClient(

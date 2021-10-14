@@ -81,7 +81,7 @@ def application_instance_service(mock_service):
     application_instance_service = mock_service(
         ApplicationInstanceService, service_name="application_instance"
     )
-    application_instance_service.get.return_value = application_instance
+    application_instance_service.get_current.return_value = application_instance
     application_instance_service.get_by_consumer_key.return_value = application_instance
 
     return application_instance_service

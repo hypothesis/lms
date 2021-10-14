@@ -41,7 +41,7 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-        request.find_service(name="application_instance").get().update_lms_data(
+        request.find_service(name="application_instance").get_current().update_lms_data(
             self.request.params
         )
 

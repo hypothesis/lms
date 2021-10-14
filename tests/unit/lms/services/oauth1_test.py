@@ -16,7 +16,7 @@ class TestOAuth1Service:
 
         OAuth1.assert_called_once_with(
             client_key=pyramid_request.lti_user.oauth_consumer_key,
-            client_secret=application_instance_service.get.return_value.shared_secret,
+            client_secret=application_instance_service.get_current.return_value.shared_secret,
             signature_method="HMAC-SHA1",
             signature_type="auth_header",
             force_include_body=True,

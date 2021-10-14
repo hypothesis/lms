@@ -49,7 +49,7 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
-    request.find_service(name="application_instance").get().update_lms_data(
+    request.find_service(name="application_instance").get_current().update_lms_data(
         request.params
     )
 

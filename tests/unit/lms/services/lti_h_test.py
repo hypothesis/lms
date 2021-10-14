@@ -17,7 +17,7 @@ class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
         self, application_instance_service, lti_h_svc, h_api, grouping
     ):
-        application_instance_service.get.return_value.provisioning = False
+        application_instance_service.get_current.return_value.provisioning = False
 
         lti_h_svc.sync([grouping], sentinel.params)
 
@@ -76,7 +76,9 @@ class TestSync:
     def test_sync_raises_if_theres_no_ApplicationInstance(
         self, application_instance_service, grouping, lti_h_svc
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_current.side_effect = (
+            ApplicationInstanceNotFound
+        )
 
         with pytest.raises(ApplicationInstanceNotFound):
             lti_h_svc.sync([grouping], sentinel.params)

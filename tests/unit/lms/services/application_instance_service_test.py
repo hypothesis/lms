@@ -8,6 +8,19 @@ from tests import factories
 
 
 class TestApplicationInstanceService:
+    def test_get_default(self, service, application_instance, pyramid_request):
+        application_instance.consumer_key = pyramid_request.lti_user.oauth_consumer_key
+
+        assert service.get_current() == application_instance
+
+    def test_get_default_raises_ApplicationInstanceNotFound_with_no_user(
+        self, service, pyramid_request
+    ):
+        pyramid_request.lti_user = None
+
+        with pytest.raises(ApplicationInstanceNotFound):
+            service.get_current()
+
     def test_get_by_consumer_key(self, service, application_instance):
         assert (
             service.get_by_consumer_key(application_instance.consumer_key)
@@ -18,23 +31,6 @@ class TestApplicationInstanceService:
     def test_get_by_consumer_key_raises_on_missing(self, service, consumer_key):
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_consumer_key(consumer_key)
-
-    def test_get(self, service, application_instance):
-        assert service.get(application_instance.consumer_key) == application_instance
-
-    def test_get_with_default_consumer_key(
-        self, service, application_instance, pyramid_request
-    ):
-        application_instance.consumer_key = pyramid_request.lti_user.oauth_consumer_key
-
-        assert service.get() == application_instance
-
-    @pytest.mark.parametrize("consumer_key", ("MISSING", None))
-    def test_get_raises_ApplicationInstanceNotFound_if_consumer_key_doesnt_exist(
-        self, service, consumer_key
-    ):
-        with pytest.raises(ApplicationInstanceNotFound):
-            service.get(consumer_key)
 
     @pytest.fixture
     def service(self, db_session, pyramid_request):

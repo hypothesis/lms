@@ -66,7 +66,7 @@ class TestEnableContentItemSelectionMode:
         config_provider.assert_called_once_with(
             context,
             pyramid_request,
-            application_instance_service.get.return_value,
+            application_instance_service.get_current.return_value,
         )
 
     def test_with_create_assignment_api(self, js_config, context):
@@ -146,7 +146,9 @@ class TestEnableLTILaunchMode:
     def test_it_raises_if_theres_no_ApplicationInstance(
         self, application_instance_service, js_config
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_current.side_effect = (
+            ApplicationInstanceNotFound
+        )
 
         with pytest.raises(ApplicationInstanceNotFound):
             js_config.enable_lti_launch_mode()
@@ -734,7 +736,7 @@ def pyramid_request(pyramid_request):
 
 @pytest.fixture
 def provisioning_disabled(application_instance_service):
-    application_instance_service.get.return_value.provisioning = False
+    application_instance_service.get_current.return_value.provisioning = False
 
 
 @pytest.fixture(autouse=True)

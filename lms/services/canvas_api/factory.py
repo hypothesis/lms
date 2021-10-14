@@ -10,7 +10,9 @@ def canvas_api_client_factory(_context, request):
     :param request: Pyramid request object
     :return: An instance of CanvasAPIClient
     """
-    application_instance = request.find_service(name="application_instance").get()
+    application_instance = request.find_service(
+        name="application_instance"
+    ).get_current()
 
     developer_secret = application_instance.decrypted_developer_secret(
         request.registry.settings["aes_secret"]

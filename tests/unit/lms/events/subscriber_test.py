@@ -90,6 +90,6 @@ class TestFilesDiscovered:
         application_instance = factories.ApplicationInstance(id=1234)
         db_session.add(application_instance)
         db_session.flush()
-        application_instance_service.get.return_value = application_instance
+        application_instance_service.get_current.return_value = application_instance
 
         return application_instance

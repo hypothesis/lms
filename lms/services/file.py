@@ -21,6 +21,8 @@ class FileService:
 
 def factory(_context, request):
     return FileService(
-        application_instance=request.find_service(name="application_instance").get(),
+        application_instance=request.find_service(
+            name="application_instance"
+        ).get_current(),
         db=request.db,
     )

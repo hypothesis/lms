@@ -46,7 +46,7 @@ class Sync:
     def _is_group_launch(self):
         application_instance = self._request.find_service(
             name="application_instance"
-        ).get()
+        ).get_current()
         if not application_instance.settings.get("canvas", "groups_enabled"):
             return False
 
