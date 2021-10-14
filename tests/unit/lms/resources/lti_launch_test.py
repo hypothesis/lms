@@ -18,12 +18,24 @@ class TestHGroup:
         assert lti_launch.h_group == mock.sentinel.course
 
 
-class TestResouceLinkIdk:
-    def test_it(self, pyramid_request):
-        assert (
-            LTILaunchResource(pyramid_request).resource_link_id
-            == pyramid_request.params["resource_link_id"]
-        )
+class TestResourceLinkIdk:
+    @pytest.mark.parametrize(
+        "learner_id,get_id,post_id,expected",
+        [
+            param(None, None, "POST_ID", "POST_ID", id="regular"),
+            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
+            param("USER_ID", None, "POST_ID", "POST_ID", id="old_speedgrader"),
+        ],
+    )
+    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
+        pyramid_request.POST = {
+            "resource_link_id": post_id,
+        }
+        pyramid_request.GET = {
+            "learner_canvas_user_id": learner_id,
+            "resource_link_id": get_id,
+        }
+        assert LTILaunchResource(pyramid_request).resource_link_id == expected
 
 
 class TestIsCanvas:
