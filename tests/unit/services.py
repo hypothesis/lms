@@ -69,24 +69,20 @@ def mock_service(pyramid_config):
 
 @pytest.fixture
 def application_instance_service(mock_service):
-    application_instance_service = mock_service(
-        ApplicationInstanceService, service_name="application_instance"
-    )
-
-    application_instance_service.get.return_value = factories.ApplicationInstance(
+    application_instance = factories.ApplicationInstance(
         consumer_key="TEST_OAUTH_CONSUMER_KEY",
         developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
         settings=ApplicationSettings({}),
     )
+    application_instance.settings.set("canvas", "sections_enabled", True)
+    application_instance.settings.set("canvas", "groups_enabled", False)
 
-    application_instance_service.get.return_value.settings.set(
-        "canvas", "sections_enabled", True
+    application_instance_service = mock_service(
+        ApplicationInstanceService, service_name="application_instance"
     )
-
-    application_instance_service.get.return_value.settings.set(
-        "canvas", "groups_enabled", False
-    )
+    application_instance_service.get.return_value = application_instance
+    application_instance_service.get_by_consumer_key.return_value = application_instance
 
     return application_instance_service
 

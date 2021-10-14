@@ -30,7 +30,9 @@ class TestAdminViews:
     def test_find_instance_not_found(
         self, pyramid_request, application_instance_service
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
+        )
         pyramid_request.params["query"] = "some-value"
         response = AdminViews(pyramid_request).find_instance()
 
@@ -47,7 +49,7 @@ class TestAdminViews:
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
                 "admin.instance",
-                consumer_key=application_instance_service.get.return_value.consumer_key,
+                consumer_key=application_instance_service.get_by_consumer_key.return_value.consumer_key,
             )
         )
 
@@ -56,11 +58,13 @@ class TestAdminViews:
         response = AdminViews(pyramid_request).show_instance()
         assert (
             response["instance"].consumer_key
-            == application_instance_service.get.return_value.consumer_key
+            == application_instance_service.get_by_consumer_key.return_value.consumer_key
         )
 
     def test_show_not_found(self, pyramid_request, application_instance_service):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
+        )
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
 
         with pytest.raises(HTTPNotFound):
@@ -71,8 +75,12 @@ class TestAdminViews:
 
         response = AdminViews(pyramid_request).update_instance()
 
-        application_instance_service.get.assert_called_once_with(sentinel.consumer_key)
-        application_instance = application_instance_service.get.return_value
+        application_instance_service.get_by_consumer_key.assert_called_once_with(
+            sentinel.consumer_key
+        )
+        application_instance = (
+            application_instance_service.get_by_consumer_key.return_value
+        )
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
@@ -105,13 +113,17 @@ class TestAdminViews:
 
         AdminViews(pyramid_request).update_instance()
 
-        application_instance = application_instance_service.get.return_value
+        application_instance = (
+            application_instance_service.get_by_consumer_key.return_value
+        )
         assert application_instance.settings.get(setting, sub_setting) == enabled
 
     def test_update_instance_not_found(
         self, pyramid_request, application_instance_service
     ):
-        application_instance_service.get.side_effect = ApplicationInstanceNotFound
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
+        )
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
 
         with pytest.raises(HTTPNotFound):
