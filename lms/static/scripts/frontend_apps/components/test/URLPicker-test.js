@@ -4,7 +4,6 @@ import URLPicker from '../URLPicker';
 import { checkAccessibility } from '../../../test-util/accessibility';
 
 describe('URLPicker', () => {
-  // eslint-disable-next-line react/prop-types
   const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);
 
   it('invokes `onSelectURL` when user submits a URL', () => {
@@ -24,14 +23,49 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'not-a-url';
 
-    const reportValidity = sinon.stub(
-      wrapper.find('form').getDOMNode(),
-      'reportValidity'
-    );
     wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper.update();
 
     assert.notCalled(onSelectURL);
-    assert.calledOnce(reportValidity);
+    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    assert.isTrue(errorMessage.exists());
+    assert.include(errorMessage.text(), 'Please enter a URL');
+  });
+
+  it('does not invoke `onSelectURL` if URL is for a non-http(s) protocol', () => {
+    const onSelectURL = sinon.stub();
+
+    const wrapper = renderUrlPicker({ onSelectURL });
+    wrapper.find('input').getDOMNode().value = 'ftp:///warez.fun';
+
+    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper.update();
+
+    assert.notCalled(onSelectURL);
+    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    assert.isTrue(errorMessage.exists());
+    assert.include(
+      errorMessage.text(),
+      'Please use a URL that starts with "http" or "https"'
+    );
+  });
+
+  it('shows an additional error message if URL is for a local file', () => {
+    const onSelectURL = sinon.stub();
+
+    const wrapper = renderUrlPicker({ onSelectURL });
+    wrapper.find('input').getDOMNode().value = 'file:///my/local.pdf';
+
+    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper.update();
+
+    assert.notCalled(onSelectURL);
+    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    assert.isTrue(errorMessage.exists());
+    assert.include(
+      errorMessage.text(),
+      'URLs that start with "file" are files on your own computer.'
+    );
   });
 
   it(
