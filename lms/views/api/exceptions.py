@@ -100,7 +100,7 @@ class APIExceptionViews:
         )
 
     @exception_view_config(context=OAuth2TokenError)
-    def proxy_api_access_token_error(self):
+    def oauth2_token_error(self):
         return self.error_response()
 
     @exception_view_config(
