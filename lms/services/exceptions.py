@@ -44,17 +44,7 @@ class OAuth2TokenError(ExternalRequestError):
     """
 
 
-class ProxyAPIError(ExternalRequestError):
-    """
-    A problem with a third-party API request.
-
-    Raised whenever a third-party API request times out or when an
-    unsuccessful, invalid or unexpected response is received from a third-party
-    API.
-    """
-
-
-class CanvasAPIError(ProxyAPIError):
+class CanvasAPIError(ExternalRequestError):
     """A problem with a Canvas API request."""
 
     @classmethod

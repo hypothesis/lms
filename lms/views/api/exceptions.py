@@ -7,7 +7,11 @@ from pyramid.view import (
     view_defaults,
 )
 
-from lms.services import CanvasAPIPermissionError, OAuth2TokenError, ProxyAPIError
+from lms.services import (
+    CanvasAPIPermissionError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -93,8 +97,8 @@ class APIExceptionViews:
             422, message=self.context.explanation, details=self.context.messages
         )
 
-    @exception_view_config(context=ProxyAPIError)
-    def proxy_api_error(self):
+    @exception_view_config(context=ExternalRequestError)
+    def external_request_error(self):
         return self.error_response(
             message=self.context.explanation, details=self.context.details
         )
@@ -105,8 +109,8 @@ class APIExceptionViews:
 
     @exception_view_config(
         # It's unfortunately necessary to mention CanvasAPIPermissionError
-        # specifically here because otherwise the proxy_api_error() exception
-        # view above would catch CanvasAPIPermissionError's.
+        # specifically here because otherwise the external_request_error()
+        # exception view above would catch CanvasAPIPermissionError's.
         context=CanvasAPIPermissionError
     )
     @exception_view_config(context=Exception)
