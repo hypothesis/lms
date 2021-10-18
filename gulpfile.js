@@ -10,7 +10,6 @@ const glob = require('glob');
 const gulp = require('gulp');
 const log = require('gulplog');
 const rollup = require('rollup');
-const loadConfigFile = require('rollup/dist/loadConfigFile');
 const through = require('through2');
 
 const createStyleBundle = require('./scripts/gulp/create-style-bundle');
@@ -50,27 +49,36 @@ function parseCommandLine() {
 
 const karmaOptions = parseCommandLine();
 
+/** @param {import('rollup').RollupWarning} */
+function logRollupWarning(warning) {
+  log.info(`Rollup warning: ${warning} (${warning.url})`);
+}
+
 async function buildJS(rollupConfig) {
-  const { options, warnings } = await loadConfigFile(
-    require.resolve(rollupConfig)
-  );
-  warnings.flush();
+  let { default: configs } = await import(rollupConfig);
+  if (!Array.isArray(configs)) {
+    configs = [configs];
+  }
 
   await Promise.all(
-    options.map(async inputs => {
-      const bundle = await rollup.rollup(inputs);
-      await Promise.all(inputs.output.map(output => bundle.write(output)));
-      warnings.flush();
+    configs.map(async config => {
+      const bundle = await rollup.rollup({
+        ...config,
+        onwarn: logRollupWarning,
+      });
+      await bundle.write(config.output);
     })
   );
 }
 
 async function watchJS(rollupConfig) {
-  const { options, warnings } = await loadConfigFile(
-    require.resolve(rollupConfig)
+  const { default: configs } = await import(rollupConfig);
+  const watcher = rollup.watch(
+    configs.map(config => ({
+      ...config,
+      onwarn: logRollupWarning,
+    }))
   );
-  warnings.flush();
-  const watcher = rollup.watch(options);
 
   return new Promise(resolve => {
     watcher.on('event', event => {
@@ -86,7 +94,6 @@ async function watchJS(rollupConfig) {
           break;
         case 'END':
           log.info('JS build completed.');
-          warnings.flush();
           resolve(); // Resolve once the initial build completes.
           break;
       }
@@ -94,8 +101,8 @@ async function watchJS(rollupConfig) {
   });
 }
 
-gulp.task('build-js', () => buildJS('./rollup.config.js'));
-gulp.task('watch-js', () => watchJS('./rollup.config.js'));
+gulp.task('build-js', () => buildJS('./rollup.config.mjs'));
+gulp.task('watch-js', () => watchJS('./rollup.config.mjs'));
 
 const cssBundles = [
   './lms/static/styles/lms.scss',
@@ -178,9 +185,9 @@ async function buildAndRunTests() {
   // Build the test bundle.
   log.info(`Building test bundle... (${testFiles.length} files)`);
   if (singleRun) {
-    await buildJS('./rollup-tests.config.js');
+    await buildJS('./rollup-tests.config.mjs');
   } else {
-    await watchJS('./rollup-tests.config.js');
+    await watchJS('./rollup-tests.config.mjs');
   }
 
   // Run the tests.

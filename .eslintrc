@@ -16,7 +16,7 @@
   },
   "overrides": [
     {
-      "files": "rollup*.js",
+      "files": "rollup*.mjs",
       "env": { "node": true },
       "parserOptions": { "sourceType": "module" }
     }
