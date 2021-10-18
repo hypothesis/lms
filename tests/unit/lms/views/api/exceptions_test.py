@@ -28,9 +28,9 @@ class TestProxyAPIAccessTokenError:
         assert json_data == {}
 
 
-class TestCanvasAPIError:
+class TestExternalRequestError:
     def test_it(self, pyramid_request, views):
-        json_data = views.proxy_api_error()
+        json_data = views.external_request_error()
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {
@@ -45,7 +45,7 @@ class TestCanvasAPIError:
 
 class TestLTIOutcomesAPIError:
     def test_it(self, pyramid_request, views):
-        json_data = views.proxy_api_error()
+        json_data = views.external_request_error()
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {

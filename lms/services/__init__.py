@@ -10,7 +10,6 @@ from lms.services.exceptions import (
     HTTPError,
     LTIOutcomesAPIError,
     OAuth2TokenError,
-    ProxyAPIError,
 )
 from lms.services.h_api import HAPIError
 from lms.services.launch_verifier import (

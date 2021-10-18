@@ -1,7 +1,7 @@
 import oauthlib
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
-from lms.services.exceptions import HTTPError, ProxyAPIError
+from lms.services.exceptions import ExternalRequestError, HTTPError
 from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
 
 
@@ -37,7 +37,7 @@ class VitalSourceService:
             response = self.get(f"products/{book_id}")
         except HTTPError as exp:
             if exp.response.status_code == 404:
-                raise ProxyAPIError(f"Book {book_id} not found") from exp
+                raise ExternalRequestError(f"Book {book_id} not found") from exp
 
             raise
 
@@ -48,7 +48,7 @@ class VitalSourceService:
             response = self.get(f"products/{book_id}/toc")
         except HTTPError as exp:
             if exp.response.status_code == 404:
-                raise ProxyAPIError(f"Book {book_id} not found") from exp
+                raise ExternalRequestError(f"Book {book_id} not found") from exp
 
             raise
 
