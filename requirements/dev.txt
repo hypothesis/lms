@@ -65,7 +65,7 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
-importlib_resources==5.2.3
+importlib-resources==5.2.3
     # via
     #   -r requirements/requirements.txt
     #   alembic
@@ -94,7 +94,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   pyramid-jinja2
-marshmallow==3.13.0
+marshmallow==3.14.0
     # via
     #   -r requirements/requirements.txt
     #   webargs
