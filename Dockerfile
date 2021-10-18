@@ -2,7 +2,7 @@
 FROM node:16.9.1-alpine as frontend-build
 
 ENV NODE_ENV production
-COPY .babelrc rollup.config.js gulpfile.js package.json yarn.lock ./
+COPY .babelrc rollup.config.mjs gulpfile.js package.json yarn.lock ./
 COPY scripts/gulp ./scripts/gulp
 COPY lms/static ./lms/static
 
