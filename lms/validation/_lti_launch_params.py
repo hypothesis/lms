@@ -114,7 +114,11 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
         #
         # See https://github.com/instructure/canvas-lms/issues/1486
         url = _data["url"]
-        if url.lower().startswith("http%3a") or url.lower().startswith("https%3a"):
+        if (
+            url.lower().startswith("http%3a")
+            or url.lower().startswith("https%3a")
+            or url.lower().startswith("canvas%3a")
+        ):
             url = unquote(url)
             _data["url"] = url
 
