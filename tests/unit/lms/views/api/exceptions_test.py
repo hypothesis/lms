@@ -20,9 +20,9 @@ class TestSchemaValidationError:
         return ValidationError(messages="foobar")
 
 
-class TestProxyAPIAccessTokenError:
+class TestOAuth2TokenError:
     def test_it(self, pyramid_request, views):
-        json_data = views.proxy_api_access_token_error()
+        json_data = views.oauth2_token_error()
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {}
