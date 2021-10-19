@@ -101,6 +101,17 @@ class LTILaunchResource:
         return self._request.POST.get("resource_link_id")
 
     @property
+    def ext_lti_assignment_id(self):
+        # Canvas SpeedGrader launches don't provide ext_lti_assignment_id
+        # but include it on the SpeedGrader URL we submit to canvas.
+        if self._is_speed_grader and (
+            ext_lti_assignment_id := self._request.GET.get("ext_lti_assignment_id")
+        ):
+            return ext_lti_assignment_id
+
+        return self._request.POST.get("ext_lti_assignment_id")
+
+    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         if (

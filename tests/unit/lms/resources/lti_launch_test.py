@@ -38,6 +38,25 @@ class TestResourceLinkIdk:
         assert LTILaunchResource(pyramid_request).resource_link_id == expected
 
 
+class TestExtLTIAssignmentID:
+    @pytest.mark.parametrize(
+        "learner_id,get_id,post_id,expected",
+        [
+            param(None, None, "POST_ID", "POST_ID", id="regular"),
+            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
+        ],
+    )
+    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
+        pyramid_request.POST = {
+            "ext_lti_assignment_id": post_id,
+        }
+        pyramid_request.GET = {
+            "learner_canvas_user_id": learner_id,
+            "ext_lti_assignment_id": get_id,
+        }
+        assert LTILaunchResource(pyramid_request).ext_lti_assignment_id == expected
+
+
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "parsed_params,is_canvas",

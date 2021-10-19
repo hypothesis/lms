@@ -32,14 +32,13 @@ class DBConfigured(Base):
 
     def __call__(self, context, request):
         assignment_svc = request.find_service(name="assignment")
-        ext_lti_assignment_id = request.params.get("ext_lti_assignment_id")
         tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
 
         return (
             assignment_svc.exists(
                 tool_consumer_instance_guid,
                 context.resource_link_id,
-                ext_lti_assignment_id,
+                context.ext_lti_assignment_id,
             )
             == self.value
         )
