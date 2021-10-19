@@ -1,6 +1,6 @@
 import pytest
+from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.services import ExternalRequestError
 from lms.views.api.vitalsource import VitalSourceAPIViews
 
 pytestmark = pytest.mark.usefixtures("http_service")
@@ -33,7 +33,7 @@ class TestVitalSourceAPIViews:
     def test_book_info_invalid_book_id(self, pyramid_request):
         pyramid_request.matchdict["book_id"] = "invalid_book_id"
 
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(HTTPBadRequest):
             VitalSourceAPIViews(pyramid_request).book_info()
 
     def test_table_of_contents_returns_chapter_data(
@@ -49,7 +49,7 @@ class TestVitalSourceAPIViews:
     def test_book_toc_invalid_book_id(self, pyramid_request):
         pyramid_request.matchdict["book_id"] = "invalid_book_id"
 
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(HTTPBadRequest):
             VitalSourceAPIViews(pyramid_request).table_of_contents()
 
     @pytest.fixture

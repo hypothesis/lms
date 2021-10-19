@@ -1,6 +1,7 @@
 """Error views for the API."""
 from h_pyramid_sentry import report_exception
 from pyramid import i18n
+from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import (
     exception_view_config,
     forbidden_view_config,
@@ -108,6 +109,12 @@ class APIExceptionViews:
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):
         return self.error_response()
+
+    @exception_view_config(context=HTTPBadRequest)
+    def http_bad_request(self):
+        return self.error_response(
+            status=self.context.code, message=self.context.detail
+        )
 
     @exception_view_config(
         # It's unfortunately necessary to mention CanvasAPIPermissionError
