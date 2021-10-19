@@ -29,9 +29,10 @@ class TestProxyAPIAccessTokenError:
 
 
 class TestExternalRequestError:
-    def test_it(self, pyramid_request, views):
+    def test_it(self, pyramid_request, views, report_exception):
         json_data = views.external_request_error()
 
+        report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
         assert json_data == {
             "message": "test_explanation",
@@ -118,3 +119,8 @@ def context():
 @pytest.fixture
 def views(context, pyramid_request):
     return APIExceptionViews(context, pyramid_request)
+
+
+@pytest.fixture(autouse=True)
+def report_exception(patch):
+    return patch("lms.views.api.exceptions.report_exception")

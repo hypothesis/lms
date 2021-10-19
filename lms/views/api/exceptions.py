@@ -1,4 +1,5 @@
 """Error views for the API."""
+from h_pyramid_sentry import report_exception
 from pyramid import i18n
 from pyramid.view import (
     exception_view_config,
@@ -99,6 +100,7 @@ class APIExceptionViews:
 
     @exception_view_config(context=ExternalRequestError)
     def external_request_error(self):
+        report_exception()
         return self.error_response(
             message=self.context.explanation, details=self.context.details
         )
