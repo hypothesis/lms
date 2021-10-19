@@ -119,26 +119,32 @@ describe('OneDrivePickerClient', () => {
   describe('.encodeSharingURL', () => {
     [
       {
+        sharingURL: 'https://test-account.sharepoint.com/FILE_ID',
+        expectedResult:
+          'https://test-account.sharepoint.com/FILE_ID?download=1',
+        reason: 'Sharepoint, appends query param',
+      },
+      {
         sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2IvaQ=='), // https://1drv.ms/b/i
         expectedResult:
           'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvaQ/root/content',
-        reason: 'removing the trailing `=` characters ',
+        reason: 'OneDrive, removing the trailing `=` characters ',
       },
       {
         sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2Iv++8='), // https://1drv.ms/b/ûï
         expectedResult:
           'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2Iv--8/root/content',
-        reason: 'removing the `+` characters ',
+        reason: 'OneDrive, removing the `+` characters ',
       },
       {
         sharingURL: atob('aHR0cHM6Ly8xZHJ2Lm1zL2Iva///'), // https://1drv.ms/b/kÿÿ
         expectedResult:
           'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2Iva___/root/content',
-        reason: 'removing the `/` characters ',
+        reason: 'OneDrive, removing the `/` characters ',
       },
     ].forEach(({ sharingURL, expectedResult, reason }) => {
-      it(`encodes the sharing URL by ${reason} in the base64 representation`, () => {
-        const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
+      it(`creates the download URL for ${reason}`, () => {
+        const url = OneDrivePickerClient.downloadURL(sharingURL);
 
         assert.equal(url, expectedResult);
       });
