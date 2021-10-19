@@ -1,6 +1,6 @@
 import pytest
 
-from lms.services import CanvasAPIError, CanvasAPIPermissionError, LTIOutcomesAPIError
+from lms.services import CanvasAPIError, CanvasAPIPermissionError
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews
 
@@ -42,23 +42,6 @@ class TestExternalRequestError:
     @pytest.fixture
     def context(self):
         return CanvasAPIError(explanation="test_explanation", details={"foo": "bar"})
-
-
-class TestLTIOutcomesAPIError:
-    def test_it(self, pyramid_request, views):
-        json_data = views.external_request_error()
-
-        assert pyramid_request.response.status_code == 400
-        assert json_data == {
-            "message": "test_explanation",
-            "details": {"foo": "bar"},
-        }
-
-    @pytest.fixture
-    def context(self):
-        return LTIOutcomesAPIError(
-            explanation="test_explanation", details={"foo": "bar"}
-        )
 
 
 class TestNotFound:
