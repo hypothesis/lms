@@ -2,7 +2,7 @@ from xml.parsers.expat import ExpatError
 
 import xmltodict
 
-from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
+from lms.services.exceptions import ExternalRequestError, HTTPError
 
 __all__ = ["LTIOutcomesClient"]
 
@@ -87,7 +87,7 @@ class LTIOutcomesClient:
         :arg request_body: The content to send as the POX body element of the
                            request
 
-        :raise LTIOutcomesAPIError: if the request fails for any reason
+        :raise ExternalRequestError: if the request fails for any reason
 
         :return: The returned POX body element
         :rtype: dict
@@ -106,20 +106,20 @@ class LTIOutcomesClient:
                 auth=self.oauth1_service.get_client(),
             )
         except HTTPError as err:
-            raise LTIOutcomesAPIError(
+            raise ExternalRequestError(
                 "Error calling LTI Outcomes service", response
             ) from err
 
         try:
             data = xmltodict.parse(response.text)
         except ExpatError as err:
-            raise LTIOutcomesAPIError(
+            raise ExternalRequestError(
                 "Unable to parse XML response from LTI Outcomes service", response
             ) from err
 
         try:
             return self._get_body(data)
-        except LTIOutcomesAPIError as err:
+        except ExternalRequestError as err:
             err.response = response
             raise
 
@@ -135,7 +135,7 @@ class LTIOutcomesClient:
             ]
 
         except KeyError as err:
-            raise LTIOutcomesAPIError("Malformed LTI outcome response") from err
+            raise ExternalRequestError("Malformed LTI outcome response") from err
 
         if status != "success":
             description = None
@@ -148,7 +148,7 @@ class LTIOutcomesClient:
             except KeyError:
                 pass
 
-            raise LTIOutcomesAPIError(
+            raise ExternalRequestError(
                 explanation="LTI outcome request failed", details=description
             )
 
