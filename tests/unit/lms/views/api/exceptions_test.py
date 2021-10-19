@@ -1,4 +1,5 @@
 import pytest
+from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.services import CanvasAPIError, CanvasAPIPermissionError
 from lms.validation import ValidationError
@@ -66,6 +67,18 @@ class TestForbidden:
         result = views.forbidden()
 
         assert result["message"] == "You're not authorized to view this page."
+
+
+class TestHTTPBadRequest:
+    def test_it(self, pyramid_request, views):
+        json_data = views.http_bad_request()
+
+        assert pyramid_request.response.status_int == 400
+        assert json_data == {"message": "test_explanation"}
+
+    @pytest.fixture
+    def context(self):
+        return HTTPBadRequest("test_explanation")
 
 
 class TestAPIError:

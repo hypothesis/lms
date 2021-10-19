@@ -1,9 +1,9 @@
 import re
 
+from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
-from lms.services import ExternalRequestError
 
 
 @view_defaults(renderer="json", permission=Permissions.API)
@@ -33,9 +33,7 @@ class VitalSourceAPIViews:
     def _get_book_id(self):
         book_id = self.request.matchdict["book_id"]
         if not self._is_valid_book_id(book_id):
-            raise ExternalRequestError(
-                "Invalid `book_id`. It must only contain [0-9A-Z-]."
-            )
+            raise HTTPBadRequest("Invalid `book_id`. It must only contain [0-9A-Z-].")
 
         return book_id
 
