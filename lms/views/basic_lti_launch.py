@@ -170,8 +170,8 @@ class BasicLTILaunchViews:
     def canvas_db_configured_basic_lti_launch(self):
         """Respond to a Canvas DB-configured assignment launch."""
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
-        resource_link_id = self.request.params["resource_link_id"]
-        ext_lti_assignment_id = self.request.params["ext_lti_assignment_id"]
+        resource_link_id = self.context.resource_link_id
+        ext_lti_assignment_id = self.context.ext_lti_assignment_id
 
         assignments = self.assignment_service.get_for_canvas_launch(
             tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
