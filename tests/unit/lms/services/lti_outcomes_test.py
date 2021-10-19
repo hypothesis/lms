@@ -5,7 +5,7 @@ import pytest
 import xmltodict
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError, LTIOutcomesAPIError
+from lms.services.exceptions import ExternalRequestError, HTTPError
 from lms.services.lti_outcomes import LTIOutcomesClient
 from tests import factories
 
@@ -122,7 +122,7 @@ class TestLTIOutcomesClient:
     def test_requests_fail_if_the_third_party_request_fails(self, svc, http_service):
         http_service.post.side_effect = HTTPError
 
-        with pytest.raises(LTIOutcomesAPIError):
+        with pytest.raises(ExternalRequestError):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_body_not_xml(self, svc, http_service):
@@ -132,20 +132,24 @@ class TestLTIOutcomesClient:
             content_type="application/json",
         )
         with pytest.raises(
-            LTIOutcomesAPIError,
+            ExternalRequestError,
             match="Unable to parse XML response from LTI Outcomes service",
         ):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_no_status(self, svc, respond_with):
         respond_with(include_status=False)
-        with pytest.raises(LTIOutcomesAPIError, match="Malformed LTI outcome response"):
+        with pytest.raises(
+            ExternalRequestError, match="Malformed LTI outcome response"
+        ):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_response_is_malformed(self, svc, respond_with):
         respond_with(malformed=True)
 
-        with pytest.raises(LTIOutcomesAPIError, match="Malformed LTI outcome response"):
+        with pytest.raises(
+            ExternalRequestError, match="Malformed LTI outcome response"
+        ):
             svc.read_result(self.GRADING_ID)
 
     def test_requests_fail_if_status_is_not_success(self, svc, respond_with):
@@ -153,7 +157,7 @@ class TestLTIOutcomesClient:
 
         # LTI outcome request failed
         with pytest.raises(
-            LTIOutcomesAPIError,
+            ExternalRequestError,
             match="<imsx_description>An error occurred.</imsx_description>",
         ):
             svc.read_result(self.GRADING_ID)
@@ -162,7 +166,7 @@ class TestLTIOutcomesClient:
         respond_with(status_code="failure", include_description=False)
 
         # imsx_description is missing
-        with pytest.raises(LTIOutcomesAPIError, match="LTI outcome request failed"):
+        with pytest.raises(ExternalRequestError, match="LTI outcome request failed"):
             svc.read_result(self.GRADING_ID)
 
     @classmethod

@@ -153,15 +153,6 @@ class CanvasAPIServerError(CanvasAPIError):
     """
 
 
-class LTIOutcomesAPIError(ExternalRequestError):
-    """
-    A problem with a request to an LTI Outcomes-compliant API.
-
-    Raised whenever an LTI outcomes API request times out or when an
-    unsuccessful, invalid or unexpected response is received from the API.
-    """
-
-
 class CanvasFileNotFoundInCourse(Exception):
     """A Canvas file ID wasn't found in the current course."""
 
