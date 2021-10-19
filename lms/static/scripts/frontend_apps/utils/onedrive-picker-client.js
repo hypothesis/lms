@@ -33,7 +33,7 @@ export class OneDrivePickerClient {
     return new Promise((resolve, reject) => {
       const success = (/** @type {any} */ file) => {
         const sharingURL = file.value[0].permissions[0].link.webUrl;
-        const url = OneDrivePickerClient.encodeSharingURL(sharingURL);
+        const url = OneDrivePickerClient.downloadURL(sharingURL);
         resolve({ url });
       };
       const cancel = () => reject(new PickerCanceledError());
@@ -58,7 +58,12 @@ export class OneDrivePickerClient {
   }
 
   /**
-   * Encode sharing URL according to the MS specification
+   * Creates a direct download URL from the sharing one.
+   *
+   * For sharepoint URLs just append "?download=1" to the provided URL.
+   *
+   * For OneDrive URLs encode sharing URL according to the MS specification:
+   *
    * https://docs.microsoft.com/en-us/graph/api/shares-get?view=graph-rest-1.0&tabs=http#encoding-sharing-urls
    * 1. Use base64 encode the URL.
    * 2. Convert the base64 encoded result to unpadded base64url format by
@@ -68,12 +73,18 @@ export class OneDrivePickerClient {
    *
    * @param {string} sharingURL
    */
-  static encodeSharingURL(sharingURL) {
-    const b64SharedLink = btoa(sharingURL)
-      .replace(/=/g, '')
-      .replace(/\//g, '_')
-      .replace(/\+/g, '-');
-    // Append u! to be beginning of the string.
-    return `https://api.onedrive.com/v1.0/shares/u!${b64SharedLink}/root/content`;
+  static downloadURL(sharingURL) {
+    const url = new URL(sharingURL);
+    if (url.hostname.endsWith('sharepoint.com')) {
+      url.search = 'download=1';
+      return url.href;
+    } else {
+      const b64SharedLink = btoa(sharingURL)
+        .replace(/=/g, '')
+        .replace(/\//g, '_')
+        .replace(/\+/g, '-');
+      // Append u! to be beginning of the string.
+      return `https://api.onedrive.com/v1.0/shares/u!${b64SharedLink}/root/content`;
+    }
   }
 }
