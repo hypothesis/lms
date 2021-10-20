@@ -145,7 +145,7 @@ class BasicLTILaunchViews:
         )
         return {}
 
-    @view_config(db_configured=True)
+    @view_config(db_configured=True, canvas_file=False, url_configured=False)
     def db_configured_basic_lti_launch(self):
         """
         Respond to a DB-configured assignment launch.
@@ -166,7 +166,12 @@ class BasicLTILaunchViews:
         ).document_url
         return self.basic_lti_launch(document_url)
 
-    @view_config(db_configured=True, request_param="ext_lti_assignment_id")
+    @view_config(
+        db_configured=True,
+        canvas_file=False,
+        request_param="ext_lti_assignment_id",
+        url_configured=False,
+    )
     def canvas_db_configured_basic_lti_launch(self):
         """Respond to a Canvas DB-configured assignment launch."""
         tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
