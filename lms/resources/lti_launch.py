@@ -83,6 +83,21 @@ class LTILaunchResource:
         return bool(self._request.GET.get("learner_canvas_user_id"))
 
     @property
+    def is_legacy_speed_grader(self):
+        """
+        Return True if the current request is a legacy SpeedGrader launch.
+
+        To work around a Canvas bug we add the assignment's resource_link_id as
+        a query param on the LTI launch URLs that we submit to SpeedGrader (see
+        https://github.com/instructure/canvas-lms/issues/1952 and
+        https://github.com/hypothesis/lms/issues/3228).
+
+        "Legacy" SpeedGrader submissions are ones from before we implemented
+        this work-around, so they don't have the resource_link_id query param.
+        """
+        return self._is_speed_grader and not self._request.GET.get("resource_link_id")
+
+    @property
     def resource_link_id(self):
         # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
         # see:

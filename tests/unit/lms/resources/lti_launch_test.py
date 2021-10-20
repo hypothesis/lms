@@ -57,6 +57,56 @@ class TestExtLTIAssignmentID:
         assert LTILaunchResource(pyramid_request).ext_lti_assignment_id == expected
 
 
+class TestIsLegacySpeedGrader:
+    @pytest.mark.parametrize(
+        "learner_id,get_resource_id,post_resource_id,context_id,expected",
+        [
+            param(
+                None,
+                "GET_ID",
+                "POST_ID",
+                "CONTEXT_ID",
+                False,
+                id="not speed grading",
+            ),
+            param(
+                "USER_ID",
+                "GET_ID",
+                "WRONG_RESOURCE_LINK_ID",
+                "WRONG_RESOURCE_LINK_ID",
+                False,
+                id="fixed speed grader",
+            ),
+            param(
+                "USER_ID",
+                None,
+                "WRONG_RESOURCE_LINK_ID",
+                "WRONG_RESOURCE_LINK_ID",
+                True,
+                id="legacy speed grader",
+            ),
+        ],
+    )
+    def test_it(
+        self,
+        pyramid_request,
+        learner_id,
+        get_resource_id,
+        post_resource_id,
+        context_id,
+        expected,
+    ):
+        pyramid_request.POST = {
+            "resource_link_id": post_resource_id,
+            "context_id": context_id,
+        }
+        pyramid_request.GET = {
+            "learner_canvas_user_id": learner_id,
+            "resource_link_id": get_resource_id,
+        }
+        assert LTILaunchResource(pyramid_request).is_legacy_speed_grader == expected
+
+
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "parsed_params,is_canvas",
