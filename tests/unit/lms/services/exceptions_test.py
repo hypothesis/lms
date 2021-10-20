@@ -16,10 +16,25 @@ from lms.validation import ValidationError
 
 
 class TestExternalRequestError:
+    def test_str_with_no_response_or_explanation(self):
+        assert str(ExternalRequestError()) == "ExternalRequestError"
+
     def test_str_with_explanation_but_no_response(self):
         err = ExternalRequestError("Connecting to Hypothesis failed")
 
         assert str(err) == "Connecting to Hypothesis failed"
+
+    def test_str_with_response_but_no_explanation(self):
+        response = mock.create_autospec(
+            requests.Response,
+            instance=True,
+            status_code=400,
+            reason="Bad Request",
+            text="Name too long",
+        )
+        err = ExternalRequestError(response=response)
+
+        assert str(err) == "ExternalRequestError: 400 Bad Request Name too long"
 
     # If a ``response`` arg is given to ExternalRequestError() then it uses the
     # Response object's attributes to format a more informative string
