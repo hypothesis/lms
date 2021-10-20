@@ -163,14 +163,6 @@ class CanvasFileNotFoundInCourse(Exception):
         super().__init__(self.details)
 
 
-class HTTPError(Exception):
-    """A problem with an HTTP request to an external service."""
-
-    def __init__(self, response=None):
-        super().__init__(response)
-        self.response = response
-
-
 class BlackboardFileNotFoundInCourse(Exception):
     """A Blackboard file ID wasn't found in the current course."""
 

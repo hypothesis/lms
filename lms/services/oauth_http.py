@@ -1,6 +1,6 @@
 from marshmallow import fields
 
-from lms.services import HTTPError, OAuth2TokenError
+from lms.services import ExternalRequestError, OAuth2TokenError
 from lms.validation import RequestsResponseSchema, ValidationError
 from lms.validation.authentication import OAuthTokenResponseSchema
 
@@ -44,7 +44,8 @@ class OAuthHTTPService:
         The given `headers` must not already contain an "Authorization" header.
 
         :raise OAuth2TokenError: if we don't have an access token for the user
-        :raise HTTPError: if something goes wrong with the HTTP request
+        :raise ExternalRequestError: if something goes wrong with the HTTP
+            request
         """
         headers = headers or {}
 
@@ -63,7 +64,7 @@ class OAuthHTTPService:
         (https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3) to get a
         new access token for the current user and save it to the DB.
 
-        :raise HTTPError: if the HTTP request fails
+        :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
         """
         self._token_request(
@@ -85,7 +86,7 @@ class OAuthHTTPService:
         access token for the current user and save it to the DB.
 
         :raise OAuth2TokenError: if we don't have a refresh token for the user
-        :raise HTTPError: if the HTTP request fails
+        :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
         """
         refresh_token = self._oauth2_token_service.get().refresh_token
@@ -100,7 +101,7 @@ class OAuthHTTPService:
                     "refresh_token": refresh_token,
                 },
             )
-        except HTTPError as err:
+        except ExternalRequestError as err:
             try:
                 error_dict = _OAuthAccessTokenErrorResponseSchema(err.response).parse()
             except ValidationError:

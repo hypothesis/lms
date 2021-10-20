@@ -5,7 +5,7 @@ import pytest
 import requests
 from h_matchers import Any
 
-from lms.services.exceptions import HTTPError
+from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService, factory
 
 
@@ -91,7 +91,7 @@ class TestHTTPService:
         session.request.side_effect = exception
         svc = HTTPService(session)
 
-        with pytest.raises(HTTPError) as exc_info:
+        with pytest.raises(ExternalRequestError) as exc_info:
             svc.request("GET", "https://example.com")
 
         assert exc_info.value.response is None
@@ -101,7 +101,7 @@ class TestHTTPService:
     def test_it_raises_if_the_response_is_an_error(self, svc, url, status):
         httpretty.register_uri("GET", url, status=status)
 
-        with pytest.raises(HTTPError) as exc_info:
+        with pytest.raises(ExternalRequestError) as exc_info:
             svc.request("GET", url)
 
         assert isinstance(exc_info.value.__cause__, requests.HTTPError)

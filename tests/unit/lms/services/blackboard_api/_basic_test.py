@@ -6,7 +6,7 @@ from lms.services.blackboard_api._basic import (
     BasicClient,
     BlackboardErrorResponseSchema,
 )
-from lms.services.exceptions import HTTPError, OAuth2TokenError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from tests import factories
 
 
@@ -89,7 +89,7 @@ class TestBasicClientRequest:
         self, basic_client, oauth_http_service
     ):
         # Make the first attempt at the request fail but the second succeed.
-        oauth_http_service.request.side_effect = [HTTPError, DEFAULT]
+        oauth_http_service.request.side_effect = [ExternalRequestError, DEFAULT]
 
         response = basic_client.request("GET", "/foo")
 
@@ -110,11 +110,11 @@ class TestBasicClientRequest:
         self, basic_client, oauth_http_service
     ):
         # Make the API request fail.
-        oauth_http_service.request.side_effect = HTTPError
+        oauth_http_service.request.side_effect = ExternalRequestError
         # Make the refresh token request also fail.
-        oauth_http_service.refresh_access_token.side_effect = HTTPError
+        oauth_http_service.refresh_access_token.side_effect = ExternalRequestError
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             basic_client.request("GET", "/foo")
 
     # If both attempts at the API request fail then request() raises.
@@ -122,17 +122,17 @@ class TestBasicClientRequest:
         self, basic_client, oauth_http_service
     ):
         # Make the API request fail both times.
-        oauth_http_service.request.side_effect = HTTPError
+        oauth_http_service.request.side_effect = ExternalRequestError
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             basic_client.request("GET", "/foo")
 
     def test_it_raises_OAuth2TokenError_if_the_request_fails_with_an_access_token_error(
         self, basic_client, oauth_http_service
     ):
         # Make the API request fail both times.
-        oauth_http_service.request.side_effect = HTTPError(
-            factories.requests.Response(
+        oauth_http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(
                 json_data={"status": 401, "message": "Bearer token is invalid"}
             )
         )

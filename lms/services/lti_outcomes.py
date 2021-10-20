@@ -2,7 +2,7 @@ from xml.parsers.expat import ExpatError
 
 import xmltodict
 
-from lms.services.exceptions import ExternalRequestError, HTTPError
+from lms.services.exceptions import ExternalRequestError
 
 __all__ = ["LTIOutcomesClient"]
 
@@ -105,10 +105,9 @@ class LTIOutcomesClient:
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
             )
-        except HTTPError as err:
-            raise ExternalRequestError(
-                "Error calling LTI Outcomes service", response
-            ) from err
+        except ExternalRequestError as err:
+            err.message = "Error calling LTI Outcomes service"
+            raise
 
         try:
             data = xmltodict.parse(response.text)

@@ -10,7 +10,7 @@ from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
     BlackboardAPIClient,
 )
-from lms.services.exceptions import BlackboardFileNotFoundInCourse, HTTPError
+from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
 from tests import factories
 
 
@@ -195,21 +195,21 @@ class TestPublicURL:
     def test_it_raises_BlackboardFileNotFoundInCourse_if_the_Blackboard_API_404s(
         self, svc, basic_client
     ):
-        basic_client.request.side_effect = HTTPError(
-            factories.requests.Response(status_code=404)
+        basic_client.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=404)
         )
 
         with pytest.raises(BlackboardFileNotFoundInCourse):
             svc.public_url("COURSE_ID", "FILE_ID")
 
-    def test_it_raises_HTTPError_if_the_Blackboard_API_fails_in_any_other_way(
+    def test_it_raises_ExternalRequestError_if_the_Blackboard_API_fails_in_any_other_way(
         self, svc, basic_client
     ):
-        basic_client.request.side_effect = HTTPError(
-            factories.requests.Response(status_code=400)
+        basic_client.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=400)
         )
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             svc.public_url("COURSE_ID", "FILE_ID")
 
 

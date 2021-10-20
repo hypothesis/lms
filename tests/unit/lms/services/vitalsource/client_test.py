@@ -5,7 +5,7 @@ import pytest
 from h_matchers import Any
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
-from lms.services.exceptions import ExternalRequestError, HTTPError
+from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource import VitalSourceService, factory
 from tests import factories
 
@@ -90,18 +90,24 @@ class TestVitalSourceService:
         with mock.patch.object(
             VitalSourceService,
             "get",
-            side_effect=HTTPError(factories.requests.Response(status_code=404)),
+            side_effect=ExternalRequestError(
+                response=factories.requests.Response(status_code=404)
+            ),
         ):
-            with pytest.raises(ExternalRequestError):
+            with pytest.raises(ExternalRequestError) as exc_info:
                 svc.book_info("BOOK_ID")
+
+            assert exc_info.value.message == "Book BOOK_ID not found"
 
     def test_book_info_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
-            side_effect=HTTPError(factories.requests.Response(status_code=500)),
+            side_effect=ExternalRequestError(
+                response=factories.requests.Response(status_code=500)
+            ),
         ):
-            with pytest.raises(HTTPError):
+            with pytest.raises(ExternalRequestError):
                 svc.book_info("BOOK_ID")
 
     def test_book_toc_api(self, svc, book_toc_schema):
@@ -115,18 +121,24 @@ class TestVitalSourceService:
         with mock.patch.object(
             VitalSourceService,
             "get",
-            side_effect=HTTPError(factories.requests.Response(status_code=404)),
+            side_effect=ExternalRequestError(
+                response=factories.requests.Response(status_code=404)
+            ),
         ):
-            with pytest.raises(ExternalRequestError):
+            with pytest.raises(ExternalRequestError) as exc_info:
                 svc.book_toc("BOOK_ID")
+
+            assert exc_info.value.message == "Book BOOK_ID not found"
 
     def test_book_toc_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
-            side_effect=HTTPError(factories.requests.Response(status_code=500)),
+            side_effect=ExternalRequestError(
+                response=factories.requests.Response(status_code=500)
+            ),
         ):
-            with pytest.raises(HTTPError):
+            with pytest.raises(ExternalRequestError):
                 svc.book_toc("BOOK_ID")
 
     @pytest.fixture

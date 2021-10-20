@@ -2,7 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.exceptions import HTTPError, OAuth2TokenError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService, factory
 from lms.validation import ValidationError
 from tests import factories
@@ -51,9 +51,9 @@ class TestOAuthHTTPService:
             svc.request(sentinel.method, sentinel.url)
 
     def test_request_raises_if_the_HTTP_request_fails(self, svc, http_service):
-        http_service.request.side_effect = HTTPError
+        http_service.request.side_effect = ExternalRequestError
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             svc.request(sentinel.method, sentinel.url)
 
     def test_get_access_token(
@@ -97,12 +97,12 @@ class TestOAuthHTTPService:
 
         oauth2_token_service.save.assert_called_once_with("access_token", None, None)
 
-    def test_get_access_token_raises_HTTPError_if_the_HTTP_request_fails(
+    def test_get_access_token_raises_ExternalRequestError_if_the_HTTP_request_fails(
         self, call_get_access_token, http_service
     ):
-        http_service.post.side_effect = HTTPError
+        http_service.post.side_effect = ExternalRequestError
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             call_get_access_token()
 
     def test_get_access_token_raises_ValidationError_if_the_response_is_invalid(
@@ -168,12 +168,12 @@ class TestOAuthHTTPService:
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
 
-    def test_refresh_access_token_raises_HTTPError_if_the_HTTP_request_fails(
+    def test_refresh_access_token_raises_ExternalRequestError_if_the_HTTP_request_fails(
         self, svc, http_service
     ):
-        http_service.post.side_effect = HTTPError
+        http_service.post.side_effect = ExternalRequestError
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             svc.refresh_access_token(
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
@@ -181,8 +181,8 @@ class TestOAuthHTTPService:
     def test_refresh_access_token_raises_OAuth2TokenError_if_our_refresh_token_is_invalid(
         self, svc, http_service
     ):
-        http_service.post.side_effect = HTTPError(
-            factories.requests.Response(json_data={"error": "invalid_grant"})
+        http_service.post.side_effect = ExternalRequestError(
+            response=factories.requests.Response(json_data={"error": "invalid_grant"})
         )
 
         with pytest.raises(OAuth2TokenError):
@@ -190,14 +190,14 @@ class TestOAuthHTTPService:
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
 
-    def test_refresh_access_token_raises_HTTPError_if_theres_an_unknown_OAuth_error_message(
+    def test_refresh_access_token_raises_ExternalRequestError_if_theres_an_unknown_OAuth_error_message(
         self, svc, http_service
     ):
-        http_service.post.side_effect = HTTPError(
-            factories.requests.Response(json_data={"error": "unknown_error"})
+        http_service.post.side_effect = ExternalRequestError(
+            response=factories.requests.Response(json_data={"error": "unknown_error"})
         )
 
-        with pytest.raises(HTTPError):
+        with pytest.raises(ExternalRequestError):
             svc.refresh_access_token(
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
