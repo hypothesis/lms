@@ -19,14 +19,16 @@ class ExternalRequestError(Exception):
         self.details = details
 
     def __str__(self):
+        explanation = self.explanation or "ExternalRequestError"
+
         if self.response is None:
-            return self.explanation
+            return explanation
 
         # Log the details of the response. This goes to both Sentry and the
         # application's logs. It's helpful for debugging to know how the
         # external service responded.
         parts = [
-            self.explanation + ":",
+            explanation + ":",
             str(self.response.status_code or ""),
             self.response.reason,
             self.response.text,
