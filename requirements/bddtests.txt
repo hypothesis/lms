@@ -70,7 +70,7 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
-importlib_resources==5.3.0
+importlib-resources==5.3.0
     # via
     #   -r requirements/requirements.txt
     #   alembic
@@ -207,7 +207,7 @@ six==1.15.0
     #   python-dateutil
 soupsieve==2.2.1
     # via beautifulsoup4
-sqlalchemy==1.4.25
+sqlalchemy==1.4.26
     # via
     #   -r requirements/requirements.txt
     #   alembic
