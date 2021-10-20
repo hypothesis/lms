@@ -5,7 +5,7 @@ from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
 )
-from lms.services.exceptions import BlackboardFileNotFoundInCourse, HTTPError
+from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
 
 # The maxiumum number of paginated requests we'll make before returning.
 PAGINATION_MAX_REQUESTS = 25
@@ -26,8 +26,8 @@ class BlackboardAPIClient:
         """
         Save a new Blackboard access token for the current user to the DB.
 
-        :raise services.HTTPError: if something goes wrong with the access
-            token request to Blackboard
+        :raise services.ExternalRequestError: if something goes wrong with the
+            access token request to Blackboard
         """
         self._api.get_token(authorization_code)
 
@@ -91,8 +91,8 @@ class BlackboardAPIClient:
                 "GET",
                 f"courses/uuid:{course_id}/resources/{file_id}?fields=downloadUrl",
             )
-        except HTTPError as err:
-            if err.response.status_code == 404:
+        except ExternalRequestError as err:
+            if getattr(err.response, "status_code", None) == 404:
                 raise BlackboardFileNotFoundInCourse(file_id) from err
             raise
 

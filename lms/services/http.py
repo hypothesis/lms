@@ -1,7 +1,7 @@
 import requests
 from requests import RequestException
 
-from lms.services.exceptions import HTTPError
+from lms.services.exceptions import ExternalRequestError
 
 
 class HTTPService:
@@ -58,21 +58,23 @@ class HTTPService:
             requests.Session().request():
             https://docs.python-requests.org/en/latest/api/#requests.Session.request
 
-        :raise HTTPError: If sending the request or receiving the response
-            fails (DNS failure, refused connection, timeout, too many
+        :raise ExternalRequestError: If sending the request or receiving the
+            response fails (DNS failure, refused connection, timeout, too many
             redirects, etc).
 
             The original exception from requests will be available as
-            HTTPError.__cause__.
+            ExternalRequestError.__cause__.
 
-            In this case HTTPError.response will be None.
+            In this case ExternalRequestError.response will be None.
 
-        :raise HTTPError: If an error response (4xx or 5xx) is received.
+        :raise ExternalRequestError: If an error response (4xx or 5xx) is
+            received.
 
             The original exception from requests will be available as
-            HTTPError.__cause__.
+            ExternalRequestError.__cause__.
 
-            The error response will be available as HTTPError.response.
+            The error response will be available as
+            ExternalRequestError.response.
         """
         response = None
 
@@ -85,7 +87,7 @@ class HTTPService:
             )
             response.raise_for_status()
         except RequestException as err:
-            raise HTTPError(response) from err
+            raise ExternalRequestError(response=response) from err
 
         return response
 

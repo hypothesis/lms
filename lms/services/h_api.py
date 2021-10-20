@@ -3,7 +3,7 @@
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
-from lms.services import ExternalRequestError, HTTPError
+from lms.services import ExternalRequestError
 
 
 class HAPIError(ExternalRequestError):
@@ -94,9 +94,7 @@ class HAPI:
                 headers=headers,
                 **request_args,
             )
-        except HTTPError as err:
-            response = getattr(err, "response", None)
-
-            raise HAPIError("Connecting to Hypothesis failed", response) from err
+        except ExternalRequestError as err:
+            raise HAPIError("Connecting to Hypothesis failed", err.response) from err
 
         return response
