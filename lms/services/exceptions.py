@@ -12,23 +12,23 @@ class ExternalRequestError(Exception):
     :type details: JSON-serializable dict or ``None``
     """
 
-    def __init__(self, explanation=None, response=None, details=None):
+    def __init__(
+        self, explanation="External request failed", response=None, details=None
+    ):
         super().__init__()
         self.explanation = explanation
         self.response = response
         self.details = details
 
     def __str__(self):
-        explanation = self.explanation or "ExternalRequestError"
-
         if self.response is None:
-            return explanation
+            return self.explanation
 
         # Log the details of the response. This goes to both Sentry and the
         # application's logs. It's helpful for debugging to know how the
         # external service responded.
         parts = [
-            explanation + ":",
+            self.explanation + ":",
             str(self.response.status_code or ""),
             self.response.reason,
             self.response.text,
