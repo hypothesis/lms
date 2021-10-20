@@ -16,11 +16,7 @@ from lms.validation import ValidationError
 
 
 class TestExternalRequestError:
-    # If no ``response`` kwarg is given to ExternalRequestError() then
-    # __str__() falls back on the HTTPInternalServerError base class's
-    # __str__() which is to use the given detail message string as the string
-    # representation of the exception.
-    def test_when_theres_no_response_uses_detail_message_as_str(self):
+    def test_str_with_explanation_but_no_response(self):
         err = ExternalRequestError("Connecting to Hypothesis failed")
 
         assert str(err) == "Connecting to Hypothesis failed"
@@ -59,7 +55,7 @@ class TestExternalRequestError:
             ),
         ],
     )
-    def test_when_theres_a_response_it_uses_it_in_str(
+    def test_str_with_both_explanation_and_response(
         self, status_code, reason, text, expected
     ):
         response = mock.create_autospec(
