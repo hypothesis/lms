@@ -16,15 +16,15 @@ from lms.validation import ValidationError
 
 
 class TestExternalRequestError:
-    def test_str_with_no_response_or_explanation(self):
+    def test_str_with_no_response_or_message(self):
         assert str(ExternalRequestError()) == "External request failed"
 
-    def test_str_with_explanation_but_no_response(self):
+    def test_str_with_message_but_no_response(self):
         err = ExternalRequestError("Connecting to Hypothesis failed")
 
         assert str(err) == "Connecting to Hypothesis failed"
 
-    def test_str_with_response_but_no_explanation(self):
+    def test_str_with_response_but_no_message(self):
         response = mock.create_autospec(
             requests.Response,
             instance=True,
@@ -70,7 +70,7 @@ class TestExternalRequestError:
             ),
         ],
     )
-    def test_str_with_both_explanation_and_response(
+    def test_str_with_both_message_and_response(
         self, status_code, reason, text, expected
     ):
         response = mock.create_autospec(
