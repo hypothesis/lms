@@ -38,7 +38,7 @@ idna==2.10
     # via requests
 importlib-metadata==4.8.1
     # via alembic
-importlib_resources==5.3.0
+importlib-resources==5.3.0
     # via
     #   -r requirements/requirements.in
     #   alembic
@@ -128,7 +128,7 @@ six==1.15.0
     # via
     #   google-auth
     #   jsonschema
-sqlalchemy==1.4.25
+sqlalchemy==1.4.26
     # via
     #   -r requirements/requirements.in
     #   alembic
