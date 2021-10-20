@@ -2,8 +2,8 @@ class ExternalRequestError(Exception):
     """
     A problem with a network request to an external service.
 
-    :arg explanation: A short error message for displaying to the user
-    :type explanation: str
+    :arg message: A short error message for displaying to the user
+    :type message: str
 
     :arg response: The external service's response to our HTTP request, if any
     :type response: requests.Response or ``None``
@@ -12,23 +12,21 @@ class ExternalRequestError(Exception):
     :type details: JSON-serializable dict or ``None``
     """
 
-    def __init__(
-        self, explanation="External request failed", response=None, details=None
-    ):
+    def __init__(self, message="External request failed", response=None, details=None):
         super().__init__()
-        self.explanation = explanation
+        self.message = message
         self.response = response
         self.details = details
 
     def __str__(self):
         if self.response is None:
-            return self.explanation
+            return self.message
 
         # Log the details of the response. This goes to both Sentry and the
         # application's logs. It's helpful for debugging to know how the
         # external service responded.
         parts = [
-            self.explanation + ":",
+            self.message + ":",
             str(self.response.status_code or ""),
             self.response.reason,
             self.response.text,
@@ -94,7 +92,7 @@ class CanvasAPIError(ExternalRequestError):
                 details["response"]["body"] += "..."
 
         raise exception_class(
-            explanation="Calling the Canvas API failed",
+            message="Calling the Canvas API failed",
             response=response,
             details=details,
         ) from cause

@@ -29,22 +29,22 @@ class TestExceptionViews:
         )
 
     def test_http_client_error(self, assert_response, pyramid_request):
-        exception = httpexceptions.HTTPBadRequest("http_client_error_test_explanation")
+        exception = httpexceptions.HTTPBadRequest("http_client_error_test_message")
 
         template_data = ExceptionViews(exception, pyramid_request).http_client_error()
 
         assert_response(
             template_data,
             status=exception.status_int,
-            message="http_client_error_test_explanation",
+            message="http_client_error_test_message",
         )
 
     def test_hapi_error(self, assert_response, pyramid_request):
-        exception = HAPIError("hapi_error_test_explanation")
+        exception = HAPIError("hapi_error_test_message")
 
         template_data = ExceptionViews(exception, pyramid_request).hapi_error()
 
-        assert_response(template_data, 500, message="hapi_error_test_explanation")
+        assert_response(template_data, 500, message="hapi_error_test_message")
 
     def test_validation_error(self, assert_response, pyramid_request):
         exception = ValidationError(sentinel.messages)

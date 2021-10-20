@@ -36,13 +36,13 @@ class TestExternalRequestError:
         report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
         assert json_data == {
-            "message": "test_explanation",
+            "message": "test_message",
             "details": {"foo": "bar"},
         }
 
     @pytest.fixture
     def context(self):
-        return CanvasAPIError(explanation="test_explanation", details={"foo": "bar"})
+        return CanvasAPIError(message="test_message", details={"foo": "bar"})
 
 
 class TestNotFound:
@@ -74,11 +74,11 @@ class TestHTTPBadRequest:
         json_data = views.http_bad_request()
 
         assert pyramid_request.response.status_int == 400
-        assert json_data == {"message": "test_explanation"}
+        assert json_data == {"message": "test_message"}
 
     @pytest.fixture
     def context(self):
-        return HTTPBadRequest("test_explanation")
+        return HTTPBadRequest("test_message")
 
 
 class TestAPIError:

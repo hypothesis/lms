@@ -103,7 +103,7 @@ class APIExceptionViews:
     def external_request_error(self):
         report_exception()
         return self.error_response(
-            message=self.context.explanation, details=self.context.details
+            message=self.context.message, details=self.context.details
         )
 
     @exception_view_config(context=OAuth2TokenError)
