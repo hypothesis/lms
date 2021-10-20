@@ -17,7 +17,7 @@ from lms.validation import ValidationError
 
 class TestExternalRequestError:
     def test_str_with_no_response_or_explanation(self):
-        assert str(ExternalRequestError()) == "ExternalRequestError"
+        assert str(ExternalRequestError()) == "External request failed"
 
     def test_str_with_explanation_but_no_response(self):
         err = ExternalRequestError("Connecting to Hypothesis failed")
@@ -34,7 +34,7 @@ class TestExternalRequestError:
         )
         err = ExternalRequestError(response=response)
 
-        assert str(err) == "ExternalRequestError: 400 Bad Request Name too long"
+        assert str(err) == "External request failed: 400 Bad Request Name too long"
 
     # If a ``response`` arg is given to ExternalRequestError() then it uses the
     # Response object's attributes to format a more informative string
