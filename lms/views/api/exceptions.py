@@ -102,9 +102,15 @@ class APIExceptionViews:
     @exception_view_config(context=ExternalRequestError)
     def external_request_error(self):
         report_exception()
-        return self.error_response(
-            message=self.context.message, details=self.context.details
-        )
+
+        # It's important that this exception view always returns a non-empty
+        # message even if ExternalRequestError.message is None because an error
+        # response JSON body of {} tells the frontend to show the authorization
+        # dialog, whereas {"message": "..."} tells the frontend to show the
+        # error dialog.
+        message = self.context.message or "External request failed"
+
+        return self.error_response(message=message, details=self.context.details)
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):

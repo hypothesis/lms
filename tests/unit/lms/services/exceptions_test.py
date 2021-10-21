@@ -1,6 +1,4 @@
 import json
-from io import BytesIO
-from unittest import mock
 
 import httpretty
 import pytest
@@ -14,15 +12,14 @@ from lms.services import (
     OAuth2TokenError,
 )
 from lms.validation import ValidationError
+from tests import factories
 
 
 class TestExternalRequestError:
     def test_it(self):
-        response = requests.Response()
-        response.status_code = 418
-        response.reason = "I'm a teapot"
-        response.encoding = "utf8"
-        response.raw = BytesIO("Body text".encode(response.encoding))
+        response = factories.requests.Response(
+            status_code=418, reason="I'm a teapot", raw="Body text"
+        )
 
         err = ExternalRequestError(response=response)
 
@@ -37,73 +34,27 @@ class TestExternalRequestError:
         assert err.reason is None
         assert err.text is None
 
-    def test_str_with_no_response_or_message(self):
-        assert str(ExternalRequestError()) == "External request failed"
-
-    def test_str_with_message_but_no_response(self):
-        err = ExternalRequestError("Connecting to Hypothesis failed")
-
-        assert str(err) == "Connecting to Hypothesis failed"
-
-    def test_str_with_response_but_no_message(self):
-        response = mock.create_autospec(
-            requests.Response,
-            instance=True,
-            status_code=400,
-            reason="Bad Request",
-            text="Name too long",
-        )
-        err = ExternalRequestError(response=response)
-
-        assert str(err) == "External request failed: 400 Bad Request Name too long"
-
-    # If a ``response`` arg is given to ExternalRequestError() then it uses the
-    # Response object's attributes to format a more informative string
-    # representation of the exception. Not all Response objects necessarily
-    # have values for every attribute - certain attributes can be ``None`` or
-    # the empty string, so ``__str__()`` needs to handle those.
     @pytest.mark.parametrize(
-        "status_code,reason,text,expected",
+        "message,response,expected",
         [
             (
-                400,
-                "Bad Request",
-                "Name too long",
-                "Connecting to Hypothesis failed: 400 Bad Request Name too long",
-            ),
-            (
                 None,
-                "Bad Request",
-                "Name too long",
-                "Connecting to Hypothesis failed: Bad Request Name too long",
-            ),
-            (
-                400,
                 None,
-                "Name too long",
-                "Connecting to Hypothesis failed: 400 Name too long",
+                "ExternalRequestError(message=None, response=Response(status_code=None, reason=None, text=None))",
             ),
             (
-                400,
-                "Bad Request",
-                "",
-                "Connecting to Hypothesis failed: 400 Bad Request",
+                "Connecting to Hypothesis failed",
+                factories.requests.Response(
+                    status_code=400,
+                    reason="Bad Request",
+                    raw="Name too long",
+                ),
+                "ExternalRequestError(message='Connecting to Hypothesis failed', response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
             ),
         ],
     )
-    def test_str_with_both_message_and_response(
-        self, status_code, reason, text, expected
-    ):
-        response = mock.create_autospec(
-            requests.Response,
-            instance=True,
-            status_code=status_code,
-            reason=reason,
-            text=text,
-        )
-        err = ExternalRequestError("Connecting to Hypothesis failed", response=response)
-
-        assert str(err) == expected
+    def test_str(self, message, response, expected):
+        assert str(ExternalRequestError(message=message, response=response)) == expected
 
 
 class TestCanvasAPIError:
