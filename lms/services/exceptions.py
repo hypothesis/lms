@@ -32,7 +32,10 @@ class ExternalRequestError(Exception):
             response = "None"
 
         return (
-            f"ExternalRequestError(message={repr(self.message)}, response={response})"
+            "ExternalRequestError("
+            f"message={repr(self.message)}, "
+            f"response={response}, "
+            f"details={repr(self.details)})"
         )
 
     def __str__(self):

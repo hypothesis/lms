@@ -47,7 +47,7 @@ class TestExceptionViews:
         assert_response(
             template_data,
             500,
-            message="ExternalRequestError(message='hapi_error_test_message', response=None)",
+            message="ExternalRequestError(message='hapi_error_test_message', response=None, details=None)",
         )
 
     def test_validation_error(self, assert_response, pyramid_request):
