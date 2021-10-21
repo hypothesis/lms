@@ -15,7 +15,7 @@ class ExternalRequestError(Exception):
     :type details: JSON-serializable dict or ``None``
     """
 
-    def __init__(self, message="External request failed", response=None, details=None):
+    def __init__(self, message=None, response=None, details=None):
         super().__init__()
         self.message = message
         self.response = response
@@ -51,20 +51,24 @@ class ExternalRequestError(Exception):
         """
         return getattr(self.response, "text", None)
 
-    def __str__(self):
-        if self.response is None:
-            return self.message
+    def __repr__(self):
+        # Include the details of the response for debugging. This appears in
+        # the logs and in tools like Sentry and Papertrail.
+        response = (
+            "Response("
+            f"status_code={self.status_code!r}, "
+            f"reason={self.reason!r}, "
+            f"text={self.text!r}"
+            ")"
+        )
 
-        # Log the details of the response. This goes to both Sentry and the
-        # application's logs. It's helpful for debugging to know how the
-        # external service responded.
-        parts = [
-            self.message + ":",
-            str(self.response.status_code or ""),
-            self.response.reason,
-            self.response.text,
-        ]
-        return " ".join([part for part in parts if part])
+        # The name of this class or of a subclass if one inherits this method.
+        class_name = self.__class__.__name__
+
+        return f"{class_name}(message={self.message!r}, response={response})"
+
+    def __str__(self):
+        return repr(self)
 
 
 class OAuth2TokenError(ExternalRequestError):

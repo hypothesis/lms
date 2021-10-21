@@ -40,6 +40,14 @@ class TestExternalRequestError:
             "details": {"foo": "bar"},
         }
 
+    @pytest.mark.parametrize("message", [None, ""])
+    def test_it_injects_a_default_error_message(self, context, message, views):
+        context.message = message
+
+        json_data = views.external_request_error()
+
+        assert json_data["message"] == "External request failed"
+
     @pytest.fixture
     def context(self):
         return CanvasAPIError(message="test_message", details={"foo": "bar"})

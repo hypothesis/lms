@@ -35,7 +35,7 @@ class ExceptionViews:
 
     @exception_view_config(context=HAPIError)
     def hapi_error(self):
-        return self.error_response(500, str(self.exception))
+        return self.error_response(500, self.exception.message)
 
     @exception_view_config(
         context=ValidationError, renderer="lms:templates/validation_error.html.jinja2"
