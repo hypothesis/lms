@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class ExternalRequestError(Exception):
     """
     A problem with a network request to an external service.
@@ -17,6 +20,16 @@ class ExternalRequestError(Exception):
         self.message = message
         self.response = response
         self.details = details
+
+    @property
+    def status_code(self) -> Optional[int]:
+        """
+        Return the HTTP status code of the external service's response.
+
+        Sometimes there is no response (e.g. if the request timed out). In
+        these cases ExternalRequestError.status_code will be None.
+        """
+        return getattr(self.response, "status_code", None)
 
     def __str__(self):
         if self.response is None:

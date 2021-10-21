@@ -84,6 +84,17 @@ class TestExternalRequestError:
 
         assert str(err) == expected
 
+    def test_status_code_returns_the_responses_status_code(self):
+        response = requests.Response()
+        response.status_code = 204
+
+        err = ExternalRequestError(response=response)
+
+        assert err.status_code == 204
+
+    def test_status_code_returns_None_if_theres_no_response(self):
+        assert ExternalRequestError().status_code is None
+
 
 class TestCanvasAPIError:
     @pytest.mark.parametrize(
