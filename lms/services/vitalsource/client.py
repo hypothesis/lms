@@ -36,7 +36,7 @@ class VitalSourceService:
         try:
             response = self.get(f"products/{book_id}")
         except ExternalRequestError as err:
-            if getattr(err.response, "status_code", None) == 404:
+            if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
 
             raise
@@ -47,7 +47,7 @@ class VitalSourceService:
         try:
             response = self.get(f"products/{book_id}/toc")
         except ExternalRequestError as err:
-            if getattr(err.response, "status_code", None) == 404:
+            if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
 
             raise

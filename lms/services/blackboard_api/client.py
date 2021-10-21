@@ -92,7 +92,7 @@ class BlackboardAPIClient:
                 f"courses/uuid:{course_id}/resources/{file_id}?fields=downloadUrl",
             )
         except ExternalRequestError as err:
-            if getattr(err.response, "status_code", None) == 404:
+            if err.status_code == 404:
                 raise BlackboardFileNotFoundInCourse(file_id) from err
             raise
 
