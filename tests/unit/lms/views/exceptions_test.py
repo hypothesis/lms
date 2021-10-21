@@ -44,7 +44,11 @@ class TestExceptionViews:
 
         template_data = ExceptionViews(exception, pyramid_request).hapi_error()
 
-        assert_response(template_data, 500, message="hapi_error_test_message")
+        assert_response(
+            template_data,
+            500,
+            message="ExternalRequestError(message='hapi_error_test_message', response=None)",
+        )
 
     def test_validation_error(self, assert_response, pyramid_request):
         exception = ValidationError(sentinel.messages)

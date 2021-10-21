@@ -16,71 +16,55 @@ from lms.validation import ValidationError
 
 
 class TestExternalRequestError:
-    def test_str_with_no_response_or_message(self):
-        assert str(ExternalRequestError()) == "External request failed"
-
-    def test_str_with_message_but_no_response(self):
-        err = ExternalRequestError("Connecting to Hypothesis failed")
-
-        assert str(err) == "Connecting to Hypothesis failed"
-
-    def test_str_with_response_but_no_message(self):
-        response = mock.create_autospec(
-            requests.Response,
-            instance=True,
-            status_code=400,
-            reason="Bad Request",
-            text="Name too long",
-        )
-        err = ExternalRequestError(response=response)
-
-        assert str(err) == "External request failed: 400 Bad Request Name too long"
-
-    # If a ``response`` arg is given to ExternalRequestError() then it uses the
-    # Response object's attributes to format a more informative string
-    # representation of the exception. Not all Response objects necessarily
-    # have values for every attribute - certain attributes can be ``None`` or
-    # the empty string, so ``__str__()`` needs to handle those.
     @pytest.mark.parametrize(
-        "status_code,reason,text,expected",
+        "message,response_attrs,expected",
         [
+            (None, None, "ExternalRequestError(message=None, response=None)"),
             (
-                400,
-                "Bad Request",
-                "Name too long",
-                "Connecting to Hypothesis failed: 400 Bad Request Name too long",
+                "Connecting to Hypothesis failed",
+                None,
+                "ExternalRequestError(message='Connecting to Hypothesis failed', response=None)",
             ),
             (
                 None,
-                "Bad Request",
-                "Name too long",
-                "Connecting to Hypothesis failed: Bad Request Name too long",
+                {"status": 400, "reason": "Bad Request", "text": "Name too long"},
+                "ExternalRequestError(message=None, response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
             ),
             (
-                400,
                 None,
-                "Name too long",
-                "Connecting to Hypothesis failed: 400 Name too long",
+                {"status": None, "reason": "Bad Request", "text": "Name too long"},
+                "ExternalRequestError(message=None, response=Response(status_code=None, reason='Bad Request', text='Name too long'))",
             ),
             (
-                400,
-                "Bad Request",
-                "",
-                "Connecting to Hypothesis failed: 400 Bad Request",
+                None,
+                {"status": 400, "reason": None, "text": "Name too long"},
+                "ExternalRequestError(message=None, response=Response(status_code=400, reason=None, text='Name too long'))",
+            ),
+            (
+                None,
+                {"status": 400, "reason": "Bad Request", "text": None},
+                "ExternalRequestError(message=None, response=Response(status_code=400, reason='Bad Request', text=None))",
+            ),
+            (
+                "Connecting to Hypothesis failed",
+                {"status": 400, "reason": "Bad Request", "text": "Name too long"},
+                "ExternalRequestError(message='Connecting to Hypothesis failed', response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
             ),
         ],
     )
-    def test_str_with_both_message_and_response(
-        self, status_code, reason, text, expected
-    ):
-        response = mock.create_autospec(
-            requests.Response,
-            instance=True,
-            status_code=status_code,
-            reason=reason,
-            text=text,
-        )
-        err = ExternalRequestError("Connecting to Hypothesis failed", response=response)
+    def test_str(self, message, response_attrs, expected):
+        if response_attrs:
+            response = mock.create_autospec(
+                requests.Response,
+                instance=True,
+                status_code=response_attrs["status"],
+                reason=response_attrs["reason"],
+                text=response_attrs["text"],
+            )
+        else:
+            response = None
+
+        err = ExternalRequestError(message=message, response=response)
 
         assert str(err) == expected
 
