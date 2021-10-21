@@ -1,16 +1,11 @@
 import {
   buildCSS,
   buildJS,
+  generateManifest,
   runTests,
   watchJS,
 } from '@hypothesis/frontend-build';
-
 import gulp from 'gulp';
-import log from 'gulplog';
-import through from 'through2';
-
-// TODO - Move this to the @hypothesis/frontend-build package
-import manifest from './scripts/gulp/manifest.js';
 
 gulp.task('build-js', () => buildJS('./rollup.config.mjs'));
 gulp.task('watch-js', () => watchJS('./rollup.config.mjs'));
@@ -32,32 +27,8 @@ gulp.task('watch-css', () => {
   );
 });
 
-const MANIFEST_SOURCE_FILES = [
-  'build/**/*.css',
-  'build/**/*.js',
-  'build/**/*.map',
-];
-
-/**
- * Generate a JSON manifest mapping file paths to
- * URLs containing cache-busting query string parameters.
- */
-function generateManifest() {
-  return gulp
-    .src(MANIFEST_SOURCE_FILES)
-    .pipe(manifest({ name: 'manifest.json' }))
-    .pipe(
-      through.obj(function (file, enc, callback) {
-        log.info('Updated asset manifest');
-        this.push(file);
-        callback();
-      })
-    )
-    .pipe(gulp.dest('build/'));
-}
-
 gulp.task('watch-manifest', () => {
-  gulp.watch(MANIFEST_SOURCE_FILES, generateManifest);
+  gulp.watch('build/**/*.{css,js,map}', generateManifest);
 });
 
 gulp.task('build', gulp.series(['build-js', 'build-css'], generateManifest));
