@@ -116,20 +116,13 @@ class TestBasicLTILaunch:
         return params
 
     @pytest.fixture(autouse=True)
-    def http_intercept(self, _http_intercept):
+    def http_intercept(self):
         """
         Monkey-patch Python's socket core module to mock all HTTP responses.
 
         We will catch calls to H's API and return 200. All other calls will
         raise an exception, allowing to you see who are are trying to call.
         """
-        # We only need to reset once per tests, all other setup can be done
-        # once in `_http_intercept()`
-        yield
-        httpretty.reset()
-
-    @pytest.fixture(scope="session")
-    def _http_intercept(self):
         # Mock all calls to the H API
         httpretty.register_uri(
             method=Any(),
