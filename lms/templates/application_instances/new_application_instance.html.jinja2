@@ -2,7 +2,7 @@
 {% extends "templates/base.html.jinja2" %}
 {% block scripts %}
 {% for url in asset_urls("new_application_instance_js") %}
-<script src="{{ url }}"></script>
+<script type="module" src="{{ url }}"></script>
 {% endfor %}
 {% endblock %}
 
