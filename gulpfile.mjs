@@ -1,6 +1,3 @@
-import { mkdirSync } from 'fs';
-import * as path from 'path';
-
 import {
   buildCSS,
   buildJS,
