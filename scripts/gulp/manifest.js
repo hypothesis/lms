@@ -1,3 +1,5 @@
+/* eslint-disable */ // This file is going to be replaced by @hypothesis/frontend-build
+
 'use strict';
 
 var path = require('path');
