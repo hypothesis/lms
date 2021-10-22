@@ -13,6 +13,6 @@
 {% block scripts %}
   {{ super() }}
   {% for url in asset_urls("frontend_apps_js") %}
-    <script async defer src="{{ url }}"></script>
+    <script type="module" src="{{ url }}"></script>
   {% endfor %}
 {% endblock %}

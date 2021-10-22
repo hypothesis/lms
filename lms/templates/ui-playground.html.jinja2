@@ -11,7 +11,7 @@
 <body>
   <div id="app"></div>
   {% for url in asset_urls("ui_playground_js") %}
-    <script src="{{ url }}"></script>
+    <script type="module" src="{{ url }}"></script>
   {% endfor %}
 </body>
 </html>
