@@ -11,12 +11,37 @@ from lms.views.predicates import (
     CanvasFile,
     Configured,
     DBConfigured,
+    LegacySpeedGrader,
     URLConfigured,
     VitalSourceBook,
 )
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("assignment_service")
+
+
+class TestLegacySpeedGrader:
+    @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
+    def test_when_legacy_speed_grading(self, pyramid_request, value, expected, context):
+        context.is_legacy_speed_grader = True
+
+        predicate = LegacySpeedGrader(value, mock.sentinel.config)
+
+        result = predicate(context, pyramid_request)
+
+        assert result is expected
+
+    @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
+    def test_when_no_legacy_speed_grading(
+        self, pyramid_request, value, expected, context
+    ):
+        context.is_legacy_speed_grader = False
+
+        predicate = LegacySpeedGrader(value, mock.sentinel.config)
+
+        result = predicate(context, pyramid_request)
+
+        assert result is expected
 
 
 class TestDBConfigured:
