@@ -1,3 +1,4 @@
+import json
 import re
 import time
 from urllib.parse import urlencode
@@ -41,7 +42,10 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.CONTENT_ITEM_SELECTION}"' in response.text
+        assert (
+            self.get_client_config(response)["mode"]
+            == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        )
 
     def test_db_configured_basic_lti_launch(self, app, lti_params, assignment):
         response = app.post(
@@ -54,8 +58,9 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.BASIC_LTI_LAUNCH}"' in response.text
-        assert urlencode({"url": assignment.document_url}) in response.text
+        js_config = self.get_client_config(response)
+        assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
+        assert urlencode({"url": assignment.document_url}) in js_config["viaUrl"]
 
     def test_url_configured_basic_lti_launch(self, app, lti_params, sign_lti_params):
         document_url = "https://url-configured.com/document.pdf"
@@ -69,8 +74,9 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.BASIC_LTI_LAUNCH}"' in response.text
-        assert urlencode({"url": document_url}) in response.text
+        js_config = self.get_client_config(response)
+        assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
+        assert urlencode({"url": document_url}) in js_config["viaUrl"]
 
     @pytest.mark.usefixtures("legacy_speed_grader_assignment")
     def test_url_configured_basic_lti_launch_legacy_speed_grader_launch(
@@ -92,7 +98,8 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.BASIC_LTI_LAUNCH}"' in response.text
+        js_config = self.get_client_config(response)
+        assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert urlencode({"url": document_url}) in response.text
 
     def test_legacy_canvas_file_basic_lti_launch(
@@ -118,7 +125,9 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.BASIC_LTI_LAUNCH}"' in response.text
+        assert (
+            self.get_client_config(response)["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
+        )
         assert (
             db_session.query(Assignment)
             .filter_by(
@@ -155,7 +164,9 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert f'"mode": "{JSConfig.Mode.BASIC_LTI_LAUNCH}"' in response.text
+        assert (
+            self.get_client_config(response)["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
+        )
         assert (
             db_session.query(Assignment)
             .filter_by(
@@ -289,3 +300,6 @@ class TestBasicLTILaunch:
         httpretty.enable()
         yield
         httpretty.disable()
+
+    def get_client_config(self, response):
+        return json.loads(response.html.find("script", {"class": "js-config"}).string)
