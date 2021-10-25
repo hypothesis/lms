@@ -15,6 +15,7 @@ from lms.services.launch_verifier import (
     LTILaunchVerificationError,
     LTIOAuthError,
 )
+from lms.services.user import UserService
 
 
 def includeme(config):
@@ -30,6 +31,7 @@ def includeme(config):
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
+    config.register_service_factory("lms.services.user.factory", iface=UserService)
 
     config.register_service_factory("lms.services.h_api.HAPI", name="h_api")
     config.register_service_factory(

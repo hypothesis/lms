@@ -7,6 +7,7 @@ from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
+from lms.services import UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -178,13 +179,20 @@ def _get_lti_user(request):
         OAuthCallbackSchema(request).lti_user,
     ]
 
+    lti_user = None
     for schema in schemas:
         try:
-            return schema()
+            lti_user = schema()
+            break
         except ValidationError:
             continue
 
-    return None
+    if lti_user:
+        # Make a record of the user for analytics so we can map from the
+        # LTI users and the corresponding user in H
+        request.find_service(UserService).store_lti_user(lti_user)
+
+    return lti_user
 
 
 def includeme(config):
