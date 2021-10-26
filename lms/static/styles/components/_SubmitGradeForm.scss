@@ -29,6 +29,7 @@
   white-space: nowrap;
 
   &__check-icon {
+    display: inline;
     color: var.$grey-5;
   }
 

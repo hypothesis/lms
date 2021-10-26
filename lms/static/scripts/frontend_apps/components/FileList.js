@@ -1,4 +1,4 @@
-import { SvgIcon, Table } from '@hypothesis/frontend-shared';
+import { Icon, Table } from '@hypothesis/frontend-shared';
 
 import classnames from 'classnames';
 
@@ -59,16 +59,13 @@ export default function FileList({
         <>
           <td aria-label={file.display_name}>
             <div className="hyp-u-layout-row--align-center hyp-u-horizontal-spacing hyp-u-padding--left--2">
-              <SvgIcon
-                inline
+              <Icon
                 name={file.type && file.type === 'Folder' ? 'folder' : 'pdf'}
-                className={classnames('FileList__icon', {
+                classes={classnames('FileList__icon', {
                   'is-selected': isSelected,
                 })}
               />
-              <span className="u-stretch u-line-height">
-                {file.display_name}
-              </span>
+              <div className="u-stretch u-line-height">{file.display_name}</div>
             </div>
           </td>
           <td>{file.updated_at && formatDate(file.updated_at)}</td>
