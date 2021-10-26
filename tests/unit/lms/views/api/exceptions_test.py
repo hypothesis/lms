@@ -45,12 +45,15 @@ class TestExternalRequestError:
                     "body": context.text,
                 },
             ),
-            call("details", context.details),
+            call("extra_details", context.extra_details),
         ]
 
         report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
-        assert json_data == {"message": context.message, "details": context.details}
+        assert json_data == {
+            "message": context.message,
+            "details": context.extra_details,
+        }
 
     @pytest.mark.parametrize("message", [None, ""])
     def test_it_injects_a_default_error_message(self, context, message, views):
@@ -67,7 +70,7 @@ class TestExternalRequestError:
             response=factories.requests.Response(
                 status_code=418, reason="I'm a teapot", raw="Body text"
             ),
-            details={"foo": "bar"},
+            extra_details={"foo": "bar"},
         )
 
 
@@ -109,14 +112,14 @@ class TestHTTPBadRequest:
 
 class TestAPIError:
     def test_it_with_a_CanvasAPIPermissionError(self, pyramid_request, views):
-        context = views.context = CanvasAPIPermissionError(details={"foo": "bar"})
+        context = views.context = CanvasAPIPermissionError(extra_details={"foo": "bar"})
 
         json_data = views.api_error()
 
         assert pyramid_request.response.status_code == 400
         assert json_data == {
             "error_code": context.error_code,
-            "details": context.details,
+            "details": context.extra_details,
         }
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):

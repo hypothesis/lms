@@ -148,7 +148,7 @@ class LTIOutcomesClient:
                 pass
 
             raise ExternalRequestError(
-                message="LTI outcome request failed", details=description
+                message="LTI outcome request failed", extra_details=description
             )
 
         return body
