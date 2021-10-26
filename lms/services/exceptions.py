@@ -65,7 +65,7 @@ class ExternalRequestError(Exception):
         # The name of this class or of a subclass if one inherits this method.
         class_name = self.__class__.__name__
 
-        return f"{class_name}(message={self.message!r}, response={response})"
+        return f"{class_name}(message={self.message!r}, details={self.details!r}, response={response})"
 
     def __str__(self):
         return repr(self)

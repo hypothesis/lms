@@ -35,26 +35,30 @@ class TestExternalRequestError:
         assert err.text is None
 
     @pytest.mark.parametrize(
-        "message,response,expected",
+        "message,details,response,expected",
         [
             (
                 None,
                 None,
-                "ExternalRequestError(message=None, response=Response(status_code=None, reason=None, text=None))",
+                None,
+                "ExternalRequestError(message=None, details=None, response=Response(status_code=None, reason=None, text=None))",
             ),
             (
                 "Connecting to Hypothesis failed",
+                {"extra": "details"},
                 factories.requests.Response(
                     status_code=400,
                     reason="Bad Request",
                     raw="Name too long",
                 ),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
+                "ExternalRequestError(message='Connecting to Hypothesis failed', details={'extra': 'details'}, response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
             ),
         ],
     )
-    def test_str(self, message, response, expected):
-        assert str(ExternalRequestError(message=message, response=response)) == expected
+    def test_str(self, message, details, response, expected):
+        err = ExternalRequestError(message=message, details=details, response=response)
+
+        assert str(err) == expected
 
 
 class TestCanvasAPIError:
