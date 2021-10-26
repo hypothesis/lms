@@ -1,7 +1,7 @@
 import {
   LabeledButton,
   Modal,
-  SvgIcon,
+  Icon,
   TextInput,
 } from '@hypothesis/frontend-shared';
 
@@ -89,7 +89,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
         >
           {!!error && (
             <>
-              <SvgIcon name="cancel" />
+              <Icon name="cancel" />
               <div className="hyp-u-stretch">{error}</div>
             </>
           )}
