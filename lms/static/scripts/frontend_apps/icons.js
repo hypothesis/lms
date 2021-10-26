@@ -1,30 +1,33 @@
 // @ts-nocheck - TS doesn't understand SVG imports.
 
 // LMS icons
-import caretDownIcon from '../../images/caret-down.svg';
-import checkIcon from '../../images/check.svg';
+// TODO: replace these with shared versions when updating the file picker:
+// https://github.com/hypothesis/lms/issues/3189
 import folderIcon from '../../images/folder.svg';
 import pdfIcon from '../../images/file-pdf.svg';
+
+// TODO: Remove when `frontend-shared` provides a FullScreenSpinner component
 import spinnerIcon from '../../images/spinner.svg';
 
 // Shared icons
-import arrowLeftIcon from '@hypothesis/frontend-shared/images/icons/arrow-left.svg';
-import arrowRightIcon from '@hypothesis/frontend-shared/images/icons/arrow-right.svg';
-import cancelIcon from '@hypothesis/frontend-shared/images/icons/cancel.svg';
+import {
+  arrowLeft,
+  arrowRight,
+  cancel,
+  caretDown,
+  check,
+} from '@hypothesis/frontend-shared/lib/icons';
 
-/**
- * Set of icons used by the LMS frontend via the `SvgIcon` component.
- */
 export default {
   // LMS icons
-  'caret-down': caretDownIcon,
-  check: checkIcon,
   folder: folderIcon,
   pdf: pdfIcon,
   spinner: spinnerIcon,
 
   // Shared icons
-  'arrow-left': arrowLeftIcon,
-  'arrow-right': arrowRightIcon,
-  cancel: cancelIcon,
+  'arrow-left': arrowLeft,
+  'arrow-right': arrowRight,
+  cancel,
+  'caret-down': caretDown,
+  check,
 };
