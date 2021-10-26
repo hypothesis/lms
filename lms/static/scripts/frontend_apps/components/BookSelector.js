@@ -1,6 +1,6 @@
 import {
+  Icon,
   IconButton,
-  SvgIcon,
   TextInput,
   TextInputWithButton,
   Thumbnail,
@@ -182,10 +182,10 @@ export default function BookSelector({
 
         {selectedBook && (
           <div
-            className="hyp-u-layout-row--center hyp-u-horizontal-spacing"
+            className="hyp-u-layout-row--center hyp-u-horizontal-spacing--2"
             data-testid="selected-book"
           >
-            <SvgIcon name="check" className="hyp-u-color--success" />
+            <Icon name="check" classes="hyp-u-color--success" />
             <div className="hyp-u-stretch BookSelector__title">
               {selectedBook.title}
             </div>
@@ -194,10 +194,10 @@ export default function BookSelector({
 
         {error && (
           <div
-            className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-color--error"
+            className="hyp-u-layout-row--center hyp-u-horizontal-spacing--2 hyp-u-color--error"
             data-testid="error-message"
           >
-            <SvgIcon name="cancel" />
+            <Icon name="cancel" />
             <div className="hyp-u-stretch">{error}</div>
           </div>
         )}

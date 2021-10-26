@@ -1,4 +1,4 @@
-import { SvgIcon } from '@hypothesis/frontend-shared';
+import { Icon } from '@hypothesis/frontend-shared';
 
 import classNames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
@@ -203,12 +203,7 @@ export default function SubmitGradeForm({ student }) {
         disabled={disabled}
         onClick={onSubmitGrade}
       >
-        <SvgIcon
-          className="SubmitGradeForm__check-icon"
-          name="check"
-          inline={true}
-        />{' '}
-        Submit Grade
+        <Icon classes="SubmitGradeForm__check-icon" name="check" /> Submit Grade
       </button>
       {!!submitGradeError && (
         <ErrorDialog

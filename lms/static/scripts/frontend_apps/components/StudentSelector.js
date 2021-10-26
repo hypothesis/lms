@@ -1,4 +1,4 @@
-import { SvgIcon } from '@hypothesis/frontend-shared';
+import { Icon } from '@hypothesis/frontend-shared';
 
 /**
  * @typedef Student
@@ -86,11 +86,7 @@ export default function StudentSelector({
         >
           {options}
         </select>
-        <SvgIcon
-          className="StudentsSelector__students-icon"
-          name="caret-down"
-          inline={true}
-        />{' '}
+        <Icon classes="StudentsSelector__students-icon" name="caret-down" />{' '}
       </span>
     );
   };
@@ -103,11 +99,7 @@ export default function StudentSelector({
         disabled={!hasPrevView}
         onClick={onPrevView}
       >
-        <SvgIcon
-          className="StudentSelector__svg"
-          name="arrow-left"
-          inline={true}
-        />
+        <Icon classes="StudentSelector__svg" name="arrow-left" />
       </button>
       {buildStudentList()}
       <button
@@ -116,11 +108,7 @@ export default function StudentSelector({
         disabled={!hasNextView}
         onClick={onNextView}
       >
-        <SvgIcon
-          className="StudentSelector__svg"
-          name="arrow-right"
-          inline={true}
-        />
+        <Icon classes="StudentSelector__svg" name="arrow-right" />
       </button>
     </div>
   );

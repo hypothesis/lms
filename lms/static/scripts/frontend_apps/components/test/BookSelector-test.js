@@ -194,7 +194,7 @@ describe('BookSelector', () => {
         errorMessage.text(),
         "That doesn't look like a VitalSource book link"
       );
-      assert.isTrue(errorMessage.find('SvgIcon[name="cancel"]').exists());
+      assert.isTrue(errorMessage.find('Icon[name="cancel"]').exists());
     });
   });
 
@@ -268,7 +268,7 @@ describe('BookSelector', () => {
 
         assert.isTrue(wrapper.find('Thumbnail img').exists());
         assert.include(selectedBook.text(), 'Book One');
-        assert.isTrue(selectedBook.find('SvgIcon[name="check"]').exists());
+        assert.isTrue(selectedBook.find('Icon[name="check"]').exists());
       });
     });
 
