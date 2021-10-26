@@ -17,39 +17,25 @@ from lms.validation import ValidationError
 
 
 class TestExternalRequestError:
-    def test_status_code_returns_the_responses_status_code(self):
+    def test_it(self):
         response = requests.Response()
         response.status_code = 418
-
-        err = ExternalRequestError(response=response)
-
-        assert err.status_code == 418
-
-    def test_status_code_returns_None_if_theres_no_response(self):
-        assert ExternalRequestError().status_code is None
-
-    def test_reason_returns_the_responses_reason(self):
-        response = requests.Response()
         response.reason = "I'm a teapot"
-
-        err = ExternalRequestError(response=response)
-
-        assert err.reason == "I'm a teapot"
-
-    def test_reason_returns_None_if_theres_no_response(self):
-        assert ExternalRequestError().reason is None
-
-    def test_text_returns_the_responses_body_text(self):
-        response = requests.Response()
         response.encoding = "utf8"
         response.raw = BytesIO("Body text".encode(response.encoding))
 
         err = ExternalRequestError(response=response)
 
+        assert err.status_code == 418
+        assert err.reason == "I'm a teapot"
         assert err.text == "Body text"
 
-    def test_text_returns_None_if_theres_no_response(self):
-        assert ExternalRequestError().text is None
+    def test_it_when_theres_no_response(self):
+        err = ExternalRequestError()
+
+        assert err.status_code is None
+        assert err.reason is None
+        assert err.text is None
 
     def test_str_with_no_response_or_message(self):
         assert str(ExternalRequestError()) == "External request failed"
