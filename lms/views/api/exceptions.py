@@ -1,4 +1,5 @@
 """Error views for the API."""
+import sentry_sdk
 from h_pyramid_sentry import report_exception
 from pyramid import i18n
 from pyramid.httpexceptions import HTTPBadRequest
@@ -101,6 +102,15 @@ class APIExceptionViews:
 
     @exception_view_config(context=ExternalRequestError)
     def external_request_error(self):
+        sentry_sdk.set_context(
+            "response",
+            {
+                "status_code": self.context.status_code,
+                "reason": self.context.reason,
+                "body": self.context.text,
+            },
+        )
+
         report_exception()
 
         # It's important that this exception view always returns a non-empty

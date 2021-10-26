@@ -1,9 +1,10 @@
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.services import CanvasAPIError, CanvasAPIPermissionError
+from lms.services import CanvasAPIPermissionError, ExternalRequestError
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews
+from tests import factories
 
 
 class TestSchemaValidationError:
@@ -30,15 +31,20 @@ class TestOAuth2TokenError:
 
 
 class TestExternalRequestError:
-    def test_it(self, pyramid_request, views, report_exception):
+    def test_it(self, context, pyramid_request, views, report_exception, sentry_sdk):
         json_data = views.external_request_error()
 
+        sentry_sdk.set_context.assert_called_once_with(
+            "response",
+            {
+                "status_code": context.status_code,
+                "reason": context.reason,
+                "body": context.text,
+            },
+        )
         report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
-        assert json_data == {
-            "message": "test_message",
-            "details": {"foo": "bar"},
-        }
+        assert json_data == {"message": context.message, "details": context.details}
 
     @pytest.mark.parametrize("message", [None, ""])
     def test_it_injects_a_default_error_message(self, context, message, views):
@@ -50,7 +56,13 @@ class TestExternalRequestError:
 
     @pytest.fixture
     def context(self):
-        return CanvasAPIError(message="test_message", details={"foo": "bar"})
+        return ExternalRequestError(
+            message="test_message",
+            response=factories.requests.Response(
+                status_code=418, reason="I'm a teapot", raw="Body text"
+            ),
+            details={"foo": "bar"},
+        )
 
 
 class TestNotFound:
@@ -128,3 +140,8 @@ def views(context, pyramid_request):
 @pytest.fixture(autouse=True)
 def report_exception(patch):
     return patch("lms.views.api.exceptions.report_exception")
+
+
+@pytest.fixture(autouse=True)
+def sentry_sdk(patch):
+    return patch("lms.views.api.exceptions.sentry_sdk")
