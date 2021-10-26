@@ -429,6 +429,7 @@ class TestAuthenticatedUserID:
         assert _authenticated_userid(lti_user) == expected_userid
 
 
+@pytest.mark.usefixtures("user_service")
 class TestGetLTIUser:
     def test_it_returns_the_LTIUsers_from_LTI_launch_params(
         self,
@@ -553,6 +554,15 @@ class TestGetLTIUser:
         assert (
             _get_lti_user(pyramid_request)
             == launch_params_auth_schema.lti_user.return_value
+        )
+
+    def test_it_stores_the_user(
+        self, pyramid_request, user_service, launch_params_auth_schema
+    ):
+        _get_lti_user(pyramid_request)
+
+        user_service.store_lti_user.assert_called_once_with(
+            launch_params_auth_schema.lti_user.return_value
         )
 
     @pytest.fixture(autouse=True)
