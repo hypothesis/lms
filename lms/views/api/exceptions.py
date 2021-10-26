@@ -110,7 +110,7 @@ class APIExceptionViews:
                 "body": self.context.text,
             },
         )
-        sentry_sdk.set_context("details", self.context.details)
+        sentry_sdk.set_context("extra_details", self.context.extra_details)
 
         report_exception()
 
@@ -121,7 +121,7 @@ class APIExceptionViews:
         # error dialog.
         message = self.context.message or "External request failed"
 
-        return self.error_response(message=message, details=self.context.details)
+        return self.error_response(message=message, details=self.context.extra_details)
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):
@@ -165,7 +165,7 @@ class APIExceptionViews:
         if hasattr(self.context, "error_code"):
             return self.error_response(
                 error_code=self.context.error_code,
-                details=getattr(self.context, "details", None),
+                details=getattr(self.context, "extra_details", None),
             )
 
         # Exception details are not reported here to avoid leaking internal information.

@@ -1,7 +1,7 @@
 class CanvasGroupError(Exception):
     def __init__(self, group_set):
-        self.details = {"group_set": group_set}
-        super().__init__(self.details)
+        self.extra_details = {"group_set": group_set}
+        super().__init__(self.extra_details)
 
 
 class CanvasGroupSetNotFound(CanvasGroupError):

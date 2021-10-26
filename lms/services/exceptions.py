@@ -11,15 +11,15 @@ class ExternalRequestError(Exception):
     :arg response: The external service's response to our HTTP request, if any
     :type response: requests.Response or ``None``
 
-    :arg details: Additional details about what went wrong, for debugging
-    :type details: JSON-serializable dict or ``None``
+    :arg extra_details: Extra details about what went wrong, for debugging
+    :type extra_details: JSON-serializable dict or None
     """
 
-    def __init__(self, message=None, response=None, details=None):
+    def __init__(self, message=None, response=None, extra_details=None):
         super().__init__()
         self.message = message
         self.response = response
-        self.details = details
+        self.extra_details = extra_details
 
     @property
     def status_code(self) -> Optional[int]:
@@ -65,7 +65,7 @@ class ExternalRequestError(Exception):
         # The name of this class or of a subclass if one inherits this method.
         class_name = self.__class__.__name__
 
-        return f"{class_name}(message={self.message!r}, details={self.details!r}, response={response})"
+        return f"{class_name}(message={self.message!r}, extra_details={self.extra_details!r}, response={response})"
 
     def __str__(self):
         return repr(self)
@@ -114,24 +114,24 @@ class CanvasAPIError(ExternalRequestError):
 
         exception_class = cls._exception_class(response)
 
-        details = {
+        extra_details = {
             "validation_errors": getattr(cause, "messages", None),
         }
 
         if response is None:
-            details["response"] = None
+            extra_details["response"] = None
         else:
-            details["response"] = {
+            extra_details["response"] = {
                 "status": f"{response.status_code} {response.reason}"
             }
-            details["response"]["body"] = response.text[:150]
+            extra_details["response"]["body"] = response.text[:150]
             if len(response.text) > 150:
-                details["response"]["body"] += "..."
+                extra_details["response"]["body"] += "..."
 
         raise exception_class(
             message="Calling the Canvas API failed",
             response=response,
-            details=details,
+            extra_details=extra_details,
         ) from cause
 
     @staticmethod
@@ -196,8 +196,8 @@ class CanvasFileNotFoundInCourse(Exception):
     error_code = "canvas_file_not_found_in_course"
 
     def __init__(self, file_id):
-        self.details = {"file_id": file_id}
-        super().__init__(self.details)
+        self.extra_details = {"file_id": file_id}
+        super().__init__(self.extra_details)
 
 
 class BlackboardFileNotFoundInCourse(Exception):
@@ -206,5 +206,5 @@ class BlackboardFileNotFoundInCourse(Exception):
     error_code = "blackboard_file_not_found_in_course"
 
     def __init__(self, file_id):
-        self.details = {"file_id": file_id}
-        super().__init__(self.details)
+        self.extra_details = {"file_id": file_id}
+        super().__init__(self.extra_details)

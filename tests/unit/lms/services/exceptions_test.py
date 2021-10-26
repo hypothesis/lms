@@ -35,13 +35,13 @@ class TestExternalRequestError:
         assert err.text is None
 
     @pytest.mark.parametrize(
-        "message,details,response,expected",
+        "message,extra_details,response,expected",
         [
             (
                 None,
                 None,
                 None,
-                "ExternalRequestError(message=None, details=None, response=Response(status_code=None, reason=None, text=None))",
+                "ExternalRequestError(message=None, extra_details=None, response=Response(status_code=None, reason=None, text=None))",
             ),
             (
                 "Connecting to Hypothesis failed",
@@ -51,12 +51,14 @@ class TestExternalRequestError:
                     reason="Bad Request",
                     raw="Name too long",
                 ),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', details={'extra': 'details'}, response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
+                "ExternalRequestError(message='Connecting to Hypothesis failed', extra_details={'extra': 'details'}, response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
             ),
         ],
     )
-    def test_str(self, message, details, response, expected):
-        err = ExternalRequestError(message=message, details=details, response=response)
+    def test_str(self, message, extra_details, response, expected):
+        err = ExternalRequestError(
+            message=message, extra_details=extra_details, response=response
+        )
 
         assert str(err) == expected
 
@@ -132,7 +134,7 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == cause.response
-        assert raised_exception.details == {
+        assert raised_exception.extra_details == {
             "validation_errors": None,
             "response": {"status": expected_status, "body": body},
         }
@@ -156,7 +158,7 @@ class TestCanvasAPIError:
         # request timed out) so there's nothing to set as the response
         # property.
         assert raised_exception.response is None
-        assert raised_exception.details == {
+        assert raised_exception.extra_details == {
             "response": None,
             "validation_errors": None,
         }
@@ -172,7 +174,7 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == canvas_api_invalid_response
-        assert raised_exception.details == {
+        assert raised_exception.extra_details == {
             "response": {"body": "Invalid", "status": "200 OK"},
             "validation_errors": "The response was invalid.",
         }
@@ -184,7 +186,7 @@ class TestCanvasAPIError:
 
         raised_exception = self.assert_raises(cause, CanvasAPIServerError)
 
-        body = raised_exception.details["response"]["body"]
+        body = raised_exception.extra_details["response"]["body"]
         assert len(body) == 153
         assert body.endswith("...")
 
