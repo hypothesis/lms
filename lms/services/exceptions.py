@@ -31,6 +31,26 @@ class ExternalRequestError(Exception):
         """
         return getattr(self.response, "status_code", None)
 
+    @property
+    def reason(self) -> Optional[str]:
+        """
+        Return the HTTP reason of the external service's response.
+
+        Sometimes there is no response (e.g. if the request timed out). In
+        these cases ExternalRequestError.reason will be None.
+        """
+        return getattr(self.response, "reason", None)
+
+    @property
+    def text(self) -> Optional[str]:
+        """
+        Return the body content of the external service's response.
+
+        Sometimes there is no response (e.g. if the request timed out). In
+        these cases ExternalRequestError.text will be None.
+        """
+        return getattr(self.response, "text", None)
+
     def __str__(self):
         if self.response is None:
             return self.message

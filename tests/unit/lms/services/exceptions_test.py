@@ -1,4 +1,5 @@
 import json
+from io import BytesIO
 from unittest import mock
 
 import httpretty
@@ -26,6 +27,29 @@ class TestExternalRequestError:
 
     def test_status_code_returns_None_if_theres_no_response(self):
         assert ExternalRequestError().status_code is None
+
+    def test_reason_returns_the_responses_reason(self):
+        response = requests.Response()
+        response.reason = "I'm a teapot"
+
+        err = ExternalRequestError(response=response)
+
+        assert err.reason == "I'm a teapot"
+
+    def test_reason_returns_None_if_theres_no_response(self):
+        assert ExternalRequestError().reason is None
+
+    def test_text_returns_the_responses_body_text(self):
+        response = requests.Response()
+        response.encoding = "utf8"
+        response.raw = BytesIO("Body text".encode(response.encoding))
+
+        err = ExternalRequestError(response=response)
+
+        assert err.text == "Body text"
+
+    def test_text_returns_None_if_theres_no_response(self):
+        assert ExternalRequestError().text is None
 
     def test_str_with_no_response_or_message(self):
         assert str(ExternalRequestError()) == "External request failed"
