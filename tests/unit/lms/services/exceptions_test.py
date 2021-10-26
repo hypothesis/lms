@@ -18,11 +18,11 @@ from lms.validation import ValidationError
 class TestExternalRequestError:
     def test_status_code_returns_the_responses_status_code(self):
         response = requests.Response()
-        response.status_code = 204
+        response.status_code = 418
 
         err = ExternalRequestError(response=response)
 
-        assert err.status_code == 204
+        assert err.status_code == 418
 
     def test_status_code_returns_None_if_theres_no_response(self):
         assert ExternalRequestError().status_code is None
