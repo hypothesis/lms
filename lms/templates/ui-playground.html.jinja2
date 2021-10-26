@@ -1,17 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UI component pattern library</title>
+{% extends "lms:templates/base.html.jinja2" %}
+
+{% block title %}UI Playground{% endblock %}
+
+{% block content %}
+  <div id="app"></div>
+{% endblock %}
+
+{% block styles %}
+  {% for url in  asset_urls("frontend_apps_css") %}
+    <link rel="stylesheet" href="{{ url }}">
+  {% endfor %}
   {% for url in asset_urls("ui_playground_css") %}
     <link rel="stylesheet" href="{{ url }}"/>
   {% endfor %}
-</head>
-<body>
-  <div id="app"></div>
+{% endblock %}
+
+{% block scripts %}
   {% for url in asset_urls("ui_playground_js") %}
     <script type="module" src="{{ url }}"></script>
   {% endfor %}
-</body>
-</html>
+{% endblock %}

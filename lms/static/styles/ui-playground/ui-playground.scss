@@ -1,2 +1,15 @@
 // Shared pattern-library styles
-@use '@hypothesis/frontend-shared/styles/pattern-library';
+
+// The app CSS uses utility and component styles, but not pattern styles.
+// Include them here so that the patterns in the Patterns section of pages
+// are styled.
+@use '@hypothesis/frontend-shared/styles/patterns';
+// Include the CSS for the Library components themselves
+@use '@hypothesis/frontend-shared/styles/library';
+
+// Application CSS styles the containing main content block as a centered flex column.
+// This looks peculiar with the pattern-library pages, which vary in width,
+// so override it.
+.content {
+  display: block;
+}
