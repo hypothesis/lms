@@ -22,6 +22,7 @@ from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
+from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
 from tests import factories
 
@@ -35,20 +36,21 @@ __all__ = (
     "canvas_api_client",
     "canvas_service",
     "course_service",
+    "file_service",
     "grading_info_service",
     "grant_token_service",
     "group_info_service",
     "grouping_service",
+    "h_api",
     "http_service",
-    "oauth_http_service",
     "launch_verifier",
     "lti_h_service",
     "lti_outcomes_client",
     "oauth1_service",
     "oauth2_token_service",
-    "h_api",
+    "oauth_http_service",
+    "user_service",
     "vitalsource_service",
-    "file_service",
 )
 
 
@@ -191,6 +193,11 @@ def oauth2_token_service(mock_service, oauth_token):
     oauth2_token_service.get.return_value = oauth_token
 
     return oauth2_token_service
+
+
+@pytest.fixture
+def user_service(mock_service):
+    return mock_service(UserService)
 
 
 @pytest.fixture

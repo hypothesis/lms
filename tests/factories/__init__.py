@@ -23,6 +23,7 @@ from tests.factories.grouping import Grouping
 from tests.factories.h_user import HUser
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
+from tests.factories.user import User
 
 
 def set_sqlalchemy_session(session, persistence=None):
