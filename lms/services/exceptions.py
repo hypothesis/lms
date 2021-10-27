@@ -15,11 +15,27 @@ class ExternalRequestError(Exception):
     :type extra_details: JSON-serializable dict or None
     """
 
-    def __init__(self, message=None, response=None, extra_details=None):
+    def __init__(self, message=None, request=None, response=None, extra_details=None):
         super().__init__()
         self.message = message
+        self.request = request
         self.response = response
         self.extra_details = extra_details
+
+    @property
+    def url(self) -> Optional[str]:
+        """Return the request's URL."""
+        return getattr(self.request, "url", None)
+
+    @property
+    def method(self) -> Optional[str]:
+        """Return the HTTP request method."""
+        return getattr(self.request, "method", None)
+
+    @property
+    def request_body(self) -> Optional[str]:
+        """Return the request body."""
+        return getattr(self.request, "body", None)
 
     @property
     def status_code(self) -> Optional[int]:
@@ -42,30 +58,38 @@ class ExternalRequestError(Exception):
         return getattr(self.response, "reason", None)
 
     @property
-    def text(self) -> Optional[str]:
+    def response_body(self) -> Optional[str]:
         """
         Return the body content of the external service's response.
 
         Sometimes there is no response (e.g. if the request timed out). In
-        these cases ExternalRequestError.text will be None.
+        these cases ExternalRequestError.response_body will be None.
         """
         return getattr(self.response, "text", None)
 
     def __repr__(self):
-        # Include the details of the response for debugging. This appears in
-        # the logs and in tools like Sentry and Papertrail.
+        # Include the details of the request and response for debugging. This
+        # appears in the logs and in tools like Sentry and Papertrail.
+        request = (
+            "Request("
+            f"method={self.method!r}, "
+            f"url={self.url!r}, "
+            f"body={self.request_body!r}"
+            ")"
+        )
+
         response = (
             "Response("
             f"status_code={self.status_code!r}, "
             f"reason={self.reason!r}, "
-            f"text={self.text!r}"
+            f"body={self.response_body!r}"
             ")"
         )
 
         # The name of this class or of a subclass if one inherits this method.
         class_name = self.__class__.__name__
 
-        return f"{class_name}(message={self.message!r}, extra_details={self.extra_details!r}, response={response})"
+        return f"{class_name}(message={self.message!r}, extra_details={self.extra_details!r}, request={request}, response={response})"
 
     def __str__(self):
         return repr(self)

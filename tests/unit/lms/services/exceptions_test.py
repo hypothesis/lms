@@ -25,39 +25,46 @@ class TestExternalRequestError:
 
         assert err.status_code == 418
         assert err.reason == "I'm a teapot"
-        assert err.text == "Body text"
+        assert err.response_body == "Body text"
 
     def test_it_when_theres_no_response(self):
         err = ExternalRequestError()
 
         assert err.status_code is None
         assert err.reason is None
-        assert err.text is None
+        assert err.response_body is None
 
     @pytest.mark.parametrize(
-        "message,extra_details,response,expected",
+        "message,extra_details,request_,response,expected",
         [
             (
                 None,
                 None,
                 None,
-                "ExternalRequestError(message=None, extra_details=None, response=Response(status_code=None, reason=None, text=None))",
+                None,
+                "ExternalRequestError(message=None, extra_details=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None))",
             ),
             (
                 "Connecting to Hypothesis failed",
                 {"extra": "details"},
+                requests.Request(
+                    "GET", "https://example.com", data="request_body"
+                ).prepare(),
                 factories.requests.Response(
                     status_code=400,
                     reason="Bad Request",
                     raw="Name too long",
                 ),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', extra_details={'extra': 'details'}, response=Response(status_code=400, reason='Bad Request', text='Name too long'))",
+                "ExternalRequestError(message='Connecting to Hypothesis failed', extra_details={'extra': 'details'}, request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'))",
             ),
         ],
     )
-    def test_str(self, message, extra_details, response, expected):
+    def test_str(self, message, extra_details, request_, response, expected):
         err = ExternalRequestError(
-            message=message, extra_details=extra_details, response=response
+            message=message,
+            extra_details=extra_details,
+            request=request_,
+            response=response,
         )
 
         assert str(err) == expected

@@ -87,7 +87,7 @@ class HTTPService:
             )
             response.raise_for_status()
         except RequestException as err:
-            raise ExternalRequestError(response=response) from err
+            raise ExternalRequestError(request=err.request, response=response) from err
 
         return response
 

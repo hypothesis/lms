@@ -1,11 +1,12 @@
 from unittest.mock import call
 
 import pytest
+import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.services import CanvasAPIPermissionError, ExternalRequestError
 from lms.validation import ValidationError
-from lms.views.api.exceptions import APIExceptionViews
+from lms.views.api.exceptions import APIExceptionViews, strip_queryparams
 from tests import factories
 
 
@@ -38,11 +39,19 @@ class TestExternalRequestError:
 
         assert sentry_sdk.set_context.call_args_list == [
             call(
+                "request",
+                {
+                    "method": context.method,
+                    "url": context.url,
+                    "body": context.request_body,
+                },
+            ),
+            call(
                 "response",
                 {
                     "status_code": context.status_code,
                     "reason": context.reason,
-                    "body": context.text,
+                    "body": context.response_body,
                 },
             ),
             call("extra_details", context.extra_details),
@@ -53,6 +62,10 @@ class TestExternalRequestError:
         assert json_data == {
             "message": context.message,
             "details": {
+                "request": {
+                    "method": context.method,
+                    "url": "https://example.com/",  # The URL without query string.
+                },
                 "response": {
                     "status_code": context.status_code,
                     "reason": context.reason,
@@ -73,6 +86,9 @@ class TestExternalRequestError:
     def context(self):
         return ExternalRequestError(
             message="test_message",
+            request=requests.Request(
+                "GET", "https://example.com?foo=bar", data="request_body"
+            ).prepare(),
             response=factories.requests.Response(
                 status_code=418, reason="I'm a teapot", raw="Body text"
             ),
@@ -140,6 +156,19 @@ class TestAPIError:
                 " notified."
             )
         }
+
+
+class TestStripQueryParams:
+    @pytest.mark.parametrize(
+        "url,expected",
+        [
+            ("https://example.com/", "https://example.com/"),
+            ("https://example.com/?foo=bar", "https://example.com/"),
+            (None, None),
+        ],
+    )
+    def test_it(self, url, expected):
+        assert strip_queryparams(url) == expected
 
 
 @pytest.fixture
