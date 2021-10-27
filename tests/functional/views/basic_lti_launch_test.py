@@ -8,6 +8,7 @@ import oauthlib.oauth1
 import pytest
 from h_matchers import Any
 from httpretty import httpretty
+from pytest import param
 
 from lms.models import Assignment
 from lms.resources._js_config import JSConfig
@@ -62,11 +63,41 @@ class TestBasicLTILaunch:
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert urlencode({"url": assignment.document_url}) in js_config["viaUrl"]
 
-    def test_url_configured_basic_lti_launch(self, app, lti_params, sign_lti_params):
-        document_url = "https://url-configured.com/document.pdf"
+    @pytest.mark.parametrize(
+        "lti_params_fixture_name,existing_assignment_fixture_name",
+        [
+            param(
+                "url_lti_params",
+                None,
+                id="url launch, with no DB rows",
+            ),
+            param(
+                "url_lti_params",
+                "legacy_speedgrader_assignment",
+                id="url launch, with existing legacy SpeedGrader DB row",
+            ),
+            param(
+                "canvas_url_lti_params",
+                None,
+                id="canvas url launch, with no DB rows",
+            ),
+            param(
+                "canvas_url_lti_params",
+                "legacy_speedgrader_assignment",
+                id="canvas url launch, with existing legacy SpeedGrader DB row",
+            ),
+        ],
+    )
+    def test_basic_lti_launch(
+        self, app, lti_params_fixture_name, existing_assignment_fixture_name, request
+    ):
+        if existing_assignment_fixture_name:
+            request.getfixturevalue(existing_assignment_fixture_name)
+        lti_params = request.getfixturevalue(lti_params_fixture_name)
+
         response = app.post(
             "/lti_launches",
-            params=sign_lti_params(dict(lti_params, url=document_url)),
+            params=lti_params,
             headers={
                 "Accept": "text/html",
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -76,87 +107,71 @@ class TestBasicLTILaunch:
 
         js_config = self.get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
-        assert urlencode({"url": document_url}) in js_config["viaUrl"]
+        assert (
+            urlencode({"url": "https://url-configured.com/document.pdf"})
+            in js_config["viaUrl"]
+        )
 
-    @pytest.mark.usefixtures("legacy_speed_grader_assignment")
-    def test_url_configured_basic_lti_launch_legacy_speed_grader_launch(
+    @pytest.mark.parametrize(
+        "lti_params_fixture_name,existing_assignment_fixture_name",
+        [
+            param(
+                "canvas_file_legacy_speedgrader_lti_params",
+                "legacy_speedgrader_assignment",
+                id="SpeedGrader launch with existing legacy row",
+            ),
+            param(
+                "canvas_file_lti_params",
+                "legacy_speedgrader_assignment",
+                id="canvas file launch with exiting legacy SpeedGrader row",
+            ),
+            param(
+                "canvas_file_legacy_speedgrader_lti_params",
+                "canvas_file_assignment",
+                id="SpeedGrader launch with existing regular DB row",
+                marks=pytest.mark.xfail(
+                    reason="We don't have information of the real `resource_link_id`"
+                    "and we update the legacy row. The launch will have the right URL thought."
+                    "The wrong row, with the updated document_url, will be used to get the via_url",
+                    strict=True,
+                ),
+            ),
+            param(
+                "canvas_file_lti_params",
+                "canvas_file_assignment",
+                id="canvas file launch with existing DB row",
+            ),
+            param(
+                "canvas_file_legacy_speedgrader_lti_params",
+                None,
+                id="SpeedGrader launch with no existing DB rows",
+            ),
+            param(
+                "canvas_file_lti_params",
+                None,
+                id="canvas file launch with no existing DB rows",
+            ),
+        ],
+    )
+    def test_canvas_file_assignment(
         self,
         app,
-        legacy_speed_grader_lti_params,
-        sign_lti_params,
-    ):
-        document_url = "https://url-configured.com/document.pdf"
-        response = app.post(
-            "/lti_launches?learner_canvas_user_id=USER_ID",
-            params=sign_lti_params(
-                dict(legacy_speed_grader_lti_params, url=document_url)
-            ),
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            status=200,
-        )
-
-        js_config = self.get_client_config(response)
-        assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
-        assert urlencode({"url": document_url}) in response.text
-
-    def test_legacy_canvas_file_basic_lti_launch(
-        self, app, lti_params, sign_lti_params, db_session
-    ):
-        canvas_file_id = "1"
-        canvas_course_id = "2"
-        response = app.post(
-            "/lti_launches",
-            params=sign_lti_params(
-                dict(
-                    lti_params,
-                    canvas_file="true",
-                    custom_canvas_course_id=canvas_course_id,
-                    file_id=canvas_file_id,
-                    ext_lti_assignment_id="EXT_LTI_ASSIGMENT_ID",
-                )
-            ),
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            status=200,
-        )
-
-        assert (
-            self.get_client_config(response)["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
-        )
-        assert (
-            db_session.query(Assignment)
-            .filter_by(
-                document_url=f"canvas://file/course/{canvas_course_id}/file_id/{canvas_file_id}"
-            )
-            .count()
-            == 1
-        )
-
-    @pytest.mark.usefixtures("legacy_speed_grader_assignment")
-    def test_legacy_canvas_file_legacy_speed_grader_launch(
-        self,
-        app,
-        legacy_speed_grader_lti_params,
-        sign_lti_params,
         db_session,
+        lti_params_fixture_name,
+        existing_assignment_fixture_name,
+        request,
     ):
-        canvas_file_id = "1"
-        canvas_course_id = "2"
+        if existing_assignment_fixture_name:
+            _ = request.getfixturevalue(existing_assignment_fixture_name)
+
+        lti_params = request.getfixturevalue(lti_params_fixture_name)
+
+        canvas_file_id = lti_params["file_id"]
+        canvas_course_id = lti_params["custom_canvas_course_id"]
+
         response = app.post(
             "/lti_launches?learner_canvas_user_id=USER_ID",
-            params=sign_lti_params(
-                dict(
-                    legacy_speed_grader_lti_params,
-                    canvas_file="true",
-                    custom_canvas_course_id=canvas_course_id,
-                    file_id=canvas_file_id,
-                )
-            ),
+            params=lti_params,
             headers={
                 "Accept": "text/html",
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -194,13 +209,31 @@ class TestBasicLTILaunch:
         return assignment
 
     @pytest.fixture
-    def legacy_speed_grader_assignment(
-        self, db_session, application_instance, legacy_speed_grader_lti_params
+    def legacy_speedgrader_assignment(
+        self, db_session, application_instance, legacy_speedgrader_lti_params
     ):
         assignment = Assignment(
-            resource_link_id=legacy_speed_grader_lti_params["resource_link_id"],
+            resource_link_id=legacy_speedgrader_lti_params["resource_link_id"],
             tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
             document_url="http://legacy-speed-grader.com/document.pdf",
+        )
+
+        db_session.add(assignment)
+        db_session.commit()
+
+        return assignment
+
+    @pytest.fixture
+    def canvas_file_assignment(
+        self, db_session, application_instance, canvas_file_lti_params
+    ):
+        canvas_file_id = canvas_file_lti_params["file_id"]
+        canvas_course_id = canvas_file_lti_params["custom_canvas_course_id"]
+
+        assignment = Assignment(
+            resource_link_id=canvas_file_lti_params["resource_link_id"],
+            tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
+            document_url=f"canvas://file/course/{canvas_course_id}/file_id/{canvas_file_id}",
         )
 
         db_session.add(assignment)
@@ -258,11 +291,53 @@ class TestBasicLTILaunch:
         return sign_lti_params(params)
 
     @pytest.fixture
-    def legacy_speed_grader_lti_params(self, lti_params, sign_lti_params):
-        # Legacy speed grader launches will send the wrong resource_link_id
+    def legacy_speedgrader_lti_params(self, lti_params, sign_lti_params):
+        # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
         lti_params["resource_link_id"] = lti_params["context_id"]
         return sign_lti_params(lti_params)
+
+    @pytest.fixture
+    def canvas_file_lti_params(self, lti_params, sign_lti_params):
+        return sign_lti_params(
+            dict(
+                lti_params,
+                canvas_file="true",
+                custom_canvas_course_id="1",
+                file_id="2",
+                ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
+            )
+        )
+
+    @pytest.fixture
+    def url_lti_params(self, lti_params, sign_lti_params):
+        return sign_lti_params(
+            dict(
+                lti_params,
+                url="https://url-configured.com/document.pdf",
+            )
+        )
+
+    @pytest.fixture
+    def canvas_url_lti_params(self, lti_params, sign_lti_params):
+        return sign_lti_params(
+            dict(
+                lti_params,
+                url="https://url-configured.com/document.pdf",
+                ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
+            )
+        )
+
+    @pytest.fixture
+    def canvas_file_legacy_speedgrader_lti_params(
+        self, canvas_file_lti_params, sign_lti_params
+    ):
+        # Legacy SpeedGrader launches will send the wrong resource_link_id
+        # on the POST params and not include the right one on the query params.
+        canvas_file_lti_params["resource_link_id"] = canvas_file_lti_params[
+            "context_id"
+        ]
+        return sign_lti_params(canvas_file_lti_params)
 
     @pytest.fixture
     def sign_lti_params(self, oauth_client):
