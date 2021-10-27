@@ -88,13 +88,13 @@ class BasicClient:
             response = self._session.send(request, timeout=9)
             response.raise_for_status()
         except RequestException as err:
-            CanvasAPIError.raise_from(err)
+            CanvasAPIError.raise_from(err, request, response)
 
         result = None
         try:
             result = schema(response).parse()
         except ValidationError as err:
-            CanvasAPIError.raise_from(err)
+            CanvasAPIError.raise_from(err, request, response)
 
         # Handle pagination links. See:
         # https://canvas.instructure.com/doc/api/file.pagination.html
@@ -106,7 +106,9 @@ class BasicClient:
                 CanvasAPIError.raise_from(
                     TypeError(
                         "Canvas returned paginated results but we expected a single value"
-                    )
+                    ),
+                    request,
+                    response,
                 )
 
             # Don't make requests forever
