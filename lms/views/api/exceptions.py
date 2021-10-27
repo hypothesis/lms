@@ -110,6 +110,7 @@ class APIExceptionViews:
                 "body": self.context.text,
             },
         )
+        sentry_sdk.set_context("details", self.context.details)
 
         report_exception()
 

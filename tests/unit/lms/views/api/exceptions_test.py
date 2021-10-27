@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 import pytest
 from pyramid.httpexceptions import HTTPBadRequest
 
@@ -34,14 +36,18 @@ class TestExternalRequestError:
     def test_it(self, context, pyramid_request, views, report_exception, sentry_sdk):
         json_data = views.external_request_error()
 
-        sentry_sdk.set_context.assert_called_once_with(
-            "response",
-            {
-                "status_code": context.status_code,
-                "reason": context.reason,
-                "body": context.text,
-            },
-        )
+        assert sentry_sdk.set_context.call_args_list == [
+            call(
+                "response",
+                {
+                    "status_code": context.status_code,
+                    "reason": context.reason,
+                    "body": context.text,
+                },
+            ),
+            call("details", context.details),
+        ]
+
         report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
         assert json_data == {"message": context.message, "details": context.details}
