@@ -39,7 +39,10 @@
     // bottom border of the Dialog header. In this case we want to explicitly
     // disable the top margin so that it can be up against the header.
     margin-top: 0;
-    // The Scrollbox border in this case is distracting.
-    border: none;
   }
+}
+
+.LMS-Scrollbox {
+  // The Scrollbox border in this case is distracting.
+  border: none;
 }
