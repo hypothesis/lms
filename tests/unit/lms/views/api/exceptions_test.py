@@ -52,7 +52,13 @@ class TestExternalRequestError:
         assert pyramid_request.response.status_code == 400
         assert json_data == {
             "message": context.message,
-            "details": context.extra_details,
+            "details": {
+                "response": {
+                    "status_code": context.status_code,
+                    "reason": context.reason,
+                },
+                "extra_details": context.extra_details,
+            },
         }
 
     @pytest.mark.parametrize("message", [None, ""])

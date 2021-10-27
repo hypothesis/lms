@@ -121,7 +121,16 @@ class APIExceptionViews:
         # error dialog.
         message = self.context.message or "External request failed"
 
-        return self.error_response(message=message, details=self.context.extra_details)
+        return self.error_response(
+            message=message,
+            details={
+                "response": {
+                    "status_code": self.context.status_code,
+                    "reason": self.context.reason,
+                },
+                "extra_details": self.context.extra_details,
+            },
+        )
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):
