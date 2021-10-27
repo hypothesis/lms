@@ -114,9 +114,6 @@ class BasicLTILaunchViews:
         # being around in future code.
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
         self.assignment_service.upsert(
-            # This URL is mostly for show. We just want to ensure that a module
-            # configuration exists. If we're going to do that we might as well
-            # make sure this URL is meaningful.
             document_url=document_url,
             tool_consumer_instance_guid=self.request.params[
                 "tool_consumer_instance_guid"
