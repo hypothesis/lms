@@ -46,7 +46,7 @@ charset-normalizer==2.0.1
     #   requests
 coverage==6.0.2
     # via -r requirements/tests.txt
-factory-boy==3.2.0
+factory-boy==3.2.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
