@@ -72,14 +72,13 @@ class TestExternalRequestError:
 
 class TestCanvasAPIError:
     @pytest.mark.parametrize(
-        "status,body,expected_status,expected_exception_class",
+        "status,body,expected_exception_class",
         [
             # A 401 Unauthorized response from Canvas, because our access token was
             # expired or deleted.
             (
                 401,
                 json.dumps({"errors": [{"message": "Invalid access token."}]}),
-                "401 Unauthorized",
                 OAuth2TokenError,
             ),
             # A 401 Unauthorized response from Canvas, because our access token had
@@ -89,7 +88,6 @@ class TestCanvasAPIError:
                 json.dumps(
                     {"errors": [{"message": "Insufficient scopes on access token."}]}
                 ),
-                "401 Unauthorized",
                 OAuth2TokenError,
             ),
             # A 400 Bad Request response from Canvas, because our refresh token
@@ -102,7 +100,6 @@ class TestCanvasAPIError:
                         "error_description": "refresh_token not found",
                     }
                 ),
-                "400 Bad Request",
                 OAuth2TokenError,
             ),
             # A permissions error from Canvas, because the Canvas user doesn't
@@ -117,7 +114,6 @@ class TestCanvasAPIError:
                         ],
                     }
                 ),
-                "401 Unauthorized",
                 CanvasAPIPermissionError,
             ),
             # A 400 Bad Request response from Canvas, because we sent an invalid
@@ -125,26 +121,23 @@ class TestCanvasAPIError:
             (
                 400,
                 json.dumps({"test": "body"}),
-                "400 Bad Request",
                 CanvasAPIServerError,
             ),
             # An unexpected error response from Canvas.
-            (500, "test_body", "500 Internal Server Error", CanvasAPIServerError),
+            (500, "test_body", CanvasAPIServerError),
         ],
     )
     def test_it_raises_the_right_subclass_for_different_Canvas_responses(
-        self, status, body, expected_status, expected_exception_class
+        self, status, body, expected_exception_class
     ):
-        cause = self._requests_exception(status=status, body=body)
+        cause = requests.RequestException()
+        response = factories.requests.Response(status_code=status, raw=body)
 
-        raised_exception = self.assert_raises(cause, expected_exception_class)
+        raised_exception = self.assert_raises(cause, response, expected_exception_class)
 
         assert raised_exception.__cause__ == cause
-        assert raised_exception.response == cause.response
-        assert raised_exception.extra_details == {
-            "validation_errors": None,
-            "response": {"status": expected_status, "body": body},
-        }
+        assert raised_exception.response == response
+        assert raised_exception.extra_details == {"validation_errors": None}
 
     @pytest.mark.parametrize(
         "cause",
@@ -157,64 +150,50 @@ class TestCanvasAPIError:
         ],
     )
     def test_it_raises_CanvasAPIServerError_for_all_other_requests_errors(self, cause):
-        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
+        raised_exception = self.assert_raises(
+            cause,
+            # For these kinds of errors no response (either successful or
+            # unsuccessful) was ever received from Canvas (for example: the
+            # network request timed out) so there's nothing to set as the
+            # response property.
+            None,
+            expected_exception_class=CanvasAPIServerError,
+        )
 
         assert raised_exception.__cause__ == cause
-        # For these kinds of errors no response (either successful or
-        # unsuccessful) was ever received from Canvas (for example: the network
-        # request timed out) so there's nothing to set as the response
-        # property.
         assert raised_exception.response is None
-        assert raised_exception.extra_details == {
-            "response": None,
-            "validation_errors": None,
-        }
+        assert raised_exception.extra_details == {"validation_errors": None}
 
     def test_it_raises_CanvasAPIServerError_for_a_successful_but_invalid_response(
         self, canvas_api_invalid_response
     ):
         cause = ValidationError("The response was invalid.")
-        cause.response = canvas_api_invalid_response
-        cause.response.body = "x" * 1000
 
-        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
+        raised_exception = self.assert_raises(
+            cause,
+            canvas_api_invalid_response,
+            expected_exception_class=CanvasAPIServerError,
+        )
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == canvas_api_invalid_response
         assert raised_exception.extra_details == {
-            "response": {"body": "Invalid", "status": "200 OK"},
-            "validation_errors": "The response was invalid.",
+            "validation_errors": "The response was invalid."
         }
 
-    def test_it_truncates_the_body_if_it_is_very_long(self, canvas_api_long_response):
-        # Make the response very long...
-        cause = CanvasAPIServerError("The response was invalid.")
-        cause.response = canvas_api_long_response
-
-        raised_exception = self.assert_raises(cause, CanvasAPIServerError)
-
-        body = raised_exception.extra_details["response"]["body"]
-        assert len(body) == 153
-        assert body.endswith("...")
-
-    def assert_raises(self, cause, expected_exception_class):
+    def assert_raises(self, cause, response, expected_exception_class):
         with pytest.raises(
             expected_exception_class, match="Calling the Canvas API failed"
         ) as exc_info:
-            CanvasAPIError.raise_from(cause)
+            CanvasAPIError.raise_from(
+                cause,
+                requests.Request(
+                    "GET", "https://example.com", data="request_body"
+                ).prepare(),
+                response,
+            )
 
         return exc_info.value
-
-    @pytest.fixture
-    def canvas_api_long_response(self):
-        """Return a successful (200 OK) response with a long body."""
-        httpretty.register_uri(
-            httpretty.GET,
-            "https://example.com",
-            status=200,
-            body="x" * 2000,
-        )
-        return requests.get("https://example.com")
 
     @pytest.fixture
     def canvas_api_invalid_response(self):
@@ -222,21 +201,6 @@ class TestCanvasAPIError:
         httpretty.register_uri(
             httpretty.GET, "https://example.com", status=200, body="Invalid"
         )
-        return requests.get("https://example.com")
-
-    @staticmethod
-    def _requests_exception(**kwargs):  # pylint:disable=inconsistent-return-statements
-
-        httpretty.register_uri(
-            httpretty.GET,
-            "https://example.com",
-            body=kwargs.pop("body", json.dumps({"foo": "bar"})),
-            **kwargs
-        )
-
-        response = requests.get("https://example.com")
-
-        try:
-            response.raise_for_status()
-        except requests.RequestException as err:
-            return err
+        canvas_api_invalid_response = requests.get("https://example.com")
+        canvas_api_invalid_response.body = "x" * 1000
+        return canvas_api_invalid_response

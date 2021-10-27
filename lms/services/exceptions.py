@@ -109,7 +109,7 @@ class CanvasAPIError(ExternalRequestError):
     """A problem with a Canvas API request."""
 
     @classmethod
-    def raise_from(cls, cause):
+    def raise_from(cls, cause, request, response):
         """
         Raise a :exc:`lms.services.CanvasAPIError` from the given ``cause``.
 
@@ -134,32 +134,19 @@ class CanvasAPIError(ExternalRequestError):
         ``response`` attribute of the raised exception. Otherwise
         ``<raised_exception>.response`` will be ``None``.
         """
-        response = getattr(cause, "response", None)
-
         exception_class = cls._exception_class(response)
-
-        extra_details = {
-            "validation_errors": getattr(cause, "messages", None),
-        }
-
-        if response is None:
-            extra_details["response"] = None
-        else:
-            extra_details["response"] = {
-                "status": f"{response.status_code} {response.reason}"
-            }
-            extra_details["response"]["body"] = response.text[:150]
-            if len(response.text) > 150:
-                extra_details["response"]["body"] += "..."
 
         raise exception_class(
             message="Calling the Canvas API failed",
+            request=request,
             response=response,
-            extra_details=extra_details,
+            extra_details={
+                "validation_errors": getattr(cause, "messages", None),
+            },
         ) from cause
 
     @staticmethod
-    def _exception_class(response):
+    def _exception_class(response):  # pylint:disable=too-many-return-statements
         """Return the exception class to raise for the given response."""
         if response is None:
             return CanvasAPIServerError
@@ -169,9 +156,13 @@ class CanvasAPIError(ExternalRequestError):
         try:
             response_json = response.json()
         except ValueError:
-            response_json = {}
+            return CanvasAPIServerError
+
+        if not isinstance(response_json, dict):
+            return CanvasAPIServerError
 
         errors = response_json.get("errors", [])
+
         error_description = response_json.get("error_description", "")
 
         if {"message": "Invalid access token."} in errors:
