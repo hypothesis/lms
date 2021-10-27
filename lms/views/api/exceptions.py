@@ -1,4 +1,6 @@
 """Error views for the API."""
+from urllib.parse import urlparse, urlunparse
+
 import sentry_sdk
 from h_pyramid_sentry import report_exception
 from pyramid import i18n
@@ -103,11 +105,19 @@ class APIExceptionViews:
     @exception_view_config(context=ExternalRequestError)
     def external_request_error(self):
         sentry_sdk.set_context(
+            "request",
+            {
+                "method": self.context.method,
+                "url": self.context.url,
+                "body": self.context.request_body,
+            },
+        )
+        sentry_sdk.set_context(
             "response",
             {
                 "status_code": self.context.status_code,
                 "reason": self.context.reason,
-                "body": self.context.text,
+                "body": self.context.response_body,
             },
         )
         sentry_sdk.set_context("extra_details", self.context.extra_details)
@@ -124,6 +134,10 @@ class APIExceptionViews:
         return self.error_response(
             message=message,
             details={
+                "request": {
+                    "method": self.context.method,
+                    "url": strip_queryparams(self.context.url),
+                },
                 "response": {
                     "status_code": self.context.status_code,
                     "reason": self.context.reason,
@@ -210,3 +224,11 @@ class APIExceptionViews:
             response["details"] = details
 
         return response
+
+
+def strip_queryparams(url):
+    """Return `url` with any query params removed."""
+    if not url:
+        return url
+
+    return urlunparse(urlparse(url)._replace(query={}))
