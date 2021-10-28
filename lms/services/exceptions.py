@@ -8,11 +8,14 @@ class ExternalRequestError(Exception):
     :arg message: A short error message for displaying to the user
     :type message: str
 
-    :arg response: The external service's response to our HTTP request, if any
-    :type response: requests.Response or ``None``
+    :arg request: The request that was sent
+    :type request: requests.PreparedRequest
+
+    :arg response: The response that was received
+    :type response: requests.Response
 
     :arg extra_details: Extra details about what went wrong, for debugging
-    :type extra_details: JSON-serializable dict or None
+    :type extra_details: JSON-serializable dict
     """
 
     def __init__(self, message=None, request=None, response=None, extra_details=None):
@@ -39,32 +42,17 @@ class ExternalRequestError(Exception):
 
     @property
     def status_code(self) -> Optional[int]:
-        """
-        Return the HTTP status code of the external service's response.
-
-        Sometimes there is no response (e.g. if the request timed out). In
-        these cases ExternalRequestError.status_code will be None.
-        """
+        """Return the response's status code."""
         return getattr(self.response, "status_code", None)
 
     @property
     def reason(self) -> Optional[str]:
-        """
-        Return the HTTP reason of the external service's response.
-
-        Sometimes there is no response (e.g. if the request timed out). In
-        these cases ExternalRequestError.reason will be None.
-        """
+        """Return the response's HTTP reason string, e.g. 'Bad Request'."""
         return getattr(self.response, "reason", None)
 
     @property
     def response_body(self) -> Optional[str]:
-        """
-        Return the body content of the external service's response.
-
-        Sometimes there is no response (e.g. if the request timed out). In
-        these cases ExternalRequestError.response_body will be None.
-        """
+        """Return the response body."""
         return getattr(self.response, "text", None)
 
     def __repr__(self):
