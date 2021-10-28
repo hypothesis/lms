@@ -1,13 +1,11 @@
-@use '../variables' as var;
-
 .FileList {
   &__date-header {
     width: 10em;
   }
 
   &__icon {
-    // TODO: Update when updated SVGIcon component is available and has sizing
-    // patterns
+    // Make the file and folder icons proportionally larger than the filename
+    // text
     width: 1.5em;
     height: 1.5em;
   }
