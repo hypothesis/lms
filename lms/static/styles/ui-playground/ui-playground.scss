@@ -13,3 +13,12 @@
 .content {
   display: block;
 }
+
+// The pattern library, by design, won't muck around with default element styling
+// which includes typography. In LMS' case, though, the default font size
+// is so tiny that it makes text in the pattern library unreadable.
+.LibraryExample__content,
+.LMSLibrary__content {
+  font-size: 1rem;
+  line-height: 1.4;
+}
