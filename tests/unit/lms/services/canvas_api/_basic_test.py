@@ -1,6 +1,7 @@
 from unittest.mock import call, create_autospec
 
 import pytest
+import requests
 from h_matchers import Any
 
 from lms.services import CanvasAPIError
@@ -73,10 +74,18 @@ class TestBasicClient:
 
         assert result == Schema.return_value.parse.return_value
 
-    def test_send_raises_CanvasAPIError_for_request_errors(
+    def test_send_raises_CanvasAPIError_for_error_responses(
         self, basic_client, http_session, Schema
     ):
         http_session.send.return_value = factories.requests.Response(status_code=501)
+
+        with pytest.raises(CanvasAPIError):
+            basic_client.send("METHOD", "path/", schema=Schema)
+
+    def test_send_raises_CanvasAPIError_for_networking_errors(
+        self, basic_client, http_session, Schema
+    ):
+        http_session.send.side_effect = requests.ReadTimeout()
 
         with pytest.raises(CanvasAPIError):
             basic_client.send("METHOD", "path/", schema=Schema)

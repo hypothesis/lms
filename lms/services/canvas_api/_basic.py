@@ -84,6 +84,8 @@ class BasicClient:
         )
 
     def _send_prepared(self, request, schema, request_depth=1):
+        response = None
+
         try:
             response = self._session.send(request, timeout=9)
             response.raise_for_status()
