@@ -1,4 +1,3 @@
-import alias from '@rollup/plugin-alias';
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -37,16 +36,6 @@ function bundleConfig(name, entryFile) {
     // Any code string other than "undefined" which evaluates to `undefined` will work here.
     context: 'void(0)',
     plugins: [
-      alias({
-        entries: [
-          {
-            // This is needed because of Babel configuration used by
-            // @hypothesis/frontend-shared. It can be removed once that is fixed.
-            find: 'preact/compat/jsx-dev-runtime',
-            replacement: 'preact/jsx-dev-runtime',
-          },
-        ],
-      }),
       replace({
         preventAssignment: true,
         values: {
