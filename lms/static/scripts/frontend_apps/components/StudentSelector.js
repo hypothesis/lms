@@ -86,7 +86,7 @@ export default function StudentSelector({
         >
           {options}
         </select>
-        <Icon classes="StudentsSelector__students-icon" name="caret-down" />{' '}
+        <Icon classes="StudentsSelector__students-icon" name="caretDown" />{' '}
       </span>
     );
   };
@@ -99,7 +99,7 @@ export default function StudentSelector({
         disabled={!hasPrevView}
         onClick={onPrevView}
       >
-        <Icon classes="StudentSelector__svg" name="arrow-left" />
+        <Icon classes="StudentSelector__svg" name="arrowLeft" />
       </button>
       {buildStudentList()}
       <button
@@ -108,7 +108,7 @@ export default function StudentSelector({
         disabled={!hasNextView}
         onClick={onNextView}
       >
-        <Icon classes="StudentSelector__svg" name="arrow-right" />
+        <Icon classes="StudentSelector__svg" name="arrowRight" />
       </button>
     </div>
   );

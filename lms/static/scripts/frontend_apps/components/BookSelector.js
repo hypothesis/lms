@@ -173,7 +173,7 @@ export default function BookSelector({
             placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
           />
           <IconButton
-            icon="arrow-right"
+            icon="arrowRight"
             variant="dark"
             onClick={() => onUpdateURL(false /* confirmSelectedBook */)}
             title="Find book"

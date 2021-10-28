@@ -18,10 +18,10 @@ export default {
   spinner: spinnerIcon,
 
   // Shared icons
-  'arrow-left': arrowLeft,
-  'arrow-right': arrowRight,
+  arrowLeft,
+  arrowRight,
   cancel,
-  'caret-down': caretDown,
+  caretDown,
   check,
   folder,
   pdf: filePDFFilled,
