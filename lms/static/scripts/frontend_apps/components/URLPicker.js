@@ -51,6 +51,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
 
   return (
     <Modal
+      contentClass="LMS-Dialog LMS-Dialog--medium"
       title="Enter URL"
       onCancel={onCancel}
       buttons={[
