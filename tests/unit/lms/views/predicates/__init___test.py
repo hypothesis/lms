@@ -30,5 +30,5 @@ def test_includeme_adds_the_view_predicates():
         mock.call(
             "authorized_to_configure_assignments", AuthorizedToConfigureAssignments
         ),
-        mock.call("legacy_speed_grader", LegacySpeedGrader),
+        mock.call("legacy_speedgrader", LegacySpeedGrader),
     ]

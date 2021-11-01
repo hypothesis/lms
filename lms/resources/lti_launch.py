@@ -79,11 +79,11 @@ class LTILaunchResource:
         return course
 
     @property
-    def _is_speed_grader(self):
+    def _is_speedgrader(self):
         return bool(self._request.GET.get("learner_canvas_user_id"))
 
     @property
-    def is_legacy_speed_grader(self):
+    def is_legacy_speedgrader(self):
         """
         Return True if the current request is a legacy SpeedGrader launch.
 
@@ -95,7 +95,7 @@ class LTILaunchResource:
         "Legacy" SpeedGrader submissions are ones from before we implemented
         this work-around, so they don't have the resource_link_id query param.
         """
-        return self._is_speed_grader and not self._request.GET.get("resource_link_id")
+        return self._is_speedgrader and not self._request.GET.get("resource_link_id")
 
     @property
     def resource_link_id(self):
@@ -108,7 +108,7 @@ class LTILaunchResource:
         # We add the correct resource_link_id as a query param on the launch
         # URL that we submit to Canvas and use that instead of the incorrect
         # resource_link_id that Canvas puts in the request's body.
-        if self._is_speed_grader and (
+        if self._is_speedgrader and (
             resource_link_id := self._request.GET.get("resource_link_id")
         ):
             return resource_link_id
@@ -119,7 +119,7 @@ class LTILaunchResource:
     def ext_lti_assignment_id(self):
         # Canvas SpeedGrader launches don't provide ext_lti_assignment_id
         # but include it on the SpeedGrader URL we submit to canvas.
-        if self._is_speed_grader and (
+        if self._is_speedgrader and (
             ext_lti_assignment_id := self._request.GET.get("ext_lti_assignment_id")
         ):
             return ext_lti_assignment_id
