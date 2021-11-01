@@ -294,8 +294,9 @@ class TestBasicLTILaunch:
     def legacy_speedgrader_lti_params(self, lti_params, sign_lti_params):
         # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
-        lti_params["resource_link_id"] = lti_params["context_id"]
-        return sign_lti_params(lti_params)
+        return sign_lti_params(
+            dict(lti_params, resource_link_id=lti_params["context_id"])
+        )
 
     @pytest.fixture
     def canvas_file_lti_params(self, lti_params, sign_lti_params):
@@ -334,10 +335,12 @@ class TestBasicLTILaunch:
     ):
         # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
-        canvas_file_lti_params["resource_link_id"] = canvas_file_lti_params[
-            "context_id"
-        ]
-        return sign_lti_params(canvas_file_lti_params)
+        return sign_lti_params(
+            dict(
+                canvas_file_lti_params,
+                resource_link_id=canvas_file_lti_params["context_id"],
+            )
+        )
 
     @pytest.fixture
     def sign_lti_params(self, oauth_client):
