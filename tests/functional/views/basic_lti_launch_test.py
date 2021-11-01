@@ -87,6 +87,7 @@ class TestBasicLTILaunch:
         get_params, post_params = request.getfixturevalue(launch_params_fixture_name)
 
         response = post_launch(
+            get_params=get_params,
             post_params=post_params,
             status=200,
         )
@@ -156,7 +157,7 @@ class TestBasicLTILaunch:
         canvas_course_id = post_params["custom_canvas_course_id"]
 
         response = post_launch(
-            get_params={"learner_canvas_user_id": "USER_ID"},
+            get_params=get_params,
             post_params=post_params,
             status=200,
         )
@@ -320,7 +321,7 @@ class TestBasicLTILaunch:
         # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
         _, post_params = canvas_file_launch_params
-        return {}, sign_lti_params(
+        return {"learner_canvas_user_id": "USER_ID"}, sign_lti_params(
             dict(
                 post_params,
                 resource_link_id=post_params["context_id"],
