@@ -37,7 +37,7 @@
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-virtual": "^2.0.3",
     "@types/gapi": "^0.0.41",
-    "autoprefixer": "^10.3.7",
+    "autoprefixer": "^10.4.0",
     "classnames": "^2.3.1",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-react": "^7.26.1",
