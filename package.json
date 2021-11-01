@@ -28,7 +28,7 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.15.8",
-    "@babel/preset-react": "^7.14.5",
+    "@babel/preset-react": "^7.16.0",
     "@hypothesis/frontend-build": "^1.1.0",
     "@hypothesis/frontend-shared": "4.0.0",
     "@rollup/plugin-babel": "^5.3.0",
