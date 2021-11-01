@@ -17,20 +17,17 @@ from tests import factories
 
 class TestBasicLTILaunch:
     def test_requests_with_no_oauth_signature_are_forbidden(
-        self, lti_params, post_launch
+        self, lti_params, do_lti_launch
     ):
         del lti_params["oauth_signature"]
 
-        response = post_launch(
-            post_params=lti_params,
-            status=403,
-        )
+        response = do_lti_launch(post_params=lti_params, status=403)
 
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
 
-    def test_unconfigured_basic_lti_launch(self, lti_params, post_launch):
-        response = post_launch(
+    def test_unconfigured_basic_lti_launch(self, lti_params, do_lti_launch):
+        response = do_lti_launch(
             post_params=lti_params,
             status=200,
         )
@@ -40,11 +37,10 @@ class TestBasicLTILaunch:
             == JSConfig.Mode.CONTENT_ITEM_SELECTION
         )
 
-    def test_db_configured_basic_lti_launch(self, lti_params, assignment, post_launch):
-        response = post_launch(
-            post_params=lti_params,
-            status=200,
-        )
+    def test_db_configured_basic_lti_launch(
+        self, lti_params, assignment, do_lti_launch
+    ):
+        response = do_lti_launch(post_params=lti_params, status=200)
 
         js_config = self.get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
@@ -77,7 +73,7 @@ class TestBasicLTILaunch:
     )
     def test_basic_lti_launch(
         self,
-        post_launch,
+        do_lti_launch,
         launch_params_fixture_name,
         existing_assignment_fixture_name,
         request,
@@ -86,10 +82,8 @@ class TestBasicLTILaunch:
             request.getfixturevalue(existing_assignment_fixture_name)
         get_params, post_params = request.getfixturevalue(launch_params_fixture_name)
 
-        response = post_launch(
-            get_params=get_params,
-            post_params=post_params,
-            status=200,
+        response = do_lti_launch(
+            get_params=get_params, post_params=post_params, status=200
         )
 
         js_config = self.get_client_config(response)
@@ -138,11 +132,26 @@ class TestBasicLTILaunch:
                 None,
                 id="canvas file launch with no existing DB rows",
             ),
+            param(
+                "canvas_file_speedgrader_launch_params",
+                "canvas_file_assignment",
+                id="SpeedGrader canvas file launch with existing DB row",
+            ),
+            param(
+                "canvas_file_speedgrader_launch_params",
+                None,
+                id="SpeedGrader launch with no existing DB rows",
+            ),
+            param(
+                "canvas_file_speedgrader_launch_params",
+                "legacy_speedgrader_assignment",
+                id="SpeedGrader launch with legacy SpeedGrader DB row",
+            ),
         ],
     )
     def test_canvas_file_assignment(
         self,
-        post_launch,
+        do_lti_launch,
         db_session,
         launch_params_fixture_name,
         existing_assignment_fixture_name,
@@ -156,10 +165,8 @@ class TestBasicLTILaunch:
         canvas_file_id = post_params["file_id"]
         canvas_course_id = post_params["custom_canvas_course_id"]
 
-        response = post_launch(
-            get_params=get_params,
-            post_params=post_params,
-            status=200,
+        response = do_lti_launch(
+            get_params=get_params, post_params=post_params, status=200
         )
 
         assert (
@@ -329,6 +336,15 @@ class TestBasicLTILaunch:
         )
 
     @pytest.fixture
+    def canvas_file_speedgrader_launch_params(self, canvas_file_launch_params):
+        _, post_params = canvas_file_launch_params
+        return {
+            "learner_canvas_user_id": "USER_ID",
+            # Fixed (non-legacy) SpeedGrader launches include resource_link_id in the URL params
+            "resource_link_id": post_params["resource_link_id"],
+        }, post_params
+
+    @pytest.fixture
     def sign_lti_params(self, oauth_client):
         def _sign(params):
             params["oauth_signature"] = oauth_client.get_oauth_signature(
@@ -341,8 +357,8 @@ class TestBasicLTILaunch:
         return _sign
 
     @pytest.fixture
-    def post_launch(self, app):
-        def _post_launch(post_params, get_params=None, **kwargs):
+    def do_lti_launch(self, app):
+        def _do_lti_launch(post_params, get_params=None, **kwargs):
             url = "/lti_launches"
             if get_params:
                 url += f"?{urlencode(get_params)}"
@@ -357,7 +373,7 @@ class TestBasicLTILaunch:
                 **kwargs,
             )
 
-        return _post_launch
+        return _do_lti_launch
 
     @pytest.fixture(autouse=True)
     def http_intercept(self):
