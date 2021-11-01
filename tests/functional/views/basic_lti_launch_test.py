@@ -51,25 +51,25 @@ class TestBasicLTILaunch:
         assert urlencode({"url": assignment.document_url}) in js_config["viaUrl"]
 
     @pytest.mark.parametrize(
-        "lti_params_fixture_name,existing_assignment_fixture_name",
+        "launch_params_fixture_name,existing_assignment_fixture_name",
         [
             param(
-                "url_lti_params",
+                "url_launch_params",
                 None,
                 id="url launch, with no DB rows",
             ),
             param(
-                "url_lti_params",
+                "url_launch_params",
                 "legacy_speedgrader_assignment",
                 id="url launch, with existing legacy SpeedGrader DB row",
             ),
             param(
-                "canvas_url_lti_params",
+                "canvas_url_launch_params",
                 None,
                 id="canvas url launch, with no DB rows",
             ),
             param(
-                "canvas_url_lti_params",
+                "canvas_url_launch_params",
                 "legacy_speedgrader_assignment",
                 id="canvas url launch, with existing legacy SpeedGrader DB row",
             ),
@@ -78,16 +78,16 @@ class TestBasicLTILaunch:
     def test_basic_lti_launch(
         self,
         post_launch,
-        lti_params_fixture_name,
+        launch_params_fixture_name,
         existing_assignment_fixture_name,
         request,
     ):
         if existing_assignment_fixture_name:
             request.getfixturevalue(existing_assignment_fixture_name)
-        lti_params = request.getfixturevalue(lti_params_fixture_name)
+        get_params, post_params = request.getfixturevalue(launch_params_fixture_name)
 
         response = post_launch(
-            post_params=lti_params,
+            post_params=post_params,
             status=200,
         )
 
@@ -99,20 +99,20 @@ class TestBasicLTILaunch:
         )
 
     @pytest.mark.parametrize(
-        "lti_params_fixture_name,existing_assignment_fixture_name",
+        "launch_params_fixture_name,existing_assignment_fixture_name",
         [
             param(
-                "canvas_file_legacy_speedgrader_lti_params",
+                "canvas_file_legacy_speedgrader_launch_params",
                 "legacy_speedgrader_assignment",
                 id="SpeedGrader launch with existing legacy row",
             ),
             param(
-                "canvas_file_lti_params",
+                "canvas_file_launch_params",
                 "legacy_speedgrader_assignment",
                 id="canvas file launch with exiting legacy SpeedGrader row",
             ),
             param(
-                "canvas_file_legacy_speedgrader_lti_params",
+                "canvas_file_legacy_speedgrader_launch_params",
                 "canvas_file_assignment",
                 id="SpeedGrader launch with existing regular DB row",
                 marks=pytest.mark.xfail(
@@ -123,17 +123,17 @@ class TestBasicLTILaunch:
                 ),
             ),
             param(
-                "canvas_file_lti_params",
+                "canvas_file_launch_params",
                 "canvas_file_assignment",
                 id="canvas file launch with existing DB row",
             ),
             param(
-                "canvas_file_legacy_speedgrader_lti_params",
+                "canvas_file_legacy_speedgrader_launch_params",
                 None,
                 id="SpeedGrader launch with no existing DB rows",
             ),
             param(
-                "canvas_file_lti_params",
+                "canvas_file_launch_params",
                 None,
                 id="canvas file launch with no existing DB rows",
             ),
@@ -143,21 +143,21 @@ class TestBasicLTILaunch:
         self,
         post_launch,
         db_session,
-        lti_params_fixture_name,
+        launch_params_fixture_name,
         existing_assignment_fixture_name,
         request,
     ):
         if existing_assignment_fixture_name:
             request.getfixturevalue(existing_assignment_fixture_name)
 
-        lti_params = request.getfixturevalue(lti_params_fixture_name)
+        get_params, post_params = request.getfixturevalue(launch_params_fixture_name)
 
-        canvas_file_id = lti_params["file_id"]
-        canvas_course_id = lti_params["custom_canvas_course_id"]
+        canvas_file_id = post_params["file_id"]
+        canvas_course_id = post_params["custom_canvas_course_id"]
 
         response = post_launch(
             get_params={"learner_canvas_user_id": "USER_ID"},
-            post_params=lti_params,
+            post_params=post_params,
             status=200,
         )
 
@@ -192,10 +192,11 @@ class TestBasicLTILaunch:
 
     @pytest.fixture
     def legacy_speedgrader_assignment(
-        self, db_session, application_instance, legacy_speedgrader_lti_params
+        self, db_session, application_instance, legacy_speedgrader_launch_params
     ):
+        _, post_params = legacy_speedgrader_launch_params
         assignment = Assignment(
-            resource_link_id=legacy_speedgrader_lti_params["resource_link_id"],
+            resource_link_id=post_params["resource_link_id"],
             tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
             document_url="http://legacy-speed-grader.com/document.pdf",
         )
@@ -207,13 +208,14 @@ class TestBasicLTILaunch:
 
     @pytest.fixture
     def canvas_file_assignment(
-        self, db_session, application_instance, canvas_file_lti_params
+        self, db_session, application_instance, canvas_file_launch_params
     ):
-        canvas_file_id = canvas_file_lti_params["file_id"]
-        canvas_course_id = canvas_file_lti_params["custom_canvas_course_id"]
+        _, post_params = canvas_file_launch_params
+        canvas_file_id = post_params["file_id"]
+        canvas_course_id = post_params["custom_canvas_course_id"]
 
         assignment = Assignment(
-            resource_link_id=canvas_file_lti_params["resource_link_id"],
+            resource_link_id=post_params["resource_link_id"],
             tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
             document_url=f"canvas://file/course/{canvas_course_id}/file_id/{canvas_file_id}",
         )
@@ -273,16 +275,16 @@ class TestBasicLTILaunch:
         return sign_lti_params(params)
 
     @pytest.fixture
-    def legacy_speedgrader_lti_params(self, lti_params, sign_lti_params):
+    def legacy_speedgrader_launch_params(self, lti_params, sign_lti_params):
         # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
-        return sign_lti_params(
+        return {}, sign_lti_params(
             dict(lti_params, resource_link_id=lti_params["context_id"])
         )
 
     @pytest.fixture
-    def canvas_file_lti_params(self, lti_params, sign_lti_params):
-        return sign_lti_params(
+    def canvas_file_launch_params(self, lti_params, sign_lti_params):
+        return {}, sign_lti_params(
             dict(
                 lti_params,
                 canvas_file="true",
@@ -293,8 +295,8 @@ class TestBasicLTILaunch:
         )
 
     @pytest.fixture
-    def url_lti_params(self, lti_params, sign_lti_params):
-        return sign_lti_params(
+    def url_launch_params(self, lti_params, sign_lti_params):
+        return {}, sign_lti_params(
             dict(
                 lti_params,
                 url="https://url-configured.com/document.pdf",
@@ -302,8 +304,8 @@ class TestBasicLTILaunch:
         )
 
     @pytest.fixture
-    def canvas_url_lti_params(self, lti_params, sign_lti_params):
-        return sign_lti_params(
+    def canvas_url_launch_params(self, lti_params, sign_lti_params):
+        return {}, sign_lti_params(
             dict(
                 lti_params,
                 url="https://url-configured.com/document.pdf",
@@ -312,15 +314,16 @@ class TestBasicLTILaunch:
         )
 
     @pytest.fixture
-    def canvas_file_legacy_speedgrader_lti_params(
-        self, canvas_file_lti_params, sign_lti_params
+    def canvas_file_legacy_speedgrader_launch_params(
+        self, canvas_file_launch_params, sign_lti_params
     ):
         # Legacy SpeedGrader launches will send the wrong resource_link_id
         # on the POST params and not include the right one on the query params.
-        return sign_lti_params(
+        _, post_params = canvas_file_launch_params
+        return {}, sign_lti_params(
             dict(
-                canvas_file_lti_params,
-                resource_link_id=canvas_file_lti_params["context_id"],
+                post_params,
+                resource_link_id=post_params["context_id"],
             )
         )
 
