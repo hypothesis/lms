@@ -69,6 +69,16 @@ class TestBasicLTILaunch:
                 "legacy_speedgrader_assignment",
                 id="canvas url launch, with existing legacy SpeedGrader DB row",
             ),
+            param(
+                "canvas_url_legacy_speedgrader_launch_params",
+                "legacy_speedgrader_assignment",
+                id="legacy SpeedGrader canvas url launch, with existing legacy SpeedGrader DB row",
+            ),
+            param(
+                "canvas_url_legacy_speedgrader_launch_params",
+                None,
+                id="legacy SpeedGrader canvas url launch, with no DB rows",
+            ),
         ],
     )
     def test_basic_lti_launch(
@@ -318,6 +328,18 @@ class TestBasicLTILaunch:
                 lti_params,
                 url="https://url-configured.com/document.pdf",
                 ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
+            )
+        )
+
+    @pytest.fixture
+    def canvas_url_legacy_speedgrader_launch_params(
+        self, canvas_url_launch_params, sign_lti_params
+    ):
+        _, post_params = canvas_url_launch_params
+        return {"learner_canvas_user_id": "USER_ID"}, sign_lti_params(
+            dict(
+                post_params,
+                resource_link_id=post_params["context_id"],
             )
         )
 
