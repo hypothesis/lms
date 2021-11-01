@@ -16,30 +16,22 @@ from tests import factories
 
 
 class TestBasicLTILaunch:
-    def test_requests_with_no_oauth_signature_are_forbidden(self, app, lti_params):
+    def test_requests_with_no_oauth_signature_are_forbidden(
+        self, lti_params, post_launch
+    ):
         del lti_params["oauth_signature"]
 
-        response = app.post(
-            "/lti_launches",
-            params=lti_params,
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+        response = post_launch(
+            post_params=lti_params,
             status=403,
         )
 
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
 
-    def test_unconfigured_basic_lti_launch(self, app, lti_params):
-        response = app.post(
-            "/lti_launches",
-            params=lti_params,
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+    def test_unconfigured_basic_lti_launch(self, lti_params, post_launch):
+        response = post_launch(
+            post_params=lti_params,
             status=200,
         )
 
@@ -48,14 +40,9 @@ class TestBasicLTILaunch:
             == JSConfig.Mode.CONTENT_ITEM_SELECTION
         )
 
-    def test_db_configured_basic_lti_launch(self, app, lti_params, assignment):
-        response = app.post(
-            "/lti_launches",
-            params=lti_params,
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+    def test_db_configured_basic_lti_launch(self, lti_params, assignment, post_launch):
+        response = post_launch(
+            post_params=lti_params,
             status=200,
         )
 
@@ -89,19 +76,18 @@ class TestBasicLTILaunch:
         ],
     )
     def test_basic_lti_launch(
-        self, app, lti_params_fixture_name, existing_assignment_fixture_name, request
+        self,
+        post_launch,
+        lti_params_fixture_name,
+        existing_assignment_fixture_name,
+        request,
     ):
         if existing_assignment_fixture_name:
             request.getfixturevalue(existing_assignment_fixture_name)
         lti_params = request.getfixturevalue(lti_params_fixture_name)
 
-        response = app.post(
-            "/lti_launches",
-            params=lti_params,
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+        response = post_launch(
+            post_params=lti_params,
             status=200,
         )
 
@@ -155,27 +141,23 @@ class TestBasicLTILaunch:
     )
     def test_canvas_file_assignment(
         self,
-        app,
+        post_launch,
         db_session,
         lti_params_fixture_name,
         existing_assignment_fixture_name,
         request,
     ):
         if existing_assignment_fixture_name:
-            _ = request.getfixturevalue(existing_assignment_fixture_name)
+            request.getfixturevalue(existing_assignment_fixture_name)
 
         lti_params = request.getfixturevalue(lti_params_fixture_name)
 
         canvas_file_id = lti_params["file_id"]
         canvas_course_id = lti_params["custom_canvas_course_id"]
 
-        response = app.post(
-            "/lti_launches?learner_canvas_user_id=USER_ID",
-            params=lti_params,
-            headers={
-                "Accept": "text/html",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+        response = post_launch(
+            get_params={"learner_canvas_user_id": "USER_ID"},
+            post_params=lti_params,
             status=200,
         )
 
@@ -353,6 +335,25 @@ class TestBasicLTILaunch:
             return params
 
         return _sign
+
+    @pytest.fixture
+    def post_launch(self, app):
+        def _post_launch(post_params, get_params=None, **kwargs):
+            url = "/lti_launches"
+            if get_params:
+                url += f"?{urlencode(get_params)}"
+
+            return app.post(
+                url,
+                params=post_params,
+                headers={
+                    "Accept": "text/html",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                **kwargs,
+            )
+
+        return _post_launch
 
     @pytest.fixture(autouse=True)
     def http_intercept(self):
