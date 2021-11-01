@@ -23,7 +23,7 @@ pytestmark = pytest.mark.usefixtures("assignment_service")
 class TestLegacySpeedGrader:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
     def test_when_legacy_speed_grading(self, pyramid_request, value, expected, context):
-        context.is_legacy_speed_grader = True
+        context.is_legacy_speedgrader = True
 
         predicate = LegacySpeedGrader(value, mock.sentinel.config)
 
@@ -35,7 +35,7 @@ class TestLegacySpeedGrader:
     def test_when_no_legacy_speed_grading(
         self, pyramid_request, value, expected, context
     ):
-        context.is_legacy_speed_grader = False
+        context.is_legacy_speedgrader = False
 
         predicate = LegacySpeedGrader(value, mock.sentinel.config)
 

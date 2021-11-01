@@ -104,7 +104,7 @@ class TestIsLegacySpeedGrader:
             "learner_canvas_user_id": learner_id,
             "resource_link_id": get_resource_id,
         }
-        assert LTILaunchResource(pyramid_request).is_legacy_speed_grader == expected
+        assert LTILaunchResource(pyramid_request).is_legacy_speedgrader == expected
 
 
 class TestIsCanvas:

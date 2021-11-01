@@ -7,10 +7,10 @@ from lms.views.predicates._helpers import Base
 class LegacySpeedGrader(Base):
     """Allow invoking an LTI launch view only/excluding legacy SpeedGrader launches."""
 
-    name = "legacy_speed_grader"
+    name = "legacy_speedgrader"
 
     def __call__(self, context, request):
-        return context.is_legacy_speed_grader == self.value
+        return context.is_legacy_speedgrader == self.value
 
 
 class DBConfigured(Base):
