@@ -54,7 +54,6 @@ class TestExternalRequestError:
                     "body": context.response_body,
                 },
             ),
-            call("extra_details", context.extra_details),
         ]
 
         report_exception.assert_called_once_with()
@@ -70,7 +69,6 @@ class TestExternalRequestError:
                     "status_code": context.status_code,
                     "reason": context.reason,
                 },
-                "extra_details": context.extra_details,
             },
         }
 
@@ -92,7 +90,6 @@ class TestExternalRequestError:
             response=factories.requests.Response(
                 status_code=418, reason="I'm a teapot", raw="Body text"
             ),
-            extra_details={"foo": "bar"},
         )
 
 
@@ -134,15 +131,12 @@ class TestHTTPBadRequest:
 
 class TestAPIError:
     def test_it_with_a_CanvasAPIPermissionError(self, pyramid_request, views):
-        context = views.context = CanvasAPIPermissionError(extra_details={"foo": "bar"})
+        context = views.context = CanvasAPIPermissionError()
 
         json_data = views.api_error()
 
         assert pyramid_request.response.status_code == 400
-        assert json_data == {
-            "error_code": context.error_code,
-            "details": context.extra_details,
-        }
+        assert json_data == {"error_code": context.error_code}
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):
         views.context = RuntimeError("Totally unexpected")

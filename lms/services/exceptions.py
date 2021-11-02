@@ -13,17 +13,13 @@ class ExternalRequestError(Exception):
 
     :arg response: The response that was received
     :type response: requests.Response
-
-    :arg extra_details: Extra details about what went wrong, for debugging
-    :type extra_details: JSON-serializable dict
     """
 
-    def __init__(self, message=None, request=None, response=None, extra_details=None):
+    def __init__(self, message=None, request=None, response=None):
         super().__init__()
         self.message = message
         self.request = request
         self.response = response
-        self.extra_details = extra_details
 
     @property
     def url(self) -> Optional[str]:
@@ -77,7 +73,7 @@ class ExternalRequestError(Exception):
         # The name of this class or of a subclass if one inherits this method.
         class_name = self.__class__.__name__
 
-        return f"{class_name}(message={self.message!r}, extra_details={self.extra_details!r}, request={request}, response={response})"
+        return f"{class_name}(message={self.message!r}, request={request}, response={response})"
 
     def __str__(self):
         return repr(self)
@@ -125,12 +121,7 @@ class CanvasAPIError(ExternalRequestError):
         exception_class = cls._exception_class(response)
 
         raise exception_class(
-            message="Calling the Canvas API failed",
-            request=request,
-            response=response,
-            extra_details={
-                "validation_errors": getattr(cause, "messages", None),
-            },
+            message="Calling the Canvas API failed", request=request, response=response
         ) from cause
 
     @staticmethod
@@ -199,8 +190,8 @@ class CanvasFileNotFoundInCourse(Exception):
     error_code = "canvas_file_not_found_in_course"
 
     def __init__(self, file_id):
-        self.extra_details = {"file_id": file_id}
-        super().__init__(self.extra_details)
+        self.details = {"file_id": file_id}
+        super().__init__(self.details)
 
 
 class BlackboardFileNotFoundInCourse(Exception):
@@ -209,5 +200,5 @@ class BlackboardFileNotFoundInCourse(Exception):
     error_code = "blackboard_file_not_found_in_course"
 
     def __init__(self, file_id):
-        self.extra_details = {"file_id": file_id}
-        super().__init__(self.extra_details)
+        self.details = {"file_id": file_id}
+        super().__init__(self.details)
