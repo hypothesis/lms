@@ -25,6 +25,7 @@ class LTILaunchResource:
         self._application_instance_service = self._request.find_service(
             name="application_instance"
         )
+        self.assignment_service = request.find_service(name="assignment")
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
@@ -127,6 +128,14 @@ class LTILaunchResource:
         return self._request.POST.get("ext_lti_assignment_id")
 
     @property
+    def is_blackboard(self):
+
+        return (
+            "blackboard"
+            in self._application_instance_service.get_current().tool_consumer_info_product_family_code.lower()
+        )
+
+    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         if (
@@ -188,6 +197,16 @@ class LTILaunchResource:
         return legacy_course.settings.get("canvas", "sections_enabled")
 
     @property
+    def blackboard_groups_enabled(self):
+        return True
+        try:
+            application_instance = self._application_instance_service.get_current()
+        except ApplicationInstanceNotFound:
+            return False
+
+        return bool(application_instance.settings.get("blackboard", "groups_enabled"))
+
+    @property
     def canvas_groups_enabled(self):
         """Return True if Canvas groups are enabled at the school/installation level."""
         try:
@@ -198,9 +217,8 @@ class LTILaunchResource:
         return bool(application_instance.settings.get("canvas", "groups_enabled"))
 
     @property
-    def canvas_is_group_launch(self):
-        """Return True if the current assignment uses canvas groups."""
-        if not self.canvas_groups_enabled:
+    def is_canvas_group_launch(self):
+        if self.is_canvas and not self.canvas_groups_enabled:
             return False
 
         try:
@@ -209,6 +227,26 @@ class LTILaunchResource:
             return False
         else:
             return True
+
+    @property
+    def is_group_launch(self):
+        return self.is_canvas_group_launch or self.is_blackboard_group_launch
+
+    @property
+    def is_blackboard_group_launch(self):
+        if self.is_blackboard and not self.blackboard_groups_enabled:
+            return False
+
+        return self.assignment and self.assignment.extra.get("group_set")
+
+    @property
+    def assignment(self):
+        tool_consumer_instance_guid = self._request.params[
+            "tool_consumer_instance_guid"
+        ]
+        return self.assignment_service.get(
+            tool_consumer_instance_guid, self.resource_link_id
+        )
 
     def _course_extra(self):
         """Extra information to store for courses."""

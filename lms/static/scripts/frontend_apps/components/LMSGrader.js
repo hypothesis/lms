@@ -1,10 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
+import {
+  useContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'preact/hooks';
+
+import { Config } from '../config';
 
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
+import { apiCall } from '../utils/api';
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
+ * @typedef {import('../config').APICallInfo} APICallInfo
  * @typedef {import('../services/client-rpc').ClientRPC} ClientRPC
  */
 
@@ -12,6 +22,7 @@ import SubmitGradeForm from './SubmitGradeForm';
  * @typedef LMSGraderProps
  * @prop {object} children - The <iframe> element displaying the assignment
  * @prop {ClientRPC} clientRPC - Service for communicating with Hypothesis client
+ * @prop {APICallInfo} syncAPI - Service for communicating with Hypothesis client
  * @prop {string} courseName
  * @prop {string} assignmentName
  * @prop {StudentInfo[]} students - List of students to grade
@@ -26,12 +37,17 @@ import SubmitGradeForm from './SubmitGradeForm';
 export default function LMSGrader({
   children,
   clientRPC,
+  apiSync,
   assignmentName,
   courseName,
   students: unorderedStudents,
 }) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
+
+  const {
+    api: { authToken },
+  } = useContext(Config);
 
   // Students sorted by displayName
   const students = useMemo(() => {
@@ -57,9 +73,22 @@ export default function LMSGrader({
    * Makes an RPC call to the sidebar to change to the focused user.
    */
   const changeFocusedUser = useCallback(
-    /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
-    user => clientRPC.setFocusedUser(user),
-    [clientRPC]
+    async (
+      /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
+      user
+    ) => {
+      if (apiSync && user) {
+        const groups = await apiCall({
+          authToken,
+          path: apiSync.path,
+          data: { ...apiSync.data, gradingStudentId: user.lms_id },
+        });
+        clientRPC.setGroups(groups);
+      } else {
+        clientRPC.setFocusedUser(user);
+      }
+    },
+    [clientRPC, apiSync]
   );
 
   useEffect(() => {

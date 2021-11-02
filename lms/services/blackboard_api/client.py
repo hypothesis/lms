@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 from lms.events import FilesDiscoveredEvent
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
+    BlackboardListGroupSetsSchema,
+    BlackboardListGroupsSchema,
     BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
@@ -97,3 +99,52 @@ class BlackboardAPIClient:
             raise
 
         return BlackboardPublicURLSchema(response).parse()
+
+    def course_group_categories(self, course_id):
+        response = self._api.request(
+            "GET",
+            f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets",
+        )
+
+        return BlackboardListGroupSetsSchema(response).parse()
+
+    def group_category_groups(self, course_id, group_set_id):
+        response = self._api.request(
+            "GET",
+            f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets/{group_set_id}/groups",
+        )
+        return BlackboardListGroupsSchema(response).parse()
+
+    def course_groups(self, course_id, group_category_id=None):
+        response = self._api.request(
+            "GET",
+            f"/learn/api/public/v2/courses/uuid:{course_id}/groups",
+        )
+        groups = BlackboardListGroupsSchema(response).parse()
+
+        if group_category_id:
+            groups = [
+                group
+                for group in self.course_groups(course_id)
+                if group["groupSetId"] == group_category_id
+            ]
+
+        return groups
+
+    def user_groups(self, course_id, user_id, group_category_id):
+
+        groups = []
+
+        for group in self.course_groups(course_id, group_category_id):
+
+            try:
+                self._api.request(
+                    "GET",
+                    f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}/users/uuid:{user_id}",
+                )
+                # If the /users/{uuid:///} endpoint doesn't 404, the user belongs to the group
+                groups.append(group)
+            except ExternalRequestError as err:
+                pass
+
+        return groups

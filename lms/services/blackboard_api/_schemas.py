@@ -32,6 +32,37 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
         return data["results"]
 
 
+class BlackboardListGroupSetsSchema(RequestsResponseSchema):
+    class GroupSetSchema(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        id = fields.Str(required=True)
+        name = fields.Str(required=True)
+
+    results = fields.List(fields.Nested(GroupSetSchema), required=True)
+
+    @post_load
+    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        return data["results"]
+
+
+class BlackboardListGroupsSchema(RequestsResponseSchema):
+    class GroupSchema(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        id = fields.Str(required=True)
+        name = fields.Str(required=True)
+        groupSetId = fields.Str(required=True)
+
+    results = fields.List(fields.Nested(GroupSchema), required=True)
+
+    @post_load
+    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        return data["results"]
+
+
 class BlackboardPublicURLSchema(RequestsResponseSchema):
     """Schema for Blackboard /courses/{courseId}/resources/{resourceId} responses."""
 
