@@ -137,19 +137,7 @@ class LTIOutcomesClient:
             raise ExternalRequestError("Malformed LTI outcome response") from err
 
         if status != "success":
-            description = None
-            try:
-                # Look for an imsx_description to pass along to the client, but it is possible this field
-                # may not exist.
-                description = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
-                    "imsx_description"
-                ]
-            except KeyError:
-                pass
-
-            raise ExternalRequestError(
-                message="LTI outcome request failed", extra_details=description
-            )
+            raise ExternalRequestError(message="LTI outcome request failed")
 
         return body
 

@@ -35,18 +35,16 @@ class TestExternalRequestError:
         assert err.response_body is None
 
     @pytest.mark.parametrize(
-        "message,extra_details,request_,response,expected",
+        "message,request_,response,expected",
         [
             (
                 None,
                 None,
                 None,
-                None,
-                "ExternalRequestError(message=None, extra_details=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None))",
+                "ExternalRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None))",
             ),
             (
                 "Connecting to Hypothesis failed",
-                {"extra": "details"},
                 requests.Request(
                     "GET", "https://example.com", data="request_body"
                 ).prepare(),
@@ -55,14 +53,13 @@ class TestExternalRequestError:
                     reason="Bad Request",
                     raw="Name too long",
                 ),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', extra_details={'extra': 'details'}, request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'))",
+                "ExternalRequestError(message='Connecting to Hypothesis failed', request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'))",
             ),
         ],
     )
-    def test_str(self, message, extra_details, request_, response, expected):
+    def test_str(self, message, request_, response, expected):
         err = ExternalRequestError(
             message=message,
-            extra_details=extra_details,
             request=request_,
             response=response,
         )
@@ -137,7 +134,6 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == response
-        assert raised_exception.extra_details == {"validation_errors": None}
 
     @pytest.mark.parametrize(
         "cause",
@@ -162,7 +158,6 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response is None
-        assert raised_exception.extra_details == {"validation_errors": None}
 
     def test_it_raises_CanvasAPIServerError_for_a_successful_but_invalid_response(
         self, canvas_api_invalid_response
@@ -177,9 +172,6 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == canvas_api_invalid_response
-        assert raised_exception.extra_details == {
-            "validation_errors": "The response was invalid."
-        }
 
     def assert_raises(self, cause, response, expected_exception_class):
         with pytest.raises(

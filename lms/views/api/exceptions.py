@@ -120,7 +120,6 @@ class APIExceptionViews:
                 "body": self.context.response_body,
             },
         )
-        sentry_sdk.set_context("extra_details", self.context.extra_details)
 
         report_exception()
 
@@ -142,7 +141,6 @@ class APIExceptionViews:
                     "status_code": self.context.status_code,
                     "reason": self.context.reason,
                 },
-                "extra_details": self.context.extra_details,
             },
         )
 
@@ -188,7 +186,7 @@ class APIExceptionViews:
         if hasattr(self.context, "error_code"):
             return self.error_response(
                 error_code=self.context.error_code,
-                details=getattr(self.context, "extra_details", None),
+                details=getattr(self.context, "details", None),
             )
 
         # Exception details are not reported here to avoid leaking internal information.
