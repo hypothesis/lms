@@ -7,7 +7,7 @@ import { Config } from '../../config';
 import FilePickerApp, { $imports } from '../FilePickerApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitFor } from '../../../test-util/wait';
+import { delay, waitFor } from '../../../test-util/wait';
 
 function interact(wrapper, callback) {
   act(callback);
@@ -145,6 +145,7 @@ describe('FilePickerApp', () => {
       selectContent(wrapper, 'https://example.com');
 
       await waitFor(() => fakeAPICall.called);
+      await delay(100);
       wrapper.update();
 
       assert.calledWith(fakeAPICall, {
@@ -180,6 +181,7 @@ describe('FilePickerApp', () => {
       selectContent(wrapper, 'https://example.com');
 
       await waitFor(() => fakeAPICall.called);
+      await delay(100);
       wrapper.update();
 
       const errDialog = wrapper.find('ErrorDialog');
