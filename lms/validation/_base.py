@@ -4,6 +4,7 @@ from marshmallow import pre_load
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
+from lms.services import ExternalRequestError
 from lms.validation._exceptions import ValidationError
 
 
@@ -134,14 +135,18 @@ class RequestsResponseSchema(PlainSchema):
         either return the successfully parsed params or raise a validation
         error.
 
-        :raise lms.validation.ValidationError: if the response isn't valid
+        :raise ExternalRequestError: if the response isn't valid
         """
         try:
-            result = self.load(self.context["response"], *args, **kwargs)
+            return self.load(self.context["response"], *args, **kwargs)
         except marshmallow.ValidationError as err:
-            raise ValidationError(messages=err.messages) from err
+            response = self.context.get("response")
+            request = response.request if response is not None else None
+            validation_errors = err.messages
 
-        return result
+            raise ExternalRequestError(
+                request=request, response=response, validation_errors=validation_errors
+            ) from err
 
     @marshmallow.pre_load(pass_many=True)
     def _pre_load(self, response, **_kwargs):  # pylint: disable=no-self-use

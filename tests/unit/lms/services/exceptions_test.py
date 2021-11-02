@@ -1,4 +1,5 @@
 import json
+from unittest.mock import sentinel
 
 import httpretty
 import pytest
@@ -35,13 +36,14 @@ class TestExternalRequestError:
         assert err.response_body is None
 
     @pytest.mark.parametrize(
-        "message,request_,response,expected",
+        "message,request_,response,validation_errors,expected",
         [
             (
                 None,
                 None,
                 None,
-                "ExternalRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None))",
+                None,
+                "ExternalRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
             ),
             (
                 "Connecting to Hypothesis failed",
@@ -53,15 +55,17 @@ class TestExternalRequestError:
                     reason="Bad Request",
                     raw="Name too long",
                 ),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'))",
+                {"foo": ["bar"]},
+                "ExternalRequestError(message='Connecting to Hypothesis failed', request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'), validation_errors={'foo': ['bar']})",
             ),
         ],
     )
-    def test_str(self, message, request_, response, expected):
+    def test_str(self, message, request_, response, validation_errors, expected):
         err = ExternalRequestError(
             message=message,
             request=request_,
             response=response,
+            validation_errors=validation_errors,
         )
 
         assert str(err) == expected
@@ -134,6 +138,7 @@ class TestCanvasAPIError:
 
         assert raised_exception.__cause__ == cause
         assert raised_exception.response == response
+        assert raised_exception.validation_errors == sentinel.validation_errors
 
     @pytest.mark.parametrize(
         "cause",
@@ -183,6 +188,7 @@ class TestCanvasAPIError:
                     "GET", "https://example.com", data="request_body"
                 ).prepare(),
                 response,
+                validation_errors=sentinel.validation_errors,
             )
 
         return exc_info.value

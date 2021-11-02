@@ -4,7 +4,7 @@ from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardPublicURLSchema,
 )
-from lms.validation._exceptions import ValidationError
+from lms.services.exceptions import ExternalRequestError
 from tests import factories
 
 
@@ -136,5 +136,5 @@ def assert_raises(schema_class, json_data):
     """Assert that the schema raises when parsing json_data."""
     schema = schema_class(factories.requests.Response(json_data=json_data))
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ExternalRequestError):
         schema.parse()

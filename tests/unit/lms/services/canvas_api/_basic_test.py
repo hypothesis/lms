@@ -1,12 +1,12 @@
-from unittest.mock import call, create_autospec
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 import requests
 from h_matchers import Any
 
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, ExternalRequestError
 from lms.services.canvas_api._basic import BasicClient
-from lms.validation import RequestsResponseSchema, ValidationError
+from lms.validation import RequestsResponseSchema
 from tests import factories
 
 
@@ -93,10 +93,15 @@ class TestBasicClient:
     def test_send_raises_CanvasAPIError_for_validation_errors(
         self, basic_client, Schema
     ):
-        Schema.return_value.parse.side_effect = ValidationError("Some error")
+        Schema.return_value.parse.side_effect = ExternalRequestError(
+            validation_errors=sentinel.validation_errors
+        )
 
-        with pytest.raises(CanvasAPIError):
+        with pytest.raises(CanvasAPIError) as exc_info:
             basic_client.send("any", "any", schema=Schema)
+
+        exc = exc_info.value
+        assert exc.validation_errors == sentinel.validation_errors
 
     @pytest.mark.usefixtures("paginated_results")
     def test_send_follows_pagination_links_for_many_schema(

@@ -1,7 +1,7 @@
 from marshmallow import fields
 
 from lms.services import ExternalRequestError, OAuth2TokenError
-from lms.validation import RequestsResponseSchema, ValidationError
+from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 
@@ -104,7 +104,7 @@ class OAuthHTTPService:
         except ExternalRequestError as err:
             try:
                 error_dict = _OAuthAccessTokenErrorResponseSchema(err.response).parse()
-            except ValidationError:
+            except ExternalRequestError:
                 pass
             else:
                 if error_dict["error"] == "invalid_grant":

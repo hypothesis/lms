@@ -13,13 +13,19 @@ class ExternalRequestError(Exception):
 
     :arg response: The response that was received
     :type response: requests.Response
+
+    :arg validation_errors: Any errors with validation the response
+    :type validation_errors: JSON-serializable dict
     """
 
-    def __init__(self, message=None, request=None, response=None):
+    def __init__(
+        self, message=None, request=None, response=None, validation_errors=None
+    ):
         super().__init__()
         self.message = message
         self.request = request
         self.response = response
+        self.validation_errors = validation_errors
 
     @property
     def url(self) -> Optional[str]:
@@ -73,7 +79,13 @@ class ExternalRequestError(Exception):
         # The name of this class or of a subclass if one inherits this method.
         class_name = self.__class__.__name__
 
-        return f"{class_name}(message={self.message!r}, request={request}, response={response})"
+        return (
+            f"{class_name}("
+            f"message={self.message!r}, "
+            f"request={request}, "
+            f"response={response}, "
+            f"validation_errors={self.validation_errors!r})"
+        )
 
     def __str__(self):
         return repr(self)
@@ -93,7 +105,7 @@ class CanvasAPIError(ExternalRequestError):
     """A problem with a Canvas API request."""
 
     @classmethod
-    def raise_from(cls, cause, request, response):
+    def raise_from(cls, cause, request, response, validation_errors=None):
         """
         Raise a :exc:`lms.services.CanvasAPIError` from the given ``cause``.
 
@@ -114,14 +126,17 @@ class CanvasAPIError(ExternalRequestError):
         The given ``cause`` will be set as the raised exception's ``__cause__``
         attribute (standard Python exception chaining).
 
-        If ``cause`` has a ``response`` attribute then it will be set as the
-        ``response`` attribute of the raised exception. Otherwise
-        ``<raised_exception>.response`` will be ``None``.
+        The given `request`, `response` and `validation_errors` arguments will
+        be set as the `request`, `response` and `validation_errors` attributes
+        of the raised exception.
         """
         exception_class = cls._exception_class(response)
 
         raise exception_class(
-            message="Calling the Canvas API failed", request=request, response=response
+            message="Calling the Canvas API failed",
+            request=request,
+            response=response,
+            validation_errors=validation_errors,
         ) from cause
 
     @staticmethod
