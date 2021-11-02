@@ -1,4 +1,4 @@
-from unittest.mock import call
+from unittest.mock import call, sentinel
 
 import pytest
 import requests
@@ -54,6 +54,7 @@ class TestExternalRequestError:
                     "body": context.response_body,
                 },
             ),
+            call("validation_errors", context.validation_errors),
         ]
 
         report_exception.assert_called_once_with()
@@ -69,6 +70,7 @@ class TestExternalRequestError:
                     "status_code": context.status_code,
                     "reason": context.reason,
                 },
+                "validation_errors": context.validation_errors,
             },
         }
 
@@ -90,6 +92,7 @@ class TestExternalRequestError:
             response=factories.requests.Response(
                 status_code=418, reason="I'm a teapot", raw="Body text"
             ),
+            validation_errors=sentinel.validation_errors,
         )
 
 

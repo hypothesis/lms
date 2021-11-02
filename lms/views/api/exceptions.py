@@ -120,6 +120,7 @@ class APIExceptionViews:
                 "body": self.context.response_body,
             },
         )
+        sentry_sdk.set_context("validation_errors", self.context.validation_errors)
 
         report_exception()
 
@@ -141,6 +142,7 @@ class APIExceptionViews:
                     "status_code": self.context.status_code,
                     "reason": self.context.reason,
                 },
+                "validation_errors": self.context.validation_errors,
             },
         )
 

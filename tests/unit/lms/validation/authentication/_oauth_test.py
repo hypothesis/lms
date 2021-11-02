@@ -1,6 +1,7 @@
 import pytest
 from pyramid import testing
 
+from lms.services import ExternalRequestError
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     ExpiredJWTError,
@@ -250,10 +251,10 @@ class TestOAuthTokenResponseSchema:
             factories.requests.Response(json_data=json_data)
         )
 
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ExternalRequestError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == messages
+        assert exc_info.value.validation_errors == messages
 
 
 @pytest.fixture(autouse=True)

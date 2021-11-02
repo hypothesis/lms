@@ -1,7 +1,7 @@
 from marshmallow import INCLUDE, fields
 
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
-from lms.validation import RequestsResponseSchema, ValidationError
+from lms.validation import RequestsResponseSchema
 
 
 class BlackboardErrorResponseSchema(RequestsResponseSchema):
@@ -38,7 +38,7 @@ class BlackboardErrorResponseSchema(RequestsResponseSchema):
     def parse(self, *args, **kwargs):
         try:
             return super().parse(*args, **kwargs)
-        except ValidationError:
+        except ExternalRequestError:
             return {}
 
 

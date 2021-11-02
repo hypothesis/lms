@@ -6,8 +6,7 @@ from urllib.parse import urlencode
 import requests
 from requests import RequestException, Session
 
-from lms.services import CanvasAPIError
-from lms.validation import ValidationError
+from lms.services import CanvasAPIError, ExternalRequestError
 
 
 class BasicClient:
@@ -95,8 +94,8 @@ class BasicClient:
         result = None
         try:
             result = schema(response).parse()
-        except ValidationError as err:
-            CanvasAPIError.raise_from(err, request, response)
+        except ExternalRequestError as err:
+            CanvasAPIError.raise_from(err, request, response, err.validation_errors)
 
         # Handle pagination links. See:
         # https://canvas.instructure.com/doc/api/file.pagination.html
