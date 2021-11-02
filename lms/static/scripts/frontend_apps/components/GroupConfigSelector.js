@@ -63,9 +63,12 @@ export default function GroupConfigSelector({
   const {
     api: { authToken },
     filePicker: {
-      canvas: { listGroupSets: listGroupSetsAPI },
+      canvas: { listGroupSets: canvasListGroupSetsAPI },
+      blackboard: { listGroupSets: blackboardGroupSetsAPI },
     },
   } = useContext(Config);
+
+  const listGroupSetsAPI = canvasListGroupSetsAPI || blackboardGroupSetsAPI;
 
   const fetchGroupSets = useCallback(async () => {
     setFetchError(null);
@@ -123,7 +126,7 @@ export default function GroupConfigSelector({
             // Currently all fetch errors are handled by attempting to re-authorize
             // and then re-fetch group sets.
             <>
-              <p>Canvas needs your permission to fetch group sets</p>
+              <p>GENERIC LMS needs your permission to fetch group sets</p>
               <AuthButton
                 authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
                 authToken={authToken}

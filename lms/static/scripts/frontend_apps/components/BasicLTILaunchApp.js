@@ -290,6 +290,7 @@ export default function BasicLTILaunchApp() {
     iFrameWrapper = (
       <LMSGrader
         clientRPC={clientRPC}
+        apiSync={apiSync}
         students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}

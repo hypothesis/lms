@@ -4,6 +4,8 @@ class FilePickerConfig:
     @classmethod
     def blackboard_config(cls, context, request, application_instance):
         """Get Blackboard files config."""
+        if not context.is_blackboard:
+            return {}
 
         enabled = application_instance.settings.get("blackboard", "files_enabled")
 
@@ -30,6 +32,9 @@ class FilePickerConfig:
     @classmethod
     def canvas_config(cls, context, request, application_instance):
         """Get Canvas files config."""
+
+        if not context.is_canvas:
+            return {}
 
         enabled = context.is_canvas and (
             "custom_canvas_course_id" in request.params

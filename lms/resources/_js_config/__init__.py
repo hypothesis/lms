@@ -215,6 +215,12 @@ class JSConfig:
                     "formAction": form_action,
                     "formFields": form_fields,
                     "createAssignmentAPI": self._create_assignment_api(),
+                    # The "content item selection" that we submit to Canvas's
+                    # content_item_return_url is actually an LTI launch URL with
+                    # the selected document URL or file_id as a query parameter. To
+                    # construct these launch URLs our JavaScript code needs the
+                    # base URL of our LTI launch endpoint.
+                    "ltiLaunchUrl": self._request.route_url("lti_launches"),
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
@@ -413,6 +419,7 @@ class JSConfig:
             )
             yield {
                 "userid": h_user.userid(self._authority),
+                "lms_id": grading_info.user_id,
                 "displayName": h_user.display_name,
                 "LISResultSourcedId": grading_info.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
@@ -465,48 +472,70 @@ class JSConfig:
         }
 
     def _groups(self):
-        if (
-            self._context.canvas_sections_enabled
-            or self._context.canvas_is_group_launch
-        ):
+        if self._context.canvas_sections_enabled or self._context.is_group_launch:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
 
     def _sync_api(self):
         if (
             not self._context.canvas_sections_enabled
-            and not self._context.canvas_is_group_launch
+            and not self._context.is_group_launch
         ):
             return None
 
         req = self._request
 
-        sync_api_config = {
-            "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "path": req.route_path("canvas_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": req.params[
-                        "tool_consumer_instance_guid"
-                    ],
+        sync_api_config = {}
+        if self._context.is_canvas:
+            sync_api_config = {
+                "authUrl": req.route_url("canvas_api.oauth.authorize"),
+                "path": req.route_path("canvas_api.sync"),
+                "data": {
+                    "lms": {
+                        "tool_consumer_instance_guid": req.params[
+                            "tool_consumer_instance_guid"
+                        ],
+                    },
+                    "course": {
+                        "context_id": req.params["context_id"],
+                        "custom_canvas_course_id": req.params[
+                            "custom_canvas_course_id"
+                        ],
+                        "group_set": req.params.get("group_set"),
+                    },
+                    "group_info": {
+                        key: value
+                        for key, value in req.params.items()
+                        if key in GroupInfo.columns()
+                    },
                 },
-                "course": {
-                    "context_id": req.params["context_id"],
-                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
-                    "group_set": req.params.get("group_set"),
-                },
-                "group_info": {
-                    key: value
-                    for key, value in req.params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
+            }
 
-        if "learner_canvas_user_id" in req.params:
-            sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
-                "group_set": req.params.get("group_set"),
+            if "learner_canvas_user_id" in req.params:
+                sync_api_config["data"]["learner"] = {
+                    "canvas_user_id": req.params["learner_canvas_user_id"],
+                    "group_set": req.params.get("group_set"),
+                }
+        if self._context.is_blackboard:
+            sync_api_config = {
+                "authUrl": req.route_url("blackboard_api.oauth.authorize"),
+                "path": req.route_path("blackboard_api.sync"),
+                "data": {
+                    "lms": {
+                        "tool_consumer_instance_guid": req.params[
+                            "tool_consumer_instance_guid"
+                        ],
+                    },
+                    "course": {
+                        "context_id": req.params["context_id"],
+                        "resource_link_id": req.params["resource_link_id"],
+                    },
+                    "group_info": {
+                        key: value
+                        for key, value in req.params.items()
+                        if key in GroupInfo.columns()
+                    },
+                },
             }
 
         return sync_api_config
