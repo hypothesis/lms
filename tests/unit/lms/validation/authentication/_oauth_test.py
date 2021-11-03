@@ -234,14 +234,14 @@ class TestOAuthTokenResponseSchema:
                     "access_token": "test_access_token",
                     "expires_in": 0,
                 },
-                {"expires_in": ["expires_in must be greater than 0"]},
+                {"expires_in": ["Must be greater than or equal to 1."]},
             ),
             (
                 {
                     "access_token": "test_access_token",
                     "expires_in": -1,
                 },
-                {"expires_in": ["expires_in must be greater than 0"]},
+                {"expires_in": ["Must be greater than or equal to 1."]},
             ),
         ],
     )

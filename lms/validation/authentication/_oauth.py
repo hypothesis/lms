@@ -138,9 +138,4 @@ class OAuthTokenResponseSchema(RequestsResponseSchema):
 
     access_token = fields.Str(required=True)
     refresh_token = fields.Str()
-    expires_in = fields.Integer()
-
-    @marshmallow.validates("expires_in")
-    def validate_quantity(self, expires_in):  # pylint:disable=no-self-use
-        if expires_in <= 0:
-            raise marshmallow.ValidationError("expires_in must be greater than 0")
+    expires_in = fields.Integer(validate=marshmallow.validate.Range(min=1))
