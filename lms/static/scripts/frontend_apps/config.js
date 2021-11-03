@@ -17,6 +17,14 @@ import { createContext } from 'preact';
  */
 
 /**
+ * Configuration determining which "mode" the frontend app should operate in.
+ * Each mode maps to an app-level UI component.
+ *
+ * @typedef {'basic-lti-launch'|'content-item-selection'|'error-dialog'|'oauth2-redirect-error'} AppMode
+ *
+ */
+
+/**
  * @typedef StudentInfo
  * @prop {string} displayName
  * @prop {string} userid
@@ -82,31 +90,37 @@ import { createContext } from 'preact';
  */
 
 /**
- * @typedef {'blackboard_missing_integration' |
- *  'canvas_invalid_scope' } OAuthErrorCode
- */
-
-/**
- * Configuration for the error dialog shown if authorizing access to an
- * OAuth API fails.
  *
- * @typedef OAuthErrorConfig
- * @prop {string|null} authUrl
- * @prop {string} errorDetails
- * @prop {OAuthErrorCode|null} errorCode
- * @prop {string[]} canvasScopes
- */
-
-/**
- * @typedef {'reused_consumer_key'} ErrorCode
- */
-
-/**
- * Configuration for general error dialogs
+ * @typedef {'blackboard_missing_integration' | 'canvas_invalid_scope' | 'reused_consumer_key'} ConfigErrorCode
  *
- * @typedef ErrorDialogConfig
- * @prop {string} errorDetails
- * @prop {ErrorCode} errorCode
+ * Base interface for error information provided through this configuration object.
+ *
+ * @typedef ConfigErrorBase
+ * @prop {ConfigErrorCode} [errorCode]
+ * @prop {object|string} [errorDetails]
+ */
+
+/**
+ * Configuration for information describing general errors for use in
+ * `error-dialog` mode.
+ *
+ * @typedef ErrorDialogConfigBase
+ * @prop {Extract<'reused_consumer_key', ConfigErrorCode>} [errorCode]
+ *
+ * @typedef {ConfigErrorBase & ErrorDialogConfigBase} ErrorDialogConfig
+ */
+
+/**
+ * Configuration for information describing errors specific to
+ * OAuth API fails for use in `oauth2-redirect-error` mode. This adds a couple
+ * of additional optional properties to the base ConfigErrorCode type.
+ *
+ * @typedef OAuthErrorConfigBase
+ * @prop {Extract<'blackboard_missing_integration' | 'canvas_invalid_scope', ConfigErrorCode>} [errorCode]
+ * @prop {string} [authUrl]
+ * @prop {string[]} [canvasScopes]
+ *
+ * @typedef {ConfigErrorBase & OAuthErrorConfigBase} OAuthErrorConfig
  */
 
 /**
@@ -118,7 +132,7 @@ import { createContext } from 'preact';
  * the backend code.
  *
  * @typedef ConfigObject
- * @prop {string} mode
+ * @prop {AppMode} mode
  * @prop {object} api
  *   @prop {string} api.authToken
  *   @prop {APICallInfo} api.sync
