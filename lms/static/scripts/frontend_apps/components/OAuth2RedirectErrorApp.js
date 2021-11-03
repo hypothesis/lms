@@ -2,6 +2,7 @@ import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
+import { AppConfigError } from '../errors';
 
 import ErrorDisplay from './ErrorDisplay';
 
@@ -24,18 +25,17 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const { OAuth2RedirectError = /** @type {OAuthErrorConfig} */ ({}) } =
     useContext(Config);
 
-  const {
-    authUrl = null,
-    errorCode = null,
-    errorDetails = '',
-    canvasScopes = /** @type {string[]} */ ([]),
-  } = OAuth2RedirectError ?? {};
+  const { authUrl = null, canvasScopes = /** @type {string[]} */ ([]) } =
+    OAuth2RedirectError ?? {};
 
-  const error = { code: errorCode, details: errorDetails };
+  const error = new AppConfigError({
+    errorCode: OAuth2RedirectError?.errorCode,
+    errorDetails: OAuth2RedirectError.errorDetails,
+  });
 
   let title;
   let description;
-  switch (errorCode) {
+  switch (error.errorCode) {
     case 'canvas_invalid_scope':
       title = 'Developer key scopes missing';
       break;
@@ -76,7 +76,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
       title={title}
     >
       <ErrorDisplay error={error} description={description}>
-        {error.code === 'canvas_invalid_scope' && (
+        {error.errorCode === 'canvas_invalid_scope' && (
           <>
             <p>
               A Canvas admin needs to edit {"Hypothesis's"} developer key and
@@ -103,7 +103,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
           </>
         )}
 
-        {error.code === 'blackboard_missing_integration' && (
+        {error.errorCode === 'blackboard_missing_integration' && (
           <>
             <p>
               In order to allow Hypothesis to connect to files in Blackboard,

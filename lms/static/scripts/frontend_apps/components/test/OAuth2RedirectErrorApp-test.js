@@ -1,6 +1,7 @@
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
+import { AppConfigError } from '../../errors';
 
 import OAuth2RedirectErrorApp from '../OAuth2RedirectErrorApp';
 
@@ -71,10 +72,9 @@ describe('OAuth2RedirectErrorApp', () => {
     assert.include(errorDisplay.props(), {
       description: 'Something went wrong when authorizing Hypothesis',
     });
-    assert.deepEqual(errorDisplay.prop('error'), {
-      details: fakeConfig.errorDetails,
-      code: null,
-    });
+    const error = errorDisplay.prop('error');
+    assert.instanceOf(error, AppConfigError);
+    assert.equal(error.details, 'Technical details');
   });
 
   it(`closes the window when the dialog's "Close" button is clicked`, () => {

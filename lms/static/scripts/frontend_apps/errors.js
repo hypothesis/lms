@@ -8,8 +8,26 @@ export class PickerCanceledError extends Error {
 }
 
 /**
- * Error returned when an API call fails with a 4xx or 5xx response and
- * JSON body.
+ * @typedef {import('./config').ConfigErrorBase} ConfigErrorBase
+ */
+
+/**
+ * Error returned when error data is provided in application configuration JSON
+ * and application is in an error mode ('error-dialog' or 'oauth2-redirect-error')
+ */
+export class AppConfigError extends Error {
+  /**
+   * @param {ConfigErrorBase} data
+   */
+  constructor(data) {
+    super();
+    this.errorCode = data.errorCode;
+    this.details = data.errorDetails;
+  }
+}
+
+/**
+ * Error returned when an API call fails.
  */
 export class APIError extends Error {
   /**

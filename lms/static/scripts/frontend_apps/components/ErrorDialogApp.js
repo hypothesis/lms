@@ -2,6 +2,7 @@ import { useContext } from 'preact/hooks';
 import { Modal } from '@hypothesis/frontend-shared';
 
 import { Config } from '../config';
+import { AppConfigError } from '../errors';
 
 import ErrorDisplay from './ErrorDisplay';
 
@@ -16,15 +17,15 @@ import ErrorDisplay from './ErrorDisplay';
 export default function ErrorDialogApp() {
   const { errorDialog } = useContext(Config);
 
-  const error = {
-    code: errorDialog?.errorCode,
-    details: errorDialog?.errorDetails ?? '',
-  };
+  const error = new AppConfigError({
+    errorCode: errorDialog?.errorCode,
+    errorDetails: errorDialog?.errorDetails ?? '',
+  });
 
   let description;
   let title;
 
-  switch (error.code) {
+  switch (error.errorCode) {
     case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
       break;
@@ -43,7 +44,7 @@ export default function ErrorDialogApp() {
       contentClass="LMS-Dialog LMS-Dialog--medium"
     >
       <ErrorDisplay error={error} description={description}>
-        {error.code === 'reused_consumer_key' && (
+        {error.errorCode === 'reused_consumer_key' && (
           <>
             <p>
               This Hypothesis {"installation's"} consumer key appears to have

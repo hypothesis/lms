@@ -1,6 +1,7 @@
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
+import { AppConfigError } from '../../errors';
 
 import ErrorDialogApp from '../ErrorDialogApp';
 
@@ -24,6 +25,13 @@ describe('ErrorDialogApp', () => {
       errorCode: null,
       errorDetails: '',
     };
+  });
+
+  it('renders information about the error', () => {
+    const wrapper = renderApp();
+
+    const error = wrapper.find('ErrorDisplay').prop('error');
+    assert.instanceOf(error, AppConfigError);
   });
 
   it('shows dialog for unknown error code', () => {
