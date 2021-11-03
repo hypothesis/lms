@@ -79,19 +79,36 @@ class TestBasicClient:
     ):
         http_session.send.return_value = factories.requests.Response(status_code=501)
 
-        with pytest.raises(CanvasAPIError):
+        with pytest.raises(CanvasAPIError) as exc_info:
             basic_client.send("METHOD", "path/", schema=Schema)
+
+        # The request that was sent.
+        request = http_session.send.call_args[0][0]
+
+        # The response that was received.
+        response = http_session.send.return_value
+
+        exc = exc_info.value
+        assert exc.request == request
+        assert exc.response == response
 
     def test_send_raises_CanvasAPIError_for_networking_errors(
         self, basic_client, http_session, Schema
     ):
         http_session.send.side_effect = requests.ReadTimeout()
 
-        with pytest.raises(CanvasAPIError):
+        with pytest.raises(CanvasAPIError) as exc_info:
             basic_client.send("METHOD", "path/", schema=Schema)
 
+        # The request that was sent.
+        request = http_session.send.call_args[0][0]
+
+        exc = exc_info.value
+        assert exc.request == request
+        assert exc.response is None
+
     def test_send_raises_CanvasAPIError_for_validation_errors(
-        self, basic_client, Schema
+        self, basic_client, Schema, http_session
     ):
         Schema.return_value.parse.side_effect = ExternalRequestError(
             validation_errors=sentinel.validation_errors
@@ -100,8 +117,15 @@ class TestBasicClient:
         with pytest.raises(CanvasAPIError) as exc_info:
             basic_client.send("any", "any", schema=Schema)
 
+        # The request that was sent.
+        request = http_session.send.call_args[0][0]
+
+        # The response that was received.
+        response = http_session.send.return_value
+
         exc = exc_info.value
-        assert exc.validation_errors == sentinel.validation_errors
+        assert exc.request == request
+        assert exc.response == response
 
     @pytest.mark.usefixtures("paginated_results")
     def test_send_follows_pagination_links_for_many_schema(
@@ -133,10 +157,20 @@ class TestBasicClient:
 
     @pytest.mark.usefixtures("paginated_results")
     def test_send_raises_CanvasAPIError_for_pagination_with_non_many_schema(
-        self, basic_client, Schema
+        self, basic_client, Schema, http_session, paginated_responses
     ):
-        with pytest.raises(CanvasAPIError):
+        with pytest.raises(CanvasAPIError) as exc_info:
             basic_client.send("METHOD", "path/", schema=Schema)
+
+        # The request that was sent.
+        request = http_session.send.call_args[0][0]
+
+        # The response that was received.
+        response = paginated_responses[0]
+
+        exc = exc_info.value
+        assert exc.request == request
+        assert exc.response == response
 
     @pytest.fixture(autouse=True)
     def has_ok_response(self, http_session):
@@ -160,9 +194,9 @@ class TestBasicClient:
         return Schema
 
     @pytest.fixture
-    def paginated_results(self, http_session):
+    def paginated_responses(self):
         next_url = "http://example.com/next/"
-        http_session.send.side_effect = [
+        return [
             factories.requests.Response(
                 status_code=200, headers=self.link_headers(next_url + "0")
             ),
@@ -171,6 +205,10 @@ class TestBasicClient:
             ),
             factories.requests.Response(status_code=200),
         ]
+
+    @pytest.fixture
+    def paginated_results(self, http_session, paginated_responses):
+        http_session.send.side_effect = paginated_responses
 
     @classmethod
     def link_headers(cls, next_url):
