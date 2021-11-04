@@ -187,7 +187,7 @@ class TestOAuth2RedirectError:
         js_config.enable_oauth2_redirect_error_mode.assert_called_with(
             auth_route="canvas_api.oauth.authorize",
             error_code=error_code,
-            error_details=params.get("error_description"),
+            error_details={"error_description": params.get("error_description")},
             canvas_scopes=scopes,
         )
 

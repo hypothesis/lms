@@ -624,12 +624,13 @@ class TestEnableOAuth2RedirectErrorMode:
 
         assert config["OAuth2RedirectError"]["authUrl"] is None
 
-    def test_error_details_defaults_to_an_empty_string(self, js_config):
+    def test_it_omits_errorDetails_if_no_error_details_argument_is_given(
+        self, js_config
+    ):
         js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
         config = js_config.asdict()
 
-        # pylint:disable=compare-to-empty-string
-        assert config["OAuth2RedirectError"]["errorDetails"] == ""
+        assert "errorDetails" not in config["OAuth2RedirectError"]
 
     def test_canvas_scopes_defaults_to_an_empty_list(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
@@ -661,12 +662,13 @@ class TestEnableErrorDialogMode:
             "errorDetails": mock.sentinel.error_details,
         }
 
-    def test_error_details_defaults_to_an_empty_string(self, js_config):
+    def test_it_omits_errorDetails_if_no_error_details_argument_is_given(
+        self, js_config
+    ):
         js_config.enable_error_dialog_mode(mock.sentinel.error_code)
         config = js_config.asdict()
 
-        # pylint:disable=compare-to-empty-string
-        assert config["errorDialog"]["errorDetails"] == ""
+        assert "errorDetails" not in config["errorDialog"]
 
     @pytest.fixture
     def context(self):

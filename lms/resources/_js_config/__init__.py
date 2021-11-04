@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from lms.models import GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
@@ -107,7 +107,7 @@ class JSConfig:
         self,
         auth_route: str,
         error_code=None,
-        error_details: str = "",
+        error_details: Optional[dict] = None,
         canvas_scopes: List[str] = None,
     ):
         """
@@ -118,7 +118,7 @@ class JSConfig:
         third-party authorization endpoint.
 
         :param error_code: Code identifying a particular error
-        :param error_details: Technical details of the error
+        :param error_details: JSON-serializable technical details about the error
         :param auth_route: route for the "Try again" button in the dialog
         :param canvas_scopes: List of scopes that were requested
         """
@@ -139,22 +139,24 @@ class JSConfig:
                 "OAuth2RedirectError": {
                     "authUrl": auth_url,
                     "errorCode": error_code,
-                    "errorDetails": error_details,
                     "canvasScopes": canvas_scopes or [],
                 },
             }
         )
 
-    def enable_error_dialog_mode(self, error_code, error_details=""):
+        if error_details:
+            self._config["OAuth2RedirectError"]["errorDetails"] = error_details
+
+    def enable_error_dialog_mode(self, error_code, error_details=None):
         self._config.update(
             {
                 "mode": JSConfig.Mode.ERROR_DIALOG,
-                "errorDialog": {
-                    "errorCode": error_code,
-                    "errorDetails": error_details,
-                },
+                "errorDialog": {"errorCode": error_code},
             }
         )
+
+        if error_details:
+            self._config["errorDialog"]["errorDetails"] = error_details
 
     def enable_lti_launch_mode(self):
         """
