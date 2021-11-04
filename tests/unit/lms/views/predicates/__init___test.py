@@ -10,7 +10,6 @@ from lms.views.predicates._lti_launch import (
     DBConfigured,
     LegacySpeedGrader,
     URLConfigured,
-    VitalSourceBook,
 )
 
 
@@ -25,7 +24,6 @@ def test_includeme_adds_the_view_predicates():
         mock.call("brightspace_copied", BrightspaceCopied),
         mock.call("canvas_file", CanvasFile),
         mock.call("url_configured", URLConfigured),
-        mock.call("vitalsource_book", VitalSourceBook),
         mock.call("configured", Configured),
         mock.call(
             "authorized_to_configure_assignments", AuthorizedToConfigureAssignments
