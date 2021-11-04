@@ -13,7 +13,6 @@ from lms.views.predicates import (
     DBConfigured,
     LegacySpeedGrader,
     URLConfigured,
-    VitalSourceBook,
 )
 from tests import factories
 
@@ -151,23 +150,6 @@ class TestCanvasFile:
         assert predicate(context, pyramid_request) is expected
 
 
-class TestVitalSourceBook:
-    @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_vitalsource_book(self, value, expected):
-        request = DummyRequest(params={"vitalsource_book": "true"})
-        predicate = VitalSourceBook(value, mock.sentinel.config)
-
-        assert predicate(mock.sentinel.context, request) is expected
-
-    @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_vitalsource_book(
-        self, value, expected, pyramid_request
-    ):
-        predicate = VitalSourceBook(value, mock.sentinel.config)
-
-        assert predicate(mock.sentinel.context, pyramid_request) is expected
-
-
 class TestURLConfigured:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
     def test_when_assignment_is_url_configured(
@@ -215,15 +197,6 @@ class TestConfigured:
     ):
         assignment_service.exists.return_value = True
 
-        predicate = Configured(value, mock.sentinel.config)
-
-        assert predicate(context, pyramid_request) is expected
-
-    @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_vitalsource_book(
-        self, pyramid_request, value, expected, context
-    ):
-        pyramid_request.params = {"vitalsource_book": True}
         predicate = Configured(value, mock.sentinel.config)
 
         assert predicate(context, pyramid_request) is expected
