@@ -171,6 +171,25 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
+    def test_vitalsource_sets_config(
+        self, js_config, vitalsource_service, pyramid_request
+    ):
+        vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
+        vitalsource_service.get_launch_params.return_value = (
+            mock.sentinel.launch_url,
+            mock.sentinel.launch_params,
+        )
+
+        js_config.add_document_url(vitalsource_url)
+
+        vitalsource_service.get_launch_params.assert_called_with(
+            vitalsource_url, pyramid_request.lti_user
+        )
+        assert js_config.asdict()["vitalSource"] == {
+            "launchUrl": mock.sentinel.launch_url,
+            "launchParams": mock.sentinel.launch_params,
+        }
+
     def test_it_adds_the_viaUrl_api_config_for_Canvas_documents(
         self, js_config, pyramid_request
     ):
@@ -247,41 +266,6 @@ class TestAddDocumentURL:
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
-
-
-class TestAddVitalsourceLaunchConfig:
-    """Unit tests for JSConfig.add_vitalsource_launch_config()."""
-
-    def test_it_sets_vitalsource_config(
-        self, js_config, pyramid_request, vitalsource_service
-    ):
-        js_config.add_vitalsource_launch_config("book-id", "/abc")
-
-        vitalsource_service.get_launch_params.assert_called_with(
-            "book-id", "/abc", pyramid_request.lti_user
-        )
-        assert js_config.asdict()["vitalSource"] == {
-            "launchUrl": mock.sentinel.launch_url,
-            "launchParams": mock.sentinel.launch_params,
-        }
-
-    def test_it_sets_submission_params(self, js_config, submission_params):
-        js_config.add_vitalsource_launch_config("book-id", "/abc")
-
-        assert submission_params() == Any.dict.containing(
-            {
-                "vitalsource_book_id": "book-id",
-                "vitalsource_cfi": "/abc",
-            }
-        )
-
-    @pytest.fixture
-    def vitalsource_service(self, vitalsource_service):
-        vitalsource_service.get_launch_params.return_value = (
-            mock.sentinel.launch_url,
-            mock.sentinel.launch_params,
-        )
-        return vitalsource_service
 
 
 class TestMaybeEnableGrading:

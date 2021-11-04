@@ -1,8 +1,16 @@
+import re
+
 import oauthlib
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
+
+#: A regex for parsing the COURSE_ID and FILE_ID parts out of one of our custom
+#: canvas://file/course/COURSE_ID/file_id/FILE_ID URLs.
+DOCUMENT_URL_REGEX = re.compile(
+    r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
+)
 
 
 class VitalSourceService:
@@ -54,7 +62,11 @@ class VitalSourceService:
 
         return BookTOCSchema(response).parse()
 
-    def get_launch_params(self, book_id, cfi, lti_user):
+    @staticmethod
+    def parse_document_url(document_url):
+        return DOCUMENT_URL_REGEX.search(document_url).groupdict()
+
+    def get_launch_params(self, document_url, lti_user):
         """
         Return the form params needed to launch the VitalSource book viewer.
 
@@ -64,11 +76,13 @@ class VitalSourceService:
 
         See https://developer.vitalsource.com/hc/en-us/articles/215612237-POST-LTI-Create-a-Bookshelf-Launch
 
-        :param book_id: The VitalSource book ID ("vbid")
-        :param cfi: Book location, as a Canonical Fragment Identifier, for deep linking.
+        :param document_url: `vitalsource://` type URL identifying the document.
         :param lti_user: Current LTI user information, from the LTI launch request
         :type lti_user: LTIUser
         """
+        url_params = self.parse_document_url(document_url)
+        book_id = url_params["book_id"]
+        cfi = url_params["cfi"]
 
         launch_url = f"https://bc.vitalsource.com/books/{book_id}"
         book_location = "/cfi" + cfi
