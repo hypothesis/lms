@@ -14,7 +14,6 @@ from lms.views.predicates._lti_launch import (
     DBConfigured,
     LegacySpeedGrader,
     URLConfigured,
-    VitalSourceBook,
 )
 
 
@@ -25,7 +24,6 @@ def includeme(config):
         BrightspaceCopied,
         CanvasFile,
         URLConfigured,
-        VitalSourceBook,
         Configured,
         AuthorizedToConfigureAssignments,
         LegacySpeedGrader,
