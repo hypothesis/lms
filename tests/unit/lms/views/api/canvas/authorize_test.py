@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
-from lms.views.api.canvas.authorize import GROUPS_SCOPES
+from lms.views.api.canvas.authorize import FILES_SCOPES, GROUPS_SCOPES, SECTIONS_SCOPES
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "course_service", "canvas_api_client"
@@ -156,40 +156,41 @@ class TestOAuth2Redirect:
 
 
 class TestOAuth2RedirectError:
-    @pytest.mark.parametrize(
-        "params,error_code",
-        [
-            ({"error": "invalid_scope"}, "canvas_invalid_scope"),
-            ({"error": "unknown_error"}, None),
-            ({"foo": "bar"}, None),
-            ({"error_description": "Something went wrong"}, None),
-        ],
-    )
-    def test_it_configures_frontend_app(self, pyramid_request, params, error_code):
-        pyramid_request.params.clear()
-        pyramid_request.params.update(params)
-        pyramid_request.lti_user = None
+    def test_it(self, pyramid_request):
+        template_data = authorize.oauth2_redirect_error(pyramid_request)
 
-        scopes = (
-            "url:GET|/api/v1/courses/:course_id/files",
-            "url:GET|/api/v1/files/:id/public_url",
-            "url:GET|/api/v1/courses/:id",
-            "url:GET|/api/v1/courses/:course_id/sections",
-            "url:GET|/api/v1/courses/:course_id/users/:id",
-            "url:GET|/api/v1/courses/:course_id/group_categories",
-            "url:GET|/api/v1/group_categories/:group_category_id/groups",
-            "url:GET|/api/v1/courses/:course_id/groups",
+        pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_with(
+            auth_route="canvas_api.oauth.authorize",
+            error_code=None,
+            canvas_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
         )
+        assert template_data == {}
+
+    def test_it_sets_the_invalid_scope_error_code_for_invalid_scope_errors(
+        self, pyramid_request
+    ):
+        pyramid_request.params["error"] = "invalid_scope"
 
         authorize.oauth2_redirect_error(pyramid_request)
 
         js_config = pyramid_request.context.js_config
-        js_config.enable_oauth2_redirect_error_mode.assert_called_with(
-            auth_route="canvas_api.oauth.authorize",
-            error_code=error_code,
-            error_details={"error_description": params.get("error_description")},
-            canvas_scopes=scopes,
+        enable_oauth2_redirect_error_mode = js_config.enable_oauth2_redirect_error_mode
+        error_code = enable_oauth2_redirect_error_mode.call_args[1].get("error_code")
+        assert error_code == JSConfig.ErrorCode.CANVAS_INVALID_SCOPE
+
+    def test_it_sets_the_error_details_if_theres_an_error_description(
+        self, pyramid_request
+    ):
+        pyramid_request.params["error_description"] = mock.sentinel.error_description
+
+        authorize.oauth2_redirect_error(pyramid_request)
+
+        js_config = pyramid_request.context.js_config
+        enable_oauth2_redirect_error_mode = js_config.enable_oauth2_redirect_error_mode
+        error_details = enable_oauth2_redirect_error_mode.call_args[1].get(
+            "error_details"
         )
+        assert error_details == {"error_description": mock.sentinel.error_description}
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, OAuth2RedirectResource):
@@ -197,6 +198,7 @@ class TestOAuth2RedirectError:
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         context.js_config.ErrorCode = JSConfig.ErrorCode
         pyramid_request.context = context
+        pyramid_request.params.clear()
         return pyramid_request
 
     @pytest.fixture(autouse=True)
