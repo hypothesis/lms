@@ -26,8 +26,23 @@ class TestVitalSourceService:
         with pytest.raises(ValueError, match="VitalSource credentials are missing"):
             VitalSourceService(http_service, lti_key, lti_secret, api_key)
 
+    @pytest.mark.parametrize(
+        "url,book_id,cfi",
+        [
+            ("vitalsource://book/bookID/book-id/cfi//abc", "book-id", "/abc"),
+            ("vitalsource://book/bookID/book-id/cfi/abc", "book-id", "abc"),
+        ],
+    )
+    def test_parse_document_url(self, svc, url, book_id, cfi):
+        assert svc.parse_document_url(url) == {
+            "book_id": book_id,
+            "cfi": cfi,
+        }
+
     def test_it_generates_lti_launch_form_params(self, svc, lti_user):
-        launch_url, params = svc.get_launch_params("book-id", "/abc", lti_user)
+        launch_url, params = svc.get_launch_params(
+            "vitalsource://book/bookID/book-id/cfi//abc", lti_user
+        )
 
         # Ignore OAuth signature params in this test.
         params = {k: v for (k, v) in params.items() if not k.startswith("oauth_")}
@@ -46,7 +61,7 @@ class TestVitalSourceService:
     def test_it_uses_correct_launch_key_and_secret_to_sign_params(
         self, svc, lti_user, OAuth1Client
     ):
-        svc.get_launch_params("book-id", "/cfi", lti_user)
+        svc.get_launch_params("vitalsource://book/bookID/book-id/cfi//abc", lti_user)
 
         OAuth1Client.assert_called_with(
             "lti_launch_key",
@@ -56,7 +71,9 @@ class TestVitalSourceService:
         )
 
     def test_it_signs_lti_launch_form_params(self, svc, lti_user):
-        _, params = svc.get_launch_params("book-id", "/cfi", lti_user)
+        _, params = svc.get_launch_params(
+            "vitalsource://book/bookID/book-id/cfi//abc", lti_user
+        )
 
         # Ignore non-OAuth signature params in this test.
         params = {k: v for (k, v) in params.items() if k.startswith("oauth_")}
