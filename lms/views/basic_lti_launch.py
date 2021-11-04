@@ -123,26 +123,6 @@ class BasicLTILaunchViews:
         )
         return self.basic_lti_launch(document_url=document_url, grading_supported=False)
 
-    @view_config(vitalsource_book=True)
-    def vitalsource_lti_launch(self):
-        """
-        Respond to a VitalSource book launch.
-
-        The book and chapter to show are configured by `book_id` and `cfi` request
-        parameters. VitalSource book launches involve a second LTI launch.
-        Hypothesis's LMS app generates the form parameters needed to load
-        VitalSource's book viewer using an LTI launch. The LMS frontend then
-        renders these parameters into a form and auto-submits the form to perform
-        an authenticated launch of the VS book viewer.
-        """
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
-        self.context.js_config.maybe_enable_grading()
-        self.context.js_config.add_vitalsource_launch_config(
-            self.request.params["book_id"], self.request.params.get("cfi")
-        )
-        return {}
-
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
     def db_configured_basic_lti_launch(self):
         """

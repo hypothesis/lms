@@ -153,25 +153,6 @@ def configure_assignment_caller(context, pyramid_request, parsed_params=None):
     return views.configure_assignment()
 
 
-def vitalsource_lti_launch_caller(context, pyramid_request):
-    """
-    Call BasicLTILaunchViews.vitalsource_lti_launch().
-
-    Set up the appropriate conditions and then call
-    BasicLTILaunchViews.vitalsource_lti_launch(), and return whatever
-    BasicLTILaunchViews.vitalsource_lti_launch() returns.
-    """
-
-    # The book_id and cfi params are assumed present when vitalsource_lti_launch()
-    # is called.
-    pyramid_request.params["book_id"] = "book-id"
-    pyramid_request.params["cfi"] = "/abc"
-
-    views = BasicLTILaunchViews(context, pyramid_request)
-
-    return views.vitalsource_lti_launch()
-
-
 class TestBasicLTILaunchViewsInit:
     """Unit tests for BasicLTILaunchViews.__init__()."""
 
@@ -249,7 +230,6 @@ class TestCommon:
             brightspace_copied_basic_lti_launch_caller,
             url_configured_basic_lti_launch_caller,
             configure_assignment_caller,
-            vitalsource_lti_launch_caller,
         ]
     )
     def view_caller(self, request):
@@ -494,19 +474,6 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
         ).unconfigured_basic_lti_launch_not_authorized()
 
         assert not data
-
-
-class TestVitalsourceLTILaunch:
-    def test_it_adds_vitalsource_launch_config(self, context, pyramid_request):
-        pyramid_request.params.update(
-            {"vitalsource_book": "true", "book_id": "book-id", "cfi": "/abc"}
-        )
-
-        BasicLTILaunchViews(context, pyramid_request).vitalsource_lti_launch()
-
-        context.js_config.add_vitalsource_launch_config.assert_called_once_with(
-            "book-id", "/abc"
-        )
 
 
 @pytest.fixture
