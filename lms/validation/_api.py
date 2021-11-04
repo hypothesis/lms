@@ -90,10 +90,15 @@ class APICreateAssignmentSchema(PyramidRequestSchema):
             size = fields.Int(required=True)
 
         type = fields.Str(
-            required=True, validate=marshmallow.validate.OneOf(["url", "file"])
+            required=True,
+            validate=marshmallow.validate.OneOf(["url", "file", "vitalsource"]),
         )
         url = fields.Url(required=False, allow_none=True)
+
         file = fields.Nested(File, required=False, allow_none=True)
+        bookID = fields.Str(required=False, allow_none=True)
+        cfi = fields.Str(required=False, allow_none=True)
+        """VitalSource IDs"""
 
     ext_lti_assignment_id = fields.Str(required=True)
     """Canvas only assignment unique identifier"""
@@ -108,7 +113,16 @@ class APICreateAssignmentSchema(PyramidRequestSchema):
 
     @validates_schema
     def validate(self, data, **_kwargs):
-        if data["content"]["type"] == "url" and not data["content"].get("url"):
+        content = data["content"]
+        type_ = data["content"]["type"]
+
+        if type_ == "url" and not content.get("url"):
             raise ValidationError("url is mandatory with type is 'url'")
-        if data["content"]["type"] == "file" and not data["content"].get("file"):
+        if type_ == "file" and not content.get("file"):
             raise ValidationError("content is mandatory with type is 'file'")
+        if type_ == "vitalsource" and not all(
+            [content.get("bookID"), content.get("cfi")]
+        ):
+            raise ValidationError(
+                "both bookID and cfi are mandatory with type is 'vitalsource'"
+            )
