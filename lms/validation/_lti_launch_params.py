@@ -118,6 +118,7 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
             url.lower().startswith("http%3a")
             or url.lower().startswith("https%3a")
             or url.lower().startswith("canvas%3a")
+            or url.lower().startswith("vitalsource%3a")
         ):
             url = unquote(url)
             _data["url"] = url
