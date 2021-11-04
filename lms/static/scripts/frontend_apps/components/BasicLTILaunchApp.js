@@ -235,7 +235,7 @@ export default function BasicLTILaunchApp() {
     }
 
     // Don't report a submission until the URL has been successfully fetched.
-    if (!contentUrl) {
+    if (!contentUrl && !vitalSourceConfig) {
       return;
     }
     try {
@@ -251,7 +251,7 @@ export default function BasicLTILaunchApp() {
       // submission.
       handleError(e, 'error-reporting-submission', false);
     }
-  }, [authToken, canvas.speedGrader, contentUrl]);
+  }, [authToken, canvas.speedGrader, contentUrl, vitalSourceConfig]);
 
   useEffect(() => {
     reportSubmission();
