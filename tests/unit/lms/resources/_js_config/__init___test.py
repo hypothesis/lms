@@ -599,60 +599,43 @@ class TestJSConfigRPCServer:
         return config["rpcServer"]
 
 
-class TestEnableErrorModes:
-    @pytest.mark.parametrize(
-        "error_details,error_code,canvas_scopes",
-        [
-            ("Technical error", "canvas_invalid_scope", ["scope_a", "scope_b"]),
-            ("Some error", None, None),
-        ],
-    )
-    def test_scope_error(self, js_config, error_details, error_code, canvas_scopes):
+class TestEnableOAuth2RedirectErrorMode:
+    def test_it(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(
-            auth_route="auth_route",
-            error_code=error_code,
-            error_details=error_details,
-            canvas_scopes=canvas_scopes,
+            "auth_route",
+            mock.sentinel.error_code,
+            mock.sentinel.error_details,
+            mock.sentinel.canvas_scopes,
         )
-
         config = js_config.asdict()
-        assert config["mode"] == "oauth2-redirect-error"
+
+        assert config["mode"] == JSConfig.Mode.OAUTH2_REDIRECT_ERROR
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
-            "errorCode": error_code,
-            "errorDetails": error_details,
-            "canvasScopes": canvas_scopes if canvas_scopes is not None else [],
+            "errorCode": mock.sentinel.error_code,
+            "errorDetails": mock.sentinel.error_details,
+            "canvasScopes": mock.sentinel.canvas_scopes,
         }
 
     @pytest.mark.usefixtures("with_no_user")
-    def test_auth_url(self, js_config):
+    def test_if_theres_no_authenticated_user_it_sets_authUrl_to_None(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
-
         config = js_config.asdict()
+
         assert config["OAuth2RedirectError"]["authUrl"] is None
 
-    def test_error_dialog_mode(self, js_config):
-        error_code, error_details = "ERROR", {}
-
-        js_config.enable_error_dialog_mode(
-            error_code=error_code,
-            error_details=error_details,
-        )
-
+    def test_error_details_defaults_to_an_empty_string(self, js_config):
+        js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
         config = js_config.asdict()
-        assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
-        assert config["errorDialog"] == {
-            "errorCode": error_code,
-            "errorDetails": error_details,
-        }
 
-    @pytest.fixture
-    def with_no_user(self, pyramid_request):
-        pyramid_request.lti_user = None
+        # pylint:disable=compare-to-empty-string
+        assert config["OAuth2RedirectError"]["errorDetails"] == ""
 
-    @pytest.fixture
-    def js_config(self, context, pyramid_request):
-        return JSConfig(context, pyramid_request)
+    def test_canvas_scopes_defaults_to_an_empty_list(self, js_config):
+        js_config.enable_oauth2_redirect_error_mode(auth_route="auth_route")
+        config = js_config.asdict()
+
+        assert config["OAuth2RedirectError"]["canvasScopes"] == []
 
     @pytest.fixture
     def context(self):
@@ -661,8 +644,35 @@ class TestEnableErrorModes:
         )
 
     @pytest.fixture(autouse=True)
-    def auth_route(self, pyramid_config):
+    def routes(self, pyramid_config):
         pyramid_config.add_route("auth_route", "/auth")
+
+
+class TestEnableErrorDialogMode:
+    def test_it(self, js_config):
+        js_config.enable_error_dialog_mode(
+            mock.sentinel.error_code, mock.sentinel.error_details
+        )
+        config = js_config.asdict()
+
+        assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
+        assert config["errorDialog"] == {
+            "errorCode": mock.sentinel.error_code,
+            "errorDetails": mock.sentinel.error_details,
+        }
+
+    def test_error_details_defaults_to_an_empty_string(self, js_config):
+        js_config.enable_error_dialog_mode(mock.sentinel.error_code)
+        config = js_config.asdict()
+
+        # pylint:disable=compare-to-empty-string
+        assert config["errorDialog"]["errorDetails"] == ""
+
+    @pytest.fixture
+    def context(self):
+        return mock.create_autospec(
+            OAuth2RedirectResource, spec_set=True, instance=True
+        )
 
 
 @pytest.fixture(autouse=True)
@@ -681,8 +691,7 @@ def bearer_token_schema(BearerTokenSchema):
 
 @pytest.fixture
 def js_config(context, pyramid_request):
-    config = JSConfig(context, pyramid_request)
-    return config
+    return JSConfig(context, pyramid_request)
 
 
 @pytest.fixture
@@ -749,3 +758,8 @@ def GroupInfo(patch):
     group_info_class = patch("lms.resources._js_config.GroupInfo")
     group_info_class.columns.return_value = ["context_id", "custom_canvas_course_id"]
     return group_info_class
+
+
+@pytest.fixture
+def with_no_user(pyramid_request):
+    pyramid_request.lti_user = None
