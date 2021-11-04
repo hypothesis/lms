@@ -60,24 +60,6 @@ class TestAssignmentsAPIViews:
                     }
                 },
             ),
-            (
-                {
-                    "content": {
-                        "type": "vitalsource",
-                        "bookID": "BOOK_ID",
-                        "cfi": "/25",
-                    },
-                    "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
-                    "course_id": "COURSE_ID",
-                },
-                "vitalsource://book/bookID/BOOK_ID/cfi//25",
-                {
-                    "vitalsource": {
-                        "bookID": "BOOK_ID",
-                        "cfi": "/25",
-                    }
-                },
-            ),
         ],
     )
     def test_create(
