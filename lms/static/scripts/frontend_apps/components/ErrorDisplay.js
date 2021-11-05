@@ -24,11 +24,15 @@ function toSentence(str) {
 }
 
 /**
- * An `Error` or `Error`-like object.
+ * An `Error` or `Error`-like object. This allows this component to be used
+ * by just passing through an `Error` without meddling with it, or manual
+ * control of `message` and/or `details` if so desired.
  *
  * @typedef ErrorLike
  * @prop {string} [message]
  * @prop {object|string} [details] - Optional JSON-serializable details of the error
+ * @prop {string} [errorMessage] - Explanatory message provided by backend that
+ *   will be preferred over `message` if it is present.
  */
 
 /**
@@ -89,36 +93,15 @@ function ErrorDetails({ error }) {
  * @typedef ErrorDisplayProps
  * @prop {Children} [children]
  * @prop {string|null} [description] -
- *   A short message explaining the error and its human-facing relevance.
- *   This is typically a general message like
- *   "There was a problem fetching this assignment". This description
- *   always comes from (this) LMS client app.
- *
- *   The presence of a `description` indicates that this `ErrorDisplay` is
- *   responsible for explaining the error to the user in some fashion. Along
- *   with this `description`, anything available in `error.message` is also
- *   shown.
- *
- *   When `description` is absent, it indicates that the main explaining of
- *   the error's relevance to the user is handled elsewhere, and no additional
- *   error messaging is necessary. This is the case, for example, with some
- *   of the well-explained error states in `OAuth2RedirectErrorApp` or
- *   `LaunchErrorDialog`: these don't need additional error messaging that is,
- *   for the most part, redundant or useless.
- *
- *   Available `error.details` and support/email instructions are always
- *   shown regardless of the presence of this prop.
- *
+ *   A short message explaining the error and its human-facing relevance, provided
+ *   by this (front-end) app for context.
  * @prop {ErrorLike} error - Error-like object containing further `details`
  *   or `message` about this error state. The value of `details` and `message`
  *   may come from a server response.
  */
 
 /**
- * Displays human-facing details of an error, including:
- * - Explanation/message (if `description` is provided)
- * - Instructions for contacting support and getting help
- * - Stringified-JSON details of the error (if `error.details` is populated)
+ * Displays human-facing details of an error
  *
  * @param {ErrorDisplayProps} props
  */
@@ -135,20 +118,30 @@ Technical details: ${details || 'N/A'}
     `,
   });
 
+  // If `errorMessage` is extant on `error`, prefer it to `error.message` even
+  // if `errorMessage` is empty — In cases where we are displaying error
+  // information provided by the backend (i.e. `APIError`), we do not want
+  // to render the JS Error instance's `message` as it likely does not apply
+  const message = error.errorMessage ?? error.message;
+
   return (
     <Scrollbox classes="LMS-Scrollbox">
       <div className="hyp-u-vertical-spacing hyp-u-padding--top--4">
-        {children}
-        {description && (
+        {message && !description && (
           <p data-testid="error-message">
-            {description}
-            {error.message && (
-              <>
-                : <i>{toSentence(error.message)}</i>
-              </>
-            )}
+            <i>{toSentence(message)}</i>
           </p>
         )}
+        {message && description && (
+          <p data-testid="error-message">
+            {description}: <i>{toSentence(message)}</i>
+          </p>
+        )}
+        {!message && description && (
+          <p data-testid="error-message">{toSentence(description)}</p>
+        )}
+
+        {children}
         <p data-testid="error-links">
           If the problem persists,{' '}
           <a href={supportLink} target="_blank" rel="noopener noreferrer">

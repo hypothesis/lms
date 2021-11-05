@@ -20,9 +20,7 @@ export class APIError extends Error {
    *   @param {any} [data.details]
    */
   constructor(status, data) {
-    // If message is omitted, pass a default error message.
-    const message = data.message || 'API call failed';
-    super(message);
+    super('API call failed');
 
     /**
      * HTTP response status.
@@ -34,15 +32,15 @@ export class APIError extends Error {
      *
      * This can be used to show custom error dialogs for specific issues.
      */
-    this.errorCode = data.error_code || null;
+    this.errorCode = data.error_code;
 
     /**
      * Server-provided error message.
      *
-     * May be `null` if the server did not provide any details about what the
+     * May be empty if the server did not provide any details about what the
      * problem was.
      */
-    this.errorMessage = data.message || null;
+    this.errorMessage = data.message ?? '';
 
     /**
      * Server-provided details of the error.

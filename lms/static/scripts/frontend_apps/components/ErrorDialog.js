@@ -18,7 +18,7 @@ import ErrorDisplay from './ErrorDisplay';
  */
 export default function ErrorDialog({
   onCancel,
-  description = 'Error',
+  description,
   error,
   cancelLabel,
 }) {
