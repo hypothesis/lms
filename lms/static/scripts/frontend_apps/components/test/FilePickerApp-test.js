@@ -154,7 +154,7 @@ describe('FilePickerApp', () => {
         },
       });
 
-      await waitFor(() => onSubmit.called);
+      await waitFor(() => onSubmit.called, 100);
 
       wrapper.update();
       checkFormFields(
