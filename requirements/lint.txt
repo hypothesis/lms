@@ -128,7 +128,7 @@ importlib-metadata==4.8.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
-importlib_resources==5.4.0
+importlib-resources==5.4.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -179,7 +179,7 @@ marshmallow==3.14.0
     #   webargs
 mccabe==0.6.1
     # via pylint
-newrelic==7.2.2.169
+newrelic==7.2.3.170
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
