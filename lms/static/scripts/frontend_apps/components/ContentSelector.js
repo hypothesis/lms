@@ -125,8 +125,7 @@ export default function ContentSelector({
   /** @param {File} file */
   const selectBlackboardFile = file => {
     cancelDialog();
-    // file.id shall be a url of the form blackboard://content-resource/{file_id}
-    onSelectContent({ type: 'url', url: file.id });
+    onSelectContent({ type: 'file', file });
   };
 
   /**

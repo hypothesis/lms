@@ -37,6 +37,7 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
   const params = { ...extraParams };
   switch (content.type) {
     case 'file':
+      // TODO broken after canvas.id = "canvas://"
       params.canvas_file = 'true';
       params.file_id = content.file.id;
       break;

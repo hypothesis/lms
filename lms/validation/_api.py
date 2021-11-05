@@ -1,7 +1,7 @@
 """Schema for JSON APIs exposed to the frontend."""
 
 import marshmallow
-from marshmallow import Schema, ValidationError, validates_schema
+from marshmallow import Schema, ValidationError, validates_schema, EXCLUDE
 from webargs import fields
 
 from lms.validation._base import JSONPyramidRequestSchema, PyramidRequestSchema
@@ -84,10 +84,11 @@ class APICreateAssignmentSchema(PyramidRequestSchema):
 
     class Content(Schema):
         class File(Schema):
-            display_name = fields.Str(required=True)
-            id = fields.Int(required=True)
-            updated_at = fields.Str(required=True)
-            size = fields.Int(required=True)
+            class Meta:
+                unknown = EXCLUDE
+
+            # VALIDATE STARTS WITH our schemas
+            id = fields.Str(required=True)
 
         type = fields.Str(
             required=True,
@@ -100,16 +101,17 @@ class APICreateAssignmentSchema(PyramidRequestSchema):
         cfi = fields.Str(required=False, allow_none=True)
         """VitalSource IDs"""
 
-    ext_lti_assignment_id = fields.Str(required=True)
+    ext_lti_assignment_id = fields.Str(required=False, allow_none=True)
     """Canvas only assignment unique identifier"""
 
-    course_id = fields.Str(required=True)
+    course_id = fields.Str(required=False, allow_none=True)
     """Course ID for the assignment. We'd need it to construct the document_url"""
 
     groupset = fields.Integer(required=False, allow_none=True)
     """Groupset the assignment belongs to if created as a smalls groups assignment"""
 
     content = fields.Nested(Content, required=True)
+    resource_link_id = fields.Str(required=True)
 
     @validates_schema
     def validate(self, data, **_kwargs):

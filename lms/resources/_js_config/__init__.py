@@ -176,15 +176,19 @@ class JSConfig:
         }
 
     def _create_assignment_api(self):
-        if not self._context.is_canvas:
-            return None
+        extra = {}
+        if self._context.is_canvas:
+            extra = {
+                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"],
+                "course_id": self._request.params["custom_canvas_course_id"],
+            }
 
         return {
             "path": self._request.route_path("api.assignments.create"),
-            "data": {
-                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"],
-                "course_id": self._request.params["custom_canvas_course_id"],
-            },
+            "data": dict(
+                extra,
+                resource_link_id=self._request.params["resource_link_id"],
+            ),
         }
 
     def enable_content_item_selection_mode(self, form_action, form_fields):

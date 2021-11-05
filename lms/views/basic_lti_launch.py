@@ -285,7 +285,7 @@ class BasicLTILaunchViews:
         ).authorization_param(self.request.lti_user)
 
         self.context.js_config.enable_content_item_selection_mode(
-            form_action=self.request.route_url("configure_assignment"),
+            form_action=self.request.route_url("lti_launches"),
             form_fields=form_fields,
         )
 

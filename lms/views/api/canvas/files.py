@@ -28,7 +28,12 @@ class FilesAPIViews:
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.
         """
-        return self.canvas.api.list_files(self.request.matchdict["course_id"])
+        course_id = self.request.matchdict["course_id"]
+        files = self.canvas.api.list_files(course_id)
+        for file in files:
+            file["id"] = f"canvas://file/course/{course_id}/file_id/{file['id']}"
+
+        return files
 
     @view_config(request_method="GET", route_name="canvas_api.files.via_url")
     def via_url(self):

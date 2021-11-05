@@ -34,8 +34,7 @@ class AssignmentsAPIViews:
         if content_type == "url":
             url = content["url"]
         elif content_type == "file":
-            url = f"canvas://file/course/{params['course_id']}/file_id/{params['content']['file']['id']}"
-            extra = {"canvas_file": params["content"]["file"]}
+            url = params["content"]["file"]["id"]
         elif content_type == "vitalsource":
             book_id = params["content"]["bookID"]
             cfi = params["content"]["cfi"]
@@ -50,7 +49,8 @@ class AssignmentsAPIViews:
         assignment = self.assignment_service.upsert(
             url,
             self.application_instance.tool_consumer_instance_guid,
-            ext_lti_assignment_id=params["ext_lti_assignment_id"],
+            resource_link_id=params.get("resource_link_id"),
+            ext_lti_assignment_id=params.get("ext_lti_assignment_id"),
             extra=extra,
         )
         return {"ext_lti_assignment_id": assignment.ext_lti_assignment_id}

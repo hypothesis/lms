@@ -47,6 +47,9 @@ function contentDescription(content) {
     case 'url':
       return truncateURL(content.url, 65 /* maxLength */);
     case 'file':
+      if (content.file.id.startsWith("blackboard://")){
+            return 'PDF file in BlackBoard';
+      }
       return 'PDF file in Canvas';
     case 'vitalsource':
       return 'Book from VitalSource';
