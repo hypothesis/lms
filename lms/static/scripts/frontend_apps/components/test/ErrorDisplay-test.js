@@ -127,50 +127,27 @@ describe('ErrorDisplay', () => {
   [
     {
       description: 'Not a sentence',
-      output: 'Not a sentence',
+      output: 'Not a sentence.',
     },
     {
-      description: 'A sentence',
-      output: 'A sentence',
-    },
-    {
-      description: 'Oh no',
-      error: 'Tech details',
-      output: 'Oh no: Tech details.',
+      description: 'A sentence.',
+      output: 'A sentence.',
     },
     {
       description: 'Oh no',
-      error: 'Tech details.',
+      message: 'Tech details',
       output: 'Oh no: Tech details.',
     },
-  ].forEach(({ description, error, output }, index) => {
-    it(`formats error.message as sentence (${index})`, () => {
+    {
+      message: 'Tech details',
+      output: 'Tech details.',
+    },
+  ].forEach(({ description, message, output }, index) => {
+    it(`formats description and/or message appropriately (${index})`, () => {
       const wrapper = mount(
-        <ErrorDisplay description={description} error={{ message: error }} />
+        <ErrorDisplay description={description} error={{ message }} />
       );
       assert.equal(wrapper.find('p').first().text(), output);
-    });
-  });
-
-  [
-    {
-      description: 'Provided by client',
-      error: 'Provided by server',
-      output: 'Provided by client: Provided by server.',
-    },
-    {
-      description: 'Provided by client',
-      output: 'Provided by client',
-    },
-  ].forEach(({ description, error, output }, index) => {
-    it(`shows the appropriate error message if provided (${index})`, () => {
-      const wrapper = mount(
-        <ErrorDisplay description={description} error={{ message: error }} />
-      );
-      assert.equal(
-        wrapper.find('p[data-testid="error-message"]').text(),
-        output
-      );
     });
   });
 

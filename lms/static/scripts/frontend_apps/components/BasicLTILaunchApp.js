@@ -123,7 +123,7 @@ export default function BasicLTILaunchApp() {
 
     if (
       e instanceof APIError &&
-      e.errorCode !== null &&
+      e.errorCode &&
       [
         'blackboard_file_not_found_in_course',
         'canvas_api_permission_error',

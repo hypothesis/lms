@@ -79,7 +79,7 @@ describe('api', () => {
       {
         status: 403,
         body: { message: null, details: {} },
-        expectedMessage: 'API call failed',
+        expectedMessage: '',
       },
       {
         status: 400,
@@ -105,10 +105,10 @@ describe('api', () => {
         }
 
         assert.instanceOf(reason, APIError);
-        assert.equal(reason.message, expectedMessage, '`Error.message`');
+        assert.equal(reason.message, 'API call failed', '`Error.message`');
         assert.equal(
           reason.errorMessage,
-          body.message,
+          expectedMessage,
           '`APIError.errorMessage`'
         );
         assert.equal(reason.details, body.details, '`APIError.details`');
