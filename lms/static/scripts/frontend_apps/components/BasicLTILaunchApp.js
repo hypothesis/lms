@@ -133,11 +133,18 @@ export default function BasicLTILaunchApp() {
         'canvas_student_not_in_group',
       ].includes(e.errorCode)
     ) {
+      // In this case, we're dealing with an APIError from an API request to
+      // our own backend, of a known error code.
       setError(e);
       setErrorState(/** @type {ErrorState} */ (e.errorCode));
     } else if (e instanceof APIError && !e.errorMessage && retry) {
+      // This is a special case expected by the back end. We're handling an
+      // APIError resulting from an API request, but there are no further
+      // details in the response body to guide us. This implicitly means that
+      // we're facing an authorization-related error.
       setErrorState('error-authorizing');
     } else {
+      // Handle other types of errors, which may be APIError or Error
       setError(e);
       setErrorState(state);
     }

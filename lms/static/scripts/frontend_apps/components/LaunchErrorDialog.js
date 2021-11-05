@@ -95,7 +95,8 @@ export default function LaunchErrorDialog({
     case 'error-authorizing':
       // nb. There are no error details shown here, since failing to authorize
       // is a "normal" event which will happen if the user has not authorized before
-      // or the authorization has expired or been revoked.
+      // or the authorization has expired or been revoked. This is handled
+      // specially here by not passing the `error` on to `BaseDialog`
       return (
         <BaseDialog
           busy={busy}
