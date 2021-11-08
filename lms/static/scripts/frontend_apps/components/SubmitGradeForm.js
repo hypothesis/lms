@@ -161,50 +161,58 @@ export default function SubmitGradeForm({ student }) {
   const disabled = !student;
 
   return (
-    <form className="SubmitGradeForm" autoComplete="off">
-      {validationMessage && (
-        <ValidationMessage
-          message={validationMessage}
-          open={showValidationError}
-          onClose={() => {
-            // Sync up the state when the ValidationMessage is closed
-            setValidationError(false);
-          }}
-        />
-      )}
-      <label className="SubmitGradeForm__label" htmlFor={gradeId}>
-        Grade (Out of 10)
-      </label>
-      <span className="SubmitGradeForm__grade-wrapper">
-        <input
-          className={classNames('SubmitGradeForm__grade', {
-            'is-saved': gradeSaved,
-          })}
+    <>
+      <form className="SubmitGradeForm" autoComplete="off">
+        {validationMessage && (
+          <ValidationMessage
+            message={validationMessage}
+            open={showValidationError}
+            onClose={() => {
+              // Sync up the state when the ValidationMessage is closed
+              setValidationError(false);
+            }}
+          />
+        )}
+        <label className="SubmitGradeForm__label" htmlFor={gradeId}>
+          Grade (Out of 10)
+        </label>
+        <span className="SubmitGradeForm__grade-wrapper">
+          <input
+            className={classNames('SubmitGradeForm__grade', {
+              'is-saved': gradeSaved,
+            })}
+            disabled={disabled}
+            id={gradeId}
+            ref={inputRef}
+            onInput={handleKeyDown}
+            type="input"
+            // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
+            defaultValue={grade}
+            key={student ? student.LISResultSourcedId : null}
+          />
+          <Spinner
+            className={classNames('SubmitGradeForm__fetch-spinner', {
+              'is-active': gradeLoading,
+              'is-fade-away':
+                !gradeLoading && student && student.LISResultSourcedId,
+            })}
+          />
+        </span>
+        <button
+          type="submit"
+          className="SubmitGradeForm__submit"
           disabled={disabled}
-          id={gradeId}
-          ref={inputRef}
-          onInput={handleKeyDown}
-          type="input"
-          // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
-          defaultValue={grade}
-          key={student ? student.LISResultSourcedId : null}
-        />
-        <Spinner
-          className={classNames('SubmitGradeForm__fetch-spinner', {
-            'is-active': gradeLoading,
-            'is-fade-away':
-              !gradeLoading && student && student.LISResultSourcedId,
-          })}
-        />
-      </span>
-      <button
-        type="submit"
-        className="SubmitGradeForm__submit"
-        disabled={disabled}
-        onClick={onSubmitGrade}
-      >
-        <Icon classes="SubmitGradeForm__check-icon" name="check" /> Submit Grade
-      </button>
+          onClick={onSubmitGrade}
+        >
+          <Icon classes="SubmitGradeForm__check-icon" name="check" /> Submit
+          Grade
+        </button>
+        {gradeSaving && (
+          <div className="SubmitGradeForm__loading-backdrop">
+            <Spinner className="SubmitGradeForm__submit-spinner" />
+          </div>
+        )}
+      </form>
       {!!submitGradeError && (
         <ErrorDialog
           description="Unable to submit grade"
@@ -225,11 +233,6 @@ export default function SubmitGradeForm({ student }) {
           cancelLabel="Close"
         />
       )}
-      {gradeSaving && (
-        <div className="SubmitGradeForm__loading-backdrop">
-          <Spinner className="SubmitGradeForm__submit-spinner" />
-        </div>
-      )}
-    </form>
+    </>
   );
 }
