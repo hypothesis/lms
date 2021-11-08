@@ -127,7 +127,7 @@ class TestBasicClient:
         assert exc.request == request
         assert exc.response == response
 
-    @pytest.mark.usefixtures("paginated_results")
+    @pytest.mark.usefixtures("with_paginated_results")
     def test_send_follows_pagination_links_for_many_schema(
         self, basic_client, PaginatedSchema, http_session
     ):
@@ -147,7 +147,7 @@ class TestBasicClient:
             ]
         )
 
-    @pytest.mark.usefixtures("paginated_results")
+    @pytest.mark.usefixtures("with_paginated_results")
     def test_send_only_paginates_to_the_max_value(self, basic_client, PaginatedSchema):
         basic_client.PAGINATION_MAXIMUM_REQUESTS = 2
 
@@ -155,7 +155,7 @@ class TestBasicClient:
 
         assert result == ["item_0", "item_1"]
 
-    @pytest.mark.usefixtures("paginated_results")
+    @pytest.mark.usefixtures("with_paginated_results")
     def test_send_raises_CanvasAPIError_for_pagination_with_non_many_schema(
         self, basic_client, Schema, http_session, paginated_responses
     ):
@@ -207,7 +207,7 @@ class TestBasicClient:
         ]
 
     @pytest.fixture
-    def paginated_results(self, http_session, paginated_responses):
+    def with_paginated_results(self, http_session, paginated_responses):
         http_session.send.side_effect = paginated_responses
 
     @classmethod
