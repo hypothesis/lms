@@ -8,6 +8,8 @@ import ErrorDisplay from './ErrorDisplay';
  * @typedef {import("preact").ComponentChildren} Children
  *
  * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
+ *
+ * @typedef {import('./ErrorDisplay').ErrorLike} ErrorLike
  */
 
 /**
@@ -22,7 +24,7 @@ import ErrorDisplay from './ErrorDisplay';
  * @param {object} props
  * @param {boolean} props.busy
  * @param {Children} props.children
- * @param {Error|null} [props.error]
+ * @param {ErrorLike|null} [props.error]
  * @param {() => void} [props.onRetry]
  * @param {string} [props.retryLabel]
  * @param {string} [props.title]
@@ -72,7 +74,7 @@ function BaseDialog({
  *   Flag indicating that the app is busy and should not allow the user to
  *   click the "Try again" button
  * @prop {ErrorState} errorState - What kind of error occurred?
- * @prop {Error|null} error - Detailed information about the error
+ * @prop {ErrorLike|null} error - Detailed information about the error
  * @prop {() => void} onRetry -
  *   Callback invoked when user clicks the "Try again" button
  */
@@ -246,9 +248,13 @@ export default function LaunchErrorDialog({
       );
 
     case 'error-fetching':
+      // Do not display canned text if there is a back-end-provided message
+      // to show here, as it's redundant and not useful
       return (
         <BaseDialog busy={busy} error={error} onRetry={onRetry}>
-          <p>There was a problem fetching this Hypothesis assignment.</p>
+          {!error?.errorMessage && (
+            <p>There was a problem fetching this Hypothesis assignment.</p>
+          )}
         </BaseDialog>
       );
     case 'error-reporting-submission':

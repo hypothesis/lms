@@ -101,6 +101,25 @@ describe('LaunchErrorDialog', () => {
     }
   );
 
+  it('only renders back-end messaging in "error-fetching" state, if provided', () => {
+    // The presence of `errorMessage` on the errorLike object will prevent the
+    // canned text from rendering
+    const errorLike = {
+      message: 'This is the JS error message',
+      errorMessage: 'This is the back-end error message',
+    };
+
+    const wrapper = renderDialog({
+      error: errorLike,
+      errorState: 'error-fetching',
+    });
+
+    assert.notInclude(
+      wrapper.text(),
+      'There was a problem fetching this Hypothesis assignment'
+    );
+  });
+
   it('initiates retry when "Try again" button is clicked', () => {
     const wrapper = renderDialog();
 
