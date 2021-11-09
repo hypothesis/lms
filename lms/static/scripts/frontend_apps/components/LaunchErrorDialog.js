@@ -252,7 +252,7 @@ export default function LaunchErrorDialog({
       // to show here, as it's redundant and not useful
       return (
         <BaseDialog busy={busy} error={error} onRetry={onRetry}>
-          {!error?.errorMessage && (
+          {!error?.serverMessage && (
             <p>There was a problem fetching this Hypothesis assignment.</p>
           )}
         </BaseDialog>

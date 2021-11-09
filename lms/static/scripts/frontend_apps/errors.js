@@ -40,7 +40,7 @@ export class APIError extends Error {
      * May be empty if the server did not provide any details about what the
      * problem was.
      */
-    this.errorMessage = data.message ?? '';
+    this.serverMessage = data.message ?? '';
 
     /**
      * Server-provided details of the error.

@@ -175,10 +175,10 @@ describe('LMSFilePicker', () => {
     assert.deepEqual(pathItems3[1], fakeFolders[0]);
   });
 
-  it('shows the authorization prompt if fetching files fails with an APIError that has no `errorMessage`', async () => {
+  it('shows the authorization prompt if fetching files fails with an APIError that has no `serverMessage`', async () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
-        /** without errorMessage */
+        /** without serverMessage */
       })
     );
 
@@ -216,7 +216,7 @@ describe('LMSFilePicker', () => {
   it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
-        /** without errorMessage */
+        /** without serverMessage */
       })
     );
 

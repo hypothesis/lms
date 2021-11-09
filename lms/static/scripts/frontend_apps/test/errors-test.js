@@ -6,7 +6,7 @@ describe('APIError', () => {
 
     assert.isUndefined(error.details);
     assert.isUndefined(error.errorCode);
-    assert.equal(error.errorMessage, '');
+    assert.equal(error.serverMessage, '');
     assert.equal(error.message, 'API call failed');
     assert.equal(error.status, 404);
   });
@@ -22,7 +22,7 @@ describe('APIError', () => {
 
     assert.equal(error.details, details);
     assert.equal(error.errorCode, '4xx');
-    assert.equal(error.errorMessage, 'message');
+    assert.equal(error.serverMessage, 'message');
     assert.equal(error.message, 'API call failed');
     assert.equal(error.status, 404);
   });

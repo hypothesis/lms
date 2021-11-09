@@ -31,7 +31,7 @@ function toSentence(str) {
  * @typedef ErrorLike
  * @prop {string} [message]
  * @prop {object|string} [details] - Optional JSON-serializable details of the error
- * @prop {string} [errorMessage] - Explanatory message provided by backend that
+ * @prop {string} [serverMessage] - Explanatory message provided by backend that
  *   will be preferred over `message` if it is present.
  */
 
@@ -118,11 +118,11 @@ Technical details: ${details || 'N/A'}
     `,
   });
 
-  // If `errorMessage` is extant on `error`, prefer it to `error.message` even
-  // if `errorMessage` is empty — In cases where we are displaying error
+  // If `serverMessage` is extant on `error`, prefer it to `error.message` even
+  // if `serverMessage` is empty — In cases where we are displaying error
   // information provided by the backend (i.e. `APIError`), we do not want
   // to render the JS Error instance's `message` as it likely does not apply
-  const message = error.errorMessage ?? error.message;
+  const message = error.serverMessage ?? error.message;
 
   return (
     <Scrollbox classes="LMS-Scrollbox">

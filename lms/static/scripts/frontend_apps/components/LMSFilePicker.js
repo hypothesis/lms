@@ -183,7 +183,7 @@ export default function LMSFilePicker({
         }
         setDialogState({ state: 'fetched', files });
       } catch (error) {
-        if (error instanceof APIError && !error.errorMessage) {
+        if (error instanceof APIError && !error.serverMessage) {
           setDialogState({ state: 'authorizing', isRetry: isReload });
         } else {
           setDialogState({ state: 'error', error });
