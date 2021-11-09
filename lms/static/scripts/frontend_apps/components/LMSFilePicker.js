@@ -3,7 +3,7 @@ import classnames from 'classnames';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { APIError } from '../errors';
+import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
 
 import AuthButton from './AuthButton';
@@ -183,7 +183,7 @@ export default function LMSFilePicker({
         }
         setDialogState({ state: 'fetched', files });
       } catch (error) {
-        if (error instanceof APIError && !error.serverMessage) {
+        if (isAuthorizationError(error)) {
           setDialogState({ state: 'authorizing', isRetry: isReload });
         } else {
           setDialogState({ state: 'error', error });

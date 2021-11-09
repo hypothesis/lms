@@ -9,7 +9,7 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
-import { APIError } from '../errors';
+import { isAuthorizationError, isLTILaunchServerError } from '../errors';
 import { ClientRPC, useService } from '../services';
 import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
@@ -20,25 +20,17 @@ import Spinner from './Spinner';
 import VitalSourceBookViewer from './VitalSourceBookViewer';
 
 /**
- * The categories of error that can happen when launching an assignment.
- *
- * These affect the message that is shown to users and the actions
+ * Error states managed by this component that can arise during assignment
+ * launch. These affect the message that is shown to users and the actions
  * offered to remedy the problem.
  *
- * Note the two different naming conventions here:
- *  - "blackboard_*" for the Blackboard specific cases where ErrorState matches the string coming from the backend and are all handled the same way
- *  - "canvas_*" for the canvas specific cases where ErrorState matches the string coming from the backend and are all handled the same way
- *  - "error-*" for the rest
+ * Valid error states include several known server-provided error codes as well
+ * as some states applicable only to this component and its children.
  *
- * @typedef {'error-fetching'|
- *           'error-authorizing'|
+ * @typedef {'error-authorizing'|
+ *           'error-fetching'|
  *           'error-reporting-submission'|
- *           'blackboard_file_not_found_in_course'|
- *           'canvas_api_permission_error'|
- *           'canvas_file_not_found_in_course'|
- *           'canvas_group_set_not_found'|
- *           'canvas_group_set_empty'|
- *           'canvas_student_not_in_group'} ErrorState
+ *           import('../errors').LTILaunchServerErrorCode} ErrorState
  */
 
 /**
@@ -109,43 +101,26 @@ export default function BasicLTILaunchApp() {
   /**
    * Helper to handle thrown errors from from API requests.
    *
-   * @param {Error} e - Error object from request.
+   * @param {Error} error - Error object from request.
    * @param {ErrorState} state
    * @param {boolean} [retry=true] - Can the request be retried?
    * @param {string} [authUrl] -
    *   Authorization URL association with the API request
    */
-  const handleError = (e, state, retry = true, authUrl) => {
+  const handleError = (error, state, retry = true, authUrl) => {
     // Here we always set the authorization URL, but we could improve UX by
     // not setting it if the problem is not related to authorization (eg.
     // a network fetch error).
     setAuthUrl(authUrl || null);
 
-    if (
-      e instanceof APIError &&
-      e.errorCode &&
-      [
-        'blackboard_file_not_found_in_course',
-        'canvas_api_permission_error',
-        'canvas_file_not_found_in_course',
-        'canvas_group_set_not_found',
-        'canvas_group_set_empty',
-        'canvas_student_not_in_group',
-      ].includes(e.errorCode)
-    ) {
-      // In this case, we're dealing with an APIError from an API request to
-      // our own backend, of a known error code.
-      setError(e);
-      setErrorState(/** @type {ErrorState} */ (e.errorCode));
-    } else if (e instanceof APIError && !e.serverMessage && retry) {
-      // This is a special case expected by the back end. We're handling an
-      // APIError resulting from an API request, but there are no further
-      // details in the response body to guide us. This implicitly means that
-      // we're facing an authorization-related error.
+    if (isLTILaunchServerError(error)) {
+      setError(error);
+      setErrorState(/** @type {ErrorState} */ (error.errorCode));
+    } else if (isAuthorizationError(error) && retry) {
       setErrorState('error-authorizing');
     } else {
       // Handle other types of errors, which may be APIError or Error
-      setError(e);
+      setError(error);
       setErrorState(state);
     }
   };

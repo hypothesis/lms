@@ -1,4 +1,8 @@
-import { APIError } from '../errors';
+import {
+  APIError,
+  isAuthorizationError,
+  isLTILaunchServerError,
+} from '../errors';
 
 describe('APIError', () => {
   it('creates APIError with default properties', () => {
@@ -25,5 +29,65 @@ describe('APIError', () => {
     assert.equal(error.serverMessage, 'message');
     assert.equal(error.message, 'API call failed');
     assert.equal(error.status, 404);
+  });
+});
+
+describe('isAuthorizationError', () => {
+  [
+    {
+      error: new Error('This is any error'),
+      expected: false,
+    },
+    {
+      error: new APIError(404, { error_code: 'some-error-code' }),
+      expected: false,
+    },
+    {
+      error: new APIError(404, { message: 'Some message' }),
+      expected: false,
+    },
+    {
+      error: new APIError(404, {}),
+      expected: true,
+    },
+    {
+      error: new APIError(404, { details: 'moose' }),
+      expected: true,
+    },
+  ].forEach((testCase, idx) => {
+    it(`returns 'true' if provided error represents an authorization error (${idx})`, () => {
+      assert.equal(isAuthorizationError(testCase.error), testCase.expected);
+    });
+  });
+});
+
+describe('isLTILaunchServerError', () => {
+  [
+    {
+      error: new Error('any old error'),
+      expected: false,
+    },
+    {
+      error: new APIError(400, {}),
+      expected: false,
+    },
+    {
+      error: new APIError(400, { message: 'This is a server message' }),
+      expected: false,
+    },
+    {
+      error: new APIError(400, { error_code: 'rando-error-code' }),
+      expected: false,
+    },
+    {
+      error: new APIError(400, {
+        error_code: 'blackboard_file_not_found_in_course',
+      }),
+      expected: true,
+    },
+  ].forEach(testCase => {
+    it('should return `true` if the error has a recognized error code', () => {
+      assert.equal(isLTILaunchServerError(testCase.error), testCase.expected);
+    });
   });
 });
