@@ -1,4 +1,17 @@
 /**
+ * @typedef {'reused_consumer_key'} AppLaunchServerErrorCode
+ *
+ * @typedef {'blackboard_missing_integration'|'canvas_invalid_scope'} OAuthServerErrorCode
+ *
+ * @typedef {'blackboard_file_not_found_in_course'|
+ *           'canvas_api_permission_error'|
+ *           'canvas_file_not_found_in_course'|
+ *           'canvas_group_set_not_found'|
+ *           'canvas_group_set_empty'|
+ *           'canvas_student_not_in_group'} LTILaunchServerErrorCode
+ */
+
+/**
  * Error thrown when the user cancels file selection.
  */
 export class PickerCanceledError extends Error {
@@ -51,4 +64,44 @@ export class APIError extends Error {
      */
     this.details = data.details;
   }
+}
+
+/**
+ * Should the error object be treated as an authorization error?
+ *
+ * This is a special case. We're handling an APIError resulting from an API
+ * request, but there are no further details in the response body to guide us.
+ * This implicitly means that we're facing an authorization-related issue.
+ *
+ * Put another way, if an APIError has neither an errorCode nor a serverMessage,
+ * it is considered an "authorization error".
+ *
+ * @param {Error} error
+ * @returns {boolean}
+ */
+export function isAuthorizationError(error) {
+  return error instanceof APIError && !error.serverMessage && !error.errorCode;
+}
+
+/**
+ * Does the current error object represent an API Error with a recognized
+ * backend-provided `errorCode` related to a failed attempt to launch an
+ * assignment?
+ *
+ * @param {Error} error
+ * @returns {error is APIError}
+ */
+export function isLTILaunchServerError(error) {
+  return (
+    error instanceof APIError &&
+    !!error.errorCode &&
+    [
+      'blackboard_file_not_found_in_course',
+      'canvas_api_permission_error',
+      'canvas_file_not_found_in_course',
+      'canvas_group_set_not_found',
+      'canvas_group_set_empty',
+      'canvas_student_not_in_group',
+    ].includes(error.errorCode)
+  );
 }

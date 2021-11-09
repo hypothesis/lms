@@ -90,10 +90,14 @@ import { createContext } from 'preact';
  */
 
 /**
+ * @typedef {import('./errors').AppLaunchServerErrorCode} AppLaunchServerErrorCode
+ * @typedef {import('./errors').OAuthServerErrorCode} OAuthServerErrorCode
+ */
+/**
  * Base type for error information provided through this configuration object.
  *
  * @typedef ConfigErrorBase
- * @prop {'blackboard_missing_integration'|'canvas_invalid_scope'|'reused_consumer_key'} [errorCode]
+ * @prop {AppLaunchServerErrorCode|OAuthServerErrorCode} [errorCode]
  * @prop {object|string} [errorDetails]
  */
 
@@ -102,7 +106,7 @@ import { createContext } from 'preact';
  * `error-dialog` mode.
  *
  * @typedef ErrorDialogConfigBase
- * @prop {'reused_consumer_key'} [errorCode]
+ * @prop {AppLaunchServerErrorCode} [errorCode]
  *
  * @typedef {ConfigErrorBase & ErrorDialogConfigBase} ErrorDialogConfig
  */
@@ -113,7 +117,7 @@ import { createContext } from 'preact';
  * of additional optional properties to the base ConfigErrorCode type.
  *
  * @typedef OAuthErrorConfigBase
- * @prop {'blackboard_missing_integration'|'canvas_invalid_scope'} [errorCode]
+ * @prop {OAuthServerErrorCode} [errorCode]
  * @prop {string} [authUrl]
  * @prop {string[]} [canvasScopes]
  *
