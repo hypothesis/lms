@@ -151,7 +151,7 @@ describe('ErrorDisplay', () => {
     {
       error: {
         message: 'Default error message',
-        errorMessage: 'Server message',
+        serverMessage: 'Server message',
       },
       output: 'Server message.',
     },
@@ -159,7 +159,7 @@ describe('ErrorDisplay', () => {
       description: 'Something went wrong',
       error: {
         message: 'Default error message',
-        errorMessage: 'Server message',
+        serverMessage: 'Server message',
       },
       output: 'Something went wrong: Server message.',
     },
@@ -167,14 +167,14 @@ describe('ErrorDisplay', () => {
       description: 'Something went wrong',
       error: {
         message: 'Default error message',
-        errorMessage: '',
+        serverMessage: '',
       },
       output: 'Something went wrong.',
     },
     {
       error: {
         message: 'Default error message',
-        errorMessage: '',
+        serverMessage: '',
       },
     },
   ].forEach(({ description, error, output }, index) => {

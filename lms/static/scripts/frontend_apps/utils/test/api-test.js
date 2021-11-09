@@ -107,9 +107,9 @@ describe('api', () => {
         assert.instanceOf(reason, APIError);
         assert.equal(reason.message, 'API call failed', '`Error.message`');
         assert.equal(
-          reason.errorMessage,
+          reason.serverMessage,
           expectedMessage,
-          '`APIError.errorMessage`'
+          '`APIError.serverMessage`'
         );
         assert.equal(reason.details, body.details, '`APIError.details`');
         assert.equal(reason.errorCode, null);

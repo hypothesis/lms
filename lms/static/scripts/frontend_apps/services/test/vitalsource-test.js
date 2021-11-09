@@ -60,7 +60,7 @@ describe('VitalSourceService', () => {
         err = e;
       }
       assert.instanceOf(err, APIError);
-      assert.equal(err.errorMessage, 'Book not found');
+      assert.equal(err.serverMessage, 'Book not found');
     });
   });
 
@@ -81,7 +81,7 @@ describe('VitalSourceService', () => {
         err = e;
       }
       assert.instanceOf(err, APIError);
-      assert.equal(err.errorMessage, 'Book not found');
+      assert.equal(err.serverMessage, 'Book not found');
     });
   });
 });

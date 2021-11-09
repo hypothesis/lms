@@ -102,11 +102,11 @@ describe('LaunchErrorDialog', () => {
   );
 
   it('only renders back-end messaging in "error-fetching" state, if provided', () => {
-    // The presence of `errorMessage` on the errorLike object will prevent the
+    // The presence of `serverMessage` on the errorLike object will prevent the
     // canned text from rendering
     const errorLike = {
       message: 'This is the JS error message',
-      errorMessage: 'This is the back-end error message',
+      serverMessage: 'This is the back-end error message',
     };
 
     const wrapper = renderDialog({

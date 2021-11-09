@@ -137,7 +137,7 @@ export default function BasicLTILaunchApp() {
       // our own backend, of a known error code.
       setError(e);
       setErrorState(/** @type {ErrorState} */ (e.errorCode));
-    } else if (e instanceof APIError && !e.errorMessage && retry) {
+    } else if (e instanceof APIError && !e.serverMessage && retry) {
       // This is a special case expected by the back end. We're handling an
       // APIError resulting from an API request, but there are no further
       // details in the response body to guide us. This implicitly means that

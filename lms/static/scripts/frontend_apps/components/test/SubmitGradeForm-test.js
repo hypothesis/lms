@@ -175,7 +175,7 @@ describe('SubmitGradeForm', () => {
     it('shows the error dialog when the grade request throws an error', () => {
       const wrapper = renderForm();
       const error = {
-        errorMessage: 'message',
+        serverMessage: 'message',
         details: 'details',
       };
       fakeGradingService.submitGrade.throws(error);
@@ -249,7 +249,7 @@ describe('SubmitGradeForm', () => {
 
     it('shows the error dialog when the grade request throws an error', () => {
       const error = {
-        errorMessage: 'message',
+        serverMessage: 'message',
         details: 'details',
       };
       fakeGradingService.fetchGrade.throws(error);
