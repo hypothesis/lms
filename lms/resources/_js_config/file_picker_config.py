@@ -30,8 +30,10 @@ class FilePickerConfig:
     @classmethod
     def canvas_config(cls, context, request, application_instance):
         """Get Canvas files config."""
+        if not context.is_canvas:
+            return None
 
-        enabled = context.is_canvas and (
+        enabled = (
             "custom_canvas_course_id" in request.params
             and application_instance.developer_key is not None
         )

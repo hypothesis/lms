@@ -32,6 +32,7 @@ class TestFilePickerConfig:
         }
 
     def test_canvas_config(self, context, pyramid_request, application_instance):
+        context.is_canvas = True
         pyramid_request.params["custom_canvas_course_id"] = "COURSE_ID"
 
         config = FilePickerConfig.canvas_config(
@@ -52,17 +53,26 @@ class TestFilePickerConfig:
             "ltiLaunchUrl": "http://example.com/lti_launches",
         }
 
+    def test_canvas_config_when_non_canvas(
+        self, context, pyramid_request, application_instance
+    ):
+        context.is_canvas = False
+
+        config = FilePickerConfig.canvas_config(
+            context, pyramid_request, application_instance
+        )
+
+        assert not config
+
     @pytest.mark.parametrize(
         "missing_value",
-        (None, "is_canvas", "course_id", "developer_key"),
+        (None, "course_id", "developer_key"),
     )
     @pytest.mark.usefixtures("canvas_files_enabled")
     def test_canvas_config_enabled(
         self, context, pyramid_request, application_instance, missing_value
     ):
-        if missing_value == "is_canvas":
-            context.is_canvas = False
-        elif missing_value == "course_id":
+        if missing_value == "course_id":
             pyramid_request.params.pop("custom_canvas_course_id")
         elif missing_value == "developer_key":
             application_instance.developer_key = None
