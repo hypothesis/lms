@@ -165,8 +165,9 @@ class BasicLTILaunchViews:
 
     @view_config(
         db_configured=True,
-        legacy_speedgrader=False,
+        canvas_file=False,
         request_param="ext_lti_assignment_id",
+        url_configured=False,
     )
     def canvas_db_configured_basic_lti_launch(self):
         """Respond to a Canvas DB-configured assignment launch."""
