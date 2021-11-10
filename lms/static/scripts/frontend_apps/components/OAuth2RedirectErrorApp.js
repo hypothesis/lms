@@ -1,4 +1,4 @@
-import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
+import { LabeledButton, Link, Modal } from '@hypothesis/frontend-shared';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -91,13 +91,12 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             </ol>
             <p>
               For more information see:{' '}
-              <a
+              <Link
                 target="_blank"
-                rel="noopener noreferrer"
                 href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
               >
                 Canvas API Endpoints Used by the Hypothesis LMS App
-              </a>
+              </Link>
               .
             </p>
           </>
@@ -112,13 +111,12 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             </p>
             <p>
               For more information, please have your Blackboard admin read:{' '}
-              <a
+              <Link
                 target="_blank"
-                rel="noopener noreferrer"
                 href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
               >
                 Enable the Hypothesis Integration With Blackboard Files
-              </a>
+              </Link>
               .
             </p>
           </>

@@ -82,7 +82,7 @@ function ErrorDetails({ error }) {
  * @param {ErrorLike} error
  * @returns {string}
  */
-function formatSupportURL(errorMessage, error) {
+function supportURL(errorMessage, error) {
   const supportURL = new URL('https://web.hypothes.is/get-help/');
 
   supportURL.searchParams.append('product', 'LMS_app');
@@ -150,7 +150,7 @@ export default function ErrorDisplay({ children, description = '', error }) {
         {children}
         <p data-testid="error-links">
           If the problem persists, you can{' '}
-          <Link href={formatSupportURL(errorMessage, error)} target="_blank">
+          <Link href={supportURL(errorMessage, error)} target="_blank">
             open a support ticket
           </Link>{' '}
           or visit our{' '}

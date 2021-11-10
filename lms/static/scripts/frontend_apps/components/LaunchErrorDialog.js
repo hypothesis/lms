@@ -1,4 +1,4 @@
-import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
+import { LabeledButton, Link, Modal } from '@hypothesis/frontend-shared';
 
 import { useRef } from 'preact/hooks';
 
@@ -127,13 +127,12 @@ export default function LaunchErrorDialog({
             <li>
               You don{"'"}t have permission to read the file: an instructor
               needs to{' '}
-              <a
-                target="_blank"
+              <Link
                 rel="noreferrer"
                 href="https://web.hypothes.is/help/creating-hypothesis-enabled-readings-in-blackboard/"
               >
                 give students read permission for the file
-              </a>
+              </Link>
             </li>
           </ul>
         </BaseDialog>
@@ -182,13 +181,12 @@ export default function LaunchErrorDialog({
 
           <p>
             To fix the issue,{' '}
-            <a
+            <Link
               target="_blank"
-              rel="noreferrer"
               href="https://web.hypothes.is/help/fixing-a-broken-canvas-file-link/"
             >
               edit the assignment and re-select the file
-            </a>
+            </Link>
             .
           </p>
         </BaseDialog>
