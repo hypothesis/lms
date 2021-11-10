@@ -54,7 +54,7 @@ class BlackboardListGroupsSchema(RequestsResponseSchema):
 
         id = fields.Str(required=True)
         name = fields.Str(required=True)
-        groupSetId = fields.Str(required=True)
+        groupSetId = fields.Str(required=False, allow_none=True)
 
     results = fields.List(fields.Nested(GroupSchema), required=True)
 
