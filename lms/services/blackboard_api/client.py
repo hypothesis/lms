@@ -130,21 +130,3 @@ class BlackboardAPIClient:
             ]
 
         return groups
-
-    def user_groups(self, course_id, user_id, group_category_id):
-
-        groups = []
-
-        for group in self.course_groups(course_id, group_category_id):
-
-            try:
-                self._api.request(
-                    "GET",
-                    f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}/users/uuid:{user_id}",
-                )
-                # If the /users/{uuid:///} endpoint doesn't 404, the user belongs to the group
-                groups.append(group)
-            except ExternalRequestError as err:
-                pass
-
-        return groups
