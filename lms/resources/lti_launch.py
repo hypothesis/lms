@@ -192,6 +192,16 @@ class LTILaunchResource:
         return bool(application_instance.settings.get("canvas", "groups_enabled"))
 
     @property
+    def blackboard_groups_enabled(self):
+        """Return True if BlackBoard groups are enabled at the school/installation level."""
+        try:
+            application_instance = self._application_instance_service.get_current()
+        except ApplicationInstanceNotFound:
+            return False
+
+        return bool(application_instance.settings.get("blackboard", "groups_enabled"))
+
+    @property
     def canvas_is_group_launch(self):
         """Return True if the current assignment uses canvas groups."""
         if not self.canvas_groups_enabled:
