@@ -26,12 +26,12 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
 
   const {
     authUrl = null,
-    errorCode = null,
+    errorCode,
     errorDetails = '',
     canvasScopes = /** @type {string[]} */ ([]),
   } = OAuth2RedirectError ?? {};
 
-  const error = { code: errorCode, details: errorDetails };
+  const error = { errorCode, details: errorDetails };
 
   let title;
   let description;
@@ -76,7 +76,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
       title={title}
     >
       <ErrorDisplay error={error} description={description}>
-        {error.code === 'canvas_invalid_scope' && (
+        {errorCode === 'canvas_invalid_scope' && (
           <>
             <p>
               A Canvas admin needs to edit {"Hypothesis's"} developer key and
@@ -103,7 +103,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
           </>
         )}
 
-        {error.code === 'blackboard_missing_integration' && (
+        {errorCode === 'blackboard_missing_integration' && (
           <>
             <p>
               In order to allow Hypothesis to connect to files in Blackboard,

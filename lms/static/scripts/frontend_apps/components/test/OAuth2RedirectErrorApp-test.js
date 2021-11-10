@@ -62,18 +62,30 @@ describe('OAuth2RedirectErrorApp', () => {
     assert.notInclude(wrapper.text(), 'A Canvas admin needs to edit');
   });
 
-  it('renders error details', () => {
+  it('renders generic error details when error code not set', () => {
     fakeConfig.errorDetails = 'Technical details';
-
     const wrapper = renderApp();
 
     const errorDisplay = wrapper.find('ErrorDisplay');
     assert.include(errorDisplay.props(), {
       description: 'Something went wrong when authorizing Hypothesis',
     });
+
+    assert.include(errorDisplay.prop('error'), {
+      details: fakeConfig.errorDetails,
+    });
+  });
+
+  it('passes on error details and error code for display', () => {
+    fakeConfig.errorDetails = 'Technical details';
+    fakeConfig.errorCode = 'blackboard_missing_integration';
+
+    const wrapper = renderApp();
+
+    const errorDisplay = wrapper.find('ErrorDisplay');
     assert.deepEqual(errorDisplay.prop('error'), {
       details: fakeConfig.errorDetails,
-      code: null,
+      errorCode: 'blackboard_missing_integration',
     });
   });
 

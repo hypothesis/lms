@@ -1,18 +1,4 @@
-import { Scrollbox } from '@hypothesis/frontend-shared';
-
-/**
- * Generate a `mailto:` URL that prompts to send an email with pre-filled fields.
- *
- * @param {object} args
- * @param {string} args.address - Email address to sent to
- * @param {string} [args.subject] - Pre-filled subject line
- * @param {string} [args.body] - Pre-filled body
- */
-function emailLink({ address, subject = '', body = '' }) {
-  return `mailto:${address}?subject=${encodeURIComponent(
-    subject
-  )}&body=${encodeURIComponent(body)}`;
-}
+import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
 /**
  * Adds punctuation to a string if missing.
@@ -31,6 +17,7 @@ function toSentence(str) {
  * @typedef ErrorLike
  * @prop {string} [message]
  * @prop {object|string} [details] - Optional JSON-serializable details of the error
+ * @prop {string} [errorCode] - Provided by back-end to identify error state
  * @prop {string} [serverMessage] - Explanatory message provided by backend that
  *   will be preferred over `message` if it is present.
  */
@@ -88,11 +75,45 @@ function ErrorDetails({ error }) {
 }
 
 /**
+ * Prepare a URL that will pre-fill a support form with certain details
+ * about the current error.
+ *
+ * @param {string} errorMessage
+ * @param {ErrorLike} error
+ * @returns {string}
+ */
+function formatSupportURL(errorMessage, error) {
+  const supportURL = new URL('https://web.hypothes.is/get-help/');
+
+  supportURL.searchParams.append('product', 'LMS_app');
+  supportURL.searchParams.append(
+    'subject',
+    errorMessage
+      ? `(LMS Error) ${errorMessage}`
+      : 'Error encountered in Hypothesis LMS Application'
+  );
+
+  const details = formatErrorDetails(error);
+  if (error.errorCode || details) {
+    const content = `
+----------------------
+Feel free to add additional details above about the problem you are experiencing.
+The error information below helps our team pinpoint the issue faster.
+----------------------
+Error code: ${error.errorCode ?? 'N/A'}
+Details: ${formatErrorDetails(error) || 'N/A'}
+  `;
+    supportURL.searchParams.append('content', content);
+  }
+  return supportURL.toString();
+}
+
+/**
  * @typedef {import("preact").ComponentChildren} Children
  *
  * @typedef ErrorDisplayProps
  * @prop {Children} [children]
- * @prop {string|null} [description] -
+ * @prop {string} [description] -
  *   A short message explaining the error and its human-facing relevance, provided
  *   by this (front-end) app for context.
  * @prop {ErrorLike} error - Error-like object containing further `details`
@@ -105,64 +126,37 @@ function ErrorDetails({ error }) {
  *
  * @param {ErrorDisplayProps} props
  */
-export default function ErrorDisplay({ children, description, error }) {
-  const details = formatErrorDetails(error);
-
-  const supportLink = emailLink({
-    address: 'support@hypothes.is',
-    subject: 'Hypothesis LMS support',
-    body: `
-Error message: ${error?.message || 'N/A'}
-Description: ${description || 'N/A'}
-Technical details: ${details || 'N/A'}
-    `,
-  });
-
+export default function ErrorDisplay({ children, description = '', error }) {
   // If `serverMessage` is extant on `error`, prefer it to `error.message` even
   // if `serverMessage` is empty — In cases where we are displaying error
   // information provided by the backend (i.e. `APIError`), we do not want
   // to render the JS Error instance's `message` as it likely does not apply
-  const message = error.serverMessage ?? error.message;
+  const message = error.serverMessage ?? error.message ?? '';
+
+  // Create an error status message from the combination of `description` and
+  // `message`. As neither of these are guaranteed to be present, the
+  // resulting string may be empty.
+  const errorMessage = `${description}${
+    description && message ? ': ' : ''
+  }${message}`;
 
   return (
     <Scrollbox classes="LMS-Scrollbox">
       <div className="hyp-u-vertical-spacing hyp-u-padding--top--4">
-        {message && !description && (
-          <p data-testid="error-message">
-            <i>{toSentence(message)}</i>
-          </p>
-        )}
-        {message && description && (
-          <p data-testid="error-message">
-            {description}: <i>{toSentence(message)}</i>
-          </p>
-        )}
-        {!message && description && (
-          <p data-testid="error-message">{toSentence(description)}</p>
+        {errorMessage && (
+          <p data-testid="error-message">{toSentence(errorMessage)}</p>
         )}
 
         {children}
         <p data-testid="error-links">
-          If the problem persists,{' '}
-          <a href={supportLink} target="_blank" rel="noopener noreferrer">
-            send us an email
-          </a>{' '}
-          or{' '}
-          <a
-            href="https://web.hypothes.is/get-help/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          If the problem persists, you can{' '}
+          <Link href={formatSupportURL(errorMessage, error)} target="_blank">
             open a support ticket
-          </a>
-          . You can also visit our{' '}
-          <a
-            href="https://web.hypothes.is/help/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          </Link>{' '}
+          or visit our{' '}
+          <Link href="https://web.hypothes.is/help/" target="_blank">
             help documents
-          </a>
+          </Link>
           .
         </p>
         <ErrorDetails error={error} />

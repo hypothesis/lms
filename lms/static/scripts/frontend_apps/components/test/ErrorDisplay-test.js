@@ -13,52 +13,60 @@ describe('ErrorDisplay', () => {
     $imports.$restore();
   });
 
-  const getSupportEmailLink = wrapper => {
-    const supportLink = wrapper
-      .find('a')
-      .filterWhere(n => n.text() === 'send us an email');
-    return new URL(supportLink.prop('href'));
-  };
-
-  it('displays a support link', () => {
+  it('provides a formatted support link for generic JavaScript errors', () => {
     const error = new Error('Canvas says no');
-    error.details = { someTechnicalDetail: 123 };
 
     const wrapper = mount(
       <ErrorDisplay description="Failed to fetch files" error={error} />
     );
 
-    const href = getSupportEmailLink(wrapper);
+    const link = wrapper
+      .find('Link')
+      .filterWhere(n => n.text() === 'open a support ticket');
+    assert.isTrue(link.exists());
 
-    assert.equal(href.protocol, 'mailto:');
-    assert.equal(href.pathname, 'support@hypothes.is');
-    assert.equal(href.searchParams.get('subject'), 'Hypothesis LMS support');
-    assert.include(href.searchParams.get('body'), 'Canvas says no');
-    assert.include(href.searchParams.get('body'), 'Failed to fetch files');
-    assert.include(href.searchParams.get('body'), '"someTechnicalDetail": 123');
+    const url = new URL(link.prop('href'));
+    assert.equal(url.searchParams.get('product'), 'LMS_app');
+    assert.equal(
+      url.searchParams.get('subject'),
+      '(LMS Error) Failed to fetch files: Canvas says no'
+    );
+
+    // No data to put into `content`
+    assert.isNull(url.searchParams.get('content'));
   });
 
-  it('handles missing error message when composing email body', () => {
-    const error = new Error('');
-    error.details = { someTechnicalDetail: 123 };
+  it('provides a formatted support link for errors from our backend', () => {
+    const error = new Error('Canvas says no');
+    // Build an ErrorLike object that resembles an APIError
+    error.errorCode = 'some_backend_error_code';
+    error.serverMessage = 'A message from the back end';
+    error.details = {
+      foo: 'bar',
+    };
 
     const wrapper = mount(
       <ErrorDisplay description="Failed to fetch files" error={error} />
     );
-    const href = getSupportEmailLink(wrapper);
 
-    assert.include(href.searchParams.get('body'), 'Error message: N/A');
-  });
+    const link = wrapper
+      .find('Link')
+      .filterWhere(n => n.text() === 'open a support ticket');
 
-  it('handles missing technical details when composing email body', () => {
-    const error = new Error('Something went wrong');
-
-    const wrapper = mount(
-      <ErrorDisplay description="Failed to fetch files" error={error} />
+    const url = new URL(link.prop('href'));
+    assert.equal(
+      url.searchParams.get('subject'),
+      '(LMS Error) Failed to fetch files: A message from the back end'
     );
-    const href = getSupportEmailLink(wrapper);
-
-    assert.include(href.searchParams.get('body'), 'Technical details: N/A');
+    assert.include(
+      url.searchParams.get('content'),
+      'Error code: some_backend_error_code'
+    );
+    assert.include(
+      url.searchParams.get('content'),
+      '"foo": "bar"',
+      'Includes details'
+    );
   });
 
   [
