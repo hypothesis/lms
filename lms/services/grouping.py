@@ -8,6 +8,9 @@ from lms.models._hashed_id import hashed_id
 from lms.models import User, ApplicationInstance
 
 from typing import List, Optional
+from lms.models import CanvasGroup, CanvasSection, Grouping, GroupingMembership
+from lms.models._hashed_id import hashed_id
+from lms.models import User
 
 
 class GroupingService:

@@ -117,7 +117,6 @@ class Course(Grouping):
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):
     __tablename__ = "grouping_membership"
-
     grouping_id = sa.Column(
         sa.Integer(), sa.ForeignKey("grouping.id", ondelete="cascade"), primary_key=True
     )
@@ -126,4 +125,5 @@ class GroupingMembership(CreatedUpdatedMixin, BASE):
     user_id = sa.Column(
         sa.Integer(), sa.ForeignKey("user.id", ondelete="cascade"), primary_key=True
     )
+
     user = sa.orm.relationship("User")
