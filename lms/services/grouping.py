@@ -1,5 +1,8 @@
-from lms.models import CanvasGroup, CanvasSection, Grouping
+from lms.models import CanvasGroup, CanvasSection, Grouping, GroupingMembership
 from lms.models._hashed_id import hashed_id
+from lms.models import User
+
+from typing import List
 
 
 class GroupingService:
@@ -96,6 +99,23 @@ class GroupingService:
                 extra={"group_set_id": group_set_id},
             )
         )
+
+    def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
+        memberships = []
+        for group in groups:
+            if membership := (
+                self._db.query(GroupingMembership)
+                .filter_by(grouping=group, user=user)
+                .one_or_none()
+            ):
+                memberships.append(membership)
+                continue
+
+            membership = GroupingMembership(grouping=group, user=user)
+            memberships.append(membership)
+            self._db.add(membership)
+
+        return memberships
 
 
 def factory(_context, request):

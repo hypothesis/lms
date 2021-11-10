@@ -97,3 +97,24 @@ class CanvasGroup(Grouping):
 
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": "course"}
+
+
+class GroupingMembership(CreatedUpdatedMixin, BASE):
+    __tablename__ = "grouping_membership"
+    __table_args__ = (sa.UniqueConstraint("grouping_id", "user_id"),)
+
+    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+
+    grouping_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("grouping.id", ondelete="cascade"),
+        nullable=False,
+    )
+    grouping = sa.orm.relationship("Grouping")
+
+    user_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("user.id", ondelete="cascade"),
+        nullable=False,
+    )
+    user = sa.orm.relationship("User")

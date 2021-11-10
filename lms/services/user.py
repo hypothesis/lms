@@ -36,6 +36,8 @@ class UserService:
         else:
             self.db_session.add(new_user)
 
+        return existing_user or new_user
+
     def _find_existing_user(self, model_user: User) -> Optional[User]:
         return (
             self.db_session.query(User)
