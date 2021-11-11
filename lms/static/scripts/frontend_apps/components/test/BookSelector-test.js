@@ -18,6 +18,7 @@ const fakeBookData = {
 };
 
 describe('BookSelector', () => {
+  let fakeFormatErrorMessage;
   let fakeVitalSourceService;
   let fakeExtractBookID;
 
@@ -36,11 +37,15 @@ describe('BookSelector', () => {
 
   beforeEach(() => {
     fakeExtractBookID = sinon.stub().returns('book1');
+    fakeFormatErrorMessage = sinon.stub();
     fakeVitalSourceService = {
       fetchBook: sinon.stub().callsFake(async bookID => fakeBookData[bookID]),
     };
 
     $imports.$mock({
+      '../errors': {
+        formatErrorMessage: fakeFormatErrorMessage,
+      },
       '../utils/vitalsource': {
         extractBookID: fakeExtractBookID,
       },
@@ -274,7 +279,8 @@ describe('BookSelector', () => {
 
     context('book metadata fetch failed', () => {
       it('shows error from service exception', async () => {
-        const error = new Error('Something went wrong');
+        fakeFormatErrorMessage.returns('Something went wrong');
+        const error = new Error('Any old error');
         fakeVitalSourceService.fetchBook.rejects(error);
 
         const wrapper = renderBookSelector();
@@ -282,6 +288,7 @@ describe('BookSelector', () => {
 
         await waitForElement(wrapper, '[data-testid="error-message"]');
 
+        assert.calledWith(fakeFormatErrorMessage, error);
         const errorMessage = wrapper.find('[data-testid="error-message"]');
         assert.include(errorMessage.text(), 'Something went wrong');
       });

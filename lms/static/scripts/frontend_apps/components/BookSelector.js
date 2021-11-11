@@ -8,6 +8,7 @@ import {
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 
+import { formatErrorMessage } from '../errors';
 import { useService, VitalSourceService } from '../services';
 import { extractBookID } from '../utils/vitalsource';
 
@@ -65,7 +66,7 @@ export default function BookSelector({
       const book = await vsService.fetchBook(bookID);
       onSelectBook(book);
     } catch (err) {
-      setError(err.message);
+      setError(formatErrorMessage(err));
     } finally {
       setIsLoadingBook(false);
     }
