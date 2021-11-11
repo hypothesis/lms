@@ -1,6 +1,6 @@
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
-import { formatErrorMessage } from '../errors';
+import { formatErrorDetails, formatErrorMessage } from '../errors';
 /**
  * @typedef {import('../errors').ErrorLike} ErrorLike
  */
@@ -12,23 +12,6 @@ import { formatErrorMessage } from '../errors';
  */
 function toSentence(str) {
   return str.match(/[.!?]$/) ? str : str + '.';
-}
-
-/**
- * JSON-stringify `error.details` if it is extant and an object
- *
- * @param {ErrorLike} error
- */
-function formatErrorDetails(error) {
-  let details = error.details ?? '';
-  if (error?.details && typeof error.details === 'object') {
-    try {
-      details = JSON.stringify(error.details, null, 2 /* indent */);
-    } catch (e) {
-      // ignore
-    }
-  }
-  return details;
 }
 
 /**
@@ -55,7 +38,11 @@ function ErrorDetails({ error }) {
   }
 
   return (
-    <details className="hyp-u-border" onToggle={onDetailsToggle}>
+    <details
+      className="hyp-u-border"
+      onToggle={onDetailsToggle}
+      data-testid="error-details"
+    >
       <summary className="hyp-u-bg-color--grey-1 hyp-u-padding ErrorDetails__summary">
         Error Details
       </summary>

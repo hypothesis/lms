@@ -139,3 +139,25 @@ export function formatErrorMessage(error, prefix = '') {
   // resulting string may be empty.
   return `${prefix}${prefix && message ? ': ' : ''}${message}`;
 }
+
+/**
+ * Return a string representing error details. If `error.details` is an
+ * object, attempt to JSON-stringify it. If details is already a string, return
+ * it as-is. Return the empty string otherwise.
+ *
+ * @param {ErrorLike} error
+ * @returns {String}
+ */
+export function formatErrorDetails(error) {
+  let details = '';
+  if (error.details && typeof error.details === 'object') {
+    try {
+      details = JSON.stringify(error.details, null, 2 /* indent */);
+    } catch (e) {
+      // ignore
+    }
+  } else if (error.details) {
+    details = error.details;
+  }
+  return details;
+}

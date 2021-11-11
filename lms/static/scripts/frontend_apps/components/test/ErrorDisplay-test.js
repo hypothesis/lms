@@ -5,13 +5,16 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ErrorDisplay', () => {
+  let fakeFormatErrorDetails;
   let fakeFormatErrorMessage;
 
   beforeEach(() => {
+    fakeFormatErrorDetails = sinon.stub().returns('error details');
     fakeFormatErrorMessage = sinon.stub().returns('error message');
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../errors': {
+        formatErrorDetails: fakeFormatErrorDetails,
         formatErrorMessage: fakeFormatErrorMessage,
       },
     });
@@ -22,6 +25,7 @@ describe('ErrorDisplay', () => {
   });
 
   it('provides a formatted support link for generic JavaScript errors', () => {
+    fakeFormatErrorDetails.returns('');
     fakeFormatErrorMessage.returns('Failed to fetch files: Canvas says no');
 
     const wrapper = mount(
@@ -45,13 +49,11 @@ describe('ErrorDisplay', () => {
   });
 
   it('provides a formatted support link for errors from our backend', () => {
+    fakeFormatErrorDetails.returns('foo: bar');
     fakeFormatErrorMessage.returns('Failed to fetch files: Canvas says no');
     const error = new Error('');
     // Build an ErrorLike object that resembles an APIError
     error.errorCode = 'some_backend_error_code';
-    error.details = {
-      foo: 'bar',
-    };
 
     const wrapper = mount(
       <ErrorDisplay description="Failed to fetch files" error={error} />
@@ -69,50 +71,34 @@ describe('ErrorDisplay', () => {
     );
     assert.include(
       url.searchParams.get('content'),
-      '"foo": "bar"',
+      'foo: bar',
       'Includes details'
     );
   });
 
-  [
-    { description: '' },
-    { description: 'Oh no', details: null },
-    { description: 'Oh no', details: '' },
-  ].forEach(error => {
-    it('omits technical details if not provided', () => {
-      const wrapper = mount(
-        <ErrorDisplay
-          message="Something went wrong"
-          error={{ message: '', details: error.details }}
-        />
-      );
+  it('omits technical details if not provided', () => {
+    fakeFormatErrorDetails.returns('');
+    const wrapper = mount(
+      <ErrorDisplay message="Something went wrong" error={{ message: '' }} />
+    );
 
-      const details = wrapper.find('pre');
-      assert.isFalse(details.exists());
-    });
+    const details = wrapper.find('[data-testid="error-details"]');
+    assert.isFalse(details.exists());
   });
 
-  [
-    {
-      details: 'Note from server',
-      expectedText: 'Note from server',
-    },
-    {
-      details: { statusCode: 123 },
-      expectedText: '{ "statusCode": 123 }',
-    },
-  ].forEach(({ details, expectedText }) => {
-    it('displays technical details if provided', () => {
-      const error = { message: '', details };
+  it('displays technical details if provided', () => {
+    const details = 'Some details';
+    fakeFormatErrorDetails.returns(details);
+    const error = { message: '', details };
 
-      const wrapper = mount(
-        <ErrorDisplay message="Something went wrong" error={error} />
-      );
+    const wrapper = mount(
+      <ErrorDisplay message="Something went wrong" error={error} />
+    );
 
-      const detailsEl = wrapper.find('pre');
-      assert.isTrue(detailsEl.exists());
-      assert.include(detailsEl.text().replace(/\s+/g, ' '), expectedText);
-    });
+    assert.calledWith(fakeFormatErrorDetails, error);
+    const detailsEl = wrapper.find('[data-testid="error-details"]');
+    assert.isTrue(detailsEl.exists());
+    assert.include(detailsEl.text(), details);
   });
 
   it('scrolls details into view when opened', () => {
@@ -122,6 +108,7 @@ describe('ErrorDisplay', () => {
       <ErrorDisplay message="Something went wrong" error={error} />
     );
 
+    assert.calledWith(fakeFormatErrorDetails, error);
     const details = wrapper.find('details');
     const scrollIntoView = sinon.stub(details.getDOMNode(), 'scrollIntoView');
 

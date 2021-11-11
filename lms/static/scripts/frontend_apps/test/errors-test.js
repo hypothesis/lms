@@ -1,5 +1,6 @@
 import {
   APIError,
+  formatErrorDetails,
   formatErrorMessage,
   isAuthorizationError,
   isLTILaunchServerError,
@@ -128,6 +129,43 @@ describe('formatErrorMessage', () => {
         formatErrorMessage(testCase.error, testCase.prefix),
         testCase.expected
       );
+    });
+  });
+});
+
+describe('formatErrorDetails', () => {
+  [
+    {
+      error: { details: { foo: 'bar' } },
+      expected: JSON.stringify({ foo: 'bar' }, null, /** indent */ 2),
+    },
+    {
+      error: {},
+      expected: '',
+    },
+    {
+      error: new APIError(400, { details: 'Hiya' }),
+      expected: 'Hiya',
+    },
+    {
+      error: new APIError(400, { details: { foo: 'bar' } }),
+      expected: JSON.stringify({ foo: 'bar' }, null, /** indent */ 2),
+    },
+    {
+      error: { details: null },
+      expected: '',
+    },
+    {
+      error: { details: {} },
+      expected: '{}',
+    },
+    {
+      error: { details: new Error('foo') },
+      expected: '{}',
+    },
+  ].forEach(testCase => {
+    it('should format error details', () => {
+      assert.equal(formatErrorDetails(testCase.error), testCase.expected);
     });
   });
 });
