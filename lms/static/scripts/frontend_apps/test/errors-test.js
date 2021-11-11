@@ -1,5 +1,6 @@
 import {
   APIError,
+  formatErrorMessage,
   isAuthorizationError,
   isLTILaunchServerError,
 } from '../errors';
@@ -88,6 +89,45 @@ describe('isLTILaunchServerError', () => {
   ].forEach(testCase => {
     it('should return `true` if the error has a recognized error code', () => {
       assert.equal(isLTILaunchServerError(testCase.error), testCase.expected);
+    });
+  });
+});
+
+describe('formatErrorMessage', () => {
+  [
+    {
+      error: new Error('This is any old error'),
+      expected: 'This is any old error',
+    },
+    {
+      error: new APIError(400, { message: 'This is a server error' }),
+      expected: 'This is a server error',
+    },
+    {
+      error: new APIError(400, {}),
+      expected: '',
+    },
+    {
+      error: new APIError(400, {}),
+      prefix: 'Something went wrong',
+      expected: 'Something went wrong',
+    },
+    {
+      error: new APIError(404, { message: 'This is a server explanation' }),
+      prefix: 'Something went wrong',
+      expected: 'Something went wrong: This is a server explanation',
+    },
+    {
+      error: new Error('Any old error'),
+      prefix: 'Something went wrong',
+      expected: 'Something went wrong: Any old error',
+    },
+  ].forEach((testCase, idx) => {
+    it(`should format the error message (${idx})`, () => {
+      assert.equal(
+        formatErrorMessage(testCase.error, testCase.prefix),
+        testCase.expected
+      );
     });
   });
 });

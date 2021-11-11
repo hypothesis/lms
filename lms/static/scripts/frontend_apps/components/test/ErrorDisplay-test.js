@@ -5,8 +5,16 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('ErrorDisplay', () => {
+  let fakeFormatErrorMessage;
+
   beforeEach(() => {
+    fakeFormatErrorMessage = sinon.stub().returns('error message');
     $imports.$mock(mockImportedComponents());
+    $imports.$mock({
+      '../errors': {
+        formatErrorMessage: fakeFormatErrorMessage,
+      },
+    });
   });
 
   afterEach(() => {
@@ -14,10 +22,10 @@ describe('ErrorDisplay', () => {
   });
 
   it('provides a formatted support link for generic JavaScript errors', () => {
-    const error = new Error('Canvas says no');
+    fakeFormatErrorMessage.returns('Failed to fetch files: Canvas says no');
 
     const wrapper = mount(
-      <ErrorDisplay description="Failed to fetch files" error={error} />
+      <ErrorDisplay description="Failed to fetch files" error={new Error()} />
     );
 
     const link = wrapper
@@ -37,10 +45,10 @@ describe('ErrorDisplay', () => {
   });
 
   it('provides a formatted support link for errors from our backend', () => {
-    const error = new Error('Canvas says no');
+    fakeFormatErrorMessage.returns('Failed to fetch files: Canvas says no');
+    const error = new Error('');
     // Build an ErrorLike object that resembles an APIError
     error.errorCode = 'some_backend_error_code';
-    error.serverMessage = 'A message from the back end';
     error.details = {
       foo: 'bar',
     };
@@ -54,10 +62,7 @@ describe('ErrorDisplay', () => {
       .filterWhere(n => n.text() === 'open a support ticket');
 
     const url = new URL(link.prop('href'));
-    assert.equal(
-      url.searchParams.get('subject'),
-      '(LMS Error) Failed to fetch files: A message from the back end'
-    );
+
     assert.include(
       url.searchParams.get('content'),
       'Error code: some_backend_error_code'
@@ -132,73 +137,18 @@ describe('ErrorDisplay', () => {
     assert.notCalled(scrollIntoView);
   });
 
-  [
-    {
-      description: 'Not a sentence',
-      error: {},
-      output: 'Not a sentence.',
-    },
-    {
-      description: 'A sentence.',
-      error: {},
-      output: 'A sentence.',
-    },
-    {
-      description: 'Oh no',
-      error: {
-        message: 'Tech details',
-      },
-      output: 'Oh no: Tech details.',
-    },
-    {
-      error: {
-        message: 'Tech details',
-      },
-      output: 'Tech details.',
-    },
-    {
-      error: {
-        message: 'Default error message',
-        serverMessage: 'Server message',
-      },
-      output: 'Server message.',
-    },
-    {
-      description: 'Something went wrong',
-      error: {
-        message: 'Default error message',
-        serverMessage: 'Server message',
-      },
-      output: 'Something went wrong: Server message.',
-    },
-    {
-      description: 'Something went wrong',
-      error: {
-        message: 'Default error message',
-        serverMessage: '',
-      },
-      output: 'Something went wrong.',
-    },
-    {
-      error: {
-        message: 'Default error message',
-        serverMessage: '',
-      },
-    },
-  ].forEach(({ description, error, output }, index) => {
-    it(`formats description and/or message appropriately (${index})`, () => {
-      const wrapper = mount(
-        <ErrorDisplay description={description} error={error} />
-      );
-      if (output) {
-        assert.equal(
-          wrapper.find('p[data-testid="error-message"]').text(),
-          output
-        );
-      } else {
-        assert.isFalse(wrapper.find('p[data-testid="error-message"]').exists());
-      }
-    });
+  it('Adds a period to the error message', () => {
+    fakeFormatErrorMessage.returns('Hello');
+    const wrapper = mount(
+      <ErrorDisplay description="foo" error={{ message: 'whatnot' }} />
+    );
+
+    assert.equal(
+      wrapper.find('[data-testid="error-message"]').text(),
+      'Hello.'
+    );
+
+    assert.calledOnce(fakeFormatErrorMessage);
   });
 
   it(
