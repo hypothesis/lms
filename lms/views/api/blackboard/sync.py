@@ -55,8 +55,7 @@ class Sync:
         if lti_user.is_learner:
             # For learners, the groups they belong within the course
             learner_groups = self._blackboard_api.course_groups(
-                self._request.json["course"]["context_id"],
-                group_set_id,
+                course_id, group_set_id, lti_user.user_id
             )
             if not learner_groups:
                 raise CanvasStudentNotInGroup(group_set=group_set_id)
