@@ -62,7 +62,7 @@ function contentDescription(content) {
  * @param {FilePickerAppProps} props
  */
 export default function FilePickerApp({ onSubmit }) {
-  const submitButton = useRef(/** @type {HTMLInputElement|null} */ (null));
+  const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
     filePicker: {
       formAction,

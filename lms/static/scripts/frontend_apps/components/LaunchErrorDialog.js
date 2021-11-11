@@ -37,8 +37,8 @@ function BaseDialog({
   retryLabel = 'Try again',
   title = 'Something went wrong',
 }) {
-  const focusedDialogButton = useRef(
-    /** @type {HTMLButtonElement | null} */ (null)
+  const focusedDialogButton = /** @type {{ current: HTMLButtonElement }} */ (
+    useRef()
   );
   return (
     <Modal
