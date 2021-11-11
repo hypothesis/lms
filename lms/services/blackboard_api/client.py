@@ -115,7 +115,7 @@ class BlackboardAPIClient:
         )
         return BlackboardListGroupsSchema(response).parse()
 
-    def course_groups(self, course_id, group_category_id=None):
+    def course_groups(self, course_id, group_category_id=None, user_id=None):
         response = self._api.request(
             "GET",
             f"/learn/api/public/v2/courses/uuid:{course_id}/groups",
@@ -128,5 +128,21 @@ class BlackboardAPIClient:
                 for group in self.course_groups(course_id)
                 if group["groupSetId"] == group_category_id
             ]
+
+        if user_id:
+            confirmed_groups = []
+            for group in groups:
+                try:
+                    response = self._api.request(
+                        "GET",
+                        f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}",
+                    )
+
+                except Exception as err:
+                    pass
+                else:
+                    confirmed_groups.append(group)
+
+            groups = confirmed_groups
 
         return groups
