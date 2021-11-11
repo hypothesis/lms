@@ -1,5 +1,6 @@
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
+import { formatErrorMessage } from '../errors';
 /**
  * @typedef {import('../errors').ErrorLike} ErrorLike
  */
@@ -118,30 +119,17 @@ Details: ${formatErrorDetails(error) || 'N/A'}
  * @param {ErrorDisplayProps} props
  */
 export default function ErrorDisplay({ children, description = '', error }) {
-  // If `serverMessage` is extant on `error`, prefer it to `error.message` even
-  // if `serverMessage` is empty — In cases where we are displaying error
-  // information provided by the backend (i.e. `APIError`), we do not want
-  // to render the JS Error instance's `message` as it likely does not apply
-  const message = error.serverMessage ?? error.message ?? '';
-
-  // Create an error status message from the combination of `description` and
-  // `message`. As neither of these are guaranteed to be present, the
-  // resulting string may be empty.
-  const errorMessage = `${description}${
-    description && message ? ': ' : ''
-  }${message}`;
+  const message = formatErrorMessage(error, /** prefix */ description);
 
   return (
     <Scrollbox classes="LMS-Scrollbox">
       <div className="hyp-u-vertical-spacing hyp-u-padding--top--4">
-        {errorMessage && (
-          <p data-testid="error-message">{toSentence(errorMessage)}</p>
-        )}
+        {message && <p data-testid="error-message">{toSentence(message)}</p>}
 
         {children}
         <p data-testid="error-links">
           If the problem persists, you can{' '}
-          <Link href={supportURL(errorMessage, error)} target="_blank">
+          <Link href={supportURL(message, error)} target="_blank">
             open a support ticket
           </Link>{' '}
           or visit our{' '}
