@@ -6,7 +6,7 @@ import ErrorDisplay from './ErrorDisplay';
  * @typedef ErrorDialogProps
  * @prop {() => any} onCancel
  * @prop {string} [description] - Message to drill down to `ErrorDisplay`
- * @prop {import('./ErrorDisplay').ErrorLike} error
+ * @prop {import('../errors').ErrorLike} error
  * @prop {string} [cancelLabel]
  */
 

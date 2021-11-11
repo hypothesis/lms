@@ -1,6 +1,10 @@
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
 /**
+ * @typedef {import('../errors').ErrorLike} ErrorLike
+ */
+
+/**
  * Adds punctuation to a string if missing.
  *
  * @param {string} str
@@ -8,19 +12,6 @@ import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 function toSentence(str) {
   return str.match(/[.!?]$/) ? str : str + '.';
 }
-
-/**
- * An `Error` or `Error`-like object. This allows this component to be used
- * by just passing through an `Error` without meddling with it, or manual
- * control of `message` and/or `details` if so desired.
- *
- * @typedef ErrorLike
- * @prop {string} [message]
- * @prop {object|string} [details] - Optional JSON-serializable details of the error
- * @prop {string} [errorCode] - Provided by back-end to identify error state
- * @prop {string} [serverMessage] - Explanatory message provided by backend that
- *   will be preferred over `message` if it is present.
- */
 
 /**
  * JSON-stringify `error.details` if it is extant and an object

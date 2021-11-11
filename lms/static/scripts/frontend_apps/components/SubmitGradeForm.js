@@ -17,7 +17,7 @@ const GRADE_MULTIPLIER = 10;
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
- * @typedef {import('./ErrorDisplay').ErrorLike} ErrorLike
+ * @typedef {import('../errors').ErrorLike} ErrorLike
  */
 
 /**
