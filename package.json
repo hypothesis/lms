@@ -36,7 +36,6 @@
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-virtual": "^2.0.3",
-    "@types/gapi": "^0.0.41",
     "autoprefixer": "^10.4.0",
     "classnames": "^2.3.1",
     "eslint-plugin-mocha": "^9.0.0",
@@ -45,7 +44,6 @@
     "focus-visible": "^5.2.0",
     "gulp": "^4.0.2",
     "karma-chrome-launcher": "^3.1.0",
-    "mkdirp": "^1.0.4",
     "normalize.css": "^8.0.1",
     "postcss": "^8.3.11",
     "preact": "10.5.13",
@@ -56,7 +54,6 @@
     "tiny-emitter": "^2.1.0"
   },
   "devDependencies": {
-    "@types/classnames": "^2.3.1",
     "@types/gapi": "^0.0.41",
     "axe-core": "^4.3.5",
     "babel-plugin-istanbul": "^6.1.1",
