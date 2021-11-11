@@ -12,6 +12,19 @@
  */
 
 /**
+ * An `Error` or error-like object. This allows components in the application
+ * to work with plain-old JavaScript objects representing an error without
+ * requiring `Error` instances.
+ *
+ * @typedef ErrorLike
+ * @prop {string} [message]
+ * @prop {object|string} [details] - Optional JSON-serializable details of the error
+ * @prop {string} [errorCode] - Provided by back-end to identify error state
+ * @prop {string} [serverMessage] - Explanatory message provided by backend that
+ *   will be preferred over `message` if it is present.
+ */
+
+/**
  * Error thrown when the user cancels file selection.
  */
 export class PickerCanceledError extends Error {
@@ -67,7 +80,7 @@ export class APIError extends Error {
 }
 
 /**
- * Should the error object be treated as an authorization error?
+ * Should the error be treated as an authorization error?
  *
  * This is a special case. We're handling an APIError resulting from an API
  * request, but there are no further details in the response body to guide us.
@@ -76,7 +89,7 @@ export class APIError extends Error {
  * Put another way, if an APIError has neither an errorCode nor a serverMessage,
  * it is considered an "authorization error".
  *
- * @param {Error} error
+ * @param {ErrorLike} error
  * @returns {boolean}
  */
 export function isAuthorizationError(error) {
@@ -84,11 +97,11 @@ export function isAuthorizationError(error) {
 }
 
 /**
- * Does the current error object represent an API Error with a recognized
+ * Does the error represent an API Error with a recognized
  * backend-provided `errorCode` related to a failed attempt to launch an
  * assignment?
  *
- * @param {Error} error
+ * @param {ErrorLike} error
  * @returns {error is APIError}
  */
 export function isLTILaunchServerError(error) {

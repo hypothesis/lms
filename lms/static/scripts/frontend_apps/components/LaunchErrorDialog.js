@@ -9,7 +9,7 @@ import ErrorDisplay from './ErrorDisplay';
  *
  * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
  *
- * @typedef {import('./ErrorDisplay').ErrorLike} ErrorLike
+ * @typedef {import('../errors').ErrorLike} ErrorLike
  */
 
 /**
