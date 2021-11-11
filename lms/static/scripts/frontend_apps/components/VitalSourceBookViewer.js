@@ -25,7 +25,7 @@ export default function VitalSourceBookViewer({
   launchUrl,
   willSubmitLaunchForm,
 }) {
-  const iframe = useRef(/** @type {HTMLIFrameElement|null} */ (null));
+  const iframe = /** @type {{ current: HTMLIFrameElement }} */ (useRef());
 
   useEffect(() => {
     const iframeDoc = /** @type {Document} */ (iframe.current.contentDocument);

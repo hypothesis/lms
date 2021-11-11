@@ -21,8 +21,8 @@ import { useRef, useState } from 'preact/hooks';
  * @param {URLPickerProps} props
  */
 export default function URLPicker({ onCancel, onSelectURL }) {
-  const input = useRef(/** @type {HTMLInputElement|null} */ (null));
-  const form = useRef(/** @type {HTMLFormElement|null} */ (null));
+  const input = /** @type {{ current: HTMLInputElement }} */ (useRef());
+  const form = /** @type {{ current: HTMLFormElement }} */ (useRef());
 
   // Holds an error message corresponding to client-side validation of the
   // input field

@@ -109,7 +109,7 @@ export default function SubmitGradeForm({ student }) {
   const gradingService = useService(GradingService);
 
   // Used to handle keyboard input changes for the grade input field.
-  const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
+  const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
 
   // Clear the previous grade saved status when the user changes.
   useEffect(() => {

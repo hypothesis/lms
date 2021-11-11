@@ -39,7 +39,7 @@ export default function BookSelector({
 }) {
   const vsService = useService(VitalSourceService);
 
-  const inputRef = useRef(/** @type {HTMLInputElement|null} */ (null));
+  const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
 
   // is a request in-flight via the vitalsource service?
   const [isLoadingBook, setIsLoadingBook] = useState(false);
