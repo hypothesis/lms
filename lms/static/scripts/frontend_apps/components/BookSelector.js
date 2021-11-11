@@ -65,7 +65,7 @@ export default function BookSelector({
       const book = await vsService.fetchBook(bookID);
       onSelectBook(book);
     } catch (err) {
-      setError(err.message);
+      setError(err.serverMessage ?? err.message);
     } finally {
       setIsLoadingBook(false);
     }
