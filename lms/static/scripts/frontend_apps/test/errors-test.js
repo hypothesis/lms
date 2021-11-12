@@ -137,7 +137,7 @@ describe('formatErrorDetails', () => {
   [
     {
       error: { details: { foo: 'bar' } },
-      expected: JSON.stringify({ foo: 'bar' }, null, /** indent */ 2),
+      expected: JSON.stringify({ foo: 'bar' }, null, /* indent */ 2),
     },
     {
       error: {},
@@ -149,7 +149,7 @@ describe('formatErrorDetails', () => {
     },
     {
       error: new APIError(400, { details: { foo: 'bar' } }),
-      expected: JSON.stringify({ foo: 'bar' }, null, /** indent */ 2),
+      expected: JSON.stringify({ foo: 'bar' }, null, /* indent */ 2),
     },
     {
       error: { details: null },

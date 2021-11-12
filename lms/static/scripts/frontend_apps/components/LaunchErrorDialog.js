@@ -6,9 +6,7 @@ import ErrorDisplay from './ErrorDisplay';
 
 /**
  * @typedef {import("preact").ComponentChildren} Children
- *
  * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
- *
  * @typedef {import('../errors').ErrorLike} ErrorLike
  */
 

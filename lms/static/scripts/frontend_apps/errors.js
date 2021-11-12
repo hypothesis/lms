@@ -124,14 +124,12 @@ export function isLTILaunchServerError(error) {
  * prefix, using the appropriate message information.
  *
  * @param {ErrorLike} error
- * @param {String} [prefix]
- * @returns {String}
+ * @param {string} [prefix]
+ * @returns {string}
  */
 export function formatErrorMessage(error, prefix = '') {
-  // If `serverMessage` is extant on `error`, prefer it to `error.message` even
-  // if `serverMessage` is empty . In cases where we are displaying error
-  // information provided by the backend (i.e. `APIError`), we do not want
-  // to render the JS Error instance's `message` as it likely does not apply
+  // If any message is provided by the backend as `error.serverMessage`,
+  // prefer this for display to users even if it is empty.
   const message = error.serverMessage ?? error.message ?? '';
 
   // Create an error status message from the combination of `description` and
@@ -146,7 +144,7 @@ export function formatErrorMessage(error, prefix = '') {
  * it as-is. Return the empty string otherwise.
  *
  * @param {ErrorLike} error
- * @returns {String}
+ * @returns {string}
  */
 export function formatErrorDetails(error) {
   let details = '';
