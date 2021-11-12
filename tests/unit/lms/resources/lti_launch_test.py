@@ -7,7 +7,9 @@ from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
 
-pytestmark = pytest.mark.usefixtures("application_instance_service", "course_service")
+pytestmark = pytest.mark.usefixtures(
+    "application_instance_service", "course_service", "assignment_service"
+)
 
 
 class TestHGroup:
@@ -366,6 +368,57 @@ class TestCanvasIsGroupLaunch:
             canvas_groups_enabled = True
 
         return TestableLTILaunchResource(pyramid_request)
+
+
+class TestIsBlackBoardGroupLaunch:
+    def test_false_when_not_enabled(self, lti_launch_groups_enabled):
+        lti_launch_groups_enabled.blackboard_groups_enabled = False
+
+        assert not lti_launch_groups_enabled.is_blackboard_group_launch
+
+    def test_false_when_no_assignment(
+        self, lti_launch_groups_enabled, assignment_service
+    ):
+        assignment_service.get.return_value = None
+
+        assert not lti_launch_groups_enabled.is_blackboard_group_launch
+
+    def test_false_when_no_group_set(
+        self, lti_launch_groups_enabled, assignment_service
+    ):
+        assignment_service.get.return_value.extra = {}
+
+        assert not lti_launch_groups_enabled.is_blackboard_group_launch
+
+    def test_it(self, lti_launch_groups_enabled, assignment_service):
+        assignment_service.get.return_value.extra = {"group_set": "ID"}
+
+        assert lti_launch_groups_enabled.is_blackboard_group_launch
+
+    @pytest.fixture
+    def lti_launch_groups_enabled(self, pyramid_request):
+        class TestableLTILaunchResource(LTILaunchResource):
+            blackboard_groups_enabled = True
+
+        return TestableLTILaunchResource(pyramid_request)
+
+
+class TestIsGroupLaunch:
+    @pytest.mark.parametrize(
+        "canvas,blackboard,expected",
+        [
+            (True, True, True),
+            (True, False, True),
+            (False, True, True),
+            (False, False, False),
+        ],
+    )
+    def test_it(self, canvas, blackboard, expected, pyramid_request):
+        class TestableLTILaunchResource(LTILaunchResource):
+            canvas_is_group_launch = canvas
+            is_blackboard_group_launch = blackboard
+
+        assert TestableLTILaunchResource(pyramid_request).is_group_launch == expected
 
 
 @pytest.fixture

@@ -25,6 +25,7 @@ class LTILaunchResource:
         self._application_instance_service = self._request.find_service(
             name="application_instance"
         )
+        self._assignment_service = request.find_service(name="assignment")
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
@@ -211,6 +212,20 @@ class LTILaunchResource:
         return bool(application_instance.settings.get("blackboard", "groups_enabled"))
 
     @property
+    def is_blackboard_group_launch(self):
+        """Return True if the current assignment uses BlackBoard groups."""
+        if not self.blackboard_groups_enabled:
+            return False
+
+        tool_consumer_instance_guid = self._request.params[
+            "tool_consumer_instance_guid"
+        ]
+        assignment = self._assignment_service.get(
+            tool_consumer_instance_guid, self.resource_link_id
+        )
+        return bool(assignment and assignment.extra.get("group_set"))
+
+    @property
     def canvas_is_group_launch(self):
         """Return True if the current assignment uses canvas groups."""
         if not self.canvas_groups_enabled:
@@ -222,6 +237,10 @@ class LTILaunchResource:
             return False
         else:
             return True
+
+    @property
+    def is_group_launch(self):
+        return self.canvas_is_group_launch or self.is_blackboard_group_launch
 
     def _course_extra(self):
         """Extra information to store for courses."""

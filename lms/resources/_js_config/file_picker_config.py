@@ -2,7 +2,7 @@ class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def blackboard_config(cls, _context, request, application_instance):
+    def blackboard_config(cls, context, request, application_instance):
         """Get Blackboard files config."""
 
         enabled = application_instance.settings.get("blackboard", "files_enabled")
@@ -12,10 +12,17 @@ class FilePickerConfig:
 
         return {
             "enabled": enabled,
+            "groupsEnabled": context.blackboard_groups_enabled,
             "listFiles": {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "blackboard_api.courses.files.list", course_id=course_id
+                ),
+            },
+            "listGroupSets": {
+                "authUrl": auth_url,
+                "path": request.route_path(
+                    "blackboard_api.courses.group_sets.list", course_id=course_id
                 ),
             },
         }
