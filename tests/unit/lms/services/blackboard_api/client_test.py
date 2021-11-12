@@ -213,6 +213,25 @@ class TestPublicURL:
             svc.public_url("COURSE_ID", "FILE_ID")
 
 
+class TestCourseGroupSets:
+    def test_it(
+        self,
+        svc,
+        basic_client,
+        BlackboardListGroupSetsSchema,
+        blackboard_list_groupsets_schema,
+    ):
+        group_sets = svc.course_group_sets("COURSE_ID")
+
+        basic_client.request.assert_called_once_with(
+            "GET", "/learn/api/public/v2/courses/uuid:COURSE_ID/groups/sets"
+        )
+        BlackboardListGroupSetsSchema.assert_called_once_with(
+            basic_client.request.return_value
+        )
+        assert group_sets == blackboard_list_groupsets_schema.parse.return_value
+
+
 @pytest.fixture
 def basic_client():
     return create_autospec(BasicClient, instance=True, spec_set=True)
@@ -241,3 +260,13 @@ def BlackboardPublicURLSchema(patch):
 @pytest.fixture
 def blackboard_public_url_schema(BlackboardPublicURLSchema):
     return BlackboardPublicURLSchema.return_value
+
+
+@pytest.fixture(autouse=True)
+def BlackboardListGroupSetsSchema(patch):
+    return patch("lms.services.blackboard_api.client.BlackboardListGroupSetsSchema")
+
+
+@pytest.fixture
+def blackboard_list_groupsets_schema(BlackboardListGroupSetsSchema):
+    return BlackboardListGroupSetsSchema.return_value

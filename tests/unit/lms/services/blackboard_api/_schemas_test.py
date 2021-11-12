@@ -2,6 +2,7 @@ import pytest
 
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
+    BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import ExternalRequestError
@@ -96,6 +97,28 @@ class TestBlackboardPublicURLSchema:
         # The response body from the single-file API looks the same as a single
         # one of the file dicts from the list-files API.
         return list_files_response["results"][0]
+
+
+class TestBlackboardListGroupSetsSchema:
+    def test_it(self, group_sets_response):
+        schema = BlackboardListGroupSetsSchema(
+            factories.requests.Response(json_data=group_sets_response)
+        )
+
+        result = schema.parse()
+
+        assert result == [{"id": "GROUP_1", "name": "GROUP 1"}]
+
+    @pytest.fixture
+    def group_sets_response(self):
+        return {
+            "results": [
+                {
+                    "id": "GROUP_1",
+                    "name": "GROUP 1",
+                }
+            ]
+        }
 
 
 @pytest.fixture

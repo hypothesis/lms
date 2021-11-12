@@ -51,6 +51,10 @@ def includeme(config):
     config.add_route(
         "blackboard_api.files.via_url", "/api/blackboard/courses/{course_id}/via_url"
     )
+    config.add_route(
+        "blackboard_api.courses.group_sets.list",
+        "/api/blackboard/courses/{course_id}/group_sets",
+    )
 
     config.add_route(
         "onedrive.filepicker.redirect_uri", "/onedrive/filepicker/redirect"
