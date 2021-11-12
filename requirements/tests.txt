@@ -120,7 +120,7 @@ plaster-pastedeploy==0.7
     #   pyramid
 pluggy==0.13.1
     # via pytest
-psycopg2==2.9.1
+psycopg2==2.9.2
     # via -r requirements/requirements.txt
 py==1.10.0
     # via pytest
