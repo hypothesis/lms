@@ -1,4 +1,8 @@
-import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
+import {
+  FullScreenSpinner,
+  LabeledButton,
+  Modal,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
@@ -10,7 +14,6 @@ import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
-import FullScreenSpinner from './FullScreenSpinner';
 
 /**
  * @typedef {import("./FileList").File} File
