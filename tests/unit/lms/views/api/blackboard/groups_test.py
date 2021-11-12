@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import sentinel
 
 from lms.views.api.blackboard.groups import course_group_sets

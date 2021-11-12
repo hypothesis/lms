@@ -2,8 +2,8 @@ import pytest
 
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
-    BlackboardPublicURLSchema,
     BlackboardListGroupSetsSchema,
+    BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import ExternalRequestError
 from tests import factories
