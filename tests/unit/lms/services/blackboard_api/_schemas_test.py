@@ -4,6 +4,7 @@ from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
+    BlackboardListGroupSetsSchema,
 )
 from lms.services.exceptions import ExternalRequestError
 from tests import factories
