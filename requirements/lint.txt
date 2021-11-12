@@ -232,7 +232,7 @@ pluggy==0.13.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pytest
-psycopg2==2.9.1
+psycopg2==2.9.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
