@@ -1,3 +1,4 @@
+import { FullScreenSpinner } from '@hypothesis/frontend-shared';
 import classNames from 'classnames';
 
 import {
@@ -16,7 +17,6 @@ import AuthWindow from '../utils/AuthWindow';
 
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
-import Spinner from './Spinner';
 import VitalSourceBookViewer from './VitalSourceBookViewer';
 
 /**
@@ -317,7 +317,7 @@ export default function BasicLTILaunchApp() {
 
   return (
     <div className="BasicLTILaunchApp">
-      {showSpinner && <Spinner className="BasicLTILaunchApp__spinner" />}
+      {showSpinner && <FullScreenSpinner />}
       {errorState && (
         <LaunchErrorDialog
           busy={fetchCount > 0}

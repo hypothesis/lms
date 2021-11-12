@@ -29,13 +29,13 @@ describe('BasicLTILaunchApp', () => {
   };
 
   function spinnerVisible(wrapper) {
-    return waitForElement(wrapper, 'Spinner');
+    return waitForElement(wrapper, 'FullScreenSpinner');
   }
 
   function spinnerHidden(wrapper) {
     return waitFor(() => {
       wrapper.update();
-      return !wrapper.exists('Spinner');
+      return !wrapper.exists('FullScreenSpinner');
     });
   }
 
