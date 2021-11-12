@@ -41,7 +41,10 @@ describe('SubmitGradeForm', () => {
   const fakeFormatToNumber = sinon.stub();
 
   async function gradeFetched(wrapper) {
-    await waitFor(() => !wrapper.find('Spinner').exists());
+    await waitFor(() => {
+      wrapper.update();
+      return !wrapper.find('Spinner').exists();
+    });
     wrapper.update();
   }
 
