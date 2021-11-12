@@ -1,10 +1,9 @@
-import { Icon } from '@hypothesis/frontend-shared';
+import { FullScreenSpinner, Icon, Spinner } from '@hypothesis/frontend-shared';
 
 import classNames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
 import ErrorDialog from './ErrorDialog';
-import Spinner from './Spinner';
 import { useService, GradingService } from '../services';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
@@ -190,13 +189,7 @@ export default function SubmitGradeForm({ student }) {
             defaultValue={grade}
             key={student ? student.LISResultSourcedId : null}
           />
-          <Spinner
-            className={classNames('SubmitGradeForm__fetch-spinner', {
-              'is-active': gradeLoading,
-              'is-fade-away':
-                !gradeLoading && student && student.LISResultSourcedId,
-            })}
-          />
+          {gradeLoading && <Spinner classes="hyp-u-absolute-centered" />}
         </span>
         <button
           type="submit"
@@ -207,11 +200,7 @@ export default function SubmitGradeForm({ student }) {
           <Icon classes="SubmitGradeForm__check-icon" name="check" /> Submit
           Grade
         </button>
-        {gradeSaving && (
-          <div className="SubmitGradeForm__loading-backdrop">
-            <Spinner className="SubmitGradeForm__submit-spinner" />
-          </div>
-        )}
+        {gradeSaving && <FullScreenSpinner />}
       </form>
       {!!submitGradeError && (
         <ErrorDialog
