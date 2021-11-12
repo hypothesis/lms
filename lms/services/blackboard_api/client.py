@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from lms.events import FilesDiscoveredEvent
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
+    BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
@@ -97,3 +98,11 @@ class BlackboardAPIClient:
             raise
 
         return BlackboardPublicURLSchema(response).parse()
+
+    def course_group_sets(self, course_id):
+        response = self._api.request(
+            "GET",
+            f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets",
+        )
+
+        return BlackboardListGroupSetsSchema(response).parse()
