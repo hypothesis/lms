@@ -40,3 +40,18 @@ class BlackboardPublicURLSchema(RequestsResponseSchema):
     @post_load
     def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
         return data["downloadUrl"]
+
+
+class BlackboardListGroupSetsSchema(RequestsResponseSchema):
+    class GroupSetSchema(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        id = fields.Str(required=True)
+        name = fields.Str(required=True)
+
+    results = fields.List(fields.Nested(GroupSetSchema), required=True)
+
+    @post_load
+    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        return data["results"]
