@@ -1,6 +1,7 @@
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
 import { formatErrorDetails, formatErrorMessage } from '../errors';
+
 /**
  * @typedef {import('../errors').ErrorLike} ErrorLike
  */
@@ -17,6 +18,9 @@ function toSentence(str) {
 /**
  * @typedef ErrorDetailsProps
  * @prop {ErrorLike} error
+ */
+
+/**
  *
  * Render pre-formatted JSON details of an error
  *
@@ -106,7 +110,7 @@ Details: ${formatErrorDetails(error) || 'N/A'}
  * @param {ErrorDisplayProps} props
  */
 export default function ErrorDisplay({ children, description = '', error }) {
-  const message = formatErrorMessage(error, /** prefix */ description);
+  const message = formatErrorMessage(error, /* prefix */ description);
 
   return (
     <Scrollbox classes="LMS-Scrollbox">
