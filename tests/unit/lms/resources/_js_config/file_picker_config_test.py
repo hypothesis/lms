@@ -20,9 +20,14 @@ class TestFilePickerConfig:
 
         assert config == {
             "enabled": sentinel.enabled,
+            "groupsEnabled": False,
             "listFiles": {
                 "authUrl": "http://example.com/api/blackboard/oauth/authorize",
                 "path": "/api/blackboard/courses/COURSE_ID/files",
+            },
+            "listGroupSets": {
+                "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+                "path": "/api/blackboard/courses/COURSE_ID/group_sets",
             },
         }
 
@@ -143,4 +148,5 @@ class TestFilePickerConfig:
             canvas_sections_enabled=False,
             canvas_groups_enabled=False,
             custom_canvas_api_domain=None,
+            blackboard_groups_enabled=False,
         )
