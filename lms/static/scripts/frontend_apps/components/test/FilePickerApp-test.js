@@ -7,7 +7,6 @@ import { Config } from '../../config';
 import FilePickerApp, { $imports } from '../FilePickerApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitFor, waitForElement } from '../../../test-util/wait';
 
 function interact(wrapper, callback) {
   act(callback);
@@ -32,9 +31,6 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
-      api: {
-        authToken: 'dummyAuthToken',
-      },
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
@@ -59,18 +55,12 @@ describe('FilePickerApp', () => {
   /**
    * Check that the expected hidden form fields were set.
    */
-  function checkFormFields(
-    wrapper,
-    expectedContent,
-    expectedGroupSet,
-    expectedExtLTIAssignmentId
-  ) {
+  function checkFormFields(wrapper, expectedContent, expectedGroupSet) {
     const formFields = wrapper.find('FilePickerFormFields');
     assert.deepEqual(formFields.props(), {
       children: [],
       content: expectedContent,
       formFields: fakeConfig.filePicker.formFields,
-      extLTIAssignmentId: expectedExtLTIAssignmentId,
       groupSet: expectedGroupSet,
       ltiLaunchURL: fakeConfig.filePicker.canvas.ltiLaunchUrl,
     });
@@ -114,76 +104,6 @@ describe('FilePickerApp', () => {
     });
   }
 
-  context('when create assignment configuration is enabled', () => {
-    const authURL = 'https://testlms.hypothes.is/authorize';
-    const createAssignmentPath = '/api/canvas/assignments';
-    let fakeAPICall;
-    let fakeNewAssignment;
-
-    beforeEach(() => {
-      fakeConfig.filePicker.createAssignmentAPI = {
-        authURL,
-        path: createAssignmentPath,
-      };
-
-      fakeAPICall = sinon.stub();
-      fakeNewAssignment = { ext_lti_assignment_id: 10 };
-
-      fakeAPICall
-        .withArgs(sinon.match({ path: createAssignmentPath }))
-        .resolves(fakeNewAssignment);
-
-      $imports.$mock({
-        '../utils/api': { apiCall: fakeAPICall },
-      });
-    });
-
-    it('calls backend api when content is selected', async () => {
-      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-      const wrapper = renderFilePicker({ onSubmit });
-
-      selectContent(wrapper, 'https://example.com');
-
-      await waitFor(() => fakeAPICall.called);
-      assert.calledWith(fakeAPICall, {
-        authToken: 'dummyAuthToken',
-        path: createAssignmentPath,
-        data: {
-          content: { type: 'url', url: 'https://example.com' },
-          groupset: null,
-        },
-      });
-
-      await waitFor(() => onSubmit.called, 100);
-
-      wrapper.update();
-      checkFormFields(
-        wrapper,
-        {
-          type: 'url',
-          url: 'https://example.com',
-        },
-        null /* groupSet */,
-        fakeNewAssignment.ext_lti_assignment_id
-      );
-    });
-
-    it('shows an error if creating the assignment fails', async () => {
-      const error = new Error('Something happened');
-      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-      fakeAPICall
-        .withArgs(sinon.match({ path: createAssignmentPath }))
-        .rejects(error);
-
-      const wrapper = renderFilePicker({ onSubmit });
-
-      selectContent(wrapper, 'https://example.com');
-
-      const errDialog = await waitForElement(wrapper, 'ErrorDialog');
-      assert.equal(errDialog.length, 1);
-      assert.equal(errDialog.prop('error'), error);
-    });
-  });
   context('when groups are not enabled', () => {
     it('submits form when content is selected', () => {
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
@@ -198,8 +118,7 @@ describe('FilePickerApp', () => {
           type: 'url',
           url: 'https://example.com',
         },
-        null /* groupSet */,
-        null /* extLTIAssignmentId */
+        null /* groupSet */
       );
     });
 
@@ -298,8 +217,7 @@ describe('FilePickerApp', () => {
             type: 'url',
             url: 'https://example.com',
           },
-          useGroupSet ? 'groupSet1' : null,
-          null /* extLTIAssignmentId */
+          useGroupSet ? 'groupSet1' : null
         );
       });
     });
