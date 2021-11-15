@@ -32,17 +32,18 @@ class ApplicationSettings(MutableDict):
     >>> ai.settings.changed()
     """
 
-    def get(self, group, key):
+    def get(self, group, key, default=None):
         """
         Return the requested setting or None.
 
-        Will return None if *either* "group" or "key" is missing from the dict.
+        Will return None if *either* "group" or "key" is missing from the dict or the value of `default`
 
         :param group: The name of the group of settings
         :param key: The key in that group
+        :param default: Default value if the group/key combiantion is missing
         :return: The value or None
         """
-        return super().get(group, {}).get(key)
+        return super().get(group, {}).get(key, default)
 
     def set(self, group, key, value):
         """

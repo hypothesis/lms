@@ -8,18 +8,24 @@ class TestApplicationSettings:
         assert application_settings == {"test_group": {"test_key": "test_value"}}
 
     @pytest.mark.parametrize(
-        "group,key,expected_value",
+        "group,key,default,expected_value",
         [
             # If there's a value in the data it returns it.
-            ("test_group", "test_key", "test_value"),
+            ("test_group", "test_key", None, "test_value"),
             # If the key is missing from the data it returns None.
-            ("test_group", "unknown_key", None),
+            ("test_group", "unknown_key", None, None),
             # If the entire group is missing from the data it returns None.
-            ("unknown_group", "test_key", None),
+            ("unknown_group", "test_key", None, None),
+            # Ignores default if key is present
+            ("test_group", "test_key", "DEFAULT", "test_value"),
+            # If the key is missing from the data it returns the default
+            ("test_group", "unknown_key", "DEFAULT", "DEFAULT"),
+            # If the entire group is missing from the data it also returns the default
+            ("unknown_group", "test_key", "DEFAULT", "DEFAULT"),
         ],
     )
-    def test_get(self, application_settings, group, key, expected_value):
-        assert application_settings.get(group, key) == expected_value
+    def test_get(self, application_settings, group, key, default, expected_value):
+        assert application_settings.get(group, key, default) == expected_value
 
     @pytest.mark.parametrize(
         "group,key,value,expected_value",
