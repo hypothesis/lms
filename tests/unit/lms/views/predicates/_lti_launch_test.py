@@ -8,9 +8,9 @@ from lms.views.predicates import (
     AuthorizedToConfigureAssignments,
     BlackboardCopied,
     BrightspaceCopied,
-    CanvasFile,
     Configured,
     DBConfigured,
+    LegacyCanvasFile,
     LegacySpeedGrader,
     URLConfigured,
     VitalSourceBook,
@@ -130,23 +130,23 @@ class TestFooCopied:
         return pyramid_request
 
 
-class TestCanvasFile:
+class TestLegacyCanvasFile:
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_canvas_file(
+    def test_when_assignment_is_legacy_canvas_file(
         self, value, expected, context, pyramid_request
     ):
         pyramid_request.params = {"canvas_file": 22}
-        predicate = CanvasFile(value, mock.sentinel.config)
+        predicate = LegacyCanvasFile(value, mock.sentinel.config)
 
         assert predicate(context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, False), (False, True)])
-    def test_when_assignment_is_not_canvas_file(
+    def test_when_assignment_is_not_legacy_canvas_file(
         self, value, expected, pyramid_request, assignment_service, context
     ):
         assignment_service.exists.return_value = expected
 
-        predicate = CanvasFile(value, mock.sentinel.config)
+        predicate = LegacyCanvasFile(value, mock.sentinel.config)
 
         assert predicate(context, pyramid_request) is expected
 
@@ -201,7 +201,7 @@ class TestConfigured:
         assert predicate(context, pyramid_request) is expected
 
     @pytest.mark.parametrize("value,expected", [(True, True), (False, False)])
-    def test_when_assignment_is_canvas_file(
+    def test_when_assignment_is_legacy_canvas_file(
         self, pyramid_request, value, expected, context
     ):
         pyramid_request.params = {"canvas_file": 22}

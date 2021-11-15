@@ -167,20 +167,24 @@ class BrightspaceCopied(_CourseCopied):
     param_name = "ext_d2l_resource_link_id_history"
 
 
-class CanvasFile(Base):
+class LegacyCanvasFile(Base):
     """
-    Allow invoking an LTI launch view only for Canvas file assignments.
+    Allow invoking an LTI launch view only for legacy Canvas file assignments.
 
-    Pass ``canvas_file=True`` to a view config to allow invoking the view only
-    for Canvas file assignments, or ``canvas_file=False`` to allow it only for
-    other types of assignment. For example::
+    These are old Canvas Files assignments where the Canvas file ID was stored
+    in a canvas_file query param on the LTI launch URL in Canvas, rather than
+    being stored in our DB.
 
-        @view_config(..., canvas_file=True)
-        def canvas_file_assignment_launch_view(context, request):
+    Pass ``legacy_canvas_file=True`` to a view config to allow invoking the
+    view only for Canvas file assignments, or ``legacy_canvas_file=False`` to
+    allow it only for other types of assignment. For example::
+
+        @view_config(..., legacy_canvas_file=True)
+        def legacy_canvas_file_assignment_launch_view(context, request):
             ...
     """
 
-    name = "canvas_file"
+    name = "legacy_canvas_file"
 
     def __call__(self, context, request):
         return ("canvas_file" in request.params) == self.value
@@ -243,7 +247,7 @@ class Configured(Base):
 
     def __init__(self, value, config):
         super().__init__(value, config)
-        self.canvas_file = CanvasFile(True, config)
+        self.legacy_canvas_file = LegacyCanvasFile(True, config)
         self.url_configured = URLConfigured(True, config)
         self.db_configured = DBConfigured(True, config)
         self.blackboard_copied = BlackboardCopied(True, config)
@@ -253,7 +257,7 @@ class Configured(Base):
     def __call__(self, context, request):
         configured = any(
             [
-                self.canvas_file(context, request),
+                self.legacy_canvas_file(context, request),
                 self.url_configured(context, request),
                 self.db_configured(context, request),
                 self.blackboard_copied(context, request),

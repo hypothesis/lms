@@ -90,7 +90,7 @@ class BasicLTILaunchViews:
                 request, h_user=lti_user.h_user, lti_user=lti_user
             )
 
-    @view_config(canvas_file=True)
+    @view_config(legacy_canvas_file=True)
     def legacy_canvas_file_basic_lti_launch(self):
         """
         Respond to a Canvas file assignment launch which is not db_configured.
@@ -142,7 +142,7 @@ class BasicLTILaunchViews:
         )
         return {}
 
-    @view_config(db_configured=True, canvas_file=False, url_configured=False)
+    @view_config(db_configured=True, legacy_canvas_file=False, url_configured=False)
     def db_configured_basic_lti_launch(self):
         """
         Respond to a DB-configured assignment launch.
@@ -165,7 +165,7 @@ class BasicLTILaunchViews:
 
     @view_config(
         db_configured=True,
-        canvas_file=False,
+        legacy_canvas_file=False,
         request_param="ext_lti_assignment_id",
         url_configured=False,
     )
