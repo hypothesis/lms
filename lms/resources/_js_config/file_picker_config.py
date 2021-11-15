@@ -74,7 +74,7 @@ class FilePickerConfig:
     @classmethod
     def microsoft_onedrive(cls, _context, request, application_instance):
         enabled = application_instance.settings.get(
-            "microsoft_onedrive", "files_enabled"
+            "microsoft_onedrive", "files_enabled", default=True
         )
         if not enabled:
             return {"enabled": False}
