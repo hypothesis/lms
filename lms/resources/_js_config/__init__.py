@@ -74,19 +74,23 @@ class JSConfig:
                     resource_link_id=self._request.params["resource_link_id"],
                 ),
             }
-        elif document_url.startswith("vitalsource://"):
-            vitalsource_svc = self._request.find_service(name="vitalsource")
-            launch_url, launch_params = vitalsource_svc.get_launch_params(
-                document_url, self._request.lti_user
-            )
-            self._config["vitalSource"] = {
-                "launchUrl": launch_url,
-                "launchParams": launch_params,
-            }
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
 
         self._add_canvas_speedgrader_settings(document_url=document_url)
+
+    def add_vitalsource_launch_config(self, book_id, cfi=None):
+        vitalsource_svc = self._request.find_service(name="vitalsource")
+        launch_url, launch_params = vitalsource_svc.get_launch_params(
+            book_id, cfi, self._request.lti_user
+        )
+        self._config["vitalSource"] = {
+            "launchUrl": launch_url,
+            "launchParams": launch_params,
+        }
+        self._add_canvas_speedgrader_settings(
+            vitalsource_book_id=book_id, vitalsource_cfi=cfi
+        )
 
     def asdict(self):
         """
