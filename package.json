@@ -39,7 +39,7 @@
     "autoprefixer": "^10.4.0",
     "classnames": "^2.3.1",
     "eslint-plugin-mocha": "^9.0.0",
-    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react": "^7.27.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "focus-visible": "^5.2.0",
     "gulp": "^4.0.2",
