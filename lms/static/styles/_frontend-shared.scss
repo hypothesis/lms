@@ -7,14 +7,16 @@
 .LMS-Dialog {
   // The containing `Modal` component will take up 90vw on narrow screens.
   // For viewports that are wider, `Modal` sets a min-width, but it's a little
-  // narrow for several LMS Dialog interfaces.
+  // narrow for several LMS Dialog interfaces. `48rem` breakpoint is sourced
+  // from `frontend-shared`'s Dialog and Modal styling.
+  @media screen and (min-width: 48rem) {
+    &--medium {
+      width: min(90vw, 36rem);
+    }
 
-  &--medium {
-    width: min(90vw, 36rem);
-  }
-
-  &--wide {
-    width: min(90vw, 42rem);
+    &--wide {
+      width: min(90vw, 42rem);
+    }
   }
 
   // Set a preferred height on interfaces that should take up a good chunk
