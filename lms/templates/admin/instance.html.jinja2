@@ -24,10 +24,10 @@
     {% endcall %}
 {% endmacro %}
 
-{%  macro checkbox_field(label, setting, sub_setting, field_name) %}
+{%  macro checkbox_field(label, setting, sub_setting, field_name, default=False) %}
     {% call field_body(label) %}
         <label class="checkbox">
-          <input {% if instance.settings.get(setting, sub_setting) %}checked {% endif%} type="checkbox" name="{{ setting }}.{{ sub_setting }}">
+          <input {% if instance.settings.get(setting, sub_setting, default) %}checked {% endif%} type="checkbox" name="{{ setting }}.{{ sub_setting }}">
         </label>
     {% endcall %}
 {% endmacro %}
