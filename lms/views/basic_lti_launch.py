@@ -259,7 +259,7 @@ class BasicLTILaunchViews:
         return self.basic_lti_launch(document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
-    def url_configured_basic_lti_launch(self):
+    def legacy_canvas_lti_launch(self):
         """
         Respond to a URL-configured assignment launch.
 
