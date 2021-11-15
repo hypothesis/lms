@@ -1,39 +1,5 @@
 // Utility classes.
 
-.u-flex-row {
-  display: flex;
-  flex-direction: row;
-}
-
-.u-flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-// Make item stretch along main axis.
-.u-stretch {
-  flex-grow: 1;
-}
-
-// Make item stretch along cross axis.
-.u-cross-stretch {
-  align-self: stretch;
-}
-
-// Constrain and overflow with ellipsis
-.u-overflow--ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-// A columnar flex layout centered on the cross axis
-.u-layout-column--align-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 // A placeholder until the time when we can establish typography patterns
 // and proportional line-heights. When typography patterns are established,
 // line-height should be part of text patterns/styles.
