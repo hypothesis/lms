@@ -31,7 +31,7 @@ class HTTPService:
     def delete(self, *args, **kwargs):
         return self.request("DELETE", *args, **kwargs)
 
-    def request(self, method, url, timeout=(10, 10), **kwargs):
+    def request(self, method, url, timeout=(22, 22), **kwargs):
         """
         Send a request with `requests` and return the requests.Response object.
 
