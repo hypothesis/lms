@@ -86,7 +86,7 @@ class BasicClient:
         response = None
 
         try:
-            response = self._session.send(request, timeout=9)
+            response = self._session.send(request, timeout=(10, 10))
             response.raise_for_status()
         except RequestException as err:
             CanvasAPIError.raise_from(err, request, response)
