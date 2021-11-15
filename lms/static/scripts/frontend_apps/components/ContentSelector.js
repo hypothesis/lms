@@ -277,7 +277,7 @@ export default function ContentSelector({
             </LabeledButton>
           )}
         </div>
-        <div className="u-stretch" />
+        <div className="hyp-u-stretch" />
       </div>
       <div>{dialog}</div>
     </>
