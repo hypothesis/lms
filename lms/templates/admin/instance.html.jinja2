@@ -52,7 +52,7 @@
     {{ checkbox_field("Sections enabled", "canvas", "sections_enabled") }}
     {{ checkbox_field("Groups enabled", "canvas", "groups_enabled") }}
     {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled") }}
-    {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled") }}
+    {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
 
     {% call field_body(label="") %}
         <input type="submit" class="button is-primary" value="Save" />
