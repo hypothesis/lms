@@ -1,14 +1,15 @@
-from dataclasses import dataclass
+from functools import lru_cache
 from typing import Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import NoResultFound
 
-from lms.models import LTIUser
-from lms.models.user import User
-from lms.services.application_instance import ApplicationInstanceService
+from lms.models import LTIUser, User
 
 
-@dataclass
+class UserNotFound(Exception):
+    """The requested User wasn't found in the database."""
+
+
 class UserService:
     """
     A service for working with users.
@@ -16,9 +17,10 @@ class UserService:
     At the moment this is purely used for recording/reporting purposes.
     """
 
-    application_instance_service: ApplicationInstanceService
-    db_session: Session
-    h_authority: str
+    def __init__(self, application_instance_service, db, h_authority: str):
+        self._application_instance_service = application_instance_service
+        self._db = db
+        self._h_authority = h_authority
 
     def store_lti_user(self, lti_user: LTIUser):
         """
@@ -34,11 +36,34 @@ class UserService:
             existing_user.roles = new_user.roles
 
         else:
-            self.db_session.add(new_user)
+            self._db.add(new_user)
+
+    @lru_cache
+    def get(self, application_instance, user_id: str) -> User:
+        """
+        Get a User that belongs to `application_instance` an has user_id=user_id.
+
+        :param application_instance: The ApplicationInstance the user belongs to
+        :param user_id: Unique identifier of the user
+        :raises UserNotFound: if the User is not present in the DB
+        """
+        try:
+            existing_user = (
+                self._db.query(User)
+                .filter_by(
+                    application_instance=application_instance,
+                    user_id=user_id,
+                )
+                .one()
+            )
+        except NoResultFound as err:
+            raise UserNotFound() from err
+
+        return existing_user
 
     def _find_existing_user(self, model_user: User) -> Optional[User]:
         return (
-            self.db_session.query(User)
+            self._db.query(User)
             .filter_by(
                 application_instance=model_user.application_instance,
                 user_id=model_user.user_id,
@@ -49,12 +74,12 @@ class UserService:
 
     def _from_lti_user(self, lti_user: LTIUser) -> User:
         return User(
-            application_instance=self.application_instance_service.get_by_consumer_key(
+            application_instance=self._application_instance_service.get_by_consumer_key(
                 lti_user.oauth_consumer_key
             ),
             user_id=lti_user.user_id,
             roles=lti_user.roles,
-            h_userid=lti_user.h_user.userid(self.h_authority),
+            h_userid=lti_user.h_user.userid(self._h_authority),
         )
 
 
@@ -62,7 +87,7 @@ def factory(_context, request):
     """Service factory for the UserService."""
 
     return UserService(
-        application_instance_service=request.find_service(name="application_instance"),
-        db_session=request.db,
-        h_authority=request.registry.settings["h_authority"],
+        request.find_service(name="application_instance"),
+        request.db,
+        request.registry.settings["h_authority"],
     )
