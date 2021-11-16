@@ -70,7 +70,9 @@ import { createContext } from 'preact';
  * @prop {APICallInfo} createAssignmentAPI
  * @prop {object} blackboard
  *   @prop {boolean} blackboard.enabled
+ *   @prop {boolean} blackboard.groupsEnabled
  *   @prop {APICallInfo} blackboard.listFiles
+ *   @prop {APICallInfo} blackboard.listGroupSets
  * @prop {object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {boolean} canvas.groupsEnabled
