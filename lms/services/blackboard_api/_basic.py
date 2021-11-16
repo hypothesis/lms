@@ -83,6 +83,41 @@ class BasicClient:
             )
             return self._send(method, url)
 
+    def async_requests(self, method, urls):
+        import aiohttp
+        import asyncio
+
+        headers = {}
+        access_token = self._oauth_http_service._oauth2_token_service.get().access_token
+        headers["Authorization"] = f"Bearer {access_token}"
+
+        async def async_request(aio_session, method, url, headers=None):
+            try:
+                async with aio_session.request(
+                    method, url, headers=headers
+                ) as response:
+                    return response
+            except aiohttp.ClientError:
+                raise ExternalRequestError("Blackboard async request failed")
+
+        async def prepare_requests(method, urls, headers=None):
+            async with aiohttp.ClientSession() as session:
+                tasks = []
+                for url in urls:
+                    url = self._api_url(url)
+                    task = asyncio.ensure_future(
+                        async_request(session, method, url, headers)
+                    )
+                    tasks.append(task)
+                try:
+                    return await asyncio.gather(*tasks, return_exceptions=False)
+                except ExternalRequestError:
+                    for task in tasks:
+                        task.cancel()
+                    raise
+
+        return asyncio.run(prepare_requests(method, urls, headers))
+
     @property
     def token_url(self):
         return self._api_url("oauth2/token")

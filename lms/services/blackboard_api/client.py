@@ -130,38 +130,19 @@ class BlackboardAPIClient:
             ]
 
         if user_id:
-            import aiohttp
-            import asyncio
-
-            headers = {}
-            access_token = (
-                self._api._oauth_http_service._oauth2_token_service.get().access_token
+            groups_by_id = {group["id"]: group for group in groups}
+            responses = self._api.async_requests(
+                "GET",
+                [
+                    f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}"
+                    for group in groups
+                ],
             )
-            headers["Authorization"] = f"Bearer {access_token}"
-
-            async def check_group(session, course_id, group):
-                async with session.get(
-                    self._api._api_url(
-                        f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}"
-                    ),
-                    headers=headers,
-                ) as response:
-                    if response.status == 200:
-                        return group
-
-                    return None
-
-            async def check_all_groups(groups):
-                async with aiohttp.ClientSession() as session:
-                    tasks = []
-                    for group in groups:
-                        task = asyncio.ensure_future(
-                            check_group(session, course_id, group)
-                        )
-                        tasks.append(task)
-                    results = await asyncio.gather(*tasks, return_exceptions=True)
-                    return [g for g in results if g]
-
-            groups = asyncio.run(check_all_groups(groups))
+            groups = [
+                groups_by_id[str(response.url).split("/")[-1]]
+                for response in responses
+                if response.status == 200
+            ]
+            print(groups)
 
         return groups
