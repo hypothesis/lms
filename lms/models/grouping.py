@@ -4,6 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
+from enum import Enum
 from lms.db import BASE
 from lms.models import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings
@@ -106,7 +107,7 @@ class CanvasGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}
 
 
-class BlackBoardGroup(Grouping):
+class BlackboardGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
 
 
