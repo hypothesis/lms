@@ -12,13 +12,14 @@ from tests import factories
 class TestAuthenticatedClient:
     def test_send(self, authenticated_client, basic_client, oauth_token):
         result = authenticated_client.send(
-            "METHOD", "/path", sentinel.schema, sentinel.params
+            "METHOD", "/path", sentinel.schema, params=sentinel.params
         )
 
         basic_client.send.assert_called_once_with(
             "METHOD",
             "/path",
             sentinel.schema,
+            (10, 10),
             sentinel.params,
             headers={"Authorization": f"Bearer {oauth_token.access_token}"},
         )
@@ -46,30 +47,32 @@ class TestAuthenticatedClient:
             "success",  # Then finally our successful content request
         )
 
-        call_args = ("METHOD", "/path", sentinel.schema, sentinel.params)
+        call_args = ("METHOD", "/path", sentinel.schema, (10, 10), sentinel.params)
         result = authenticated_client.send(*call_args)
 
-        basic_client.send.assert_has_calls(
-            (
-                # Initial call with access token
-                call(
-                    *call_args,
-                    headers={"Authorization": f"Bearer {oauth_token.access_token}"},
+        assert basic_client.send.call_args_list == [
+            # Initial call with access token
+            call(
+                *call_args,
+                headers={"Authorization": f"Bearer {oauth_token.access_token}"},
+            ),
+            # Refresh after the one above fails
+            call(
+                "POST",
+                "login/oauth2/token",
+                url_stub="",
+                params=Any.mapping.containing(
+                    {"refresh_token": oauth_token.refresh_token}
                 ),
-                # Refresh after the one above fails
-                call(
-                    "POST",
-                    "login/oauth2/token",
-                    params=Any.mapping.containing(
-                        {"refresh_token": oauth_token.refresh_token}
-                    ),
-                    schema=Any(),
-                    url_stub=Any(),
-                ),
-                # Repeat call with new access token
-                call(*call_args, headers={"Authorization": "Bearer new_access_token"}),
-            )
-        )
+                schema=OAuthTokenResponseSchema,
+                timeout=(10, 10),
+            ),
+            # Repeat call with new access token
+            call(
+                *call_args,
+                headers={"Authorization": "Bearer new_access_token"},
+            ),
+        ]
 
         assert result == "success"
 
@@ -94,6 +97,7 @@ class TestAuthenticatedClient:
         basic_client.send.assert_called_once_with(
             "POST",
             "login/oauth2/token",
+            url_stub="",
             params={
                 "grant_type": "authorization_code",
                 "client_id": sentinel.client_id,
@@ -103,7 +107,7 @@ class TestAuthenticatedClient:
                 "replace_tokens": True,
             },
             schema=OAuthTokenResponseSchema,
-            url_stub="",
+            timeout=(10, 10),
         )
 
         oauth2_token_service.save.assert_called_once_with(
@@ -122,6 +126,7 @@ class TestAuthenticatedClient:
         basic_client.send.assert_called_once_with(
             "POST",
             "login/oauth2/token",
+            url_stub="",
             params={
                 "grant_type": "refresh_token",
                 "client_id": sentinel.client_id,
@@ -129,7 +134,7 @@ class TestAuthenticatedClient:
                 "refresh_token": "refresh_token",
             },
             schema=OAuthTokenResponseSchema,
-            url_stub="",
+            timeout=(10, 10),
         )
 
         oauth2_token_service.save.assert_called_once_with(

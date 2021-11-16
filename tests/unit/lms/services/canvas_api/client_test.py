@@ -187,8 +187,11 @@ class TestCanvasAPIClient:
             "per_page": Any.string(),
             "only_own_groups": str(only_own_groups),
         }
+        expected_timeout = Any()
+
         if include_users:
             expected_params["include[]"] = "users"
+            expected_timeout = (20, 20)  # pylint:disable=redefined-variable-type
 
         http_session.send.assert_called_once_with(
             Any.request(
@@ -197,7 +200,7 @@ class TestCanvasAPIClient:
                     expected_params
                 ),
             ),
-            timeout=Any(),
+            timeout=expected_timeout,
         )
 
     @pytest.mark.usefixtures("list_groups_response")

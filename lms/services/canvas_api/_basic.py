@@ -47,6 +47,7 @@ class BasicClient:
         method,
         path,
         schema,
+        timeout,
         params=None,
         headers=None,
         url_stub="/api/v1",
@@ -55,13 +56,28 @@ class BasicClient:
         Make a request to the Canvas API and apply a schema to the response.
 
         :param method: HTTP method to use
+
         :param path: Path fragment to add to the end of the URL
+
         :param schema: A schema object which this request must
+
         :param params: URL parameters to include
+
+        :param timeout: The timeout to pass to requests
+        :type timeout: Either a (connect_timeout, read_timeout) 2-tuple or a
+            single number that will be used for both the connect timeout and
+            the read timeout. The values are in seconds and can be either ints
+            or floats. See:
+            https://docs.python-requests.org/en/latest/user/quickstart/#timeouts
+            https://docs.python-requests.org/en/latest/user/advanced/#timeouts
+
         :param headers: Headers to include
+
         :param url_stub: Path prefix
-        :return: The result of applying the schema to the response
+
         :raise CanvasAPIError: For any validation or request errors
+
+        :return: The result of applying the schema to the response
         """
         # Always request the maximum items per page for requests which return
         # more than one thing
@@ -75,18 +91,18 @@ class BasicClient:
             method, self._get_url(path, params, url_stub), headers=headers
         ).prepare()
 
-        return self._send_prepared(request, schema)
+        return self._send_prepared(request, schema, timeout)
 
     def _get_url(self, path, params, url_stub):
         return f"https://{self._canvas_host}{url_stub}/{path}" + (
             "?" + urlencode(params) if params else ""
         )
 
-    def _send_prepared(self, request, schema, request_depth=1):
+    def _send_prepared(self, request, schema, timeout, request_depth=1):
         response = None
 
         try:
-            response = self._session.send(request, timeout=(10, 10))
+            response = self._session.send(request, timeout=timeout)
             response.raise_for_status()
         except RequestException as err:
             CanvasAPIError.raise_from(err, request, response)
@@ -118,7 +134,7 @@ class BasicClient:
                 new_request.url = next_url["url"]
                 result.extend(
                     self._send_prepared(
-                        new_request, schema, request_depth=request_depth + 1
+                        new_request, schema, timeout, request_depth=request_depth + 1
                     )
                 )
 
