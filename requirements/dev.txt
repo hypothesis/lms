@@ -4,11 +4,22 @@
 #
 #    pip-compile requirements/dev.in
 #
+aiohttp==3.8.1
+    # via -r requirements/requirements.txt
+aiosignal==1.2.0
+    # via
+    #   -r requirements/requirements.txt
+    #   aiohttp
 alembic==1.7.4
     # via -r requirements/requirements.txt
+async-timeout==4.0.1
+    # via
+    #   -r requirements/requirements.txt
+    #   aiohttp
 attrs==20.2.0
     # via
     #   -r requirements/requirements.txt
+    #   aiohttp
     #   jsonschema
 backcall==0.2.0
     # via ipython
@@ -24,6 +35,7 @@ certifi==2020.6.20
 charset-normalizer==2.0.1
     # via
     #   -r requirements/requirements.txt
+    #   aiohttp
     #   requests
 decorator==5.0.7
     # via ipython
@@ -31,6 +43,11 @@ factory-boy==3.2.1
     # via -r requirements/dev.in
 faker==8.1.2
     # via factory-boy
+frozenlist==1.2.0
+    # via
+    #   -r requirements/requirements.txt
+    #   aiohttp
+    #   aiosignal
 google-auth==1.30.0
     # via
     #   -r requirements/requirements.txt
@@ -61,6 +78,7 @@ idna==2.10
     # via
     #   -r requirements/requirements.txt
     #   requests
+    #   yarl
 importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
@@ -100,6 +118,11 @@ marshmallow==3.14.0
     #   webargs
 matplotlib-inline==0.1.2
     # via ipython
+multidict==5.2.0
+    # via
+    #   -r requirements/requirements.txt
+    #   aiohttp
+    #   yarl
 newrelic==7.2.4.171
     # via -r requirements/requirements.txt
 oauthlib==3.1.1
@@ -225,6 +248,10 @@ translationstring==1.4
     # via
     #   -r requirements/requirements.txt
     #   pyramid
+typing-extensions==4.0.0
+    # via
+    #   -r requirements/requirements.txt
+    #   async-timeout
 urllib3==1.26.5
     # via
     #   -r requirements/requirements.txt
@@ -249,6 +276,10 @@ wired==0.2.2
     #   pyramid-services
 xmltodict==0.12.0
     # via -r requirements/requirements.txt
+yarl==1.7.2
+    # via
+    #   -r requirements/requirements.txt
+    #   aiohttp
 zipp==3.4.1
     # via
     #   -r requirements/requirements.txt

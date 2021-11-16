@@ -4,10 +4,18 @@
 #
 #    pip-compile requirements/requirements.in
 #
+aiohttp==3.8.1
+    # via -r requirements/requirements.in
+aiosignal==1.2.0
+    # via aiohttp
 alembic==1.7.4
     # via -r requirements/requirements.in
+async-timeout==4.0.1
+    # via aiohttp
 attrs==20.2.0
-    # via jsonschema
+    # via
+    #   aiohttp
+    #   jsonschema
 cachetools==4.2.2
     # via google-auth
 certifi==2020.6.20
@@ -15,7 +23,13 @@ certifi==2020.6.20
     #   requests
     #   sentry-sdk
 charset-normalizer==2.0.1
-    # via requests
+    # via
+    #   aiohttp
+    #   requests
+frozenlist==1.2.0
+    # via
+    #   aiohttp
+    #   aiosignal
 google-auth==1.30.0
     # via google-auth-oauthlib
 google-auth-oauthlib==0.4.4
@@ -35,7 +49,9 @@ h-vialib==1.0.18
 hupper==1.10.2
     # via pyramid
 idna==2.10
-    # via requests
+    # via
+    #   requests
+    #   yarl
 importlib-metadata==4.8.1
     # via alembic
 importlib-resources==5.4.0
@@ -58,6 +74,10 @@ marshmallow==3.14.0
     # via
     #   -r requirements/requirements.in
     #   webargs
+multidict==5.2.0
+    # via
+    #   aiohttp
+    #   yarl
 newrelic==7.2.4.171
     # via -r requirements/requirements.in
 oauthlib==3.1.1
@@ -139,6 +159,8 @@ transaction==2.4.0
     #   zope.sqlalchemy
 translationstring==1.4
     # via pyramid
+typing-extensions==4.0.0
+    # via async-timeout
 urllib3==1.26.5
     # via
     #   requests
@@ -155,6 +177,8 @@ wired==0.2.2
     # via pyramid-services
 xmltodict==0.12.0
     # via -r requirements/requirements.in
+yarl==1.7.2
+    # via aiohttp
 zipp==3.4.1
     # via
     #   importlib-metadata
