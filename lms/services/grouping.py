@@ -3,6 +3,11 @@ from typing import Optional
 from lms.models._hashed_id import hashed_id
 from lms.models.grouping import Grouping
 from lms.services.course import CourseService
+from lms.models.grouping import CanvasGroup, CanvasSection, Grouping, GroupingMembership
+from lms.models._hashed_id import hashed_id
+from lms.models import User, ApplicationInstance
+
+from typing import List, Optional
 
 
 class GroupingService:
@@ -81,6 +86,36 @@ class GroupingService:
             db_grouping.extra = grouping.extra
 
         return db_grouping or grouping
+
+    def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
+        for group in groups:
+            if membership := (
+                self._db.query(GroupingMembership)
+                .filter_by(grouping_id=group.id, user_id=user.id)
+                .one_or_none()
+            ):
+                continue
+
+            group.memberships.append(GroupingMembership(grouping=group, user=user))
+
+    def get_groupings_for_user(
+        self,
+        application_instance: ApplicationInstance,
+        user_id: str,
+        type_: Optional[Grouping.Type] = None,
+        parent_lms_id: Optional[str] = None,
+    ):
+        query = (
+            self._db.query(Grouping)
+            .join(GroupingMembership)
+            .join(User)
+            .filter(
+                User.user_id == user_id,
+                Grouping.application_instance == application_instance,
+            )
+        )
+
+        return query.all()
 
 
 def factory(_context, request):
