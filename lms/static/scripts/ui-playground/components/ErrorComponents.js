@@ -7,6 +7,7 @@ import { Config } from '../../frontend_apps/config';
 import ErrorDialogApp from '../../frontend_apps/components/ErrorDialogApp';
 import ErrorDisplay from '../../frontend_apps/components/ErrorDisplay';
 import ErrorDialog from '../../frontend_apps/components/ErrorDialog';
+import LaunchErrorDialog from '../../frontend_apps/components/LaunchErrorDialog';
 import OAuth2RedirectErrorApp from '../../frontend_apps/components/OAuth2RedirectErrorApp';
 
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
@@ -96,6 +97,29 @@ function OAuth2RedirectErrorAppExample({ errorCode = '' }) {
       <Config.Provider value={config}>
         <OAuth2RedirectErrorApp />
       </Config.Provider>
+    );
+  }
+}
+
+function LaunchErrorDialogExample({ errorState = '' }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  if (!dialogOpen) {
+    return (
+      <LabeledButton
+        onClick={() => setDialogOpen(!dialogOpen)}
+        variant="primary"
+      >
+        {errorState}
+      </LabeledButton>
+    );
+  } else {
+    return (
+      <LaunchErrorDialog
+        error={fakeError}
+        errorState={errorState}
+        onRetry={() => setDialogOpen(false)}
+      />
     );
   }
 }
@@ -338,6 +362,47 @@ export default function ErrorComponents() {
           </p>
           <Library.Demo title="Any other error code (generic error)">
             <OAuth2RedirectErrorAppExample errorCode={'some-other'} />
+          </Library.Demo>
+        </Library.Example>
+      </Library.Pattern>
+
+      <Library.Pattern title="LaunchErrorDialog">
+        <div className="LMSLibrary__content">
+          <p>
+            These type of errors are shown when in an LTI launch mode and an
+            error is encountered while fetching groups or content. Several
+            examples are shown below. These are not exhaustive.
+          </p>
+          <p>
+            <b>Note</b>: You can close these example dialogs by clicking the{' '}
+            {"'Try Again'"} button.
+          </p>
+        </div>
+
+        <Library.Example title="Recognized error codes" variant="wide">
+          <Library.Demo title="blackboard_file_not_found_in_course">
+            <LaunchErrorDialogExample errorState="blackboard_file_not_found_in_course" />
+          </Library.Demo>
+          <Library.Demo title="canvas_api_permission_error">
+            <LaunchErrorDialogExample errorState="canvas_api_permission_error" />
+          </Library.Demo>
+          <Library.Demo title="canvas_file_not_found_in_course">
+            <LaunchErrorDialogExample errorState="canvas_file_not_found_in_course" />
+          </Library.Demo>
+        </Library.Example>
+
+        <Library.Example title="Authorization error">
+          <p>
+            This error is shown if the proxy API returns a response with an
+            error HTTP status but no content in the body to indicate the type of
+            error or a message.
+          </p>
+          <p>
+            <b>Note:</b> You can close this dialog by clicking the{' '}
+            {"'Authorize'"} button.
+          </p>
+          <Library.Demo title="Authorization error">
+            <LaunchErrorDialogExample errorState="error-authorizing" />
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
