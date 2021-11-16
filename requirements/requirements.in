@@ -25,3 +25,5 @@ sqlalchemy
 webargs
 xmltodict
 zope.sqlalchemy
+
+aiohttp
