@@ -1,3 +1,4 @@
+aiohttp
 alembic
 gunicorn
 h-api

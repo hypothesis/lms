@@ -4,6 +4,17 @@
 #
 #    pip-compile requirements/lint.in
 #
+aiohttp==3.8.1
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+aiosignal==1.2.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   aiohttp
 alembic==1.7.4
     # via
     #   -r requirements/bddtests.txt
@@ -11,11 +22,18 @@ alembic==1.7.4
     #   -r requirements/tests.txt
 astroid==2.8.0
     # via pylint
+async-timeout==4.0.1
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   aiohttp
 attrs==20.2.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   aiohttp
     #   jsonschema
     #   pytest
 beautifulsoup4==4.9.3
@@ -43,6 +61,7 @@ charset-normalizer==2.0.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   aiohttp
     #   requests
 coverage==6.1.2
     # via -r requirements/tests.txt
@@ -57,6 +76,13 @@ faker==8.1.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
+frozenlist==1.2.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   aiohttp
+    #   aiosignal
 google-auth==1.30.0
     # via
     #   -r requirements/bddtests.txt
@@ -122,6 +148,7 @@ idna==2.10
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   requests
+    #   yarl
 importlib-metadata==4.8.1
     # via
     #   -r requirements/bddtests.txt
@@ -179,6 +206,13 @@ marshmallow==3.14.0
     #   webargs
 mccabe==0.6.1
     # via pylint
+multidict==5.2.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   aiohttp
+    #   yarl
 newrelic==7.2.4.171
     # via
     #   -r requirements/bddtests.txt
@@ -414,9 +448,13 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-typing-extensions==3.10.0.2
+typing-extensions==4.0.0
     # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
     #   astroid
+    #   async-timeout
     #   pylint
 urllib3==1.26.5
     # via
@@ -466,6 +504,12 @@ xmltodict==0.12.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+yarl==1.7.2
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   aiohttp
 zipp==3.4.1
     # via
     #   -r requirements/bddtests.txt
