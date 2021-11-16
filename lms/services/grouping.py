@@ -9,8 +9,19 @@ from lms.models import User, ApplicationInstance
 
 from typing import List, Optional
 from lms.models import CanvasGroup, CanvasSection, Grouping, GroupingMembership
+from typing import List, Optional, Union
+
+from lms.models import (
+    ApplicationInstance,
+    CanvasGroup,
+    CanvasSection,
+    Grouping,
+    GroupingMembership,
+    User,
+)
+from sqlalchemy.orm import aliased
 from lms.models._hashed_id import hashed_id
-from lms.models import User
+from lms.models.grouping import CanvasGroup, CanvasSection, Grouping, GroupingMembership
 
 
 class GroupingService:
@@ -105,8 +116,9 @@ class GroupingService:
         self,
         application_instance: ApplicationInstance,
         user_id: str,
-        type_: Optional[Grouping.Type] = None,
         parent_lms_id: Optional[str] = None,
+        type_: Optional[Grouping.Type] = None,
+        group_set_id: Union[str, int] = None,
     ):
         query = (
             self._db.query(Grouping)
@@ -117,6 +129,19 @@ class GroupingService:
                 Grouping.application_instance == application_instance,
             )
         )
+        if parent_lms_id:
+            parent_grouping = aliased(Grouping)
+            query = query.join(parent_grouping, Grouping.parent).filter(
+                parent_grouping.lms_id == parent_lms_id
+            )
+
+        if type_:
+            query = query.filter(Grouping.type == type_)
+
+        if group_set_id:
+            query = query.filter(
+                Grouping.extra["group_set_id"].astext == str(group_set_id)
+            )
 
         return query.all()
 
