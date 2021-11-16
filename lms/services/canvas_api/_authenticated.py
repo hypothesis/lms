@@ -81,7 +81,7 @@ class AuthenticatedClient:
         # https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
         return self._send_token_request(
             grant_type="authorization_code",
-            code=authorization_code,
+            code="foo",
             redirect_uri=self._redirect_uri,
             replace_tokens=True,
         )

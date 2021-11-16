@@ -86,6 +86,7 @@ class BasicClient:
         response = None
 
         try:
+            import pdb; pdb.set_trace()
             response = self._session.send(request, timeout=(10, 10))
             response.raise_for_status()
         except RequestException as err:

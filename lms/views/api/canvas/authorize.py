@@ -98,6 +98,7 @@ def oauth2_redirect(request):
     try:
         canvas_api_client.get_token(authorization_code)
     except CanvasAPIServerError as err:
+        import pdb; pdb.set_trace()
         raise HTTPInternalServerError("Authorizing with the Canvas API failed") from err
 
     return {}
@@ -113,7 +114,8 @@ def oauth2_redirect(request):
     route_name="canvas_api.oauth.authorize",
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
-def oauth2_redirect_error(request):
+def oauth2_redirect_error(context, request):
+    import pdb; pdb.set_trace()
     kwargs = {
         "auth_route": "canvas_api.oauth.authorize",
         "canvas_scopes": FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
