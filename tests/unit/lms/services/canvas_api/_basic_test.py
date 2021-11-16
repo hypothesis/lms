@@ -37,37 +37,42 @@ class TestBasicClient:
             **{
                 "method": "METHOD",
                 "path": "default_path/",
+                "timeout": sentinel.timeout,
                 "schema": Schema,
                 key: value,
             }
         )
 
         http_session.send.assert_called_once_with(
-            Any.request.with_url(expected_url), timeout=Any()
+            Any.request.with_url(expected_url), timeout=sentinel.timeout
         )
 
     @pytest.mark.parametrize("method", ("GET", "POST", "PATCH"))
     def test_send_uses_the_request_method(
         self, basic_client, Schema, method, http_session
     ):
-        basic_client.send(method, "path/", schema=Schema)
+        basic_client.send(method, "path/", schema=Schema, timeout=sentinel.timeout)
 
-        http_session.send.assert_called_once_with(Any.request(method), timeout=Any())
+        assert http_session.send.call_args[0][0] == Any.request(method)
 
     def test_send_sets_pagination_for_multi_schema(
         self, basic_client, PaginatedSchema, http_session
     ):
-        basic_client.send("METHOD", "path/", schema=PaginatedSchema)
+        basic_client.send(
+            "METHOD", "path/", schema=PaginatedSchema, timeout=sentinel.timeout
+        )
 
         expected_url = Any.url.containing_query(
             {"per_page": str(BasicClient.PAGINATION_PER_PAGE)}
         )
         http_session.send.assert_called_once_with(
-            Any.request.with_url(expected_url), timeout=Any()
+            Any.request.with_url(expected_url), timeout=sentinel.timeout
         )
 
     def test_send_calls_the_schema(self, basic_client, http_session, Schema):
-        result = basic_client.send("METHOD", "path/", schema=Schema)
+        result = basic_client.send(
+            "METHOD", "path/", schema=Schema, timeout=sentinel.timeout
+        )
 
         Schema.assert_called_once_with(http_session.send.return_value)
         Schema.return_value.parse.assert_called_once_with()
@@ -80,7 +85,9 @@ class TestBasicClient:
         http_session.send.return_value = factories.requests.Response(status_code=501)
 
         with pytest.raises(CanvasAPIError) as exc_info:
-            basic_client.send("METHOD", "path/", schema=Schema)
+            basic_client.send(
+                "METHOD", "path/", schema=Schema, timeout=sentinel.timeout
+            )
 
         # The request that was sent.
         request = http_session.send.call_args[0][0]
@@ -98,7 +105,9 @@ class TestBasicClient:
         http_session.send.side_effect = requests.ReadTimeout()
 
         with pytest.raises(CanvasAPIError) as exc_info:
-            basic_client.send("METHOD", "path/", schema=Schema)
+            basic_client.send(
+                "METHOD", "path/", schema=Schema, timeout=sentinel.timeout
+            )
 
         # The request that was sent.
         request = http_session.send.call_args[0][0]
@@ -115,7 +124,7 @@ class TestBasicClient:
         )
 
         with pytest.raises(CanvasAPIError) as exc_info:
-            basic_client.send("any", "any", schema=Schema)
+            basic_client.send("any", "any", schema=Schema, timeout=sentinel.timeout)
 
         # The request that was sent.
         request = http_session.send.call_args[0][0]
@@ -131,7 +140,9 @@ class TestBasicClient:
     def test_send_follows_pagination_links_for_many_schema(
         self, basic_client, PaginatedSchema, http_session
     ):
-        result = basic_client.send("METHOD", "path/", schema=PaginatedSchema)
+        result = basic_client.send(
+            "METHOD", "path/", schema=PaginatedSchema, timeout=sentinel.timeout
+        )
 
         # Values are from the PaginatedSchema fixture
         assert result == ["item_0", "item_1", "item_2"]
@@ -139,19 +150,25 @@ class TestBasicClient:
         # We'd love to say the first call here isn't to 'next_url', but we
         # mutate the object in place, so the information is destroyed
 
-        http_session.send.assert_has_calls(
-            [
-                call(Any.request(), timeout=Any()),
-                call(Any.request(url="http://example.com/next/0"), timeout=Any()),
-                call(Any.request(url="http://example.com/next/1"), timeout=Any()),
-            ]
-        )
+        assert http_session.send.call_args_list == [
+            call(Any.request(), timeout=sentinel.timeout),
+            call(
+                Any.request(url="http://example.com/next/0"),
+                timeout=sentinel.timeout,
+            ),
+            call(
+                Any.request(url="http://example.com/next/1"),
+                timeout=sentinel.timeout,
+            ),
+        ]
 
     @pytest.mark.usefixtures("with_paginated_results")
     def test_send_only_paginates_to_the_max_value(self, basic_client, PaginatedSchema):
         basic_client.PAGINATION_MAXIMUM_REQUESTS = 2
 
-        result = basic_client.send("METHOD", "path/", schema=PaginatedSchema)
+        result = basic_client.send(
+            "METHOD", "path/", schema=PaginatedSchema, timeout=sentinel.timeout
+        )
 
         assert result == ["item_0", "item_1"]
 
@@ -160,7 +177,9 @@ class TestBasicClient:
         self, basic_client, Schema, http_session, paginated_responses
     ):
         with pytest.raises(CanvasAPIError) as exc_info:
-            basic_client.send("METHOD", "path/", schema=Schema)
+            basic_client.send(
+                "METHOD", "path/", schema=Schema, timeout=sentinel.timeout
+            )
 
         # The request that was sent.
         request = http_session.send.call_args[0][0]

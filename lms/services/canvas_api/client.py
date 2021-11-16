@@ -319,14 +319,23 @@ class CanvasAPIClient:
         :param include_users: Optionally include all the users in each group
         """
         params = {"only_own_groups": only_own_groups}
+        send_kwargs = {}
+
         if include_users:
             params["include[]"] = "users"
+
+            # It looks like Canvas's course groups API may sometimes be very
+            # slow when called with ?include[]=users (possibly for courses that
+            # have many users) so use a larger timeout for these particular
+            # requests.
+            send_kwargs["timeout"] = (20, 20)
 
         return self._client.send(
             "GET",
             f"courses/{course_id}/groups",
             params=params,
             schema=self._ListGroups,
+            **send_kwargs,
         )
 
     def current_user_groups(self, course_id, group_category_id=None):
