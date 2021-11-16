@@ -4,7 +4,6 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from enum import Enum
 from lms.db import BASE
 from lms.models import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings
