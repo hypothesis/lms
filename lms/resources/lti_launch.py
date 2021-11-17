@@ -194,7 +194,7 @@ class LTILaunchResource:
 
     @property
     def blackboard_groups_enabled(self):
-        """Return True if BlackBoard groups are enabled at the school/installation level."""
+        """Return True if Blackboard groups are enabled at the school/installation level."""
         try:
             application_instance = self._application_instance_service.get_current()
         except ApplicationInstanceNotFound:
@@ -207,7 +207,7 @@ class LTILaunchResource:
 
     @property
     def is_blackboard_group_launch(self):
-        """Return True if the current assignment uses BlackBoard groups."""
+        """Return True if the current assignment uses Blackboard groups."""
         if not self.blackboard_groups_enabled:
             return False
 

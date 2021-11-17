@@ -282,7 +282,7 @@ class TestCourseExtra:
 
 
 @pytest.mark.usefixtures("has_course")
-class TestBlackBoardGroupsEnabled:
+class TestBlackboardGroupsEnabled:
     def test_false_when_no_application_instance(
         self, application_instance_service, lti_launch
     ):
@@ -363,7 +363,7 @@ class TestCanvasIsGroupLaunch:
         return TestableLTILaunchResource(pyramid_request)
 
 
-class TestIsBlackBoardGroupLaunch:
+class TestIsBlackboardGroupLaunch:
     def test_false_when_not_enabled(self, lti_launch_groups_enabled):
         lti_launch_groups_enabled.blackboard_groups_enabled = False
 
