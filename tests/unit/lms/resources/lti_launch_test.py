@@ -299,16 +299,27 @@ class TestBlackBoardGroupsEnabled:
 
         assert not lti_launch.blackboard_groups_enabled
 
-    @pytest.mark.parametrize("settings_value", [True, False])
-    def test_returns_settings_value(
-        self, settings_value, application_instance_service, lti_launch
+    @pytest.mark.parametrize(
+        "setting_value,product,expected",
+        [
+            (True, "canvas", False),
+            (True, "BlackboardLearn", True),
+            (False, "canvas", False),
+            (False, "BlackboardLearn", False),
+        ],
+    )
+    def test_it(
+        self, setting_value, product, expected, application_instance_service, lti_launch
     ):
         settings = ApplicationSettings(
-            {"blackboard": {"groups_enabled": settings_value}}
+            {"blackboard": {"groups_enabled": setting_value}}
         )
         application_instance_service.get_current.return_value.settings = settings
+        application_instance_service.get_current.return_value.tool_consumer_info_product_family_code = (
+            product
+        )
 
-        assert lti_launch.blackboard_groups_enabled == settings_value
+        assert lti_launch.blackboard_groups_enabled == expected
 
 
 @pytest.mark.usefixtures("has_course")
