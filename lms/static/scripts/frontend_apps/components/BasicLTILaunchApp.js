@@ -216,8 +216,10 @@ export default function BasicLTILaunchApp() {
       return;
     }
 
-    // Don't report a submission until the URL has been successfully fetched.
-    if (!contentUrl) {
+    // Don't report a submission until we have the data needed to display the assignment content
+    // contentUrl will be resolved from an API call to viaUrlApi.path except on VitalSource assignments
+    // where vitalSourceConfig will be present directly on the config instead.
+    if (!contentUrl && !vitalSourceConfig) {
       return;
     }
     try {
@@ -233,7 +235,7 @@ export default function BasicLTILaunchApp() {
       // submission.
       handleError(e, 'error-reporting-submission', false);
     }
-  }, [authToken, canvas.speedGrader, contentUrl]);
+  }, [authToken, canvas.speedGrader, contentUrl, vitalSourceConfig]);
 
   useEffect(() => {
     reportSubmission();

@@ -121,9 +121,13 @@ class CanvasPreRecordHook:
 
         if parsed_params.get("document_url"):
             params["url"] = parsed_params.get("document_url")
+        elif book_id := parsed_params.get("vitalsource_book_id"):
+            params["vitalsource_book"] = "true"
+            params["book_id"] = book_id
+            params["cfi"] = parsed_params["vitalsource_cfi"]
         else:
             assert parsed_params.get("canvas_file_id"), (
-                "All Canvas launches should have either a 'document_url' or "
+                "All Canvas launches should have either a 'document_url' a 'vitalsource_book_id' or "
                 "a 'canvas_file_id' parameter."
             )
             params["canvas_file"] = "true"
