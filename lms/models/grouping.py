@@ -17,6 +17,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         COURSE = "course"
         CANVAS_SECTION = "canvas_section"
         CANVAS_GROUP = "canvas_group"
+        BLACKBOARD_GROUP = "blackboard_group"
 
     __tablename__ = "grouping"
     __mapper_args__ = {"polymorphic_identity": Type.GROUPING, "polymorphic_on": "type"}
@@ -101,6 +102,10 @@ class CanvasSection(Grouping):
 
 class CanvasGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}
+
+
+class BlackBoardGroup(Grouping):
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
 
 
 class Course(Grouping):
