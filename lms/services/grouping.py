@@ -1,64 +1,13 @@
 from typing import Optional
 
-from lms.models import CanvasGroup, CanvasSection, Grouping
 from lms.models._hashed_id import hashed_id
+from lms.models.grouping import Grouping
 
 
 class GroupingService:
-    def __init__(self, db, application_instance_service, course_service):
+    def __init__(self, db, application_instance_service):
         self._db = db
         self._application_instance = application_instance_service.get_current()
-        self._course_service = course_service
-
-    def upsert(self, grouping):
-        db_grouping = (
-            self._db.query(Grouping)
-            .filter_by(
-                application_instance=grouping.application_instance,
-                authority_provided_id=grouping.authority_provided_id,
-            )
-            .one_or_none()
-        )
-        if not db_grouping:
-            self._db.add(grouping)
-        else:
-            # Update any fields that might have changed
-            db_grouping.lms_name = grouping.lms_name
-            db_grouping.extra = grouping.extra
-
-        return db_grouping or grouping
-
-    def upsert_canvas_section(
-        self, tool_consumer_instance_guid, context_id, section_id, section_name
-    ):
-        """
-        Upsert a Grouping for a course section.
-
-        :param tool_consumer_instance_guid: Tool consumer GUID
-        :param context_id: Course id the section is a part of
-        :param section_id: A section id for a section group
-        :param section_name: The name of the section
-        """
-
-        section_authority_provided_id = hashed_id(
-            tool_consumer_instance_guid, context_id, section_id
-        )
-
-        course = self._course_service.get(
-            self._course_service.generate_authority_provided_id(
-                tool_consumer_instance_guid, context_id
-            )
-        )
-
-        return self.upsert(
-            CanvasSection(
-                application_instance=self._application_instance,
-                authority_provided_id=section_authority_provided_id,
-                lms_id=section_id,
-                lms_name=section_name,
-                parent_id=course.id,
-            )
-        )
 
     @staticmethod
     def generate_authority_provided_id(
@@ -80,49 +29,56 @@ class GroupingService:
             tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
         )
 
-    def upsert_canvas_group(  # pylint: disable=too-many-arguments
+    def upsert_with_parent(  # pylint: disable=too-many-arguments
         self,
         tool_consumer_instance_guid,
-        context_id,
-        group_id,
-        group_name,
-        group_set_id,
+        lms_id,
+        lms_name,
+        parent: Grouping,
+        type_: Grouping.Type,
+        extra=None,
     ):
         """
-        Upserst a Grouping for a canvas group.
+        Upsert a Grouping generating the authority_provided_id based on its parent.
 
         :param tool_consumer_instance_guid: Tool consumer GUID
-        :param context_id: Course id the group is a part of
-        :param group_id: Canvas group id
-        :param group_name: The name of the group
-        :param group_set_id: Id of the canvas group set this group belongs to
+        :param lms_id: ID of this grouping on the LMS
+        :param lms_name: Name of the grouping on the LMS
+        :param parent: Parent of grouping
+        :param type_: Type of the grouping
+        :param extra: Any extra information to store linked to this grouping
         """
-
-        group_authority_provided_id = hashed_id(
-            tool_consumer_instance_guid, context_id, "canvas_group", group_id
+        authority_provided_id = self.generate_authority_provided_id(
+            tool_consumer_instance_guid, lms_id, parent, type_
         )
 
-        course_authority_provided_id = hashed_id(
-            tool_consumer_instance_guid, context_id
-        )
-
-        course = self._course_service.get(course_authority_provided_id)
-
-        return self.upsert(
-            CanvasGroup(
+        grouping = (
+            self._db.query(Grouping)
+            .filter_by(
                 application_instance=self._application_instance,
-                authority_provided_id=group_authority_provided_id,
-                lms_id=group_id,
-                lms_name=group_name,
-                parent_id=course.id,
-                extra={"group_set_id": group_set_id},
+                authority_provided_id=authority_provided_id,
             )
+            .one_or_none()
         )
+
+        if not grouping:
+            grouping = Grouping(
+                application_instance=self._application_instance,
+                authority_provided_id=authority_provided_id,
+                lms_id=lms_id,
+                parent_id=parent.id,
+                type=type_,
+            )
+            self._db.add(grouping)
+
+        grouping.lms_name = lms_name
+        grouping.extra = extra
+
+        return grouping
 
 
 def factory(_context, request):
     return GroupingService(
         request.db,
         request.find_service(name="application_instance"),
-        request.find_service(name="course"),
     )
