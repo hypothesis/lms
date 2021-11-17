@@ -12,4 +12,5 @@ Grouping = make_factory(
     authority_provided_id=factory.Faker("hexify", text="^" * 40),
     lms_id=factory.Faker("hexify", text="^" * 40),
     lms_name=factory.Sequence(lambda n: f"Test Group {n}"),
+    type=models.Grouping.Type.GROUPING,
 )

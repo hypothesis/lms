@@ -1,5 +1,6 @@
 from pyramid.view import view_config
 
+from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import CanvasAPIError
 from lms.views import (
@@ -14,6 +15,7 @@ class Sync:
         self._request = request
         self._grouping_service = self._request.find_service(name="grouping")
         self._canvas_api = self._request.find_service(name="canvas_api_client")
+        self._course_service = self._request.find_service(name="course")
 
     @view_config(
         route_name="canvas_api.sync",
@@ -117,32 +119,42 @@ class Sync:
 
     def _to_groups_groupings(self, groups):
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
-        context_id = self._request.json["course"]["context_id"]
+        course = self._get_course()
 
         return [
-            self._grouping_service.upsert_canvas_group(
+            self._grouping_service.upsert_with_parent(
                 tool_consumer_instance_guid=tool_guid,
-                context_id=context_id,
-                group_name=group["name"],
-                group_id=group["id"],
-                group_set_id=group["group_category_id"],
+                lms_id=group["id"],
+                lms_name=group["name"],
+                parent=course,
+                type_=Grouping.Type.CANVAS_GROUP,
+                extra={"group_set_id": group["group_category_id"]},
             )
             for group in groups
         ]
 
     def _to_section_groupings(self, sections):
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
-        context_id = self._request.json["course"]["context_id"]
+        course = self._get_course()
 
         return [
-            self._grouping_service.upsert_canvas_section(
+            self._grouping_service.upsert_with_parent(
                 tool_consumer_instance_guid=tool_guid,
-                context_id=context_id,
-                section_id=section["id"],
-                section_name=section["name"],
+                lms_id=section["id"],
+                lms_name=section["name"],
+                parent=course,
+                type_=Grouping.Type.CANVAS_SECTION,
             )
             for section in sections
         ]
+
+    def _get_course(self):
+        tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
+        context_id = self._request.json["course"]["context_id"]
+
+        return self._course_service.get(
+            self._course_service.generate_authority_provided_id(tool_guid, context_id)
+        )
 
     def _sync_to_h(self, groups):
         lti_h_svc = self._request.find_service(name="lti_h")

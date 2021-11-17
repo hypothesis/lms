@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 
+from lms.models import Grouping
 from lms.services import CanvasAPIError
 from lms.views import (
     CanvasGroupSetEmpty,
@@ -15,6 +16,7 @@ pytestmark = pytest.mark.usefixtures(
     "canvas_api_client",
     "lti_h_service",
     "grouping_service",
+    "course_service",
     "application_instance_service",
 )
 
@@ -208,17 +210,19 @@ def test_sections_sync_when_in_SpeedGrader(
 
 
 @pytest.fixture
-def assert_sync_and_return_sections(lti_h_service, request_json, grouping_service):
+def assert_sync_and_return_sections(
+    lti_h_service, request_json, grouping_service, course_service
+):
     tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
-    context_id = request_json["course"]["context_id"]
 
     def assert_return_values(groupids, sections):
         expected_groups = [
-            grouping_service.upsert_canvas_section(
+            grouping_service.upsert_with_parent(
                 tool_consumer_instance_guid=tool_guid,
-                context_id=context_id,
-                section_id=section["id"],
-                section_name=section.get("name", f"Section {section['id']}"),
+                lms_id=section["id"],
+                lms_name=section.get("name", f"Section {section['id']}"),
+                parent=course_service.get.return_value,
+                type_=Grouping.Type.CANVAS_SECTION,
             )
             for section in sections
         ]
@@ -235,18 +239,20 @@ def assert_sync_and_return_sections(lti_h_service, request_json, grouping_servic
 
 
 @pytest.fixture
-def assert_sync_and_return_groups(lti_h_service, request_json, grouping_service):
+def assert_sync_and_return_groups(
+    lti_h_service, request_json, grouping_service, course_service
+):
     tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
-    context_id = request_json["course"]["context_id"]
 
     def assert_return_values(groupids, groups):
         expected_groups = [
-            grouping_service.upsert_canvas_group(
+            grouping_service.upsert_with_parent(
                 tool_consumer_instance_guid=tool_guid,
-                context_id=context_id,
-                group_id=group["id"],
-                group_name=group.get("name", f"Group {group['id']}"),
-                group_set_id=group["group_category_id"],
+                lms_id=group["id"],
+                lms_name=group.get("name", f"Group {group['id']}"),
+                parent=course_service.get.return_value,
+                type_=Grouping.Type.CANVAS_GROUP,
+                extra={"group_set_id": group["group_category_id"]},
             )
             for group in groups
         ]
