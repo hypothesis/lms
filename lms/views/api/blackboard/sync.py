@@ -8,11 +8,8 @@ from lms.views import (
     CanvasStudentNotInGroup,
 )
 
-from lms.models import GroupingMembership, User
-from lms.models._hashed_id import hashed_id
 from lms.services import UserService
-
-from sqlalchemy.orm import joinedload
+from lms.models import Grouping
 
 
 class Sync:
@@ -23,6 +20,9 @@ class Sync:
         self._assignment_service = self._request.find_service(name="assignment")
         self._user_service = self._request.find_service(UserService)
         self._course_service = self._request.find_service(name="course")
+        self._application_instance = self._request.find_service(
+            name="application_instance"
+        ).get_current()
 
     @view_config(
         route_name="blackboard_api.sync",
@@ -32,7 +32,6 @@ class Sync:
     )
     def sync(self):
         groups = self._get_blackboard_groups()
-
         self._sync_to_h(groups)
 
         authority = self._request.registry.settings["h_authority"]
@@ -62,25 +61,25 @@ class Sync:
 
             groups = self._to_groups_groupings(learner_groups)
             self._grouping_service.upsert_grouping_memberships(
-                self._user_service.store_lti_user(lti_user), groups
+                self._user_service.get(self._application_instance, lti_user.user_id),
+                groups,
             )
             return groups
 
         if grading_student_id := self._request.json.get("gradingStudentId"):
-            db = self._grouping_service._db
-
-            authority_provided_id = hashed_id(tool_guid, course_id)
-            course = self._course_service.get(authority_provided_id)
-            return [
-                gm.grouping
-                for gm in db.query(GroupingMembership)
-                .join(User)
-                .filter(
-                    GroupingMembership.grouping_id.in_([g.id for g in course.children]),
-                    User.user_id == grading_student_id,
+            course = self._course_service.get(
+                self._course_service.generate_authority_provided_id(
+                    tool_guid, course_id
                 )
-                .options(joinedload("grouping"))
-            ]
+            )
+            # While grading, retrieve the memberships we stored when the students launched the assignment
+            return self._grouping_service.get_grouping_for_user(
+                course.application_instance,
+                grading_student_id,
+                course,
+                type_=Grouping.Type.BLACKBOARD_GROUP,
+                group_set_id=group_set_id,
+            )
 
         try:
             # If not grading return all the groups in the course so the teacher can toggle between them.

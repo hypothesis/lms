@@ -22,6 +22,7 @@ from lms.models import (
 from sqlalchemy.orm import aliased
 from lms.models._hashed_id import hashed_id
 from lms.models.grouping import CanvasGroup, CanvasSection, Grouping, GroupingMembership
+from lms.services import CourseService
 
 
 class GroupingService:
@@ -100,6 +101,37 @@ class GroupingService:
             db_grouping.extra = grouping.extra
 
         return db_grouping or grouping
+
+    def upsert_with_parent(  # pylint: disable=too-many-arguments
+        self,
+        tool_consumer_instance_guid,
+        lms_id,
+        lms_name,
+        parent: Grouping,
+        type_: Grouping.Type,
+        extra=None,
+    ):
+        """
+        Upsert a Grouping generating the authority_provided_id based on its parent.
+
+        :param tool_consumer_instance_guid: Tool consumer GUID
+        :param context_id: Course id the group is a part of
+        :param group_id: Canvas group id
+        :param group_name: The name of the group
+        :param group_set_id: Id of the canvas group set this group belongs to
+        """
+        return self.upsert(
+            CanvasGroup(
+                application_instance=self._application_instance,
+                authority_provided_id=self.generate_authority_provided_id(
+                    tool_consumer_instance_guid, lms_id, parent, type_
+                ),
+                lms_id=lms_id,
+                lms_name=lms_name,
+                parent_id=parent.id,
+                extra=extra,
+            )
+        )
 
     def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
         for group in groups:
