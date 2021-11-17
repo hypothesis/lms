@@ -205,6 +205,9 @@ class LTILaunchResource:
         except ApplicationInstanceNotFound:
             return False
 
+        if application_instance.product != application_instance.Product.BLACKBOARD:
+            return False
+
         return bool(application_instance.settings.get("blackboard", "groups_enabled"))
 
     @property
