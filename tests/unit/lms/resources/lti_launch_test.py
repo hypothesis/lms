@@ -222,15 +222,12 @@ class TestCanvasSectionsSupported:
 
 @pytest.mark.usefixtures("has_course")
 class TestCanvasSectionsEnabled:
-    def test_its_enabled_when_everything_is_right(
-        self, lti_launch, course_service, hashed_id
-    ):
-        hashed_id.return_value = mock.sentinel.authority_provided_id
-
+    def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
         assert lti_launch.canvas_sections_enabled
 
+        course_service.generate_authority_provided_id.assert_called_once()
         course_service.get_or_create.assert_called_with(
-            mock.sentinel.authority_provided_id
+            course_service.generate_authority_provided_id.return_value
         )
 
     def test_its_disabled_if_sections_are_not_supported(
@@ -252,10 +249,6 @@ class TestCanvasSectionsEnabled:
         course_service.get_or_create.return_value.settings = settings
 
         return settings
-
-    @pytest.fixture
-    def hashed_id(self, patch):
-        return patch("lms.resources.lti_launch.hashed_id")
 
     @pytest.fixture(autouse=True)
     def canvas_sections_supported(self):

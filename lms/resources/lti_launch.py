@@ -1,7 +1,6 @@
 """Traversal resources for LTI launch views."""
 import functools
 
-from lms.models._hashed_id import hashed_id
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 
@@ -34,14 +33,9 @@ class LTILaunchResource:
         tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
         context_id = params["context_id"]
 
-        # Generate the authority_provided_id based on the LTI
-        # tool_consumer_instance_guid and context_id parameters.
-        # These are "recommended" LTI parameters (according to the spec) that in
-        # practice are provided by all of the major LMS's.
-        # tool_consumer_instance_guid uniquely identifies an instance of an LMS,
-        # and context_id uniquely identifies a course within an LMS. Together they
-        # globally uniquely identify a course.
-        authority_provided_id = hashed_id(tool_consumer_instance_guid, context_id)
+        authority_provided_id = course_service.generate_authority_provided_id(
+            tool_consumer_instance_guid, context_id
+        )
 
         legacy_course = course_service.get_or_create(authority_provided_id)
         course = course_service.upsert(

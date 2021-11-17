@@ -42,11 +42,11 @@ class GroupingService:
             tool_consumer_instance_guid, context_id, section_id
         )
 
-        course_authority_provided_id = hashed_id(
-            tool_consumer_instance_guid, context_id
+        course = self._course_service.get(
+            self._course_service.generate_authority_provided_id(
+                tool_consumer_instance_guid, context_id
+            )
         )
-
-        course = self._course_service.get(course_authority_provided_id)
 
         return self.upsert(
             CanvasSection(

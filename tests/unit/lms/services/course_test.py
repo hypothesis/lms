@@ -112,6 +112,12 @@ class TestCourseService:
         assert db_session.query(Course).count() == 1
         assert course.authority_provided_id == "new authority_provided_id"
 
+    def test_generate_authority_provided_id(self, svc):
+        assert (
+            svc.generate_authority_provided_id("tool", "context_id")
+            == "bc8f8d2c5de70a0f3975268832174fabecfb32d9"
+        )
+
     @pytest.fixture
     def add_courses_with_settings(self, application_instance):
         def add_courses_with_settings(
