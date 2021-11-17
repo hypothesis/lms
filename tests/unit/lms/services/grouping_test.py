@@ -57,8 +57,11 @@ class TestGroupingService:
             "section_name",
         )
 
+        course_service.generate_authority_provided_id.assert_called_once_with(
+            self.TOOL_CONSUMER_INSTANCE_GUID, self.CONTEXT_ID
+        )
         course_service.get.assert_called_once_with(
-            hashed_id(self.TOOL_CONSUMER_INSTANCE_GUID, self.CONTEXT_ID),
+            course_service.generate_authority_provided_id.return_value
         )
         assert grouping.parent_id == course_service.get.return_value.id
 

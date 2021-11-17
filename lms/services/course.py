@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 
 from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
+from lms.models._hashed_id import hashed_id
 
 
 class CourseService:
@@ -117,6 +118,19 @@ class CourseService:
         return bool(
             self._db.query(CourseGroupsExportedFromH).get(authority_provided_id)
         )
+
+    @staticmethod
+    def generate_authority_provided_id(tool_consumer_instance_guid, context_id):
+        """
+        Generate the authority_provided_id based on the LTI  tool_consumer_instance_guid and context_id parameters.
+
+        These are "recommended" LTI parameters (according to the spec) that in
+        practice are provided by all of the major LMS's.
+        tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        and context_id uniquely identifies a course within an LMS. Together they
+        globally uniquely identify a course.
+        """
+        return hashed_id(tool_consumer_instance_guid, context_id)
 
 
 def course_service_factory(_context, request):
