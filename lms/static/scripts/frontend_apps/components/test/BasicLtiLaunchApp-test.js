@@ -433,7 +433,7 @@ describe('BasicLTILaunchApp', () => {
     });
   });
 
-  describe('speed grader config', () => {
+  describe('speed grader integration', () => {
     beforeEach(() => {
       fakeConfig.canvas.speedGrader = {
         submissionParams: {
@@ -460,7 +460,9 @@ describe('BasicLTILaunchApp', () => {
 
     it('displays an error if reporting the submission fails', async () => {
       const error = new APIError(400, {});
-      fakeApiCall.rejects(error);
+      fakeApiCall
+        .withArgs(sinon.match({ path: '/api/lti/submissions' }))
+        .rejects(error);
 
       const wrapper = renderLTILaunchApp();
 
@@ -499,6 +501,20 @@ describe('BasicLTILaunchApp', () => {
       fakeConfig.viaUrl = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
+    });
+
+    it('reports a submission if VitalSource configuration is present, even if `contentUrl` not set', async () => {
+      // "Un-set" eventual contentUrl
+      fakeConfig.viaUrl = null;
+      // Provide a VitalSource configuration object as an alternative
+      fakeConfig.vitalSource = { foo: 'bar' };
+      renderLTILaunchApp();
+
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/lti/submissions',
+        data: fakeConfig.canvas.speedGrader.submissionParams,
+      });
     });
   });
 
