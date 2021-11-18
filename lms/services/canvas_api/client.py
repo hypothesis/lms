@@ -328,7 +328,7 @@ class CanvasAPIClient:
             # slow when called with ?include[]=users (possibly for courses that
             # have many users) so use a larger timeout for these particular
             # requests.
-            send_kwargs["timeout"] = (20, 20)
+            send_kwargs["timeout"] = (31, 31)
 
         return self._client.send(
             "GET",
