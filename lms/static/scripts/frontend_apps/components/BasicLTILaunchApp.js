@@ -84,9 +84,7 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
-  // Show the assignment when the contentUrl has resolved and errorState
-  // is falsely
-  const showIframe = (contentUrl || vitalSourceConfig) && !errorState;
+  const contentReady = contentUrl || vitalSourceConfig;
 
   const showSpinner = fetchCount > 0 && !errorState;
 
@@ -217,7 +215,7 @@ export default function BasicLTILaunchApp() {
     }
 
     // Don't report a submission until we have the data needed to display the assignment content
-    if (!contentUrl && !vitalSourceConfig) {
+    if (!contentReady) {
       return;
     }
     try {
@@ -233,7 +231,7 @@ export default function BasicLTILaunchApp() {
       // submission.
       handleError(e, 'error-reporting-submission', false);
     }
-  }, [authToken, canvas.speedGrader, contentUrl, vitalSourceConfig]);
+  }, [authToken, canvas.speedGrader, contentReady]);
 
   useEffect(() => {
     reportSubmission();
@@ -304,9 +302,8 @@ export default function BasicLTILaunchApp() {
 
   const content = (
     <div
-      // Visually hide the iframe / grader if there is an error or no contentUrl.
       className={classNames('BasicLTILaunchApp__content', {
-        'is-hidden': !showIframe,
+        'is-hidden': !contentReady || errorState,
       })}
     >
       {iFrameWrapper}
