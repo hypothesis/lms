@@ -46,14 +46,14 @@ export default function BasicLTILaunchApp() {
       // API callback to use to fetch the URL to show in the iframe. This is
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
-      viaUrl: viaUrlApi,
+      viaUrl: viaAPICallInfo,
       // Sync API callback and data to asynchronously load the section groups
       // to relay to the sidebar via RPC.
-      sync: apiSync,
+      sync: syncAPICallInfo,
     },
     grading,
     // Content URL to show in the iframe.
-    viaUrl,
+    viaUrl: viaURL,
     canvas,
     vitalSource: vitalSourceConfig,
   } = useContext(Config);
@@ -71,22 +71,22 @@ export default function BasicLTILaunchApp() {
 
   // When the app is initially displayed, it will use the Via URL if given
   // or invoke the API callback to fetch the URL otherwise.
-  const [contentUrl, setContentUrl] = useState(viaUrl ? viaUrl : null);
+  const [contentURL, setContentURL] = useState(viaURL || null);
 
   // Count of pending API requests which must complete before the assignment
   // content can be shown.
   const [fetchCount, setFetchCount] = useState(0);
 
   // The authorization URL associated with the most recent failed API call.
-  const [authUrl, setAuthUrl] = useState(/** @type {string|null} */ (null));
+  const [authURL, setAuthURL] = useState(/** @type {string|null} */ (null));
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
-  // Content is ready to show if we've resolved a `contentUrl` or configuration
+  // Content is ready to show if we've resolved a contentURL or configuration
   // for a VitalSource document is present
-  const contentReady = !!(contentUrl || vitalSourceConfig);
+  const contentReady = !!(contentURL || vitalSourceConfig);
   const showSpinner = fetchCount > 0 && !errorState;
 
   const incFetchCount = () => {
@@ -103,14 +103,14 @@ export default function BasicLTILaunchApp() {
    * @param {Error} error - Error object from request.
    * @param {ErrorState} state
    * @param {boolean} [retry=true] - Can the request be retried?
-   * @param {string} [authUrl] -
+   * @param {string} [authURL] -
    *   Authorization URL association with the API request
    */
-  const handleError = (error, state, retry = true, authUrl) => {
+  const handleError = (error, state, retry = true, authURL) => {
     // Here we always set the authorization URL, but we could improve UX by
     // not setting it if the problem is not related to authorization (eg.
     // a network fetch error).
-    setAuthUrl(authUrl || null);
+    setAuthURL(authURL || null);
 
     if (isLTILaunchServerError(error)) {
       setError(error);
@@ -134,7 +134,7 @@ export default function BasicLTILaunchApp() {
    */
   const fetchGroups = useCallback(
     async (updateFetchCount = false) => {
-      if (!apiSync) {
+      if (!syncAPICallInfo) {
         return true;
       }
       let success;
@@ -146,13 +146,18 @@ export default function BasicLTILaunchApp() {
       try {
         const groups = await apiCall({
           authToken,
-          path: apiSync.path,
-          data: apiSync.data,
+          path: syncAPICallInfo.path,
+          data: syncAPICallInfo.data,
         });
         clientRPC.setGroups(groups);
         success = true;
       } catch (e) {
-        handleError(e, 'error-fetching', true /* retry */, apiSync.authUrl);
+        handleError(
+          e,
+          'error-fetching',
+          true /* retry */,
+          syncAPICallInfo.authUrl
+        );
         success = false;
       }
 
@@ -162,17 +167,14 @@ export default function BasicLTILaunchApp() {
 
       return success;
     },
-    [apiSync, authToken, clientRPC]
+    [syncAPICallInfo, authToken, clientRPC]
   );
 
   /**
-   * Fetch the URL of the content to display in the iframe if `viaUrlApi`
-   * exists.
-   *
-   * This will typically be a PDF URL proxied through Via.
+   * Fetch the URL of the content to display in the iframe
    */
-  const fetchContentUrl = useCallback(async () => {
-    if (!viaUrlApi) {
+  const fetchContentURL = useCallback(async () => {
+    if (!viaAPICallInfo) {
       // If no "callback" URL was supplied for the frontend to use to fetch
       // the URL, then the backend must have provided the Via URL in the
       // initial request, which we'll just use directly.
@@ -181,27 +183,32 @@ export default function BasicLTILaunchApp() {
     let success;
     incFetchCount();
     try {
-      const { via_url: contentUrl } = await apiCall({
+      const { via_url: contentURL } = await apiCall({
         authToken: authToken,
-        path: viaUrlApi.path,
+        path: viaAPICallInfo.path,
       });
-      setContentUrl(contentUrl);
+      setContentURL(contentURL);
       success = true;
     } catch (e) {
-      handleError(e, 'error-fetching', true /* retry */, viaUrlApi.authUrl);
+      handleError(
+        e,
+        'error-fetching',
+        true /* retry */,
+        viaAPICallInfo.authUrl
+      );
       success = false;
     }
     decFetchCount();
     return success;
-  }, [authToken, viaUrlApi]);
+  }, [authToken, viaAPICallInfo]);
 
   /**
    * Fetch the assignment content URL and groups when the app is initially displayed.
    */
   useEffect(() => {
-    fetchContentUrl();
+    fetchContentURL();
     fetchGroups();
-  }, [fetchContentUrl, fetchGroups]);
+  }, [fetchContentURL, fetchGroups]);
 
   /**
    * Report a submission to the LMS, with the LMS-provided metadata needed for
@@ -243,7 +250,7 @@ export default function BasicLTILaunchApp() {
    * Request the user's authorization to access the content, then try fetching
    * the content URL and groups again.
    */
-  const authorizeAndFetchUrl = useCallback(async () => {
+  const authorizeAndFetchURL = useCallback(async () => {
     setErrorState('error-authorizing');
 
     if (authWindow.current) {
@@ -252,13 +259,13 @@ export default function BasicLTILaunchApp() {
     }
 
     try {
-      if (authUrl) {
-        authWindow.current = new AuthWindow({ authToken, authUrl });
+      if (authURL) {
+        authWindow.current = new AuthWindow({ authToken, authUrl: authURL });
         await authWindow.current.authorize();
-        setAuthUrl(null);
+        setAuthURL(null);
       }
       const [fetchedContent, fetchedGroups] = await Promise.all([
-        fetchContentUrl(),
+        fetchContentURL(),
         fetchGroups(true /* updateFetchCount */),
       ]);
       if (fetchedContent && fetchedGroups) {
@@ -268,7 +275,7 @@ export default function BasicLTILaunchApp() {
       // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
     }
-  }, [authToken, authUrl, fetchContentUrl, fetchGroups]);
+  }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
   // Construct the <iframe> content
   let iFrameWrapper;
@@ -280,7 +287,7 @@ export default function BasicLTILaunchApp() {
   ) : (
     <iframe
       className="BasicLTILaunchApp__iframe hyp-u-border"
-      src={contentUrl || ''}
+      src={contentURL || ''}
       title="Course content with Hypothesis annotation viewer"
     />
   );
@@ -304,7 +311,6 @@ export default function BasicLTILaunchApp() {
 
   const content = (
     <div
-      // Visually hide the iframe / grader if there is an error or no contentUrl.
       className={classNames('BasicLTILaunchApp__content', {
         'is-hidden': !contentReady || errorState,
       })}
@@ -321,7 +327,7 @@ export default function BasicLTILaunchApp() {
           busy={fetchCount > 0}
           errorState={errorState}
           error={error}
-          onRetry={authorizeAndFetchUrl}
+          onRetry={authorizeAndFetchURL}
         />
       )}
       {content}

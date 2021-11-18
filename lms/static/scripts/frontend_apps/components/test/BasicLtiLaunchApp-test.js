@@ -496,15 +496,14 @@ describe('BasicLTILaunchApp', () => {
       assert.notCalled(fakeApiCall);
     });
 
-    it('does not report the submission when there is no `contentUrl`', async () => {
+    it('does not report the submission when there is no `viaUrl` provided', async () => {
       // When present, viaUrl becomes the contentUrl
       fakeConfig.viaUrl = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
     });
 
-    it('reports a submission if VitalSource configuration is present, even if `contentUrl` not set', async () => {
-      // "Un-set" eventual contentUrl
+    it('reports a submission if VitalSource configuration is present, even if `viaUrl` not set', async () => {
       fakeConfig.viaUrl = null;
       // Provide a VitalSource configuration object as an alternative
       fakeConfig.vitalSource = { foo: 'bar' };
