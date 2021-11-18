@@ -84,10 +84,9 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
-  // Show the assignment when the contentUrl has resolved and errorState
-  // is falsely
-  const showIframe = (contentUrl || vitalSourceConfig) && !errorState;
-
+  // Content is ready to show if we've resolved a `contentUrl` or configuration
+  // for a VitalSource document is present
+  const contentReady = !!(contentUrl || vitalSourceConfig);
   const showSpinner = fetchCount > 0 && !errorState;
 
   const incFetchCount = () => {
@@ -216,12 +215,11 @@ export default function BasicLTILaunchApp() {
       return;
     }
 
-    // Don't report a submission until we have the data needed to display the assignment content
-    // contentUrl will be resolved from an API call to viaUrlApi.path except on VitalSource assignments
-    // where vitalSourceConfig will be present directly on the config instead.
-    if (!contentUrl && !vitalSourceConfig) {
+    // Don't submit before content is viewable
+    if (!contentReady) {
       return;
     }
+
     try {
       await apiCall({
         authToken,
@@ -235,7 +233,7 @@ export default function BasicLTILaunchApp() {
       // submission.
       handleError(e, 'error-reporting-submission', false);
     }
-  }, [authToken, canvas.speedGrader, contentUrl, vitalSourceConfig]);
+  }, [authToken, canvas.speedGrader, contentReady]);
 
   useEffect(() => {
     reportSubmission();
@@ -308,7 +306,7 @@ export default function BasicLTILaunchApp() {
     <div
       // Visually hide the iframe / grader if there is an error or no contentUrl.
       className={classNames('BasicLTILaunchApp__content', {
-        'is-hidden': !showIframe,
+        'is-hidden': !contentReady || errorState,
       })}
     >
       {iFrameWrapper}
