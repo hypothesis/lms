@@ -413,7 +413,7 @@ describe('BasicLTILaunchApp', () => {
   context('when VitalSource launch params are provided in the config', () => {
     it('renders the VitalSource book viewer, passing along the launch params', () => {
       fakeConfig.vitalSource = {
-        launchUrl: 'https://hypothesis.vitalsource.com/launcme',
+        launchUrl: 'https://hypothesis.vitalsource.com/launchme',
         launchParams: {
           book_id: 'somebook',
           location: 'chapter-2',
@@ -444,6 +444,30 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('reports the submission when the content iframe starts loading', async () => {
+      const wrapper = renderLTILaunchApp();
+      await waitFor(() => fakeApiCall.called);
+
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/lti/submissions',
+        data: fakeConfig.canvas.speedGrader.submissionParams,
+      });
+
+      // After the successful API call, the iframe should still be rendered.
+      wrapper.update();
+      assert.isTrue(wrapper.exists('iframe'));
+    });
+
+    it('reports the submission when launching a VitalSource assignment', async () => {
+      fakeConfig.viaUrl = null;
+      fakeConfig.vitalSource = {
+        launchUrl: 'https://hypothesis.vitalsource.com/launchme',
+        launchParams: {
+          book_id: 'somebook',
+          location: 'chapter-2',
+        },
+      };
+
       const wrapper = renderLTILaunchApp();
       await waitFor(() => fakeApiCall.called);
 
@@ -494,9 +518,10 @@ describe('BasicLTILaunchApp', () => {
       assert.notCalled(fakeApiCall);
     });
 
-    it('does not report the submission when there is no `contentUrl`', async () => {
-      // When present, viaUrl becomes the contentUrl
+    it('does not report the submission when there is no content', async () => {
+      // Both viaUrl and vitalSource are used for contentReady, one of them is required
       fakeConfig.viaUrl = null;
+      fakeConfig.vitalSource = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
     });
