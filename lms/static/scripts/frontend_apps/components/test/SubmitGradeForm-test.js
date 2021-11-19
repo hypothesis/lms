@@ -40,7 +40,7 @@ describe('SubmitGradeForm', () => {
   const fakeValidateGrade = sinon.stub();
   const fakeFormatToNumber = sinon.stub();
 
-  async function gradeFetched(wrapper) {
+  async function waitForGradeFetch(wrapper) {
     await waitFor(() => {
       wrapper.update();
       return !wrapper.find('Spinner').exists();
@@ -94,7 +94,7 @@ describe('SubmitGradeForm', () => {
 
   it('clears out the previous grade when changing students', async () => {
     const wrapper = renderForm();
-    await gradeFetched(wrapper);
+    await waitForGradeFetch(wrapper);
 
     assert.equal(
       wrapper.find('.SubmitGradeForm__grade').prop('defaultValue'),
@@ -111,11 +111,11 @@ describe('SubmitGradeForm', () => {
     document.body.focus();
     const wrapper = renderForm();
 
-    await gradeFetched(wrapper);
+    await waitForGradeFetch(wrapper);
 
     wrapper.setProps({ student: fakeStudentAlt });
 
-    await gradeFetched(wrapper);
+    await waitForGradeFetch(wrapper);
 
     assert.equal(document.activeElement.className, 'SubmitGradeForm__grade');
   });
@@ -124,11 +124,11 @@ describe('SubmitGradeForm', () => {
     document.body.focus();
     const wrapper = renderForm();
 
-    await gradeFetched(wrapper);
+    await waitForGradeFetch(wrapper);
 
     wrapper.setProps({ student: fakeStudentAlt });
 
-    await gradeFetched(wrapper);
+    await waitForGradeFetch(wrapper);
 
     assert.equal(document.getSelection().toString(), '10');
   });
@@ -200,7 +200,7 @@ describe('SubmitGradeForm', () => {
 
       wrapper.find('button[type="submit"]').simulate('click');
 
-      await gradeFetched(wrapper);
+      await waitForGradeFetch(wrapper);
 
       assert.isTrue(
         wrapper.find('input.SubmitGradeForm__grade').hasClass('is-saved')
@@ -212,7 +212,7 @@ describe('SubmitGradeForm', () => {
 
       wrapper.find('button[type="submit"]').simulate('click');
 
-      await gradeFetched(wrapper);
+      await waitForGradeFetch(wrapper);
 
       wrapper.find('input.SubmitGradeForm__grade').simulate('input');
       assert.isFalse(
@@ -249,7 +249,7 @@ describe('SubmitGradeForm', () => {
       fakeGradingService.fetchGrade.resolves({ currentScore: null });
       const wrapper = renderForm();
 
-      await gradeFetched(wrapper);
+      await waitForGradeFetch(wrapper);
 
       assert.equal(
         wrapper.find('input.SubmitGradeForm__grade').prop('defaultValue'),
@@ -277,7 +277,7 @@ describe('SubmitGradeForm', () => {
 
     it("sets the input defaultValue prop to the student's grade", async () => {
       const wrapper = renderForm();
-      await gradeFetched(wrapper);
+      await waitForGradeFetch(wrapper);
       // note, grade is scaled by 10
       assert.equal(
         wrapper.find('input.SubmitGradeForm__grade').prop('defaultValue'),
@@ -287,7 +287,7 @@ describe('SubmitGradeForm', () => {
 
     it('sets hides the Spinner after the grade is fetched', async () => {
       const wrapper = renderForm();
-      await gradeFetched(wrapper);
+      await waitForGradeFetch(wrapper);
       assert.isFalse(
         wrapper.find('.SubmitGradeForm__grade-wrapper').find('Spinner').exists()
       );
