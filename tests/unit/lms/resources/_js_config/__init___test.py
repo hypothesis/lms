@@ -9,7 +9,6 @@ from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
 
 pytestmark = pytest.mark.usefixtures(
-    "application_instance_service",
     "grading_info_service",
     "grant_token_service",
     "h_api",
@@ -17,6 +16,7 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestEnableContentItemSelectionMode:
     def test_it(self, js_config):
         js_config.enable_content_item_selection_mode(
@@ -114,6 +114,7 @@ class TestEnableContentItemSelectionMode:
         return patch("lms.resources._js_config.FilePickerConfig")
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestEnableLTILaunchMode:
     def test_it(self, bearer_token_schema, context, grant_token_service, js_config):
         js_config.enable_lti_launch_mode()
@@ -361,6 +362,7 @@ class TestMaybeEnableGrading:
         return pyramid_request
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestMaybeSetFocusedUser:
     def test_it_does_nothing_if_theres_no_focused_user_param(
         self, js_config, pyramid_request
@@ -435,6 +437,7 @@ class TestJSConfigAuthToken:
         return config["api"]["authToken"]
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
@@ -512,6 +515,7 @@ class TestJSConfigDebug:
         return config["debug"]
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigHypothesisClient:
     """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
 
@@ -584,6 +588,7 @@ class TestJSConfigHypothesisClient:
         context.canvas_groups_enabled = True
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigRPCServer:
     """Unit tests for the "rpcServer" sub-dict of JSConfig."""
 

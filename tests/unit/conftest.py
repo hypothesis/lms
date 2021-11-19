@@ -7,6 +7,7 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms.db import SESSION
+from lms.models import ApplicationSettings
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_test_database_url
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -179,6 +180,9 @@ def httpretty_():
 def application_instance(pyramid_request):
     return factories.ApplicationInstance(
         consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+        developer_key="TEST_DEVELOPER_KEY",
+        provisioning=True,
+        settings=ApplicationSettings({}),
     )
 
 
