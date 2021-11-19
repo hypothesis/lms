@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from lms.models import ApplicationSettings
 from lms.services import CanvasService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
@@ -70,13 +69,7 @@ def mock_service(pyramid_config):
 
 
 @pytest.fixture
-def application_instance_service(mock_service):
-    application_instance = factories.ApplicationInstance(
-        consumer_key="TEST_OAUTH_CONSUMER_KEY",
-        developer_key="TEST_DEVELOPER_KEY",
-        provisioning=True,
-        settings=ApplicationSettings({}),
-    )
+def application_instance_service(mock_service, application_instance):
     application_instance.settings.set("canvas", "sections_enabled", True)
     application_instance.settings.set("canvas", "groups_enabled", False)
 

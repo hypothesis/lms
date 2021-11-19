@@ -52,10 +52,6 @@ class TestUserService:
             service.get(user.application_instance, "some-other-id")
 
     @pytest.fixture
-    def application_instance(self, application_instance_service):
-        return application_instance_service.get_by_consumer_key.return_value
-
-    @pytest.fixture
     def lti_user(self, application_instance):
         return factories.LTIUser(
             oauth_consumer_key=application_instance.consumer_key, roles="new_roles"
