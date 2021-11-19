@@ -82,6 +82,8 @@ class Grouping(CreatedUpdatedMixin, BASE):
         nullable=False,
     )
 
+    memberships = sa.orm.relationship("GroupingMembership", back_populates="grouping")
+
     @property
     def name(self):
         """Return an h-compatible group name."""
@@ -104,9 +106,23 @@ class CanvasGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}
 
 
-class BlackBoardGroup(Grouping):
+class BlackboardGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
 
 
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
+
+
+class GroupingMembership(CreatedUpdatedMixin, BASE):
+    __tablename__ = "grouping_membership"
+    grouping_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("grouping.id", ondelete="cascade"), primary_key=True
+    )
+    grouping = sa.orm.relationship("Grouping", back_populates="memberships")
+
+    user_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("user.id", ondelete="cascade"), primary_key=True
+    )
+
+    user = sa.orm.relationship("User")
