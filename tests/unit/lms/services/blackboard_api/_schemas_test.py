@@ -2,6 +2,7 @@ import pytest
 
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
+    BlackboardListGroupSetGroups,
     BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
@@ -107,16 +108,54 @@ class TestBlackboardListGroupSetsSchema:
 
         result = schema.parse()
 
-        assert result == [{"id": "GROUP_1", "name": "GROUP 1"}]
+        assert result == [{"id": "GROUP_SET_1", "name": "GROUP SET 1"}]
 
     @pytest.fixture
     def group_sets_response(self):
         return {
             "results": [
                 {
+                    "id": "GROUP_SET_1",
+                    "name": "GROUP SET 1",
+                }
+            ]
+        }
+
+
+class TestBlackboardListGroupSetGroups:
+    def test_valid(self, group_set_groups_response):
+        schema = BlackboardListGroupSetGroups(
+            factories.requests.Response(json_data=group_set_groups_response)
+        )
+
+        result = schema.parse()
+
+        assert result == [
+            {"id": "GROUP_1", "name": "GROUP 1", "groupSetId": "GROUP SET 1"},
+            {"id": "GROUP_2", "name": "GROUP 2"},
+        ]
+
+    @pytest.mark.parametrize("missing_field", ["id", "name"])
+    def test_it_raises_if_a_required_field_is_missing(
+        self, group_set_groups_response, missing_field
+    ):
+        del group_set_groups_response["results"][0][missing_field]
+
+        assert_raises(BlackboardListGroupSetGroups, group_set_groups_response)
+
+    @pytest.fixture
+    def group_set_groups_response(self):
+        return {
+            "results": [
+                {
                     "id": "GROUP_1",
                     "name": "GROUP 1",
-                }
+                    "groupSetId": "GROUP SET 1",
+                },
+                {
+                    "id": "GROUP_2",
+                    "name": "GROUP 2",
+                },
             ]
         }
 
