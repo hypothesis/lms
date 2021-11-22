@@ -2,7 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import CanvasGroup, Grouping
+from lms.models import CanvasGroup, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
@@ -123,6 +123,141 @@ class TestGroupingService:
             )
             == expected
         )
+
+    def test_upsert_grouping_memberships_inserts(
+        self, svc, application_instance, db_session
+    ):
+        courses = factories.Course.create_batch(5)
+        user = factories.User(application_instance=application_instance)
+        assert not db_session.query(GroupingMembership).count()
+
+        svc.upsert_grouping_memberships(user, courses)
+
+        assert db_session.query(GroupingMembership).count() == len(courses)
+        for course in courses:
+            assert course.memberships[0].user == user
+
+    def test_upsert_grouping_memberships_updates(
+        self, svc, db_session, with_course_memberships
+    ):
+        user, courses = with_course_memberships
+
+        svc.upsert_grouping_memberships(user, courses)
+
+        assert db_session.query(GroupingMembership).filter_by(user=user).count() == len(
+            courses
+        )
+
+    def test_get_course_grouping_for_user(self, svc, with_group_memberships):
+        user, courses, group_a = with_group_memberships
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP
+        )
+
+        assert len(groupings) == 1
+        assert groupings[0] == group_a
+
+    def test_get_course_grouping_for_user_with_groupset_id(
+        self, svc, with_group_memberships
+    ):
+        user, courses, group_a = with_group_memberships
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[0],
+            user.user_id,
+            Grouping.Type.CANVAS_GROUP,
+            group_a.extra["group_set_id"],
+        )
+
+        assert len(groupings) == 1
+        assert groupings[0] == group_a
+
+    def test_get_course_grouping_for_user_with_different_groupset_id(
+        self, svc, with_group_memberships
+    ):
+        user, courses, _ = with_group_memberships
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP, "ANOTHER_GROUP_SET_ID"
+        )
+
+        assert not groupings
+
+    def test_get_course_grouping_for_user_with_different_type(
+        self, svc, with_group_memberships
+    ):
+        user, courses, _ = with_group_memberships
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[0], user.user_id, Grouping.Type.CANVAS_SECTION
+        )
+
+        assert not groupings
+
+    def test_get_course_grouping_for_user_with_different_course(
+        self, svc, with_group_memberships
+    ):
+        user, courses, _ = with_group_memberships
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[1], user.user_id, Grouping.Type.CANVAS_GROUP
+        )
+
+        assert not groupings
+
+    def test_get_course_grouping_for_user_with_different_user(
+        self, svc, with_group_memberships, application_instance
+    ):
+        _, courses, _ = with_group_memberships
+        other_user = factories.User(application_instance=application_instance)
+
+        groupings = svc.get_course_groupings_for_user(
+            courses[0], other_user.user_id, Grouping.Type.CANVAS_GROUP
+        )
+
+        assert not groupings
+
+    @pytest.fixture
+    def with_course_memberships(self, svc, application_instance):
+        courses = factories.Course.create_batch(5)
+        user = factories.User(application_instance=application_instance)
+
+        svc.upsert_grouping_memberships(user, courses)
+
+        # Some extra courses/user for noise
+        factories.Course.create_batch(5)
+        factories.User(application_instance=application_instance)
+
+        return user, courses
+
+    @pytest.fixture
+    def with_group_memberships(self, with_course_memberships, db_session):
+        user, courses = with_course_memberships
+
+        course = courses[0]
+        group_a = CanvasGroup(
+            parent=course,
+            authority_provided_id="section_a",
+            application_instance=course.application_instance,
+            lms_id="SECTION_A",
+            lms_name="SECTION_A",
+            extra={"group_set_id": "GROUPSET_ID"},
+        )
+        # An extra group for noise
+        group_b = CanvasGroup(
+            authority_provided_id="section_b",
+            parent=course,
+            application_instance=course.application_instance,
+            lms_id="SECTION_B",
+            lms_name="SECTION_B",
+        )
+
+        db_session.add_all(
+            [group_a, group_b, GroupingMembership(user=user, grouping=group_a)]
+        )
+
+        return user, courses, group_a
 
     @pytest.fixture
     def svc(self, db_session, application_instance_service):
