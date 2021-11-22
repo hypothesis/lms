@@ -232,6 +232,26 @@ class TestCourseGroupSets:
         assert group_sets == blackboard_list_groupsets_schema.parse.return_value
 
 
+class TestGroupSetGroups:
+    def test_it(
+        self,
+        svc,
+        basic_client,
+        BlackboardListGroupSetGroups,
+        blackboard_list_group_set_groups,
+    ):
+        group_sets = svc.group_set_groups("COURSE_ID", "GROUP_SET_ID")
+
+        basic_client.request.assert_called_once_with(
+            "GET",
+            "/learn/api/public/v2/courses/uuid:COURSE_ID/groups/sets/GROUP_SET_ID/groups",
+        )
+        BlackboardListGroupSetGroups.assert_called_once_with(
+            basic_client.request.return_value
+        )
+        assert group_sets == blackboard_list_group_set_groups.parse.return_value
+
+
 @pytest.fixture
 def basic_client():
     return create_autospec(BasicClient, instance=True, spec_set=True)
@@ -270,3 +290,13 @@ def BlackboardListGroupSetsSchema(patch):
 @pytest.fixture
 def blackboard_list_groupsets_schema(BlackboardListGroupSetsSchema):
     return BlackboardListGroupSetsSchema.return_value
+
+
+@pytest.fixture
+def blackboard_list_group_set_groups(BlackboardListGroupSetGroups):
+    return BlackboardListGroupSetGroups.return_value
+
+
+@pytest.fixture(autouse=True)
+def BlackboardListGroupSetGroups(patch):
+    return patch("lms.services.blackboard_api.client.BlackboardListGroupSetGroups")

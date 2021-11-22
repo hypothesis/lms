@@ -55,3 +55,19 @@ class BlackboardListGroupSetsSchema(RequestsResponseSchema):
     @post_load
     def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
         return data["results"]
+
+
+class BlackboardListGroupSetGroups(RequestsResponseSchema):
+    class GroupSchema(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        id = fields.Str(required=True)
+        name = fields.Str(required=True)
+        groupSetId = fields.Str(required=False, allow_none=True)
+
+    results = fields.List(fields.Nested(GroupSchema), required=True)
+
+    @post_load
+    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        return data["results"]
