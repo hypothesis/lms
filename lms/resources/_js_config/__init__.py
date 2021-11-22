@@ -472,15 +472,8 @@ class JSConfig:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
 
-    def _sync_api(self):
-        if (
-            not self._context.canvas_sections_enabled
-            and not self._context.canvas_is_group_launch
-        ):
-            return None
-
+    def _canvas_sync_api(self):
         req = self._request
-
         sync_api_config = {
             "authUrl": req.route_url("canvas_api.oauth.authorize"),
             "path": req.route_path("canvas_api.sync"),
@@ -510,3 +503,12 @@ class JSConfig:
             }
 
         return sync_api_config
+
+    def _sync_api(self):
+        if self._context.is_canvas and (
+            self._context.canvas_sections_enabled
+            or self._context.canvas_is_group_launch
+        ):
+            return self._canvas_sync_api()
+
+        return None
