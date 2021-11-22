@@ -1,7 +1,10 @@
-from typing import Optional
+from typing import List, Optional, Union
 
+from sqlalchemy import func
+from sqlalchemy.orm import aliased
+
+from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
-from lms.models.grouping import Grouping
 
 
 class GroupingService:
@@ -75,6 +78,59 @@ class GroupingService:
         grouping.extra = extra
 
         return grouping
+
+    def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
+        """
+        Upserts group memberships.
+
+        :param user:  User the that belongs to the groups
+        :param groups: List of groups the `user` belongs to
+        """
+        for group in groups:
+            if membership := (
+                self._db.query(GroupingMembership)
+                .filter_by(grouping_id=group.id, user_id=user.id)
+                .one_or_none()
+            ):
+                membership.updated = func.now()
+                continue
+
+            group.memberships.append(GroupingMembership(grouping=group, user=user))
+
+    def get_course_groupings_for_user(
+        self,
+        course: Course,
+        user_id: str,
+        type_: Grouping.Type,
+        group_set_id: Optional[Union[str, int]] = None,
+    ):
+        """
+        Get the groupings a user belongs to in a given course.
+
+        :param course:  The course the users belongs to
+        :param user_id: User.user_id of the user we are filtering by
+        :param type_: Type of subdivision within the course
+        :param group_set_id: Optionally filter by `group_set_id` stored in the Course.extra
+        """
+        course_grouping = aliased(Course)
+        query = (
+            self._db.query(Grouping)
+            .join(GroupingMembership)
+            .join(User)
+            .join(course_grouping, Grouping.parent)
+            .filter(
+                User.user_id == user_id,
+                course_grouping.id == course.id,
+                Grouping.type == type_,
+            )
+        )
+
+        if group_set_id:
+            query = query.filter(
+                Grouping.extra["group_set_id"].astext == str(group_set_id)
+            )
+
+        return query.all()
 
 
 def factory(_context, request):
