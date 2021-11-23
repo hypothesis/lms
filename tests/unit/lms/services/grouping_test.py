@@ -85,7 +85,7 @@ class TestGroupingService:
     def test_canvas_group_and_sections_dont_conflict(
         self, svc, course_service, db_session
     ):
-        course_service.get.return_value = factories.Course()
+        course_service.get.return_value = factories.Course(lms_id=self.CONTEXT_ID)
         db_session.flush()
 
         group = svc.upsert_canvas_group(
@@ -102,7 +102,10 @@ class TestGroupingService:
             "section_name",
         )
 
-        assert group.authority_provided_id != section.authority_provided_id
+        assert group.authority_provided_id == "078cc1b793e061085ed3ef91189b41a6f7dd26b8"
+        assert (
+            section.authority_provided_id == "867c2696d32eb4b5e9cf5c5304cb71c3e20bfd14"
+        )
         assert (
             group.parent_id == section.parent_id == course_service.get.return_value.id
         )
