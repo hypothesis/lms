@@ -110,6 +110,35 @@ class TestGroupingService:
             group.parent_id == section.parent_id == course_service.get.return_value.id
         )
 
+    def test_generate_authority_provided_id_for_course(self, svc):
+        assert (
+            svc.generate_authority_provided_id(
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, Grouping.Type.COURSE
+            )
+            == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
+        )
+
+    @pytest.mark.parametrize(
+        "type_,expected",
+        [
+            (Grouping.Type.CANVAS_SECTION, "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
+            (Grouping.Type.CANVAS_GROUP, "aaab80699a478e9da17e734f2e3c8126687e6135"),
+        ],
+    )
+    def test_generate_authority_provided_id_with_parent(
+        self, svc, db_session, type_, expected
+    ):
+        course = factories.Course(lms_id="course_id")
+        db_session.flush()
+
+        print(course.lms_id)
+        assert (
+            svc.generate_authority_provided_id(
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", course, type_
+            )
+            == expected
+        )
+
     @pytest.fixture
     def svc(self, db_session, course_service, application_instance_service):
         return GroupingService(db_session, application_instance_service, course_service)

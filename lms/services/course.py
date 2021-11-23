@@ -1,8 +1,8 @@
 import json
 from copy import deepcopy
 
-from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
-from lms.models._hashed_id import hashed_id
+from lms.models import Course, CourseGroupsExportedFromH, Grouping, LegacyCourse
+from lms.services.grouping import GroupingService
 
 
 class CourseService:
@@ -130,7 +130,9 @@ class CourseService:
         and context_id uniquely identifies a course within an LMS. Together they
         globally uniquely identify a course.
         """
-        return hashed_id(tool_consumer_instance_guid, context_id)
+        return GroupingService.generate_authority_provided_id(
+            tool_consumer_instance_guid, context_id, None, Grouping.Type.COURSE
+        )
 
 
 def course_service_factory(_context, request):

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from lms.models import CanvasGroup, CanvasSection, Grouping
 from lms.models._hashed_id import hashed_id
 
@@ -56,6 +58,26 @@ class GroupingService:
                 lms_name=section_name,
                 parent_id=course.id,
             )
+        )
+
+    @staticmethod
+    def generate_authority_provided_id(
+        tool_consumer_instance_guid,
+        lms_id,
+        parent: Optional[Grouping],
+        type_: Grouping.Type,
+    ):
+        if type_ == Grouping.Type.COURSE:
+            return hashed_id(tool_consumer_instance_guid, lms_id)
+
+        # For the rest of types, parent is mandatory
+        assert parent is not None
+
+        if type_ == Grouping.Type.CANVAS_SECTION:
+            return hashed_id(tool_consumer_instance_guid, parent.lms_id, lms_id)
+
+        return hashed_id(
+            tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
         )
 
     def upsert_canvas_group(  # pylint: disable=too-many-arguments
