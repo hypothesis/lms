@@ -511,7 +511,7 @@ class TestJSConfigAPISync:
         pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
 
     @pytest.fixture
-    def blackboard_group_launch(context, application_instance_service):
+    def blackboard_group_launch(self, context, application_instance_service):
         context.canvas_sections_enabled = False
         context.canvas_groups_enabled = False
 
