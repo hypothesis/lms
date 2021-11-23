@@ -27,6 +27,10 @@ class Grouping(CreatedUpdatedMixin, BASE):
             "(type='course' AND parent_id IS NULL) OR (type!='course' AND parent_id IS NOT NULL)",
             name="courses_must_NOT_have_parents_and_other_groupings_MUST_have_parents",
         ),
+        sa.CheckConstraint(
+            "type in ('course', 'canvas_section', 'canvas_group', 'blackboard_group')",
+            name="grouping_type_must_be_a_valid_value",
+        ),
     )
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
