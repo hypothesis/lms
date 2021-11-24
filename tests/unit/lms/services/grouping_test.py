@@ -29,42 +29,28 @@ class TestGroupingService:
 
         assert db_session.query(CanvasGroup).one() == test_grouping
 
-    def test_upsert_with_parents_updates(self, svc, db_session):
+    def test_upsert_with_parent_updates_existing_groupings(self, svc, db_session):
         course = factories.Course()
-        tool_consumer_instance_guid = (
-            course.application_instance.tool_consumer_instance_guid
-        )
-        lms_id = "lms_id"
+        kwargs = {
+            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
+            "lms_id": "lms_id",
+            "parent": course,
+            "type_": Grouping.Type.CANVAS_GROUP,
+        }
         old_name = "old_name"
         old_extra = {"extra": "old"}
         new_name = "new_name"
         new_extra = {"extra": "new"}
+        # Insert an existing grouping into the DB.
+        svc.upsert_with_parent(lms_name=old_name, extra=old_extra, **kwargs)
 
-        # Insert a new grouping.
-        svc.upsert_with_parent(
-            tool_consumer_instance_guid=tool_consumer_instance_guid,
-            lms_id=lms_id,
-            lms_name=old_name,
-            parent=course,
-            type_=Grouping.Type.CANVAS_GROUP,
-            extra=old_extra,
-        )
+        # upsert_with_parent() should find and update the existing grouping.
+        grouping = svc.upsert_with_parent(lms_name=new_name, extra=new_extra, **kwargs)
 
-        # Update the previously-inserted grouping with new values.
-        grouping = svc.upsert_with_parent(
-            tool_consumer_instance_guid=tool_consumer_instance_guid,
-            lms_id=lms_id,
-            lms_name=new_name,
-            parent=course,
-            type_=Grouping.Type.CANVAS_GROUP,
-            extra=new_extra,
-        )
-
-        # upsert_with_parent() should return a Grouping that has the updated values.
+        # It should return a grouping with the updated values.
         assert grouping.lms_name == new_name
         assert grouping.extra == new_extra
-
-        # The Grouping's values should have been updated in the DB as well.
+        # The values should have been updated in the DB as well.
         db_grouping = db_session.query(CanvasGroup).one()
         assert db_grouping.lms_name == new_name
         assert db_grouping.extra == new_extra
