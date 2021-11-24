@@ -2,7 +2,7 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from lms.models import GroupInfo, HUser
+from lms.models import ApplicationInstance, GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError
 from lms.validation.authentication import BearerTokenSchema
@@ -476,66 +476,63 @@ class JSConfig:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
 
-    def _sync_api(self):
-        if (
-            not self._context.canvas_sections_enabled
-            and not self._context.is_group_launch
-        ):
-            return None
-
+    def _canvas_sync_api(self):
         req = self._request
-
-        sync_api_config = {}
-        if self._context.is_canvas:
-            sync_api_config = {
-                "authUrl": req.route_url("canvas_api.oauth.authorize"),
-                "path": req.route_path("canvas_api.sync"),
-                "data": {
-                    "lms": {
-                        "tool_consumer_instance_guid": req.params[
-                            "tool_consumer_instance_guid"
-                        ],
-                    },
-                    "course": {
-                        "context_id": req.params["context_id"],
-                        "custom_canvas_course_id": req.params[
-                            "custom_canvas_course_id"
-                        ],
-                        "group_set": req.params.get("group_set"),
-                    },
-                    "group_info": {
-                        key: value
-                        for key, value in req.params.items()
-                        if key in GroupInfo.columns()
-                    },
+        sync_api_config = {
+            "authUrl": req.route_url("canvas_api.oauth.authorize"),
+            "path": req.route_path("canvas_api.sync"),
+            "data": {
+                "lms": {
+                    "tool_consumer_instance_guid": req.params[
+                        "tool_consumer_instance_guid"
+                    ],
                 },
-            }
-
-            if "learner_canvas_user_id" in req.params:
-                sync_api_config["data"]["learner"] = {
-                    "canvas_user_id": req.params["learner_canvas_user_id"],
-                    "group_set": req.params.get("group_set"),
-                }
-        if self._context.is_blackboard:
-            sync_api_config = {
-                "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-                "path": req.route_path("blackboard_api.sync"),
-                "data": {
-                    "lms": {
-                        "tool_consumer_instance_guid": req.params[
-                            "tool_consumer_instance_guid"
-                        ],
-                    },
-                    "course": {
-                        "context_id": req.params["context_id"],
-                        "resource_link_id": req.params["resource_link_id"],
-                    },
-                    "group_info": {
-                        key: value
-                        for key, value in req.params.items()
-                        if key in GroupInfo.columns()
-                    },
-                },
+            },
+        }
+        if "learner_canvas_user_id" in req.params:
+            sync_api_config["data"]["learner"] = {
+                "canvas_user_id": req.params["learner_canvas_user_id"],
+                "group_set": req.params.get("group_set"),
             }
 
         return sync_api_config
+
+    def _blackboard_sync_api(self):
+        req = self._request
+        return {
+            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
+            "path": req.route_path("blackboard_api.sync"),
+            "data": {
+                "lms": {
+                    "tool_consumer_instance_guid": req.params[
+                        "tool_consumer_instance_guid"
+                    ],
+                },
+                "course": {
+                    "context_id": req.params["context_id"],
+                    "resource_link_id": req.params["resource_link_id"],
+                },
+                "group_info": {
+                    key: value
+                    for key, value in req.params.items()
+                    if key in GroupInfo.columns()
+                },
+            },
+        }
+
+    def _sync_api(self):
+        if self._context.is_canvas and (
+            self._context.canvas_sections_enabled
+            or self._context.canvas_is_group_launch
+        ):
+            return self._canvas_sync_api()
+
+        if (
+            self._application_instance().product
+            == ApplicationInstance.Product.BLACKBOARD
+            and self._context.is_blackboard_group_launch
+        ):
+
+            return self._blackboard_sync_api()
+
+        return None

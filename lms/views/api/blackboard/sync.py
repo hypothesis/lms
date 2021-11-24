@@ -1,15 +1,13 @@
 from pyramid.view import view_config
 
+from lms.models import Grouping
 from lms.security import Permissions
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, UserService
 from lms.views import (
     CanvasGroupSetEmpty,
     CanvasGroupSetNotFound,
     CanvasStudentNotInGroup,
 )
-
-from lms.services import UserService
-from lms.models import Grouping
 
 
 class Sync:

@@ -15,6 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.validation import (
     BasicLTILaunchSchema,
@@ -23,7 +24,6 @@ from lms.validation import (
 )
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.predicates import BlackboardCopied, BrightspaceCopied
-from lms.resources._js_config import JSConfig
 
 
 @view_defaults(

@@ -65,7 +65,9 @@ export default function FileList({
                   'is-selected': isSelected,
                 })}
               />
-              <div className="u-stretch u-line-height">{file.display_name}</div>
+              <div className="hyp-u-stretch u-line-height">
+                {file.display_name}
+              </div>
             </div>
           </td>
           <td>{file.updated_at && formatDate(file.updated_at)}</td>

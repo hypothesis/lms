@@ -1,18 +1,6 @@
 @use '@hypothesis/frontend-shared/styles/mixins/focus';
 
-@use '../mixins';
 @use '../variables' as var;
-
-@keyframes SubmitGradeForm__fadeAway {
-  from {
-    opacity: 1;
-    visibility: inherit;
-  }
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
 
 @keyframes SubmitGradeForm__gradeSaved {
   from {
@@ -86,32 +74,5 @@
     &:disabled {
       opacity: 0.5;
     }
-  }
-}
-
-.SubmitGradeForm__loading-backdrop {
-  background-color: white;
-  bottom: 0;
-  left: 0;
-  opacity: 0.5;
-  position: fixed;
-  right: 0;
-  top: 0;
-}
-
-.SubmitGradeForm__submit-spinner {
-  @include mixins.spinner(var.$spinner-size);
-}
-
-.SubmitGradeForm__fetch-spinner {
-  @include mixins.spinner(28px);
-  animation-duration: 0.5s;
-  visibility: hidden;
-  animation-fill-mode: forwards;
-  &.is-fade-away {
-    animation-name: SubmitGradeForm__fadeAway;
-  }
-  &.is-active {
-    visibility: inherit;
   }
 }

@@ -1,4 +1,4 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
 import { useContext, useMemo, useState } from 'preact/hooks';
 
 import { Config } from '../config';
@@ -7,7 +7,6 @@ import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
 
 import BookPicker from './BookPicker';
-import FullScreenSpinner from './FullScreenSpinner';
 import LMSFilePicker from './LMSFilePicker';
 import URLPicker from './URLPicker';
 
@@ -278,7 +277,7 @@ export default function ContentSelector({
             </LabeledButton>
           )}
         </div>
-        <div className="u-stretch" />
+        <div className="hyp-u-stretch" />
       </div>
       <div>{dialog}</div>
     </>

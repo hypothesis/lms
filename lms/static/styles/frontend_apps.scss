@@ -2,7 +2,6 @@
 
 // Shared classes
 @use 'utils';
-@use 'typography';
 
 // HTML components
 @use 'components/browser-check-warning';
@@ -23,7 +22,6 @@
 @use 'components/ErrorDisplay';
 @use 'components/FileList';
 @use 'components/FilePickerApp';
-@use 'components/FullScreenSpinner';
 @use 'components/LMSGrader';
 @use 'components/StudentSelector';
 @use 'components/SubmitGradeForm';

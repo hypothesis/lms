@@ -1,4 +1,4 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
 import {
   useCallback,
   useContext,
@@ -13,7 +13,6 @@ import { truncateURL } from '../utils/format';
 import ContentSelector from './ContentSelector';
 import ErrorDialog from './ErrorDialog';
 import FilePickerFormFields from './FilePickerFormFields';
-import FullScreenSpinner from './FullScreenSpinner';
 import GroupConfigSelector from './GroupConfigSelector';
 
 /**

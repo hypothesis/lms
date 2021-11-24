@@ -1,3 +1,4 @@
+import { FullScreenSpinner } from '@hypothesis/frontend-shared';
 import classNames from 'classnames';
 
 import {
@@ -16,7 +17,6 @@ import AuthWindow from '../utils/AuthWindow';
 
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
-import Spinner from './Spinner';
 import VitalSourceBookViewer from './VitalSourceBookViewer';
 
 /**
@@ -216,8 +216,10 @@ export default function BasicLTILaunchApp() {
       return;
     }
 
-    // Don't report a submission until the URL has been successfully fetched.
-    if (!contentUrl) {
+    // Don't report a submission until we have the data needed to display the assignment content
+    // contentUrl will be resolved from an API call to viaUrlApi.path except on VitalSource assignments
+    // where vitalSourceConfig will be present directly on the config instead.
+    if (!contentUrl && !vitalSourceConfig) {
       return;
     }
     try {
@@ -233,7 +235,7 @@ export default function BasicLTILaunchApp() {
       // submission.
       handleError(e, 'error-reporting-submission', false);
     }
-  }, [authToken, canvas.speedGrader, contentUrl]);
+  }, [authToken, canvas.speedGrader, contentUrl, vitalSourceConfig]);
 
   useEffect(() => {
     reportSubmission();
@@ -316,7 +318,7 @@ export default function BasicLTILaunchApp() {
 
   return (
     <div className="BasicLTILaunchApp">
-      {showSpinner && <Spinner className="BasicLTILaunchApp__spinner" />}
+      {showSpinner && <FullScreenSpinner />}
       {errorState && (
         <LaunchErrorDialog
           busy={fetchCount > 0}

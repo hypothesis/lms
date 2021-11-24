@@ -3,13 +3,12 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import GradingInfo, Grouping
+from lms.models import ApplicationInstance, GradingInfo, Grouping
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
 
 pytestmark = pytest.mark.usefixtures(
-    "application_instance_service",
     "grading_info_service",
     "grant_token_service",
     "h_api",
@@ -17,6 +16,7 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestEnableContentItemSelectionMode:
     def test_it(self, js_config):
         js_config.enable_content_item_selection_mode(
@@ -114,6 +114,7 @@ class TestEnableContentItemSelectionMode:
         return patch("lms.resources._js_config.FilePickerConfig")
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestEnableLTILaunchMode:
     def test_it(self, bearer_token_schema, context, grant_token_service, js_config):
         js_config.enable_lti_launch_mode()
@@ -361,6 +362,7 @@ class TestMaybeEnableGrading:
         return pyramid_request
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestMaybeSetFocusedUser:
     def test_it_does_nothing_if_theres_no_focused_user_param(
         self, js_config, pyramid_request
@@ -435,11 +437,12 @@ class TestJSConfigAuthToken:
         return config["api"]["authToken"]
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
     @pytest.mark.usefixtures("canvas_sections_on")
-    def test_it(self, sync, pyramid_request, GroupInfo):
+    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/sync",
@@ -448,6 +451,27 @@ class TestJSConfigAPISync:
                     "context_id": "test_context_id",
                     "custom_canvas_course_id": "test_custom_canvas_course_id",
                     "group_set": None,
+                },
+                "lms": {
+                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                },
+                "group_info": {
+                    key: value
+                    for key, value in pyramid_request.params.items()
+                    if key in GroupInfo.columns.return_value
+                },
+            },
+        }
+
+    @pytest.mark.usefixtures("blackboard_group_launch")
+    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo):
+        assert sync == {
+            "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+            "path": "/api/blackboard/sync",
+            "data": {
+                "course": {
+                    "context_id": "test_context_id",
+                    "resource_link_id": "test_resource_link_id",
                 },
                 "lms": {
                     "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
@@ -487,12 +511,24 @@ class TestJSConfigAPISync:
         pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
 
     @pytest.fixture
+    def blackboard_group_launch(self, context, application_instance_service):
+        context.canvas_sections_enabled = False
+        context.canvas_groups_enabled = False
+
+        context.blackboard_groups_enabled = True
+        context.is_blackboard_group_launch = True
+        application_instance_service.get_current.return_value.tool_consumer_info_product_family_code = (
+            ApplicationInstance.Product.BLACKBOARD
+        )
+
+    @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params.clear()
         pyramid_request.params.update(
             {
                 "context_id": "test_context_id",
                 "custom_canvas_course_id": "test_custom_canvas_course_id",
+                "resource_link_id": "test_resource_link_id",
                 "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
                 "foo": "bar",  # This item should be missing from group_info.
             }
@@ -512,6 +548,7 @@ class TestJSConfigDebug:
         return config["debug"]
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigHypothesisClient:
     """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
 
@@ -584,6 +621,7 @@ class TestJSConfigHypothesisClient:
         context.canvas_groups_enabled = True
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigRPCServer:
     """Unit tests for the "rpcServer" sub-dict of JSConfig."""
 

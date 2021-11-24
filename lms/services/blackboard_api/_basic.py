@@ -84,8 +84,9 @@ class BasicClient:
             return self._send(method, url)
 
     def async_requests(self, method, urls):
-        import aiohttp
         import asyncio
+
+        import aiohttp
 
         headers = {}
         access_token = self._oauth_http_service._oauth2_token_service.get().access_token
