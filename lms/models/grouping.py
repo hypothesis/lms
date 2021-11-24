@@ -13,14 +13,13 @@ MAX_GROUP_NAME_LENGTH = 25
 
 class Grouping(CreatedUpdatedMixin, BASE):
     class Type(str, Enum):
-        GROUPING = "grouping"
         COURSE = "course"
         CANVAS_SECTION = "canvas_section"
         CANVAS_GROUP = "canvas_group"
         BLACKBOARD_GROUP = "blackboard_group"
 
     __tablename__ = "grouping"
-    __mapper_args__ = {"polymorphic_identity": Type.GROUPING, "polymorphic_on": "type"}
+    __mapper_args__ = {"polymorphic_on": "type"}
     __table_args__ = (
         sa.UniqueConstraint("application_instance_id", "authority_provided_id"),
         sa.UniqueConstraint("lms_id", "application_instance_id", "parent_id", "type"),
