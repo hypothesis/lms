@@ -471,6 +471,8 @@ class TestJSConfigAPISync:
             "data": {
                 "course": {
                     "context_id": "test_context_id",
+                },
+                "assignment": {
                     "resource_link_id": "test_resource_link_id",
                 },
                 "lms": {

@@ -517,6 +517,8 @@ class JSConfig:
                 },
                 "course": {
                     "context_id": req.params["context_id"],
+                },
+                "assignment": {
                     "resource_link_id": req.params["resource_link_id"],
                 },
                 "group_info": {
