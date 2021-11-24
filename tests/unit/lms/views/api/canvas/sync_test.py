@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from lms.models import Grouping
 from lms.services import CanvasAPIError
 from lms.views import (
     CanvasGroupSetEmpty,
@@ -222,7 +221,7 @@ def assert_sync_and_return_sections(
                 lms_id=section["id"],
                 lms_name=section.get("name", f"Section {section['id']}"),
                 parent=course_service.get.return_value,
-                type_=Grouping.Type.CANVAS_SECTION,
+                type_="canvas_section",
             )
             for section in sections
         ]
@@ -251,7 +250,7 @@ def assert_sync_and_return_groups(
                 lms_id=group["id"],
                 lms_name=group.get("name", f"Group {group['id']}"),
                 parent=course_service.get.return_value,
-                type_=Grouping.Type.CANVAS_GROUP,
+                type_="canvas_group",
                 extra={"group_set_id": group["group_category_id"]},
             )
             for group in groups

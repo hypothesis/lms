@@ -2,7 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import CanvasGroup, Grouping, GroupingMembership
+from lms.models import CanvasGroup, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
@@ -24,7 +24,7 @@ class TestGroupingService:
             lms_id="lms_id",
             lms_name="lms_name",
             parent=course,
-            type_=Grouping.Type.CANVAS_GROUP,
+            type_="canvas_group",
         )
 
         assert db_session.query(CanvasGroup).one() == test_grouping
@@ -35,7 +35,7 @@ class TestGroupingService:
             "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
             "lms_id": "lms_id",
             "parent": course,
-            "type_": Grouping.Type.CANVAS_GROUP,
+            "type_": "canvas_group",
         }
         old_name = "old_name"
         old_extra = {"extra": "old"}
@@ -64,28 +64,28 @@ class TestGroupingService:
             "same_id",
             "group_name",
             course,
-            Grouping.Type.CANVAS_GROUP,
+            "canvas_group",
         )
         section = svc.upsert_with_parent(
             self.TOOL_CONSUMER_INSTANCE_GUID,
             "same_id",
             "section_name",
             course,
-            Grouping.Type.CANVAS_SECTION,
+            "canvas_section",
         )
 
         assert group.authority_provided_id == "078cc1b793e061085ed3ef91189b41a6f7dd26b8"
         assert (
             section.authority_provided_id == "867c2696d32eb4b5e9cf5c5304cb71c3e20bfd14"
         )
-        assert group.type == Grouping.Type.CANVAS_GROUP
-        assert section.type == Grouping.Type.CANVAS_SECTION
+        assert group.type == "canvas_group"
+        assert section.type == "canvas_section"
         assert group.parent_id == section.parent_id == course.id
 
     def test_generate_authority_provided_id_for_course(self, svc):
         assert (
             svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, Grouping.Type.COURSE
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, "course"
             )
             == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
         )
@@ -93,8 +93,8 @@ class TestGroupingService:
     @pytest.mark.parametrize(
         "type_,expected",
         [
-            (Grouping.Type.CANVAS_SECTION, "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
-            (Grouping.Type.CANVAS_GROUP, "aaab80699a478e9da17e734f2e3c8126687e6135"),
+            ("canvas_section", "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
+            ("canvas_group", "aaab80699a478e9da17e734f2e3c8126687e6135"),
         ],
     )
     def test_generate_authority_provided_id_with_parent(
@@ -138,7 +138,7 @@ class TestGroupingService:
         user, courses, group_a = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP
+            courses[0], user.user_id, "canvas_group"
         )
 
         assert len(groupings) == 1
@@ -152,7 +152,7 @@ class TestGroupingService:
         groupings = svc.get_course_groupings_for_user(
             courses[0],
             user.user_id,
-            Grouping.Type.CANVAS_GROUP,
+            "canvas_group",
             group_a.extra["group_set_id"],
         )
 
@@ -165,7 +165,7 @@ class TestGroupingService:
         user, courses, _ = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP, "ANOTHER_GROUP_SET_ID"
+            courses[0], user.user_id, "canvas_group", "ANOTHER_GROUP_SET_ID"
         )
 
         assert not groupings
@@ -176,7 +176,7 @@ class TestGroupingService:
         user, courses, _ = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_SECTION
+            courses[0], user.user_id, "canvas_section"
         )
 
         assert not groupings
@@ -187,7 +187,7 @@ class TestGroupingService:
         user, courses, _ = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
-            courses[1], user.user_id, Grouping.Type.CANVAS_GROUP
+            courses[1], user.user_id, "canvas_group"
         )
 
         assert not groupings
@@ -199,7 +199,7 @@ class TestGroupingService:
         other_user = factories.User(application_instance=application_instance)
 
         groupings = svc.get_course_groupings_for_user(
-            courses[0], other_user.user_id, Grouping.Type.CANVAS_GROUP
+            courses[0], other_user.user_id, "canvas_group"
         )
 
         assert not groupings

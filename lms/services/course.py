@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 
-from lms.models import Course, CourseGroupsExportedFromH, Grouping, LegacyCourse
+from lms.models import Course, CourseGroupsExportedFromH, LegacyCourse
 from lms.services.grouping import GroupingService
 
 
@@ -131,7 +131,7 @@ class CourseService:
         globally uniquely identify a course.
         """
         return GroupingService.generate_authority_provided_id(
-            tool_consumer_instance_guid, context_id, None, Grouping.Type.COURSE
+            tool_consumer_instance_guid, context_id, None, "course"
         )
 
 

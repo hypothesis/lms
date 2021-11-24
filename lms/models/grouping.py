@@ -1,5 +1,3 @@
-from enum import Enum
-
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
@@ -12,12 +10,6 @@ MAX_GROUP_NAME_LENGTH = 25
 
 
 class Grouping(CreatedUpdatedMixin, BASE):
-    class Type(str, Enum):
-        COURSE = "course"
-        CANVAS_SECTION = "canvas_section"
-        CANVAS_GROUP = "canvas_group"
-        BLACKBOARD_GROUP = "blackboard_group"
-
     __tablename__ = "grouping"
     __mapper_args__ = {"polymorphic_on": "type"}
     __table_args__ = (
@@ -106,19 +98,19 @@ class Grouping(CreatedUpdatedMixin, BASE):
 
 
 class CanvasSection(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_SECTION}
+    __mapper_args__ = {"polymorphic_identity": "canvas_section"}
 
 
 class CanvasGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}
+    __mapper_args__ = {"polymorphic_identity": "canvas_group"}
 
 
 class BlackboardGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
+    __mapper_args__ = {"polymorphic_identity": "blackboard_group"}
 
 
 class Course(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
+    __mapper_args__ = {"polymorphic_identity": "course"}
 
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):

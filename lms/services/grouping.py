@@ -17,20 +17,18 @@ class GroupingService:
         tool_consumer_instance_guid,
         lms_id,
         parent: Optional[Grouping],
-        type_: Grouping.Type,
+        type_: str,
     ):
-        if type_ == Grouping.Type.COURSE:
+        if type_ == "course":
             return hashed_id(tool_consumer_instance_guid, lms_id)
 
         # For the rest of types, parent is mandatory
         assert parent is not None
 
-        if type_ == Grouping.Type.CANVAS_SECTION:
+        if type_ == "canvas_section":
             return hashed_id(tool_consumer_instance_guid, parent.lms_id, lms_id)
 
-        return hashed_id(
-            tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
-        )
+        return hashed_id(tool_consumer_instance_guid, parent.lms_id, type_, lms_id)
 
     def upsert_with_parent(  # pylint: disable=too-many-arguments
         self,
@@ -38,7 +36,7 @@ class GroupingService:
         lms_id,
         lms_name,
         parent: Grouping,
-        type_: Grouping.Type,
+        type_: str,
         extra=None,
     ):
         """
@@ -101,7 +99,7 @@ class GroupingService:
         self,
         course: Course,
         user_id: str,
-        type_: Grouping.Type,
+        type_: str,
         group_set_id: Optional[Union[str, int]] = None,
     ):
         """

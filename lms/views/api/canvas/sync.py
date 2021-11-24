@@ -1,6 +1,5 @@
 from pyramid.view import view_config
 
-from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import CanvasAPIError
 from lms.views import (
@@ -127,7 +126,7 @@ class Sync:
                 lms_id=group["id"],
                 lms_name=group["name"],
                 parent=course,
-                type_=Grouping.Type.CANVAS_GROUP,
+                type_="canvas_group",
                 extra={"group_set_id": group["group_category_id"]},
             )
             for group in groups
@@ -143,7 +142,7 @@ class Sync:
                 lms_id=section["id"],
                 lms_name=section["name"],
                 parent=course,
-                type_=Grouping.Type.CANVAS_SECTION,
+                type_="canvas_section",
             )
             for section in sections
         ]
