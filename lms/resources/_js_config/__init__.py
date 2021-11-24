@@ -465,10 +465,7 @@ class JSConfig:
         }
 
     def _groups(self):
-        if (
-            self._context.canvas_sections_enabled
-            or self._context.canvas_is_group_launch
-        ):
+        if self._context.canvas_sections_enabled or self._context.is_group_launch:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
 
