@@ -33,7 +33,8 @@ class TestGroupingService:
         course = factories.Course()
         tool_consumer_instance_guid = (
             course.application_instance.tool_consumer_instance_guid
-        )
+        ) = "tcig"
+        db_session.flush()
         lms_id = "lms_id"
         old_name = "old_name"
         old_extra = {"extra": "old"}

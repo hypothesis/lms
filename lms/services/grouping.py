@@ -2,6 +2,7 @@ from typing import Optional
 
 from lms.models._hashed_id import hashed_id
 from lms.models.grouping import Grouping
+from lms.services._upsert import upsert
 
 
 class GroupingService:
@@ -52,29 +53,19 @@ class GroupingService:
             tool_consumer_instance_guid, lms_id, parent, type_
         )
 
-        grouping = (
-            self._db.query(Grouping)
-            .filter_by(
-                application_instance=self._application_instance,
-                authority_provided_id=authority_provided_id,
-            )
-            .one_or_none()
+        return upsert(
+            self._db,
+            Grouping,
+            query_kwargs={
+                "application_instance": self._application_instance,
+                "authority_provided_id": authority_provided_id,
+                # These aren't really needed for querying, only for creating a new one.
+                "lms_id": lms_id,
+                "parent_id": parent.id,
+                "type": type_,
+            },
+            update_kwargs={"lms_name": lms_name, "extra": extra},
         )
-
-        if not grouping:
-            grouping = Grouping(
-                application_instance=self._application_instance,
-                authority_provided_id=authority_provided_id,
-                lms_id=lms_id,
-                parent_id=parent.id,
-                type=type_,
-            )
-            self._db.add(grouping)
-
-        grouping.lms_name = lms_name
-        grouping.extra = extra
-
-        return grouping
 
 
 def factory(_context, request):
