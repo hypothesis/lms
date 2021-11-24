@@ -34,9 +34,9 @@ class TestSync:
         group_info_service.assert_not_called()
 
     def test_sync_calls_bulk_action_correctly(self, h_api, h_user, lti_h_svc):
-        groups = factories.Grouping.create_batch(2)
+        courses = factories.Course.create_batch(2)
 
-        lti_h_svc.sync(groups, sentinel.params)
+        lti_h_svc.sync(courses, sentinel.params)
 
         _, kwargs = h_api.execute_bulk.call_args
 
@@ -67,7 +67,7 @@ class TestSync:
                 },
                 f"group_{i}",
             ).raw
-            for i, group in enumerate(groups)
+            for i, group in enumerate(courses)
         ] + [
             CommandBuilder.group_membership.create("user_0", "group_0").raw,
             CommandBuilder.group_membership.create("user_0", "group_1").raw,

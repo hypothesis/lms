@@ -1,14 +1,14 @@
 import pytest
 
-from lms.models import Grouping
+from lms.models import Course
 from tests import factories
 
 
-class TestGrouping:
+class TestCourse:
     def test_groupid(self):
-        group = factories.Grouping(authority_provided_id="test_authority_provided_id")
+        course = factories.Course(authority_provided_id="test_authority_provided_id")
 
-        groupid = group.groupid("lms.hypothes.is")
+        groupid = course.groupid("lms.hypothes.is")
 
         assert groupid == "group:test_authority_provided_id@lms.hypothes.is"
 
@@ -23,6 +23,6 @@ class TestGrouping:
         ),
     )
     def test_name(self, name, expected_result):
-        group = Grouping(lms_name=name)
+        course = Course(lms_name=name)
 
-        assert group.name == expected_result
+        assert course.name == expected_result
