@@ -487,6 +487,16 @@ class JSConfig:
                         "tool_consumer_instance_guid"
                     ],
                 },
+                "course": {
+                    "context_id": req.params["context_id"],
+                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                    "group_set": req.params.get("group_set"),
+                },
+                "group_info": {
+                    key: value
+                    for key, value in req.params.items()
+                    if key in GroupInfo.columns()
+                },
             },
         }
         if "learner_canvas_user_id" in req.params:
