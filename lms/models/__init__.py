@@ -8,13 +8,7 @@ from lms.models.exceptions import ReusedConsumerKey
 from lms.models.file import File
 from lms.models.grading_info import GradingInfo
 from lms.models.group_info import GroupInfo
-from lms.models.grouping import (
-    CanvasGroup,
-    CanvasSection,
-    Course,
-    Grouping,
-    GroupingMembership,
-)
+from lms.models.grouping import CanvasGroup, CanvasSection, Course, Grouping
 from lms.models.h_user import HUser
 from lms.models.lti_launches import LtiLaunches
 from lms.models.lti_user import LTIUser, display_name

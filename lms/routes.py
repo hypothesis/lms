@@ -55,9 +55,7 @@ def includeme(config):
         "blackboard_api.courses.group_sets.list",
         "/api/blackboard/courses/{course_id}/group_sets",
     )
-    config.add_route(
-        "blackboard_api.sync", "/api/blackboard/sync", request_method="POST"
-    )
+    config.add_route("blackboard_api.sync", "/api/blackboard/sync")
 
     config.add_route(
         "onedrive.filepicker.redirect_uri", "/onedrive/filepicker/redirect"
