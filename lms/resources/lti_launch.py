@@ -122,14 +122,6 @@ class LTILaunchResource:
         return self._request.POST.get("ext_lti_assignment_id")
 
     @property
-    def is_blackboard(self):
-
-        return (
-            "blackboard"
-            in self._application_instance_service.get_current().tool_consumer_info_product_family_code.lower()
-        )
-
-    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         if (
@@ -191,16 +183,6 @@ class LTILaunchResource:
         return legacy_course.settings.get("canvas", "sections_enabled")
 
     @property
-    def blackboard_groups_enabled(self):
-        return True
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.settings.get("blackboard", "groups_enabled"))
-
-    @property
     def canvas_groups_enabled(self):
         """Return True if Canvas groups are enabled at the school/installation level."""
         try:
@@ -240,7 +222,7 @@ class LTILaunchResource:
     @property
     def canvas_is_group_launch(self):
         """Return True if the current assignment uses canvas groups."""
-        if self.is_canvas and not self.canvas_groups_enabled:
+        if not self.canvas_groups_enabled:
             return False
 
         try:
