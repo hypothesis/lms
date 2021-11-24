@@ -491,10 +491,6 @@ class TestJSConfigAPISync:
             "group_set": None,
         }
 
-    @pytest.mark.usefixtures("canvas_groups_launch")
-    def test_present_if_group_assignment(self, sync):
-        assert sync is not None
-
     def test_its_None_if_section_and_groups_arent_enabled(self, sync):
         assert sync is None
 
@@ -578,21 +574,19 @@ class TestJSConfigHypothesisClient:
 
         assert groups == [context.h_group.groupid.return_value]
 
-    @pytest.mark.usefixtures("canvas_groups_on")
-    def test_it_includes_the_group_with_canvas_group_on_but_no_group_launch(
-        self, config, context
-    ):
-        groups = config["services"][0]["groups"]
-
-        assert groups == [context.h_group.groupid.return_value]
-
     @pytest.mark.usefixtures("canvas_sections_on")
     def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
         self, config
     ):
         assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
-    @pytest.mark.usefixtures("canvas_groups_on", "canvas_groups_launch")
+    @pytest.mark.usefixtures("is_group_launch")
+    def test_configures_the_client_to_fetch_the_groups_over_RPC_when_group_launch(
+        self, config
+    ):
+        assert config["services"][0]["groups"] == "$rpc:requestGroups"
+
+    @pytest.mark.usefixtures("canvas_groups_on", "is_group_launch")
     def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
         self, config
     ):
@@ -755,6 +749,7 @@ def context():
         canvas_sections_enabled=False,
         canvas_groups_enabled=False,
         canvas_is_group_launch=False,
+        is_group_launch=False,
     )
 
 
@@ -764,8 +759,8 @@ def canvas_sections_on(context):
 
 
 @pytest.fixture
-def canvas_groups_launch(context):
-    context.canvas_is_group_launch = True
+def is_group_launch(context):
+    context.is_group_launch = True
 
 
 @pytest.fixture
