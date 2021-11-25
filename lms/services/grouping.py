@@ -10,7 +10,7 @@ from lms.models._hashed_id import hashed_id
 class GroupingService:
     def __init__(self, db, application_instance_service):
         self._db = db
-        self._application_instance = application_instance_service.get_current()
+        self.application_instance = application_instance_service.get_current()
 
     @staticmethod
     def generate_authority_provided_id(
@@ -58,7 +58,7 @@ class GroupingService:
         grouping = (
             self._db.query(Grouping)
             .filter_by(
-                application_instance=self._application_instance,
+                application_instance=self.application_instance,
                 authority_provided_id=authority_provided_id,
             )
             .one_or_none()
@@ -66,7 +66,7 @@ class GroupingService:
 
         if not grouping:
             grouping = Grouping(
-                application_instance=self._application_instance,
+                application_instance=self.application_instance,
                 authority_provided_id=authority_provided_id,
                 lms_id=lms_id,
                 parent_id=parent.id,
