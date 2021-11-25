@@ -9,6 +9,9 @@ aiohttp==3.8.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   aioresponses
+aioresponses==0.7.2
+    # via -r requirements/tests.txt
 aiosignal==1.2.0
     # via
     #   -r requirements/bddtests.txt

@@ -1,5 +1,6 @@
 coverage
 httpretty
+aioresponses
 pytest
 factory-boy
 h-matchers
