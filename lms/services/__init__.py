@@ -24,6 +24,9 @@ def includeme(config):
         "lms.services.oauth_http.factory", name="oauth_http"
     )
     config.register_service_factory(
+        "lms.services.async_oauth_http.factory", name="async_oauth_http"
+    )
+    config.register_service_factory(
         "lms.services.blackboard_api.blackboard_api_client_factory",
         name="blackboard_api_client",
     )
