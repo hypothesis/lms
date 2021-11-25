@@ -23,6 +23,12 @@ class Grouping(CreatedUpdatedMixin, BASE):
     __table_args__ = (
         sa.UniqueConstraint("application_instance_id", "authority_provided_id"),
         sa.UniqueConstraint("lms_id", "application_instance_id", "parent_id", "type"),
+        sa.UniqueConstraint("id", "application_instance_id"),
+        sa.ForeignKeyConstraint(
+            ["parent_id", "application_instance_id"],
+            ["grouping.id", "grouping.application_instance_id"],
+            ondelete="cascade",
+        ),
         sa.CheckConstraint(
             "(type='course' AND parent_id IS NULL) OR (type!='course' AND parent_id IS NOT NULL)",
             name="courses_must_NOT_have_parents_and_other_groupings_MUST_have_parents",
@@ -49,13 +55,15 @@ class Grouping(CreatedUpdatedMixin, BASE):
     #:
     #: For example if the grouping represents a Canvas section or group then parent_id
     #: will reference the grouping for the course that the section or group belongs to.
-    parent_id = sa.Column(
-        sa.Integer(),
-        sa.ForeignKey("grouping.id", ondelete="cascade"),
-        nullable=True,
-    )
+    parent_id = sa.Column(sa.Integer(), nullable=True)
     children = sa.orm.relationship(
-        "Grouping", backref=sa.orm.backref("parent", remote_side=[id])
+        "Grouping",
+        backref=sa.orm.backref(
+            "parent",
+            remote_side=[id, application_instance_id],
+            overlaps="application_instance",
+        ),
+        overlaps="application_instance",
     )
 
     #: The LMS's ID for the grouping.

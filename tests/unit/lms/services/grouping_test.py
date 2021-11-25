@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from lms.models import CanvasGroup, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
@@ -14,7 +15,7 @@ class TestGroupingService:
     TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
 
     def test_upsert_with_parents_inserts(self, svc, db_session):
-        course = factories.Course()
+        course = factories.Course(application_instance=svc.application_instance)
 
         # Start with no CanvasGroup
         assert not db_session.query(CanvasGroup).count()
@@ -29,8 +30,35 @@ class TestGroupingService:
 
         assert db_session.query(CanvasGroup).one() == test_grouping
 
+    def test_you_cant_upsert_a_grouping_whose_parent_has_a_different_application_instance(
+        self, svc, application_instance_service, db_session
+    ):
+        parent = factories.Course()
+        # GroupingService uses ApplicationInstanceService.get_current() as the
+        # application_instance for the new grouping it inserts.
+        # Here the parent course will have a different application_instance,
+        # which will trigger an IntegrityError when we flush the DB.
+        assert (
+            parent.application_instance
+            != application_instance_service.get_current.return_value
+        )
+
+        svc.upsert_with_parent(
+            tool_consumer_instance_guid="tool_consumer_instance_guid",
+            lms_id="lms_id",
+            lms_name="lms_name",
+            type_=Grouping.Type.CANVAS_GROUP,
+            parent=parent,
+        )
+
+        with pytest.raises(
+            IntegrityError,
+            match='insert or update on table "grouping" violates foreign key constraint "fk__grouping__parent_id__grouping"',
+        ):
+            db_session.flush()
+
     def test_upsert_with_parent_updates_existing_groupings(self, svc, db_session):
-        course = factories.Course()
+        course = factories.Course(application_instance=svc.application_instance)
         kwargs = {
             "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
             "lms_id": "lms_id",
@@ -56,7 +84,9 @@ class TestGroupingService:
         assert db_grouping.extra == new_extra
 
     def test_canvas_group_and_sections_dont_conflict(self, svc, db_session):
-        course = factories.Course(lms_id=self.CONTEXT_ID)
+        course = factories.Course(
+            lms_id=self.CONTEXT_ID, application_instance=svc.application_instance
+        )
         db_session.flush()
 
         group = svc.upsert_with_parent(
