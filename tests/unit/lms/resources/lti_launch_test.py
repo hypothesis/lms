@@ -384,7 +384,7 @@ class TestIsBlackboardGroupLaunch:
         assert not lti_launch_groups_enabled.is_blackboard_group_launch
 
     def test_it(self, lti_launch_groups_enabled, assignment_service):
-        assignment_service.get.return_value.extra = {"group_set": "ID"}
+        assignment_service.get.return_value.extra = {"group_set_id": "ID"}
 
         assert lti_launch_groups_enabled.is_blackboard_group_launch
 

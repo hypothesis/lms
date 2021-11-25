@@ -129,7 +129,7 @@ def unconfigured_basic_lti_launch_caller(context, pyramid_request):
     return views.unconfigured_basic_lti_launch()
 
 
-def configure_assignment_caller(context, pyramid_request):
+def configure_assignment_caller(context, pyramid_request, parsed_params=None):
     """
     Call BasicLTILaunchViews.configure_assignment().
 
@@ -145,6 +145,8 @@ def configure_assignment_caller(context, pyramid_request):
         "resource_link_id": "TEST_RESOURCE_LINK_ID",
         "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
     }
+    if parsed_params:
+        pyramid_request.parsed_params.update(parsed_params)
 
     views = BasicLTILaunchViews(context, pyramid_request)
 
@@ -407,28 +409,33 @@ class TestURLConfiguredBasicLTILaunch:
 
 
 class TestConfigureAssignment:
-    def test_it_saves_the_assignments_document_url_to_the_db(
-        self, assignment_service, context, pyramid_request
+    @pytest.mark.parametrize(
+        "parsed_params,expected_extras",
+        [
+            (None, {}),
+            ({"group_set": 42}, {"group_set_id": 42}),
+        ],
+    )
+    def test_it(
+        self,
+        assignment_service,
+        context,
+        pyramid_request,
+        parsed_params,
+        expected_extras,
     ):
-        configure_assignment_caller(context, pyramid_request)
+        configure_assignment_caller(context, pyramid_request, parsed_params)
 
         assignment_service.upsert.assert_called_once_with(
             pyramid_request.parsed_params["document_url"],
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],
+            extra=expected_extras,
         )
-
-    def test_it_enables_frontend_grading(self, context, pyramid_request):
-        configure_assignment_caller(context, pyramid_request)
-
-        context.js_config.maybe_enable_grading.assert_called_once_with()
-
-    def test_it_adds_the_document_url(self, context, pyramid_request):
-        configure_assignment_caller(context, pyramid_request)
-
         context.js_config.add_document_url.assert_called_once_with(
             pyramid_request.parsed_params["document_url"]
         )
+        context.js_config.maybe_enable_grading.assert_called_once_with()
 
 
 class TestUnconfiguredBasicLTILaunch:

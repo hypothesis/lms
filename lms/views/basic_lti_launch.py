@@ -348,12 +348,17 @@ class BasicLTILaunchViews:
         And we also send back the assignment launch page, passing the chosen
         URL to Via, as the direct response to the content item form submission.
         """
+        extra = {}
+        if group_set := self.request.parsed_params.get("group_set"):
+            extra["group_set_id"] = group_set
+
         document_url = self.request.parsed_params["document_url"]
 
         self.assignment_service.upsert(
             document_url,
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
+            extra=extra,
         )
 
         self.context.js_config.add_document_url(document_url)

@@ -217,7 +217,7 @@ class LTILaunchResource:
         assignment = self._assignment_service.get(
             tool_consumer_instance_guid, self.resource_link_id
         )
-        return bool(assignment and assignment.extra.get("group_set"))
+        return bool(assignment and assignment.extra.get("group_set_id"))
 
     @property
     def canvas_is_group_launch(self):

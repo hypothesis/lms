@@ -17,3 +17,4 @@ class ConfigureAssignmentSchema(PyramidRequestSchema):
     user_id = fields.Str(required=True)
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
+    group_set = fields.Str(required=False, allow_none=True)
