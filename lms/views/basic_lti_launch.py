@@ -23,6 +23,7 @@ from lms.validation import (
 )
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.predicates import BlackboardCopied, BrightspaceCopied
+from lms.resources._js_config import JSConfig
 
 
 @view_defaults(
@@ -367,5 +368,10 @@ class BasicLTILaunchViews:
         self.store_lti_data()
 
         self.context.js_config.maybe_enable_grading()
+
+        # Re-do enable_lti_launch_mode to account for any changes after the
+        # document has been selected
+        JSConfig._hypothesis_client.fget.cache_clear()
+        self.context.js_config.enable_lti_launch_mode()
 
         return {}

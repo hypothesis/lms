@@ -4,15 +4,18 @@
  * @typedef FileContent
  * @prop {'file'} type
  * @prop {File} file
+ * @prop {string|null} groupSet
  *
  * @typedef URLContent
  * @prop {'url'} type
  * @prop {string} url
+ * @prop {string|null} groupSet
  *
  * @typedef VitalSourceBookContent
  * @prop {'vitalsource'} type
  * @prop {string} bookID
  * @prop {string} cfi
+ * @prop {string|null} groupSet
  */
 
 /**

@@ -66,17 +66,29 @@ export default function FilePickerApp({ onSubmit }) {
     filePicker: {
       formAction,
       formFields,
-      canvas: { groupsEnabled: enableGroupConfig, ltiLaunchUrl },
+      ltiLaunchUrl,
+      blackboard: { groupsEnabled: blackboardGroupsEnabled },
+      canvas: { groupsEnabled: canvasGroupsEnabled },
     },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
+
+  const enableGroupConfig = canvasGroupsEnabled || blackboardGroupsEnabled;
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({
       useGroupSet: false,
       groupSet: null,
     })
+  );
+
+  const onGroupConfigChange = useCallback(
+    e => {
+      setGroupConfig(e);
+      setContent({ ...content, groupSet: e.groupSet });
+    },
+    [groupConfig, content]
   );
 
   const [errorInfo, setErrorInfo] = useState(
@@ -144,7 +156,7 @@ export default function FilePickerApp({ onSubmit }) {
             <div className="FilePickerApp__right-col">
               <GroupConfigSelector
                 groupConfig={groupConfig}
-                onChangeGroupConfig={setGroupConfig}
+                onChangeGroupConfig={onGroupConfigChange}
               />
             </div>
             <div className="FilePickerApp__footer">
