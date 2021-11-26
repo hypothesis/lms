@@ -114,3 +114,55 @@ class BlackboardAPIClient:
             f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets/{group_set_id}/groups",
         )
         return BlackboardListGroups(response).parse()
+
+    def course_groups(
+        self, course_id, group_set_id=None, current_student_own_groups_only=True
+    ):
+        """
+        Return the groups in a course.
+
+        :param course_id: ID of the course
+        :param group_set_id: Only return groups that belong to this group set
+        :param current_student_own_groups_only: Only return groups the current user (a student) belong to.
+        """
+        response = self._api.request(
+            "GET",
+            f"/learn/api/public/v2/courses/uuid:{course_id}/groups",
+        )
+        groups = BlackboardListGroups(response).parse()
+
+        if group_set_id:
+            groups = [group for group in groups if group["groupSetId"] == group_set_id]
+
+        if not current_student_own_groups_only:
+            return groups
+
+        instructor_only_groups = []
+        self_enrollment_groups = []
+        self_enrollment_check_urls = []
+
+        for group in groups:
+            if group["enrollment"]["type"] == "InstructorOnly":
+                # We don't need to check "InstructorOnly" groups, we can only see those if we are member
+                instructor_only_groups.append(group)
+            else:
+                # For the rest will have to make a HTTP request per group
+                self_enrollment_groups.append(group)
+                self_enrollment_check_urls.append(
+                    self._api._api_url(  # pylint: disable=protected-access
+                        f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}"
+                    )
+                )
+
+        if self_enrollment_groups:
+            responses = self._request.find_service(name="async_oauth_http").request(
+                "GET", self_enrollment_check_urls
+            )
+            # If we are a member of any of the SelfEnrollment groups
+            # we'll get a 200 response from the endpoint
+            self_enrollment_groups = [
+                group
+                for group, response in zip(self_enrollment_groups, responses)
+                if response.status == 200
+            ]
+        return self_enrollment_groups + instructor_only_groups

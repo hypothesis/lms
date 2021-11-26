@@ -5,6 +5,7 @@ import pytest
 from lms.services import CanvasService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
+from lms.services.async_oauth_http import AsyncOAuthHTTPService
 from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
@@ -31,6 +32,7 @@ __all__ = (
     # Individual services
     "application_instance_service",
     "assignment_service",
+    "async_oauth_http_service",
     "blackboard_api_client",
     "canvas_api_client",
     "canvas_service",
@@ -158,6 +160,14 @@ def oauth_http_service(mock_service):
     oauth_http_service = mock_service(OAuthHTTPService, service_name="oauth_http")
     oauth_http_service.request.return_value = factories.requests.Response()
     return oauth_http_service
+
+
+@pytest.fixture
+def async_oauth_http_service(mock_service):
+    async_oauth_http_service = mock_service(
+        AsyncOAuthHTTPService, service_name="async_oauth_http"
+    )
+    return async_oauth_http_service
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, create_autospec, sentinel
+from unittest.mock import MagicMock, Mock, call, create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
@@ -238,7 +238,7 @@ class TestGroupSetGroups:
         svc,
         basic_client,
         BlackboardListGroups,
-        blackboard_list_group_set_groups,
+        blackboard_list_groups,
     ):
         group_sets = svc.group_set_groups("COURSE_ID", "GROUP_SET_ID")
 
@@ -247,7 +247,100 @@ class TestGroupSetGroups:
             "/learn/api/public/v2/courses/uuid:COURSE_ID/groups/sets/GROUP_SET_ID/groups",
         )
         BlackboardListGroups.assert_called_once_with(basic_client.request.return_value)
-        assert group_sets == blackboard_list_group_set_groups.parse.return_value
+        assert group_sets == blackboard_list_groups.parse.return_value
+
+
+class TestGroupCourseGroups:
+    def test_it(
+        self,
+        svc,
+        basic_client,
+        BlackboardListGroups,
+        blackboard_list_groups,
+    ):
+        groups = svc.course_groups("COURSE_ID", current_student_own_groups_only=False)
+
+        basic_client.request.assert_called_once_with(
+            "GET",
+            "/learn/api/public/v2/courses/uuid:COURSE_ID/groups",
+        )
+        BlackboardListGroups.assert_called_once_with(basic_client.request.return_value)
+        assert groups == blackboard_list_groups.parse.return_value
+
+    def test_it_with_group_set_id(self, svc, blackboard_list_groups, groups):
+        blackboard_list_groups.parse.return_value = groups
+
+        groups = svc.course_groups(
+            "COURSE_ID", "OTHER_GROUP_SET", current_student_own_groups_only=False
+        )
+
+        assert len(groups) == 1
+        assert groups[0]["groupSetId"] == "OTHER_GROUP_SET"
+
+    def test_it_own_groups_all_instructor_only(
+        self, svc, blackboard_list_groups, groups, async_oauth_http_service
+    ):
+        blackboard_list_groups.parse.return_value = groups
+
+        groups = svc.course_groups(
+            "COURSE_ID", "GROUP_SET", current_student_own_groups_only=True
+        )
+
+        assert len(groups) == 1
+        assert groups[0]["enrollment"]["type"] == "InstructorOnly"
+        async_oauth_http_service.request.assert_not_called()
+
+    def test_it_own_groups_all_self_enrollment(
+        self, svc, blackboard_list_groups, groups, async_oauth_http_service
+    ):
+        blackboard_list_groups.parse.return_value = groups
+        async_oauth_http_service.request.return_value = [Mock(status=200)]
+
+        groups = svc.course_groups(
+            "COURSE_ID", "OTHER_GROUP_SET", current_student_own_groups_only=True
+        )
+
+        assert len(groups) == 1
+        assert groups[0]["enrollment"]["type"] == "SelfEnrollment"
+
+    def test_it_own_groups_all_self_enrollment_no_groups(
+        self, svc, blackboard_list_groups, groups, async_oauth_http_service
+    ):
+        blackboard_list_groups.parse.return_value = groups
+        async_oauth_http_service.request.return_value = [Mock(status=403)]
+
+        groups = svc.course_groups(
+            "COURSE_ID", "OTHER_GROUP_SET", current_student_own_groups_only=True
+        )
+
+        assert not groups
+
+    def test_it_own_groups(
+        self, svc, blackboard_list_groups, groups, async_oauth_http_service
+    ):
+        blackboard_list_groups.parse.return_value = groups
+        async_oauth_http_service.request.return_value = [Mock(status=200)]
+
+        groups = svc.course_groups("COURSE_ID", current_student_own_groups_only=True)
+
+        assert len(groups) == 2
+
+    @pytest.fixture
+    def groups(self):
+        return [
+            {
+                "id": "1",
+                "name": "GROUP 1",
+                "groupSetId": "OTHER_GROUP_SET",
+                "enrollment": {"type": "SelfEnrollment"},
+            },
+            {
+                "id": "2",
+                "name": "GROUP 2",
+                "groupSetId": "GROUP_SET",
+                "enrollment": {"type": "InstructorOnly"},
+            },
+        ]
 
 
 @pytest.fixture
@@ -291,7 +384,7 @@ def blackboard_list_groupsets_schema(BlackboardListGroupSetsSchema):
 
 
 @pytest.fixture
-def blackboard_list_group_set_groups(BlackboardListGroups):
+def blackboard_list_groups(BlackboardListGroups):
     return BlackboardListGroups.return_value
 
 
