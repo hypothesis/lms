@@ -13,13 +13,47 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-def test_it(pyramid_request, assert_sync_and_return_groups, blackboard_api_client):
-    groups = [{"name": "GROUP", "id": "1", "groupSetId": "2"}]
+@pytest.mark.usefixtures("user_is_instructor")
+def test_it_when_instructor(
+    pyramid_request, assert_sync_and_return_groups, blackboard_api_client, groups
+):
     blackboard_api_client.group_set_groups.return_value = groups
 
     result = Sync(pyramid_request).sync()
 
     assert_sync_and_return_groups(result, groups=groups)
+
+
+@pytest.mark.usefixtures(
+    "user_is_learner", "user_service", "application_instance_service"
+)
+def test_it_when_student(
+    pyramid_request,
+    assert_sync_and_return_groups,
+    blackboard_api_client,
+    groups,
+    grouping_service,
+    user_service,
+):
+    blackboard_api_client.course_groups.return_value = groups
+
+    result = Sync(pyramid_request).sync()
+
+    assert_sync_and_return_groups(result, groups=groups)
+    blackboard_api_client.course_groups.assert_called_once_with(
+        pyramid_request.json["course"]["context_id"],
+        "GROUP_SET_ID",
+        current_student_own_groups_only=True,
+    )
+    grouping_service.upsert_grouping_memberships.assert_called_once_with(
+        user_service.get.return_value,
+        [grouping_service.upsert_with_parent.return_value for _ in groups],
+    )
+
+
+@pytest.fixture
+def groups():
+    return [{"name": "GROUP", "id": "1", "groupSetId": "2"}]
 
 
 @pytest.fixture
@@ -64,6 +98,12 @@ def request_json():
         "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
         "group_info": {"foo": "bar"},
     }
+
+
+@pytest.fixture(autouse=True)
+def assignment_service(assignment_service):
+    assignment_service.get.return_value.extra = {"group_set_id": "GROUP_SET_ID"}
+    return assignment_service
 
 
 @pytest.fixture
