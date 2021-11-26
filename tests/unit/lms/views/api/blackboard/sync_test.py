@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from lms.models import Grouping
@@ -5,6 +7,7 @@ from lms.views.api.blackboard.sync import Sync
 from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
+    "application_instance_service",
     "assignment_service",
     "lti_h_service",
     "grouping_service",
@@ -24,9 +27,7 @@ def test_it_when_instructor(
     assert_sync_and_return_groups(result, groups=groups)
 
 
-@pytest.mark.usefixtures(
-    "user_is_learner", "user_service", "application_instance_service"
-)
+@pytest.mark.usefixtures("user_is_learner", "application_instance_service")
 def test_it_when_student(
     pyramid_request,
     assert_sync_and_return_groups,
@@ -49,6 +50,30 @@ def test_it_when_student(
         user_service.get.return_value,
         [grouping_service.upsert_with_parent.return_value for _ in groups],
     )
+
+
+@pytest.mark.usefixtures("user_service")
+def test_it_when_grading(
+    pyramid_request,
+    grouping_service,
+    course_service,
+    assignment_service,
+):
+    pyramid_request.json["gradingStudentId"] = "GRADING_STUDENT_ID"
+    grouping_service.get_course_groupings_for_user.return_value = [Mock()]
+
+    result = Sync(pyramid_request).sync()
+
+    grouping_service.get_course_groupings_for_user.assert_called_once_with(
+        course_service.get.return_value,
+        "GRADING_STUDENT_ID",
+        type_=Grouping.Type.BLACKBOARD_GROUP,
+        group_set_id=assignment_service.get.return_value.extra["group_set_id"],
+    )
+    assert result == [
+        group.groupid()
+        for group in grouping_service.get_course_groupings_for_user.return_value
+    ]
 
 
 @pytest.fixture
