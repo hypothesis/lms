@@ -33,6 +33,7 @@ class Sync:
         lti_user = self._request.lti_user
         group_set_id = self._group_set()
         course_id = self._request.json["course"]["context_id"]
+        course = self._get_course(course_id)
 
         if lti_user.is_learner:
             user = self._request.find_service(UserService).get(
@@ -43,13 +44,20 @@ class Sync:
             learner_groups = self._blackboard_api.course_groups(
                 course_id, group_set_id, current_student_own_groups_only=True
             )
-            groups = self._to_groups_groupings(learner_groups)
+            groups = self._to_groups_groupings(course, learner_groups)
             self._grouping_service.upsert_grouping_memberships(user, groups)
             return groups
 
-        groups = self._blackboard_api.group_set_groups(course_id, group_set_id)
+        if grading_student_id := self._request.json.get("gradingStudentId"):
+            return self._grouping_service.get_course_groupings_for_user(
+                course,
+                grading_student_id,
+                type_=Grouping.Type.BLACKBOARD_GROUP,
+                group_set_id=group_set_id,
+            )
 
-        return self._to_groups_groupings(groups)
+        groups = self._blackboard_api.group_set_groups(course_id, group_set_id)
+        return self._to_groups_groupings(course, groups)
 
     def _group_set(self):
         return (
@@ -61,9 +69,7 @@ class Sync:
             .extra["group_set_id"]
         )
 
-    def _to_groups_groupings(self, groups):
-        course = self._get_course()
-
+    def _to_groups_groupings(self, course, groups):
         return [
             self._grouping_service.upsert_with_parent(
                 tool_consumer_instance_guid=self._tool_consumer_instance_guid,
@@ -81,11 +87,10 @@ class Sync:
         group_info = self._request.json["group_info"]
         lti_h_svc.sync(groups, group_info)
 
-    def _get_course(self):
+    def _get_course(self, course_id):
         course_service = self._request.find_service(name="course")
         return course_service.get(
             course_service.generate_authority_provided_id(
-                self._tool_consumer_instance_guid,
-                self._request.json["course"]["context_id"],
+                self._tool_consumer_instance_guid, course_id
             )
         )
