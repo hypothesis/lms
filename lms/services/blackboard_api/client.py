@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 from lms.events import FilesDiscoveredEvent
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
-    BlackboardListGroupSetGroups,
+    BlackboardListGroups,
     BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
@@ -113,4 +113,4 @@ class BlackboardAPIClient:
             "GET",
             f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets/{group_set_id}/groups",
         )
-        return BlackboardListGroupSetGroups(response).parse()
+        return BlackboardListGroups(response).parse()

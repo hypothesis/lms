@@ -2,7 +2,7 @@ import pytest
 
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
-    BlackboardListGroupSetGroups,
+    BlackboardListGroups,
     BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
@@ -122,26 +122,40 @@ class TestBlackboardListGroupSetsSchema:
         }
 
 
-class TestBlackboardListGroupSetGroups:
+class TestBlackboardListGroups:
     def test_valid(self, group_set_groups_response):
-        schema = BlackboardListGroupSetGroups(
+        schema = BlackboardListGroups(
             factories.requests.Response(json_data=group_set_groups_response)
         )
 
         result = schema.parse()
 
         assert result == [
-            {"id": "GROUP_1", "name": "GROUP 1", "groupSetId": "GROUP SET 1"},
-            {"id": "GROUP_2", "name": "GROUP 2"},
+            {
+                "id": "GROUP_1",
+                "name": "GROUP 1",
+                "groupSetId": "GROUP SET 1",
+                "enrollment": {"type": "InstructorOnly"},
+            },
+            {
+                "id": "GROUP_2",
+                "name": "GROUP 2",
+                "enrollment": {"type": "SelfEnrollment"},
+            },
         ]
 
-    @pytest.mark.parametrize("missing_field", ["id", "name"])
+    @pytest.mark.parametrize("missing_field", ["id", "name", "enrollment"])
     def test_it_raises_if_a_required_field_is_missing(
         self, group_set_groups_response, missing_field
     ):
         del group_set_groups_response["results"][0][missing_field]
 
-        assert_raises(BlackboardListGroupSetGroups, group_set_groups_response)
+        assert_raises(BlackboardListGroups, group_set_groups_response)
+
+    def test_it_raises_if_invalid_enrollment_type(self, group_set_groups_response):
+        group_set_groups_response["results"][0]["enrollment"]["type"] = "Other"
+
+        assert_raises(BlackboardListGroups, group_set_groups_response)
 
     @pytest.fixture
     def group_set_groups_response(self):
@@ -151,10 +165,12 @@ class TestBlackboardListGroupSetGroups:
                     "id": "GROUP_1",
                     "name": "GROUP 1",
                     "groupSetId": "GROUP SET 1",
+                    "enrollment": {"type": "InstructorOnly"},
                 },
                 {
                     "id": "GROUP_2",
                     "name": "GROUP 2",
+                    "enrollment": {"type": "SelfEnrollment"},
                 },
             ]
         }

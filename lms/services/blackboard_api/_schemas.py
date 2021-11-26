@@ -4,6 +4,7 @@ Schemas for Blackboard API responses.
 See: https://developer.blackboard.com/portal/displayApi
 """
 from marshmallow import EXCLUDE, Schema, fields, post_load
+from marshmallow.validate import OneOf
 
 from lms.validation._base import RequestsResponseSchema
 
@@ -57,14 +58,23 @@ class BlackboardListGroupSetsSchema(RequestsResponseSchema):
         return data["results"]
 
 
-class BlackboardListGroupSetGroups(RequestsResponseSchema):
+class BlackboardListGroups(RequestsResponseSchema):
     class GroupSchema(Schema):
         class Meta:
             unknown = EXCLUDE
 
+        class EnrollmentSchema(Schema):
+            class Meta:
+                unknown = EXCLUDE
+
+            type = fields.Str(
+                validate=OneOf(["InstructorOnly", "SelfEnrollment"]), required=True
+            )
+
         id = fields.Str(required=True)
         name = fields.Str(required=True)
         groupSetId = fields.Str(required=False, allow_none=True)
+        enrollment = fields.Nested(EnrollmentSchema, required=True)
 
     results = fields.List(fields.Nested(GroupSchema), required=True)
 
