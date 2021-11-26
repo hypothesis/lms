@@ -2,14 +2,13 @@ from pyramid.view import view_config
 
 from lms.models import Grouping
 from lms.security import Permissions
+from lms.services import UserService
 
 
 class Sync:
     def __init__(self, request):
         self._request = request
-        self._assignment_service = self._request.find_service(name="assignment")
         self._grouping_service = self._request.find_service(name="grouping")
-        self._course_service = self._request.find_service(name="course")
         self._blackboard_api = self._request.find_service(name="blackboard_api_client")
 
         self._tool_consumer_instance_guid = self._request.json["lms"][
@@ -31,17 +30,36 @@ class Sync:
         return [group.groupid(authority) for group in groups]
 
     def _get_blackboard_groups(self):
+        lti_user = self._request.lti_user
         group_set_id = self._group_set()
         course_id = self._request.json["course"]["context_id"]
+
+        if lti_user.is_learner:
+            user = self._request.find_service(UserService).get(
+                self._request.find_service(name="application_instance").get_current(),
+                lti_user.user_id,
+            )
+
+            learner_groups = self._blackboard_api.course_groups(
+                course_id, group_set_id, current_student_own_groups_only=True
+            )
+            groups = self._to_groups_groupings(learner_groups)
+            self._grouping_service.upsert_grouping_memberships(user, groups)
+            return groups
+
         groups = self._blackboard_api.group_set_groups(course_id, group_set_id)
 
         return self._to_groups_groupings(groups)
 
     def _group_set(self):
-        return self._assignment_service.get(
-            self._tool_consumer_instance_guid,
-            self._request.json["assignment"]["resource_link_id"],
-        ).extra["group_set_id"]
+        return (
+            self._request.find_service(name="assignment")
+            .get(
+                self._tool_consumer_instance_guid,
+                self._request.json["assignment"]["resource_link_id"],
+            )
+            .extra["group_set_id"]
+        )
 
     def _to_groups_groupings(self, groups):
         course = self._get_course()
@@ -64,8 +82,9 @@ class Sync:
         lti_h_svc.sync(groups, group_info)
 
     def _get_course(self):
-        return self._course_service.get(
-            self._course_service.generate_authority_provided_id(
+        course_service = self._request.find_service(name="course")
+        return course_service.get(
+            course_service.generate_authority_provided_id(
                 self._tool_consumer_instance_guid,
                 self._request.json["course"]["context_id"],
             )
