@@ -19,6 +19,7 @@ class GroupInfoService:
         "course": "course_group",
         "canvas_section": "section_group",
         "canvas_group": "canvas_group_group",
+        "blackboard_group": "blackboard_group_group",
     }
 
     def __init__(self, _context, request):
