@@ -36,7 +36,7 @@ charset-normalizer==2.0.1
     #   -r requirements/requirements.txt
     #   aiohttp
     #   requests
-coverage==6.1.2
+coverage==6.2
     # via -r requirements/tests.in
 factory-boy==3.2.1
     # via -r requirements/tests.in
