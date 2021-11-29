@@ -413,6 +413,7 @@ class JSConfig:
             )
             yield {
                 "userid": h_user.userid(self._authority),
+                "lmsId": grading_info.user_id,
                 "displayName": h_user.display_name,
                 "LISResultSourcedId": grading_info.lis_result_sourcedid,
                 "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,

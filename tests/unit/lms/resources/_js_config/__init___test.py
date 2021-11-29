@@ -306,6 +306,7 @@ class TestMaybeEnableGrading:
                     "LISResultSourcedId": f"test_lis_result_sourcedid_{i}",
                     "displayName": f"test_h_display_name_{i}",
                     "userid": f"acct:test_h_username_{i}@TEST_AUTHORITY",
+                    "lmsId": f"test_user_id_{i}",
                 }
                 for i in range(3)
             ],
@@ -344,6 +345,7 @@ class TestMaybeEnableGrading:
                 lis_outcome_service_url=f"test_lis_outcomes_service_url_{i}",
                 h_username=f"test_h_username_{i}",
                 h_display_name=f"test_h_display_name_{i}",
+                user_id=f"test_user_id_{i}",
             )
             for i in range(3)
         ]
