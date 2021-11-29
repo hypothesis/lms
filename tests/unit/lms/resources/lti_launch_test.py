@@ -267,7 +267,7 @@ class TestCourseExtra:
         parsed_params = {}
         pyramid_request.parsed_params = parsed_params
 
-        assert LTILaunchResource(pyramid_request)._course_extra() == {}
+        assert not LTILaunchResource(pyramid_request)._course_extra()
 
     def test_includes_course_id(self, pyramid_request):
         parsed_params = {

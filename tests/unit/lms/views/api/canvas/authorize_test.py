@@ -163,7 +163,7 @@ class TestOAuth2RedirectError:
             auth_route="canvas_api.oauth.authorize",
             canvas_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
         )
-        assert template_data == {}
+        assert not template_data
 
     def test_it_sets_the_invalid_scope_error_code_for_invalid_scope_errors(
         self, pyramid_request
