@@ -100,4 +100,4 @@ class TestCreateApplicationInstance:
 
 class TestNewApplicationInstance:
     def test_it(self, pyramid_request):
-        assert new_application_instance(pyramid_request) == {}
+        assert not new_application_instance(pyramid_request)

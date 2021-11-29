@@ -50,7 +50,7 @@ class TestGetByAssignment:
             oauth_consumer_key, context_id, resource_link_id
         )
 
-        assert list(grading_infos) == []
+        assert not list(grading_infos)
 
     @pytest.fixture(autouse=True)
     def matching_grading_infos(self):

@@ -482,7 +482,7 @@ class TestUnconfiguredBasicLTILaunchNotAuthorized:
             context, pyramid_request
         ).unconfigured_basic_lti_launch_not_authorized()
 
-        assert data == {}
+        assert not data
 
 
 class TestVitalsourceLTILaunch:

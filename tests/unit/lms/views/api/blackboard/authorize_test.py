@@ -55,7 +55,7 @@ class TestOAuth2RedirectError:
             error_code=None,
             auth_route="blackboard_api.oauth.authorize",
         )
-        assert template_variables == {}
+        assert not template_variables
 
     def test_missing_integration_error(self, pyramid_request):
         pyramid_request.params = {
@@ -68,7 +68,7 @@ class TestOAuth2RedirectError:
             error_code=JSConfig.ErrorCode.BLACKBOARD_MISSING_INTEGRATION,
             auth_route="blackboard_api.oauth.authorize",
         )
-        assert template_variables == {}
+        assert not template_variables
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -92,7 +92,7 @@ class TestOAuth2Redirect:
         result = oauth2_redirect(pyramid_request)
 
         blackboard_api_client.get_token.assert_called_once_with("test_code")
-        assert result == {}
+        assert not result
 
 
 @pytest.fixture(autouse=True)

@@ -97,7 +97,7 @@ class TestGroupInfo:
             group_info.info = None
 
         assert group_info.type is None
-        assert group_info.instructors == []
+        assert not group_info.instructors
 
     @pytest.fixture
     def existing_instructors(self, group_info):
