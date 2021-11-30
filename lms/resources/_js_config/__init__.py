@@ -215,6 +215,12 @@ class JSConfig:
                     "formAction": form_action,
                     "formFields": form_fields,
                     "createAssignmentAPI": self._create_assignment_api(),
+                    # The "content item selection" that we submit to Canvas's
+                    # content_item_return_url is actually an LTI launch URL with
+                    # the selected document URL or file_id as a query parameter. To
+                    # construct these launch URLs our JavaScript code needs the
+                    # base URL of our LTI launch endpoint.
+                    "ltiLaunchUrl": self._request.route_url("lti_launches"),
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
