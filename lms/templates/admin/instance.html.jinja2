@@ -49,10 +49,22 @@
 
     {{ text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
 
-    {{ checkbox_field("Sections enabled", "canvas", "sections_enabled") }}
-    {{ checkbox_field("Groups enabled", "canvas", "groups_enabled") }}
-    {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled") }}
-    {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Canvas settings</legend>
+        {{ checkbox_field("Canvas sections enabled", "canvas", "sections_enabled") }}
+        {{ checkbox_field("Canvas groups enabled", "canvas", "groups_enabled") }}
+    </fieldset>
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Blackboard settings</legend>
+        {{ checkbox_field("Blackboard groups enabled", "blackboard", "groups_enabled") }}
+        {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled") }}
+    </fieldset>
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Other settings</legend>
+        {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
+    </fieldset>
 
     {% call field_body(label="") %}
         <input type="submit" class="button is-primary" value="Save" />
