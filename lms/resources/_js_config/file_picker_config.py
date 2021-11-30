@@ -4,63 +4,67 @@ class FilePickerConfig:
     @classmethod
     def blackboard_config(cls, context, request, application_instance):
         """Get Blackboard files config."""
-
-        enabled = application_instance.settings.get("blackboard", "files_enabled")
+        files_enabled = application_instance.settings.get("blackboard", "files_enabled")
+        groups_enabled = context.blackboard_groups_enabled
 
         auth_url = request.route_url("blackboard_api.oauth.authorize")
         course_id = request.params.get("context_id")
 
-        return {
-            "enabled": enabled,
-            "groupsEnabled": context.blackboard_groups_enabled,
-            "listFiles": {
+        config = {
+            "enabled": files_enabled,
+            "groupsEnabled": groups_enabled,
+        }
+
+        if files_enabled:
+            config["listFiles"] = {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "blackboard_api.courses.files.list", course_id=course_id
                 ),
-            },
-            "listGroupSets": {
+            }
+
+        if groups_enabled:
+            config["listGroupSets"] = {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "blackboard_api.courses.group_sets.list", course_id=course_id
                 ),
-            },
-        }
+            }
+
+        return config
 
     @classmethod
     def canvas_config(cls, context, request, application_instance):
         """Get Canvas files config."""
-
         enabled = context.is_canvas and (
             "custom_canvas_course_id" in request.params
             and application_instance.developer_key is not None
         )
+        groups_enabled = context.canvas_groups_enabled
 
         auth_url = request.route_url("canvas_api.oauth.authorize")
         course_id = request.params.get("custom_canvas_course_id")
 
-        return {
+        config = {
             "enabled": enabled,
-            "groupsEnabled": context.canvas_groups_enabled,
-            # The "content item selection" that we submit to Canvas's
-            # content_item_return_url is actually an LTI launch URL with
-            # the selected document URL or file_id as a query parameter. To
-            # construct these launch URLs our JavaScript code needs the
-            # base URL of our LTI launch endpoint.
-            "ltiLaunchUrl": request.route_url("lti_launches"),
+            "groupsEnabled": groups_enabled,
             "listFiles": {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "canvas_api.courses.files.list", course_id=course_id
                 ),
             },
-            "listGroupSets": {
+        }
+
+        if groups_enabled:
+            config["listGroupSets"] = {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "canvas_api.courses.group_sets.list", course_id=course_id
                 ),
-            },
-        }
+            }
+
+        return config
 
     @classmethod
     def google_files_config(cls, context, request, application_instance):
