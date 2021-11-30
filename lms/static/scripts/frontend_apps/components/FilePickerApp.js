@@ -63,14 +63,12 @@ function contentDescription(content) {
 export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
-    filePicker: {
-      formAction,
-      formFields,
-      canvas: { groupsEnabled: enableGroupConfig, ltiLaunchUrl },
-    },
+    filePicker: { formAction, formFields, ltiLaunchUrl, blackboard, canvas },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
+
+  const enableGroupConfig = blackboard?.groupsEnabled || canvas?.groupsEnabled;
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({

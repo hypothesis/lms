@@ -210,4 +210,34 @@ describe('GroupConfigSelector', () => {
 
     assert.isFalse(wrapper.exists('AuthButton'));
   });
+
+  context('Blackboard groups', () => {
+    // Component functionality should be identical for either canvas or
+    // blackboard groups; this exercises the blackboard path specifically
+    it('fetches blackboard groups if activated in config', async () => {
+      fakeConfig.filePicker = {
+        blackboard: {
+          listGroupSets: {
+            authUrl: authURL,
+            path: groupSetsAPIRequest.path,
+          },
+        },
+      };
+      const wrapper = createComponent({
+        groupConfig: { useGroupSet: true, groupConfig: null },
+      });
+
+      // Once group sets are fetched, they should be rendered as `<option>`s.
+      const options = await waitForElement(
+        wrapper,
+        'option[data-testid="groupset-option"]'
+      );
+      assert.equal(options.length, fakeGroupSets.length);
+
+      fakeGroupSets.forEach((gs, i) => {
+        assert.equal(options.at(i).text(), gs.name);
+        assert.equal(options.at(i).prop('value'), gs.id);
+      });
+    });
+  });
 });

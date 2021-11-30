@@ -47,21 +47,33 @@ describe('FilePickerFormFields', () => {
     assert.deepEqual(contentItems, contentItemForContent(launchURL, content));
   });
 
-  it('adds `group_set` query param to LTI launch URL if `groupSet` prop is specified', () => {
-    const content = { type: 'url', url: 'https://example.com/' };
-    const formFields = createComponent({
-      content,
-      groupSet: 'groupSet1',
+  context('`groupSet` prop is specified', () => {
+    it('adds `group_set` query param to LTI launch URL', () => {
+      const content = { type: 'url', url: 'https://example.com/' };
+      const formFields = createComponent({
+        content,
+        groupSet: 'groupSet1',
+      });
+      const contentItems = JSON.parse(
+        formFields.find('input[name="content_items"]').prop('value')
+      );
+      assert.deepEqual(
+        contentItems,
+        contentItemForContent(launchURL, content, {
+          group_set: 'groupSet1',
+        })
+      );
     });
-    const contentItems = JSON.parse(
-      formFields.find('input[name="content_items"]').prop('value')
-    );
-    assert.deepEqual(
-      contentItems,
-      contentItemForContent(launchURL, content, {
-        group_set: 'groupSet1',
-      })
-    );
+
+    it('adds a `group_set` hidden form field', () => {
+      const content = { type: 'url', url: 'https://example.com/' };
+      const formFields = createComponent({
+        content,
+        groupSet: 'groupSet1',
+      });
+
+      assert.isTrue(formFields.find('input[name="group_set"]').exists());
+    });
   });
 
   it('renders `document_url` field for URL content', () => {

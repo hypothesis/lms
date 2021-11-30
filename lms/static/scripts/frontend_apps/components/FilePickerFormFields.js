@@ -45,6 +45,7 @@ export default function FilePickerFormFields({
       {Object.entries(formFields).map(([field, value]) => (
         <input key={field} type="hidden" name={field} value={value} />
       ))}
+      {groupSet && <input type="hidden" name="group_set" value={groupSet} />}
       <input type="hidden" name="content_items" value={contentItem} />
       {content.type === 'url' && (
         // Set the `document_url` form field which is used by the `configure_assignment`
