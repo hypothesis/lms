@@ -1,5 +1,6 @@
 from unittest import mock
 
+import marshmallow
 import pytest
 from h_matchers import Any
 
@@ -487,6 +488,13 @@ class TestJSConfigAPISync:
                 },
             },
         }
+
+    @pytest.mark.usefixtures("blackboard_group_launch")
+    def test_when_is_blackboard_schema_out_of_sync(self, pyramid_request, js_config):
+        pyramid_request.params["tool_consumer_instance_guid"] = None
+
+        with pytest.raises(marshmallow.exceptions.ValidationError):
+            js_config.enable_lti_launch_mode()
 
     @pytest.mark.usefixtures("canvas_sections_on", "learner_canvas_user_id")
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):

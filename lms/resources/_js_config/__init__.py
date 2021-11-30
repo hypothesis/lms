@@ -5,6 +5,7 @@ from typing import List, Optional
 from lms.models import ApplicationInstance, GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError
+from lms.validation import APISyncBlackboardSchema
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -510,28 +511,30 @@ class JSConfig:
 
     def _blackboard_sync_api(self):
         req = self._request
-        return {
-            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "path": req.route_path("blackboard_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": req.params[
-                        "tool_consumer_instance_guid"
-                    ],
+        return APISyncBlackboardSchema(req).load(
+            {
+                "authUrl": req.route_url("blackboard_api.oauth.authorize"),
+                "path": req.route_path("blackboard_api.sync"),
+                "data": {
+                    "lms": {
+                        "tool_consumer_instance_guid": req.params[
+                            "tool_consumer_instance_guid"
+                        ],
+                    },
+                    "course": {
+                        "context_id": req.params["context_id"],
+                    },
+                    "assignment": {
+                        "resource_link_id": req.params["resource_link_id"],
+                    },
+                    "group_info": {
+                        key: value
+                        for key, value in req.params.items()
+                        if key in GroupInfo.columns()
+                    },
                 },
-                "course": {
-                    "context_id": req.params["context_id"],
-                },
-                "assignment": {
-                    "resource_link_id": req.params["resource_link_id"],
-                },
-                "group_info": {
-                    key: value
-                    for key, value in req.params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
+            }
+        )
 
     def _sync_api(self):
         if self._context.is_canvas and (

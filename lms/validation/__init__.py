@@ -48,6 +48,7 @@ from lms.validation._api import (
     APIReadResultSchema,
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
+    APISyncBlackboardSchema,
 )
 from lms.validation._assignment import ConfigureAssignmentSchema
 from lms.validation._base import (

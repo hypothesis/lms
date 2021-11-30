@@ -35,6 +35,7 @@ def test_it_when_student(
     groups,
     grouping_service,
     user_service,
+    course_service,
 ):
     blackboard_api_client.course_groups.return_value = groups
 
@@ -42,7 +43,7 @@ def test_it_when_student(
 
     assert_sync_and_return_groups(result, groups=groups)
     blackboard_api_client.course_groups.assert_called_once_with(
-        pyramid_request.json["course"]["context_id"],
+        course_service.get.return_value.lms_id,
         "GROUP_SET_ID",
         current_student_own_groups_only=True,
     )
@@ -59,7 +60,7 @@ def test_it_when_grading(
     course_service,
     assignment_service,
 ):
-    pyramid_request.json["gradingStudentId"] = "GRADING_STUDENT_ID"
+    pyramid_request.parsed_params["data"]["gradingStudentId"] = "GRADING_STUDENT_ID"
     grouping_service.get_course_groupings_for_user.return_value = [Mock()]
 
     result = Sync(pyramid_request).sync()
@@ -85,7 +86,7 @@ def groups():
 def assert_sync_and_return_groups(
     lti_h_service, request_json, grouping_service, course_service
 ):
-    tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
+    tool_guid = request_json["data"]["lms"]["tool_consumer_instance_guid"]
 
     def assert_return_values(groupids, groups):
         expected_groups = [
@@ -101,7 +102,7 @@ def assert_sync_and_return_groups(
         ]
 
         lti_h_service.sync.assert_called_once_with(
-            expected_groups, request_json["group_info"]
+            expected_groups, request_json["data"]["group_info"]
         )
 
         assert groupids == [
@@ -114,14 +115,16 @@ def assert_sync_and_return_groups(
 @pytest.fixture
 def request_json():
     return {
-        "course": {
-            "context_id": "test_context_id",
-        },
-        "assignment": {
-            "resource_link_id": "test_resource_link_id",
-        },
-        "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
-        "group_info": {"foo": "bar"},
+        "data": {
+            "course": {
+                "context_id": "test_context_id",
+            },
+            "assignment": {
+                "resource_link_id": "test_resource_link_id",
+            },
+            "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
+            "group_info": {"foo": "bar"},
+        }
     }
 
 
@@ -133,5 +136,5 @@ def assignment_service(assignment_service):
 
 @pytest.fixture
 def pyramid_request(pyramid_request, request_json):
-    pyramid_request.json = request_json
+    pyramid_request.parsed_params = request_json
     return pyramid_request

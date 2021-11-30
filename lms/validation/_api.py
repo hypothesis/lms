@@ -1,12 +1,17 @@
 """Schema for JSON APIs exposed to the frontend."""
 
 import marshmallow
-from marshmallow import Schema, ValidationError, validates_schema
+from marshmallow import INCLUDE, Schema, ValidationError, validates_schema
 from webargs import fields
 
 from lms.validation._base import JSONPyramidRequestSchema, PyramidRequestSchema
 
-__all__ = ["APIRecordSpeedgraderSchema", "APIReadResultSchema", "APIRecordResultSchema"]
+__all__ = [
+    "APIRecordSpeedgraderSchema",
+    "APIReadResultSchema",
+    "APIRecordResultSchema",
+    "APISyncBlackboardSchema",
+]
 
 
 class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
@@ -132,3 +137,31 @@ class APICreateAssignmentSchema(PyramidRequestSchema):
             raise ValidationError(
                 "both bookID and cfi are mandatory with type is 'vitalsource'"
             )
+
+
+class APISyncBlackboardSchema(PyramidRequestSchema):
+    class Data(Schema):
+        class LMS(Schema):
+            tool_consumer_instance_guid = fields.Str(required=True)
+
+        class Course(Schema):
+            context_id = fields.Str(required=True)
+
+        class Assignment(Schema):
+            resource_link_id = fields.Str(required=True)
+
+        class GroupInfo(Schema):
+            class Meta:
+                unknown = INCLUDE
+
+        lms = fields.Nested(LMS, required=True)
+        course = fields.Nested(Course, required=True)
+        assignment = fields.Nested(Assignment, required=True)
+        group_info = fields.Nested(GroupInfo, required=True)
+
+        gradingStudentId = fields.Str(required=False, allow_none=True)
+
+    authUrl = fields.URL(required=True)
+    path = fields.Str(required=True)
+
+    data = fields.Nested(Data, required=True)
