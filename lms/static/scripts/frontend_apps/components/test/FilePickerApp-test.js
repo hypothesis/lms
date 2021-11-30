@@ -156,6 +156,13 @@ describe('FilePickerApp', () => {
           summary: 'https://example.com',
         },
         {
+          content: {
+            type: 'url',
+            url: 'blackboard://content-resource/_8615_1/',
+          },
+          summary: 'PDF file in Blackboard',
+        },
+        {
           content: { type: 'file', id: 'abcd' },
           summary: 'PDF file in Canvas',
         },
