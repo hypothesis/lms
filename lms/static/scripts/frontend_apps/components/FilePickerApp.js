@@ -35,6 +35,21 @@ import GroupConfigSelector from './GroupConfigSelector';
  */
 
 /**
+ * Blackboard files are of a "url" content type, but the URL is opaque and
+ * not helpful to the user. In those cases, use a canned message, otherwise
+ * truncate the content URL for display.
+ *
+ * @param {string} url
+ * @returns {string}
+ */
+function formatContentURL(url) {
+  // All Blackboard file URLs start with the literal string `blackboard:`
+  if (url.includes('blackboard:')) {
+    return 'PDF file in Blackboard';
+  }
+  return truncateURL(url, 65 /* maxLength */);
+}
+/**
  * Return a human-readable description of assignment content.
  *
  * @param {Content} content - Type and details of assignment content
@@ -43,7 +58,7 @@ import GroupConfigSelector from './GroupConfigSelector';
 function contentDescription(content) {
   switch (content.type) {
     case 'url':
-      return truncateURL(content.url, 65 /* maxLength */);
+      return formatContentURL(content.url);
     case 'file':
       return 'PDF file in Canvas';
     case 'vitalsource':
