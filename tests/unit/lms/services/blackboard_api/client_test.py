@@ -274,8 +274,7 @@ class TestGroupCourseGroups:
             "COURSE_ID", "OTHER_GROUP_SET", current_student_own_groups_only=False
         )
 
-        assert len(groups) == 1
-        assert groups[0]["groupSetId"] == "OTHER_GROUP_SET"
+        assert [group["groupSetId"] for group in groups] == ["OTHER_GROUP_SET"]
 
     def test_it_own_groups_all_instructor_only(
         self, svc, blackboard_list_groups, groups, async_oauth_http_service
@@ -286,8 +285,7 @@ class TestGroupCourseGroups:
             "COURSE_ID", "GROUP_SET", current_student_own_groups_only=True
         )
 
-        assert len(groups) == 1
-        assert groups[0]["enrollment"]["type"] == "InstructorOnly"
+        assert [group["enrollment"]["type"] for group in groups] == ["InstructorOnly"]
         async_oauth_http_service.request.assert_not_called()
 
     def test_it_own_groups_all_self_enrollment(
