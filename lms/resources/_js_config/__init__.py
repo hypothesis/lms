@@ -540,12 +540,7 @@ class JSConfig:
         ):
             return self._canvas_sync_api()
 
-        if (
-            self._application_instance().product
-            == ApplicationInstance.Product.BLACKBOARD
-            and self._context.is_blackboard_group_launch
-        ):
-
+        if self._context.is_blackboard_group_launch:
             return self._blackboard_sync_api()
 
         return None

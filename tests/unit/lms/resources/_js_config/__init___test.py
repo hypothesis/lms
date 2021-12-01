@@ -754,6 +754,7 @@ def context():
         canvas_groups_enabled=False,
         canvas_is_group_launch=False,
         is_group_launch=False,
+        is_blackboard_group_launch=False,
     )
 
 
