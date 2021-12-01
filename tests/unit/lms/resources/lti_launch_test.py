@@ -283,7 +283,7 @@ class TestCourseExtra:
 
 @pytest.mark.usefixtures("has_course")
 class TestBlackboardGroupsEnabled:
-    def test_false_when_no_application_instance(
+    def test_it_returns_False_if_theres_no_ApplicationInstance(
         self, application_instance_service, lti_launch
     ):
         application_instance_service.get_current.side_effect = (
@@ -293,24 +293,16 @@ class TestBlackboardGroupsEnabled:
         assert not lti_launch.blackboard_groups_enabled
 
     @pytest.mark.parametrize(
-        "setting_value,product,expected",
-        [
-            (True, "canvas", False),
-            (True, "BlackboardLearn", True),
-            (False, "canvas", False),
-            (False, "BlackboardLearn", False),
-        ],
+        "setting_value,expected",
+        [(True, True), (False, False), (None, False)],
     )
-    def test_it(
-        self, setting_value, product, expected, application_instance_service, lti_launch
+    def test_it_returns_the_setting_from_the_ApplicationInstance(
+        self, setting_value, expected, application_instance_service, lti_launch
     ):
         settings = ApplicationSettings(
             {"blackboard": {"groups_enabled": setting_value}}
         )
         application_instance_service.get_current.return_value.settings = settings
-        application_instance_service.get_current.return_value.tool_consumer_info_product_family_code = (
-            product
-        )
 
         assert lti_launch.blackboard_groups_enabled == expected
 
