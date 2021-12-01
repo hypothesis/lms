@@ -85,6 +85,7 @@ class AdminViews:
             ("canvas", "sections_enabled"),
             ("canvas", "groups_enabled"),
             ("blackboard", "files_enabled"),
+            ("blackboard", "groups_enabled"),
             ("microsoft_onedrive", "files_enabled"),
         ):
             enabled = self.request.params.get(f"{setting}.{sub_setting}") == "on"
