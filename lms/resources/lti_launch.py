@@ -205,9 +205,6 @@ class LTILaunchResource:
     @property
     def is_blackboard_group_launch(self):
         """Return True if the current assignment uses Blackboard groups."""
-        if not self.blackboard_groups_enabled:
-            return False
-
         tool_consumer_instance_guid = self._request.params[
             "tool_consumer_instance_guid"
         ]
