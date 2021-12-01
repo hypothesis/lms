@@ -1,7 +1,6 @@
 import logging
 import secrets
 from datetime import datetime
-from enum import Enum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
@@ -18,16 +17,6 @@ LOG = logging.getLogger(__name__)
 
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
-
-    class Product(str, Enum):
-        BLACKBOARD = "BlackboardLearn"
-        CANVAS = "canvas"
-        MOODLE = "moodle"
-        D2L = "desire2learn"
-        BLACKBAUD = "BlackbaudK12"
-        SCHOOLOGY = "schoology"
-        SAKAI = "sakai"
-        UNKNOWN = "unknown"
 
     __tablename__ = "application_instances"
 
@@ -166,15 +155,6 @@ class ApplicationInstance(BASE):
         ]:
 
             setattr(self, attr, params.get(attr))
-
-    @property
-    def product(self):
-        try:
-            product = self.Product(self.tool_consumer_info_product_family_code)
-        except ValueError:
-            product = self.Product.UNKNOWN
-
-        return product
 
     @classmethod
     def build_from_lms_url(  # pylint:disable=too-many-arguments

@@ -152,24 +152,6 @@ class TestApplicationInstance:
 
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
-    @pytest.mark.parametrize(
-        "value,expected",
-        [
-            ("BlackboardLearn", ApplicationInstance.Product.BLACKBOARD),
-            ("canvas", ApplicationInstance.Product.CANVAS),
-            ("moodle", ApplicationInstance.Product.MOODLE),
-            ("desire2learn", ApplicationInstance.Product.D2L),
-            ("BlackbaudK12", ApplicationInstance.Product.BLACKBAUD),
-            ("schoology", ApplicationInstance.Product.SCHOOLOGY),
-            ("sakai", ApplicationInstance.Product.SAKAI),
-            ("wut", ApplicationInstance.Product.UNKNOWN),
-        ],
-    )
-    def test_product(self, value, expected, application_instance):
-        application_instance.tool_consumer_info_product_family_code = value
-
-        assert application_instance.product == expected
-
     @pytest.fixture
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""

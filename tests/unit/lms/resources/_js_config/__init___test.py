@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance, GradingInfo, Grouping
+from lms.models import GradingInfo, Grouping
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
@@ -511,15 +511,12 @@ class TestJSConfigAPISync:
         pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
 
     @pytest.fixture
-    def blackboard_group_launch(self, context, application_instance_service):
+    def blackboard_group_launch(self, context):
         context.canvas_sections_enabled = False
         context.canvas_groups_enabled = False
 
         context.blackboard_groups_enabled = True
         context.is_blackboard_group_launch = True
-        application_instance_service.get_current.return_value.tool_consumer_info_product_family_code = (
-            ApplicationInstance.Product.BLACKBOARD
-        )
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
