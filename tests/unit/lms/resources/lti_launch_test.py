@@ -342,11 +342,6 @@ class TestCanvasIsGroupLaunch:
 
 
 class TestIsBlackboardGroupLaunch:
-    def test_false_when_not_enabled(self, lti_launch_groups_enabled):
-        lti_launch_groups_enabled.blackboard_groups_enabled = False
-
-        assert not lti_launch_groups_enabled.is_blackboard_group_launch
-
     def test_false_when_no_assignment(
         self, lti_launch_groups_enabled, assignment_service
     ):
