@@ -52,7 +52,7 @@ def test_it_when_student(
     )
 
 
-@pytest.mark.usefixtures("user_service")
+@pytest.mark.usefixtures("user_service", "user_is_instructor")
 def test_it_when_grading(
     pyramid_request,
     grouping_service,
