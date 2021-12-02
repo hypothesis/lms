@@ -15,6 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.validation import (
     BasicLTILaunchSchema,
@@ -360,12 +361,18 @@ class BasicLTILaunchViews:
             self.context.resource_link_id,
             extra=extra,
         )
-
         self.context.js_config.add_document_url(document_url)
 
         self.sync_lti_data_to_h()
         self.store_lti_data()
 
         self.context.js_config.maybe_enable_grading()
+
+        # When setting the document it's possible the config might need updating
+        # based on the type of assignment since it was initialized
+        # with `enable_lti_launch_mode` on __init__
+        # We need to clear the cache and `enable_lti_launch_mode` again.
+        JSConfig._hypothesis_client.fget.cache_clear()  # pylint: disable=protected-access
+        self.context.js_config.enable_lti_launch_mode()
 
         return {}

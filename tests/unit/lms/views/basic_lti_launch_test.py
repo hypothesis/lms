@@ -423,6 +423,7 @@ class TestConfigureAssignment:
         pyramid_request,
         parsed_params,
         expected_extras,
+        JSConfig,
     ):
         configure_assignment_caller(context, pyramid_request, parsed_params)
 
@@ -436,6 +437,16 @@ class TestConfigureAssignment:
             pyramid_request.parsed_params["document_url"]
         )
         context.js_config.maybe_enable_grading.assert_called_once_with()
+
+        JSConfig._hypothesis_client.fget.cache_clear.assert_called_once_with()  # pylint: disable=protected-access
+        # One in __init__, one in `configure_assignment`
+        context.js_config.enable_lti_launch_mode.assert_has_calls(
+            [mock.call(), mock.call()]
+        )
+
+    @pytest.fixture
+    def JSConfig(self, patch):
+        return patch("lms.views.basic_lti_launch.JSConfig")
 
 
 class TestUnconfiguredBasicLTILaunch:
