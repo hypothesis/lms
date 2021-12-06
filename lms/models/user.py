@@ -9,7 +9,16 @@ class User(CreatedUpdatedMixin, BASE):
 
     __tablename__ = "user"
     __table_args__ = (
-        sa.UniqueConstraint("application_instance_id", "user_id", "h_userid"),
+        sa.UniqueConstraint(
+            "application_instance_id",
+            "user_id",
+            name="uq__user__application_instance_id__user_id",
+        ),
+        sa.UniqueConstraint(
+            "application_instance_id",
+            "h_userid",
+            name="uq__user__application_instance_id__h_userid",
+        ),
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
