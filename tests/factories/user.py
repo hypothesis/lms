@@ -2,7 +2,7 @@ from factory import Faker, SubFactory, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
-from lms.models import ApplicationInstance
+from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import H_USERID, USER_ID
 
 User = make_factory(
