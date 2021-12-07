@@ -18,6 +18,7 @@ import GroupConfigSelector from './GroupConfigSelector';
 /**
  * @typedef {import('../api-types').File} File
  * @typedef {import('../utils/content-item').Content} Content
+ * @typedef {import('../utils/content-item').URLContent} URLContent
  * @typedef {'lms'|'url'|null} DialogType
  *
  * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
@@ -35,19 +36,23 @@ import GroupConfigSelector from './GroupConfigSelector';
  */
 
 /**
- * Blackboard files are of a "url" content type, but the URL is opaque and
- * not helpful to the user. In those cases, use a canned message, otherwise
- * truncate the content URL for display.
+ * For URL content, show the most meaningful explanation of the content we can
+ * to the user. In cases where we have a filename (name), show that. For
+ * Blackboard files, show a static string instead of the meaningless URL. Fall
+ * back to showing a (truncated) URL.
  *
- * @param {string} url
+ * @param {URLContent} content
  * @returns {string}
  */
-function formatContentURL(url) {
+function formatContentURL(content) {
+  if (content.name) {
+    return content.name;
+  }
   // All Blackboard file URLs start with the literal string `blackboard:`
-  if (url.includes('blackboard:')) {
+  if (content.url.includes('blackboard:')) {
     return 'PDF file in Blackboard';
   }
-  return truncateURL(url, 65 /* maxLength */);
+  return truncateURL(content.url, 65 /* maxLength */);
 }
 /**
  * Return a human-readable description of assignment content.
@@ -58,7 +63,7 @@ function formatContentURL(url) {
 function contentDescription(content) {
   switch (content.type) {
     case 'url':
-      return formatContentURL(content.url);
+      return formatContentURL(content);
     case 'file':
       return 'PDF file in Canvas';
     case 'vitalsource':
@@ -137,7 +142,9 @@ export default function FilePickerApp({ onSubmit }) {
         <div className="FilePickerApp__left-col">Assignment content</div>
         <div className="FilePickerApp__right-col">
           {content ? (
-            <i data-testid="content-summary">{contentDescription(content)}</i>
+            <i data-testid="content-summary" style="break-all">
+              {contentDescription(content)}
+            </i>
           ) : (
             <>
               <p>

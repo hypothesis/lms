@@ -250,6 +250,7 @@ describe('ContentSelector', () => {
       const picker = FakeGooglePickerClient();
       picker.showPicker.resolves({
         id: 'doc1',
+        name: 'Floops.pdf',
         url: 'https://files.google.com/doc1',
       });
       picker.enablePublicViewing.resolves();
@@ -302,6 +303,7 @@ describe('ContentSelector', () => {
       await delay(0);
 
       assert.calledWith(onSelectContent, {
+        name: 'Floops.pdf',
         type: 'url',
         url: 'https://files.google.com/doc1',
       });
@@ -430,6 +432,7 @@ describe('ContentSelector', () => {
       const wrapper = renderContentSelector({ onSelectContent });
       // Emulate the selection of a file in the picker.
       picker.showPicker.resolves({
+        name: 'Floops.pdf',
         url: 'https://api.onedrive.com/v1.0/shares/u!https://1drv.ms/b/s!AmH',
       });
 
@@ -437,6 +440,7 @@ describe('ContentSelector', () => {
       await delay(0);
 
       assert.calledWith(onSelectContent, {
+        name: 'Floops.pdf',
         type: 'url',
         url: 'https://api.onedrive.com/v1.0/shares/u!https://1drv.ms/b/s!AmH',
       });
