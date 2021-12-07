@@ -19,13 +19,13 @@ describe('ValidationMessage', () => {
 
   it('renders closed by default', () => {
     const wrapper = renderMessage();
-    assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
+    assert.isTrue(wrapper.find('[data-testid="message-closed"]').exists());
     assert.equal(wrapper.find('input').prop('tabIndex'), '-1');
   });
 
   it('renders open when passing `open=true` prop', () => {
     const wrapper = renderMessage({ open: true });
-    assert.isTrue(wrapper.find('.ValidationMessage--open').exists());
+    assert.isTrue(wrapper.find('[data-testid="message-open"]').exists());
     assert.equal(wrapper.find('input').prop('tabIndex'), '0');
   });
 
@@ -43,7 +43,7 @@ describe('ValidationMessage', () => {
     });
     wrapper.find('input').simulate('click');
     assert.isTrue(onCloseProp.calledOnce);
-    assert.isTrue(wrapper.find('.ValidationMessage--closed').exists());
+    assert.isTrue(wrapper.find('[data-testid="message-closed"]').exists());
   });
 
   it(

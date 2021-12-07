@@ -1,4 +1,5 @@
-import { Icon } from '@hypothesis/frontend-shared';
+import { Icon, IconButton } from '@hypothesis/frontend-shared';
+import classNames from 'classnames';
 
 /**
  * @typedef Student
@@ -69,7 +70,7 @@ export default function StudentSelector({
     );
 
     return (
-      <span className="StudentsSelector__students">
+      <span className="relative">
         {/*
         This lint issue may have arisen from browser inconsistency issues with
         `onChange` which have since been fixed. See browser compatibility note here:
@@ -77,7 +78,13 @@ export default function StudentSelector({
         */}
         {/* eslint-disable-next-line jsx-a11y/no-onchange*/}
         <select
-          className="StudentsSelector__students-select"
+          className={classNames(
+            'appearance-none w-full h-touch-minimum',
+            'pl-4 pr-8', // Make room on right for custom down-caret Icon
+            'xl:w-80', // Fix the width at wider viewports
+            'hyp-u-outline-on-keyboard-focus--inset hyp-u-border',
+            'border-r-0 border-l-0' // left and right borders off
+          )}
           onChange={e => {
             onSelectStudent(
               parseInt(/** @type {HTMLInputElement} */ (e.target).value)
@@ -86,30 +93,68 @@ export default function StudentSelector({
         >
           {options}
         </select>
-        <Icon classes="StudentsSelector__students-icon" name="caretDown" />{' '}
+        <Icon
+          classes="absolute top-0.5 right-3 pointer-events-none text-grey-4"
+          name="caretDown"
+        />{' '}
       </span>
     );
   };
 
   return (
-    <div className="StudentSelector">
-      <button
-        className="StudentSelector__change-student"
-        aria-label="previous student"
-        disabled={!hasPrevView}
-        onClick={onPrevView}
+    <div
+      className={classNames(
+        // Narrower widths: label above field
+        'flex flex-col gap-1',
+        // Wider widths: label to left of field
+        'xl:flex-row xl:gap-3 xl:items-center'
+      )}
+    >
+      <label
+        className={classNames(
+          'flex-grow font-medium text-sm leading-none',
+          'xl:text-right'
+        )}
+        data-testid="student-selector-label"
       >
-        <Icon classes="StudentSelector__svg" name="arrowLeft" />
-      </button>
-      {buildStudentList()}
-      <button
-        className="StudentSelector__change-student"
-        aria-label="next student"
-        disabled={!hasNextView}
-        onClick={onNextView}
-      >
-        <Icon classes="StudentSelector__svg" name="arrowRight" />
-      </button>
+        {selectedStudentIndex >= 0 ? (
+          <span>
+            Student {`${selectedStudentIndex + 1} of ${students.length}`}
+          </span>
+        ) : (
+          <span>{`${students.length} Students`}</span>
+        )}
+      </label>
+      <div className="flex flex-row">
+        <IconButton
+          classes={classnames(
+            'px-3',
+            // IconButton styling sets a border radius. Turn it off on the
+            // right for better alignment with the select element
+            'rounded-r-none',
+            'hyp-u-outline-on-keyboard-focus--inset'
+          )}
+          icon="arrowLeft"
+          title="previous student"
+          disabled={!hasPrevView}
+          onClick={onPrevView}
+          variant="dark"
+        />
+        <div className="w-full">{buildStudentList()}</div>
+        <IconButton
+          classes={classnames(
+            'px-3',
+            // Turn off border radius on left for better alignment with select
+            'rounded-l-none',
+            'hyp-u-outline-on-keyboard-focus--inset'
+          )}
+          icon="arrowRight"
+          title="next student"
+          disabled={!hasNextView}
+          onClick={onNextView}
+          variant="dark"
+        />
+      </div>
     </div>
   );
 }

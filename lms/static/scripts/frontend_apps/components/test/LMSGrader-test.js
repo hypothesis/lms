@@ -71,17 +71,12 @@ describe('LMSGrader', () => {
   it('sets the assignment and course names', () => {
     const wrapper = renderGrader();
     assert.equal(
-      wrapper.find('.LMSGrader__assignment').text(),
+      wrapper.find('[data-testid="assignment-name"]').text(),
       'course assignment'
     );
-    assert.equal(wrapper.find('.LMSGrader__name').text(), 'course name');
-  });
-
-  it('creates a valid component with 2 students', () => {
-    const wrapper = renderGrader();
     assert.equal(
-      wrapper.find('.LMSGrader__student-count').text(),
-      '2 Students'
+      wrapper.find('[data-testid="course-name"]').text(),
+      'course name'
     );
   });
 
@@ -174,17 +169,6 @@ describe('LMSGrader', () => {
         return s.displayName;
       });
     assert.match([undefined, 'Student Beta'], orderedStudentNames);
-  });
-
-  it('set the selected student count to "Student 2 of 2" when the index changers to 1', () => {
-    const wrapper = renderGrader();
-    act(() => {
-      wrapper.find('StudentSelector').props().onSelectStudent(1); // second student
-    });
-    assert.equal(
-      wrapper.find('.LMSGrader__student-count').text(),
-      'Student 2 of 2'
-    );
   });
 
   it('does not set a focus user by default', () => {

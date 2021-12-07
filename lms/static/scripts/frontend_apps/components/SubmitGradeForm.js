@@ -1,4 +1,8 @@
-import { FullScreenSpinner, Icon, Spinner } from '@hypothesis/frontend-shared';
+import {
+  FullScreenSpinner,
+  LabeledButton,
+  Spinner,
+} from '@hypothesis/frontend-shared';
 
 import classNames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
@@ -161,45 +165,70 @@ export default function SubmitGradeForm({ student }) {
 
   return (
     <>
-      <form className="SubmitGradeForm" autoComplete="off">
-        {validationMessage && (
-          <ValidationMessage
-            message={validationMessage}
-            open={showValidationError}
-            onClose={() => {
-              // Sync up the state when the ValidationMessage is closed
-              setValidationError(false);
-            }}
-          />
+      <form
+        className={classNames(
+          // At narrower width, label above input (columnar)
+          'flex flex-col gap-1',
+          // At wider width, label left of input (row)
+          'xl:flex-row xl:gap-3 xl:items-center'
         )}
-        <label className="SubmitGradeForm__label" htmlFor={gradeId}>
+        autoComplete="off"
+      >
+        <label
+          htmlFor={gradeId}
+          className="flex-grow font-medium text-sm leading-none"
+        >
           Grade (Out of 10)
         </label>
-        <span className="SubmitGradeForm__grade-wrapper">
-          <input
-            className={classNames('SubmitGradeForm__grade', {
-              'is-saved': gradeSaved,
-            })}
+        <div className="flex flex-row">
+          <span className="relative">
+            {validationMessage && (
+              <ValidationMessage
+                message={validationMessage}
+                open={showValidationError}
+                onClose={() => {
+                  // Sync up the state when the ValidationMessage is closed
+                  setValidationError(false);
+                }}
+              />
+            )}
+            <input
+              className={classNames(
+                'w-14 h-touch-minimum text-center',
+                'disabled:opacity-50',
+                'hyp-u-outline-on-keyboard-focus--inset hyp-u-border',
+                'border-r-0',
+                {
+                  'animate-gradeSubmitSuccess': gradeSaved,
+                }
+              )}
+              data-testid="grade-input"
+              disabled={disabled}
+              id={gradeId}
+              ref={inputRef}
+              onInput={handleKeyDown}
+              type="input"
+              // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
+              defaultValue={grade}
+              key={student ? student.LISResultSourcedId : null}
+            />
+            {gradeLoading && <Spinner classes="hyp-u-absolute-centered" />}
+          </span>
+
+          <LabeledButton
+            icon="check"
+            type="submit"
+            classes={classNames(
+              'h-touch-minimum',
+              'disabled:opacity-50 disabled:cursor-default',
+              'hyp-u-border hyp-u-outline-on-keyboard-focus--inset'
+            )}
             disabled={disabled}
-            id={gradeId}
-            ref={inputRef}
-            onInput={handleKeyDown}
-            type="input"
-            // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
-            defaultValue={grade}
-            key={student ? student.LISResultSourcedId : null}
-          />
-          {gradeLoading && <Spinner classes="hyp-u-absolute-centered" />}
-        </span>
-        <button
-          type="submit"
-          className="SubmitGradeForm__submit"
-          disabled={disabled}
-          onClick={onSubmitGrade}
-        >
-          <Icon classes="SubmitGradeForm__check-icon" name="check" /> Submit
-          Grade
-        </button>
+            onClick={onSubmitGrade}
+          >
+            Submit Grade
+          </LabeledButton>
+        </div>
         {gradeSaving && <FullScreenSpinner />}
       </form>
       {!!submitGradeError && (

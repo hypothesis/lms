@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
+import classNames from 'classnames';
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
@@ -71,22 +72,6 @@ export default function LMSGrader({
   }, [students, changeFocusedUser, currentStudentIndex]);
 
   /**
-   * Shows the current student index if a user is selected, or the
-   * total student count otherwise.
-   */
-  const renderStudentCount = () => {
-    if (currentStudentIndex >= 0) {
-      return (
-        <label>
-          Student {`${currentStudentIndex + 1} of ${students.length}`}
-        </label>
-      );
-    } else {
-      return <label>{`${students.length} Students`}</label>;
-    }
-  };
-
-  /**
    * Callback to set the current selected student.
    *
    * @param {number} studentIndex
@@ -103,29 +88,45 @@ export default function LMSGrader({
   };
 
   return (
-    <div className="LMSGrader">
-      <header>
-        <ul className="LMSGrader__grading-components">
-          <li className="LMSGrader__title">
-            <h1 className="LMSGrader__assignment">{assignmentName}</h1>
-            <h2 className="LMSGrader__name">{courseName}</h2>
-          </li>
-          <li className="LMSGrader__student-picker">
-            <div className="LMSGrader__student-count">
-              {renderStudentCount()}
-            </div>
+    <>
+      <header
+        className={classNames(
+          'grid grid-cols-1 items-center gap-y-2 p-2',
+          'lg:grid-cols-3 lg:gap-x-4 lg:px-3'
+        )}
+      >
+        <div>
+          <h1 className="text-lg p-0 m-0" data-testid="assignment-name">
+            {assignmentName}
+          </h1>
+          <h2
+            className="text-base font-medium p-0 m-0"
+            data-testid="course-name"
+          >
+            {courseName}
+          </h2>
+        </div>
+
+        <div
+          className={classNames(
+            'flex flex-col gap-2',
+            'sm:flex-row',
+            'lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */
+          )}
+        >
+          <div className="flex-grow-0 sm:flex-grow">
             <StudentSelector
               onSelectStudent={onSelectStudent}
               students={students}
               selectedStudentIndex={currentStudentIndex}
             />
-          </li>
-          <li className="LMSGrader__student-grade">
+          </div>
+          <div className="flex-grow sm:flex-grow-0">
             <SubmitGradeForm student={getCurrentStudent()} />
-          </li>
-        </ul>
+          </div>
+        </div>
       </header>
       {children}
-    </div>
+    </>
   );
 }

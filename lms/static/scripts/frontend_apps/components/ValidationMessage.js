@@ -36,16 +36,24 @@ export default function ValidationMessage({
     onClose();
   };
 
-  const errorClass = classNames('ValidationMessage', {
-    'ValidationMessage--open': showError,
-    'ValidationMessage--closed': !showError,
-  });
-
   return (
     <input
       type="button"
+      data-testid={showError ? 'message-open' : 'message-closed'}
       onClick={closeValidationError}
-      className={errorClass}
+      className={classNames(
+        'absolute z-10 h-touch-minimum shadow',
+        'text-white border-0 bg-error whitespace-nowrap overflow-hidden',
+        // Narrow viewports position the message to the right of the input
+        'left-full',
+        // Sm and larger breakpoints position the message to the left of the input
+        'sm:left-0 sm:-translate-x-full',
+        'hyp-u-outline-on-keyboard-focus',
+        {
+          'animate-validationMessageOpen': showError,
+          'animate-validationMessageClose': !showError,
+        }
+      )}
       value={message}
       tabIndex={showError ? 0 : -1}
     />
