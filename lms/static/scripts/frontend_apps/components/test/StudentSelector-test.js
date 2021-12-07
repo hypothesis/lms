@@ -40,11 +40,19 @@ describe('StudentSelector', () => {
   it('shall have "All Students" as the default option', () => {
     const wrapper = renderSelector({ selectedStudentIndex: -1 });
     assert.equal(wrapper.find('select [selected=true]').text(), 'All Students');
+    assert.equal(
+      wrapper.find('[data-testid="student-selector-label"]').text(),
+      '2 Students'
+    );
   });
 
   it('sets the selected option to the second student when the student index is 1', () => {
     const wrapper = renderSelector({ selectedStudentIndex: 1 });
     assert.equal(wrapper.find('select [selected=true]').text(), 'Student 2');
+    assert.equal(
+      wrapper.find('[data-testid="student-selector-label"]').text(),
+      'Student 2 of 2'
+    );
   });
 
   it('calls the onSelectStudent callback when the select list is changed', () => {
