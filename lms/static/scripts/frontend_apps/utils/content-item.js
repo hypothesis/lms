@@ -8,6 +8,8 @@
  * @typedef URLContent
  * @prop {'url'} type
  * @prop {string} url
+ * @prop {string} [name] - (file)name of selected content (used for display
+ *                         purposes only)
  *
  * @typedef VitalSourceBookContent
  * @prop {'vitalsource'} type
