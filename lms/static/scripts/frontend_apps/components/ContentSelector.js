@@ -183,9 +183,9 @@ export default function ContentSelector({
     setLoadingIndicatorVisible(true);
     try {
       const picker = /** @type {GooglePickerClient} */ (googlePicker);
-      const { id, url } = await picker.showPicker();
+      const { id, name, url } = await picker.showPicker();
       await picker.enablePublicViewing(id);
-      onSelectContent({ type: 'url', url });
+      onSelectContent({ name, type: 'url', url });
     } catch (error) {
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
@@ -203,8 +203,8 @@ export default function ContentSelector({
     setLoadingIndicatorVisible(true);
     try {
       const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
-      const { url } = await picker.showPicker();
-      onSelectContent({ type: 'url', url });
+      const { name, url } = await picker.showPicker();
+      onSelectContent({ name, type: 'url', url });
     } catch (error) {
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);

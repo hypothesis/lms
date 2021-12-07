@@ -158,6 +158,14 @@ describe('FilePickerApp', () => {
         {
           content: {
             type: 'url',
+            name: 'Super-cali-fragi-listic.pdf',
+            url: 'https://could.be.anything.com/really.pdf',
+          },
+          summary: 'Super-cali-fragi-listic.pdf',
+        },
+        {
+          content: {
+            type: 'url',
             url: 'blackboard://content-resource/_8615_1/',
           },
           summary: 'PDF file in Blackboard',
