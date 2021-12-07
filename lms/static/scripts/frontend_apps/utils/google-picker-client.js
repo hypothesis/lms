@@ -27,6 +27,7 @@ function addHttps(origin) {
  *
  * @typedef PickerDocument
  * @prop {string} id
+ * @prop {string} name - Filename
  * @prop {string} url
  * @prop {string} [resourceKey] - A key which is present on a subset of older
  *   Google Drive files. If present this needs to be provided to various
@@ -90,10 +91,10 @@ export class GooglePickerClient {
    * Show the Google file picker and return the document ID and
    * URL of the selected file.
    *
-   * @return {Promise<{ id: string, url: string }>}
-   *   Document ID and download URL of the selected file. The download URL is
-   *   only available by users who have access to the file. To make it accessible
-   *   to everyone, use `enablePublicViewing`.
+   * @return {Promise<{ id: string, name: string, url: string }>}
+   *   Document ID, filename and download URL of the selected file.
+   *   The download URL is only available by users who have access to the file.
+   *   To make it accessible to everyone, use `enablePublicViewing`.
    */
   async showPicker() {
     const pickerLib = await this._gapiPicker;
@@ -133,7 +134,7 @@ export class GooglePickerClient {
         if (doc.resourceKey) {
           url.searchParams.append('resourcekey', doc.resourceKey);
         }
-        resolve({ id: doc.id, url: url.toString() });
+        resolve({ id: doc.id, name: doc.name, url: url.toString() });
       } else if (action === pickerLib.Action.CANCEL) {
         reject(new PickerCanceledError());
       }

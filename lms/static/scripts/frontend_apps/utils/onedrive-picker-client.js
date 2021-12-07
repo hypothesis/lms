@@ -22,7 +22,7 @@ export class OneDrivePickerClient {
   /**
    * Opens the OneDrive picker
    *
-   * @returns Promise<{url: string}> - the URL of the file
+   * @return {Promise<{ name: string, url: string }>} The (file) name and URL
    * @throws {Error} - there are two types of errors:
    *   - PickerCancelledError: raised when the user cancels the OneDrive dialog picker
    *   - Error: raised when (1) the OneDrive client fails to load, or when (2)
@@ -32,9 +32,10 @@ export class OneDrivePickerClient {
     const oneDrive = await this._oneDriveAPI;
     return new Promise((resolve, reject) => {
       const success = (/** @type {any} */ file) => {
+        const name = file.value[0].name;
         const sharingURL = file.value[0].permissions[0].link.webUrl;
         const url = OneDrivePickerClient.downloadURL(sharingURL);
-        resolve({ url });
+        resolve({ name, url });
       };
       const cancel = () => reject(new PickerCanceledError());
       const error = (/** @type {Error} */ error) => reject(error);
