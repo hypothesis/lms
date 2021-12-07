@@ -47,7 +47,7 @@ describe('OneDrivePickerClient', () => {
       assert.equal(expectedError, errorLoading);
     });
 
-    it('resolves with a URL when a file is selected', async () => {
+    it('resolves with a name and a URL when a file is selected', async () => {
       fakeLoadOneDriveAPI.resolves(fakeOneDrive);
       const oneDrive = createClient();
 
@@ -57,10 +57,13 @@ describe('OneDrivePickerClient', () => {
       const { success } = fakeOneDrive.open.getCall(0).args[0];
       success({
         value: [
-          { permissions: [{ link: { webUrl: 'https://1drv.ms/b/s!AmH' } }] },
+          {
+            name: 'Flumpy.pdf',
+            permissions: [{ link: { webUrl: 'https://1drv.ms/b/s!AmH' } }],
+          },
         ],
       });
-      const { url } = await pickResult;
+      const { name, url } = await pickResult;
 
       const { clientId, redirectURI: redirectUri } = clientOptions;
       assert.calledWith(
@@ -70,6 +73,7 @@ describe('OneDrivePickerClient', () => {
           advanced: { redirectUri },
         })
       );
+      assert.equal(name, 'Flumpy.pdf');
       assert.equal(
         url,
         'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvcyFBbUg/root/content'

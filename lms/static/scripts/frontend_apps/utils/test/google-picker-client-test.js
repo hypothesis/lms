@@ -213,11 +213,15 @@ describe('GooglePickerClient', () => {
       const builder = pickerLib.PickerBuilder();
       const callback = builder.setCallback.getCall(0).callback;
 
-      callback({ action: pickerLib.Action.PICKED, docs: [{ id: 'doc1' }] });
+      callback({
+        action: pickerLib.Action.PICKED,
+        docs: [{ id: 'doc1', name: 'Floops.pdf' }],
+      });
 
       result = await result;
       assert.deepEqual(result, {
         id: 'doc1',
+        name: 'Floops.pdf',
         url: 'https://drive.google.com/uc?id=doc1&export=download',
       });
     });
@@ -234,12 +238,13 @@ describe('GooglePickerClient', () => {
 
       callback({
         action: pickerLib.Action.PICKED,
-        docs: [{ id: 'doc1', resourceKey: 'thekey' }],
+        docs: [{ id: 'doc1', name: 'Flaps.pdf', resourceKey: 'thekey' }],
       });
 
       result = await result;
       assert.deepEqual(result, {
         id: 'doc1',
+        name: 'Flaps.pdf',
         url: 'https://drive.google.com/uc?id=doc1&export=download&resourcekey=thekey',
       });
     });
