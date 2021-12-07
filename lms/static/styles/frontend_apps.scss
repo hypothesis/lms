@@ -22,10 +22,6 @@
 @use 'components/ErrorDisplay';
 @use 'components/FileList';
 @use 'components/FilePickerApp';
-@use 'components/LMSGrader';
-@use 'components/StudentSelector';
-@use 'components/SubmitGradeForm';
-@use 'components/ValidationMessage';
 
 // Make the shared package utility styles available for
 // initial prototyping purposes.
@@ -34,6 +30,12 @@
 @use '@hypothesis/frontend-shared/styles/util' as hyp-u;
 
 @use 'variables' as var;
+
+// Base is needed for transform base styles. The reset (preflight) that
+// is enabled with the base layer by default is disabled in the tailwind
+// configuration for this project.
+@tailwind base;
+@tailwind utilities;
 
 // Element styles
 
