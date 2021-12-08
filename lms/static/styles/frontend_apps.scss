@@ -22,6 +22,10 @@
 @use 'components/ErrorDisplay';
 @use 'components/FileList';
 @use 'components/FilePickerApp';
+@use 'components/LMSGrader';
+@use 'components/StudentSelector';
+@use 'components/SubmitGradeForm';
+@use 'components/ValidationMessage';
 
 // Make the shared package utility styles available for
 // initial prototyping purposes.
