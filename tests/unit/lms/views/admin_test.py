@@ -97,6 +97,7 @@ class TestAdminViews:
             ("blackboard", "files_enabled"),
             ("blackboard", "groups_enabled"),
             ("microsoft_onedrive", "files_enabled"),
+            ("vitalsource", "enabled"),
         ),
     )
     @pytest.mark.parametrize("enabled", (True, False))
