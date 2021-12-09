@@ -6,8 +6,8 @@ from lms.services.exceptions import (
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     CanvasFileNotFoundInCourse,
-    ExternalRequestError,
     ExternalAsyncRequestError,
+    ExternalRequestError,
     OAuth2TokenError,
 )
 from lms.services.h_api import HAPIError
