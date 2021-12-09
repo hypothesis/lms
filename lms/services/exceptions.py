@@ -92,6 +92,49 @@ class ExternalRequestError(Exception):
         return repr(self)
 
 
+class ExternalAsyncRequestError(ExternalRequestError):
+    def __init__(
+        self,
+        message=None,
+        response=None,
+        exception: Optional[Exception] = None,
+    ):
+        if exception and message:
+            message = f"{message}: {exception.__class__.__name__}"
+
+        super().__init__(message=message, response=response)
+        self.exception = exception
+
+        self._request_info = getattr(response, "request_info", None) or getattr(
+            exception, "request_info", None
+        )
+
+    @property
+    def url(self) -> Optional[str]:
+        """Return the request's URL."""
+        return str(url) if (url := getattr(self._request_info, "url", None)) else None
+
+    @property
+    def method(self) -> Optional[str]:
+        """Return the HTTP request method."""
+        return getattr(self._request_info, "method", None)
+
+    @property
+    def status_code(self) -> Optional[int]:
+        """Return the response's status code."""
+        return getattr(self.response, "status", None)
+
+    @property
+    def request_body(self) -> None:
+        """Return the request body."""
+        return None
+
+    @property
+    def response_body(self) -> None:
+        """Return the response body."""
+        return None
+
+
 class OAuth2TokenError(ExternalRequestError):
     """
     A problem with an OAuth 2 token for an external API.

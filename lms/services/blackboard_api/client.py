@@ -6,7 +6,11 @@ from lms.services.blackboard_api._schemas import (
     BlackboardListGroupSetsSchema,
     BlackboardPublicURLSchema,
 )
-from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
+from lms.services.exceptions import (
+    BlackboardFileNotFoundInCourse,
+    ExternalRequestError,
+    ExternalAsyncRequestError,
+)
 
 # The maximum number of paginated requests we'll make before returning.
 PAGINATION_MAX_REQUESTS = 25
@@ -154,11 +158,19 @@ class BlackboardAPIClient:
             responses = self._request.find_service(name="async_oauth_http").request(
                 "GET", self_enrollment_check_urls
             )
-            # If we are a member of any of the SelfEnrollment groups
-            # we'll get a 200 response from the endpoint
-            self_enrollment_groups = [
-                group
-                for group, response in zip(self_enrollment_groups, responses)
-                if response.status == 200
-            ]
+            for group, response in zip(self_enrollment_groups, responses):
+                # If we are a member of any of the SelfEnrollment groups
+                # we'll get a 200 response from the endpoint
+                if response.status == 200:
+                    self_enrollment_groups.append(group)
+                    continue
+
+                # If we are not a member will get a 403 response.
+                if response.status == "403":
+                    continue
+                else:
+                    # Any other result is unexpected
+                    raise ExternalAsyncRequestError(
+                        message="Error while getting course groups", response=response
+                    )
         return self_enrollment_groups + instructor_only_groups
