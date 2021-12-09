@@ -97,7 +97,7 @@ class FilePickerConfig:
         }
 
     @classmethod
-    def vital_source_config(cls, _context, request, _application_instance):
+    def vital_source_config(cls, _context, _request, application_instance):
         """Get Vital Source config."""
-
-        return {"enabled": request.feature("vitalsource")}
+        enabled = application_instance.settings.get("vitalsource", "enabled", False)
+        return {"enabled": enabled}

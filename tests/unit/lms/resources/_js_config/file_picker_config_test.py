@@ -152,15 +152,17 @@ class TestFilePickerConfig:
 
         assert config == expected
 
-    def test_vital_source_config(self, context, pyramid_request, application_instance):
-        pyramid_request.feature.return_value = sentinel.enabled
+    @pytest.mark.parametrize("enabled", (True, False))
+    def test_vital_source_config(
+        self, context, pyramid_request, application_instance, enabled
+    ):
+        application_instance.settings.set("vitalsource", "enabled", enabled)
 
         config = FilePickerConfig.vital_source_config(
             context, pyramid_request, application_instance
         )
 
-        assert config == {"enabled": sentinel.enabled}
-        pyramid_request.feature.assert_called_once_with("vitalsource")
+        assert config == {"enabled": enabled}
 
     @pytest.fixture
     def canvas_files_enabled(self, context, pyramid_request, application_instance):
