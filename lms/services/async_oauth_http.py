@@ -30,7 +30,7 @@ class AsyncOAuthHTTPService:
             https://docs.aiohttp.org/en/stable/client_reference.html
 
         :raise OAuth2TokenError: if we don't have an access token for the user
-        :raise ExternalRequestError: if something goes wrong with the HTTP
+        :raise ExternalAsyncRequestError: if something goes wrong with the HTTP
             request
         """
         headers = headers or {}
@@ -66,7 +66,9 @@ async def _prepare_requests(method, urls, **kwargs):
             for task in tasks:
                 task.cancel()
 
-            raise ExternalRequestError("Blackboard async request failed") from err
+            raise ExternalAsyncRequestError(
+                message="Blackboard async request failed", exception=err
+            ) from err
 
 
 def factory(_context, request):

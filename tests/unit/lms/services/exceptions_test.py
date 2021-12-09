@@ -1,5 +1,5 @@
 import json
-from unittest.mock import sentinel, Mock
+from unittest.mock import Mock, sentinel
 
 import httpretty
 import pytest
@@ -9,8 +9,8 @@ from lms.services import (
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
-    ExternalRequestError,
     ExternalAsyncRequestError,
+    ExternalRequestError,
     OAuth2TokenError,
 )
 from lms.validation import ValidationError

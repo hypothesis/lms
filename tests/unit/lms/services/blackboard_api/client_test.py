@@ -8,7 +8,11 @@ from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
     BlackboardAPIClient,
 )
-from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
+from lms.services.exceptions import (
+    BlackboardFileNotFoundInCourse,
+    ExternalAsyncRequestError,
+    ExternalRequestError,
+)
 from tests import factories
 
 
@@ -317,6 +321,15 @@ class TestGroupCourseGroups:
         groups = svc.course_groups("COURSE_ID", current_student_own_groups_only=True)
 
         assert len(groups) == 2
+
+    def test_it_request_error(
+        self, svc, blackboard_list_groups, groups, async_oauth_http_service
+    ):
+        blackboard_list_groups.parse.return_value = groups
+        async_oauth_http_service.request.return_value = [Mock(status=500)]
+
+        with pytest.raises(ExternalAsyncRequestError):
+            svc.course_groups("COURSE_ID", current_student_own_groups_only=True)
 
     @pytest.fixture
     def groups(self):
