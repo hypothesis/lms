@@ -3,7 +3,7 @@ from typing import List
 
 import aiohttp
 
-from lms.services import ExternalRequestError
+from lms.services import ExternalAsyncRequestError
 
 
 class AsyncOAuthHTTPService:

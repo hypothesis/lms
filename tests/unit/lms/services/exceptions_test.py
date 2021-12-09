@@ -1,5 +1,5 @@
 import json
-from unittest.mock import sentinel
+from unittest.mock import sentinel, Mock
 
 import httpretty
 import pytest
@@ -10,6 +10,7 @@ from lms.services import (
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     ExternalRequestError,
+    ExternalAsyncRequestError,
     OAuth2TokenError,
 )
 from lms.validation import ValidationError
@@ -72,6 +73,74 @@ class TestExternalRequestError:
         err.__cause__ = cause
 
         assert str(err) == expected
+
+
+class TestExternalAsyncRequestError:
+    @pytest.mark.parametrize(
+        "message,exception,expected",
+        [
+            ("Some message", None, "Some message"),
+            ("Some message", ValueError(), "Some message: ValueError"),
+        ],
+    )
+    def test_message(self, message, exception, expected):
+        err = ExternalAsyncRequestError(message=message, exception=exception)
+
+        assert err.message == expected
+
+    @pytest.mark.parametrize(
+        "response,exception,expected",
+        [
+            (None, None, None),
+            (Mock(request_info=Mock(url="response-url")), None, "response-url"),
+            (None, Mock(request_info=Mock(url="exception-url")), "exception-url"),
+            (
+                Mock(request_info=Mock(url="response-url")),
+                Mock(request_info=Mock(url="exception-url")),
+                "response-url",
+            ),
+        ],
+    )
+    def test_url(self, response, exception, expected):
+        err = ExternalAsyncRequestError(response=response, exception=exception)
+
+        assert err.url == expected
+
+    @pytest.mark.parametrize(
+        "response,exception,expected",
+        [
+            (None, None, None),
+            (Mock(request_info=Mock(method="response-GET")), None, "response-GET"),
+            (None, Mock(request_info=Mock(method="exception-GET")), "exception-GET"),
+            (
+                Mock(request_info=Mock(method="response-GET")),
+                Mock(request_info=Mock(method="exception-GET")),
+                "response-GET",
+            ),
+        ],
+    )
+    def test_method(self, response, exception, expected):
+        err = ExternalAsyncRequestError(response=response, exception=exception)
+
+        assert err.method == expected
+
+    @pytest.mark.parametrize(
+        "response,expected",
+        [
+            (None, None),
+            (Mock(status=200), 200),
+        ],
+    )
+    def test_status_code(self, response, expected):
+        err = ExternalAsyncRequestError(response=response)
+
+        assert err.status_code == expected
+
+    def test_response_body(self):
+        assert not ExternalAsyncRequestError().response_body
+
+    def test_request_body(self):
+        assert not ExternalAsyncRequestError().request_body
 
 
 class TestCanvasAPIError:
