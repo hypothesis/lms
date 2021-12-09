@@ -95,6 +95,7 @@ class TestAdminViews:
             ("canvas", "groups_enabled"),
             ("canvas", "sections_enabled"),
             ("blackboard", "files_enabled"),
+            ("blackboard", "groups_enabled"),
             ("microsoft_onedrive", "files_enabled"),
         ),
     )
