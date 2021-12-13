@@ -219,9 +219,6 @@ class LTILaunchResource:
     @property
     def canvas_is_group_launch(self):
         """Return True if the current assignment uses canvas groups."""
-        if not self.canvas_groups_enabled:
-            return False
-
         try:
             int(self._request.params["group_set"])
         except (KeyError, ValueError, TypeError):
