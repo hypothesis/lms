@@ -1,5 +1,4 @@
 from lms.views.api.canvas.exceptions import (
-    CanvasGroupError,
     CanvasGroupSetEmpty,
     CanvasGroupSetNotFound,
     CanvasStudentNotInGroup,

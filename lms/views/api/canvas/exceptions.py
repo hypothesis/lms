@@ -1,22 +1,19 @@
-class CanvasGroupError(Exception):
-    def __init__(self, group_set):
-        self.details = {"group_set": group_set}
-        super().__init__(self.details)
+from lms.views.api.exceptions import GroupError
 
 
-class CanvasGroupSetNotFound(CanvasGroupError):
+class CanvasGroupSetNotFound(GroupError):
     """A Canvas GroupSet not found on Canvas API."""
 
     error_code = "canvas_group_set_not_found"
 
 
-class CanvasGroupSetEmpty(CanvasGroupError):
+class CanvasGroupSetEmpty(GroupError):
     """Canvas GroupSet doesn't contain any groups."""
 
     error_code = "canvas_group_set_empty"
 
 
-class CanvasStudentNotInGroup(CanvasGroupError):
+class CanvasStudentNotInGroup(GroupError):
     """Student doesn't belong to any of the groups in a group set assignment."""
 
     error_code = "canvas_student_not_in_group"

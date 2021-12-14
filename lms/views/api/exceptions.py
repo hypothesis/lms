@@ -22,6 +22,12 @@ from lms.validation import ValidationError
 _ = i18n.TranslationStringFactory(__package__)
 
 
+class GroupError(Exception):
+    def __init__(self, group_set):
+        self.details = {"group_set": group_set}
+        super().__init__(self.details)
+
+
 @view_defaults(path_info="^/api/.*", renderer="json")
 class APIExceptionViews:
     """
