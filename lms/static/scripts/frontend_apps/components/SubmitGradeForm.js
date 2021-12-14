@@ -37,35 +37,44 @@ const useFetchGrade = (student, setFetchGradeError) => {
   const [gradeLoading, setGradeLoading] = useState(false);
 
   useEffect(() => {
-    /** @type {boolean} */
-    let ignoreResults;
+    let ignoreResults = false;
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    let timeoutId;
     if (student) {
       // Fetch the grade from the service api
       // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
-      const fetchData = async () => {
+      const fetchData = () => {
         setGradeLoading(true);
         setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
-        try {
-          const { currentScore } = await gradingService.fetchGrade({ student });
-          if (!ignoreResults && currentScore) {
-            // Only set these values if we didn't cancel this request
-            setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+        timeoutId = setTimeout(async () => {
+          try {
+            const { currentScore } = await gradingService.fetchGrade({
+              student,
+            });
+            if (!ignoreResults && currentScore) {
+              // Only set these values if we didn't cancel this request
+              setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+            }
+          } catch (e) {
+            setFetchGradeError(e);
+          } finally {
+            setGradeLoading(false);
           }
-        } catch (e) {
-          setFetchGradeError(e);
-        } finally {
-          setGradeLoading(false);
-        }
+        }, 200);
       };
       fetchData();
     } else {
       // If there is no valid student, don't show a grade
       setGrade('');
+      setGradeLoading(false);
     }
     // Called when unmounting the component
     return () => {
       // Set a flag to ignore the the fetchGrade response from saving to state
       ignoreResults = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [gradingService, student, setFetchGradeError]);
   return { grade, gradeLoading };
