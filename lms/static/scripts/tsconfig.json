@@ -9,7 +9,8 @@
     "noEmit": true,
     "strict": true,
     "target": "ES2020",
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "esModuleInterop": true
   },
   "include": ["frontend_apps/**/*.js", "frontend_apps/**/*d.ts"],
   "exclude": ["frontend_apps/**/test/*.js"]

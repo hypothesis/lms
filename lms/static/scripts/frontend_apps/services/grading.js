@@ -10,7 +10,7 @@ import { apiCall } from '../utils/api';
  * The fetched grade success result.
  *
  * @typedef FetchGradeResult
- * @prop {number} currentScore - The fetched grade
+ * @prop {number|null} currentScore - The fetched grade
  */
 
 /**

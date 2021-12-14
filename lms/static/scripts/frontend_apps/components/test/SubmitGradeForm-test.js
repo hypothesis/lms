@@ -2,11 +2,11 @@ import { mount } from 'enzyme';
 
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitFor } from '../../../test-util/wait';
 import { GradingService, withServices } from '../../services';
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
 
 describe('SubmitGradeForm', () => {
+  let clock;
   const fakeStudent = {
     userid: 'student1',
     displayName: 'Student 1',
@@ -41,15 +41,20 @@ describe('SubmitGradeForm', () => {
   const fakeFormatToNumber = sinon.stub();
   const inputSelector = '[data-testid="grade-input"]';
 
+  function waitNextTick() {
+    // `delay(0)` has the same effect, however, because we use fake timers we
+    // use this alternative version.
+    new Promise(resolve => resolve());
+  }
+
   async function waitForGradeFetch(wrapper) {
-    await waitFor(() => {
-      wrapper.update();
-      return !wrapper.find('Spinner').exists();
-    });
+    clock.tick(200);
+    await waitNextTick();
     wrapper.update();
   }
 
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
     // This extra element is necessary to test automatic `focus`-ing
     // of the component's `input` element
     container = document.createElement('div');
@@ -71,6 +76,8 @@ describe('SubmitGradeForm', () => {
 
   afterEach(() => {
     $imports.$restore();
+    clock.restore();
+    container.remove();
   });
 
   it('does not disable the input field when the disable prop is missing', () => {
@@ -220,10 +227,13 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
 
-      await waitFor(() => {
-        wrapper.update();
-        return !wrapper.exists('FullScreenSpinner');
-      });
+      wrapper.update();
+      assert.isTrue(wrapper.exists('FullScreenSpinner'));
+
+      await waitNextTick();
+
+      wrapper.update();
+      assert.isFalse(wrapper.exists('FullScreenSpinner'));
     });
   });
 
@@ -237,13 +247,14 @@ describe('SubmitGradeForm', () => {
       assert.equal(wrapper.find(inputSelector).prop('defaultValue'), '');
     });
 
-    it('shows the error dialog when the grade request throws an error', () => {
+    it('shows the error dialog when the grade request throws an error', async () => {
       const error = {
         serverMessage: 'message',
         details: 'details',
       };
       fakeGradingService.fetchGrade.throws(error);
       const wrapper = renderForm();
+      await waitForGradeFetch(wrapper);
       wrapper.find('button[type="submit"]').simulate('click');
 
       assert.isTrue(wrapper.find('ErrorDialog').exists());
@@ -271,16 +282,19 @@ describe('SubmitGradeForm', () => {
     });
   });
 
-  it(
-    'should pass a11y checks',
+  it('should pass a11y checks', async () => {
+    const wrapper1 = renderForm();
+    const wrapper2 = renderForm({ disabled: true });
+    await waitForGradeFetch(wrapper1);
+
     checkAccessibility(
       {
-        content: () => renderForm(),
+        content: () => wrapper1,
       },
       {
         name: 'when disabled',
-        content: () => renderForm({ disabled: true }),
+        content: () => wrapper2,
       }
-    )
-  );
+    );
+  });
 });

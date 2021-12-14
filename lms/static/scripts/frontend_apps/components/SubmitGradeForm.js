@@ -3,9 +3,15 @@ import {
   LabeledButton,
   Spinner,
 } from '@hypothesis/frontend-shared';
-
 import classnames from 'classnames';
-import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+  useCallback,
+} from 'preact/hooks';
+import debounce from 'lodash.debounce';
 
 import ErrorDialog from './ErrorDialog';
 import { useService, GradingService } from '../services';
@@ -35,20 +41,22 @@ const useFetchGrade = (student, setFetchGradeError) => {
   const gradingService = useService(GradingService);
   const [grade, setGrade] = useState('');
   const [gradeLoading, setGradeLoading] = useState(false);
-
-  useEffect(() => {
-    /** @type {boolean} */
-    let ignoreResults;
-    if (student) {
-      // Fetch the grade from the service api
-      // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
-      const fetchData = async () => {
-        setGradeLoading(true);
-        setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedFetchGrade = useCallback(
+    debounce(
+      /**
+       * @param {StudentInfo} student
+       * @param {[boolean]} keepResult
+       */
+      async (/** @type {StudentInfo} */ student, keepResult) => {
         try {
           const { currentScore } = await gradingService.fetchGrade({ student });
-          if (!ignoreResults && currentScore) {
-            // Only set these values if we didn't cancel this request
+          // Only set these values if we didn't cancel this request
+          if (keepResult[0]) {
+            if (currentScore === null) {
+              setGrade('');
+              return;
+            }
             setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
           }
         } catch (e) {
@@ -56,18 +64,31 @@ const useFetchGrade = (student, setFetchGradeError) => {
         } finally {
           setGradeLoading(false);
         }
-      };
-      fetchData();
+      },
+      200
+    ),
+    []
+  );
+
+  useEffect(() => {
+    /** @type [boolean] */
+    const keepResult = [true];
+    if (student) {
+      setGradeLoading(true);
+      setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
+      debouncedFetchGrade(student, keepResult);
     } else {
       // If there is no valid student, don't show a grade
       setGrade('');
+      setGradeLoading(false);
     }
     // Called when unmounting the component
     return () => {
-      // Set a flag to ignore the the fetchGrade response from saving to state
-      ignoreResults = true;
+      // Set flag to `false` to ignore the fetchGrade response from saving to state
+      keepResult[0] = false;
+      debouncedFetchGrade.cancel();
     };
-  }, [gradingService, student, setFetchGradeError]);
+  }, [debouncedFetchGrade, student, setFetchGradeError]);
   return { grade, gradeLoading };
 };
 
