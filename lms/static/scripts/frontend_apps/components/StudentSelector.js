@@ -1,5 +1,5 @@
 import { Icon, IconButton } from '@hypothesis/frontend-shared';
-import classNames from 'classnames';
+import classnames from 'classnames';
 
 /**
  * @typedef Student
@@ -78,7 +78,7 @@ export default function StudentSelector({
         */}
         {/* eslint-disable-next-line jsx-a11y/no-onchange*/}
         <select
-          className={classNames(
+          className={classnames(
             'appearance-none w-full h-touch-minimum',
             'pl-4 pr-8', // Make room on right for custom down-caret Icon
             'xl:w-80', // Fix the width at wider viewports
@@ -103,7 +103,7 @@ export default function StudentSelector({
 
   return (
     <div
-      className={classNames(
+      className={classnames(
         // Narrower widths: label above field
         'flex flex-col gap-1',
         // Wider widths: label to left of field
@@ -111,7 +111,7 @@ export default function StudentSelector({
       )}
     >
       <label
-        className={classNames(
+        className={classnames(
           'flex-grow font-medium text-sm leading-none',
           'xl:text-right'
         )}

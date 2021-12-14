@@ -4,7 +4,7 @@ import {
   Spinner,
 } from '@hypothesis/frontend-shared';
 
-import classNames from 'classnames';
+import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
 import ErrorDialog from './ErrorDialog';
@@ -166,7 +166,7 @@ export default function SubmitGradeForm({ student }) {
   return (
     <>
       <form
-        className={classNames(
+        className={classnames(
           // At narrower width, label above input (columnar)
           'flex flex-col gap-1',
           // At wider width, label left of input (row)
@@ -193,7 +193,7 @@ export default function SubmitGradeForm({ student }) {
               />
             )}
             <input
-              className={classNames(
+              className={classnames(
                 'w-14 h-touch-minimum text-center',
                 'disabled:opacity-50',
                 'hyp-u-outline-on-keyboard-focus--inset hyp-u-border',
@@ -218,7 +218,7 @@ export default function SubmitGradeForm({ student }) {
           <LabeledButton
             icon="check"
             type="submit"
-            classes={classNames(
+            classes={classnames(
               'h-touch-minimum',
               'disabled:opacity-50 disabled:cursor-default',
               'hyp-u-border hyp-u-outline-on-keyboard-focus--inset'

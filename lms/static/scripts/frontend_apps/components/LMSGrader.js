@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
-import classNames from 'classnames';
+import classnames from 'classnames';
 
 /**
  * @typedef {import('../config').StudentInfo} StudentInfo
@@ -90,7 +90,7 @@ export default function LMSGrader({
   return (
     <>
       <header
-        className={classNames(
+        className={classnames(
           'grid grid-cols-1 items-center gap-y-2 p-2',
           'lg:grid-cols-3 lg:gap-x-4 lg:px-3'
         )}
@@ -108,7 +108,7 @@ export default function LMSGrader({
         </div>
 
         <div
-          className={classNames(
+          className={classnames(
             'flex flex-col gap-2',
             'sm:flex-row',
             'lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */

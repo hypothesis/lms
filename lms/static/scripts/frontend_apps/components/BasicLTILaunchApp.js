@@ -1,5 +1,5 @@
 import { FullScreenSpinner } from '@hypothesis/frontend-shared';
-import classNames from 'classnames';
+import classnames from 'classnames';
 
 import {
   useCallback,
@@ -311,7 +311,7 @@ export default function BasicLTILaunchApp() {
 
   const content = (
     <div
-      className={classNames('BasicLTILaunchApp__content', {
+      className={classnames('BasicLTILaunchApp__content', {
         'is-hidden': !contentReady || errorState,
       })}
     >
