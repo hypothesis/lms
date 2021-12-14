@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import classNames from 'classnames';
+import classnames from 'classnames';
 
 /**
  * @typedef ValidationMessageProps
@@ -41,7 +41,7 @@ export default function ValidationMessage({
       type="button"
       data-testid={showError ? 'message-open' : 'message-closed'}
       onClick={closeValidationError}
-      className={classNames(
+      className={classnames(
         'absolute z-10 h-touch-minimum shadow',
         'text-white border-0 bg-error whitespace-nowrap overflow-hidden',
         // Narrow viewports position the message to the right of the input
