@@ -118,8 +118,10 @@ export class ClientRPC {
    * This may be called any number of times.
    *
    * @param {User|null} user
+   * @param {string[]|null} groups - Array of `groupid`s representing the
+   *  focused user's groups
    */
-  async setFocusedUser(user) {
+  async setFocusedUser(user, groups) {
     const sidebar = await this._server.sidebarWindow;
     rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
       {
@@ -129,6 +131,7 @@ export class ClientRPC {
         // changed to `userid` once the client no longer references `username`.
         username: user ? user.userid : undefined,
         displayName: user ? user.displayName : undefined,
+        groups: groups ?? undefined,
       },
     ]);
   }
