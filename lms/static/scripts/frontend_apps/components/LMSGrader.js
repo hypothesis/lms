@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'preact/hooks';
+
+import { apiCall } from '../utils/api';
+import { Config } from '../config';
 
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
@@ -31,6 +40,10 @@ export default function LMSGrader({
   courseName,
   students: unorderedStudents,
 }) {
+  const {
+    api: { authToken, sync: syncAPICallInfo },
+  } = useContext(Config);
+
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
@@ -59,8 +72,28 @@ export default function LMSGrader({
    */
   const changeFocusedUser = useCallback(
     /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
-    user => clientRPC.setFocusedUser(user),
-    [clientRPC]
+    async user => {
+      let groups = null;
+      if (syncAPICallInfo && user?.lmsId) {
+        // Request and set a list of groups specific to the student being graded
+        const studentGroupsCallData = {
+          ...syncAPICallInfo.data,
+          gradingStudentId: user.lmsId,
+        };
+        try {
+          groups = await apiCall({
+            authToken,
+            path: syncAPICallInfo.path,
+            data: studentGroupsCallData,
+          });
+        } catch (e) {
+          // TODO: Improved error handling
+          console.error('Unable to fetch student groups from sync API');
+        }
+      }
+      clientRPC.setFocusedUser(user, groups);
+    },
+    [authToken, clientRPC, syncAPICallInfo]
   );
 
   useEffect(() => {

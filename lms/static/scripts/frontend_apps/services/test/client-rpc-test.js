@@ -190,11 +190,15 @@ describe('ClientRPC', () => {
   describe('setFocusedUser', () => {
     it('sets focused user in client when user is passed', async () => {
       const clientRPC = createClientRPC();
+      const studentGroups = [{ groupid: '1' }, { groupid: '2' }];
 
-      await clientRPC.setFocusedUser({
-        userid: 'acct:123@lms.hypothes.is',
-        displayName: 'Student A',
-      });
+      await clientRPC.setFocusedUser(
+        {
+          userid: 'acct:123@lms.hypothes.is',
+          displayName: 'Student A',
+        },
+        studentGroups
+      );
 
       assert.calledWith(
         fakeRpcCall,
@@ -205,6 +209,7 @@ describe('ClientRPC', () => {
           {
             username: 'acct:123@lms.hypothes.is',
             displayName: 'Student A',
+            groups: studentGroups,
           },
         ]
       );
@@ -224,6 +229,7 @@ describe('ClientRPC', () => {
           {
             username: undefined,
             displayName: undefined,
+            groups: undefined,
           },
         ]
       );
