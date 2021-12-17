@@ -91,7 +91,7 @@ describe('OAuth2RedirectErrorApp', () => {
 
   it(`closes the window when the dialog's "Close" button is clicked`, () => {
     const wrapper = renderApp();
-    wrapper.find('Modal').props().onCancel();
+    wrapper.find('ErrorModal').props().onCancel();
     assert.called(window.close);
   });
 
@@ -101,7 +101,7 @@ describe('OAuth2RedirectErrorApp', () => {
 
     const wrapper = renderApp();
     const tryAgainButton = wrapper.find(
-      'LabeledButton[data-testid="try-again"]'
+      'LabeledButton[data-testid="retry-button"]'
     );
     assert.isTrue(tryAgainButton.exists());
     assert.equal(fakeLocation.href, initialLocation);
@@ -113,6 +113,6 @@ describe('OAuth2RedirectErrorApp', () => {
 
   it('does not show "Try again" button if no retry URL is provided', () => {
     const wrapper = renderApp();
-    assert.isFalse(wrapper.exists('LabeledButton[data-testid="try-again"]'));
+    assert.isUndefined(wrapper.find('ErrorModal').props().onRetry);
   });
 });
