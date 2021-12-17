@@ -1,9 +1,9 @@
-import { LabeledButton, Link, Modal } from '@hypothesis/frontend-shared';
+import { Link } from '@hypothesis/frontend-shared';
 import { useContext } from 'preact/hooks';
 
 import { Config } from '../config';
 
-import ErrorDisplay from './ErrorDisplay';
+import ErrorModal from './ErrorModal';
 
 /** @typedef {import('../config').OAuthErrorConfig} OAuthErrorConfig */
 
@@ -51,77 +51,62 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   const retry = () => {
     location.href = /** @type {string} */ (authUrl);
   };
-
-  const buttons = [];
-
-  if (authUrl) {
-    buttons.push(
-      <LabeledButton
-        key="try-again"
-        onClick={retry}
-        data-testid="try-again"
-        variant="primary"
-      >
-        Try again
-      </LabeledButton>
-    );
-  }
+  const onRetry = authUrl ? retry : undefined;
 
   return (
-    <Modal
-      buttons={buttons}
+    <ErrorModal
       cancelLabel="Close"
       contentClass="LMS-Dialog LMS-Dialog--wide"
+      description={description}
+      error={error}
       onCancel={() => window.close()}
+      onRetry={onRetry}
       title={title}
     >
-      <ErrorDisplay error={error} description={description}>
-        {errorCode === 'canvas_invalid_scope' && (
-          <>
-            <p>
-              A Canvas admin needs to edit {"Hypothesis's"} developer key and
-              add these scopes:
-            </p>
-            <ol>
-              {canvasScopes.map(scope => (
-                <li key={scope}>
-                  <code>{scope}</code>
-                </li>
-              ))}
-            </ol>
-            <p>
-              For more information see:{' '}
-              <Link
-                target="_blank"
-                href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
-              >
-                Canvas API Endpoints Used by the Hypothesis LMS App
-              </Link>
-              .
-            </p>
-          </>
-        )}
+      {errorCode === 'canvas_invalid_scope' && (
+        <>
+          <p>
+            A Canvas admin needs to edit {"Hypothesis's"} developer key and add
+            these scopes:
+          </p>
+          <ol>
+            {canvasScopes.map(scope => (
+              <li key={scope}>
+                <code>{scope}</code>
+              </li>
+            ))}
+          </ol>
+          <p>
+            For more information see:{' '}
+            <Link
+              target="_blank"
+              href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
+            >
+              Canvas API Endpoints Used by the Hypothesis LMS App
+            </Link>
+            .
+          </p>
+        </>
+      )}
 
-        {errorCode === 'blackboard_missing_integration' && (
-          <>
-            <p>
-              In order to allow Hypothesis to connect to files in Blackboard,
-              your Blackboard admin needs to add or enable a REST API
-              integration.
-            </p>
-            <p>
-              For more information, please have your Blackboard admin read:{' '}
-              <Link
-                target="_blank"
-                href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
-              >
-                Enable the Hypothesis Integration With Blackboard Files
-              </Link>
-              .
-            </p>
-          </>
-        )}
-      </ErrorDisplay>
-    </Modal>
+      {errorCode === 'blackboard_missing_integration' && (
+        <>
+          <p>
+            In order to allow Hypothesis to connect to files in Blackboard, your
+            Blackboard admin needs to add or enable a REST API integration.
+          </p>
+          <p>
+            For more information, please have your Blackboard admin read:{' '}
+            <Link
+              target="_blank"
+              href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
+            >
+              Enable the Hypothesis Integration With Blackboard Files
+            </Link>
+            .
+          </p>
+        </>
+      )}
+    </ErrorModal>
   );
 }

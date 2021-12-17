@@ -1,9 +1,9 @@
+import { Link } from '@hypothesis/frontend-shared';
 import { useContext } from 'preact/hooks';
-import { Link, Modal } from '@hypothesis/frontend-shared';
 
 import { Config } from '../config';
 
-import ErrorDisplay from './ErrorDisplay';
+import ErrorModal from './ErrorModal';
 
 /**
  * A general-purpose error dialog displayed when a frontend application cannot be launched.
@@ -35,41 +35,33 @@ export default function ErrorDialogApp() {
   }
 
   return (
-    <Modal
-      onCancel={() => null}
-      title={title}
-      withCloseButton={false}
-      withCancelButton={false}
-      contentClass="LMS-Dialog LMS-Dialog--medium"
-    >
-      <ErrorDisplay error={error} description={description}>
-        {error.errorCode === 'reused_consumer_key' && (
-          <>
-            <p>
-              This Hypothesis {"installation's"} consumer key appears to have
-              already been used on another site. This could be because:
-            </p>
-            <ul>
-              <li>
-                This consumer key has already been used on another site. A site
-                admin must{' '}
-                <Link target="_blank" href="https://web.hypothes.is/get-help/">
-                  request a new consumer key
-                </Link>{' '}
-                for this site and re-install Hypothesis.
-              </li>
-              <li>
-                This {"site's"} tool_consumer_instance_guid has changed. A site
-                admin must{' '}
-                <Link target="_blank" href="https://web.hypothes.is/get-help/">
-                  ask us to update the consumer key
-                </Link>
-                .
-              </li>
-            </ul>
-          </>
-        )}
-      </ErrorDisplay>
-    </Modal>
+    <ErrorModal description={description} error={error} title={title}>
+      {error.errorCode === 'reused_consumer_key' && (
+        <>
+          <p>
+            This Hypothesis {"installation's"} consumer key appears to have
+            already been used on another site. This could be because:
+          </p>
+          <ul>
+            <li>
+              This consumer key has already been used on another site. A site
+              admin must{' '}
+              <Link target="_blank" href="https://web.hypothes.is/get-help/">
+                request a new consumer key
+              </Link>{' '}
+              for this site and re-install Hypothesis.
+            </li>
+            <li>
+              This {"site's"} tool_consumer_instance_guid has changed. A site
+              admin must{' '}
+              <Link target="_blank" href="https://web.hypothes.is/get-help/">
+                ask us to update the consumer key
+              </Link>
+              .
+            </li>
+          </ul>
+        </>
+      )}
+    </ErrorModal>
   );
 }
