@@ -1,70 +1,12 @@
-import { LabeledButton, Link, Modal } from '@hypothesis/frontend-shared';
+import { Link } from '@hypothesis/frontend-shared';
 
-import { useRef } from 'preact/hooks';
-
-import ErrorDisplay from './ErrorDisplay';
+import ErrorModal from './ErrorModal';
 
 /**
  * @typedef {import("preact").ComponentChildren} Children
  * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
  * @typedef {import('../errors').ErrorLike} ErrorLike
  */
-
-/**
- * Common structure for LTI launch error dialogs.
- *
- * This is a "full-screen", non-cancelable dialog consisting of:
- *
- *  - An explanation of what went wrong and how to resolve it
- *  - An optional "Try again" button
- *  - An optional detailed error message for use when contacting support
- *
- * @param {object} props
- * @param {boolean} props.busy
- * @param {Children} props.children
- * @param {ErrorLike|null} [props.error]
- * @param {() => void} [props.onRetry]
- * @param {string} [props.retryLabel]
- * @param {string} [props.title]
- */
-function BaseDialog({
-  busy,
-  children,
-  error = null,
-  onRetry,
-  retryLabel = 'Try again',
-  title = 'Something went wrong',
-}) {
-  const focusedDialogButton = /** @type {{ current: HTMLButtonElement }} */ (
-    useRef()
-  );
-  return (
-    <Modal
-      buttons={
-        onRetry && (
-          <LabeledButton
-            buttonRef={focusedDialogButton}
-            disabled={busy}
-            onClick={onRetry}
-            variant="primary"
-          >
-            {retryLabel}
-          </LabeledButton>
-        )
-      }
-      contentClass="LMS-Dialog LMS-Dialog--medium"
-      initialFocus={focusedDialogButton}
-      onCancel={() => null}
-      role="alertdialog"
-      title={title}
-      withCancelButton={false}
-      withCloseButton={false}
-    >
-      {error && <ErrorDisplay error={error}>{children}</ErrorDisplay>}
-      {!error && children}
-    </Modal>
-  );
-}
 
 /**
  * @typedef LaunchErrorDialogProps
@@ -78,10 +20,9 @@ function BaseDialog({
  */
 
 /**
- * Dialog that is displayed if an LTI launch failed.
+ * Render an error that prevents an LTI launch from completing successfully.
  *
- * The dialog provides an explanation of what went wrong and steps to fix the
- * problem.
+ * This is rendered in a non-cancelable modal.
  *
  * @param {LaunchErrorDialogProps} props
  */
@@ -98,18 +39,18 @@ export default function LaunchErrorDialog({
       // or the authorization has expired or been revoked. This is handled
       // specially here by not passing the `error` on to `BaseDialog`
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           onRetry={onRetry}
           retryLabel="Authorize"
           title="Authorize Hypothesis"
         >
           <p>Hypothesis needs your authorization to launch this assignment.</p>
-        </BaseDialog>
+        </ErrorModal>
       );
     case 'blackboard_file_not_found_in_course':
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           error={error}
           onRetry={onRetry}
@@ -133,11 +74,11 @@ export default function LaunchErrorDialog({
               </Link>
             </li>
           </ul>
-        </BaseDialog>
+        </ErrorModal>
       );
     case 'canvas_api_permission_error':
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           error={error}
           onRetry={onRetry}
@@ -160,11 +101,11 @@ export default function LaunchErrorDialog({
               edit this assignment and re-select the file.
             </li>
           </ul>
-        </BaseDialog>
+        </ErrorModal>
       );
     case 'canvas_file_not_found_in_course':
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           error={error}
           onRetry={onRetry}
@@ -187,12 +128,12 @@ export default function LaunchErrorDialog({
             </Link>
             .
           </p>
-        </BaseDialog>
+        </ErrorModal>
       );
 
     case 'canvas_group_set_not_found':
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           error={error}
           title="Assignment's group set no longer exists in Canvas"
@@ -207,12 +148,12 @@ export default function LaunchErrorDialog({
               settings and select a new group set.
             </b>
           </p>
-        </BaseDialog>
+        </ErrorModal>
       );
 
     case 'canvas_group_set_empty':
       return (
-        <BaseDialog busy={busy} error={error}>
+        <ErrorModal busy={busy} error={error} title="Something went wrong">
           <p>The group set for this Hypothesis assignment is empty. </p>
           <p>
             <b>
@@ -220,12 +161,12 @@ export default function LaunchErrorDialog({
               different group set for this assignment.
             </b>
           </p>
-        </BaseDialog>
+        </ErrorModal>
       );
 
     case 'canvas_student_not_in_group':
       return (
-        <BaseDialog
+        <ErrorModal
           busy={busy}
           error={error}
           title="You're not in any of this assignment's groups"
@@ -240,29 +181,34 @@ export default function LaunchErrorDialog({
               account to one of this assignment&apos;s groups.
             </b>
           </p>
-        </BaseDialog>
+        </ErrorModal>
       );
 
     case 'error-fetching':
       // Do not display canned text if there is a back-end-provided message
       // to show here, as it's redundant and not useful
       return (
-        <BaseDialog busy={busy} error={error} onRetry={onRetry}>
+        <ErrorModal
+          busy={busy}
+          error={error}
+          onRetry={onRetry}
+          title="Something went wrong"
+        >
           {!error?.serverMessage && (
             <p>There was a problem fetching this Hypothesis assignment.</p>
           )}
-        </BaseDialog>
+        </ErrorModal>
       );
     case 'error-reporting-submission':
       // nb. There is no retry action here as we just suggest reloading the entire
       // page.
       return (
-        <BaseDialog busy={busy} error={error}>
+        <ErrorModal busy={busy} error={error} title="Something went wrong">
           <p>
             There was a problem submitting this Hypothesis assignment.{' '}
             <b>To fix this problem, try reloading the page.</b>
           </p>
-        </BaseDialog>
+        </ErrorModal>
       );
   }
 }
