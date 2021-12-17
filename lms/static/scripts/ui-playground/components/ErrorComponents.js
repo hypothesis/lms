@@ -6,7 +6,7 @@ import { Config } from '../../frontend_apps/config';
 
 import ErrorDialogApp from '../../frontend_apps/components/ErrorDialogApp';
 import ErrorDisplay from '../../frontend_apps/components/ErrorDisplay';
-import ErrorDialog from '../../frontend_apps/components/ErrorDialog';
+import ErrorModal from '../../frontend_apps/components/ErrorModal';
 import LaunchErrorDialog from '../../frontend_apps/components/LaunchErrorDialog';
 import OAuth2RedirectErrorApp from '../../frontend_apps/components/OAuth2RedirectErrorApp';
 
@@ -22,7 +22,7 @@ const fakeError = {
   details: fakeDetails,
 };
 
-function ErrorDialogExample() {
+function ErrorModalExample() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   if (!dialogOpen) {
@@ -31,15 +31,16 @@ function ErrorDialogExample() {
         onClick={() => setDialogOpen(!dialogOpen)}
         variant="primary"
       >
-        Show ErrorDialog Example
+        Show ErrorModal Example
       </LabeledButton>
     );
   } else {
     return (
-      <ErrorDialog
+      <ErrorModal
         error={fakeError}
         onCancel={() => setDialogOpen(false)}
         description="Sample Error"
+        title="My Own Title"
       />
     );
   }
@@ -283,16 +284,19 @@ export default function ErrorComponents() {
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
-      <Library.Pattern title="ErrorDialog">
+      <Library.Pattern title="ErrorModal">
         <Library.Example>
           <p>
-            <code>ErrorDialog</code> uses the shared <code>Modal</code>{' '}
-            component to render information about an {'error-like'} object in
-            various places in the front-end app. It wraps an{' '}
-            <code>ErrorDisplay</code>.
+            The <code>ErrorModal</code> component is used to display information
+            about an error in a modal dialog. It is used whenever an error
+            should be shown in a dialog. If provided with an <code>error</code>{' '}
+            object, it will also render an <code>ErrorDisplay</code>.
+          </p>
+          <p>
+            The following App and Error components use <code>ErrorModal</code>.
           </p>
           <Library.Demo>
-            <ErrorDialogExample />
+            <ErrorModalExample />
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
@@ -341,7 +345,8 @@ export default function ErrorComponents() {
               Note: The dialogs generated in these examples are non-dismissable.{' '}
             </b>
             You will need to reload this page to {'"dismiss"'} the error dialog,
-            even the dialogs with close buttons.
+            even the dialogs with close buttons. In real use, these dialogs are
+            able to close the window that they were opened in.
           </p>
         </div>
 
@@ -369,9 +374,8 @@ export default function ErrorComponents() {
       <Library.Pattern title="LaunchErrorDialog">
         <div className="LMSLibrary__content">
           <p>
-            These type of errors are shown when in an LTI launch mode and an
-            error is encountered while fetching groups or content. Several
-            examples are shown below. These are not exhaustive.
+            These type of errors are shown during an LTI launch if something is
+            encountered that prevents the launch from completing successfully.
           </p>
           <p>
             <b>Note</b>: You can close these example dialogs by clicking the{' '}
