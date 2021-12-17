@@ -11,7 +11,7 @@ import { Config } from '../config';
 import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
-import ErrorDialog from './ErrorDialog';
+import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
 import GroupConfigSelector from './GroupConfigSelector';
 
@@ -190,7 +190,7 @@ export default function FilePickerApp({ onSubmit }) {
       </form>
       {shouldSubmit && <FullScreenSpinner />}
       {errorInfo && (
-        <ErrorDialog
+        <ErrorModal
           description={errorInfo.message}
           error={errorInfo.error}
           onCancel={() => setErrorInfo(null)}
