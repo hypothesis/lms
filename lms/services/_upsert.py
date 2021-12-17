@@ -1,90 +1,22 @@
 """A helper for upserting into DB tables."""
 
 from copy import deepcopy
+from typing import List
+
+from sqlalchemy import column, inspect, tuple_
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import inspect, column
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import or_, and_, tuple_
 from zope.sqlalchemy import mark_changed
 
 
-def upsert(db, model_class, query_kwargs, update_kwargs):
-    try:
-        model = db.query(model_class).filter_by(**query_kwargs).one()
-    except NoResultFound:
-        model = model_class(**query_kwargs)
-        db.add(model)
-
-    for key, value in update_kwargs.items():
-        setattr(model, key, value)
-
-    return model
-
-
-def bulk_orm_upsert(db, models, search_columns, update_columns):
-    def _search_criteria_values(model, search_columns):
-        return {column: getattr(model, column.key) for column in search_columns}
-
-    if not models:
-        return []
-
-    ModelsClass = models[0].__class__
-    assert all((model.__class__ == ModelsClass for model in models))
-
-    search_criteria = []
-    existing_models_by_search = {}
-    for model in models:
-        model_search_criteria = _search_criteria_values(model, search_columns)
-        model_search_values = tuple(model_search_criteria.values())
-
-        # Build a lookup dict from the value of the search column to the model
-        existing_models_by_search[model_search_values] = model
-
-        # For every model we have to "and" the search columns
-        search_criteria.append(
-            and_(*[column == value for column, value in model_search_criteria.items()])
-        )
-
-    # Aggregate all search criteria in a big "or" to find all existing columns
-    db_models = db.query(ModelsClass).filter(or_(*search_criteria)).all()
-
-    for db_model in db_models:
-        model_search_criteria = _search_criteria_values(db_model, search_columns)
-        model_search_values = tuple(model_search_criteria.values())
-
-        # For every existing model, update the necessary columns finding the original model in the lookup dict
-        update_model = existing_models_by_search[model_search_values]
-        for update_column in update_columns:
-            setattr(
-                db_model,
-                update_column.key,
-                getattr(update_model, update_column.key),
-            )
-
-        del existing_models_by_search[model_search_values]
-
-    # We deleted models from the lookup dict as we went through the existing ones.
-    # The only ones left are the ones that need an insert.
-    (db.add(model) for model in existing_models_by_search)
-
-    return list(existing_models_by_search.values()) + db_models
-
-
-def bulk_upsert(
-    db, ModelsClass, values, index_elements, update_columns, use_on_update=True
+def bulk_upsert(  # pylint:disable=too-many-arguments
+    db,
+    model_class,
+    values: dict,
+    index_elements: List[str],
+    update_columns: List[str],
+    use_on_update=True,
 ):
-    """
-    Create or update the specified values in the table.
-
-    :param model_class: The model type to upsert
-    :param values: Dicts of values to upsert
-    """
-
-    def _get_columns_onupdate(model_class):
-        """Get which columns which have an onupdate clause and its value."""
-        model_details = inspect(model_class)
-
-        return [(c.name, c.onupdate.arg) for c in model_details.c if c.onupdate]
+    """Create or update the specified values in the table."""
 
     if not values:
         # Don't attempt to upsert an empty list of values into the DB.
@@ -105,7 +37,7 @@ def bulk_upsert(
         return []
 
     if use_on_update:
-        onupdate_columns = _get_columns_onupdate(ModelsClass)
+        onupdate_columns = _get_columns_onupdate(model_class)
 
         for column_name, onupdate_value in onupdate_columns:
             update_columns.append(column_name)
@@ -126,7 +58,7 @@ def bulk_upsert(
 
     index_elements_columns = [column(c) for c in index_elements]
 
-    stmt = insert(ModelsClass).values(values)
+    stmt = insert(model_class).values(values)
     stmt = stmt.on_conflict_do_update(
         # The columns to use to find matching rows.
         index_elements=index_elements,
@@ -143,5 +75,12 @@ def bulk_upsert(
 
     # Return ORM objects based on index_elements
     return (
-        db.query(ModelsClass).filter(tuple_(*index_elements_columns).in_(result)).all()
+        db.query(model_class).filter(tuple_(*index_elements_columns).in_(result)).all()
     )
+
+
+def _get_columns_onupdate(model_class):
+    """Get which columns which have an onupdate clause and its value."""
+    model_details = inspect(model_class)
+
+    return [(c.name, c.onupdate.arg) for c in model_details.c if c.onupdate]

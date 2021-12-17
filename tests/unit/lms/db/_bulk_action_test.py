@@ -1,7 +1,6 @@
 import pytest
 import sqlalchemy as sa
 from h_matchers import Any
-from sqlalchemy.engine import CursorResult
 
 from lms.db import BASE, BulkAction
 
@@ -35,16 +34,17 @@ class TestBulkAction:
         )
         db_session.flush()
 
-        result = BulkAction(db_session).upsert(
-            self.TableWithBulkUpsert,
-            [
-                {"id": 1, "name": "update_old", "other": "post_1"},
-                {"id": 3, "name": "create_with_id", "other": "post_3"},
-                {"id": 4, "name": "over_block_size", "other": "post_4"},
-            ],
-        )
+        upsert_rows = [
+            {"id": 1, "name": "update_old", "other": "post_1"},
+            {"id": 3, "name": "create_with_id", "other": "post_3"},
+            {"id": 4, "name": "over_block_size", "other": "post_4"},
+        ]
 
-        assert isinstance(result, CursorResult)
+        results = BulkAction(db_session).upsert(self.TableWithBulkUpsert, upsert_rows)
+
+        assert len(results) == len(upsert_rows)
+        for result in results:
+            assert isinstance(result, self.TableWithBulkUpsert)
 
         self.assert_has_rows(
             db_session,
@@ -68,9 +68,11 @@ class TestBulkAction:
         )
         db_session.flush()
 
-        BulkAction(db_session).upsert(
+        result = BulkAction(db_session).upsert(
             self.TableWithBulkUpsert, [{"id": 1, "name": "update_existing"}]
         )
+        assert len(result) == 1
+        assert result[0].id == 1
 
         self.assert_has_rows(
             db_session,

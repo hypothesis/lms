@@ -121,32 +121,36 @@ class Sync:
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
         course = self._get_course()
 
-        return [
-            self._grouping_service.upsert_with_parent(
-                tool_consumer_instance_guid=tool_guid,
-                lms_id=group["id"],
-                lms_name=group["name"],
-                parent=course,
-                type_=Grouping.Type.CANVAS_GROUP,
-                extra={"group_set_id": group["group_category_id"]},
-            )
-            for group in groups
-        ]
+        return self._grouping_service.bulk_upsert_with_parent(
+            [
+                dict(
+                    tool_consumer_instance_guid=tool_guid,
+                    lms_id=group["id"],
+                    lms_name=group["name"],
+                    parent=course,
+                    type_=Grouping.Type.CANVAS_GROUP,
+                    extra={"group_set_id": group["group_category_id"]},
+                )
+                for group in groups
+            ]
+        )
 
     def _to_section_groupings(self, sections):
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
         course = self._get_course()
 
-        return [
-            self._grouping_service.upsert_with_parent(
-                tool_consumer_instance_guid=tool_guid,
-                lms_id=section["id"],
-                lms_name=section["name"],
-                parent=course,
-                type_=Grouping.Type.CANVAS_SECTION,
-            )
-            for section in sections
-        ]
+        return self._grouping_service.bulk_upsert_with_parent(
+            [
+                dict(
+                    tool_consumer_instance_guid=tool_guid,
+                    lms_id=section["id"],
+                    lms_name=section["name"],
+                    parent=course,
+                    type_=Grouping.Type.CANVAS_SECTION,
+                )
+                for section in sections
+            ]
+        )
 
     def _get_course(self):
         tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]

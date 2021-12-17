@@ -1,12 +1,11 @@
-from typing import List, Optional, Union
+from typing import List, Optional, TypedDict, Union
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
-from lms.models.grouping import Grouping
-from lms.services._upsert import upsert
+from lms.services._upsert import bulk_upsert
 
 
 class GroupingService:
@@ -34,41 +33,48 @@ class GroupingService:
             tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
         )
 
-    def upsert_with_parent(  # pylint: disable=too-many-arguments
-        self,
-        tool_consumer_instance_guid,
-        lms_id,
-        lms_name,
-        parent: Grouping,
-        type_: Grouping.Type,
-        extra=None,
-    ):
+    class _GroupingData(TypedDict):
         """
-        Upsert a Grouping generating the authority_provided_id based on its parent.
+        Params for bulk_upsert_with_parent.
 
-        :param tool_consumer_instance_guid: Tool consumer GUID
-        :param lms_id: ID of this grouping on the LMS
-        :param lms_name: Name of the grouping on the LMS
-        :param parent: Parent of grouping
-        :param type_: Type of the grouping
-        :param extra: Any extra information to store linked to this grouping
+        tool_consumer_instance_guid: Tool consumer GUID
+        lms_id: ID of this grouping on the LMS
+        lms_name: Name of the grouping on the LMS
+        param parent: Parent of grouping
+        type_: Type of the grouping
+        extra: Any extra information to store linked to this grouping
         """
-        authority_provided_id = self.generate_authority_provided_id(
-            tool_consumer_instance_guid, lms_id, parent, type_
-        )
 
-        return upsert(
+        tool_consumer_instance_guid: str
+        lms_id: str
+        lms_name: str
+        parent: Grouping
+        type: Grouping.Type
+        extra: Optional[dict]
+
+    def bulk_upsert_with_parent(self, groupings_data: List[_GroupingData]):
+        """Upsert a Grouping generating the authority_provided_id based on its parent."""
+        for grouping_data in groupings_data:
+            authority_provided_id = self.generate_authority_provided_id(
+                grouping_data["tool_consumer_instance_guid"],
+                grouping_data["lms_id"],
+                grouping_data["parent"],
+                grouping_data["type"],
+            )
+
+            grouping_data["authority_provided_id"] = authority_provided_id
+            grouping_data["application_instance_id"] = self._application_instance.id
+            grouping_data["parent_id"] = grouping_data["parent"].id
+
+            del grouping_data["parent"]
+            del grouping_data["tool_consumer_instance_guid"]
+
+        return bulk_upsert(
             self._db,
             Grouping,
-            query_kwargs={
-                "application_instance": self._application_instance,
-                "authority_provided_id": authority_provided_id,
-                # These aren't really needed for querying, only for creating a new one.
-                "lms_id": lms_id,
-                "parent_id": parent.id,
-                "type": type_,
-            },
-            update_kwargs={"lms_name": lms_name, "extra": extra},
+            groupings_data,
+            index_elements=["application_instance_id", "authority_provided_id"],
+            update_columns=["lms_name", "extra"],
         )
 
     def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
