@@ -206,13 +206,13 @@ describe('SubmitGradeForm', () => {
       };
       fakeGradingService.submitGrade.throws(error);
       wrapper.find('button[type="submit"]').simulate('click');
-      assert.isTrue(wrapper.find('ErrorDialog').exists());
+      assert.isTrue(wrapper.find('ErrorModal').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
-      assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
+      assert.equal(wrapper.find('ErrorModal').prop('error'), error);
 
       // Error message should be hidden when its close action is triggered.
-      wrapper.find('ErrorDialog').invoke('onCancel')();
-      assert.isFalse(wrapper.exists('ErrorDialog'));
+      wrapper.find('ErrorModal').invoke('onCancel')();
+      assert.isFalse(wrapper.exists('ErrorModal'));
     });
 
     it('sets the success animation class when the grade has posted', async () => {
@@ -270,13 +270,13 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
 
-      assert.isTrue(wrapper.find('ErrorDialog').exists());
+      assert.isTrue(wrapper.find('ErrorModal').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
-      assert.equal(wrapper.find('ErrorDialog').prop('error'), error);
+      assert.equal(wrapper.find('ErrorModal').prop('error'), error);
 
       // Error message should be hidden when its close action is triggered.
-      wrapper.find('ErrorDialog').invoke('onCancel')();
-      assert.isFalse(wrapper.exists('ErrorDialog'));
+      wrapper.find('ErrorModal').invoke('onCancel')();
+      assert.isFalse(wrapper.exists('ErrorModal'));
     });
 
     it("sets the input defaultValue prop to the student's grade", async () => {

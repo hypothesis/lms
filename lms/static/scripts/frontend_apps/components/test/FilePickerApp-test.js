@@ -273,7 +273,7 @@ describe('FilePickerApp', () => {
       });
     });
 
-    const errDialog = wrapper.find('ErrorDialog');
+    const errDialog = wrapper.find('ErrorModal');
     assert.equal(errDialog.length, 1);
     assert.equal(errDialog.prop('error'), error);
   });
@@ -289,11 +289,11 @@ describe('FilePickerApp', () => {
       });
     });
 
-    const errDialog = wrapper.find('ErrorDialog');
+    const errDialog = wrapper.find('ErrorModal');
     const onCancel = errDialog.prop('onCancel');
     assert.isFunction(onCancel);
     interact(wrapper, onCancel);
-    assert.isFalse(wrapper.exists('ErrorDialog'));
+    assert.isFalse(wrapper.exists('ErrorModal'));
   });
 
   it(

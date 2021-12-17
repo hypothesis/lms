@@ -7,10 +7,11 @@ import {
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
-import ErrorDialog from './ErrorDialog';
 import { useService, GradingService } from '../services';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
+
+import ErrorModal from './ErrorModal';
 import ValidationMessage from './ValidationMessage';
 
 // Grades are always stored as a value between [0-1] on the service layer.
@@ -238,7 +239,7 @@ export default function SubmitGradeForm({ student }) {
         {gradeSaving && <FullScreenSpinner />}
       </form>
       {!!submitGradeError && (
-        <ErrorDialog
+        <ErrorModal
           description="Unable to submit grade"
           error={submitGradeError}
           onCancel={() => {
@@ -248,7 +249,7 @@ export default function SubmitGradeForm({ student }) {
         />
       )}
       {!!fetchGradeError && (
-        <ErrorDialog
+        <ErrorModal
           description="Unable to fetch grade"
           error={fetchGradeError}
           onCancel={() => {
