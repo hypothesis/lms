@@ -151,14 +151,39 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'blackboard_group_set_empty':
     case 'canvas_group_set_empty':
       return (
-        <ErrorModal busy={busy} error={error} title="Something went wrong">
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="Assignment's group set is empty"
+        >
           <p>The group set for this Hypothesis assignment is empty. </p>
           <p>
             <b>
               To fix this problem, add groups to the group set or use a
               different group set for this assignment.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'blackboard_student_not_in_group':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="You're not in any of this assignment's groups"
+        >
+          <p>
+            Hypothesis couldn&apos;t launch this assignment because you
+            aren&apos;t in any of the groups in the assignment&apos;s group set.
+          </p>
+          <p>
+            <b>
+              To fix the problem, an instructor needs to add your Blackboard
+              user account to one of this assignment&apos;s groups.
             </b>
           </p>
         </ErrorModal>
