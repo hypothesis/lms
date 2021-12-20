@@ -4,6 +4,8 @@
  * @typedef {'blackboard_missing_integration'|'canvas_invalid_scope'} OAuthServerErrorCode
  *
  * @typedef {'blackboard_file_not_found_in_course'|
+ *           'blackboard_group_set_empty' |
+ *           'blackboard_student_not_in_group' |
  *           'canvas_api_permission_error'|
  *           'canvas_file_not_found_in_course'|
  *           'canvas_group_set_not_found'|
@@ -110,6 +112,8 @@ export function isLTILaunchServerError(error) {
     !!error.errorCode &&
     [
       'blackboard_file_not_found_in_course',
+      'blackboard_group_set_empty',
+      'blackboard_student_not_in_group',
       'canvas_api_permission_error',
       'canvas_file_not_found_in_course',
       'canvas_group_set_not_found',
