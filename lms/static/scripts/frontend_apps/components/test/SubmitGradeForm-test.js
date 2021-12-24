@@ -95,9 +95,46 @@ describe('SubmitGradeForm', () => {
     const wrapper = renderForm();
     await waitForGradeFetch(wrapper);
 
-    assert.equal(wrapper.find(inputSelector).prop('defaultValue'), 10);
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
     wrapper.setProps({ student: fakeStudentAlt });
-    assert.equal(wrapper.find(inputSelector).prop('defaultValue'), '');
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+  });
+
+  it('clears out the previous grade when next students does not have a grade (`null` value)', async () => {
+    const wrapper = renderForm();
+
+    await waitForGradeFetch(wrapper);
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
+
+    fakeGradingService.fetchGrade.resolves({ currentScore: null });
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitForGradeFetch(wrapper);
+
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+  });
+
+  it('clears out the previous grade when next students does not have a grade (`undefined` value)', async () => {
+    const wrapper = renderForm();
+
+    await waitForGradeFetch(wrapper);
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
+
+    fakeGradingService.fetchGrade.resolves({});
+    wrapper.setProps({ student: fakeStudentAlt });
+    await waitForGradeFetch(wrapper);
+
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+  });
+
+  it('display a zero score', async () => {
+    fakeGradingService.fetchGrade.resolves({ currentScore: 0 });
+    const wrapper = renderForm();
+
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+
+    await waitForGradeFetch(wrapper);
+
+    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '0');
   });
 
   it('focuses the input field when changing students and fetching the grade', async () => {
@@ -234,7 +271,7 @@ describe('SubmitGradeForm', () => {
 
       await waitForGradeFetch(wrapper);
 
-      assert.equal(wrapper.find(inputSelector).prop('defaultValue'), '');
+      assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
     });
 
     it('shows the error dialog when the grade request throws an error', () => {
@@ -259,7 +296,10 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
       await waitForGradeFetch(wrapper);
       // note, grade is scaled by 10
-      assert.equal(wrapper.find(inputSelector).prop('defaultValue'), 10);
+      assert.strictEqual(
+        wrapper.find(inputSelector).prop('defaultValue'),
+        '10'
+      );
     });
 
     it('sets hides the Spinner after the grade is fetched', async () => {

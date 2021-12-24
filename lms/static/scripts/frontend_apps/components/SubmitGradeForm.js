@@ -46,10 +46,16 @@ const useFetchGrade = (student, setFetchGradeError) => {
         setGradeLoading(true);
         setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
         try {
-          const { currentScore } = await gradingService.fetchGrade({ student });
-          if (!ignoreResults && currentScore) {
-            // Only set these values if we didn't cancel this request
-            setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+          const { currentScore = null } = await gradingService.fetchGrade({
+            student,
+          });
+          // Only set these values if we didn't cancel this request
+          if (!ignoreResults) {
+            if (currentScore === null) {
+              setGrade('');
+            } else {
+              setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
+            }
           }
         } catch (e) {
           setFetchGradeError(e);
