@@ -23,6 +23,12 @@ alembic==1.7.5
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+amqp==5.0.9
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   kombu
 astroid==2.9.0
     # via pylint
 async-timeout==4.0.1
@@ -46,12 +52,23 @@ beautifulsoup4==4.9.3
     #   webtest
 behave==1.2.6
     # via -r requirements/bddtests.txt
+billiard==3.6.4.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
 cachetools==4.2.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   google-auth
+celery==5.2.2
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
 certifi==2020.6.20
     # via
     #   -r requirements/bddtests.txt
@@ -66,6 +83,33 @@ charset-normalizer==2.0.1
     #   -r requirements/tests.txt
     #   aiohttp
     #   requests
+click==8.0.3
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
+    #   click-didyoumean
+    #   click-plugins
+    #   click-repl
+click-didyoumean==0.3.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
+click-plugins==1.1.1
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
+click-repl==0.2.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
 coverage==6.2
     # via -r requirements/tests.txt
 factory-boy==3.2.1
@@ -185,6 +229,12 @@ jsonschema==3.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-api
+kombu==5.2.2
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
 lazy-object-proxy==1.6.0
     # via astroid
 mako==1.1.3
@@ -269,6 +319,12 @@ pluggy==0.13.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pytest
+prompt-toolkit==3.0.24
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   click-repl
 psycopg2==2.9.2
     # via
     #   -r requirements/bddtests.txt
@@ -377,6 +433,12 @@ python-dateutil==2.8.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   faker
+pytz==2021.3
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
 requests==2.26.0
     # via
     #   -r requirements/bddtests.txt
@@ -407,6 +469,7 @@ six==1.15.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   behave
+    #   click-repl
     #   google-auth
     #   jsonschema
     #   parse-type
@@ -472,11 +535,25 @@ venusian==3.0.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
+vine==5.0.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   amqp
+    #   celery
+    #   kombu
 waitress==2.0.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   webtest
+wcwidth==0.2.5
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   prompt-toolkit
 webargs==8.0.1
     # via
     #   -r requirements/bddtests.txt
