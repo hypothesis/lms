@@ -29,3 +29,9 @@ services:
       - VIA_SECRET=not_a_secret
       - SESSION_COOKIE_SECRET=notasecret
       - OAUTH2_STATE_SECRET=notasecret
+
+  rabbit:
+    image: rabbitmq:3.6-management-alpine
+    ports:
+      - '127.0.0.1:5674:5672'
+      - '127.0.0.1:15674:15672'
