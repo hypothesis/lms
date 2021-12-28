@@ -144,11 +144,16 @@ export default function BasicLTILaunchApp() {
       }
 
       try {
-        const groups = await apiCall({
+        const taskAPI = await apiCall({
           authToken,
           path: syncAPICallInfo.path,
           data: syncAPICallInfo.data,
         });
+        const groups = await apiCall({
+          path: taskAPI.path,
+          data: taskAPI.data,
+        });
+ 
         clientRPC.setGroups(groups);
         success = true;
       } catch (e) {

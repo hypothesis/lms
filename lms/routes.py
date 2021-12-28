@@ -103,3 +103,5 @@ def includeme(config):
     config.add_route("admin.index", "/admin/")
     config.add_route("admin.instances", "/admin/instances/")
     config.add_route("admin.instance", "/admin/instance/{consumer_key}/")
+
+    config.add_route("tasks_api.result", "/tasks/result")

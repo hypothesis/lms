@@ -36,8 +36,9 @@ app.conf.update(
     imports=("lms.tasks",),
     # Acknowledge tasks after the task has executed, rather than just before
     task_acks_late=True,
-    # Don't store any results, we only use this for scheduling
-    task_ignore_result=True,
+    task_ignore_result=False,
+    result_backend="rpc://",
+    result_persistent=True,
     task_queues=[
         Queue(
             "celery",

@@ -22,12 +22,15 @@ class Sync:
         permission=Permissions.API,
     )
     def sync(self):
-        groups = self.get_blackboard_groups()
+        from lms.tasks.blackboard import get_groups
 
-        self.sync_to_h(groups)
-
-        authority = self.request.registry.settings["h_authority"]
-        return [group.groupid(authority) for group in groups]
+        result = get_groups.delay()
+        return {
+            "path": self.request.route_url("tasks_api.result"),
+            "data": {
+                "task": {"id": result.id},
+            },
+        }
 
     def get_blackboard_groups(self):
         lti_user = self.request.lti_user
