@@ -37,8 +37,7 @@ app.conf.update(
     # Acknowledge tasks after the task has executed, rather than just before
     task_acks_late=True,
     task_ignore_result=False,
-    result_backend="rpc://",
-    result_persistent=True,
+    result_backend="db+" + os.environ["DATABASE_URL"],
     task_queues=[
         Queue(
             "celery",
