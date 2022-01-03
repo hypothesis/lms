@@ -38,6 +38,9 @@ import VitalSourceBookViewer from './VitalSourceBookViewer';
  * is unable to directly render the content in an iframe. This happens when
  * the content URL needs to be fetched from a remote source (eg. the LMS's
  * file storage) first, which may require authorization from the user.
+ *
+ * Container elements here should take care to render at full available width
+ * and height as they are the outermost containers of all LMS content.
  */
 export default function BasicLTILaunchApp() {
   const {
@@ -87,6 +90,7 @@ export default function BasicLTILaunchApp() {
   // Content is ready to show if we've resolved a contentURL or configuration
   // for a VitalSource document is present
   const contentReady = !!(contentURL || vitalSourceConfig);
+  const showContent = contentReady && !errorState;
   const showSpinner = fetchCount > 0 && !errorState;
 
   const incFetchCount = () => {
@@ -286,7 +290,13 @@ export default function BasicLTILaunchApp() {
     />
   ) : (
     <iframe
-      className="BasicLTILaunchApp__iframe hyp-u-border"
+      className={classnames(
+        // It's important that this content render full width and grow to fill
+        // available flex space. n.b. It may be rendered together with grading
+        // controls
+        'w-full grow',
+        'hyp-u-border'
+      )}
       src={contentURL || ''}
       title="Course content with Hypothesis annotation viewer"
     />
@@ -311,16 +321,18 @@ export default function BasicLTILaunchApp() {
 
   const content = (
     <div
-      className={classnames('BasicLTILaunchApp__content', {
-        'is-hidden': !contentReady || errorState,
+      className={classnames('flex flex-col h-full', {
+        invisible: !showContent,
+        visible: showContent,
       })}
+      data-testid="content-wrapper"
     >
       {iFrameWrapper}
     </div>
   );
 
   return (
-    <div className="BasicLTILaunchApp">
+    <div className="h-full">
       {showSpinner && <FullScreenSpinner />}
       {errorState && (
         <LaunchErrorDialog
