@@ -1,7 +1,5 @@
 import { Icon, Table } from '@hypothesis/frontend-shared';
 
-import classnames from 'classnames';
-
 /**
  * @typedef {import('../api-types').File} File
  * @typedef {import("preact").ComponentChildren} Children
@@ -40,14 +38,13 @@ export default function FileList({
     },
     {
       label: 'Last modified',
-      classes: 'FileList__date-header',
+      classes: 'w-32',
     },
   ];
 
   return (
     <Table
       accessibleLabel="File list"
-      classes="FileList"
       emptyItemsMessage={noFilesMessage}
       tableHeaders={columns}
       isLoading={isLoading}
@@ -55,19 +52,15 @@ export default function FileList({
       selectedItem={selectedFile}
       onSelectItem={onSelectFile}
       onUseItem={onUseFile}
-      renderItem={(file, isSelected) => (
+      renderItem={file => (
         <>
           <td aria-label={file.display_name}>
-            <div className="hyp-u-layout-row--align-center hyp-u-horizontal-spacing hyp-u-padding--left--2">
+            <div className="flex flex-row items-center space-x-2">
               <Icon
                 name={file.type && file.type === 'Folder' ? 'folder' : 'pdf'}
-                classes={classnames('FileList__icon', {
-                  'is-selected': isSelected,
-                })}
+                classes="w-5 h-5"
               />
-              <div className="hyp-u-stretch u-line-height">
-                {file.display_name}
-              </div>
+              <div className="grow leading-snug">{file.display_name}</div>
             </div>
           </td>
           <td>{file.updated_at && formatDate(file.updated_at)}</td>
