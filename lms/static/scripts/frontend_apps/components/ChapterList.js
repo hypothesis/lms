@@ -34,7 +34,7 @@ export default function ChapterList({
     },
     {
       label: 'Page',
-      classes: 'ChapterList__page-heading',
+      classes: 'w-32',
     },
   ];
 
