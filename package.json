@@ -36,7 +36,7 @@
     "@rollup/plugin-node-resolve": "^13.1.1",
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-virtual": "^2.0.3",
-    "autoprefixer": "^10.4.0",
+    "autoprefixer": "^10.4.1",
     "classnames": "^2.3.1",
     "eslint-plugin-mocha": "^10.0.3",
     "eslint-plugin-react": "^7.28.0",
