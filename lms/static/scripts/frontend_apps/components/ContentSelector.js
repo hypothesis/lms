@@ -221,8 +221,8 @@ export default function ContentSelector({
   return (
     <>
       {isLoadingIndicatorVisible && <FullScreenSpinner />}
-      <div className="ContentSelector__actions">
-        <div className="ContentSelector__actions-buttons">
+      <div className="flex flex-row p-y-2">
+        <div className="flex flex-col space-y-1.5">
           <LabeledButton
             onClick={() => selectDialog('url')}
             type="button"
@@ -277,7 +277,10 @@ export default function ContentSelector({
             </LabeledButton>
           )}
         </div>
-        <div className="hyp-u-stretch" />
+        {/** This flex-grow element takes up remaining horizontal space so that
+         * buttons don't span full width unecessarily.
+         */}
+        <div className="grow" />
       </div>
       <div>{dialog}</div>
     </>
