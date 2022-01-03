@@ -100,7 +100,7 @@ describe('SubmitGradeForm', () => {
     assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
   });
 
-  it('clears out the previous grade when next students does not have a grade (`null` value)', async () => {
+  it('clears the displayed grade value if the currently-focused student has an empty grade', async () => {
     const wrapper = renderForm();
 
     await waitForGradeFetch(wrapper);
@@ -113,20 +113,7 @@ describe('SubmitGradeForm', () => {
     assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
   });
 
-  it('clears out the previous grade when next students does not have a grade (`undefined` value)', async () => {
-    const wrapper = renderForm();
-
-    await waitForGradeFetch(wrapper);
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
-
-    fakeGradingService.fetchGrade.resolves({});
-    wrapper.setProps({ student: fakeStudentAlt });
-    await waitForGradeFetch(wrapper);
-
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
-  });
-
-  it('display a zero score', async () => {
+  it("displays a focused-student's grade if it is 0 (zero)", async () => {
     fakeGradingService.fetchGrade.resolves({ currentScore: 0 });
     const wrapper = renderForm();
 
