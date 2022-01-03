@@ -65,13 +65,13 @@ export default function URLPicker({ onCancel, onSelectURL }) {
         <p>Enter the URL of any publicly available web page or PDF:</p>
         <form
           ref={form}
-          className="hyp-u-layout-row--align-center space-x-2"
+          className="flex flex-row items-center space-x-2"
           onSubmit={submit}
         >
           <label htmlFor="url">URL: </label>
 
           <TextInput
-            classes="hyp-u-stretch"
+            classes="grow"
             hasError={!!error}
             inputRef={input}
             name="url"
@@ -82,14 +82,13 @@ export default function URLPicker({ onCancel, onSelectURL }) {
         {/** setting a height here "preserves space" for this error display
          * and prevents the dialog size from jumping when an error is rendered */}
         <div
-          className="hyp-u-layout-row--center hyp-u-horizontal-spacing hyp-u-color--error"
+          className="h-4 flex flex-row items-center space-x-1 text-error"
           data-testid="error-message"
-          style="height: 1rem"
         >
           {!!error && (
             <>
               <Icon name="cancel" />
-              <div className="hyp-u-stretch">{error}</div>
+              <div className="grow">{error}</div>
             </>
           )}
         </div>
