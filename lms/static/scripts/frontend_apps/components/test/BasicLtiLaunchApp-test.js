@@ -40,14 +40,11 @@ describe('BasicLTILaunchApp', () => {
   }
 
   function contentHidden(wrapper) {
-    return waitForElement(wrapper, '.BasicLTILaunchApp__content.is-hidden');
+    return waitForElement(wrapper, '[data-testid="content-wrapper"].invisible');
   }
 
   function contentVisible(wrapper) {
-    return waitForElement(
-      wrapper,
-      '.BasicLTILaunchApp__content:not(.is-hidden)'
-    );
+    return waitForElement(wrapper, '[data-testid="content-wrapper"].visible');
   }
 
   beforeEach(() => {
