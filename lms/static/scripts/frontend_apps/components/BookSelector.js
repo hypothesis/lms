@@ -146,19 +146,17 @@ export default function BookSelector({
   };
 
   return (
-    <div className="hyp-u-layout-row hyp-u-horizontal-spacing BookSelector">
-      <div className="BookSelector__thumbnail">
-        <Thumbnail isLoading={isLoadingBook}>
-          {selectedBook && (
-            <img
-              alt={`Book cover for ${selectedBook.title}`}
-              src={selectedBook.cover_image}
-              data-testid="cover-image"
-            />
-          )}
-        </Thumbnail>
-      </div>
-      <div className="hyp-u-stretch hyp-u-vertical-spacing--3">
+    <div className="flex flex-row space-x-3">
+      <Thumbnail isLoading={isLoadingBook} classes="w-32 h-40">
+        {selectedBook && (
+          <img
+            alt={`Book cover for ${selectedBook.title}`}
+            src={selectedBook.cover_image}
+            data-testid="cover-image"
+          />
+        )}
+      </Thumbnail>
+      <div className="grow space-y-2">
         <div>
           Paste a link or ISBN for the VitalSource book you&apos;d like to use:
         </div>
@@ -183,23 +181,21 @@ export default function BookSelector({
 
         {selectedBook && (
           <div
-            className="hyp-u-layout-row--center hyp-u-horizontal-spacing--2"
+            className="flex flex-row items-center space-x-2"
             data-testid="selected-book"
           >
-            <Icon name="check" classes="hyp-u-color--success" />
-            <div className="hyp-u-stretch BookSelector__title">
-              {selectedBook.title}
-            </div>
+            <Icon name="check" classes="text-success" />
+            <div className="grow font-bold italic">{selectedBook.title}</div>
           </div>
         )}
 
         {error && (
           <div
-            className="hyp-u-layout-row--center hyp-u-horizontal-spacing--2 hyp-u-color--error"
+            className="flex flex-row items-center space-x-2 text-error"
             data-testid="error-message"
           >
             <Icon name="cancel" />
-            <div className="hyp-u-stretch">{error}</div>
+            <div className="grow">{error}</div>
           </div>
         )}
       </div>
