@@ -1,3 +1,5 @@
+import classnames from 'classnames';
+
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
 import { formatErrorDetails, formatErrorMessage } from '../errors';
@@ -47,12 +49,16 @@ function ErrorDetails({ error }) {
       onToggle={onDetailsToggle}
       data-testid="error-details"
     >
-      <summary className="hyp-u-bg-color--grey-1 hyp-u-padding ErrorDetails__summary">
+      <summary
+        className={classnames(
+          'sticky top-0',
+          'bg-grey-1 p-2 cursor-pointer',
+          'yp-u-outline-on-keyboard-focus--inset'
+        )}
+      >
         Error Details
       </summary>
-      <pre className="hyp-u-padding hyp-u-margin--0 ErrorDetails__details">
-        {details}
-      </pre>
+      <pre className="p-2 m-0 whitespace-pre-wrap break-words">{details}</pre>
     </details>
   );
 }
@@ -114,11 +120,15 @@ export default function ErrorDisplay({ children, description = '', error }) {
 
   return (
     <Scrollbox classes="LMS-Scrollbox">
-      <div className="hyp-u-vertical-spacing hyp-u-padding--top--4">
-        {message && <p data-testid="error-message">{toSentence(message)}</p>}
+      <div className="hyp-u-vertical-spacing pt-4 space-y-4">
+        {message && (
+          <p className="m-0" data-testid="error-message">
+            {toSentence(message)}
+          </p>
+        )}
 
         {children}
-        <p data-testid="error-links">
+        <p data-testid="error-links" className="m-0">
           If the problem persists, you can{' '}
           <Link href={supportURL(message, error)} target="_blank">
             open a support ticket
