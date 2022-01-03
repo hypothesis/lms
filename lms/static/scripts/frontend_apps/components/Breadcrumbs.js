@@ -32,7 +32,7 @@ export default function Breadcrumbs({
   const breadcrumbs = items.slice(0, -1);
   const currentItem = items[items.length - 1];
   return (
-    <ul className="Breadcrumbs hyp-u-layout-row">
+    <ul className="Breadcrumbs">
       {breadcrumbs.map((item, idx) => (
         <li className="Breadcrumbs__item Breadcrumbs__item--path" key={idx}>
           <LinkButton onClick={() => onSelectItem(item)}>

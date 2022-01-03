@@ -1,4 +1,6 @@
 .Breadcrumbs {
+  display: flex;
+  flex-direction: row;
   // Disable browser-default margin and padding for <ul>
   margin: 0;
   padding: 0;
