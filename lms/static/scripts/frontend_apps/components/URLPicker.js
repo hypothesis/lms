@@ -65,12 +65,10 @@ export default function URLPicker({ onCancel, onSelectURL }) {
         <p>Enter the URL of any publicly available web page or PDF:</p>
         <form
           ref={form}
-          className="hyp-u-layout-row--align-center"
+          className="hyp-u-layout-row--align-center space-x-2"
           onSubmit={submit}
         >
-          <label className="label" htmlFor="url">
-            URL:{' '}
-          </label>
+          <label htmlFor="url">URL: </label>
 
           <TextInput
             classes="hyp-u-stretch"

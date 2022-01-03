@@ -1,12 +1,7 @@
 @use 'normalize.css/normalize';
 
-// Shared classes
-@use 'utils';
-
 // HTML components
 @use 'components/browser-check-warning';
-@use 'components/heading';
-@use 'components/label';
 
 // Shared styles from frontend-shared package
 @use '@hypothesis/frontend-shared/styles';
