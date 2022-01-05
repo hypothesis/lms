@@ -13,6 +13,18 @@ export default {
         validationMessageOpen: 'validationMessageOpen 0.3s forwards',
         validationMessageClose: 'validationMessageClose 0.3s forwards',
       },
+      fontFamily: {
+        sans: [
+          '"Helvetica Neue"',
+          'Helvetica',
+          'Arial',
+          '"Lucida Grande"',
+          'sans-serif',
+        ],
+      },
+      fontSize: {
+        tiny: ['13px', { lineHeight: '15px' }], // Legacy body font size for LMS
+      },
       keyframes: {
         gradeSubmitSuccess: {
           from: { backgroundColor: tailwindConfig.theme.colors.success },
@@ -31,8 +43,5 @@ export default {
         'touch-minimum': '44px', // Equivalent to spacing 11; minimum touch-target size
       },
     },
-  },
-  corePlugins: {
-    preflight: false, // Disable Tailwind's CSS reset in the `base` layer
   },
 };

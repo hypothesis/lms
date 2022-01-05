@@ -69,7 +69,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
             A Canvas admin needs to edit {"Hypothesis's"} developer key and add
             these scopes:
           </p>
-          <ol>
+          <ol className="u-list--decimal">
             {canvasScopes.map(scope => (
               <li key={scope}>
                 <code>{scope}</code>
@@ -98,6 +98,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
           <p>
             For more information, please have your Blackboard admin read:{' '}
             <Link
+              classes="inline"
               target="_blank"
               href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
             >

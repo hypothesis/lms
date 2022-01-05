@@ -1,0 +1,17 @@
+// Enable Tailwind base layer. Apply CSS normalize & reset (Tailwind preflight)
+@use 'tailwindcss/base';
+
+// Element styles
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  // Base typography styling
+  body {
+    @apply font-sans;
+    @apply text-tiny;
+    @apply text-grey-9;
+  }
+}

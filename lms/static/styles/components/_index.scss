@@ -1,0 +1,28 @@
+// Enable Tailwind components layer
+@use 'tailwindcss/components';
+
+// Shared component styles from the frontend-shared package
+@use '@hypothesis/frontend-shared/styles';
+
+// Local customizations and overrides to shared component styles
+@use 'shared';
+
+// App Preact components
+@use 'Breadcrumbs';
+@use 'FilePickerApp';
+
+// HTML components
+@use 'browser-check-warning';
+
+// Reusable patterns for possible extraction
+@layer components {
+  // Apply basic styling to a list
+  .u-list {
+    @apply px-4 list-disc;
+  }
+
+  // Apply ordered-style to a list, with numbers
+  .u-list--decimal {
+    @apply u-list list-decimal;
+  }
+}

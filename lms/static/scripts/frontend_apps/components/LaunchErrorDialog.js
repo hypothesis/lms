@@ -58,7 +58,7 @@ export default function LaunchErrorDialog({
         >
           <p>This might have happened because:</p>
 
-          <ul>
+          <ul className="u-list">
             <li>
               The file has been deleted from Blackboard: an instructor needs to
               re-create the assignment with a new file
@@ -91,7 +91,7 @@ export default function LaunchErrorDialog({
             You might not have permission to read the file in Canvas. This could
             be because:
           </p>
-          <ul>
+          <ul className="u-list">
             <li>
               The file is marked as <i>Unpublished</i> in Canvas: an instructor
               needs to publish the file.
@@ -113,7 +113,7 @@ export default function LaunchErrorDialog({
         >
           <p>This might have happened because:</p>
 
-          <ul>
+          <ul className="u-list">
             <li>The file has been deleted from Canvas</li>
             <li>The course was copied from another course</li>
           </ul>
