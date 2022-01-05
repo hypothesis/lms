@@ -138,7 +138,9 @@ export default function FilePickerApp({ onSubmit }) {
         method="POST"
         onSubmit={onSubmit}
       >
-        <h1 className="FilePickerApp__heading">Assignment details</h1>
+        <h1 className="FilePickerApp__heading text-2xl font-bold">
+          Assignment details
+        </h1>
         <div className="FilePickerApp__left-col">Assignment content</div>
         <div className="FilePickerApp__right-col">
           {content ? (

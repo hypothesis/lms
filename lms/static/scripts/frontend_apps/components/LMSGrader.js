@@ -129,13 +129,10 @@ export default function LMSGrader({
         )}
       >
         <div>
-          <h1 className="text-lg p-0 m-0" data-testid="assignment-name">
+          <h1 className="text-lg font-bold" data-testid="assignment-name">
             {assignmentName}
           </h1>
-          <h2
-            className="text-base font-medium p-0 m-0"
-            data-testid="course-name"
-          >
+          <h2 className="text-base font-medium" data-testid="course-name">
             {courseName}
           </h2>
         </div>

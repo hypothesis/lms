@@ -1,0 +1,53 @@
+// CSS Entry point for the local pattern library for LMS.
+// These styles are used in addition to the `frontend_apps` stylesheet.
+
+// The `frontend_apps` CSS uses utility and component styles, but not pattern styles.
+// Include them here so that the patterns in the Patterns section of pages
+// are styled.
+@use '@hypothesis/frontend-shared/styles/patterns';
+// Include the CSS for the Library components themselves
+@use '@hypothesis/frontend-shared/styles/library';
+
+// Application CSS styles the containing main content block as a centered flex column.
+// This looks peculiar with the pattern-library pages, which vary in width,
+// so override it.
+.content {
+  display: block;
+}
+
+// The following styles are temporary until the Pattern Library has a CSS
+// reset and is updated for base styles
+.LibraryExample__content,
+.LMSLibrary__content {
+  font-size: 1rem;
+  line-height: 1.4;
+
+  p {
+    margin: 1rem 0;
+  }
+
+  ul {
+    list-style-type: disc;
+    padding: 0 1rem;
+  }
+}
+
+.Library__heading1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.Library__heading2 {
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.Library__heading3 {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.Library__heading4 {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}

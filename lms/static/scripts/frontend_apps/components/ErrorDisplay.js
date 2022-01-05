@@ -58,7 +58,7 @@ function ErrorDetails({ error }) {
       >
         Error Details
       </summary>
-      <pre className="p-2 m-0 whitespace-pre-wrap break-words">{details}</pre>
+      <pre className="p-2 whitespace-pre-wrap break-words">{details}</pre>
     </details>
   );
 }
@@ -120,15 +120,11 @@ export default function ErrorDisplay({ children, description = '', error }) {
 
   return (
     <Scrollbox classes="LMS-Scrollbox">
-      <div className="hyp-u-vertical-spacing pt-4 space-y-4">
-        {message && (
-          <p className="m-0" data-testid="error-message">
-            {toSentence(message)}
-          </p>
-        )}
+      <div className="pt-4 space-y-4">
+        {message && <p data-testid="error-message">{toSentence(message)}</p>}
 
         {children}
-        <p data-testid="error-links" className="m-0">
+        <p data-testid="error-links">
           If the problem persists, you can{' '}
           <Link href={supportURL(message, error)} target="_blank">
             open a support ticket

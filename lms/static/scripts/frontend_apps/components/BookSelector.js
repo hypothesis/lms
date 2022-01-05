@@ -157,9 +157,9 @@ export default function BookSelector({
         )}
       </Thumbnail>
       <div className="grow space-y-2">
-        <div>
+        <p>
           Paste a link or ISBN for the VitalSource book you&apos;d like to use:
-        </div>
+        </p>
 
         <TextInputWithButton>
           <TextInput

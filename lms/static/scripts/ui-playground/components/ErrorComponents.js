@@ -250,8 +250,10 @@ export default function ErrorComponents() {
               error={fakeError}
               description="This is an app-provided description"
             >
-              This is an example of prepared/canned text that can be rendered
-              depending on the error code at play.
+              <p>
+                This is an example of prepared/canned text that can be rendered
+                depending on the error code at play.
+              </p>
             </ErrorDisplay>
           </Library.Demo>
 
