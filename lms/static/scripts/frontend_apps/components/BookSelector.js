@@ -184,14 +184,14 @@ export default function BookSelector({
             className="flex flex-row items-center space-x-2"
             data-testid="selected-book"
           >
-            <Icon name="check" classes="text-success" />
+            <Icon name="check" classes="text-green-success" />
             <div className="grow font-bold italic">{selectedBook.title}</div>
           </div>
         )}
 
         {error && (
           <div
-            className="flex flex-row items-center space-x-2 text-error"
+            className="flex flex-row items-center space-x-2 text-red-error"
             data-testid="error-message"
           >
             <Icon name="cancel" />

@@ -82,7 +82,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
         {/** setting a height here "preserves space" for this error display
          * and prevents the dialog size from jumping when an error is rendered */}
         <div
-          className="h-4 flex flex-row items-center space-x-1 text-error"
+          className="h-4 flex flex-row items-center space-x-1 text-red-error"
           data-testid="error-message"
         >
           {!!error && (
