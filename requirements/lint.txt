@@ -377,7 +377,7 @@ python-dateutil==2.8.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   faker
-requests==2.26.0
+requests==2.27.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
