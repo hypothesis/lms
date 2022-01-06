@@ -45,7 +45,7 @@ python-dotenv==0.17.1
     # via docker-compose
 pyyaml==5.4.1
     # via docker-compose
-requests==2.26.0
+requests==2.27.1
     # via
     #   docker
     #   docker-compose

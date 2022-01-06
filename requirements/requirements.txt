@@ -132,7 +132,7 @@ pyramid-tm==2.4
     # via -r requirements/requirements.in
 pyrsistent==0.17.3
     # via jsonschema
-requests==2.26.0
+requests==2.27.1
     # via
     #   -r requirements/requirements.in
     #   requests-oauthlib
