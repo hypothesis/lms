@@ -43,7 +43,7 @@ export default function ValidationMessage({
       onClick={closeValidationError}
       className={classnames(
         'absolute z-10 h-touch-minimum shadow',
-        'text-white border-0 bg-error whitespace-nowrap overflow-hidden',
+        'text-white border-0 bg-red-error whitespace-nowrap overflow-hidden',
         // Narrow viewports position the message to the right of the input
         'left-full',
         // Sm and larger breakpoints position the message to the left of the input

@@ -13,6 +13,17 @@ export default {
         validationMessageOpen: 'validationMessageOpen 0.3s forwards',
         validationMessageClose: 'validationMessageClose 0.3s forwards',
       },
+      colors: {
+        green: {
+          success: '#00a36d',
+        },
+        yellow: {
+          notice: '#fbc168',
+        },
+        red: {
+          error: '#d93c3f',
+        },
+      },
       fontFamily: {
         sans: [
           '"Helvetica Neue"',
