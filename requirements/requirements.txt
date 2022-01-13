@@ -84,6 +84,8 @@ oauthlib==3.1.1
     # via
     #   -r requirements/requirements.in
     #   requests-oauthlib
+packaging==21.3
+    # via webargs
 pastedeploy==2.1.0
     # via plaster-pastedeploy
 plaster==1.0
@@ -107,6 +109,8 @@ pyjwt==2.3.0
     #   -r requirements/requirements.in
     #   h-vialib
     #   pyramid-googleauth
+pyparsing==3.0.6
+    # via packaging
 pyramid==2.0
     # via
     #   -r requirements/requirements.in
@@ -167,7 +171,7 @@ urllib3==1.26.5
     #   sentry-sdk
 venusian==3.0.0
     # via pyramid
-webargs==8.0.1
+webargs==8.1.0
     # via -r requirements/requirements.in
 webob==1.8.6
     # via

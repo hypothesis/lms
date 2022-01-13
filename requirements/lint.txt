@@ -227,12 +227,13 @@ oauthlib==3.1.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   requests-oauthlib
-packaging==20.9
+packaging==21.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pytest
+    #   webargs
 parse==1.19.0
     # via
     #   -r requirements/bddtests.txt
@@ -311,7 +312,7 @@ pyjwt==2.3.0
     #   pyramid-googleauth
 pylint==2.12.1
     # via -r requirements/lint.in
-pyparsing==2.4.7
+pyparsing==3.0.6
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -477,7 +478,7 @@ waitress==2.0.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   webtest
-webargs==8.0.1
+webargs==8.1.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
