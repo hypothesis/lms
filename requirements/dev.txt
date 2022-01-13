@@ -129,6 +129,10 @@ oauthlib==3.1.1
     # via
     #   -r requirements/requirements.txt
     #   requests-oauthlib
+packaging==21.3
+    # via
+    #   -r requirements/requirements.txt
+    #   webargs
 parso==0.8.2
     # via jedi
 pastedeploy==2.1.0
@@ -172,6 +176,10 @@ pyjwt==2.3.0
     #   -r requirements/requirements.txt
     #   h-vialib
     #   pyramid-googleauth
+pyparsing==3.0.6
+    # via
+    #   -r requirements/requirements.txt
+    #   packaging
 pyramid==2.0
     # via
     #   -r requirements/requirements.txt
@@ -263,7 +271,7 @@ venusian==3.0.0
     #   pyramid
 wcwidth==0.2.5
     # via prompt-toolkit
-webargs==8.0.1
+webargs==8.1.0
     # via -r requirements/requirements.txt
 webob==1.8.6
     # via

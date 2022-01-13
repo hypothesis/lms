@@ -126,8 +126,11 @@ oauthlib==3.1.1
     # via
     #   -r requirements/requirements.txt
     #   requests-oauthlib
-packaging==20.9
-    # via pytest
+packaging==21.3
+    # via
+    #   -r requirements/requirements.txt
+    #   pytest
+    #   webargs
 pastedeploy==2.1.0
     # via
     #   -r requirements/requirements.txt
@@ -163,8 +166,10 @@ pyjwt==2.3.0
     #   -r requirements/requirements.txt
     #   h-vialib
     #   pyramid-googleauth
-pyparsing==2.4.7
-    # via packaging
+pyparsing==3.0.6
+    # via
+    #   -r requirements/requirements.txt
+    #   packaging
 pyramid==2.0
     # via
     #   -r requirements/requirements.txt
@@ -253,7 +258,7 @@ venusian==3.0.0
     #   pyramid
 waitress==2.0.0
     # via webtest
-webargs==8.0.1
+webargs==8.1.0
     # via -r requirements/requirements.txt
 webob==1.8.6
     # via
