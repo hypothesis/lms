@@ -3,6 +3,7 @@ from pyramid.view import view_config
 from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import UserService
+from lms.validation import APIBlackboardSyncSchema
 
 
 class Sync:
@@ -11,7 +12,7 @@ class Sync:
         self.grouping_service = self.request.find_service(name="grouping")
         self.blackboard_api = self.request.find_service(name="blackboard_api_client")
 
-        self.tool_consumer_instance_guid = self.request.json["lms"][
+        self.tool_consumer_instance_guid = self.request.parsed_params["lms"][
             "tool_consumer_instance_guid"
         ]
 
@@ -20,6 +21,7 @@ class Sync:
         request_method="POST",
         renderer="json",
         permission=Permissions.API,
+        schema=APIBlackboardSyncSchema,
     )
     def sync(self):
         groups = self.get_blackboard_groups()
@@ -32,7 +34,7 @@ class Sync:
     def get_blackboard_groups(self):
         lti_user = self.request.lti_user
         group_set_id = self.group_set()
-        course_id = self.request.json["course"]["context_id"]
+        course_id = self.request.parsed_params["course"]["context_id"]
         course = self.get_course(course_id)
 
         if lti_user.is_learner:
@@ -48,7 +50,7 @@ class Sync:
             self.grouping_service.upsert_grouping_memberships(user, groups)
             return groups
 
-        if grading_student_id := self.request.json.get("gradingStudentId"):
+        if grading_student_id := self.request.parsed_params.get("gradingStudentId"):
             return self.grouping_service.get_course_groupings_for_user(
                 course,
                 grading_student_id,
@@ -64,7 +66,7 @@ class Sync:
             self.request.find_service(name="assignment")
             .get(
                 self.tool_consumer_instance_guid,
-                self.request.json["assignment"]["resource_link_id"],
+                self.request.parsed_params["assignment"]["resource_link_id"],
             )
             .extra["group_set_id"]
         )
@@ -84,7 +86,7 @@ class Sync:
 
     def sync_to_h(self, groups):
         lti_h_svc = self.request.find_service(name="lti_h")
-        group_info = self.request.json["group_info"]
+        group_info = self.request.parsed_params["group_info"]
         lti_h_svc.sync(groups, group_info)
 
     def get_course(self, course_id):
