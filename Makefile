@@ -105,7 +105,28 @@ docker:
 
 .PHONY: run-docker
 run-docker:
-	@tox -e dockercompose -- up --force-recreate web
+	# To run the Docker container locally, first build the Docker image using
+	# `make docker` and then set the environment variables below to appropriate
+	# values (see conf/development.ini for non-production quality examples).
+	@docker run \
+		--net lms_default \
+		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
+		-e FEATURE_FLAGS_COOKIE_SECRET \
+		-e H_API_URL_PRIVATE \
+		-e H_API_URL_PUBLIC \
+		-e H_AUTHORITY \
+		-e H_CLIENT_ID \
+		-e H_CLIENT_SECRET  \
+		-e H_JWT_CLIENT_ID \
+		-e H_JWT_CLIENT_SECRET \
+		-e JWT_SECRET \
+		-e LMS_SECRET \
+		-e RPC_ALLOWED_ORIGINS \
+		-e VIA_URL \
+		-e SESSION_COOKIE_SECRET \
+		-e OAUTH2_STATE_SECRET \
+		-p 8001:8001 \
+		hypothesis/lms:$(DOCKER_TAG)
 
 .PHONY: backend-lint
 backend-lint: python
