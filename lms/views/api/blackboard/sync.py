@@ -4,6 +4,19 @@ from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import UserService
 from lms.validation import APIBlackboardSyncSchema
+from lms.views.api.exceptions import GroupError
+
+
+class BlackboardStudentNotInGroup(GroupError):
+    """Student doesn't belong to any of the groups in a group set assignment."""
+
+    error_code = "blackboard_student_not_in_group"
+
+
+class BlackboardGroupSetEmpty(GroupError):
+    """Canvas GroupSet doesn't contain any groups."""
+
+    error_code = "blackboard_group_set_empty"
 
 
 class Sync:
@@ -46,6 +59,9 @@ class Sync:
             learner_groups = self.blackboard_api.course_groups(
                 course_id, group_set_id, current_student_own_groups_only=True
             )
+            if not learner_groups:
+                raise BlackboardStudentNotInGroup(group_set=group_set_id)
+
             groups = self.to_groups_groupings(course, learner_groups)
             self.grouping_service.upsert_grouping_memberships(user, groups)
             return groups
@@ -59,6 +75,9 @@ class Sync:
             )
 
         groups = self.blackboard_api.group_set_groups(course_id, group_set_id)
+        if not groups:
+            raise BlackboardGroupSetEmpty(group_set=group_set_id)
+
         return self.to_groups_groupings(course, groups)
 
     def group_set(self):
