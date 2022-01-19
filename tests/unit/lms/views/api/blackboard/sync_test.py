@@ -42,7 +42,7 @@ def test_it_when_student(
 
     assert_sync_and_return_groups(result, groups=groups)
     blackboard_api_client.course_groups.assert_called_once_with(
-        pyramid_request.json["course"]["context_id"],
+        pyramid_request.parsed_params["course"]["context_id"],
         "GROUP_SET_ID",
         current_student_own_groups_only=True,
     )
@@ -59,7 +59,7 @@ def test_it_when_grading(
     course_service,
     assignment_service,
 ):
-    pyramid_request.json["gradingStudentId"] = "GRADING_STUDENT_ID"
+    pyramid_request.parsed_params["gradingStudentId"] = "GRADING_STUDENT_ID"
     grouping_service.get_course_groupings_for_user.return_value = [Mock()]
 
     result = Sync(pyramid_request).sync()
@@ -133,5 +133,5 @@ def assignment_service(assignment_service):
 
 @pytest.fixture
 def pyramid_request(pyramid_request, request_json):
-    pyramid_request.json = request_json
+    pyramid_request.parsed_params = request_json
     return pyramid_request
