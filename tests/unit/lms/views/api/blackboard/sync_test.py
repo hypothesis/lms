@@ -3,7 +3,11 @@ from unittest.mock import Mock
 import pytest
 
 from lms.models import Grouping
-from lms.views.api.blackboard.sync import Sync
+from lms.views.api.blackboard.sync import (
+    BlackboardGroupSetEmpty,
+    BlackboardStudentNotInGroup,
+    Sync,
+)
 from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
@@ -25,6 +29,14 @@ def test_it_when_instructor(
     result = Sync(pyramid_request).sync()
 
     assert_sync_and_return_groups(result, groups=groups)
+
+
+@pytest.mark.usefixtures("user_is_instructor")
+def test_it_when_instructor_and_group_set_empty(pyramid_request, blackboard_api_client):
+    blackboard_api_client.group_set_groups.return_value = []
+
+    with pytest.raises(BlackboardGroupSetEmpty):
+        Sync(pyramid_request).sync()
 
 
 @pytest.mark.usefixtures("user_is_learner", "application_instance_service")
@@ -50,6 +62,16 @@ def test_it_when_student(
         user_service.get.return_value,
         [grouping_service.upsert_with_parent.return_value for _ in groups],
     )
+
+
+@pytest.mark.usefixtures(
+    "user_is_learner", "application_instance_service", "user_service"
+)
+def test_it_when_student_not_in_group(blackboard_api_client, pyramid_request):
+    blackboard_api_client.course_groups.return_value = []
+
+    with pytest.raises(BlackboardStudentNotInGroup):
+        Sync(pyramid_request).sync()
 
 
 @pytest.mark.usefixtures("user_service", "user_is_instructor")
