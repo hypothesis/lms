@@ -177,13 +177,15 @@ def httpretty_():
 
 
 @pytest.fixture
-def application_instance(pyramid_request):
-    return factories.ApplicationInstance(
+def application_instance(db_session, pyramid_request):
+    ai = factories.ApplicationInstance(
         consumer_key=pyramid_request.lti_user.oauth_consumer_key,
         developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
         settings=ApplicationSettings({}),
     )
+    db_session.flush()
+    return ai
 
 
 @pytest.fixture

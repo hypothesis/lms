@@ -12,17 +12,6 @@ class File(CreatedUpdatedMixin, BASE):
         sa.UniqueConstraint("application_instance_id", "lms_id", "type", "course_id"),
     )
 
-    # Enable bulk actions
-    BULK_CONFIG = BulkAction.Config(
-        upsert_index_elements=[
-            "application_instance_id",
-            "lms_id",
-            "type",
-            "course_id",
-        ],
-        upsert_update_elements=["name", "size"],
-    )
-
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
     """Primary key"""
 

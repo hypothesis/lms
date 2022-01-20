@@ -1,13 +1,14 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
-from pyramid.registry import Registry
 
-from lms.events import FilesDiscoveredEvent
+from lms.models import File
 from lms.services import CanvasAPIError, CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
+
+pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestCanvasAPIClientGetToken:
@@ -388,9 +389,9 @@ class TestCanvasAPIClient:
 
         assert response == [files[0]]
 
-    def test_list_files_emits_event(self, canvas_api_client, http_session, registry):
-        # pylint: disable=protected-access
-        canvas_api_client._request.registry = registry
+    def test_list_files_upserts_files(
+        self, canvas_api_client, http_session, bulk_upsert, application_instance_service
+    ):
         files = [
             {
                 "id": i,
@@ -406,20 +407,22 @@ class TestCanvasAPIClient:
 
         canvas_api_client.list_files("COURSE_ID")
 
-        canvas_api_client._request.registry.notify.assert_called_once_with(
-            FilesDiscoveredEvent(
-                request=canvas_api_client._request,
-                values=[
-                    {
-                        "type": "canvas_file",
-                        "course_id": "COURSE_ID",
-                        "lms_id": file["id"],
-                        "name": file["display_name"],
-                        "size": file["size"],
-                    }
-                    for file in files
-                ],
-            )
+        bulk_upsert.assert_called_once_with(
+            canvas_api_client._request.db,  # pylint:disable=protected-access
+            File,
+            [
+                {
+                    "application_instance_id": application_instance_service.get_current.return_value.id,
+                    "type": "canvas_file",
+                    "course_id": "COURSE_ID",
+                    "lms_id": file["id"],
+                    "name": file["display_name"],
+                    "size": file["size"],
+                }
+                for file in files
+            ],
+            ["application_instance_id", "lms_id", "type", "course_id"],
+            ["name", "size"],
         )
 
     def test_public_url(self, canvas_api_client, http_session):
@@ -436,10 +439,6 @@ class TestCanvasAPIClient:
             ),
             timeout=Any(),
         )
-
-    @pytest.fixture
-    def registry(self):
-        return create_autospec(Registry, instance=True, spec_set=True)
 
     @pytest.fixture
     def list_groups_response(self, http_session):
@@ -534,3 +533,8 @@ class TestMetaBehavior:
 @pytest.fixture
 def canvas_api_client(authenticated_client, pyramid_request):
     return CanvasAPIClient(authenticated_client, pyramid_request)
+
+
+@pytest.fixture(autouse=True)
+def bulk_upsert(patch):
+    return patch("lms.services.canvas_api.client.bulk_upsert")

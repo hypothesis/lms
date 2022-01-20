@@ -2,9 +2,8 @@ from unittest.mock import MagicMock, Mock, call, create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
-from pyramid.registry import Registry
 
-from lms.events import FilesDiscoveredEvent
+from lms.models import File
 from lms.services.blackboard_api._basic import BasicClient
 from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
@@ -12,6 +11,8 @@ from lms.services.blackboard_api.client import (
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
 from tests import factories
+
+pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestGetToken:
@@ -130,11 +131,16 @@ class TestListFiles:
         )
 
     @pytest.mark.parametrize("size,type_", [(1, "File"), (3, "File"), (3, "Folder")])
-    def test_it_emits_files_discover_event(
-        self, svc, basic_client, blackboard_list_files_schema, registry, size, type_
+    def test_it_upserts_files(
+        self,
+        svc,
+        basic_client,
+        blackboard_list_files_schema,
+        bulk_upsert,
+        size,
+        type_,
+        application_instance_service,
     ):
-        # pylint: disable=protected-access
-        svc._request.registry = registry
         basic_client.request.return_value = factories.requests.Response(json_data={})
         blackboard_list_files_schema.parse.return_value = [
             self.blackboard_file_dict(id_, type_=type_) for id_ in range(size)
@@ -142,21 +148,23 @@ class TestListFiles:
 
         svc.list_files("COURSE_ID")
 
-        svc._request.registry.notify.assert_called_once_with(
-            FilesDiscoveredEvent(
-                request=svc._request,
-                values=[
-                    Any.dict.containing(
-                        {
-                            "lms_id": id_ + 1,
-                            "type": "blackboard_file"
-                            if type_ == "File"
-                            else "blackboard_folder",
-                        }
-                    )
-                    for id_ in range(size)
-                ],
-            )
+        bulk_upsert.assert_called_once_with(
+            svc._request.db,  # pylint:disable=protected-access
+            File,
+            [
+                Any.dict.containing(
+                    {
+                        "application_instance_id": application_instance_service.get_current.return_value.id,
+                        "lms_id": id_ + 1,
+                        "type": "blackboard_file"
+                        if type_ == "File"
+                        else "blackboard_folder",
+                    }
+                )
+                for id_ in range(size)
+            ],
+            ["application_instance_id", "lms_id", "type", "course_id"],
+            ["name", "size"],
         )
 
     def blackboard_file_dict(self, id_=1, type_="File"):
@@ -168,10 +176,6 @@ class TestListFiles:
             "size": id_ * 2,
             "parentId": id_ * 4,
         }
-
-    @pytest.fixture
-    def registry(self):
-        return create_autospec(Registry, instance=True, spec_set=True)
 
 
 class TestPublicURL:
@@ -389,3 +393,8 @@ def blackboard_list_groups(BlackboardListGroups):
 @pytest.fixture(autouse=True)
 def BlackboardListGroups(patch):
     return patch("lms.services.blackboard_api.client.BlackboardListGroups")
+
+
+@pytest.fixture(autouse=True)
+def bulk_upsert(patch):
+    return patch("lms.services.blackboard_api.client.bulk_upsert")

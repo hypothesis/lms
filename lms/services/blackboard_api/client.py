@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from lms.events import FilesDiscoveredEvent
+from lms.models import File
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardListGroups,
@@ -8,6 +8,7 @@ from lms.services.blackboard_api._schemas import (
     BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
+from lms.services.upsert import bulk_upsert
 
 # The maxiumum number of paginated requests we'll make before returning.
 PAGINATION_MAX_REQUESTS = 25
@@ -63,24 +64,29 @@ class BlackboardAPIClient:
             if not path:
                 break
 
-        # Notify that we've found some files
-        self._request.registry.notify(
-            FilesDiscoveredEvent(
-                request=self._request,
-                values=[
-                    {
-                        "type": "blackboard_file"
-                        if file["type"] == "File"
-                        else "blackboard_folder",
-                        "course_id": course_id,
-                        "lms_id": file["id"],
-                        "name": file["name"],
-                        "size": file["size"],
-                        "parent_lms_id": file["parentId"],
-                    }
-                    for file in results
-                ],
-            )
+        application_instance = self._request.find_service(
+            name="application_instance"
+        ).get_current()
+
+        bulk_upsert(
+            self._request.db,
+            File,
+            [
+                {
+                    "application_instance_id": application_instance.id,
+                    "type": "blackboard_file"
+                    if file["type"] == "File"
+                    else "blackboard_folder",
+                    "course_id": course_id,
+                    "lms_id": file["id"],
+                    "name": file["name"],
+                    "size": file["size"],
+                    "parent_lms_id": file["parentId"],
+                }
+                for file in results
+            ],
+            ["application_instance_id", "lms_id", "type", "course_id"],
+            ["name", "size"],
         )
 
         return results

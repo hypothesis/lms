@@ -17,7 +17,8 @@ def bulk_upsert(  # pylint:disable=too-many-arguments
     use_onupdate=False,
 ):
     """
-    Create or update the specified values in the table.
+    Create or update the specified values in a table.
+
     :param db: An SQLAlchemy session
     :param model_class: The model type to upsert
     :param values: Dicts of values to upsert
