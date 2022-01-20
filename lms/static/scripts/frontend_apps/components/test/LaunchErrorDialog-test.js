@@ -65,11 +65,20 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'canvas_group_set_not_found',
       expectedText:
-        "Hypothesis couldn't load this assignment because the assignment's group set no longer exists in Canvas.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.",
-      expectedTitle: "Assignment's group set no longer exists in Canvas",
+        "Hypothesis couldn't load this assignment because the assignment's group set no longer exists.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.",
+      expectedTitle: "Assignment's group set no longer exists",
       hasRetry: false,
       withError: true,
     },
+    {
+      errorState: 'blackboard_group_set_not_found',
+      expectedText:
+        "Hypothesis couldn't load this assignment because the assignment's group set no longer exists.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.",
+      expectedTitle: "Assignment's group set no longer exists",
+      hasRetry: false,
+      withError: true,
+    },
+
     {
       errorState: 'blackboard_group_set_empty',
       expectedText: 'The group set for this Hypothesis assignment is empty',
