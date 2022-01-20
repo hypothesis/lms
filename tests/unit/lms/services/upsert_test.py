@@ -3,18 +3,16 @@ import sqlalchemy as sa
 from h_matchers import Any
 from sqlalchemy.engine import CursorResult
 
-from lms.db import BASE, BulkAction
+from lms.db import BASE
+from lms.services.upsert import bulk_upsert
 
 
 class TestBulkAction:
+    INDEX_ELEMENTS = ["id"]
+    UPDATE_COLUMNS = ["name"]
+
     class TableWithBulkUpsert(BASE):
         __tablename__ = "test_table_with_bulk_upsert"
-
-        BULK_CONFIG = BulkAction.Config(
-            upsert_index_elements=["id"],
-            upsert_update_elements=["name"],
-            upsert_use_onupdate=False,
-        )
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.String, nullable=False)
@@ -35,13 +33,16 @@ class TestBulkAction:
         )
         db_session.flush()
 
-        result = BulkAction(db_session).upsert(
+        result = bulk_upsert(
+            db_session,
             self.TableWithBulkUpsert,
             [
                 {"id": 1, "name": "update_old", "other": "post_1"},
                 {"id": 3, "name": "create_with_id", "other": "post_3"},
                 {"id": 4, "name": "over_block_size", "other": "post_4"},
             ],
+            self.INDEX_ELEMENTS,
+            self.UPDATE_COLUMNS,
         )
 
         assert isinstance(result, CursorResult)
@@ -55,10 +56,18 @@ class TestBulkAction:
         )
 
     def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
-        assert BulkAction(db_session).upsert(self.TableWithBulkUpsert, []) == []
+        assert (
+            bulk_upsert(
+                db_session,
+                self.TableWithBulkUpsert,
+                [],
+                self.INDEX_ELEMENTS,
+                self.UPDATE_COLUMNS,
+            )
+            == []
+        )
 
     @pytest.mark.parametrize("column", ("scalar", "callable", "sql", "default"))
-    @pytest.mark.usefixtures("with_upsert_use_onupdate")
     def test_upsert_with_onupdate_columns(self, db_session, column):
         db_session.add_all(
             [
@@ -68,8 +77,13 @@ class TestBulkAction:
         )
         db_session.flush()
 
-        BulkAction(db_session).upsert(
-            self.TableWithBulkUpsert, [{"id": 1, "name": "update_existing"}]
+        bulk_upsert(
+            db_session,
+            self.TableWithBulkUpsert,
+            [{"id": 1, "name": "update_existing"}],
+            self.INDEX_ELEMENTS,
+            self.UPDATE_COLUMNS,
+            True,
         )
 
         self.assert_has_rows(
@@ -78,21 +92,6 @@ class TestBulkAction:
             {"id": 1, "name": "update_existing", column: 42},
             {"id": 2, "name": "pre_existing_2", column: 1},
         )
-
-    def test_it_fails_with_missing_config(self, db_session):
-        with pytest.raises(AttributeError):
-            BulkAction(db_session).upsert(
-                "object_without_config", [{"id": 1, "name": "name", "other": "other"}]
-            )
-
-    def test_you_cannot_add_config_with_the_wrong_name(self):
-        # Not sure why this isn't ValueError... must be a descriptor thing
-        with pytest.raises(RuntimeError):
-
-            class MisconfiguredModel:  # pylint: disable=unused-variable
-                NOT_THE_RIGHT_NAME = BulkAction.Config(
-                    upsert_index_elements=["id"], upsert_update_elements=["name"]
-                )
 
     def assert_has_rows(self, db_session, *attrs):
         rows = list(db_session.query(self.TableWithBulkUpsert))
@@ -106,9 +105,3 @@ class TestBulkAction:
                 ]
             ).only()
         )
-
-    @pytest.fixture
-    def with_upsert_use_onupdate(self):
-        self.TableWithBulkUpsert.BULK_CONFIG.upsert_use_onupdate = True
-        yield
-        self.TableWithBulkUpsert.BULK_CONFIG.upsert_use_onupdate = False
