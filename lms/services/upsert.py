@@ -1,10 +1,10 @@
 """A helper for upserting into DB tables."""
 
-from typing import List
 from copy import deepcopy
+from typing import List
 
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed
 
 

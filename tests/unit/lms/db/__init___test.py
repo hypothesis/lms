@@ -2,7 +2,6 @@ import pytest
 import sqlalchemy as sa
 
 from lms.db import BASE
-from lms.db._bulk_action import BulkAction
 
 
 class Child(BASE):
@@ -68,8 +67,3 @@ class TestBase:
     @pytest.fixture
     def model(self):
         return ModelClass(id=1234, column="original_value")
-
-
-class TestCustomSession:
-    def test_it_adds_bulk_object(self, db_session):
-        assert isinstance(db_session.bulk, BulkAction)
