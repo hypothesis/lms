@@ -3,6 +3,7 @@ from pyramid.view import view_config
 from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import UserService
+from lms.services.exceptions import ExternalRequestError
 from lms.validation import APIBlackboardSyncSchema
 from lms.views.api.exceptions import GroupError
 
@@ -17,6 +18,10 @@ class BlackboardGroupSetEmpty(GroupError):
     """Canvas GroupSet doesn't contain any groups."""
 
     error_code = "blackboard_group_set_empty"
+
+
+class BlackboardGroupSetNotFound(GroupError):
+    error_code = "blackboard_group_set_not_found"
 
 
 class Sync:
@@ -74,7 +79,16 @@ class Sync:
                 group_set_id=group_set_id,
             )
 
-        groups = self.blackboard_api.group_set_groups(course_id, group_set_id)
+        try:
+            groups = self.blackboard_api.group_set_groups(course_id, group_set_id)
+        except ExternalRequestError as bb_api_error:
+            if bb_api_error.status_code == 404:
+                raise BlackboardGroupSetNotFound(
+                    group_set=group_set_id
+                ) from bb_api_error
+
+            raise bb_api_error
+
         if not groups:
             raise BlackboardGroupSetEmpty(group_set=group_set_id)
 

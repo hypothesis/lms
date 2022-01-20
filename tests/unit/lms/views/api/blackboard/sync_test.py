@@ -3,8 +3,10 @@ from unittest.mock import Mock
 import pytest
 
 from lms.models import Grouping
+from lms.services.exceptions import ExternalRequestError
 from lms.views.api.blackboard.sync import (
     BlackboardGroupSetEmpty,
+    BlackboardGroupSetNotFound,
     BlackboardStudentNotInGroup,
     Sync,
 )
@@ -36,6 +38,30 @@ def test_it_when_instructor_and_group_set_empty(pyramid_request, blackboard_api_
     blackboard_api_client.group_set_groups.return_value = []
 
     with pytest.raises(BlackboardGroupSetEmpty):
+        Sync(pyramid_request).sync()
+
+
+@pytest.mark.usefixtures("user_is_instructor")
+def test_it_when_instructor_and_group_set_not_found(
+    pyramid_request, blackboard_api_client
+):
+    blackboard_api_client.group_set_groups.side_effect = ExternalRequestError(
+        response=Mock(status_code=404)
+    )
+
+    with pytest.raises(BlackboardGroupSetNotFound):
+        Sync(pyramid_request).sync()
+
+
+@pytest.mark.usefixtures("user_is_instructor")
+def test_it_when_instructor_and_group_set_raises(
+    pyramid_request, blackboard_api_client
+):
+    blackboard_api_client.group_set_groups.side_effect = ExternalRequestError(
+        response=Mock(status_code=500)
+    )
+
+    with pytest.raises(ExternalRequestError):
         Sync(pyramid_request).sync()
 
 
