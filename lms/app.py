@@ -98,7 +98,6 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.services")
     config.include("lms.validation")
     config.include("lms.tweens")
-    config.scan("lms.events")
     config.add_static_view(name="export", path="lms:static/export")
     config.add_static_view(name="static", path="lms:static")
 

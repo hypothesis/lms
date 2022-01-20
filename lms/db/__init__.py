@@ -10,7 +10,6 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
-
 __all__ = ("BASE", "init")
 
 
@@ -118,15 +117,7 @@ def make_engine(settings):
     return sqlalchemy.create_engine(settings["sqlalchemy.url"])
 
 
-class CustomSession(Session):
-    @cached_property
-    def bulk(self):
-        """Get an object for performing bulk actions."""
-
-        return BulkAction(self)
-
-
-SESSION = sessionmaker(class_=CustomSession)
+SESSION = sessionmaker()
 
 
 def _session(request):  # pragma: no cover
