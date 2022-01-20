@@ -10,9 +10,8 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
-from lms.db._bulk_action import BulkAction
 
-__all__ = ("BASE", "init", "BulkAction")
+__all__ = ("BASE", "init")
 
 
 LOG = logging.getLogger(__name__)
