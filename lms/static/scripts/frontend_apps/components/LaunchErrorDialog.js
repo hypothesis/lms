@@ -131,16 +131,17 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'blackboard_group_set_not_found':
     case 'canvas_group_set_not_found':
       return (
         <ErrorModal
           busy={busy}
           error={error}
-          title="Assignment's group set no longer exists in Canvas"
+          title="Assignment's group set no longer exists"
         >
           <p>
             Hypothesis couldn&apos;t load this assignment because the
-            assignment&apos;s group set no longer exists in Canvas.
+            assignment&apos;s group set no longer exists.
           </p>
           <p>
             <b>

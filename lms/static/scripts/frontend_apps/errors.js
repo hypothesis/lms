@@ -5,6 +5,7 @@
  *
  * @typedef {'blackboard_file_not_found_in_course'|
  *           'blackboard_group_set_empty' |
+ *           'blackboard_group_set_not_found' |
  *           'blackboard_student_not_in_group' |
  *           'canvas_api_permission_error'|
  *           'canvas_file_not_found_in_course'|
@@ -113,6 +114,7 @@ export function isLTILaunchServerError(error) {
     [
       'blackboard_file_not_found_in_course',
       'blackboard_group_set_empty',
+      'blackboard_group_set_not_found',
       'blackboard_student_not_in_group',
       'canvas_api_permission_error',
       'canvas_file_not_found_in_course',
