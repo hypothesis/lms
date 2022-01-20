@@ -419,7 +419,7 @@ soupsieve==2.2.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   beautifulsoup4
-sqlalchemy==1.4.29
+sqlalchemy==1.4.30
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
