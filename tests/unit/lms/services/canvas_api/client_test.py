@@ -3,12 +3,9 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import File
 from lms.services import CanvasAPIError, CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api.client import CanvasAPIClient
 from tests import factories
-
-pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestCanvasAPIClientGetToken:
@@ -390,7 +387,10 @@ class TestCanvasAPIClient:
         assert response == [files[0]]
 
     def test_list_files_upserts_files(
-        self, canvas_api_client, http_session, bulk_upsert, application_instance_service
+        self,
+        canvas_api_client,
+        http_session,
+        file_service,
     ):
         files = [
             {
@@ -407,12 +407,9 @@ class TestCanvasAPIClient:
 
         canvas_api_client.list_files("COURSE_ID")
 
-        bulk_upsert.assert_called_once_with(
-            canvas_api_client._request.db,  # pylint:disable=protected-access
-            File,
+        file_service.upsert.assert_called_once_with(
             [
                 {
-                    "application_instance_id": application_instance_service.get_current.return_value.id,
                     "type": "canvas_file",
                     "course_id": "COURSE_ID",
                     "lms_id": file["id"],
@@ -420,9 +417,7 @@ class TestCanvasAPIClient:
                     "size": file["size"],
                 }
                 for file in files
-            ],
-            ["application_instance_id", "lms_id", "type", "course_id"],
-            ["name", "size"],
+            ]
         )
 
     def test_public_url(self, canvas_api_client, http_session):
@@ -531,10 +526,5 @@ class TestMetaBehavior:
 
 
 @pytest.fixture
-def canvas_api_client(authenticated_client, pyramid_request):
-    return CanvasAPIClient(authenticated_client, pyramid_request)
-
-
-@pytest.fixture(autouse=True)
-def bulk_upsert(patch):
-    return patch("lms.services.canvas_api.client.bulk_upsert")
+def canvas_api_client(authenticated_client, file_service):
+    return CanvasAPIClient(authenticated_client, file_service)

@@ -1,4 +1,5 @@
 from lms.models import File
+from lms.services.upsert import bulk_upsert
 
 
 class FileService:
@@ -16,6 +17,19 @@ class FileService:
                 type=type_,
             )
             .one_or_none()
+        )
+
+    def upsert(self, values):
+        """Inset or update a batch of files."""
+        for value in values:
+            value["application_instance_id"] = self._application_instance.id
+
+        return bulk_upsert(
+            self._db,
+            File,
+            values,
+            index_elements=["application_instance_id", "lms_id", "type", "course_id"],
+            update_columns=["name", "size"],
         )
 
 

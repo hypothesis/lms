@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock, call, create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import File
 from lms.services.blackboard_api._basic import BasicClient
 from lms.services.blackboard_api.client import (
     PAGINATION_MAX_REQUESTS,
@@ -11,8 +10,6 @@ from lms.services.blackboard_api.client import (
 )
 from lms.services.exceptions import BlackboardFileNotFoundInCourse, ExternalRequestError
 from tests import factories
-
-pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestGetToken:
@@ -136,10 +133,9 @@ class TestListFiles:
         svc,
         basic_client,
         blackboard_list_files_schema,
-        bulk_upsert,
+        file_service,
         size,
         type_,
-        application_instance_service,
     ):
         basic_client.request.return_value = factories.requests.Response(json_data={})
         blackboard_list_files_schema.parse.return_value = [
@@ -148,13 +144,10 @@ class TestListFiles:
 
         svc.list_files("COURSE_ID")
 
-        bulk_upsert.assert_called_once_with(
-            svc._request.db,  # pylint:disable=protected-access
-            File,
+        file_service.upsert.assert_called_once_with(
             [
                 Any.dict.containing(
                     {
-                        "application_instance_id": application_instance_service.get_current.return_value.id,
                         "lms_id": id_ + 1,
                         "type": "blackboard_file"
                         if type_ == "File"
@@ -162,9 +155,7 @@ class TestListFiles:
                     }
                 )
                 for id_ in range(size)
-            ],
-            ["application_instance_id", "lms_id", "type", "course_id"],
-            ["name", "size"],
+            ]
         )
 
     def blackboard_file_dict(self, id_=1, type_="File"):
@@ -351,8 +342,8 @@ def basic_client():
 
 
 @pytest.fixture
-def svc(basic_client, pyramid_request):
-    return BlackboardAPIClient(basic_client, pyramid_request)
+def svc(basic_client, pyramid_request, file_service):
+    return BlackboardAPIClient(basic_client, pyramid_request, file_service)
 
 
 @pytest.fixture(autouse=True)
@@ -393,8 +384,3 @@ def blackboard_list_groups(BlackboardListGroups):
 @pytest.fixture(autouse=True)
 def BlackboardListGroups(patch):
     return patch("lms.services.blackboard_api.client.BlackboardListGroups")
-
-
-@pytest.fixture(autouse=True)
-def bulk_upsert(patch):
-    return patch("lms.services.blackboard_api.client.bulk_upsert")

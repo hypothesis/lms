@@ -5,18 +5,18 @@ import pytest
 from lms.services.canvas_api.factory import canvas_api_client_factory
 
 pytestmark = pytest.mark.usefixtures(
-    "application_instance_service", "oauth2_token_service"
+    "application_instance_service", "oauth2_token_service", "file_service"
 )
 
 
 class TestCanvasAPIClientFactory:
     def test_building_the_CanvasAPIClient(
-        self, pyramid_request, CanvasAPIClient, AuthenticatedClient
+        self, pyramid_request, CanvasAPIClient, AuthenticatedClient, file_service
     ):
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
         CanvasAPIClient.assert_called_once_with(
-            AuthenticatedClient.return_value, pyramid_request
+            AuthenticatedClient.return_value, file_service
         )
         assert canvas_api == CanvasAPIClient.return_value
 
