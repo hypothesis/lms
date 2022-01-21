@@ -82,6 +82,7 @@ class ExternalRequestError(Exception):
         return (
             f"{class_name}("
             f"message={self.message!r}, "
+            f"cause={self.__cause__!r}, "
             f"request={request}, "
             f"response={response}, "
             f"validation_errors={self.validation_errors!r})"

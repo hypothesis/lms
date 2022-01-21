@@ -62,6 +62,7 @@ class TestExternalRequestError:
         assert json_data == {
             "message": context.message,
             "details": {
+                "cause": "ValueError('foo')",
                 "request": {
                     "method": context.method,
                     "url": "https://example.com/",  # The URL without query string.
@@ -84,7 +85,7 @@ class TestExternalRequestError:
 
     @pytest.fixture
     def context(self):
-        return ExternalRequestError(
+        context = ExternalRequestError(
             message="test_message",
             request=requests.Request(
                 "GET", "https://example.com?foo=bar", data="request_body"
@@ -94,6 +95,8 @@ class TestExternalRequestError:
             ),
             validation_errors=sentinel.validation_errors,
         )
+        context.__cause__ = ValueError("foo")
+        return context
 
 
 class TestNotFound:
