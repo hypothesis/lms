@@ -36,14 +36,15 @@ class TestExternalRequestError:
         assert err.response_body is None
 
     @pytest.mark.parametrize(
-        "message,request_,response,validation_errors,expected",
+        "message,request_,response,validation_errors,cause,expected",
         [
             (
                 None,
                 None,
                 None,
                 None,
-                "ExternalRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
+                None,
+                "ExternalRequestError(message=None, cause=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
             ),
             (
                 "Connecting to Hypothesis failed",
@@ -56,17 +57,19 @@ class TestExternalRequestError:
                     raw="Name too long",
                 ),
                 {"foo": ["bar"]},
-                "ExternalRequestError(message='Connecting to Hypothesis failed', request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'), validation_errors={'foo': ['bar']})",
+                KeyError("cause"),
+                "ExternalRequestError(message='Connecting to Hypothesis failed', cause=KeyError('cause'), request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'), validation_errors={'foo': ['bar']})",
             ),
         ],
     )
-    def test_str(self, message, request_, response, validation_errors, expected):
+    def test_str(self, message, request_, response, validation_errors, cause, expected):
         err = ExternalRequestError(
             message=message,
             request=request_,
             response=response,
             validation_errors=validation_errors,
         )
+        err.__cause__ = cause
 
         assert str(err) == expected
 
