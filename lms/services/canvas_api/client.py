@@ -6,9 +6,7 @@ from functools import lru_cache
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
-from lms.models import File
 from lms.services import CanvasAPIError
-from lms.services.upsert import bulk_upsert
 from lms.validation import RequestsResponseSchema
 
 log = logging.getLogger(__name__)
@@ -42,15 +40,15 @@ class CanvasAPIClient:
         Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_client, request):
+    def __init__(self, authenticated_client, file_service):
         """
         Create a new CanvasAPIClient.
 
         :param authenticated_client: An instance of AuthenticatedClient
-        :param request: For reporting events
         """
         self._client = authenticated_client
         self._request = request
+        self._file_service = file_service
 
     def get_token(self, authorization_code):
         """
@@ -242,16 +240,10 @@ class CanvasAPIClient:
             log.exception(
                 "Duplicates files found in Canvas courses/{course_id}/files endpoint"
             )
-        application_instance = self._request.find_service(
-            name="application_instance"
-        ).get_current()
 
-        bulk_upsert(
-            self._request.db,
-            File,
+        self._file_service.upsert(
             [
                 {
-                    "application_instance_id": application_instance.id,
                     "type": "canvas_file",
                     "course_id": course_id,
                     "lms_id": file["id"],
@@ -259,9 +251,7 @@ class CanvasAPIClient:
                     "size": file["size"],
                 }
                 for file in files
-            ],
-            ["application_instance_id", "lms_id", "type", "course_id"],
-            ["name", "size"],
+            ]
         )
 
         return sorted(files, key=lambda file_: file_["display_name"])

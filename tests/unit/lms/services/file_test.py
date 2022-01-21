@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import File
 from lms.services.file import FileService, factory
 from tests import factories
 
@@ -23,6 +24,33 @@ class TestGet:
         file_ = factories.File()
 
         assert not svc.get(file_.lms_id, file_.type)
+
+    def test_it_upsert(self, db_session, svc, application_instance):
+        files = factories.File.create_batch(
+            5, application_instance=application_instance
+        )
+        db_session.flush()
+        total_files = db_session.query(File).count()
+
+        svc.upsert(
+            [
+                {
+                    "type": file.type,
+                    "course_id": file.course_id,
+                    "lms_id": file.lms_id,
+                    "name": f"file_{i}",
+                    "size": i,
+                }
+                for i, file in enumerate(files)
+            ]
+        )
+
+        assert db_session.query(File).count() == total_files
+        # Refresh the model instances to gather changed data from the DB
+        _ = [db_session.refresh(file) for file in files]
+        for i, file in enumerate(files):
+            assert file.size == i
+            assert file.name == f"file_{i}"
 
 
 @pytest.mark.usefixtures("application_instance_service")

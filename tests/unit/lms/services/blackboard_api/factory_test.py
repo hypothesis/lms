@@ -8,6 +8,7 @@ from lms.services.blackboard_api.factory import blackboard_api_client_factory
 def test_blackboard_api_client_factory(
     application_instance_service,
     http_service,
+    file_service,
     oauth_http_service,
     pyramid_request,
     BasicClient,
@@ -27,7 +28,7 @@ def test_blackboard_api_client_factory(
         oauth_http_service=oauth_http_service,
     )
     BlackboardAPIClient.assert_called_once_with(
-        BasicClient.return_value, pyramid_request
+        BasicClient.return_value, pyramid_request, file_service
     )
     assert service == BlackboardAPIClient.return_value
 
