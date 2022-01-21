@@ -47,7 +47,6 @@ class CanvasAPIClient:
         :param authenticated_client: An instance of AuthenticatedClient
         """
         self._client = authenticated_client
-        self._request = request
         self._file_service = file_service
 
     def get_token(self, authorization_code):
