@@ -25,32 +25,56 @@ class TestGet:
 
         assert not svc.get(file_.lms_id, file_.type)
 
-    def test_it_upsert(self, db_session, svc, application_instance):
-        files = factories.File.create_batch(
+    def test_upsert(self, db_session, svc, application_instance):
+        existing_files_count = db_session.query(File).count()
+
+        # This files will be created on the DB
+        update_files = factories.File.create_batch(
             5, application_instance=application_instance
         )
-        db_session.flush()
-        total_files = db_session.query(File).count()
-
+        # These won't exist on the DB
+        insert_files = factories.File.build_batch(5)
+        assert db_session.query(File).count() == existing_files_count + len(
+            update_files
+        )
         svc.upsert(
             [
                 {
                     "type": file.type,
                     "course_id": file.course_id,
                     "lms_id": file.lms_id,
-                    "name": f"file_{i}",
-                    "size": i,
+                    "name": f"update_file_{i}",
+                    "size": i * 10,
                 }
-                for i, file in enumerate(files)
+                for i, file in enumerate(update_files)
             ]
+            + [
+                {
+                    "type": file.type,
+                    "course_id": file.course_id,
+                    "lms_id": file.lms_id,
+                    "name": f"insert_file_{i}",
+                    "size": i * 100,
+                }
+                for i, file in enumerate(insert_files)
+            ],
         )
 
-        assert db_session.query(File).count() == total_files
+        assert db_session.query(File).count() == existing_files_count + len(
+            update_files
+        ) + len(insert_files)
+
         # Refresh the model instances to gather changed data from the DB
-        _ = [db_session.refresh(file) for file in files]
-        for i, file in enumerate(files):
-            assert file.size == i
-            assert file.name == f"file_{i}"
+        for file in update_files:
+            db_session.refresh(file)
+        for i, file in enumerate(update_files):
+            assert file.size == i * 10
+            assert file.name == f"update_file_{i}"
+
+        for i, file in enumerate(insert_files):
+            file = db_session.query(File).filter_by(lms_id=file.lms_id).one()
+            assert file.size == i * 100
+            assert file.name == f"insert_file_{i}"
 
 
 @pytest.mark.usefixtures("application_instance_service")

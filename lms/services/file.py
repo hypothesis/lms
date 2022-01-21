@@ -19,15 +19,15 @@ class FileService:
             .one_or_none()
         )
 
-    def upsert(self, values):
-        """Inset or update a batch of files."""
-        for value in values:
+    def upsert(self, file_dicts):
+        """Insert or update a batch of files."""
+        for value in file_dicts:
             value["application_instance_id"] = self._application_instance.id
 
         return bulk_upsert(
             self._db,
             File,
-            values,
+            file_dicts,
             index_elements=["application_instance_id", "lms_id", "type", "course_id"],
             update_columns=["name", "size"],
         )

@@ -10,7 +10,7 @@ File = make_factory(
     application_instance=SubFactory(ApplicationInstance),
     type="canvas_file",
     lms_id=Sequence(lambda n: f"{n}"),
-    course_id=Faker("random_int"),
+    course_id=Faker("numerify", text="course_####"),
     name=Faker("word"),
     size=Faker("random_int"),
 )
