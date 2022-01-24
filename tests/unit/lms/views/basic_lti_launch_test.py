@@ -117,6 +117,16 @@ def url_configured_basic_lti_launch_caller(context, pyramid_request):
     return views.url_configured_basic_lti_launch()
 
 
+def legacy_vitalsource_lti_launch_caller(context, pyramid_request):
+    """Call BasicLTILaunchViews.legacy_vitalsource_lti_launch()."""
+    pyramid_request.params["book_id"] = "BOOK_ID"
+    pyramid_request.params["cfi"] = "/cfi"
+
+    views = BasicLTILaunchViews(context, pyramid_request)
+
+    return views.legacy_vitalsource_lti_launch()
+
+
 def unconfigured_basic_lti_launch_caller(context, pyramid_request):
     """
     Call BasicLTILaunchViews.unconfigured_basic_lti_launch().
@@ -385,6 +395,15 @@ class TestURLConfiguredBasicLTILaunch:
 
         context.js_config.add_document_url.assert_called_once_with(
             pyramid_request.parsed_params["url"]
+        )
+
+
+class TestLegacyVitalSourceLtiLaunch:
+    def test_it(self, context, pyramid_request):
+        legacy_vitalsource_lti_launch_caller(context, pyramid_request)
+
+        context.js_config.add_document_url.assert_called_once_with(
+            "vitalsource://book/bookID/BOOK_ID/cfi//cfi",
         )
 
 
