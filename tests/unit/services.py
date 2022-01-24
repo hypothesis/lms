@@ -111,6 +111,9 @@ def canvas_service(mock_service, canvas_api_client):
     canvas_service = mock_service(CanvasService)
     canvas_service.api = canvas_api_client
 
+    canvas_service.is_group_launch.return_value = False
+    canvas_service.is_speedgrader.return_value = False
+
     return canvas_service
 
 

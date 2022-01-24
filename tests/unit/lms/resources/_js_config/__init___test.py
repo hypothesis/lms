@@ -13,6 +13,7 @@ pytestmark = pytest.mark.usefixtures(
     "grant_token_service",
     "h_api",
     "vitalsource_service",
+    "canvas_service",
 )
 
 
@@ -736,7 +737,6 @@ def context():
         is_canvas=True,
         canvas_sections_enabled=False,
         canvas_groups_enabled=False,
-        canvas_is_group_launch=False,
         is_group_launch=False,
     )
 
@@ -763,6 +763,7 @@ def pyramid_request(pyramid_request):
             "ext_lti_assignment_id": "ext_lti_assignment_id",
         }
     )
+    pyramid_request.json = {}
     return pyramid_request
 
 

@@ -63,6 +63,38 @@ class CanvasService:
 
             return url
 
+    @staticmethod
+    def is_speedgrader(request) -> bool:
+        if "learner_canvas_user_id" in request.GET:
+            # Location while launching an assignment
+            return bool(request.GET["learner_canvas_user_id"])
+
+        # Location when using the Sync API
+        try:
+            return "learner" in request.json
+        except:  # pylint:disable=bare-except
+            return False
+
+    @staticmethod
+    def group_set(request) -> int:
+        if "group_set" in request.params:
+            # Location while launching an assignment
+            value = request.params["group_set"]
+        else:
+            # Location when using the Sync API
+            value = request.json["learner"].get("group_set")
+
+        return int(value)
+
+    @staticmethod
+    def is_group_launch(request) -> bool:
+        try:
+            CanvasService.group_set(request)
+        except (KeyError, ValueError, TypeError):
+            return False
+        else:
+            return True
+
 
 class CanvasFileFinder:
     """A helper for finding file IDs in the Canvas API."""

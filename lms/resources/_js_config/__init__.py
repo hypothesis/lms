@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from lms.models import ApplicationInstance, GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPIError
+from lms.services import CanvasService, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -532,7 +532,7 @@ class JSConfig:
     def _sync_api(self):
         if self._context.is_canvas and (
             self._context.canvas_sections_enabled
-            or self._context.canvas_is_group_launch
+            or CanvasService.is_group_launch(self._request)
         ):
             return self._canvas_sync_api()
 

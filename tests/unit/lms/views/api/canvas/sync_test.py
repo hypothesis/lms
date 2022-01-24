@@ -17,6 +17,7 @@ pytestmark = pytest.mark.usefixtures(
     "course_service",
     "application_instance_service",
     "user_service",
+    "canvas_service",
 )
 
 
@@ -55,65 +56,65 @@ def test_sections_sync_when_the_user_is_an_instructor(
 @pytest.mark.usefixtures("user_is_learner", "is_group_launch")
 def test_get_canvas_groups_learner(
     pyramid_request,
-    canvas_api_client,
     assert_sync_and_return_groups,
     user_service,
     grouping_service,
+    canvas_service,
 ):
     groups = [{"name": "group", "id": 1, "group_category_id": 2}]
-    canvas_api_client.current_user_groups.return_value = groups
-    group_set = 1
     course_id = "test_custom_canvas_course_id"
+    canvas_service.api.current_user_groups.return_value = groups
 
     groupids = Sync(pyramid_request).sync()
 
-    canvas_api_client.current_user_groups.assert_called_once_with(course_id, group_set)
     grouping_service.upsert_grouping_memberships.assert_called_once_with(
         user_service.get.return_value,
         [grouping_service.upsert_with_parent.return_value],
     )
-
+    canvas_service.api.current_user_groups.assert_called_once_with(
+        course_id, canvas_service.group_set.return_value
+    )
     assert_sync_and_return_groups(groupids, groups=groups)
 
 
 @pytest.mark.usefixtures("user_is_learner", "is_group_launch")
-def test_get_canvas_groups_learner_empty(pyramid_request, canvas_api_client):
+def test_get_canvas_groups_learner_empty(pyramid_request, canvas_service):
     # pylint: disable=protected-access
-    canvas_api_client.current_user_groups.return_value = []
+    canvas_service.api.current_user_groups.return_value = []
 
     with pytest.raises(CanvasStudentNotInGroup):
         Sync(pyramid_request)._get_canvas_groups()
 
 
-@pytest.mark.usefixtures("is_group_and_speedgrader", "user_is_instructor")
+@pytest.mark.usefixtures("is_speedgrader", "is_group_launch", "user_is_instructor")
 def test_get_canvas_groups_speedgrader(
-    pyramid_request, canvas_api_client, assert_sync_and_return_groups
+    pyramid_request, canvas_service, assert_sync_and_return_groups
 ):
     groups = [{"name": "group", "id": 1, "group_category_id": 2}]
-    canvas_api_client.user_groups.return_value = groups
-    group_set = 1
+    canvas_service.api.user_groups.return_value = groups
     course_id = "test_custom_canvas_course_id"
     learner_id = 111
 
     groupids = Sync(pyramid_request).sync()
 
-    canvas_api_client.user_groups.assert_called_once_with(
-        course_id, learner_id, group_set
+    canvas_service.api.user_groups.assert_called_once_with(
+        course_id, learner_id, canvas_service.group_set.return_value
     )
     assert_sync_and_return_groups(groupids, groups=groups)
 
 
 @pytest.mark.usefixtures("user_is_instructor", "is_group_launch")
 def test_get_canvas_groups_instructor(
-    pyramid_request, canvas_api_client, assert_sync_and_return_groups
+    pyramid_request, canvas_api_client, assert_sync_and_return_groups, canvas_service
 ):
     groups = [{"name": "group", "id": 1, "group_category_id": 2}]
     canvas_api_client.group_category_groups.return_value = groups
-    group_set = 1
 
     groupids = Sync(pyramid_request).sync()
 
-    canvas_api_client.group_category_groups.assert_called_once_with(group_set)
+    canvas_api_client.group_category_groups.assert_called_once_with(
+        canvas_service.group_set.return_value
+    )
     assert_sync_and_return_groups(groupids, groups=groups)
 
 
@@ -133,60 +134,6 @@ def test_get_canvas_groups_instructor_not_found_group_set(
 
     with pytest.raises(CanvasGroupSetNotFound):
         Sync(pyramid_request).sync()
-
-
-@pytest.mark.parametrize(
-    "groups_enabled,group_set_value,expected_value",
-    [
-        (True, None, False),
-        (True, "a", False),
-        (True, "1", True),
-        (True, 1, True),
-        (False, "1", False),
-    ],
-)
-def test_is_group_launch(
-    groups_enabled,
-    group_set_value,
-    expected_value,
-    pyramid_request,
-    request_json,
-    application_instance_service,
-):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": groups_enabled}
-    }
-    # pylint: disable=protected-access
-    request_json["course"] = {"group_set": group_set_value}
-
-    assert Sync(pyramid_request)._is_group_launch == expected_value
-
-
-@pytest.mark.parametrize(
-    "groups_enabled,group_set_value,expected_value",
-    [
-        (True, None, False),
-        (True, "a", False),
-        (True, "1", True),
-        (True, 1, True),
-        (False, 1, False),
-    ],
-)
-def test_is_group_launch_in_speed_grader(
-    groups_enabled,
-    group_set_value,
-    expected_value,
-    pyramid_request,
-    request_json,
-    application_instance_service,
-):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": groups_enabled}
-    }
-    # pylint: disable=protected-access
-    request_json["course"] = {"group_set": group_set_value}
-
-    assert Sync(pyramid_request)._is_group_launch == expected_value
 
 
 @pytest.mark.usefixtures("user_is_instructor")
@@ -284,14 +231,14 @@ def sections():
 
 
 @pytest.fixture
-def canvas_api_client(canvas_api_client, sections):
-    canvas_api_client.course_sections.return_value = sections.course
-    canvas_api_client.authenticated_users_sections.return_value = (
+def canvas_service(canvas_service, sections):
+    canvas_service.api.course_sections.return_value = sections.course
+    canvas_service.api.authenticated_users_sections.return_value = (
         sections.authenticated_user
     )
-    canvas_api_client.users_sections.return_value = sections.user
+    canvas_service.api.users_sections.return_value = sections.user
 
-    return canvas_api_client
+    return canvas_service
 
 
 @pytest.fixture
@@ -313,21 +260,11 @@ def request_json():
 
 
 @pytest.fixture
-def is_speedgrader(request_json):
+def is_speedgrader(canvas_service, request_json):
     request_json["learner"] = {"canvas_user_id": 111}
+    canvas_service.is_speedgrader.return_value = True
 
 
 @pytest.fixture
-def is_group_launch(application_instance_service, request_json):
-    request_json["course"]["group_set"] = 1
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": True}
-    }
-
-
-@pytest.fixture
-def is_group_and_speedgrader(application_instance_service, request_json):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": True}
-    }
-    request_json["learner"] = {"canvas_user_id": 111, "group_set": 1}
+def is_group_launch(canvas_service):
+    canvas_service.is_group_launch.return_value = True

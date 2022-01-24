@@ -3,6 +3,7 @@ import functools
 
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
+from lms.services.canvas import CanvasService
 
 
 class LTILaunchResource:
@@ -74,10 +75,6 @@ class LTILaunchResource:
         return course
 
     @property
-    def _is_speedgrader(self):
-        return bool(self._request.GET.get("learner_canvas_user_id"))
-
-    @property
     def is_legacy_speedgrader(self):
         """
         Return True if the current request is a legacy SpeedGrader launch.
@@ -90,7 +87,9 @@ class LTILaunchResource:
         "Legacy" SpeedGrader submissions are ones from before we implemented
         this work-around, so they don't have the resource_link_id query param.
         """
-        return self._is_speedgrader and not self._request.GET.get("resource_link_id")
+        return CanvasService.is_speedgrader(
+            self._request
+        ) and not self._request.GET.get("resource_link_id")
 
     @property
     def resource_link_id(self):
@@ -103,7 +102,7 @@ class LTILaunchResource:
         # We add the correct resource_link_id as a query param on the launch
         # URL that we submit to Canvas and use that instead of the incorrect
         # resource_link_id that Canvas puts in the request's body.
-        if self._is_speedgrader and (
+        if CanvasService.is_speedgrader(self._request) and (
             resource_link_id := self._request.GET.get("resource_link_id")
         ):
             return resource_link_id
@@ -114,7 +113,7 @@ class LTILaunchResource:
     def ext_lti_assignment_id(self):
         # Canvas SpeedGrader launches don't provide ext_lti_assignment_id
         # but include it on the SpeedGrader URL we submit to canvas.
-        if self._is_speedgrader and (
+        if CanvasService.is_speedgrader(self._request) and (
             ext_lti_assignment_id := self._request.GET.get("ext_lti_assignment_id")
         ):
             return ext_lti_assignment_id
@@ -214,18 +213,11 @@ class LTILaunchResource:
         return bool(assignment and assignment.extra.get("group_set_id"))
 
     @property
-    def canvas_is_group_launch(self):
-        """Return True if the current assignment uses canvas groups."""
-        try:
-            int(self._request.params["group_set"])
-        except (KeyError, ValueError, TypeError):
-            return False
-        else:
-            return True
-
-    @property
     def is_group_launch(self):
-        return self.canvas_is_group_launch or self.is_blackboard_group_launch
+        return (
+            CanvasService.is_group_launch(self._request)
+            or self.is_blackboard_group_launch
+        )
 
     def _course_extra(self):
         """Extra information to store for courses."""

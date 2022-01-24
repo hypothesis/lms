@@ -287,13 +287,46 @@ class TestCanvasFileFinder:
         return CanvasFileFinder(canvas_api_client, file_service)
 
 
+class TestIsGroupLaunch:
+    @pytest.mark.parametrize("group_set", ["", "not a number", None])
+    def test_false_invalid_group_set_param(self, pyramid_request, group_set):
+        pyramid_request.params.update({"group_set": group_set})
+
+        assert not CanvasService.is_group_launch(pyramid_request)
+
+    def test_when_lti_launch(self, pyramid_request):
+        pyramid_request.params.update({"group_set": 1})
+
+        assert CanvasService.is_group_launch(pyramid_request)
+
+    def test_when_sync_api(self, pyramid_request):
+        pyramid_request.json = {"learner": {"group_set": 1}}
+
+        assert CanvasService.is_group_launch(pyramid_request)
+
+
+class TestIsSpeedgrader:
+    @pytest.mark.parametrize("value,expected", [(None, False), ("1", True)])
+    def test_while_launching(self, pyramid_request, value, expected):
+        pyramid_request.params.update({"learner_canvas_user_id": value})
+
+        assert CanvasService.is_speedgrader(pyramid_request) == expected
+
+    @pytest.mark.parametrize("value,expected", [({}, False), ({"learner": "1"}, True)])
+    def test_while_grading(self, pyramid_request, value, expected):
+        pyramid_request.json = value
+
+        assert CanvasService.is_speedgrader(pyramid_request) == expected
+
+
 class TestFactory:
     def test_it(self, pyramid_request, CanvasService, canvas_api_client, file_service):
         result = factory("*any*", request=pyramid_request)
 
         assert result == CanvasService.return_value
         CanvasService.assert_called_once_with(
-            canvas_api=canvas_api_client, file_service=file_service
+            canvas_api=canvas_api_client,
+            file_service=file_service,
         )
 
     @pytest.fixture
@@ -304,3 +337,9 @@ class TestFactory:
 @pytest.fixture
 def canvas_service(canvas_api_client, file_service):
     return CanvasService(canvas_api_client, file_service)
+
+
+@pytest.fixture
+def pyramid_request(pyramid_request):
+    pyramid_request.json = {}
+    return pyramid_request

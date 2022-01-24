@@ -8,7 +8,10 @@ from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
 
 pytestmark = pytest.mark.usefixtures(
-    "application_instance_service", "course_service", "assignment_service"
+    "application_instance_service",
+    "course_service",
+    "assignment_service",
+    "canvas_service",
 )
 
 
@@ -22,68 +25,68 @@ class TestHGroup:
 
 class TestResourceLinkIdk:
     @pytest.mark.parametrize(
-        "learner_id,get_id,post_id,expected",
+        "speedgrader,get_id,post_id,expected",
         [
-            param(None, None, "POST_ID", "POST_ID", id="regular"),
-            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
-            param("USER_ID", None, "POST_ID", "POST_ID", id="old_speedgrader"),
+            param(False, None, "POST_ID", "POST_ID", id="regular"),
+            param(True, "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
+            param(True, None, "POST_ID", "POST_ID", id="old_speedgrader"),
         ],
     )
-    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
+    def test_it(
+        self, pyramid_request, is_speedgrader, speedgrader, get_id, post_id, expected
+    ):
         pyramid_request.POST = {
             "resource_link_id": post_id,
         }
         pyramid_request.GET = {
-            "learner_canvas_user_id": learner_id,
             "resource_link_id": get_id,
         }
+        is_speedgrader.return_value = speedgrader
+
         assert LTILaunchResource(pyramid_request).resource_link_id == expected
 
 
 class TestExtLTIAssignmentID:
     @pytest.mark.parametrize(
-        "learner_id,get_id,post_id,expected",
+        "speedgrader,get_id,post_id,expected",
         [
-            param(None, None, "POST_ID", "POST_ID", id="regular"),
-            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
+            param(False, None, "POST_ID", "POST_ID", id="regular"),
+            param(True, "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
         ],
     )
-    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
+    def test_it(
+        self, pyramid_request, is_speedgrader, speedgrader, get_id, post_id, expected
+    ):
         pyramid_request.POST = {
             "ext_lti_assignment_id": post_id,
         }
         pyramid_request.GET = {
-            "learner_canvas_user_id": learner_id,
             "ext_lti_assignment_id": get_id,
         }
+        is_speedgrader.return_value = speedgrader
+
         assert LTILaunchResource(pyramid_request).ext_lti_assignment_id == expected
 
 
 class TestIsLegacySpeedGrader:
     @pytest.mark.parametrize(
-        "learner_id,get_resource_id,post_resource_id,context_id,expected",
+        "speedgrader,get_resource_id,expected",
         [
             param(
-                None,
+                False,
                 "GET_ID",
-                "POST_ID",
-                "CONTEXT_ID",
                 False,
                 id="not speed grading",
             ),
             param(
-                "USER_ID",
-                "GET_ID",
-                "WRONG_RESOURCE_LINK_ID",
+                True,
                 "WRONG_RESOURCE_LINK_ID",
                 False,
                 id="fixed speed grader",
             ),
             param(
-                "USER_ID",
+                True,
                 None,
-                "WRONG_RESOURCE_LINK_ID",
-                "WRONG_RESOURCE_LINK_ID",
                 True,
                 id="legacy speed grader",
             ),
@@ -92,20 +95,16 @@ class TestIsLegacySpeedGrader:
     def test_it(
         self,
         pyramid_request,
-        learner_id,
+        is_speedgrader,
+        speedgrader,
         get_resource_id,
-        post_resource_id,
-        context_id,
         expected,
     ):
-        pyramid_request.POST = {
-            "resource_link_id": post_resource_id,
-            "context_id": context_id,
-        }
         pyramid_request.GET = {
-            "learner_canvas_user_id": learner_id,
             "resource_link_id": get_resource_id,
         }
+        is_speedgrader.return_value = speedgrader
+
         assert LTILaunchResource(pyramid_request).is_legacy_speedgrader == expected
 
 
@@ -328,19 +327,6 @@ class TestCanvasGroupsEnabled:
         assert lti_launch.canvas_groups_enabled == settings_value
 
 
-class TestCanvasIsGroupLaunch:
-    @pytest.mark.parametrize("group_set", ["", "not a number", None])
-    def test_false_invalid_group_set_param(self, pyramid_request, group_set):
-        pyramid_request.params.update({"group_set": group_set})
-
-        assert not LTILaunchResource(pyramid_request).canvas_is_group_launch
-
-    def test_it(self, pyramid_request):
-        pyramid_request.params.update({"group_set": 1})
-
-        assert LTILaunchResource(pyramid_request).canvas_is_group_launch
-
-
 class TestIsBlackboardGroupLaunch:
     def test_false_when_no_assignment(
         self, lti_launch_groups_enabled, assignment_service
@@ -379,12 +365,17 @@ class TestIsGroupLaunch:
             (False, False, False),
         ],
     )
-    def test_it(self, canvas, blackboard, expected, pyramid_request):
+    def test_it(self, canvas, blackboard, expected, pyramid_request, is_group_launch):
         class TestableLTILaunchResource(LTILaunchResource):
-            canvas_is_group_launch = canvas
             is_blackboard_group_launch = blackboard
 
+        is_group_launch.return_value = canvas
+
         assert TestableLTILaunchResource(pyramid_request).is_group_launch == expected
+
+    @pytest.fixture
+    def is_group_launch(self, patch):
+        return patch("lms.resources.lti_launch.CanvasService.is_group_launch")
 
 
 @pytest.fixture
@@ -408,5 +399,11 @@ def has_course(pyramid_request):
 
 @pytest.fixture
 def pyramid_request(pyramid_request):
+    pyramid_request.json = {}
     pyramid_request.parsed_params = {}
     return pyramid_request
+
+
+@pytest.fixture
+def is_speedgrader(patch):
+    return patch("lms.resources.lti_launch.CanvasService.is_speedgrader")
