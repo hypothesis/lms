@@ -11,16 +11,12 @@
  * @prop {string} [name] - (file)name of selected content (used for display
  *                         purposes only)
  *
- * @typedef VitalSourceBookContent
- * @prop {'vitalsource'} type
- * @prop {string} bookID
- * @prop {string} cfi
  */
 
 /**
  * Enumeration of the different types of content that may be used for an assignment.
  *
- * @typedef {FileContent|URLContent|VitalSourceBookContent} Content
+ * @typedef {FileContent|URLContent} Content
  */
 
 /**
@@ -44,11 +40,6 @@ export function contentItemForContent(ltiLaunchURL, content, extraParams) {
       break;
     case 'url':
       params.url = content.url;
-      break;
-    case 'vitalsource':
-      params.vitalsource_book = 'true';
-      params.book_id = content.bookID;
-      params.cfi = content.cfi;
       break;
   }
 

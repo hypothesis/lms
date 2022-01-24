@@ -511,12 +511,17 @@ describe('ContentSelector', () => {
 
     const picker = wrapper.find('BookPicker');
     interact(wrapper, () => {
-      picker.props().onSelectBook({ id: 'test-book' }, { url: 'vitalsource://'},);
+      picker
+        .props()
+        .onSelectBook(
+          { id: 'test-book' },
+          { url: 'vitalsource://book/BOOK_ID/cfi/CFI' }
+        );
     });
 
     assert.calledWith(onSelectContent, {
       type: 'url',
-      url: 'vitalsource://'
+      url: 'vitalsource://book/BOOK_ID/cfi/CFI',
     });
   });
 });

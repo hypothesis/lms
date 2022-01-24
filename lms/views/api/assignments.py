@@ -36,11 +36,6 @@ class AssignmentsAPIViews:
         elif content_type == "file":
             url = f"canvas://file/course/{params['course_id']}/file_id/{params['content']['file']['id']}"
             extra = {"canvas_file": params["content"]["file"]}
-        elif content_type == "vitalsource":
-            book_id = params["content"]["bookID"]
-            cfi = params["content"]["cfi"]
-            url = f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
-            extra = {"vitalsource": {"bookID": book_id, "cfi": cfi}}
         else:
             raise HTTPInternalServerError("Unhandled content type on assignment")
 
