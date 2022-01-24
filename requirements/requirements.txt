@@ -152,7 +152,7 @@ six==1.15.0
     # via
     #   google-auth
     #   jsonschema
-sqlalchemy==1.4.30
+sqlalchemy==1.4.31
     # via
     #   -r requirements/requirements.in
     #   alembic
