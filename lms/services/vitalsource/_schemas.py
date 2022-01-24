@@ -30,4 +30,7 @@ class BookTOCSchema(RequestsResponseSchema):
         cfi = fields.Str(required=True)
         page = fields.Str(required=True)
 
+        url = fields.Str(required=False)
+        """vitalsource:// like url identifying the book and chapter"""
+
     table_of_contents = fields.List(fields.Nested(Chapter), required=True)

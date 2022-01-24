@@ -60,11 +60,19 @@ class VitalSourceService:
 
             raise
 
-        return BookTOCSchema(response).parse()
+        toc = BookTOCSchema(response).parse()
+        for chapter in toc["table_of_contents"]:
+            chapter["url"] = self.generate_document_url(book_id, chapter["cfi"])
+
+        return toc
 
     @staticmethod
     def parse_document_url(document_url):
         return DOCUMENT_URL_REGEX.search(document_url).groupdict()
+
+    @staticmethod
+    def generate_document_url(book_id, cfi):
+        return f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
 
     def get_launch_params(self, document_url, lti_user):
         """
