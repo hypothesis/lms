@@ -175,7 +175,7 @@ describe('FilePickerApp', () => {
           summary: 'PDF file in Canvas',
         },
         {
-          content: { type: 'vitalsource', bookID: 'abc', cfi: '/1/2' },
+          content: { type: 'url', url: 'vitalsource://bookID/BOOK/cfi/CFI' },
           summary: 'Book from VitalSource',
         },
       ].forEach(({ content, summary }) => {

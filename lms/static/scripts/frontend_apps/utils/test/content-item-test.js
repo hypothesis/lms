@@ -14,10 +14,6 @@ describe('contentItemForContent', () => {
       content: { type: 'file', file: { id: 'foobar' } },
       expectedURL: `${ltiLaunchURL}?canvas_file=true&file_id=foobar`,
     },
-    {
-      content: { type: 'vitalsource', bookID: 'TEST-BOOK', cfi: '/4/5' },
-      expectedURL: `${ltiLaunchURL}?vitalsource_book=true&book_id=TEST-BOOK&cfi=%2F4%2F5`,
-    },
   ].forEach(({ content, expectedURL }) => {
     it('returns JSON-LD representation for content', () => {
       const item = contentItemForContent(ltiLaunchURL, content);
