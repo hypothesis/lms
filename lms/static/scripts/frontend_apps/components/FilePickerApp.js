@@ -49,9 +49,14 @@ function formatContentURL(content) {
     return content.name;
   }
   // All Blackboard file URLs start with the literal string `blackboard:`
-  if (content.url.includes('blackboard:')) {
+  if (content.url.startsWith('blackboard:')) {
     return 'PDF file in Blackboard';
   }
+  // All VitalSource file URLs start with the literal string `vitalsource://`
+  if (content.url.startsWith('vitalsource://')) {
+    return 'Book from VitalSource';
+  }
+
   return truncateURL(content.url, 65 /* maxLength */);
 }
 /**
@@ -66,8 +71,6 @@ function contentDescription(content) {
       return formatContentURL(content);
     case 'file':
       return 'PDF file in Canvas';
-    case 'vitalsource':
-      return 'Book from VitalSource';
     default:
       /* istanbul ignore next */
       throw new Error('Unknown content type');

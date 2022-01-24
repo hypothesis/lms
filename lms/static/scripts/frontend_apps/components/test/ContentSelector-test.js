@@ -502,7 +502,7 @@ describe('ContentSelector', () => {
     assert.isTrue(wrapper.exists('BookPicker'));
   });
 
-  it('submits VitalSource book ID and chapter CFI', () => {
+  it('submits VitalSource chapter URL', () => {
     const onSelectContent = sinon.stub();
     const wrapper = renderContentSelector({
       defaultActiveDialog: 'vitalSourceBook',
@@ -511,13 +511,12 @@ describe('ContentSelector', () => {
 
     const picker = wrapper.find('BookPicker');
     interact(wrapper, () => {
-      picker.props().onSelectBook({ id: 'test-book' }, { cfi: '/1/2' });
+      picker.props().onSelectBook({ id: 'test-book' }, { url: 'vitalsource://'},);
     });
 
     assert.calledWith(onSelectContent, {
-      type: 'vitalsource',
-      bookID: 'test-book',
-      cfi: '/1/2',
+      type: 'url',
+      url: 'vitalsource://'
     });
   });
 });
