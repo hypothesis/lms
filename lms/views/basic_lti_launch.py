@@ -17,6 +17,7 @@ from pyramid.view import view_config, view_defaults
 from lms.models import LtiLaunches
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
+from lms.services.vitalsource.client import VitalSourceService
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
@@ -90,6 +91,23 @@ class BasicLTILaunchViews:
             request.find_service(name="grading_info").upsert_from_request(
                 request, h_user=lti_user.h_user, lti_user=lti_user
             )
+
+    @view_config(request_param="vitalsource_book=true", configured=False)
+    def legacy_vitalsource_lti_launch(self):
+        """
+        Respond to a legacy configured VitalSource assignment.
+
+        Legacy VitalSource assignments use `vitalsource_book=true` as opposed to
+        a `vitalsource://` URL as the document_url.
+
+        The assignment shouldnb't be "configured" in any other way to match this view."
+        """
+        book_id = self.request.params["book_id"]
+        cfi = self.request.params.get("cfi")
+
+        document_url = VitalSourceService.generate_document_url(book_id, cfi)
+
+        return self.basic_lti_launch(document_url=document_url, grading_supported=True)
 
     @view_config(canvas_file=True)
     def legacy_canvas_file_basic_lti_launch(self):
