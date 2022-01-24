@@ -134,7 +134,10 @@ export default function ContentSelector({
    */
   const selectVitalSourceBook = (book, chapter) => {
     cancelDialog();
-    onSelectContent({ type: 'vitalsource', bookID: book.id, cfi: chapter.cfi });
+    onSelectContent({
+      type: 'url',
+      url: chapter.url,
+    });
   };
 
   let dialog;

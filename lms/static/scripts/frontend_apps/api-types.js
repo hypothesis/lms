@@ -43,11 +43,9 @@
  * Metadata for a chapter within an ebook.
  *
  * @typedef Chapter
- * @prop {string} cfi -
- *   An EPUB CFI indicating the location of the chapter within the book.
- *   See http://idpf.org/epub/linking/cfi/.
  * @prop {string} page
  * @prop {string} title
+ * @prop {string} url - Document URL to use for this chapter when creating an assignment
  */
 
 // Make TS treat this file as a module.
