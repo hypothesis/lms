@@ -178,6 +178,7 @@ class TestVitalSourceService:
 
     @pytest.fixture
     def book_toc_schema(self, BookTOCSchema):
+        BookTOCSchema.return_value.context = {}
         return BookTOCSchema.return_value
 
     @pytest.fixture(autouse=True)
