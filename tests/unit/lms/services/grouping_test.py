@@ -1,5 +1,6 @@
 from unittest.mock import sentinel
 
+import factory as factory_boy
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -14,24 +15,43 @@ class TestGroupingService:
     CONTEXT_ID = "context_id"
     TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
 
-    def test_upsert_with_parents_inserts(self, svc, db_session):
-        course = factories.Course(application_instance=svc.application_instance)
+    @pytest.fixture
+    def upsert_with_parent_args(self, svc):
+        """A factory for generating random arguments for upsert_with_parent().
 
-        # Start with no CanvasGroup
-        assert not db_session.query(CanvasGroup).count()
+        Usage:
 
-        test_grouping = svc.upsert_with_parent(
-            tool_consumer_instance_guid=course.application_instance.tool_consumer_instance_guid,
-            lms_id="lms_id",
-            lms_name="lms_name",
-            parent=course,
-            type_=Grouping.Type.CANVAS_GROUP,
+            svc.upsert_with_parent(**upsert_with_parent_args(...))
+
+        """
+        return factory_boy.make_factory(
+            dict,
+            tool_consumer_instance_guid=factories.TOOL_CONSUMER_INSTANCE_GUID,
+            lms_id=factory_boy.Sequence(lambda n: f"lms_id_{n}"),
+            lms_name=factory_boy.Sequence(lambda n: f"lms_name_{n}"),
+            type_=factory_boy.Faker(
+                "random_element",
+                elements=[
+                    Grouping.Type.CANVAS_SECTION,
+                    Grouping.Type.CANVAS_GROUP,
+                    Grouping.Type.BLACKBOARD_GROUP,
+                ],
+            ),
+            parent=factory_boy.SubFactory(
+                factories.Course,
+                application_instance=svc.application_instance,
+            ),
         )
+
+    def test_upsert_with_parents_inserts(
+        self, svc, db_session, upsert_with_parent_args
+    ):
+        test_grouping = svc.upsert_with_parent(**upsert_with_parent_args())
 
         assert db_session.query(CanvasGroup).one() == test_grouping
 
     def test_you_cant_upsert_a_grouping_whose_parent_has_a_different_application_instance(
-        self, svc, application_instance_service, db_session
+        self, svc, application_instance_service, db_session, upsert_with_parent_args
     ):
         parent = factories.Course()
         # GroupingService uses ApplicationInstanceService.get_current() as the
@@ -43,13 +63,7 @@ class TestGroupingService:
             != application_instance_service.get_current.return_value
         )
 
-        svc.upsert_with_parent(
-            tool_consumer_instance_guid="tool_consumer_instance_guid",
-            lms_id="lms_id",
-            lms_name="lms_name",
-            type_=Grouping.Type.CANVAS_GROUP,
-            parent=parent,
-        )
+        svc.upsert_with_parent(**upsert_with_parent_args(parent=parent))
 
         with pytest.raises(
             IntegrityError,
@@ -57,60 +71,41 @@ class TestGroupingService:
         ):
             db_session.flush()
 
-    def test_upsert_with_parent_updates_existing_groupings(self, svc, db_session):
-        course = factories.Course(application_instance=svc.application_instance)
-        kwargs = {
-            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
-            "lms_id": "lms_id",
-            "parent": course,
-            "type_": Grouping.Type.CANVAS_GROUP,
-        }
-        old_name = "old_name"
-        old_extra = {"extra": "old"}
-        new_name = "new_name"
-        new_extra = {"extra": "new"}
+    def test_upsert_with_parent_updates_existing_groupings(
+        self, svc, db_session, upsert_with_parent_args
+    ):
         # Insert an existing grouping into the DB.
-        svc.upsert_with_parent(lms_name=old_name, extra=old_extra, **kwargs)
+        args = upsert_with_parent_args()
+        svc.upsert_with_parent(**args)
 
-        # upsert_with_parent() should find and update the existing grouping.
-        grouping = svc.upsert_with_parent(lms_name=new_name, extra=new_extra, **kwargs)
+        # Update the existing grouping.
+        args["lms_name"] = new_name = "new_name"
+        args["extra"] = new_extra = {"extra": "new"}
+        updated_grouping = svc.upsert_with_parent(**args)
 
         # It should return a grouping with the updated values.
-        assert grouping.lms_name == new_name
-        assert grouping.extra == new_extra
+        assert updated_grouping.lms_name == new_name
+        assert updated_grouping.extra == new_extra
         # The values should have been updated in the DB as well.
-        db_grouping = db_session.query(CanvasGroup).one()
+        db_grouping = db_session.query(Grouping).filter_by(id=updated_grouping.id).one()
         assert db_grouping.lms_name == new_name
         assert db_grouping.extra == new_extra
 
-    def test_canvas_group_and_sections_dont_conflict(self, svc, db_session):
-        course = factories.Course(
-            lms_id=self.CONTEXT_ID, application_instance=svc.application_instance
-        )
-        db_session.flush()
-
+    def test_canvas_group_and_sections_dont_conflict(
+        self, svc, db_session, upsert_with_parent_args
+    ):
         group = svc.upsert_with_parent(
-            self.TOOL_CONSUMER_INSTANCE_GUID,
-            "same_id",
-            "group_name",
-            course,
-            Grouping.Type.CANVAS_GROUP,
+            **upsert_with_parent_args(
+                lms_id="same_id", type_=Grouping.Type.CANVAS_GROUP
+            )
         )
         section = svc.upsert_with_parent(
-            self.TOOL_CONSUMER_INSTANCE_GUID,
-            "same_id",
-            "section_name",
-            course,
-            Grouping.Type.CANVAS_SECTION,
+            **upsert_with_parent_args(
+                lms_id="same_id", type_=Grouping.Type.CANVAS_SECTION
+            )
         )
 
-        assert group.authority_provided_id == "078cc1b793e061085ed3ef91189b41a6f7dd26b8"
-        assert (
-            section.authority_provided_id == "867c2696d32eb4b5e9cf5c5304cb71c3e20bfd14"
-        )
-        assert group.type == Grouping.Type.CANVAS_GROUP
-        assert section.type == Grouping.Type.CANVAS_SECTION
-        assert group.parent_id == section.parent_id == course.id
+        assert group.authority_provided_id != section.authority_provided_id
 
     def test_generate_authority_provided_id_for_course(self, svc):
         assert (
