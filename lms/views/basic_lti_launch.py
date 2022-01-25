@@ -92,7 +92,7 @@ class BasicLTILaunchViews:
                 request, h_user=lti_user.h_user, lti_user=lti_user
             )
 
-    @view_config(request_param="vitalsource_book=true", configured=False)
+    @view_config(vitalsource_book=True)
     def legacy_vitalsource_lti_launch(self):
         """
         Respond to a legacy configured VitalSource assignment.
@@ -100,7 +100,7 @@ class BasicLTILaunchViews:
         Legacy VitalSource assignments use `vitalsource_book=true` as opposed to
         a `vitalsource://` URL as the document_url.
 
-        The assignment shouldnb't be "configured" in any other way to match this view."
+        The assignment shouldn't be "configured" in any other way to match this view.
         """
         book_id = self.request.params["book_id"]
         cfi = self.request.params.get("cfi")
