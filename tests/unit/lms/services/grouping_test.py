@@ -205,9 +205,10 @@ class TestGroupingService:
         assert not groupings
 
     @pytest.fixture
-    def with_course_memberships(self, svc, application_instance):
+    def with_course_memberships(self, svc, db_session, application_instance):
         courses = factories.Course.create_batch(5)
         user = factories.User(application_instance=application_instance)
+        db_session.flush()
 
         svc.upsert_grouping_memberships(user, courses)
 

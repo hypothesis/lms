@@ -5,6 +5,7 @@ from sqlalchemy.orm import aliased
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
+from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
@@ -86,16 +87,21 @@ class GroupingService:
         :param user:  User the that belongs to the groups
         :param groups: List of groups the `user` belongs to
         """
-        for group in groups:
-            if membership := (
-                self._db.query(GroupingMembership)
-                .filter_by(grouping_id=group.id, user_id=user.id)
-                .one_or_none()
-            ):
-                membership.updated = func.now()
-                continue
 
-            group.memberships.append(GroupingMembership(grouping=group, user=user))
+        bulk_upsert(
+            self._db,
+            GroupingMembership,
+            [
+                {
+                    "grouping_id": group.id,
+                    "user_id": user.id,
+                    "updated": func.now(),
+                }
+                for group in groups
+            ],
+            index_elements=["grouping_id", "user_id"],
+            update_columns=["updated"],
+        )
 
     def get_course_groupings_for_user(
         self,
