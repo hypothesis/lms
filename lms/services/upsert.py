@@ -2,16 +2,18 @@
 
 from typing import List
 
+from sqlalchemy import column, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed
 
 
-def bulk_upsert(
+def bulk_upsert(  # pylint:disable=too-many-arguments,
     db,
     model_class,
     values: List[dict],
     index_elements: List[str],
     update_columns: List[str],
+    returning=False,
 ):
     """
     Create or update the specified values in a table.
@@ -21,6 +23,7 @@ def bulk_upsert(
     :param values: Dicts of values to upsert
     :param index_elements: Columns to match when upserting. This must match an index.
     :param update_columns: Columns to update when a match is found.
+    :param returning: Return a List[model_class] of the rows updated/inserted
     """
     if not values:
         # Don't attempt to upsert an empty list of values into the DB.
@@ -40,13 +43,15 @@ def bulk_upsert(
         # cause a "null value violates not-null constraint" crash.
         return []
 
+    index_elements_columns = [column(c) for c in index_elements]
+
     stmt = insert(model_class).values(values)
     stmt = stmt.on_conflict_do_update(
         # The columns to use to find matching rows.
         index_elements=index_elements,
         # The columns to update.
         set_={element: getattr(stmt.excluded, element) for element in update_columns},
-    )
+    ).returning(*index_elements_columns)
 
     result = db.execute(stmt)
 
@@ -55,4 +60,11 @@ def bulk_upsert(
     # back
     mark_changed(db)
 
-    return result
+    if not returning:
+        return result
+
+    return (
+        db.query(model_class)
+        .filter(tuple_(*index_elements_columns).in_(result.all()))
+        .all()
+    )

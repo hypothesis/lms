@@ -48,6 +48,36 @@ class TestBulkAction:
             {"id": 4, "name": "over_block_size", "other": "post_4"},
         )
 
+    def test_upsert_returning(self, db_session):
+        db_session.add_all(
+            [
+                self.TableWithBulkUpsert(id=1, name="pre_existing_1", other="pre_1"),
+                self.TableWithBulkUpsert(id=2, name="pre_existing_2", other="pre_2"),
+            ]
+        )
+        db_session.flush()
+
+        results = bulk_upsert(
+            db_session,
+            self.TableWithBulkUpsert,
+            [
+                {"id": 1, "name": "update_old", "other": "post_1"},
+                {"id": 3, "name": "create_with_id", "other": "post_3"},
+                {"id": 4, "name": "over_block_size", "other": "post_4"},
+            ],
+            self.INDEX_ELEMENTS,
+            self.UPDATE_COLUMNS,
+            returning=True,
+        )
+
+        for model in results:
+            assert {"id": model.id, "name": model.name, "other": model.other} in [
+                {"id": 1, "name": "update_old", "other": "pre_1"},
+                {"id": 2, "name": "pre_existing_2", "other": "pre_2"},
+                {"id": 3, "name": "create_with_id", "other": "post_3"},
+                {"id": 4, "name": "over_block_size", "other": "post_4"},
+            ]
+
     def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
         assert (
             bulk_upsert(
