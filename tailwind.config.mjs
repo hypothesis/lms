@@ -1,10 +1,14 @@
 import tailwindConfig from '@hypothesis/frontend-shared/lib/tailwind.preset.js';
 
+const successGreen =
+  tailwindConfig.theme?.extend?.colors?.green?.success ?? '#00a36d';
+
 export default {
   presets: [tailwindConfig],
   content: [
     './lms/static/scripts/frontend_apps/**/*.js',
     './lms/static/scripts/ui-playground/**/*.js',
+    './node_modules/@hypothesis/frontend-shared/lib/**/*.js',
   ],
   theme: {
     extend: {
@@ -15,7 +19,7 @@ export default {
       },
       colors: {
         green: {
-          success: '#00a36d',
+          success: successGreen,
         },
         yellow: {
           notice: '#fbc168',
@@ -38,7 +42,7 @@ export default {
       },
       keyframes: {
         gradeSubmitSuccess: {
-          from: { backgroundColor: tailwindConfig.theme.colors.success },
+          from: { backgroundColor: successGreen },
           to: { backgroundColor: 'transparent' },
         },
         validationMessageOpen: {
