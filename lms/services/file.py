@@ -1,3 +1,5 @@
+from sqlalchemy import func
+
 from lms.models import File
 from lms.services.upsert import bulk_upsert
 
@@ -23,13 +25,14 @@ class FileService:
         """Insert or update a batch of files."""
         for value in file_dicts:
             value["application_instance_id"] = self._application_instance.id
+            value["updated"] = func.now()
 
         return bulk_upsert(
             self._db,
             File,
             file_dicts,
             index_elements=["application_instance_id", "lms_id", "type", "course_id"],
-            update_columns=["name", "size"],
+            update_columns=["name", "size", "updated"],
         )
 
 
