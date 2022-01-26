@@ -43,7 +43,9 @@ class Grouping(CreatedUpdatedMixin, BASE):
     application_instance = sa.orm.relationship("ApplicationInstance")
 
     #: The authority_provided_id of the Group that was created for this Grouping in h's DB.
-    authority_provided_id = sa.Column(sa.UnicodeText(), nullable=False)
+    authority_provided_id = sa.Column(
+        sa.UnicodeText(), nullable=False, unique=True, index=True
+    )
 
     #: The id of the parent grouping that this grouping belongs to.
     #:
