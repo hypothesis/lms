@@ -2,10 +2,12 @@ import { LabeledCheckbox } from '@hypothesis/frontend-shared';
 import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 
 import { Config } from '../config';
+import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
 import { useUniqueId } from '../utils/hooks';
 
-import AuthButton from './AuthButton';
+import AuthorizationModal from './AuthorizationModal';
+import ErrorModal from './ErrorModal';
 
 /**
  * @typedef {import('../api-types').GroupSet} GroupSet
@@ -52,12 +54,12 @@ export default function GroupConfigSelector({
   groupConfig,
   onChangeGroupConfig,
 }) {
-  const [groupSets, setGroupSets] = useState(
-    /** @type {GroupSet[]|null} */ (null)
-  );
-
   const [fetchError, setFetchError] = useState(
     /** @type {Error|null} */ (null)
+  );
+
+  const [groupSets, setGroupSets] = useState(
+    /** @type {GroupSet[]|null} */ (null)
   );
 
   const {
@@ -65,7 +67,16 @@ export default function GroupConfigSelector({
     filePicker: { blackboard, canvas },
   } = useContext(Config);
 
+  const useGroupSet = groupConfig.useGroupSet;
+  const haveFetchedGroups = groupSets !== null;
+
+  const groupSet = useGroupSet ? groupConfig.groupSet : null;
+  const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
+
   const listGroupSetsAPI = canvas?.listGroupSets ?? blackboard?.listGroupSets;
+
+  const checkboxID = useUniqueId('GroupSetSelector__enabled');
+  const selectID = useUniqueId('GroupSetSelector__select');
 
   const fetchGroupSets = useCallback(async () => {
     setFetchError(null);
@@ -78,25 +89,30 @@ export default function GroupConfigSelector({
         })
       );
       setGroupSets(groupSets);
-    } catch (err) {
-      setFetchError(err);
+    } catch (error) {
+      setFetchError(error);
     }
   }, [authToken, listGroupSetsAPI]);
 
-  const useGroupSet = groupConfig.useGroupSet;
-  const haveFetchedGroups = groupSets !== null;
+  const onErrorCancel = () => {
+    // When a user cancels out of an error or authorization modal without
+    // resolving the issue, that means we've been unsuccessful in fetching a
+    // list of group sets. Update/clear the group configuration, which will
+    // result in the checkbox unselecting itself. NB: This logic may be
+    // destructive if this component/UI is ever re-used for _editing_ the
+    // configuration of an existing assignment.
+    setFetchError(null);
+    onChangeGroupConfig({
+      useGroupSet: false,
+      groupSet: null,
+    });
+  };
 
   useEffect(() => {
     if (useGroupSet && !haveFetchedGroups) {
       fetchGroupSets();
     }
   }, [fetchGroupSets, useGroupSet, haveFetchedGroups]);
-
-  const checkboxID = useUniqueId('GroupSetSelector__enabled');
-  const selectID = useUniqueId('GroupSetSelector__select');
-
-  const groupSet = groupConfig.useGroupSet ? groupConfig.groupSet : null;
-  const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 
   return (
     <>
@@ -118,18 +134,26 @@ export default function GroupConfigSelector({
         </LabeledCheckbox>
       </div>
       {useGroupSet && (
-        <div className="GroupConfigSelector__select">
-          {fetchError && (
+        <div>
+          {fetchError && isAuthorizationError(fetchError) && (
             // Currently all fetch errors are handled by attempting to re-authorize
             // and then re-fetch group sets.
-            <>
-              <p>Hypothesis needs your permission to fetch group sets</p>
-              <AuthButton
-                authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
-                authToken={authToken}
-                onAuthComplete={fetchGroupSets}
-              />
-            </>
+            <AuthorizationModal
+              authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
+              authToken={authToken}
+              onAuthComplete={fetchGroupSets}
+              onCancel={onErrorCancel}
+            >
+              <p>Hypothesis needs your permission to show group sets.</p>
+            </AuthorizationModal>
+          )}
+          {fetchError && !isAuthorizationError(fetchError) && (
+            <ErrorModal
+              description="There was a problem fetching group sets"
+              error={fetchError}
+              onCancel={onErrorCancel}
+              onRetry={fetchGroupSets}
+            />
           )}
           {!fetchError && (
             <>

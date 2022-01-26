@@ -1,4 +1,5 @@
 import { mount } from 'enzyme';
+import { act } from 'preact/test-utils';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitForElement } from '../../../test-util/wait';
@@ -15,6 +16,7 @@ describe('GroupConfigSelector', () => {
   let fakeAPICall;
   let fakeConfig;
   let fakeGroupSets;
+  let fakeIsAuthorizationError;
 
   beforeEach(() => {
     fakeGroupSets = [
@@ -41,6 +43,7 @@ describe('GroupConfigSelector', () => {
         },
       },
     };
+    fakeIsAuthorizationError = sinon.stub();
 
     $imports.$mock(mockImportedComponents());
 
@@ -51,6 +54,7 @@ describe('GroupConfigSelector', () => {
     });
 
     $imports.$mock({
+      '../errors': { isAuthorizationError: fakeIsAuthorizationError },
       '../utils/api': { apiCall: fakeAPICall },
     });
   });
@@ -170,6 +174,7 @@ describe('GroupConfigSelector', () => {
   });
 
   it('prompts for authorization if needed', async () => {
+    fakeIsAuthorizationError.returns(true);
     fakeAPICall
       .withArgs(groupSetsAPIRequest)
       .rejects(new Error('Authorization failed'));
@@ -177,14 +182,14 @@ describe('GroupConfigSelector', () => {
       groupConfig: { useGroupSet: true, groupSet: null },
     });
 
-    // Check that authorization prompt is shown if initial group set fetch fails.
-    const authButton = await waitForElement(wrapper, 'AuthButton');
-    assert.equal(authButton.prop('authURL'), authURL);
-    assert.equal(authButton.prop('authToken'), 'valid-token');
+    // Check that authorization modal is shown if initial group set fetch fails.
+    const authModal = await waitForElement(wrapper, 'AuthorizationModal');
+    assert.equal(authModal.prop('authURL'), authURL);
+    assert.equal(authModal.prop('authToken'), 'valid-token');
 
     // Check that group sets are fetched and rendered after authorization completes.
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
-    authButton.prop('onAuthComplete')();
+    authModal.prop('onAuthComplete')();
 
     const options = await waitForElement(
       wrapper,
@@ -193,22 +198,50 @@ describe('GroupConfigSelector', () => {
     assert.equal(options.length, fakeGroupSets.length);
   });
 
-  it('hides authorization prompt if checkbox is de-selected', async () => {
-    fakeAPICall
-      .withArgs(groupSetsAPIRequest)
-      .rejects(new Error('Authorization failed'));
+  it('shows errors in a modal with a retry button', async () => {
+    fakeIsAuthorizationError.returns(false);
+    fakeAPICall.withArgs(groupSetsAPIRequest).rejects(new Error('Some error'));
     const wrapper = createComponent({
       groupConfig: { useGroupSet: true, groupSet: null },
     });
 
-    await waitForElement(wrapper, 'AuthButton');
+    const authModal = await waitForElement(wrapper, 'ErrorModal');
 
-    // De-activate group sets. In the actual app this would be done by the user
-    // toggling the checkbox. The checkbox state lives in the parent component
-    // though.
-    wrapper.setProps({ groupConfig: { useGroupSet: false, groupSet: null } });
+    fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
+    act(() => {
+      authModal.prop('onRetry')();
+    });
 
-    assert.isFalse(wrapper.exists('AuthButton'));
+    const options = await waitForElement(
+      wrapper,
+      'option[data-testid="groupset-option"]'
+    );
+    assert.equal(options.length, fakeGroupSets.length);
+  });
+
+  it('unchecks checkbox if user cancels out of error modal', async () => {
+    fakeIsAuthorizationError.returns(false);
+    fakeAPICall.withArgs(groupSetsAPIRequest).rejects(new Error('Some error'));
+    const onChangeGroupConfig = sinon.stub();
+
+    const wrapper = createComponent({
+      groupConfig: { useGroupSet: true, groupSet: null },
+      onChangeGroupConfig,
+    });
+
+    const authModal = await waitForElement(wrapper, 'ErrorModal');
+
+    act(() => {
+      authModal.prop('onCancel')();
+    });
+
+    // onChangeGroupConfig should be called with `useGroupSet: false`. This has
+    // the side effect of un-checking the checkbox.
+    assert.calledOnce(onChangeGroupConfig);
+    assert.calledWith(onChangeGroupConfig, {
+      useGroupSet: false,
+      groupSet: null,
+    });
   });
 
   context('Blackboard groups', () => {
