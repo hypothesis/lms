@@ -1,6 +1,5 @@
 import sqlalchemy as sa
 from h_matchers import Any
-from sqlalchemy.engine import CursorResult
 
 from lms.db import BASE
 from lms.services.upsert import bulk_upsert
@@ -38,15 +37,23 @@ class TestBulkAction:
             self.UPDATE_COLUMNS,
         )
 
-        assert isinstance(result, CursorResult)
-
-        self.assert_has_rows(
-            db_session,
+        expected_rows = [
             {"id": 1, "name": "update_old", "other": "pre_1"},
             {"id": 2, "name": "pre_existing_2", "other": "pre_2"},
             {"id": 3, "name": "create_with_id", "other": "post_3"},
             {"id": 4, "name": "over_block_size", "other": "post_4"},
-        )
+        ]
+
+        # Upsert has made the expected changes in the DB
+        self.assert_has_rows(db_session, *expected_rows)
+
+        # Also returned the affected rows
+        for model in result:
+            assert {
+                "id": model.id,
+                "name": model.name,
+                "other": model.other,
+            } in expected_rows
 
     def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
         assert (
