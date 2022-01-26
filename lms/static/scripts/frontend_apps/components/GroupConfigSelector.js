@@ -149,6 +149,7 @@ export default function GroupConfigSelector({
           )}
           {fetchError && !isAuthorizationError(fetchError) && (
             <ErrorModal
+              cancelLabel="Cancel"
               description="There was a problem fetching group sets"
               error={fetchError}
               onCancel={onErrorCancel}
