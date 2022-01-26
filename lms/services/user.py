@@ -67,7 +67,6 @@ class UserService:
             .filter_by(
                 application_instance=model_user.application_instance,
                 user_id=model_user.user_id,
-                h_userid=model_user.h_userid,
             )
             .one_or_none()
         )
