@@ -1,6 +1,10 @@
 // CSS Entry point for the local pattern library for LMS.
 // These styles are used in addition to the `frontend_apps` stylesheet.
 
+@use 'base';
+@use 'components';
+@use 'utilities';
+
 // The `frontend_apps` CSS uses utility and component styles, but not pattern styles.
 // Include them here so that the patterns in the Patterns section of pages
 // are styled.
