@@ -105,17 +105,18 @@ class Sync:
         )
 
     def to_groups_groupings(self, course, groups):
-        return [
-            self.grouping_service.upsert_with_parent(
-                tool_consumer_instance_guid=self.tool_consumer_instance_guid,
-                lms_id=group["id"],
-                lms_name=group["name"],
-                parent=course,
-                type_=Grouping.Type.BLACKBOARD_GROUP,
-                extra={"group_set_id": group["groupSetId"]},
-            )
-            for group in groups
-        ]
+        return self.grouping_service.upsert_with_parent(
+            [
+                {
+                    "lms_id": group["id"],
+                    "lms_name": group["name"],
+                    "extra": {"group_set_id": group["groupSetId"]},
+                }
+                for group in groups
+            ],
+            parent=course,
+            type_=Grouping.Type.BLACKBOARD_GROUP,
+        )
 
     def sync_to_h(self, groups):
         lti_h_svc = self.request.find_service(name="lti_h")

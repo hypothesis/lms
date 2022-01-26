@@ -70,7 +70,7 @@ def test_get_canvas_groups_learner(
     canvas_api_client.current_user_groups.assert_called_once_with(course_id, group_set)
     grouping_service.upsert_grouping_memberships.assert_called_once_with(
         user_service.get.return_value,
-        [grouping_service.upsert_with_parent.return_value],
+        grouping_service.upsert_with_parent.return_value,
     )
 
     assert_sync_and_return_groups(groupids, groups=groups)
@@ -212,19 +212,18 @@ def test_sections_sync_when_in_SpeedGrader(
 def assert_sync_and_return_sections(
     lti_h_service, request_json, grouping_service, course_service
 ):
-    tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
-
     def assert_return_values(groupids, sections):
-        expected_groups = [
-            grouping_service.upsert_with_parent(
-                tool_consumer_instance_guid=tool_guid,
-                lms_id=section["id"],
-                lms_name=section.get("name", f"Section {section['id']}"),
-                parent=course_service.get.return_value,
-                type_=Grouping.Type.CANVAS_SECTION,
-            )
-            for section in sections
-        ]
+        expected_groups = grouping_service.upsert_with_parent(
+            [
+                {
+                    "lms_id": section["id"],
+                    "lms_name": section.get("name", f"Section {section['id']}"),
+                }
+                for section in sections
+            ],
+            parent=course_service.get.return_value,
+            type_=Grouping.Type.CANVAS_SECTION,
+        )
 
         lti_h_service.sync.assert_called_once_with(
             expected_groups, request_json["group_info"]
@@ -241,20 +240,19 @@ def assert_sync_and_return_sections(
 def assert_sync_and_return_groups(
     lti_h_service, request_json, grouping_service, course_service
 ):
-    tool_guid = request_json["lms"]["tool_consumer_instance_guid"]
-
     def assert_return_values(groupids, groups):
-        expected_groups = [
-            grouping_service.upsert_with_parent(
-                tool_consumer_instance_guid=tool_guid,
-                lms_id=group["id"],
-                lms_name=group.get("name", f"Group {group['id']}"),
-                parent=course_service.get.return_value,
-                type_=Grouping.Type.CANVAS_GROUP,
-                extra={"group_set_id": group["group_category_id"]},
-            )
-            for group in groups
-        ]
+        expected_groups = grouping_service.upsert_with_parent(
+            [
+                {
+                    "lms_id": group["id"],
+                    "lms_name": group.get("name", f"Group {group['id']}"),
+                    "extra": {"group_set_id": group["group_category_id"]},
+                }
+                for group in groups
+            ],
+            parent=course_service.get.return_value,
+            type_=Grouping.Type.CANVAS_GROUP,
+        )
 
         lti_h_service.sync.assert_called_once_with(
             expected_groups, request_json["group_info"]

@@ -33,52 +33,52 @@ class GroupingService:
             tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
         )
 
-    def upsert_with_parent(  # pylint: disable=too-many-arguments
+    def upsert_with_parent(
         self,
-        tool_consumer_instance_guid,
-        lms_id,
-        lms_name,
-        parent: Grouping,
+        grouping_dicts: List[dict],
         type_: Grouping.Type,
-        extra=None,
+        parent: Grouping,
     ):
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
-        :param tool_consumer_instance_guid: Tool consumer GUID
-        :param lms_id: ID of this grouping on the LMS
-        :param lms_name: Name of the grouping on the LMS
-        :param parent: Parent of grouping
-        :param type_: Type of the grouping
-        :param extra: Any extra information to store linked to this grouping
+        :param grouping_dicts: A list of dicts containing:
+            lms_id: ID of this grouping on the LMS
+            lms_name: Name of the grouping on the LMS
+            extra: Any extra information to store linked to this grouping
+
+        :param parent: Parent grouping for all upserted groups
+        :param type_: Type of the groupings
         """
-        authority_provided_id = self.generate_authority_provided_id(
-            tool_consumer_instance_guid, lms_id, parent, type_
+
+        if not parent.id:
+            # Make sure we have a PK for the parent before upserting
+            self._db.flush()
+
+        return bulk_upsert(
+            self._db,
+            Grouping,
+            [
+                {
+                    "application_instance_id": self.application_instance.id,
+                    "authority_provided_id": self.generate_authority_provided_id(
+                        self.application_instance.tool_consumer_instance_guid,
+                        grouping["lms_id"],
+                        parent,
+                        type_,
+                    ),
+                    "lms_id": grouping["lms_id"],
+                    "parent_id": parent.id,
+                    "type": type_,
+                    "lms_name": grouping["lms_name"],
+                    "extra": grouping.get("extra"),
+                    "updated": func.now(),
+                }
+                for grouping in grouping_dicts
+            ],
+            index_elements=["application_instance_id", "authority_provided_id"],
+            update_columns=["lms_name", "extra", "updated"],
         )
-
-        grouping = (
-            self._db.query(Grouping)
-            .filter_by(
-                application_instance=self.application_instance,
-                authority_provided_id=authority_provided_id,
-            )
-            .one_or_none()
-        )
-
-        if not grouping:
-            grouping = Grouping(
-                application_instance=self.application_instance,
-                authority_provided_id=authority_provided_id,
-                lms_id=lms_id,
-                parent_id=parent.id,
-                type=type_,
-            )
-            self._db.add(grouping)
-
-        grouping.lms_name = lms_name
-        grouping.extra = extra
-
-        return grouping
 
     def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
         """
