@@ -21,18 +21,45 @@ class Grouping(CreatedUpdatedMixin, BASE):
     __tablename__ = "grouping"
     __mapper_args__ = {"polymorphic_on": "type"}
     __table_args__ = (
+        # Within a given application instance no two groupings should have the
+        # same authority_provided_id.
         sa.UniqueConstraint("application_instance_id", "authority_provided_id"),
+        # Within a given application instance no two groupings with the same
+        # parent and type should have the same lms_id. Examples:
+        #
+        # * Two groupings can have the same lms_id if they belong to
+        #   different parents. For example in Canvas two sections in different
+        #   courses can have the same ID.
+        #
+        # * Even within the same parent two groupings can have the same lms_id
+        #   if they have different types. For example in Canvas a section can
+        #   have the same ID as a group in the same course.
+        #
+        # * But two Canvas sections in the same course can't have the same ID,
+        #   nor can two groups in the same course.
         sa.UniqueConstraint("lms_id", "application_instance_id", "parent_id", "type"),
+        # SQLAlchemy forced us to add this constraint in order to make the
+        # ForeignKeyConstraint below work, otherwise you get this error:
+        #
+        #     sqlalchemy.exc.ProgrammingError: (psycopg2.errors.InvalidForeignKey)
+        #     there is no unique constraint matching given keys for referenced
+        #     table "grouping"
         sa.UniqueConstraint("id", "application_instance_id"),
+        # application_instance_id is included in this foreign key so that a
+        # child grouping must always have the same application_instance_id as
+        # its parent grouping.
         sa.ForeignKeyConstraint(
             ["parent_id", "application_instance_id"],
             ["grouping.id", "grouping.application_instance_id"],
             ondelete="cascade",
         ),
+        # Courses aren't allowed to have parents but every non-course grouping
+        # *must* have a parent.
         sa.CheckConstraint(
             "(type='course' AND parent_id IS NULL) OR (type!='course' AND parent_id IS NOT NULL)",
             name="courses_must_NOT_have_parents_and_other_groupings_MUST_have_parents",
         ),
+        # Only certain values are allowed in the `type` column.
         sa.CheckConstraint(
             "type in ('course', 'canvas_section', 'canvas_group', 'blackboard_group')",
             name="grouping_type_must_be_a_valid_value",
