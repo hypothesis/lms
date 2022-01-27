@@ -20,6 +20,16 @@ class TestGenerateAuthorityProvidedID:
             == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
         )
 
+    def test_it_raises_if_a_course_grouping_has_a_parent(
+        self, generate_authority_provided_id
+    ):
+        with pytest.raises(
+            AssertionError, match="Course groupings can't have a parent"
+        ):
+            generate_authority_provided_id(
+                parent=factories.Course(), type_=Grouping.Type.COURSE
+            )
+
     @pytest.mark.parametrize(
         "type_",
         [
@@ -31,7 +41,9 @@ class TestGenerateAuthorityProvidedID:
     def test_it_raises_if_a_child_grouping_has_no_parent(
         self, generate_authority_provided_id, type_
     ):
-        with pytest.raises(AssertionError):
+        with pytest.raises(
+            AssertionError, match="Non-course groupings must have a parent"
+        ):
             generate_authority_provided_id(parent=None, type_=type_)
 
     @pytest.mark.parametrize(

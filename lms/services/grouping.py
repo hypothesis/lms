@@ -21,10 +21,10 @@ class GroupingService:
         type_: Grouping.Type,
     ):
         if type_ == Grouping.Type.COURSE:
+            assert parent is None, "Course groupings can't have a parent"
             return hashed_id(tool_consumer_instance_guid, lms_id)
 
-        # For the rest of types, parent is mandatory
-        assert parent is not None
+        assert parent is not None, "Non-course groupings must have a parent"
 
         if type_ == Grouping.Type.CANVAS_SECTION:
             return hashed_id(tool_consumer_instance_guid, parent.lms_id, lms_id)
