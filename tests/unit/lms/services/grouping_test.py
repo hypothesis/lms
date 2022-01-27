@@ -68,8 +68,10 @@ class TestGenerateAuthorityProvidedID:
         )
 
     @pytest.fixture
-    def generate_authority_provided_id(self, svc):
-        return partial(svc.generate_authority_provided_id, "t_c_i_guid", "lms_id")
+    def generate_authority_provided_id(self):
+        return partial(
+            GroupingService.generate_authority_provided_id, "t_c_i_guid", "lms_id"
+        )
 
 
 class TestUpsertWithParent:
