@@ -76,42 +76,22 @@ class TestGenerateAuthorityProvidedID:
 
 
 class TestUpsertWithParent:
-    CONTEXT_ID = "context_id"
-    TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
-
-    def test_if_no_grouping_already_exists_it_inserts_a_new_one(self, svc, db_session):
-        course = factories.Course(application_instance=svc.application_instance)
-
-        # Start with no CanvasGroup
-        assert not db_session.query(CanvasGroup).count()
-
-        test_grouping = svc.upsert_with_parent(
-            tool_consumer_instance_guid=course.application_instance.tool_consumer_instance_guid,
-            lms_id="lms_id",
-            lms_name="lms_name",
-            parent=course,
-            type_=Grouping.Type.CANVAS_GROUP,
-        )
+    def test_if_no_grouping_already_exists_it_inserts_a_new_one(
+        self, db_session, upsert_with_parent
+    ):
+        test_grouping = upsert_with_parent()
 
         assert db_session.query(CanvasGroup).one() == test_grouping
 
-    def test_if_a_grouping_already_exists_it_updates_it(self, svc, db_session):
-        course = factories.Course(application_instance=svc.application_instance)
-        kwargs = {
-            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
-            "lms_id": "lms_id",
-            "parent": course,
-            "type_": Grouping.Type.CANVAS_GROUP,
-        }
-        old_name = "old_name"
-        old_extra = {"extra": "old"}
-        new_name = "new_name"
-        new_extra = {"extra": "new"}
+    def test_if_a_grouping_already_exists_it_updates_it(
+        self, db_session, upsert_with_parent
+    ):
         # Insert an existing grouping into the DB.
-        svc.upsert_with_parent(lms_name=old_name, extra=old_extra, **kwargs)
+        upsert_with_parent(lms_name="old_name", extra={"extra": "old"})
 
         # upsert_with_parent() should find and update the existing grouping.
-        grouping = svc.upsert_with_parent(lms_name=new_name, extra=new_extra, **kwargs)
+        new_name, new_extra = "new_name", {"extra": "new"}
+        grouping = upsert_with_parent(lms_name=new_name, extra=new_extra)
 
         # It should return a grouping with the updated values.
         assert grouping.lms_name == new_name
@@ -122,7 +102,7 @@ class TestUpsertWithParent:
         assert db_grouping.extra == new_extra
 
     def test_you_cant_upsert_a_grouping_whose_parent_has_a_different_application_instance(
-        self, svc, application_instance_service, db_session
+        self, application_instance_service, db_session, upsert_with_parent
     ):
         parent = factories.Course()
         # GroupingService uses ApplicationInstanceService.get_current() as the
@@ -134,13 +114,7 @@ class TestUpsertWithParent:
             != application_instance_service.get_current.return_value
         )
 
-        svc.upsert_with_parent(
-            tool_consumer_instance_guid="tool_consumer_instance_guid",
-            lms_id="lms_id",
-            lms_name="lms_name",
-            type_=Grouping.Type.CANVAS_GROUP,
-            parent=parent,
-        )
+        upsert_with_parent(parent=parent)
 
         with pytest.raises(
             IntegrityError,
@@ -148,34 +122,59 @@ class TestUpsertWithParent:
         ):
             db_session.flush()
 
-    def test_you_can_have_a_group_and_a_section_with_the_same_id(self, svc, db_session):
-        course = factories.Course(
-            lms_id=self.CONTEXT_ID, application_instance=svc.application_instance
-        )
+    def test_you_can_have_a_group_and_a_section_with_the_same_id(
+        self, db_session, svc, upsert_with_parent
+    ):
+        course = factories.Course(application_instance=svc.application_instance)
         db_session.flush()
 
-        group = svc.upsert_with_parent(
-            self.TOOL_CONSUMER_INSTANCE_GUID,
-            "same_id",
-            "group_name",
-            course,
-            Grouping.Type.CANVAS_GROUP,
+        canvas_group = upsert_with_parent(
+            parent=course, type_=Grouping.Type.CANVAS_GROUP
         )
-        section = svc.upsert_with_parent(
-            self.TOOL_CONSUMER_INSTANCE_GUID,
-            "same_id",
-            "section_name",
-            course,
-            Grouping.Type.CANVAS_SECTION,
+        canvas_section = upsert_with_parent(
+            parent=course, type_=Grouping.Type.CANVAS_SECTION
+        )
+        blackboard_group = upsert_with_parent(
+            parent=course, type_=Grouping.Type.BLACKBOARD_GROUP
         )
 
-        assert group.authority_provided_id == "078cc1b793e061085ed3ef91189b41a6f7dd26b8"
+        # We've created three groupings witht the same application_instance, parent and lms_id.
         assert (
-            section.authority_provided_id == "867c2696d32eb4b5e9cf5c5304cb71c3e20bfd14"
+            canvas_group.application_instance
+            == canvas_section.application_instance
+            == blackboard_group.application_instance
         )
-        assert group.type == Grouping.Type.CANVAS_GROUP
-        assert section.type == Grouping.Type.CANVAS_SECTION
-        assert group.parent_id == section.parent_id == course.id
+        assert (
+            canvas_group.parent_id
+            == canvas_section.parent_id
+            == blackboard_group.parent_id
+        )
+        assert canvas_group.lms_id == canvas_section.lms_id == blackboard_group.lms_id
+        # But they have a different type and therefore a different authority_provided_id.
+        assert canvas_group.type != canvas_section.type
+        assert canvas_group.type != blackboard_group.type
+        assert blackboard_group.type != canvas_section.type
+        assert (
+            canvas_group.authority_provided_id != canvas_section.authority_provided_id
+        )
+        assert (
+            canvas_group.authority_provided_id != blackboard_group.authority_provided_id
+        )
+        assert (
+            blackboard_group.authority_provided_id
+            != canvas_section.authority_provided_id
+        )
+
+    @pytest.fixture
+    def upsert_with_parent(self, svc):
+        return partial(
+            svc.upsert_with_parent,
+            tool_consumer_instance_guid="t_c_i_guid",
+            lms_id="lms_id",
+            lms_name="lms_name",
+            parent=factories.Course(application_instance=svc.application_instance),
+            type_=Grouping.Type.CANVAS_GROUP,
+        )
 
 
 class TestUpsertGroupingMemberships:
