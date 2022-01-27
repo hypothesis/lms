@@ -214,127 +214,94 @@ class TestUpsertGroupingMemberships:
 
 
 class TestGetCourseGroupingsForUser:
-    def test_it_with_no_group_set_id(self, svc, with_group_memberships):
-        """
-        Test it with no group_set_id argument.
-
-        If not group_set_id argument is given it returns all the child
-        groupings that the user belongs to.
-        """
-        user, courses, group_a = with_group_memberships
-
-        groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP
-        )
-
-        assert len(groupings) == 1
-        assert groupings[0] == group_a
-
-    def test_it_with_a_group_set_id(self, svc, with_group_memberships):
-        """
-        Test it with a group_set_id.
-
-        If a group_set_id argument is given it returns only the groupings with
-        that group_set_id.
-        """
-        user, courses, group_a = with_group_memberships
-
-        groupings = svc.get_course_groupings_for_user(
-            courses[0],
-            user.user_id,
-            Grouping.Type.CANVAS_GROUP,
-            group_a.extra["group_set_id"],
-        )
-
-        assert len(groupings) == 1
-        assert groupings[0] == group_a
-
-    def test_it_doesnt_return_groupings_that_have_a_different_group_set_id(
-        self, svc, with_group_memberships
+    @pytest.mark.parametrize("group_set_id", [42, None])
+    def test_it(
+        self,
+        db_session,
+        svc,
+        user,
+        course,
+        make_grouping,
+        group_set_id,
     ):
-        user, courses, _ = with_group_memberships
+        # A grouping that is in the right course, that the user is a member of,
+        # that is the right type, and that has the right group_set_id.
+        # get_course_groupings_for_user() should always return this grouping.
+        matching_grouping = make_grouping()
 
-        groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_GROUP, "ANOTHER_GROUP_SET_ID"
-        )
+        # A grouping that belongs to the wrong group set.
+        # get_course_groupings_for_user() should return this grouping if no
+        # group_set_id argument is given but not if a group_set_id=42 argument
+        # is given.
+        grouping_with_wrong_group_set_id = make_grouping(group_set_id=56)
 
-        assert not groupings
+        # A grouping that the user isn't a member of.
+        # get_course_groupings_for_user() should not return this.
+        make_grouping(membership=False)
 
-    def test_it_doesnt_return_groupings_that_have_a_different_type(
-        self, svc, with_group_memberships
-    ):
-        user, courses, _ = with_group_memberships
+        # A grouping that is in the wrong course.
+        # get_course_groupings_for_user() should not return this.
+        make_grouping(parent=factories.Course())
 
-        groupings = svc.get_course_groupings_for_user(
-            courses[0], user.user_id, Grouping.Type.CANVAS_SECTION
-        )
+        # A grouping that has the wrong type.
+        # get_course_groupings_for_user() should not return this.
+        make_grouping(factory=factories.CanvasGroup)
 
-        assert not groupings
-
-    def test_it_doesnt_return_groupings_that_belong_to_a_different_course(
-        self, svc, with_group_memberships
-    ):
-        user, courses, _ = with_group_memberships
-
-        groupings = svc.get_course_groupings_for_user(
-            courses[1], user.user_id, Grouping.Type.CANVAS_GROUP
-        )
-
-        assert not groupings
-
-    def test_it_doesnt_return_groupings_that_the_user_isnt_a_member_of(
-        self, svc, with_group_memberships, application_instance
-    ):
-        _, courses, _ = with_group_memberships
-        other_user = factories.User(application_instance=application_instance)
-
-        groupings = svc.get_course_groupings_for_user(
-            courses[0], other_user.user_id, Grouping.Type.CANVAS_GROUP
-        )
-
-        assert not groupings
-
-    @pytest.fixture
-    def with_course_memberships(self, svc, db_session, application_instance):
-        courses = factories.Course.create_batch(5)
-        user = factories.User(application_instance=application_instance)
+        # Flush the session to generate IDs.
         db_session.flush()
 
-        svc.upsert_grouping_memberships(user, courses)
+        groupings = svc.get_course_groupings_for_user(
+            course,
+            user.user_id,
+            Grouping.Type.CANVAS_SECTION,
+            group_set_id=group_set_id,
+        )
 
-        # Some extra courses/user for noise
-        factories.Course.create_batch(5)
-        factories.User(application_instance=application_instance)
-
-        return user, courses
+        expected_groupings = [matching_grouping]
+        if not group_set_id:
+            # If we didn't pass a group_set_id argument to
+            # get_course_groupings_for_user() then it will return groupings
+            # with any group_set_id.
+            expected_groupings.append(grouping_with_wrong_group_set_id)
+        assert groupings == Any.iterable.containing(expected_groupings).only()
 
     @pytest.fixture
-    def with_group_memberships(self, with_course_memberships, db_session):
-        user, courses = with_course_memberships
+    def course(self):
+        """Return the course that we'll ask for groupings from."""
+        return factories.Course()
 
-        course = courses[0]
-        group_a = CanvasGroup(
-            parent=course,
-            authority_provided_id="section_a",
-            application_instance=course.application_instance,
-            lms_id="SECTION_A",
-            lms_name="SECTION_A",
-            extra={"group_set_id": "GROUPSET_ID"},
-        )
-        # An extra group for noise
-        group_b = CanvasGroup(
-            authority_provided_id="section_b",
-            parent=course,
-            application_instance=course.application_instance,
-            lms_id="SECTION_B",
-            lms_name="SECTION_B",
-        )
+    @pytest.fixture
+    def user(self):
+        """Return the user whose groupings we'll ask for."""
+        return factories.User()
 
-        db_session.add_all(
-            [group_a, group_b, GroupingMembership(user=user, grouping=group_a)]
-        )
+    @pytest.fixture
+    def make_grouping(self, db_session, course, user):
+        """Return a factory for making groupings."""
 
-        return user, courses, group_a
+        def make_grouping(
+            factory=factories.CanvasSection,
+            parent=None,
+            group_set_id=42,
+            membership=True,
+        ):
+            parent = parent or course
+
+            grouping = factory(parent=parent, extra={"group_set_id": group_set_id})
+
+            if membership:
+                db_session.add(GroupingMembership(user=user, grouping=grouping))
+            else:
+                # Add a *different* user as a member of the group, otherwise DB
+                # queries wouldn't return the grouping even if the code didn't
+                # filter by user_id.
+                db_session.add(
+                    GroupingMembership(user=factories.User(), grouping=grouping)
+                )
+
+            return grouping
+
+        return make_grouping
 
 
 class TestFactory:
