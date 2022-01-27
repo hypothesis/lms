@@ -10,11 +10,43 @@ from tests import factories
 pytestmark = pytest.mark.usefixtures("course_service", "application_instance_service")
 
 
-class TestGroupingService:
+class TestGenerateAuthorityProvidedID:
+    TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
+
+    def test_generating_an_authority_provided_id_for_a_course(self, svc):
+        assert (
+            svc.generate_authority_provided_id(
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, Grouping.Type.COURSE
+            )
+            == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
+        )
+
+    @pytest.mark.parametrize(
+        "type_,expected",
+        [
+            (Grouping.Type.CANVAS_SECTION, "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
+            (Grouping.Type.CANVAS_GROUP, "aaab80699a478e9da17e734f2e3c8126687e6135"),
+        ],
+    )
+    def test_generating_an_authority_provided_id_for_a_child_grouping(
+        self, svc, db_session, type_, expected
+    ):
+        course = factories.Course(lms_id="course_id")
+        db_session.flush()
+
+        assert (
+            svc.generate_authority_provided_id(
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", course, type_
+            )
+            == expected
+        )
+
+
+class TestUpsertWithParent:
     CONTEXT_ID = "context_id"
     TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
 
-    def test_upsert_with_parents_inserts(self, svc, db_session):
+    def test_if_no_grouping_already_exists_it_inserts_a_new_one(self, svc, db_session):
         course = factories.Course(application_instance=svc.application_instance)
 
         # Start with no CanvasGroup
@@ -29,6 +61,32 @@ class TestGroupingService:
         )
 
         assert db_session.query(CanvasGroup).one() == test_grouping
+
+    def test_if_a_grouping_already_exists_it_updates_it(self, svc, db_session):
+        course = factories.Course(application_instance=svc.application_instance)
+        kwargs = {
+            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
+            "lms_id": "lms_id",
+            "parent": course,
+            "type_": Grouping.Type.CANVAS_GROUP,
+        }
+        old_name = "old_name"
+        old_extra = {"extra": "old"}
+        new_name = "new_name"
+        new_extra = {"extra": "new"}
+        # Insert an existing grouping into the DB.
+        svc.upsert_with_parent(lms_name=old_name, extra=old_extra, **kwargs)
+
+        # upsert_with_parent() should find and update the existing grouping.
+        grouping = svc.upsert_with_parent(lms_name=new_name, extra=new_extra, **kwargs)
+
+        # It should return a grouping with the updated values.
+        assert grouping.lms_name == new_name
+        assert grouping.extra == new_extra
+        # The values should have been updated in the DB as well.
+        db_grouping = db_session.query(CanvasGroup).one()
+        assert db_grouping.lms_name == new_name
+        assert db_grouping.extra == new_extra
 
     def test_you_cant_upsert_a_grouping_whose_parent_has_a_different_application_instance(
         self, svc, application_instance_service, db_session
@@ -57,33 +115,7 @@ class TestGroupingService:
         ):
             db_session.flush()
 
-    def test_upsert_with_parent_updates_existing_groupings(self, svc, db_session):
-        course = factories.Course(application_instance=svc.application_instance)
-        kwargs = {
-            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
-            "lms_id": "lms_id",
-            "parent": course,
-            "type_": Grouping.Type.CANVAS_GROUP,
-        }
-        old_name = "old_name"
-        old_extra = {"extra": "old"}
-        new_name = "new_name"
-        new_extra = {"extra": "new"}
-        # Insert an existing grouping into the DB.
-        svc.upsert_with_parent(lms_name=old_name, extra=old_extra, **kwargs)
-
-        # upsert_with_parent() should find and update the existing grouping.
-        grouping = svc.upsert_with_parent(lms_name=new_name, extra=new_extra, **kwargs)
-
-        # It should return a grouping with the updated values.
-        assert grouping.lms_name == new_name
-        assert grouping.extra == new_extra
-        # The values should have been updated in the DB as well.
-        db_grouping = db_session.query(CanvasGroup).one()
-        assert db_grouping.lms_name == new_name
-        assert db_grouping.extra == new_extra
-
-    def test_canvas_group_and_sections_dont_conflict(self, svc, db_session):
+    def test_you_can_have_a_group_and_a_section_with_the_same_id(self, svc, db_session):
         course = factories.Course(
             lms_id=self.CONTEXT_ID, application_instance=svc.application_instance
         )
@@ -112,35 +144,9 @@ class TestGroupingService:
         assert section.type == Grouping.Type.CANVAS_SECTION
         assert group.parent_id == section.parent_id == course.id
 
-    def test_generate_authority_provided_id_for_course(self, svc):
-        assert (
-            svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, Grouping.Type.COURSE
-            )
-            == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
-        )
 
-    @pytest.mark.parametrize(
-        "type_,expected",
-        [
-            (Grouping.Type.CANVAS_SECTION, "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
-            (Grouping.Type.CANVAS_GROUP, "aaab80699a478e9da17e734f2e3c8126687e6135"),
-        ],
-    )
-    def test_generate_authority_provided_id_with_parent(
-        self, svc, db_session, type_, expected
-    ):
-        course = factories.Course(lms_id="course_id")
-        db_session.flush()
-
-        assert (
-            svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", course, type_
-            )
-            == expected
-        )
-
-    def test_upsert_grouping_memberships_inserts(
+class TestUpsertGroupingMemberships:
+    def test_if_theres_no_existing_membership_it_inserts_a_new_one(
         self, svc, application_instance, db_session
     ):
         courses = factories.Course.create_batch(5)
@@ -153,7 +159,7 @@ class TestGroupingService:
         for course in courses:
             assert course.memberships[0].user == user
 
-    def test_upsert_grouping_memberships_updates(
+    def test_if_theres_an_existing_membership_it_updates_it(
         self, svc, db_session, with_course_memberships
     ):
         user, courses = with_course_memberships
@@ -164,7 +170,15 @@ class TestGroupingService:
             courses
         )
 
-    def test_get_course_grouping_for_user(self, svc, with_group_memberships):
+
+class TestGetCourseGroupingsForUser:
+    def test_it_with_no_group_set_id(self, svc, with_group_memberships):
+        """
+        Test it with no group_set_id argument.
+
+        If not group_set_id argument is given it returns all the child
+        groupings that the user belongs to.
+        """
         user, courses, group_a = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
@@ -174,9 +188,13 @@ class TestGroupingService:
         assert len(groupings) == 1
         assert groupings[0] == group_a
 
-    def test_get_course_grouping_for_user_with_groupset_id(
-        self, svc, with_group_memberships
-    ):
+    def test_it_with_a_group_set_id(self, svc, with_group_memberships):
+        """
+        Test it with a group_set_id.
+
+        If a group_set_id argument is given it returns only the groupings with
+        that group_set_id.
+        """
         user, courses, group_a = with_group_memberships
 
         groupings = svc.get_course_groupings_for_user(
@@ -189,7 +207,7 @@ class TestGroupingService:
         assert len(groupings) == 1
         assert groupings[0] == group_a
 
-    def test_get_course_grouping_for_user_with_different_groupset_id(
+    def test_it_doesnt_return_groupings_that_have_a_different_group_set_id(
         self, svc, with_group_memberships
     ):
         user, courses, _ = with_group_memberships
@@ -200,7 +218,7 @@ class TestGroupingService:
 
         assert not groupings
 
-    def test_get_course_grouping_for_user_with_different_type(
+    def test_it_doesnt_return_groupings_that_have_a_different_type(
         self, svc, with_group_memberships
     ):
         user, courses, _ = with_group_memberships
@@ -211,7 +229,7 @@ class TestGroupingService:
 
         assert not groupings
 
-    def test_get_course_grouping_for_user_with_different_course(
+    def test_it_doesnt_return_groupings_that_belong_to_a_different_course(
         self, svc, with_group_memberships
     ):
         user, courses, _ = with_group_memberships
@@ -222,7 +240,7 @@ class TestGroupingService:
 
         assert not groupings
 
-    def test_get_course_grouping_for_user_with_different_user(
+    def test_it_doesnt_return_groupings_that_the_user_isnt_a_member_of(
         self, svc, with_group_memberships, application_instance
     ):
         _, courses, _ = with_group_memberships
@@ -233,20 +251,6 @@ class TestGroupingService:
         )
 
         assert not groupings
-
-    @pytest.fixture
-    def with_course_memberships(self, svc, db_session, application_instance):
-        courses = factories.Course.create_batch(5)
-        user = factories.User(application_instance=application_instance)
-        db_session.flush()
-
-        svc.upsert_grouping_memberships(user, courses)
-
-        # Some extra courses/user for noise
-        factories.Course.create_batch(5)
-        factories.User(application_instance=application_instance)
-
-        return user, courses
 
     @pytest.fixture
     def with_group_memberships(self, with_course_memberships, db_session):
@@ -276,13 +280,29 @@ class TestGroupingService:
 
         return user, courses, group_a
 
-    @pytest.fixture
-    def svc(self, db_session, application_instance_service):
-        return GroupingService(db_session, application_instance_service)
-
 
 class TestFactory:
     def test_it(self, pyramid_request):
         grouping_service = factory(sentinel.context, pyramid_request)
 
         assert isinstance(grouping_service, GroupingService)
+
+
+@pytest.fixture
+def svc(db_session, application_instance_service):
+    return GroupingService(db_session, application_instance_service)
+
+
+@pytest.fixture
+def with_course_memberships(svc, db_session, application_instance):
+    courses = factories.Course.create_batch(5)
+    user = factories.User(application_instance=application_instance)
+    db_session.flush()
+
+    svc.upsert_grouping_memberships(user, courses)
+
+    # Some extra courses/user for noise
+    factories.Course.create_batch(5)
+    factories.User(application_instance=application_instance)
+
+    return user, courses
