@@ -2,7 +2,7 @@ from pyramid.view import view_config
 
 from lms.models import Grouping
 from lms.security import Permissions
-from lms.services import CanvasAPIError
+from lms.services import CanvasAPIError, UserService
 from lms.views import (
     CanvasGroupSetEmpty,
     CanvasGroupSetNotFound,
@@ -25,7 +25,7 @@ class Sync:
     )
     def sync(self):
         if self._is_group_launch:
-            groups = self._to_groups_groupings(self._get_canvas_groups())
+            groups = self._get_canvas_groups()
         else:
             groups = self._to_section_groupings(self._get_sections())
 
@@ -63,6 +63,11 @@ class Sync:
         lti_user = self._request.lti_user
         group_set_id = self.group_set()
         if lti_user.is_learner:
+            user = self._request.find_service(UserService).get(
+                self._request.find_service(name="application_instance").get_current(),
+                lti_user.user_id,
+            )
+
             # For learners, the groups they belong within the course
             learner_groups = self._canvas_api.current_user_groups(
                 self._request.json["course"]["custom_canvas_course_id"],
@@ -71,14 +76,19 @@ class Sync:
             if not learner_groups:
                 raise CanvasStudentNotInGroup(group_set=group_set_id)
 
-            return learner_groups
+            groups = self._to_groups_groupings(learner_groups)
+            self._grouping_service.upsert_grouping_memberships(user, groups)
+
+            return groups
 
         if self._is_speedgrader:
             # SpeedGrader requests are made by the teacher, get the student we are grading
-            return self._canvas_api.user_groups(
-                self._request.json["course"]["custom_canvas_course_id"],
-                int(self._request.json["learner"]["canvas_user_id"]),
-                self.group_set(),
+            return self._to_groups_groupings(
+                self._canvas_api.user_groups(
+                    self._request.json["course"]["custom_canvas_course_id"],
+                    int(self._request.json["learner"]["canvas_user_id"]),
+                    self.group_set(),
+                )
             )
 
         try:
@@ -90,7 +100,7 @@ class Sync:
         if not groups:
             raise CanvasGroupSetEmpty(group_set=group_set_id)
 
-        return groups
+        return self._to_groups_groupings(groups)
 
     def _get_sections(self):
         course_id = self._request.json["course"]["custom_canvas_course_id"]
