@@ -1,3 +1,4 @@
+from functools import partial
 from unittest.mock import sentinel
 
 import pytest
@@ -11,13 +12,11 @@ pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestGenerateAuthorityProvidedID:
-    TOOL_CONSUMER_INSTANCE_GUID = "t_c_i_guid"
-
-    def test_generating_an_authority_provided_id_for_a_course(self, svc):
+    def test_generating_an_authority_provided_id_for_a_course(
+        self, generate_authority_provided_id
+    ):
         assert (
-            svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, Grouping.Type.COURSE
-            )
+            generate_authority_provided_id(parent=None, type_=Grouping.Type.COURSE)
             == "f56fc198fea84f419080e428f0ee2a7c0e2c132a"
         )
 
@@ -29,11 +28,11 @@ class TestGenerateAuthorityProvidedID:
             Grouping.Type.BLACKBOARD_GROUP,
         ],
     )
-    def test_it_raises_if_a_child_grouping_has_no_parent(self, svc, type_):
+    def test_it_raises_if_a_child_grouping_has_no_parent(
+        self, generate_authority_provided_id, type_
+    ):
         with pytest.raises(AssertionError):
-            svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, type_
-            )
+            generate_authority_provided_id(parent=None, type_=type_)
 
     @pytest.mark.parametrize(
         "type_,expected",
@@ -47,17 +46,18 @@ class TestGenerateAuthorityProvidedID:
         ],
     )
     def test_generating_an_authority_provided_id_for_a_child_grouping(
-        self, svc, type_, expected
+        self, generate_authority_provided_id, type_, expected
     ):
         assert (
-            svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID,
-                "lms_id",
-                factories.Course(lms_id="course_id"),
-                type_,
+            generate_authority_provided_id(
+                parent=factories.Course(lms_id="course_id"), type_=type_
             )
             == expected
         )
+
+    @pytest.fixture
+    def generate_authority_provided_id(self, svc):
+        return partial(svc.generate_authority_provided_id, "t_c_i_guid", "lms_id")
 
 
 class TestUpsertWithParent:
