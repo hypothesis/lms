@@ -2,6 +2,7 @@ from functools import partial
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import CanvasGroup, Grouping, GroupingMembership
@@ -176,28 +177,38 @@ class TestUpsertWithParent:
 
 
 class TestUpsertGroupingMemberships:
-    def test_if_theres_no_existing_membership_it_inserts_a_new_one(
-        self, svc, application_instance, db_session
-    ):
-        courses = factories.Course.create_batch(5)
-        user = factories.User(application_instance=application_instance)
-        assert not db_session.query(GroupingMembership).count()
+    def test_it(self, db_session, svc):
+        user = factories.User()
+        groups = []
+        # Create a group that the user is already a member of.
+        group_that_user_was_already_a_member_of = factories.Course()
+        groups.append(group_that_user_was_already_a_member_of)
+        db_session.add(
+            GroupingMembership(
+                grouping=group_that_user_was_already_a_member_of,
+                user=user,
+            )
+        )
+        # Add a group that the user is not yet a member of.
+        groups.append(factories.CanvasGroup())
+        db_session.flush()
 
-        svc.upsert_grouping_memberships(user, courses)
+        svc.upsert_grouping_memberships(user, groups)
 
-        assert db_session.query(GroupingMembership).count() == len(courses)
-        for course in courses:
-            assert course.memberships[0].user == user
-
-    def test_if_theres_an_existing_membership_it_updates_it(
-        self, svc, db_session, with_course_memberships
-    ):
-        user, courses = with_course_memberships
-
-        svc.upsert_grouping_memberships(user, courses)
-
-        assert db_session.query(GroupingMembership).filter_by(user=user).count() == len(
-            courses
+        # The user should now be a member of both groups.
+        assert (
+            db_session.query(GroupingMembership)
+            == Any.iterable.containing(
+                [
+                    Any.object.of_type(GroupingMembership).with_attrs(
+                        {
+                            "grouping_id": group.id,
+                            "user_id": user.id,
+                        }
+                    )
+                    for group in groups
+                ]
+            ).only()
         )
 
 
@@ -283,6 +294,20 @@ class TestGetCourseGroupingsForUser:
         assert not groupings
 
     @pytest.fixture
+    def with_course_memberships(self, svc, db_session, application_instance):
+        courses = factories.Course.create_batch(5)
+        user = factories.User(application_instance=application_instance)
+        db_session.flush()
+
+        svc.upsert_grouping_memberships(user, courses)
+
+        # Some extra courses/user for noise
+        factories.Course.create_batch(5)
+        factories.User(application_instance=application_instance)
+
+        return user, courses
+
+    @pytest.fixture
     def with_group_memberships(self, with_course_memberships, db_session):
         user, courses = with_course_memberships
 
@@ -321,18 +346,3 @@ class TestFactory:
 @pytest.fixture
 def svc(db_session, application_instance_service):
     return GroupingService(db_session, application_instance_service)
-
-
-@pytest.fixture
-def with_course_memberships(svc, db_session, application_instance):
-    courses = factories.Course.create_batch(5)
-    user = factories.User(application_instance=application_instance)
-    db_session.flush()
-
-    svc.upsert_grouping_memberships(user, courses)
-
-    # Some extra courses/user for noise
-    factories.Course.create_batch(5)
-    factories.User(application_instance=application_instance)
-
-    return user, courses
