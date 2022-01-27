@@ -7,7 +7,7 @@ from lms.models import CanvasGroup, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("course_service", "application_instance_service")
+pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestGroupingService:
