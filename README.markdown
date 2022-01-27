@@ -4,6 +4,10 @@
 
 # Hypothesis LMS App
 
+See also:
+
+  * [Configuration](docs/configuration.md) - Details of environment variables and setup
+
 ## Installing the Hypothesis LMS app in a development environment
 
 ### You will need
