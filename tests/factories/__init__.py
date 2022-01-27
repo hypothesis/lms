@@ -16,10 +16,11 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
-from tests.factories.course import Course, LegacyCourse
 from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo
+from tests.factories.grouping import BlackboardGroup, CanvasGroup, CanvasSection, Course
 from tests.factories.h_user import HUser
+from tests.factories.legacy_course import LegacyCourse
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.user import User
