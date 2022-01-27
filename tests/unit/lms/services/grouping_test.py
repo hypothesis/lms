@@ -22,21 +22,39 @@ class TestGenerateAuthorityProvidedID:
         )
 
     @pytest.mark.parametrize(
+        "type_",
+        [
+            Grouping.Type.CANVAS_SECTION,
+            Grouping.Type.CANVAS_GROUP,
+            Grouping.Type.BLACKBOARD_GROUP,
+        ],
+    )
+    def test_it_raises_if_a_child_grouping_has_no_parent(self, svc, type_):
+        with pytest.raises(AssertionError):
+            svc.generate_authority_provided_id(
+                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", None, type_
+            )
+
+    @pytest.mark.parametrize(
         "type_,expected",
         [
             (Grouping.Type.CANVAS_SECTION, "0d671acc7759d5a5d06c724bb4bf7bf26419b9ba"),
             (Grouping.Type.CANVAS_GROUP, "aaab80699a478e9da17e734f2e3c8126687e6135"),
+            (
+                Grouping.Type.BLACKBOARD_GROUP,
+                "4ce0683ddacadfd58168afaf7cb7301024f46531",
+            ),
         ],
     )
     def test_generating_an_authority_provided_id_for_a_child_grouping(
-        self, svc, db_session, type_, expected
+        self, svc, type_, expected
     ):
-        course = factories.Course(lms_id="course_id")
-        db_session.flush()
-
         assert (
             svc.generate_authority_provided_id(
-                self.TOOL_CONSUMER_INSTANCE_GUID, "lms_id", course, type_
+                self.TOOL_CONSUMER_INSTANCE_GUID,
+                "lms_id",
+                factories.Course(lms_id="course_id"),
+                type_,
             )
             == expected
         )
