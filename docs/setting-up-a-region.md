@@ -6,6 +6,15 @@ Setup all the items mentioned here:
 
 ## Canvas
 
+Create a Canvas API key:
+
+ * https://web.hypothes.is/help/creating-canvas-developer-credentials-for-the-hypothesis-lms-app/
+
+Create an application instance:
+
+* Visit http://lms.eg.hypothes.is/welcome
+* Fill in the relevant details and keep the results using the developer key above
+
 Create a course:
 
 * Select `Admin > Courses > +Course`
@@ -20,6 +29,10 @@ Follow the instructions here:
 * [Installing the LMS app for Canvas at the Course Level](https://web.hypothes.is/help/installing-the-lms-app-for-canvas-course-level/)
 
 ## Blackboard
+
+Create an application instance:
+
+* Visit http://lms.eg.hypothes.is/welcome
 
 Create a course:
 
