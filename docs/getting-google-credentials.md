@@ -1,4 +1,4 @@
-# Getting Google Drive credentials
+# Getting Google credentials
 
 If you're setting up the LMS app in a development environment you can just run
 `make devdata` to do all this automatically. But if you're setting it up in a
