@@ -2,10 +2,48 @@ import { PickerCanceledError } from '../errors';
 import { loadOneDriveAPI } from './onedrive-api-client';
 
 /**
+ * Partial type for OneDrive share links.
+ *
+ * See https://docs.microsoft.com/en-us/graph/api/resources/sharinglink?view=graph-rest-1.0
+ *
+ * @typedef SharingLink
+ * @prop {string} webUrl
+ */
+
+/**
+ * Partial type for OneDrive item permissions.
+ *
+ * See https://docs.microsoft.com/en-us/graph/api/resources/permission?view=graph-rest-1.0
+ *
+ * @typedef Permission
+ * @prop {SharingLink} link
+ */
+
+/**
+ * Partial type for OneDrive items.
+ *
+ * See https://docs.microsoft.com/en-us/graph/api/resources/driveitem?view=graph-rest-1.0.
+ *
+ * @typedef DriveItem
+ * @prop {string} name
+ * @prop {Permission[]} permissions
+ */
+
+/**
+ * Result of successful file picker response.
+ *
+ * See https://docs.microsoft.com/en-us/onedrive/developer/controls/file-pickers/js-v72/open-file?view=odsp-graph-online#4-handling-the-picker-response-object.
+ *
+ * @typedef PickerResponse
+ * @prop {DriveItem[]} value
+ */
+
+/**
  * A wrapper around the Microsoft OneDrive file picker.
  *
  * See https://docs.microsoft.com/en-us/onedrive/developer/controls/file-pickers/js-v72/open-file?view=odsp-graph-online
- * for documentation on the underlying library.
+ * for documentation on the underlying library. The picker is built on the
+ * Microsoft Graph API and responses etc. use types associated with that API.
  */
 export class OneDrivePickerClient {
   /**
@@ -31,9 +69,16 @@ export class OneDrivePickerClient {
   async showPicker() {
     const oneDrive = await this._oneDriveAPI;
     return new Promise((resolve, reject) => {
-      const success = (/** @type {any} */ file) => {
-        const name = file.value[0].name;
-        const sharingURL = file.value[0].permissions[0].link.webUrl;
+      /** @param {PickerResponse} result */
+      const success = result => {
+        // TODO - Clarify nullability of properties and lengths of arrays.
+        // We think there are some situations where these properties won't exist
+        // or the arrays may be empty.
+        //
+        // See https://hypothes-is.slack.com/archives/C2BLQDKHA/p1643309746775569.
+        const driveItem = result.value[0];
+        const name = driveItem.name;
+        const sharingURL = driveItem.permissions[0].link.webUrl;
         const url = OneDrivePickerClient.downloadURL(sharingURL);
         resolve({ name, url });
       };
