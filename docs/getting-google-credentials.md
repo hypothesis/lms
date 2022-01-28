@@ -1,5 +1,4 @@
-Setting up Google Drive integration manually
-============================================
+# Getting Google Drive credentials
 
 If you're setting up the LMS app in a development environment you can just run
 `make devdata` to do all this automatically. But if you're setting it up in a
@@ -10,15 +9,17 @@ The outcome of this process will be a configured Google project and valid
 values for the `GOOGLE_APP_ID`, `GOOGLE_DEVELOPER_KEY` and `GOOGLE_CLIENT_ID`
 environment variables.
 
+## For Google Drive
+
 1. Sign in to the [Google Developer Console](https://console.developers.google.com/apis/)
-1. Create a new project. Set the `GOOGLE_APP_ID` environment variable to the ID for this project.
+1. Use the `lms-prod` / `lms-qa` project etc. 
 1. Navigate to the "Credentials" section
-1. Generate an API key
+1. Generate an "API Key"
 
     Use the "Create Credentials" option to generate an API key — retain this
     for the `GOOGLE_DEVELOPER_KEY` environment variable
 
-1. Generate an OAuth client ID.
+1. Generate an "OAuth 2.0 Client ID".
 
     Again, use the "Create Credentials" option to generate an OAuth client ID.
 
@@ -42,3 +43,17 @@ environment variables.
 
     * Google Drive API
     * Google Picker API
+
+## For the Admin Pages
+
+For the `ADMIN_AUTH_GOOGLE_CLIENT_ID` and `ADMIN_AUTH_GOOGLE_CLIENT_SECRET`
+environment variables follow the same instructions above to create an OAuth 2 
+credential, but in the `lms-admin` project.
+
+Make sure to setup the redirect URL like: 
+`https://lms.hypothes.is/googleauth/login/callback`.
+
+## More on environment variables
+
+For detailed instructions on the environment variables see 
+[Configuration](configuration.md).

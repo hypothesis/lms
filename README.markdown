@@ -73,7 +73,7 @@ you aren't a Hypothesis team member and don't have access to the devdata repo,
 or if you're installing the app in a production environment, you can follow
 these instructions to create the necessary data and settings manually:
 
-[Creating the development data and settings manually](docs/manual-data-and-settings.md)
+[Creating the development data and settings manually](docs/getting-h-credentials.md)
 </details>
 
 ### Start the development server
