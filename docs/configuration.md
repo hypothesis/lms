@@ -49,35 +49,10 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `VIA_SECRET`                      | `matching-string-from-via`             | Must match the shared secret from Via           |
 | `VIA_URL`                         | `https://via9.hypothes.is/`            | The matching Via                                |
 
-### Setting up OAuth credentials in `h`
+See also:
 
- * Login with an admin account for `h`
-   * e.g. `http://fr.hypothes.is/login`
- * Once you've logged in goto the admin interface at `/admin`
-   * e.g. `http://fr.hypothes.is/admin`
- * Visit "OAuth Clients"
- * Use the correct "Grant type" e.g. `client_credentials` or `jwt_bearer`
-
-### Setting up Google credentials
-
- * Visit the [Google Cloud console](https://console.cloud.google.com/)
- * Pick the correct project in the console
- * Choose "APIs & Services > Credentials"
-
-There are two types of credentials we need:
-
- * "API Keys"
- * "OAuth 2.0 Client IDs"
-
-For the `ADMIN_AUTH_*` or `GOOGLE_CLIENT_ID` credentials you need an OAuth 
-2.0 token. Make sure to setup the redirect URL like: 
-`https://lms.hypothes.is/googleauth/login/callback`.
-
-Use the client ID and secret for each part.
-
-For the `GOOGLE_DEVELOPER_KEY` below you need an "API Key". For these you may want
-to restrict the origin website to the correct domain like 
-`https://lms.ca.hypothes.is` for extra security.
+ * [Getting H credentials](getting-h-credentials.md) - For `H_*_CLIENT_*`
+ * [Getting Google credentials](getting-google-credentials.md) - `For ADMIN_AUTH_GOOGLE_CLIENT_*`
 
 ## Reporting / monitoring environment variables
 
@@ -125,10 +100,7 @@ _To be completed_
 
 ### Getting Google credentials
 
-See the Google section above. Just note that:
-
- * `GOOGLE_CLIENT_ID` - Is an OAuth client id
- * `GOOGLE_DEVELOPER_KEY` - Is an API Key and not related to the client id
+See [Getting Google credentials](getting-google-credentials.md).
 
 ### Getting OneDrive credentials
 
