@@ -11,7 +11,7 @@ authority. For the moment this is manually entered into the DB e.g.
 INSERT INTO public.user 
     (username, authority)
 VALUES
-    ('lms', 'lms.fr.hypothes.is')
+    ('lms', 'lms.eg.hypothes.is')
 ```
 
 ### `h`'s `CLIENT_RPC_ALLOWED_ORIGINS`
@@ -20,7 +20,7 @@ In order to allow the client to talk to LMS, you must append the LMS's URL to
 the `h` instance which is serving the client from Via. e.g.
 
 ```
-CLIENT_RPC_ALLOWED_ORIGINS=https://lms.fr.hypothes.is
+CLIENT_RPC_ALLOWED_ORIGINS=https://lms.eg.hypothes.is
 ```
 
 ## Basic environment variables
@@ -35,7 +35,7 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `DATABASE_URL`                    | `postgresql://user:pw@host/lms`        | Postgres DSN                                    |
 | `H_API_URL_PRIVATE`               | `https://cloud.hosting.url/api`        | URL for service to service communication        |
 | `H_API_URL_PUBLIC`                | `https://fr.hypothes.is/api`           | URL for client to service communication         |
-| `H_AUTHORITY`                     | `lms.fr.hypothes.is`                   | An authority to separate LMS annotations in `h` |
+| `H_AUTHORITY`                     | `lms.eg.hypothes.is`                   | An authority to separate LMS annotations in `h` |
 | `H_CLIENT_ID`                     | `fedcba98-7654-3210-fedc-ba9876543210` | A `client_credentials` OAuth2 pair from `h`     |
 | `H_CLIENT_SECRET`                 | `0123456789abcdefghijklmnopqrABCDEFGH` | A `client_credentials` OAuth2 pair from `h`     |
 | `H_JWT_CLIENT_ID`                 | `fedcba98-7654-3210-fedc-ba9876543210` | A `jwt_bearer` OAuth2 pair from `h`             |
@@ -109,7 +109,7 @@ _To be completed_
 You must update the redirect URL for the One Drive key you use to include your
 target LMS environment. e.g.
 
-`https://lms.fr.hypothes.is/onedrive/filepicker/redirect`
+`https://lms.eg.hypothes.is/onedrive/filepicker/redirect`
 
 ### Getting VitalSource credentials
 
