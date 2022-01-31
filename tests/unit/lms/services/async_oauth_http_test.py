@@ -4,8 +4,8 @@ import pytest
 from aiohttp import TooManyRedirects
 from aioresponses import aioresponses
 
-from lms.services import ExternalRequestError
 from lms.services.async_oauth_http import AsyncOAuthHTTPService, factory
+from lms.services.exceptions import ExternalAsyncRequestError
 
 
 class TestAsyncOAuthHTTPService:
@@ -29,7 +29,7 @@ class TestAsyncOAuthHTTPService:
 
     @pytest.mark.usefixtures("with_one_failed_response")
     def test_request_with_failure(self, svc, urls):
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(ExternalAsyncRequestError):
             svc.request("GET", urls)
 
     @pytest.fixture

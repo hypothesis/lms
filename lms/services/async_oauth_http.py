@@ -66,9 +66,7 @@ async def _prepare_requests(method, urls, **kwargs):
             for task in tasks:
                 task.cancel()
 
-            raise ExternalAsyncRequestError(
-                message="Blackboard async request failed", exception=err
-            ) from err
+            raise ExternalAsyncRequestError() from err
 
 
 def factory(_context, request):
