@@ -198,6 +198,20 @@ describe('GroupConfigSelector', () => {
     assert.equal(options.length, fakeGroupSets.length);
   });
 
+  it('shows a specific error message if the retrieved group set list is empty', async () => {
+    fakeAPICall.withArgs(groupSetsAPIRequest).resolves([]);
+
+    const wrapper = createComponent({
+      groupConfig: { useGroupSet: true, groupSet: null },
+    });
+
+    const errorModal = await waitForElement(wrapper, 'NoGroupsError');
+    assert.include(
+      errorModal.text(),
+      'we could not find any available group sets in this course'
+    );
+  });
+
   it('shows errors in a modal with a retry button', async () => {
     fakeIsAuthorizationError.returns(false);
     fakeAPICall.withArgs(groupSetsAPIRequest).rejects(new Error('Some error'));

@@ -28,6 +28,16 @@
  */
 
 /**
+ * Error raised when a course's list of groups is empty (as returned from the
+ * API).
+ */
+export class GroupListEmptyError extends Error {
+  constructor() {
+    super('This course has no groups');
+  }
+}
+
+/**
  * Error thrown when the user cancels file selection.
  */
 export class PickerCanceledError extends Error {
