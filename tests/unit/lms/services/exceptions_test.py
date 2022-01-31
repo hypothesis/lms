@@ -77,50 +77,54 @@ class TestExternalRequestError:
 
 class TestExternalAsyncRequestError:
     @pytest.mark.parametrize(
-        "message,exception,expected",
-        [
-            ("Some message", None, "Some message"),
-            ("Some message", ValueError(), "Some message: ValueError"),
-        ],
-    )
-    def test_message(self, message, exception, expected):
-        err = ExternalAsyncRequestError(message=message, exception=exception)
-
-        assert err.message == expected
-
-    @pytest.mark.parametrize(
         "response,exception,expected",
         [
-            (None, None, None),
-            (Mock(request_info=Mock(url="response-url")), None, "response-url"),
-            (None, Mock(request_info=Mock(url="exception-url")), "exception-url"),
-            (
-                Mock(request_info=Mock(url="response-url")),
-                Mock(request_info=Mock(url="exception-url")),
-                "response-url",
-            ),
+            (None, False, None),
+            (Mock(request_info=Mock(url="response-url")), False, "response-url"),
+            (None, True, "exception-URL"),
+            (Mock(request_info=Mock(url="response-url")), False, "response-url"),
         ],
     )
     def test_url(self, response, exception, expected):
-        err = ExternalAsyncRequestError(response=response, exception=exception)
+        class TestException(Exception):
+            request_info = Mock(url="exception-URL")
+
+        err = ExternalAsyncRequestError(response=response)
+        err.__cause__ = TestException() if exception else None
 
         assert err.url == expected
 
     @pytest.mark.parametrize(
+        "response,expected",
+        [
+            (None, None),
+            (Mock(reason="OK"), "OK"),
+        ],
+    )
+    def test_reason(self, response, expected):
+        err = ExternalAsyncRequestError(response=response)
+
+        assert err.reason == expected
+
+    @pytest.mark.parametrize(
         "response,exception,expected",
         [
-            (None, None, None),
-            (Mock(request_info=Mock(method="response-GET")), None, "response-GET"),
-            (None, Mock(request_info=Mock(method="exception-GET")), "exception-GET"),
+            (None, False, None),
+            (Mock(request_info=Mock(method="response-GET")), False, "response-GET"),
+            (None, True, "exception-GET"),
             (
                 Mock(request_info=Mock(method="response-GET")),
-                Mock(request_info=Mock(method="exception-GET")),
+                True,
                 "response-GET",
             ),
         ],
     )
     def test_method(self, response, exception, expected):
-        err = ExternalAsyncRequestError(response=response, exception=exception)
+        class TestException(Exception):
+            request_info = Mock(method="exception-GET")
+
+        err = ExternalAsyncRequestError(response=response)
+        err.__cause__ = TestException() if exception else None
 
         assert err.method == expected
 
@@ -135,6 +139,37 @@ class TestExternalAsyncRequestError:
         err = ExternalAsyncRequestError(response=response)
 
         assert err.status_code == expected
+
+    @pytest.mark.parametrize(
+        "message,request_,response,cause,expected",
+        [
+            (
+                None,
+                None,
+                None,
+                None,
+                "ExternalAsyncRequestError(message=None, cause=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
+            ),
+            (
+                "Some message",
+                None,
+                Mock(
+                    status=400, reason="OK", request_info=Mock(method="POST", url="URL")
+                ),
+                KeyError("cause"),
+                "ExternalAsyncRequestError(message='Some message', cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body=None), validation_errors=None)",
+            ),
+        ],
+    )
+    def test_str(self, message, request_, response, cause, expected):
+        err = ExternalAsyncRequestError(
+            message=message,
+            request=request_,
+            response=response,
+        )
+        err.__cause__ = cause
+
+        assert str(err) == expected == repr(err)
 
     def test_response_body(self):
         assert not ExternalAsyncRequestError().response_body

@@ -172,8 +172,6 @@ class BlackboardAPIClient:
                     continue
 
                 # Any other result is unexpected
-                raise ExternalAsyncRequestError(
-                    message="Error while getting course groups", response=response
-                )
+                raise ExternalAsyncRequestError(response=response)
 
         return self_enrollment_groups + instructor_only_groups
