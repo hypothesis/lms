@@ -14,6 +14,7 @@ from pyramid.view import (
 
 from lms.services import (
     CanvasAPIPermissionError,
+    ExternalAsyncRequestError,
     ExternalRequestError,
     OAuth2TokenError,
 )
@@ -109,6 +110,7 @@ class APIExceptionViews:
         )
 
     @exception_view_config(context=ExternalRequestError)
+    @exception_view_config(context=ExternalAsyncRequestError)
     def external_request_error(self):
         sentry_sdk.set_context(
             "request",
