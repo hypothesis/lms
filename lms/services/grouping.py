@@ -87,6 +87,9 @@ class GroupingService:
         :param user:  User the that belongs to the groups
         :param groups: List of groups the `user` belongs to
         """
+        if not user.id or any((group.id is None for group in groups)):
+            # Ensure all ORM objects have their PK populated
+            self._db.flush()
 
         bulk_upsert(
             self._db,
