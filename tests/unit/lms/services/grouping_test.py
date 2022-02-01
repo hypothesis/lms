@@ -178,11 +178,13 @@ class TestUpsertWithParent:
 
 
 class TestUpsertGroupingMemberships:
-    def test_it(self, db_session, svc):
+    @pytest.mark.parametrize("flushing", [True, False])
+    def test_it(self, db_session, svc, flushing):
         user = factories.User()
         groups = []
         # Create a group that the user is already a member of.
         group_that_user_was_already_a_member_of = factories.Course()
+
         groups.append(group_that_user_was_already_a_member_of)
         db_session.add(
             GroupingMembership(
@@ -192,7 +194,9 @@ class TestUpsertGroupingMemberships:
         )
         # Add a group that the user is not yet a member of.
         groups.append(factories.CanvasGroup())
-        db_session.flush()
+        if flushing:
+            # upsert_grouping_memberships should flush itself if not done from the caller
+            db_session.flush()
 
         svc.upsert_grouping_memberships(user, groups)
 
