@@ -136,26 +136,20 @@ def test_get_canvas_groups_instructor_not_found_group_set(
 
 
 @pytest.mark.parametrize(
-    "groups_enabled,group_set_value,expected_value",
+    "group_set_value,expected_value",
     [
-        (True, None, False),
-        (True, "a", False),
-        (True, "1", True),
-        (True, 1, True),
-        (False, "1", False),
+        (None, False),
+        ("a", False),
+        ("1", True),
+        (1, True),
     ],
 )
 def test_is_group_launch(
-    groups_enabled,
     group_set_value,
     expected_value,
     pyramid_request,
     request_json,
-    application_instance_service,
 ):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": groups_enabled}
-    }
     # pylint: disable=protected-access
     request_json["course"] = {"group_set": group_set_value}
 
@@ -163,26 +157,17 @@ def test_is_group_launch(
 
 
 @pytest.mark.parametrize(
-    "groups_enabled,group_set_value,expected_value",
+    "group_set_value,expected_value",
     [
-        (True, None, False),
-        (True, "a", False),
-        (True, "1", True),
-        (True, 1, True),
-        (False, 1, False),
+        (None, False),
+        ("a", False),
+        ("1", True),
+        (1, True),
     ],
 )
 def test_is_group_launch_in_speed_grader(
-    groups_enabled,
-    group_set_value,
-    expected_value,
-    pyramid_request,
-    request_json,
-    application_instance_service,
+    group_set_value, expected_value, pyramid_request, request_json
 ):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": groups_enabled}
-    }
     # pylint: disable=protected-access
     request_json["course"] = {"group_set": group_set_value}
 
