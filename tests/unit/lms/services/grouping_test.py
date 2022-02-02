@@ -138,13 +138,13 @@ class TestUpsertWithParent:
 
         canvas_group = svc.upsert_with_parent(
             [common_grouping_args], parent=course, type_=Grouping.Type.CANVAS_GROUP
-        ).one()
+        )[0]
         canvas_section = svc.upsert_with_parent(
             [common_grouping_args], parent=course, type_=Grouping.Type.CANVAS_SECTION
-        ).one()
+        )[0]
         blackboard_group = svc.upsert_with_parent(
             [common_grouping_args], parent=course, type_=Grouping.Type.BLACKBOARD_GROUP
-        ).one()
+        )[0]
 
         # We've created three groupings with the same application_instance, parent and lms_id.
         assert (

@@ -38,7 +38,7 @@ class GroupingService:
         grouping_dicts: List[dict],
         type_: Grouping.Type,
         parent: Grouping,
-    ):
+    ) -> List[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
@@ -78,7 +78,7 @@ class GroupingService:
             ],
             index_elements=["application_instance_id", "authority_provided_id"],
             update_columns=["lms_name", "extra", "updated"],
-        )
+        ).all()
 
     def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
         """
