@@ -55,7 +55,9 @@ class TestBulkAction:
                 "other": model.other,
             } in expected_rows
 
-    def test_upsert_does_nothing_if_given_an_empty_list_of_values(self, db_session):
+    def test_upsert_return_empty_query_if_given_an_empty_list_of_values(
+        self, db_session
+    ):
         assert (
             bulk_upsert(
                 db_session,
@@ -63,7 +65,7 @@ class TestBulkAction:
                 [],
                 self.INDEX_ELEMENTS,
                 self.UPDATE_COLUMNS,
-            )
+            ).all()
             == []
         )
 

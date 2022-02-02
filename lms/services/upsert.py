@@ -40,7 +40,10 @@ def bulk_upsert(
         # default values for all of the columns. If my_table has a column
         # with a NOT NULLABLE constraint and no default value this will
         # cause a "null value violates not-null constraint" crash.
-        return []
+        #
+        # We do a wasteful query here to maintain
+        # the same return type in all branches.
+        return db.query(model_class).filter(False)
 
     index_elements_columns = [column(c) for c in index_elements]
 
