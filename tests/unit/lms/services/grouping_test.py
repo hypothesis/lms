@@ -75,6 +75,15 @@ class TestGenerateAuthorityProvidedID:
 
 
 class TestUpsertWithParent:
+    def test_when_empty(self, svc):
+        course = factories.Course()
+
+        assert not svc.upsert_with_parent(
+            [],
+            type_=Grouping.Type.CANVAS_GROUP,
+            parent=course,
+        )
+
     def test_it(self, db_session, svc):
         # Create a parent course for the groupings to belong to.
         # The course has to belong to svc.application_instance.

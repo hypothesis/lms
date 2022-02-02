@@ -50,6 +50,8 @@ class GroupingService:
         :param parent: Parent grouping for all upserted groups
         :param type_: Type of the groupings
         """
+        if not grouping_dicts:
+            return []
 
         if not parent.id:
             # Make sure we have a PK for the parent before upserting
