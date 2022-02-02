@@ -14,7 +14,7 @@ aiosignal==1.2.0
     # via
     #   -r requirements/requirements.txt
     #   aiohttp
-alembic==1.7.5
+alembic==1.7.6
     # via -r requirements/requirements.txt
 async-timeout==4.0.1
     # via

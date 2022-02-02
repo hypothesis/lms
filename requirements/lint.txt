@@ -18,7 +18,7 @@ aiosignal==1.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   aiohttp
-alembic==1.7.5
+alembic==1.7.6
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
