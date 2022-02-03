@@ -58,7 +58,35 @@ class ExternalRequestError(Exception):
         return getattr(self.response, "text", None)
 
     def __repr__(self) -> str:
-        return _repr_external_request_exception(self)
+        # Include the details of the request and response for debugging. This
+        # appears in the logs and in tools like Sentry and Papertrail.
+        request = (
+            "Request("
+            f"method={self.method!r}, "
+            f"url={self.url!r}, "
+            f"body={self.request_body!r}"
+            ")"
+        )
+
+        response = (
+            "Response("
+            f"status_code={self.status_code!r}, "
+            f"reason={self.reason!r}, "
+            f"body={self.response_body!r}"
+            ")"
+        )
+
+        # The name of this class or of a subclass if one inherits this method.
+        class_name = self.__class__.__name__
+
+        return (
+            f"{class_name}("
+            f"message={self.message!r}, "
+            f"cause={self.__cause__!r}, "
+            f"request={request}, "
+            f"response={response}, "
+            f"validation_errors={self.validation_errors!r})"
+        )
 
     def __str__(self):
         return repr(self)
@@ -111,7 +139,35 @@ class ExternalAsyncRequestError(Exception):
         return None
 
     def __repr__(self) -> str:
-        return _repr_external_request_exception(self)
+        # Include the details of the request and response for debugging. This
+        # appears in the logs and in tools like Sentry and Papertrail.
+        request = (
+            "Request("
+            f"method={self.method!r}, "
+            f"url={self.url!r}, "
+            f"body={self.request_body!r}"
+            ")"
+        )
+
+        response = (
+            "Response("
+            f"status_code={self.status_code!r}, "
+            f"reason={self.reason!r}, "
+            f"body={self.response_body!r}"
+            ")"
+        )
+
+        # The name of this class or of a subclass if one inherits this method.
+        class_name = self.__class__.__name__
+
+        return (
+            f"{class_name}("
+            f"message={self.message!r}, "
+            f"cause={self.__cause__!r}, "
+            f"request={request}, "
+            f"response={response}, "
+            f"validation_errors={self.validation_errors!r})"
+        )
 
     def __str__(self):
         return repr(self)
@@ -243,35 +299,3 @@ class BlackboardFileNotFoundInCourse(Exception):
     def __init__(self, file_id):
         self.details = {"file_id": file_id}
         super().__init__(self.details)
-
-
-def _repr_external_request_exception(exception):
-    # Include the details of the request and response for debugging. This
-    # appears in the logs and in tools like Sentry and Papertrail.
-    request = (
-        "Request("
-        f"method={exception.method!r}, "
-        f"url={exception.url!r}, "
-        f"body={exception.request_body!r}"
-        ")"
-    )
-
-    response = (
-        "Response("
-        f"status_code={exception.status_code!r}, "
-        f"reason={exception.reason!r}, "
-        f"body={exception.response_body!r}"
-        ")"
-    )
-
-    # The name of this class or of a subclass if one inherits this method.
-    class_name = exception.__class__.__name__
-
-    return (
-        f"{class_name}("
-        f"message={exception.message!r}, "
-        f"cause={exception.__cause__!r}, "
-        f"request={request}, "
-        f"response={response}, "
-        f"validation_errors={exception.validation_errors!r})"
-    )
