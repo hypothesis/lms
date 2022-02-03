@@ -33,7 +33,7 @@ export default function ChapterList({
       label: 'Title',
     },
     {
-      label: 'Page',
+      label: 'Location',
       classes: 'w-32',
     },
   ];
