@@ -141,30 +141,24 @@ class TestExternalAsyncRequestError:
         assert err.status_code == expected
 
     @pytest.mark.parametrize(
-        "message,request_,response,cause,expected",
+        "response,cause,expected",
         [
             (
-                None,
-                None,
                 None,
                 None,
                 "ExternalAsyncRequestError(message=None, cause=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
             ),
             (
-                "Some message",
-                None,
                 Mock(
                     status=400, reason="OK", request_info=Mock(method="POST", url="URL")
                 ),
                 KeyError("cause"),
-                "ExternalAsyncRequestError(message='Some message', cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body=None), validation_errors=None)",
+                "ExternalAsyncRequestError(message=None, cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body=None), validation_errors=None)",
             ),
         ],
     )
-    def test_str(self, message, request_, response, cause, expected):
+    def test_str(self, response, cause, expected):
         err = ExternalAsyncRequestError(
-            message=message,
-            request=request_,
             response=response,
         )
         err.__cause__ = cause
