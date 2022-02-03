@@ -30,6 +30,10 @@ import ErrorDisplay from './ErrorDisplay';
  * which chapter to use from that book. Once both are chosen the `onSelectBook`
  * callback is called.
  *
+ * Note: The component logic is consistent about using the terminology of
+ * "chapter" for content segments in a VitalSource eBook, but presents this
+ * to the user as "location" and other slightly less precise language.
+ *
  * @param {BookPickerProps} props
  */
 export default function BookPicker({ onCancel, onSelectBook }) {
@@ -88,7 +92,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
       title={
         step === 'select-book'
           ? 'Paste link to VitalSource book'
-          : 'Select chapter'
+          : 'Pick where to start reading' // "Select a chapter"
       }
       buttons={[
         <LabeledButton
@@ -107,7 +111,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
           }}
           variant="primary"
         >
-          {step === 'select-book' ? 'Select book' : 'Select chapter'}
+          {step === 'select-book' ? 'Select book' : 'Select'}
         </LabeledButton>,
       ]}
     >
@@ -132,7 +136,7 @@ export default function BookPicker({ onCancel, onSelectBook }) {
           description={
             step === 'select-book'
               ? 'Unable to fetch books'
-              : 'Unable to fetch chapters'
+              : 'Unable to fetch book contents'
           }
           error={error}
         />
