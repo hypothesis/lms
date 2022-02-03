@@ -65,14 +65,14 @@ class ExternalRequestError(Exception):
 
 
 class ExternalAsyncRequestError(Exception):
-    def __init__(
-        self, message=None, request=None, response=None, validation_errors=None
-    ):
+    def __init__(self, response=None):
         super().__init__()
-        self.message = message
-        self.request = request
         self.response = response
-        self.validation_errors = validation_errors
+
+        # For compatibility with ExternalRequestError.
+        self.message = None
+        self.request = None
+        self.validation_errors = None
 
     @property
     def _request_info(self):
