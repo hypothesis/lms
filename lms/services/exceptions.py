@@ -108,7 +108,7 @@ class ExternalAsyncRequestError(Exception):
     @property
     def response_body(self) -> None:
         """Return the response body."""
-        return None
+        return getattr(self.response, "sync_text", None)
 
     def __repr__(self) -> str:
         return _repr_external_request_exception(self)
