@@ -87,7 +87,13 @@ export default function LMSGrader({
             data: studentGroupsCallData,
           });
         } catch (e) {
-          // TODO: Improved error handling
+          // An error could plausibly occur when fetching a student's groups
+          // from the sync API. This is unlikely (there are no known specific
+          // use cases that would lead to an error), and the failure mode is
+          // so benign — the interface would display all course groups instead
+          // of this student's groups — that there is no nuanced error handling
+          // here at present. This can change in the future if desired.
+          // See https://github.com/hypothesis/lms/issues/3417
           console.error('Unable to fetch student groups from sync API');
         }
       }
