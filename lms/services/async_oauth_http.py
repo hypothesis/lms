@@ -44,6 +44,10 @@ class AsyncOAuthHTTPService:
 
 async def _async_request(aio_session, method, url, **kwargs):
     async with aio_session.request(method, url, **kwargs) as response:
+        # Calling `.text()` here caches the result in `response` but is still behind a coroutine.
+        # We assign it to another response attribute for it to be
+        # available in a sync context without needing to start coroutine.
+        response.sync_text = await response.text()
         return response
 
 

@@ -150,10 +150,13 @@ class TestExternalAsyncRequestError:
             ),
             (
                 Mock(
-                    status=400, reason="OK", request_info=Mock(method="POST", url="URL")
+                    sync_text="Body text",
+                    status=400,
+                    reason="OK",
+                    request_info=Mock(method="POST", url="URL"),
                 ),
                 KeyError("cause"),
-                "ExternalAsyncRequestError(message=None, cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body=None), validation_errors=None)",
+                "ExternalAsyncRequestError(message=None, cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body='Body text'), validation_errors=None)",
             ),
         ],
     )
