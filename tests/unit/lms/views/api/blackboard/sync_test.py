@@ -65,7 +65,7 @@ def test_it_when_instructor_and_group_set_raises(
         Sync(pyramid_request).sync()
 
 
-@pytest.mark.usefixtures("user_is_learner", "application_instance_service")
+@pytest.mark.usefixtures("user_is_learner")
 def test_it_when_student(
     pyramid_request,
     assert_sync_and_return_groups,
@@ -73,6 +73,7 @@ def test_it_when_student(
     groups,
     grouping_service,
     user_service,
+    course_service,
 ):
     blackboard_api_client.course_groups.return_value = groups
 
@@ -80,7 +81,7 @@ def test_it_when_student(
 
     assert_sync_and_return_groups(result, groups=groups)
     blackboard_api_client.course_groups.assert_called_once_with(
-        pyramid_request.parsed_params["course"]["context_id"],
+        course_service.get.return_value.lms_id,
         "GROUP_SET_ID",
         current_student_own_groups_only=True,
     )
@@ -90,9 +91,7 @@ def test_it_when_student(
     )
 
 
-@pytest.mark.usefixtures(
-    "user_is_learner", "application_instance_service", "user_service"
-)
+@pytest.mark.usefixtures("user_is_learner", "user_service")
 def test_it_when_student_not_in_group(blackboard_api_client, pyramid_request):
     blackboard_api_client.course_groups.return_value = []
 
