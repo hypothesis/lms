@@ -20,8 +20,10 @@ class TestBearerTokenSchema:
     def test_it_serializes_lti_users_into_bearer_tokens(self, lti_user, schema, _jwt):
         authorization_param_value = schema.authorization_param(lti_user)
 
+        encode_data = lti_user._asdict()
+        del encode_data["user"]
         _jwt.encode_jwt.assert_called_once_with(
-            lti_user._asdict(), "test_secret", lifetime=datetime.timedelta(hours=24)
+            encode_data, "test_secret", lifetime=datetime.timedelta(hours=24)
         )
         assert authorization_param_value == f"Bearer {_jwt.encode_jwt.return_value}"
 

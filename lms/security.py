@@ -190,7 +190,9 @@ def _get_lti_user(request):
     if lti_user:
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
-        request.find_service(UserService).store_lti_user(lti_user)
+        lti_user = lti_user._replace(
+            user=request.find_service(UserService).store_lti_user(lti_user)
+        )
 
     return lti_user
 
