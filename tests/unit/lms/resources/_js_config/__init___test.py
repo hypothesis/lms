@@ -13,6 +13,7 @@ pytestmark = pytest.mark.usefixtures(
     "grant_token_service",
     "h_api",
     "vitalsource_service",
+    "grouping_service",
 )
 
 

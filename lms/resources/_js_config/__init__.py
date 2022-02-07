@@ -470,7 +470,18 @@ class JSConfig:
     def _groups(self):
         if self._context.canvas_sections_enabled or self._context.is_group_launch:
             return "$rpc:requestGroups"
-        return [self._context.h_group.groupid(self._authority)]
+
+        # $rpc:requestGroups (ie the "sync API") will store membership for sections and groups.
+        # We don't want to store both memberships to for example a section and its parent course separately but rather
+        # keep that information using the parent/children information of the section and course.
+        # We decide to use or not the sync API here so we'll also be storing the memberships for course here.
+        course_group = self._context.h_group
+        if self._request.lti_user.is_learner:
+            self._request.find_service(name="grouping").upsert_grouping_memberships(
+                self._request.lti_user.user, [course_group]
+            )
+
+        return [course_group.groupid(self._authority)]
 
     def _canvas_sync_api(self):
         req = self._request

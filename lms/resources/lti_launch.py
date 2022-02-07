@@ -1,6 +1,7 @@
 """Traversal resources for LTI launch views."""
 import functools
 
+from lms.models import Course
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 
@@ -50,7 +51,7 @@ class LTILaunchResource:
         return legacy_course, course
 
     @property
-    def h_group(self):
+    def h_group(self) -> Course:
         """
         Return the h group for the current request.
 
