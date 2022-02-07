@@ -105,27 +105,23 @@ docker:
 
 .PHONY: run-docker
 run-docker:
-	# To run the Docker container locally, first build the Docker image using
+	# To run the Docker container locally first build the Docker image using
 	# `make docker` and then set the environment variables below to appropriate
-	# values (see conf/development.ini for non-production quality examples).
+	# values. You can find the environment variables needed for development in
+	# .devdata.env (after running `make devdata`) and in tox.ini.
 	@docker run \
 		--add-host host.docker.internal:host-gateway \
 		--net lms_default \
 		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
-		-e FEATURE_FLAGS_COOKIE_SECRET \
-		-e H_API_URL_PRIVATE \
-		-e H_API_URL_PUBLIC \
-		-e H_AUTHORITY \
-		-e H_CLIENT_ID \
-		-e H_CLIENT_SECRET  \
-		-e H_JWT_CLIENT_ID \
-		-e H_JWT_CLIENT_SECRET \
-		-e JWT_SECRET \
-		-e LMS_SECRET \
-		-e RPC_ALLOWED_ORIGINS \
-		-e VIA_URL \
-		-e SESSION_COOKIE_SECRET \
-		-e OAUTH2_STATE_SECRET \
+		-e FEATURE_FLAGS_COOKIE_SECRET=notasecret \
+		-e H_API_URL_PRIVATE=http://host.docker.internal:5000/api/ \
+		-e H_API_URL_PUBLIC=http://localhost:5000/api/ \
+		-e H_AUTHORITY=lms.hypothes.is \
+		-e RPC_ALLOWED_ORIGINS=http://localhost:5000 \
+		-e VIA_URL=http://localhost:9083 \
+		-e VIA_SECRET=not_a_secret \
+		-e SESSION_COOKIE_SECRET=notasecret \
+		-e OAUTH2_STATE_SECRET=notasecret \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)
 
