@@ -367,7 +367,7 @@ pyrsistent==0.17.3
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   jsonschema
-pytest==6.2.5
+pytest==7.0.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -433,11 +433,12 @@ text-unidecode==1.3
     #   -r requirements/tests.txt
     #   faker
 toml==0.10.2
+    # via pylint
+tomli==2.0.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   pylint
     #   pytest
 transaction==2.4.0
     # via
