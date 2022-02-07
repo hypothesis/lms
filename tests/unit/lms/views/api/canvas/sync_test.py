@@ -25,13 +25,19 @@ def test_sections_sync_when_the_user_is_a_learner(
     pyramid_request,
     canvas_api_client,
     sections,
+    grouping_service,
     assert_sync_and_return_sections,
     request_json,
+    user_service,
 ):
     groupids = Sync(pyramid_request).sync()
 
     course_id = request_json["course"]["custom_canvas_course_id"]
     canvas_api_client.authenticated_users_sections.assert_called_once_with(course_id)
+    grouping_service.upsert_grouping_memberships.assert_called_once_with(
+        user_service.get.return_value,
+        grouping_service.upsert_with_parent.return_value,
+    )
 
     assert_sync_and_return_sections(groupids, sections=sections.authenticated_user)
 

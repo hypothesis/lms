@@ -106,10 +106,15 @@ class Sync:
         lti_user = self._request.lti_user
 
         if lti_user.is_learner:
+            user = self._get_user(lti_user.user_id)
+
             # For learners we only want the client to show the sections that
             # the student belongs to, so fetch only the user's sections.
-            sections = self._canvas_api.authenticated_users_sections(course_id)
-            return self._to_section_groupings(sections)
+            sections = self._to_section_groupings(
+                self._canvas_api.authenticated_users_sections(course_id)
+            )
+            self._grouping_service.upsert_grouping_memberships(user, sections)
+            return sections
 
         # For non-learners (e.g. instructors, teaching assistants) we want the
         # client to show all of the course's sections.
