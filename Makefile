@@ -105,10 +105,10 @@ docker:
 
 .PHONY: run-docker
 run-docker:
-	# To run the Docker container locally first build the Docker image using
-	# `make docker` and then set the environment variables below to appropriate
-	# values. You can find the environment variables needed for development in
-	# .devdata.env (after running `make devdata`) and in tox.ini.
+	# To run the Docker container locally:
+	# 1. make devdata
+	# 2. make docker
+	# 3. make run-docker
 	@docker run \
 		--add-host host.docker.internal:host-gateway \
 		--net lms_default \
@@ -122,6 +122,7 @@ run-docker:
 		-e VIA_SECRET=not_a_secret \
 		-e SESSION_COOKIE_SECRET=notasecret \
 		-e OAUTH2_STATE_SECRET=notasecret \
+		--env-file .devdata.env \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)
 
