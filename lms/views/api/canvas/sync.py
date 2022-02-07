@@ -65,10 +65,7 @@ class Sync:
         lti_user = self._request.lti_user
         group_set_id = self.group_set()
         if lti_user.is_learner:
-            user = self._request.find_service(UserService).get(
-                self._request.find_service(name="application_instance").get_current(),
-                lti_user.user_id,
-            )
+            user = self._get_user(lti_user.user_id)
 
             # For learners, the groups they belong within the course
             learner_groups = self._canvas_api.current_user_groups(
@@ -169,6 +166,12 @@ class Sync:
 
         return self._course_service.get(
             self._course_service.generate_authority_provided_id(tool_guid, context_id)
+        )
+
+    def _get_user(self, user_id):
+        return self._request.find_service(UserService).get(
+            self._request.find_service(name="application_instance").get_current(),
+            user_id,
         )
 
     def _sync_to_h(self, groups):
