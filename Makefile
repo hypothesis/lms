@@ -109,6 +109,7 @@ run-docker:
 	# `make docker` and then set the environment variables below to appropriate
 	# values (see conf/development.ini for non-production quality examples).
 	@docker run \
+		--add-host host.docker.internal:host-gateway \
 		--net lms_default \
 		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
 		-e FEATURE_FLAGS_COOKIE_SECRET \
