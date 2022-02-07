@@ -446,7 +446,10 @@ class TestGetLTIUser:
 
         LaunchParamsAuthSchema.assert_called_once_with(pyramid_request)
         launch_params_auth_schema.lti_user.assert_called_once_with()
-        assert lti_user == launch_params_auth_schema.lti_user.return_value
+        assert (
+            lti_user
+            == launch_params_auth_schema.lti_user.return_value._replace.return_value
+        )
 
     def test_it_returns_LTIUsers_from_authorization_headers(
         self,
@@ -463,15 +466,21 @@ class TestGetLTIUser:
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.lti_user.assert_called_once_with(location="headers")
-        assert lti_user == bearer_token_schema.lti_user.return_value
+        assert (
+            lti_user == bearer_token_schema.lti_user.return_value._replace.return_value
+        )
 
     def test_it_returns_LTIUsers_from_authorization_query_string_params(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
+        self,
+        launch_params_auth_schema,
+        bearer_token_schema,
+        pyramid_request,
+        user_service,
     ):
         launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
-        lti_user = factories.LTIUser()
+        lti_user = factories.LTIUser(user=user_service.store_lti_user.return_value)
         bearer_token_schema.lti_user.side_effect = [
             ValidationError(["TEST_ERROR_MESSAGE"]),
             lti_user,
@@ -487,12 +496,16 @@ class TestGetLTIUser:
         assert returned_lti_user == lti_user
 
     def test_it_returns_LTIUsers_from_authorization_form_fields(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
+        self,
+        launch_params_auth_schema,
+        bearer_token_schema,
+        pyramid_request,
+        user_service,
     ):
         launch_params_auth_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
-        lti_user = factories.LTIUser()
+        lti_user = factories.LTIUser(user=user_service.store_lti_user.return_value)
         bearer_token_schema.lti_user.side_effect = [
             ValidationError(["TEST_ERROR_MESSAGE"]),
             ValidationError(["TEST_ERROR_MESSAGE"]),
@@ -527,7 +540,10 @@ class TestGetLTIUser:
 
         OAuthCallbackSchema.assert_called_once_with(pyramid_request)
         canvas_oauth_callback_schema.lti_user.assert_called_once_with()
-        assert lti_user == canvas_oauth_callback_schema.lti_user.return_value
+        assert (
+            lti_user
+            == canvas_oauth_callback_schema.lti_user.return_value._replace.return_value
+        )
 
     def test_it_returns_None_if_all_schemas_fail(
         self,
@@ -553,7 +569,7 @@ class TestGetLTIUser:
     ):
         assert (
             _get_lti_user(pyramid_request)
-            == launch_params_auth_schema.lti_user.return_value
+            == launch_params_auth_schema.lti_user.return_value._replace.return_value
         )
 
     def test_it_stores_the_user(

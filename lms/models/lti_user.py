@@ -1,6 +1,7 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from lms.models import HUser
+from lms.models.user import User
 
 
 class LTIUser(NamedTuple):
@@ -23,6 +24,9 @@ class LTIUser(NamedTuple):
 
     email: str = ""
     """The user's email address."""
+
+    user: Optional[User] = None
+    """The DB record linked to this LTIUser"""
 
     @property
     def h_user(self):
