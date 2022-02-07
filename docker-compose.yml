@@ -17,7 +17,6 @@ services:
     # Unfortunately if we don't run as root `dev_host_bridge.sh` doesn't work
     user: root
     command: /bin/sh -c "/var/lib/lms/bin/dev_host_bridge.sh && bin/init-env supervisord -c conf/supervisord.conf"
-    env_file: .devdata.env
     environment:
       - DATABASE_URL=postgresql://postgres@lms_postgres_1/postgres
       - FEATURE_FLAGS_COOKIE_SECRET=not_a_secret
@@ -29,3 +28,23 @@ services:
       - VIA_SECRET=not_a_secret
       - SESSION_COOKIE_SECRET=notasecret
       - OAUTH2_STATE_SECRET=notasecret
+      - JWT_SECRET=${JWT_SECRET}
+      - LMS_SECRET=${LMS_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_DEVELOPER_KEY=${GOOGLE_DEVELOPER_KEY}
+      - GOOGLE_APP_ID=${GOOGLE_APP_ID}
+      - ONEDRIVE_CLIENT_ID=${ONEDRIVE_CLIENT_ID}
+      - ADMIN_AUTH_GOOGLE_CLIENT_ID=${ADMIN_AUTH_GOOGLE_CLIENT_ID}
+      - ADMIN_AUTH_GOOGLE_CLIENT_SECRET=${ADMIN_AUTH_GOOGLE_CLIENT_SECRET}
+      - HASHED_PW=${HASHED_PW}
+      - SALT=${SALT}
+      - USERNAME=${USERNAME}
+      - H_CLIENT_ID=${H_CLIENT_ID}
+      - H_CLIENT_SECRET=${H_CLIENT_SECRET}
+      - H_JWT_CLIENT_ID=${H_JWT_CLIENT_ID}
+      - H_JWT_CLIENT_SECRET=${H_JWT_CLIENT_SECRET}
+      - BLACKBOARD_API_CLIENT_ID=${BLACKBOARD_API_CLIENT_ID}
+      - BLACKBOARD_API_CLIENT_SECRET=${BLACKBOARD_API_CLIENT_SECRET}
+      - VITALSOURCE_LTI_LAUNCH_KEY=${VITALSOURCE_LTI_LAUNCH_KEY}
+      - VITALSOURCE_LTI_LAUNCH_SECRET=${VITALSOURCE_LTI_LAUNCH_SECRET}
+      - VITALSOURCE_API_KEY=${VITALSOURCE_API_KEY}

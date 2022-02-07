@@ -105,7 +105,7 @@ docker:
 
 .PHONY: run-docker
 run-docker:
-	@tox -e dockercompose -- up --force-recreate web
+	@tox -e dockercompose -- --env-file=.devdata.env up --force-recreate web
 
 .PHONY: backend-lint
 backend-lint: python
