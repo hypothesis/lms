@@ -4,7 +4,7 @@ from pyramid.view import view_config
 
 from lms.models import Grouping
 from lms.security import Permissions
-from lms.services import CanvasAPIError, UserService
+from lms.services import CanvasAPIError
 from lms.views import (
     CanvasGroupSetEmpty,
     CanvasGroupSetNotFound,
@@ -65,8 +65,6 @@ class Sync:
         lti_user = self._request.lti_user
         group_set_id = self.group_set()
         if lti_user.is_learner:
-            user = self._get_user(lti_user.user_id)
-
             # For learners, the groups they belong within the course
             learner_groups = self._canvas_api.current_user_groups(
                 self._request.json["course"]["custom_canvas_course_id"],
@@ -76,7 +74,7 @@ class Sync:
                 raise CanvasStudentNotInGroup(group_set=group_set_id)
 
             groups = self._to_groups_groupings(learner_groups)
-            self._grouping_service.upsert_grouping_memberships(user, groups)
+            self._grouping_service.upsert_grouping_memberships(lti_user.user, groups)
 
             return groups
 
@@ -106,14 +104,12 @@ class Sync:
         lti_user = self._request.lti_user
 
         if lti_user.is_learner:
-            user = self._get_user(lti_user.user_id)
-
             # For learners we only want the client to show the sections that
             # the student belongs to, so fetch only the user's sections.
             sections = self._to_section_groupings(
                 self._canvas_api.authenticated_users_sections(course_id)
             )
-            self._grouping_service.upsert_grouping_memberships(user, sections)
+            self._grouping_service.upsert_grouping_memberships(lti_user.user, sections)
             return sections
 
         # For non-learners (e.g. instructors, teaching assistants) we want the
@@ -171,12 +167,6 @@ class Sync:
 
         return self._course_service.get(
             self._course_service.generate_authority_provided_id(tool_guid, context_id)
-        )
-
-    def _get_user(self, user_id):
-        return self._request.find_service(UserService).get(
-            self._request.find_service(name="application_instance").get_current(),
-            user_id,
         )
 
     def _sync_to_h(self, groups):
