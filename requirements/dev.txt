@@ -167,7 +167,7 @@ pyasn1-modules==0.2.8
     # via
     #   -r requirements/requirements.txt
     #   google-auth
-pycryptodomex==3.14.0
+pycryptodomex==3.14.1
     # via -r requirements/requirements.txt
 pygments==2.8.1
     # via ipython
