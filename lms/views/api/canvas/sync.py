@@ -1,3 +1,5 @@
+from typing import List
+
 from pyramid.view import view_config
 
 from lms.models import Grouping
@@ -27,7 +29,7 @@ class Sync:
         if self._is_group_launch:
             groups = self._get_canvas_groups()
         else:
-            groups = self._to_section_groupings(self._get_sections())
+            groups = self._get_sections()
 
         self._sync_to_h(groups)
 
@@ -102,20 +104,21 @@ class Sync:
 
         return self._to_groups_groupings(groups)
 
-    def _get_sections(self):
+    def _get_sections(self) -> List[Grouping]:
         course_id = self._request.json["course"]["custom_canvas_course_id"]
         lti_user = self._request.lti_user
 
         if lti_user.is_learner:
             # For learners we only want the client to show the sections that
             # the student belongs to, so fetch only the user's sections.
-            return self._canvas_api.authenticated_users_sections(course_id)
+            sections = self._canvas_api.authenticated_users_sections(course_id)
+            return self._to_section_groupings(sections)
 
         # For non-learners (e.g. instructors, teaching assistants) we want the
         # client to show all of the course's sections.
         sections = self._canvas_api.course_sections(course_id)
         if not self._is_speedgrader:
-            return sections
+            return self._to_section_groupings(sections)
 
         # SpeedGrader requests are made by the teacher, but we want the
         # learners sections. The canvas API won't give us names for those so
@@ -125,7 +128,9 @@ class Sync:
             sec["id"] for sec in self._canvas_api.users_sections(user_id, course_id)
         }
 
-        return [sec for sec in sections if sec["id"] in learner_section_ids]
+        return self._to_section_groupings(
+            [sec for sec in sections if sec["id"] in learner_section_ids]
+        )
 
     def _to_groups_groupings(self, groups):
         course = self._get_course()
