@@ -32,7 +32,7 @@ def create_application_instance(request):
         request.registry.settings["aes_secret"],
         settings={
             "canvas": {
-                "sections_enabled": bool(developer_key),
+                "sections_enabled": False,
                 "groups_enabled": bool(developer_key),
             }
         },
