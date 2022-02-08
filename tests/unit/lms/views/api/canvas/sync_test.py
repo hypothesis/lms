@@ -28,14 +28,14 @@ def test_sections_sync_when_the_user_is_a_learner(
     grouping_service,
     assert_sync_and_return_sections,
     request_json,
-    user_service,
+    lti_user,
 ):
     groupids = Sync(pyramid_request).sync()
 
     course_id = request_json["course"]["custom_canvas_course_id"]
     canvas_api_client.authenticated_users_sections.assert_called_once_with(course_id)
     grouping_service.upsert_grouping_memberships.assert_called_once_with(
-        user_service.get.return_value,
+        lti_user.user,
         grouping_service.upsert_with_parent.return_value,
     )
 
@@ -63,7 +63,7 @@ def test_get_canvas_groups_learner(
     pyramid_request,
     canvas_api_client,
     assert_sync_and_return_groups,
-    user_service,
+    lti_user,
     grouping_service,
 ):
     groups = [{"name": "group", "id": 1, "group_category_id": 2}]
@@ -75,7 +75,7 @@ def test_get_canvas_groups_learner(
 
     canvas_api_client.current_user_groups.assert_called_once_with(course_id, group_set)
     grouping_service.upsert_grouping_memberships.assert_called_once_with(
-        user_service.get.return_value,
+        lti_user.user,
         grouping_service.upsert_with_parent.return_value,
     )
 
