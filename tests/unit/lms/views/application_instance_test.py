@@ -52,7 +52,7 @@ class TestCreateApplicationInstance:
 
     @pytest.mark.parametrize(
         "developer_key,canvas_sections_enabled",
-        [("test_developer_key", True), ("", False)],
+        [("test_developer_key", False), ("", False)],
     )
     def test_it_sets_canvas_sections_enabled(
         self, pyramid_request, developer_key, canvas_sections_enabled
