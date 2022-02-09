@@ -12,6 +12,11 @@ def includeme(config):
     config.add_route("reports", "/reports")
 
     config.add_route("config_xml", "/config_xml")
+    config.add_route("canvas_config_json", "/canvas/config.json")
+
+    config.add_route("lti_oidc", "/openid/oidc")
+    config.add_route("jwts", "/opendid/jwts.json")
+
     config.add_route(
         "configure_assignment",
         "/assignment",
