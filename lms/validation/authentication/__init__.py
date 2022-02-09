@@ -15,3 +15,4 @@ from lms.validation.authentication._oauth import (
     OAuthCallbackSchema,
     OAuthTokenResponseSchema,
 )
+from lms.validation.authentication._openid import OpenIDAuthSchema

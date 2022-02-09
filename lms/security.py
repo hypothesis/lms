@@ -13,6 +13,7 @@ from lms.validation.authentication import (
     BearerTokenSchema,
     LaunchParamsAuthSchema,
     OAuthCallbackSchema,
+    OpenIDAuthSchema,
 )
 
 
@@ -178,6 +179,10 @@ def _get_lti_user(request):
         partial(bearer_token_schema.lti_user, location="form"),
         OAuthCallbackSchema(request).lti_user,
     ]
+
+    # Conditional not necessary here but easier for testing
+    if "id_token" in request.params:
+        schemas = [OpenIDAuthSchema(request).lti_user]
 
     lti_user = None
     for schema in schemas:
