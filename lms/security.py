@@ -197,6 +197,9 @@ def _get_lti_user(request):
         # LTI users and the corresponding user in H
         request.find_service(UserService).store_lti_user(lti_user)
 
+    if not hasattr(request, "jwt_params"):
+        request.jwt_params = None
+
     return lti_user
 
 

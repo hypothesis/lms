@@ -68,26 +68,31 @@ class OpenIDAuthSchema(PyramidRequestSchema):
             "https://canvas.instructure.com/api/lti/security/jwks"
         )
         # signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-        data = jwt.decode(
+        jwt_params = jwt.decode(
             id_token,
             # key=signing_key.key,
             options={"verify_signature": False},  # TODO
         )
         data["roles"] = ",".join(
-            data["https://purl.imsglobal.org/spec/lti/claim/roles"]
+            jwt_params["https://purl.imsglobal.org/spec/lti/claim/roles"]
         )
-        data["user_id"] = data["sub"]
-        data["tool_consumer_instance_guid"] = data[
+        data["user_id"] = jwt_params["sub"]
+        data["tool_consumer_instance_guid"] = jwt_params[
             "https://purl.imsglobal.org/spec/lti/claim/tool_platform"
         ]["guid"]
-        data["user_id"] = data["sub"]
+        data["user_id"] = jwt_params["sub"]
 
-        data["lis_person_name_given"] = data["given_name"]
-        data["lis_person_name_family"] = data["family_name"]
-        data["lis_person_name_full"] = data["name"]
-        data["lis_person_contact_email_primary"] = data["email"]
+        data["lis_person_name_given"] = jwt_params["given_name"]
+        data["lis_person_name_family"] = jwt_params["family_name"]
+        data["lis_person_name_full"] = jwt_params["name"]
+        data["lis_person_contact_email_primary"] = jwt_params["email"]
 
         # TODO BIG TODO
-        data["oauth_consumer_key"] = "Hypothesisb3be0b33d0b5e4b1cf3aaf04e0e1819a"
+        # data["oauth_consumer_key"] = "Hypothesisb3be0b33d0b5e4b1cf3aaf04e0e1819a" canvas
+        data["oauth_consumer_key"] = jwt_params[
+            "oauth_consumer_key"
+        ] = "Hypothesis14af0fe87c9deb2e461f88be4a8d5364"  # BB
+
+        self.context["request"].jwt_params = jwt_params
 
         return data
