@@ -1,3 +1,5 @@
+import { TinyEmitter } from 'tiny-emitter';
+
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
 import { apiCall } from '../utils/api';
 import { JWT } from '../utils/jwt';
@@ -11,6 +13,9 @@ import { JWT } from '../utils/jwt';
 /**
  * @typedef ServiceConfig
  * @prop {string} grantToken
+ * @prop {string} notifyOnAnnotationActivity - A string identifying an RPC
+ *   method the client should call when qualifying annotation activity occurs
+ *   (save, edit, e.g.). Takes the form `'$rpc:<methodName>'`
  */
 
 /**
@@ -38,7 +43,7 @@ import { JWT } from '../utils/jwt';
  *  - Updating the Hypothesis client configuration in response to input
  *    in the LMS frontend, such as changing the focused user in grading mode.
  */
-export class ClientRPC {
+export class ClientRPC extends TinyEmitter {
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
    *
@@ -55,6 +60,7 @@ export class ClientRPC {
    *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
   constructor({ allowedOrigins, authToken, clientConfig }) {
+    super();
     this._server = new Server(allowedOrigins);
 
     // A conservative estimate of when the grant token was issued.
@@ -81,8 +87,23 @@ export class ClientRPC {
       }
 
       clientConfig.services[0].grantToken = grantToken.value();
+      clientConfig.services[0].notifyOnAnnotationActivity =
+        '$rpc:onAnnotationActivity';
       return clientConfig;
     });
+
+    this._server.register(
+      'onAnnotationActivity',
+      /**
+       * This RPC method emits annotation activity coming from the client
+       * @param {Object} annotationActivityInfo - TBD
+       */
+      annotationActivityInfo => {
+        this.emit('annotationActivity', annotationActivityInfo);
+        // Return arg/parameters to caller for testing purposes
+        return annotationActivityInfo;
+      }
+    );
 
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;

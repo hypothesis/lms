@@ -162,7 +162,12 @@ export class Server {
 
     // Call the method and return the result response.
     try {
-      const result = await method();
+      let result;
+      if (request.params) {
+        result = await method(...request.params);
+      } else {
+        result = await method();
+      }
       return { jsonrpc: '2.0', result: result, id: request.id };
     } catch (e) {
       return {
