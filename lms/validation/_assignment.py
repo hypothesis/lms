@@ -1,20 +1,14 @@
 """Validation for the configure_assignment() view."""
-
 from webargs import fields
 
-from lms.validation._base import PyramidRequestSchema
+from lms.validation._lti_launch_params import _CommonLTILaunchSchema
 
 
-class ConfigureAssignmentSchema(PyramidRequestSchema):
+class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     """Schema for validating requests to the configure_assignment() view."""
 
     location = "form"
 
     document_url = fields.Str(required=True)
     resource_link_id = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
-    oauth_consumer_key = fields.Str(required=True)
-    user_id = fields.Str(required=True)
-    context_id = fields.Str(required=True)
-    context_title = fields.Str(required=True)
     group_set = fields.Str(required=False, allow_none=True)
