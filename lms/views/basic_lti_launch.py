@@ -294,10 +294,19 @@ class BasicLTILaunchViews:
         """
         self.context.get_or_create_course()
 
+        # What should we do here for lti1.3?
+        # We are re-launching ourselves but we can't change the JWT
+        # so we might have to transform a 1.3 into a 1.1 one
+        # For now I'm just throwing in there all values from the token
+        from itertools import chain
+
         form_fields = {
             param: value
-            for param, value in self.request.params.items()
-            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+            for param, value in chain(
+                self.request.params.items(), self.request.jwt_params.items()
+            )
+            if param
+            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
         }
 
         form_fields["authorization"] = BearerTokenSchema(
