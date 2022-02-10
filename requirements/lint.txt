@@ -59,6 +59,12 @@ certifi==2020.6.20
     #   -r requirements/tests.txt
     #   requests
     #   sentry-sdk
+cffi==1.15.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   cryptography
 charset-normalizer==2.0.1
     # via
     #   -r requirements/bddtests.txt
@@ -68,6 +74,11 @@ charset-normalizer==2.0.1
     #   requests
 coverage==6.3.1
     # via -r requirements/tests.txt
+cryptography==36.0.1
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
 factory-boy==3.2.1
     # via
     #   -r requirements/bddtests.txt
@@ -296,6 +307,12 @@ pyasn1-modules==0.2.8
     #   google-auth
 pycodestyle==2.8.0
     # via -r requirements/lint.in
+pycparser==2.21
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   cffi
 pycryptodomex==3.14.1
     # via
     #   -r requirements/bddtests.txt
@@ -425,7 +442,7 @@ sqlalchemy==1.4.31
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
-    #   zope.sqlalchemy
+    #   zope-sqlalchemy
 text-unidecode==1.3
     # via
     #   -r requirements/bddtests.txt
@@ -446,7 +463,7 @@ transaction==2.4.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-tm
-    #   zope.sqlalchemy
+    #   zope-sqlalchemy
 translationstring==1.4
     # via
     #   -r requirements/bddtests.txt
@@ -522,14 +539,14 @@ zipp==3.4.1
     #   -r requirements/tests.txt
     #   importlib-metadata
     #   importlib-resources
-zope.deprecation==4.3.0
+zope-deprecation==4.3.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
     #   pyramid-jinja2
-zope.interface==5.1.0
+zope-interface==5.1.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -539,8 +556,8 @@ zope.interface==5.1.0
     #   pyramid-services
     #   transaction
     #   wired
-    #   zope.sqlalchemy
-zope.sqlalchemy==1.3
+    #   zope-sqlalchemy
+zope-sqlalchemy==1.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
