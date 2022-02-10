@@ -21,7 +21,8 @@ def config_xml(request):
     renderer="json",
     request_method="GET",
 )
-def config_json(request):
+def canvas_config_json(request):
+    # https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html
     config = _basic_lti_13_config(request)
 
     config["custom_fields"] = {
@@ -35,7 +36,9 @@ def config_json(request):
 def _basic_lti_13_config(request):
     lti_oidc_url = request.route_url("lti_oidc")
     launch_url = request.route_url("lti_launches")
+    content_item_url = request.route_url("content_item_selection")
     jwts_url = request.route_url("jwts")
+    from lms.views.openid import public_key
 
     return {
         "title": "Hypothesis (title)",
@@ -56,19 +59,20 @@ def _basic_lti_13_config(request):
                             "text": "Link selection placement text",
                             "enabled": True,
                             "placement": "link_selection",
-                            "message_type": "LtiResourceLinkRequest",
-                            "url": launch_url,
+                            "message_type": "LtiDeepLinkingRequest",
+                            "target_link_uri": content_item_url,
                         },
                         {
                             "text": "Assignment selection text",
                             "enabled": True,
                             "placement": "assignment_selection",
-                            "message_type": "LtiResourceLinkRequest",
-                            "url": launch_url,
+                            "message_type": "LtiDeepLinkingRequest",
+                            "target_link_uri": content_item_url,
                         },
                     ],
                 },
             }
         ],
-        "public_jwk": jwts_url,
+        "public_jwk_url": jwts_url,  # , Canvas doesn't like this
+        "public_jwk": public_key,
     }
