@@ -6,7 +6,7 @@ from pyramid.view import view_config
 
 @view_config(
     route_name="lti_oidc",
-    request_method="POST",
+    request_method=("POST", "GET"),  ## BB get, canvas POST
     renderer="json",
 )
 def lti_oidc(request):
