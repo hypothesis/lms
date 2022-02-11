@@ -27,20 +27,22 @@ class ApplicationInstanceService:
         """
         jwt_params = self._request.jwt_params
         if jwt_params:
-            if (
-                not jwt_params["client_id"]
-                or not jwt_params["issuer"]
-                or not jwt_params["deployment_id"]
-            ):
+            client_id = jwt_params["aud"]
+            issuer = jwt_params["iss"]
+            deployment_id = jwt_params[
+                "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
+            ]
+
+            if not client_id or not issuer or not deployment_id:
                 raise ApplicationInstanceNotFound()
 
             try:
                 return (
                     self._db.query(ApplicationInstance)
                     .filter_by(
-                        client_it=jwt_params["client_id"],
-                        issuer=jwt_params["issuer"],
-                        deployment_id=jwt_params["deployment_id"],
+                        client_id=client_id,
+                        issuer=issuer,
+                        deployment_id=deployment_id,
                     )
                     .one()
                 )
