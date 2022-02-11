@@ -108,6 +108,17 @@ class ApplicationInstance(BASE):
     auth_login_url = sa.Column(sa.UnicodeText, nullable=True)
     deployment_id = sa.Column(sa.UnicodeText, nullable=True)
 
+    # LTI1.1 rely only on consumer_key while 1.3 depend on a combination of fields
+    sa.CheckConstraint(
+        """(consumer_key is null
+            AND issuer IS NOT NULL
+            AND client_id IS NOT NULL
+            AND key_set_url IS NOT NULL
+            AND auth_login_url IS NOT NULL
+            AND deployment_id IS NOT NULL)""",
+        name="consumer_key_required_for_lti_1_1",
+    ),
+
     def decrypted_developer_secret(self, aes_secret):
         if self.developer_secret is None:
             return None
