@@ -34,10 +34,15 @@ Canvas LMS's Content Item docs are also useful:
 
 https://canvas.instructure.com/doc/api/file.content_item.html
 """
+import time
+import uuid
+from urllib.parse import urlencode
+
 from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.validation import ContentItemSelectionLTILaunchSchema
+from lms.views.openid import pem_private_key, private_key
 
 
 @view_config(
@@ -49,20 +54,63 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
+    print("HOLAAAA" * 100)
     request.find_service(name="application_instance").get_current().update_lms_data(
         request.params
     )
+    lti_launch_url = request.route_url("lti_launches")
 
     context.get_or_create_course()
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
+    now = int(time.time())
+
+    request_aud = request.jwt_params["aud"]
+    deployment_id = request.jwt_params[
+        "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
+    ]
+
+    settings = request.jwt_params[
+        "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"
+    ]
+
+    document_params = {"url": "https://elpais.com"}
+
+    message = {
+        "aud": request.jwt_params["iss"],
+        "exp": now + 60 * 60,
+        "iat": now,
+        "nonce": uuid.uuid4().hex,
+        "iss": request_aud,  # client_id?
+        "https://purl.imsglobal.org/spec/lti/claim/deployment_id": deployment_id,
+        "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
+        "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+        "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
+            {
+                "type": "ltiResourceLink",
+                "title": "A title",
+                "text": "This is a link to an activity that will be graded",
+                "url": f"{lti_launch_url}?{urlencode(document_params)}",
+            }
+        ],
+        "https://purl.imsglobal.org/spec/lti-dl/claim/data": settings,
+    }
+    import jwt
+
+    headers = {"kid": private_key["kid"]}
+
+    encoded_message = jwt.encode(
+        message, pem_private_key, algorithm="RS256", headers=headers
+    )
 
     context.js_config.enable_content_item_selection_mode(
-        form_action=request.params["content_item_return_url"],
+        form_action=request.parsed_params["content_item_return_url"],
         form_fields={
-            "lti_message_type": "ContentItemSelection",
-            "lti_version": request.params["lti_version"],
+            "JWT": encoded_message,
         },
+        #    "lti_message_type": request.parsed_params["lti_message_type"],
+        #    "lti_version": request.parsed_params["lti_version"],
+        # },
     )
 
     return {}
