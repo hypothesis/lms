@@ -27,7 +27,7 @@ class OpenIDAuthSchema(PyramidRequestSchema):
     lis_person_name_full = marshmallow.fields.Str(load_default="")
     lis_person_contact_email_primary = marshmallow.fields.Str(load_default="")
 
-    oauth_consumer_key = marshmallow.fields.Str(required=True)
+    oauth_consumer_key = marshmallow.fields.Str(required=False)
 
     def __init__(self, request):
         super().__init__(request)
@@ -44,7 +44,7 @@ class OpenIDAuthSchema(PyramidRequestSchema):
 
         return LTIUser(
             user_id=kwargs["user_id"],
-            oauth_consumer_key=kwargs["oauth_consumer_key"],
+            oauth_consumer_key=kwargs.get("oauth_consumer_key"),
             roles=kwargs["roles"],
             tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],
             display_name=display_name(
@@ -57,6 +57,7 @@ class OpenIDAuthSchema(PyramidRequestSchema):
 
     @marshmallow.pre_load
     def _decode_jwt(self, data, **_kwargs):
+        # TODO VALIDATE oauth_consumer_key required when not 1.3
         id_token = data["id_token"]
 
         # TODO move this _jwt
@@ -89,9 +90,9 @@ class OpenIDAuthSchema(PyramidRequestSchema):
 
         # TODO BIG TODO
         # data["oauth_consumer_key"] = "Hypothesisb3be0b33d0b5e4b1cf3aaf04e0e1819a" canvas
-        data["oauth_consumer_key"] = jwt_params[
-            "oauth_consumer_key"
-        ] = "Hypothesis14af0fe87c9deb2e461f88be4a8d5364"  # BB
+        # data["oauth_consumer_key"] = jwt_params[
+        #    "oauth_consumer_key"
+        # ] = "Hypothesis14af0fe87c9deb2e461f88be4a8d5364"  # BB
 
         # TODO add another marshmallow schema for this instead of accessing the dict directly
         # that way we can also validate before we start mapping the params to the lt1.3
