@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from jwt.algorithms import RSAAlgorithm
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
+from lms.models import ApplicationInstance
 
 
 @view_config(
@@ -12,6 +13,16 @@ from pyramid.view import view_config
 )
 def lti_oidc(request):
     # http://www.imsglobal.org/spec/security/v1p0/#step-2-authentication-request
+
+    # TODO error handling
+    application_instance = (
+        request.db.query(ApplicationInstance)
+        .filter_by(issuer=request.params["iss"], client_id=request.params["client_id"])
+        .first()
+    )  # As far as I can tell there could be multiple deployments for this. We don't have the deployment_id at this moment but we only care about
+    # - Do we have registered this client_id
+    # - Getting the auth_url for the issuer (issuer could be it's own table then)
+
     params = {
         "scope": "openid",
         "response_type": "id_token",
@@ -25,12 +36,12 @@ def lti_oidc(request):
         "lti_message_hint": request.params["lti_message_hint"],
     }
 
-    print(request.params)
+    # authorice_redirect_url = "https://canvas.instructure.com/api/lti/authorize_redirect"
+    # authorice_redirect_url = "https://developer.blackboard.com/api/v1/gateway/oidcauth"
 
-    authorice_redirect_url = "https://canvas.instructure.com/api/lti/authorize_redirect"
-    authorice_redirect_url = "https://developer.blackboard.com/api/v1/gateway/oidcauth"
-
-    return HTTPFound(location=f"{authorice_redirect_url}?{urlencode(params)}")
+    return HTTPFound(
+        location=f"{application_instance.auth_login_url}?{urlencode(params)}"
+    )
 
 
 private_key = {
