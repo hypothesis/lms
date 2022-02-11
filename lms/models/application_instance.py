@@ -101,6 +101,13 @@ class ApplicationInstance(BASE):
     #: A list of all the files for this application instance.
     files = sa.orm.relationship("File", back_populates="application_instance")
 
+    # LTI1.3 platform details
+    issuer = sa.Column(sa.UnicodeText, nullable=True)
+    client_id = sa.Column(sa.UnicodeText, nullable=True)
+    key_set_url = sa.Column(sa.UnicodeText, nullable=True)
+    auth_login_url = sa.Column(sa.UnicodeText, nullable=True)
+    deployment_id = sa.Column(sa.UnicodeText, nullable=True)
+
     def decrypted_developer_secret(self, aes_secret):
         if self.developer_secret is None:
             return None
