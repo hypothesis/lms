@@ -25,6 +25,27 @@ class ApplicationInstanceService:
         :raise ApplicationInstanceNotFound: if there's no matching
             `ApplicationInstance`
         """
+        jwt_params = self._request.jwt_params
+        if jwt_params:
+            if (
+                not jwt_params["client_id"]
+                or not jwt_params["issuer"]
+                or not jwt_params["deployment_id"]
+            ):
+                raise ApplicationInstanceNotFound()
+
+            try:
+                return (
+                    self._db.query(ApplicationInstance)
+                    .filter_by(
+                        client_it=jwt_params["client_id"],
+                        issuer=jwt_params["issuer"],
+                        deployment_id=jwt_params["deployment_id"],
+                    )
+                    .one()
+                )
+            except NoResultFound as err:
+                raise ApplicationInstanceNotFound() from err
 
         if self._request.lti_user:
             return self.get_by_consumer_key(self._request.lti_user.oauth_consumer_key)
