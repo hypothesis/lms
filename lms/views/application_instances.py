@@ -11,7 +11,7 @@ from lms.models import ApplicationInstance
     ),
 )
 def create_application_instance(request):
-    """Create application instance in the databse and respond with key and secret."""
+    """Create application instance in the database and respond with key and secret."""
 
     # Default developer_key and developer_secret to None rather than letting
     # them be empty strings.

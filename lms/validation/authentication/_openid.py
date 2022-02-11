@@ -93,6 +93,8 @@ class OpenIDAuthSchema(PyramidRequestSchema):
             "oauth_consumer_key"
         ] = "Hypothesis14af0fe87c9deb2e461f88be4a8d5364"  # BB
 
+        # TODO add another marshmallow schema for this instead of accessing the dict directly
+        # that way we can also validate before we start mapping the params to the lt1.3
         self.context["request"].jwt_params = jwt_params
 
         return data

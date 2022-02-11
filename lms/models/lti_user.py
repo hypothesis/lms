@@ -9,6 +9,8 @@ class LTIUser(NamedTuple):
     user_id: str
     """The user_id LTI launch parameter."""
 
+    # TODO Having this here is convientn but a bit out of place. Not really related to the user more than anything on application_instance
+    # To use lti_user we already depend on request most of the time so might as well look at the params direclty
     oauth_consumer_key: str
     """The oauth_consumer_key LTI launch parameter."""
 
