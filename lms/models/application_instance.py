@@ -219,6 +219,22 @@ class ApplicationInstance(BASE):
             settings=settings,
         )
 
+    @classmethod
+    def build_from_lti_13_parameters(
+        cls, issuer, client_id, deployment_id, auth_login_url, key_set_url
+    ):
+
+        return cls(
+            issuer=issuer,
+            client_id=client_id,
+            deployment_id=deployment_id,
+            auth_login_url=auth_login_url,
+            key_set_url=key_set_url,
+            shared_secret="SHOULD THIS BE NULLABLE TOO OR IS IT USED FOR NON LTI stuff?",
+            lms_url=issuer,  # is it?
+            requesters_email="marcos",
+        )
+
 
 def _build_aes_iv():
     """Build a 16 byte initialization vector."""
