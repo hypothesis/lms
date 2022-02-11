@@ -1,5 +1,6 @@
 from urllib.parse import unquote
 
+import marshmallow
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
 from marshmallow.validate import OneOf
 
@@ -14,18 +15,58 @@ class _CommonLTILaunchSchema(PyramidRequestSchema):
 
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
-    oauth_consumer_key = fields.Str(required=True)
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0", "1.3.0"]), required=True)
+    oauth_consumer_key = fields.Str(required=False)  # TODO validate required for 1.1
     tool_consumer_instance_guid = fields.Str(required=True)
     user_id = fields.Str(required=True)
 
     custom_canvas_api_domain = fields.Str()
     custom_canvas_course_id = fields.Str()
-    launch_presentation_return_url = fields.Str()
+    launch_presentation_return_url = fields.Str(allow_none=True)
     lis_person_name_full = fields.Str()
     lis_person_name_family = fields.Str()
     lis_person_name_given = fields.Str()
     tool_consumer_info_product_family_code = fields.Str()
+
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **_kwargs):
+        if not self.context["request"].jwt_params:
+            return data
+
+        jwt_params = self.context["request"].jwt_params
+
+        data["tool_consumer_instance_guid"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/tool_platform"
+        ]["guid"]
+        data["user_id"] = jwt_params["sub"]
+
+        data["lis_person_name_given"] = jwt_params["given_name"]
+        data["lis_person_name_family"] = jwt_params["family_name"]
+        data["lis_person_name_full"] = jwt_params["name"]
+
+        data["tool_consumer_info_product_family_code"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/tool_platform"
+        ]["product_family_code"]
+        data["launch_presentation_return_url"] = jwt_params.get(
+            "https://purl.imsglobal.org/spec/lti/claim/launch_presentation", {}
+        ).get("return_url", None)
+
+        if custom := jwt_params.get("https://purl.imsglobal.org/spec/lti/claim/custom"):
+            data["custom_canvas_api_domain"] = custom.get("canvas_api_domain")
+            data["custom_canvas_course_id"] = str(custom.get("canvas_course_id"))
+
+        data["context_id"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/context"
+        ]["id"]
+        data["context_title"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/context"
+        ]["title"]
+
+        data["lti_version"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/version"
+        ]
+
+        return data
 
 
 class BasicLTILaunchSchema(_CommonLTILaunchSchema):
@@ -47,7 +88,8 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
         launch_presentation_return_url = fields.URL()
 
     lti_message_type = fields.Str(
-        validate=OneOf(["basic-lti-launch-request"]), required=True
+        validate=OneOf(["basic-lti-launch-request", "LtiResourceLinkRequest"]),
+        required=True,
     )
     resource_link_id = fields.Str(required=True)
 
@@ -99,11 +141,46 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
 
         super().handle_error(error, data, many=many, **kwargs)
 
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **kwargs):
+        data = super()._decode_jwt(data, **kwargs)
+        if not self.context["request"].jwt_params:
+            return data
+
+        jwt_params = self.context["request"].jwt_params
+
+        data["lti_message_type"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/message_type"
+        ]
+
+        data["resource_link_id"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link"
+        ]["id"]
+
+        return data
+
 
 class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
     """Schema for URL-configured basic LTI launches."""
 
     url = fields.Str(required=True)
+
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **kwargs):
+        data = super()._decode_jwt(data, **kwargs)
+
+        if not self.context["request"].jwt_params:
+            return data
+
+        jwt_params = self.context["request"].jwt_params
+
+        print("URL CONFIGURED" * 10)
+        from pprint import pprint
+
+        # This seems wrong, shound't we get a message in the jwt token with the configued deep linking assigment
+        data["url"] = self.context["request"].params["url"]
+
+        return data
 
     @post_load
     def _decode_url(self, _data, **_kwargs):  # pylint:disable=no-self-use
@@ -130,5 +207,29 @@ class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
     """Schema for content item selection LTI launches."""
 
     lti_message_type = fields.Str(
-        validate=OneOf(["ContentItemSelectionRequest"]), required=True
+        validate=OneOf(["ContentItemSelectionRequest", "LtiDeepLinkingRequest"]),
+        required=True,
     )
+
+    content_item_return_url = fields.Str(required=True)
+
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **kwargs):
+        data = super()._decode_jwt(data, **kwargs)
+        if not self.context["request"].jwt_params:
+            return data
+
+        print("CONTENT" * 10)
+        from pprint import pprint
+
+        pprint(data)
+        jwt_params = self.context["request"].jwt_params
+
+        data["lti_message_type"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/message_type"
+        ]
+        data["content_item_return_url"] = jwt_params[
+            "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"
+        ]["deep_link_return_url"]
+
+        return data

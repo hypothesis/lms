@@ -41,7 +41,8 @@ class LTIHService:
         :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
 
-        if not self._application_instance_service.get_current().provisioning:
+        ai = self._application_instance_service.get_current()
+        if not ai.provisioning:
             return
 
         self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
@@ -50,7 +51,7 @@ class LTIHService:
         for h_group in h_groups:
             self._group_info_service.upsert(
                 h_group=h_group,
-                consumer_key=self._lti_user.oauth_consumer_key,
+                consumer_key=ai.consumer_key,
                 params=group_info_params,
             )
 

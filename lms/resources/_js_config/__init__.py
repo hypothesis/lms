@@ -182,8 +182,10 @@ class JSConfig:
         return {
             "path": self._request.route_path("api.assignments.create"),
             "data": {
-                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"],
-                "course_id": self._request.params["custom_canvas_course_id"],
+                "ext_lti_assignment_id": self._request.params.get(
+                    "ext_lti_assignment_id"
+                ),
+                "course_id": self._request.parsed_params["custom_canvas_course_id"],
             },
         }
 
@@ -479,14 +481,16 @@ class JSConfig:
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {
-                    "tool_consumer_instance_guid": req.params[
+                    "tool_consumer_instance_guid": req.parsed_params[
                         "tool_consumer_instance_guid"
                     ],
                 },
                 "course": {
-                    "context_id": req.params["context_id"],
-                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
-                    "group_set": req.params.get("group_set"),
+                    "context_id": req.parsed_params["context_id"],
+                    "custom_canvas_course_id": req.parsed_params[
+                        "custom_canvas_course_id"
+                    ],
+                    "group_set": req.parsed_params.get("group_set"),
                 },
                 "group_info": {
                     key: value

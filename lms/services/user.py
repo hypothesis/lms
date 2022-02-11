@@ -28,7 +28,9 @@ class UserService:
 
         :param lti_user: LTIUser to store
         """
-        new_user = self._from_lti_user(lti_user)
+        new_user = self._from_lti_user(
+            lti_user, self._application_instance_service.get_current()
+        )
 
         if existing_user := self._find_existing_user(model_user=new_user):
             # Update the existing user from the fields which can change on a
@@ -71,11 +73,9 @@ class UserService:
             .one_or_none()
         )
 
-    def _from_lti_user(self, lti_user: LTIUser) -> User:
+    def _from_lti_user(self, lti_user: LTIUser, application_instance) -> User:
         return User(
-            application_instance=self._application_instance_service.get_by_consumer_key(
-                lti_user.oauth_consumer_key
-            ),
+            application_instance=application_instance,
             user_id=lti_user.user_id,
             roles=lti_user.roles,
             h_userid=lti_user.h_user.userid(self._h_authority),

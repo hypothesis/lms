@@ -41,7 +41,14 @@ class DBConfigured(Base):
 
     def __call__(self, context, request):
         assignment_svc = request.find_service(name="assignment")
-        tool_consumer_instance_guid = request.params.get("tool_consumer_instance_guid")
+        tool_consumer_instance_guid = request.params.get(  # TODO no parsed_params here
+            "tool_consumer_instance_guid"
+        )
+        print(
+            tool_consumer_instance_guid,
+            context.resource_link_id,
+            context.ext_lti_assignment_id,
+        )
 
         return (
             assignment_svc.exists(

@@ -101,7 +101,7 @@ class LTISecurityPolicy:
         if request.lti_user is None:
             return None
 
-        return _authenticated_userid(request.lti_user)
+        return _authenticated_userid(request.lti_user, request)
 
     def identity(self, request):
         userid = self.authenticated_userid(request)
@@ -136,18 +136,27 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         return _permits(self, request, context, permission)
 
 
-def _authenticated_userid(lti_user):
+def _authenticated_userid(lti_user, request):
     """Return a request.authenticated_userid string for lti_user."""
     # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
     user_id_bytes = lti_user.user_id.encode()
-
+    user_id_bytes = lti_user.user_id.encode()
     safe_user_id_bytes = base64.urlsafe_b64encode(user_id_bytes)
-
-    # urlsafe_b64encode() returns ASCII bytes but we need unicode, so
-    # decode it.
     safe_user_id = safe_user_id_bytes.decode("ascii")
-
-    return ":".join([safe_user_id, lti_user.oauth_consumer_key])
+    if lti_user.oauth_consumer_key:
+        # urlsafe_b64encode() returns ASCII bytes but we need unicode, so
+        # decode it.
+        return ":".join([safe_user_id, lti_user.oauth_consumer_key])
+    else:
+        # lti 1.3
+        return ":".join(
+            [
+                safe_user_id,
+                request.jwt_params[
+                    "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
+                ],
+            ]
+        )
 
 
 def _permits(policy, request, _context, permission):
