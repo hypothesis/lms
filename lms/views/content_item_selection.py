@@ -54,7 +54,6 @@ from lms.views.openid import pem_private_key, private_key
     schema=ContentItemSelectionLTILaunchSchema,
 )
 def content_item_selection(context, request):
-    print("HOLAAAA" * 100)
     request.find_service(name="application_instance").get_current().update_lms_data(
         request.params
     )

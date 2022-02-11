@@ -88,12 +88,6 @@ class OpenIDAuthSchema(PyramidRequestSchema):
         data["lis_person_name_full"] = jwt_params["name"]
         data["lis_person_contact_email_primary"] = jwt_params["email"]
 
-        # TODO BIG TODO
-        # data["oauth_consumer_key"] = "Hypothesisb3be0b33d0b5e4b1cf3aaf04e0e1819a" canvas
-        # data["oauth_consumer_key"] = jwt_params[
-        #    "oauth_consumer_key"
-        # ] = "Hypothesis14af0fe87c9deb2e461f88be4a8d5364"  # BB
-
         # TODO add another marshmallow schema for this instead of accessing the dict directly
         # that way we can also validate before we start mapping the params to the lt1.3
         self.context["request"].jwt_params = jwt_params

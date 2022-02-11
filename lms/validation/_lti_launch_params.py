@@ -174,9 +174,6 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
 
         jwt_params = self.context["request"].jwt_params
 
-        print("URL CONFIGURED" * 10)
-        from pprint import pprint
-
         # This seems wrong, shound't we get a message in the jwt token with the configued deep linking assigment
         data["url"] = self.context["request"].params["url"]
 
@@ -219,10 +216,6 @@ class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
         if not self.context["request"].jwt_params:
             return data
 
-        print("CONTENT" * 10)
-        from pprint import pprint
-
-        pprint(data)
         jwt_params = self.context["request"].jwt_params
 
         data["lti_message_type"] = jwt_params[

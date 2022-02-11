@@ -297,7 +297,11 @@ class BasicLTILaunchViews:
         # What should we do here for lti1.3?
         # We are re-launching ourselves but we can't change the JWT
         # so we might have to transform a 1.3 into a 1.1 one
-        # For now I'm just throwing in there all values from the token
+        # For now I'm just throwing all values from the token in there
+        # After changing a few thing around consumer_keys this no longer works without any further task.
+        # The consumer_key is not present, the id_token is not present
+        # We could for example re-sign a new id_token ourselves. That would involve
+        # tryingto decode with the keys from the lms first and then with ours just for this case...
         from itertools import chain
 
         form_fields = {

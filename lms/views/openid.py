@@ -36,9 +36,6 @@ def lti_oidc(request):
         "lti_message_hint": request.params["lti_message_hint"],
     }
 
-    # authorice_redirect_url = "https://canvas.instructure.com/api/lti/authorize_redirect"
-    # authorice_redirect_url = "https://developer.blackboard.com/api/v1/gateway/oidcauth"
-
     return HTTPFound(
         location=f"{application_instance.auth_login_url}?{urlencode(params)}"
     )
@@ -82,7 +79,4 @@ pem_private_key = RSAAlgorithm.from_jwk(private_key).private_bytes(
     renderer="json",
 )
 def jwts(request):
-    # TODO either document how to generate from a private key
-    # or take from env vars
-    # or generate on startup
     return {"keys": [public_key]}
