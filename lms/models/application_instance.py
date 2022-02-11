@@ -32,7 +32,7 @@ class ApplicationInstance(BASE):
     __tablename__ = "application_instances"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
-    consumer_key = sa.Column(sa.Unicode, unique=True, nullable=False)
+    consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
