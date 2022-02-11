@@ -14,11 +14,15 @@ class LegacyCourse(BASE):
     #: that these course settings belong to.
     consumer_key = sa.Column(
         sa.Unicode(),
-        sa.ForeignKey("application_instances.consumer_key", ondelete="cascade"),
+        nullable=True,
+    )
+    application_instance_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("application_instances.id", ondelete="cascade"),
         primary_key=True,
     )
 
-    #: The ApplicationInstance that this access token belongs to.
+    #: The ApplicationInstance that this course belongs to.
     application_instance = sa.orm.relationship(
         "ApplicationInstance", back_populates="courses"
     )

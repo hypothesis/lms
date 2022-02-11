@@ -131,8 +131,16 @@ class TestCourseService:
         return add_courses_with_settings
 
     @pytest.fixture
-    def svc(self, pyramid_request, application_instance_service, application_instance):
+    def svc(
+        self,
+        db_session,
+        pyramid_request,
+        application_instance_service,
+        application_instance,
+    ):
         application_instance_service.get_current.return_value = application_instance
+        db_session.flush()
+
         return course_service_factory(sentinel.context, pyramid_request)
 
     @pytest.fixture(autouse=True)

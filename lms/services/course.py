@@ -51,7 +51,7 @@ class CourseService:
         return bool(
             self._db.query(LegacyCourse)
             .filter(
-                LegacyCourse.consumer_key == self._application_instance.consumer_key
+                LegacyCourse.application_instance_id == self._application_instance.id
             )
             .filter(LegacyCourse.settings[group][key] == json.dumps(value))
             .limit(1)
@@ -60,7 +60,7 @@ class CourseService:
 
     def _get_legacy(self, authority_provided_id):
         return self._db.query(LegacyCourse).get(
-            (self._application_instance.consumer_key, authority_provided_id)
+            (self._application_instance.id, authority_provided_id)
         )
 
     def get(self, authority_provided_id):
@@ -75,7 +75,7 @@ class CourseService:
 
     def _create_legacy(self, authority_provided_id):
         course = LegacyCourse(
-            consumer_key=self._application_instance.consumer_key,
+            application_instance_id=self._application_instance.id,
             authority_provided_id=authority_provided_id,
             settings=self._new_course_settings(authority_provided_id),
         )
