@@ -233,6 +233,7 @@ class ApplicationInstance(BASE):
             shared_secret="SHOULD THIS BE NULLABLE TOO OR IS IT USED FOR NON LTI stuff?",
             lms_url=issuer,  # is it?
             requesters_email="marcos",
+            consumer_key=f"{issuer}:{client_id}:{deployment_id}",
         )
 
 
