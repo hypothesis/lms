@@ -270,7 +270,6 @@ def _repr_external_request_exception(exception):
     return (
         f"{class_name}("
         f"message={exception.message!r}, "
-        f"cause={exception.__cause__!r}, "
         f"request={request}, "
         f"response={response}, "
         f"validation_errors={exception.validation_errors!r})"

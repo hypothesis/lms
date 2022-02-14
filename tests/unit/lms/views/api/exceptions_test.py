@@ -62,7 +62,6 @@ class TestExternalRequestError:
         assert json_data == {
             "message": context.message,
             "details": {
-                "cause": "ValueError('foo')",
                 "request": {
                     "method": context.method,
                     "url": "https://example.com/",  # The URL without query string.
