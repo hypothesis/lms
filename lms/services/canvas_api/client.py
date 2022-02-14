@@ -59,6 +59,9 @@ class CanvasAPIClient:
         """
         return self._client.get_token(authorization_code)
 
+    def get_refreshed_token(self, refresh_token):
+        return self._client.get_refreshed_token(refresh_token)
+
     # Getting authenticated users sections
     # ------------------------------------
     #

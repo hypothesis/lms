@@ -18,6 +18,14 @@ class TestCanvasAPIClient:
         )
         assert token == authenticated_client.get_token.return_value
 
+    def test_get_refreshed_token(self, canvas_api_client, authenticated_client):
+        refreshed_token = canvas_api_client.get_refreshed_token(sentinel.refresh_token)
+
+        authenticated_client.get_refreshed_token.assert_called_once_with(
+            sentinel.refresh_token
+        )
+        assert refreshed_token == authenticated_client.get_refreshed_token.return_value
+
     @pytest.fixture
     def authenticated_client(self):
         return create_autospec(AuthenticatedClient, instance=True, spec_set=True)
