@@ -142,7 +142,6 @@ class APIExceptionViews:
         return self.error_response(
             message=message,
             details={
-                "cause": repr(self.context.__cause__),
                 "request": {
                     "method": self.context.method,
                     "url": strip_queryparams(self.context.url),

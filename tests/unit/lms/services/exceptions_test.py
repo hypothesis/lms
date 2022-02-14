@@ -45,7 +45,7 @@ class TestExternalRequestError:
                 None,
                 None,
                 None,
-                "ExternalRequestError(message=None, cause=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
+                "ExternalRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
             ),
             (
                 "Connecting to Hypothesis failed",
@@ -59,7 +59,7 @@ class TestExternalRequestError:
                 ),
                 {"foo": ["bar"]},
                 KeyError("cause"),
-                "ExternalRequestError(message='Connecting to Hypothesis failed', cause=KeyError('cause'), request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'), validation_errors={'foo': ['bar']})",
+                "ExternalRequestError(message='Connecting to Hypothesis failed', request=Request(method='GET', url='https://example.com/', body='request_body'), response=Response(status_code=400, reason='Bad Request', body='Name too long'), validation_errors={'foo': ['bar']})",
             ),
         ],
     )
@@ -146,7 +146,7 @@ class TestExternalAsyncRequestError:
             (
                 None,
                 None,
-                "ExternalAsyncRequestError(message=None, cause=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
+                "ExternalAsyncRequestError(message=None, request=Request(method=None, url=None, body=None), response=Response(status_code=None, reason=None, body=None), validation_errors=None)",
             ),
             (
                 Mock(
@@ -156,7 +156,7 @@ class TestExternalAsyncRequestError:
                     request_info=Mock(method="POST", url="URL"),
                 ),
                 KeyError("cause"),
-                "ExternalAsyncRequestError(message=None, cause=KeyError('cause'), request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body='Body text'), validation_errors=None)",
+                "ExternalAsyncRequestError(message=None, request=Request(method='POST', url='URL', body=None), response=Response(status_code=400, reason='OK', body='Body text'), validation_errors=None)",
             ),
         ],
     )
