@@ -1,4 +1,4 @@
-import { PickerCanceledError } from '../errors';
+import { PickerCanceledError, PickerPermissionError } from '../errors';
 import { loadOneDriveAPI } from './onedrive-api-client';
 
 /**
@@ -32,10 +32,14 @@ import { loadOneDriveAPI } from './onedrive-api-client';
 /**
  * Result of successful file picker response.
  *
+ * This property is not present if the OneDrive sharing policies don't allow
+ * sharing files publicly (using links that don't require sign-in).
+ * See https://hypothes-is.slack.com/archives/C2BLQDKHA/p1643309746775569
+ *
  * See https://docs.microsoft.com/en-us/onedrive/developer/controls/file-pickers/js-v72/open-file?view=odsp-graph-online#4-handling-the-picker-response-object.
  *
  * @typedef PickerResponse
- * @prop {DriveItem[]} value
+ * @prop {DriveItem[]} [value]
  */
 
 /**
@@ -71,16 +75,20 @@ export class OneDrivePickerClient {
     return new Promise((resolve, reject) => {
       /** @param {PickerResponse} result */
       const success = result => {
-        // TODO - Clarify nullability of properties and lengths of arrays.
-        // We think there are some situations where these properties won't exist
-        // or the arrays may be empty.
-        //
-        // See https://hypothes-is.slack.com/archives/C2BLQDKHA/p1643309746775569.
-        const driveItem = result.value[0];
-        const name = driveItem.name;
-        const sharingURL = driveItem.permissions[0].link.webUrl;
-        const url = OneDrivePickerClient.downloadURL(sharingURL);
-        resolve({ name, url });
+        try {
+          // @ts-expect-error
+          const driveItem = result.value[0];
+          try {
+            const name = driveItem.name;
+            const sharingURL = driveItem.permissions[0].link.webUrl;
+            const url = OneDrivePickerClient.downloadURL(sharingURL);
+            resolve({ name, url });
+          } catch (error) {
+            reject(error);
+          }
+        } catch {
+          reject(new PickerPermissionError());
+        }
       };
       const cancel = () => reject(new PickerCanceledError());
       const error = (/** @type {Error} */ error) => reject(error);

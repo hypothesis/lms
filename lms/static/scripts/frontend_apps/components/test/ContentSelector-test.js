@@ -7,7 +7,7 @@ import { act } from 'preact/test-utils';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { delay, waitFor } from '../../../test-util/wait';
 import { Config } from '../../config';
-import { PickerCanceledError } from '../../errors';
+import { PickerCanceledError, PickerPermissionError } from '../../errors';
 import ContentSelector, { $imports } from '../ContentSelector';
 
 function interact(wrapper, callback) {
@@ -326,7 +326,7 @@ describe('ContentSelector', () => {
       await delay(0);
 
       assert.calledWith(onError, {
-        message: 'There was a problem choosing a file from Google Drive',
+        description: 'There was a problem choosing a file from Google Drive',
         error,
       });
     });
@@ -461,18 +461,35 @@ describe('ContentSelector', () => {
       assert.notCalled(onError);
     });
 
-    it('shows error message if OneDrive Picker errors', async () => {
-      const error = new Error('Some failure');
+    it('shows error message if OneDrive Picker raises a permission error', async () => {
+      const error = new PickerPermissionError();
       const onError = sinon.stub();
       const wrapper = renderContentSelector({ onError });
-      // Emulate a failure in the picker
+      // Emulate a permission error of the picker.
       picker.showPicker.rejects(error);
 
       clickOneDriveButton(wrapper);
       await delay(0);
 
       assert.calledWith(onError, {
-        message: 'There was a problem choosing a file from OneDrive',
+        description: 'There was a problem choosing a file from OneDrive',
+        error,
+        children: sinon.match.object,
+      });
+    });
+
+    it('shows error message if OneDrive Picker errors', async () => {
+      const error = new Error('Some failure');
+      const onError = sinon.stub();
+      const wrapper = renderContentSelector({ onError });
+      // Emulate a generic failure in the picker
+      picker.showPicker.rejects(error);
+
+      clickOneDriveButton(wrapper);
+      await delay(0);
+
+      assert.calledWith(onError, {
+        description: 'There was a problem choosing a file from OneDrive',
         error,
       });
       assert.calledWith(console.error, error);

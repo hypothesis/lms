@@ -1,8 +1,12 @@
-import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
+import {
+  FullScreenSpinner,
+  LabeledButton,
+  Link,
+} from '@hypothesis/frontend-shared';
 import { useContext, useMemo, useState } from 'preact/hooks';
 
 import { Config } from '../config';
-import { PickerCanceledError } from '../errors';
+import { PickerCanceledError, PickerPermissionError } from '../errors';
 import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
 
@@ -193,7 +197,7 @@ export default function ContentSelector({
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
         onError({
-          message: 'There was a problem choosing a file from Google Drive',
+          description: 'There was a problem choosing a file from Google Drive',
           error,
         });
       }
@@ -209,10 +213,30 @@ export default function ContentSelector({
       const { name, url } = await picker.showPicker();
       onSelectContent({ name, type: 'url', url });
     } catch (error) {
-      if (!(error instanceof PickerCanceledError)) {
+      const description = 'There was a problem choosing a file from OneDrive';
+      if (error instanceof PickerCanceledError) {
+        // ignore error when the picker is canceled
+      } else if (error instanceof PickerPermissionError) {
+        onError({
+          description,
+          error,
+          children: (
+            <p>
+              For more information, please have your Microsoft admin read:{' '}
+              <Link
+                classes="inline"
+                target="_blank"
+                href="https://web.hypothes.is/help/using-google-drive-or-microsoft-onedrive-with-hypothesis-lms-assignments/#special-notes-for-institutional-or-school-managed-google-and-microsoft-accounts"
+              >
+                Manage Google and Microsoft Accounts.
+              </Link>
+            </p>
+          ),
+        });
+      } else {
         console.error(error);
         onError({
-          message: 'There was a problem choosing a file from OneDrive',
+          description,
           error,
         });
       }

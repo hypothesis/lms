@@ -16,6 +16,8 @@ import FilePickerFormFields from './FilePickerFormFields';
 import GroupConfigSelector from './GroupConfigSelector';
 
 /**
+ * @typedef {import("preact").ComponentChildren} Children
+ *
  * @typedef {import('../api-types').File} File
  * @typedef {import('../utils/content-item').Content} Content
  * @typedef {import('../utils/content-item').URLContent} URLContent
@@ -31,8 +33,9 @@ import GroupConfigSelector from './GroupConfigSelector';
 
 /**
  * @typedef ErrorInfo
- * @prop {string} message
+ * @prop {string} description
  * @prop {Error} error
+ * @prop {Children} [children]
  */
 
 /**
@@ -195,11 +198,7 @@ export default function FilePickerApp({ onSubmit }) {
       </form>
       {shouldSubmit && <FullScreenSpinner />}
       {errorInfo && (
-        <ErrorModal
-          description={errorInfo.message}
-          error={errorInfo.error}
-          onCancel={() => setErrorInfo(null)}
-        />
+        <ErrorModal {...errorInfo} onCancel={() => setErrorInfo(null)} />
       )}
     </main>
   );

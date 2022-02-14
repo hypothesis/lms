@@ -1,5 +1,5 @@
 import { delay } from '../../../test-util/wait';
-import { PickerCanceledError } from '../../errors';
+import { PickerCanceledError, PickerPermissionError } from '../../errors';
 import { OneDrivePickerClient, $imports } from '../onedrive-picker-client';
 
 describe('OneDrivePickerClient', () => {
@@ -99,6 +99,44 @@ describe('OneDrivePickerClient', () => {
       assert.instanceOf(expectedError, PickerCanceledError);
     });
 
+    it('rejects with a `PickerPermissionError`', async () => {
+      let expectedError;
+      fakeLoadOneDriveAPI.resolves(fakeOneDrive);
+      const oneDrive = createClient();
+
+      // Emulate the user not having permissions to share publicly a file.
+      const pickResult = oneDrive.showPicker();
+      await delay(0);
+      const { success } = fakeOneDrive.open.getCall(0).args[0];
+      success({});
+      try {
+        await pickResult;
+      } catch (error) {
+        expectedError = error;
+      }
+
+      assert.instanceOf(expectedError, PickerPermissionError);
+    });
+
+    it('rejects with an error if the picker encounters an unexpected response', async () => {
+      let expectedError;
+      fakeLoadOneDriveAPI.resolves(fakeOneDrive);
+      const oneDrive = createClient();
+
+      // Emulate other unexpected responses
+      const pickResult = oneDrive.showPicker();
+      await delay(0);
+      const { success } = fakeOneDrive.open.getCall(0).args[0];
+      success({ value: [{}] }); // Incomplete response
+      try {
+        await pickResult;
+      } catch (error) {
+        expectedError = error;
+      }
+
+      assert.instanceOf(expectedError, TypeError);
+    });
+
     it('rejects with an error if the picker has other problems', async () => {
       fakeLoadOneDriveAPI.resolves(fakeOneDrive);
       const oneDriveError = new Error('OneDrive picker internal error');
@@ -120,7 +158,7 @@ describe('OneDrivePickerClient', () => {
     });
   });
 
-  describe('.encodeSharingURL', () => {
+  describe('#downloadURL', () => {
     [
       {
         sharingURL: 'https://test-account.sharepoint.com/FILE_ID',

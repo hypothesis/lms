@@ -47,6 +47,15 @@ export class PickerCanceledError extends Error {
 }
 
 /**
+ * Error thrown when the user is unable to change the permission of a file.
+ */
+export class PickerPermissionError extends Error {
+  constructor() {
+    super('Unable to update file sharing permissions');
+  }
+}
+
+/**
  * Error returned when an API call fails with a 4xx or 5xx response and
  * JSON body.
  */
