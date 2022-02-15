@@ -109,11 +109,12 @@ class LTILaunchResource:
             return resource_link_id
 
         # Where should predicates and resources get this data from? I don't think we want to keep another duplicate map of lti1 / lti1.3 here
-        return (
-            self._request.params.get("resource_link_id")
-            or self._request.jwt_params[
-                "https://purl.imsglobal.org/spec/lti/claim/resource_link"
-            ]["id"]
+        return self._request.params.get(
+            "resource_link_id"
+        ) or self._request.jwt_params.get(
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link", {}
+        ).get(
+            "id"
         )
 
     @property
