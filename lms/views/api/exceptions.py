@@ -1,5 +1,5 @@
 """Error views for the API."""
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from urllib.parse import urlparse, urlunparse
 
 import sentry_sdk
@@ -238,19 +238,7 @@ class ErrorBody:
         JSON-serialize for the response body. See:
         https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/renderers.html#using-a-custom-json-method
         """
-
-        body = {}
-
-        if self.error_code is not None:
-            body["error_code"] = self.error_code
-
-        if self.message is not None:
-            body["message"] = self.message
-
-        if self.details is not None:
-            body["details"] = self.details
-
-        return body
+        return {key: value for key, value in asdict(self).items() if value is not None}
 
 
 def strip_queryparams(url):
