@@ -1,4 +1,5 @@
 """Error views for the API."""
+from dataclasses import dataclass
 from urllib.parse import urlparse, urlunparse
 
 import sentry_sdk
@@ -103,10 +104,15 @@ class APIExceptionViews:
         self.context = context
         self.request = request
 
+        # 400 is the default status for error responses.
+        # Some of the views below override this.
+        self.request.response.status_int = 400
+
     @exception_view_config(context=ValidationError)
     def validation_error(self):
-        return self.error_response(
-            422, message=self.context.explanation, details=self.context.messages
+        self.request.response.status_int = 422
+        return ErrorBody(
+            message=self.context.explanation, details=self.context.messages
         )
 
     @exception_view_config(context=ExternalRequestError)
@@ -139,7 +145,7 @@ class APIExceptionViews:
         # error dialog.
         message = self.context.message or "External request failed"
 
-        return self.error_response(
+        return ErrorBody(
             message=message,
             details={
                 "request": {
@@ -155,14 +161,13 @@ class APIExceptionViews:
         )
 
     @exception_view_config(context=OAuth2TokenError)
-    def oauth2_token_error(self):
-        return self.error_response()
+    def oauth2_token_error(self):  # pylint:disable=no-self-use
+        return ErrorBody()
 
     @exception_view_config(context=HTTPBadRequest)
     def http_bad_request(self):
-        return self.error_response(
-            status=self.context.code, message=self.context.detail
-        )
+        self.request.response.status_int = self.context.code
+        return ErrorBody(message=self.context.detail)
 
     @exception_view_config(
         # It's unfortunately necessary to mention CanvasAPIPermissionError
@@ -194,14 +199,14 @@ class APIExceptionViews:
         """
 
         if hasattr(self.context, "error_code"):
-            return self.error_response(
+            return ErrorBody(
                 error_code=self.context.error_code,
                 details=getattr(self.context, "details", None),
             )
 
         # Exception details are not reported here to avoid leaking internal information.
-        return self.error_response(
-            500,
+        self.request.response.status_int = 500
+        return ErrorBody(
             message=_(
                 "A problem occurred while handling this request. Hypothesis has been notified."
             ),
@@ -209,29 +214,43 @@ class APIExceptionViews:
 
     @forbidden_view_config()
     def forbidden(self):
-        return self.error_response(
-            403, message=_("You're not authorized to view this page.")
-        )
+        self.request.response.status_int = 403
+        return ErrorBody(message=_("You're not authorized to view this page."))
 
     @notfound_view_config()
     def notfound(self):
-        return self.error_response(404, message=_("Endpoint not found."))
+        self.request.response.status_int = 404
+        return ErrorBody(message=_("Endpoint not found."))
 
-    def error_response(self, status=400, error_code=None, message=None, details=None):
-        self.request.response.status_int = status
 
-        response = {}
+@dataclass
+class ErrorBody:
+    error_code: str = None
+    message: str = None
+    details: dict = None
 
-        if error_code is not None:
-            response["error_code"] = error_code
+    def __json__(self, _request):
+        """
+        Return a JSON-serializable representation of this error response body.
 
-        if message is not None:
-            response["message"] = message
+        If a view with renderer="json" returns an ErrorBody object then
+        Pyramid's JSON renderer will call this method to get an object to
+        JSON-serialize for the response body. See:
+        https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/renderers.html#using-a-custom-json-method
+        """
 
-        if details is not None:
-            response["details"] = details
+        body = {}
 
-        return response
+        if self.error_code is not None:
+            body["error_code"] = self.error_code
+
+        if self.message is not None:
+            body["message"] = self.message
+
+        if self.details is not None:
+            body["details"] = self.details
+
+        return body
 
 
 def strip_queryparams(url):

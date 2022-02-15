@@ -6,19 +6,19 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.services import CanvasAPIPermissionError, ExternalRequestError
 from lms.validation import ValidationError
-from lms.views.api.exceptions import APIExceptionViews, strip_queryparams
+from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
 from tests import factories
 
 
 class TestSchemaValidationError:
     def test_it(self, pyramid_request, views):
-        json_data = views.validation_error()
+        error_body = views.validation_error()
 
         assert pyramid_request.response.status_code == 422
-        assert json_data == {
-            "message": "Unable to process the contained instructions",
-            "details": "foobar",
-        }
+        assert error_body == ErrorBody(
+            message="Unable to process the contained instructions",
+            details="foobar",
+        )
 
     @pytest.fixture
     def context(self):
@@ -27,15 +27,15 @@ class TestSchemaValidationError:
 
 class TestOAuth2TokenError:
     def test_it(self, pyramid_request, views):
-        json_data = views.oauth2_token_error()
+        error_body = views.oauth2_token_error()
 
         assert pyramid_request.response.status_code == 400
-        assert json_data == {}
+        assert error_body == ErrorBody()
 
 
 class TestExternalRequestError:
     def test_it(self, context, pyramid_request, views, report_exception, sentry_sdk):
-        json_data = views.external_request_error()
+        error_body = views.external_request_error()
 
         assert sentry_sdk.set_context.call_args_list == [
             call(
@@ -59,9 +59,9 @@ class TestExternalRequestError:
 
         report_exception.assert_called_once_with()
         assert pyramid_request.response.status_code == 400
-        assert json_data == {
-            "message": context.message,
-            "details": {
+        assert error_body == ErrorBody(
+            message=context.message,
+            details={
                 "request": {
                     "method": context.method,
                     "url": "https://example.com/",  # The URL without query string.
@@ -72,15 +72,15 @@ class TestExternalRequestError:
                 },
                 "validation_errors": context.validation_errors,
             },
-        }
+        )
 
     @pytest.mark.parametrize("message", [None, ""])
     def test_it_injects_a_default_error_message(self, context, message, views):
         context.message = message
 
-        json_data = views.external_request_error()
+        error_body = views.external_request_error()
 
-        assert json_data["message"] == "External request failed"
+        assert error_body.message == "External request failed"
 
     @pytest.fixture
     def context(self):
@@ -107,7 +107,7 @@ class TestNotFound:
     def test_it_shows_a_generic_error_message_to_the_user(self, views):
         result = views.notfound()
 
-        assert result["message"] == "Endpoint not found."
+        assert result.message == "Endpoint not found."
 
 
 class TestForbidden:
@@ -119,15 +119,15 @@ class TestForbidden:
     def test_it_shows_a_generic_error_message_to_the_user(self, views):
         result = views.forbidden()
 
-        assert result["message"] == "You're not authorized to view this page."
+        assert result.message == "You're not authorized to view this page."
 
 
 class TestHTTPBadRequest:
     def test_it(self, pyramid_request, views):
-        json_data = views.http_bad_request()
+        error_body = views.http_bad_request()
 
         assert pyramid_request.response.status_int == 400
-        assert json_data == {"message": "test_message"}
+        assert error_body == ErrorBody(message="test_message")
 
     @pytest.fixture
     def context(self):
@@ -138,23 +138,61 @@ class TestAPIError:
     def test_it_with_a_CanvasAPIPermissionError(self, pyramid_request, views):
         context = views.context = CanvasAPIPermissionError()
 
-        json_data = views.api_error()
+        error_body = views.api_error()
 
         assert pyramid_request.response.status_code == 400
-        assert json_data == {"error_code": context.error_code}
+        assert error_body == ErrorBody(error_code=context.error_code)
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):
         views.context = RuntimeError("Totally unexpected")
 
-        json_data = views.api_error()
+        error_body = views.api_error()
 
         assert pyramid_request.response.status_code == 500
-        assert json_data == {
-            "message": (
+        assert error_body == ErrorBody(
+            message=(
                 "A problem occurred while handling this request. Hypothesis has been"
                 " notified."
             )
-        }
+        )
+
+
+class TestErrorBody:
+    @pytest.mark.parametrize(
+        "error_body,expected",
+        [
+            (
+                ErrorBody(),
+                {},
+            ),
+            (
+                ErrorBody(error_code=sentinel.error_code),
+                {"error_code": sentinel.error_code},
+            ),
+            (
+                ErrorBody(message=sentinel.message),
+                {"message": sentinel.message},
+            ),
+            (
+                ErrorBody(details=sentinel.details),
+                {"details": sentinel.details},
+            ),
+            (
+                ErrorBody(
+                    error_code=sentinel.error_code,
+                    message=sentinel.message,
+                    details=sentinel.details,
+                ),
+                {
+                    "error_code": sentinel.error_code,
+                    "message": sentinel.message,
+                    "details": sentinel.details,
+                },
+            ),
+        ],
+    )
+    def test_json(self, pyramid_request, error_body, expected):
+        assert error_body.__json__(pyramid_request) == expected
 
 
 class TestStripQueryParams:
