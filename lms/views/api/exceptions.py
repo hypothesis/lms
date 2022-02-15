@@ -113,7 +113,9 @@ class APIExceptionViews:
     def validation_error(self):
         self.request.response.status_int = 422
         return ErrorBody(
-            message=self.context.explanation, details=self.context.messages
+            message=self.context.explanation,
+            details=self.context.messages,
+            refreshable=False,
         )
 
     @exception_view_config(context=ExternalRequestError)
@@ -167,12 +169,12 @@ class APIExceptionViews:
 
     @exception_view_config(context=CanvasAPIInsufficientScopesError)
     def insufficient_scopes_error(self):  # pylint:disable=no-self-use
-        return ErrorBody()
+        return ErrorBody(refreshable=False)
 
     @exception_view_config(context=HTTPBadRequest)
     def http_bad_request(self):
         self.request.response.status_int = self.context.code
-        return ErrorBody(message=self.context.detail)
+        return ErrorBody(message=self.context.detail, refreshable=False)
 
     @exception_view_config(
         # It's unfortunately necessary to mention CanvasAPIPermissionError
@@ -207,6 +209,7 @@ class APIExceptionViews:
             return ErrorBody(
                 error_code=self.context.error_code,
                 details=getattr(self.context, "details", None),
+                refreshable=False,
             )
 
         # Exception details are not reported here to avoid leaking internal information.
@@ -215,17 +218,20 @@ class APIExceptionViews:
             message=_(
                 "A problem occurred while handling this request. Hypothesis has been notified."
             ),
+            refreshable=False,
         )
 
     @forbidden_view_config()
     def forbidden(self):
         self.request.response.status_int = 403
-        return ErrorBody(message=_("You're not authorized to view this page."))
+        return ErrorBody(
+            message=_("You're not authorized to view this page."), refreshable=False
+        )
 
     @notfound_view_config()
     def notfound(self):
         self.request.response.status_int = 404
-        return ErrorBody(message=_("Endpoint not found."))
+        return ErrorBody(message=_("Endpoint not found."), refreshable=False)
 
 
 @dataclass
@@ -233,8 +239,9 @@ class ErrorBody:
     error_code: str = None
     message: str = None
     details: dict = None
+    refreshable: bool = True
 
-    def __json__(self, _request):
+    def __json__(self, request):
         """
         Return a JSON-serializable representation of this error response body.
 
@@ -243,7 +250,26 @@ class ErrorBody:
         JSON-serialize for the response body. See:
         https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/renderers.html#using-a-custom-json-method
         """
-        return {key: value for key, value in asdict(self).items() if value is not None}
+        body = {
+            key: value
+            for key, value in asdict(self).items()
+            if key != "refreshable" and value is not None
+        }
+
+        if self.refreshable:
+            oauth2_token_service = request.find_service(name="oauth2_token")
+
+            try:
+                oauth2_token_service.get()
+            except OAuth2TokenError:
+                pass
+            else:
+                body["refresh"] = {
+                    "method": "POST",
+                    "path": request.route_path("canvas_api.oauth.refresh"),
+                }
+
+        return body
 
 
 def strip_queryparams(url):

@@ -4,10 +4,16 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.services import CanvasAPIPermissionError, ExternalRequestError
+from lms.services import (
+    CanvasAPIPermissionError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
 from tests import factories
+
+pytestmark = pytest.mark.usefixtures("oauth2_token_service")
 
 
 class TestSchemaValidationError:
@@ -18,6 +24,7 @@ class TestSchemaValidationError:
         assert error_body == ErrorBody(
             message="Unable to process the contained instructions",
             details="foobar",
+            refreshable=False,
         )
 
     @pytest.fixture
@@ -135,7 +142,7 @@ class TestHTTPBadRequest:
         error_body = views.http_bad_request()
 
         assert pyramid_request.response.status_int == 400
-        assert error_body == ErrorBody(message="test_message")
+        assert error_body == ErrorBody(message="test_message", refreshable=False)
 
     @pytest.fixture
     def context(self):
@@ -149,7 +156,7 @@ class TestAPIError:
         error_body = views.api_error()
 
         assert pyramid_request.response.status_code == 400
-        assert error_body == ErrorBody(error_code=context.error_code)
+        assert error_body == ErrorBody(error_code=context.error_code, refreshable=False)
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):
         views.context = RuntimeError("Totally unexpected")
@@ -161,7 +168,8 @@ class TestAPIError:
             message=(
                 "A problem occurred while handling this request. Hypothesis has been"
                 " notified."
-            )
+            ),
+            refreshable=False,
         )
 
 
@@ -186,10 +194,15 @@ class TestErrorBody:
                 {"details": sentinel.details},
             ),
             (
+                ErrorBody(refreshable=False),
+                {},
+            ),
+            (
                 ErrorBody(
                     error_code=sentinel.error_code,
                     message=sentinel.message,
                     details=sentinel.details,
+                    refreshable=False,
                 ),
                 {
                     "error_code": sentinel.error_code,
@@ -200,7 +213,24 @@ class TestErrorBody:
         ],
     )
     def test_json(self, pyramid_request, error_body, expected):
+        if error_body.refreshable:
+            # If `refreshable` is True then a dict of information about how to
+            # call the refresh API is also included in the body.
+            expected["refresh"] = {
+                "method": "POST",
+                "path": pyramid_request.route_path("canvas_api.oauth.refresh"),
+            }
+
         assert error_body.__json__(pyramid_request) == expected
+
+    def test_it_doesnt_insert_refresh_info_if_we_dont_have_an_access_token(
+        self, pyramid_request, oauth2_token_service
+    ):
+        oauth2_token_service.get.side_effect = OAuth2TokenError
+
+        error_body_dict = ErrorBody().__json__(pyramid_request)
+
+        assert "refresh" not in error_body_dict
 
 
 class TestStripQueryParams:
