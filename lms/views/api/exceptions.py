@@ -14,6 +14,7 @@ from pyramid.view import (
 )
 
 from lms.services import (
+    CanvasAPIInsufficientScopesError,
     CanvasAPIPermissionError,
     ExternalAsyncRequestError,
     ExternalRequestError,
@@ -162,6 +163,10 @@ class APIExceptionViews:
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):  # pylint:disable=no-self-use
+        return ErrorBody()
+
+    @exception_view_config(context=CanvasAPIInsufficientScopesError)
+    def insufficient_scopes_error(self):  # pylint:disable=no-self-use
         return ErrorBody()
 
     @exception_view_config(context=HTTPBadRequest)

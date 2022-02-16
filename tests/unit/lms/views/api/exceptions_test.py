@@ -33,6 +33,14 @@ class TestOAuth2TokenError:
         assert error_body == ErrorBody()
 
 
+class TestInsufficientScopesError:
+    def test_it(self, pyramid_request, views):
+        error_body = views.insufficient_scopes_error()
+
+        assert pyramid_request.response.status_code == 400
+        assert error_body == ErrorBody()
+
+
 class TestExternalRequestError:
     def test_it(self, context, pyramid_request, views, report_exception, sentry_sdk):
         error_body = views.external_request_error()

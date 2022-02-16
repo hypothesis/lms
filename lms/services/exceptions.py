@@ -195,12 +195,16 @@ class CanvasAPIError(ExternalRequestError):
             status_code == 401
             and {"message": "Insufficient scopes on access token."} in errors
         ):
-            return OAuth2TokenError
+            return CanvasAPIInsufficientScopesError
 
         if status_code == 401:
             return CanvasAPIPermissionError
 
         return CanvasAPIServerError
+
+
+class CanvasAPIInsufficientScopesError(CanvasAPIError):
+    """A Canvas access token lacked one or more of the required scopes."""
 
 
 class CanvasAPIPermissionError(CanvasAPIError):

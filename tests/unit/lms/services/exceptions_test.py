@@ -7,6 +7,7 @@ import requests
 
 from lms.services import (
     CanvasAPIError,
+    CanvasAPIInsufficientScopesError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
     ExternalAsyncRequestError,
@@ -193,7 +194,7 @@ class TestCanvasAPIError:
                 json.dumps(
                     {"errors": [{"message": "Insufficient scopes on access token."}]}
                 ),
-                OAuth2TokenError,
+                CanvasAPIInsufficientScopesError,
             ),
             # A 400 Bad Request response from Canvas, because our refresh token
             # was expired or deleted.
