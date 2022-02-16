@@ -18,7 +18,13 @@ class AuthenticatedClient:
     """
 
     def __init__(  # pylint: disable=too-many-arguments
-        self, basic_client, oauth2_token_service, client_id, client_secret, redirect_uri
+        self,
+        basic_client,
+        oauth2_token_service,
+        client_id,
+        client_secret,
+        redirect_uri,
+        refresh_enabled,
     ):
         """
         Create an AuthenticatedClient object for making authenticated calls.
@@ -36,6 +42,8 @@ class AuthenticatedClient:
         self._client_id = client_id
         self._client_secret = client_secret
         self._redirect_uri = redirect_uri
+
+        self._refresh_enabled = refresh_enabled
 
     def send(
         self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None
@@ -60,7 +68,7 @@ class AuthenticatedClient:
                 *call_args, headers={"Authorization": f"Bearer {access_token}"}
             )
         except OAuth2TokenError:
-            if not refresh_token:
+            if not refresh_token or not self._refresh_enabled:
                 raise
 
         new_access_token = self.get_refreshed_token(refresh_token)
