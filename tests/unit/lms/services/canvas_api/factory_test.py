@@ -47,6 +47,7 @@ class TestCanvasAPIClientFactory:
                 pyramid_request.registry.settings["aes_secret"]
             ),
             redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
+            refresh_enabled=True,
         )
 
     @pytest.fixture(autouse=True)

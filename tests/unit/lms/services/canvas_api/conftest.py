@@ -25,4 +25,5 @@ def authenticated_client(basic_client, oauth2_token_service):
         client_id=sentinel.client_id,
         client_secret=sentinel.client_secret,
         redirect_uri=sentinel.redirect_uri,
+        refresh_enabled=True,
     )
