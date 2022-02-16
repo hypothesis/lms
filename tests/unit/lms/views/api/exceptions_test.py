@@ -22,9 +22,7 @@ class TestSchemaValidationError:
 
         assert pyramid_request.response.status_code == 422
         assert error_body == ErrorBody(
-            message="Unable to process the contained instructions",
-            details="foobar",
-            refreshable=False,
+            message="Unable to process the contained instructions", details="foobar"
         )
 
     @pytest.fixture
@@ -37,7 +35,7 @@ class TestOAuth2TokenError:
         error_body = views.oauth2_token_error()
 
         assert pyramid_request.response.status_code == 400
-        assert error_body == ErrorBody()
+        assert error_body == ErrorBody(refreshable=True)
 
 
 class TestInsufficientScopesError:
@@ -87,6 +85,7 @@ class TestExternalRequestError:
                 },
                 "validation_errors": context.validation_errors,
             },
+            refreshable=True,
         )
 
     @pytest.mark.parametrize("message", [None, ""])
@@ -142,7 +141,7 @@ class TestHTTPBadRequest:
         error_body = views.http_bad_request()
 
         assert pyramid_request.response.status_int == 400
-        assert error_body == ErrorBody(message="test_message", refreshable=False)
+        assert error_body == ErrorBody(message="test_message")
 
     @pytest.fixture
     def context(self):
@@ -156,7 +155,7 @@ class TestAPIError:
         error_body = views.api_error()
 
         assert pyramid_request.response.status_code == 400
-        assert error_body == ErrorBody(error_code=context.error_code, refreshable=False)
+        assert error_body == ErrorBody(error_code=context.error_code)
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):
         views.context = RuntimeError("Totally unexpected")
@@ -168,8 +167,7 @@ class TestAPIError:
             message=(
                 "A problem occurred while handling this request. Hypothesis has been"
                 " notified."
-            ),
-            refreshable=False,
+            )
         )
 
 
@@ -194,7 +192,7 @@ class TestErrorBody:
                 {"details": sentinel.details},
             ),
             (
-                ErrorBody(refreshable=False),
+                ErrorBody(refreshable=True),
                 {},
             ),
             (
@@ -202,7 +200,7 @@ class TestErrorBody:
                     error_code=sentinel.error_code,
                     message=sentinel.message,
                     details=sentinel.details,
-                    refreshable=False,
+                    refreshable=True,
                 ),
                 {
                     "error_code": sentinel.error_code,
@@ -228,7 +226,7 @@ class TestErrorBody:
     ):
         oauth2_token_service.get.side_effect = OAuth2TokenError
 
-        error_body_dict = ErrorBody().__json__(pyramid_request)
+        error_body_dict = ErrorBody(refreshable=True).__json__(pyramid_request)
 
         assert "refresh" not in error_body_dict
 

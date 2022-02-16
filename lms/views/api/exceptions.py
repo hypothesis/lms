@@ -113,9 +113,7 @@ class APIExceptionViews:
     def validation_error(self):
         self.request.response.status_int = 422
         return ErrorBody(
-            message=self.context.explanation,
-            details=self.context.messages,
-            refreshable=False,
+            message=self.context.explanation, details=self.context.messages
         )
 
     @exception_view_config(context=ExternalRequestError)
@@ -161,20 +159,21 @@ class APIExceptionViews:
                 },
                 "validation_errors": self.context.validation_errors,
             },
+            refreshable=True,
         )
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):  # pylint:disable=no-self-use
-        return ErrorBody()
+        return ErrorBody(refreshable=True)
 
     @exception_view_config(context=CanvasAPIInsufficientScopesError)
     def insufficient_scopes_error(self):  # pylint:disable=no-self-use
-        return ErrorBody(refreshable=False)
+        return ErrorBody()
 
     @exception_view_config(context=HTTPBadRequest)
     def http_bad_request(self):
         self.request.response.status_int = self.context.code
-        return ErrorBody(message=self.context.detail, refreshable=False)
+        return ErrorBody(message=self.context.detail)
 
     @exception_view_config(
         # It's unfortunately necessary to mention CanvasAPIPermissionError
@@ -209,7 +208,6 @@ class APIExceptionViews:
             return ErrorBody(
                 error_code=self.context.error_code,
                 details=getattr(self.context, "details", None),
-                refreshable=False,
             )
 
         # Exception details are not reported here to avoid leaking internal information.
@@ -217,21 +215,18 @@ class APIExceptionViews:
         return ErrorBody(
             message=_(
                 "A problem occurred while handling this request. Hypothesis has been notified."
-            ),
-            refreshable=False,
+            )
         )
 
     @forbidden_view_config()
     def forbidden(self):
         self.request.response.status_int = 403
-        return ErrorBody(
-            message=_("You're not authorized to view this page."), refreshable=False
-        )
+        return ErrorBody(message=_("You're not authorized to view this page."))
 
     @notfound_view_config()
     def notfound(self):
         self.request.response.status_int = 404
-        return ErrorBody(message=_("Endpoint not found."), refreshable=False)
+        return ErrorBody(message=_("Endpoint not found."))
 
 
 @dataclass
@@ -239,7 +234,7 @@ class ErrorBody:
     error_code: str = None
     message: str = None
     details: dict = None
-    refreshable: bool = True
+    refreshable: bool = False
 
     def __json__(self, request):
         """
