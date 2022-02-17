@@ -156,51 +156,46 @@ class CanvasAPIError(ExternalRequestError):
         be set as the `request`, `response` and `validation_errors` attributes
         of the raised exception.
         """
-        exception_class = cls._exception_class(response)
+        kwargs = {
+            "message": "Calling the Canvas API failed",
+            "request": request,
+            "response": response,
+            "validation_errors": validation_errors,
+        }
 
-        raise exception_class(
-            message="Calling the Canvas API failed",
-            request=request,
-            response=response,
-            validation_errors=validation_errors,
-        ) from cause
-
-    @staticmethod
-    def _exception_class(response):  # pylint:disable=too-many-return-statements
-        """Return the exception class to raise for the given response."""
         if response is None:
-            return CanvasAPIServerError
+            raise CanvasAPIServerError(**kwargs) from cause
 
         status_code = getattr(response, "status_code", None)
 
         try:
             response_json = response.json()
         except ValueError:
-            return CanvasAPIServerError
+            raise CanvasAPIServerError(**kwargs) from cause
 
         if not isinstance(response_json, dict):
-            return CanvasAPIServerError
+            raise CanvasAPIServerError(**kwargs) from cause
 
         errors = response_json.get("errors", [])
 
         error_description = response_json.get("error_description", "")
 
         if {"message": "Invalid access token."} in errors:
-            return OAuth2TokenError
+            raise OAuth2TokenError(**kwargs) from cause
 
         if error_description == "refresh_token not found":
-            return OAuth2TokenError
+            raise OAuth2TokenError(**kwargs) from cause
 
         if (
             status_code == 401
             and {"message": "Insufficient scopes on access token."} in errors
         ):
-            return OAuth2TokenError
+            raise OAuth2TokenError(**kwargs) from cause
 
         if status_code == 401:
-            return CanvasAPIPermissionError
+            raise CanvasAPIPermissionError(**kwargs) from cause
 
-        return CanvasAPIServerError
+        raise CanvasAPIServerError(**kwargs) from cause
 
 
 class CanvasAPIPermissionError(CanvasAPIError):
