@@ -88,6 +88,13 @@ class TestExternalRequestError:
             refreshable=True,
         )
 
+    def test_network_errors_arent_refreshable(self, context, views):
+        context.response = None
+
+        error_body = views.external_request_error()
+
+        assert not error_body.refreshable
+
     @pytest.mark.parametrize("message", [None, ""])
     def test_it_injects_a_default_error_message(self, context, message, views):
         context.message = message
