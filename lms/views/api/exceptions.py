@@ -146,11 +146,6 @@ class APIExceptionViews:
         # error dialog.
         message = self.context.message or "External request failed"
 
-        if self.request.matched_route.name == "canvas_api.oauth.refresh":
-            refreshable = False
-        else:
-            refreshable = True
-
         return ErrorBody(
             message=message,
             details={
@@ -164,7 +159,7 @@ class APIExceptionViews:
                 },
                 "validation_errors": self.context.validation_errors,
             },
-            refreshable=refreshable,
+            refreshable=True,
         )
 
     @exception_view_config(context=OAuth2TokenError)
@@ -256,7 +251,10 @@ class ErrorBody:
             if key != "refreshable" and value is not None
         }
 
-        if self.refreshable:
+        if (
+            self.refreshable
+            and request.matched_route.name != "canvas_api.oauth.refresh"
+        ):
             oauth2_token_service = request.find_service(name="oauth2_token")
 
             try:
