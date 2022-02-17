@@ -229,7 +229,7 @@ class ErrorBody:
     message: str = None
     details: dict = None
 
-    def __json__(self, _request):
+    def __json__(self, request):
         """
         Return a JSON-serializable representation of this error response body.
 
@@ -238,7 +238,28 @@ class ErrorBody:
         JSON-serialize for the response body. See:
         https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/renderers.html#using-a-custom-json-method
         """
-        return {key: value for key, value in asdict(self).items() if value is not None}
+        body = {key: value for key, value in asdict(self).items() if value is not None}
+
+        # If the exception is refreshable add refresh API info for the frontend.
+        # This tells the frontend to try making a refresh request then
+        # re-trying the original request.
+        if request.feature("frontend_refresh") and getattr(
+            request.exception, "refreshable", False
+        ):
+            oauth2_token_service = request.find_service(name="oauth2_token")
+
+            try:
+                oauth2_token_service.get()
+            except OAuth2TokenError:
+                # If we don't have an access token we can't refresh it.
+                pass
+            else:
+                body["refresh"] = {
+                    "method": "POST",
+                    "path": request.route_path("canvas_api.oauth.refresh"),
+                }
+
+        return body
 
 
 def strip_queryparams(url):

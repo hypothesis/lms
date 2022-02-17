@@ -244,6 +244,17 @@ class TestCanvasAPIError:
         assert raised_exception.response == response
         assert raised_exception.validation_errors == sentinel.validation_errors
 
+    def test_it_marks_access_token_errors_as_retryable(self):
+        cause = requests.RequestException()
+        response = factories.requests.Response(
+            status_code=401,
+            raw=json.dumps({"errors": [{"message": "Invalid access token."}]}),
+        )
+
+        raised_exception = self.assert_raises(cause, response, OAuth2TokenError)
+
+        assert raised_exception.refreshable
+
     @pytest.mark.parametrize(
         "cause",
         [

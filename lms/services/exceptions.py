@@ -19,13 +19,19 @@ class ExternalRequestError(Exception):
     """
 
     def __init__(
-        self, message=None, request=None, response=None, validation_errors=None
-    ):
+        self,
+        message=None,
+        request=None,
+        response=None,
+        validation_errors=None,
+        refreshable=False,
+    ):  # pylint: disable=too-many-arguments
         super().__init__()
         self.message = message
         self.request = request
         self.response = response
         self.validation_errors = validation_errors
+        self.refreshable = refreshable
 
     @property
     def url(self) -> Optional[str]:
@@ -181,7 +187,7 @@ class CanvasAPIError(ExternalRequestError):
         error_description = response_json.get("error_description", "")
 
         if {"message": "Invalid access token."} in errors:
-            raise OAuth2TokenError(**kwargs) from cause
+            raise OAuth2TokenError(refreshable=True, **kwargs) from cause
 
         if error_description == "refresh_token not found":
             raise OAuth2TokenError(**kwargs) from cause
