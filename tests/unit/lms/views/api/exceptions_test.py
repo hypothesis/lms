@@ -1,4 +1,4 @@
-from unittest.mock import call, sentinel
+from unittest.mock import Mock, call, sentinel
 
 import pytest
 import requests
@@ -88,6 +88,15 @@ class TestExternalRequestError:
             refreshable=True,
         )
 
+    def test_it_doesnt_include_refresh_api_info_for_refresh_requests(
+        self, views, pyramid_request
+    ):
+        pyramid_request.matched_route.name = "canvas_api.oauth.refresh"
+
+        error_body = views.external_request_error()
+
+        assert not error_body.refreshable
+
     @pytest.mark.parametrize("message", [None, ""])
     def test_it_injects_a_default_error_message(self, context, message, views):
         context.message = message
@@ -110,6 +119,11 @@ class TestExternalRequestError:
         )
         context.__cause__ = ValueError("foo")
         return context
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.matched_route = Mock(spec=["name"], name=sentinel.route_name)
+        return pyramid_request
 
 
 class TestNotFound:
