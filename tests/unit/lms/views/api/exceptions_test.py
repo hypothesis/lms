@@ -4,10 +4,16 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.services import CanvasAPIPermissionError, ExternalRequestError
+from lms.services import (
+    CanvasAPIPermissionError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
 from tests import factories
+
+pytestmark = pytest.mark.usefixtures("oauth2_token_service")
 
 
 class TestSchemaValidationError:
@@ -193,6 +199,44 @@ class TestErrorBody:
     )
     def test_json(self, pyramid_request, error_body, expected):
         assert error_body.__json__(pyramid_request) == expected
+
+    @pytest.mark.usefixtures("with_refreshable_exception")
+    def test_json_includes_refresh_info_if_the_exception_is_refreshable(
+        self, pyramid_request
+    ):
+        body = ErrorBody().__json__(pyramid_request)
+
+        assert body["refresh"] == {
+            "method": "POST",
+            "path": pyramid_request.route_path("canvas_api.oauth.refresh"),
+        }
+
+    @pytest.mark.usefixtures("with_refreshable_exception")
+    def test_json_doesnt_include_refresh_info_if_we_dont_have_an_access_token(
+        self, pyramid_request, oauth2_token_service
+    ):
+        oauth2_token_service.get.side_effect = OAuth2TokenError
+
+        body = ErrorBody().__json__(pyramid_request)
+
+        assert "refresh" not in body
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        # Enable the frontend_refresh feature.
+        pyramid_request.feature.side_effect = (
+            lambda feature: feature == "frontend_refresh"
+        )
+
+        # When Pyramid calls an exception view it sets request.exception to the
+        # exception that was raised by the original view:
+        # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/request.html#pyramid.request.Request.exception
+        pyramid_request.exception = ValueError()
+        return pyramid_request
+
+    @pytest.fixture
+    def with_refreshable_exception(self, pyramid_request):
+        pyramid_request.exception.refreshable = True
 
 
 class TestStripQueryParams:
