@@ -134,9 +134,3 @@ class TestCourseService:
     def svc(self, pyramid_request, application_instance_service, application_instance):
         application_instance_service.get_current.return_value = application_instance
         return course_service_factory(sentinel.context, pyramid_request)
-
-    @pytest.fixture(autouse=True)
-    def application_instance(self, pyramid_request):
-        return factories.ApplicationInstance(
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key, settings={}
-        )

@@ -47,7 +47,19 @@ def pyramid_request(db_session):
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False  # pragma: no cover
     )
-    pyramid_request.lti_user = factories.LTIUser()
+    lti_user = factories.LTIUser()
+    application_instance = factories.ApplicationInstance(
+        consumer_key=lti_user.oauth_consumer_key,
+        developer_key="TEST_DEVELOPER_KEY",
+        provisioning=True,
+        settings=ApplicationSettings({}),
+    )
+    pyramid_request.lti_user = lti_user
+    pyramid_request.user = factories.User(
+        application_instance=application_instance,
+        user_id=lti_user.user_id,
+        h_userid=lti_user.h_user.userid("authority.example.com"),
+    )
 
     # The DummyRequest request lacks a content_type property which the real
     # request has
@@ -178,17 +190,17 @@ def httpretty_():
 
 @pytest.fixture
 def application_instance(pyramid_request):
-    return factories.ApplicationInstance(
-        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
-        developer_key="TEST_DEVELOPER_KEY",
-        provisioning=True,
-        settings=ApplicationSettings({}),
-    )
+    return pyramid_request.user.application_instance
 
 
 @pytest.fixture
 def lti_user(pyramid_request):
     return pyramid_request.lti_user
+
+
+@pytest.fixture
+def user(pyramid_request):
+    return pyramid_request.user
 
 
 @pytest.fixture

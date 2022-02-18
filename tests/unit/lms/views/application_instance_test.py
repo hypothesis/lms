@@ -9,9 +9,8 @@ from lms.views.application_instances import (
 
 class TestCreateApplicationInstance:
     def test_it_creates_an_application_instance(self, pyramid_request):
-        create_application_instance(pyramid_request)
+        application_instance = self.create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
         assert application_instance.lms_url == "canvas.example.com"
         assert application_instance.requesters_email == "email@example.com"
         assert application_instance.developer_key is None
@@ -23,9 +22,8 @@ class TestCreateApplicationInstance:
         pyramid_request.params["developer_key"] = "example_key"
         pyramid_request.params["developer_secret"] = "example_secret"
 
-        create_application_instance(pyramid_request)
+        application_instance = self.create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
         assert application_instance.developer_key == "example_key"
         assert application_instance.developer_secret
 
@@ -44,9 +42,8 @@ class TestCreateApplicationInstance:
         pyramid_request.params["developer_key"] = developer_key
         pyramid_request.params["developer_secret"] = developer_secret
 
-        create_application_instance(pyramid_request)
+        application_instance = self.create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
         assert application_instance.developer_key is None
         assert application_instance.developer_secret is None
 
@@ -60,9 +57,8 @@ class TestCreateApplicationInstance:
         pyramid_request.params["developer_key"] = developer_key
         pyramid_request.params["developer_secret"] = "test_developer_secret"
 
-        create_application_instance(pyramid_request)
+        application_instance = self.create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
         assert (
             bool(application_instance.settings.get("canvas", "sections_enabled"))
             == canvas_sections_enabled
@@ -78,12 +74,20 @@ class TestCreateApplicationInstance:
         pyramid_request.params["developer_key"] = developer_key
         pyramid_request.params["developer_secret"] = "test_developer_secret"
 
-        create_application_instance(pyramid_request)
+        application_instance = self.create_application_instance(pyramid_request)
 
-        application_instance = pyramid_request.db.query(ApplicationInstance).one()
         assert (
             bool(application_instance.settings.get("canvas", "groups_enabled"))
             == canvas_groups_enabled
+        )
+
+    def create_application_instance(self, pyramid_request):
+        result = create_application_instance(pyramid_request)
+
+        return (
+            pyramid_request.db.query(ApplicationInstance)
+            .filter_by(consumer_key=result["consumer_key"])
+            .one()
         )
 
     @pytest.fixture
