@@ -195,6 +195,14 @@ def _get_lti_user(request):
     return lti_user
 
 
+def _get_user(request):
+    return request.find_service(UserService).get(
+        request.find_service(name="application_instance").get_current(),
+        request.lti_user.user_id,
+    )
+
+
 def includeme(config):
     config.set_security_policy(SecurityPolicy(config.registry.settings["lms_secret"]))
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
+    config.add_request_method(_get_user, name="user", property=True, reify=True)

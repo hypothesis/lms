@@ -52,10 +52,12 @@ class TestUserService:
             service.get(user.application_instance, "some-other-id")
 
     @pytest.fixture
-    def lti_user(self, application_instance):
-        return factories.LTIUser(
+    def lti_user(self, application_instance, pyramid_request):
+        lti_user = factories.LTIUser(
             oauth_consumer_key=application_instance.consumer_key, roles="new_roles"
         )
+        pyramid_request.lti_user = lti_user
+        return lti_user
 
     @pytest.fixture
     def user(self, lti_user, application_instance):
