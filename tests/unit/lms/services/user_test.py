@@ -7,7 +7,6 @@ from h_matchers import Any
 from lms.models import User
 from lms.services import UserService
 from lms.services.user import UserNotFound, factory
-from tests import factories
 
 
 class TestUserService:
@@ -45,15 +44,6 @@ class TestUserService:
     def test_get_not_found(self, user, service):
         with pytest.raises(UserNotFound):
             service.get(user.application_instance, "some-other-id")
-
-    @pytest.fixture
-    def user(self, lti_user, application_instance):
-        return factories.User(
-            application_instance=application_instance,
-            user_id=lti_user.user_id,
-            h_userid=lti_user.h_user.userid("authority.example.com"),
-            roles="old_roles",
-        )
 
     @pytest.fixture
     def service(self, db_session, application_instance_service):

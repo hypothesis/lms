@@ -18,7 +18,7 @@ TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
 
 
 @pytest.fixture
-def pyramid_request(db_session, application_instance):
+def pyramid_request(db_session):
     """
     Return a dummy Pyramid request object.
 
@@ -47,8 +47,21 @@ def pyramid_request(db_session, application_instance):
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False  # pragma: no cover
     )
-    pyramid_request.lti_user = factories.LTIUser(
-        application_instance_id=application_instance.id
+    application_instance = factories.ApplicationInstance(
+        developer_key="TEST_DEVELOPER_KEY",
+        provisioning=True,
+        settings=ApplicationSettings({}),
+    )
+    # Force flush to get a non None application_instance.id
+    db_session.flush()
+
+    lti_user = factories.LTIUser(application_instance_id=application_instance.id)
+
+    pyramid_request.lti_user = lti_user
+    pyramid_request.user = factories.User(
+        application_instance=application_instance,
+        user_id=lti_user.user_id,
+        h_userid=lti_user.h_user.userid("authority.example.com"),
     )
 
     # The DummyRequest request lacks a content_type property which the real
@@ -179,20 +192,18 @@ def httpretty_():
 
 
 @pytest.fixture
-def application_instance(db_session):
-    application_instance = factories.ApplicationInstance(
-        developer_key="TEST_DEVELOPER_KEY",
-        provisioning=True,
-        settings=ApplicationSettings({}),
-    )
-    # Force flush to get a non None application_instance.id
-    db_session.flush()
-    return application_instance
+def application_instance(pyramid_request):
+    return pyramid_request.user.application_instance
 
 
 @pytest.fixture
 def lti_user(pyramid_request):
     return pyramid_request.lti_user
+
+
+@pytest.fixture
+def user(pyramid_request):
+    return pyramid_request.user
 
 
 @pytest.fixture
