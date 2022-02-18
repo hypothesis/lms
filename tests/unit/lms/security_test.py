@@ -13,6 +13,7 @@ from lms.security import (
     Permissions,
     SecurityPolicy,
     _get_lti_user,
+    _get_user,
     includeme,
 )
 from lms.validation import ValidationError
@@ -564,3 +565,14 @@ class TestGetLTIUser:
     @pytest.fixture
     def launch_params_auth_schema(self, LaunchParamsAuthSchema):
         return LaunchParamsAuthSchema.return_value
+
+
+class TestGetUser:
+    def test_it(self, pyramid_request, user_service, application_instance_service):
+        user = _get_user(pyramid_request)
+
+        user_service.get.assert_called_once_with(
+            application_instance_service.get_current.return_value,
+            pyramid_request.lti_user.user_id,
+        )
+        assert user == user_service.get.return_value
