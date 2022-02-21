@@ -1,4 +1,5 @@
 import datetime
+from functools import lru_cache
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -42,6 +43,7 @@ class OAuth2TokenService:
         oauth2_token.expires_in = expires_in
         oauth2_token.received_at = datetime.datetime.utcnow()
 
+    @lru_cache
     def get(self):
         """
         Return the user's saved OAuth 2 token from the DB.
