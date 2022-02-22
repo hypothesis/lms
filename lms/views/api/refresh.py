@@ -13,8 +13,8 @@ def get_refreshed_token(request):
     """
     Refresh the user's access token.
 
-    Send a request to Canvas to get a refreshed access token for the
-    authenticated user and save it to the DB.
+    Send a request to get a refreshed access token for the authenticated user
+    and save it to the DB.
     """
     canvas_api = request.find_service(name="canvas_api_client")
     oauth2_token_service = request.find_service(name="oauth2_token")

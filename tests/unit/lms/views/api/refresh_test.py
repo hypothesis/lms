@@ -1,6 +1,6 @@
 import pytest
 
-from lms.views.api.canvas.refresh import get_refreshed_token
+from lms.views.api.refresh import get_refreshed_token
 
 pytestmark = pytest.mark.usefixtures("canvas_api_client", "oauth2_token_service")
 
