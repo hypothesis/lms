@@ -28,6 +28,7 @@ def includeme(config):
     )
 
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
+    config.add_route("api.oauth.refresh", "/api/oauth/refresh")
 
     config.add_route("api.assignments.create", "/api/assignment", request_method="POST")
 
@@ -77,7 +78,6 @@ def includeme(config):
         "/canvas_oauth_callback",
         factory="lms.resources.OAuth2RedirectResource",
     )
-    config.add_route("canvas_api.oauth.refresh", "/api/canvas/oauth/refresh")
     config.add_route(
         "canvas_api.courses.files.list", "/api/canvas/courses/{course_id}/files"
     )

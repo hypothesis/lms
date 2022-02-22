@@ -256,7 +256,7 @@ class ErrorBody:
             else:
                 body["refresh"] = {
                     "method": "POST",
-                    "path": request.route_path("canvas_api.oauth.refresh"),
+                    "path": request.route_path("api.oauth.refresh"),
                 }
 
         return body

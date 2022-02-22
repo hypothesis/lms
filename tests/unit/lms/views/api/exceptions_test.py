@@ -208,7 +208,7 @@ class TestErrorBody:
 
         assert body["refresh"] == {
             "method": "POST",
-            "path": pyramid_request.route_path("canvas_api.oauth.refresh"),
+            "path": pyramid_request.route_path("api.oauth.refresh"),
         }
 
     @pytest.mark.usefixtures("with_refreshable_exception")
