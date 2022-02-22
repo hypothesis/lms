@@ -37,6 +37,15 @@ class BlackboardAPIClient:
         """
         self._api.get_token(authorization_code)
 
+    def refresh_access_token(self):
+        """
+        Refresh the current user's access token in the DB.
+
+        :raise services.ExternalRequestError: if something goes wrong with the
+            refresh token request to Blackboard
+        """
+        self._api.refresh_access_token()
+
     def list_files(self, course_id, folder_id=None):
         """Return the list of files in the given course or folder."""
 

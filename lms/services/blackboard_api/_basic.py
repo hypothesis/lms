@@ -70,6 +70,13 @@ class BasicClient:
             authorization_code=authorization_code,
         )
 
+    def refresh_access_token(self):
+        self._oauth_http_service.refresh_access_token(
+            self.token_url,
+            self.redirect_uri,
+            auth=(self.client_id, self.client_secret),
+        )
+
     def request(self, method, path):
         url = self._api_url(path)
 
