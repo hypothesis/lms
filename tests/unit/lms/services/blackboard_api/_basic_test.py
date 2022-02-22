@@ -136,8 +136,22 @@ class TestBasicClientRequest:
         # Make the API request fail both times.
         oauth_http_service.request.side_effect = ExternalRequestError
 
-        with pytest.raises(ExternalRequestError):
+        with pytest.raises(ExternalRequestError) as exc_info:
             basic_client.request("GET", "/foo")
+
+        assert not exc_info.value.refreshable
+
+    def test_401s_from_Blackboard_are_refreshable(
+        self, basic_client, oauth_http_service
+    ):
+        oauth_http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=401)
+        )
+
+        with pytest.raises(ExternalRequestError) as exc_info:
+            basic_client.request("GET", "/foo")
+
+        assert exc_info.value.refreshable
 
     def test_it_raises_OAuth2TokenError_if_the_request_fails_with_an_access_token_error(
         self, basic_client, oauth_http_service
@@ -145,12 +159,14 @@ class TestBasicClientRequest:
         # Make the API request fail both times.
         oauth_http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(
-                json_data={"status": 401, "message": "Bearer token is invalid"}
+                status_code=401, json_data={"message": "Bearer token is invalid"}
             )
         )
 
-        with pytest.raises(OAuth2TokenError):
+        with pytest.raises(OAuth2TokenError) as exc_info:
             basic_client.request("GET", "/foo")
+
+        assert exc_info.value.refreshable
 
 
 @pytest.fixture
