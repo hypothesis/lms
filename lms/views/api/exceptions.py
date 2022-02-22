@@ -254,10 +254,13 @@ class ErrorBody:
                 # If we don't have an access token we can't refresh it.
                 pass
             else:
-                body["refresh"] = {
-                    "method": "POST",
-                    "path": request.route_path("canvas_api.oauth.refresh"),
-                }
+                if request.matched_route.name.startswith("canvas_api."):
+                    path = request.route_path("canvas_api.oauth.refresh")
+                else:
+                    assert request.matched_route.name.startswith("blackboard_api.")
+                    path = request.route_path("blackboard_api.oauth.refresh")
+
+                body["refresh"] = {"method": "POST", "path": path}
 
         return body
 

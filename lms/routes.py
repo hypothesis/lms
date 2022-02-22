@@ -41,6 +41,7 @@ def includeme(config):
         "/api/blackboard/oauth/callback",
         factory="lms.resources.OAuth2RedirectResource",
     )
+    config.add_route("blackboard_api.oauth.refresh", "/api/blackboard/oauth/refresh")
     config.add_route(
         "blackboard_api.courses.files.list", "/api/blackboard/courses/{course_id}/files"
     )
