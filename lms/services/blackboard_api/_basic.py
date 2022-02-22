@@ -53,11 +53,13 @@ class BasicClient:
         redirect_uri,
         http_service,
         oauth_http_service,
+        refresh_enabled,
     ):  # pylint:disable=too-many-arguments
         self.blackboard_host = blackboard_host
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
+        self.refresh_enabled = refresh_enabled
 
         self._http_service = http_service
         self._oauth_http_service = oauth_http_service
@@ -76,12 +78,15 @@ class BasicClient:
         try:
             return self._send(method, url)
         except ExternalRequestError:
-            self._oauth_http_service.refresh_access_token(
-                self.token_url,
-                self.redirect_uri,
-                auth=(self.client_id, self.client_secret),
-            )
-            return self._send(method, url)
+            if self.refresh_enabled:
+                self._oauth_http_service.refresh_access_token(
+                    self.token_url,
+                    self.redirect_uri,
+                    auth=(self.client_id, self.client_secret),
+                )
+                return self._send(method, url)
+
+            raise
 
     @property
     def token_url(self):

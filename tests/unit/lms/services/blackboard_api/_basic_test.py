@@ -88,6 +88,7 @@ class TestBasicClientRequest:
     def test_it_refreshes_and_tries_again_if_the_first_request_fails(
         self, basic_client, oauth_http_service
     ):
+        basic_client.refresh_enabled = True
         # Make the first attempt at the request fail but the second succeed.
         oauth_http_service.request.side_effect = [ExternalRequestError, DEFAULT]
 
@@ -150,4 +151,5 @@ def basic_client(http_service, oauth_http_service):
         redirect_uri=sentinel.redirect_uri,
         http_service=http_service,
         oauth_http_service=oauth_http_service,
+        refresh_enabled=False,
     )
