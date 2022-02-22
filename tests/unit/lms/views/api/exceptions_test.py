@@ -1,4 +1,4 @@
-from unittest.mock import call, sentinel
+from unittest.mock import Mock, call, sentinel
 
 import pytest
 import requests
@@ -204,11 +204,26 @@ class TestErrorBody:
     def test_json_includes_refresh_info_if_the_exception_is_refreshable(
         self, pyramid_request
     ):
+        pyramid_request.matched_route.name = "canvas_api.foo"
+
         body = ErrorBody().__json__(pyramid_request)
 
         assert body["refresh"] == {
             "method": "POST",
             "path": pyramid_request.route_path("canvas_api.oauth.refresh"),
+        }
+
+    @pytest.mark.usefixtures("with_refreshable_exception")
+    def test_json_includes_Blackboard_refresh_info_for_Blackboard_APIs(
+        self, pyramid_request
+    ):
+        pyramid_request.matched_route.name = "blackboard_api.foo"
+
+        body = ErrorBody().__json__(pyramid_request)
+
+        assert body["refresh"] == {
+            "method": "POST",
+            "path": pyramid_request.route_path("blackboard_api.oauth.refresh"),
         }
 
     @pytest.mark.usefixtures("with_refreshable_exception")
@@ -232,6 +247,9 @@ class TestErrorBody:
         # exception that was raised by the original view:
         # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/request.html#pyramid.request.Request.exception
         pyramid_request.exception = ValueError()
+
+        pyramid_request.matched_route = Mock(spec_set=["name"])
+
         return pyramid_request
 
     @pytest.fixture
