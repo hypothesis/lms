@@ -23,6 +23,13 @@ class TestGetToken:
         basic_client.get_token.assert_called_once_with(sentinel.authorization_code)
 
 
+class TestRefreshAccessToken:
+    def test_it(self, svc, basic_client):
+        svc.refresh_access_token()
+
+        basic_client.refresh_access_token.assert_called_once_with()
+
+
 class TestListFiles:
     def test_it_returns_the_courses_top_level_contents(
         self,

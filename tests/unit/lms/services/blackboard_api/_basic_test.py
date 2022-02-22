@@ -63,6 +63,17 @@ class TestBasicClientGetToken:
         )
 
 
+class TestBasicClientRefreshAccessToken:
+    def test_it(self, basic_client, oauth_http_service):
+        basic_client.refresh_access_token()
+
+        oauth_http_service.refresh_access_token.assert_called_once_with(
+            "https://blackboard.example.com/learn/api/public/v1/oauth2/token",
+            sentinel.redirect_uri,
+            auth=(sentinel.client_id, sentinel.client_secret),
+        )
+
+
 class TestBasicClientRequest:
     @pytest.mark.parametrize(
         "path,expected_url",
