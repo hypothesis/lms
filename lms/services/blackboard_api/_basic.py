@@ -113,9 +113,11 @@ class BasicClient:
         try:
             return self._oauth_http_service.request(method, url)
         except ExternalRequestError as err:
+            err.refreshable = getattr(err.response, "status_code", None) == 401
+
             error_dict = BlackboardErrorResponseSchema(err.response).parse()
 
             if error_dict.get("message") == "Bearer token is invalid":
-                raise OAuth2TokenError() from err
+                raise OAuth2TokenError(refreshable=err.refreshable) from err
 
             raise
