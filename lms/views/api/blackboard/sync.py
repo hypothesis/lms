@@ -2,7 +2,6 @@ from pyramid.view import view_config
 
 from lms.models import Grouping
 from lms.security import Permissions
-from lms.services import UserService
 from lms.services.exceptions import ExternalRequestError
 from lms.validation import APIBlackboardSyncSchema
 from lms.views.api.exceptions import GroupError
@@ -56,11 +55,6 @@ class Sync:
         course = self.get_course(course_id)
 
         if lti_user.is_learner:
-            user = self.request.find_service(UserService).get(
-                self.request.find_service(name="application_instance").get_current(),
-                lti_user.user_id,
-            )
-
             learner_groups = self.blackboard_api.course_groups(
                 course_id, group_set_id, current_student_own_groups_only=True
             )
@@ -68,7 +62,7 @@ class Sync:
                 raise BlackboardStudentNotInGroup(group_set=group_set_id)
 
             groups = self.to_groups_groupings(course, learner_groups)
-            self.grouping_service.upsert_grouping_memberships(user, groups)
+            self.grouping_service.upsert_grouping_memberships(self.request.user, groups)
             return groups
 
         if grading_student_id := self.request.parsed_params.get("gradingStudentId"):
