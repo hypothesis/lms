@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Optional
 
+from sqlalchemy import func
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import LTIUser, User
@@ -34,6 +35,9 @@ class UserService:
             # Update the existing user from the fields which can change on a
             # new one
             existing_user.roles = new_user.roles
+            # Always update `updated`.  The onupdate declared in the model will only trigger
+            # if any other field also changed.
+            existing_user.updated = func.now()
 
         else:
             self._db.add(new_user)
