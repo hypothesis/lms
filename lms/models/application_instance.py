@@ -190,11 +190,11 @@ class ApplicationInstance(BASE):
         """Instantiate ApplicationInstance with lms_url."""
         encrypted_secret = developer_secret
         aes_iv = None
+        from lms.services import aes
+
         if developer_secret and developer_key:
-            aes_iv = _build_aes_iv()
-            encrypted_secret = _encrypt_oauth_secret(
-                developer_secret, encryption_key, aes_iv
-            )
+            aes_iv = aes.build_iv()
+            encrypted_secret = aes.encrypt(encryption_key, aes_iv, developer_secret)
 
         return cls(
             consumer_key=_build_unique_key(),
@@ -212,23 +212,26 @@ class ApplicationInstance(BASE):
     def build_from_lti_13_parameters(
         cls, issuer, client_id, deployment_id, auth_login_url, key_set_url
     ):
+        # This all makes more sense in registration/application_instance service
+        from lms.models.registration import Registration
 
-        return cls(
+        registration = Registration(
             issuer=issuer,
             client_id=client_id,
-            deployment_id=deployment_id,
             auth_login_url=auth_login_url,
             key_set_url=key_set_url,
+        )
+
+        ai = cls(
+            registration=registration,
+            deployment_id=deployment_id,
             shared_secret="SHOULD THIS BE NULLABLE TOO OR IS IT USED FOR NON LTI stuff?",
             lms_url=issuer,  # is it?
             requesters_email="marcos",
             consumer_key=f"{issuer}:{client_id}:{deployment_id}",
         )
 
-
-def _build_aes_iv():
-    """Build a 16 byte initialization vector."""
-    return Random.new().read(AES.block_size)
+        return registration, ai
 
 
 def _build_shared_secret():
@@ -239,12 +242,3 @@ def _build_shared_secret():
 def _build_unique_key():
     """Use the key base to generate lms key."""
     return "Hypothesis" + secrets.token_hex(16)
-
-
-def _encrypt_oauth_secret(oauth_secret, key, init_v):
-    """Encrypt an oauth secrety via AES encryption."""
-
-    if isinstance(oauth_secret, str):
-        oauth_secret = oauth_secret.encode("utf-8")
-
-    return AES.new(key, AES.MODE_CFB, init_v).encrypt(oauth_secret)
