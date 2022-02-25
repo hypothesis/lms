@@ -16,10 +16,11 @@ def lti_oidc(request):
     # http://www.imsglobal.org/spec/security/v1p0/#step-2-authentication-request
 
     # TODO error handling
-    application_instance = (
-        request.db.query(ApplicationInstance)
+    # TODO registration service
+    registration = (
+        request.db.query(Registration)
         .filter_by(issuer=request.params["iss"], client_id=request.params["client_id"])
-        .first()
+        .one()
     )  # As far as I can tell there could be multiple deployments for this. We don't have the deployment_id at this moment but we only care about
     # - Do we have registered this client_id
     # - Getting the auth_url for the issuer (issuer could be it's own table then)
