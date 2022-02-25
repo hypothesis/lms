@@ -12,6 +12,8 @@ oauthlib
 psycopg2
 pycryptodomex
 cryptography
+# There might be a way to use PyJWT for what I'm using jose
+python-jose
 PyJWT
 pyramid
 pyramid-exclog
