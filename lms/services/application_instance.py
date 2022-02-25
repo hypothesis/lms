@@ -3,6 +3,7 @@ from functools import lru_cache
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance
+from lms.models.registration import Registration
 
 
 class ApplicationInstanceNotFound(Exception):
@@ -39,10 +40,11 @@ class ApplicationInstanceService:
             try:
                 return (
                     self._db.query(ApplicationInstance)
-                    .filter_by(
-                        client_id=client_id,
-                        issuer=issuer,
-                        deployment_id=deployment_id,
+                    .join(Registration)
+                    .filter(
+                        Registration.client_id == client_id,
+                        Registration.issuer == issuer,
+                        ApplicationInstance.deployment_id == deployment_id,
                     )
                     .one()
                 )

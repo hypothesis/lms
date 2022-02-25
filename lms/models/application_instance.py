@@ -5,8 +5,6 @@ from enum import Enum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
-from Cryptodome import Random
-from Cryptodome.Cipher import AES
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
@@ -101,31 +99,22 @@ class ApplicationInstance(BASE):
     #: A list of all the files for this application instance.
     files = sa.orm.relationship("File", back_populates="application_instance")
 
-    # LTI1.3 platform details
-    issuer = sa.Column(sa.UnicodeText, nullable=True)
-    client_id = sa.Column(sa.UnicodeText, nullable=True)
-    key_set_url = sa.Column(sa.UnicodeText, nullable=True)
-    auth_login_url = sa.Column(sa.UnicodeText, nullable=True)
-    deployment_id = sa.Column(sa.UnicodeText, nullable=True)
+    registration_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("registration.id", ondelete="cascade"),
+        nullable=True,
+    )
+    registration = sa.orm.relationship("Registration")
 
-    # LTI1.1 rely only on consumer_key while 1.3 depend on a combination of fields
-    sa.CheckConstraint(
-        """(consumer_key is null
-            AND issuer IS NOT NULL
-            AND client_id IS NOT NULL
-            AND key_set_url IS NOT NULL
-            AND auth_login_url IS NOT NULL
-            AND deployment_id IS NOT NULL)""",
-        name="consumer_key_required_for_lti_1_1",
-    ),
+    deployment_id = sa.Column(sa.UnicodeText, nullable=True)
 
     def decrypted_developer_secret(self, aes_secret):
         if self.developer_secret is None:
             return None
 
-        cipher = AES.new(aes_secret, AES.MODE_CFB, self.aes_cipher_iv)
+        from lms.services import aes
 
-        return cipher.decrypt(self.developer_secret)
+        return aes.decrypt(aes_secret, self.aes_cipher_iv, self.developer_secret)
 
     def lms_host(self):
         """
