@@ -301,7 +301,7 @@ class BasicLTILaunchViews:
         # After changing a few thing around consumer_keys this no longer works without any further task.
         # The consumer_key is not present, the id_token is not present
         # We could for example re-sign a new id_token ourselves. That would involve
-        # tryingto decode with the keys from the lms first and then with ours just for this case...
+        # trying to decode with the keys from the lms first and then with ours just for this case...
         from itertools import chain
 
         form_fields = {

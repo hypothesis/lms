@@ -65,9 +65,9 @@ class OpenIDAuthSchema(PyramidRequestSchema):
         import jwt
         from jwt import PyJWKClient
 
-        jwks_client = PyJWKClient(
-            "https://canvas.instructure.com/api/lti/security/jwks"
-        )
+        # jwks_client = PyJWKClient(
+        #    "https://canvas.instructure.com/api/lti/security/jwks"
+        # )
         # signing_key = jwks_client.get_signing_key_from_jwt(id_token)
         jwt_params = jwt.decode(
             id_token,
