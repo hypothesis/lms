@@ -1,6 +1,5 @@
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance
-from lms.models.registration import Registration
 from lms.models.application_settings import ApplicationSettings
 from lms.models.assignment import Assignment
 from lms.models.course import LegacyCourse
@@ -18,11 +17,12 @@ from lms.models.grouping import (
     GroupingMembership,
 )
 from lms.models.h_user import HUser
+from lms.models.key import Key
 from lms.models.lti_launches import LtiLaunches
 from lms.models.lti_user import LTIUser, display_name
 from lms.models.oauth2_token import OAuth2Token
+from lms.models.registration import Registration
 from lms.models.user import User
-from lms.models.key import Key
 
 
 def includeme(_config):

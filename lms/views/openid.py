@@ -2,8 +2,8 @@ from urllib.parse import urlencode
 
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-from lms.models import Registration
 
+from lms.models import Registration
 from lms.services import KeyService
 
 
@@ -21,9 +21,7 @@ def lti_oidc(request):
         request.db.query(Registration)
         .filter_by(issuer=request.params["iss"], client_id=request.params["client_id"])
         .one()
-    )  # As far as I can tell there could be multiple deployments for this. We don't have the deployment_id at this moment but we only care about
-    # - Do we have registered this client_id
-    # - Getting the auth_url for the issuer (issuer could be it's own table then)
+    )
 
     params = {
         "scope": "openid",

@@ -1,14 +1,14 @@
 import json
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from jose import constants, jwk
-
-from lms.services import aes
 from sqlalchemy import func
 
 from lms.models import Key
+from lms.services import aes
 
 
 class KeyService:
@@ -23,6 +23,7 @@ class KeyService:
         pem_private_key = key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
+            # We could specify encryption here and avoid having to do the AES ourselves
             encryption_algorithm=serialization.NoEncryption(),
         )
 

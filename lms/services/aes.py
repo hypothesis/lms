@@ -1,6 +1,6 @@
 from typing import Union
-from Cryptodome import Random
 
+from Cryptodome import Random
 from Cryptodome.Cipher import AES
 
 

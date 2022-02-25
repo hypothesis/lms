@@ -309,8 +309,7 @@ class BasicLTILaunchViews:
             for param, value in chain(
                 self.request.params.items(), self.request.jwt_params.items()
             )
-            if param
-            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
+            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
         }
 
         form_fields["authorization"] = BearerTokenSchema(

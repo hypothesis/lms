@@ -1,5 +1,6 @@
-from lms.db import BASE
 import sqlalchemy as sa
+
+from lms.db import BASE
 
 
 class Registration(BASE):

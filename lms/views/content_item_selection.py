@@ -41,8 +41,8 @@ from urllib.parse import urlencode
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.validation import ContentItemSelectionLTILaunchSchema
 from lms.services import KeyService
+from lms.validation import ContentItemSelectionLTILaunchSchema
 
 
 @view_config(

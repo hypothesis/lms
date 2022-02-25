@@ -11,13 +11,13 @@ from lms.services.exceptions import (
     OAuth2TokenError,
 )
 from lms.services.h_api import HAPIError
+from lms.services.key import KeyService
 from lms.services.launch_verifier import (
     ConsumerKeyLaunchVerificationError,
     LTILaunchVerificationError,
     LTIOAuthError,
 )
 from lms.services.user import UserService
-from lms.services.key import KeyService
 
 
 def includeme(config):
