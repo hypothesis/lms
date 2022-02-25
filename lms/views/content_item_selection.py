@@ -59,6 +59,9 @@ def content_item_selection(context, request):
     )
     lti_launch_url = request.route_url("lti_launches")
 
+    key_service = request.find_service(KeyService)
+    key = key_service.one()
+
     context.get_or_create_course()
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
@@ -73,7 +76,7 @@ def content_item_selection(context, request):
         "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"
     ]
 
-    document_params = {"url": "https://elpais.com"}
+    document_params = {"url": "https://example.com"}
 
     message = {
         "aud": request.jwt_params["iss"],
@@ -96,10 +99,14 @@ def content_item_selection(context, request):
     }
     import jwt
 
-    headers = {"kid": private_key["kid"]}
+    headers = {"kid": key.kid.hex}
+    private_key = key.private_key(request.registry.settings["aes_secret"])
 
     encoded_message = jwt.encode(
-        message, pem_private_key, algorithm="RS256", headers=headers
+        message,
+        key.private_key(request.registry.settings["aes_secret"]),
+        algorithm="RS256",
+        headers=headers,
     )
 
     context.js_config.enable_content_item_selection_mode(
