@@ -17,6 +17,7 @@ from lms.services.launch_verifier import (
     LTIOAuthError,
 )
 from lms.services.user import UserService
+from lms.services.key import KeyService
 
 
 def includeme(config):
@@ -72,3 +73,5 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
     config.register_service_factory("lms.services.file.factory", name="file")
+
+    config.register_service_factory("lms.services.key.factory", iface=KeyService)

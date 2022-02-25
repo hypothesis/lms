@@ -42,7 +42,7 @@ from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.validation import ContentItemSelectionLTILaunchSchema
-from lms.views.openid import pem_private_key, private_key
+from lms.services import KeyService
 
 
 @view_config(
