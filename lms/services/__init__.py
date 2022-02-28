@@ -18,6 +18,7 @@ from lms.services.launch_verifier import (
     LTIOAuthError,
 )
 from lms.services.user import UserService
+from lms.services.jwt import JWTService
 
 
 def includeme(config):
@@ -75,3 +76,4 @@ def includeme(config):
     config.register_service_factory("lms.services.file.factory", name="file")
 
     config.register_service_factory("lms.services.key.factory", iface=KeyService)
+    config.register_service_factory("lms.services.jwt.factory", iface=JWTService)

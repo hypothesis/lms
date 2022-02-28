@@ -41,8 +41,9 @@ from urllib.parse import urlencode
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.services import KeyService
+from lms.services import JWTService
 from lms.validation import ContentItemSelectionLTILaunchSchema
+from lms.models import Registration
 
 
 @view_config(
@@ -59,31 +60,20 @@ def content_item_selection(context, request):
     )
     lti_launch_url = request.route_url("lti_launches")
 
-    key_service = request.find_service(KeyService)
-    key = key_service.one()
+    jwt_service = request.find_service(JWTService)
 
     context.get_or_create_course()
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
-    now = int(time.time())
 
-    request_aud = request.jwt_params["aud"]
     deployment_id = request.jwt_params[
         "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
     ]
-
     settings = request.jwt_params[
         "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"
     ]
-
     document_params = {"url": "https://example.com"}
-
     message = {
-        "aud": request.jwt_params["iss"],
-        "exp": now + 60 * 60,
-        "iat": now,
-        "nonce": uuid.uuid4().hex,
-        "iss": request_aud,  # client_id?
         "https://purl.imsglobal.org/spec/lti/claim/deployment_id": deployment_id,
         "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
         "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
@@ -97,22 +87,19 @@ def content_item_selection(context, request):
         ],
         "https://purl.imsglobal.org/spec/lti-dl/claim/data": settings,
     }
-    import jwt
-
-    headers = {"kid": key.kid.hex}
-    private_key = key.private_key(request.registry.settings["aes_secret"])
-
-    encoded_message = jwt.encode(
-        message,
-        key.private_key(request.registry.settings["aes_secret"]),
-        algorithm="RS256",
-        headers=headers,
+    registration = (
+        request.db.query(Registration)
+        .filter_by(
+            issuer=request.jwt_params["iss"], client_id=request.jwt_params["aud"]
+        )
+        .one()
     )
+    jwt = jwt_service.sign(registration, message)
 
     context.js_config.enable_content_item_selection_mode(
         form_action=request.parsed_params["content_item_return_url"],
         form_fields={
-            "JWT": encoded_message,
+            "JWT": jwt,
         },
         #    "lti_message_type": request.parsed_params["lti_message_type"],
         #    "lti_version": request.parsed_params["lti_version"],
