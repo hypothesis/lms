@@ -201,13 +201,13 @@ def _get_lti_user(request):
         except ValidationError:
             continue
 
-    if lti_user:
+    if not hasattr(request, "jwt_params"):
+        request.jwt_params = {}
+
+    if False and lti_user:
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
         request.find_service(UserService).store_lti_user(lti_user)
-
-    if not hasattr(request, "jwt_params"):
-        request.jwt_params = {}
 
     return lti_user
 

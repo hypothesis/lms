@@ -2,6 +2,7 @@ from xml.parsers.expat import ExpatError
 
 import xmltodict
 
+from lms.services import JWTService
 from lms.services.exceptions import ExternalRequestError
 
 __all__ = ["LTIOutcomesClient"]
@@ -17,6 +18,7 @@ class LTIOutcomesClient:
     def __init__(self, _context, request):
         self.oauth1_service = request.find_service(name="oauth1")
         self.http_service = request.find_service(name="http")
+        self.jwt = request.find_service(JWTService)
 
         self.service_url = request.parsed_params["lis_outcome_service_url"]
 
@@ -28,6 +30,14 @@ class LTIOutcomesClient:
         :return: The last-submitted score or `None` if no score has been
                  submitted.
         """
+
+        result = self.jwt.ltia_request(
+            "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly",
+            "GET",
+            self.service_url,
+        )
+        # TODO find the right value
+        return None
 
         result = self._send_request(
             {
@@ -62,6 +72,26 @@ class LTIOutcomesClient:
 
         :raise TypeError: if the given pre_record_hook returns a non-dict
         """
+        from datetime import datetime
+
+        result = self.jwt.ltia_request(
+            " ".join(
+                [
+                    "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+                ]
+            ),
+            "POST",
+            self.service_url + "/scores",
+            json={
+                "scoreMaximum": 1,
+                "scoreGiven": 1,
+                "userId": lis_result_sourcedid,
+                "timestamp": datetime.now().isoformat(),
+                "activityProgress": "InProgress",
+                "gradingProgress": "FullyGraded",
+            },
+        )
+        return
 
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
 

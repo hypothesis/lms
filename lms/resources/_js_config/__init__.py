@@ -304,10 +304,23 @@ class JSConfig:
         """
         lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
         lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
+        learner_canvas_user_id = self._request.params.get("custom_canvas_user_id")
 
         # Don't set the Canvas submission params in non-Canvas LMS's.
         if not self._context.is_canvas:
             return
+
+        if self._request.jwt_params:
+            lis_result_sourcedid = self._request.jwt_params["sub"]
+            lis_outcome_service_url = self._request.jwt_params[
+                "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint"
+            ]["lineitem"]
+
+            learner_canvas_user_id = self._request.jwt_params[
+                "https://purl.imsglobal.org/spec/lti/claim/lti11_legacy_user_id"
+            ]
+            kwargs["aud"] = self._request.jwt_params["aud"]
+            kwargs["iss"] = self._request.jwt_params["iss"]
 
         # When a Canvas assignment is launched by a teacher or other
         # non-gradeable user there's no lis_result_sourcedid in the LTI
@@ -327,7 +340,7 @@ class JSConfig:
                 "h_username": self._h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
-                "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
+                "learner_canvas_user_id": learner_canvas_user_id,
                 "group_set": self._request.params.get("group_set"),
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"

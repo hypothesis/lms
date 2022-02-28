@@ -3,13 +3,15 @@ import uuid
 import time
 
 from lms.services import KeyService
+from lms.models import Registration
 
 
 class JWTService:
-    def __init__(self, key_service, aes_secret, http):
+    def __init__(self, key_service, aes_secret, http, request):
         self._key_service = key_service
         self._aes_secret = aes_secret
         self._http = http
+        self._request = request
 
     def sign(self, registration, message):
         now = int(time.time())
@@ -46,17 +48,17 @@ class JWTService:
             registration,
             {
                 "jti": uuid.uuid4().hex,
-                "aud": "https://canvas.instructure.com/login/oauth2/token",
+                "aud": "https://hypothesis.instructure.com/login/oauth2/token",
             },
         )
         auth_request = {
             "grant_type": "client_credentials",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": jwt,
-            "scopes": "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+            "scopes": scopes,
         }
         response = self._http.post(
-            "https://canvas.instructure.com/login/oauth2/token",
+            "https://hypothesis.instructure.com/login/oauth2/token",
             data=auth_request,
         )
         # {
@@ -67,6 +69,24 @@ class JWTService:
         # }
         return response.json()["access_token"]
 
+    def ltia_request(self, scopes, method, url, headers=None, **kwargs):
+        headers = headers or {}
+
+        client_id = self._request.json["aud"]
+        issuer = self._request.json["iss"]
+        registration = (
+            self._request.db.query(Registration)
+            .filter_by(issuer=issuer, client_id=client_id)
+            .one()
+        )
+
+        assert "Authorization" not in headers
+
+        access_token = self.get_access_token(registration, scopes)
+        headers["Authorization"] = f"Bearer {access_token}"
+
+        return self._http.request(method, url, headers=headers, **kwargs)
+
 
 def factory(_context, request):
     return JWTService(
@@ -74,4 +94,5 @@ def factory(_context, request):
         request.registry.settings["aes_secret"],
         # From here things might belong to another http service
         request.find_service(name="http"),
+        request,
     )

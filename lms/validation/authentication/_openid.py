@@ -86,7 +86,15 @@ class OpenIDAuthSchema(PyramidRequestSchema):
         data["lis_person_name_given"] = jwt_params["given_name"]
         data["lis_person_name_family"] = jwt_params["family_name"]
         data["lis_person_name_full"] = jwt_params["name"]
-        data["lis_person_contact_email_primary"] = jwt_params["email"]
+        data["lis_person_contact_email_primary"] = jwt_params.get("email")
+
+        # TODO HACK
+        issuer = jwt_params["iss"]
+        deployment_id = jwt_params[
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
+        ]
+        client_id = jwt_params["aud"]
+        data["oauth_consumer_key"] = f"{issuer}:{client_id}:{deployment_id}"
 
         # TODO add another marshmallow schema for this instead of accessing the dict directly
         # that way we can also validate before we start mapping the params to the lt1.3
