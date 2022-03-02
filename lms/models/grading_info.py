@@ -48,6 +48,14 @@ class GradingInfo(CreatedUpdatedMixin, BASE):
     lis_result_sourcedid = sa.Column(sa.UnicodeText(), nullable=False)
     lis_outcome_service_url = sa.Column(sa.UnicodeText(), nullable=False)
     oauth_consumer_key = sa.Column(sa.UnicodeText(), nullable=False)
+
+    #: The ApplicationInstance that this group belongs to foreign key
+    application_instance_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("application_instances.id", ondelete="cascade"),
+        nullable=True,
+    )
+
     user_id = sa.Column(sa.UnicodeText(), nullable=False)
     context_id = sa.Column(sa.UnicodeText(), nullable=False)
     resource_link_id = sa.Column(sa.UnicodeText(), nullable=False)
