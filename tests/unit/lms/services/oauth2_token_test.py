@@ -23,6 +23,7 @@ class TestOAuth2TokenService:
         assert oauth2_token == Any.object(OAuth2Token).with_attrs(
             {
                 "consumer_key": application_instance.consumer_key,
+                "application_instance_id": application_instance.id,
                 "user_id": lti_user.user_id,
                 "access_token": "access_token",
                 "refresh_token": "refresh_token",
