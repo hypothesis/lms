@@ -3,7 +3,7 @@
 import marshmallow
 
 from lms.models import LTIUser, display_name
-from lms.services import LTILaunchVerificationError
+from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
 from lms.validation._base import PyramidRequestSchema
 
 __all__ = ("LaunchParamsAuthSchema",)
@@ -46,10 +46,13 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
     def __init__(self, request):
         super().__init__(request)
         self._launch_verifier = request.find_service(name="launch_verifier")
+        self._application_instance_service = request.find_service(
+            name="application_instance"
+        )
 
     def lti_user(self):
         """
-        Return an models.LTIUser from the request's launch params.
+        Return a models.LTIUser from the request's launch params.
 
         :raise ValidationError: if the request isn't a valid LTI launch request
 
@@ -57,10 +60,21 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
         """
         kwargs = self.parse(location="form")
 
+        try:
+            application_instance = (
+                self._application_instance_service.get_by_consumer_key(
+                    kwargs["oauth_consumer_key"]
+                )
+            )
+        except ApplicationInstanceNotFound as err:
+            raise marshmallow.ValidationError(
+                "Invalid OAuth 1 signature. Unknown consumer key."
+            ) from err
+
         return LTIUser(
             user_id=kwargs["user_id"],
             oauth_consumer_key=kwargs["oauth_consumer_key"],
-            application_instance_id=None,
+            application_instance_id=application_instance.id,
             roles=kwargs["roles"],
             tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],
             display_name=display_name(
