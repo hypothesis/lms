@@ -39,6 +39,7 @@ class OAuth2TokenService:
             )
             self._db.add(oauth2_token)
 
+        oauth2_token.application_instance_id = self._application_instance.id
         oauth2_token.access_token = access_token
         oauth2_token.refresh_token = refresh_token
         oauth2_token.expires_in = expires_in
