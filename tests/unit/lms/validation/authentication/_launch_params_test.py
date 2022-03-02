@@ -1,16 +1,19 @@
+import marshmallow
 import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
 from lms.models import LTIUser
-from lms.services import LTILaunchVerificationError
+from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
 from lms.validation import ValidationError
 from lms.validation.authentication import LaunchParamsAuthSchema
 
-pytestmark = pytest.mark.usefixtures("launch_verifier")
+pytestmark = pytest.mark.usefixtures("launch_verifier", "application_instance_service")
 
 
 class TestLaunchParamsAuthSchema:
-    def test_it_returns_the_lti_user_info(self, schema, display_name):
+    def test_it_returns_the_lti_user_info(
+        self, schema, display_name, application_instance_service
+    ):
         lti_user = schema.lti_user()
 
         display_name.assert_called_once_with(
@@ -19,11 +22,21 @@ class TestLaunchParamsAuthSchema:
         assert lti_user == LTIUser(
             user_id="TEST_USER_ID",
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
-            application_instance_id=None,
+            application_instance_id=application_instance_service.get_by_consumer_key.return_value.id,
             roles="TEST_ROLES",
             tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
             display_name=display_name.return_value,
         )
+
+    def test_it_raises_missing_application_instance(
+        self, schema, application_instance_service
+    ):
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
+        )
+
+        with pytest.raises(marshmallow.ValidationError):
+            schema.lti_user()
 
     @pytest.mark.usefixtures("no_user_info")
     def test_user_info_fields_default_to_empty_strings(self, schema, display_name):
