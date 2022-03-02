@@ -119,7 +119,7 @@ class TestGroupInfoUpsert:
         return {
             column: f"TEST_{column.upper()}"
             for column in GroupInfo.columns()
-            if column not in ("consumer_key", "_info")
+            if column not in ("consumer_key", "_info", "application_instance_id")
         }
 
     @pytest.fixture(
