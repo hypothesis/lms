@@ -16,7 +16,6 @@ class LTIHService:
     """
 
     def __init__(self, _context, request):
-        self._lti_user = request.lti_user
         self._h_user = request.lti_user.h_user
 
         self._authority = request.registry.settings["h_authority"]
@@ -40,8 +39,9 @@ class LTIHService:
         :raise HTTPInternalServerError: if we can't sync to h for any reason
         :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
+        application_instance = self._application_instance_service.get_current()
 
-        if not self._application_instance_service.get_current().provisioning:
+        if not application_instance.provisioning:
             return
 
         self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
@@ -50,7 +50,7 @@ class LTIHService:
         for h_group in h_groups:
             self._group_info_service.upsert(
                 h_group=h_group,
-                consumer_key=self._lti_user.oauth_consumer_key,
+                consumer_key=application_instance.consumer_key,
                 params=group_info_params,
             )
 

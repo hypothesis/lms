@@ -43,9 +43,10 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-        request.find_service(name="application_instance").get_current().update_lms_data(
-            self.request.params
-        )
+        self.application_instance = request.find_service(
+            name="application_instance"
+        ).get_current()
+        self.application_instance.update_lms_data(self.request.params)
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
@@ -89,7 +90,7 @@ class BasicLTILaunchViews:
         if not lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="grading_info").upsert_from_request(
-                request, h_user=lti_user.h_user, lti_user=lti_user
+                request, lti_user.h_user, lti_user.user_id, self.application_instance
             )
 
     @view_config(vitalsource_book=True)

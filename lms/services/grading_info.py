@@ -48,7 +48,7 @@ class GradingInfoService:
             resource_link_id=resource_link_id,
         )
 
-    def upsert_from_request(self, request, h_user, lti_user):
+    def upsert_from_request(self, request, h_user, user_id, application_instance):
         """
         Update or create a record based on the LTI params found in the request.
 
@@ -57,9 +57,8 @@ class GradingInfoService:
 
         :arg request: A pyramid request
         :arg h_user: The h user this record is associated with
-        :type h_user: models.HUser
-        :arg lti_user: The LTI-provided user that this record is associated with
-        :type lti_user: models.LTIUser
+        :arg user_id: The LTI-provided user that this record is associated with
+        :arg application_instance: The application_instance the user belongs to
         """
         try:
             parsed_params = self._ParamsSchema(request).parse()
@@ -70,8 +69,8 @@ class GradingInfoService:
             return
 
         grading_info = self._find_or_create(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
-            user_id=lti_user.user_id,
+            oauth_consumer_key=application_instance.consumer_key,
+            user_id=user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],
         )

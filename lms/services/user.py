@@ -65,7 +65,7 @@ class UserService:
         return (
             self._db.query(User)
             .filter_by(
-                application_instance=model_user.application_instance,
+                application_instance_id=model_user.application_instance_id,
                 user_id=model_user.user_id,
             )
             .one_or_none()
@@ -73,9 +73,7 @@ class UserService:
 
     def _from_lti_user(self, lti_user: LTIUser) -> User:
         return User(
-            application_instance=self._application_instance_service.get_by_consumer_key(
-                lti_user.oauth_consumer_key
-            ),
+            application_instance_id=lti_user.application_instance_id,
             user_id=lti_user.user_id,
             roles=lti_user.roles,
             h_userid=lti_user.h_user.userid(self._h_authority),

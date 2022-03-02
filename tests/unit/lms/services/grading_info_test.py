@@ -70,9 +70,18 @@ class TestGetByAssignment:
 
 class TestUpsertFromRequest:
     def test_it_creates_new_record_if_no_matching_exists(
-        self, svc, pyramid_request, h_user, lti_user, db_session, lti_params
+        self,
+        svc,
+        application_instance,
+        pyramid_request,
+        h_user,
+        lti_user,
+        db_session,
+        lti_params,
     ):
-        svc.upsert_from_request(pyramid_request, h_user, lti_user)
+        svc.upsert_from_request(
+            pyramid_request, h_user, lti_user.user_id, application_instance
+        )
 
         result = db_session.get_last_inserted()
         assert result == Any.instance_of(GradingInfo)
@@ -85,14 +94,14 @@ class TestUpsertFromRequest:
         assert result.h_display_name == h_user.display_name
 
         # Check the LTI user data are there
-        assert result.oauth_consumer_key == lti_user.oauth_consumer_key
+        assert result.oauth_consumer_key == application_instance.consumer_key
         assert result.user_id == lti_user.user_id
 
     def test_it_updates_existing_record_if_matching_exists(
-        self, svc, pyramid_request, h_user, lti_user
+        self, svc, pyramid_request, h_user, lti_user, application_instance
     ):
         grading_info = factories.GradingInfo(
-            oauth_consumer_key=lti_user.oauth_consumer_key,
+            oauth_consumer_key=application_instance.consumer_key,
             user_id=lti_user.user_id,
             context_id=pyramid_request.params["context_id"],
             resource_link_id=pyramid_request.params["resource_link_id"],
@@ -101,7 +110,9 @@ class TestUpsertFromRequest:
             username="updated_user_name", display_name="updated_display_name"
         )
 
-        svc.upsert_from_request(pyramid_request, h_user, lti_user)
+        svc.upsert_from_request(
+            pyramid_request, h_user, lti_user.user_id, application_instance
+        )
 
         assert grading_info.h_username == "updated_user_name"
         assert grading_info.h_display_name == "updated_display_name"
@@ -116,21 +127,37 @@ class TestUpsertFromRequest:
         ),
     )
     def test_it_does_nothing_with_required_parameter_missing(
-        self, svc, pyramid_request, h_user, lti_user, db_session, param
+        self,
+        svc,
+        application_instance,
+        pyramid_request,
+        h_user,
+        lti_user,
+        db_session,
+        param,
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request, h_user, lti_user)
+        svc.upsert_from_request(pyramid_request, h_user, lti_user, application_instance)
 
         assert db_session.get_last_inserted() is None
 
     @pytest.mark.parametrize("param", ("tool_consumer_info_product_family_code",))
     def test_it_works_fine_with_optional_parameter_missing(
-        self, svc, pyramid_request, h_user, lti_user, db_session, param
+        self,
+        svc,
+        application_instance,
+        pyramid_request,
+        h_user,
+        lti_user,
+        db_session,
+        param,
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request, h_user, lti_user)
+        svc.upsert_from_request(
+            pyramid_request, h_user, lti_user.user_id, application_instance
+        )
         assert db_session.get_last_inserted() == Any.instance_of(GradingInfo)
 
     @classmethod
@@ -149,11 +176,6 @@ class TestUpsertFromRequest:
         pyramid_request.POST.update(lti_params)
 
         return pyramid_request
-
-
-@pytest.fixture
-def lti_user():
-    return factories.LTIUser(oauth_consumer_key="matching_oauth_consumer_key")
 
 
 @pytest.fixture

@@ -19,15 +19,17 @@ class ApplicationInstanceService:
         """
         Return the the current request's `ApplicationInstance`.
 
-        This is the `ApplicationInstance` with `consumer_key` matching
-        `request.lti_user.oauth_consumer_key`.
+        This is the `ApplicationInstance` with `id` matching
+        `request.application_instance_id`.
 
         :raise ApplicationInstanceNotFound: if there's no matching
             `ApplicationInstance`
         """
-
-        if self._request.lti_user:
-            return self.get_by_consumer_key(self._request.lti_user.oauth_consumer_key)
+        if self._request.lti_user and self._request.lti_user.application_instance_id:
+            if application_instance := self._db.query(ApplicationInstance).get(
+                self._request.lti_user.application_instance_id
+            ):
+                return application_instance
 
         raise ApplicationInstanceNotFound()
 

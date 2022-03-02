@@ -281,13 +281,13 @@ class TestAddDocumentURL:
 
 class TestMaybeEnableGrading:
     def test_it_adds_the_grading_settings(
-        self, js_config, grading_info_service, pyramid_request
+        self, js_config, grading_info_service, application_instance_service
     ):
         js_config.maybe_enable_grading()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
-            oauth_consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            oauth_consumer_key=application_instance_service.get_current.return_value.consumer_key,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assert js_config.asdict()["grading"] == {

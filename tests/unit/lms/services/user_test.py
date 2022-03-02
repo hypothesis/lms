@@ -11,18 +11,13 @@ from tests import factories
 
 
 class TestUserService:
-    def test_store_lti_user(
-        self, service, lti_user, db_session, application_instance_service
-    ):
+    def test_store_lti_user(self, service, lti_user, db_session):
         service.store_lti_user(lti_user)
 
-        application_instance_service.get_by_consumer_key.assert_called_once_with(
-            lti_user.oauth_consumer_key
-        )
         assert db_session.query(User).one() == Any.instance_of(User).with_attrs(
             {
                 "id": Any.int(),
-                "application_instance": application_instance_service.get_by_consumer_key.return_value,
+                "application_instance_id": lti_user.application_instance_id,
                 "created": Any.instance_of(datetime),
                 "updated": Any.instance_of(datetime),
                 "user_id": lti_user.user_id,
@@ -50,12 +45,6 @@ class TestUserService:
     def test_get_not_found(self, user, service):
         with pytest.raises(UserNotFound):
             service.get(user.application_instance, "some-other-id")
-
-    @pytest.fixture
-    def lti_user(self, application_instance):
-        return factories.LTIUser(
-            oauth_consumer_key=application_instance.consumer_key, roles="new_roles"
-        )
 
     @pytest.fixture
     def user(self, lti_user, application_instance):

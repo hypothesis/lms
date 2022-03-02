@@ -75,34 +75,15 @@ class TestBearerTokenSchema:
             "headers": {"authorization": ["Invalid session token"]}
         }
 
-    def test_it_raises_if_the_user_id_param_is_missing(self, schema, _jwt):
-        del _jwt.decode_jwt.return_value["user_id"]
+    @pytest.mark.parametrize("param", ["user_id", "application_instance_id", "roles"])
+    def test_it_raises_if_the_user_id_param_is_missing(self, schema, _jwt, param):
+        del _jwt.decode_jwt.return_value[param]
 
         with pytest.raises(ValidationError) as exc_info:
             schema.lti_user("headers")
 
         assert exc_info.value.messages == {
-            "headers": {"user_id": ["Missing data for required field."]},
-        }
-
-    def test_it_raises_if_the_oauth_consumer_key_param_is_missing(self, schema, _jwt):
-        del _jwt.decode_jwt.return_value["oauth_consumer_key"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.lti_user("headers")
-
-        assert exc_info.value.messages == {
-            "headers": {"oauth_consumer_key": ["Missing data for required field."]},
-        }
-
-    def test_it_raises_if_the_roles_param_is_missing(self, schema, _jwt):
-        del _jwt.decode_jwt.return_value["roles"]
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.lti_user("headers")
-
-        assert exc_info.value.messages == {
-            "headers": {"roles": ["Missing data for required field."]},
+            "headers": {param: ["Missing data for required field."]},
         }
 
     def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
