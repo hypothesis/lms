@@ -87,7 +87,9 @@ class ApplicationInstance(BASE):
     #: (each token belongs to a different user of this application
     #: instance's LMS).
     access_tokens = sa.orm.relationship(
-        "OAuth2Token", back_populates="application_instance"
+        "OAuth2Token",
+        back_populates="application_instance",
+        foreign_keys="OAuth2Token.consumer_key",
     )
 
     #: A list of all the courses for this application instance.
@@ -95,7 +97,9 @@ class ApplicationInstance(BASE):
 
     #: A list of all the GroupInfo's for this application instance.
     group_infos = sa.orm.relationship(
-        "GroupInfo", back_populates="application_instance"
+        "GroupInfo",
+        back_populates="application_instance",
+        foreign_keys="GroupInfo.consumer_key",
     )
 
     #: A list of all the files for this application instance.
