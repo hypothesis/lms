@@ -3,11 +3,12 @@ import secrets
 from datetime import datetime
 from enum import Enum
 from urllib.parse import urlparse
+from uuid import uuid4
 
 import sqlalchemy as sa
 from Cryptodome import Random
 from Cryptodome.Cipher import AES
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 from lms.db import BASE
 from lms.models.application_settings import ApplicationSettings
@@ -32,6 +33,15 @@ class ApplicationInstance(BASE):
     __tablename__ = "application_instances"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+
+    #: A secondary key to expose to the users instead of the PK
+    uuid = sa.Column(
+        UUID(as_uuid=True),
+        default=uuid4,
+        nullable=True,
+        unique=True,
+    )
+
     consumer_key = sa.Column(sa.Unicode, unique=True, nullable=False)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
