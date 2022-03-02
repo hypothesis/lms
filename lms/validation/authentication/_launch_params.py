@@ -73,7 +73,6 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
         return LTIUser(
             user_id=kwargs["user_id"],
-            oauth_consumer_key=kwargs["oauth_consumer_key"],
             application_instance_id=application_instance.id,
             roles=kwargs["roles"],
             tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],

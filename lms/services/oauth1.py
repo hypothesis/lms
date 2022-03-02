@@ -19,13 +19,11 @@ class OAuth1Service:
 
         :rtype: OAuth1
         """
-
-        consumer_key = self._request.lti_user.oauth_consumer_key
-        shared_secret = self._application_instance_service.get_current().shared_secret
+        application_instance = self._application_instance_service.get_current()
 
         return OAuth1(
-            client_key=consumer_key,
-            client_secret=shared_secret,
+            client_key=application_instance.consumer_key,
+            client_secret=application_instance.shared_secret,
             signature_method="HMAC-SHA1",
             signature_type="auth_header",
             # Include the body when signing the request, this defaults to

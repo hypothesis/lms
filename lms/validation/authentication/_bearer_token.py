@@ -38,7 +38,7 @@ class BearerTokenSchema(PyramidRequestSchema):
 
         >>> # Deserialize the request's authorization param into an LTI user.
         >>> schema.lti_user()
-        LTIUser(user_id='...', oauth_consumer_key='...', ...)
+        LTIUser(user_id='...', application_instance_id='...', ...)
 
     The above are convenience methods that wrap webargs and marshmallow. But
     this class is also a marshmallow schema and can be used via the usual
@@ -49,19 +49,18 @@ class BearerTokenSchema(PyramidRequestSchema):
         {'authorization': 'Bearer eyJ...YoM'}
 
         >>> schema.load({'authorization': 'Bearer eyJ...YoM'}).data
-        LTIUser(user_id='...', oauth_consumer_key='...', ...)
+        LTIUser(user_id='...', application_instance_id='...', ...)
 
     Or to parse an models.LTIUser out of a Pyramid
     request's authorization param using webargs::
 
         >>> from webargs.pyramidparser import parser
         >>> parser.parse(s, request)
-        LTIUser(user_id='...', oauth_consumer_key='...', ...)
+        LTIUser(user_id='...', application_instance_id='...', ...)
     """
 
     user_id = marshmallow.fields.Str(required=True)
-    oauth_consumer_key = marshmallow.fields.Str(required=True)
-    application_instance_id = marshmallow.fields.Int(required=False, allow_none=True)
+    application_instance_id = marshmallow.fields.Int(required=True)
     roles = marshmallow.fields.Str(required=True)
     tool_consumer_instance_guid = marshmallow.fields.Str(required=True)
     display_name = marshmallow.fields.Str(required=True)

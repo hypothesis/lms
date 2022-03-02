@@ -36,16 +36,21 @@ class TestOAuth2TokenService:
 
         assert result == oauth_token
 
-    @pytest.mark.parametrize("wrong_param", ("consumer_key", "user_id"))
+    @pytest.mark.parametrize("wrong_param", ("application_instance", "user_id"))
     def test_get_raises_OAuth2TokenError_with_no_token(
         self, db_session, wrong_param, application_instance, lti_user
     ):
+        wrong_value = "WRONG"
+        if wrong_param == "application_instance":
+            application_instance.consumer_key = "WRONG"
+            wrong_value = application_instance
+
         store = OAuth2TokenService(
             db_session,
             **{
-                "consumer_key": application_instance.consumer_key,
+                "application_instance": application_instance,
                 "user_id": lti_user.user_id,
-                wrong_param: "WRONG",
+                wrong_param: wrong_value,
             }
         )
 
@@ -72,16 +77,17 @@ class TestOAuth2TokenService:
         return oauth_token
 
     @pytest.fixture
-    def svc(self, pyramid_request):
+    def svc(self, pyramid_request, application_instance):
         return OAuth2TokenService(
             pyramid_request.db,
-            pyramid_request.lti_user.oauth_consumer_key,
+            application_instance,
             pyramid_request.lti_user.user_id,
         )
 
 
 class TestOAuth2TokenServiceFactory:
-    def test_it(self, pyramid_request):
+    def test_it(self, pyramid_request, application_instance_service):
         svc = oauth2_token_service_factory(mock.sentinel.context, pyramid_request)
 
+        application_instance_service.get_current.assert_called_once()
         assert isinstance(svc, OAuth2TokenService)

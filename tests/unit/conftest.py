@@ -18,7 +18,7 @@ TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
 
 
 @pytest.fixture
-def pyramid_request(db_session):
+def pyramid_request(db_session, application_instance):
     """
     Return a dummy Pyramid request object.
 
@@ -47,7 +47,9 @@ def pyramid_request(db_session):
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False  # pragma: no cover
     )
-    pyramid_request.lti_user = factories.LTIUser()
+    pyramid_request.lti_user = factories.LTIUser(
+        application_instance_id=application_instance.id
+    )
 
     # The DummyRequest request lacks a content_type property which the real
     # request has
@@ -177,13 +179,15 @@ def httpretty_():
 
 
 @pytest.fixture
-def application_instance(pyramid_request):
-    return factories.ApplicationInstance(
-        consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+def application_instance(db_session):
+    application_instance = factories.ApplicationInstance(
         developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
         settings=ApplicationSettings({}),
     )
+    # Force flush to get a non None application_instance.id
+    db_session.flush()
+    return application_instance
 
 
 @pytest.fixture

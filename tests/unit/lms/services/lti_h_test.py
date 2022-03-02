@@ -86,13 +86,13 @@ class TestSync:
 
 class TestGroupInfoUpdating:
     def test_sync_upserts_the_GroupInfo_into_the_db(
-        self, group_info_service, lti_h_svc, pyramid_request, grouping
+        self, group_info_service, lti_h_svc, grouping, application_instance_service
     ):
         lti_h_svc.sync([grouping], sentinel.params)
 
         group_info_service.upsert.assert_called_once_with(
             h_group=grouping,
-            consumer_key=pyramid_request.lti_user.oauth_consumer_key,
+            consumer_key=application_instance_service.get_current.return_value.consumer_key,
             params=sentinel.params,
         )
 

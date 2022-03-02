@@ -8,15 +8,21 @@ from tests import factories
 
 
 class TestApplicationInstanceService:
-    def test_get_default(self, service, application_instance, pyramid_request):
-        application_instance.consumer_key = pyramid_request.lti_user.oauth_consumer_key
-
+    def test_get_current(self, service, application_instance):
         assert service.get_current() == application_instance
 
-    def test_get_default_raises_ApplicationInstanceNotFound_with_no_user(
+    def test_get_current_raises_ApplicationInstanceNotFound_with_no_user(
         self, service, pyramid_request
     ):
         pyramid_request.lti_user = None
+
+        with pytest.raises(ApplicationInstanceNotFound):
+            service.get_current()
+
+    def test_get_current_raises_for_non_existing_id(self, service, pyramid_request):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(
+            application_instance_id=1000
+        )
 
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_current()
@@ -37,11 +43,11 @@ class TestApplicationInstanceService:
         return ApplicationInstanceService(db=db_session, request=pyramid_request)
 
     @pytest.fixture(autouse=True)
-    def application_instance(self):
+    def application_instance(self, application_instance):
         # Some noise
         factories.ApplicationInstance.create_batch(size=3)
 
-        return factories.ApplicationInstance()
+        return application_instance
 
 
 class TestFactory:

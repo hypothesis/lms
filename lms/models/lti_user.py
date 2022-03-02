@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from lms.models import HUser
 
@@ -9,9 +9,6 @@ class LTIUser(NamedTuple):
     user_id: str
     """The user_id LTI launch parameter."""
 
-    oauth_consumer_key: str
-    """The oauth_consumer_key LTI launch parameter."""
-
     roles: str
     """The user's LTI roles."""
 
@@ -21,11 +18,11 @@ class LTIUser(NamedTuple):
     display_name: str
     """The user's display name."""
 
+    application_instance_id: int
+    """ID of the application instance this user belongs to"""
+
     email: str = ""
     """The user's email address."""
-
-    application_instance_id: Optional[int] = None
-    """ID of the application instance this user belongs to"""
 
     @property
     def h_user(self):

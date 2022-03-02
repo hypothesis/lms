@@ -35,15 +35,8 @@ class JSConfig:
         return self._lti_user.h_user
 
     @property
-    def _consumer_key(self):
-        return self._lti_user.oauth_consumer_key
-
     def _application_instance(self):
-        """
-        Return the current request's ApplicationInstance.
-
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
-        """
+        """Return the current request's ApplicationInstance."""
         return self._request.find_service(name="application_instance").get_current()
 
     def add_document_url(self, document_url):
@@ -163,8 +156,6 @@ class JSConfig:
         Put the JavaScript code into "LTI launch" mode.
 
         This mode launches an assignment.
-
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
 
@@ -202,11 +193,9 @@ class JSConfig:
             submit the user's chosen document to
         :param form_fields: the fields (keys and values) to include in the
             HTML form that we submit
-
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
 
-        args = self._context, self._request, self._application_instance()
+        args = self._context, self._request, self._application_instance
 
         self._config.update(
             {
@@ -274,8 +263,6 @@ class JSConfig:
 
         In theory, though, the focused_user param could work outside of Canvas
         as well if we ever want it to.
-
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         focused_user = self._request.params.get("focused_user")
 
@@ -407,7 +394,7 @@ class JSConfig:
         and had grading info recorded for them.
         """
         grading_infos = self._grading_info_service.get_by_assignment(
-            oauth_consumer_key=self._consumer_key,
+            oauth_consumer_key=self._application_instance.consumer_key,
             context_id=self._request.params.get("context_id"),
             resource_link_id=self._request.params.get("resource_link_id"),
         )
@@ -434,8 +421,6 @@ class JSConfig:
 
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
-
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
         """
         # This is a lazy-computed property so that if it's going to raise an
         # exception that doesn't happen until someone actually reads it.
@@ -447,7 +432,7 @@ class JSConfig:
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._application_instance().provisioning:
+        if not self._application_instance.provisioning:
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]
@@ -542,8 +527,7 @@ class JSConfig:
             return self._canvas_sync_api()
 
         if (
-            self._application_instance().product
-            == ApplicationInstance.Product.BLACKBOARD
+            self._application_instance.product == ApplicationInstance.Product.BLACKBOARD
             and self._context.is_blackboard_group_launch
         ):
 

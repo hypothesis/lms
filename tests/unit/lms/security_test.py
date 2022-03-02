@@ -412,16 +412,16 @@ class TestAuthenticatedUserID:
             (
                 factories.LTIUser(
                     user_id="sam",
-                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
+                    application_instance_id=100,
                 ),
-                "c2Ft:Hypothesisf301584250a2dece14f021ab8424018a",
+                "c2Ft:100",
             ),
             (
                 factories.LTIUser(
                     user_id="Sam:Smith",
-                    oauth_consumer_key="Hypothesisf301584250a2dece14f021ab8424018a",
+                    application_instance_id=200,
                 ),
-                "U2FtOlNtaXRo:Hypothesisf301584250a2dece14f021ab8424018a",
+                "U2FtOlNtaXRo:200",
             ),
         ],
     )
