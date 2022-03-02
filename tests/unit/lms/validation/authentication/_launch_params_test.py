@@ -19,6 +19,7 @@ class TestLaunchParamsAuthSchema:
         assert lti_user == LTIUser(
             user_id="TEST_USER_ID",
             oauth_consumer_key="TEST_OAUTH_CONSUMER_KEY",
+            application_instance_id=None,
             roles="TEST_ROLES",
             tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
             display_name=display_name.return_value,
