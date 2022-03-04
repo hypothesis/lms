@@ -94,6 +94,7 @@ class TestUpsertFromRequest:
         # Check the LTI user data are there
         assert result.oauth_consumer_key == application_instance.consumer_key
         assert result.user_id == pyramid_request.lti_user.user_id
+        assert result.application_instance_id == application_instance.id
 
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, lti_user, application_instance
