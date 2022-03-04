@@ -50,7 +50,7 @@ class LTIHService:
         for h_group in h_groups:
             self._group_info_service.upsert(
                 h_group=h_group,
-                consumer_key=application_instance.consumer_key,
+                application_instance=application_instance,
                 params=group_info_params,
             )
 

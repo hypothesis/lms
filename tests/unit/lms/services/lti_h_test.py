@@ -92,7 +92,7 @@ class TestGroupInfoUpdating:
 
         group_info_service.upsert.assert_called_once_with(
             h_group=grouping,
-            consumer_key=application_instance_service.get_current.return_value.consumer_key,
+            application_instance=application_instance_service.get_current.return_value,
             params=sentinel.params,
         )
 
