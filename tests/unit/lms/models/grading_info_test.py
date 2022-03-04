@@ -2,7 +2,6 @@ import pytest
 import sqlalchemy.exc
 
 from lms.models import GradingInfo
-from tests import factories
 
 
 class TestGradingInfo:
@@ -15,6 +14,7 @@ class TestGradingInfo:
         assert lrs.lis_result_sourcedid == "result_sourcedid"
         assert lrs.lis_outcome_service_url == "https://somewhere.else"
         assert lrs.oauth_consumer_key == application_instance.consumer_key
+        assert lrs.application_instance_id == application_instance.id
         assert lrs.user_id == "339483948"
         assert lrs.context_id == "random context"
         assert lrs.resource_link_id == "random resource link id"
@@ -28,6 +28,7 @@ class TestGradingInfo:
             "lis_result_sourcedid",
             "lis_outcome_service_url",
             "oauth_consumer_key",
+            "application_instance_id",
             "user_id",
             "context_id",
             "resource_link_id",
@@ -59,11 +60,6 @@ class TestGradingInfo:
             db_session.flush()
 
     @pytest.fixture
-    def application_instance(self):
-        """Return the ApplicationInstance that the GradingInfos belong to."""
-        return factories.ApplicationInstance()
-
-    @pytest.fixture
     def grading_info(self, grading_info_params):
         return GradingInfo(**grading_info_params)
 
@@ -83,6 +79,7 @@ class TestGradingInfo:
             "lis_result_sourcedid": "result_sourcedid",
             "lis_outcome_service_url": "https://somewhere.else",
             "oauth_consumer_key": application_instance.consumer_key,
+            "application_instance_id": application_instance.id,
             "user_id": "339483948",
             "context_id": "random context",
             "resource_link_id": "random resource link id",

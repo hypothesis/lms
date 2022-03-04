@@ -132,6 +132,7 @@ class TestGroupInfoUpsert:
                 id=None,
                 authority_provided_id=self.AUTHORITY,
                 consumer_key=application_instance.consumer_key,
+                application_instance_id=application_instance.id,
             )
         )
 

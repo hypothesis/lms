@@ -7,17 +7,6 @@ from tests import factories
 
 
 class TestGroupInfo:
-    def test_persist_and_retrieve(self, application_instance, db_session, group_info):
-        db_session.add(group_info)
-
-        retrieved_group_info = db_session.query(GroupInfo).one()
-
-        assert retrieved_group_info.id
-        assert (
-            retrieved_group_info.authority_provided_id == "test_authority_provided_id"
-        )
-        assert retrieved_group_info.consumer_key == application_instance.consumer_key
-
     def test_application_instance_relation(
         self, application_instance, db_session, group_info
     ):
@@ -27,21 +16,13 @@ class TestGroupInfo:
 
         assert retrieved_group_info.application_instance == application_instance
 
-    def test_authority_provided_id_cant_be_None(self, db_session, group_info):
-        group_info.authority_provided_id = None
-        db_session.add(group_info)
-
-        with pytest.raises(
-            IntegrityError, match='"authority_provided_id" violates not-null constrain'
-        ):
-            db_session.flush()
-
     def test_application_instance_cant_be_None(self, db_session, group_info):
         group_info.application_instance = None
         db_session.add(group_info)
 
         with pytest.raises(
-            IntegrityError, match='"consumer_key" violates not-null constrain'
+            IntegrityError,
+            match='"application_instance_id" violates not-null constrain',
         ):
             db_session.flush()
 
@@ -117,4 +98,5 @@ class TestGroupInfo:
         return GroupInfo(
             authority_provided_id="test_authority_provided_id",
             application_instance=application_instance,
+            consumer_key=application_instance.consumer_key,
         )

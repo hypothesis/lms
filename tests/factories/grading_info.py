@@ -1,7 +1,8 @@
-from factory import Faker, make_factory
+from factory import Faker, SubFactory, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
+from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import (
     H_DISPLAY_NAME,
     H_USERNAME,
@@ -27,4 +28,5 @@ GradingInfo = make_factory(
     ),
     h_username=H_USERNAME,
     h_display_name=H_DISPLAY_NAME,
+    application_instance=SubFactory(ApplicationInstance),
 )

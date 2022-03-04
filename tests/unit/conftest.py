@@ -198,5 +198,7 @@ def lti_user(pyramid_request):
 @pytest.fixture
 def oauth_token(lti_user, application_instance):
     return factories.OAuth2Token(
-        user_id=lti_user.user_id, application_instance=application_instance
+        user_id=lti_user.user_id,
+        consumer_key=application_instance.consumer_key,
+        application_instance=application_instance,
     )
