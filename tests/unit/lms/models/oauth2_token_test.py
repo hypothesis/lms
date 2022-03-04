@@ -4,7 +4,6 @@ import pytest
 import sqlalchemy.exc
 
 from lms.models import OAuth2Token
-from tests import factories
 
 
 class TestOAuth2Token:
@@ -15,6 +14,7 @@ class TestOAuth2Token:
             OAuth2Token(
                 user_id="test_user_id",
                 consumer_key=application_instance.consumer_key,
+                application_instance_id=application_instance.id,
                 access_token="test_access_token",
                 refresh_token="test_refresh_token",
                 expires_in=3600,
@@ -25,6 +25,7 @@ class TestOAuth2Token:
         token = db_session.query(OAuth2Token).one()
         assert token.user_id == "test_user_id"
         assert token.consumer_key == application_instance.consumer_key
+        assert token.application_instance_id == application_instance.id
         assert token.application_instance == application_instance
         assert token.access_token == "test_access_token"
         assert token.refresh_token == "test_refresh_token"
@@ -60,16 +61,16 @@ class TestOAuth2Token:
 
         assert token.application_instance == application_instance
 
-    def test_setting_application_instance_sets_consumer_key(
+    def test_setting_application_instance_sets_fk(
         self, application_instance, db_session, init_kwargs
     ):
-        del init_kwargs["consumer_key"]
+        del init_kwargs["application_instance_id"]
         init_kwargs["application_instance"] = application_instance
         token = OAuth2Token(**init_kwargs)
         db_session.add(token)
         db_session.flush()
 
-        assert token.consumer_key == application_instance.consumer_key
+        assert token.application_instance_id == application_instance.id
 
     def test_access_token_cant_be_None(self, db_session, init_kwargs):
         del init_kwargs["access_token"]
@@ -105,11 +106,6 @@ class TestOAuth2Token:
 
         assert isinstance(token.received_at, datetime.datetime)
 
-    @pytest.fixture(autouse=True)
-    def application_instance(self):
-        """Return the ApplicationInstance that the test OAuth2Token's belong to."""
-        return factories.ApplicationInstance()
-
     @pytest.fixture
     def init_kwargs(self, application_instance):
         """
@@ -121,4 +117,5 @@ class TestOAuth2Token:
             user_id="test_user_id",
             access_token="test_access_token",
             consumer_key=application_instance.consumer_key,
+            application_instance_id=application_instance.id,
         )

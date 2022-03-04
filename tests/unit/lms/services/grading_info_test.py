@@ -13,9 +13,9 @@ pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestGetByAssignment:
-    def test_it(self, svc, matching_grading_infos):
+    def test_it(self, svc, matching_grading_infos, application_instance):
         grading_infos = svc.get_by_assignment(
-            "matching_oauth_consumer_key",
+            application_instance.consumer_key,
             "matching_context_id",
             "matching_resource_link_id",
         )
@@ -55,11 +55,12 @@ class TestGetByAssignment:
         assert not list(grading_infos)
 
     @pytest.fixture(autouse=True)
-    def matching_grading_infos(self):
+    def matching_grading_infos(self, application_instance):
         """Add some GradingInfo's that should match the DB query in the test above."""
         return factories.GradingInfo.create_batch(
             size=3,
-            oauth_consumer_key="matching_oauth_consumer_key",
+            oauth_consumer_key=application_instance.consumer_key,
+            application_instance_id=application_instance.id,
             context_id="matching_context_id",
             resource_link_id="matching_resource_link_id",
         )

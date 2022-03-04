@@ -33,18 +33,18 @@ class OAuth2Token(BASE):
         nullable=False,
     )
 
-    #: The ApplicationInstance that this group belongs to foreign key
+    #: The ApplicationInstance that this token belongs to foreign key
     application_instance_id = sa.Column(
         sa.Integer(),
         sa.ForeignKey("application_instances.id", ondelete="cascade"),
-        nullable=True,
+        nullable=False,
     )
 
     #: The ApplicationInstance that this access token belongs to.
     application_instance = sa.orm.relationship(
         "ApplicationInstance",
         back_populates="access_tokens",
-        foreign_keys=[consumer_key],
+        foreign_keys=[application_instance_id],
     )
 
     #: The OAuth 2.0 access token, as received from the authorization server.

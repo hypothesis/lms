@@ -44,12 +44,14 @@ class GroupInfo(BASE):
     application_instance_id = sa.Column(
         sa.Integer(),
         sa.ForeignKey("application_instances.id", ondelete="cascade"),
-        nullable=True,
+        nullable=False,
     )
 
     #: The ApplicationInstance that this group belongs to.
     application_instance = sa.orm.relationship(
-        "ApplicationInstance", back_populates="group_infos", foreign_keys=[consumer_key]
+        "ApplicationInstance",
+        back_populates="group_infos",
+        foreign_keys=[application_instance_id],
     )
 
     #: The value of the context_id param this group was last launched with.
