@@ -15,7 +15,7 @@ class TestGroupInfoUpsert:
     ):
         group_info_svc.upsert(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             params=params,
         )
 
@@ -39,7 +39,7 @@ class TestGroupInfoUpsert:
 
         group_info_svc.upsert(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             params=dict(params, context_title="NEW_TITLE"),
         )
 
@@ -55,7 +55,7 @@ class TestGroupInfoUpsert:
     ):
         group_info_svc.upsert(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             params=dict(
                 params,
                 id="IGNORE ME 1",
@@ -75,7 +75,7 @@ class TestGroupInfoUpsert:
     ):
         group_info_svc.upsert(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             params={},
         )
 
@@ -94,7 +94,7 @@ class TestGroupInfoUpsert:
     ):
         group_info_svc.upsert(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             params={},
         )
 

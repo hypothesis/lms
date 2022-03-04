@@ -26,7 +26,7 @@ class GroupInfoService:
         self._db = request.db
         self._lti_user = request.lti_user
 
-    def upsert(self, h_group, consumer_key, params):
+    def upsert(self, h_group, application_instance, params):
         """
         Upsert a row into the `group_info` DB table.
 
@@ -43,7 +43,7 @@ class GroupInfoService:
         :param h_group: the group to upsert
         :type h_group: models.HGroup
 
-        :param consumer_key: the GroupInfo.consumer_key value to set
+        :param application_instance: the ApplicationInstance this group belongs to
 
         :param params: the other GroupInfo columns to set
         :type params: dict
@@ -58,11 +58,12 @@ class GroupInfoService:
         if not group_info:
             group_info = GroupInfo(
                 authority_provided_id=h_group.authority_provided_id,
-                consumer_key=consumer_key,
+                consumer_key=application_instance.consumer_key,
             )
             self._db.add(group_info)
 
-        group_info.consumer_key = consumer_key
+        group_info.consumer_key = application_instance.consumer_key
+        group_info.application_instance_id = application_instance.id
         group_info.update_from_dict(
             params, skip_keys={"authority_provided_id", "id", "info"}
         )
