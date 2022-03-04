@@ -75,7 +75,7 @@ class GradingInfoService:
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],
         )
-
+        grading_info.application_instance_id = application_instance.id
         grading_info.h_username = request.lti_user.h_user.username
         grading_info.h_display_name = request.lti_user.h_user.display_name
 
