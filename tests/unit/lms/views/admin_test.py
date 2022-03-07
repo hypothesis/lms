@@ -98,6 +98,7 @@ class TestAdminViews:
             ("blackboard", "groups_enabled"),
             ("microsoft_onedrive", "files_enabled"),
             ("vitalsource", "enabled"),
+            ("jstor", "enabled"),
         ),
     )
     @pytest.mark.parametrize("enabled", (True, False))

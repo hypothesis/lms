@@ -88,6 +88,7 @@ class AdminViews:
             ("blackboard", "groups_enabled"),
             ("microsoft_onedrive", "files_enabled"),
             ("vitalsource", "enabled"),
+            ("jstor", "enabled"),
         ):
             enabled = self.request.params.get(f"{setting}.{sub_setting}") == "on"
             ai.settings.set(setting, sub_setting, enabled)
