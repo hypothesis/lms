@@ -101,3 +101,9 @@ class FilePickerConfig:
         """Get Vital Source config."""
         enabled = application_instance.settings.get("vitalsource", "enabled", False)
         return {"enabled": enabled}
+
+    @classmethod
+    def jstor_config(cls, _context, _request, application_instance):
+        """Get JSTOR config."""
+        enabled = application_instance.settings.get("jstor", "enabled", False)
+        return {"enabled": enabled}

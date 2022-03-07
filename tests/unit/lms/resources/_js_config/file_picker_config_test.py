@@ -164,6 +164,18 @@ class TestFilePickerConfig:
 
         assert config == {"enabled": enabled}
 
+    @pytest.mark.parametrize("enabled", (True, False))
+    def test_jstor_config(
+        self, context, pyramid_request, application_instance, enabled
+    ):
+        application_instance.settings.set("jstor", "enabled", enabled)
+
+        config = FilePickerConfig.jstor_config(
+            context, pyramid_request, application_instance
+        )
+
+        assert config == {"enabled": enabled}
+
     @pytest.fixture
     def canvas_files_enabled(self, context, pyramid_request, application_instance):
         context.is_canvas = True

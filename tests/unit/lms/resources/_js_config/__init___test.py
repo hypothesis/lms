@@ -44,6 +44,7 @@ class TestEnableContentItemSelectionMode:
             ("google_files_config", "google"),
             ("microsoft_onedrive", "microsoftOneDrive"),
             ("vital_source_config", "vitalSource"),
+            ("jstor_config", "jstor"),
         ),
     )
     def test_it_adds_picker_config(
