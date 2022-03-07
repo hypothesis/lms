@@ -223,6 +223,7 @@ class JSConfig:
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
                     "vitalSource": FilePickerConfig.vital_source_config(*args),
+                    "jstor": FilePickerConfig.jstor_config(*args),
                 },
             }
         )
