@@ -178,6 +178,10 @@ describe('FilePickerApp', () => {
           content: { type: 'url', url: 'vitalsource://bookID/BOOK/cfi/CFI' },
           summary: 'Book from VitalSource',
         },
+        {
+          content: { type: 'url', url: 'jstor://1234' },
+          summary: 'JSTOR article',
+        },
       ].forEach(({ content, summary }) => {
         it('displays a summary of the assignment content', () => {
           const wrapper = renderFilePicker();
