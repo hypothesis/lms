@@ -89,9 +89,7 @@ class BasicLTILaunchViews:
 
         if not lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
-            request.find_service(name="grading_info").upsert_from_request(
-                request, lti_user.h_user, lti_user.user_id, self.application_instance
-            )
+            request.find_service(name="grading_info").upsert_from_request(request)
 
     @view_config(vitalsource_book=True)
     def legacy_vitalsource_lti_launch(self):

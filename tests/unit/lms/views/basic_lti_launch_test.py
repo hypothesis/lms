@@ -210,15 +210,11 @@ class TestCommon:
         pyramid_request,
         grading_info_service,
         view_caller,
-        application_instance,
     ):
         view_caller(context, pyramid_request)
 
         grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request,
-            pyramid_request.lti_user.h_user,
-            pyramid_request.lti_user.user_id,
-            application_instance,
+            pyramid_request
         )
 
     def test_it_does_not_call_grading_info_upsert_if_instructor(

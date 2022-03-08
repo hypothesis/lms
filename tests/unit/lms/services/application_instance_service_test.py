@@ -43,11 +43,8 @@ class TestApplicationInstanceService:
         return ApplicationInstanceService(db=db_session, request=pyramid_request)
 
     @pytest.fixture(autouse=True)
-    def application_instance(self, application_instance):
-        # Some noise
+    def with_application_instance_noise(self):
         factories.ApplicationInstance.create_batch(size=3)
-
-        return application_instance
 
 
 class TestFactory:

@@ -193,10 +193,7 @@ class TestLTISecurityPolicy:
     def test_forget(self, pyramid_request):
         LTISecurityPolicy().forget(pyramid_request)
 
-    def test_permits_allow(
-        self,
-        pyramid_request,
-    ):
+    def test_permits_allow(self, pyramid_request):
         pyramid_request.lti_user = factories.LTIUser()
         policy = LTISecurityPolicy()
         is_allowed = policy.permits(
@@ -224,13 +221,6 @@ class TestLTISecurityPolicy:
                     application_instance_id=100,
                 ),
                 "c2Ft:100",
-            ),
-            (
-                factories.LTIUser(
-                    user_id="Sam:Smith",
-                    application_instance_id=200,
-                ),
-                "U2FtOlNtaXRo:200",
             ),
         ],
     )
