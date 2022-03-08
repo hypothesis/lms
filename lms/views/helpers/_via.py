@@ -4,7 +4,7 @@ from h_vialib import ViaClient
 __all__ = ["via_url"]
 
 
-def via_url(request, document_url, content_type=None):
+def via_url(request, document_url, content_type=None, options=None):
     """
     Return the Via URL for annotating the given ``document_url``.
 
@@ -16,8 +16,19 @@ def via_url(request, document_url, content_type=None):
     :param request: Request object
     :param document_url: Document URL to present in Via
     :param content_type: Either "pdf" or "html" if known, None if not
+    :param options: Any extra options for the url
     :return: A URL string
     """
+    if not options:
+        options = {}
+
+    options.update(
+        {
+            "via.client.requestConfigFromFrame.origin": request.host_url,
+            "via.client.requestConfigFromFrame.ancestorLevel": "2",
+        }
+    )
+
     return ViaClient(
         service_url=request.registry.settings["via_url"],
         secret=request.registry.settings["via_secret"],
@@ -25,8 +36,5 @@ def via_url(request, document_url, content_type=None):
         document_url,
         content_type,
         blocked_for="lms",
-        options={
-            "via.client.requestConfigFromFrame.origin": request.host_url,
-            "via.client.requestConfigFromFrame.ancestorLevel": "2",
-        },
+        options=options,
     )
