@@ -48,6 +48,9 @@ describe('ContentSelector', () => {
           },
         },
         google: {},
+        jstor: {
+          enabled: false,
+        },
         microsoftOneDrive: {
           enabled: true,
           clientId: '12345',
@@ -479,49 +482,92 @@ describe('ContentSelector', () => {
     });
   });
 
-  it('renders VitalSource picker button if enabled', () => {
-    fakeConfig.filePicker.vitalSource.enabled = true;
-    const wrapper = renderContentSelector();
-    assert.isTrue(
-      wrapper.exists('LabeledButton[data-testid="vitalsource-button"]')
-    );
+  describe('VitalSource picker', () => {
+    it('renders VitalSource picker button if enabled', () => {
+      fakeConfig.filePicker.vitalSource.enabled = true;
+      const wrapper = renderContentSelector();
+      assert.isTrue(
+        wrapper.exists('LabeledButton[data-testid="vitalsource-button"]')
+      );
+    });
+
+    it('shows VitalSource book picker when VitalSource button is clicked', () => {
+      fakeConfig.filePicker.vitalSource.enabled = true;
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({ onSelectContent });
+
+      const button = wrapper.find(
+        'LabeledButton[data-testid="vitalsource-button"]'
+      );
+      interact(wrapper, () => {
+        button.props().onClick();
+      });
+
+      assert.isTrue(wrapper.exists('BookPicker'));
+    });
+
+    it('submits VitalSource chapter URL', () => {
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({
+        defaultActiveDialog: 'vitalSourceBook',
+        onSelectContent,
+      });
+
+      const picker = wrapper.find('BookPicker');
+      interact(wrapper, () => {
+        picker
+          .props()
+          .onSelectBook(
+            { id: 'test-book' },
+            { url: 'vitalsource://book/BOOK_ID/cfi/CFI' }
+          );
+      });
+
+      assert.calledWith(onSelectContent, {
+        type: 'url',
+        url: 'vitalsource://book/BOOK_ID/cfi/CFI',
+      });
+    });
   });
 
-  it('shows VitalSource book picker when VitalSource button is clicked', () => {
-    fakeConfig.filePicker.vitalSource.enabled = true;
-    const onSelectContent = sinon.stub();
-    const wrapper = renderContentSelector({ onSelectContent });
-
-    const button = wrapper.find(
-      'LabeledButton[data-testid="vitalsource-button"]'
-    );
-    interact(wrapper, () => {
-      button.props().onClick();
+  describe('JSTOR picker', () => {
+    it('renders JSTOR picker button if enabled', () => {
+      fakeConfig.filePicker.jstor.enabled = true;
+      const wrapper = renderContentSelector();
+      assert.isTrue(
+        wrapper.exists('LabeledButton[data-testid="jstor-button"]')
+      );
     });
 
-    assert.isTrue(wrapper.exists('BookPicker'));
-  });
+    it('shows JSTOR picker when JSTOR button is clicked', () => {
+      fakeConfig.filePicker.jstor.enabled = true;
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({ onSelectContent });
 
-  it('submits VitalSource chapter URL', () => {
-    const onSelectContent = sinon.stub();
-    const wrapper = renderContentSelector({
-      defaultActiveDialog: 'vitalSourceBook',
-      onSelectContent,
+      const button = wrapper.find('LabeledButton[data-testid="jstor-button"]');
+      interact(wrapper, () => {
+        button.props().onClick();
+      });
+
+      assert.isTrue(wrapper.exists('JSTORPicker'));
     });
 
-    const picker = wrapper.find('BookPicker');
-    interact(wrapper, () => {
-      picker
-        .props()
-        .onSelectBook(
-          { id: 'test-book' },
-          { url: 'vitalsource://book/BOOK_ID/cfi/CFI' }
-        );
-    });
+    it('submits JSTOR URL', () => {
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({
+        defaultActiveDialog: 'jstor',
+        onSelectContent,
+      });
 
-    assert.calledWith(onSelectContent, {
-      type: 'url',
-      url: 'vitalsource://book/BOOK_ID/cfi/CFI',
+      const picker = wrapper.find('JSTORPicker');
+      interact(wrapper, () => {
+        picker.props().onSelectURL('jstor://1234');
+      });
+
+      assert.calledWith(onSelectContent, {
+        type: 'url',
+        url: 'jstor://1234',
+      });
     });
   });
 });

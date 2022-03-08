@@ -48,11 +48,13 @@ function formatContentURL(content) {
   if (content.name) {
     return content.name;
   }
-  // All Blackboard file URLs start with the literal string `blackboard:`
-  if (content.url.startsWith('blackboard:')) {
+
+  if (content.url.startsWith('jstor://')) {
+    return 'JSTOR article';
+  }
+  if (content.url.startsWith('blackboard://')) {
     return 'PDF file in Blackboard';
   }
-  // All VitalSource file URLs start with the literal string `vitalsource://`
   if (content.url.startsWith('vitalsource://')) {
     return 'Book from VitalSource';
   }

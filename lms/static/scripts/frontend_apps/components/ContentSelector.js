@@ -7,6 +7,7 @@ import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
 
 import BookPicker from './BookPicker';
+import JSTORPicker from './JSTORPicker';
 import LMSFilePicker from './LMSFilePicker';
 import URLPicker from './URLPicker';
 
@@ -17,7 +18,7 @@ import URLPicker from './URLPicker';
  *
  * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
  *
- * @typedef {'blackboardFile'|'canvasFile'|'url'|'vitalSourceBook'|null} DialogType
+ * @typedef {'blackboardFile'|'canvasFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
  *
  * @typedef {import('../utils/content-item').Content} Content
  */
@@ -52,6 +53,7 @@ export default function ContentSelector({
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
       },
+      jstor: { enabled: jstorEnabled },
       microsoftOneDrive: {
         enabled: oneDriveFilesEnabled,
         clientId: oneDriveClientId,
@@ -170,6 +172,9 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'jstor':
+      dialog = <JSTORPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
+      break;
     case 'vitalSourceBook':
       dialog = (
         <BookPicker
@@ -259,6 +264,15 @@ export default function ContentSelector({
               data-testid="google-drive-button"
             >
               Select PDF from Google Drive
+            </LabeledButton>
+          )}
+          {jstorEnabled && (
+            <LabeledButton
+              onClick={() => selectDialog('jstor')}
+              variant="primary"
+              data-testid="jstor-button"
+            >
+              Select JSTOR article
             </LabeledButton>
           )}
           {oneDriveFilesEnabled && (
