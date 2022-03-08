@@ -100,7 +100,16 @@ class LTISecurityPolicy:
         if request.lti_user is None:
             return None
 
-        return _authenticated_userid(request.lti_user)
+        # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
+        user_id_bytes = request.lti_user.user_id.encode()
+
+        safe_user_id_bytes = base64.urlsafe_b64encode(user_id_bytes)
+
+        # urlsafe_b64encode() returns ASCII bytes but we need unicode, so
+        # decode it.
+        safe_user_id = safe_user_id_bytes.decode("ascii")
+
+        return ":".join([safe_user_id, str(request.lti_user.application_instance_id)])
 
     def identity(self, request):
         userid = self.authenticated_userid(request)
@@ -133,20 +142,6 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
     def permits(self, request, context, permission):
         return _permits(self, request, context, permission)
-
-
-def _authenticated_userid(lti_user):
-    """Return a request.authenticated_userid string for lti_user."""
-    # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
-    user_id_bytes = lti_user.user_id.encode()
-
-    safe_user_id_bytes = base64.urlsafe_b64encode(user_id_bytes)
-
-    # urlsafe_b64encode() returns ASCII bytes but we need unicode, so
-    # decode it.
-    safe_user_id = safe_user_id_bytes.decode("ascii")
-
-    return ":".join([safe_user_id, str(lti_user.application_instance_id)])
 
 
 def _permits(policy, request, _context, permission):

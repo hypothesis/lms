@@ -12,7 +12,6 @@ from lms.security import (
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
-    _authenticated_userid,
     _get_lti_user,
     includeme,
 )
@@ -168,14 +167,6 @@ class TestLMSGoogleSecurityPolicy:
 
 @pytest.mark.usefixtures("pyramid_config")
 class TestLTISecurityPolicy:
-    def test_it_returns_the_lti_userid(self, pyramid_request, _authenticated_userid):
-        policy = LTISecurityPolicy()
-
-        userid = policy.authenticated_userid(pyramid_request)
-
-        _authenticated_userid.assert_called_once_with(pyramid_request.lti_user)
-        assert userid == _authenticated_userid.return_value
-
     def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
         pyramid_request.lti_user = None
         policy = LTISecurityPolicy()
@@ -183,18 +174,16 @@ class TestLTISecurityPolicy:
 
         assert userid == Identity(userid="", permissions=[])
 
-    def test_identity_when_theres_an_lti_user(
-        self, pyramid_request, _authenticated_userid
-    ):
+    def test_identity_when_theres_an_lti_user(self, pyramid_request):
         policy = LTISecurityPolicy()
 
         identity = policy.identity(pyramid_request)
 
-        _authenticated_userid.assert_called_once_with(pyramid_request.lti_user)
-        assert identity == Identity(
-            userid=_authenticated_userid.return_value,
-            permissions=[Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API],
-        )
+        assert identity.userid
+        assert identity.permissions == [
+            Permissions.LTI_LAUNCH_ASSIGNMENT,
+            Permissions.API,
+        ]
 
     def test_remember(self, pyramid_request):
         LTISecurityPolicy().remember(
@@ -208,9 +197,8 @@ class TestLTISecurityPolicy:
         self,
         pyramid_request,
     ):
-        pyramid_request.lti_user = "some-user"
+        pyramid_request.lti_user = factories.LTIUser()
         policy = LTISecurityPolicy()
-
         is_allowed = policy.permits(
             pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
         )
@@ -226,9 +214,31 @@ class TestLTISecurityPolicy:
 
         assert is_allowed == Denied("denied")
 
-    @pytest.fixture(autouse=True)
-    def _authenticated_userid(self, patch):
-        return patch("lms.security._authenticated_userid")
+    @pytest.mark.parametrize(
+        "lti_user,expected_userid",
+        [
+            (None, None),
+            (
+                factories.LTIUser(
+                    user_id="sam",
+                    application_instance_id=100,
+                ),
+                "c2Ft:100",
+            ),
+            (
+                factories.LTIUser(
+                    user_id="Sam:Smith",
+                    application_instance_id=200,
+                ),
+                "U2FtOlNtaXRo:200",
+            ),
+        ],
+    )
+    def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
+        policy = LTISecurityPolicy()
+        pyramid_request.lti_user = lti_user
+
+        assert policy.authenticated_userid(pyramid_request) == expected_userid
 
 
 class TestSecurityPolicy:
@@ -403,30 +413,6 @@ class TestSecurityPolicy:
     @pytest.fixture
     def google_security_policy(self, LMSGoogleSecurityPolicy):
         return LMSGoogleSecurityPolicy.return_value
-
-
-class TestAuthenticatedUserID:
-    @pytest.mark.parametrize(
-        "lti_user,expected_userid",
-        [
-            (
-                factories.LTIUser(
-                    user_id="sam",
-                    application_instance_id=100,
-                ),
-                "c2Ft:100",
-            ),
-            (
-                factories.LTIUser(
-                    user_id="Sam:Smith",
-                    application_instance_id=200,
-                ),
-                "U2FtOlNtaXRo:200",
-            ),
-        ],
-    )
-    def test_it(self, lti_user, expected_userid):
-        assert _authenticated_userid(lti_user) == expected_userid
 
 
 @pytest.mark.usefixtures("user_service")
