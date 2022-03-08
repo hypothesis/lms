@@ -28,6 +28,19 @@ class TestViaURL:
             "http://test_via_server.is/route"
         ).with_query(url_params)
 
+    def test_adds_extra_options(self, pyramid_request):
+        url = "http://example.com"
+
+        final_url = via_url(pyramid_request, url, options={"new": "param"})
+
+        url_params = dict(self.DEFAULT_OPTIONS, new="param")
+        url_params["url"] = url
+        url_params["via.sec"] = Any.string()
+        url_params["via.blocked_for"] = "lms"
+        assert final_url == Any.url.matching(
+            "http://test_via_server.is/route"
+        ).with_query(url_params)
+
     pywb_test_params = pytest.mark.parametrize(
         "params,expected_extras",
         (
