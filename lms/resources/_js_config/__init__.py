@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from lms.models import ApplicationInstance, GroupInfo, HUser
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPIError
+from lms.services import HAPIError, JSTORService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -57,6 +57,8 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
+        jstor_service = self._request.find_service(iface=JSTORService)
+
         if document_url.startswith("blackboard://"):
             self._config["api"]["viaUrl"] = {
                 "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
@@ -83,6 +85,8 @@ class JSConfig:
                 "launchUrl": launch_url,
                 "launchParams": launch_params,
             }
+        elif jstor_service.enabled and document_url.startswith("jstor://"):
+            self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
 

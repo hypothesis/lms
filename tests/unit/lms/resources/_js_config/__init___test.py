@@ -193,6 +193,14 @@ class TestAddDocumentURL:
             "launchParams": mock.sentinel.launch_params,
         }
 
+    def test_jstor_sets_config(self, js_config, jstor_service, pyramid_request):
+        jstor_url = "jstor://DOI"
+
+        js_config.add_document_url(jstor_url)
+
+        jstor_service.via_url.assert_called_with(pyramid_request, jstor_url)
+        assert js_config.asdict()["viaUrl"] == jstor_service.via_url.return_value
+
     def test_it_adds_the_viaUrl_api_config_for_Canvas_documents(
         self, js_config, pyramid_request
     ):

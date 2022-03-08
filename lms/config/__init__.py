@@ -72,6 +72,7 @@ def configure(settings):
         "admin_auth_google_client_secret": sg.get("ADMIN_AUTH_GOOGLE_CLIENT_SECRET"),
         "blackboard_api_client_id": sg.get("BLACKBOARD_API_CLIENT_ID"),
         "blackboard_api_client_secret": sg.get("BLACKBOARD_API_CLIENT_SECRET"),
+        "jstor_ip": sg.get("JSTOR_IP"),
     }
 
     env_settings["dev"] = asbool(env_settings["dev"])
