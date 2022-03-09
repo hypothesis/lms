@@ -156,9 +156,6 @@ class TestOauthCallbackSchema:
         pyramid_request.params["state"] = "test_state"
         pyramid_request.session["oauth2_csrf"] = "test_csrf"
         pyramid_request.lti_user = lti_user
-        pyramid_request.registry.settings = {
-            "oauth2_state_secret": "test_oauth2_state_secret"
-        }
         return pyramid_request
 
     @pytest.fixture
