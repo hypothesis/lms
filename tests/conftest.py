@@ -45,6 +45,7 @@ TEST_SETTINGS = {
     "vitalsource_lti_launch_key": "test_vs_lti_launch_key",
     "vitalsource_lti_launch_secret": "test_vs_lti_launch_secret",
     "vitalsource_api_key": "test_vs_api_key",
+    "jstor_ip": "1.1.1.1",
 }
 
 

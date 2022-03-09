@@ -16,6 +16,7 @@ from lms.services.group_info import GroupInfoService
 from lms.services.grouping import GroupingService
 from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
+from lms.services.jstor import JSTORService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
@@ -52,6 +53,7 @@ __all__ = (
     "oauth_http_service",
     "user_service",
     "vitalsource_service",
+    "jstor_service",
 )
 
 
@@ -201,6 +203,11 @@ def oauth2_token_service(mock_service, oauth_token):
 @pytest.fixture
 def user_service(mock_service):
     return mock_service(UserService)
+
+
+@pytest.fixture
+def jstor_service(mock_service):
+    return mock_service(JSTORService)
 
 
 @pytest.fixture
