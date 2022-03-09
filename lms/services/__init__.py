@@ -11,6 +11,7 @@ from lms.services.exceptions import (
     OAuth2TokenError,
 )
 from lms.services.h_api import HAPIError
+from lms.services.jstor import JSTORService
 from lms.services.launch_verifier import (
     ConsumerKeyLaunchVerificationError,
     LTILaunchVerificationError,
@@ -72,3 +73,4 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
     config.register_service_factory("lms.services.file.factory", name="file")
+    config.register_service_factory("lms.services.jstor.factory", iface=JSTORService)
