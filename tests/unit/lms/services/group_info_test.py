@@ -140,35 +140,10 @@ class TestGroupInfoUpsert:
 
         return pre_existing_group
 
-    @pytest.fixture
-    def application_instance(self):
-        """Return the application instance that the test group infos belong to."""
-        return factories.ApplicationInstance()
-
     @pytest.fixture(autouse=True)
-    def group_infos(self, application_instance, pyramid_request):
-        """Add some "noise" group infos."""
-        # Add some "noise" group infos to the DB for every test, to make the
-        # tests more realistic.
-        group_infos = [
-            GroupInfo(
-                authority_provided_id="NOISE_ID_1",
-                consumer_key="NOISE_CONSUMER_KEY_1",
-                application_instance=application_instance,
-            ),
-            GroupInfo(
-                authority_provided_id="NOISE_ID_2",
-                consumer_key="NOISE_CONSUMER_KEY_2",
-                application_instance=application_instance,
-            ),
-            GroupInfo(
-                authority_provided_id="NOISE_ID_3",
-                consumer_key="NOISE_CONSUMER_KEY_3",
-                application_instance=application_instance,
-            ),
-        ]
-        pyramid_request.db.add_all(group_infos)
-        return group_infos
+    def with_existing_group_infos(self):
+        """Add some "noise" GroupInfo to make the tests more realistic."""
+        factories.GroupInfo.build_batch(3)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
