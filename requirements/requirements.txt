@@ -122,7 +122,7 @@ pyramid==2.0
     #   pyramid-retry
     #   pyramid-services
     #   pyramid-tm
-pyramid-exclog==1.0
+pyramid-exclog==1.1
     # via -r requirements/requirements.in
 pyramid-googleauth==1.0.2
     # via -r requirements/requirements.in
