@@ -18,7 +18,7 @@ class OAuth2Token(BASE):
     """
 
     __tablename__ = "oauth2_token"
-    __table_args__ = (sa.UniqueConstraint("user_id", "consumer_key"),)
+    __table_args__ = (sa.UniqueConstraint("user_id", "application_instance_id"),)
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
@@ -27,11 +27,7 @@ class OAuth2Token(BASE):
 
     #: The LTI consumer_key (oauth_consumer_key) of the application instance
     #: that this access token belongs to.
-    consumer_key = sa.Column(
-        sa.Unicode(),
-        sa.ForeignKey("application_instances.consumer_key", ondelete="cascade"),
-        nullable=False,
-    )
+    consumer_key = sa.Column(sa.Unicode(), nullable=True)
 
     #: The ApplicationInstance that this token belongs to foreign key
     application_instance_id = sa.Column(

@@ -17,10 +17,10 @@ class GradingInfo(CreatedUpdatedMixin, BASE):
     Data persisted here allows us to make use of APIs that support the LTI Basic
     Outcomes spec and configure the Hypothesis client appropriately for grading.
 
-    The combination of ``oauth_consumer_key``, ``user_id``, ``context_id``,
+    The combination of `application_instance`, `user_id`, `context_id`,
     and ``resource_link_id`` uniquely identifies a user-assignment
-    (``user_id``, ``resource_link_id``) launch within a particular course
-    (``context_id``) and application install (``oauth_consumer_key``). The
+    (`user_id`, `resource_link_id`) launch within a particular course
+    (`context_id`) and application instance (`application_instance_id`). The
     uniqueness constraint here indicates that we should only ever have one
     record per user-assignment-course-install combination.
 
@@ -40,14 +40,14 @@ class GradingInfo(CreatedUpdatedMixin, BASE):
     __tablename__ = "lis_result_sourcedid"
     __table_args__ = (
         sa.UniqueConstraint(
-            "oauth_consumer_key", "user_id", "context_id", "resource_link_id"
+            "application_instance_id", "user_id", "context_id", "resource_link_id"
         ),
     )
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
     lis_result_sourcedid = sa.Column(sa.UnicodeText(), nullable=False)
     lis_outcome_service_url = sa.Column(sa.UnicodeText(), nullable=False)
-    oauth_consumer_key = sa.Column(sa.UnicodeText(), nullable=False)
+    oauth_consumer_key = sa.Column(sa.UnicodeText(), nullable=True)
 
     #: The ApplicationInstance FK that this grading info belongs to
     application_instance_id = sa.Column(
