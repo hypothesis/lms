@@ -6,7 +6,6 @@ from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import (
     H_DISPLAY_NAME,
     H_USERNAME,
-    OAUTH_CONSUMER_KEY,
     RESOURCE_LINK_ID,
     USER_ID,
 )
@@ -18,7 +17,6 @@ GradingInfo = make_factory(
     lis_outcome_service_url=Faker(
         "numerify", text="https://example.com/test-lis-outcome-service-url-#"
     ),
-    oauth_consumer_key=OAUTH_CONSUMER_KEY,
     user_id=USER_ID,
     context_id=Faker("hexify", text="^" * 32),
     resource_link_id=RESOURCE_LINK_ID,

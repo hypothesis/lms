@@ -394,7 +394,7 @@ class JSConfig:
         and had grading info recorded for them.
         """
         grading_infos = self._grading_info_service.get_by_assignment(
-            oauth_consumer_key=self._application_instance.consumer_key,
+            application_instance=self._application_instance,
             context_id=self._request.params.get("context_id"),
             resource_link_id=self._request.params.get("resource_link_id"),
         )
