@@ -98,5 +98,4 @@ class TestGroupInfo:
         return GroupInfo(
             authority_provided_id="test_authority_provided_id",
             application_instance=application_instance,
-            consumer_key=application_instance.consumer_key,
         )

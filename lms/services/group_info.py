@@ -12,7 +12,7 @@ class GroupInfoService:
     Usage::
 
         group_info = request.find_service(name="group_info")
-        group_info.upsert(authority_provided_id, consumer_key, request.params)
+        group_info.upsert(h_group, application_instance, request.params)
     """
 
     GROUPING_TYPES = {
@@ -26,13 +26,13 @@ class GroupInfoService:
         self._db = request.db
         self._lti_user = request.lti_user
 
-    def upsert(self, h_group, application_instance, params):
+    def upsert(self, h_group, application_instance, params: dict):
         """
         Upsert a row into the `group_info` DB table.
 
         Find the models.GroupInfo matching the given h_group or create it if
-        none exists. Then update the GroupInfo's consumer_key to the given
-        consumer_key, and update its other columns from the items in `params`.
+        none exists. Then update the GroupInfo's application_instance to the given
+        application_instance, and update its other columns from the items in `params`.
 
         params["id"], params["authority_provided_id"], and params["info"] will
         be ignored if present--these columns can't be updated.
@@ -46,8 +46,6 @@ class GroupInfoService:
         :param application_instance: the ApplicationInstance this group belongs to
 
         :param params: the other GroupInfo columns to set
-        :type params: dict
-
         """
         group_info = (
             self._db.query(GroupInfo)
@@ -58,11 +56,10 @@ class GroupInfoService:
         if not group_info:
             group_info = GroupInfo(
                 authority_provided_id=h_group.authority_provided_id,
-                consumer_key=application_instance.consumer_key,
+                application_instance=application_instance,
             )
             self._db.add(group_info)
 
-        group_info.consumer_key = application_instance.consumer_key
         group_info.application_instance_id = application_instance.id
         group_info.update_from_dict(
             params, skip_keys={"authority_provided_id", "id", "info"}
