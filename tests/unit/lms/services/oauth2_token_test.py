@@ -22,7 +22,6 @@ class TestOAuth2TokenService:
         oauth2_token = db_session.query(OAuth2Token).one()
         assert oauth2_token == Any.object(OAuth2Token).with_attrs(
             {
-                "consumer_key": application_instance.consumer_key,
                 "application_instance_id": application_instance.id,
                 "user_id": lti_user.user_id,
                 "access_token": "access_token",
@@ -37,26 +36,27 @@ class TestOAuth2TokenService:
 
         assert result == oauth_token
 
-    @pytest.mark.parametrize("wrong_param", ("application_instance", "user_id"))
-    def test_get_raises_OAuth2TokenError_with_no_token(
-        self, db_session, wrong_param, application_instance, lti_user
+    def test_get_raises_OAuth2TokenError_with_mismatching_application_instance(
+        self, db_session, lti_user
     ):
-        wrong_value = "WRONG"
-        if wrong_param == "application_instance":
-            application_instance.consumer_key = "WRONG"
-            wrong_value = application_instance
-
-        store = OAuth2TokenService(
+        service = OAuth2TokenService(
             db_session,
-            **{
-                "application_instance": application_instance,
-                "user_id": lti_user.user_id,
-                wrong_param: wrong_value,
-            }
+            application_instance=factories.ApplicationInstance(),
+            user_id=lti_user.user_id,
         )
 
         with pytest.raises(OAuth2TokenError):
-            store.get()
+            service.get()
+
+    def test_get_raises_OAuth2TokenError_with_mismatching_user(
+        self, db_session, application_instance
+    ):
+        service = OAuth2TokenService(
+            db_session, application_instance=application_instance, user_id="WRONG"
+        )
+
+        with pytest.raises(OAuth2TokenError):
+            service.get()
 
     @pytest.fixture(
         params=(param(True, id="token in db"), param(False, id="token not in db"))
@@ -69,7 +69,6 @@ class TestOAuth2TokenService:
         if request.param:
             oauth_token = factories.OAuth2Token.build(
                 user_id=lti_user.user_id,
-                consumer_key=application_instance.consumer_key,
                 application_instance=application_instance,
             )
 
