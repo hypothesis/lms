@@ -42,16 +42,6 @@ class TestOAuth2Token:
         ):
             db_session.flush()
 
-    def test_consumer_key_cant_be_None(self, db_session, init_kwargs):
-        del init_kwargs["consumer_key"]
-        db_session.add(OAuth2Token(**init_kwargs))
-
-        with pytest.raises(
-            sqlalchemy.exc.IntegrityError,
-            match='null value in column "consumer_key" violates not-null constraint',
-        ):
-            db_session.flush()
-
     def test_setting_consumer_key_sets_application_instance(
         self, application_instance, db_session, init_kwargs
     ):
