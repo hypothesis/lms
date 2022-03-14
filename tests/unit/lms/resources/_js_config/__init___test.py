@@ -287,7 +287,7 @@ class TestMaybeEnableGrading:
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
-            oauth_consumer_key=application_instance_service.get_current.return_value.consumer_key,
+            application_instance=application_instance_service.get_current.return_value,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assert js_config.asdict()["grading"] == {

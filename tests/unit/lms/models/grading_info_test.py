@@ -13,7 +13,6 @@ class TestGradingInfo:
 
         assert lrs.lis_result_sourcedid == "result_sourcedid"
         assert lrs.lis_outcome_service_url == "https://somewhere.else"
-        assert lrs.oauth_consumer_key == application_instance.consumer_key
         assert lrs.application_instance_id == application_instance.id
         assert lrs.user_id == "339483948"
         assert lrs.context_id == "random context"
@@ -77,7 +76,6 @@ class TestGradingInfo:
         return {
             "lis_result_sourcedid": "result_sourcedid",
             "lis_outcome_service_url": "https://somewhere.else",
-            "oauth_consumer_key": application_instance.consumer_key,
             "application_instance_id": application_instance.id,
             "user_id": "339483948",
             "context_id": "random context",

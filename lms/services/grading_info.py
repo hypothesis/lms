@@ -23,27 +23,22 @@ class GradingInfoService:
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
 
-    def get_by_assignment(self, oauth_consumer_key, context_id, resource_link_id):
+    def get_by_assignment(self, application_instance, context_id, resource_link_id):
         """
         Return all GradingInfo's for a given assignment.
 
         The returned list will contain one GradingInfo for each student who has
         launched this assignment (and had GradingInfo data persisted for them).
 
-        :param oauth_consumer_key: the assignment's oauth_consumer_key
+        :param application_instance: the assignment's application_instance
             (identifies a deployment of our app in an LMS)
-        :type oauth_consumer_key: str
-
         :param context_id: the assignment's context_id
             (identifies the course within the LMS)
-        :type context_id: str
-
         :param resource_link_id: the assignment's resource_link_id
             (identifies the assignment within the LMS course)
-        :type resource_link_id: str
         """
         return self._db.query(GradingInfo).filter_by(
-            oauth_consumer_key=oauth_consumer_key,
+            application_instance=application_instance,
             context_id=context_id,
             resource_link_id=resource_link_id,
         )
@@ -70,12 +65,11 @@ class GradingInfoService:
         ).get_current()
 
         grading_info = self._find_or_create(
-            oauth_consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             user_id=request.lti_user.user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],
         )
-        grading_info.application_instance_id = application_instance.id
         grading_info.h_username = request.lti_user.h_user.username
         grading_info.h_display_name = request.lti_user.h_user.display_name
 

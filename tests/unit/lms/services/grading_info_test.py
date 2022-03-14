@@ -15,7 +15,7 @@ pytestmark = pytest.mark.usefixtures("application_instance_service")
 class TestGetByAssignment:
     def test_it(self, svc, matching_grading_infos, application_instance):
         grading_infos = svc.get_by_assignment(
-            application_instance.consumer_key,
+            application_instance,
             "matching_context_id",
             "matching_resource_link_id",
         )
@@ -25,31 +25,38 @@ class TestGetByAssignment:
         )
 
     @pytest.mark.parametrize(
-        "oauth_consumer_key,context_id,resource_link_id",
+        "filter_application_instance,context_id,resource_link_id",
         [
             (
-                "other_oauth_consumer_key",
+                None,
                 "matching_context_id",
                 "matching_resource_link_id",
             ),
             (
-                "matching_oauth_consumer_key",
+                "application_instance",
                 "other_context_id",
                 "matching_resource_link_id",
             ),
             (
-                "matching_oauth_consumer_key",
+                "application_instance",
                 "matching_context_id",
                 "other_resource_link_id",
             ),
             ("other_oauth_consumer_key", "other_context_id", "other_resource_link_id"),
         ],
     )
-    def test_it_returns_an_empty_list_if_there_are_no_matching_GradingInfos(
-        self, svc, oauth_consumer_key, context_id, resource_link_id
+    def test_it_with_no_match(
+        self,
+        svc,
+        filter_application_instance,
+        context_id,
+        resource_link_id,
+        application_instance,
     ):
         grading_infos = svc.get_by_assignment(
-            oauth_consumer_key, context_id, resource_link_id
+            application_instance if filter_application_instance else None,
+            context_id,
+            resource_link_id,
         )
 
         assert not list(grading_infos)
@@ -59,8 +66,7 @@ class TestGetByAssignment:
         """Add some GradingInfo's that should match the DB query in the test above."""
         return factories.GradingInfo.create_batch(
             size=3,
-            oauth_consumer_key=application_instance.consumer_key,
-            application_instance_id=application_instance.id,
+            application_instance=application_instance,
             context_id="matching_context_id",
             resource_link_id="matching_resource_link_id",
         )
@@ -93,7 +99,6 @@ class TestUpsertFromRequest:
         assert result.h_display_name == pyramid_request.lti_user.h_user.display_name
 
         # Check the LTI user data are there
-        assert result.oauth_consumer_key == application_instance.consumer_key
         assert result.user_id == pyramid_request.lti_user.user_id
         assert result.application_instance_id == application_instance.id
 
@@ -101,7 +106,7 @@ class TestUpsertFromRequest:
         self, svc, pyramid_request, lti_user, application_instance
     ):
         grading_info = factories.GradingInfo(
-            oauth_consumer_key=application_instance.consumer_key,
+            application_instance=application_instance,
             user_id=lti_user.user_id,
             context_id=pyramid_request.params["context_id"],
             resource_link_id=pyramid_request.params["resource_link_id"],
