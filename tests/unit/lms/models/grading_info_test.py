@@ -27,7 +27,6 @@ class TestGradingInfo:
         [
             "lis_result_sourcedid",
             "lis_outcome_service_url",
-            "oauth_consumer_key",
             "application_instance_id",
             "user_id",
             "context_id",
