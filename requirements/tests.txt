@@ -115,7 +115,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   pyramid-jinja2
-marshmallow==3.14.1
+marshmallow==3.15.0
     # via
     #   -r requirements/requirements.txt
     #   webargs
@@ -133,6 +133,7 @@ oauthlib==3.2.0
 packaging==21.3
     # via
     #   -r requirements/requirements.txt
+    #   marshmallow
     #   pytest
     #   webargs
 pastedeploy==2.1.0
