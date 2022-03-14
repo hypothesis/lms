@@ -34,12 +34,11 @@ class OAuth2TokenService:
             oauth2_token = self.get()
         except OAuth2TokenError:
             oauth2_token = OAuth2Token(
-                consumer_key=self._application_instance.consumer_key,
+                application_instance=self._application_instance,
                 user_id=self._user_id,
             )
             self._db.add(oauth2_token)
 
-        oauth2_token.application_instance_id = self._application_instance.id
         oauth2_token.access_token = access_token
         oauth2_token.refresh_token = refresh_token
         oauth2_token.expires_in = expires_in
@@ -56,7 +55,7 @@ class OAuth2TokenService:
             return (
                 self._db.query(OAuth2Token)
                 .filter_by(
-                    consumer_key=self._application_instance.consumer_key,
+                    application_instance=self._application_instance,
                     user_id=self._user_id,
                 )
                 .one()

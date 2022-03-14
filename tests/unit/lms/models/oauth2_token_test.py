@@ -13,7 +13,6 @@ class TestOAuth2Token:
         db_session.add(
             OAuth2Token(
                 user_id="test_user_id",
-                consumer_key=application_instance.consumer_key,
                 application_instance_id=application_instance.id,
                 access_token="test_access_token",
                 refresh_token="test_refresh_token",
@@ -24,7 +23,6 @@ class TestOAuth2Token:
 
         token = db_session.query(OAuth2Token).one()
         assert token.user_id == "test_user_id"
-        assert token.consumer_key == application_instance.consumer_key
         assert token.application_instance_id == application_instance.id
         assert token.application_instance == application_instance
         assert token.access_token == "test_access_token"
@@ -41,15 +39,6 @@ class TestOAuth2Token:
             match='null value in column "user_id" violates not-null constraint',
         ):
             db_session.flush()
-
-    def test_setting_consumer_key_sets_application_instance(
-        self, application_instance, db_session, init_kwargs
-    ):
-        token = OAuth2Token(**init_kwargs)
-        db_session.add(token)
-        db_session.flush()
-
-        assert token.application_instance == application_instance
 
     def test_setting_application_instance_sets_fk(
         self, application_instance, db_session, init_kwargs
@@ -106,6 +95,5 @@ class TestOAuth2Token:
         return dict(
             user_id="test_user_id",
             access_token="test_access_token",
-            consumer_key=application_instance.consumer_key,
             application_instance_id=application_instance.id,
         )
