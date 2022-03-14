@@ -21,7 +21,7 @@ class TestGroupInfoUpsert:
 
         group_info = self.get_inserted_group_info(db_session)
 
-        assert group_info.consumer_key == application_instance.consumer_key
+        assert group_info.application_instance == application_instance
         assert group_info.context_title == params["context_title"]
         assert group_info.context_label == params["context_label"]
         assert group_info.type == "course_group"
@@ -45,7 +45,7 @@ class TestGroupInfoUpsert:
 
         group_info = self.get_inserted_group_info(db_session)
 
-        assert group_info.consumer_key == application_instance.consumer_key
+        assert group_info.application_instance == application_instance
         assert group_info.context_label == params["context_label"]
         assert group_info.context_title == "NEW_TITLE"
         assert group_info.type == "course_group"
@@ -131,7 +131,6 @@ class TestGroupInfoUpsert:
                 params,
                 id=None,
                 authority_provided_id=self.AUTHORITY,
-                consumer_key=application_instance.consumer_key,
                 application_instance_id=application_instance.id,
             )
         )
