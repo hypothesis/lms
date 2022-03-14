@@ -195,7 +195,7 @@ pyramid-retry==2.1.1
     # via -r requirements/requirements.txt
 pyramid-services==2.2
     # via -r requirements/requirements.txt
-pyramid-tm==2.4
+pyramid-tm==2.5
     # via -r requirements/requirements.txt
 pyrsistent==0.17.3
     # via
