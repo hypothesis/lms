@@ -3,6 +3,7 @@ from functools import lru_cache
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance
+from lms.services.aes import AESService
 
 
 class ApplicationInstanceNotFound(Exception):
@@ -10,9 +11,10 @@ class ApplicationInstanceNotFound(Exception):
 
 
 class ApplicationInstanceService:
-    def __init__(self, db, request):
+    def __init__(self, db, request, aes_service):
         self._db = db
         self._request = request
+        self._aes_service = aes_service
 
     @lru_cache
     def get_current(self) -> ApplicationInstance:
@@ -56,4 +58,8 @@ class ApplicationInstanceService:
 
 
 def factory(_context, request):
-    return ApplicationInstanceService(request.db, request)
+    return ApplicationInstanceService(
+        request.db,
+        request,
+        request.find_service(AESService),
+    )
