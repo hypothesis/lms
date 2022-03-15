@@ -38,9 +38,38 @@ class TestApplicationInstanceService:
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_consumer_key(consumer_key)
 
+    @pytest.mark.parametrize(
+        "developer_secret,developer_key",
+        [
+            ("TEST_DEVELOPER_SECRET", "DEVELOPER_KEY"),
+            ("TEST_DEVELOPER_SECRET", None),
+            (None, "DEVELOPER_KEY"),
+            (None, None),
+        ],
+    )
+    def test_build_from_lms_url(self, developer_secret, developer_key, service):
+        application_instance = service.build_from_lms_url(
+            "https://example.com/",
+            "example@example.com",
+            developer_key,
+            developer_secret,
+            {},
+        )
+
+        assert application_instance.consumer_key
+        assert application_instance.shared_secret
+        assert application_instance.lms_url == "https://example.com/"
+        assert application_instance.requesters_email == "example@example.com"
+        assert application_instance.developer_key == developer_key
+        assert application_instance.settings == {}
+        if developer_secret:
+            assert application_instance.developer_secret
+
     @pytest.fixture
-    def service(self, db_session, pyramid_request):
-        return ApplicationInstanceService(db=db_session, request=pyramid_request)
+    def service(self, db_session, pyramid_request, aes_service):
+        return ApplicationInstanceService(
+            db=db_session, request=pyramid_request, aes_service=aes_service
+        )
 
     @pytest.fixture(autouse=True)
     def with_application_instance_noise(self):
@@ -48,11 +77,11 @@ class TestApplicationInstanceService:
 
 
 class TestFactory:
-    def test_it(self, ApplicationInstanceService, pyramid_request):
+    def test_it(self, ApplicationInstanceService, pyramid_request, aes_service):
         application_instance_service = factory(mock.sentinel.context, pyramid_request)
 
         ApplicationInstanceService.assert_called_once_with(
-            pyramid_request.db, pyramid_request
+            pyramid_request.db, pyramid_request, aes_service
         )
         assert application_instance_service == ApplicationInstanceService.return_value
 

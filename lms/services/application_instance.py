@@ -1,6 +1,6 @@
-from functools import lru_cache
-from datetime import datetime
 import secrets
+from datetime import datetime
+from functools import lru_cache
 
 from sqlalchemy.exc import NoResultFound
 
@@ -64,7 +64,6 @@ class ApplicationInstanceService:
         email,
         developer_key,
         developer_secret,
-        encryption_key,
         settings,
     ):
         """Instantiate ApplicationInstance with lms_url."""
@@ -73,11 +72,9 @@ class ApplicationInstanceService:
 
         if developer_secret and developer_key:
             aes_iv = self._aes_service.build_iv()
-            encrypted_secret = self._aes_service.encrypt(
-                encryption_key, aes_iv, developer_secret
-            )
+            encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
 
-        return ApplicationInstance(
+        application_instance = ApplicationInstance(
             consumer_key="Hypothesis" + secrets.token_hex(16),
             shared_secret=secrets.token_hex(32),
             lms_url=lms_url,
@@ -88,6 +85,8 @@ class ApplicationInstanceService:
             created=datetime.utcnow(),
             settings=settings,
         )
+        self._db.add(application_instance)
+        return application_instance
 
 
 def factory(_context, request):

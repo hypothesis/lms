@@ -1,3 +1,4 @@
+from lms.services.aes import AESService
 from lms.services.canvas_api._authenticated import AuthenticatedClient
 from lms.services.canvas_api._basic import BasicClient
 from lms.services.canvas_api.client import CanvasAPIClient
@@ -15,7 +16,7 @@ def canvas_api_client_factory(_context, request):
     ).get_current()
 
     developer_secret = application_instance.decrypted_developer_secret(
-        request.registry.settings["aes_secret"]
+        request.find_service(AESService)
     )
 
     basic_client = BasicClient(application_instance.lms_host())

@@ -9,7 +9,7 @@ from pyramid.view import view_config
     ),
 )
 def create_application_instance(request):
-    """Create application instance in the databse and respond with key and secret."""
+    """Create application instance in the database and respond with key and secret."""
 
     # Default developer_key and developer_secret to None rather than letting
     # them be empty strings.
@@ -27,7 +27,6 @@ def create_application_instance(request):
         request.params["email"],
         developer_key,
         developer_secret,
-        request.registry.settings["aes_secret"],
         settings={
             "canvas": {
                 "sections_enabled": False,
@@ -35,7 +34,6 @@ def create_application_instance(request):
             }
         },
     )
-    request.db.add(instance)
 
     return {
         "consumer_key": instance.consumer_key,

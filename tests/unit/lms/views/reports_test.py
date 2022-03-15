@@ -1,5 +1,6 @@
-from lms.models import ApplicationInstance, LtiLaunches
+from lms.models import LtiLaunches
 from lms.views.reports import list_application_instances
+from tests import factories
 
 
 def setup_launches(pyramid_request, app_instances):
@@ -24,13 +25,9 @@ class TestReports:
         ]
         test_emails = ["a@example.com", "b@sub.example.com", "c@another.example.com"]
 
-        def build_ai_from_pair(pair):
-            return ApplicationInstance.build_from_lms_url(
-                pair[0], pair[1], None, None, None, None
-            )
-
         app_instances = [
-            build_ai_from_pair(pair) for pair in zip(test_urls, test_emails)
+            factories.ApplicationInstance(lms_url=pair[0], requesters_email=pair[1])
+            for pair in zip(test_urls, test_emails)
         ]
         for app in app_instances:
             pyramid_request.db.add(app)

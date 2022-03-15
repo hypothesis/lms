@@ -4,8 +4,6 @@ from enum import Enum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
-from Cryptodome import Random
-from Cryptodome.Cipher import AES
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
@@ -104,13 +102,11 @@ class ApplicationInstance(BASE):
     #: A list of all the files for this application instance.
     files = sa.orm.relationship("File", back_populates="application_instance")
 
-    def decrypted_developer_secret(self, aes_secret):
+    def decrypted_developer_secret(self, aes_service):
         if self.developer_secret is None:
             return None
 
-        cipher = AES.new(aes_secret, AES.MODE_CFB, self.aes_cipher_iv)
-
-        return cipher.decrypt(self.developer_secret)
+        return aes_service.decrypt(self.aes_cipher_iv, self.developer_secret)
 
     def lms_host(self):
         """
@@ -178,17 +174,3 @@ class ApplicationInstance(BASE):
             product = self.Product.UNKNOWN
 
         return product
-
-
-def _build_aes_iv():
-    """Build a 16 byte initialization vector."""
-    return Random.new().read(AES.block_size)
-
-
-def _encrypt_oauth_secret(oauth_secret, key, init_v):
-    """Encrypt an oauth secrety via AES encryption."""
-
-    if isinstance(oauth_secret, str):
-        oauth_secret = oauth_secret.encode("utf-8")
-
-    return AES.new(key, AES.MODE_CFB, init_v).encrypt(oauth_secret)
