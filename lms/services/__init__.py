@@ -17,6 +17,7 @@ from lms.services.launch_verifier import (
     LTILaunchVerificationError,
     LTIOAuthError,
 )
+from lms.services.lti_registration import LTIRegistrationService
 from lms.services.user import UserService
 
 
@@ -74,3 +75,6 @@ def includeme(config):
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
     config.register_service_factory("lms.services.file.factory", name="file")
     config.register_service_factory("lms.services.jstor.factory", iface=JSTORService)
+    config.register_service_factory(
+        "lms.services.lti_registration.factory", iface=LTIRegistrationService
+    )
