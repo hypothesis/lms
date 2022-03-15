@@ -27,9 +27,21 @@ class ApplicationInstance(BASE):
         UNKNOWN = "unknown"
 
     __tablename__ = "application_instances"
+    __table_args__ = (
+        # For LTI1.3 instances we allow consumer_key to be null as long as we have a registration and deployment_id.
+        # Note that when consumer_key is present we don't require lti_registration_id and deployment_id to be null
+        # it could be an instance that has been upgraded from LTI1.1 to LTI1.3 having values for all three fields.
+        sa.CheckConstraint(
+            """(consumer_key IS NULL AND lti_registration_id IS NOT NULL and deployment_id IS NOT NULL)
+            OR (consumer_key IS NOT NULL)""",
+            name="consumer_key_required_for_lti_11",
+        ),
+        # For LTI 1.3, registration and deployment_id uniquely identify the instance.
+        sa.UniqueConstraint("lti_registration_id", "deployment_id"),
+    )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
-    consumer_key = sa.Column(sa.Unicode, unique=True, nullable=False)
+    consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
@@ -101,6 +113,18 @@ class ApplicationInstance(BASE):
 
     #: A list of all the files for this application instance.
     files = sa.orm.relationship("File", back_populates="application_instance")
+
+    #: LTIRegistration this instance belong to.
+    lti_registration_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("lti_registration.id", ondelete="cascade"),
+        nullable=True,
+    )
+
+    lti_registration = sa.orm.relationship("LTIRegistration")
+
+    #: Unique identifier of this instance per LTIRegistration
+    deployment_id = sa.Column(sa.UnicodeText, nullable=True)
 
     def decrypted_developer_secret(self, aes_service):
         if self.developer_secret is None:
