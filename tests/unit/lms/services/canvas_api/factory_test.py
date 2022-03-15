@@ -10,8 +10,13 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestCanvasAPIClientFactory:
+    @pytest.mark.usefixtures("aes_service")
     def test_building_the_CanvasAPIClient(
-        self, pyramid_request, CanvasAPIClient, AuthenticatedClient, file_service
+        self,
+        pyramid_request,
+        CanvasAPIClient,
+        AuthenticatedClient,
+        file_service,
     ):
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
@@ -20,6 +25,7 @@ class TestCanvasAPIClientFactory:
         )
         assert canvas_api == CanvasAPIClient.return_value
 
+    @pytest.mark.usefixtures("aes_service")
     def test_building_the_BasicClient(
         self, pyramid_request, BasicClient, application_instance_service
     ):
@@ -36,6 +42,7 @@ class TestCanvasAPIClientFactory:
         AuthenticatedClient,
         BasicClient,
         oauth2_token_service,
+        aes_service,
     ):
         canvas_api_client_factory(sentinel.context, pyramid_request)
 
@@ -44,7 +51,7 @@ class TestCanvasAPIClientFactory:
             oauth2_token_service=oauth2_token_service,
             client_id=application_instance_service.get_current.return_value.developer_key,
             client_secret=application_instance_service.get_current().decrypted_developer_secret(
-                pyramid_request.registry.settings["aes_secret"]
+                aes_service
             ),
             redirect_uri=pyramid_request.route_url("canvas_api.oauth.callback"),
             refresh_enabled=True,

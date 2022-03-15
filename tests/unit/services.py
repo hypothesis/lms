@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.services import CanvasService
+from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.async_oauth_http import AsyncOAuthHTTPService
@@ -54,6 +55,7 @@ __all__ = (
     "user_service",
     "vitalsource_service",
     "jstor_service",
+    "aes_service",
 )
 
 
@@ -208,6 +210,11 @@ def user_service(mock_service):
 @pytest.fixture
 def jstor_service(mock_service):
     return mock_service(JSTORService)
+
+
+@pytest.fixture
+def aes_service(mock_service):
+    return mock_service(AESService)
 
 
 @pytest.fixture

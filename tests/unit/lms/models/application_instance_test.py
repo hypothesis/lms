@@ -1,6 +1,6 @@
+from unittest.mock import sentinel
+
 import pytest
-from Cryptodome import Random
-from Cryptodome.Cipher import AES
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance, ApplicationSettings, ReusedConsumerKey
@@ -83,50 +83,22 @@ class TestApplicationInstance:
             application_instance.lms_host()
 
     def test_decrypted_developer_secret_returns_the_decrypted_developer_secret(
-        self, application_instance, pyramid_request
+        self, application_instance, aes_service
     ):
-        aes_secret = pyramid_request.registry.settings["aes_secret"]
-        application_instance.aes_cipher_iv = Random.new().read(AES.block_size)
-        application_instance.developer_secret = AES.new(
-            aes_secret, AES.MODE_CFB, application_instance.aes_cipher_iv
-        ).encrypt(b"TEST_DEVELOPER_SECRET")
+        application_instance.developer_secret = sentinel.developer_secret
+        application_instance.aes_cipher_iv = sentinel.aes_cipher_iv
 
-        assert (
-            application_instance.decrypted_developer_secret(aes_secret)
-            == b"TEST_DEVELOPER_SECRET"
+        developer_secret = application_instance.decrypted_developer_secret(aes_service)
+
+        aes_service.decrypt.assert_called_once_with(
+            application_instance.aes_cipher_iv, application_instance.developer_secret
         )
+        assert developer_secret == aes_service.decrypt.return_value
 
     def test_decryped_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
-        self, application_instance, pyramid_request
+        self, application_instance, aes_service
     ):
-        aes_secret = pyramid_request.registry.settings["aes_secret"]
-
-        assert application_instance.decrypted_developer_secret(aes_secret) is None
-
-    @pytest.mark.parametrize(
-        "developer_secret",
-        [
-            "TEST_DEVELOPER_SECRET",
-            b"TEST_DEVELOPER_SECRET",
-        ],
-    )
-    def test_build_from_lms_url(self, developer_secret, pyramid_request):
-        application_instance = ApplicationInstance.build_from_lms_url(
-            "https://example.com/",
-            "example@example.com",
-            "TEST_DEVELOPER_KEY",
-            developer_secret,
-            pyramid_request.registry.settings["aes_secret"],
-            {},
-        )
-
-        assert application_instance.consumer_key
-        assert application_instance.shared_secret
-        assert application_instance.lms_url == "https://example.com/"
-        assert application_instance.requesters_email == "example@example.com"
-        assert application_instance.developer_key == "TEST_DEVELOPER_KEY"
-        assert application_instance.developer_secret
-        assert application_instance.settings == {}
+        assert application_instance.decrypted_developer_secret(aes_service) is None
 
     def test_update_lms_data(self, application_instance, lms_data):
         lms_data["tool_consumer_instance_guid"] = "GUID"
