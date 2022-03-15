@@ -1,3 +1,4 @@
+from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.exceptions import (
@@ -78,3 +79,4 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.lti_registration.factory", iface=LTIRegistrationService
     )
+    config.register_service_factory("lms.services.aes.factory", iface=AESService)
