@@ -1,4 +1,6 @@
 from functools import lru_cache
+from datetime import datetime
+import secrets
 
 from sqlalchemy.exc import NoResultFound
 
@@ -55,6 +57,37 @@ class ApplicationInstanceService:
             )
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
+
+    def build_from_lms_url(  # pylint:disable=too-many-arguments
+        self,
+        lms_url,
+        email,
+        developer_key,
+        developer_secret,
+        encryption_key,
+        settings,
+    ):
+        """Instantiate ApplicationInstance with lms_url."""
+        encrypted_secret = developer_secret
+        aes_iv = None
+
+        if developer_secret and developer_key:
+            aes_iv = self._aes_service.build_iv()
+            encrypted_secret = self._aes_service.encrypt(
+                encryption_key, aes_iv, developer_secret
+            )
+
+        return ApplicationInstance(
+            consumer_key="Hypothesis" + secrets.token_hex(16),
+            shared_secret=secrets.token_hex(32),
+            lms_url=lms_url,
+            requesters_email=email,
+            developer_key=developer_key,
+            developer_secret=encrypted_secret,
+            aes_cipher_iv=aes_iv,
+            created=datetime.utcnow(),
+            settings=settings,
+        )
 
 
 def factory(_context, request):

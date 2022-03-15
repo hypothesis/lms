@@ -1,5 +1,4 @@
 import logging
-import secrets
 from datetime import datetime
 from enum import Enum
 from urllib.parse import urlparse
@@ -180,45 +179,10 @@ class ApplicationInstance(BASE):
 
         return product
 
-    @classmethod
-    def build_from_lms_url(  # pylint:disable=too-many-arguments
-        cls, lms_url, email, developer_key, developer_secret, encryption_key, settings
-    ):
-        """Instantiate ApplicationInstance with lms_url."""
-        encrypted_secret = developer_secret
-        aes_iv = None
-        if developer_secret and developer_key:
-            aes_iv = _build_aes_iv()
-            encrypted_secret = _encrypt_oauth_secret(
-                developer_secret, encryption_key, aes_iv
-            )
-
-        return cls(
-            consumer_key=_build_unique_key(),
-            shared_secret=_build_shared_secret(),
-            lms_url=lms_url,
-            requesters_email=email,
-            developer_key=developer_key,
-            developer_secret=encrypted_secret,
-            aes_cipher_iv=aes_iv,
-            created=datetime.utcnow(),
-            settings=settings,
-        )
-
 
 def _build_aes_iv():
     """Build a 16 byte initialization vector."""
     return Random.new().read(AES.block_size)
-
-
-def _build_shared_secret():
-    """Generate a shared secret."""
-    return secrets.token_hex(32)
-
-
-def _build_unique_key():
-    """Use the key base to generate lms key."""
-    return "Hypothesis" + secrets.token_hex(16)
 
 
 def _encrypt_oauth_secret(oauth_secret, key, init_v):
