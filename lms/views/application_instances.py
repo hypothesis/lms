@@ -1,7 +1,5 @@
 from pyramid.view import view_config
 
-from lms.models import ApplicationInstance
-
 
 @view_config(
     route_name="welcome",
@@ -24,7 +22,7 @@ def create_application_instance(request):
         developer_key = None
         developer_secret = None
 
-    instance = ApplicationInstance.build_from_lms_url(
+    instance = request.find_service(name="application_instance").build_from_lms_url(
         request.params["lms_url"],
         request.params["email"],
         developer_key,
