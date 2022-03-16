@@ -1,8 +1,11 @@
 """Traversal resources for LTI launch views."""
 import functools
+import logging
 
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
+
+LOG = logging.getLogger(__name__)
 
 
 class LTILaunchResource:
@@ -46,6 +49,12 @@ class LTILaunchResource:
             self._course_extra(),
             legacy_course.settings,
         )
+
+        if not self._request.db.is_modified(legacy_course) and not course.id:
+            LOG.warning(
+                "Created course from existing legacy course. consumer_key: %s",
+                legacy_course.consumer_key,
+            )
 
         return legacy_course, course
 
