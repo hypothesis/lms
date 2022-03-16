@@ -6,6 +6,7 @@ from pytest import param
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
+from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "course_service", "assignment_service"
@@ -15,9 +16,10 @@ pytestmark = pytest.mark.usefixtures(
 class TestHGroup:
     @pytest.mark.usefixtures("has_course")
     def test_it(self, lti_launch, course_service):
-        course_service.upsert.return_value = mock.sentinel.course
+        course = factories.Course()
+        course_service.upsert.return_value = course
 
-        assert lti_launch.h_group == mock.sentinel.course
+        assert lti_launch.h_group == course
 
 
 class TestResourceLinkIdk:
