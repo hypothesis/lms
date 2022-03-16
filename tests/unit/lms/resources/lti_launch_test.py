@@ -230,8 +230,12 @@ class TestCanvasSectionsEnabled:
         assert lti_launch.canvas_sections_enabled
 
         course_service.generate_authority_provided_id.assert_called_once()
-        course_service.get_or_create.assert_called_with(
-            course_service.generate_authority_provided_id.return_value
+
+        course_service.upsert.assert_called_with(
+            course_service.generate_authority_provided_id.return_value,
+            "test_context_id",
+            "test_context_title",
+            {},
         )
 
     def test_its_disabled_if_sections_are_not_supported(
@@ -250,7 +254,7 @@ class TestCanvasSectionsEnabled:
     def course_settings(self, course_service):
         settings = ApplicationSettings({"canvas": {"sections_enabled": True}})
 
-        course_service.get_or_create.return_value.settings = settings
+        course_service.upsert.return_value.settings = settings
 
         return settings
 

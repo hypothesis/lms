@@ -38,31 +38,14 @@ class LTILaunchResource:
         tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
         context_id = params["context_id"]
 
-        authority_provided_id = course_service.generate_authority_provided_id(
-            tool_consumer_instance_guid, context_id
+        return course_service.upsert(
+            authority_provided_id=course_service.generate_authority_provided_id(
+                tool_consumer_instance_guid, context_id
+            ),
+            context_id=context_id,
+            name=params["context_title"],
+            extra=self._course_extra(),
         )
-
-        legacy_course = course_service.get_or_create(authority_provided_id)
-        # Capture the state here, before any other SQLA query does an implicit flush and then
-        # removing legacy_course from `db.new`
-        is_new_legacy_course = legacy_course in self._request.db.new
-
-        course = course_service.upsert(
-            authority_provided_id,
-            context_id,
-            params["context_title"],
-            self._course_extra(),
-            legacy_course.settings,
-        )
-        new_course = course.id is None
-
-        if not is_new_legacy_course and new_course:
-            LOG.warning(
-                "Created course from existing legacy course. context_id: %s",
-                context_id,
-            )
-
-        return legacy_course, course
 
     @property
     def h_group(self):
@@ -84,9 +67,7 @@ class LTILaunchResource:
         different params will always return a different groupid and
         authority_provided_id.
         """
-        _, course = self.get_or_create_course()
-
-        return course
+        return self.get_or_create_course()
 
     @property
     def _is_speedgrader(self):
@@ -193,9 +174,9 @@ class LTILaunchResource:
         if not self.canvas_sections_supported():
             return False
 
-        legacy_course, _ = self.get_or_create_course()
+        course = self.get_or_create_course()
 
-        return legacy_course.settings.get("canvas", "sections_enabled")
+        return course.settings.get("canvas", "sections_enabled")
 
     @property
     def canvas_groups_enabled(self):
