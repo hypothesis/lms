@@ -12,11 +12,7 @@ pytestmark = pytest.mark.usefixtures(
 class TestCanvasAPIClientFactory:
     @pytest.mark.usefixtures("aes_service")
     def test_building_the_CanvasAPIClient(
-        self,
-        pyramid_request,
-        CanvasAPIClient,
-        AuthenticatedClient,
-        file_service,
+        self, pyramid_request, CanvasAPIClient, AuthenticatedClient, file_service
     ):
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 

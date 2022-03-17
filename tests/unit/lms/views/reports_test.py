@@ -26,8 +26,8 @@ class TestReports:
         test_emails = ["a@example.com", "b@sub.example.com", "c@another.example.com"]
 
         app_instances = [
-            factories.ApplicationInstance(lms_url=pair[0], requesters_email=pair[1])
-            for pair in zip(test_urls, test_emails)
+            factories.ApplicationInstance(lms_url=url, requesters_email=email)
+            for url, email in zip(test_urls, test_emails)
         ]
         for app in app_instances:
             pyramid_request.db.add(app)
