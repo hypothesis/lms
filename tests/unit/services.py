@@ -21,6 +21,7 @@ from lms.services.jstor import JSTORService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
+from lms.services.lti_registration import LTIRegistrationService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
@@ -49,6 +50,7 @@ __all__ = (
     "launch_verifier",
     "lti_h_service",
     "lti_outcomes_client",
+    "lti_registration",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
@@ -225,3 +227,8 @@ def vitalsource_service(mock_service):
 @pytest.fixture
 def file_service(mock_service):
     return mock_service(FileService, service_name="file")
+
+
+@pytest.fixture
+def lti_registration(mock_service):
+    return mock_service(LTIRegistrationService)

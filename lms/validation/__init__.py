@@ -57,6 +57,7 @@ from lms.validation._base import (
     RequestsResponseSchema,
 )
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
+from lms.validation._lti import OIDCRequestSchema
 from lms.validation._lti_launch_params import (
     BasicLTILaunchSchema,
     ContentItemSelectionLTILaunchSchema,
