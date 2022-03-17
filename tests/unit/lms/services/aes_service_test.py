@@ -70,7 +70,7 @@ class TestAESService:
         iv = svc.build_iv()
 
         assert isinstance(iv, bytes)
-        len(iv) == AES.block_size
+        assert len(iv) == AES.block_size
 
     @pytest.fixture
     def svc(self, pyramid_request):
@@ -88,7 +88,7 @@ class TestFactory:
         AESService.assert_called_once_with(
             pyramid_request.registry.settings["aes_secret"]
         )
-        aes_service == AESService.return_value
+        assert aes_service == AESService.return_value
 
     @pytest.fixture
     def AESService(self, patch):
