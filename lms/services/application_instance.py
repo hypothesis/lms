@@ -59,12 +59,7 @@ class ApplicationInstanceService:
             raise ApplicationInstanceNotFound() from err
 
     def build_from_lms_url(  # pylint:disable=too-many-arguments
-        self,
-        lms_url,
-        email,
-        developer_key,
-        developer_secret,
-        settings,
+        self, lms_url, email, developer_key, developer_secret, settings
     ):
         """Instantiate ApplicationInstance with lms_url."""
         encrypted_secret = developer_secret

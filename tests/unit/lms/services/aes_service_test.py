@@ -19,7 +19,14 @@ class TestAESService:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request):
+    def test_it(self, pyramid_request, AESService):
         aes_service = factory(sentinel.context, pyramid_request)
 
-        assert isinstance(aes_service, AESService)
+        AESService.assert_called_once_with(
+            pyramid_request.registry.settings["aes_secret"]
+        )
+        aes_service == AESService.return_value
+
+    @pytest.fixture
+    def AESService(self, patch):
+        return patch("lms.services.aes.AESService")

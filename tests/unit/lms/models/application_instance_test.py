@@ -95,7 +95,7 @@ class TestApplicationInstance:
         )
         assert developer_secret == aes_service.decrypt.return_value
 
-    def test_decryped_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
+    def test_decrypted_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
         self, application_instance, aes_service
     ):
         assert application_instance.decrypted_developer_secret(aes_service) is None
