@@ -98,6 +98,8 @@ class TestApplicationInstance:
     def test_decrypted_developer_secret_returns_None_if_ApplicationInstance_has_no_developer_secret(
         self, application_instance, aes_service
     ):
+        application_instance.developer_secret = None
+
         assert application_instance.decrypted_developer_secret(aes_service) is None
 
     def test_update_lms_data(self, application_instance, lms_data):
