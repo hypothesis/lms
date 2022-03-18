@@ -42,6 +42,10 @@ class LTILaunchResource:
         )
 
         legacy_course = course_service.get_or_create(authority_provided_id)
+        # Capture the state here, before any other SQLA query does an implicit flush and then
+        # removing legacy_course from `db.new`
+        is_new_legacy_course = legacy_course in self._request.db.new
+
         course = course_service.upsert(
             authority_provided_id,
             context_id,
@@ -49,11 +53,12 @@ class LTILaunchResource:
             self._course_extra(),
             legacy_course.settings,
         )
+        new_course = course.id is None
 
-        if not self._request.db.is_modified(legacy_course) and not course.id:
+        if not is_new_legacy_course and new_course:
             LOG.warning(
-                "Created course from existing legacy course. consumer_key: %s",
-                legacy_course.consumer_key,
+                "Created course from existing legacy course. context_id: %s",
+                context_id,
             )
 
         return legacy_course, course
