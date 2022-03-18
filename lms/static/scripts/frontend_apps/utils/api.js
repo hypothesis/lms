@@ -41,24 +41,27 @@ const activeRefreshCalls = new Map();
  * Make an API call to the LMS app backend.
  *
  * @param {object} options
- *   @param {string} options.path - The `/api/...` path of the endpoint to call
  *   @param {string} options.authToken - Session authorization token
- *   @param {string} [options.method] - Custom HTTP method for call
- *   @param {object} [options.data] - JSON-serializable body of the request
+ *   @param {string} options.path - The `/api/...` path of the endpoint to call
  *   @param {boolean} [options.allowRefresh] - If the request fails due to
  *     an expired access token for an external API, this flag specifies whether
  *     to attempt to refresh the token.
+ *   @param {object} [options.data] - JSON-serializable body of the request
+ *   @param {string} [options.method] - Custom HTTP method for call. Defaults
+ *     to GET, or POST if `data` is set.
  *   @param {Record<string, string>} [options.params] - Query parameters
  * @return {Promise<any>} - Parsed JSON response. TODO: Convert this to `Promise<unknown>`
  */
 export async function apiCall(options) {
   const {
-    allowRefresh = true,
     authToken,
+    path,
+
+    // Optional fields.
+    allowRefresh = true,
     data,
     method,
     params,
-    path,
   } = options;
 
   let body;
