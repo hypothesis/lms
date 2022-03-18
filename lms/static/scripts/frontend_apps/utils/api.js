@@ -17,11 +17,13 @@ import { APIError } from '../errors';
  */
 
 /**
- * @param {any} response
- * @return {response is RefreshError}
+ * Check if an API error response indicates that a token refresh is needed.
+ *
+ * @param {any} data - Parsed body of an API error response
+ * @return {data is RefreshError}
  */
-function isRefreshError(response) {
-  return response && response.refresh && typeof response.refresh === 'object';
+function isRefreshError(data) {
+  return data && data.refresh && typeof data.refresh === 'object';
 }
 
 /**
@@ -43,7 +45,9 @@ const activeRefreshCalls = new Map();
  *   @param {string} options.authToken - Session authorization token
  *   @param {string} [options.method] - Custom HTTP method for call
  *   @param {object} [options.data] - JSON-serializable body of the request
- *   @param {boolean} [options.allowRefresh]
+ *   @param {boolean} [options.allowRefresh] - If the request fails due to
+ *     an expired access token for an external API, this flag specifies whether
+ *     to attempt to refresh the token.
  *   @param {Record<string, string>} [options.params] - Query parameters
  * @return {Promise<any>} - Parsed JSON response. TODO: Convert this to `Promise<unknown>`
  */
