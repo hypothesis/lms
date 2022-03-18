@@ -84,13 +84,13 @@ export async function apiCall(options) {
     body,
     headers,
   });
-  const resultJson = await result.json();
+  const resultJSON = await result.json();
 
   if (result.status >= 400 && result.status < 600) {
     // Refresh expired access tokens for external APIs, if required. Only one
     // such request should be issued by the frontend for a given API at a time.
-    if (allowRefresh && result.status === 400 && isRefreshError(resultJson)) {
-      const { method, path } = resultJson.refresh;
+    if (allowRefresh && result.status === 400 && isRefreshError(resultJSON)) {
+      const { method, path } = resultJSON.refresh;
 
       // Refresh the access token for the external API.
       if (activeRefreshCalls.has(path)) {
@@ -114,8 +114,8 @@ export async function apiCall(options) {
       return apiCall({ ...options, allowRefresh: false });
     }
 
-    throw new APIError(result.status, resultJson);
+    throw new APIError(result.status, resultJSON);
   }
 
-  return resultJson;
+  return resultJSON;
 }
