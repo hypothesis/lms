@@ -475,7 +475,7 @@ venusian==3.0.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-waitress==2.0.0
+waitress==2.1.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
