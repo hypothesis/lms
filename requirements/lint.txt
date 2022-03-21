@@ -342,7 +342,7 @@ pyramid-googleauth==1.0.2
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pyramid-jinja2==2.8
+pyramid-jinja2==2.9.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
