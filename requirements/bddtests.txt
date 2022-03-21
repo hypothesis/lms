@@ -267,7 +267,7 @@ venusian==3.0.0
     # via
     #   -r requirements/requirements.txt
     #   pyramid
-waitress==2.0.0
+waitress==2.1.1
     # via webtest
 webargs==8.1.0
     # via -r requirements/requirements.txt
