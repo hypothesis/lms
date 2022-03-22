@@ -2,6 +2,7 @@
 import functools
 import logging
 
+from lms.models import LTIParams
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 
@@ -122,7 +123,7 @@ class LTILaunchResource:
         ):
             return resource_link_id
 
-        return self._request.POST.get("resource_link_id")
+        return self.lti_params.get("resource_link_id")
 
     @property
     def ext_lti_assignment_id(self):
@@ -219,7 +220,7 @@ class LTILaunchResource:
     @property
     def is_blackboard_group_launch(self):
         """Return True if the current assignment uses Blackboard groups."""
-        tool_consumer_instance_guid = self._request.params[
+        tool_consumer_instance_guid = self._request.parsed_params[
             "tool_consumer_instance_guid"
         ]
         assignment = self._assignment_service.get(
@@ -240,6 +241,15 @@ class LTILaunchResource:
     @property
     def is_group_launch(self):
         return self.canvas_is_group_launch or self.is_blackboard_group_launch
+
+    @property
+    def lti_params(self) -> LTIParams:
+        """Return the requests LTI parameters."""
+        return (
+            LTIParams.from_v13(self._request.lti_jwt)
+            if self._request.lti_jwt
+            else LTIParams(self._request.params)
+        )
 
     def _course_extra(self):
         """Extra information to store for courses."""

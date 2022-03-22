@@ -1,31 +1,78 @@
 from urllib.parse import unquote
 
-from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
+from marshmallow import (
+    EXCLUDE,
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    pre_load,
+    validates_schema,
+)
 from marshmallow.validate import OneOf
 
+from lms.models import LTIParams
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
 
-class _CommonLTILaunchSchema(PyramidRequestSchema):
+class LTIV11CoreSchema(PyramidRequestSchema):
+    """
+    Base class for all LTI related schemas.
+
+    We use the LTI 1.1 names in the schemas
+    and rely on models.LTIParams for the v13 name translation.
+    """
+
+    class Meta:
+        unknown = EXCLUDE
+
+    user_id = fields.Str(required=True)
+    roles = fields.Str(required=True)
+    tool_consumer_instance_guid = fields.Str(required=True)
+    lis_person_name_given = fields.Str(load_default="")
+    lis_person_name_family = fields.Str(load_default="")
+    lis_person_name_full = fields.Str(load_default="")
+    lis_person_contact_email_primary = fields.Str(load_default="")
+
+    @pre_load
+    def _decode_jwt(self, data, **_kwargs):
+        """Use the values encoded in the `id_token` JWT if present."""
+        if "id_token" not in self.context["request"].POST:
+            return data
+
+        params = LTIParams.from_v13(self.context["request"].lti_jwt)
+        # Make the rest of params also accessible to marshmallow in case any are not coming from the JWT
+        # eg query parameters
+        # This is to make it backwards compatible with schemas that mix LTI
+        # parameters with others that belong to the LMS app (eg the `url` parameter).
+        params.update(self.context["request"].params)
+
+        return params
+
+
+class _CommonLTILaunchSchema(LTIV11CoreSchema):
     """Fields common to different types of LTI launches."""
 
     location = "form"
 
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
-    oauth_consumer_key = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
-    user_id = fields.Str(required=True)
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0", "1.3.0"]), required=True)
+    oauth_consumer_key = fields.Str(required=False)
 
     custom_canvas_api_domain = fields.Str()
     custom_canvas_course_id = fields.Str()
     launch_presentation_return_url = fields.Str()
-    lis_person_name_full = fields.Str()
-    lis_person_name_family = fields.Str()
-    lis_person_name_given = fields.Str()
     tool_consumer_info_product_family_code = fields.Str()
+
+    @validates_schema
+    def validate_consumer_key(self, data, **_kwargs):  # pylint: disable=no-self-use
+        if (
+            not data.get("oauth_consumer_key", None)
+            and data["lti_version"] == "LTI-1p0"
+        ):
+            raise ValidationError("Required for LTI1.1", "oauth_consumer_key")
 
 
 class BasicLTILaunchSchema(_CommonLTILaunchSchema):
@@ -33,7 +80,7 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
     Schema for basic LTI launch requests (i.e. assignment launches).
 
     This *DOES NOT* contain all of the fields required for authentication.
-    For that see `lms.validation.authentication.LaunchParamsAuthSchema`
+    For that see `lms.validation.authentication.LTI11AuthSchema`
     """
 
     class URLSchema(Schema):
@@ -47,7 +94,8 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
         launch_presentation_return_url = fields.URL()
 
     lti_message_type = fields.Str(
-        validate=OneOf(["basic-lti-launch-request"]), required=True
+        validate=OneOf(["basic-lti-launch-request", "LtiResourceLinkRequest"]),
+        required=True,
     )
     resource_link_id = fields.Str(required=True)
 

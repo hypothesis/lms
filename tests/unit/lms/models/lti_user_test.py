@@ -1,6 +1,6 @@
 import pytest
 
-from lms.models import display_name
+from lms.models import LTIUser, display_name
 from tests import factories
 
 
@@ -40,6 +40,35 @@ class TestLTIUser:
         lti_user = factories.LTIUser(roles=roles)
 
         assert lti_user.is_learner == is_learner
+
+    def test_from_auth_params(self, application_instance, auth_params):
+        lti_user = LTIUser.from_auth_params(application_instance, auth_params)
+
+        assert lti_user.user_id == auth_params["user_id"]
+        assert lti_user.roles == auth_params["roles"]
+        assert (
+            lti_user.tool_consumer_instance_guid
+            == auth_params["tool_consumer_instance_guid"]
+        )
+        assert lti_user.email == auth_params["lis_person_contact_email_primary"]
+        assert lti_user.display_name == display_name(
+            auth_params["lis_person_name_given"],
+            auth_params["lis_person_name_family"],
+            auth_params["lis_person_name_full"],
+        )
+        assert lti_user.application_instance_id == application_instance.id
+
+    @pytest.fixture
+    def auth_params(self):
+        return {
+            "user_id": "USER_ID",
+            "roles": "ROLES",
+            "tool_consumer_instance_guid": "TOOL_CONSUMER_INSTANCE_GUID",
+            "lis_person_name_given": "LIS_PERSON_NAME_GIVEN",
+            "lis_person_name_family": "LIS_PERSON_NAME_FAMILY",
+            "lis_person_name_full": "LIS_PERSON_NAME_FULL",
+            "lis_person_contact_email_primary": "LIS_PERSON_CONTACT_EMAIL_PRIMARY",
+        }
 
 
 @pytest.mark.parametrize(

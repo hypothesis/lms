@@ -4,7 +4,7 @@ from functools import lru_cache
 
 from sqlalchemy.exc import NoResultFound
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, LTIRegistration
 from lms.services.aes import AESService
 
 
@@ -53,6 +53,27 @@ class ApplicationInstanceService:
             return (
                 self._db.query(ApplicationInstance)
                 .filter_by(consumer_key=consumer_key)
+                .one()
+            )
+        except NoResultFound as err:
+            raise ApplicationInstanceNotFound() from err
+
+    @lru_cache
+    def get_by_deployment_id(
+        self, issuer: str, client_id: str, deployment_id: str
+    ) -> ApplicationInstance:
+        if not all([issuer, client_id, deployment_id]):
+            raise ApplicationInstanceNotFound()
+
+        try:
+            return (
+                self._db.query(ApplicationInstance)
+                .join(LTIRegistration)
+                .filter(
+                    LTIRegistration.issuer == issuer,
+                    LTIRegistration.client_id == client_id,
+                    ApplicationInstance.deployment_id == deployment_id,
+                )
                 .one()
             )
         except NoResultFound as err:

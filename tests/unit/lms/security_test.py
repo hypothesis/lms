@@ -1,6 +1,7 @@
 from unittest import mock
 from unittest.mock import call, sentinel
 
+import marshmallow
 import pytest
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
@@ -12,11 +13,13 @@ from lms.security import (
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
+    _get_lti_jwt,
     _get_lti_user,
     _get_user,
     includeme,
 )
 from lms.validation import ValidationError
+from lms.validation.authentication._exceptions import InvalidJWTError
 from tests import factories
 
 
@@ -411,8 +414,8 @@ class TestGetLTIUser:
     def test_it_returns_the_LTIUsers_from_LTI_launch_params(
         self,
         bearer_token_schema,
-        LaunchParamsAuthSchema,
-        launch_params_auth_schema,
+        LTI11AuthSchema,
+        lti11_auth_schema,
         pyramid_request,
     ):
         bearer_token_schema.lti_user.side_effect = ValidationError(
@@ -421,20 +424,18 @@ class TestGetLTIUser:
 
         lti_user = _get_lti_user(pyramid_request)
 
-        LaunchParamsAuthSchema.assert_called_once_with(pyramid_request)
-        launch_params_auth_schema.lti_user.assert_called_once_with()
-        assert lti_user == launch_params_auth_schema.lti_user.return_value
+        LTI11AuthSchema.assert_called_once_with(pyramid_request)
+        lti11_auth_schema.lti_user.assert_called_once_with()
+        assert lti_user == lti11_auth_schema.lti_user.return_value
 
     def test_it_returns_LTIUsers_from_authorization_headers(
         self,
-        launch_params_auth_schema,
+        lti11_auth_schema,
         BearerTokenSchema,
         bearer_token_schema,
         pyramid_request,
     ):
-        launch_params_auth_schema.lti_user.side_effect = ValidationError(
-            ["TEST_ERROR_MESSAGE"]
-        )
+        lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
 
         lti_user = _get_lti_user(pyramid_request)
 
@@ -443,11 +444,9 @@ class TestGetLTIUser:
         assert lti_user == bearer_token_schema.lti_user.return_value
 
     def test_it_returns_LTIUsers_from_authorization_query_string_params(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
+        self, lti11_auth_schema, bearer_token_schema, pyramid_request
     ):
-        launch_params_auth_schema.lti_user.side_effect = ValidationError(
-            ["TEST_ERROR_MESSAGE"]
-        )
+        lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
         lti_user = factories.LTIUser()
         bearer_token_schema.lti_user.side_effect = [
             ValidationError(["TEST_ERROR_MESSAGE"]),
@@ -464,11 +463,9 @@ class TestGetLTIUser:
         assert returned_lti_user == lti_user
 
     def test_it_returns_LTIUsers_from_authorization_form_fields(
-        self, launch_params_auth_schema, bearer_token_schema, pyramid_request
+        self, lti11_auth_schema, bearer_token_schema, pyramid_request
     ):
-        launch_params_auth_schema.lti_user.side_effect = ValidationError(
-            ["TEST_ERROR_MESSAGE"]
-        )
+        lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
         lti_user = factories.LTIUser()
         bearer_token_schema.lti_user.side_effect = [
             ValidationError(["TEST_ERROR_MESSAGE"]),
@@ -487,15 +484,13 @@ class TestGetLTIUser:
 
     def test_it_returns_LTIUsers_from_OAuth2_state_params(
         self,
-        launch_params_auth_schema,
+        lti11_auth_schema,
         bearer_token_schema,
         OAuthCallbackSchema,
         canvas_oauth_callback_schema,
         pyramid_request,
     ):
-        launch_params_auth_schema.lti_user.side_effect = ValidationError(
-            ["TEST_ERROR_MESSAGE"]
-        )
+        lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
         bearer_token_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
@@ -506,16 +501,25 @@ class TestGetLTIUser:
         canvas_oauth_callback_schema.lti_user.assert_called_once_with()
         assert lti_user == canvas_oauth_callback_schema.lti_user.return_value
 
+    def test_it_returns_LTIUser_from_openid_auth_schema(
+        self, LTI13AuthSchema, lti13_auth_schema, pyramid_request
+    ):
+        pyramid_request.params["id_token"] = "JWT"
+
+        lti_user = _get_lti_user(pyramid_request)
+
+        LTI13AuthSchema.assert_called_once_with(pyramid_request)
+        lti13_auth_schema.lti_user.assert_called_once()
+        assert lti_user == lti13_auth_schema.lti_user.return_value
+
     def test_it_returns_None_if_all_schemas_fail(
         self,
-        launch_params_auth_schema,
+        lti11_auth_schema,
         bearer_token_schema,
         canvas_oauth_callback_schema,
         pyramid_request,
     ):
-        launch_params_auth_schema.lti_user.side_effect = ValidationError(
-            ["TEST_ERROR_MESSAGE"]
-        )
+        lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
         bearer_token_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
         )
@@ -525,21 +529,16 @@ class TestGetLTIUser:
 
         assert _get_lti_user(pyramid_request) is None
 
-    def test_LaunchParamsAuthSchema_overrides_BearerTokenSchema(
-        self, launch_params_auth_schema, pyramid_request
+    def test_LTI11AuthSchema_overrides_BearerTokenSchema(
+        self, lti11_auth_schema, pyramid_request
     ):
-        assert (
-            _get_lti_user(pyramid_request)
-            == launch_params_auth_schema.lti_user.return_value
-        )
+        assert _get_lti_user(pyramid_request) == lti11_auth_schema.lti_user.return_value
 
-    def test_it_stores_the_user(
-        self, pyramid_request, user_service, launch_params_auth_schema
-    ):
+    def test_it_stores_the_user(self, pyramid_request, user_service, lti11_auth_schema):
         _get_lti_user(pyramid_request)
 
         user_service.store_lti_user.assert_called_once_with(
-            launch_params_auth_schema.lti_user.return_value
+            lti11_auth_schema.lti_user.return_value
         )
 
     @pytest.fixture(autouse=True)
@@ -554,17 +553,25 @@ class TestGetLTIUser:
     def OAuthCallbackSchema(self, patch):
         return patch("lms.security.OAuthCallbackSchema")
 
+    @pytest.fixture(autouse=True)
+    def LTI13AuthSchema(self, patch):
+        return patch("lms.security.LTI13AuthSchema")
+
+    @pytest.fixture
+    def lti13_auth_schema(self, LTI13AuthSchema):
+        return LTI13AuthSchema.return_value
+
     @pytest.fixture
     def canvas_oauth_callback_schema(self, OAuthCallbackSchema):
         return OAuthCallbackSchema.return_value
 
     @pytest.fixture(autouse=True)
-    def LaunchParamsAuthSchema(self, patch):
-        return patch("lms.security.LaunchParamsAuthSchema")
+    def LTI11AuthSchema(self, patch):
+        return patch("lms.security.LTI11AuthSchema")
 
     @pytest.fixture
-    def launch_params_auth_schema(self, LaunchParamsAuthSchema):
-        return LaunchParamsAuthSchema.return_value
+    def lti11_auth_schema(self, LTI11AuthSchema):
+        return LTI11AuthSchema.return_value
 
 
 class TestGetUser:
@@ -576,3 +583,30 @@ class TestGetUser:
             pyramid_request.lti_user.user_id,
         )
         assert user == user_service.get.return_value
+
+
+class TestGetLTIJWT:
+    def test_it_when_no_token(self, pyramid_request):
+        assert not _get_lti_jwt(pyramid_request)
+
+    def test_it_with_invalid_token(self, pyramid_request, jwt):
+        pyramid_request.params["id_token"] = "JWT"
+        jwt.decode.side_effect = InvalidJWTError
+
+        with pytest.raises(marshmallow.ValidationError):
+            _get_lti_jwt(pyramid_request)
+
+    def test_it(self, pyramid_request, jwt):
+        pyramid_request.params["id_token"] = "JWT"
+
+        with pytest.warns(UserWarning):
+            params = _get_lti_jwt(pyramid_request)
+
+        jwt.decode.assert_called_once_with(
+            pyramid_request.params["id_token"], options={"verify_signature": False}
+        )
+        assert params == jwt.decode.return_value
+
+    @pytest.fixture
+    def jwt(self, patch):
+        return patch("lms.security.jwt")
