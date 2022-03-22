@@ -42,6 +42,22 @@ class LTIUser(NamedTuple):
         """Whether this user is a learner."""
         return "learner" in self.roles.lower()
 
+    @staticmethod
+    def from_auth_params(application_instance, lti_core_schema):
+        """Create an LTIUser from a LTIV11CoreSchema like dict."""
+        return LTIUser(
+            user_id=lti_core_schema["user_id"],
+            application_instance_id=application_instance.id,
+            roles=lti_core_schema["roles"],
+            tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
+            display_name=display_name(
+                lti_core_schema["lis_person_name_given"],
+                lti_core_schema["lis_person_name_family"],
+                lti_core_schema["lis_person_name_full"],
+            ),
+            email=lti_core_schema["lis_person_contact_email_primary"],
+        )
+
 
 def display_name(given_name, family_name, full_name):
     """

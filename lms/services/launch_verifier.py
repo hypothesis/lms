@@ -69,7 +69,7 @@ class LaunchVerifier:
             raise self._exception
 
     def _verify(self):
-        # As part of our parsing, LaunchParamsAuthSchema has been applied to
+        # As part of our parsing, LTI11AuthSchema has been applied to
         # the request before we get this far. This means that all of the
         # results are in `params` but they might have come from either the body
         # or GET params. `oauthlib` cares a great deal about where things

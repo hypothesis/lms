@@ -1,3 +1,6 @@
+from unittest.mock import sentinel
+
+import marshmallow
 import pytest
 from h_matchers import Any
 
@@ -5,9 +8,36 @@ from lms.validation import (
     BasicLTILaunchSchema,
     ContentItemSelectionLTILaunchSchema,
     LTIToolRedirect,
+    LTIV11CoreSchema,
     URLConfiguredBasicLTILaunchSchema,
     ValidationError,
 )
+
+
+class TestLTIV11CoreSchema:
+    def test_with_lti_jwt(self, pyramid_request, LTIParams, lti_v11_params):
+        class ExampleSchema(LTIV11CoreSchema):
+            location = "form"
+            extra = marshmallow.fields.Str(required=False)
+
+        LTIParams.from_v13.return_value = lti_v11_params
+
+        parsed_params = ExampleSchema(pyramid_request).parse()
+
+        LTIParams.from_v13.assert_called_once_with(pyramid_request.lti_jwt)
+        # The resulting value contains both the key from the JWT and the extra one that comes originally from request.params
+        assert parsed_params == Any.dict.containing({"extra": Any.string()})
+
+    @pytest.fixture
+    def LTIParams(self, patch):
+        return patch("lms.validation._lti_launch_params.LTIParams")
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.POST["id_token"] = "JWT"
+        pyramid_request.params = {"extra": "value"}
+        pyramid_request.lti_jwt = sentinel.lti_jwt
+        return pyramid_request
 
 
 class TestBasicLTILaunchSchema:
@@ -189,7 +219,8 @@ class TestContentItemSelectionLTILaunchSchema:
     def test_it(self, schema, valid_params):
         parsed_params = schema.parse()
 
-        assert parsed_params == valid_params
+        for key, value in parsed_params.items():
+            assert valid_params[key] == value
 
     @pytest.mark.parametrize(
         "missing_param",
@@ -198,9 +229,9 @@ class TestContentItemSelectionLTILaunchSchema:
             "context_title",
             "lti_message_type",
             "lti_version",
-            "oauth_consumer_key",
             "tool_consumer_instance_guid",
             "user_id",
+            "roles",
         ],
     )
     def test_required_params(self, schema, pyramid_request, missing_param):
@@ -218,7 +249,7 @@ class TestContentItemSelectionLTILaunchSchema:
         [
             (
                 {"lti_version": "invalid version"},
-                {"lti_version": ["Must be one of: LTI-1p0."]},
+                {"lti_version": ["Must be one of: LTI-1p0, 1.3.0."]},
             ),
             (
                 {"lti_message_type": "invalid message type"},
@@ -237,25 +268,17 @@ class TestContentItemSelectionLTILaunchSchema:
         assert exc_info.value.messages == {"form": expected_error_messages}
 
     @pytest.fixture
-    def valid_params(self):
-        return {
-            "context_id": "test_context_id",
-            "context_title": "test_context_title",
-            "lti_message_type": "ContentItemSelectionRequest",
-            "lti_version": "LTI-1p0",
-            "oauth_consumer_key": "test_oauth_consumer_key",
-            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-            "user_id": "test_user_id",
-            "custom_canvas_api_domain": "test_custom_canvas_api_domain",
-            "custom_canvas_course_id": "test_custom_canvas_course_id",
-            "launch_presentation_return_url": "test_launch_presentation_return_url",
-            "lis_person_name_full": "test_lis_person_name_full",
-            "lis_person_name_family": "test_lis_person_name_family",
-            "lis_person_name_given": "test_lis_person_name_given",
-            "tool_consumer_info_product_family_code": (
-                "test_tool_consumer_info_product_family_code"
-            ),
-        }
+    def valid_params(self, lti_v11_params):
+        valid_params = dict(lti_v11_params)
+        valid_params.update(
+            {
+                "lti_message_type": "ContentItemSelectionRequest",
+                "custom_canvas_api_domain": "test_custom_canvas_api_domain",
+                "custom_canvas_course_id": "test_custom_canvas_course_id",
+                "launch_presentation_return_url": "test_launch_presentation_return_url",
+            }
+        )
+        return valid_params
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, valid_params):
@@ -271,14 +294,4 @@ class TestContentItemSelectionLTILaunchSchema:
 @pytest.fixture
 def pyramid_request(pyramid_request):
     pyramid_request.content_type = "application/x-www-form-urlencoded"
-    pyramid_request.params.update(
-        {
-            "resource_link_id": "DUMMY-LINK",
-            "lti_version": "LTI-1p0",
-            "lti_message_type": "basic-lti-launch-request",
-            "context_id": "DUMMY-CONTEXT-ID",
-            "context_title": "A context title",
-        }
-    )
-
     return pyramid_request

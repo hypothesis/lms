@@ -1,15 +1,12 @@
-"""Schema for validating LTI launch params."""
-
 import marshmallow
 
-from lms.models import LTIUser, display_name
+from lms.models import CLAIM_PREFIX, LTIUser
 from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
-from lms.validation._base import PyramidRequestSchema
+from lms.validation._exceptions import ValidationError
+from lms.validation._lti_launch_params import LTIV11CoreSchema
 
-__all__ = ("LaunchParamsAuthSchema",)
 
-
-class LaunchParamsAuthSchema(PyramidRequestSchema):
+class LTI11AuthSchema(LTIV11CoreSchema):
     """
     Schema for LTI launch params.
 
@@ -17,24 +14,16 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
 
         >>> from webargs.pyramidparser import parser
         >>>
-        >>> schema = LaunchParamsAuthSchema(request)
+        >>> schema = LTI11AuthSchema(request)
         >>> parsed_params = parser.parse(schema, request, location="form")
 
     Or to verify the request and get an models.LTIUser
     from the request's params::
 
-        >>> schema = LaunchParamsAuthSchema(request)
+        >>> schema = LTI11AuthSchema(request)
         >>> schema.lti_user()
         LTIUser(user_id='...', ...)
     """
-
-    user_id = marshmallow.fields.Str(required=True)
-    roles = marshmallow.fields.Str(required=True)
-    tool_consumer_instance_guid = marshmallow.fields.Str(required=True)
-    lis_person_name_given = marshmallow.fields.Str(load_default="")
-    lis_person_name_family = marshmallow.fields.Str(load_default="")
-    lis_person_name_full = marshmallow.fields.Str(load_default="")
-    lis_person_contact_email_primary = marshmallow.fields.Str(load_default="")
 
     oauth_consumer_key = marshmallow.fields.Str(required=True)
     oauth_nonce = marshmallow.fields.Str(required=True)
@@ -71,18 +60,7 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
                 "Invalid OAuth 1 signature. Unknown consumer key."
             ) from err
 
-        return LTIUser(
-            user_id=kwargs["user_id"],
-            application_instance_id=application_instance.id,
-            roles=kwargs["roles"],
-            tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],
-            display_name=display_name(
-                kwargs["lis_person_name_given"],
-                kwargs["lis_person_name_family"],
-                kwargs["lis_person_name_full"],
-            ),
-            email=kwargs["lis_person_contact_email_primary"],
-        )
+        return LTIUser.from_auth_params(application_instance, kwargs)
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
@@ -96,3 +74,51 @@ class LaunchParamsAuthSchema(PyramidRequestSchema):
             self._launch_verifier.verify()
         except LTILaunchVerificationError as err:
             raise marshmallow.ValidationError("Invalid OAuth 1 signature.") from err
+
+
+class LTI13AuthSchema(LTIV11CoreSchema):
+    """
+    Schema used to validate the LTI1.3 params needed for authentication.
+
+    Using the lti_user method produces an LTIUser based on those parameters.
+    """
+
+    location = "form"
+
+    iss = marshmallow.fields.Str(required=True)
+    aud = marshmallow.fields.Str(required=True)
+    deployment_id = marshmallow.fields.Str(required=True)
+
+    @marshmallow.pre_load
+    def _lti_v3_fields(self, data, **_kwargs):  # pylint:disable=no-self-use
+        data["iss"] = data.v13["iss"]
+        data["aud"] = data.v13["aud"]
+        data["deployment_id"] = data.v13[f"{CLAIM_PREFIX}/deployment_id"]
+
+        return data
+
+    def __init__(self, request):
+        super().__init__(request)
+        self._application_instance_service = request.find_service(
+            name="application_instance"
+        )
+
+    def lti_user(self):
+        """
+        Return an models.LTIUser from the request's launch params.
+
+        :raise ValidationError: if the request isn't a valid LTI launch request
+        """
+        kwargs = self.parse(location="form")
+        try:
+            application_instance = (
+                self._application_instance_service.get_by_deployment_id(
+                    kwargs["iss"], kwargs["aud"], kwargs["deployment_id"]
+                )
+            )
+        except ApplicationInstanceNotFound as err:
+            raise ValidationError(
+                "Invalid LTI1.3 params. Unknown application_instance."
+            ) from err
+
+        return LTIUser.from_auth_params(application_instance, kwargs)
