@@ -42,6 +42,7 @@ class ExceptionViews:
     )
     def validation_error(self):
         self.request.response.status_int = self.exception.status_int
+        print(self.exception.__dict__)
         return {"error": self.exception}
 
     @exception_view_config(

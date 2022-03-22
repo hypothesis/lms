@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+import typing
 from typing import NamedTuple
 
 from lms.models import HUser
+
+if typing.TYPE_CHECKING:
+    from lms.validation._lti import LTIAuthParamsSchema
 
 
 class LTIUser(NamedTuple):
@@ -41,6 +47,21 @@ class LTIUser(NamedTuple):
     def is_learner(self):
         """Whether this user is a learner."""
         return "learner" in self.roles.lower()
+
+    @staticmethod
+    def from_auth_params(application_instance, auth_params: LTIAuthParamsSchema):
+        return LTIUser(
+            user_id=auth_params["user_id"],
+            application_instance_id=application_instance.id,
+            roles=auth_params["roles"],
+            tool_consumer_instance_guid=auth_params["tool_consumer_instance_guid"],
+            display_name=display_name(
+                auth_params["lis_person_name_given"],
+                auth_params["lis_person_name_family"],
+                auth_params["lis_person_name_full"],
+            ),
+            email=auth_params["lis_person_contact_email_primary"],
+        )
 
 
 def display_name(given_name, family_name, full_name):

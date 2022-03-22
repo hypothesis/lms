@@ -1,11 +1,24 @@
 """Base classes for validation schemas."""
 import marshmallow
-from marshmallow import pre_load
+from marshmallow import pre_load, fields
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
 from lms.services import ExternalRequestError
 from lms.validation._exceptions import ValidationError
+
+from marshmallow.utils import get_value
+
+
+class Reach(fields.Field):
+    def __init__(self, inner, path, **kwargs):
+        super().__init__(**kwargs)
+        self.inner = inner
+        self.path = path
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        val = get_value(value, self.path)
+        return self.inner.deserialize(val, **kwargs)
 
 
 class PlainSchema(marshmallow.Schema):

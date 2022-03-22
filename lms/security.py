@@ -13,6 +13,7 @@ from lms.validation.authentication import (
     BearerTokenSchema,
     LaunchParamsAuthSchema,
     OAuthCallbackSchema,
+    OpenIDAuthSchema,
 )
 
 
@@ -167,22 +168,27 @@ def _get_lti_user(request):
     bearer_token_schema = BearerTokenSchema(request)
 
     schemas = [
-        LaunchParamsAuthSchema(request).lti_user,
-        partial(bearer_token_schema.lti_user, location="headers"),
-        partial(bearer_token_schema.lti_user, location="querystring"),
-        partial(bearer_token_schema.lti_user, location="form"),
-        OAuthCallbackSchema(request).lti_user,
+        # LaunchParamsAuthSchema(request).lti_user,
+        # partial(bearer_token_schema.lti_user, location="headers"),
+        # partial(bearer_token_schema.lti_user, location="querystring"),
+        # partial(bearer_token_schema.lti_user, location="form"),
+        # OAuthCallbackSchema(request).lti_user,
     ]
+    if "id_token" in request.params:
+        schemas.append(OpenIDAuthSchema(request).lti_user)
 
     lti_user = None
     for schema in schemas:
         try:
+            print("TRY")
             lti_user = schema()
             break
-        except ValidationError:
+        except ValidationError as ex:
+            print(ex.__dict__)
             continue
 
     if lti_user:
+        print(lti_user)
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
         request.find_service(UserService).store_lti_user(lti_user)
@@ -197,7 +203,39 @@ def _get_user(request):
     )
 
 
+def _get_lti_jwt(request):
+    from lms.validation.authentication._exceptions import (
+        ExpiredJWTError,
+        InvalidJWTError,
+    )
+    import jwt
+    import marshmallow
+
+    id_token = request.params.get("id_token")
+    if not id_token:
+        return {}
+
+    try:
+        return jwt.decode(id_token, options={"verify_signature": False})
+    except ExpiredJWTError as err:
+        raise marshmallow.ValidationError(
+            "Expired session token", "authorization"
+        ) from err
+    except InvalidJWTError as err:
+        raise marshmallow.ValidationError(
+            "Invalid session token", "authorization"
+        ) from err
+
+
+def _get_lti_params(request):
+    return request.lti_jwt or request.params
+
+
 def includeme(config):
     config.set_security_policy(SecurityPolicy(config.registry.settings["lms_secret"]))
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
+    config.add_request_method(_get_lti_jwt, name="lti_jwt", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)
+    config.add_request_method(
+        _get_lti_params, name="lti_params", property=True, reify=True
+    )

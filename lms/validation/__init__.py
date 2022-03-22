@@ -43,6 +43,7 @@ suitable validation schema's ``__init__()`` method and then call the schema's
     except lms.validation.ValidationError as err:
         ...
 """
+import pyramid
 from lms.validation._api import (
     APIBlackboardSyncSchema,
     APICreateAssignmentSchema,
@@ -85,6 +86,10 @@ def _validated_view(view, info):
     if "schema" in info.options:
 
         def wrapper_view(context, request):
+            import pdb
+
+            pdb.set_trace()
+
             # Use the view's configured schema to validate the request,
             # and make the validated and parsed request params available as
             # request.parsed_params.
@@ -99,4 +104,4 @@ def _validated_view(view, info):
 
 def includeme(config):
     _validated_view.options = ["schema"]
-    config.add_view_deriver(_validated_view)
+    config.add_view_deriver(_validated_view, under=pyramid.viewderivers.INGRESS)

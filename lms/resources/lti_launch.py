@@ -122,7 +122,7 @@ class LTILaunchResource:
         ):
             return resource_link_id
 
-        return self._request.POST.get("resource_link_id")
+        return self._request.lti_params.get("resource_link_id")
 
     @property
     def ext_lti_assignment_id(self):
@@ -219,7 +219,7 @@ class LTILaunchResource:
     @property
     def is_blackboard_group_launch(self):
         """Return True if the current assignment uses Blackboard groups."""
-        tool_consumer_instance_guid = self._request.params[
+        tool_consumer_instance_guid = self._request.parsed_params[
             "tool_consumer_instance_guid"
         ]
         assignment = self._assignment_service.get(

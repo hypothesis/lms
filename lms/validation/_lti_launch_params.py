@@ -1,4 +1,5 @@
 from urllib.parse import unquote
+import marshmallow
 
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
 from marshmallow.validate import OneOf
@@ -6,35 +7,22 @@ from marshmallow.validate import OneOf
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
-
-class _CommonLTILaunchSchema(PyramidRequestSchema):
-    """Fields common to different types of LTI launches."""
-
-    location = "form"
-
-    context_id = fields.Str(required=True)
-    context_title = fields.Str(required=True)
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
-    oauth_consumer_key = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
-    user_id = fields.Str(required=True)
-
-    custom_canvas_api_domain = fields.Str()
-    custom_canvas_course_id = fields.Str()
-    launch_presentation_return_url = fields.Str()
-    lis_person_name_full = fields.Str()
-    lis_person_name_family = fields.Str()
-    lis_person_name_given = fields.Str()
-    tool_consumer_info_product_family_code = fields.Str()
+from lms.validation._lti import (
+    LTI11BasicLTILaunchSchema,
+    LTI13BasicLTILaunchSchema,
+    CommonLTILaunchSchema,
+)
 
 
-class BasicLTILaunchSchema(_CommonLTILaunchSchema):
+class BasicLTILaunchSchema(LTI11BasicLTILaunchSchema, PyramidRequestSchema):
     """
     Schema for basic LTI launch requests (i.e. assignment launches).
 
     This *DOES NOT* contain all of the fields required for authentication.
     For that see `lms.validation.authentication.LaunchParamsAuthSchema`
     """
+
+    location = "form"
 
     class URLSchema(Schema):
         """Schema containing only validation for the return URL."""
@@ -45,11 +33,6 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
             unknown = EXCLUDE
 
         launch_presentation_return_url = fields.URL()
-
-    lti_message_type = fields.Str(
-        validate=OneOf(["basic-lti-launch-request"]), required=True
-    )
-    resource_link_id = fields.Str(required=True)
 
     # If we have an error in one of these fields we should redirect back to
     # the calling LMS if possible
@@ -99,6 +82,20 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
 
         super().handle_error(error, data, many=many, **kwargs)
 
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **_kwargs):
+        if data["id_token"] == marshmallow.missing:
+            raise marshmallow.ValidationError(
+                "Missing data for required field.", "id_token"
+            )
+
+        jwt_data = self.context["request"].lti_jwt
+        try:
+            return LTI13BasicLTILaunchSchema().load(jwt_data)
+        except Exception as ex:
+            print(ex.__dict__)
+            raise
+
 
 class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
     """Schema for URL-configured basic LTI launches."""
@@ -125,8 +122,24 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
 
         return _data
 
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **_kwargs):
+        if data["id_token"] == marshmallow.missing:
+            raise marshmallow.ValidationError(
+                "Missing data for required field.", "id_token"
+            )
 
-class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
+        jwt_data = self.context["request"].lti_jwt
+        try:
+            data = LTI13BasicLTILaunchSchema().load(jwt_data)
+            data["url"] = self.context["request"].params["url"]
+            return data
+        except Exception as ex:
+            print(ex.__dict__)
+            raise
+
+
+class ContentItemSelectionLTILaunchSchema(CommonLTILaunchSchema):
     """Schema for content item selection LTI launches."""
 
     lti_message_type = fields.Str(
