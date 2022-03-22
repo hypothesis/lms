@@ -24,16 +24,16 @@ class TestHGroup:
 
 class TestResourceLinkIdk:
     @pytest.mark.parametrize(
-        "learner_id,get_id,post_id,expected",
+        "learner_id,get_id,lti_id,expected",
         [
-            param(None, None, "POST_ID", "POST_ID", id="regular"),
-            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
-            param("USER_ID", None, "POST_ID", "POST_ID", id="old_speedgrader"),
+            param(None, None, "LTI_ID", "LTI_ID", id="regular"),
+            param("USER_ID", "GET_ID", "LTI_ID", "GET_ID", id="new_speedgrader"),
+            param("USER_ID", None, "LTI_ID", "LTI_ID", id="old_speedgrader"),
         ],
     )
-    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
-        pyramid_request.POST = {
-            "resource_link_id": post_id,
+    def test_it(self, pyramid_request, learner_id, get_id, lti_id, expected):
+        pyramid_request.params = {
+            "resource_link_id": lti_id,
         }
         pyramid_request.GET = {
             "learner_canvas_user_id": learner_id,
@@ -370,6 +370,14 @@ class TestIsBlackboardGroupLaunch:
 
         return TestableLTILaunchResource(pyramid_request)
 
+    @pytest.fixture(autouse=True)
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+        }
+        pyramid_request.lti_params = {}
+        return pyramid_request
+
 
 class TestIsGroupLaunch:
     @pytest.mark.parametrize(
@@ -387,6 +395,34 @@ class TestIsGroupLaunch:
             is_blackboard_group_launch = blackboard
 
         assert TestableLTILaunchResource(pyramid_request).is_group_launch == expected
+
+
+class TestLTIParams:
+    def test_it_when_lti_jwt(self, pyramid_request_with_jwt, LTIParams, lti_launch):
+        params = lti_launch.lti_params
+
+        LTIParams.from_v13.assert_called_once_with(pyramid_request_with_jwt.lti_jwt)
+        assert params == LTIParams.from_v13.return_value
+
+    def test_it_when_no_lti_jwt(self, pyramid_request, LTIParams, lti_launch):
+        params = lti_launch.lti_params
+
+        LTIParams.assert_called_once_with(pyramid_request.params)
+        assert params == LTIParams.return_value
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_jwt = {}
+        return pyramid_request
+
+    @pytest.fixture
+    def pyramid_request_with_jwt(self, pyramid_request):
+        pyramid_request.lti_jwt = {"KEY": "VALUE"}
+        return pyramid_request
+
+    @pytest.fixture
+    def LTIParams(self, patch):
+        return patch("lms.resources.lti_launch.LTIParams")
 
 
 @pytest.fixture

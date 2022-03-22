@@ -1,8 +1,11 @@
 import base64
+import warnings
 from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
 
+import jwt
+import marshmallow
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
@@ -11,9 +14,11 @@ from lms.services import UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
-    LaunchParamsAuthSchema,
+    LTI11AuthSchema,
+    LTI13AuthSchema,
     OAuthCallbackSchema,
 )
+from lms.validation.authentication._exceptions import InvalidJWTError
 
 
 class Identity(NamedTuple):
@@ -167,12 +172,17 @@ def _get_lti_user(request):
     bearer_token_schema = BearerTokenSchema(request)
 
     schemas = [
-        LaunchParamsAuthSchema(request).lti_user,
+        LTI11AuthSchema(request).lti_user,
         partial(bearer_token_schema.lti_user, location="headers"),
         partial(bearer_token_schema.lti_user, location="querystring"),
         partial(bearer_token_schema.lti_user, location="form"),
         OAuthCallbackSchema(request).lti_user,
     ]
+    # Avoid checking for the LTI1.3 JWT if not there
+    if "id_token" in request.params:
+        # Don't replace all auth methods in case somehow we have a bogus token
+        # but try this one first.
+        schemas.insert(0, LTI13AuthSchema(request).lti_user)
 
     lti_user = None
     for schema in schemas:
@@ -197,7 +207,22 @@ def _get_user(request):
     )
 
 
+def _get_lti_jwt(request):
+    id_token = request.params.get("id_token")
+    if not id_token:
+        return {}
+
+    try:
+        jwt_params = jwt.decode(id_token, options={"verify_signature": False})
+    except InvalidJWTError as err:
+        raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
+
+    warnings.warn("Using not verified JWT token")
+    return jwt_params
+
+
 def includeme(config):
     config.set_security_policy(SecurityPolicy(config.registry.settings["lms_secret"]))
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
+    config.add_request_method(_get_lti_jwt, name="lti_jwt", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)
