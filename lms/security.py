@@ -192,7 +192,6 @@ def _get_lti_user(request):
             continue
 
     if lti_user:
-        print(lti_user)
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
         request.find_service(UserService).store_lti_user(lti_user)
@@ -222,7 +221,7 @@ def _get_lti_jwt(request):
 
 def _get_lti_params(request) -> dict:
     """
-    Returns the requests LTI parameters.
+    Return the requests LTI parameters.
 
     For LTI1.1 returns the request.params verbatim.
     For LTI1.3 returns a dict that maps LTI1.1 parameter names to their LTI1.3 values.

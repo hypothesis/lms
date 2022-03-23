@@ -101,4 +101,4 @@ def _validated_view(view, info):
 
 def includeme(config):
     _validated_view.options = ["schema"]
-    config.add_view_deriver(_validated_view, under=pyramid.viewderivers.INGRESS)
+    config.add_view_deriver(_validated_view)

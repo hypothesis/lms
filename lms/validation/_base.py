@@ -97,7 +97,8 @@ class PyramidRequestSchema(PlainSchema):
 
     @marshmallow.pre_load
     def _decode_jwt(self, data, **_kwargs):
-        if not "id_token" in self.context["request"].params:
+        """Use the values encoded in the `id_token` JWT if present."""
+        if "id_token" not in self.context["request"].params:
             return data
 
         params = dict(self.context["request"].lti_jwt)

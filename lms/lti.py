@@ -1,20 +1,35 @@
-import enum
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 
 @dataclass
 class _ParamMapping:
     key: str
+    """Name of the parameter in LTI1.3"""
+
     sub: Optional[str] = None
-    method: Optional[str] = None
+    """For nested values, name in the second object"""
+
+    function: Optional[Callable] = None
+    """If additional processing is needed, function to further process the value"""
+
+
+def _stringify_roles(lti_13_value):
+    """
+    Return roles as a comma separated list of values.
+
+    Roles are a list in LTI1.3 but comma separated in LTI1.1.
+    """
+    return ",".join(lti_13_value)
 
 
 class LTI13Params(dict):
+    """Dictionary subclass that translates LTI1.1 parameter names to the LTI1.3 ones."""
+
     lti_param_mapping = {
         "user_id": _ParamMapping("sub"),
         "roles": _ParamMapping(
-            "https://purl.imsglobal.org/spec/lti/claim/roles", method="stringify_roles"
+            "https://purl.imsglobal.org/spec/lti/claim/roles", function=_stringify_roles
         ),
         "tool_consumer_instance_guid": _ParamMapping(
             "https://purl.imsglobal.org/spec/lti/claim/tool_platform", "guid"
@@ -48,9 +63,6 @@ class LTI13Params(dict):
         ),
     }
 
-    def stringify_roles(self, lti_13_value):
-        return ",".join(lti_13_value)
-
     def get(self, key, default=None):
         try:
             return self[key] or default
@@ -58,7 +70,8 @@ class LTI13Params(dict):
             return default
 
     def __getitem__(self, key):
-        if not key in self.lti_param_mapping:
+        """Access the LTI1.3 parameters using their corresponding LTI1.1 names."""
+        if key not in self.lti_param_mapping:
             return super().__getitem__(key)
 
         mapping = self.lti_param_mapping[key]
@@ -67,7 +80,7 @@ class LTI13Params(dict):
         if mapping.sub:
             lti_13_value = lti_13_value[mapping.sub]
 
-        if mapping.method:
-            lti_13_value = getattr(self, mapping.method)(lti_13_value)
+        if mapping.function:
+            lti_13_value = mapping.function(lti_13_value)
 
         return lti_13_value

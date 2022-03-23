@@ -1,6 +1,5 @@
 """Schema for validating LTI launch params."""
 
-import jwt
 import marshmallow
 
 from lms.models import LTIUser

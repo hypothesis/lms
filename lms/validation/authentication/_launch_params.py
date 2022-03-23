@@ -2,7 +2,7 @@
 
 import marshmallow
 
-from lms.models import LTIUser
+from lms.models import LTIUser, display_name
 from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._lti import LTIAuthParamsSchema
@@ -64,7 +64,18 @@ class LaunchParamsAuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
                 "Invalid OAuth 1 signature. Unknown consumer key."
             ) from err
 
-        return LTIUser.from_auth_params(application_instance, kwargs)
+        return LTIUser(
+            user_id=kwargs["user_id"],
+            application_instance_id=application_instance.id,
+            roles=kwargs["roles"],
+            tool_consumer_instance_guid=kwargs["tool_consumer_instance_guid"],
+            display_name=display_name(
+                kwargs["lis_person_name_given"],
+                kwargs["lis_person_name_family"],
+                kwargs["lis_person_name_full"],
+            ),
+            email=kwargs["lis_person_contact_email_primary"],
+        )
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
