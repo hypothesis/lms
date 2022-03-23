@@ -3,10 +3,13 @@ from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
 
+import jwt
+import marshmallow
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
+from lms.lti import LTI13Params
 from lms.services import UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
@@ -15,6 +18,7 @@ from lms.validation.authentication import (
     OAuthCallbackSchema,
     OpenIDAuthSchema,
 )
+from lms.validation.authentication._exceptions import ExpiredJWTError, InvalidJWTError
 
 
 class Identity(NamedTuple):
@@ -168,23 +172,23 @@ def _get_lti_user(request):
     bearer_token_schema = BearerTokenSchema(request)
 
     schemas = [
-        # LaunchParamsAuthSchema(request).lti_user,
-        # partial(bearer_token_schema.lti_user, location="headers"),
-        # partial(bearer_token_schema.lti_user, location="querystring"),
-        # partial(bearer_token_schema.lti_user, location="form"),
-        # OAuthCallbackSchema(request).lti_user,
+        LaunchParamsAuthSchema(request).lti_user,
+        partial(bearer_token_schema.lti_user, location="headers"),
+        partial(bearer_token_schema.lti_user, location="querystring"),
+        partial(bearer_token_schema.lti_user, location="form"),
+        OAuthCallbackSchema(request).lti_user,
     ]
     if "id_token" in request.params:
-        schemas.append(OpenIDAuthSchema(request).lti_user)
+        # Don't replace all auth methods in case somehow we have a bogus token
+        # but try this one first.
+        schemas.insert(0, OpenIDAuthSchema(request).lti_user)
 
     lti_user = None
     for schema in schemas:
         try:
-            print("TRY")
             lti_user = schema()
             break
-        except ValidationError as ex:
-            print(ex.__dict__)
+        except ValidationError:
             continue
 
     if lti_user:
@@ -204,13 +208,6 @@ def _get_user(request):
 
 
 def _get_lti_jwt(request):
-    from lms.validation.authentication._exceptions import (
-        ExpiredJWTError,
-        InvalidJWTError,
-    )
-    import jwt
-    import marshmallow
-
     id_token = request.params.get("id_token")
     if not id_token:
         return {}
@@ -218,17 +215,19 @@ def _get_lti_jwt(request):
     try:
         return jwt.decode(id_token, options={"verify_signature": False})
     except ExpiredJWTError as err:
-        raise marshmallow.ValidationError(
-            "Expired session token", "authorization"
-        ) from err
+        raise marshmallow.ValidationError("Expired id_token", "authorization") from err
     except InvalidJWTError as err:
-        raise marshmallow.ValidationError(
-            "Invalid session token", "authorization"
-        ) from err
+        raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
 
 
-def _get_lti_params(request):
-    return request.lti_jwt or request.params
+def _get_lti_params(request) -> dict:
+    """
+    Returns the requests LTI parameters.
+
+    For LTI1.1 returns the request.params verbatim.
+    For LTI1.3 returns a dict that maps LTI1.1 parameter names to their LTI1.3 values.
+    """
+    return LTI13Params(request.lti_jwt) if request.lti_jwt else request.params
 
 
 def includeme(config):

@@ -1,17 +1,12 @@
 from urllib.parse import unquote
-import marshmallow
 
+import marshmallow
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
 from marshmallow.validate import OneOf
 
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
-
-from lms.validation._lti import (
-    LTI11BasicLTILaunchSchema,
-    LTI13BasicLTILaunchSchema,
-    CommonLTILaunchSchema,
-)
+from lms.validation._lti import CommonLTILaunchSchema, LTI11BasicLTILaunchSchema
 
 
 class BasicLTILaunchSchema(LTI11BasicLTILaunchSchema, PyramidRequestSchema):
@@ -82,20 +77,6 @@ class BasicLTILaunchSchema(LTI11BasicLTILaunchSchema, PyramidRequestSchema):
 
         super().handle_error(error, data, many=many, **kwargs)
 
-    @marshmallow.pre_load
-    def _decode_jwt(self, data, **_kwargs):
-        if data["id_token"] == marshmallow.missing:
-            raise marshmallow.ValidationError(
-                "Missing data for required field.", "id_token"
-            )
-
-        jwt_data = self.context["request"].lti_jwt
-        try:
-            return LTI13BasicLTILaunchSchema().load(jwt_data)
-        except Exception as ex:
-            print(ex.__dict__)
-            raise
-
 
 class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
     """Schema for URL-configured basic LTI launches."""
@@ -121,22 +102,6 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
             _data["url"] = url
 
         return _data
-
-    @marshmallow.pre_load
-    def _decode_jwt(self, data, **_kwargs):
-        if data["id_token"] == marshmallow.missing:
-            raise marshmallow.ValidationError(
-                "Missing data for required field.", "id_token"
-            )
-
-        jwt_data = self.context["request"].lti_jwt
-        try:
-            data = LTI13BasicLTILaunchSchema().load(jwt_data)
-            data["url"] = self.context["request"].params["url"]
-            return data
-        except Exception as ex:
-            print(ex.__dict__)
-            raise
 
 
 class ContentItemSelectionLTILaunchSchema(CommonLTILaunchSchema):

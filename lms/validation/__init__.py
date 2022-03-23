@@ -44,6 +44,7 @@ suitable validation schema's ``__init__()`` method and then call the schema's
         ...
 """
 import pyramid
+
 from lms.validation._api import (
     APIBlackboardSyncSchema,
     APICreateAssignmentSchema,
@@ -86,10 +87,6 @@ def _validated_view(view, info):
     if "schema" in info.options:
 
         def wrapper_view(context, request):
-            import pdb
-
-            pdb.set_trace()
-
             # Use the view's configured schema to validate the request,
             # and make the validated and parsed request params available as
             # request.parsed_params.

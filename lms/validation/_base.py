@@ -1,24 +1,12 @@
 """Base classes for validation schemas."""
 import marshmallow
-from marshmallow import pre_load, fields
+from marshmallow import pre_load
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
+from lms.lti import LTI13Params
 from lms.services import ExternalRequestError
 from lms.validation._exceptions import ValidationError
-
-from marshmallow.utils import get_value
-
-
-class Reach(fields.Field):
-    def __init__(self, inner, path, **kwargs):
-        super().__init__(**kwargs)
-        self.inner = inner
-        self.path = path
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        val = get_value(value, self.path)
-        return self.inner.deserialize(val, **kwargs)
 
 
 class PlainSchema(marshmallow.Schema):
@@ -106,6 +94,17 @@ class PyramidRequestSchema(PlainSchema):
     @staticmethod
     def _handle_error(error, _req, _schema, *, error_status_code, error_headers):
         raise ValidationError(messages=error.messages) from error
+
+    @marshmallow.pre_load
+    def _decode_jwt(self, data, **_kwargs):
+        if not "id_token" in self.context["request"].params:
+            return data
+
+        params = dict(self.context["request"].lti_jwt)
+        # Make the rest of params also accessible through LTI13Params
+        params.update(self.context["request"].params)
+
+        return LTI13Params(params)
 
 
 class JSONPyramidRequestSchema(PyramidRequestSchema):

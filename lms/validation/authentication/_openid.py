@@ -4,9 +4,9 @@ import jwt
 import marshmallow
 
 from lms.models import LTIUser
-from lms.validation._lti import LTIAuthParamsSchema, LTI13AuthParamsSchema
-from lms.validation._base import PyramidRequestSchema
 from lms.services import ApplicationInstanceNotFound
+from lms.validation._base import PyramidRequestSchema
+from lms.validation._lti import LTIAuthParamsSchema
 
 __all__ = ("OpenIDAuthSchema",)
 
@@ -43,13 +43,3 @@ class OpenIDAuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
             ) from err
 
         return LTIUser.from_auth_params(application_instance, kwargs)
-
-    @marshmallow.pre_load
-    def _decode_jwt(self, data, **_kwargs):
-        if data["id_token"] == marshmallow.missing:
-            raise marshmallow.ValidationError(
-                "Missing data for required field.", "id_token"
-            )
-
-        jwt_data = self.context["request"].lti_jwt
-        return LTI13AuthParamsSchema().load(jwt_data)
