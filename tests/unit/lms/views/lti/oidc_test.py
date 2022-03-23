@@ -12,11 +12,6 @@ class TestOIDC:
         with pytest.raises(HTTPForbidden):
             oidc_view(pyramid_request)
 
-        lti_registration.get.assert_called_once_with(
-            issuer=pyramid_request.parsed_params["iss"],
-            client_id=pyramid_request.parsed_params["client_id"],
-        )
-
     def test_it(self, lti_registration, pyramid_request):
         lti_registration.get.return_value.auth_login_url = (
             "https://lms.com/auth_login_url"
@@ -24,6 +19,10 @@ class TestOIDC:
 
         result = oidc_view(pyramid_request)
 
+        lti_registration.get.assert_called_once_with(
+            pyramid_request.parsed_params["iss"],
+            pyramid_request.parsed_params["client_id"],
+        )
         assert isinstance(result, HTTPFound)
         assert result.location == Any.url(
             host="lms.com",
@@ -40,10 +39,6 @@ class TestOIDC:
                 "nonce": Any(),
                 "redirect_uri": pyramid_request.parsed_params["target_link_uri"],
             },
-        )
-        lti_registration.get.assert_called_once_with(
-            pyramid_request.parsed_params["iss"],
-            pyramid_request.parsed_params["client_id"],
         )
 
     @pytest.fixture
