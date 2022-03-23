@@ -16,8 +16,8 @@ from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
     LaunchParamsAuthSchema,
+    LTI13AuthSchema,
     OAuthCallbackSchema,
-    OpenIDAuthSchema,
 )
 from lms.validation.authentication._exceptions import InvalidJWTError
 
@@ -182,7 +182,7 @@ def _get_lti_user(request):
     if "id_token" in request.params:
         # Don't replace all auth methods in case somehow we have a bogus token
         # but try this one first.
-        schemas.insert(0, OpenIDAuthSchema(request).lti_user)
+        schemas.insert(0, LTI13AuthSchema(request).lti_user)
 
     lti_user = None
     for schema in schemas:

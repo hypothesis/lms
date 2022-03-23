@@ -11,8 +11,8 @@ from lms.validation.authentication._exceptions import (
     MissingStateParamError,
 )
 from lms.validation.authentication._launch_params import LaunchParamsAuthSchema
+from lms.validation.authentication._lti import LTI13AuthSchema
 from lms.validation.authentication._oauth import (
     OAuthCallbackSchema,
     OAuthTokenResponseSchema,
 )
-from lms.validation.authentication._openid import OpenIDAuthSchema

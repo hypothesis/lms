@@ -2,7 +2,7 @@ import marshmallow
 import pytest
 
 from lms.services import ApplicationInstanceNotFound
-from lms.validation.authentication import OpenIDAuthSchema
+from lms.validation.authentication import LTI13AuthSchema
 
 pytestmark = pytest.mark.usefixtures("application_instance_service")
 
@@ -31,7 +31,7 @@ class TestLaunchParamsAuthSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return OpenIDAuthSchema(pyramid_request)
+        return LTI13AuthSchema(pyramid_request)
 
     @pytest.fixture
     def schema_params(self, schema):
@@ -55,4 +55,4 @@ class TestLaunchParamsAuthSchema:
 
     @pytest.fixture
     def LTIUser(self, patch):
-        return patch("lms.validation.authentication._openid.LTIUser")
+        return patch("lms.validation.authentication._lti.LTIUser")

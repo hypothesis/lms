@@ -512,17 +512,17 @@ class TestGetLTIUser:
 
     def test_it_returns_LTIUser_from_openid_auth_schema(
         self,
-        OpenIDAuthSchema,
-        openid_auth_schema,
+        LTI13AuthSchema,
+        lti13_auth_schema,
         pyramid_request,
     ):
         pyramid_request.params["id_token"] = "JWT"
 
         lti_user = _get_lti_user(pyramid_request)
 
-        OpenIDAuthSchema.assert_called_once_with(pyramid_request)
-        openid_auth_schema.lti_user.assert_called_once()
-        assert lti_user == openid_auth_schema.lti_user.return_value
+        LTI13AuthSchema.assert_called_once_with(pyramid_request)
+        lti13_auth_schema.lti_user.assert_called_once()
+        assert lti_user == lti13_auth_schema.lti_user.return_value
 
     def test_it_returns_None_if_all_schemas_fail(
         self,
@@ -573,12 +573,12 @@ class TestGetLTIUser:
         return patch("lms.security.OAuthCallbackSchema")
 
     @pytest.fixture(autouse=True)
-    def OpenIDAuthSchema(self, patch):
-        return patch("lms.security.OpenIDAuthSchema")
+    def LTI13AuthSchema(self, patch):
+        return patch("lms.security.LTI13AuthSchema")
 
     @pytest.fixture
-    def openid_auth_schema(self, OpenIDAuthSchema):
-        return OpenIDAuthSchema.return_value
+    def lti13_auth_schema(self, LTI13AuthSchema):
+        return LTI13AuthSchema.return_value
 
     @pytest.fixture
     def canvas_oauth_callback_schema(self, OAuthCallbackSchema):

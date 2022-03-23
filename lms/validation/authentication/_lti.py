@@ -1,5 +1,3 @@
-"""Schema for validating LTI launch params."""
-
 import marshmallow
 
 from lms.models import LTIUser
@@ -7,10 +5,14 @@ from lms.services import ApplicationInstanceNotFound
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._lti import LTIAuthParamsSchema
 
-__all__ = ("OpenIDAuthSchema",)
 
+class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
+    """
+    Schema used to validate the LTI1.3 params needed for authentication.
 
-class OpenIDAuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
+    Using the lti_user method produces an LTIUser based on those parameters.
+    """
+
     location = "form"
 
     issuer = marshmallow.fields.Str(required=True)
