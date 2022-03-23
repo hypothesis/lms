@@ -7,8 +7,36 @@ from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from pyramid.testing import DummyRequest
 
 from lms.services import ExternalRequestError
-from lms.validation._base import JSONPyramidRequestSchema, RequestsResponseSchema
+from lms.validation._base import (
+    JSONPyramidRequestSchema,
+    PyramidRequestSchema,
+    RequestsResponseSchema,
+)
 from tests import factories
+
+
+class TestPyramidRequestSchema:
+    class ExampleSchema(PyramidRequestSchema):
+        location = "form"
+
+        key = fields.Str()
+
+    def test_it(self, pyramid_request):
+        pyramid_request.POST = {"key": "from_params"}
+
+        assert self.ExampleSchema(pyramid_request).parse() == {"key": "from_params"}
+
+    def test_with_lti_jwt(self, pyramid_request_lti_params):
+
+        assert self.ExampleSchema(pyramid_request_lti_params).parse() == {
+            "key": "from_lti_params"
+        }
+
+    @pytest.fixture
+    def pyramid_request_lti_params(self, pyramid_request):
+        pyramid_request.params = {"id_token": "JWT"}
+        pyramid_request.lti_jwt = {"key": "from_lti_params"}
+        return pyramid_request
 
 
 class TestJSONPyramidRequestSchema:

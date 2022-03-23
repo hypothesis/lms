@@ -1,6 +1,7 @@
 from unittest import mock
 from unittest.mock import call, sentinel
 
+import marshmallow
 import pytest
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
@@ -12,11 +13,14 @@ from lms.security import (
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
+    _get_lti_jwt,
+    _get_lti_params,
     _get_lti_user,
     _get_user,
     includeme,
 )
 from lms.validation import ValidationError
+from lms.validation.authentication._exceptions import InvalidJWTError
 from tests import factories
 
 
@@ -506,6 +510,20 @@ class TestGetLTIUser:
         canvas_oauth_callback_schema.lti_user.assert_called_once_with()
         assert lti_user == canvas_oauth_callback_schema.lti_user.return_value
 
+    def test_it_returns_LTIUser_from_openid_auth_schema(
+        self,
+        OpenIDAuthSchema,
+        openid_auth_schema,
+        pyramid_request,
+    ):
+        pyramid_request.params["id_token"] = "JWT"
+
+        lti_user = _get_lti_user(pyramid_request)
+
+        OpenIDAuthSchema.assert_called_once_with(pyramid_request)
+        openid_auth_schema.lti_user.assert_called_once()
+        assert lti_user == openid_auth_schema.lti_user.return_value
+
     def test_it_returns_None_if_all_schemas_fail(
         self,
         launch_params_auth_schema,
@@ -554,6 +572,14 @@ class TestGetLTIUser:
     def OAuthCallbackSchema(self, patch):
         return patch("lms.security.OAuthCallbackSchema")
 
+    @pytest.fixture(autouse=True)
+    def OpenIDAuthSchema(self, patch):
+        return patch("lms.security.OpenIDAuthSchema")
+
+    @pytest.fixture
+    def openid_auth_schema(self, OpenIDAuthSchema):
+        return OpenIDAuthSchema.return_value
+
     @pytest.fixture
     def canvas_oauth_callback_schema(self, OAuthCallbackSchema):
         return OAuthCallbackSchema.return_value
@@ -576,3 +602,57 @@ class TestGetUser:
             pyramid_request.lti_user.user_id,
         )
         assert user == user_service.get.return_value
+
+
+class TestGetLTIJWT:
+    def test_it_when_no_token(self, pyramid_request):
+        assert not _get_lti_jwt(pyramid_request)
+
+    def test_it_with_invalid_token(self, pyramid_request, jwt):
+        pyramid_request.params["id_token"] = "JWT"
+        jwt.decode.side_effect = InvalidJWTError
+
+        with pytest.raises(marshmallow.ValidationError):
+            _get_lti_jwt(pyramid_request)
+
+    def test_it(self, pyramid_request, jwt):
+        pyramid_request.params["id_token"] = "JWT"
+
+        with pytest.warns(UserWarning):
+            params = _get_lti_jwt(pyramid_request)
+
+        jwt.decode.assert_called_once_with(
+            pyramid_request.params["id_token"], options={"verify_signature": False}
+        )
+        assert params == jwt.decode.return_value
+
+    @pytest.fixture
+    def jwt(self, patch):
+        return patch("lms.security.jwt")
+
+
+class TestGetLTIParam:
+    def test_it_when_lti_jwt(self, pyramid_request_with_jwt, LTI13Params):
+        params = _get_lti_params(pyramid_request_with_jwt)
+
+        LTI13Params.assert_called_once_with(pyramid_request_with_jwt.lti_jwt)
+        assert params == LTI13Params.return_value
+
+    def test_it_when_no_lti_jwt(self, pyramid_request):
+        params = _get_lti_params(pyramid_request)
+
+        assert pyramid_request.params == params
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_jwt = {}
+        return pyramid_request
+
+    @pytest.fixture
+    def pyramid_request_with_jwt(self, pyramid_request):
+        pyramid_request.lti_jwt = sentinel.lti_jwt
+        return pyramid_request
+
+    @pytest.fixture
+    def LTI13Params(self, patch):
+        return patch("lms.security.LTI13Params")

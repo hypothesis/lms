@@ -1,5 +1,4 @@
 import marshmallow
-from webargs import fields
 
 
 class LTIAuthParamsSchema(marshmallow.Schema):

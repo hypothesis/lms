@@ -19,7 +19,7 @@ from lms.validation.authentication import (
     OAuthCallbackSchema,
     OpenIDAuthSchema,
 )
-from lms.validation.authentication._exceptions import ExpiredJWTError, InvalidJWTError
+from lms.validation.authentication._exceptions import InvalidJWTError
 
 
 class Identity(NamedTuple):
@@ -213,12 +213,12 @@ def _get_lti_jwt(request):
         return {}
 
     try:
-        warnings.warn("Using not verified JWT token")
-        return jwt.decode(id_token, options={"verify_signature": False})
-    except ExpiredJWTError as err:
-        raise marshmallow.ValidationError("Expired id_token", "authorization") from err
+        jwt_params = jwt.decode(id_token, options={"verify_signature": False})
     except InvalidJWTError as err:
         raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
+
+    warnings.warn("Using not verified JWT token")
+    return jwt_params
 
 
 def _get_lti_params(request) -> dict:

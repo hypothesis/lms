@@ -45,7 +45,7 @@ class LTI13Params(dict):
             "https://purl.imsglobal.org/spec/lti/claim/context", "id"
         ),
         "context_title": _ParamMapping(
-            "https://purl.imsglobal.org/spec/lti/claim/context", "id"
+            "https://purl.imsglobal.org/spec/lti/claim/context", "title"
         ),
         "lti_version": _ParamMapping(
             "https://purl.imsglobal.org/spec/lti/claim/version"
@@ -65,7 +65,7 @@ class LTI13Params(dict):
 
     def get(self, key, default=None):
         try:
-            return self[key] or default
+            return self[key]
         except KeyError:
             return default
 

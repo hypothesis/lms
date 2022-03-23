@@ -13,9 +13,9 @@ __all__ = ("OpenIDAuthSchema",)
 class OpenIDAuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
     location = "form"
 
-    deployment_id = marshmallow.fields.Str(required=True)
     issuer = marshmallow.fields.Str(required=True)
     client_id = marshmallow.fields.Str(required=True)
+    deployment_id = marshmallow.fields.Str(required=True)
 
     def __init__(self, request):
         super().__init__(request)

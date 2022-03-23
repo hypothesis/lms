@@ -24,16 +24,16 @@ class TestHGroup:
 
 class TestResourceLinkIdk:
     @pytest.mark.parametrize(
-        "learner_id,get_id,post_id,expected",
+        "learner_id,get_id,lti_id,expected",
         [
-            param(None, None, "POST_ID", "POST_ID", id="regular"),
-            param("USER_ID", "GET_ID", "POST_ID", "GET_ID", id="new_speedgrader"),
-            param("USER_ID", None, "POST_ID", "POST_ID", id="old_speedgrader"),
+            param(None, None, "LTI_ID", "LTI_ID", id="regular"),
+            param("USER_ID", "GET_ID", "LTI_ID", "GET_ID", id="new_speedgrader"),
+            param("USER_ID", None, "LTI_ID", "LTI_ID", id="old_speedgrader"),
         ],
     )
-    def test_it(self, pyramid_request, learner_id, get_id, post_id, expected):
-        pyramid_request.POST = {
-            "resource_link_id": post_id,
+    def test_it(self, pyramid_request, learner_id, get_id, lti_id, expected):
+        pyramid_request.lti_params = {
+            "resource_link_id": lti_id,
         }
         pyramid_request.GET = {
             "learner_canvas_user_id": learner_id,
@@ -369,6 +369,14 @@ class TestIsBlackboardGroupLaunch:
             blackboard_groups_enabled = True
 
         return TestableLTILaunchResource(pyramid_request)
+
+    @pytest.fixture(autouse=True)
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+        }
+        pyramid_request.lti_params = {}
+        return pyramid_request
 
 
 class TestIsGroupLaunch:

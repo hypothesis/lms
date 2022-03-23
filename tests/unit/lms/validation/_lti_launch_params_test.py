@@ -198,9 +198,9 @@ class TestContentItemSelectionLTILaunchSchema:
             "context_title",
             "lti_message_type",
             "lti_version",
-            "oauth_consumer_key",
             "tool_consumer_instance_guid",
             "user_id",
+            "roles",
         ],
     )
     def test_required_params(self, schema, pyramid_request, missing_param):
@@ -218,7 +218,7 @@ class TestContentItemSelectionLTILaunchSchema:
         [
             (
                 {"lti_version": "invalid version"},
-                {"lti_version": ["Must be one of: LTI-1p0."]},
+                {"lti_version": ["Must be one of: LTI-1p0, 1.3.0."]},
             ),
             (
                 {"lti_message_type": "invalid message type"},
@@ -252,9 +252,11 @@ class TestContentItemSelectionLTILaunchSchema:
             "lis_person_name_full": "test_lis_person_name_full",
             "lis_person_name_family": "test_lis_person_name_family",
             "lis_person_name_given": "test_lis_person_name_given",
+            "lis_person_contact_email_primary": "test_lis_person_contact_email_primary",
             "tool_consumer_info_product_family_code": (
                 "test_tool_consumer_info_product_family_code"
             ),
+            "roles": "Instructor",
         }
 
     @pytest.fixture

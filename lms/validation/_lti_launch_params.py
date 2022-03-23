@@ -1,31 +1,42 @@
 from urllib.parse import unquote
 
-from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_load
+from marshmallow import (
+    EXCLUDE,
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    validates_schema,
+)
 from marshmallow.validate import OneOf
 
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
+from lms.validation._lti import LTIAuthParamsSchema
 
 
-class _CommonLTILaunchSchema(PyramidRequestSchema):
+class _CommonLTILaunchSchema(LTIAuthParamsSchema, PyramidRequestSchema):
     """Fields common to different types of LTI launches."""
 
     location = "form"
 
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
-    lti_version = fields.Str(validate=OneOf(["LTI-1p0"]), required=True)
-    oauth_consumer_key = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
-    user_id = fields.Str(required=True)
+    lti_version = fields.Str(validate=OneOf(["LTI-1p0", "1.3.0"]), required=True)
+    oauth_consumer_key = fields.Str(required=False)
 
     custom_canvas_api_domain = fields.Str()
     custom_canvas_course_id = fields.Str()
     launch_presentation_return_url = fields.Str()
-    lis_person_name_full = fields.Str()
-    lis_person_name_family = fields.Str()
-    lis_person_name_given = fields.Str()
     tool_consumer_info_product_family_code = fields.Str()
+
+    @validates_schema
+    def validate_numbers(self, data, **_kwargs):  # pylint: disable=no-self-use
+        if (
+            not data.get("oauth_consumer_key", None)
+            and data["lti_version"] == "LTI-1p0"
+        ):
+            raise ValidationError("Required for LTI1.1", "oauth_consumer_key")
 
 
 class BasicLTILaunchSchema(_CommonLTILaunchSchema):
@@ -47,7 +58,8 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
         launch_presentation_return_url = fields.URL()
 
     lti_message_type = fields.Str(
-        validate=OneOf(["basic-lti-launch-request"]), required=True
+        validate=OneOf(["basic-lti-launch-request", "LtiResourceLinkRequest"]),
+        required=True,
     )
     resource_link_id = fields.Str(required=True)
 
