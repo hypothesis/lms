@@ -38,6 +38,31 @@ class TestApplicationInstanceService:
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_consumer_key(consumer_key)
 
+    def test_get_by_deployment_id(self, service, lti13_application_instance):
+        assert (
+            service.get_by_deployment_id(
+                lti13_application_instance.lti_registration.issuer,
+                lti13_application_instance.lti_registration.client_id,
+                lti13_application_instance.deployment_id,
+            )
+            == lti13_application_instance
+        )
+
+    @pytest.mark.parametrize(
+        "issuer,client_id,deployment_id",
+        [
+            (None, "MISSING", "MISSING"),
+            ("MISSING", None, "MISSING"),
+            ("MISSING", "MISSING", None),
+            ("MISSING", "MISSING", "MISSING"),
+        ],
+    )
+    def test_get_by_deployment_id_raises_on_missing(
+        self, service, issuer, client_id, deployment_id
+    ):
+        with pytest.raises(ApplicationInstanceNotFound):
+            service.get_by_deployment_id(issuer, client_id, deployment_id)
+
     @pytest.mark.parametrize(
         "developer_secret,developer_key",
         [
