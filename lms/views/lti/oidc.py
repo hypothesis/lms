@@ -3,9 +3,21 @@ from urllib.parse import urlencode
 
 from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 from pyramid.view import view_config
+from webargs import fields
 
 from lms.services import LTIRegistrationService
-from lms.validation import OIDCRequestSchema
+from lms.validation import PyramidRequestSchema
+
+
+class OIDCRequestSchema(PyramidRequestSchema):
+    location = "form"
+
+    iss = fields.Str(required=True)
+    client_id = fields.Str(required=True)
+
+    target_link_uri = fields.Str(required=True)
+    login_hint = fields.Str(required=True)
+    lti_message_hint = fields.Str(required=True)
 
 
 @view_config(
@@ -19,7 +31,7 @@ def oidc_view(request):
 
     http://www.imsglobal.org/spec/security/v1p0/#step-2-authentication-request
 
-    We have to check we have a corresponding registration based on the `iss` 
+    We have to check we have a corresponding registration based on the `iss`
     and `client_id` params and redirect back to the LMS.
     """
     params = request.parsed_params
@@ -46,8 +58,8 @@ def oidc_view(request):
         "nonce": uuid.uuid4().hex,
         # The value will be configured when registering the tool in the LMS and
         # will be different depending on the message type. For example, it will
-        # be an lti_launch endpoint for launches and content_item_selection / 
-        # deeplinking for LMSs that support it while creating or editing 
+        # be an lti_launch endpoint for launches and content_item_selection /
+        # deeplinking for LMSs that support it while creating or editing
         # assignments.
         "redirect_uri": params["target_link_uri"],
     }
