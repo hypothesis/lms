@@ -19,8 +19,8 @@ def oidc_view(request):
 
     http://www.imsglobal.org/spec/security/v1p0/#step-2-authentication-request
 
-    We have to check we have a corresponding registration based on the `iss` and `client_id` params
-    and redirect back to the LMS.
+    We have to check we have a corresponding registration based on the `iss` 
+    and `client_id` params and redirect back to the LMS.
     """
     params = request.parsed_params
 
@@ -44,9 +44,11 @@ def oidc_view(request):
         "client_id": params["client_id"],
         "state": uuid.uuid4().hex,
         "nonce": uuid.uuid4().hex,
-        # The value will be configured when registering the tool in the LMS and will be different depending on the message type.
-        # For example it will be lti_launch endpoint for launches and
-        # the content_item_selection/deeplinking one for LMSs that support it while creating/editing assignments.
+        # The value will be configured when registering the tool in the LMS and
+        # will be different depending on the message type. For example, it will
+        # be an lti_launch endpoint for launches and content_item_selection / 
+        # deeplinking for LMSs that support it while creating or editing 
+        # assignments.
         "redirect_uri": params["target_link_uri"],
     }
     return HTTPFound(location=f"{registration.auth_login_url}?{urlencode(params)}")

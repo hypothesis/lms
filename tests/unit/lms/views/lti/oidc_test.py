@@ -28,21 +28,18 @@ class TestOIDC:
         assert result.location == Any.url(
             host="lms.com",
             path="auth_login_url",
-            query=Any.mapping.containing(
-                {
-                    "scope": "openid",
-                    "response_type": "id_token",
-                    "response_mode": "form_post",
-                    "prompt": "none",
-                    "login_hint": pyramid_request.parsed_params["login_hint"],
-                    "lti_message_hint": pyramid_request.parsed_params[
-                        "lti_message_hint"
-                    ],
-                    "client_id": pyramid_request.parsed_params["client_id"],
-                    "state": Any(),
-                    "nonce": Any(),
-                }
-            ),
+            query={
+                "scope": "openid",
+                "response_type": "id_token",
+                "response_mode": "form_post",
+                "prompt": "none",
+                "login_hint": pyramid_request.parsed_params["login_hint"],
+                "lti_message_hint": pyramid_request.parsed_params["lti_message_hint"],
+                "client_id": pyramid_request.parsed_params["client_id"],
+                "state": Any(),
+                "nonce": Any(),
+                "redirect_uri": pyramid_request.parsed_params["target_link_uri"],
+            },
         )
         lti_registration.get.assert_called_once_with(
             pyramid_request.parsed_params["iss"],
