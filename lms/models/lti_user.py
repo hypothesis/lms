@@ -1,12 +1,6 @@
-from __future__ import annotations
-
-import typing
 from typing import NamedTuple
 
 from lms.models import HUser
-
-if typing.TYPE_CHECKING:
-    from lms.validation._lti import LTIAuthParamsSchema
 
 
 class LTIUser(NamedTuple):
@@ -49,7 +43,7 @@ class LTIUser(NamedTuple):
         return "learner" in self.roles.lower()
 
     @staticmethod
-    def from_auth_params(application_instance, auth_params: LTIAuthParamsSchema):
+    def from_auth_params(application_instance, auth_params):
         return LTIUser(
             user_id=auth_params["user_id"],
             application_instance_id=application_instance.id,
