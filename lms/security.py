@@ -1,4 +1,5 @@
 import base64
+import warnings
 from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
@@ -212,6 +213,7 @@ def _get_lti_jwt(request):
         return {}
 
     try:
+        warnings.warn("Using not verified JWT token")
         return jwt.decode(id_token, options={"verify_signature": False})
     except ExpiredJWTError as err:
         raise marshmallow.ValidationError("Expired id_token", "authorization") from err
