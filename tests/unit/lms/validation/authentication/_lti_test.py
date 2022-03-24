@@ -1,7 +1,7 @@
-import marshmallow
 import pytest
 
 from lms.services import ApplicationInstanceNotFound
+from lms.validation._exceptions import ValidationError
 from lms.validation.authentication import LTI13AuthSchema
 
 pytestmark = pytest.mark.usefixtures("application_instance_service")
@@ -26,7 +26,7 @@ class TestLaunchParamsAuthSchema:
             ApplicationInstanceNotFound
         )
 
-        with pytest.raises(marshmallow.ValidationError):
+        with pytest.raises(ValidationError):
             schema.lti_user()
 
     @pytest.fixture

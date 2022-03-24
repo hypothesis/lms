@@ -3,6 +3,7 @@ import marshmallow
 from lms.models import LTIUser
 from lms.services import ApplicationInstanceNotFound
 from lms.validation._base import PyramidRequestSchema
+from lms.validation._exceptions import ValidationError
 from lms.validation._lti import LTIAuthParamsSchema
 
 
@@ -39,7 +40,7 @@ class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
                 )
             )
         except ApplicationInstanceNotFound as err:
-            raise marshmallow.ValidationError(
+            raise ValidationError(
                 "Invalid LTI1.3 params. Unknown application_instance."
             ) from err
 

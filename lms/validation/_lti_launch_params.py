@@ -31,7 +31,7 @@ class _CommonLTILaunchSchema(LTIAuthParamsSchema, PyramidRequestSchema):
     tool_consumer_info_product_family_code = fields.Str()
 
     @validates_schema
-    def validate_numbers(self, data, **_kwargs):  # pylint: disable=no-self-use
+    def validate_consumer_key(self, data, **_kwargs):  # pylint: disable=no-self-use
         if (
             not data.get("oauth_consumer_key", None)
             and data["lti_version"] == "LTI-1p0"

@@ -86,10 +86,6 @@ class TestLTI13Params:
             "https://purl.imsglobal.org/spec/lti/claim/version": "LTI_VERSION",
             "https://purl.imsglobal.org/spec/lti/claim/resource_link": {
                 "id": "RESOURCE_LINK_ID",
-                "description": "",
-                "title": "Test assignment",
-                "validation_context": None,
-                "errors": {"errors": {}},
             },
             "iss": "ISSUER",
             "aud": "CLIENT_ID",
@@ -104,19 +100,10 @@ class TestLTI13Params:
                 "id": "CONTEXT_ID",
                 "label": "LTI",
                 "title": "CONTEXT_TITLE",
-                "type": [
-                    "http://purl.imsglobal.org/vocab/lis/v2/course#CourseOffering"
-                ],
-                "validation_context": None,
-                "errors": {"errors": {}},
             },
             "https://purl.imsglobal.org/spec/lti/claim/tool_platform": {
                 "guid": "GUID",
-                "name": "University of Hypothesis",
-                "version": "cloud",
                 "product_family_code": "FAMILY_CODE",
-                "validation_context": None,
-                "errors": {"errors": {}},
             },
             "https://purl.imsglobal.org/spec/lti/claim/roles": [
                 "Instructor",
