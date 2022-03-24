@@ -41,9 +41,9 @@ class TestLaunchParamsAuthSchema:
     def pyramid_request(self, pyramid_request):
         pyramid_request.content_type = "application/x-www-form-urlencoded"
         pyramid_request.POST = {
-            "issuer": "ISSUER",
-            "client_id": "CLIENT_ID",
-            "deployment_id": "DEPLOYMENT_ID",
+            "iss": "ISSUER",
+            "aud": "CLIENT_ID",
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "DEPLOYMENT_ID",
             "user_id": "TEST_USER_ID",
             "roles": "TEST_ROLES",
             "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",

@@ -632,11 +632,13 @@ class TestGetLTIJWT:
 
 
 class TestGetLTIParam:
-    def test_it_when_lti_jwt(self, pyramid_request_with_jwt, LTI13Params):
+    def test_it_when_lti_jwt(self, pyramid_request_with_jwt, to_lti_v11):
         params = _get_lti_params(pyramid_request_with_jwt)
 
-        LTI13Params.assert_called_once_with(pyramid_request_with_jwt.lti_jwt)
-        assert params == LTI13Params.return_value
+        to_lti_v11.assert_called_once_with(pyramid_request_with_jwt.lti_jwt)
+        assert params == dict(
+            pyramid_request_with_jwt.lti_jwt, **to_lti_v11.return_value
+        )
 
     def test_it_when_no_lti_jwt(self, pyramid_request):
         params = _get_lti_params(pyramid_request)
@@ -650,9 +652,9 @@ class TestGetLTIParam:
 
     @pytest.fixture
     def pyramid_request_with_jwt(self, pyramid_request):
-        pyramid_request.lti_jwt = sentinel.lti_jwt
+        pyramid_request.lti_jwt = {"KEY": "VALUE"}
         return pyramid_request
 
     @pytest.fixture
-    def LTI13Params(self, patch):
-        return patch("lms.security.LTI13Params")
+    def to_lti_v11(self, patch):
+        return patch("lms.security.to_lti_v11")

@@ -1,5 +1,6 @@
 import marshmallow
 
+from lms.lti import CLAIM_PREFIX
 from lms.models import LTIUser
 from lms.services import ApplicationInstanceNotFound
 from lms.validation._base import PyramidRequestSchema
@@ -16,9 +17,11 @@ class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
 
     location = "form"
 
-    issuer = marshmallow.fields.Str(required=True)
-    client_id = marshmallow.fields.Str(required=True)
-    deployment_id = marshmallow.fields.Str(required=True)
+    iss = marshmallow.fields.Str(required=True)
+    aud = marshmallow.fields.Str(required=True)
+    deployment_id = marshmallow.fields.Str(
+        required=True, data_key=f"{CLAIM_PREFIX}/deployment_id"
+    )
 
     def __init__(self, request):
         super().__init__(request)
@@ -36,7 +39,7 @@ class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
         try:
             application_instance = (
                 self._application_instance_service.get_by_deployment_id(
-                    kwargs["issuer"], kwargs["client_id"], kwargs["deployment_id"]
+                    kwargs["iss"], kwargs["aud"], kwargs["deployment_id"]
                 )
             )
         except ApplicationInstanceNotFound as err:

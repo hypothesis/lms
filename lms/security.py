@@ -10,7 +10,7 @@ from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
-from lms.lti import LTI13Params
+from lms.lti import to_lti_v11
 from lms.services import UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
@@ -226,9 +226,13 @@ def _get_lti_params(request) -> dict:
     Return the requests LTI parameters.
 
     For LTI1.1 returns the request.params verbatim.
-    For LTI1.3 returns a dict that maps LTI1.1 parameter names to their LTI1.3 values.
+    For LTI1.3 returns a dict containing the JWT token params and the same values with their LTI1.1 keys
     """
-    return LTI13Params(request.lti_jwt) if request.lti_jwt else request.params
+    return (
+        dict(request.lti_jwt, **to_lti_v11(request.lti_jwt))
+        if request.lti_jwt
+        else request.params
+    )
 
 
 def includeme(config):

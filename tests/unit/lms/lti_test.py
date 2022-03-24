@@ -1,61 +1,9 @@
 import pytest
-from pytest import param
 
-from lms.lti import LTI13Params, _ParamMapping
-
-
-def sample_function(value):
-    return value * 2
+from lms.lti import to_lti_v11
 
 
 class TestLTI13Params:
-    @pytest.mark.parametrize(
-        "key,mapping,data,expected",
-        [
-            param("key", None, {"key": "value"}, "value", id="no mapping"),
-            param(
-                "key",
-                _ParamMapping("key"),
-                {"key": "value"},
-                "value",
-                id="single key mapping",
-            ),
-            param(
-                "key",
-                _ParamMapping("key", "sub"),
-                {"key": {"sub": "sub value"}},
-                "sub value",
-                id="nested key mapping",
-            ),
-            param(
-                "key",
-                _ParamMapping("key", function=sample_function),
-                {"key": "value"},
-                "valuevalue",
-                id="with function",
-            ),
-        ],
-    )
-    def test_it(self, key, mapping, data, expected):
-        lti_params = LTI13Params(data)
-        if mapping:
-            lti_params.lti_param_mapping[key] = mapping
-
-        assert lti_params[key] == expected
-
-        if mapping:
-            del lti_params.lti_param_mapping[key]
-
-    @pytest.mark.parametrize(
-        "key,data,default,expected",
-        [
-            param("key", {"key": "value"}, "default", "value", id="existing"),
-            param("key", {"notkey": "value"}, "default", "default", id="default"),
-        ],
-    )
-    def test_get(self, key, data, default, expected):
-        assert LTI13Params(data).get(key, default) == expected
-
     @pytest.mark.parametrize(
         "lti_11_key,value",
         [
@@ -71,13 +19,10 @@ class TestLTI13Params:
             ("lti_version", "LTI_VERSION"),
             ("lti_message_type", "LTI_MESSAGE_TYPE"),
             ("resource_link_id", "RESOURCE_LINK_ID"),
-            ("issuer", "ISSUER"),
-            ("client_id", "CLIENT_ID"),
-            ("deployment_id", "DEPLOYMENT_ID"),
         ],
     )
     def test_13_mappings(self, lti_13_launch_params, lti_11_key, value):
-        assert LTI13Params(lti_13_launch_params)[lti_11_key] == value
+        assert to_lti_v11(lti_13_launch_params)[lti_11_key] == value
 
     @pytest.fixture
     def lti_13_launch_params(self):
