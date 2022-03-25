@@ -238,11 +238,6 @@ class TestErrorBody:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        # Enable the frontend_refresh feature.
-        pyramid_request.feature.side_effect = (
-            lambda feature: feature == "frontend_refresh"
-        )
-
         # When Pyramid calls an exception view it sets request.exception to the
         # exception that was raised by the original view:
         # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/request.html#pyramid.request.Request.exception
