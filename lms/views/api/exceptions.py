@@ -243,9 +243,7 @@ class ErrorBody:
         # If the exception is refreshable add refresh API info for the frontend.
         # This tells the frontend to try making a refresh request then
         # re-trying the original request.
-        if request.feature("frontend_refresh") and getattr(
-            request.exception, "refreshable", False
-        ):
+        if getattr(request.exception, "refreshable", False):
             oauth2_token_service = request.find_service(name="oauth2_token")
 
             try:

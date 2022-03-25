@@ -27,7 +27,7 @@ def canvas_api_client_factory(_context, request):
         client_id=application_instance.developer_key,
         client_secret=developer_secret,
         redirect_uri=request.route_url("canvas_api.oauth.callback"),
-        refresh_enabled=not request.feature("frontend_refresh"),
+        refresh_enabled=True,
     )
 
     return CanvasAPIClient(
