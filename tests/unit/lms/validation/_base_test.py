@@ -20,23 +20,33 @@ class TestPyramidRequestSchema:
         location = "form"
 
         key = fields.Str()
+        extra = fields.Str(required=False)
 
     def test_it(self, pyramid_request):
         pyramid_request.POST = {"key": "from_params"}
 
         assert self.ExampleSchema(pyramid_request).parse() == {"key": "from_params"}
 
-    def test_with_lti_jwt(self, pyramid_request_lti_params):
+    def test_with_lti_jwt(self, pyramid_request_lti_params, LTIParams):
+        LTIParams.from_v13.return_value = {"key": "from_v13"}
 
-        assert self.ExampleSchema(pyramid_request_lti_params).parse() == {
-            "key": "from_lti_params"
-        }
+        parsed_params = self.ExampleSchema(pyramid_request_lti_params).parse()
+
+        LTIParams.from_v13.assert_called_once_with(pyramid_request_lti_params.lti_jwt)
+        # The resulting value contains both the key from the JWT and the extra one that comes originally from request.params
+        assert parsed_params == {"key": "from_v13", "extra": "value"}
 
     @pytest.fixture
     def pyramid_request_lti_params(self, pyramid_request):
-        pyramid_request.params = {"id_token": "JWT"}
-        pyramid_request.lti_jwt = {"key": "from_lti_params"}
+        pyramid_request.params = {"extra": "value"}
+        pyramid_request.POST = {"id_token": "JWT"}
+        pyramid_request.lti_jwt = sentinel.lti_jwt
+
         return pyramid_request
+
+    @pytest.fixture
+    def LTIParams(self, patch):
+        return patch("lms.validation._base.LTIParams")
 
 
 class TestJSONPyramidRequestSchema:

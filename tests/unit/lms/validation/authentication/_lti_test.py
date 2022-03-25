@@ -1,3 +1,5 @@
+from unittest.mock import sentinel
+
 import pytest
 
 from lms.services import ApplicationInstanceNotFound
@@ -38,19 +40,10 @@ class TestLaunchParamsAuthSchema:
         return schema.parse()
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.content_type = "application/x-www-form-urlencoded"
-        pyramid_request.POST = {
-            "iss": "ISSUER",
-            "aud": "CLIENT_ID",
-            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "DEPLOYMENT_ID",
-            "user_id": "TEST_USER_ID",
-            "roles": "TEST_ROLES",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-            "lis_person_name_given": "TEST_GIVEN_NAME",
-            "lis_person_name_family": "TEST_FAMILY_NAME",
-            "lis_person_name_full": "TEST_FULL_NAME",
-        }
+    def pyramid_request(self, pyramid_request, lti_v13_params):
+        pyramid_request.params["id_token"] = sentinel.id_token
+        pyramid_request.lti_jwt = lti_v13_params
+
         return pyramid_request
 
     @pytest.fixture

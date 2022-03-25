@@ -18,7 +18,43 @@ TEST_SETTINGS["sqlalchemy.url"] = get_test_database_url(
 
 
 @pytest.fixture
-def pyramid_request(db_session, application_instance):
+def lti_v11_params():
+    return {
+        "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
+        "oauth_timestamp": "TEST_TIMESTAMP",
+        "oauth_nonce": "TEST_NONCE",
+        "oauth_signature_method": "SHA256",
+        "oauth_signature": "TEST_OAUTH_SIGNATURE",
+        "oauth_version": "1p0p0",
+        "user_id": "TEST_USER_ID",
+        "roles": "Instructor",
+        "tool_consumer_instance_guid": "TEST_GUID",
+        "tool_consumer_info_product_family_code": "whiteboard",
+        "content_item_return_url": "https://www.example.com",
+        "lti_version": "TEST",
+        "resource_link_id": "TEST_RESOURCE_LINK_ID",
+    }
+
+
+@pytest.fixture
+def lti_v13_params():
+    return {
+        "iss": "ISSUER",
+        "aud": "CLIENT_ID",
+        "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "DEPLOYMENT_ID",
+        "sub": "TEST_USER_ID",
+        "https://purl.imsglobal.org/spec/lti/claim/roles": ["Instructor"],
+        "https://purl.imsglobal.org/spec/lti/claim/tool_platform": {
+            "guid": "TEST_GUID",
+        },
+        "given_name": "TEST_GIVEN_NAME",
+        "family_name": "TEST_FAMILY_NAME",
+        "name": "TEST_FULL_NAME",
+    }
+
+
+@pytest.fixture
+def pyramid_request(db_session, application_instance, lti_v11_params):
     """
     Return a dummy Pyramid request object.
 
@@ -27,23 +63,7 @@ def pyramid_request(db_session, application_instance):
 
     """
     pyramid_request = testing.DummyRequest(db=db_session)
-    pyramid_request.POST.update(
-        {
-            "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-            "oauth_timestamp": "TEST_TIMESTAMP",
-            "oauth_nonce": "TEST_NONCE",
-            "oauth_signature_method": "SHA256",
-            "oauth_signature": "TEST_OAUTH_SIGNATURE",
-            "oauth_version": "1p0p0",
-            "user_id": "TEST_USER_ID",
-            "roles": "Instructor",
-            "tool_consumer_instance_guid": "TEST_GUID",
-            "tool_consumer_info_product_family_code": "whiteboard",
-            "content_item_return_url": "https://www.example.com",
-            "lti_version": "TEST",
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-        }
-    )
+    pyramid_request.POST.update(lti_v11_params)
     pyramid_request.feature = mock.create_autospec(
         lambda feature: False, return_value=False  # pragma: no cover
     )

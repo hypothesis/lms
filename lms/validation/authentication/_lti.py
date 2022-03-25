@@ -19,9 +19,15 @@ class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
 
     iss = marshmallow.fields.Str(required=True)
     aud = marshmallow.fields.Str(required=True)
-    deployment_id = marshmallow.fields.Str(
-        required=True, data_key=f"{CLAIM_PREFIX}/deployment_id"
-    )
+    deployment_id = marshmallow.fields.Str(required=True)
+
+    @marshmallow.pre_load
+    def _lti_v3_fields(self, data, **_kwargs):  # pylint:disable=no-self-use
+        data["iss"] = data.v13["iss"]
+        data["aud"] = data.v13["aud"]
+        data["deployment_id"] = data.v13[f"{CLAIM_PREFIX}/deployment_id"]
+
+        return data
 
     def __init__(self, request):
         super().__init__(request)

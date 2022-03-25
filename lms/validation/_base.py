@@ -4,7 +4,7 @@ from marshmallow import pre_load
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
-from lms.lti import to_lti_v11
+from lms.lti import LTIParams
 from lms.services import ExternalRequestError
 from lms.validation._exceptions import ValidationError
 
@@ -98,15 +98,13 @@ class PyramidRequestSchema(PlainSchema):
     @marshmallow.pre_load
     def _decode_jwt(self, data, **_kwargs):
         """Use the values encoded in the `id_token` JWT if present."""
-        if "id_token" not in self.context["request"].params:
+        if "id_token" not in self.context["request"].POST:
             return data
 
-        params = dict(
-            self.context["request"].lti_jwt,
-            **to_lti_v11(self.context["request"].lti_jwt),
-        )
-        # Make the rest of params also accessible to marshmallow in case any are nto coming from the JWT
+        params = LTIParams.from_v13(self.context["request"].lti_jwt)
+        # Make the rest of params also accessible to marshmallow in case any are not coming from the JWT
         # eg query parameters
+        # This is to make it backwards compatible with schemas that mix LTI parameters with others that belong to the LMS app (eg the `url` parameter).
         params.update(self.context["request"].params)
 
         return params

@@ -1,6 +1,6 @@
 import pytest
 
-from lms.lti import to_lti_v11
+from lms.lti import LTIParams
 
 
 class TestLTI13Params:
@@ -21,11 +21,20 @@ class TestLTI13Params:
             ("resource_link_id", "RESOURCE_LINK_ID"),
         ],
     )
-    def test_13_mappings(self, lti_13_launch_params, lti_11_key, value):
-        assert to_lti_v11(lti_13_launch_params)[lti_11_key] == value
+    def test_v13_mappings(self, lti_v13_launch_params, lti_11_key, value):
+        assert LTIParams.from_v13(lti_v13_launch_params)[lti_11_key] == value
+
+    def test_v13_non_existing(self):
+        assert not LTIParams.from_v13({}).v11
+
+    def test_v11(self):
+        sample_dict = {"test": "key"}
+
+        params = LTIParams(sample_dict)
+        assert params == params.v11 == sample_dict
 
     @pytest.fixture
-    def lti_13_launch_params(self):
+    def lti_v13_launch_params(self):
         return {
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LTI_MESSAGE_TYPE",
             "https://purl.imsglobal.org/spec/lti/claim/version": "LTI_VERSION",
