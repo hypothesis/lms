@@ -128,7 +128,7 @@ pyramid-exclog==1.1
     # via -r requirements/requirements.in
 pyramid-googleauth==1.0.2
     # via -r requirements/requirements.in
-pyramid-jinja2==2.9.2
+pyramid-jinja2==2.10
     # via -r requirements/requirements.in
 pyramid-retry==2.1.1
     # via -r requirements/requirements.in
