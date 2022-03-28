@@ -34,11 +34,6 @@ class JSConfig:
     def _h_user(self):
         return self._lti_user.h_user
 
-    @property
-    def _application_instance(self):
-        """Return the current request's ApplicationInstance."""
-        return self._request.find_service(name="application_instance").get_current()
-
     def add_document_url(self, document_url):
         """
         Set the document to the document at the given document_url.
@@ -195,7 +190,7 @@ class JSConfig:
             HTML form that we submit
         """
 
-        args = self._context, self._request, self._application_instance
+        args = self._context, self._request, self._context.application_instance
 
         self._config.update(
             {
@@ -394,7 +389,7 @@ class JSConfig:
         and had grading info recorded for them.
         """
         grading_infos = self._grading_info_service.get_by_assignment(
-            application_instance=self._application_instance,
+            application_instance=self._context.application_instance,
             context_id=self._request.params.get("context_id"),
             resource_link_id=self._request.params.get("resource_link_id"),
         )
@@ -432,7 +427,7 @@ class JSConfig:
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._application_instance.provisioning:
+        if not self._context.application_instance.provisioning:
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]
@@ -527,7 +522,8 @@ class JSConfig:
             return self._canvas_sync_api()
 
         if (
-            self._application_instance.product == ApplicationInstance.Product.BLACKBOARD
+            self._context.application_instance.product
+            == ApplicationInstance.Product.BLACKBOARD
             and self._context.is_blackboard_group_launch
         ):
 
