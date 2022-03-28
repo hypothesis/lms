@@ -5,7 +5,6 @@ from pytest import param
 
 from lms.models import ApplicationSettings
 from lms.resources import LTILaunchResource
-from lms.services import ApplicationInstanceNotFound
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
@@ -205,14 +204,8 @@ class TestCanvasSectionsSupported:
     def test_it_depends_on_application_instance_service(
         self, lti_launch, application_instance_service
     ):
-        application_instance_service.get_current.return_value.developer_key = None
-        assert not lti_launch.canvas_sections_supported()
-
-    def test_if_application_instance_service_raises(
-        self, lti_launch, application_instance_service
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
+        application_instance_service.get_current.return_value = mock.Mock(
+            developer_key=None
         )
         assert not lti_launch.canvas_sections_supported()
 
@@ -285,15 +278,6 @@ class TestCourseExtra:
 
 @pytest.mark.usefixtures("has_course")
 class TestBlackboardGroupsEnabled:
-    def test_it_returns_False_if_theres_no_ApplicationInstance(
-        self, application_instance_service, lti_launch
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-
-        assert not lti_launch.blackboard_groups_enabled
-
     @pytest.mark.parametrize(
         "setting_value,expected",
         [(True, True), (False, False), (None, False)],
@@ -311,15 +295,6 @@ class TestBlackboardGroupsEnabled:
 
 @pytest.mark.usefixtures("has_course")
 class TestCanvasGroupsEnabled:
-    def test_false_when_no_application_instance(
-        self, application_instance_service, lti_launch
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-
-        assert not lti_launch.canvas_groups_enabled
-
     @pytest.mark.parametrize("settings_value", [True, False])
     def test_returns_settings_value(
         self, settings_value, application_instance_service, lti_launch

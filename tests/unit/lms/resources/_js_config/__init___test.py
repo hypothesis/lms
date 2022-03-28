@@ -17,7 +17,6 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestEnableContentItemSelectionMode:
     def test_it(self, js_config):
         js_config.enable_content_item_selection_mode(
@@ -54,7 +53,6 @@ class TestEnableContentItemSelectionMode:
         context,
         pyramid_request,
         FilePickerConfig,
-        application_instance_service,
         config_function,
         key,
     ):
@@ -68,7 +66,7 @@ class TestEnableContentItemSelectionMode:
         config_provider.assert_called_once_with(
             context,
             pyramid_request,
-            application_instance_service.get_current.return_value,
+            context.application_instance,
         )
 
     def test_with_create_assignment_api(self, js_config, context):
@@ -146,11 +144,9 @@ class TestEnableLTILaunchMode:
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
         }
 
-    def test_it_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, js_config
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
+    def test_it_raises_if_theres_no_ApplicationInstance(self, context, js_config):
+        type(context).application_instance = mock.PropertyMock(
+            side_effect=ApplicationInstanceNotFound
         )
 
         with pytest.raises(ApplicationInstanceNotFound):
@@ -737,7 +733,7 @@ def submission_params(config):
 
 
 @pytest.fixture
-def context():
+def context(application_instance_service):
     return mock.create_autospec(
         LTILaunchResource,
         spec_set=True,
@@ -748,6 +744,7 @@ def context():
         canvas_groups_enabled=False,
         canvas_is_group_launch=False,
         is_group_launch=False,
+        application_instance=application_instance_service.get_current.return_value,
     )
 
 
@@ -777,8 +774,10 @@ def pyramid_request(pyramid_request):
 
 
 @pytest.fixture
-def provisioning_disabled(application_instance_service):
-    application_instance_service.get_current.return_value.provisioning = False
+def provisioning_disabled(context):
+    type(context).application_instance = mock.PropertyMock(
+        return_value=mock.Mock(provisioning=False)
+    )
 
 
 @pytest.fixture(autouse=True)
