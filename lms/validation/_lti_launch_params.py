@@ -29,7 +29,7 @@ class LTIV11CoreSchema(PyramidRequestSchema):
 
     user_id = fields.Str(required=True)
     roles = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
+    tool_consumer_instance_guid = fields.Str(required=False)
     lis_person_name_given = fields.Str(load_default="")
     lis_person_name_family = fields.Str(load_default="")
     lis_person_name_full = fields.Str(load_default="")

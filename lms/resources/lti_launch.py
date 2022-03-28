@@ -4,7 +4,6 @@ import logging
 
 from lms.models import LTIParams
 from lms.resources._js_config import JSConfig
-from lms.services import ApplicationInstanceNotFound
 
 LOG = logging.getLogger(__name__)
 
@@ -25,21 +24,22 @@ class LTILaunchResource:
         """Return the context resource for an LTI launch request."""
         self._request = request
         self._authority = self._request.registry.settings["h_authority"]
-        self._application_instance_service = self._request.find_service(
-            name="application_instance"
-        )
         self._assignment_service = request.find_service(name="assignment")
+
+    @property
+    def application_instance(self):
+        """Return the current request's ApplicationInstance."""
+        return self._request.find_service(name="application_instance").get_current()
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
         course_service = self._request.find_service(name="course")
         params = self._request.parsed_params
 
-        tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
         context_id = params["context_id"]
 
         authority_provided_id = course_service.generate_authority_provided_id(
-            tool_consumer_instance_guid, context_id
+            self.application_instance.tool_consumer_instance_guid, context_id
         )
 
         legacy_course = course_service.get_or_create(authority_provided_id)
@@ -179,12 +179,7 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.developer_key)
+        return bool(self.application_instance.developer_key)
 
     @property
     def canvas_sections_enabled(self):
@@ -200,31 +195,21 @@ class LTILaunchResource:
     @property
     def canvas_groups_enabled(self):
         """Return True if Canvas groups are enabled at the school/installation level."""
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.settings.get("canvas", "groups_enabled"))
+        return bool(self.application_instance.settings.get("canvas", "groups_enabled"))
 
     @property
     def blackboard_groups_enabled(self):
         """Return True if Blackboard groups are enabled at the school/installation level."""
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.settings.get("blackboard", "groups_enabled"))
+        return bool(
+            self.application_instance.settings.get("blackboard", "groups_enabled")
+        )
 
     @property
     def is_blackboard_group_launch(self):
         """Return True if the current assignment uses Blackboard groups."""
-        tool_consumer_instance_guid = self._request.parsed_params[
-            "tool_consumer_instance_guid"
-        ]
         assignment = self._assignment_service.get(
-            tool_consumer_instance_guid, self.resource_link_id
+            self.application_instance.tool_consumer_instance_guid,
+            self.resource_link_id,
         )
         return bool(assignment and assignment.extra.get("group_set_id"))
 

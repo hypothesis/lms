@@ -49,7 +49,9 @@ class LTIUser(NamedTuple):
             user_id=lti_core_schema["user_id"],
             application_instance_id=application_instance.id,
             roles=lti_core_schema["roles"],
-            tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
+            tool_consumer_instance_guid=lti_core_schema.get(
+                "tool_consumer_instance_guid"
+            ),
             display_name=display_name(
                 lti_core_schema["lis_person_name_given"],
                 lti_core_schema["lis_person_name_family"],
