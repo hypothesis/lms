@@ -137,6 +137,7 @@ class BasicLTILaunchViews:
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=self.context.resource_link_id,
+            course=self.context.h_group,
         )
         return self.basic_lti_launch(document_url=document_url, grading_supported=False)
 
@@ -251,7 +252,10 @@ class BasicLTILaunchViews:
         ).document_url
 
         self.assignment_service.upsert(
-            document_url, tool_consumer_instance_guid, self.context.resource_link_id
+            document_url,
+            tool_consumer_instance_guid,
+            self.context.resource_link_id,
+            course=self.context.h_group,
         )
 
         return self.basic_lti_launch(document_url)
@@ -357,6 +361,7 @@ class BasicLTILaunchViews:
             self.request.parsed_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
             extra=extra,
+            course=self.context.h_group,
         )
         self.context.js_config.add_document_url(document_url)
 

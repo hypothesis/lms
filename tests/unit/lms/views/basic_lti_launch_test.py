@@ -300,6 +300,7 @@ class TestCanvasFileBasicLTILaunch:
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=pyramid_request.params["resource_link_id"],
+            course=context.h_group,
         )
 
 
@@ -378,6 +379,7 @@ class TestFooCopiedBasicLTILaunch:
             assignment_service.get.return_value.document_url,
             pyramid_request.params["tool_consumer_instance_guid"],
             pyramid_request.params["resource_link_id"],
+            course=context.h_group,
         )
 
         # It adds the document URL to the JavaScript config.
@@ -433,6 +435,7 @@ class TestConfigureAssignment:
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],
             extra=expected_extras,
+            course=context.h_group,
         )
         context.js_config.add_document_url.assert_called_once_with(
             pyramid_request.parsed_params["document_url"]

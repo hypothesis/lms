@@ -33,6 +33,14 @@ class Assignment(BASE):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
+    course = sa.orm.relationship("Course")
+    course_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("grouping.id", ondelete="cascade"),
+        nullable=True,
+    )
+    """To which course this assignment belongs to"""
+
     ext_lti_assignment_id = sa.Column(sa.UnicodeText, nullable=True)
     """
     ID given for the assignment by Canvas.

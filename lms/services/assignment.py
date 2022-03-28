@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from sqlalchemy.orm.exc import MultipleResultsFound
 
-from lms.models import Assignment
+from lms.models import Assignment, Course
 
 
 class AssignmentService:
@@ -126,6 +126,7 @@ class AssignmentService:
         resource_link_id=None,
         ext_lti_assignment_id=None,
         extra=None,
+        course: Course = None,
     ):
         """
         Update or create an assignment with the given document_url.
@@ -145,6 +146,7 @@ class AssignmentService:
                 document_url=document_url,
                 resource_link_id=resource_link_id,
                 ext_lti_assignment_id=ext_lti_assignment_id,
+                course=course,
             )
             self._db.add(assignment)
 
