@@ -171,14 +171,19 @@ class JSConfig:
         }
 
     def _create_assignment_api(self):
-        if not self._context.is_canvas:
+        if (
+            self._context.is_canvas
+            or self._request.lti_params["lti_version"] == "LTI-1p0"
+        ):
             return None
 
         return {
             "path": self._request.route_path("api.assignments.create"),
             "data": {
-                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"],
-                "course_id": self._request.params["custom_canvas_course_id"],
+                "authorization": self._auth_token(),
+                "context_id": self._request.lti_params["context_id"],
+                "context_title": self._request.lti_params["context_title"],
+                "resource_link_id": self._request.lti_params["resource_link_id"],
             },
         }
 
@@ -284,6 +289,16 @@ class JSConfig:
             display_name = "(Couldn't fetch student name)"
 
         self._hypothesis_client["focus"]["user"]["displayName"] = display_name
+
+    def sync_lti_data_to_h(self, h_group):
+        """
+        Sync LTI data to H.
+
+        Before any LTI assignment launch create or update the Hypothesis user
+        and group corresponding to the LTI user and course.
+        """
+
+        self._request.find_service(name="lti_h").sync([h_group], self._request.params)
 
     def _add_canvas_speedgrader_settings(self, **kwargs):
         """
@@ -501,19 +516,17 @@ class JSConfig:
             "path": req.route_path("blackboard_api.sync"),
             "data": {
                 "lms": {
-                    "tool_consumer_instance_guid": req.params[
-                        "tool_consumer_instance_guid"
-                    ],
+                    "tool_consumer_instance_guid": self._application_instance.tool_consumer_instance_guid
                 },
                 "course": {
-                    "context_id": req.params["context_id"],
+                    "context_id": req.lti_params["context_id"],
                 },
                 "assignment": {
-                    "resource_link_id": req.params["resource_link_id"],
+                    "resource_link_id": req.lti_params["resource_link_id"],
                 },
                 "group_info": {
                     key: value
-                    for key, value in req.params.items()
+                    for key, value in req.lti_params.items()
                     if key in GroupInfo.columns()
                 },
             },

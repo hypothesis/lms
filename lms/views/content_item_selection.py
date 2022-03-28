@@ -50,7 +50,7 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
 )
 def content_item_selection(context, request):
     request.find_service(name="application_instance").get_current().update_lms_data(
-        request.params
+        request.lti_params
     )
 
     context.get_or_create_course()

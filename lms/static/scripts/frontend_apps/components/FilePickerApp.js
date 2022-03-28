@@ -88,7 +88,14 @@ function contentDescription(content) {
 export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
-    filePicker: { formAction, formFields, ltiLaunchUrl, blackboard, canvas },
+    filePicker: {
+      formAction,
+      formFields,
+      ltiLaunchUrl,
+      blackboard,
+      canvas,
+      createAssignmentAPI,
+    },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
@@ -112,6 +119,8 @@ export default function FilePickerApp({ onSubmit }) {
    */
   const [shouldSubmit, setShouldSubmit] = useState(false);
   const submit = useCallback(() => setShouldSubmit(true), []);
+
+  const contentFormAction = createAssignmentAPI?.path ?? formAction;
 
   // Submit the form after a selection is made via one of the available
   // methods.
@@ -139,7 +148,7 @@ export default function FilePickerApp({ onSubmit }) {
     <main>
       <form
         className="FilePickerApp__form"
-        action={formAction}
+        action={contentFormAction}
         method="POST"
         onSubmit={onSubmit}
       >
@@ -191,6 +200,7 @@ export default function FilePickerApp({ onSubmit }) {
             content={content}
             formFields={formFields}
             groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+            createAssignmentAPI={createAssignmentAPI}
           />
         )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />

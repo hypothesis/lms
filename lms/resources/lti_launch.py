@@ -2,6 +2,7 @@
 import functools
 import logging
 
+from lms.models import LtiLaunches
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 
@@ -29,16 +30,45 @@ class LTILaunchResource:
         )
         self._assignment_service = request.find_service(name="assignment")
 
+    def store_lti_data(self):
+        """Store LTI launch data in our LMS database."""
+
+        request = self._request
+
+        # Report all LTI assignment launches to the /reports page.
+        LtiLaunches.add(
+            request.db,
+            request.params.get("context_id"),
+            request.params.get("oauth_consumer_key"),
+        )
+
+        lti_user = request.lti_user
+
+        if not lti_user.is_instructor and not self.is_canvas:
+            # Create or update a record of LIS result data for a student launch
+            request.find_service(name="grading_info").upsert_from_request(request)
+
+    def sync_lti_data_to_h(self):
+        """
+        Sync LTI data to H.
+
+        Before any LTI assignment launch create or update the Hypothesis user
+        and group corresponding to the LTI user and course.
+        """
+
+        self._request.find_service(name="lti_h").sync(
+            [self.h_group], self._request.params
+        )
+
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
         course_service = self._request.find_service(name="course")
         params = self._request.parsed_params
 
-        tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
         context_id = params["context_id"]
 
         authority_provided_id = course_service.generate_authority_provided_id(
-            tool_consumer_instance_guid, context_id
+            self.js_config._application_instance.tool_consumer_instance_guid, context_id
         )
 
         legacy_course = course_service.get_or_create(authority_provided_id)
@@ -219,11 +249,9 @@ class LTILaunchResource:
     @property
     def is_blackboard_group_launch(self):
         """Return True if the current assignment uses Blackboard groups."""
-        tool_consumer_instance_guid = self._request.parsed_params[
-            "tool_consumer_instance_guid"
-        ]
         assignment = self._assignment_service.get(
-            tool_consumer_instance_guid, self.resource_link_id
+            self.js_config._application_instance.tool_consumer_instance_guid,
+            self.resource_link_id,
         )
         return bool(assignment and assignment.extra.get("group_set_id"))
 

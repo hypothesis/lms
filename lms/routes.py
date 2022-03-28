@@ -29,7 +29,12 @@ def includeme(config):
 
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
 
-    config.add_route("api.assignments.create", "/api/assignment", request_method="POST")
+    config.add_route(
+        "api.assignments.create",
+        "/api/assignment",
+        request_method="POST",
+        factory="lms.resources.LTILaunchResource",
+    )
 
     config.add_route(
         "blackboard_api.oauth.authorize",

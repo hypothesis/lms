@@ -14,7 +14,6 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
-from lms.models import LtiLaunches
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services.vitalsource.client import VitalSourceService
@@ -46,12 +45,13 @@ class BasicLTILaunchViews:
         self.application_instance = request.find_service(
             name="application_instance"
         ).get_current()
-        self.application_instance.update_lms_data(self.request.params)
+        self.application_instance.update_lms_data(self.request.lti_params)
+        print(self.request.params)
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
+        self.context.sync_lti_data_to_h()
+        self.context.store_lti_data()
         self.context.get_or_create_course()
 
         if grading_supported:
@@ -60,36 +60,6 @@ class BasicLTILaunchViews:
         self.context.js_config.add_document_url(document_url)
 
         return {}
-
-    def sync_lti_data_to_h(self):
-        """
-        Sync LTI data to H.
-
-        Before any LTI assignment launch create or update the Hypothesis user
-        and group corresponding to the LTI user and course.
-        """
-
-        self.request.find_service(name="lti_h").sync(
-            [self.context.h_group], self.request.params
-        )
-
-    def store_lti_data(self):
-        """Store LTI launch data in our LMS database."""
-
-        request = self.request
-
-        # Report all LTI assignment launches to the /reports page.
-        LtiLaunches.add(
-            request.db,
-            request.params.get("context_id"),
-            request.params.get("oauth_consumer_key"),
-        )
-
-        lti_user = request.lti_user
-
-        if not lti_user.is_instructor and not self.context.is_canvas:
-            # Create or update a record of LIS result data for a student launch
-            request.find_service(name="grading_info").upsert_from_request(request)
 
     @view_config(vitalsource_book=True)
     def legacy_vitalsource_lti_launch(self):
@@ -360,8 +330,8 @@ class BasicLTILaunchViews:
         )
         self.context.js_config.add_document_url(document_url)
 
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
+        self.context.sync_lti_data_to_h()
+        self.context.store_lti_data()
 
         self.context.js_config.maybe_enable_grading()
 

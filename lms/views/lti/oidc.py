@@ -28,6 +28,7 @@ The actual LTI launch with an JWT token.
 import uuid
 from urllib.parse import urlencode
 
+import marshmallow
 from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 from pyramid.view import view_config
 from webargs import fields
@@ -37,7 +38,7 @@ from lms.validation import PyramidRequestSchema
 
 
 class OIDCRequestSchema(PyramidRequestSchema):
-    location = "form"
+    location = "querystring"
 
     iss = fields.Str(required=True)
     client_id = fields.Str(required=True)
@@ -45,6 +46,13 @@ class OIDCRequestSchema(PyramidRequestSchema):
     target_link_uri = fields.Str(required=True)
     login_hint = fields.Str(required=True)
     lti_message_hint = fields.Str(required=True)
+
+    @marshmallow.pre_load
+    def _pre_load(self, data, **_kwargs):  # pylint: disable=no-self-use
+        return data
+        import pdb
+
+        pdb.set_trace()
 
 
 @view_config(

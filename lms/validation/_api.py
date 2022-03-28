@@ -86,50 +86,22 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
 class APICreateAssignmentSchema(PyramidRequestSchema):
     """Schema for validating assignment creation requests made by our frontend."""
 
-    class Content(Schema):
-        class File(Schema):
-            display_name = fields.Str(required=True)
-            id = fields.Int(required=True)
-            updated_at = fields.Str(required=True)
-            size = fields.Int(required=True)
+    location = "form"
 
-        type = fields.Str(
-            required=True,
-            validate=marshmallow.validate.OneOf(["url", "file", "vitalsource"]),
-        )
-        url = fields.Url(required=False, allow_none=True)
+    document_url = fields.Str(required=True)
+    """URL of the target document"""
 
-        file = fields.Nested(File, required=False, allow_none=True)
-        bookID = fields.Str(required=False, allow_none=True)
-        cfi = fields.Str(required=False, allow_none=True)
-        """VitalSource IDs"""
+    context_id = fields.Str(required=True)
+    """Course ID for the assignment"""
 
-    ext_lti_assignment_id = fields.Str(required=True)
-    """Canvas only assignment unique identifier"""
+    context_title = fields.Str(required=True)
+    """Course title for the course the assignment belongs to"""
 
-    course_id = fields.Str(required=True)
-    """Course ID for the assignment. We'd need it to construct the document_url"""
+    resource_link_id = fields.Str(required=True)
+    """ID of the assignment on the LMS"""
 
-    groupset = fields.Integer(required=False, allow_none=True)
+    group_set = fields.Str(required=False, allow_none=True)
     """Groupset the assignment belongs to if created as a smalls groups assignment"""
-
-    content = fields.Nested(Content, required=True)
-
-    @validates_schema
-    def validate(self, data, **_kwargs):
-        content = data["content"]
-        type_ = data["content"]["type"]
-
-        if type_ == "url" and not content.get("url"):
-            raise ValidationError("url is mandatory with type is 'url'")
-        if type_ == "file" and not content.get("file"):
-            raise ValidationError("content is mandatory with type is 'file'")
-        if type_ == "vitalsource" and not all(
-            [content.get("bookID"), content.get("cfi")]
-        ):
-            raise ValidationError(
-                "both bookID and cfi are mandatory with type is 'vitalsource'"
-            )
 
 
 class APIBlackboardSyncSchema(PyramidRequestSchema):

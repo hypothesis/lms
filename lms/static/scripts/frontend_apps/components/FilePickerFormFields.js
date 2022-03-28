@@ -34,19 +34,25 @@ export default function FilePickerFormFields({
   formFields,
   groupSet,
   ltiLaunchURL,
+  createAssignmentAPI,
 }) {
   /** @type {Record<string,string>} */
   const extraParams = groupSet ? { group_set: groupSet } : {};
-  const contentItem = JSON.stringify(
-    contentItemForContent(ltiLaunchURL, content, extraParams)
-  );
+
+  const contentItem = !createAssignmentAPI
+    ? JSON.stringify(contentItemForContent(ltiLaunchURL, content, extraParams))
+    : null;
   return (
     <>
-      {Object.entries(formFields).map(([field, value]) => (
-        <input key={field} type="hidden" name={field} value={value} />
-      ))}
+      {Object.entries(createAssignmentAPI?.data ?? formFields).map(
+        ([field, value]) => (
+          <input key={field} type="hidden" name={field} value={value} />
+        )
+      )}
       {groupSet && <input type="hidden" name="group_set" value={groupSet} />}
-      <input type="hidden" name="content_items" value={contentItem} />
+      {contentItem && (
+        <input type="hidden" name="content_items" value={contentItem} />
+      )}
       {content.type === 'url' && (
         // Set the `document_url` form field which is used by the `configure_assignment`
         // view. Used in LMSes where assignments are configured on first launch.

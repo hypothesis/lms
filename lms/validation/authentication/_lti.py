@@ -26,6 +26,7 @@ class LTI13AuthSchema(LTIAuthParamsSchema, PyramidRequestSchema):
         data["iss"] = data.v13["iss"]
         data["aud"] = data.v13["aud"]
         data["deployment_id"] = data.v13[f"{CLAIM_PREFIX}/deployment_id"]
+        print(data["deployment_id"])
 
         return data
 
