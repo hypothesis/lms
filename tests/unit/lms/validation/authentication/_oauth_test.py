@@ -1,12 +1,12 @@
+import datetime
+
 import pytest
-from pyramid import testing
 
 from lms.services import ExternalRequestError
+from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
 from lms.validation.authentication import (
-    ExpiredJWTError,
     ExpiredStateParamError,
-    InvalidJWTError,
     InvalidStateParamError,
     MissingStateParamError,
 )
@@ -19,16 +19,17 @@ from tests import factories
 
 class TestOauthCallbackSchema:
     def test_state_param_encodes_lti_user_and_csrf_token_into_state_jwt(
-        self, schema, secrets, _jwt, lti_user
+        self, schema, secrets, jwt_service, lti_user
     ):
         state = schema.state_param()
 
         secrets.token_hex.assert_called_once_with()
-        _jwt.encode_jwt.assert_called_once_with(
+        jwt_service.encode_with_secret.assert_called_once_with(
             {"user": lti_user._asdict(), "csrf": secrets.token_hex.return_value},
             "test_oauth2_state_secret",
+            lifetime=datetime.timedelta(hours=1),
         )
-        assert state == _jwt.encode_jwt.return_value
+        assert state == jwt_service.encode_with_secret.return_value
 
     def test_state_param_also_stashes_csrf_token_in_session(
         self, schema, secrets, pyramid_request
@@ -39,10 +40,10 @@ class TestOauthCallbackSchema:
 
         assert pyramid_request.session["oauth2_csrf"] == secrets.token_hex.return_value
 
-    def test_lti_user_returns_the_lti_user_value(self, schema, _jwt, lti_user):
+    def test_lti_user_returns_the_lti_user_value(self, schema, jwt_service, lti_user):
         returned = schema.lti_user()
 
-        _jwt.decode_jwt.assert_called_once_with(
+        jwt_service.decode_with_secret.assert_called_once_with(
             "test_state", "test_oauth2_state_secret"
         )
         assert returned == lti_user
@@ -53,14 +54,14 @@ class TestOauthCallbackSchema:
         with pytest.raises(MissingStateParamError):
             schema.lti_user()
 
-    def test_lti_user_raises_if_the_state_param_is_expired(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = ExpiredJWTError()
+    def test_lti_user_raises_if_the_state_param_is_expired(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = ExpiredJWTError()
 
         with pytest.raises(ExpiredStateParamError):
             schema.lti_user()
 
-    def test_lti_user_raises_if_the_state_param_is_invalid(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = InvalidJWTError()
+    def test_lti_user_raises_if_the_state_param_is_invalid(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = InvalidJWTError()
 
         with pytest.raises(InvalidStateParamError):
             schema.lti_user()
@@ -94,16 +95,16 @@ class TestOauthCallbackSchema:
             "querystring": {"state": ["Missing data for required field."]},
         }
 
-    def test_it_raises_if_the_state_jwt_is_expired(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = ExpiredJWTError()
+    def test_it_raises_if_the_state_jwt_is_expired(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = ExpiredJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
         assert exc_info.value.messages == {"state": ["Expired `state` parameter"]}
 
-    def test_it_raises_if_the_state_jwt_is_invalid(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = InvalidJWTError()
+    def test_it_raises_if_the_state_jwt_is_invalid(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = InvalidJWTError()
 
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
@@ -149,23 +150,13 @@ class TestOauthCallbackSchema:
         return OAuthCallbackSchema(pyramid_request)
 
     @pytest.fixture
-    def pyramid_request(self, lti_user):
+    def pyramid_request(self, pyramid_request, lti_user):
         """Return a minimal valid OAuth 2 redirect request."""
-        pyramid_request = testing.DummyRequest()
         pyramid_request.params["code"] = "test_code"
         pyramid_request.params["state"] = "test_state"
         pyramid_request.session["oauth2_csrf"] = "test_csrf"
         pyramid_request.lti_user = lti_user
         return pyramid_request
-
-    @pytest.fixture
-    def pyramid_config(self, pyramid_request):
-        # Override the global pyramid_config fixture with the minimum needed to
-        # make this test class pass.
-        settings = {"oauth2_state_secret": "test_oauth2_state_secret"}
-        with testing.testConfig(request=pyramid_request, settings=settings) as config:
-            config.include("pyramid_services")
-            yield config
 
 
 class TestOAuthTokenResponseSchema:
@@ -262,12 +253,9 @@ def secrets(patch):
 
 
 @pytest.fixture(autouse=True)
-def _jwt(patch, lti_user):
-    _jwt = patch("lms.validation.authentication._oauth._jwt")
-    _jwt.decode_jwt.return_value = {"csrf": "test_csrf", "user": lti_user._asdict()}
-    return _jwt
-
-
-@pytest.fixture
-def lti_user():
-    return factories.LTIUser()
+def jwt_service(jwt_service, lti_user):
+    jwt_service.decode_with_secret.return_value = {
+        "csrf": "test_csrf",
+        "user": lti_user._asdict(),
+    }
+    return jwt_service

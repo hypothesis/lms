@@ -10,22 +10,7 @@ __all__ = [
     "MissingStateParamError",
     "ExpiredStateParamError",
     "InvalidStateParamError",
-    "JWTError",
-    "ExpiredJWTError",
-    "InvalidJWTError",
 ]
-
-
-class JWTError(Exception):
-    """A problem with a JWT."""
-
-
-class ExpiredJWTError(JWTError):
-    """Decoding a JWT failed because the JWT was expired."""
-
-
-class InvalidJWTError(JWTError):
-    """Decoding a JWT failed because the JWT was invalid."""
 
 
 class ExpiredSessionTokenError(ValidationError):

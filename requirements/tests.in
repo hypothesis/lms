@@ -2,6 +2,7 @@ coverage
 httpretty
 aioresponses
 pytest
+freezegun
 factory-boy
 h-matchers
 -r requirements.txt

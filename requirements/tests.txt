@@ -46,6 +46,8 @@ factory-boy==3.2.1
     # via -r requirements/tests.in
 faker==8.1.2
     # via factory-boy
+freezegun==1.2.1
+    # via -r requirements/tests.in
 frozenlist==1.2.0
     # via
     #   -r requirements/requirements.txt
@@ -205,7 +207,9 @@ pyrsistent==0.17.3
 pytest==7.1.1
     # via -r requirements/tests.in
 python-dateutil==2.8.1
-    # via faker
+    # via
+    #   faker
+    #   freezegun
 requests==2.27.1
     # via
     #   -r requirements/requirements.txt

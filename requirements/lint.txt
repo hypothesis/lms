@@ -81,6 +81,8 @@ faker==8.1.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
+freezegun==1.2.1
+    # via -r requirements/tests.txt
 frozenlist==1.2.0
     # via
     #   -r requirements/bddtests.txt
@@ -381,6 +383,7 @@ python-dateutil==2.8.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   faker
+    #   freezegun
 requests==2.27.1
     # via
     #   -r requirements/bddtests.txt

@@ -18,6 +18,7 @@ from lms.services.grouping import GroupingService
 from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
 from lms.services.jstor import JSTORService
+from lms.services.jwt import JWTService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
@@ -58,6 +59,7 @@ __all__ = (
     "vitalsource_service",
     "jstor_service",
     "aes_service",
+    "jwt_service",
 )
 
 
@@ -217,6 +219,11 @@ def jstor_service(mock_service):
 @pytest.fixture
 def aes_service(mock_service):
     return mock_service(AESService)
+
+
+@pytest.fixture
+def jwt_service(mock_service):
+    return mock_service(JWTService)
 
 
 @pytest.fixture
