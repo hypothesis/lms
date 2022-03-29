@@ -246,9 +246,20 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, canvas.speedGrader, contentReady]);
 
+  // Report a submission only after the first qualifying annotation activity
+  // (create or update an annotation or reply)
   useEffect(() => {
-    reportSubmission();
-  }, [reportSubmission]);
+    const unsubscribe = () =>
+      clientRPC.off('annotationActivity', onAnnotationActivity);
+
+    function onAnnotationActivity() {
+      reportSubmission().then(unsubscribe);
+    }
+
+    clientRPC.on('annotationActivity', onAnnotationActivity);
+
+    return unsubscribe;
+  }, [clientRPC, reportSubmission]);
 
   /**
    * Request the user's authorization to access the content, then try fetching

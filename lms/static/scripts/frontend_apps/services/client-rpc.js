@@ -1,3 +1,5 @@
+import { TinyEmitter } from 'tiny-emitter';
+
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
 import { apiCall } from '../utils/api';
 import { JWT } from '../utils/jwt';
@@ -25,6 +27,7 @@ import { JWT } from '../utils/jwt';
  * @typedef ClientConfig
  * @prop {[ServiceConfig]} services - Annotation configuration for the client.
  *   In the LMS context this will always consist of exactly one entry.
+ * @prop {object} [reportActivity] -- TODO
  */
 
 /**
@@ -38,7 +41,7 @@ import { JWT } from '../utils/jwt';
  *  - Updating the Hypothesis client configuration in response to input
  *    in the LMS frontend, such as changing the focused user in grading mode.
  */
-export class ClientRPC {
+export class ClientRPC extends TinyEmitter {
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
    *
@@ -55,6 +58,7 @@ export class ClientRPC {
    *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
   constructor({ allowedOrigins, authToken, clientConfig }) {
+    super();
     this._server = new Server(allowedOrigins);
 
     // A conservative estimate of when the grant token was issued.
@@ -81,7 +85,16 @@ export class ClientRPC {
       }
 
       clientConfig.services[0].grantToken = grantToken.value();
+      clientConfig.reportActivity = {
+        method: 'reportActivity',
+        events: ['create', 'update'],
+      };
       return clientConfig;
+    });
+
+    this._server.register('reportActivity', (event, data) => {
+      this.emit('annotationActivity', event, data);
+      return true;
     });
 
     const groups = new Promise(resolve => {
