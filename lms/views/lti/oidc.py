@@ -37,7 +37,7 @@ from lms.validation import PyramidRequestSchema
 
 
 class OIDCRequestSchema(PyramidRequestSchema):
-    location = "form"
+    location = "query_and_form"
 
     iss = fields.Str(required=True)
     client_id = fields.Str(required=True)

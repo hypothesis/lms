@@ -79,6 +79,7 @@ class PyramidRequestSchema(PlainSchema):
 
         :raise lms.validation.ValidationError: if the request isn't valid
         """
+
         parser = pyramidparser.PyramidParser(
             location=kwargs.pop("location", self.location),
             error_handler=self._handle_error,
@@ -155,3 +156,9 @@ class RequestsResponseSchema(PlainSchema):
             raise marshmallow.ValidationError(
                 "response doesn't have a valid JSON body"
             ) from err
+
+
+@pyramidparser.parser.location_loader("query_and_form")
+def _query_and_form(request, _schema):
+    """Location for PyramidParser that allows access to both querystring and form data."""
+    return request.params
