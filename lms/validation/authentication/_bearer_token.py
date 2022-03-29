@@ -4,16 +4,15 @@ from datetime import timedelta
 import marshmallow
 
 from lms.models import LTIUser
+from lms.services import JWTService
+from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
 from lms.validation._base import PyramidRequestSchema
 from lms.validation.authentication._exceptions import (
-    ExpiredJWTError,
     ExpiredSessionTokenError,
-    InvalidJWTError,
     InvalidSessionTokenError,
     MissingSessionTokenError,
 )
-from lms.validation.authentication._helpers import _jwt
 
 __all__ = ("BearerTokenSchema",)
 
@@ -68,7 +67,8 @@ class BearerTokenSchema(PyramidRequestSchema):
 
     def __init__(self, request):
         super().__init__(request)
-        self.context["secret"] = request.registry.settings["jwt_secret"]
+        self._jwt_service = request.find_service(iface=JWTService)
+        self._secret = request.registry.settings["jwt_secret"]
 
     def authorization_param(self, lti_user):
         """
@@ -139,8 +139,8 @@ class BearerTokenSchema(PyramidRequestSchema):
 
         https://marshmallow.readthedocs.io/en/2.x-line/extending.html#example-enveloping
         """
-        token = _jwt.encode_jwt(
-            data, self.context["secret"], lifetime=timedelta(hours=24)
+        token = self._jwt_service.encode_with_secret(
+            data, self._secret, lifetime=timedelta(hours=24)
         )
         return {"authorization": f"Bearer {token}"}
 
@@ -161,7 +161,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         jwt = data["authorization"][len("Bearer ") :]
 
         try:
-            return _jwt.decode_jwt(jwt, self.context["secret"])
+            return self._jwt_service.decode_with_secret(jwt, self._secret)
         except ExpiredJWTError as err:
             raise marshmallow.ValidationError(
                 "Expired session token", "authorization"

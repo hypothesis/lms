@@ -1,18 +1,18 @@
 import secrets
+from datetime import timedelta
 
 import marshmallow
 from webargs import fields
 
 from lms.models import LTIUser
+from lms.services import JWTService
+from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
-    ExpiredJWTError,
     ExpiredStateParamError,
-    InvalidJWTError,
     InvalidStateParamError,
     MissingStateParamError,
 )
-from lms.validation.authentication._helpers import _jwt
 
 
 class OAuthCallbackSchema(PyramidRequestSchema):
@@ -66,7 +66,8 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
     def __init__(self, request):
         super().__init__(request)
-        self.context["secret"] = request.registry.settings["oauth2_state_secret"]
+        self._secret = request.registry.settings["oauth2_state_secret"]
+        self._jwt_service = request.find_service(iface=JWTService)
 
     def state_param(self):
         """
@@ -75,13 +76,14 @@ class OAuthCallbackSchema(PyramidRequestSchema):
         :rtype: str
         """
         request = self.context["request"]
-        secret = request.registry.settings["oauth2_state_secret"]
 
         csrf = secrets.token_hex()
 
         data = {"user": request.lti_user._asdict(), "csrf": csrf}
 
-        jwt_str = _jwt.encode_jwt(data, secret)
+        jwt_str = self._jwt_service.encode_with_secret(
+            data, self._secret, lifetime=timedelta(hours=1)
+        )
 
         request.session["oauth2_csrf"] = csrf
 
@@ -132,10 +134,8 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
     def _decode_state(self, state):
         """Decode the given state JWT and return its payload or raise."""
-        secret = self.context["request"].registry.settings["oauth2_state_secret"]
-
         try:
-            return _jwt.decode_jwt(state, secret)
+            return self._jwt_service.decode_with_secret(state, self._secret)
         except ExpiredJWTError as err:
             raise ExpiredStateParamError() from err
         except InvalidJWTError as err:

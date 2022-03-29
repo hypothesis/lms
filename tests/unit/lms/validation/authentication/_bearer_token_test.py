@@ -1,36 +1,37 @@
 import datetime
 
 import pytest
-from pyramid.testing import DummyRequest
-from webargs.pyramidparser import parser
 
+from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
-    ExpiredJWTError,
     ExpiredSessionTokenError,
-    InvalidJWTError,
     InvalidSessionTokenError,
     MissingSessionTokenError,
 )
-from tests import factories
 
 
 class TestBearerTokenSchema:
-    def test_it_serializes_lti_users_into_bearer_tokens(self, lti_user, schema, _jwt):
+    def test_it_serializes_lti_users_into_bearer_tokens(
+        self, lti_user, schema, jwt_service
+    ):
         authorization_param_value = schema.authorization_param(lti_user)
 
-        _jwt.encode_jwt.assert_called_once_with(
+        jwt_service.encode_with_secret.assert_called_once_with(
             lti_user._asdict(), "test_secret", lifetime=datetime.timedelta(hours=24)
         )
-        assert authorization_param_value == f"Bearer {_jwt.encode_jwt.return_value}"
+        assert (
+            authorization_param_value
+            == f"Bearer {jwt_service.encode_with_secret.return_value}"
+        )
 
     def test_it_deserializes_lti_users_from_authorization_headers(
-        self, lti_user, schema, _jwt
+        self, lti_user, schema, jwt_service
     ):
         assert schema.lti_user(location="headers") == lti_user
-        _jwt.decode_jwt.assert_called_once_with(
-            _jwt.encode_jwt.return_value, "test_secret"
+        jwt_service.decode_with_secret.assert_called_once_with(
+            jwt_service.encode_with_secret.return_value, "test_secret"
         )
 
     def test_it_deserializes_lti_users_from_authorization_query_params(
@@ -55,8 +56,8 @@ class TestBearerTokenSchema:
             "headers": {"authorization": ["Missing data for required field."]},
         }
 
-    def test_it_raises_if_the_jwt_has_expired(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = ExpiredJWTError()
+    def test_it_raises_if_the_jwt_has_expired(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = ExpiredJWTError()
 
         with pytest.raises(ExpiredSessionTokenError) as exc_info:
             schema.lti_user("headers")
@@ -65,8 +66,8 @@ class TestBearerTokenSchema:
             "headers": {"authorization": ["Expired session token"]}
         }
 
-    def test_it_raises_if_the_jwt_is_invalid(self, schema, _jwt):
-        _jwt.decode_jwt.side_effect = InvalidJWTError()
+    def test_it_raises_if_the_jwt_is_invalid(self, schema, jwt_service):
+        jwt_service.decode_with_secret.side_effect = InvalidJWTError()
 
         with pytest.raises(InvalidSessionTokenError) as exc_info:
             schema.lti_user("headers")
@@ -76,8 +77,10 @@ class TestBearerTokenSchema:
         }
 
     @pytest.mark.parametrize("param", ["user_id", "application_instance_id", "roles"])
-    def test_it_raises_if_the_user_id_param_is_missing(self, schema, _jwt, param):
-        del _jwt.decode_jwt.return_value[param]
+    def test_it_raises_if_the_user_id_param_is_missing(
+        self, schema, jwt_service, param
+    ):
+        del jwt_service.decode_with_secret.return_value[param]
 
         with pytest.raises(ValidationError) as exc_info:
             schema.lti_user("headers")
@@ -86,40 +89,19 @@ class TestBearerTokenSchema:
             "headers": {param: ["Missing data for required field."]},
         }
 
-    def test_serialize_and_deserialize_via_marshmallow_api(self, lti_user, schema):
-        serialized = schema.dump(lti_user)
-        deserialized = schema.load(serialized)
-
-        assert deserialized == lti_user
-
-    def test_parse_via_webargs_api(self, lti_user, schema, pyramid_request):
-        deserialized = parser.parse(schema, pyramid_request, location="headers")
-
-        assert deserialized == lti_user
-
     @pytest.fixture
     def schema(self, pyramid_request):
         """Return a BearerTokenSchema configured with the right secret."""
         return BearerTokenSchema(pyramid_request)
 
     @pytest.fixture
-    def pyramid_request(self, _jwt):
-        pyramid_request = DummyRequest()
-        pyramid_request.headers[
-            "authorization"
-        ] = f"Bearer {_jwt.encode_jwt.return_value}"
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.headers["authorization"] = "Bearer ENCODED_JWT"
         return pyramid_request
 
+    @pytest.fixture(autouse=True)
+    def jwt_service(self, jwt_service, lti_user):
+        jwt_service.decode_with_secret.return_value = lti_user._asdict()
+        jwt_service.encode_with_secret.return_value = "ENCODED_JWT"
 
-@pytest.fixture(autouse=True)
-def _jwt(patch, lti_user):
-    _jwt = patch("lms.validation.authentication._bearer_token._jwt")
-    _jwt.encode_jwt.return_value = "ENCODED_JWT"
-    _jwt.decode_jwt.return_value = lti_user._asdict()
-    return _jwt
-
-
-@pytest.fixture
-def lti_user():
-    """Return the original LTIUser that was encoded as a JWT in the request."""
-    return factories.LTIUser()
+        return jwt_service

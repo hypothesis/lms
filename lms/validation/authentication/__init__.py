@@ -1,12 +1,9 @@
 from lms.validation.authentication._bearer_token import BearerTokenSchema
 from lms.validation.authentication._exceptions import (
-    ExpiredJWTError,
     ExpiredSessionTokenError,
     ExpiredStateParamError,
-    InvalidJWTError,
     InvalidSessionTokenError,
     InvalidStateParamError,
-    JWTError,
     MissingSessionTokenError,
     MissingStateParamError,
 )

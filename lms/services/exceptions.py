@@ -1,6 +1,18 @@
 from typing import Optional
 
 
+class JWTError(Exception):
+    """A problem with a JWT."""
+
+
+class ExpiredJWTError(JWTError):
+    """Decoding a JWT failed because the JWT was expired."""
+
+
+class InvalidJWTError(JWTError):
+    """Decoding a JWT failed because the JWT was invalid."""
+
+
 class ExternalRequestError(Exception):
     """
     A problem with a network request to an external service.
