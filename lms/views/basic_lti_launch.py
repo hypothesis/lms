@@ -297,8 +297,10 @@ class BasicLTILaunchViews:
 
         form_fields = {
             param: value
-            for param, value in self.request.params.items()
-            if param not in ["oauth_nonce", "oauth_timestamp", "oauth_signature"]
+            for param, value in self.context.lti_params.items()
+            # Don't send over auth related params. We'll use our own authorization header
+            if param
+            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
         }
 
         form_fields["authorization"] = BearerTokenSchema(
