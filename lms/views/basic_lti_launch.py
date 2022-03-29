@@ -155,7 +155,9 @@ class BasicLTILaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
+        tool_consumer_instance_guid = self.context.lti_params[
+            "tool_consumer_instance_guid"
+        ]
         document_url = self.assignment_service.get(
             tool_consumer_instance_guid, self.context.resource_link_id
         ).document_url
