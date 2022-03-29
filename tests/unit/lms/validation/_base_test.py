@@ -7,8 +7,35 @@ from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from pyramid.testing import DummyRequest
 
 from lms.services import ExternalRequestError
-from lms.validation._base import JSONPyramidRequestSchema, RequestsResponseSchema
+from lms.validation._base import (
+    JSONPyramidRequestSchema,
+    PyramidRequestSchema,
+    RequestsResponseSchema,
+    ValidationError,
+)
 from tests import factories
+
+
+class TestQueryAndFormLocation:
+    class ExampleSchema(PyramidRequestSchema):
+        location = "query_and_form"
+
+        key = fields.Str(required=True)
+
+    def test_it(self):
+        data = {"key": "value"}
+
+        request = DummyRequest(params=data)
+        request.content_type = request.headers["content-type"] = "application/json"
+
+        assert self.ExampleSchema(request).parse() == data
+
+    def test_missing(self):
+        request = DummyRequest(params={})
+        request.content_type = request.headers["content-type"] = "application/json"
+
+        with pytest.raises(ValidationError):
+            assert self.ExampleSchema(request).parse()
 
 
 class TestJSONPyramidRequestSchema:

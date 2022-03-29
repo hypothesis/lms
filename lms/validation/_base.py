@@ -79,7 +79,6 @@ class PyramidRequestSchema(PlainSchema):
 
         :raise lms.validation.ValidationError: if the request isn't valid
         """
-
         parser = pyramidparser.PyramidParser(
             location=kwargs.pop("location", self.location),
             error_handler=self._handle_error,
