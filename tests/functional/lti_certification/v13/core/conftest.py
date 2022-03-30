@@ -1,5 +1,22 @@
 import pytest
 
+from tests import factories
+
+
+@pytest.fixture(autouse=True)
+def lti_registration(db_session):  # pylint:disable=unused-argument
+    return factories.LTIRegistration(
+        issuer="https://ltiadvantagevalidator.imsglobal.org",
+        client_id="imstester_4ba76ab",
+    )
+
+
+@pytest.fixture(autouse=True)
+def applicaiton_instance(lti_registration):  # pylint:disable=unused-argument
+    return factories.ApplicationInstance(
+        lti_registration=lti_registration, deployment_id="testdeploy"
+    )
+
 
 @pytest.fixture
 def student_payload():
@@ -49,6 +66,7 @@ def student_payload():
     }
 
 
+@pytest.fixture
 def teacher_payload():
     return {
         "iss": "https://ltiadvantagevalidator.imsglobal.org",
