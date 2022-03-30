@@ -218,8 +218,8 @@ def _get_lti_jwt(request):
 
     try:
         jwt_params = jwt.decode(id_token, options={"verify_signature": False})
-    except InvalidTokenError as err:
-        raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
+    except jwt.exceptions.InvalidTokenError:
+        return None
 
     warnings.warn("Using not verified JWT token")
     return jwt_params
