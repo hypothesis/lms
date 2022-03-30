@@ -212,6 +212,10 @@ def _get_lti_jwt(request):
     if not id_token:
         return {}
 
+    header = jwt.get_unverified_header(id_token)
+    if not header.get("kid"):
+        return None
+
     try:
         jwt_params = jwt.decode(id_token, options={"verify_signature": False})
     except InvalidTokenError as err:
