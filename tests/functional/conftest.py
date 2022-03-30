@@ -1,4 +1,6 @@
+import json
 import contextlib
+from urllib.parse import urlencode
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -68,3 +70,23 @@ def db_session(db_engine):
         factories.clear_sqlalchemy_session()
         session.close()
         conn.close()
+
+
+@pytest.fixture
+def do_lti_launch(app):
+    def _do_lti_launch(post_params, get_params=None, **kwargs):
+        url = "/lti_launches"
+        if get_params:
+            url += f"?{urlencode(get_params)}"
+
+        return app.post(
+            url,
+            params=post_params,
+            headers={
+                "Accept": "text/html",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            **kwargs,
+        )
+
+    return _do_lti_launch
