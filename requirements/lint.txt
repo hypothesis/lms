@@ -59,6 +59,12 @@ certifi==2020.6.20
     #   -r requirements/tests.txt
     #   requests
     #   sentry-sdk
+cffi==1.15.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   cryptography
 charset-normalizer==2.0.1
     # via
     #   -r requirements/bddtests.txt
@@ -70,6 +76,12 @@ coverage==6.3.2
     # via -r requirements/tests.txt
 dill==0.3.4
     # via pylint
+cryptography==36.0.2
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   pyjwt
 factory-boy==3.2.1
     # via
     #   -r requirements/bddtests.txt
@@ -301,6 +313,12 @@ pyasn1-modules==0.2.8
     #   google-auth
 pycodestyle==2.8.0
     # via -r requirements/lint.in
+pycparser==2.21
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   cffi
 pycryptodomex==3.14.1
     # via
     #   -r requirements/bddtests.txt
@@ -308,7 +326,7 @@ pycryptodomex==3.14.1
     #   -r requirements/tests.txt
 pydocstyle==6.1.1
     # via -r requirements/lint.in
-pyjwt==2.3.0
+pyjwt[crypto]==2.3.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
