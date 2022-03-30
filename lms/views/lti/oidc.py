@@ -40,7 +40,7 @@ class OIDCRequestSchema(PyramidRequestSchema):
     location = "query_and_form"
 
     iss = fields.Str(required=True)
-    client_id = fields.Str(required=True)
+    client_id = fields.Str(required=False)
 
     target_link_uri = fields.Str(required=True)
     login_hint = fields.Str(required=True)
@@ -56,11 +56,11 @@ def oidc_view(request):
     params = request.parsed_params
 
     registration = request.find_service(LTIRegistrationService).get(
-        issuer=params["iss"], client_id=params["client_id"]
+        issuer=params["iss"], client_id=params.get("client_id")
     )
     if not registration:
         raise HTTPForbidden(
-            f"""Registration not found. iss:'{params["iss"]}', client_id:'{params["client_id"]}'"""
+            f"""Registration not found. iss:'{params["iss"]}', client_id:'{params.get("client_id")}'"""
         )
 
     params = {
@@ -72,7 +72,7 @@ def oidc_view(request):
         "prompt": "none",
         "login_hint": params["login_hint"],
         "lti_message_hint": params["lti_message_hint"],
-        "client_id": params["client_id"],
+        "client_id": registration.client_id,
         "state": uuid.uuid4().hex,
         "nonce": uuid.uuid4().hex,
         # The value will be configured when registering the tool in the LMS and

@@ -23,7 +23,7 @@ class LTIRegistration(CreatedUpdatedMixin, BASE):
     issuer = sa.Column(sa.UnicodeText, nullable=False)
     """Identifier of the platform of this registration"""
 
-    client_id = sa.Column(sa.UnicodeText, nullable=False)
+    client_id = sa.Column(sa.UnicodeText, nullable=True)
     """Unique identifier of the registration at the issuer"""
 
     auth_login_url = sa.Column(sa.UnicodeText, nullable=False)
