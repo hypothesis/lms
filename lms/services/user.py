@@ -38,10 +38,10 @@ class UserService:
         else:
             self._db.add(new_user)
 
-    @lru_cache
+    @lru_cache(maxsize=128)
     def get(self, application_instance, user_id: str) -> User:
         """
-        Get a User that belongs to `application_instance` an has user_id=user_id.
+        Get a User that belongs to `application_instance` with the given id.
 
         :param application_instance: The ApplicationInstance the user belongs to
         :param user_id: Unique identifier of the user

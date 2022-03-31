@@ -35,8 +35,8 @@ class AdminViews:
     @view_config(
         route_name="admin.instances",
         renderer="lms:templates/admin/instances.html.jinja2",
-    )  # pylint: disable=no-self-use
-    def instances(self):
+    )
+    def instances(self):  # pylint: disable=no-self-use
         return {}
 
     @view_config(

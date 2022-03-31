@@ -32,14 +32,12 @@ class HTTPService:
         return self.request("DELETE", *args, **kwargs)
 
     def request(self, method, url, timeout=(10, 10), **kwargs):
-        """
+        r"""
         Send a request with `requests` and return the requests.Response object.
 
         :param method: The HTTP method to use, one of "GET", "PUT", "POST",
             "PATCH", "DELETE", "OPTIONS" or "HEAD"
-
         :param url: The URL to request
-
         :param timeout: How long (in seconds) to wait before raising an error.
 
             This can be a (connect_timeout, read_timeout) 2-tuple or it can be
@@ -53,11 +51,9 @@ class HTTPService:
             Note that the read_timeout is *not* a time limit on the entire
             response download. It's a time limit on how long to wait *between
             bytes from the server*. The entire download can take much longer.
-
-        :param **kwargs: Any other keyword arguments will be passed directly to
+        :param \**kwargs: Any other keyword arguments will be passed directly to
             requests.Session().request():
             https://docs.python-requests.org/en/latest/api/#requests.Session.request
-
         :raise ExternalRequestError: If sending the request or receiving the
             response fails (DNS failure, refused connection, timeout, too many
             redirects, etc).
