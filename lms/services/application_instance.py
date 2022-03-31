@@ -18,7 +18,7 @@ class ApplicationInstanceService:
         self._request = request
         self._aes_service = aes_service
 
-    @lru_cache
+    @lru_cache(maxsize=1)
     def get_current(self) -> ApplicationInstance:
         """
         Return the the current request's `ApplicationInstance`.
@@ -37,7 +37,7 @@ class ApplicationInstanceService:
 
         raise ApplicationInstanceNotFound()
 
-    @lru_cache
+    @lru_cache(maxsize=128)
     def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
         """
         Return the `ApplicationInstance` with the given `consumer_key`.

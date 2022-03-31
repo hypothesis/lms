@@ -13,19 +13,15 @@ class AsyncOAuthHTTPService:
     def request(
         self, method, urls: List[str], timeout=10, headers=None, **kwargs
     ) -> List[aiohttp.ClientResponse]:
-        """
+        r"""
         Send access token-authenticated async requests with aiohttp to all `urls`.
 
         :param method: The HTTP method to use.
-
         :param urls:  All URLs to request
-
         :param timeout: How long (in seconds) to wait before raising an error
             for each of the requests.
-
         :param headers:  Headers to attach to all requests
-
-        :param **kwargs: Any other keyword arguments will be passed directly to
+        :param \**kwargs: Any other keyword arguments will be passed directly to
             aiohttp.ClientSession().request():
             https://docs.aiohttp.org/en/stable/client_reference.html
 

@@ -209,7 +209,7 @@ class CanvasAPIClient:
                 for enrollment in data["enrollments"]
             ]
 
-    @lru_cache
+    @lru_cache(maxsize=128)
     def list_files(self, course_id, sort="position"):
         """
         Return the list of files for the given `course_id`.
@@ -268,7 +268,7 @@ class CanvasAPIClient:
         updated_at = fields.String(required=True)
         size = fields.Integer(required=True)
 
-    @lru_cache
+    @lru_cache(maxsize=128)
     def public_url(self, file_id):
         """
         Get a new temporary public download URL for the file with the given ID.

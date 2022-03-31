@@ -45,7 +45,7 @@ class OAuth2TokenService:
         oauth2_token.expires_in = expires_in
         oauth2_token.received_at = datetime.datetime.utcnow()
 
-    @lru_cache
+    @lru_cache(maxsize=1)
     def get(self):
         """
         Return the user's saved OAuth 2 token from the DB.
