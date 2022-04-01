@@ -38,7 +38,10 @@ class LTIV11CoreSchema(PyramidRequestSchema):
     @pre_load
     def _decode_jwt(self, data, **_kwargs):
         """Use the values encoded in the `id_token` JWT if present."""
-        if "id_token" not in self.context["request"].POST:
+        if (
+            "id_token" not in self.context["request"].POST
+            or self.context["request"].lti_jwt is None
+        ):
             return data
 
         params = LTIParams.from_v13(self.context["request"].lti_jwt)
