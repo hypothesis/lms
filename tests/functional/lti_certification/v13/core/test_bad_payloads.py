@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.filterwarnings("ignore:Using not verified JWT token")
 class TestBadPayloads:
     """
     The first few tests will be those that are in one or another way known to be invalid for 1.3 Core Launches.

@@ -3,6 +3,7 @@ import pytest
 from lms.resources._js_config import JSConfig
 
 
+@pytest.mark.filterwarnings("ignore:Using not verified JWT token")
 class TestBadPayloads:
     """
     Following the known "bad" payload launches are valid Teacher payloads.
