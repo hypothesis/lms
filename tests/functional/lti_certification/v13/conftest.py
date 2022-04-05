@@ -43,6 +43,8 @@ def lti_registration(db_session):  # pylint:disable=unused-argument
     return factories.LTIRegistration(
         issuer="https://ltiadvantagevalidator.imsglobal.org",
         client_id="imstester_4ba76ab",
+        key_set_url="https://oauth2server.imsglobal.org/jwks",
+        token_url="https://ltiadvantagevalidator.imsglobal.org/ltitool/authcodejwt.html",
     )
 
 
