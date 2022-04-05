@@ -1,7 +1,6 @@
 from unittest import mock
 from unittest.mock import call, sentinel
 
-import marshmallow
 import pytest
 from jwt.exceptions import InvalidTokenError
 from pyramid.interfaces import ISecurityPolicy

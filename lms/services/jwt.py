@@ -57,12 +57,14 @@ class JWTService:
 
     @classmethod
     def decode_unverified(cls, jwt_str):
+        """Decode a JWT token without any verification."""
         return jwt.decode(jwt_str, options={"verify_signature": False})
 
     @staticmethod
     @lru_cache
     def _get_jwk_client(jwk_url: str) -> PyJWKClient:
-        """Get a PyJWKClient for the given key set URL
+        """
+        Get a PyJWKClient for the given key set URL.
 
         PyJWKClient maintains a cache of keys it has seen we want to keep
         the clients around with `lru_cache` in case we can reuse that internal cache
@@ -70,10 +72,8 @@ class JWTService:
         return PyJWKClient(jwk_url)
 
     @classmethod
-    def decode_with_jwk_url(cls, jwt_str, jwk_url, audience):
-        """
-        Decodes a JWK verifying against the public key published at `jwk_url`.
-        """
+    def decode_with_jwk_url(cls, jwt_str, jwk_url: str, audience: str):
+        """Decode a JWK verifying against the public key published at `jwk_url`."""
         header = jwt.get_unverified_header(jwt_str)
         if not header.get("kid"):
             raise InvalidJWTError("Missing 'kid' value in JWT header")
