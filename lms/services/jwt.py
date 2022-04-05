@@ -1,7 +1,10 @@
 import copy
+import warnings
 import datetime
 
 import jwt
+from functools import lru_cache
+from jwt import PyJWKClient
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 
@@ -51,3 +54,37 @@ class JWTService:
         jwt_str = jwt.encode(payload, secret, algorithm="HS256")
 
         return jwt_str
+
+    @classmethod
+    def decode_unverified(cls, jwt_str):
+        return jwt.decode(jwt_str, options={"verify_signature": False})
+
+    @staticmethod
+    @lru_cache
+    def _get_jwk_client(jwk_url: str) -> PyJWKClient:
+        """Get a PyJWKClient for the given key set URL
+
+        PyJWKClient maintains a cache of keys it has seen we want to keep
+        the clients around with `lru_cache` in case we can reuse that internal cache
+        """
+        return PyJWKClient(jwk_url)
+
+    @classmethod
+    def decode_with_jwk_url(cls, jwk_url, jwt_str):
+        """
+        Decodes a JWK verifying against the public key published at `jwk_url`.
+        """
+        header = jwt.get_unverified_header(jwt_str)
+        if not header.get("kid"):
+            raise InvalidJWTError("Missing 'kid' value in JWT header")
+
+        signing_key = cls._get_jwk_client(jwk_url).get_signing_key_from_jwt(jwt_str)
+        try:
+            payload = jwt.decode(
+                jwt_str, key=signing_key.key, options={"verify_signature": False}
+            )
+        except jwt.exceptions.InvalidTokenError:
+            raise InvalidJWTError()
+
+        warnings.warn("Using not verified JWT token")
+        return payload

@@ -1,5 +1,4 @@
 import base64
-import warnings
 from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
@@ -11,7 +10,12 @@ from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
-from lms.services import UserService
+from lms.services import (
+    UserService,
+    JWTService,
+    InvalidJWTError,
+    LTIRegistrationService,
+)
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -212,17 +216,22 @@ def _get_lti_jwt(request):
     if not id_token:
         return {}
 
-    header = jwt.get_unverified_header(id_token)
-    if not header.get("kid"):
-        return None
+    jwt_service = request.find_service(JWTService)
+    registration_service = request.find_service(LTIRegistrationService)
+
+    unverified_payload = jwt_service.decode_unverified(id_token)
+    registration = registration_service.get(
+        unverified_payload.get("iss"), unverified_payload.get("aud")
+    )
+    if not registration:
+        return {}
 
     try:
-        jwt_params = jwt.decode(id_token, options={"verify_signature": False})
-    except jwt.exceptions.InvalidTokenError:
-        return None
-
-    warnings.warn("Using not verified JWT token")
-    return jwt_params
+        return request.find_service(JWTService).decode_with_jwk_url(
+            registration.key_set_url, id_token
+        )
+    except InvalidJWTError:
+        return {}
 
 
 def includeme(config):
