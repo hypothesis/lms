@@ -11,7 +11,7 @@ newrelic
 oauthlib
 psycopg2
 pycryptodomex
-PyJWT
+PyJWT[crypto]
 pyramid
 pyramid-exclog
 pyramid-googleauth
