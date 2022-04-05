@@ -6,6 +6,7 @@ from typing import List, NamedTuple
 
 import jwt
 import marshmallow
+from jwt.exceptions import InvalidTokenError
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
@@ -18,7 +19,6 @@ from lms.validation.authentication import (
     LTI13AuthSchema,
     OAuthCallbackSchema,
 )
-from lms.validation.authentication._exceptions import InvalidJWTError
 
 
 class Identity(NamedTuple):
@@ -214,7 +214,7 @@ def _get_lti_jwt(request):
 
     try:
         jwt_params = jwt.decode(id_token, options={"verify_signature": False})
-    except InvalidJWTError as err:
+    except InvalidTokenError as err:
         raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
 
     warnings.warn("Using not verified JWT token")
