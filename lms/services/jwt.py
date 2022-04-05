@@ -70,7 +70,7 @@ class JWTService:
         return PyJWKClient(jwk_url)
 
     @classmethod
-    def decode_with_jwk_url(cls, jwk_url, jwt_str):
+    def decode_with_jwk_url(cls, jwt_str, jwk_url, audience):
         """
         Decodes a JWK verifying against the public key published at `jwk_url`.
         """
@@ -81,10 +81,10 @@ class JWTService:
         signing_key = cls._get_jwk_client(jwk_url).get_signing_key_from_jwt(jwt_str)
         try:
             payload = jwt.decode(
-                jwt_str, key=signing_key.key, options={"verify_signature": False}
+                jwt_str, key=signing_key.key, audience=audience, algorithms=["RS256"]
             )
-        except jwt.exceptions.InvalidTokenError:
-            raise InvalidJWTError()
+        except jwt.exceptions.InvalidTokenError as err:
+            raise InvalidJWTError() from err
 
         warnings.warn("Using not verified JWT token")
         return payload

@@ -228,7 +228,7 @@ def _get_lti_jwt(request):
 
     try:
         return request.find_service(JWTService).decode_with_jwk_url(
-            registration.key_set_url, id_token
+            id_token, jwk_url=registration.key_set_url, audience=registration.client_id
         )
     except InvalidJWTError:
         return {}
