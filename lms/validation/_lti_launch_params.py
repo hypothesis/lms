@@ -51,7 +51,7 @@ class LTIV11CoreSchema(PyramidRequestSchema):
         return params
 
 
-class CommonLTILaunchSchema(LTIV11CoreSchema):
+class _CommonLTILaunchSchema(LTIV11CoreSchema):
     """Fields common to different types of LTI launches."""
 
     location = "form"
@@ -75,7 +75,7 @@ class CommonLTILaunchSchema(LTIV11CoreSchema):
             raise ValidationError("Required for LTI1.1", "oauth_consumer_key")
 
 
-class BasicLTILaunchSchema(CommonLTILaunchSchema):
+class BasicLTILaunchSchema(_CommonLTILaunchSchema):
     """
     Schema for basic LTI launch requests (i.e. assignment launches).
 
@@ -174,9 +174,21 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
         return _data
 
 
-class ContentItemSelectionLTILaunchSchema(CommonLTILaunchSchema):
+class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
     """Schema for content item selection LTI launches."""
 
     lti_message_type = fields.Str(
         validate=OneOf(["ContentItemSelectionRequest"]), required=True
     )
+
+
+class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
+    """Schema for validating requests to the configure_assignment() view."""
+
+    location = "form"
+
+    document_url = fields.Str(required=True)
+    resource_link_id = fields.Str(required=True)
+    user_id = fields.Str(required=True)
+    context_title = fields.Str(required=True)
+    group_set = fields.Str(required=False, allow_none=True)
