@@ -70,7 +70,7 @@ class TestBadPayloads:
         assert response.status_code == 403
         assert response.html
 
-    @pytest.mark.xfail(reason="JWT verfication disabled")
+    @pytest.mark.xfail(reason="JWT verification disabled")
     def test_timestamps_incorrect(self, test_payload, do_lti_launch, make_jwt):
         """Incorrect JWT iat and exp timestamp Values are Invalid"""
         test_payload["iat"] = 11111
