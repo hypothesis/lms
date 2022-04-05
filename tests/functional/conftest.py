@@ -1,5 +1,5 @@
-import json
 import contextlib
+import json
 from urllib.parse import urlencode
 
 import pytest

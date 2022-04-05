@@ -11,10 +11,10 @@ from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
 from lms.services import (
-    UserService,
-    JWTService,
     InvalidJWTError,
+    JWTService,
     LTIRegistrationService,
+    UserService,
 )
 from lms.validation import ValidationError
 from lms.validation.authentication import (

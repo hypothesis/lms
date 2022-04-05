@@ -1,5 +1,7 @@
 import json
+
 import pytest
+
 from lms.resources._js_config import JSConfig
 
 

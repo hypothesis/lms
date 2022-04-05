@@ -1,9 +1,9 @@
 import copy
-import warnings
 import datetime
+import warnings
+from functools import lru_cache
 
 import jwt
-from functools import lru_cache
 from jwt import PyJWKClient
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError

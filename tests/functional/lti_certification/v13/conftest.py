@@ -1,9 +1,10 @@
-import jwt
-from httpretty import httpretty
+import json
 from datetime import datetime
-import pytest
 
 import importlib_resources
+import jwt
+import pytest
+from httpretty import httpretty
 
 from tests import factories
 
@@ -19,7 +20,8 @@ def jwt_private_key():
 
 @pytest.fixture(scope="session")
 def jwt_public_key():
-    return open("./jwt_public.key")
+    with open(keys_path / "jwt_public.key") as key:
+        return json.load(key)
 
 
 @pytest.fixture
@@ -58,19 +60,14 @@ def application_instance(lti_registration):  # pylint:disable=unused-argument
 
 
 @pytest.fixture(autouse=True)
-def jwk_endpoint_intercept(lti_registration):
+def jwk_endpoint_intercept(lti_registration, jwt_public_key):
+    jwt_public_key["kid"] = JWT_KID
+    jwk = {"keys": [jwt_public_key]}
+
     httpretty.register_uri(
         method="GET",
         uri=lti_registration.key_set_url,
-        body=f"""
-        {{"keys": [{{
-            "kid": "{JWT_KID}",
-            "kty": "RSA",
-            "n": "1VSh7ruSwpvfLgPvt5e1MxtSvJRPHR-TVdjnave21c9fuoDdaqs7xG1Zyj8JQxIKGWPw_z6ViDMr__ghytCTrP-5hPMxLUG6E5pdFOYij6MOxwyAUngMqdh-PGKygR6Bv7hxnyhKj138XMMFc6zTwdGQ6DdcTsNTKRCWvxxWBjs",
-            "e": "AQAB"
-            }}]
-        }}
-        """,
+        body=json.dumps(jwk),
     )
 
     httpretty.enable()
