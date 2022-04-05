@@ -55,12 +55,13 @@ def application_instance(lti_registration):  # pylint:disable=unused-argument
 
 @pytest.fixture
 def student_payload():
+    now = int(datetime.timestamp(datetime.now()))
     return {
         "iss": "https://ltiadvantagevalidator.imsglobal.org",
         "sub": "STUDENT_ID",
         "aud": "imstester_4ba76ab",
-        "exp": 1648638014,
-        "iat": 1648637714,
+        "exp": now + 60,
+        "iat": now,
         "nonce": "d45a2497-4389-45ea-8d61-b1fa7e407447",
         "name": "STUDENT_FIRST_NAME STUDENT_MIDDLE_NAME STUDENT_LAST_NAME",
         "given_name": "STUDENT_FIRST_NAME",
@@ -103,12 +104,13 @@ def student_payload():
 
 @pytest.fixture
 def teacher_payload():
+    now = int(datetime.timestamp(datetime.now()))
     return {
         "iss": "https://ltiadvantagevalidator.imsglobal.org",
         "sub": "TEACHER_ID",
         "aud": "imstester_4ba76ab",
-        "exp": 1648638333,
-        "iat": 1648638033,
+        "exp": now + 60,
+        "iat": now,
         "nonce": "6f889151-c368-4e32-91af-5fe831ee266b",
         "name": "TEACHER_FIRST_NAME TEACHER_MIDDLE_NAME TEACHER_LAST_NAME",
         "given_name": "TEACHER_FIRST_NAME",
