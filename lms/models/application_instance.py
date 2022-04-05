@@ -162,16 +162,16 @@ class ApplicationInstance(BASE):
         """
 
         tool_consumer_instance_guid = params.get("tool_consumer_instance_guid")
-        if not tool_consumer_instance_guid:
-            # guid identifies the rest of the LMS data, if not there skip any updates
-            return
+        if not tool_consumer_instance_guid and not self.tool_consumer_instance_guid:
+            raise ValueError("No GUID present in either request params or the DB")
 
         if (
-            self.tool_consumer_instance_guid
+            tool_consumer_instance_guid
+            and self.tool_consumer_instance_guid
             and self.tool_consumer_instance_guid != tool_consumer_instance_guid
         ):
             # If we already have a LMS guid linked to the AI
-            # and we found a different one report it to sentry
+            # and we've been sent a different one, report it to sentry
             raise ReusedConsumerKey(
                 existing_guid=self.tool_consumer_instance_guid,
                 new_guid=tool_consumer_instance_guid,
