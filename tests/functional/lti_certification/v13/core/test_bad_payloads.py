@@ -116,15 +116,11 @@ class TestBadPayloads:
         """The Required sub Claim Not Present"""
         assert_missing_claim(test_payload, "sub", status=403)
 
-    @pytest.fixture(
-        params=(param(True, id="teacher_payload"), param(False, id="student_payload"))
-    )
-    def test_payload(self, request, student_payload, teacher_payload):
+    @pytest.fixture(params=["student_payload", "teacher_payload"])
+    def test_payload(self, request):
         """Get an OAuthToken or None based on the fixture params."""
-        if request.param:
-            return teacher_payload
 
-        return student_payload
+        return request.getfixturevalue(request.param)
 
     @pytest.fixture
     def assert_missing_claim(self, do_lti_launch, make_jwt):
