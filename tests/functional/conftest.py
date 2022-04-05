@@ -67,3 +67,4 @@ def db_session(db_engine):
     finally:
         factories.clear_sqlalchemy_session()
         session.close()
+        conn.close()
