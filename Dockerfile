@@ -29,6 +29,7 @@ RUN apk add --virtual build-deps \
     build-base \
     postgresql-dev \
     python3-dev \
+    libffi-dev \
   && pip3 install --no-cache-dir -U pip \
   && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps

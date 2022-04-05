@@ -22,10 +22,14 @@ certifi==2020.6.20
     # via
     #   requests
     #   sentry-sdk
+cffi==1.15.0
+    # via cryptography
 charset-normalizer==2.0.1
     # via
     #   aiohttp
     #   requests
+cryptography==36.0.2
+    # via pyjwt
 frozenlist==1.2.0
     # via
     #   aiohttp
@@ -104,9 +108,11 @@ pyasn1==0.4.8
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
+pycparser==2.21
+    # via cffi
 pycryptodomex==3.14.1
     # via -r requirements/requirements.in
-pyjwt==2.3.0
+pyjwt[crypto]==2.3.0
     # via
     #   -r requirements/requirements.in
     #   h-vialib
