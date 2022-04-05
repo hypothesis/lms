@@ -3,6 +3,7 @@ from unittest.mock import call, sentinel
 
 import marshmallow
 import pytest
+from jwt.exceptions import InvalidTokenError
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
@@ -19,7 +20,6 @@ from lms.security import (
     includeme,
 )
 from lms.validation import ValidationError
-from lms.validation.authentication._exceptions import InvalidJWTError
 from tests import factories
 
 
@@ -591,7 +591,7 @@ class TestGetLTIJWT:
 
     def test_it_with_invalid_token(self, pyramid_request, jwt):
         pyramid_request.params["id_token"] = "JWT"
-        jwt.decode.side_effect = InvalidJWTError
+        jwt.decode.side_effect = InvalidTokenError
 
         with pytest.raises(marshmallow.ValidationError):
             _get_lti_jwt(pyramid_request)

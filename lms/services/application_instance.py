@@ -58,7 +58,7 @@ class ApplicationInstanceService:
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
-    @lru_cache
+    @lru_cache(maxsize=128)
     def get_by_deployment_id(
         self, issuer: str, client_id: str, deployment_id: str
     ) -> ApplicationInstance:
