@@ -1,4 +1,6 @@
 import jwt
+from httpretty import httpretty
+from datetime import datetime
 import pytest
 
 import importlib_resources
@@ -51,6 +53,27 @@ def application_instance(lti_registration):  # pylint:disable=unused-argument
         lti_registration=lti_registration,
         deployment_id="testdeploy",
     )
+
+
+@pytest.fixture(autouse=True)
+def jwk_endpoint_intercept(lti_registration):
+    httpretty.register_uri(
+        method="GET",
+        uri=lti_registration.key_set_url,
+        body=f"""
+        {{"keys": [{{
+            "kid": "{JWT_KID}",
+            "kty": "RSA",
+            "n": "1VSh7ruSwpvfLgPvt5e1MxtSvJRPHR-TVdjnave21c9fuoDdaqs7xG1Zyj8JQxIKGWPw_z6ViDMr__ghytCTrP-5hPMxLUG6E5pdFOYij6MOxwyAUngMqdh-PGKygR6Bv7hxnyhKj138XMMFc6zTwdGQ6DdcTsNTKRCWvxxWBjs",
+            "e": "AQAB"
+            }}]
+        }}
+        """,
+    )
+
+    httpretty.enable()
+    yield
+    httpretty.disable()
 
 
 @pytest.fixture
