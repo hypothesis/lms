@@ -1,6 +1,5 @@
 import copy
 import datetime
-import warnings
 from functools import lru_cache
 
 import jwt
@@ -86,5 +85,4 @@ class JWTService:
         except jwt.exceptions.InvalidTokenError as err:
             raise InvalidJWTError() from err
 
-        warnings.warn("Using not verified JWT token")
         return payload

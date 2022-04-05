@@ -32,19 +32,11 @@ certifi==2020.6.20
     #   -r requirements/requirements.txt
     #   requests
     #   sentry-sdk
-cffi==1.15.0
-    # via
-    #   -r requirements/requirements.txt
-    #   cryptography
 charset-normalizer==2.0.1
     # via
     #   -r requirements/requirements.txt
     #   aiohttp
     #   requests
-cryptography==36.0.2
-    # via
-    #   -r requirements/requirements.txt
-    #   pyjwt
 decorator==5.0.7
     # via ipython
 factory-boy==3.2.1
@@ -176,15 +168,11 @@ pyasn1-modules==0.2.8
     # via
     #   -r requirements/requirements.txt
     #   google-auth
-pycparser==2.21
-    # via
-    #   -r requirements/requirements.txt
-    #   cffi
 pycryptodomex==3.14.1
     # via -r requirements/requirements.txt
 pygments==2.8.1
     # via ipython
-pyjwt[crypto]==2.3.0
+pyjwt==2.3.0
     # via
     #   -r requirements/requirements.txt
     #   h-vialib
