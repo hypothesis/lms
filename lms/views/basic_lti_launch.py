@@ -43,10 +43,7 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-        self.application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
-        self.application_instance.update_lms_data(self.request.params)
+        self.context.application_instance.update_lms_data(self.request.params)
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
@@ -133,9 +130,7 @@ class BasicLTILaunchViews:
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
         self.assignment_service.upsert(
             document_url=document_url,
-            tool_consumer_instance_guid=self.request.params[
-                "tool_consumer_instance_guid"
-            ],
+            tool_consumer_instance_guid=self.context.application_instance.tool_consumer_instance_guid,
             resource_link_id=self.context.resource_link_id,
         )
         return self.basic_lti_launch(document_url=document_url, grading_supported=False)
@@ -155,11 +150,9 @@ class BasicLTILaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        tool_consumer_instance_guid = self.context.lti_params[
-            "tool_consumer_instance_guid"
-        ]
         document_url = self.assignment_service.get(
-            tool_consumer_instance_guid, self.context.resource_link_id
+            self.context.application_instance.tool_consumer_instance_guid,
+            self.context.resource_link_id,
         ).document_url
         return self.basic_lti_launch(document_url)
 
@@ -171,12 +164,13 @@ class BasicLTILaunchViews:
     )
     def canvas_db_configured_basic_lti_launch(self):
         """Respond to a Canvas DB-configured assignment launch."""
-        tool_consumer_instance_guid = self.request.params["tool_consumer_instance_guid"]
         resource_link_id = self.context.resource_link_id
         ext_lti_assignment_id = self.context.ext_lti_assignment_id
 
         assignments = self.assignment_service.get_for_canvas_launch(
-            tool_consumer_instance_guid, resource_link_id, ext_lti_assignment_id
+            self.context.application_instance.tool_consumer_instance_guid,
+            resource_link_id,
+            ext_lti_assignment_id,
         )
 
         if len(assignments) == 2:
