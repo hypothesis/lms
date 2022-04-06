@@ -356,25 +356,6 @@ class TestBasicLTILaunch:
 
         return _sign
 
-    @pytest.fixture
-    def do_lti_launch(self, app):
-        def _do_lti_launch(post_params, get_params=None, **kwargs):
-            url = "/lti_launches"
-            if get_params:
-                url += f"?{urlencode(get_params)}"
-
-            return app.post(
-                url,
-                params=post_params,
-                headers={
-                    "Accept": "text/html",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                **kwargs,
-            )
-
-        return _do_lti_launch
-
     @pytest.fixture(autouse=True)
     def http_intercept(self):
         """
