@@ -296,9 +296,7 @@ class TestCanvasFileBasicLTILaunch:
 
         assignment_service.upsert.assert_called_once_with(
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
-            tool_consumer_instance_guid=pyramid_request.params[
-                "tool_consumer_instance_guid"
-            ],
+            tool_consumer_instance_guid=context.application_instance.tool_consumer_instance_guid,
             resource_link_id=pyramid_request.params["resource_link_id"],
         )
 
