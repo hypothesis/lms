@@ -73,7 +73,7 @@ def db_session(db_engine):
 
 @pytest.fixture
 def do_lti_launch(app):
-    def _do_lti_launch(post_params, get_params=None, **kwargs):
+    def do_lti_launch(post_params, get_params=None, **kwargs):
         url = "/lti_launches"
         if get_params:
             url += f"?{urlencode(get_params)}"
@@ -88,4 +88,4 @@ def do_lti_launch(app):
             **kwargs,
         )
 
-    return _do_lti_launch
+    return do_lti_launch
