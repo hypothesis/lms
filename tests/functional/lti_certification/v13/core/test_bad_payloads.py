@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.xfail(cause="Work in progress")
+@pytest.mark.filterwarnings("ignore:Using not verified JWT token")
 class TestBadPayloads:
     """
     The first few tests will be those that are in one or another way known to be invalid for 1.3 Core Launches.
@@ -23,10 +23,18 @@ class TestBadPayloads:
 
         assert response.html
 
-    @pytest.mark.xfail(reason="JWT verification disabled")
-    def test_incorrect_kid_in_jwt_header(self):
-        """The KID provided is incorrect (and signing verification is impossible)"""
+    def test_incorrect_kid_in_jwt_header(
+        self, jwt_headers, test_payload, do_lti_launch, make_jwt
+    ):
+        jwt_headers["kid"] = "imstester_66067"
 
+        response = do_lti_launch(
+            {"id_token": make_jwt(test_payload, jwt_headers)}, status=403
+        )
+
+        assert response.html
+
+    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_wrong_lti_version(self, make_jwt, test_payload, do_lti_launch):
         """The LTI version claim contains the wrong version"""
         test_payload["https://purl.imsglobal.org/spec/lti/claim/version"] = "11.3"
@@ -36,6 +44,7 @@ class TestBadPayloads:
         assert "There were problems with these request parameters" in response.text
         assert "lti_version" in response.text
 
+    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_no_lti_version(self, make_jwt, test_payload, do_lti_launch):
         """The LTI version claim is missing"""
         del test_payload["https://purl.imsglobal.org/spec/lti/claim/version"]
@@ -45,6 +54,9 @@ class TestBadPayloads:
         assert "There were problems with these request parameters" in response.text
         assert "lti_version" in response.text
 
+    @pytest.mark.xfail(
+        reason="Missing error handling for missing JWT fields", strict=True
+    )
     def test_invalid_lti_message(self, make_jwt, do_lti_launch):
         """The provided JSON is NOT a 1.3 JWT launch"""
         payload = {"name": "badltilaunch"}
@@ -53,6 +65,9 @@ class TestBadPayloads:
 
         assert response.status_code == 403
 
+    @pytest.mark.xfail(
+        reason="Missing error handling for missing JWT fields", strict=True
+    )
     def test_missing_lti_claims(self, test_payload, do_lti_launch, make_jwt):
         """The provided 1.3 JWT launch is missing one or more required claims"""
         missing_claims = [
@@ -70,7 +85,6 @@ class TestBadPayloads:
         assert response.status_code == 403
         assert response.html
 
-    @pytest.mark.xfail(reason="JWT verification disabled")
     def test_timestamps_incorrect(self, test_payload, do_lti_launch, make_jwt):
         """Incorrect JWT iat and exp timestamp Values are Invalid"""
         test_payload["iat"] = 11111
@@ -79,6 +93,7 @@ class TestBadPayloads:
         response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
         assert response.html
 
+    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_message_type_claim_missing(self, test_payload, assert_missing_claim):
         """The Required message_type Claim Not Present"""
         response = assert_missing_claim(
@@ -96,6 +111,9 @@ class TestBadPayloads:
             status=403,
         )
 
+    @pytest.mark.xfail(
+        reason="Missing error handling for missing JWT fields", strict=True
+    )
     def test_deployment_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required deployment_id Claim Not Present"""
         assert_missing_claim(
@@ -104,6 +122,9 @@ class TestBadPayloads:
             status=403,
         )
 
+    @pytest.mark.xfail(
+        reason="Missing error handling for missing JWT fields", strict=True
+    )
     def test_resource_link_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required resource_link_id Claim Not Present"""
         assert_missing_claim(
