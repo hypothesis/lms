@@ -97,7 +97,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request.lti_user = factories.LTIUser(
         application_instance_id=application_instance.id
     )
-    pyramid_request.lti_jwt = None
+    pyramid_request.lti_jwt = {}
 
     # The DummyRequest request lacks a content_type property which the real
     # request has

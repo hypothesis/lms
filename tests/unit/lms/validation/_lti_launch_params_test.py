@@ -300,6 +300,7 @@ class TestConfigureAssignmentSchema:
     @pytest.fixture
     def pyramid_request(self):
         pyramid_request = testing.DummyRequest()
+        pyramid_request.lti_jwt = {}
         pyramid_request.params["lti_version"] = "LTI-1p0"
         pyramid_request.params["roles"] = "INSTRUCTOR"
 
