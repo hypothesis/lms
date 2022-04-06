@@ -5,7 +5,7 @@ import pytest
 from lms.resources._js_config import JSConfig
 
 
-@pytest.mark.xfail(cause="Work in progress")
+@pytest.mark.xfail(cause="Work in progress", strict=True)
 class TestValidTeacherPayloads:
     """
     Following the known "bad" payload launches are valid Teacher payloads.

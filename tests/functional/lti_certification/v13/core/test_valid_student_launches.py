@@ -5,7 +5,7 @@ import pytest
 from lms.resources._js_config import JSConfig
 
 
-@pytest.mark.xfail(cause="Work in progress")
+@pytest.mark.xfail(cause="Work in progress", strict=True)
 class TestValidStudentLaunches:
     """
     Following the various valid instructor payload launches are valid Student/Learner payloads
@@ -81,7 +81,9 @@ class TestValidStudentLaunches:
         js_config = assert_launch_get_config(student_payload)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
 
-    @pytest.mark.xfail(reason="Pending. Context is required in our schemas")
+    @pytest.mark.xfail(
+        reason="Pending. Context is required in our schemas", strict=True
+    )
     def test_with_email_no_context(self, student_payload, assert_launch_get_config):
         """Launch Student With Email No Context"""
 
