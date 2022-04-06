@@ -6,21 +6,21 @@ from lms.views.lti.oidc import oidc_view
 
 
 class TestOIDC:
-    def test_missing_registration(self, lti_registration, pyramid_request):
-        lti_registration.get.return_value = None
+    def test_missing_registration(self, lti_registration_service, pyramid_request):
+        lti_registration_service.get.return_value = None
 
         with pytest.raises(HTTPForbidden):
             oidc_view(pyramid_request)
 
-    def test_it(self, lti_registration, pyramid_request):
-        lti_registration.get.return_value.auth_login_url = (
+    def test_it(self, lti_registration_service, pyramid_request):
+        lti_registration_service.get.return_value.auth_login_url = (
             "https://lms.com/auth_login_url"
         )
-        lti_registration.get.return_value.client_id = "REGISTRATION_CLIENT_ID"
+        lti_registration_service.get.return_value.client_id = "REGISTRATION_CLIENT_ID"
 
         result = oidc_view(pyramid_request)
 
-        lti_registration.get.assert_called_once_with(
+        lti_registration_service.get.assert_called_once_with(
             pyramid_request.parsed_params["iss"],
             pyramid_request.parsed_params["client_id"],
         )

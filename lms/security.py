@@ -1,17 +1,14 @@
 import base64
-import warnings
+import logging
 from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
 
-import jwt
-import marshmallow
-from jwt.exceptions import InvalidTokenError
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
-from lms.services import UserService
+from lms.services import InvalidJWTError, JWTService, UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -19,6 +16,8 @@ from lms.validation.authentication import (
     LTI13AuthSchema,
     OAuthCallbackSchema,
 )
+
+LOG = logging.getLogger(__name__)
 
 
 class Identity(NamedTuple):
@@ -213,12 +212,10 @@ def _get_lti_jwt(request):
         return {}
 
     try:
-        jwt_params = jwt.decode(id_token, options={"verify_signature": False})
-    except InvalidTokenError as err:
-        raise marshmallow.ValidationError("Invalid id_token", "authorization") from err
-
-    warnings.warn("Using not verified JWT token")
-    return jwt_params
+        return request.find_service(JWTService).decode_lti_token(id_token)
+    except InvalidJWTError as err:
+        LOG.debug("Error decoding id_token JWT. %s", str(err))
+        return {}
 
 
 def includeme(config):

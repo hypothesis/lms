@@ -1,13 +1,17 @@
 import copy
 import datetime
+import json
+from unittest.mock import sentinel
 
+import httpretty
 import jwt
 import pytest
 from freezegun import freeze_time
+from jwt.exceptions import InvalidTokenError
 from pytest import param
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
-from lms.services.jwt import JWTService
+from lms.services.jwt import JWTService, factory
 
 
 class TestJWTService:
@@ -57,24 +61,90 @@ class TestJWTService:
         )
         assert encoded_jwt == jwt.encode.return_value
 
+    def test_decode_lti_token_with_no_kid(self, svc):
+        jwt_str = self.encode_jwt({"key": "value"}, headers={"key": "value"})
+
+        with pytest.raises(InvalidJWTError) as err_info:
+            svc.decode_lti_token(jwt_str)
+
+        assert "Missing 'kid' value in JWT header" in str(err_info.value)
+
+    def test_decode_lti_token_with_no_registration(self, svc, lti_registration_service):
+        jwt_str = self.encode_jwt({"aud": "AUD", "iss": "ISS"}, headers={"kid": "KID"})
+        lti_registration_service.get.return_value = None
+
+        with pytest.raises(InvalidJWTError) as err_info:
+            svc.decode_lti_token(jwt_str)
+
+        assert "Unknown registration for lti_token. iss:'ISS' aud:'AUD'." in str(
+            err_info.value
+        )
+
+    def test_decode_lti_token_with_invalid_jwt(self, svc, jwt):
+        jwt.decode.side_effect = [{"aud": "AUD", "iss": "ISS"}, InvalidTokenError()]
+        jwt_str = self.encode_jwt({"key": "value"}, headers={"kid": "KID"})
+
+        with pytest.raises(InvalidJWTError):
+            svc.decode_lti_token(jwt_str)
+
+    def test_decode_lti_token(self, svc, jwt, lti_registration_service):
+        jwt.decode.return_value = {"aud": "AUD", "iss": "ISS"}
+
+        payload = svc.decode_lti_token(sentinel.token)
+
+        lti_registration_service.get.assert_called_once_with("ISS", "AUD")
+        jwt.PyJWKClient.assert_called_once_with(
+            lti_registration_service.get.return_value.key_set_url
+        )
+        jwt.decode(
+            sentinel.token,
+            key=jwt.PyJWKClient.return_value.get_signing_key_from_jwt.return_value.key,
+            audience="AUD",
+            algorithms=["RS256"],
+        )
+        assert payload == jwt.decode.return_value
+
     def encode_jwt(
         self,
         payload,
-        lifetime,
         secret="test_secret",
         algorithm="HS256",
+        headers=None,
+        lifetime=None,
     ):
         """Return payload encoded to a jwt with secret and algorithm."""
         payload = copy.deepcopy(payload)
 
-        payload["exp"] = datetime.datetime.utcnow() + lifetime
+        if lifetime:
+            payload["exp"] = datetime.datetime.utcnow() + lifetime
 
-        return jwt.encode(payload, secret, algorithm=algorithm)
+        return jwt.encode(payload, secret, algorithm=algorithm, headers=headers)
+
+    @pytest.fixture(autouse=True)
+    def jwk_endpoint(self):
+        keys = {"keys": [{"kid": "KID", "kty": "RSA", "n": "...", "e": "..."}]}
+
+        httpretty.register_uri("GET", "http://jwk.com", body=json.dumps(keys))
 
     @pytest.fixture()
     def jwt(self, patch):
         return patch("lms.services.jwt.jwt")
 
     @pytest.fixture
-    def svc(self):
-        return JWTService()
+    def svc(self, lti_registration_service):
+        svc = JWTService(lti_registration_service)
+        # Clear the lru_cache to make tests independent
+        svc._get_jwk_client.cache_clear()  # pylint: disable=protected-access
+        return svc
+
+
+class TestFactory:
+    def test_it(self, pyramid_request, JWTService, lti_registration_service):
+        jwt_service = factory(sentinel.context, pyramid_request)
+
+        JWTService.assert_called_once_with(lti_registration_service)
+        assert jwt_service == JWTService.return_value
+
+    @pytest.fixture
+    def JWTService(self, patch):
+        return patch("lms.services.jwt.JWTService")

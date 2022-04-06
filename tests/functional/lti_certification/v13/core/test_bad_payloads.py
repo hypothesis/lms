@@ -1,7 +1,8 @@
+import logging
+
 import pytest
 
 
-@pytest.mark.filterwarnings("ignore:Using not verified JWT token")
 class TestBadPayloads:
     """
     The first few tests will be those that are in one or another way known to be invalid for 1.3 Core Launches.
@@ -10,29 +11,30 @@ class TestBadPayloads:
     """
 
     def test_no_kid_sent_in_jwt_header(
-        self, jwt_headers, make_jwt, test_payload, do_lti_launch
+        self, jwt_headers, make_jwt, test_payload, do_lti_launch, caplog
     ):
         """
         The KID is missing from the header of the JWT (preventing the verification of the signing of the JWT)
         """
         del jwt_headers["kid"]
 
-        response = do_lti_launch(
-            {"id_token": make_jwt(test_payload, jwt_headers)}, status=403
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
+
+        assert (
+            "Error decoding id_token JWT. Missing 'kid' value in JWT header"
+            in caplog.messages
         )
 
-        assert response.html
-
     def test_incorrect_kid_in_jwt_header(
-        self, jwt_headers, test_payload, do_lti_launch, make_jwt
+        self, jwt_headers, test_payload, do_lti_launch, make_jwt, caplog
     ):
         jwt_headers["kid"] = "imstester_66067"
 
-        response = do_lti_launch(
-            {"id_token": make_jwt(test_payload, jwt_headers)}, status=403
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
+        assert (
+            'Error decoding id_token JWT. Unable to find a signing key that matches: "imstester_66067"'
+            in caplog.messages
         )
-
-        assert response.html
 
     @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_wrong_lti_version(self, make_jwt, test_payload, do_lti_launch):
@@ -129,6 +131,10 @@ class TestBadPayloads:
         """Get an OAuthToken or None based on the fixture params."""
 
         yield request.getfixturevalue(request.param)
+
+    @pytest.fixture(autouse=True)
+    def debug_log_capture(self, caplog):
+        caplog.set_level(logging.DEBUG)
 
     @pytest.fixture
     def assert_missing_claim(self, do_lti_launch, make_jwt):

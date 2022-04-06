@@ -13,7 +13,7 @@ from lms.services.exceptions import (
 )
 from lms.services.h_api import HAPIError
 from lms.services.jstor import JSTORService
-from lms.services.jwt import JWTService
+from lms.services.jwt import InvalidJWTError, JWTService
 from lms.services.launch_verifier import (
     ConsumerKeyLaunchVerificationError,
     LTILaunchVerificationError,
@@ -81,4 +81,4 @@ def includeme(config):
         "lms.services.lti_registration.factory", iface=LTIRegistrationService
     )
     config.register_service_factory("lms.services.aes.factory", iface=AESService)
-    config.register_service(JWTService(), iface=JWTService)
+    config.register_service_factory("lms.services.jwt.factory", iface=JWTService)
