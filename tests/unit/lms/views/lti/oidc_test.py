@@ -16,6 +16,7 @@ class TestOIDC:
         lti_registration.get.return_value.auth_login_url = (
             "https://lms.com/auth_login_url"
         )
+        lti_registration.get.return_value.client_id = "REGISTRATION_CLIENT_ID"
 
         result = oidc_view(pyramid_request)
 
@@ -34,7 +35,7 @@ class TestOIDC:
                 "prompt": "none",
                 "login_hint": pyramid_request.parsed_params["login_hint"],
                 "lti_message_hint": pyramid_request.parsed_params["lti_message_hint"],
-                "client_id": pyramid_request.parsed_params["client_id"],
+                "client_id": "REGISTRATION_CLIENT_ID",
                 "state": Any(),
                 "nonce": Any(),
                 "redirect_uri": pyramid_request.parsed_params["target_link_uri"],
