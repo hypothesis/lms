@@ -1,9 +1,7 @@
 from unittest import mock
 from unittest.mock import call, sentinel
 
-import marshmallow
 import pytest
-from jwt.exceptions import InvalidTokenError
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
@@ -19,6 +17,7 @@ from lms.security import (
     _get_user,
     includeme,
 )
+from lms.services import InvalidJWTError
 from lms.validation import ValidationError
 from tests import factories
 
@@ -589,24 +588,18 @@ class TestGetLTIJWT:
     def test_it_when_no_token(self, pyramid_request):
         assert not _get_lti_jwt(pyramid_request)
 
-    def test_it_with_invalid_token(self, pyramid_request, jwt):
+    def test_it_invalid_jwt(self, pyramid_request, jwt_service):
         pyramid_request.params["id_token"] = "JWT"
-        jwt.decode.side_effect = InvalidTokenError
+        jwt_service.decode_lti_token.side_effect = InvalidJWTError
 
-        with pytest.raises(marshmallow.ValidationError):
-            _get_lti_jwt(pyramid_request)
+        assert not _get_lti_jwt(pyramid_request)
 
-    def test_it(self, pyramid_request, jwt):
+    def test_it(self, pyramid_request, jwt_service):
         pyramid_request.params["id_token"] = "JWT"
 
-        with pytest.warns(UserWarning):
-            params = _get_lti_jwt(pyramid_request)
+        lti_jwt = _get_lti_jwt(pyramid_request)
 
-        jwt.decode.assert_called_once_with(
-            pyramid_request.params["id_token"], options={"verify_signature": False}
+        jwt_service.decode_lti_token.assert_called_once_with(
+            "JWT",
         )
-        assert params == jwt.decode.return_value
-
-    @pytest.fixture
-    def jwt(self, patch):
-        return patch("lms.security.jwt")
+        assert jwt_service.decode_lti_token.return_value == lti_jwt

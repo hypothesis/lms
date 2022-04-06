@@ -51,7 +51,7 @@ __all__ = (
     "launch_verifier",
     "lti_h_service",
     "lti_outcomes_client",
-    "lti_registration",
+    "lti_registration_service",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
@@ -237,5 +237,5 @@ def file_service(mock_service):
 
 
 @pytest.fixture
-def lti_registration(mock_service):
+def lti_registration_service(mock_service):
     return mock_service(LTIRegistrationService)
