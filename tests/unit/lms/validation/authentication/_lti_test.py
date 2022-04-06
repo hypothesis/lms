@@ -120,6 +120,16 @@ class TestLTI13AuthSchema:
         with pytest.raises(ValidationError):
             schema.lti_user()
 
+    def test_it_missing_lti_jwt(self, pyramid_request):
+        pyramid_request.lti_jwt = {}
+
+        with pytest.raises(ValidationError) as err_info:
+            LTI13AuthSchema(pyramid_request).parse()
+
+        assert set(["deployment_id", "iss", "aud"]) == set(
+            err_info.value.messages["form"].keys()
+        )
+
     @pytest.fixture
     def schema(self, pyramid_request):
         return LTI13AuthSchema(pyramid_request)

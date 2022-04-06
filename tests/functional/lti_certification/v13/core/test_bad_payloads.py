@@ -54,9 +54,6 @@ class TestBadPayloads:
         assert "There were problems with these request parameters" in response.text
         assert "lti_version" in response.text
 
-    @pytest.mark.xfail(
-        reason="Missing error handling for missing JWT fields", strict=True
-    )
     def test_invalid_lti_message(self, make_jwt, do_lti_launch):
         """The provided JSON is NOT a 1.3 JWT launch"""
         payload = {"name": "badltilaunch"}
@@ -65,9 +62,6 @@ class TestBadPayloads:
 
         assert response.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="Missing error handling for missing JWT fields", strict=True
-    )
     def test_missing_lti_claims(self, test_payload, do_lti_launch, make_jwt):
         """The provided 1.3 JWT launch is missing one or more required claims"""
         missing_claims = [
@@ -111,9 +105,6 @@ class TestBadPayloads:
             status=403,
         )
 
-    @pytest.mark.xfail(
-        reason="Missing error handling for missing JWT fields", strict=True
-    )
     def test_deployment_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required deployment_id Claim Not Present"""
         assert_missing_claim(
@@ -122,9 +113,7 @@ class TestBadPayloads:
             status=403,
         )
 
-    @pytest.mark.xfail(
-        reason="Missing error handling for missing JWT fields", strict=True
-    )
+    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_resource_link_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required resource_link_id Claim Not Present"""
         assert_missing_claim(
