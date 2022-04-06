@@ -9,7 +9,6 @@ from httpretty import httpretty
 from tests import factories
 
 keys_path = importlib_resources.files("tests.functional.lti_certification.v13")
-JWT_KID = "JWT_KEY_KID"
 
 
 @pytest.fixture(scope="session")
@@ -19,12 +18,14 @@ def jwt_private_key():
 
 @pytest.fixture(scope="session")
 def jwt_public_key():
-    return json.loads((keys_path / "jwt_public.key").read_text())
+    key = json.loads((keys_path / "jwt_public.key").read_text())
+    key["kid"] = "TESTING_KID"
+    return key
 
 
 @pytest.fixture
-def jwt_headers():
-    return {"kid": JWT_KID}
+def jwt_headers(jwt_public_key):
+    return {"kid": jwt_public_key["kid"]}
 
 
 @pytest.fixture
@@ -59,7 +60,6 @@ def application_instance(lti_registration):
 
 @pytest.fixture(autouse=True)
 def jwk_endpoint_intercept(lti_registration, jwt_public_key):
-    jwt_public_key["kid"] = JWT_KID
     jwk = {"keys": [jwt_public_key]}
 
     httpretty.register_uri(
