@@ -232,7 +232,7 @@ multidict==5.2.0
     #   -r requirements/tests.txt
     #   aiohttp
     #   yarl
-newrelic==7.8.0.174
+newrelic==7.10.0.175
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
