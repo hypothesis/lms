@@ -22,6 +22,7 @@ from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
 from lms.models.lti_user import LTIUser, display_name
 from lms.models.oauth2_token import OAuth2Token
+from lms.models.rsa_key import RSAKey
 from lms.models.user import User
 
 
