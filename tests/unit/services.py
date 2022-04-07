@@ -23,6 +23,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
 from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.lti_registration import LTIRegistrationService
+from lms.services.ltia_http import LTIAHTTPService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
@@ -62,6 +63,7 @@ __all__ = (
     "aes_service",
     "jwt_service",
     "rsa_key_service",
+    "ltia_http_service",
 )
 
 
@@ -246,3 +248,8 @@ def lti_registration_service(mock_service):
 @pytest.fixture
 def rsa_key_service(mock_service):
     return mock_service(RSAKeyService)
+
+
+@pytest.fixture
+def ltia_http_service(mock_service):
+    return mock_service(LTIAHTTPService)
