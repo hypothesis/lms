@@ -95,6 +95,15 @@ class JWTService:
             LOG.debug("Invalid JWT. %s", str(err))
             return {}
 
+    @classmethod
+    def encode_with_private_key(cls, private_key, payload: dict, headers=None):
+        return jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers=headers,
+        )
+
     @staticmethod
     @lru_cache
     def _get_jwk_client(jwk_url: str):
