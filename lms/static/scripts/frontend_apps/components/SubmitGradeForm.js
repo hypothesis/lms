@@ -215,7 +215,6 @@ export default function SubmitGradeForm({ student }) {
               ref={inputRef}
               onInput={handleKeyDown}
               type="input"
-              // @ts-expect-error - `defaultValue` is missing from `<input>` prop types.
               defaultValue={grade}
               key={student ? student.LISResultSourcedId : null}
             />
