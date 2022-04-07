@@ -12,6 +12,7 @@ oauthlib
 psycopg2
 pycryptodomex
 PyJWT[crypto]
+python-jose[crypto]
 pyramid
 pyramid-exclog
 pyramid-googleauth

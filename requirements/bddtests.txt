@@ -48,6 +48,10 @@ cryptography==36.0.2
     # via
     #   -r requirements/requirements.txt
     #   pyjwt
+ecdsa==0.17.0
+    # via
+    #   -r requirements/requirements.txt
+    #   python-jose
 factory-boy==3.2.1
     # via -r requirements/bddtests.in
 faker==8.1.2
@@ -171,6 +175,7 @@ pyasn1==0.4.8
     # via
     #   -r requirements/requirements.txt
     #   pyasn1-modules
+    #   python-jose
     #   rsa
 pyasn1-modules==0.2.8
     # via
@@ -222,6 +227,8 @@ pytest==7.1.1
     # via -r requirements/bddtests.in
 python-dateutil==2.8.1
     # via faker
+python-jose[crypto]==3.3.0
+    # via -r requirements/requirements.txt
 requests==2.27.1
     # via
     #   -r requirements/requirements.txt
@@ -234,6 +241,7 @@ rsa==4.7.2
     # via
     #   -r requirements/requirements.txt
     #   google-auth
+    #   python-jose
 sentry-sdk==0.17.6
     # via
     #   -r requirements/requirements.txt
@@ -242,6 +250,7 @@ six==1.15.0
     # via
     #   -r requirements/requirements.txt
     #   behave
+    #   ecdsa
     #   google-auth
     #   jsonschema
     #   parse-type

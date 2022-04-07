@@ -82,6 +82,12 @@ cryptography==36.0.2
     #   pyjwt
 dill==0.3.4
     # via pylint
+ecdsa==0.17.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   python-jose
 factory-boy==3.2.1
     # via
     #   -r requirements/bddtests.txt
@@ -304,6 +310,7 @@ pyasn1==0.4.8
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyasn1-modules
+    #   python-jose
     #   rsa
 pyasn1-modules==0.2.8
     # via
@@ -402,6 +409,11 @@ python-dateutil==2.8.1
     #   -r requirements/tests.txt
     #   faker
     #   freezegun
+python-jose[crypto]==3.3.0
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
 requests==2.27.1
     # via
     #   -r requirements/bddtests.txt
@@ -420,6 +432,7 @@ rsa==4.7.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   google-auth
+    #   python-jose
 sentry-sdk==0.17.6
     # via
     #   -r requirements/bddtests.txt
@@ -432,6 +445,7 @@ six==1.15.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   behave
+    #   ecdsa
     #   google-auth
     #   jsonschema
     #   parse-type
