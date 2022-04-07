@@ -26,6 +26,7 @@ from lms.services.lti_registration import LTIRegistrationService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
+from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
 from tests import factories
@@ -60,6 +61,7 @@ __all__ = (
     "jstor_service",
     "aes_service",
     "jwt_service",
+    "rsa_key_service",
 )
 
 
@@ -239,3 +241,8 @@ def file_service(mock_service):
 @pytest.fixture
 def lti_registration_service(mock_service):
     return mock_service(LTIRegistrationService)
+
+
+@pytest.fixture
+def rsa_key_service(mock_service):
+    return mock_service(RSAKeyService)

@@ -20,6 +20,7 @@ from lms.services.launch_verifier import (
     LTIOAuthError,
 )
 from lms.services.lti_registration import LTIRegistrationService
+from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 
 
@@ -82,3 +83,4 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.aes.factory", iface=AESService)
     config.register_service_factory("lms.services.jwt.factory", iface=JWTService)
+    config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
