@@ -107,3 +107,4 @@ def includeme(config):
     config.add_route("admin.instance", "/admin/instance/{consumer_key}/")
 
     config.add_route("lti.oidc", "/lti/1.3/oidc")
+    config.add_route("lti.jwks", "/lti/1.3/jwks")
