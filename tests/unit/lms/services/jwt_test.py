@@ -64,21 +64,15 @@ class TestJWTService:
     def test_decode_lti_token_with_no_kid(self, svc):
         jwt_str = self.encode_jwt({"key": "value"}, headers={"key": "value"})
 
-        with pytest.raises(InvalidJWTError) as err_info:
+        with pytest.raises(InvalidJWTError):
             svc.decode_lti_token(jwt_str)
-
-        assert "Missing 'kid' value in JWT header" in str(err_info.value)
 
     def test_decode_lti_token_with_no_registration(self, svc, lti_registration_service):
         jwt_str = self.encode_jwt({"aud": "AUD", "iss": "ISS"}, headers={"kid": "KID"})
         lti_registration_service.get.return_value = None
 
-        with pytest.raises(InvalidJWTError) as err_info:
+        with pytest.raises(InvalidJWTError):
             svc.decode_lti_token(jwt_str)
-
-        assert "Unknown registration for lti_token. iss:'ISS' aud:'AUD'." in str(
-            err_info.value
-        )
 
     def test_decode_lti_token_with_invalid_jwt(self, svc, jwt):
         jwt.decode.side_effect = [{"aud": "AUD", "iss": "ISS"}, InvalidTokenError()]
