@@ -76,6 +76,7 @@ class JWTService:
 
         unverified_payload = jwt.decode(id_token, options={"verify_signature": False})
         iss, aud = unverified_payload.get("iss"), unverified_payload.get("aud")
+
         registration = self._registration_service.get(iss, aud)
         if not registration:
             raise InvalidJWTError(
@@ -86,11 +87,9 @@ class JWTService:
             signing_key = self._get_jwk_client(
                 registration.key_set_url
             ).get_signing_key_from_jwt(id_token)
+
             return jwt.decode(
-                id_token,
-                key=signing_key.key,
-                audience=aud,
-                algorithms=["RS256"],
+                id_token, key=signing_key.key, audience=aud, algorithms=["RS256"]
             )
         except PyJWTError as err:
             raise InvalidJWTError(str(err)) from err
