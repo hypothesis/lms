@@ -157,27 +157,30 @@ class ApplicationInstance(BASE):
         """
         Update all the LMS-related attributes present in `params`.
 
-        If the current instance already has a `tool_consumer_instance_guid`
-        report it on logging and don't update any of the columns.
+        :raise ValueError: If tool_consumer_instance_guid is not present in params or the model itself.
+        :raise ReusedConsumerKey: If the tool_consumer_instance_guid present in params
+            is different than the one already recorded in the DB.
         """
 
         tool_consumer_instance_guid = params.get("tool_consumer_instance_guid")
-        if not tool_consumer_instance_guid:
-            # guid identifies the rest of the LMS data, if not there skip any updates
-            return
+        if not tool_consumer_instance_guid and not self.tool_consumer_instance_guid:
+            # We don't have a guid in either the request params or stored on the DB
+            raise ValueError("No GUID present in either request params or the DB")
 
         if (
-            self.tool_consumer_instance_guid
+            tool_consumer_instance_guid
+            and self.tool_consumer_instance_guid
             and self.tool_consumer_instance_guid != tool_consumer_instance_guid
         ):
             # If we already have a LMS guid linked to the AI
-            # and we found a different one report it to sentry
+            # and we've been sent a different one, report it to sentry
             raise ReusedConsumerKey(
                 existing_guid=self.tool_consumer_instance_guid,
                 new_guid=tool_consumer_instance_guid,
             )
 
-        self.tool_consumer_instance_guid = tool_consumer_instance_guid
+        if tool_consumer_instance_guid:
+            self.tool_consumer_instance_guid = tool_consumer_instance_guid
         for attr in [
             "tool_consumer_info_product_family_code",
             "tool_consumer_instance_description",

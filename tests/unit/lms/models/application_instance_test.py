@@ -104,20 +104,32 @@ class TestApplicationInstance:
 
     def test_update_lms_data(self, application_instance, lms_data):
         lms_data["tool_consumer_instance_guid"] = "GUID"
+
         application_instance.update_lms_data(lms_data)
 
         for k, v in lms_data.items():
             assert getattr(application_instance, k) == v
 
-    def test_update_lms_data_no_guid_doesnt_change_values(
+    def test_update_lms_data_missing_tool_guid(self, application_instance, lms_data):
+        lms_data["tool_consumer_instance_guid"] = None
+        application_instance.tool_consumer_instance_guid = None
+
+        with pytest.raises(ValueError):
+            application_instance.update_lms_data(lms_data)
+
+    def test_update_lms_data_keeps_existing_guid_none_in_params(
         self, application_instance, lms_data
     ):
+        lms_data["tool_consumer_instance_guid"] = None
+        application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
+
         application_instance.update_lms_data(lms_data)
 
-        assert application_instance.tool_consumer_instance_guid is None
-        assert application_instance.tool_consumer_info_product_family_code is None
+        assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
-    def test_update_lms_data_existing_guid(self, application_instance, lms_data):
+    def test_update_lms_data_existing_guid_new_in_params(
+        self, application_instance, lms_data
+    ):
         application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
         lms_data["tool_consumer_instance_guid"] = "NEW GUID"
 

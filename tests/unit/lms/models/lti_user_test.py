@@ -58,6 +58,16 @@ class TestLTIUser:
         )
         assert lti_user.application_instance_id == application_instance.id
 
+    def test_from_auth_params_with_no_guid(self, application_instance, auth_params):
+        del auth_params["tool_consumer_instance_guid"]
+
+        lti_user = LTIUser.from_auth_params(application_instance, auth_params)
+
+        assert (
+            lti_user.tool_consumer_instance_guid
+            == application_instance.tool_consumer_instance_guid
+        )
+
     @pytest.fixture
     def auth_params(self):
         return {

@@ -43,7 +43,7 @@ class BasicLTILaunchViews:
         self.context.js_config.enable_lti_launch_mode()
         self.context.js_config.maybe_set_focused_user()
 
-        self.context.application_instance.update_lms_data(self.request.params)
+        self.context.application_instance.update_lms_data(context.lti_params)
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""

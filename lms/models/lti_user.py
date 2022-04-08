@@ -49,7 +49,14 @@ class LTIUser(NamedTuple):
             user_id=lti_core_schema["user_id"],
             application_instance_id=application_instance.id,
             roles=lti_core_schema["roles"],
-            tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
+            # If we are creating a new LTIUser from request params
+            # ApplicationInstance.update_lms_data won't have been executed yet
+            # meaning that application_instance.tool_consumer_instance_guid
+            # will be null on the first launch so we'll prefer the one coming from the request params.
+            tool_consumer_instance_guid=lti_core_schema.get(
+                "tool_consumer_instance_guid"
+            )
+            or application_instance.tool_consumer_instance_guid,
             display_name=display_name(
                 lti_core_schema["lis_person_name_given"],
                 lti_core_schema["lis_person_name_family"],

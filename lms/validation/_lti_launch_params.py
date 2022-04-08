@@ -29,7 +29,8 @@ class LTIV11CoreSchema(PyramidRequestSchema):
 
     user_id = fields.Str(required=True)
     roles = fields.Str(required=True)
-    tool_consumer_instance_guid = fields.Str(required=True)
+    # When tool_consumer_instance_guid is not present on the schema we'll use the prerecorded one in the DB.
+    tool_consumer_instance_guid = fields.Str(required=False, allow_none=True)
     lis_person_name_given = fields.Str(load_default="")
     lis_person_name_family = fields.Str(load_default="")
     lis_person_name_full = fields.Str(load_default="")

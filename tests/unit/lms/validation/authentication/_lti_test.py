@@ -67,7 +67,6 @@ class TestLTI11AuthSchema:
         [
             "user_id",
             "roles",
-            "tool_consumer_instance_guid",
             "oauth_consumer_key",
             "oauth_nonce",
             "oauth_signature",
