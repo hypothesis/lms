@@ -17,17 +17,6 @@ export default {
         validationMessageOpen: 'validationMessageOpen 0.3s forwards',
         validationMessageClose: 'validationMessageClose 0.3s forwards',
       },
-      colors: {
-        green: {
-          success: successGreen,
-        },
-        yellow: {
-          notice: '#fbc168',
-        },
-        red: {
-          error: '#d93c3f',
-        },
-      },
       fontFamily: {
         sans: [
           '"Helvetica Neue"',
@@ -53,9 +42,6 @@ export default {
           from: { opacity: 0.9, width: '300px' },
           to: { opacity: 0, width: 0 },
         },
-      },
-      spacing: {
-        'touch-minimum': '44px', // Equivalent to spacing 11; minimum touch-target size
       },
     },
   },
