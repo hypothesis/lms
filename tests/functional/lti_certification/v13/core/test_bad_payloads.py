@@ -20,10 +20,7 @@ class TestBadPayloads:
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
 
-        assert (
-            "Error decoding id_token JWT. Missing 'kid' value in JWT header"
-            in caplog.messages
-        )
+        assert "Missing 'kid' value in JWT header" in caplog.messages
 
     def test_incorrect_kid_in_jwt_header(
         self, jwt_headers, test_payload, do_lti_launch, make_jwt, caplog
@@ -32,7 +29,7 @@ class TestBadPayloads:
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
         assert (
-            'Error decoding id_token JWT. Unable to find a signing key that matches: "imstester_66067"'
+            'Invalid JWT. Unable to find a signing key that matches: "imstester_66067"'
             in caplog.messages
         )
 
