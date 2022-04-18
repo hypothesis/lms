@@ -110,14 +110,6 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             raise MissingStateParamError() from err
 
         decoded_user = self._decode_state(state)["user"]
-        # In transit OAuthCallbackSchema encoded into the state param will have
-        # both oauth_consumer_key and application_instance_id
-        # oauth_consumer_key is no longer a valid attr of LTIUser.
-        #
-        # This can be deleted 24 hours after deployed;
-        # All token containing both attributes will have expired
-        decoded_user.pop("oauth_consumer_key", None)
-
         return LTIUser(**decoded_user)
 
     @marshmallow.validates("state")
