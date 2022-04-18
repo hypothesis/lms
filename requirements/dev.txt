@@ -91,7 +91,7 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
-importlib-resources==5.6.0
+importlib-resources==5.7.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
