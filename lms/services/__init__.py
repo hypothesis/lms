@@ -13,7 +13,7 @@ from lms.services.exceptions import (
 )
 from lms.services.h_api import HAPIError
 from lms.services.jstor import JSTORService
-from lms.services.jwt import InvalidJWTError, JWTService
+from lms.services.jwt import JWTService
 from lms.services.launch_verifier import (
     ConsumerKeyLaunchVerificationError,
     LTILaunchVerificationError,

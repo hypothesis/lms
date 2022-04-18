@@ -96,6 +96,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.assets")
     config.include("lms.views")
     config.include("lms.services")
+    config.include("lms.services.jwt")
     config.include("lms.validation")
     config.include("lms.tweens")
     config.add_static_view(name="export", path="lms:static/export")
