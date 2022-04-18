@@ -1,5 +1,4 @@
 import base64
-import logging
 from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
@@ -8,7 +7,7 @@ from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
-from lms.services import InvalidJWTError, JWTService, UserService
+from lms.services import UserService
 from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
@@ -16,8 +15,6 @@ from lms.validation.authentication import (
     LTI13AuthSchema,
     OAuthCallbackSchema,
 )
-
-LOG = logging.getLogger(__name__)
 
 
 class Identity(NamedTuple):
@@ -206,20 +203,7 @@ def _get_user(request):
     )
 
 
-def _get_lti_jwt(request):
-    id_token = request.params.get("id_token")
-    if not id_token:
-        return {}
-
-    try:
-        return request.find_service(JWTService).decode_lti_token(id_token)
-    except InvalidJWTError as err:
-        LOG.debug("Error decoding id_token JWT. %s", str(err))
-        return {}
-
-
 def includeme(config):
     config.set_security_policy(SecurityPolicy(config.registry.settings["lms_secret"]))
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
-    config.add_request_method(_get_lti_jwt, name="lti_jwt", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)

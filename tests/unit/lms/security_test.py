@@ -12,12 +12,10 @@ from lms.security import (
     LTISecurityPolicy,
     Permissions,
     SecurityPolicy,
-    _get_lti_jwt,
     _get_lti_user,
     _get_user,
     includeme,
 )
-from lms.services import InvalidJWTError
 from lms.validation import ValidationError
 from tests import factories
 
@@ -582,24 +580,3 @@ class TestGetUser:
             pyramid_request.lti_user.user_id,
         )
         assert user == user_service.get.return_value
-
-
-class TestGetLTIJWT:
-    def test_it_when_no_token(self, pyramid_request):
-        assert not _get_lti_jwt(pyramid_request)
-
-    def test_it_invalid_jwt(self, pyramid_request, jwt_service):
-        pyramid_request.params["id_token"] = "JWT"
-        jwt_service.decode_lti_token.side_effect = InvalidJWTError
-
-        assert not _get_lti_jwt(pyramid_request)
-
-    def test_it(self, pyramid_request, jwt_service):
-        pyramid_request.params["id_token"] = "JWT"
-
-        lti_jwt = _get_lti_jwt(pyramid_request)
-
-        jwt_service.decode_lti_token.assert_called_once_with(
-            "JWT",
-        )
-        assert jwt_service.decode_lti_token.return_value == lti_jwt
