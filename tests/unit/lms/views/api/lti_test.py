@@ -7,36 +7,36 @@ from h_matchers import Any
 
 from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
 
-pytestmark = pytest.mark.usefixtures("lti_outcomes_client")
+pytestmark = pytest.mark.usefixtures("lti_grading_service")
 
 
 class TestRecordCanvasSpeedgraderSubmission:
     GRADING_ID = "lis_result_sourcedid"
 
     def test_it_passes_correct_params_to_read_current_score(
-        self, pyramid_request, lti_outcomes_client
+        self, pyramid_request, lti_grading_service
     ):
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        lti_outcomes_client.read_result.assert_called_once_with(self.GRADING_ID)
+        lti_grading_service.read_result.assert_called_once_with(self.GRADING_ID)
 
     def test_it_does_not_record_result_if_score_already_exists(
-        self, pyramid_request, lti_outcomes_client
+        self, pyramid_request, lti_grading_service
     ):
-        lti_outcomes_client.read_result.return_value = 0.5
+        lti_grading_service.read_result.return_value = 0.5
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        lti_outcomes_client.record_result.assert_not_called()
+        lti_grading_service.record_result.assert_not_called()
 
     def test_it_passes_the_callback_if_there_is_no_score(
-        self, pyramid_request, lti_outcomes_client
+        self, pyramid_request, lti_grading_service
     ):
-        lti_outcomes_client.read_result.return_value = None
+        lti_grading_service.read_result.return_value = None
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
-        lti_outcomes_client.record_result.assert_called_once_with(
+        lti_grading_service.record_result.assert_called_once_with(
             self.GRADING_ID,
             pre_record_hook=Any.instance_of(CanvasPreRecordHook),
             # lti_launch_url=expected_launch_url,
@@ -117,15 +117,15 @@ class TestCanvasPreRecordHook:
 
 
 class TestReadResult:
-    def test_it_proxies_to_read_result(self, pyramid_request, lti_outcomes_client):
+    def test_it_proxies_to_read_result(self, pyramid_request, lti_grading_service):
         LTIOutcomesViews(pyramid_request).read_result()
 
-        lti_outcomes_client.read_result.assert_called_once_with(
+        lti_grading_service.read_result.assert_called_once_with(
             "modelstudent-assignment1"
         )
 
-    def test_it_returns_current_score(self, pyramid_request, lti_outcomes_client):
-        lti_outcomes_client.read_result.return_value = 0.5
+    def test_it_returns_current_score(self, pyramid_request, lti_grading_service):
+        lti_grading_service.read_result.return_value = 0.5
 
         current_score = LTIOutcomesViews(pyramid_request).read_result()
 
@@ -143,10 +143,10 @@ class TestReadResult:
 
 
 class TestRecordResult:
-    def test_it_records_result(self, pyramid_request, lti_outcomes_client):
+    def test_it_records_result(self, pyramid_request, lti_grading_service):
         LTIOutcomesViews(pyramid_request).record_result()
 
-        lti_outcomes_client.record_result.assert_called_once_with(
+        lti_grading_service.record_result.assert_called_once_with(
             "modelstudent-assignment1", score=pyramid_request.parsed_params["score"]
         )
 

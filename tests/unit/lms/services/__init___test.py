@@ -7,7 +7,6 @@ from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
-from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
 
 
@@ -19,7 +18,6 @@ class TestIncludeme:
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),
             ("grading_info", GradingInfoService),
-            ("lti_outcomes_client", LTIOutcomesClient),
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
             ("oauth1", OAuth1Service),
