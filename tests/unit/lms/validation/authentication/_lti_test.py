@@ -30,7 +30,7 @@ class TestLTI11AuthSchema:
                 "lis_person_name_given": "TEST_GIVEN_NAME",
                 "oauth_signature": "TEST_OAUTH_SIGNATURE",
                 "roles": "Instructor",
-                "tool_consumer_instance_guid": "TEST_GUID",
+                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
                 "user_id": "TEST_USER_ID",
                 "oauth_timestamp": "TEST_TIMESTAMP",
             },

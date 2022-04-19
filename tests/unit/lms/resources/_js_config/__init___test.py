@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance, GradingInfo, Grouping
+from lms.models import ApplicationInstance, GradingInfo, Grouping, LTIParams
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
@@ -313,9 +313,9 @@ class TestMaybeEnableGrading:
         assert not js_config.asdict().get("grading")
 
     def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
-        self, js_config, pyramid_request
+        self, js_config, context
     ):
-        del pyramid_request.params["lis_outcome_service_url"]
+        del context.lti_params["lis_outcome_service_url"]
 
         js_config.maybe_enable_grading()
 
@@ -737,7 +737,7 @@ def submission_params(config):
 
 
 @pytest.fixture
-def context():
+def context(pyramid_request):
     return mock.create_autospec(
         LTILaunchResource,
         spec_set=True,
@@ -748,6 +748,7 @@ def context():
         canvas_groups_enabled=False,
         canvas_is_group_launch=False,
         is_group_launch=False,
+        lti_params=LTIParams(pyramid_request.params),
     )
 
 

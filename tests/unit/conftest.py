@@ -28,7 +28,7 @@ def lti_v11_params():
         "oauth_version": "1p0p0",
         "user_id": "TEST_USER_ID",
         "roles": "Instructor",
-        "tool_consumer_instance_guid": "TEST_GUID",
+        "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
         "tool_consumer_info_product_family_code": "whiteboard",
         "content_item_return_url": "https://www.example.com",
         "lti_version": "LTI-1p0",

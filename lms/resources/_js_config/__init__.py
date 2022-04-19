@@ -228,7 +228,7 @@ class JSConfig:
             # Only instructors can grade assignments.
             return
 
-        if "lis_outcome_service_url" not in self._request.params:
+        if "lis_outcome_service_url" not in self._context.lti_params:
             # Only "gradeable" assignments can be graded.
             # Assignments that don't have the lis_outcome_service_url param
             # aren't set as gradeable in the LMS.
@@ -241,8 +241,8 @@ class JSConfig:
 
         self._config["grading"] = {
             "enabled": True,
-            "courseName": self._request.params.get("context_title"),
-            "assignmentName": self._request.params.get("resource_link_title"),
+            "courseName": self._context.lti_params.get("context_title"),
+            "assignmentName": self._context.lti_params.get("resource_link_title"),
             "students": list(self._get_students()),
         }
 
@@ -395,8 +395,8 @@ class JSConfig:
         """
         grading_infos = self._grading_info_service.get_by_assignment(
             application_instance=self._application_instance,
-            context_id=self._request.params.get("context_id"),
-            resource_link_id=self._request.params.get("resource_link_id"),
+            context_id=self._context.lti_params.get("context_id"),
+            resource_link_id=self._context.lti_params.get("resource_link_id"),
         )
 
         # Yield a "student" dict for each GradingInfo.

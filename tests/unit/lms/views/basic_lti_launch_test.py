@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 
+from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.basic_lti_launch import BasicLTILaunchViews
@@ -376,8 +377,8 @@ class TestFooCopiedBasicLTILaunch:
         # DB.
         assignment_service.upsert.assert_called_once_with(
             assignment_service.get.return_value.document_url,
-            pyramid_request.params["tool_consumer_instance_guid"],
-            pyramid_request.params["resource_link_id"],
+            context.lti_params["tool_consumer_instance_guid"],
+            context.lti_params["resource_link_id"],
         )
 
         # It adds the document URL to the JavaScript config.
@@ -508,8 +509,8 @@ def context(pyramid_request):
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
     context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
     context.is_canvas = False
-
     context.resource_link_id = pyramid_request.params["resource_link_id"]
+    context.lti_params = LTIParams(pyramid_request.params)
     return context
 
 
