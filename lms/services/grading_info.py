@@ -1,7 +1,7 @@
 from marshmallow import fields
 
 from lms.models import GradingInfo
-from lms.validation import PyramidRequestSchema, ValidationError
+from lms.validation import BasicLTILaunchSchema, ValidationError
 
 __all__ = ["GradingInfoService"]
 
@@ -9,15 +9,12 @@ __all__ = ["GradingInfoService"]
 class GradingInfoService:
     """Methods for interacting with GradingInfo records."""
 
-    class _ParamsSchema(PyramidRequestSchema):
+    class _ParamsSchema(BasicLTILaunchSchema):
         """Schema for the relevant parameters from the request."""
 
         location = "form"
         lis_result_sourcedid = fields.Str(required=True)
         lis_outcome_service_url = fields.Str(required=True)
-        context_id = fields.Str(required=True)
-        resource_link_id = fields.Str(required=True)
-        tool_consumer_info_product_family_code = fields.Str(load_default="")
 
     def __init__(self, _context, request):
         self._db = request.db
