@@ -3,36 +3,25 @@ from xml.parsers.expat import ExpatError
 import xmltodict
 
 from lms.services.exceptions import ExternalRequestError
+from lms.services.http import HTTPService
+from lms.services.lti_grading.interface import LTIGradingService
+from lms.services.oauth1 import OAuth1Service
 
-__all__ = ["LTIOutcomesClient"]
 
+class LTI11GradingService(LTIGradingService):
+    #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
+    def __init__(
+        self, grading_url, http_service: HTTPService, oauth1_service: OAuth1Service
+    ):
+        super().__init__(grading_url)
+        self.http_service = http_service
+        self.oauth1_service = oauth1_service
 
-class LTIOutcomesClient:
-    """
-    Service for making requests to an LMS's Outcomes Management endpoint.
-
-    See https://www.imsglobal.org/specs/ltiomv1p0/specification.
-    """
-
-    def __init__(self, _context, request):
-        self.oauth1_service = request.find_service(name="oauth1")
-        self.http_service = request.find_service(name="http")
-
-        self.service_url = request.parsed_params["lis_outcome_service_url"]
-
-    def read_result(self, lis_result_sourcedid):
-        """
-        Return the last-submitted score for a given submission.
-
-        :param lis_result_sourcedid: The submission id
-        :return: The last-submitted score or `None` if no score has been
-                 submitted.
-        """
-
+    def read_result(self, grading_id):
         result = self._send_request(
             {
                 "readResultRequest": {
-                    "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}
+                    "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
                 }
             }
         )
@@ -44,26 +33,8 @@ class LTIOutcomesClient:
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
-        """
-        Set the score or content URL for a student submission to an assignment.
-
-        This method also accepts an optional callable hook which will be passed
-        the `score` and the `request_body` which it can modify and must return.
-        This allows support for extensions (or custom replacements) to the
-        standard LTI outcomes body.
-
-        :param lis_result_sourcedid: The submission id
-        :param score:
-            Float value between 0 and 1.0.
-            Defined as required by the LTI spec but is optional in Canvas if
-            an `lti_launch_url` is set.
-        :param pre_record_hook: Hook to allow modification of the request
-
-        :raise TypeError: if the given pre_record_hook returns a non-dict
-        """
-
-        request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
+    def record_result(self, grading_id, score=None, pre_record_hook=None):
+        request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
 
         if score is not None:
             request["resultRecord"]["result"] = {
@@ -80,7 +51,7 @@ class LTIOutcomesClient:
 
         self._send_request({"replaceResultRequest": request})
 
-    def _send_request(self, request_body):
+    def _send_request(self, request_body) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -90,17 +61,12 @@ class LTIOutcomesClient:
         :raise ExternalRequestError: if the request fails for any reason
 
         :return: The returned POX body element
-        :rtype: dict
         """
-
         xml_body = xmltodict.unparse(self._pox_envelope(request_body))
-
-        # Bind the variable so we can refer to it in the catch
-        response = None
 
         try:
             response = self.http_service.post(
-                url=self.service_url,
+                url=self.grading_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
@@ -142,7 +108,7 @@ class LTIOutcomesClient:
         return body
 
     @staticmethod
-    def _pox_envelope(body):
+    def _pox_envelope(body) -> dict:
         """
         Return ``body`` wrapped in an imsx_POXEnvelopeRequest envelope.
 
@@ -152,8 +118,6 @@ class LTIOutcomesClient:
 
         The returned dict renders to an ``<imsx_POXEnvelopeRequest>`` document
         with the given ``body`` as the contents of the ``<imsx_POXBody>`` tag.
-
-        :rtype: dict
         """
         return {
             "imsx_POXEnvelopeRequest": {

@@ -4,6 +4,7 @@ from datetime import timezone
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import LTIGradingService
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -18,13 +19,15 @@ class LTIOutcomesViews:
     def __init__(self, request):
         self.request = request
         self.parsed_params = self.request.parsed_params
-        self.lti_outcomes_client = self.request.find_service(name="lti_outcomes_client")
+        self.lti_grading_service: LTIGradingService = self.request.find_service(
+            LTIGradingService
+        )
 
     @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
     def record_result(self):
         """Proxy result (grade/score) to LTI Outcomes Result API."""
 
-        self.lti_outcomes_client.record_result(
+        self.lti_grading_service.record_result(
             self.parsed_params["lis_result_sourcedid"],
             score=self.parsed_params["score"],
         )
@@ -39,7 +42,7 @@ class LTIOutcomesViews:
     def read_result(self):
         """Proxy request for current result (grade/score) to LTI Outcomes Result API."""
 
-        current_score = self.lti_outcomes_client.read_result(
+        current_score = self.lti_grading_service.read_result(
             self.parsed_params["lis_result_sourcedid"]
         )
 
@@ -76,10 +79,10 @@ class LTIOutcomesViews:
         lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
 
         # If we already have a score, then we've already recorded this info
-        if self.lti_outcomes_client.read_result(lis_result_sourcedid):
+        if self.lti_grading_service.read_result(lis_result_sourcedid):
             return None
 
-        self.lti_outcomes_client.record_result(
+        self.lti_grading_service.record_result(
             lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
         )
 
