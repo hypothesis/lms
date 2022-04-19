@@ -18,6 +18,7 @@ from pyramid.paster import bootstrap
 
 import lms
 from lms import models
+from lms.services.upsert import bulk_upsert
 
 __all__ = ["devdata"]
 
@@ -45,14 +46,19 @@ class DevDataFactory:
         for data_dict in self.devdata:
             data_dict.pop("__doc__", None)
 
-            type_ = data_dict.pop("type")
-
-            if type_ == "application_instance":
-                self.upsert_application_instance(data_dict)
-            elif type_ == "assignment":
-                self.upsert_assignment(data_dict)
-            else:
-                raise RuntimeError(f"Unrecognized type: {type_}")
+            if type_ := data_dict.pop("type", None):
+                if type_ == "application_instance":
+                    self.upsert_application_instance(data_dict)
+                elif type_ == "assignment":
+                    self.upsert_assignment(data_dict)
+                else:
+                    raise RuntimeError(f"Unrecognized type: {type_}")
+            elif model_name := data_dict.pop("model", None):
+                model = getattr(models, model_name)
+                assert "id" in data_dict, "id key needed when using 'model'"
+                index_elements = {"id"}
+                update_columns = set(data_dict.keys()) - index_elements
+                bulk_upsert(self.db, model, [data_dict], index_elements, update_columns)
 
         self.tm.commit()
 
