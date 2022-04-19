@@ -5,7 +5,6 @@ import pytest
 from lms.resources._js_config import JSConfig
 
 
-@pytest.mark.xfail(cause="Work in progress", strict=True)
 class TestValidStudentLaunches:
     """
     Following the various valid instructor payload launches are valid Student/Learner payloads

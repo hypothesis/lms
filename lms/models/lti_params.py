@@ -24,30 +24,38 @@ class LTIParams(dict):
         return LTIParams(_to_lti_v11(v13_params), v13_params)
 
 
-_V11_TO_V13 = {
-    # LTI 1.1 key -> [LTI 1.3 path in object]
-    "user_id": ["sub"],
-    "lis_person_name_given": ["given_name"],
-    "lis_person_name_family": ["family_name"],
-    "lis_person_name_full": ["name"],
-    "roles": [f"{CLAIM_PREFIX}/roles"],
-    "context_id": [f"{CLAIM_PREFIX}/context", "id"],
-    "context_title": [f"{CLAIM_PREFIX}/context", "title"],
-    "lti_version": [f"{CLAIM_PREFIX}/version"],
-    "lti_message_type": [f"{CLAIM_PREFIX}/message_type"],
-    "resource_link_id": [f"{CLAIM_PREFIX}/resource_link", "id"],
-    "tool_consumer_instance_guid": [f"{CLAIM_PREFIX}/tool_platform", "guid"],
-    "tool_consumer_info_product_family_code": [
-        f"{CLAIM_PREFIX}/tool_platform",
-        "product_family_code",
-    ],
-}
+_V11_TO_V13 = (
+    # LTI 1.1 key , [LTI 1.3 path in object]
+    # We use tuples instead of a dictionary to allow duplicate keys for multiple locations.
+    ("user_id", ["sub"]),
+    ("lis_person_name_given", ["given_name"]),
+    ("lis_person_name_family", ["family_name"]),
+    ("lis_person_name_full", ["name"]),
+    ("roles", [f"{CLAIM_PREFIX}/roles"]),
+    ("context_id", [f"{CLAIM_PREFIX}/context", "id"]),
+    ("context_title", [f"{CLAIM_PREFIX}/context", "title"]),
+    ("lti_version", [f"{CLAIM_PREFIX}/version"]),
+    ("lti_message_type", [f"{CLAIM_PREFIX}/message_type"]),
+    ("resource_link_id", [f"{CLAIM_PREFIX}/resource_link", "id"]),
+    # tool_consumer_instance_guid is not sent by the LTI1.3 certification tool but we include
+    # it as a custom parameter in the tool configuration
+    ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/custom", "certification_guid"]),
+    # Usual LTI1.3 location for tool_consumer_instance_guid
+    ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/tool_platform", "guid"]),
+    (
+        "tool_consumer_info_product_family_code",
+        [
+            f"{CLAIM_PREFIX}/tool_platform",
+            "product_family_code",
+        ],
+    ),
+)
 
 
 def _to_lti_v11(v13_params):
     v11_params = {}
 
-    for v11_key, v13_path in _V11_TO_V13.items():
+    for v11_key, v13_path in _V11_TO_V13:
         # Descend into the object for each item in the path
         found = False
         value = v13_params
