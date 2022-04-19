@@ -33,7 +33,6 @@ class TestBadPayloads:
             in caplog.messages
         )
 
-    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_wrong_lti_version(self, make_jwt, test_payload, do_lti_launch):
         """The LTI version claim contains the wrong version"""
         test_payload["https://purl.imsglobal.org/spec/lti/claim/version"] = "11.3"
@@ -43,7 +42,6 @@ class TestBadPayloads:
         assert "There were problems with these request parameters" in response.text
         assert "lti_version" in response.text
 
-    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_no_lti_version(self, make_jwt, test_payload, do_lti_launch):
         """The LTI version claim is missing"""
         del test_payload["https://purl.imsglobal.org/spec/lti/claim/version"]
@@ -86,7 +84,6 @@ class TestBadPayloads:
         response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
         assert response.html
 
-    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_message_type_claim_missing(self, test_payload, assert_missing_claim):
         """The Required message_type Claim Not Present"""
         response = assert_missing_claim(
@@ -112,7 +109,6 @@ class TestBadPayloads:
             status=403,
         )
 
-    @pytest.mark.xfail(reason="Missing tool_guid", strict=True)
     def test_resource_link_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required resource_link_id Claim Not Present"""
         assert_missing_claim(

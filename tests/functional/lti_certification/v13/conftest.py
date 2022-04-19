@@ -145,4 +145,7 @@ def common_payload():
             ],
             "lineitems": "https://ltiadvantagevalidator.imsglobal.org/ltitool/rest/assignmentsgrades/10843/lineitems",
         },
+        "https://purl.imsglobal.org/spec/lti/claim/custom": {
+            "certification_guid": "GUID"
+        },
     }
