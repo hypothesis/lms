@@ -62,7 +62,6 @@ class TestLTI13GradingService:
 
     @freeze_time("2022-04-04")
     def test_record_result(self, svc, ltia_http_service):
-
         response = svc.record_result(self.GRADING_ID, sentinel.score)
 
         ltia_http_service.request.assert_called_once_with(
