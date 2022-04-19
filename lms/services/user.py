@@ -17,8 +17,7 @@ class UserService:
     At the moment this is purely used for recording/reporting purposes.
     """
 
-    def __init__(self, application_instance_service, db, h_authority: str):
-        self._application_instance_service = application_instance_service
+    def __init__(self, db, h_authority: str):
         self._db = db
         self._h_authority = h_authority
 
@@ -83,8 +82,4 @@ class UserService:
 def factory(_context, request):
     """Service factory for the UserService."""
 
-    return UserService(
-        request.find_service(name="application_instance"),
-        request.db,
-        request.registry.settings["h_authority"],
-    )
+    return UserService(request.db, request.registry.settings["h_authority"])
