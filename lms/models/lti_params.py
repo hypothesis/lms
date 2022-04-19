@@ -44,11 +44,13 @@ _V11_TO_V13 = (
     ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/tool_platform", "guid"]),
     (
         "tool_consumer_info_product_family_code",
-        [
-            f"{CLAIM_PREFIX}/tool_platform",
-            "product_family_code",
-        ],
+        [f"{CLAIM_PREFIX}/tool_platform", "product_family_code"],
     ),
+    (
+        "lis_outcome_service_url",
+        ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
+    ),
+    ("lis_result_sourcedid", ["sub"]),
 )
 
 
