@@ -9,18 +9,17 @@ from lms.services.lti_grading._v13 import LTI13GradingService
 
 class TestLTI13GradingService:
     SERVICE_URL = "http://example.com/service_url"
-    GRADING_ID = "lis_result_sourcedid"
 
     def test_read_lti_result(self, svc, response, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = response
 
-        score = svc.read_result(self.GRADING_ID)
+        score = svc.read_result(sentinel.user_id)
 
         ltia_http_service.request.assert_called_once_with(
             "GET",
             self.SERVICE_URL + "/results",
             scopes=svc.LTIA_SCOPES,
-            params={"user_id": self.GRADING_ID},
+            params={"user_id": sentinel.user_id},
             headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
         )
         assert score == response[-1]["resultScore"] / response[-1]["resultMaximum"]
@@ -30,7 +29,7 @@ class TestLTI13GradingService:
             response=Mock(status_code=404)
         )
 
-        score = svc.read_result(self.GRADING_ID)
+        score = svc.read_result(sentinel.user_id)
 
         assert not score
 
@@ -40,14 +39,14 @@ class TestLTI13GradingService:
         )
 
         with pytest.raises(ExternalRequestError):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.user_id)
 
     def test_read_empty_lti_result(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = []
 
-        assert not svc.read_result(self.GRADING_ID)
+        assert not svc.read_result(sentinel.user_id)
 
-    @pytest.mark.parameterize(
+    @pytest.mark.parametrize(
         "bad_response",
         (
             [{"resultScore": 1, "resultMaximum": 0}],
@@ -58,11 +57,11 @@ class TestLTI13GradingService:
     def test_read_bad_response_lti_result(self, svc, ltia_http_service, bad_response):
         ltia_http_service.request.return_value.json.return_value = bad_response
 
-        assert not svc.read_result(self.GRADING_ID)
+        assert not svc.read_result(sentinel.user_id)
 
     @freeze_time("2022-04-04")
     def test_record_result(self, svc, ltia_http_service):
-        response = svc.record_result(self.GRADING_ID, sentinel.score)
+        response = svc.record_result(sentinel.user_id, sentinel.score)
 
         ltia_http_service.request.assert_called_once_with(
             "POST",
@@ -71,7 +70,7 @@ class TestLTI13GradingService:
             json={
                 "scoreMaximum": 1,
                 "scoreGiven": sentinel.score,
-                "userId": self.GRADING_ID,
+                "userId": sentinel.user_id,
                 "timestamp": "2022-04-04T00:00:00+00:00",
                 "activityProgress": "Completed",
                 "gradingProgress": "FullyGraded",
