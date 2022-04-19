@@ -51,7 +51,7 @@ def includeme(config):
         "lms.services.grading_info.GradingInfoService", name="grading_info"
     )
     config.register_service_factory(
-        "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
+        "lms.services.lti_outcomes.factory", name="lti_outcomes_client"
     )
     config.register_service_factory(
         "lms.services.group_info.GroupInfoService", name="group_info"

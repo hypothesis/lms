@@ -1,12 +1,13 @@
 from collections import OrderedDict
-from unittest.mock import Mock
+from unittest.mock import Mock, sentinel
 
 import pytest
 import xmltodict
+from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.services.exceptions import ExternalRequestError
-from lms.services.lti_outcomes import LTIOutcomesClient
+from lms.services.lti_outcomes import LTIOutcomesClient, factory
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("oauth1_service", "http_service")
@@ -52,6 +53,44 @@ class TestLTIOutcomesClient:
         score = svc.read_result(self.GRADING_ID)
 
         assert score is None
+
+    def test_read_lti_v13_result(self, svc_v13, response_v13, ltia_http_service):
+        ltia_http_service.request.return_value.json.return_value = response_v13
+
+        score = svc_v13.read_result(self.GRADING_ID)
+
+        ltia_http_service.request.assert_called_once_with(
+            svc_v13.LTIA_SCOPES,
+            "GET",
+            self.SERVICE_URL + "/results",
+            params={"user_id": self.GRADING_ID},
+            headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
+        )
+        assert (
+            score == response_v13[-1]["resultScore"] / response_v13[-1]["resultMaximum"]
+        )
+
+    def test_read_lti_v13_result_empty(self, svc_v13, ltia_http_service):
+        ltia_http_service.request.side_effect = ExternalRequestError(
+            response=Mock(status_code=404)
+        )
+
+        score = svc_v13.read_result(self.GRADING_ID)
+
+        assert not score
+
+    def test_read_lti_v13_result_raises(self, svc_v13, ltia_http_service):
+        ltia_http_service.request.side_effect = ExternalRequestError(
+            response=Mock(status_code=500)
+        )
+
+        with pytest.raises(ExternalRequestError):
+            svc_v13.read_result(self.GRADING_ID)
+
+    def test_read_empty_lti_v13_result(self, svc_v13, ltia_http_service):
+        ltia_http_service.request.return_value.json.return_value = []
+
+        assert not svc_v13.read_result(self.GRADING_ID)
 
     @pytest.mark.usefixtures("response")
     def test_record_result_sends_sourcedid(self, svc, http_service):
@@ -169,6 +208,27 @@ class TestLTIOutcomesClient:
         with pytest.raises(ExternalRequestError, match="LTI outcome request failed"):
             svc.read_result(self.GRADING_ID)
 
+    @freeze_time("2022-04-04")
+    def test_record_lti_v13_result(self, svc_v13, ltia_http_service):
+
+        response = svc_v13.record_result(self.GRADING_ID, sentinel.score)
+
+        ltia_http_service.request.assert_called_once_with(
+            svc_v13.LTIA_SCOPES,
+            "POST",
+            self.SERVICE_URL + "/scores",
+            json={
+                "scoreMaximum": 1,
+                "scoreGiven": sentinel.score,
+                "userId": self.GRADING_ID,
+                "timestamp": "2022-04-04T00:00:00+00:00",
+                "activityProgress": "Completed",
+                "gradingProgress": "FullyGraded",
+            },
+            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+        )
+        assert response == ltia_http_service.request.return_value
+
     @classmethod
     def sent_body(cls, http_service):
         return xmltodict.parse(http_service.post.call_args[1]["data"])
@@ -188,8 +248,21 @@ class TestLTIOutcomesClient:
 
         assert message_id == "999999123"
 
+    @pytest.fixture
+    def response_v13(self):
+        return [
+            {
+                "id": "https://lms.example.com/context/2923/lineitems/1/results/5323497",
+                "scoreOf": "https://lms.example.com/context/2923/lineitems/1",
+                "userId": "5323497",
+                "resultScore": 0.83,
+                "resultMaximum": 1,
+                "comment": "This is exceptional work.",
+            }
+        ]
+
     @classmethod
-    def make_response(
+    def make_response_v11(
         cls, score, include_score, include_status, status_code, include_description
     ):
         header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
@@ -256,7 +329,7 @@ class TestLTIOutcomesClient:
             if malformed:
                 response_body = self.make_malformed_response()
             else:
-                response_body = self.make_response(
+                response_body = self.make_response_v11(
                     score,
                     include_score,
                     include_status,
@@ -272,12 +345,43 @@ class TestLTIOutcomesClient:
 
         return configure
 
-    @pytest.fixture(autouse=True)
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {"lis_outcome_service_url": self.SERVICE_URL}
-
-        return pyramid_request
+    @pytest.fixture
+    def svc(self, oauth1_service, http_service, ltia_http_service):
+        return LTIOutcomesClient(
+            oauth1_service, http_service, ltia_http_service, self.SERVICE_URL, "1.1"
+        )
 
     @pytest.fixture
-    def svc(self, pyramid_request):
-        return LTIOutcomesClient({}, pyramid_request)
+    def svc_v13(self, svc):
+        svc.lti_version = "1.3.0"
+        return svc
+
+
+class TestFactory:
+    @pytest.mark.usefixtures("application_instance_service")
+    def test_it(
+        self,
+        pyramid_request,
+        LTIOutcomesClient,
+        oauth1_service,
+        http_service,
+        ltia_http_service,
+    ):
+        pyramid_request.parsed_params = {
+            "lis_outcome_service_url": sentinel.service_url,
+        }
+
+        svc = factory(sentinel.context, pyramid_request)
+
+        LTIOutcomesClient.assert_called_once_with(
+            oauth1_service,
+            http_service,
+            ltia_http_service,
+            sentinel.service_url,
+            "LTI-1p0",
+        )
+        assert svc == LTIOutcomesClient.return_value
+
+    @pytest.fixture
+    def LTIOutcomesClient(self, patch):
+        return patch("lms.services.lti_outcomes.LTIOutcomesClient")

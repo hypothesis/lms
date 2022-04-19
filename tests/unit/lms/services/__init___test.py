@@ -1,13 +1,12 @@
 import pytest
 
-from lms.services import includeme, vitalsource
+from lms.services import includeme, lti_outcomes, vitalsource
 from lms.services.canvas_api import canvas_api_client_factory
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
 from lms.services.h_api import HAPI
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_h import LTIHService
-from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.oauth1 import OAuth1Service
 
 
@@ -19,7 +18,7 @@ class TestIncludeme:
             ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),
             ("grading_info", GradingInfoService),
-            ("lti_outcomes_client", LTIOutcomesClient),
+            ("lti_outcomes_client", lti_outcomes.factory),
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
             ("oauth1", OAuth1Service),

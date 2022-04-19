@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 from xml.parsers.expat import ExpatError
 
 import xmltodict
 
+from lms.services import LTIAHTTPService
 from lms.services.exceptions import ExternalRequestError
 
 __all__ = ["LTIOutcomesClient"]
@@ -9,18 +11,64 @@ __all__ = ["LTIOutcomesClient"]
 
 class LTIOutcomesClient:
     """
-    Service for making requests to an LMS's Outcomes Management endpoint.
+    Service for sending grades back to the LMS.
 
-    See https://www.imsglobal.org/specs/ltiomv1p0/specification.
+    See:
+         LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification.
+         LTI1.3 Assignment and Grade Services https://www.imsglobal.org/spec/lti-ags/v2p0
     """
 
-    def __init__(self, _context, request):
-        self.oauth1_service = request.find_service(name="oauth1")
-        self.http_service = request.find_service(name="http")
+    LTIA_SCOPES = [
+        "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+        "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
+        "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+    ]
 
-        self.service_url = request.parsed_params["lis_outcome_service_url"]
+    def __init__(  # pylint:disable=too-many-arguments
+        self, oauth1_service, http_service, ltia_service, grading_url, lti_version
+    ):
+        self.oauth1_service = oauth1_service
+        self.http_service = http_service
+        self.ltia_service = ltia_service
 
-    def read_result(self, lis_result_sourcedid):
+        self.service_url = grading_url
+        self.lti_version = lti_version
+
+    def read_result(self, lis_result_sourcedid=None):
+        if self.lti_version == "1.3.0":
+            return self._read_result_lti_v13(lis_result_sourcedid)
+
+        return self._read_result_lti_v11(lis_result_sourcedid)
+
+    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
+        if self.lti_version == "1.3.0":
+            return self._record_result_lti_v13(lis_result_sourcedid, score=score)
+
+        return self._record_result_lti_v11(
+            lis_result_sourcedid, score=score, pre_record_hook=pre_record_hook
+        )
+
+    def _read_result_lti_v13(self, lis_result_sourcedid):
+        try:
+            response = self.ltia_service.request(
+                self.LTIA_SCOPES,
+                "GET",
+                self.service_url + "/results",
+                params={"user_id": lis_result_sourcedid},
+                headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
+            )
+        except ExternalRequestError as err:
+            if err.status_code == 404:
+                return None
+            raise
+
+        results = response.json()
+        if not results:
+            return None
+
+        return results[-1]["resultScore"] / results[-1]["resultMaximum"]
+
+    def _read_result_lti_v11(self, lis_result_sourcedid):
         """
         Return the last-submitted score for a given submission.
 
@@ -29,7 +77,7 @@ class LTIOutcomesClient:
                  submitted.
         """
 
-        result = self._send_request(
+        result = self._send_request_lti_v11(
             {
                 "readResultRequest": {
                     "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}
@@ -44,7 +92,9 @@ class LTIOutcomesClient:
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
+    def _record_result_lti_v11(
+        self, lis_result_sourcedid, score=None, pre_record_hook=None
+    ):
         """
         Set the score or content URL for a student submission to an assignment.
 
@@ -78,9 +128,26 @@ class LTIOutcomesClient:
                     "The pre-record hook must return the request body as a dict"
                 )
 
-        self._send_request({"replaceResultRequest": request})
+        self._send_request_lti_v11({"replaceResultRequest": request})
 
-    def _send_request(self, request_body):
+    def _record_result_lti_v13(self, lis_result_sourcedid, score=None):
+
+        return self.ltia_service.request(
+            self.LTIA_SCOPES,
+            "POST",
+            self.service_url + "/scores",
+            json={
+                "scoreMaximum": 1,
+                "scoreGiven": score,
+                "userId": lis_result_sourcedid,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "activityProgress": "Completed",
+                "gradingProgress": "FullyGraded",
+            },
+            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+        )
+
+    def _send_request_lti_v11(self, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -167,3 +234,13 @@ class LTIOutcomesClient:
                 "imsx_POXBody": body,
             }
         }
+
+
+def factory(_context, request):
+    return LTIOutcomesClient(
+        request.find_service(name="oauth1"),
+        request.find_service(name="http"),
+        request.find_service(LTIAHTTPService),
+        request.parsed_params["lis_outcome_service_url"],
+        request.find_service(name="application_instance").get_current().lti_version,
+    )
