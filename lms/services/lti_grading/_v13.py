@@ -56,10 +56,3 @@ class LTI13GradingService(LTIGradingService):
             },
             headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
         )
-
-
-def factory(_context, request):
-    return LTI13GradingService(
-        grading_url=request.parsed_params["lis_outcome_service_url"],
-        ltia_service=request.find_service(LTIAHTTPService),
-    )
