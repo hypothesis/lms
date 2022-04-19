@@ -56,22 +56,16 @@ class TestUserService:
         )
 
     @pytest.fixture
-    def service(self, db_session, application_instance_service):
-        return UserService(
-            application_instance_service,
-            db_session,
-            h_authority="authority.example.com",
-        )
+    def service(self, db_session):
+        return UserService(db_session, h_authority="authority.example.com")
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, application_instance_service, UserService):
+    def test_it(self, pyramid_request, UserService):
         user_service = factory(sentinel.context, pyramid_request)
 
         UserService.assert_called_once_with(
-            application_instance_service,
-            pyramid_request.db,
-            pyramid_request.registry.settings["h_authority"],
+            pyramid_request.db, pyramid_request.registry.settings["h_authority"]
         )
         assert user_service == UserService.return_value
 
