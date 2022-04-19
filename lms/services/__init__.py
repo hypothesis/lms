@@ -19,6 +19,7 @@ from lms.services.launch_verifier import (
     LTILaunchVerificationError,
     LTIOAuthError,
 )
+from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
@@ -50,7 +51,7 @@ def includeme(config):
         "lms.services.grading_info.GradingInfoService", name="grading_info"
     )
     config.register_service_factory(
-        "lms.services.lti_outcomes.LTIOutcomesClient", name="lti_outcomes_client"
+        "lms.services.lti_grading.factory", iface=LTIGradingService
     )
     config.register_service_factory(
         "lms.services.group_info.GroupInfoService", name="group_info"

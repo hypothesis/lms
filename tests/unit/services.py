@@ -20,8 +20,8 @@ from lms.services.http import HTTPService
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
 from lms.services.launch_verifier import LaunchVerifier
+from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
-from lms.services.lti_outcomes import LTIOutcomesClient
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
@@ -51,7 +51,7 @@ __all__ = (
     "http_service",
     "launch_verifier",
     "lti_h_service",
-    "lti_outcomes_client",
+    "lti_grading_service",
     "lti_registration_service",
     "oauth1_service",
     "oauth2_token_service",
@@ -186,8 +186,8 @@ def launch_verifier(mock_service):
 
 
 @pytest.fixture
-def lti_outcomes_client(mock_service):
-    return mock_service(LTIOutcomesClient, service_name="lti_outcomes_client")
+def lti_grading_service(mock_service):
+    return mock_service(LTIGradingService)
 
 
 @pytest.fixture

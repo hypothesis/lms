@@ -6,13 +6,13 @@ import xmltodict
 from h_matchers import Any
 
 from lms.services.exceptions import ExternalRequestError
-from lms.services.lti_outcomes import LTIOutcomesClient
+from lms.services.lti_grading._v11 import LTI11GradingService
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures("oauth1_service", "http_service")
 
 
-class TestLTIOutcomesClient:
+class TestLTI11GradingService:
     SERVICE_URL = "http://example.com/service_url"
     GRADING_ID = "lis_result_sourcedid"
 
@@ -189,7 +189,7 @@ class TestLTIOutcomesClient:
         assert message_id == "999999123"
 
     @classmethod
-    def make_response(
+    def make_response_v11(
         cls, score, include_score, include_status, status_code, include_description
     ):
         header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
@@ -256,7 +256,7 @@ class TestLTIOutcomesClient:
             if malformed:
                 response_body = self.make_malformed_response()
             else:
-                response_body = self.make_response(
+                response_body = self.make_response_v11(
                     score,
                     include_score,
                     include_status,
@@ -272,12 +272,6 @@ class TestLTIOutcomesClient:
 
         return configure
 
-    @pytest.fixture(autouse=True)
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {"lis_outcome_service_url": self.SERVICE_URL}
-
-        return pyramid_request
-
     @pytest.fixture
-    def svc(self, pyramid_request):
-        return LTIOutcomesClient({}, pyramid_request)
+    def svc(self, oauth1_service, http_service):
+        return LTI11GradingService(self.SERVICE_URL, http_service, oauth1_service)
