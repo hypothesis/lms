@@ -168,6 +168,22 @@ describe('ClientRPC', () => {
     });
   });
 
+  describe('reportActivity', () => {
+    it('calls registered callback with annotation activity parameters', () => {
+      const clientRPC = createClientRPC();
+      const callback = sinon.stub();
+      const [, serverMethod] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'reportActivity'
+      );
+      clientRPC.on('annotationActivity', callback);
+
+      const result = serverMethod('create', 'foo');
+
+      assert.isTrue(result);
+      assert.calledWith(callback, 'create', 'foo');
+    });
+  });
+
   it('registers "requestGroups" RPC handler', () => {
     createClientRPC();
     assert.calledWith(fakeServerInstance.register, 'requestGroups');
