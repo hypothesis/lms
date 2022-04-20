@@ -69,6 +69,22 @@ describe('Server', () => {
       ]);
     });
 
+    it('calls the registered method with the provided params', () => {
+      const request = validRequest();
+      request.params = ['foo', 5];
+      window.postMessage(request, serversOrigin);
+
+      return Promise.race([
+        new Promise(resolve => {
+          receiveMessage.callsFake(() => {
+            assert.calledWith(registeredMethod, 'foo', 5);
+            resolve();
+          });
+        }),
+        rejectAfterDelay("Server's response wasn't received"),
+      ]);
+    });
+
     it('calls the registered method that throws an error', () => {
       window.postMessage(
         validRequest('registeredMethodErrorName'),
