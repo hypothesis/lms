@@ -377,6 +377,10 @@ class JSConfig:
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
             "mode": None,
+            "reportActivity": {
+                "method": "reportActivity",
+                "events": ["create", "update"],
+            },
         }
 
         if self._lti_user:
