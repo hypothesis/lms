@@ -23,7 +23,7 @@ alembic==1.7.7
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-astroid==2.11.2
+astroid==2.11.3
     # via pylint
 async-timeout==4.0.1
     # via
@@ -333,7 +333,7 @@ pyjwt[crypto]==2.3.0
     #   -r requirements/tests.txt
     #   h-vialib
     #   pyramid-googleauth
-pylint==2.13.5
+pylint==2.13.6
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
