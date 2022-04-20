@@ -231,11 +231,16 @@ export default function BasicLTILaunchApp() {
       return;
     }
 
+    let submissionParams = {
+      ...canvas.speedGrader.submissionParams,
+      submitted_at: new Date().toISOString(),
+    };
+
     try {
       await apiCall({
         authToken,
         path: '/api/lti/submissions',
-        data: canvas.speedGrader.submissionParams,
+        data: submissionParams,
       });
     } catch (e) {
       // If reporting the submission failed, replace the content with an error.
