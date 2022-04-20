@@ -76,10 +76,14 @@ class TestCanvasPreRecordHook:
             ],
         ],
     )
-    def test_it_sets_expected_fields(self, pyramid_request, parsed_params, url_params):
-        parsed_params["h_username"] = "h_username"
-        parsed_params["learner_canvas_user_id"] = "learner_canvas_user_id"
-        pyramid_request.parsed_params = parsed_params
+    @pytest.mark.parametrize(
+        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
+    )
+    def test_it_sets_expected_fields(
+        self, pyramid_request, parsed_params, url_params, submitted_at
+    ):
+        pyramid_request.parsed_params.update(parsed_params)
+        pyramid_request.parsed_params["submitted_at"] = submitted_at
 
         result = CanvasPreRecordHook(pyramid_request)(
             score=None, request_body={"resultRecord": {}}
@@ -88,7 +92,8 @@ class TestCanvasPreRecordHook:
         assert result == {
             "resultRecord": {"result": {"resultData": {"ltiLaunchUrl": Any.string()}}},
             "submissionDetails": {
-                "submittedAt": datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+                "submittedAt": submitted_at
+                or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
             },
         }
 
@@ -101,6 +106,14 @@ class TestCanvasPreRecordHook:
             focused_user=["h_username"],
             learner_canvas_user_id=["learner_canvas_user_id"],
         )
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            "h_username": "h_username",
+            "learner_canvas_user_id": "learner_canvas_user_id",
+        }
+        return pyramid_request
 
 
 class TestReadResult:

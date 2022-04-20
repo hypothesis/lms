@@ -104,7 +104,8 @@ class CanvasPreRecordHook:
         # an existing submission then the existing submission is updated
         # rather than creating a new submission.
         request_body["submissionDetails"] = {
-            "submittedAt": datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+            "submittedAt": self.request.parsed_params.get("submitted_at")
+            or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
         }
 
         return request_body
