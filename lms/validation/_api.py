@@ -47,6 +47,9 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     ext_lti_assignment_id = fields.Str(required=False, allow_none=True)
     """Canvas doesn't send this value on speed grader launches"""
 
+    submitted_at = fields.DateTime(required=False, allow_none=True)
+    """Date we'll send to canvas linked to this submission"""
+
 
 class APIReadResultSchema(PyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for reading grades."""
