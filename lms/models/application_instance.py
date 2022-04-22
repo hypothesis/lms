@@ -198,3 +198,16 @@ class ApplicationInstance(BASE):
             product = self.Product.UNKNOWN
 
         return product
+
+    @property
+    def lti_version(self) -> str:
+        """
+        LTI version of this installation based on the presence of a registration.
+
+        The return values (LTI-1p0, "1.3.0) are the same the spec defines
+        and will match the version parameter on lti launches.
+        """
+        if self.lti_registration_id:
+            return "1.3.0"
+
+        return "LTI-1p0"
