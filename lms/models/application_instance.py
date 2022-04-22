@@ -198,3 +198,10 @@ class ApplicationInstance(BASE):
             product = self.Product.UNKNOWN
 
         return product
+
+    @property
+    def lti_version(self):
+        if self.lti_registration_id:
+            return "1.3.0"
+
+        return "1.1"
