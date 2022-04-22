@@ -204,4 +204,4 @@ class ApplicationInstance(BASE):
         if self.lti_registration_id:
             return "1.3.0"
 
-        return "1.1"
+        return "LTI-1p0"

@@ -144,6 +144,14 @@ class TestApplicationInstance:
 
         assert application_instance.product == expected
 
+    def test_lti_version_v11(self, application_instance):
+        assert application_instance.lti_version == "LTI-1p0"
+
+    def test_lti_version_v13(self, application_instance):
+        application_instance.lti_registration_id = 100
+
+        assert application_instance.lti_version == "1.3.0"
+
     @pytest.fixture
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""
