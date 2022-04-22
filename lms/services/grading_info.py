@@ -55,14 +55,10 @@ class GradingInfoService:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
             # LIS data is not present on the request.
-            return
-
-        application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
+            return None
 
         grading_info = self._find_or_create(
-            application_instance=application_instance,
+            application_instance_id=request.lti_user.application_instance_id,
             user_id=request.lti_user.user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],
@@ -71,6 +67,8 @@ class GradingInfoService:
         grading_info.h_display_name = request.lti_user.h_user.display_name
 
         grading_info.update_from_dict(parsed_params)
+
+        return grading_info
 
     def _find_or_create(self, **query):
         result = self._db.query(GradingInfo).filter_by(**query).one_or_none()

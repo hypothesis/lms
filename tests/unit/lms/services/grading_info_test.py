@@ -79,16 +79,10 @@ class TestGetByAssignment:
 
 class TestUpsertFromRequest:
     def test_it_creates_new_record_if_no_matching_exists(
-        self,
-        svc,
-        application_instance,
-        pyramid_request,
-        db_session,
-        lti_params,
+        self, svc, application_instance, pyramid_request, lti_params
     ):
-        svc.upsert_from_request(pyramid_request)
+        result = svc.upsert_from_request(pyramid_request)
 
-        result = db_session.get_last_inserted()
         assert result == Any.instance_of(GradingInfo)
 
         # Check the lti_params are there
@@ -129,33 +123,23 @@ class TestUpsertFromRequest:
         ),
     )
     def test_it_does_nothing_with_required_parameter_missing(
-        self, svc, pyramid_request, db_session, param
+        self, svc, pyramid_request, param
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request)
-
-        assert db_session.get_last_inserted() is None
+        assert not svc.upsert_from_request(pyramid_request)
 
     @pytest.mark.parametrize("param", ("tool_consumer_info_product_family_code",))
     def test_it_works_fine_with_optional_parameter_missing(
-        self, svc, pyramid_request, db_session, param
+        self, svc, pyramid_request, param
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request)
-        assert db_session.get_last_inserted() == Any.instance_of(GradingInfo)
+        assert svc.upsert_from_request(pyramid_request) == Any.instance_of(GradingInfo)
 
     @classmethod
     def model_as_dict(cls, model):
         return {col: getattr(model, col) for col in model.columns()}
-
-    @pytest.fixture
-    def db_session(self, db_session):
-        db_session.get_last_inserted = lambda: db_session.query(
-            GradingInfo
-        ).one_or_none()
-        return db_session
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, lti_params):
