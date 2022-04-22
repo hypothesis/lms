@@ -65,6 +65,11 @@ class TestAESService:
         ]
         assert keys == Any.list.containing(expected_keys).only()
 
+    def test_get_random_key(self, svc, valid_keys):
+        key = svc.get_random_key()
+
+        assert key in valid_keys
+
     @pytest.fixture
     def valid_keys(self):
         # Create some noise with some expired keys.
