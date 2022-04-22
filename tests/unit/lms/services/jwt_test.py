@@ -63,6 +63,20 @@ class TestJWTService:
         )
         assert encoded_jwt == jwt.encode.return_value
 
+    def test_encode_with_private_key(self, svc, jwt, rsa_key_service):
+        payload = {"key": "value"}
+
+        encoded_jwt = svc.encode_with_private_key(payload)
+
+        rsa_key_service.get_random_key.assert_called_once_with()
+        jwt.encode.assert_called_once_with(
+            payload,
+            rsa_key_service.private_key.return_value,
+            algorithm="RS256",
+            headers={"kid": rsa_key_service.get_random_key.return_value.kid},
+        )
+        assert encoded_jwt == jwt.encode.return_value
+
     def test_decode_lti_token(self, svc, jwt, lti_registration_service):
         registration = factories.LTIRegistration(key_set_url="http://jwk.com")
         lti_registration_service.get.return_value = registration
@@ -131,18 +145,20 @@ class TestJWTService:
         return patch("lms.services.jwt.jwt")
 
     @pytest.fixture
-    def svc(self, lti_registration_service):
-        svc = JWTService(lti_registration_service)
+    def svc(self, lti_registration_service, rsa_key_service):
+        svc = JWTService(lti_registration_service, rsa_key_service)
         # Clear the lru_cache to make tests independent
         svc._get_jwk_client.cache_clear()  # pylint: disable=protected-access
         return svc
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, JWTService, lti_registration_service):
+    def test_it(
+        self, pyramid_request, JWTService, lti_registration_service, rsa_key_service
+    ):
         jwt_service = factory(sentinel.context, pyramid_request)
 
-        JWTService.assert_called_once_with(lti_registration_service)
+        JWTService.assert_called_once_with(lti_registration_service, rsa_key_service)
         assert jwt_service == JWTService.return_value
 
     @pytest.fixture
