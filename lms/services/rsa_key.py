@@ -44,6 +44,15 @@ class RSAKeyService:
             for key in self._db.query(RSAKey).filter_by(expired=False).all()
         ]
 
+    def get_random_key(self) -> RSAKey:
+        """Get one random key from the valid ones to spread usage between them."""
+        return (
+            self._db.query(RSAKey)
+            .filter_by(expired=False)
+            .order_by(func.random())
+            .first()
+        )
+
     def _as_pem_private_key(self, rsa_key, aes_iv) -> bytes:
         """Encode a `jose.jwt.RSAKey` as an AES encrypted PEM private key."""
         pem_private_key = rsa_key.private_bytes(

@@ -8,13 +8,15 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.lti_registration import LTIRegistrationService
+from lms.services.rsa_key import RSAKeyService
 
 LOG = logging.getLogger(__name__)
 
 
 class JWTService:
-    def __init__(self, registration_service):
+    def __init__(self, registration_service, rsa_key_service):
         self._registration_service = registration_service
+        self._rsa_key_service = rsa_key_service
 
     @classmethod
     def decode_with_secret(cls, jwt_str, secret) -> dict:
@@ -95,11 +97,13 @@ class JWTService:
             LOG.debug("Invalid JWT. %s", str(err))
             return {}
 
-    @classmethod
-    def encode_with_private_key(cls, private_key, payload: dict, headers=None):
+    def encode_with_private_key(self, payload: dict):
+        key = self._rsa_key_service.get_random_key()
+        headers = {"kid": key.kid}
+
         return jwt.encode(
             payload,
-            private_key,
+            self._rsa_key_service.private_key(key),
             algorithm="RS256",
             headers=headers,
         )
@@ -117,7 +121,10 @@ class JWTService:
 
 
 def factory(_context, request):
-    return JWTService(registration_service=request.find_service(LTIRegistrationService))
+    return JWTService(
+        registration_service=request.find_service(LTIRegistrationService),
+        rsa_key_service=request.find_service(RSAKeyService),
+    )
 
 
 def _get_lti_jwt(request):
