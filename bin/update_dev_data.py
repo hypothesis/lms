@@ -29,7 +29,6 @@ class DevDataFactory:
     def __init__(self, request, devdata_):
         self.db = request.db
         self.tm = request.tm
-        request.tm.begin()
         self.devdata = devdata_
 
     def create_all(self):
@@ -43,26 +42,30 @@ class DevDataFactory:
         some fields, then overwrite those incorrect values with the standard
         values.
         """
-        for data_dict in self.devdata:
-            data_dict.pop("__doc__", None)
-
-            if type_ := data_dict.pop("type", None):
-                if type_ == "application_instance":
-                    self.upsert_application_instance(data_dict)
-                elif type_ == "assignment":
-                    self.upsert_assignment(data_dict)
-                else:
-                    raise RuntimeError(f"Unrecognized type: {type_}")
-            elif model_name := data_dict.pop("model", None):
-                model = getattr(models, model_name)
-                assert "id" in data_dict, "id key needed when using 'model'"
-                index_elements = {"id"}
-                update_columns = set(data_dict.keys()) - index_elements
-                bulk_upsert(self.db, model, [data_dict], index_elements, update_columns)
+        self.tm.begin()
+        for item in self.devdata:
+            getattr(self, f"upsert_{item['type']}", self.upsert_model)(**item)
 
         self.tm.commit()
 
-    def upsert_application_instance(self, data):
+    def upsert_model(self, **item):
+        data = item["data"]
+
+        for key, value in data.copy().items():
+            # Decode any base64 fields
+            if isinstance(value, dict) and "__base64__" in value:
+                del data[key]
+                data[key] = base64.b64decode(value["__base64__"])
+
+        model = getattr(models, item["type"])
+        assert "id" in data, "id key needed when using 'model'"
+        index_elements = {"id"}
+        update_columns = set(data.keys()) - index_elements
+        bulk_upsert(self.db, model, [data], index_elements, update_columns)
+
+    def upsert_application_instance(self, **item):
+        data = item["data"]
+
         application_instance = (
             self.db.query(models.ApplicationInstance)
             .filter_by(consumer_key=data["consumer_key"])
@@ -91,7 +94,9 @@ class DevDataFactory:
 
         self.setattrs(application_instance, data)
 
-    def upsert_assignment(self, data):
+    def upsert_assignment(self, **item):
+        data = item["data"]
+
         assignment = (
             self.db.query(models.Assignment)
             .filter_by(
