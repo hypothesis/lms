@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from lms.services import LTIAHTTPService
 from lms.services.exceptions import ExternalRequestError
-from lms.services.lti_grading._interface import LTIGradingClient
+from lms.services.lti_grading.interface import LTIGradingClient
 
 
 @dataclass

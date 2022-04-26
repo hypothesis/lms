@@ -4,7 +4,7 @@ import xmltodict
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
-from lms.services.lti_grading._interface import LTIGradingClient
+from lms.services.lti_grading.interface import LTIGradingClient
 from lms.services.oauth1 import OAuth1Service
 
 from dataclasses import dataclass
