@@ -6,55 +6,35 @@ import xmltodict
 from lms.services import LTIAHTTPService
 from lms.services.exceptions import ExternalRequestError
 
-__all__ = ["LTIOutcomesClient"]
+__all__ = ["LTIGradingClient"]
 
 
-class LTIOutcomesClient:
-    """
-    Service for sending grades back to the LMS.
+class LTIGradingClient:
+    def read_result(self, grading_id):
+        raise NotImplementedError()
 
-    See:
-         LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification.
-         LTI1.3 Assignment and Grade Services https://www.imsglobal.org/spec/lti-ags/v2p0
-    """
+    def record_result(self, grading_id, score=None, pre_record_hook=None):
+        raise NotImplementedError()
 
+
+class LTI13GradingClient(LTIGradingClient):
     LTIA_SCOPES = [
         "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
         "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(  # pylint:disable=too-many-arguments
-        self, oauth1_service, http_service, ltia_service, grading_url, lti_version
-    ):
-        self.oauth1_service = oauth1_service
-        self.http_service = http_service
+    def __init__(self, grading_url, ltia_service):
+        self.grading_url = grading_url
         self.ltia_service = ltia_service
 
-        self.service_url = grading_url
-        self.lti_version = lti_version
-
-    def read_result(self, lis_result_sourcedid=None):
-        if self.lti_version == "1.3.0":
-            return self._read_result_lti_v13(lis_result_sourcedid)
-
-        return self._read_result_lti_v11(lis_result_sourcedid)
-
-    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
-        if self.lti_version == "1.3.0":
-            return self._record_result_lti_v13(lis_result_sourcedid, score=score)
-
-        return self._record_result_lti_v11(
-            lis_result_sourcedid, score=score, pre_record_hook=pre_record_hook
-        )
-
-    def _read_result_lti_v13(self, lis_result_sourcedid):
+    def read_result(self, user_id):
         try:
             response = self.ltia_service.request(
                 self.LTIA_SCOPES,
                 "GET",
-                self.service_url + "/results",
-                params={"user_id": lis_result_sourcedid},
+                self.grading_url + "/results",
+                params={"user_id": user_id},
                 headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
             )
         except ExternalRequestError as err:
@@ -68,7 +48,32 @@ class LTIOutcomesClient:
 
         return results[-1]["resultScore"] / results[-1]["resultMaximum"]
 
-    def _read_result_lti_v11(self, lis_result_sourcedid):
+    def record_result(self, user_id, score=None, pre_record_hook=None):
+        return self.ltia_service.request(
+            self.LTIA_SCOPES,
+            "POST",
+            self.grading_url + "/scores",
+            json={
+                "scoreMaximum": 1,
+                "scoreGiven": score,
+                "userId": user_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "activityProgress": "Completed",
+                "gradingProgress": "FullyGraded",
+            },
+            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+        )
+
+
+class LTI11GradingClient(LTIGradingClient):
+    def __init__(
+        self, grading_url, http_service,oauth1_service
+    ):
+        self.grading_url = grading_url
+        self.http_service = http_service
+        self.oauth1_service = oauth1_service
+
+    def read_result(self, lis_result_sourcedid):
         """
         Return the last-submitted score for a given submission.
 
@@ -92,9 +97,7 @@ class LTIOutcomesClient:
         except (TypeError, KeyError, ValueError):
             return None
 
-    def _record_result_lti_v11(
-        self, lis_result_sourcedid, score=None, pre_record_hook=None
-    ):
+    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
         """
         Set the score or content URL for a student submission to an assignment.
 
@@ -130,23 +133,6 @@ class LTIOutcomesClient:
 
         self._send_request_lti_v11({"replaceResultRequest": request})
 
-    def _record_result_lti_v13(self, lis_result_sourcedid, score=None):
-
-        return self.ltia_service.request(
-            self.LTIA_SCOPES,
-            "POST",
-            self.service_url + "/scores",
-            json={
-                "scoreMaximum": 1,
-                "scoreGiven": score,
-                "userId": lis_result_sourcedid,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "activityProgress": "Completed",
-                "gradingProgress": "FullyGraded",
-            },
-            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
-        )
-
     def _send_request_lti_v11(self, request_body):
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
@@ -167,7 +153,7 @@ class LTIOutcomesClient:
 
         try:
             response = self.http_service.post(
-                url=self.service_url,
+                url=self.grading_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
@@ -237,10 +223,15 @@ class LTIOutcomesClient:
 
 
 def factory(_context, request):
-    return LTIOutcomesClient(
-        request.find_service(name="oauth1"),
-        request.find_service(name="http"),
-        request.find_service(LTIAHTTPService),
-        request.parsed_params["lis_outcome_service_url"],
-        request.find_service(name="application_instance").get_current().lti_version,
-    )
+    application_instance = request.find_service(name="application_instance").get_current()
+    if application_instance.lti_version == "1.3.0":
+        return LTI13GradingClient(
+            grading_url=request.parsed_params["lis_outcome_grading_url"],
+            ltia_service=request.find_service(LTIAHTTPService),
+        )
+    else:
+        return LTI11GradingClient(
+            grading_url=request.parsed_params["lis_outcome_grading_url"],
+            http_service=request.find_service(name="http"),
+            oauth1_service=request.find_service(name="oauth1")
+        )
