@@ -71,13 +71,19 @@ class JSConfig:
             }
         elif document_url.startswith("vitalsource://"):
             vitalsource_svc = self._request.find_service(name="vitalsource")
-            launch_url, launch_params = vitalsource_svc.get_launch_params(
-                document_url, self._request.lti_user
-            )
-            self._config["vitalSource"] = {
-                "launchUrl": launch_url,
-                "launchParams": launch_params,
-            }
+            if self._request.feature("vitalsource_anon_launch"):
+                self._config["vitalSource"] = {
+                    "launchUrl": vitalsource_svc.get_launch_url(document_url)
+                }
+
+            else:
+                launch_url, launch_params = vitalsource_svc.get_launch_params(
+                    document_url, self._request.lti_user
+                )
+                self._config["vitalSource"] = {
+                    "launchUrl": launch_url,
+                    "launchParams": launch_params,
+                }
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
         else:
