@@ -39,6 +39,14 @@ class TestVitalSourceService:
             "cfi": cfi,
         }
 
+    def test_get_launch_url(self, svc):
+        document_url = "vitalsource://book/bookID/book-id/cfi//abc"
+
+        assert (
+            svc.get_launch_url(document_url)
+            == "https://hypothesis.vitalsource.com/books/book-id/cfi//abc"
+        )
+
     def test_it_generates_lti_launch_form_params(self, svc, lti_user):
         launch_url, params = svc.get_launch_params(
             "vitalsource://book/bookID/book-id/cfi//abc", lti_user
