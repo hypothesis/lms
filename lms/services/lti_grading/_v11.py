@@ -7,14 +7,13 @@ from lms.services.http import HTTPService
 from lms.services.lti_grading._interface import LTIGradingClient
 from lms.services.oauth1 import OAuth1Service
 
+from dataclasses import dataclass
 
+
+@dataclass
 class LTI11GradingClient(LTIGradingClient):
-    def __init__(
-        self, grading_url: str, http_service: HTTPService, oauth1_service: OAuth1Service
-    ):
-        self.grading_url = grading_url
-        self.http_service = http_service
-        self.oauth1_service = oauth1_service
+    http_service: HTTPService
+    oauth1_service: OAuth1Service
 
     def read_result(self, lis_result_sourcedid):
         """

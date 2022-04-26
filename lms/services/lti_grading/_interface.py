@@ -1,4 +1,10 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class LTIGradingClient:
+    grading_url: str
+
     def read_result(self, grading_id):
         raise NotImplementedError()
 

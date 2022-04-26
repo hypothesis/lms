@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from lms.services import LTIAHTTPService
@@ -5,21 +6,20 @@ from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading._interface import LTIGradingClient
 
 
+@dataclass
 class LTI13GradingClient(LTIGradingClient):
-    LTIA_SCOPES = [
+    ltia_service: LTIAHTTPService
+
+    _LTIA_SCOPES = [
         "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
         "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(self, grading_url, ltia_service: LTIAHTTPService):
-        self.grading_url = grading_url
-        self.ltia_service = ltia_service
-
     def read_result(self, user_id):
         try:
             response = self.ltia_service.request(
-                self.LTIA_SCOPES,
+                self._LTIA_SCOPES,
                 "GET",
                 self.grading_url + "/results",
                 params={"user_id": user_id},
@@ -38,7 +38,7 @@ class LTI13GradingClient(LTIGradingClient):
 
     def record_result(self, user_id, score=None, pre_record_hook=None):
         return self.ltia_service.request(
-            self.LTIA_SCOPES,
+            self._LTIA_SCOPES,
             "POST",
             self.grading_url + "/scores",
             json={
