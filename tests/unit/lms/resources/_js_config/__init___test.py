@@ -157,6 +157,7 @@ class TestEnableLTILaunchMode:
             js_config.enable_lti_launch_mode()
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
@@ -238,33 +239,27 @@ class TestAddDocumentURL:
         assert submission_params()["document_url"] == "example_document_url"
 
     def test_it_sets_the_canvas_submission_params(
-        self, pyramid_request, submission_params, js_config
+        self, pyramid_request, js_config, submission_params
     ):
-
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
-        assert (
-            submission_params()["h_username"]
-            == pyramid_request.lti_user.h_user.username
+        assert submission_params() == Any.dict.containing(
+            {
+                "h_username": pyramid_request.lti_user.h_user.username,
+                "lis_outcome_service_url": "example_lis_outcome_service_url",
+                "lis_result_sourcedid": "example_lis_result_sourcedid",
+                "learner_canvas_user_id": "test_user_id",
+                "resource_link_id": pyramid_request.params["resource_link_id"],
+                "ext_lti_assignment_id": pyramid_request.params[
+                    "ext_lti_assignment_id"
+                ],
+            }
         )
-        assert (
-            submission_params()["lis_outcome_service_url"]
-            == "example_lis_outcome_service_url"
-        )
-        assert (
-            submission_params()["lis_result_sourcedid"]
-            == "example_lis_result_sourcedid"
-        )
-        assert submission_params()["learner_canvas_user_id"] == "test_user_id"
-
-        assert (
-            submission_params()["resource_link_id"]
-            == pyramid_request.params["resource_link_id"]
-        )
-        assert (
-            submission_params()["ext_lti_assignment_id"]
-            == pyramid_request.params["ext_lti_assignment_id"]
-        )
+        # pylint:disable=protected-access
+        assert js_config._hypothesis_client["reportActivity"] == {
+            "method": "reportActivity",
+            "events": ["create", "update"],
+        }
 
     def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
         self, context, js_config
@@ -561,31 +556,22 @@ class TestJSConfigDebug:
 class TestJSConfigHypothesisClient:
     """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
 
-    def test_it_contains_one_service_config(self, config):
-        assert len(config["services"]) == 1
-
-    def test_it_includes_the_api_url(self, config):
-        assert config["services"][0]["apiUrl"] == "https://example.com/api/"
-
-    def test_it_includes_the_authority(self, config):
-        assert config["services"][0]["authority"] == "TEST_AUTHORITY"
-
-    def test_it_disables_share_links(self, config):
-        assert not config["services"][0]["enableShareLinks"]
-
-    def test_it_includes_grant_token(
-        self, config, pyramid_request, grant_token_service
-    ):
+    def test_it(self, config, grant_token_service, context, pyramid_request):
         grant_token_service.generate_token.assert_called_with(
             pyramid_request.lti_user.h_user
         )
-        grant_token = config["services"][0]["grantToken"]
-        assert grant_token == grant_token_service.generate_token.return_value
 
-    def test_it_includes_the_group(self, config, context):
-        groups = config["services"][0]["groups"]
-
-        assert groups == [context.h_group.groupid.return_value]
+        assert config["services"] == [
+            {
+                "allowFlagging": False,
+                "allowLeavingGroups": False,
+                "apiUrl": "https://example.com/api/",
+                "authority": "TEST_AUTHORITY",
+                "enableShareLinks": False,
+                "grantToken": grant_token_service.generate_token.return_value,
+                "groups": [context.h_group.groupid.return_value],
+            }
+        ]
 
     @pytest.mark.usefixtures("canvas_sections_on")
     def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
