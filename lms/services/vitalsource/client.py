@@ -1,8 +1,10 @@
 import re
+from typing import Dict, Optional, Tuple
 
 import oauthlib
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
+from lms.models.lti_user import LTIUser
 from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
 
@@ -14,24 +16,27 @@ DOCUMENT_URL_REGEX = re.compile(
 
 
 class VitalSourceService:
-    def __init__(self, http_service, lti_launch_key, lti_launch_secret, api_key):
+    def __init__(
+        self,
+        http_service,
+        api_key: str,
+        lti_launch_key: Optional[str] = None,
+        lti_launch_secret: Optional[str] = None,
+    ):
         """
         Return a new VitalSourceService.
 
-        :param lti_launch_key: OAuth consumer key
-        :type lti_launch_key: str
-        :param lti_launch_secret: OAuth consumer secret
-        :type lti_launch_secret: str
-        :raises ValueError: If credentials are invalid
+        :param api_key: Key for VitalSource API
+        :param lti_launch_key: OAuth consumer key for LTI launches. If omitted,
+            a direct/non-LTI launch is used.
+        :param lti_launch_secret: OAuth consumer secret for LTI launches. Only
+            required if `lti_launch_key` is set.
         """
-        if not all([lti_launch_key, lti_launch_secret, api_key]):
-            raise ValueError("VitalSource credentials are missing")
 
         self._http_service = http_service
-
+        self._api_key = api_key
         self._lti_launch_key = lti_launch_key
         self._lti_launch_secret = lti_launch_secret
-        self._api_key = api_key
 
     def get(self, endpoint):
         url = f"https://api.vitalsource.com/v4/{endpoint}"
@@ -72,23 +77,31 @@ class VitalSourceService:
     def generate_document_url(book_id, cfi):
         return f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
 
-    def get_launch_params(self, document_url, lti_user):
+    def get_launch_params(self, document_url, lti_user: LTIUser) -> Tuple[str, Optional[Dict[str, str]]]:
         """
-        Return the form params needed to launch the VitalSource book viewer.
+        Return the parameters needed to launch the VitalSource book viewer.
 
-        The VitalSource book viewer is launched using an LTI launch. This involves
-        posting an HTML form containing the book ID and location along with metadata
-        about the current user and an OAuth 1.0 signature.
+        Depending on the configuration of this service, the book viewer is
+        either loaded directly in an iframe, or using an LTI launch, which
+        involves a form submission. The launch method to use is indicated by
+        whether form params are included in the result.
 
-        See https://developer.vitalsource.com/hc/en-us/articles/215612237-POST-LTI-Create-a-Bookshelf-Launch
+        For details of the LTI launch method, see
+        https://developer.vitalsource.com/hc/en-us/articles/215612237-POST-LTI-Create-a-Bookshelf-Launch
 
-        :param document_url: `vitalsource://` type URL identifying the document.
-        :param lti_user: Current LTI user information, from the LTI launch request
-        :type lti_user: LTIUser
+        :param document_url: `vitalsource://` type URL identifying the document
+        :param lti_user: Current LTI user information
+        :return: (launch_url, form_params) tuple. Form params are omitted if not using an LTI launch
         """
         url_params = self.parse_document_url(document_url)
         book_id = url_params["book_id"]
         cfi = url_params["cfi"]
+
+        if not self._lti_launch_key:
+            return (
+                f"https://hypothesis.vitalsource.com/books/{book_id}/cfi/{cfi}",
+                None,
+            )
 
         launch_url = f"https://bc.vitalsource.com/books/{book_id}"
         book_location = "/cfi" + cfi
@@ -137,9 +150,16 @@ class VitalSourceService:
 
 
 def factory(_context, request):
+    if request.feature("vitalsource_anon_launch"):
+        lti_launch_key = None
+        lti_launch_secret = None
+    else:
+        lti_launch_key = request.registry.settings["vitalsource_lti_launch_key"]
+        lti_launch_secret = request.registry.settings["vitalsource_lti_launch_secret"]
+
     return VitalSourceService(
         request.find_service(name="http"),
-        request.registry.settings["vitalsource_lti_launch_key"],
-        request.registry.settings["vitalsource_lti_launch_secret"],
-        request.registry.settings["vitalsource_api_key"],
+        api_key=request.registry.settings["vitalsource_api_key"],
+        lti_launch_key=lti_launch_key,
+        lti_launch_secret=lti_launch_secret,
     )
