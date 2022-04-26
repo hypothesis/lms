@@ -57,8 +57,11 @@ import { createContext } from 'preact';
  * parameters.
  *
  * @typedef VitalSourceConfig
- * @prop {string} launchUrl - URL for the `<form>` used to launch the viewer
- * @prop {Record<string,string>} launchParams - Form field names and values
+ * @prop {string} launchUrl - URL used to launch the viewer. If using an LTI
+ *   launch this is a URL to post a form to, otherwise this is the URL to
+ *   load directly inside an iframe.
+ * @prop {Record<string,string>} [launchParams] - If using an LTI launch for
+ *   the book viewer, the form fields.
  */
 
 /**

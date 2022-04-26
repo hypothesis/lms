@@ -7,14 +7,14 @@ describe('VitalSourceBookViewer', () => {
   let launchForm;
   let wrappers;
 
-  const createComponent = ({ launchUrl, launchParams }) => {
+  const createComponent = ({ launchURL, launchParams }) => {
     const beforeSubmit = form => {
       sinon.stub(form, 'submit');
       launchForm = form;
     };
     const wrapper = mount(
       <VitalSourceBookViewer
-        launchUrl={launchUrl}
+        launchUrl={launchURL}
         launchParams={launchParams}
         willSubmitLaunchForm={beforeSubmit}
       />,
@@ -39,17 +39,26 @@ describe('VitalSourceBookViewer', () => {
     container.remove();
   });
 
-  it('creates and submits a form with the launch parameters', () => {
+  it('renders the launch URL in an iframe if no form parameters are provided', () => {
+    const launchURL =
+      'https://hypothesis.vitalsource.com/books/abc/cfi/chapter1';
+    const wrapper = createComponent({ launchURL });
+    const frame = wrapper.find('iframe');
+    assert.isTrue(wrapper.exists());
+    assert.equal(frame.props().src, launchURL);
+  });
+
+  it('creates and submits a form if form parameters are provided', () => {
     const launchParams = {
       roles: 'Learner',
       context_id: 'testcourse',
       location: 'chapter-1',
     };
-    const launchUrl = 'https://hypothesis.vitalsource.com/launch';
+    const launchURL = 'https://hypothesis.vitalsource.com/launch';
     const onSubmit = sinon.stub();
 
     createComponent({
-      launchUrl,
+      launchURL,
       launchParams,
       onSubmit,
     });
@@ -58,7 +67,7 @@ describe('VitalSourceBookViewer', () => {
     assert.calledOnce(launchForm.submit);
     assert.equal(launchForm.tagName, 'FORM');
     assert.equal(launchForm.method, 'post');
-    assert.equal(launchForm.action, launchUrl);
+    assert.equal(launchForm.action, launchURL);
 
     const fields = Array.from(launchForm.elements).reduce((obj, el) => {
       obj[el.name] = el.value;
