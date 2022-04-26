@@ -66,6 +66,10 @@ describe('BasicLTILaunchApp', () => {
     };
 
     $imports.$mock(mockImportedComponents());
+    $imports.$restore({
+      // Don't mock `ContentFrame`. It is a trivial iframe wrapper.
+      './ContentFrame': true,
+    });
     $imports.$mock({
       '../utils/AuthWindow': FakeAuthWindow,
       '../utils/api': {

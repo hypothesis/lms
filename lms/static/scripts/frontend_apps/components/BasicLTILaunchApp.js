@@ -15,6 +15,7 @@ import { ClientRPC, useService } from '../services';
 import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
 
+import ContentFrame from './ContentFrame';
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import VitalSourceBookViewer from './VitalSourceBookViewer';
@@ -289,17 +290,7 @@ export default function BasicLTILaunchApp() {
       launchParams={vitalSourceConfig.launchParams}
     />
   ) : (
-    <iframe
-      className={classnames(
-        // It's important that this content render full width and grow to fill
-        // available flex space. n.b. It may be rendered together with grading
-        // controls
-        'w-full grow',
-        'hyp-u-border'
-      )}
-      src={contentURL || ''}
-      title="Course content with Hypothesis annotation viewer"
-    />
+    <ContentFrame url={contentURL || ''} />
   );
 
   if (grading && grading.enabled) {
