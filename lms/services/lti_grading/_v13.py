@@ -8,6 +8,7 @@ from lms.services.lti_grading.interface import LTIGradingClient
 
 @dataclass
 class LTI13GradingClient(LTIGradingClient):
+    # See: LTI1.3 Assignment and Grade Services https://www.imsglobal.org/spec/lti-ags/v2p0
     ltia_service: LTIAHTTPService
 
     _LTIA_SCOPES = [
@@ -16,13 +17,13 @@ class LTI13GradingClient(LTIGradingClient):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def read_result(self, user_id):
+    def read_result(self, grading_id):
         try:
             response = self.ltia_service.request(
                 self._LTIA_SCOPES,
                 "GET",
                 self.grading_url + "/results",
-                params={"user_id": user_id},
+                params={"user_id": grading_id},
                 headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
             )
         except ExternalRequestError as err:
@@ -36,7 +37,7 @@ class LTI13GradingClient(LTIGradingClient):
 
         return results[-1]["resultScore"] / results[-1]["resultMaximum"]
 
-    def record_result(self, user_id, score=None, pre_record_hook=None):
+    def record_result(self, grading_id, score=None, pre_record_hook=None):
         return self.ltia_service.request(
             self._LTIA_SCOPES,
             "POST",
@@ -44,7 +45,7 @@ class LTI13GradingClient(LTIGradingClient):
             json={
                 "scoreMaximum": 1,
                 "scoreGiven": score,
-                "userId": user_id,
+                "userId": grading_id,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "activityProgress": "Completed",
                 "gradingProgress": "FullyGraded",

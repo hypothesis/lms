@@ -1,6 +1,6 @@
+from lms.services import LTIAHTTPService
 from lms.services.lti_grading._v11 import LTI11GradingClient
 from lms.services.lti_grading._v13 import LTI13GradingClient
-from lms.services import LTIAHTTPService
 
 
 def factory(_context, request):

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -7,27 +8,19 @@ from lms.services.http import HTTPService
 from lms.services.lti_grading.interface import LTIGradingClient
 from lms.services.oauth1 import OAuth1Service
 
-from dataclasses import dataclass
-
 
 @dataclass
 class LTI11GradingClient(LTIGradingClient):
+    #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
+
     http_service: HTTPService
     oauth1_service: OAuth1Service
 
-    def read_result(self, lis_result_sourcedid):
-        """
-        Return the last-submitted score for a given submission.
-
-        :param lis_result_sourcedid: The submission id
-        :return: The last-submitted score or `None` if no score has been
-                 submitted.
-        """
-
+    def read_result(self, grading_id):
         result = self._send_request_lti_v11(
             {
                 "readResultRequest": {
-                    "resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}
+                    "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
                 }
             }
         )
@@ -39,26 +32,8 @@ class LTI11GradingClient(LTIGradingClient):
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(self, lis_result_sourcedid, score=None, pre_record_hook=None):
-        """
-        Set the score or content URL for a student submission to an assignment.
-
-        This method also accepts an optional callable hook which will be passed
-        the `score` and the `request_body` which it can modify and must return.
-        This allows support for extensions (or custom replacements) to the
-        standard LTI outcomes body.
-
-        :param lis_result_sourcedid: The submission id
-        :param score:
-            Float value between 0 and 1.0.
-            Defined as required by the LTI spec but is optional in Canvas if
-            an `lti_launch_url` is set.
-        :param pre_record_hook: Hook to allow modification of the request
-
-        :raise TypeError: if the given pre_record_hook returns a non-dict
-        """
-
-        request = {"resultRecord": {"sourcedGUID": {"sourcedId": lis_result_sourcedid}}}
+    def record_result(self, grading_id, score=None, pre_record_hook=None):
+        request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
 
         if score is not None:
             request["resultRecord"]["result"] = {
@@ -75,23 +50,12 @@ class LTI11GradingClient(LTIGradingClient):
 
         self._send_request_lti_v11({"replaceResultRequest": request})
 
-    def _send_request_lti_v11(self, request_body):
+    def _send_request_lti_v11(self, request_body) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
-
-        :arg request_body: The content to send as the POX body element of the
-                           request
-
-        :raise ExternalRequestError: if the request fails for any reason
-
-        :return: The returned POX body element
-        :rtype: dict
         """
 
         xml_body = xmltodict.unparse(self._pox_envelope(request_body))
-
-        # Bind the variable so we can refer to it in the catch
-        response = None
 
         try:
             response = self.http_service.post(
@@ -138,18 +102,9 @@ class LTI11GradingClient(LTIGradingClient):
 
     @staticmethod
     def _pox_envelope(body):
-        """
-        Return ``body`` wrapped in an imsx_POXEnvelopeRequest envelope.
+        """Return ``body`` wrapped in an imsx_POXEnvelopeRequest envelope."""
 
-        Return an xmltodict-format XML dict - an XML document represented as
-        a dict, suitable for converting into an XML string by passing it to
-        ``xmltodict.unparse()``.
-
-        The returned dict renders to an ``<imsx_POXEnvelopeRequest>`` document
-        with the given ``body`` as the contents of the ``<imsx_POXBody>`` tag.
-
-        :rtype: dict
-        """
+        # This is an xmltodict-format XML dict
         return {
             "imsx_POXEnvelopeRequest": {
                 "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
