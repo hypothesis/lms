@@ -1,73 +1,16 @@
-from datetime import datetime, timezone
 from xml.parsers.expat import ExpatError
 
 import xmltodict
 
-from lms.services import LTIAHTTPService
 from lms.services.exceptions import ExternalRequestError
-
-__all__ = ["LTIGradingClient"]
-
-
-class LTIGradingClient:
-    def read_result(self, grading_id):
-        raise NotImplementedError()
-
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
-        raise NotImplementedError()
-
-
-class LTI13GradingClient(LTIGradingClient):
-    LTIA_SCOPES = [
-        "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-        "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
-        "https://purl.imsglobal.org/spec/lti-ags/scope/score",
-    ]
-
-    def __init__(self, grading_url, ltia_service):
-        self.grading_url = grading_url
-        self.ltia_service = ltia_service
-
-    def read_result(self, user_id):
-        try:
-            response = self.ltia_service.request(
-                self.LTIA_SCOPES,
-                "GET",
-                self.grading_url + "/results",
-                params={"user_id": user_id},
-                headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
-            )
-        except ExternalRequestError as err:
-            if err.status_code == 404:
-                return None
-            raise
-
-        results = response.json()
-        if not results:
-            return None
-
-        return results[-1]["resultScore"] / results[-1]["resultMaximum"]
-
-    def record_result(self, user_id, score=None, pre_record_hook=None):
-        return self.ltia_service.request(
-            self.LTIA_SCOPES,
-            "POST",
-            self.grading_url + "/scores",
-            json={
-                "scoreMaximum": 1,
-                "scoreGiven": score,
-                "userId": user_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "activityProgress": "Completed",
-                "gradingProgress": "FullyGraded",
-            },
-            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
-        )
+from lms.services.http import HTTPService
+from lms.services.lti_grading._interface import LTIGradingClient
+from lms.services.oauth1 import OAuth1Service
 
 
 class LTI11GradingClient(LTIGradingClient):
     def __init__(
-        self, grading_url, http_service,oauth1_service
+        self, grading_url: str, http_service: HTTPService, oauth1_service: OAuth1Service
     ):
         self.grading_url = grading_url
         self.http_service = http_service
@@ -220,18 +163,3 @@ class LTI11GradingClient(LTIGradingClient):
                 "imsx_POXBody": body,
             }
         }
-
-
-def factory(_context, request):
-    application_instance = request.find_service(name="application_instance").get_current()
-    if application_instance.lti_version == "1.3.0":
-        return LTI13GradingClient(
-            grading_url=request.parsed_params["lis_outcome_grading_url"],
-            ltia_service=request.find_service(LTIAHTTPService),
-        )
-    else:
-        return LTI11GradingClient(
-            grading_url=request.parsed_params["lis_outcome_grading_url"],
-            http_service=request.find_service(name="http"),
-            oauth1_service=request.find_service(name="oauth1")
-        )
