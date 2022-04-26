@@ -174,7 +174,7 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
-    def test_vitalsource_sets_config(
+    def test_vitalsource_sets_config_with_launch_params(
         self, js_config, vitalsource_service, pyramid_request
     ):
         vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
@@ -191,6 +191,21 @@ class TestAddDocumentURL:
         assert js_config.asdict()["vitalSource"] == {
             "launchUrl": mock.sentinel.launch_url,
             "launchParams": mock.sentinel.launch_params,
+        }
+
+    def test_vitalsource_sets_config_with_anon_launch(
+        self, js_config, vitalsource_service, pyramid_request
+    ):
+        pyramid_request.feature.side_effect = (
+            lambda feature: feature == "vitalsource_anon_launch"
+        )
+        vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
+
+        js_config.add_document_url(vitalsource_url)
+
+        vitalsource_service.get_launch_url.assert_called_with(vitalsource_url)
+        assert js_config.asdict()["vitalSource"] == {
+            "launchUrl": vitalsource_service.get_launch_url.return_value
         }
 
     def test_jstor_sets_config(self, js_config, jstor_service, pyramid_request):

@@ -1,8 +1,10 @@
 import re
+from typing import Dict, Tuple
 
 import oauthlib
 from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
+from lms.models.lti_user import LTIUser
 from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
 
@@ -14,24 +16,30 @@ DOCUMENT_URL_REGEX = re.compile(
 
 
 class VitalSourceService:
-    def __init__(self, http_service, lti_launch_key, lti_launch_secret, api_key):
+    def __init__(
+        self,
+        http_service,
+        lti_launch_key: str,
+        lti_launch_secret: str,
+        api_key: str,
+    ):
         """
         Return a new VitalSourceService.
 
-        :param lti_launch_key: OAuth consumer key
-        :type lti_launch_key: str
-        :param lti_launch_secret: OAuth consumer secret
-        :type lti_launch_secret: str
+        :param api_key: Key for VitalSource API
+        :param lti_launch_key: OAuth consumer key for LTI launches. If omitted,
+            a direct/non-LTI launch is used.
+        :param lti_launch_secret: OAuth consumer secret for LTI launches. Only
+            required if `lti_launch_key` is set.
         :raises ValueError: If credentials are invalid
         """
         if not all([lti_launch_key, lti_launch_secret, api_key]):
             raise ValueError("VitalSource credentials are missing")
 
         self._http_service = http_service
-
+        self._api_key = api_key
         self._lti_launch_key = lti_launch_key
         self._lti_launch_secret = lti_launch_secret
-        self._api_key = api_key
 
     def get(self, endpoint):
         url = f"https://api.vitalsource.com/v4/{endpoint}"
@@ -72,9 +80,26 @@ class VitalSourceService:
     def generate_document_url(book_id, cfi):
         return f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
 
-    def get_launch_params(self, document_url, lti_user):
+    def get_launch_url(self, document_url: str) -> str:
         """
-        Return the form params needed to launch the VitalSource book viewer.
+        Return a URL to load the VitalSource book viewer at a particular book and location.
+
+        That URL can be used to load VitalSource content in an iframe like we do with other types of content.
+
+        Note that this method is an alternative to `get_launch_params` below.
+
+        :param document_url: `vitalsource://` type URL identifying the document
+        """
+        url_params = self.parse_document_url(document_url)
+        return f"https://hypothesis.vitalsource.com/books/{url_params['book_id']}/cfi/{url_params['cfi']}"
+
+    def get_launch_params(
+        self, document_url, lti_user: LTIUser
+    ) -> Tuple[str, Dict[str, str]]:
+        """
+        Return the parameters needed to launch the VitalSource book viewer.
+
+        This method is deprecated in favour of `get_launch_url` above.
 
         The VitalSource book viewer is launched using an LTI launch. This involves
         posting an HTML form containing the book ID and location along with metadata
@@ -82,9 +107,9 @@ class VitalSourceService:
 
         See https://developer.vitalsource.com/hc/en-us/articles/215612237-POST-LTI-Create-a-Bookshelf-Launch
 
-        :param document_url: `vitalsource://` type URL identifying the document.
-        :param lti_user: Current LTI user information, from the LTI launch request
-        :type lti_user: LTIUser
+        :param document_url: `vitalsource://` type URL identifying the document
+        :param lti_user: Current LTI user information
+        :return: (launch_url, form_params) tuple.
         """
         url_params = self.parse_document_url(document_url)
         book_id = url_params["book_id"]
