@@ -238,9 +238,19 @@ class TestAddDocumentURL:
 
         assert submission_params()["document_url"] == "example_document_url"
 
+    @pytest.mark.parametrize("submit_on_annotation_enabled", [True, False])
     def test_it_sets_the_canvas_submission_params(
-        self, pyramid_request, js_config, submission_params
+        self,
+        pyramid_request,
+        js_config,
+        submission_params,
+        submit_on_annotation_enabled,
     ):
+        if submit_on_annotation_enabled:
+            pyramid_request.feature.side_effect = (
+                lambda feature: feature == "submit_on_annotation"
+            )
+
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
         assert submission_params() == Any.dict.containing(
@@ -255,11 +265,13 @@ class TestAddDocumentURL:
                 ],
             }
         )
-        # pylint:disable=protected-access
-        assert js_config._hypothesis_client["reportActivity"] == {
-            "method": "reportActivity",
-            "events": ["create", "update"],
-        }
+
+        if submit_on_annotation_enabled:
+            # pylint:disable=protected-access
+            assert js_config._hypothesis_client["reportActivity"] == {
+                "method": "reportActivity",
+                "events": ["create", "update"],
+            }
 
     def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
         self, context, js_config
