@@ -53,6 +53,7 @@ describe('BasicLTILaunchApp', () => {
         authToken: 'dummyAuthToken',
       },
       canvas: {},
+      hypothesisClient: {},
       urls: {},
       grading: {},
     };
@@ -62,6 +63,8 @@ describe('BasicLTILaunchApp', () => {
       focus: sinon.stub(),
     });
     fakeRpcServer = {
+      on: sinon.stub(),
+      off: sinon.stub(),
       setGroups: sinon.stub(),
     };
 
@@ -434,7 +437,7 @@ describe('BasicLTILaunchApp', () => {
     });
   });
 
-  describe('speed grader integration', () => {
+  describe('Canvas speed grader integration', () => {
     beforeEach(() => {
       fakeConfig.canvas.speedGrader = {
         submissionParams: {
@@ -448,10 +451,14 @@ describe('BasicLTILaunchApp', () => {
       const wrapper = renderLTILaunchApp();
       await waitFor(() => fakeApiCall.called);
 
-      assert.calledWith(fakeApiCall, {
+      const apiCall = fakeApiCall.getCall(0);
+      assert.deepEqual(apiCall.args[0], {
         authToken: 'dummyAuthToken',
         path: '/api/lti/submissions',
-        data: fakeConfig.canvas.speedGrader.submissionParams,
+        data: {
+          submitted_at: undefined,
+          ...fakeConfig.canvas.speedGrader.submissionParams,
+        },
       });
 
       // After the successful API call, the iframe should still be rendered.
@@ -510,12 +517,126 @@ describe('BasicLTILaunchApp', () => {
       fakeConfig.vitalSource = { foo: 'bar' };
       renderLTILaunchApp();
 
-      assert.calledWith(fakeApiCall, {
+      const apiCall = fakeApiCall.getCall(0);
+      assert.deepEqual(apiCall.args[0], {
         authToken: 'dummyAuthToken',
         path: '/api/lti/submissions',
-        data: fakeConfig.canvas.speedGrader.submissionParams,
+        data: {
+          submitted_at: undefined,
+          ...fakeConfig.canvas.speedGrader.submissionParams,
+        },
       });
     });
+
+    context(
+      'When configured to wait for first annotation activity before submission',
+      () => {
+        beforeEach(() => {
+          fakeConfig.canvas.speedGrader = {
+            submissionParams: {
+              lis_result_sourcedid: 'modelstudent-assignment1',
+            },
+          };
+          fakeConfig.viaUrl = 'https://via.hypothes.is/123';
+          fakeConfig.hypothesisClient.reportActivity = {
+            method: 'reportActivity',
+            events: ['create', 'edit'],
+          };
+        });
+
+        function getOnActivityCalls(stub) {
+          return stub
+            .getCalls()
+            .filter(call => call.args[0] === 'annotationActivity');
+        }
+
+        it('does not report the submission when the content iframe starts loading', async () => {
+          const wrapper = renderLTILaunchApp();
+          await new Promise(resolve => setTimeout(resolve, 1));
+          assert.isFalse(
+            fakeApiCall.calledWith(
+              sinon.match({ path: '/api/lti/submissions' })
+            )
+          );
+
+          // After the successful API call, the iframe should still be rendered.
+          wrapper.update();
+          assert.isTrue(wrapper.exists('iframe'));
+        });
+
+        it('registers a callback for `annotationActivity` events', async () => {
+          renderLTILaunchApp();
+          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
+          assert.equal(annotationActivityCalls.length, 1);
+          assert.isFunction(annotationActivityCalls[0].args[1]);
+        });
+
+        it('submits a submission when `annotationActivity` event emitted', async () => {
+          renderLTILaunchApp();
+          assert.isFalse(
+            fakeApiCall.calledWith(
+              sinon.match({ path: '/api/lti/submissions' })
+            )
+          );
+          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
+          const callback = annotationActivityCalls[0].callback;
+          callback('create', {});
+          await new Promise(resolve => setTimeout(resolve, 1));
+
+          assert.calledOnce(fakeApiCall);
+          assert.calledWith(
+            fakeApiCall,
+            sinon.match({ path: '/api/lti/submissions' })
+          );
+
+          const apiCall = fakeApiCall.getCall(0);
+          assert.deepEqual(apiCall.args[0], {
+            authToken: 'dummyAuthToken',
+            path: '/api/lti/submissions',
+            data: {
+              submitted_at: undefined,
+              ...fakeConfig.canvas.speedGrader.submissionParams,
+            },
+          });
+        });
+
+        it('deregisters callback after submission is made', async () => {
+          renderLTILaunchApp();
+
+          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
+          const callback = annotationActivityCalls[0].args[1];
+          callback('create', {});
+          await new Promise(resolve => setTimeout(resolve, 1));
+
+          assert.calledOnce(fakeApiCall);
+          assert.calledWith(
+            fakeApiCall,
+            sinon.match({ path: '/api/lti/submissions' })
+          );
+          assert.calledOnce(fakeRpcServer.off);
+          assert.calledWith(fakeRpcServer.off, 'annotationActivity', callback);
+        });
+
+        it('submits a submission with annotation-activity date if provided', async () => {
+          renderLTILaunchApp();
+
+          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
+          const callback = annotationActivityCalls[0].args[1];
+          assert.notCalled(fakeApiCall);
+          callback('create', { date: '2022-04-28T13:25:34Z' });
+
+          const apiCall = fakeApiCall.getCall(0);
+          assert.deepEqual(apiCall.args[0], {
+            authToken: 'dummyAuthToken',
+            path: '/api/lti/submissions',
+            data: {
+              submitted_at: '2022-04-28T13:25:34Z',
+              ...fakeConfig.canvas.speedGrader.submissionParams,
+            },
+          });
+        });
+      }
+    );
   });
 
   context('when grading is enabled', () => {

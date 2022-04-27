@@ -11,22 +11,7 @@ import { JWT } from '../utils/jwt';
  */
 
 /**
- * @typedef ServiceConfig
- * @prop {string} grantToken
- */
-
-/**
- * The subset of the Hypothesis client configuration that `ClientRPC` directly references.
- *
- * The backend will add other properties which are intentionally not included here,
- * even as an index signature. This other configuration is simply forwarded to
- * the client but not touched by `ClientRPC`.
- *
- * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
- *
- * @typedef ClientConfig
- * @prop {[ServiceConfig]} services - Annotation configuration for the client.
- *   In the LMS context this will always consist of exactly one entry.
+ * @typedef {import('../config').ClientConfig} ClientConfig
  */
 
 /**
