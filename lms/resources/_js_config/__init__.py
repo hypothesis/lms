@@ -337,10 +337,11 @@ class JSConfig:
         }
         # Enable the LMS frontend to receive notifications on annotation activity
         # We'll use this information to only send the submission to canvas on first annotation.
-        self._hypothesis_client["reportActivity"] = {
-            "method": "reportActivity",
-            "events": ["create", "update"],
-        }
+        if self._request.feature("submit_on_annotation"):
+            self._hypothesis_client["reportActivity"] = {
+                "method": "reportActivity",
+                "events": ["create", "update"],
+            }
 
     def _auth_token(self):
         """Return the authToken setting."""
