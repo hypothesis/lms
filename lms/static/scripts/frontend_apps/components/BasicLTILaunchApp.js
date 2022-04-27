@@ -56,6 +56,7 @@ export default function BasicLTILaunchApp() {
       sync: syncAPICallInfo,
     },
     grading,
+    hypothesisClient: clientConfig,
     // Content URL to show in the iframe.
     viaUrl: viaURL,
     canvas,
@@ -63,6 +64,12 @@ export default function BasicLTILaunchApp() {
   } = useContext(Config);
 
   const clientRPC = useService(ClientRPC);
+
+  // Canvas only: The presence of a value for this configuration property
+  // indicates that an empty grading submission should be made only after this
+  // (student) user performs qualifying annotation activity. Otherwise, a
+  // grading submission will be made immediately upon successful launch.
+  const submitAfterActivity = !!clientConfig.reportActivity;
 
   // Indicates what the application was doing when the error indicated by
   // `error` occurred.
@@ -219,37 +226,73 @@ export default function BasicLTILaunchApp() {
    * Report a submission to the LMS, with the LMS-provided metadata needed for
    * later grading of the assignment.
    */
-  const reportSubmission = useCallback(async () => {
-    // If a teacher launches an assignment or the LMS does not support reporting
-    // outcomes or grading is not enabled for the assignment, then no submission
-    // URL will be available.
-    if (!canvas.speedGrader || !canvas.speedGrader.submissionParams) {
-      return;
-    }
+  const reportSubmission = useCallback(
+    /** @param {string} [submittedAt] - ISO8601 date for the submission */
+    async submittedAt => {
+      // If a teacher launches an assignment or the LMS does not support reporting
+      // outcomes or grading is not enabled for the assignment, then no submission
+      // URL will be available.
+      if (!canvas.speedGrader || !canvas.speedGrader.submissionParams) {
+        return;
+      }
 
-    // Don't submit before content is viewable
-    if (!contentReady) {
-      return;
-    }
+      // Don't submit before content is viewable
+      if (!contentReady) {
+        return;
+      }
 
-    try {
-      await apiCall({
-        authToken,
-        path: '/api/lti/submissions',
-        data: canvas.speedGrader.submissionParams,
-      });
-    } catch (e) {
-      // If reporting the submission failed, replace the content with an error.
-      // This avoids the student trying to complete the assignment without
-      // knowing that there was a problem, and the teacher then not seeing a
-      // submission.
-      handleError(e, 'error-reporting-submission', false);
-    }
-  }, [authToken, canvas.speedGrader, contentReady]);
+      const submissionParams = {
+        ...canvas.speedGrader.submissionParams,
+        submitted_at: submittedAt,
+      };
 
+      try {
+        await apiCall({
+          authToken,
+          path: '/api/lti/submissions',
+          data: submissionParams,
+        });
+      } catch (e) {
+        // If reporting the submission failed, replace the content with an error.
+        // This avoids the student trying to complete the assignment without
+        // knowing that there was a problem, and the teacher then not seeing a
+        // submission.
+        handleError(e, 'error-reporting-submission', false);
+      }
+    },
+    [authToken, canvas.speedGrader, contentReady]
+  );
+
+  /**
+   * Submit an empty grading submission on behalf of this student user. This
+   * submission can happen in one of two ways:
+   * - If the application is configured to do so (`submitAfterActivity`),
+   *   register a callback and wait for first qualifying annotation activity
+   *   before submitting.
+   * - Otherwise, submit immediately.
+   */
   useEffect(() => {
-    reportSubmission();
-  }, [reportSubmission]);
+    if (!submitAfterActivity) {
+      reportSubmission();
+      return undefined;
+    }
+
+    const unsubscribe = () =>
+      clientRPC.off('annotationActivity', onAnnotationActivity);
+
+    /**
+     * @param {string} eventType
+     * @param {object} data
+     *   @param {string} data.date
+     */
+    function onAnnotationActivity(eventType, data) {
+      reportSubmission(data.date).then(unsubscribe);
+    }
+
+    clientRPC.on('annotationActivity', onAnnotationActivity);
+
+    return unsubscribe;
+  }, [clientRPC, reportSubmission, submitAfterActivity]);
 
   /**
    * Request the user's authorization to access the content, then try fetching

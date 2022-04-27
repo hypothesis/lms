@@ -133,6 +133,31 @@ import { createContext } from 'preact';
  */
 
 /**
+ * @typedef ServiceConfig
+ * @prop {string} grantToken
+ */
+
+/**
+ * The subset of the Hypothesis client configuration that this app directly references.
+ *
+ * The backend will add other properties which are intentionally not included here,
+ * even as an index signature. This other configuration is simply forwarded to
+ * the client.
+ *
+ * See https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
+ *
+ * @typedef ClientConfig
+ * @prop {[ServiceConfig]} services - Annotation configuration for the client.
+ *   In the LMS context this will always consist of exactly one entry.
+ * @prop {object} [reportActivity] - When present, enables communication of
+ *   annotation activity from the client sidebar's frame to this one.
+ *   The details of this object can be considered opaque to this application,
+ *   but its presence indicates that Canvas empty grading submissions should
+ *   only be submitted for a student after qualifying annotation activity
+ *   occurs (not immediately at launch).
+ */
+
+/**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
  * the available configuration/data depends on the mode and LTI user role.
@@ -151,7 +176,7 @@ import { createContext } from 'preact';
  * @prop {boolean} dev
  * @prop {FilePickerConfig} filePicker
  * @prop {GradingConfig} grading
- * @prop {object} hypothesisClient
+ * @prop {ClientConfig} hypothesisClient
  * @prop {object} rpcServer
  *   @prop {string[]} rpcServer.allowedOrigins
  * @prop {string} viaUrl
