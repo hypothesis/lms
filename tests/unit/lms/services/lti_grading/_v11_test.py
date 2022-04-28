@@ -12,7 +12,7 @@ from tests import factories
 @pytest.mark.usefixtures("oauth1_service", "http_service")
 class TestLTI11GradingService:
     def test_read_result(self, svc, respond_with, http_service):
-        respond_with(score=0.95)
+        respond_with(GradingResponse(score=0.95))
 
         score = svc.read_result(sentinel.grading_id)
 
@@ -27,12 +27,14 @@ class TestLTI11GradingService:
     def test_read_result_returns_none_if_score_not_a_float(
         self, svc, respond_with, score
     ):
-        respond_with(score=score)
+        respond_with(GradingResponse(score=score))
 
         assert svc.read_result(sentinel.grading_id) is None
 
     def test_read_result_returns_none_if_no_score(self, svc, respond_with):
-        respond_with(include_score=False)
+        response = GradingResponse()
+        response.result_response["result"]["resultScore"].pop("textString")
+        respond_with(response)
 
         assert svc.read_result(sentinel.grading_id) is None
 
@@ -107,10 +109,9 @@ class TestLTI11GradingService:
 
     def test_methods_fail_if_body_not_xml(self, svc_method, http_service):
         http_service.post.return_value = factories.requests.Response(
-            status_code=200,
-            body='{"not":"xml"}',
-            content_type="application/json",
+            status_code=200, body='{"not":"xml"}', content_type="application/json"
         )
+
         with pytest.raises(
             ExternalRequestError,
             match="Unable to parse XML response from LTI Outcomes service",
@@ -118,14 +119,19 @@ class TestLTI11GradingService:
             svc_method(sentinel.grading_id)
 
     def test_methods_fail_if_no_status(self, svc_method, respond_with):
-        respond_with(include_status=False)
+        response = GradingResponse()
+        response.header_info.pop("imsx_statusInfo")
+        respond_with(response)
+
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
         ):
             svc_method(sentinel.grading_id)
 
     def test_methods_fail_if_response_is_malformed(self, svc_method, respond_with):
-        respond_with(malformed=True)
+        # "imsx_POXEnvelopeResponse" is the expected key. This erroneous value
+        # is inspired by Blackbaud.
+        respond_with({"imsx_POXEnvelopeRequest": {"etc": ...}})
 
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
@@ -133,19 +139,19 @@ class TestLTI11GradingService:
             svc_method(sentinel.grading_id)
 
     def test_methods_fail_if_status_is_not_success(self, svc_method, respond_with):
-        respond_with(status_code="failure")
+        respond_with(GradingResponse(status_code="failure"))
 
-        # LTI outcome request failed
         with pytest.raises(
             ExternalRequestError,
             match="<imsx_description>An error occurred.</imsx_description>",
         ):
             svc_method(sentinel.grading_id)
 
-    def test_methods_fail_and_no_description_returned(self, svc_method, respond_with):
-        respond_with(status_code="failure", include_description=False)
+    def test_methods_fail_with_no_description_returned(self, svc_method, respond_with):
+        response = GradingResponse(status_code="failure")
+        response.header_info["imsx_statusInfo"].pop("imsx_description")
+        respond_with(response)
 
-        # imsx_description is missing
         with pytest.raises(ExternalRequestError, match="LTI outcome request failed"):
             svc_method(sentinel.grading_id)
 
@@ -157,89 +163,20 @@ class TestLTI11GradingService:
     def sent_pox_body(cls, http_service):
         return cls.sent_body(http_service)["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
 
-    @classmethod
-    def make_response_v11(
-        cls, score, include_score, include_status, status_code, include_description
-    ):
-        header_info = {"imsx_version": "V1.0", "imsx_messageIdentifier": 1313355158804}
-
-        if include_status:
-            header_info["imsx_statusInfo"] = {
-                "imsx_codeMajor": status_code,
-                "imsx_severity": "status",
-                "imsx_messageRefIdentifier": "999999123",
-                "imsx_operationRefIdentifier": "readResult",
-            }
-            if include_description:
-                header_info["imsx_statusInfo"][
-                    "imsx_description"
-                ] = "An error occurred."
-
-        result_score = {"language": "en"}
-        if include_score:
-            result_score["textString"] = score
-
-        return xmltodict.unparse(
-            {
-                "imsx_POXEnvelopeResponse": {
-                    "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
-                    "imsx_POXHeader": {"imsx_POXResponseHeaderInfo": header_info},
-                    "imsx_POXBody": {
-                        "readResultResponse": {"result": {"resultScore": result_score}}
-                    },
-                }
-            }
-        )
-
-    @classmethod
-    def make_malformed_response(cls):
-        return xmltodict.unparse(
-            {
-                # "imsx_POXEnvelopeResponse" is the expected key. This erroneous value is inspired
-                # by Blackbaud.
-                "imsx_POXEnvelopeRequest": {
-                    "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
-                    "imsx_POXHeader": {},
-                    "imsx_POXBody": {},
-                }
-            }
-        )
-
     @pytest.fixture
     def with_response(self, respond_with):
-        respond_with()
+        respond_with(GradingResponse())
 
     @pytest.fixture
     def respond_with(self, http_service):
-        def configure(
-            score=None,
-            include_score=True,
-            include_status=True,
-            status_code="success",
-            status=200,
-            malformed=False,
-            include_description=True,
-        ):
-            response_body = None
-
-            if malformed:
-                response_body = self.make_malformed_response()
-            else:
-                response_body = self.make_response_v11(
-                    score,
-                    include_score,
-                    include_status,
-                    status_code,
-                    include_description,
-                )
-
+        def respond_with(response):
             http_service.post.return_value = factories.requests.Response(
-                status_code=status,
-                raw=response_body,
+                status_code=200,
+                raw=xmltodict.unparse(response),
                 content_type="application/xml",
             )
 
-        return configure
+        return respond_with
 
     @pytest.fixture(params=["record_result", "read_result"])
     def svc_method(self, svc, request):
@@ -248,3 +185,46 @@ class TestLTI11GradingService:
     @pytest.fixture
     def svc(self, oauth1_service, http_service):
         return LTI11GradingService(sentinel.service_url, http_service, oauth1_service)
+
+
+class GradingResponse(dict):
+    """An LTI grading response dict with convenience accessors."""
+
+    def __init__(self, status_code="success", score=0.92):
+        super().__init__(
+            {
+                "imsx_POXEnvelopeResponse": {
+                    "@xmlns": "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0",
+                    "imsx_POXHeader": {
+                        "imsx_POXResponseHeaderInfo": {
+                            "imsx_version": "V1.0",
+                            "imsx_messageIdentifier": 1313355158804,
+                            "imsx_statusInfo": {
+                                "imsx_codeMajor": status_code,
+                                "imsx_severity": "status",
+                                "imsx_messageRefIdentifier": "999999123",
+                                "imsx_operationRefIdentifier": "readResult",
+                                "imsx_description": "An error occurred.",
+                            },
+                        }
+                    },
+                    "imsx_POXBody": {
+                        "readResultResponse": {
+                            "result": {
+                                "resultScore": {"language": "en", "textString": score}
+                            }
+                        }
+                    },
+                }
+            }
+        )
+
+    @property
+    def header_info(self):
+        return self["imsx_POXEnvelopeResponse"]["imsx_POXHeader"][
+            "imsx_POXResponseHeaderInfo"
+        ]
+
+    @property
+    def result_response(self):
+        return self["imsx_POXEnvelopeResponse"]["imsx_POXBody"]["readResultResponse"]
