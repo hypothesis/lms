@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from unittest.mock import Mock
+from unittest.mock import Mock, sentinel
 
 import pytest
 import xmltodict
@@ -13,13 +13,10 @@ pytestmark = pytest.mark.usefixtures("oauth1_service", "http_service")
 
 
 class TestLTI11GradingService:
-    SERVICE_URL = "http://example.com/service_url"
-    GRADING_ID = "lis_result_sourcedid"
-
     def test_read_result_sends_expected_request(self, svc, respond_with, http_service):
         respond_with(score=0.95)
 
-        svc.read_result(self.GRADING_ID)
+        svc.read_result(sentinel.grading_id)
 
         self.assert_sent_header_ok(http_service)
 
@@ -27,19 +24,19 @@ class TestLTI11GradingService:
             "resultRecord"
         ]
         sourced_id = result_record["sourcedGUID"]["sourcedId"]
-        assert sourced_id == self.GRADING_ID
+        assert sourced_id == "sentinel.grading_id"
 
     def test_read_result_returns_float_score(self, svc, respond_with):
         respond_with(score=0.95)
 
-        score = svc.read_result(self.GRADING_ID)
+        score = svc.read_result(sentinel.grading_id)
 
         assert score == 0.95
 
     def test_read_result_returns_none_if_no_score(self, svc, respond_with):
-        respond_with(include_score=None)
+        respond_with(include_score=False)
 
-        score = svc.read_result(self.GRADING_ID)
+        score = svc.read_result(sentinel.grading_id)
 
         assert score is None
 
@@ -49,13 +46,13 @@ class TestLTI11GradingService:
     ):
         respond_with(score=score_text)
 
-        score = svc.read_result(self.GRADING_ID)
+        score = svc.read_result(sentinel.grading_id)
 
         assert score is None
 
     @pytest.mark.usefixtures("response")
     def test_record_result_sends_sourcedid(self, svc, http_service):
-        svc.record_result(self.GRADING_ID)
+        svc.record_result(sentinel.grading_id)
 
         self.assert_sent_header_ok(http_service)
 
@@ -64,7 +61,7 @@ class TestLTI11GradingService:
         ]
         sourced_id = result_record["sourcedGUID"]["sourcedId"]
 
-        assert sourced_id == self.GRADING_ID
+        assert sourced_id == "sentinel.grading_id"
 
     @pytest.mark.usefixtures("response")
     @pytest.mark.parametrize(
@@ -77,7 +74,7 @@ class TestLTI11GradingService:
     def test_record_result_sends_score(
         self, svc, score_provided, score_in_record, http_service
     ):
-        svc.record_result(self.GRADING_ID, score=score_provided)
+        svc.record_result(sentinel.grading_id, score=score_provided)
 
         result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
             "resultRecord"
@@ -90,7 +87,7 @@ class TestLTI11GradingService:
     def test_record_result_calls_hook(self, svc, http_service):
         my_hook = Mock(return_value={"my_dict": 1})
 
-        svc.record_result(self.GRADING_ID, score=1.5, pre_record_hook=my_hook)
+        svc.record_result(sentinel.grading_id, score=1.5, pre_record_hook=my_hook)
 
         my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
         assert self.sent_pox_body(http_service)["replaceResultRequest"] == OrderedDict(
@@ -101,7 +98,7 @@ class TestLTI11GradingService:
     def test_record_result_requires_dict_result(self, svc, hook_result):
         with pytest.raises(TypeError):
             svc.record_result(
-                self.GRADING_ID, pre_record_hook=lambda *args, **kwargs: hook_result
+                sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
             )
 
     def test_it_signs_request_with_oauth1(self, svc, http_service, oauth1_service):
@@ -110,7 +107,7 @@ class TestLTI11GradingService:
         # We don't care if this actually does anything afterwards, so just
         # fail here so we can see how we were called
         with pytest.raises(OSError):
-            svc.record_result(self.GRADING_ID)
+            svc.record_result(sentinel.grading_id)
 
         http_service.post.assert_called_once_with(
             url=Any(),
@@ -123,7 +120,7 @@ class TestLTI11GradingService:
         http_service.post.side_effect = ExternalRequestError
 
         with pytest.raises(ExternalRequestError):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     def test_requests_fail_if_body_not_xml(self, svc, http_service):
         http_service.post.return_value = factories.requests.Response(
@@ -135,14 +132,14 @@ class TestLTI11GradingService:
             ExternalRequestError,
             match="Unable to parse XML response from LTI Outcomes service",
         ):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     def test_requests_fail_if_no_status(self, svc, respond_with):
         respond_with(include_status=False)
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
         ):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     def test_requests_fail_if_response_is_malformed(self, svc, respond_with):
         respond_with(malformed=True)
@@ -150,7 +147,7 @@ class TestLTI11GradingService:
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
         ):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     def test_requests_fail_if_status_is_not_success(self, svc, respond_with):
         respond_with(status_code="failure")
@@ -160,14 +157,14 @@ class TestLTI11GradingService:
             ExternalRequestError,
             match="<imsx_description>An error occurred.</imsx_description>",
         ):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     def test_requests_fail_and_no_description_returned(self, svc, respond_with):
         respond_with(status_code="failure", include_description=False)
 
         # imsx_description is missing
         with pytest.raises(ExternalRequestError, match="LTI outcome request failed"):
-            svc.read_result(self.GRADING_ID)
+            svc.read_result(sentinel.grading_id)
 
     @classmethod
     def sent_body(cls, http_service):
@@ -274,4 +271,4 @@ class TestLTI11GradingService:
 
     @pytest.fixture
     def svc(self, oauth1_service, http_service):
-        return LTI11GradingService(self.SERVICE_URL, http_service, oauth1_service)
+        return LTI11GradingService(sentinel.service_url, http_service, oauth1_service)
