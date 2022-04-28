@@ -17,8 +17,6 @@ class TestLTI11GradingService:
 
         svc.read_result(sentinel.grading_id)
 
-        self.assert_sent_header_ok(http_service)
-
         result_record = self.sent_pox_body(http_service)["readResultRequest"][
             "resultRecord"
         ]
@@ -52,8 +50,6 @@ class TestLTI11GradingService:
     @pytest.mark.usefixtures("with_response")
     def test_record_result_sends_sourcedid(self, svc, http_service):
         svc.record_result(sentinel.grading_id)
-
-        self.assert_sent_header_ok(http_service)
 
         result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
             "resultRecord"
@@ -100,22 +96,27 @@ class TestLTI11GradingService:
                 sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
             )
 
-    def test_methods_sign_request_with_oauth1(
+    @pytest.mark.usefixtures("with_response")
+    def test_methods_make_valid_post_requests(
         self, svc_method, http_service, oauth1_service
     ):
-        http_service.post.side_effect = OSError()
-
-        # We don't care if this actually does anything afterwards, so just
-        # fail here so we can see how we were called
-        with pytest.raises(OSError):
-            svc_method(sentinel.grading_id)
+        svc_method(sentinel.grading_id)
 
         http_service.post.assert_called_once_with(
-            url=Any(),
-            data=Any(),
-            headers=Any(),
+            url=sentinel.service_url,
+            data=Any.string.matching(r"<\?xml"),
+            headers={"Content-Type": "application/xml"},
             auth=oauth1_service.get_client.return_value,
         )
+
+        assert self.sent_body(http_service)["imsx_POXEnvelopeRequest"][
+            "imsx_POXHeader"
+        ] == {
+            "imsx_POXRequestHeaderInfo": {
+                "imsx_version": "V1.0",
+                "imsx_messageIdentifier": "999999123",
+            }
+        }
 
     def test_methods_fail_if_the_third_party_request_fails(
         self, svc_method, http_service
@@ -176,17 +177,6 @@ class TestLTI11GradingService:
     @classmethod
     def sent_pox_body(cls, http_service):
         return cls.sent_body(http_service)["imsx_POXEnvelopeRequest"]["imsx_POXBody"]
-
-    @classmethod
-    def assert_sent_header_ok(cls, http_service):
-        """Check standard header fields of the request body."""
-
-        body = cls.sent_body(http_service)
-
-        header = body["imsx_POXEnvelopeRequest"]["imsx_POXHeader"]
-        message_id = header["imsx_POXRequestHeaderInfo"]["imsx_messageIdentifier"]
-
-        assert message_id == "999999123"
 
     @classmethod
     def make_response_v11(
