@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from unittest.mock import Mock, sentinel
 
 import pytest
@@ -17,11 +16,11 @@ class TestLTI11GradingService:
 
         svc.read_result(sentinel.grading_id)
 
-        result_record = self.sent_pox_body(http_service)["readResultRequest"][
-            "resultRecord"
-        ]
-        sourced_id = result_record["sourcedGUID"]["sourcedId"]
-        assert sourced_id == "sentinel.grading_id"
+        assert self.sent_pox_body(http_service) == {
+            "readResultRequest": {
+                "resultRecord": {"sourcedGUID": {"sourcedId": "sentinel.grading_id"}}
+            }
+        }
 
     def test_read_result_returns_float_score(self, svc, respond_with):
         respond_with(score=0.95)
@@ -48,35 +47,25 @@ class TestLTI11GradingService:
         assert score is None
 
     @pytest.mark.usefixtures("with_response")
-    def test_record_result_sends_sourcedid(self, svc, http_service):
-        svc.record_result(sentinel.grading_id)
-
-        result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
-            "resultRecord"
-        ]
-        sourced_id = result_record["sourcedGUID"]["sourcedId"]
-
-        assert sourced_id == "sentinel.grading_id"
-
-    @pytest.mark.usefixtures("with_response")
     @pytest.mark.parametrize(
-        "score_provided,score_in_record",
-        [
-            (0.5, "0.5"),
-            (0, "0"),  # test the zero value
-        ],
+        "score,score_payload",
+        (
+            (0.5, {"result": {"resultScore": {"language": "en", "textString": "0.5"}}}),
+            (0, {"result": {"resultScore": {"language": "en", "textString": "0"}}}),
+            (None, {}),
+        ),
     )
-    def test_record_result_sends_score(
-        self, svc, score_provided, score_in_record, http_service
-    ):
-        svc.record_result(sentinel.grading_id, score=score_provided)
+    def test_record_result(self, svc, score, http_service, score_payload):
+        svc.record_result(sentinel.grading_id, score=score)
 
-        result_record = self.sent_pox_body(http_service)["replaceResultRequest"][
-            "resultRecord"
-        ]
-        score = result_record["result"]["resultScore"]["textString"]
-
-        assert score == score_in_record
+        assert self.sent_pox_body(http_service) == {
+            "replaceResultRequest": {
+                "resultRecord": {
+                    "sourcedGUID": {"sourcedId": "sentinel.grading_id"},
+                    **score_payload,
+                }
+            }
+        }
 
     @pytest.mark.usefixtures("with_response")
     def test_record_result_calls_hook(self, svc, http_service):
@@ -85,9 +74,9 @@ class TestLTI11GradingService:
         svc.record_result(sentinel.grading_id, score=1.5, pre_record_hook=my_hook)
 
         my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
-        assert self.sent_pox_body(http_service)["replaceResultRequest"] == OrderedDict(
-            {"my_dict": "1"}
-        )
+        assert self.sent_pox_body(http_service) == {
+            "replaceResultRequest": {"my_dict": "1"}
+        }
 
     @pytest.mark.parametrize("hook_result", [None, [], "foo"])
     def test_record_result_requires_dict_result(self, svc, hook_result):
