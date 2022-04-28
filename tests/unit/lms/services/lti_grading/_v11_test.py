@@ -49,7 +49,7 @@ class TestLTI11GradingService:
 
         assert score is None
 
-    @pytest.mark.usefixtures("response")
+    @pytest.mark.usefixtures("with_response")
     def test_record_result_sends_sourcedid(self, svc, http_service):
         svc.record_result(sentinel.grading_id)
 
@@ -62,7 +62,7 @@ class TestLTI11GradingService:
 
         assert sourced_id == "sentinel.grading_id"
 
-    @pytest.mark.usefixtures("response")
+    @pytest.mark.usefixtures("with_response")
     @pytest.mark.parametrize(
         "score_provided,score_in_record",
         [
@@ -82,7 +82,7 @@ class TestLTI11GradingService:
 
         assert score == score_in_record
 
-    @pytest.mark.usefixtures("response")
+    @pytest.mark.usefixtures("with_response")
     def test_record_result_calls_hook(self, svc, http_service):
         my_hook = Mock(return_value={"my_dict": 1})
 
@@ -237,7 +237,7 @@ class TestLTI11GradingService:
         )
 
     @pytest.fixture
-    def response(self, respond_with):
+    def with_response(self, respond_with):
         respond_with()
 
     @pytest.fixture
