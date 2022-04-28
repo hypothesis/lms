@@ -23,22 +23,18 @@ class TestLTI11GradingService:
         }
         assert score == 0.95
 
+    @pytest.mark.parametrize("score", [None, "", "not-a-float"])
+    def test_read_result_returns_none_if_score_not_a_float(
+        self, svc, respond_with, score
+    ):
+        respond_with(score=score)
+
+        assert svc.read_result(sentinel.grading_id) is None
+
     def test_read_result_returns_none_if_no_score(self, svc, respond_with):
         respond_with(include_score=False)
 
-        score = svc.read_result(sentinel.grading_id)
-
-        assert score is None
-
-    @pytest.mark.parametrize("score_text", [None, "", "not-a-float"])
-    def test_read_result_returns_none_if_score_not_a_float(
-        self, svc, respond_with, score_text
-    ):
-        respond_with(score=score_text)
-
-        score = svc.read_result(sentinel.grading_id)
-
-        assert score is None
+        assert svc.read_result(sentinel.grading_id) is None
 
     @pytest.mark.usefixtures("with_response")
     @pytest.mark.parametrize(
