@@ -9,9 +9,8 @@ from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading._v11 import LTI11GradingService
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("oauth1_service", "http_service")
 
-
+@pytest.mark.usefixtures("oauth1_service", "http_service")
 class TestLTI11GradingService:
     def test_read_result_sends_expected_request(self, svc, respond_with, http_service):
         respond_with(score=0.95)
