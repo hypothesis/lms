@@ -36,6 +36,7 @@ __all__ = (
     # Meta fixture for creating service fixtures
     "mock_service",
     # Individual services
+    "aes_service",
     "application_instance_service",
     "assignment_service",
     "async_oauth_http_service",
@@ -50,20 +51,19 @@ __all__ = (
     "grouping_service",
     "h_api",
     "http_service",
+    "jstor_service",
+    "jwt_service",
     "launch_verifier",
-    "lti_h_service",
     "lti_grading_service",
+    "lti_h_service",
     "lti_registration_service",
+    "ltia_http_service",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
+    "rsa_key_service",
     "user_service",
     "vitalsource_service",
-    "jstor_service",
-    "aes_service",
-    "jwt_service",
-    "rsa_key_service",
-    "ltia_http_service",
 )
 
 
@@ -94,6 +94,11 @@ def application_instance_service(mock_service, application_instance):
     application_instance_service.get_by_consumer_key.return_value = application_instance
 
     return application_instance_service
+
+
+@pytest.fixture
+def aes_service(mock_service):
+    return mock_service(AESService)
 
 
 @pytest.fixture
@@ -129,6 +134,11 @@ def canvas_service(mock_service, canvas_api_client):
 @pytest.fixture
 def course_service(mock_service):
     return mock_service(CourseService, service_name="course")
+
+
+@pytest.fixture
+def file_service(mock_service):
+    return mock_service(FileService, service_name="file")
 
 
 @pytest.fixture
@@ -168,6 +178,16 @@ def http_service(mock_service):
 
 
 @pytest.fixture
+def jstor_service(mock_service):
+    return mock_service(JSTORService)
+
+
+@pytest.fixture
+def jwt_service(mock_service):
+    return mock_service(JWTService)
+
+
+@pytest.fixture
 def oauth_http_service(mock_service):
     oauth_http_service = mock_service(OAuthHTTPService, service_name="oauth_http")
     oauth_http_service.request.return_value = factories.requests.Response()
@@ -198,6 +218,16 @@ def lti_h_service(mock_service):
 
 
 @pytest.fixture
+def lti_registration_service(mock_service):
+    return mock_service(LTIRegistrationService)
+
+
+@pytest.fixture
+def ltia_http_service(mock_service):
+    return mock_service(LTIAHTTPService)
+
+
+@pytest.fixture
 def oauth1_service(mock_service):
     return mock_service(OAuth1Service, service_name="oauth1")
 
@@ -211,45 +241,15 @@ def oauth2_token_service(mock_service, oauth_token):
 
 
 @pytest.fixture
-def user_service(mock_service):
-    return mock_service(UserService)
-
-
-@pytest.fixture
-def jstor_service(mock_service):
-    return mock_service(JSTORService)
-
-
-@pytest.fixture
-def aes_service(mock_service):
-    return mock_service(AESService)
-
-
-@pytest.fixture
-def jwt_service(mock_service):
-    return mock_service(JWTService)
-
-
-@pytest.fixture
-def vitalsource_service(mock_service):
-    return mock_service(VitalSourceService, service_name="vitalsource")
-
-
-@pytest.fixture
-def file_service(mock_service):
-    return mock_service(FileService, service_name="file")
-
-
-@pytest.fixture
-def lti_registration_service(mock_service):
-    return mock_service(LTIRegistrationService)
-
-
-@pytest.fixture
 def rsa_key_service(mock_service):
     return mock_service(RSAKeyService)
 
 
 @pytest.fixture
-def ltia_http_service(mock_service):
-    return mock_service(LTIAHTTPService)
+def user_service(mock_service):
+    return mock_service(UserService)
+
+
+@pytest.fixture
+def vitalsource_service(mock_service):
+    return mock_service(VitalSourceService, service_name="vitalsource")
