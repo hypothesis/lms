@@ -11,22 +11,16 @@ from tests import factories
 
 @pytest.mark.usefixtures("oauth1_service", "http_service")
 class TestLTI11GradingService:
-    def test_read_result_sends_expected_request(self, svc, respond_with, http_service):
+    def test_read_result(self, svc, respond_with, http_service):
         respond_with(score=0.95)
 
-        svc.read_result(sentinel.grading_id)
+        score = svc.read_result(sentinel.grading_id)
 
         assert self.sent_pox_body(http_service) == {
             "readResultRequest": {
                 "resultRecord": {"sourcedGUID": {"sourcedId": "sentinel.grading_id"}}
             }
         }
-
-    def test_read_result_returns_float_score(self, svc, respond_with):
-        respond_with(score=0.95)
-
-        score = svc.read_result(sentinel.grading_id)
-
         assert score == 0.95
 
     def test_read_result_returns_none_if_no_score(self, svc, respond_with):
