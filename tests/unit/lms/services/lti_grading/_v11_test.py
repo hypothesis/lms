@@ -100,13 +100,15 @@ class TestLTI11GradingService:
                 sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
             )
 
-    def test_it_signs_request_with_oauth1(self, svc, http_service, oauth1_service):
+    def test_methods_sign_request_with_oauth1(
+        self, svc_method, http_service, oauth1_service
+    ):
         http_service.post.side_effect = OSError()
 
         # We don't care if this actually does anything afterwards, so just
         # fail here so we can see how we were called
         with pytest.raises(OSError):
-            svc.record_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
         http_service.post.assert_called_once_with(
             url=Any(),
@@ -115,13 +117,15 @@ class TestLTI11GradingService:
             auth=oauth1_service.get_client.return_value,
         )
 
-    def test_requests_fail_if_the_third_party_request_fails(self, svc, http_service):
+    def test_methods_fail_if_the_third_party_request_fails(
+        self, svc_method, http_service
+    ):
         http_service.post.side_effect = ExternalRequestError
 
         with pytest.raises(ExternalRequestError):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
-    def test_requests_fail_if_body_not_xml(self, svc, http_service):
+    def test_methods_fail_if_body_not_xml(self, svc_method, http_service):
         http_service.post.return_value = factories.requests.Response(
             status_code=200,
             body='{"not":"xml"}',
@@ -131,24 +135,24 @@ class TestLTI11GradingService:
             ExternalRequestError,
             match="Unable to parse XML response from LTI Outcomes service",
         ):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
-    def test_requests_fail_if_no_status(self, svc, respond_with):
+    def test_methods_fail_if_no_status(self, svc_method, respond_with):
         respond_with(include_status=False)
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
         ):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
-    def test_requests_fail_if_response_is_malformed(self, svc, respond_with):
+    def test_methods_fail_if_response_is_malformed(self, svc_method, respond_with):
         respond_with(malformed=True)
 
         with pytest.raises(
             ExternalRequestError, match="Malformed LTI outcome response"
         ):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
-    def test_requests_fail_if_status_is_not_success(self, svc, respond_with):
+    def test_methods_fail_if_status_is_not_success(self, svc_method, respond_with):
         respond_with(status_code="failure")
 
         # LTI outcome request failed
@@ -156,14 +160,14 @@ class TestLTI11GradingService:
             ExternalRequestError,
             match="<imsx_description>An error occurred.</imsx_description>",
         ):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
-    def test_requests_fail_and_no_description_returned(self, svc, respond_with):
+    def test_methods_fail_and_no_description_returned(self, svc_method, respond_with):
         respond_with(status_code="failure", include_description=False)
 
         # imsx_description is missing
         with pytest.raises(ExternalRequestError, match="LTI outcome request failed"):
-            svc.read_result(sentinel.grading_id)
+            svc_method(sentinel.grading_id)
 
     @classmethod
     def sent_body(cls, http_service):
@@ -267,6 +271,10 @@ class TestLTI11GradingService:
             )
 
         return configure
+
+    @pytest.fixture(params=["record_result", "read_result"])
+    def svc_method(self, svc, request):
+        return getattr(svc, request.param)
 
     @pytest.fixture
     def svc(self, oauth1_service, http_service):
