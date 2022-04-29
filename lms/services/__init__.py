@@ -52,7 +52,7 @@ def includeme(config):
         "lms.services.grading_info.GradingInfoService", name="grading_info"
     )
     config.register_service_factory(
-        "lms.services.lti_grading.factory", iface=LTIGradingService
+        "lms.services.lti_grading.service_factory", iface=LTIGradingService
     )
     config.register_service_factory(
         "lms.services.group_info.GroupInfoService", name="group_info"
