@@ -176,18 +176,6 @@ class JSConfig:
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
 
-    def _create_assignment_api(self):
-        if not self._context.is_canvas:
-            return None
-
-        return {
-            "path": self._request.route_path("api.assignments.create"),
-            "data": {
-                "ext_lti_assignment_id": self._request.params["ext_lti_assignment_id"],
-                "course_id": self._request.params["custom_canvas_course_id"],
-            },
-        }
-
     def enable_content_item_selection_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "content item selection" mode.
@@ -209,7 +197,6 @@ class JSConfig:
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,
-                    "createAssignmentAPI": self._create_assignment_api(),
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To
