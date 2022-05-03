@@ -1,0 +1,3 @@
+lunr
+h_checkmatelib
+tldextract

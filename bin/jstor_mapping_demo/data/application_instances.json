@@ -1,0 +1,5 @@
+[
+{"application_instance_id":5393,"custom_canvas_api_domain":null,"tool_consumer_instance_name":"Montgomery College","lms_url":null,"email_domain":null,"contact_domain":"wat.com"},
+{"application_instance_id":5393,"custom_canvas_api_domain":null,"tool_consumer_instance_name":"Missing School","lms_url":"https://montgomerycollege-staging.example.com","email_domain":"example.net","contact_domain":null},
+{"application_instance_id":5392,"custom_canvas_api_domain":null,"tool_consumer_instance_name":null,"lms_url":"https://school.example.org","email_domain":"example.org","contact_domain":null}
+]
