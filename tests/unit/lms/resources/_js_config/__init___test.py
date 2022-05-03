@@ -71,46 +71,6 @@ class TestEnableContentItemSelectionMode:
             application_instance_service.get_current.return_value,
         )
 
-    def test_with_create_assignment_api(self, js_config, context):
-        context.is_canvas = True
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-        config = js_config.asdict()
-
-        assert config == Any.dict.containing(
-            {
-                "mode": "content-item-selection",
-                "filePicker": Any.dict.containing(
-                    {
-                        "createAssignmentAPI": {
-                            "path": "/api/assignment",
-                            "data": {
-                                "ext_lti_assignment_id": "ext_lti_assignment_id",
-                                "course_id": "test_course_id",
-                            },
-                        }
-                    }
-                ),
-            }
-        )
-
-    def test_with_create_assignment_api_non_canvas(self, js_config, context):
-        context.is_canvas = False
-
-        js_config.enable_content_item_selection_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
-        config = js_config.asdict()
-
-        assert config == Any.dict.containing(
-            {
-                "mode": "content-item-selection",
-                "filePicker": Any.dict.containing({"createAssignmentAPI": None}),
-            }
-        )
-
     @pytest.fixture(autouse=True)
     def FilePickerConfig(self, patch):
         return patch("lms.resources._js_config.FilePickerConfig")
