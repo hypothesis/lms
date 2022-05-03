@@ -42,12 +42,18 @@ class Matcher:
         return matches or []
 
     def _go_for_gold(self, application_instance):
+        # Try directly looking up the domain against the list of codes. You
+        # quite often get a hit, and it's much faster than the text search
+        matches = []
+
         for domain in application_instance.domains:
             jstor_record = self.jstor_records.get(domain)
             if jstor_record:
-                return [Match("domain_match", jstor_record, application_instance)]
+                matches.append(
+                    Match("domain_match", jstor_record, application_instance)
+                )
 
-        return None
+        return matches
 
     def _text_match(self, application_instance):
         # Remove things which are interpreted as query string parts

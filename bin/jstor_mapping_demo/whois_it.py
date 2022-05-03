@@ -97,8 +97,8 @@ class Whois:
                     .decode("utf-8")
                     .strip()
                 )
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                print(f"Failed to get '{domain}'")
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as err:
+                print(f"Failed to get '{domain}': {err}")
                 raw = None
 
             self._RAW[domain] = raw

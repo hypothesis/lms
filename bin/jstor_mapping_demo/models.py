@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 import tldextract
 
+from checkmatelib.url import Domain
+
 
 @dataclass
 class JStorRecord:
@@ -68,7 +70,7 @@ class ApplicationInstance:
         if lms_url:
             ext = tldextract.extract(lms_url, include_psl_private_domains=True)
             self.add_domain(".".join(part for part in ext if part))
-            # Add again dropping the minor part
+            # Add again dropping the minor part, which gets us more hits
             self.add_domain(".".join(part for part in ext[1:] if part))
 
         if tool_consumer_instance_name:
@@ -82,7 +84,7 @@ class ApplicationInstance:
         domain = ".".join(
             part.strip() for part in parts if not part in self.BAD_DOMAIN_LABELS
         )
-        if not domain:
+        if not domain or not Domain(domain).is_public:
             return
 
         self.domains.add(domain)
