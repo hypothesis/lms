@@ -18,54 +18,69 @@
     </div>
 {% endmacro %}
 
-{% macro text_field(label, value) %}
+{% macro read_only_field(label, value) %}
     {% call field_body(label) %}
         <input class="input" disabled type="text" value="{{value}}">
     {% endcall %}
 {% endmacro %}
 
-{%  macro checkbox_field(label, setting, sub_setting, field_name, default=False) %}
+{% macro settings_checkbox(label, setting, sub_setting, field_name, default=False) %}
     {% call field_body(label) %}
         <label class="checkbox">
-          <input {% if instance.settings.get(setting, sub_setting, default) %}checked {% endif%} type="checkbox" name="{{ setting }}.{{ sub_setting }}">
+            <input
+                {% if instance.settings.get(setting, sub_setting, default) %}checked {% endif%}
+                type="checkbox"
+                name="{{ setting }}.{{ sub_setting }}">
         </label>
     {% endcall %}
 {% endmacro %}
+
+{% macro settings_text_field(label, setting, sub_setting, field_name, default='') %}
+    {% call field_body(label) %}
+        <input
+            value="{{ instance.settings.get(setting, sub_setting, default) or '' }}"
+            class="input"
+            type="text"
+            name="{{ setting }}.{{ sub_setting }}">
+    {% endcall %}
+{% endmacro %}
+
 
 {% block content %}
 <form method="POST" action="{{ request.route_url("admin.instance", consumer_key=instance.consumer_key) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
-    {{ text_field("Consumer key", instance.consumer_key) }}
-    {{ text_field("LMS URL", instance.lms_url) }}
+    {{ read_only_field("Consumer key", instance.consumer_key) }}
+    {{ read_only_field("LMS URL", instance.lms_url) }}
 
-    {{ text_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
-    {{ text_field("Tool consumer info product family code", instance.tool_consumer_info_product_family_code) }}
-    {{ text_field("Tool consumer instance description", instance.tool_consumer_instance_description) }}
-    {{ text_field("Tool consumer instance URL", instance.tool_consumer_instance_url) }}
-    {{ text_field("Tool consumer instance name", instance.tool_consumer_instance_name) }}
-    {{ text_field("Tool consumer instance contact email", instance.tool_consumer_instance_contact_email) }}
-    {{ text_field("Tool consumer info version", instance.tool_consumer_info_version) }}
+    {{ read_only_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
+    {{ read_only_field("Tool consumer info product family code", instance.tool_consumer_info_product_family_code) }}
+    {{ read_only_field("Tool consumer instance description", instance.tool_consumer_instance_description) }}
+    {{ read_only_field("Tool consumer instance URL", instance.tool_consumer_instance_url) }}
+    {{ read_only_field("Tool consumer instance name", instance.tool_consumer_instance_name) }}
+    {{ read_only_field("Tool consumer instance contact email", instance.tool_consumer_instance_contact_email) }}
+    {{ read_only_field("Tool consumer info version", instance.tool_consumer_info_version) }}
 
-    {{ text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
+    {{ read_only_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Canvas settings</legend>
-        {{ checkbox_field("Canvas sections enabled", "canvas", "sections_enabled") }}
-        {{ checkbox_field("Canvas groups enabled", "canvas", "groups_enabled") }}
+        {{ settings_checkbox("Canvas sections enabled", "canvas", "sections_enabled") }}
+        {{ settings_checkbox("Canvas groups enabled", "canvas", "groups_enabled") }}
     </fieldset>
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Blackboard settings</legend>
-        {{ checkbox_field("Blackboard groups enabled", "blackboard", "groups_enabled") }}
-        {{ checkbox_field("Blackboard files enabled", "blackboard", "files_enabled") }}
+        {{ settings_checkbox("Blackboard groups enabled", "blackboard", "groups_enabled") }}
+        {{ settings_checkbox("Blackboard files enabled", "blackboard", "files_enabled") }}
     </fieldset>
 
     <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Other settings</legend>
-        {{ checkbox_field("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
-        {{ checkbox_field("VitalSource enabled", "vitalsource", "enabled") }}
-        {{ checkbox_field("JSTOR enabled", "jstor", "enabled") }}
+        <legend class="label has-text-centered">Content integrations</legend>
+        {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
+        {{ settings_checkbox("VitalSource enabled", "vitalsource", "enabled") }}
+        {{ settings_checkbox("JSTOR enabled", "jstor", "enabled") }}
+        {{ settings_text_field("JSTOR site code", "jstor", "site_code") }}
     </fieldset>
 
     {% call field_body(label="") %}

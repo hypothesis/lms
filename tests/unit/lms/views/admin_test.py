@@ -90,36 +90,40 @@ class TestAdminViews:
         )
 
     @pytest.mark.parametrize(
-        "setting,sub_setting",
+        "setting,sub_setting,value,expected",
         (
-            ("canvas", "groups_enabled"),
-            ("canvas", "sections_enabled"),
-            ("blackboard", "files_enabled"),
-            ("blackboard", "groups_enabled"),
-            ("microsoft_onedrive", "files_enabled"),
-            ("vitalsource", "enabled"),
-            ("jstor", "enabled"),
+            # Boolean fields
+            ("canvas", "groups_enabled", "on", True),
+            ("canvas", "sections_enabled", "", False),
+            ("blackboard", "files_enabled", "other", False),
+            ("blackboard", "groups_enabled", "off", False),
+            ("microsoft_onedrive", "files_enabled", "on", True),
+            ("vitalsource", "enabled", "on", True),
+            ("jstor", "enabled", "off", False),
+            # String fields
+            ("jstor", "site_code", "CODE", "CODE"),
+            ("jstor", "site_code", "", None),
+            ("jstor", "site_code", None, None),
         ),
     )
-    @pytest.mark.parametrize("enabled", (True, False))
     def test_update_instance_saves_ai_settings(
         self,
         pyramid_request,
         application_instance_service,
         setting,
         sub_setting,
-        enabled,
+        value,
+        expected,
     ):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-        if enabled:
-            pyramid_request.params[f"{setting}.{sub_setting}"] = "on"
+        pyramid_request.params[f"{setting}.{sub_setting}"] = value
 
         AdminViews(pyramid_request).update_instance()
 
         application_instance = (
             application_instance_service.get_by_consumer_key.return_value
         )
-        assert application_instance.settings.get(setting, sub_setting) == enabled
+        assert application_instance.settings.get(setting, sub_setting) == expected
 
     def test_update_instance_not_found(
         self, pyramid_request, application_instance_service
