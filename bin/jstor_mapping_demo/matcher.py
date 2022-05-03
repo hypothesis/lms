@@ -16,6 +16,7 @@ class Match:
     jstor_record: JStorRecord
     application_instance: ApplicationInstance
     score: float = None
+    matched_on: str = None
 
 
 class Matcher:
@@ -50,7 +51,12 @@ class Matcher:
             jstor_record = self.jstor_records.get(domain)
             if jstor_record:
                 matches.append(
-                    Match("domain_match", jstor_record, application_instance)
+                    Match(
+                        "domain_match",
+                        jstor_record,
+                        application_instance,
+                        matched_on=domain,
+                    )
                 )
 
         return matches
@@ -71,6 +77,7 @@ class Matcher:
                 self.jstor_records[text_match["ref"]],
                 application_instance,
                 score=text_match["score"],
+                matched_on=" ".join(text_matches[0]["match_data"].metadata.keys()),
             )
             for text_match in text_matches
         ]

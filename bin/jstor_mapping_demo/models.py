@@ -5,8 +5,6 @@ from dataclasses import dataclass, field
 
 import tldextract
 
-from checkmatelib.url import Domain
-
 
 @dataclass
 class JStorRecord:
@@ -40,8 +38,9 @@ class ApplicationInstance:
         "moodlecloud",
         "sakaiproject",
         "trysakai",
-        "sakai"
+        "sakai",
         # Boring
+        "com",
         "www",
         # 3rd party
         "google",
@@ -84,7 +83,7 @@ class ApplicationInstance:
         domain = ".".join(
             part.strip() for part in parts if not part in self.BAD_DOMAIN_LABELS
         )
-        if not domain or not Domain(domain).is_public:
+        if not domain:
             return
 
         self.domains.add(domain)
