@@ -2,26 +2,21 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import ApplicationSettings
 from lms.services.jstor import JSTORService, factory
-from tests.conftest import TEST_SETTINGS
 
 
 class TestUserService:
-    @pytest.mark.parametrize(
-        "settings,expected",
-        [({}, False), ({"enabled": False}, False), ({"enabled": True}, True)],
-    )
-    def test_enabled(self, settings, expected):
-        assert JSTORService(settings).enabled == expected
-
     def test_via_url(self, pyramid_request, via_url):
-        url = JSTORService({}).via_url(pyramid_request, "jstor://doi")
+        svc = JSTORService(enabled=True, site_code=sentinel.site_code)
+
+        url = svc.via_url(pyramid_request, "jstor://doi")
 
         via_url.assert_called_once_with(
             pyramid_request,
             "jstor://doi",
             content_type="pdf",
-            options={"jstor.ip": TEST_SETTINGS["jstor_ip"]},
+            options={"via.jstor.site_code": sentinel.site_code},
         )
 
         assert url == via_url.return_value
@@ -33,14 +28,23 @@ class TestUserService:
 
 class TestFactory:
     def test_it(self, pyramid_request, application_instance_service, JSTORService):
-        user_service = factory(sentinel.context, pyramid_request)
+        application_instance_service.get_current.return_value.settings = (
+            ApplicationSettings(
+                {
+                    "jstor": {
+                        "enabled": sentinel.jstor_enabled,
+                        "site_code": sentinel.jstor_site_code,
+                    }
+                }
+            )
+        )
+
+        svc = factory(sentinel.context, pyramid_request)
 
         JSTORService.assert_called_once_with(
-            dict(application_instance_service.get_current.return_value.settings).get(
-                "jstor", {}
-            ),
+            enabled=sentinel.jstor_enabled, site_code=sentinel.jstor_site_code
         )
-        assert user_service == JSTORService.return_value
+        assert svc == JSTORService.return_value
 
     @pytest.fixture(autouse=True)
     def JSTORService(self, patch):

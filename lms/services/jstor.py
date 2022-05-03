@@ -2,27 +2,39 @@ from lms.views.helpers import via_url
 
 
 class JSTORService:
-    def __init__(self, settings):
-        self._settings = settings
+    enabled = False
 
-    @property
-    def enabled(self):
-        return self._settings.get("enabled", False)
+    def __init__(self, enabled, site_code):
+        """
+        Initialise the JSTOR service.
 
-    @staticmethod
-    def via_url(request, document_url):
+        :param enabled: Whether JSTOR is enabled on this instance
+        :param site_code: The site code to use to identify the organization
+        """
+        self.enabled = enabled
+        self._site_code = site_code
+
+    def via_url(self, request, document_url):
+        """
+        Get a VIA url for a document.
+
+        :param request: Pyramid request
+        :param document_url: The URL to annotate
+        :return: A URL for Via configured to launch the requested document
+        """
+
         return via_url(
             request,
             document_url,
             content_type="pdf",
-            options={"jstor.ip": request.registry.settings["jstor_ip"]},
+            options={"via.jstor.site_code": self._site_code},
         )
 
 
 def factory(_context, request):
-    # application_instance.settings is an ApplicationSettings which overwrites `get`.
-    # Convert to a dict to be able to access ["jstor"] securely
-    settings = dict(
-        request.find_service(name="application_instance").get_current().settings
+    settings = request.find_service(name="application_instance").get_current().settings
+
+    return JSTORService(
+        enabled=settings.get("jstor", "enabled"),
+        site_code=settings.get("jstor", "site_code"),
     )
-    return JSTORService(settings=settings.get("jstor", {}))
