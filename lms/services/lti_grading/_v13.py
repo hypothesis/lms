@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading.interface import LTIGradingService
@@ -22,7 +23,7 @@ class LTI13GradingService(LTIGradingService):
         try:
             response = self._ltia_service.request(
                 "GET",
-                self.grading_url + "/results",
+                self._service_url(self.grading_url, "/results"),
                 scopes=self.LTIA_SCOPES,
                 params={"user_id": grading_id},
                 headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
@@ -44,7 +45,7 @@ class LTI13GradingService(LTIGradingService):
     def record_result(self, grading_id, score=None):  # pylint:disable=arguments-differ
         return self._ltia_service.request(
             "POST",
-            self.grading_url + "/scores",
+            self._service_url(self.grading_url, "/scores"),
             scopes=self.LTIA_SCOPES,
             json={
                 "scoreMaximum": 1,
@@ -54,5 +55,20 @@ class LTI13GradingService(LTIGradingService):
                 "activityProgress": "Completed",
                 "gradingProgress": "FullyGraded",
             },
-            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
+
+    @staticmethod
+    def _service_url(base_url, endpoint):
+        """
+        Build a complete URL for grading services.
+
+        Some LMSs (eg Moodle) include query params on the service URL.
+        Appending "/endpoint" naively will return an URL that it's not quite right:
+
+            /lineitem?type=10/endpoint.
+
+        Using urlparse here to build the URL correctly.
+        """
+        base = urlparse(base_url)
+        return base._replace(path=base.path + endpoint).geturl()
