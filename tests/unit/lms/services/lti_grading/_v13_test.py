@@ -8,16 +8,16 @@ from lms.services.lti_grading._v13 import LTI13GradingService
 
 
 class TestLTI13GradingService:
-    SERVICE_URL = "http://example.com/service_url"
-
+    @freeze_time("2022-04-04")
     def test_read_lti_result(self, svc, response, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = response
+        svc.grading_url = "https://lms.com/lineitems?param=1"
 
         score = svc.read_result(sentinel.user_id)
 
         ltia_http_service.request.assert_called_once_with(
             "GET",
-            self.SERVICE_URL + "/results",
+            "https://lms.com/lineitems/results?param=1",
             scopes=svc.LTIA_SCOPES,
             params={"user_id": sentinel.user_id},
             headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
@@ -61,11 +61,13 @@ class TestLTI13GradingService:
 
     @freeze_time("2022-04-04")
     def test_record_result(self, svc, ltia_http_service):
+        svc.grading_url = "https://lms.com/lineitems?param=1"
+
         response = svc.record_result(sentinel.user_id, sentinel.score)
 
         ltia_http_service.request.assert_called_once_with(
             "POST",
-            self.SERVICE_URL + "/scores",
+            "https://lms.com/lineitems/scores?param=1",
             scopes=svc.LTIA_SCOPES,
             json={
                 "scoreMaximum": 1,
@@ -75,7 +77,7 @@ class TestLTI13GradingService:
                 "activityProgress": "Completed",
                 "gradingProgress": "FullyGraded",
             },
-            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
         assert response == ltia_http_service.request.return_value
 
@@ -94,4 +96,4 @@ class TestLTI13GradingService:
 
     @pytest.fixture
     def svc(self, ltia_http_service):
-        return LTI13GradingService(self.SERVICE_URL, ltia_http_service)
+        return LTI13GradingService("http://example.com/service_url", ltia_http_service)
