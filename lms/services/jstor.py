@@ -2,8 +2,6 @@ from lms.views.helpers import via_url
 
 
 class JSTORService:
-    enabled = False
-
     def __init__(self, enabled, site_code):
         """
         Initialise the JSTOR service.
@@ -11,8 +9,14 @@ class JSTORService:
         :param enabled: Whether JSTOR is enabled on this instance
         :param site_code: The site code to use to identify the organization
         """
-        self.enabled = enabled
+        self._enabled = enabled
         self._site_code = site_code
+
+    @property
+    def enabled(self) -> bool:
+        """Get whether this instance is configured for JSTOR."""
+
+        return bool(self._enabled and self._site_code)
 
     def via_url(self, request, document_url):
         """

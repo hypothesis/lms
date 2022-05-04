@@ -6,7 +6,14 @@ from lms.models import ApplicationSettings
 from lms.services.jstor import JSTORService, factory
 
 
-class TestUserService:
+class TestJSTORService:
+    @pytest.mark.parametrize("enabled", (True, False, None))
+    @pytest.mark.parametrize("site_code", ("code", None, ""))
+    def test_enabled(self, enabled, site_code):
+        svc = JSTORService(enabled=enabled, site_code=site_code)
+
+        assert svc.enabled == bool(enabled and site_code)
+
     def test_via_url(self, pyramid_request, via_url):
         svc = JSTORService(enabled=True, site_code=sentinel.site_code)
 
