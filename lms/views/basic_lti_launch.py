@@ -18,6 +18,7 @@ from lms.models import LtiLaunches
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services.vitalsource.client import VitalSourceService
+from lms.services import LTINamesRolesServices
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
@@ -47,6 +48,8 @@ class BasicLTILaunchViews:
             name="application_instance"
         ).get_current()
         self.application_instance.update_lms_data(self.request.params)
+
+        self.request.find_service(LTINamesRolesServices).context_memberships()
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""

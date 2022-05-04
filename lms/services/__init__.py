@@ -20,6 +20,7 @@ from lms.services.launch_verifier import (
     LTIOAuthError,
 )
 from lms.services.lti_grading import LTIGradingService
+from lms.services.lti_names_roles import LTINamesRolesServices
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.rsa_key import RSAKeyService
@@ -80,6 +81,9 @@ def includeme(config):
     config.register_service_factory("lms.services.grouping.factory", name="grouping")
     config.register_service_factory("lms.services.file.factory", name="file")
     config.register_service_factory("lms.services.jstor.factory", iface=JSTORService)
+    config.register_service_factory(
+        "lms.services.lti_names_roles.factory", iface=LTINamesRolesServices
+    )
     config.register_service_factory(
         "lms.services.lti_registration.factory", iface=LTIRegistrationService
     )
