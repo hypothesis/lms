@@ -4,15 +4,41 @@ Application instances
 {% endblock %}
 
 {% block content %}
-    <form method="POST" action="{{ request.route_url("admin.instances") }}">
+
+<fieldset class="box mt-6">
+    <legend class="label has-text-centered">Find by consumer_key</legend>
+    <form method="POST" action="{{ request.route_url("admin.instances.consumer_key") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
         <div class="field has-addons">
            <div class="control">
-                <input class="input" name="query" type="text" placeholder="Consumer_key">
+                <input class="input" name="consumer_key" type="text" placeholder="Consumer_key">
             </div>
             <div class="control">
                 <input type="submit" class="button is-info" value="Find"/>
             </div>
         </div>
     </form>
+</fieldset>
+
+<fieldset class="box mt-6">
+    <legend class="label has-text-centered">Search</legend>
+    <form method="POST" action="{{ request.route_url("admin.instances.search") }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+        <div class="field has-addons">
+           <div class="control">
+                <input class="input" name="issuer" type="text" placeholder="Issuer">
+                <input class="input" name="client_id" type="text" placeholder="Client ID">
+                <input class="input" name="deployment_id" type="text" placeholder="Deployment ID">
+                <input class="input" name="guid" type="text" placeholder="GUID">
+            </div>
+        </div>
+        <div class="field is-grouped">
+          <div class="control">
+            <input type="submit" class="button is-info" value="Search"/>
+          </div>
+      </div>
+</div>
+    </form>
+</fieldset>
+
 {% endblock %}
