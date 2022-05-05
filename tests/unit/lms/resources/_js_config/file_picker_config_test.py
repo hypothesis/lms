@@ -165,13 +165,11 @@ class TestFilePickerConfig:
         assert config == {"enabled": enabled}
 
     @pytest.mark.parametrize("enabled", (True, False))
-    def test_jstor_config(
-        self, context, pyramid_request, application_instance, enabled
-    ):
-        application_instance.settings.set("jstor", "enabled", enabled)
+    def test_jstor_config(self, pyramid_request, jstor_service, enabled):
+        jstor_service.enabled = enabled
 
         config = FilePickerConfig.jstor_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, sentinel.application_instance
         )
 
         assert config == {"enabled": enabled}
