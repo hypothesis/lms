@@ -22,10 +22,10 @@ class TestAdminViews:
 
         assert response == {}
 
-    def test_find_instance_no_query(self, views):
+    def test_find_instance_no_consumer_key(self, views):
 
         with pytest.raises(HTTPBadRequest):
-            views.find_instance()
+            views.find_by_consumer_key()
 
     def test_find_instance_not_found(
         self, pyramid_request, application_instance_service
@@ -33,8 +33,8 @@ class TestAdminViews:
         application_instance_service.get_by_consumer_key.side_effect = (
             ApplicationInstanceNotFound
         )
-        pyramid_request.params["query"] = "some-value"
-        response = AdminViews(pyramid_request).find_instance()
+        pyramid_request.params["consumer_key"] = "some-value"
+        response = AdminViews(pyramid_request).find_by_consumer_key()
 
         assert pyramid_request.session.peek_flash("errors")
         assert response == temporary_redirect_to(
@@ -42,23 +42,105 @@ class TestAdminViews:
         )
 
     def test_find_instance_found(self, pyramid_request, application_instance_service):
-        pyramid_request.params["query"] = sentinel.consumer_key
+        pyramid_request.params["consumer_key"] = sentinel.consumer_key
 
-        response = AdminViews(pyramid_request).find_instance()
+        response = AdminViews(pyramid_request).find_by_consumer_key()
 
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance",
+                "admin.instance.consumer_key",
                 consumer_key=application_instance_service.get_by_consumer_key.return_value.consumer_key,
             )
         )
 
-    def test_show_instance(self, pyramid_request, application_instance_service):
+    def test_search_not_query(self, pyramid_request):
+        response = AdminViews(pyramid_request).search()
+
+        assert pyramid_request.session.peek_flash("errors")
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instances")
+        )
+
+    def test_search_no_results(self, pyramid_request, application_instance_service):
+        application_instance_service.search.return_value = None
+        pyramid_request.params["issuer"] = sentinel.issuer
+
+        response = AdminViews(pyramid_request).search()
+
+        application_instance_service.search.assert_called_once_with(
+            issuer=sentinel.issuer,
+            client_id=None,
+            deployment_id=None,
+            tool_consumer_instance_guid=None,
+        )
+        assert pyramid_request.session.peek_flash("errors")
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instances")
+        )
+
+    def test_search_single_result(
+        self, pyramid_request, application_instance_service, application_instance
+    ):
+        application_instance_service.search.return_value = [application_instance]
+        pyramid_request.params["issuer"] = sentinel.issuer
+
+        response = AdminViews(pyramid_request).search()
+
+        application_instance_service.search.assert_called_once_with(
+            issuer=sentinel.issuer,
+            client_id=None,
+            deployment_id=None,
+            tool_consumer_instance_guid=None,
+        )
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url(
+                "admin.instance.id",
+                id_=application_instance_service.search.return_value[0].id,
+            )
+        )
+
+    def test_search_multiple_results(
+        self, pyramid_request, application_instance_service
+    ):
+        pyramid_request.params = {
+            "issuer": sentinel.issuer,
+            "client_id": sentinel.client_id,
+            "deployment_id": sentinel.deployment_id,
+            "tool_consumer_instance_guid": sentinel.tool_consumer_instance_guid,
+        }
+
+        response = AdminViews(pyramid_request).search()
+
+        application_instance_service.search.assert_called_once_with(
+            issuer=sentinel.issuer,
+            client_id=sentinel.client_id,
+            deployment_id=sentinel.deployment_id,
+            tool_consumer_instance_guid=sentinel.tool_consumer_instance_guid,
+        )
+        assert response == {
+            "instances": application_instance_service.search.return_value
+        }
+
+    def test_show_instance_consumer_key(
+        self, pyramid_request, application_instance_service
+    ):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+
         response = AdminViews(pyramid_request).show_instance()
+
         assert (
             response["instance"].consumer_key
             == application_instance_service.get_by_consumer_key.return_value.consumer_key
+        )
+
+    def test_show_instance_id(self, pyramid_request, application_instance_service):
+        pyramid_request.matchdict["id_"] = sentinel.id
+
+        response = AdminViews(pyramid_request).show_instance()
+
+        assert (
+            response["instance"].id
+            == application_instance_service.get_by_id.return_value.id
         )
 
     def test_show_not_found(self, pyramid_request, application_instance_service):
@@ -84,9 +166,7 @@ class TestAdminViews:
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance", consumer_key=application_instance.consumer_key
-            )
+            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
         )
 
     @pytest.mark.parametrize(
@@ -136,6 +216,11 @@ class TestAdminViews:
 
         with pytest.raises(HTTPNotFound):
             AdminViews(pyramid_request).update_instance()
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.params = {}
+        return pyramid_request
 
     @pytest.fixture
     def views(self, pyramid_request):
