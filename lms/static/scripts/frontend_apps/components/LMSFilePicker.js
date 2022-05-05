@@ -51,7 +51,7 @@ function NoFilesMessage({ href, inSubfolder }) {
  * @prop {APICallInfo} listFilesApi -
  *   Config for the API call to list available files
  * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
- * @prop {(f: File) => any} onSelectFile -
+ * @prop {(f: File) => void} onSelectFile -
  *   Callback invoked with the metadata of the selected file if the user makes a selection
  * @prop {string} missingFilesHelpLink - A helpful URL to documentation that explains
  *   how to upload files to an LMS such as Canvas or Blackboard. This link is only shown

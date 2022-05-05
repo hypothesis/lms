@@ -26,7 +26,7 @@ import GroupConfigSelector from './GroupConfigSelector';
  * @typedef FilePickerAppProps
  * @prop {DialogType} [defaultActiveDialog] -
  *   The dialog that should be shown when the app is first opened.
- * @prop {() => any} [onSubmit] - Callback invoked when the form is submitted.
+ * @prop {() => void} [onSubmit] - Callback invoked when the form is submitted.
  */
 
 /**

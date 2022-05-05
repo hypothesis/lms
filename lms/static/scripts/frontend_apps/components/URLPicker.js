@@ -9,8 +9,8 @@ import { useRef, useState } from 'preact/hooks';
 
 /**
  * @typedef URLPickerProps
- * @prop {() => any} onCancel
- * @prop {(url: string) => any} onSelectURL -
+ * @prop {() => void} onCancel
+ * @prop {(url: string) => void} onSelectURL -
  *   Callback invoked with the entered URL when the user accepts the dialog
  */
 
