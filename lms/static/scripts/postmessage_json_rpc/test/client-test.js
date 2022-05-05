@@ -1,6 +1,6 @@
 import EventEmitter from 'tiny-emitter';
 
-import { call } from '../client';
+import { call, notify } from '../client';
 
 class FakeWindow {
   constructor() {
@@ -14,10 +14,15 @@ describe('postmessage_json_rpc/client', () => {
   const origin = 'https://embedder.com';
   const messageId = 42;
 
-  describe('call', () => {
-    let frame;
-    let fakeWindow;
+  let frame;
+  let fakeWindow;
 
+  beforeEach(() => {
+    frame = { postMessage: sinon.stub() };
+    fakeWindow = new FakeWindow();
+  });
+
+  describe('call', () => {
     async function doCall() {
       const timeout = 1;
       return await call(
@@ -41,11 +46,6 @@ describe('postmessage_json_rpc/client', () => {
         },
       });
     }
-
-    beforeEach(() => {
-      frame = { postMessage: sinon.stub() };
-      fakeWindow = new FakeWindow();
-    });
 
     it('sends a message to the target frame', async () => {
       const result = doCall();
@@ -161,6 +161,18 @@ describe('postmessage_json_rpc/client', () => {
       } catch (e) {
         assert.equal(e.message, 'Request to https://embedder.com timed out');
       }
+    });
+  });
+
+  describe('notify', () => {
+    it('sends a notification request message to the target frame', async () => {
+      notify(frame, origin, 'someMethod', [1, 2, 3]);
+
+      assert.calledWith(frame.postMessage, {
+        jsonrpc: '2.0',
+        method: 'someMethod',
+        params: [1, 2, 3],
+      });
     });
   });
 });

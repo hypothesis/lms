@@ -1,6 +1,48 @@
+import { delay } from '../../test-util/wait';
+
 import { Server } from '../server';
 
 describe('Server', () => {
+  /**
+   * Return a Promise that simply resolves itself after a given delay.
+   */
+  function resolveAfterDelay() {
+    return new Promise(resolve => {
+      window.setTimeout(resolve, 1);
+    });
+  }
+
+  /**
+   * Return a Promise that simply rejects after a given delay.
+   */
+  function rejectAfterDelay(message) {
+    return new Promise((resolve, reject) => {
+      window.setTimeout(reject, 1500, new Error(message));
+    });
+  }
+
+  /**
+   * Return a valid JSON-RPC-over-postMessage request.
+   *
+   * Suitable for passing as the `message` argument to
+   * window.postMessage(message, serversOrigin) in order to make an RPC request
+   * to the server.
+   */
+  function validRequest(method = 'registeredMethodName') {
+    return {
+      jsonrpc: '2.0',
+      id: 'test_id',
+      method,
+    };
+  }
+
+  function validNotificationRequest(method = 'registeredMethodName') {
+    return {
+      jsonrpc: '2.0',
+      method,
+    };
+  }
+
   // The window origin of the server.
   // postMessage messages must be sent to this origin in order for the server
   // to receive them.
@@ -124,6 +166,72 @@ describe('Server', () => {
     });
   });
 
+  describe('when a valid notification request is received', () => {
+    beforeEach(() => {
+      const errorMethod = sinon.stub().throws();
+      server.register('errorMethod', errorMethod);
+      sinon.stub(console, 'error');
+    });
+
+    afterEach(() => {
+      console.error.restore();
+    });
+
+    it('calls the registered method', async () => {
+      window.postMessage(validNotificationRequest(), serversOrigin);
+      await delay(0);
+      assert.calledOnce(registeredMethod);
+    });
+
+    it('calls the registered method with the provided params', async () => {
+      const request = validNotificationRequest();
+      request.params = ['foo', 5];
+      window.postMessage(request, serversOrigin);
+      await delay(0);
+      assert.calledWith(registeredMethod, 'foo', 5);
+    });
+
+    it('logs thrown error from the registered method', async () => {
+      window.postMessage(
+        validNotificationRequest('errorMethod'),
+        serversOrigin
+      );
+
+      await delay(0);
+
+      assert.calledOnce(console.error);
+      assert.include(
+        console.error.getCall(0).args[0],
+        'JSON-RPC notification method failed:'
+      );
+    });
+  });
+
+  describe('when an invalid notification request is received', () => {
+    beforeEach(() => {
+      sinon.stub(console, 'error');
+    });
+
+    afterEach(() => {
+      console.error.restore();
+    });
+
+    it('logs if method name unrecognized', async () => {
+      window.postMessage(
+        validNotificationRequest('randoMethod'),
+        serversOrigin
+      );
+
+      await delay(0);
+
+      assert.calledOnce(console.error);
+      assert.include(
+        console.error.getCall(0).args[0],
+        'Received JSON-RPC notification for unrecognized method: randoMethod'
+      );
+    });
+  });
+
   describe('when an invalid request is sent', () => {
     it("doesn't respond to requests from origins that aren't allowed", () => {
       server._allowedOrigins = ['https://example.com'];
@@ -156,18 +264,10 @@ describe('Server', () => {
       return assertThatTheServerDidntRespond();
     });
 
-    it("responds with an error if there's no request identifier", () => {
-      const request = validRequest();
-      delete request.id;
-
-      window.postMessage(request, serversOrigin);
-
-      return assertThatServerRespondedWithError('request id invalid', null);
-    });
-
-    // The JSON-RPC spec says that `id` must be a number, string, or null.
-    // If some other type of value is used the server should ignore the request.
-    [{}, true, undefined].forEach(value => {
+    // The JSON-RPC spec says that `id` must be a number, string, or null if
+    // it is present. If it is not present, the request is assumed to be
+    // a notification.
+    [{}, true].forEach(value => {
       it('responds with an error if the request identifier is invalid', () => {
         const request = validRequest();
         request.id = value;
@@ -234,38 +334,5 @@ describe('Server', () => {
       }),
       rejectAfterDelay("Server's response wasn't received"),
     ]);
-  }
-
-  /**
-   * Return a Promise that simply resolves itself after a given delay.
-   */
-  function resolveAfterDelay() {
-    return new Promise(resolve => {
-      window.setTimeout(resolve, 1);
-    });
-  }
-
-  /**
-   * Return a Promise that simply rejects after a given delay.
-   */
-  function rejectAfterDelay(message) {
-    return new Promise((resolve, reject) => {
-      window.setTimeout(reject, 1500, new Error(message));
-    });
-  }
-
-  /**
-   * Return a valid JSON-RPC-over-postMessage request.
-   *
-   * Suitable for passing as the `message` argument to
-   * window.postMessage(message, serversOrigin) in order to make an RPC request
-   * to the server.
-   */
-  function validRequest(method = 'registeredMethodName') {
-    return {
-      jsonrpc: '2.0',
-      id: 'test_id',
-      method,
-    };
   }
 });

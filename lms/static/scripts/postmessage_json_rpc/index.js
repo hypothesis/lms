@@ -1,2 +1,2 @@
-export { call } from './client';
+export { call, notify } from './client';
 export { Server } from './server';
