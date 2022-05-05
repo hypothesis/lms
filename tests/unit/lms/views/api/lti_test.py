@@ -1,11 +1,10 @@
-import datetime
-from datetime import timezone
+from unittest.mock import sentinel
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from h_matchers import Any
 
-from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
+from lms.services import LTIGradingService
+from lms.views.api.lti import LTIOutcomesViews, get_speedgrader_launch_url
 
 pytestmark = pytest.mark.usefixtures("lti_grading_service")
 
@@ -29,18 +28,17 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         lti_grading_service.record_result.assert_not_called()
 
-    def test_it_passes_the_callback_if_there_is_no_score(
-        self, pyramid_request, lti_grading_service
-    ):
+    def test_it_passes_canvas_extensions(self, pyramid_request, lti_grading_service):
         lti_grading_service.read_result.return_value = None
 
         LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.record_result.assert_called_once_with(
             self.GRADING_ID,
-            pre_record_hook=Any.instance_of(CanvasPreRecordHook),
-            # lti_launch_url=expected_launch_url,
-            # submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
+            canvas_extensions=LTIGradingService.CanvasExtensions(
+                lti_launch_url=get_speedgrader_launch_url(pyramid_request),
+                submitted_at=sentinel.submitted_at,
+            ),
         )
 
     @pytest.fixture
@@ -57,11 +55,13 @@ class TestRecordCanvasSpeedgraderSubmission:
             # service.
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": self.GRADING_ID,
+            "submitted_at": sentinel.submitted_at,
+            "learner_canvas_user_id": "learner_canvas_user_id",
         }
         return pyramid_request
 
 
-class TestCanvasPreRecordHook:
+class TestGetSpeedGraderLaunchURL:
     @pytest.mark.parametrize(
         "parsed_params,url_params",
         [
@@ -76,31 +76,13 @@ class TestCanvasPreRecordHook:
             ],
         ],
     )
-    @pytest.mark.parametrize(
-        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
-    )
-    def test_it_sets_expected_fields(
-        self, pyramid_request, parsed_params, url_params, submitted_at
-    ):
+    def test_it(self, pyramid_request, parsed_params, url_params):
         pyramid_request.parsed_params.update(parsed_params)
-        pyramid_request.parsed_params["submitted_at"] = submitted_at
 
-        result = CanvasPreRecordHook(pyramid_request)(
-            score=None, request_body={"resultRecord": {}}
-        )
+        url = get_speedgrader_launch_url(pyramid_request)
 
-        assert result == {
-            "resultRecord": {"result": {"resultData": {"ltiLaunchUrl": Any.string()}}},
-            "submissionDetails": {
-                "submittedAt": submitted_at
-                or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
-            },
-        }
-
-        launch_url = result["resultRecord"]["result"]["resultData"]["ltiLaunchUrl"]
-        assert launch_url.startswith("http://example.com/lti_launches?")
-
-        query_string = parse_qs(urlparse(launch_url).query)
+        assert url.startswith("http://example.com/lti_launches?")
+        query_string = parse_qs(urlparse(url).query)
         assert query_string == dict(
             url_params,
             focused_user=["h_username"],

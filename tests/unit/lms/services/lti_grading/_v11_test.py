@@ -60,24 +60,6 @@ class TestLTI11GradingService:
         }
 
     @pytest.mark.usefixtures("with_response")
-    def test_record_result_calls_hook(self, svc, http_service):
-        my_hook = Mock(return_value={"my_dict": 1})
-
-        svc.record_result(sentinel.grading_id, score=1.5, pre_record_hook=my_hook)
-
-        my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
-        assert self.sent_pox_body(http_service) == {
-            "replaceResultRequest": {"my_dict": "1"}
-        }
-
-    @pytest.mark.parametrize("hook_result", [None, [], "foo"])
-    def test_record_result_requires_dict_result(self, svc, hook_result):
-        with pytest.raises(TypeError):
-            svc.record_result(
-                sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
-            )
-
-    @pytest.mark.usefixtures("with_response")
     def test_methods_make_valid_post_requests(
         self, svc_method, http_service, oauth1_service
     ):

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -33,7 +34,7 @@ class LTI11GradingService(LTIGradingService):
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
+    def record_result(self, grading_id, score=None, canvas_extensions=None):
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
 
         if score is not None:
@@ -41,13 +42,15 @@ class LTI11GradingService(LTIGradingService):
                 "resultScore": {"language": "en", "textString": score}
             }
 
-        if pre_record_hook:
-            request = pre_record_hook(score=score, request_body=request)
+        if canvas_extensions:
+            request["resultRecord"].setdefault("result", {})["resultData"] = {
+                "ltiLaunchUrl": canvas_extensions.lti_launch_url
+            }
 
-            if not isinstance(request, dict):
-                raise TypeError(
-                    "The pre-record hook must return the request body as a dict"
-                )
+            request["submissionDetails"] = {
+                canvas_extensions.submitted_at
+                or datetime(2001, 1, 1, tzinfo=timezone.utc)
+            }
 
         self._send_request({"replaceResultRequest": request})
 
