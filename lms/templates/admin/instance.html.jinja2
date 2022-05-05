@@ -1,6 +1,6 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
-    Application instance {{instance.consumer_key}}
+    Application instance {{instance.id}}
 {% endblock %}
 
 {% macro field_body(label) %}
@@ -47,10 +47,13 @@
 
 
 {% block content %}
-<form method="POST" action="{{ request.route_url("admin.instance", consumer_key=instance.consumer_key) }}">
+<form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
     {{ read_only_field("Consumer key", instance.consumer_key) }}
+    {{ read_only_field("Issuer", instance.lti_registration.issuer) }}
+    {{ read_only_field("Client ID", instance.lti_registration.client_id) }}
+    {{ read_only_field("Deployment ID", instance.deployment_id) }}
     {{ read_only_field("LMS URL", instance.lms_url) }}
 
     {{ read_only_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
