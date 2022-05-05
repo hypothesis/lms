@@ -6,6 +6,8 @@
  * @prop {string} method
  * @prop {any[]} params
  * @prop {string|null} id
+ *
+ * @typedef {Omit<JsonRpcRequest, 'id'>} JsonRpcNotification
  */
 
 /**
@@ -97,7 +99,7 @@ export class Server {
       return;
     }
 
-    if (!this._isJSONRPCRequest(event)) {
+    if (!this._isJSONRPCRequest(event.data)) {
       return;
     }
 
@@ -108,22 +110,52 @@ export class Server {
       origin: event.origin,
     });
 
+    if (typeof event.data.id === 'undefined') {
+      // The absence of an `id` property indicates a JSON-RPC 2.0 Notification
+      // request object, which should not get a response.
+      this._jsonRPCNotification(event.data);
+      return;
+    }
+
     const result = await this._jsonRPCResponse(event.data);
     /** @type {WindowProxy} */ (event.source).postMessage(result, event.origin);
   }
 
   /**
-   * Return true if the given postMessage event is a JSON-RPC request.
+   * Invoke the method indicated in the JSON-RPC 2.0 notification request
+   * object.
    *
-   * @param {MessageEvent} event
+   * @param {JsonRpcNotification} request
    */
-  _isJSONRPCRequest(event) {
-    if (!(event.data instanceof Object) || event.data.jsonrpc !== '2.0') {
+  async _jsonRPCNotification(request) {
+    const method = this._registeredMethods[request.method];
+
+    if (!method) {
+      console.error(
+        `Received JSON-RPC notification for unrecognized method: ${request.method}`
+      );
+      return;
+    }
+
+    try {
+      await method(...(request.params ?? []));
+    } catch (e) {
+      console.error(`JSON-RPC notification method failed: ${e}`);
+    }
+  }
+
+  /**
+   * Return true if the provided object is a JSON-RPC request.
+   *
+   * @param {any} request
+   */
+  _isJSONRPCRequest(request) {
+    if (!(request instanceof Object) || request.jsonrpc !== '2.0') {
       // Event is neither a JSON-RPC request or response.
       return false;
     }
 
-    if (event.data.result || event.data.error) {
+    if (request.result || request.error) {
       // Event is a JSON-RPC _response_, rather than a request.
       return false;
     }
@@ -162,9 +194,7 @@ export class Server {
 
     // Call the method and return the result response.
     try {
-      const result = request.params
-        ? await method(...request.params)
-        : await method();
+      const result = await method(...(request.params ?? []));
       return { jsonrpc: '2.0', result: result, id: request.id };
     } catch (e) {
       return {
