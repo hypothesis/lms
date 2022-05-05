@@ -4,7 +4,7 @@
  * @typedef JsonRpcRequest
  * @prop {'2.0'} jsonrpc
  * @prop {string} method
- * @prop {any[]} params
+ * @prop {unknown[]} params
  * @prop {string|null} id
  */
 

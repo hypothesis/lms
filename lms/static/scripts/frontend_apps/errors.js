@@ -56,7 +56,7 @@ export class APIError extends Error {
    * @param {object} data - Parsed JSON body from the API response
    *   @param {string} [data.message]
    *   @param {string} [data.error_code]
-   *   @param {any} [data.details]
+   *   @param {unknown} [data.details]
    */
   constructor(status, data) {
     super('API call failed');
