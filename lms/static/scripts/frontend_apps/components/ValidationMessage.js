@@ -5,7 +5,7 @@ import classnames from 'classnames';
  * @typedef ValidationMessageProps
  * @prop {string} message - Error message text
  * @prop {boolean} [open] - Should this be open or closed
- * @prop {() => any} [onClose] - Optional callback when the error message is closed
+ * @prop {() => void} [onClose] - Optional callback when the error message is closed
  */
 
 /**

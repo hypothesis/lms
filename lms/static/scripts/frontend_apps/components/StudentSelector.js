@@ -8,7 +8,7 @@ import classnames from 'classnames';
 
 /**
  * @typedef StudentSelectorProps
- * @prop {(index: number) => any} onSelectStudent -
+ * @prop {(index: number) => void} onSelectStudent -
  *   Callback invoked when the selected student changes
  * @prop {number} selectedStudentIndex -
  *   Index of selected student in `students` or -1 if no student is selected

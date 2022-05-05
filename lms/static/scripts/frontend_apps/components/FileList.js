@@ -10,9 +10,9 @@ import { Icon, Table } from '@hypothesis/frontend-shared';
  * @prop {File[]} files - List of file objects returned by the API
  * @prop {boolean} [isLoading] - Whether to show a loading indicator
  * @prop {File|null} selectedFile - The file within `files` which is currently selected
- * @prop {(f: File) => any} onSelectFile -
+ * @prop {(f: File) => void} onSelectFile -
  *   Callback invoked when the user clicks on a file
- * @prop {(f: File) => any} onUseFile -
+ * @prop {(f: File) => void} onUseFile -
  *   Callback invoked when the user double-clicks a file to indicate that they want to use it
  * @prop {Children} [noFilesMessage] - component displayed when no files are available
  */
