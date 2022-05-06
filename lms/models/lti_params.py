@@ -51,6 +51,17 @@ _V11_TO_V13 = (
         ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
     ),
     ("lis_result_sourcedid", ["sub"]),
+    (
+        "content_item_return_url",
+        [
+            "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings",
+            "deep_link_return_url",
+        ],
+    ),
+    (
+        "deep_linking_settings",
+        ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
+    ),
 )
 
 

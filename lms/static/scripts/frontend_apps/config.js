@@ -71,6 +71,7 @@ import { createContext } from 'preact';
  * @typedef FilePickerConfig
  * @prop {string} formAction
  * @prop {Record<string,string>} formFields
+ * @prop {APICallInfo} [deepLinkingAPI]
  * @prop {string} ltiLaunchUrl
  * @prop {object} blackboard
  *   @prop {boolean} blackboard.enabled

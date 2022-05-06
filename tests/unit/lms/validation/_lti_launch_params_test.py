@@ -255,7 +255,11 @@ class TestDeepLinkingLTILaunchSchema:
             ),
             (
                 {"lti_message_type": "invalid message type"},
-                {"lti_message_type": ["Must be one of: ContentItemSelectionRequest."]},
+                {
+                    "lti_message_type": [
+                        "Must be one of: ContentItemSelectionRequest, LtiDeepLinkingRequest."
+                    ]
+                },
             ),
         ],
     )
