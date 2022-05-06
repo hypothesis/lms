@@ -16,15 +16,17 @@ def includeme(config):
         "configure_assignment",
         "/assignment",
         request_method="POST",
-        factory="lms.resources.LTILaunchResource",
+        factory="lms.resources.lti_launch.factory.service_factory",
     )
     config.add_route(
-        "lti_launches", "/lti_launches", factory="lms.resources.LTILaunchResource"
+        "lti_launches",
+        "/lti_launches",
+        factory="lms.resources.lti_launch.factory.service_factory",
     )
     config.add_route(
         "content_item_selection",
         "/content_item_selection",
-        factory="lms.resources.LTILaunchResource",
+        factory="lms.resources.lti_launch.factory.service_factory",
     )
 
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")

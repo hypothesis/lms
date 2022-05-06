@@ -1,10 +1,7 @@
-"""Traversal resources for LTI launch views."""
-import functools
 import logging
-
 from lms.models import LTIParams
+import functools
 from lms.resources._js_config import JSConfig
-from lms.services import ApplicationInstanceNotFound
 
 LOG = logging.getLogger(__name__)
 
@@ -89,25 +86,6 @@ class LTILaunchResource:
         return course
 
     @property
-    def _is_speedgrader(self):
-        return bool(self._request.GET.get("learner_canvas_user_id"))
-
-    @property
-    def is_legacy_speedgrader(self):
-        """
-        Return True if the current request is a legacy SpeedGrader launch.
-
-        To work around a Canvas bug we add the assignment's resource_link_id as
-        a query param on the LTI launch URLs that we submit to SpeedGrader (see
-        https://github.com/instructure/canvas-lms/issues/1952 and
-        https://github.com/hypothesis/lms/issues/3228).
-
-        "Legacy" SpeedGrader submissions are ones from before we implemented
-        this work-around, so they don't have the resource_link_id query param.
-        """
-        return self._is_speedgrader and not self._request.GET.get("resource_link_id")
-
-    @property
     def resource_link_id(self):
         # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
         # see:
@@ -137,17 +115,7 @@ class LTILaunchResource:
         return self._request.POST.get("ext_lti_assignment_id")
 
     @property
-    def is_canvas(self):
-        """Return True if Canvas is the LMS that launched us."""
-        if (
-            self._request.parsed_params.get("tool_consumer_info_product_family_code")
-            == "canvas"
-        ):
-            return True
-
-        if "custom_canvas_course_id" in self._request.parsed_params:
-            return True
-
+    def is_canvas(self) -> bool:
         return False
 
     @property
@@ -168,79 +136,12 @@ class LTILaunchResource:
         """
         return self._request.parsed_params.get("custom_canvas_api_domain")
 
-    def canvas_sections_supported(self):
-        """Return True if Canvas sections is supported for this request."""
-        if not self.is_canvas:
-            return False
-
-        params = self._request.params
-        if "focused_user" in params and "learner_canvas_user_id" not in params:
-            # This is a legacy SpeedGrader URL, submitted to Canvas before our
-            # Canvas course sections feature was released.
-            return False
-
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.developer_key)
+    def sections_supported(self):
+        return False
 
     @property
-    def canvas_sections_enabled(self):
-        """Return True if Canvas sections is enabled for this request."""
-
-        if not self.canvas_sections_supported():
-            return False
-
-        legacy_course, _ = self.get_or_create_course()
-
-        return legacy_course.settings.get("canvas", "sections_enabled")
-
-    @property
-    def canvas_groups_enabled(self):
-        """Return True if Canvas groups are enabled at the school/installation level."""
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.settings.get("canvas", "groups_enabled"))
-
-    @property
-    def blackboard_groups_enabled(self):
-        """Return True if Blackboard groups are enabled at the school/installation level."""
-        try:
-            application_instance = self._application_instance_service.get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        return bool(application_instance.settings.get("blackboard", "groups_enabled"))
-
-    @property
-    def is_blackboard_group_launch(self):
-        """Return True if the current assignment uses Blackboard groups."""
-        tool_consumer_instance_guid = self._request.parsed_params[
-            "tool_consumer_instance_guid"
-        ]
-        assignment = self._assignment_service.get(
-            tool_consumer_instance_guid, self.resource_link_id
-        )
-        return bool(assignment and assignment.extra.get("group_set_id"))
-
-    @property
-    def canvas_is_group_launch(self):
-        """Return True if the current assignment uses canvas groups."""
-        try:
-            int(self._request.params["group_set"])
-        except (KeyError, ValueError, TypeError):
-            return False
-        else:
-            return True
-
-    @property
-    def is_group_launch(self):
-        return self.canvas_is_group_launch or self.is_blackboard_group_launch
+    def sections_enabled(self):
+        return False
 
     @property
     def lti_params(self) -> LTIParams:
@@ -250,6 +151,25 @@ class LTILaunchResource:
             if self._request.lti_jwt
             else LTIParams(self._request.params)
         )
+
+    @property
+    def is_group_launch(self):
+        return False
+
+    @property
+    def groups_enabled(self):
+        return False
+
+    @property
+    def _is_speedgrader(self):
+        return False
+
+    @property
+    def is_legacy_speedgrader(self):
+        return False
+
+    def sync_api_config(self):
+        return None
 
     def _course_extra(self):
         """Extra information to store for courses."""

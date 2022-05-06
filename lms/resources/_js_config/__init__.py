@@ -165,7 +165,7 @@ class JSConfig:
         """
         self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
 
-        self._config["api"]["sync"] = self._sync_api()
+        self._config["api"]["sync"] = self._context.sync_api_config()
 
         # The config object for the Hypothesis client.
         # Our JSON-RPC server passes this to the Hypothesis client over
@@ -462,79 +462,6 @@ class JSConfig:
         }
 
     def _groups(self):
-        if self._context.canvas_sections_enabled or self._context.is_group_launch:
+        if self._context.sections_enabled or self._context.is_group_launch:
             return "$rpc:requestGroups"
         return [self._context.h_group.groupid(self._authority)]
-
-    def _canvas_sync_api(self):
-        req = self._request
-        sync_api_config = {
-            "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "path": req.route_path("canvas_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": req.params[
-                        "tool_consumer_instance_guid"
-                    ],
-                },
-                "course": {
-                    "context_id": req.params["context_id"],
-                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
-                    "group_set": req.params.get("group_set"),
-                },
-                "group_info": {
-                    key: value
-                    for key, value in req.params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
-        if "learner_canvas_user_id" in req.params:
-            sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
-                "group_set": req.params.get("group_set"),
-            }
-
-        return sync_api_config
-
-    def _blackboard_sync_api(self):
-        req = self._request
-        return {
-            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "path": req.route_path("blackboard_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": req.params[
-                        "tool_consumer_instance_guid"
-                    ],
-                },
-                "course": {
-                    "context_id": req.params["context_id"],
-                },
-                "assignment": {
-                    "resource_link_id": req.params["resource_link_id"],
-                },
-                "group_info": {
-                    key: value
-                    for key, value in req.params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
-    def _sync_api(self):
-        if self._context.is_canvas and (
-            self._context.canvas_sections_enabled
-            or self._context.canvas_is_group_launch
-        ):
-            return self._canvas_sync_api()
-
-        if (
-            self._application_instance.product == ApplicationInstance.Product.BLACKBOARD
-            and self._context.is_blackboard_group_launch
-        ):
-
-            return self._blackboard_sync_api()
-
-        return None
