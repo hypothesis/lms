@@ -96,7 +96,7 @@ class AdminViews:
                 value = value == "on"
             else:
                 assert setting_type == str
-                value = value if value else None
+                value = value.strip() if value else None
 
             ai.settings.set(setting, sub_setting, value)
 

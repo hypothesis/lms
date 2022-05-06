@@ -102,6 +102,7 @@ class TestAdminViews:
             ("jstor", "enabled", "off", False),
             # String fields
             ("jstor", "site_code", "CODE", "CODE"),
+            ("jstor", "site_code", "  CODE  ", "CODE"),
             ("jstor", "site_code", "", None),
             ("jstor", "site_code", None, None),
         ),
