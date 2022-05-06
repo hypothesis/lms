@@ -42,7 +42,6 @@ describe('FilePickerApp', () => {
         canvas: {
           groupsEnabled: false,
         },
-        ltiLaunchUrl: 'https://lms.anno.co/lti_launch',
       },
     };
 
@@ -72,7 +71,6 @@ describe('FilePickerApp', () => {
       content: expectedContent,
       formFields: { ...fakeConfig.filePicker.formFields, ...extraFormFields },
       groupSet: expectedGroupSet,
-      ltiLaunchURL: fakeConfig.filePicker.ltiLaunchUrl,
     });
   }
 
@@ -179,7 +177,7 @@ describe('FilePickerApp', () => {
         data: {
           ...deepLinkingAPIData,
           content: { type: 'url', url: 'https://example.com' },
-          extra_params: { groupSet: null },
+          extra_params: { group_set: null },
         },
       });
 

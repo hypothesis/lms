@@ -1,5 +1,3 @@
-import { contentItemForContent } from '../utils/content-item';
-
 /**
  * @typedef {import('../utils/content-item').Content} Content
  * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
@@ -7,8 +5,6 @@ import { contentItemForContent } from '../utils/content-item';
 
 /**
  * @typedef FilePickerFormFieldsProps
- * @prop {string} ltiLaunchURL - URL that the LMS should use to launch the
- *   assignment.
  * @prop {Content} content - Content for the assignment
  * @prop {Record<string,string>} formFields - Form fields provided by the backend
  *   that should be included in the response without any changes
@@ -33,20 +29,13 @@ export default function FilePickerFormFields({
   content,
   formFields,
   groupSet,
-  ltiLaunchURL,
 }) {
-  /** @type {Record<string,string>} */
-  const extraParams = groupSet ? { group_set: groupSet } : {};
-  const contentItem = JSON.stringify(
-    contentItemForContent(ltiLaunchURL, content, extraParams)
-  );
   return (
     <>
       {Object.entries(formFields).map(([field, value]) => (
         <input key={field} type="hidden" name={field} value={value} />
       ))}
       {groupSet && <input type="hidden" name="group_set" value={groupSet} />}
-      <input type="hidden" name="content_items" value={contentItem} />
       {content.type === 'url' && (
         // Set the `document_url` form field which is used by the `configure_assignment`
         // view. Used in LMSes where assignments are configured on first launch.

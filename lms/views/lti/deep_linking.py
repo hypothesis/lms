@@ -18,14 +18,9 @@ The flow is:
     on this parameter: instead we use a separate URL
     to distinguish deep linking launches.
 
- - In the case of LTI1.3:
+  - We add configuration to enable a callback to the corresponding form_fields view
 
-    * We add configuration to enable a call back to `file_picker_to_form_fields_v13`
-    * This provides the form data the front end requires to submit to the LMS
-
- - In the case of LTI1.1:
-
-    * The frontend constructs itself the form it needs to send to the LMS
+  - This provides the form data the front end requires to submit to the LMS
 
 
 For more details see the LTI Deep Linking specs:
@@ -43,6 +38,7 @@ Canvas LMS's Content Item docs are also useful:
   https://canvas.instructure.com/doc/api/file.content_item.html
 
 """
+import json
 from urllib.parse import urlencode, urlparse
 
 from pyramid.view import view_config, view_defaults
@@ -81,8 +77,7 @@ def deep_linking_launch(context, request):
         },
     )
 
-    if application_instance.lti_version == "1.3.0":
-        context.js_config.add_deep_linking_api()
+    context.js_config.add_deep_linking_api()
     return {}
 
 
@@ -108,23 +103,19 @@ class DeepLinkingFieldsViews:
     def __init__(self, request):
         self.request = request
 
-        self.application_instance = self.request.find_service(
+    @view_config(route_name="lti.v13.deep_linking.form_fields")
+    def file_picker_to_form_fields_v13(self):
+        application_instance = self.request.find_service(
             name="application_instance"
         ).get_current()
 
-    @view_config(route_name="lti.deep_linking.form_fields")
-    def file_picker_to_form_fields_v13(self):
-        url = self._content_to_url(
-            self.request.route_url("lti_launches"),
-            self.request.parsed_params["content"],
-            self.request.parsed_params.get("extra_params"),
-        )
+        url = self._get_content_url(self.request)
 
         # In LTI1.3 there's just one `JWT` field which includes all the necessary information
         return {
             "JWT": self.request.find_service(LTIAHTTPService).sign(
                 {
-                    "https://purl.imsglobal.org/spec/lti/claim/deployment_id": self.application_instance.deployment_id,
+                    "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
                     "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
                     "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
                     "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
@@ -137,8 +128,32 @@ class DeepLinkingFieldsViews:
             )
         }
 
+    @view_config(route_name="lti.v11.deep_linking.form_fields")
+    def file_picker_to_form_fields_v11(self):
+        """
+        Return a JSON-LD `ContentItem` representation of the LTI content.
+
+        See https://www.imsglobal.org/specs/lticiv1p0/specification.
+        """
+        url = self._get_content_url(self.request)
+
+        return {
+            "content_items": json.dumps(
+                {
+                    "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+                    "@graph": [
+                        {
+                            "@type": "LtiLinkItem",
+                            "mediaType": "application/vnd.ims.lti.v1.ltilink",
+                            "url": url,
+                        },
+                    ],
+                }
+            )
+        }
+
     @staticmethod
-    def _content_to_url(lti_launch_url, content, extra_params):
+    def _get_content_url(request):
         """
         Translate content information from the frontend to a launch URL.
 
@@ -146,7 +161,8 @@ class DeepLinkingFieldsViews:
         `lti_launches` endpoint with any information required to identity
         the content as query parameters.
         """
-        params = dict(extra_params or {})
+        content = request.parsed_params["content"]
+        params = dict(request.parsed_params.get("extra_params") or {})
 
         if content["type"] == "file":
             params["canvas_file"] = "true"
@@ -156,4 +172,8 @@ class DeepLinkingFieldsViews:
         else:
             raise ValueError(f"Unknown content type: '{content['type']}'")
 
-        return urlparse(lti_launch_url)._replace(query=urlencode(params)).geturl()
+        return (
+            urlparse(request.route_url("lti_launches"))
+            ._replace(query=urlencode(params))
+            .geturl()
+        )

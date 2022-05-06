@@ -67,24 +67,6 @@ class TestFilePickerMode:
             application_instance_service.get_current.return_value,
         )
 
-    def test_it_adds_deep_linking(self, js_config, context):
-        context.lti_params = {
-            "deep_linking_settings": sentinel.deep_linking_settings,
-            "content_item_return_url": sentinel.content_item_return_url,
-        }
-
-        js_config.add_deep_linking_api()
-
-        config = js_config.asdict()
-
-        assert config["filePicker"]["deepLinkingAPI"] == {
-            "path": "/lti/1.3/deep_linking/form_fields",
-            "data": {
-                "content_item_return_url": sentinel.content_item_return_url,
-                "deep_linking_settings": sentinel.deep_linking_settings,
-            },
-        }
-
     @pytest.fixture(autouse=True)
     def FilePickerConfig(self, patch):
         return patch("lms.resources._js_config.FilePickerConfig")
@@ -662,6 +644,47 @@ class TestEnableOAuth2RedirectErrorMode:
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
         pyramid_config.add_route("auth_route", "/auth")
+
+
+@pytest.mark.usefixtures("application_instance_service")
+class TestAddDeepLinkingAPI:
+    def test_it_adds_deep_linking_v11(self, js_config, context):
+        context.lti_params = {
+            "content_item_return_url": sentinel.content_item_return_url,
+        }
+
+        js_config.add_deep_linking_api()
+
+        config = js_config.asdict()
+        assert config["filePicker"]["deepLinkingAPI"] == {
+            "path": "/lti/1.1/deep_linking/form_fields",
+            "data": {
+                "content_item_return_url": sentinel.content_item_return_url,
+            },
+        }
+
+    @pytest.mark.usefixtures("with_lti_13")
+    def test_it_adds_deep_linking_v13(self, js_config, context):
+        context.lti_params = {
+            "deep_linking_settings": sentinel.deep_linking_settings,
+            "content_item_return_url": sentinel.content_item_return_url,
+        }
+
+        js_config.add_deep_linking_api()
+
+        config = js_config.asdict()
+        assert config["filePicker"]["deepLinkingAPI"] == {
+            "path": "/lti/1.3/deep_linking/form_fields",
+            "data": {
+                "content_item_return_url": sentinel.content_item_return_url,
+                "deep_linking_settings": sentinel.deep_linking_settings,
+            },
+        }
+
+    @pytest.fixture
+    def with_lti_13(self, application_instance):
+        # Make the application instance `lti_version` return "1.3.0"
+        application_instance.lti_registration_id = 100
 
 
 class TestEnableErrorDialogMode:

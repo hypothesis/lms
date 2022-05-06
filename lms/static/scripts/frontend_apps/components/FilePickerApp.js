@@ -90,14 +90,7 @@ export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
     api: { authToken },
-    filePicker: {
-      deepLinkingAPI,
-      formAction,
-      formFields,
-      ltiLaunchUrl,
-      blackboard,
-      canvas,
-    },
+    filePicker: { deepLinkingAPI, formAction, formFields, blackboard, canvas },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
@@ -142,7 +135,7 @@ export default function FilePickerApp({ onSubmit }) {
           ...deepLinkingAPI.data,
           content,
           extra_params: {
-            groupSet: groupConfig.useGroupSet ? groupConfig.groupSet : null,
+            group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           },
         };
         setDeepLinkingFields(
@@ -162,7 +155,6 @@ export default function FilePickerApp({ onSubmit }) {
         setContent(null);
       }
     },
-
     [
       authToken,
       deepLinkingFields,
@@ -250,7 +242,6 @@ export default function FilePickerApp({ onSubmit }) {
         )}
         {content && (
           <FilePickerFormFields
-            ltiLaunchURL={ltiLaunchUrl}
             content={content}
             formFields={{ ...formFields, ...deepLinkingFields }}
             groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
