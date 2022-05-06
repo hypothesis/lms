@@ -21,9 +21,9 @@ class DBConfigured(Base):
     configuration (the URL of the document to be annotated for the assignment)
     is stored in our own DB.
 
-    This happens with LMS's that don't support LTI "content item selection"
-    (also known as "deep linking"), so they don't support storing the
-    assignment configuration (document URL) in the LMS.
+    This happens with LMS's that don't support LTI "Deep Linking"
+    so they don't support storing the assignment configuration
+    (document URL) in the LMS.
 
     Pass ``db_configured=True`` to a view's configuration to allow invoking the
     view only for requests whose assignment has its configuration stored in our

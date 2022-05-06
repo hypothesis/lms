@@ -1,19 +1,19 @@
 """
-Views for handling content item selection launches.
+Views for handling deep linking launches.
 
-A content item selection request is an LTI launch request (so it's a form
+A deep linking request is an LTI launch request (so it's a form
 submission containing all the usual launch params, including the OAuth 1
 signature) that's used by LMS's during the assignment creation process.
 
 When an instructor creates a Hypothesis assignment in an LMS that supports
-content item selection the LMS launches our app in order for us to present an
+deep linking the LMS launches our app in order for us to present an
 interface for the user to select a "content item" (in our case: a document to
 be annotated) for use with the assignment.
 
-The spec requires that content item selection requests have an
-``lti_message_type`` parameter with the value ``ContentItemSelectionRequest``,
+The spec requires that deep linking requests have an ``lti_message_type``
+parameter with the value ``ContentItemSelectionRequest``,
 but we don't actually require the requests to have this parameter: instead we
-use a separate URL to distinguish content item selection launches.
+use a separate URL to distinguish deep linking launches.
 
 When the user selects a document we get the browser to POST the selection back
 to the LMS in a form submission with the ``lti_message_type`` parameter set to
@@ -37,7 +37,7 @@ https://canvas.instructure.com/doc/api/file.content_item.html
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.validation import ContentItemSelectionLTILaunchSchema
+from lms.validation import DeepLinkingLTILaunchSchema
 
 
 @view_config(
@@ -46,9 +46,9 @@ from lms.validation import ContentItemSelectionLTILaunchSchema
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",
-    schema=ContentItemSelectionLTILaunchSchema,
+    schema=DeepLinkingLTILaunchSchema,
 )
-def content_item_selection(context, request):
+def deep_linking_launch(context, request):
     request.find_service(name="application_instance").get_current().update_lms_data(
         request.params
     )

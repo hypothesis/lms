@@ -59,7 +59,7 @@ from lms.validation._exceptions import LTIToolRedirect, ValidationError
 from lms.validation._lti_launch_params import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
-    ContentItemSelectionLTILaunchSchema,
+    DeepLinkingLTILaunchSchema,
     LTIV11CoreSchema,
     URLConfiguredBasicLTILaunchSchema,
 )
