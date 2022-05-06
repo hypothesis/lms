@@ -178,8 +178,11 @@ class DeepLinkingLTILaunchSchema(_CommonLTILaunchSchema):
     """Schema for deep linking LTI launches."""
 
     lti_message_type = fields.Str(
-        validate=OneOf(["ContentItemSelectionRequest"]), required=True
+        validate=OneOf(["ContentItemSelectionRequest", "LtiDeepLinkingRequest"]),
+        required=True,
     )
+
+    content_item_return_url = fields.Str(required=True)
 
 
 class ConfigureAssignmentSchema(_CommonLTILaunchSchema):

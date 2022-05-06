@@ -2,6 +2,7 @@
 
 import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
+import { waitFor, waitForElement } from '../../../test-util/wait';
 
 import { Config } from '../../config';
 import FilePickerApp, { $imports } from '../FilePickerApp';
@@ -31,6 +32,7 @@ describe('FilePickerApp', () => {
 
   beforeEach(() => {
     fakeConfig = {
+      api: { authToken: 'DUMMY_AUTH_TOKEN' },
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
@@ -58,12 +60,17 @@ describe('FilePickerApp', () => {
   /**
    * Check that the expected hidden form fields were set.
    */
-  function checkFormFields(wrapper, expectedContent, expectedGroupSet) {
+  function checkFormFields(
+    wrapper,
+    expectedContent,
+    expectedGroupSet,
+    extraFormFields = {}
+  ) {
     const formFields = wrapper.find('FilePickerFormFields');
     assert.deepEqual(formFields.props(), {
       children: [],
       content: expectedContent,
-      formFields: fakeConfig.filePicker.formFields,
+      formFields: { ...fakeConfig.filePicker.formFields, ...extraFormFields },
       groupSet: expectedGroupSet,
       ltiLaunchURL: fakeConfig.filePicker.ltiLaunchUrl,
     });
@@ -132,6 +139,80 @@ describe('FilePickerApp', () => {
       selectContent(wrapper, 'https://example.com');
 
       assert.isTrue(wrapper.exists('FullScreenSpinner'));
+    });
+  });
+
+  context('when deepLinkingAPI is present', () => {
+    const deepLinkingAPIPath = '/lti/1.3/deep_linking/form_fields';
+    const deepLinkingAPIData = { some: 'data' };
+    let fakeAPICall;
+    let fakeFormFields;
+
+    beforeEach(() => {
+      fakeConfig.filePicker.deepLinkingAPI = {
+        path: deepLinkingAPIPath,
+        data: deepLinkingAPIData,
+      };
+
+      fakeAPICall = sinon.stub();
+      fakeFormFields = { JWT: 'JWT VALUE' };
+
+      fakeAPICall
+        .withArgs(sinon.match({ path: deepLinkingAPIPath }))
+        .resolves(fakeFormFields);
+
+      $imports.$mock({
+        '../utils/api': { apiCall: fakeAPICall },
+      });
+    });
+
+    it('fetches form field values via deep linking API when content is selected', async () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      await waitFor(() => fakeAPICall.called);
+      assert.calledWith(fakeAPICall, {
+        authToken: 'DUMMY_AUTH_TOKEN',
+        path: deepLinkingAPIPath,
+        data: {
+          ...deepLinkingAPIData,
+          content: { type: 'url', url: 'https://example.com' },
+          extra_params: { groupSet: null },
+        },
+      });
+
+      await waitFor(() => onSubmit.called, 100);
+
+      wrapper.update();
+      checkFormFields(
+        wrapper,
+        {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        null /* groupSet */,
+        fakeFormFields
+      );
+    });
+
+    it('shows an error if the deepLinkingAPI call fails', async () => {
+      const error = new Error('Something happened');
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      fakeAPICall
+        .withArgs(sinon.match({ path: deepLinkingAPIPath }))
+        .rejects(error);
+
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      await waitForElement(wrapper, 'ErrorModal');
+
+      const errDialog = wrapper.find('ErrorModal');
+      assert.equal(errDialog.length, 1);
+      assert.equal(errDialog.prop('error'), error);
     });
   });
 

@@ -1,4 +1,4 @@
-from unittest import mock
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
@@ -18,11 +18,9 @@ pytestmark = pytest.mark.usefixtures(
 
 
 @pytest.mark.usefixtures("application_instance_service")
-class TestEnableContentItemSelectionMode:
+class TestFilePickerMode:
     def test_it(self, js_config):
-        js_config.enable_file_picker_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
         config = js_config.asdict()
 
         assert config == Any.dict.containing(
@@ -30,8 +28,8 @@ class TestEnableContentItemSelectionMode:
                 "mode": "content-item-selection",
                 "filePicker": Any.dict.containing(
                     {
-                        "formAction": mock.sentinel.form_action,
-                        "formFields": mock.sentinel.form_fields,
+                        "formAction": sentinel.form_action,
+                        "formFields": sentinel.form_fields,
                     }
                 ),
             }
@@ -58,9 +56,7 @@ class TestEnableContentItemSelectionMode:
         config_function,
         key,
     ):
-        js_config.enable_file_picker_mode(
-            mock.sentinel.form_action, mock.sentinel.form_fields
-        )
+        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
         config = js_config.asdict()
 
         config_provider = getattr(FilePickerConfig, config_function)
@@ -70,6 +66,24 @@ class TestEnableContentItemSelectionMode:
             pyramid_request,
             application_instance_service.get_current.return_value,
         )
+
+    def test_it_adds_deep_linking(self, js_config, context):
+        context.lti_params = {
+            "deep_linking_settings": sentinel.deep_linking_settings,
+            "content_item_return_url": sentinel.content_item_return_url,
+        }
+
+        js_config.add_deep_linking_api()
+
+        config = js_config.asdict()
+
+        assert config["filePicker"]["deepLinkingAPI"] == {
+            "path": "/lti/1.3/deep_linking/form_fields",
+            "data": {
+                "content_item_return_url": sentinel.content_item_return_url,
+                "deep_linking_settings": sentinel.deep_linking_settings,
+            },
+        }
 
     @pytest.fixture(autouse=True)
     def FilePickerConfig(self, patch):
@@ -140,8 +154,8 @@ class TestAddDocumentURL:
     ):
         vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
         vitalsource_service.get_launch_params.return_value = (
-            mock.sentinel.launch_url,
-            mock.sentinel.launch_params,
+            sentinel.launch_url,
+            sentinel.launch_params,
         )
 
         js_config.add_document_url(vitalsource_url)
@@ -150,8 +164,8 @@ class TestAddDocumentURL:
             vitalsource_url, pyramid_request.lti_user
         )
         assert js_config.asdict()["vitalSource"] == {
-            "launchUrl": mock.sentinel.launch_url,
-            "launchParams": mock.sentinel.launch_params,
+            "launchUrl": sentinel.launch_url,
+            "launchParams": sentinel.launch_params,
         }
 
     def test_vitalsource_sets_config_with_anon_launch(
@@ -313,7 +327,7 @@ class TestMaybeEnableGrading:
     @pytest.fixture
     def grading_info_service(self, grading_info_service):
         grading_info_service.get_by_assignment.return_value = [
-            mock.create_autospec(
+            create_autospec(
                 GradingInfo,
                 instance=True,
                 spec_set=True,
@@ -606,18 +620,18 @@ class TestEnableOAuth2RedirectErrorMode:
     def test_it(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(
             "auth_route",
-            mock.sentinel.error_code,
-            mock.sentinel.error_details,
-            mock.sentinel.canvas_scopes,
+            sentinel.error_code,
+            sentinel.error_details,
+            sentinel.canvas_scopes,
         )
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.OAUTH2_REDIRECT_ERROR
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
-            "errorCode": mock.sentinel.error_code,
-            "errorDetails": mock.sentinel.error_details,
-            "canvasScopes": mock.sentinel.canvas_scopes,
+            "errorCode": sentinel.error_code,
+            "errorDetails": sentinel.error_details,
+            "canvasScopes": sentinel.canvas_scopes,
         }
 
     @pytest.mark.usefixtures("with_no_user")
@@ -643,9 +657,7 @@ class TestEnableOAuth2RedirectErrorMode:
 
     @pytest.fixture
     def context(self):
-        return mock.create_autospec(
-            OAuth2RedirectResource, spec_set=True, instance=True
-        )
+        return create_autospec(OAuth2RedirectResource, spec_set=True, instance=True)
 
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
@@ -654,30 +666,26 @@ class TestEnableOAuth2RedirectErrorMode:
 
 class TestEnableErrorDialogMode:
     def test_it(self, js_config):
-        js_config.enable_error_dialog_mode(
-            mock.sentinel.error_code, mock.sentinel.error_details
-        )
+        js_config.enable_error_dialog_mode(sentinel.error_code, sentinel.error_details)
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
         assert config["errorDialog"] == {
-            "errorCode": mock.sentinel.error_code,
-            "errorDetails": mock.sentinel.error_details,
+            "errorCode": sentinel.error_code,
+            "errorDetails": sentinel.error_details,
         }
 
     def test_it_omits_errorDetails_if_no_error_details_argument_is_given(
         self, js_config
     ):
-        js_config.enable_error_dialog_mode(mock.sentinel.error_code)
+        js_config.enable_error_dialog_mode(sentinel.error_code)
         config = js_config.asdict()
 
         assert "errorDetails" not in config["errorDialog"]
 
     @pytest.fixture
     def context(self):
-        return mock.create_autospec(
-            OAuth2RedirectResource, spec_set=True, instance=True
-        )
+        return create_autospec(OAuth2RedirectResource, spec_set=True, instance=True)
 
 
 @pytest.fixture(autouse=True)
@@ -711,11 +719,11 @@ def submission_params(config):
 
 @pytest.fixture
 def context(pyramid_request):
-    return mock.create_autospec(
+    return create_autospec(
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_group=mock.create_autospec(Grouping, instance=True, spec_set=True),
+        h_group=create_autospec(Grouping, instance=True, spec_set=True),
         is_canvas=True,
         canvas_sections_enabled=False,
         canvas_groups_enabled=False,

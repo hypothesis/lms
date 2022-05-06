@@ -8,6 +8,7 @@ import {
 } from 'preact/hooks';
 
 import { Config } from '../config';
+import { apiCall } from '../utils/api';
 import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
@@ -88,7 +89,15 @@ function contentDescription(content) {
 export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
-    filePicker: { formAction, formFields, ltiLaunchUrl, blackboard, canvas },
+    api: { authToken },
+    filePicker: {
+      deepLinkingAPI,
+      formAction,
+      formFields,
+      ltiLaunchUrl,
+      blackboard,
+      canvas,
+    },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
@@ -111,25 +120,79 @@ export default function FilePickerApp({ onSubmit }) {
    * render.
    */
   const [shouldSubmit, setShouldSubmit] = useState(false);
-  const submit = useCallback(() => setShouldSubmit(true), []);
+
+  const [deepLinkingFields, setDeepLinkingFields] = useState(
+    /** @type {Record<string,string>|null} */ (null)
+  );
+
+  const submit = useCallback(
+    /** @param {Content} content */
+    async content => {
+      // Set shouldSubmit to true early to show the spinner while fetching form fields
+      setShouldSubmit(true);
+
+      if (!deepLinkingAPI || deepLinkingFields) {
+        return;
+      }
+
+      // When deepLinkingAPI is present we want to call the backend to return the form
+      // fields we'll forward to the LMS to complete the Deep Linking request
+      try {
+        const data = {
+          ...deepLinkingAPI.data,
+          content,
+          extra_params: {
+            groupSet: groupConfig.useGroupSet ? groupConfig.groupSet : null,
+          },
+        };
+        setDeepLinkingFields(
+          await apiCall({
+            authToken: authToken,
+            path: deepLinkingAPI.path,
+            data,
+          })
+        );
+      } catch (error) {
+        setErrorInfo({
+          message: 'Unable to configure assignment',
+          error: error,
+        });
+        // Reset the state in case of an error allowing to start over
+        setShouldSubmit(false);
+        setContent(null);
+      }
+    },
+
+    [
+      authToken,
+      deepLinkingFields,
+      deepLinkingAPI,
+      groupConfig.groupSet,
+      groupConfig.useGroupSet,
+    ]
+  );
 
   // Submit the form after a selection is made via one of the available
   // methods.
   useEffect(() => {
-    if (shouldSubmit) {
+    if (
+      shouldSubmit &&
+      // We either are not using the deepLinkingAPI, or if we are, wait for deepLinkingFields to be available
+      (!deepLinkingAPI || (deepLinkingAPI && deepLinkingFields))
+    ) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
       submitButton.current.click();
     }
-  }, [shouldSubmit]);
+  }, [shouldSubmit, deepLinkingAPI, deepLinkingFields]);
 
   /** @type {(c: Content) => void} */
   const selectContent = useCallback(
     content => {
       setContent(content);
       if (!enableGroupConfig) {
-        submit();
+        submit(content);
       }
     },
     [enableGroupConfig, submit]
@@ -178,7 +241,7 @@ export default function FilePickerApp({ onSubmit }) {
               <LabeledButton
                 disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
                 variant="primary"
-                onClick={submit}
+                onClick={() => submit(content)}
               >
                 Continue
               </LabeledButton>
@@ -189,7 +252,7 @@ export default function FilePickerApp({ onSubmit }) {
           <FilePickerFormFields
             ltiLaunchURL={ltiLaunchUrl}
             content={content}
-            formFields={formFields}
+            formFields={{ ...formFields, ...deepLinkingFields }}
             groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
           />
         )}
