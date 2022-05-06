@@ -219,21 +219,27 @@ class JSConfig:
         Add the details of the "DeepLinking API" in LMS where we support deep linking.
 
         This API will be used by the frontend to retrieve the form fields required
-        for the deep linking submission while on CONTENT_ITEM_SELECTION mode to store the
+        for the deep linking submission while on FILE_PICKER mode to store the
         selected content on the LMS.
         """
-        self._config.setdefault("filePicker", {})
-        self._config["filePicker"]["deepLinkingAPI"] = {
-            "path": self._request.route_path("lti.deep_linking.form_fields"),
+        config = {
+            "path": self._request.route_path("lti.v11.deep_linking.form_fields"),
             "data": {
                 "content_item_return_url": self._context.lti_params[
                     "content_item_return_url"
                 ],
-                "deep_linking_settings": self._context.lti_params.get(
-                    "deep_linking_settings"
-                ),
             },
         }
+        if self._application_instance.lti_version == "1.3.0":
+            config["path"] = self._request.route_path(
+                "lti.v13.deep_linking.form_fields"
+            )
+            config["data"]["deep_linking_settings"] = self._context.lti_params.get(
+                "deep_linking_settings"
+            )
+
+        self._config.setdefault("filePicker", {})
+        self._config["filePicker"]["deepLinkingAPI"] = config
 
     def maybe_enable_grading(self):
         """Enable our LMS app's built-in assignment grading UI, if appropriate."""

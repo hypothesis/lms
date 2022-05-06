@@ -109,5 +109,8 @@ def includeme(config):
     config.add_route("lti.oidc", "/lti/1.3/oidc")
     config.add_route("lti.jwks", "/lti/1.3/jwks")
     config.add_route(
-        "lti.deep_linking.form_fields", "/lti/1.3/deep_linking/form_fields"
+        "lti.v13.deep_linking.form_fields", "/lti/1.3/deep_linking/form_fields"
+    )
+    config.add_route(
+        "lti.v11.deep_linking.form_fields", "/lti/1.1/deep_linking/form_fields"
     )

@@ -1,5 +1,5 @@
-from unittest import mock
-from unittest.mock import create_autospec, sentinel
+import json
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -35,15 +35,6 @@ class TestDeepLinkingLaunch:
                 "lti_version": "TEST_LTI_VERSION",
             },
         )
-        context.js_config.add_deep_linking_api.assert_not_called()
-
-    def test_it_enables_content_item_selection_mode_lti_v13(
-        self, context, pyramid_request, application_instance
-    ):
-        application_instance.lti_registration_id = 100
-
-        deep_linking_launch(context, pyramid_request)
-
         context.js_config.add_deep_linking_api.assert_called_once()
 
     @pytest.fixture
@@ -56,31 +47,49 @@ class TestDeepLinkingLaunch:
 
     @pytest.fixture
     def context(self):
-        context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-        context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
+        context = create_autospec(LTILaunchResource, spec_set=True, instance=True)
+        context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         return context
 
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestDeepLinkingFieldsView:
-    def test_it(self, ltia_http_service, application_instance, pyramid_request):
-        fields = DeepLinkingFieldsViews(
-            pyramid_request
-        ).file_picker_to_form_fields_v13()
+    def test_it_for_v13(
+        self, ltia_http_service, application_instance, views, _get_content_url_mock
+    ):
+        fields = views.file_picker_to_form_fields_v13()
 
-        expected_url = Any.url.matching("http://example.com/lti_launches").with_query()
         ltia_http_service.sign.assert_called_once_with(
             {
                 "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
                 "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
                 "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
                 "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                    {"type": "ltiResourceLink", "url": expected_url}
+                    {
+                        "type": "ltiResourceLink",
+                        "url": _get_content_url_mock.return_value,
+                    }
                 ],
                 "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings,
             }
         )
         assert fields["JWT"] == ltia_http_service.sign.return_value
+
+    def test_it_for_v11(self, views, _get_content_url_mock):
+        _get_content_url_mock.return_value = "https://launches-url.com"
+
+        fields = views.file_picker_to_form_fields_v11()
+
+        assert json.loads(fields["content_items"]) == {
+            "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+            "@graph": [
+                {
+                    "@type": "LtiLinkItem",
+                    "mediaType": "application/vnd.ims.lti.v1.ltilink",
+                    "url": _get_content_url_mock.return_value,
+                },
+            ],
+        }
 
     @pytest.mark.parametrize(
         "content,output_params",
@@ -96,25 +105,18 @@ class TestDeepLinkingFieldsView:
         ],
     )
     @pytest.mark.parametrize("extra_params", ({}, {"extra": "value"}))
-    def test_it_with_different_file_types(
-        self, content, output_params, extra_params, ltia_http_service, pyramid_request
+    def test_get_content_url(
+        self, content, output_params, extra_params, pyramid_request
     ):
         pyramid_request.parsed_params.update(
             {"content": content, "extra_params": extra_params}
         )
 
-        DeepLinkingFieldsViews(pyramid_request).file_picker_to_form_fields_v13()
+        # pylint:disable=protected-access
+        url = DeepLinkingFieldsViews._get_content_url(pyramid_request)
 
         output_params.update(extra_params)
-        ltia_http_service.sign.assert_called_once_with(
-            Any.dict.containing(
-                {
-                    "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                        Any.dict.containing({"url": Any.url.with_query(output_params)})
-                    ]
-                }
-            )
-        )
+        assert url == Any.url.with_query(output_params)
 
     def test_it_with_unknown_file_type(self, pyramid_request):
         pyramid_request.parsed_params.update({"content": {"type": "other"}})
@@ -130,3 +132,12 @@ class TestDeepLinkingFieldsView:
             "extra_params": {},
         }
         return pyramid_request
+
+    @pytest.fixture
+    def views(self, pyramid_request):
+        return DeepLinkingFieldsViews(pyramid_request)
+
+    @pytest.fixture
+    def _get_content_url_mock(self, views):
+        with patch.object(views, "_get_content_url", autospec=True) as patched:
+            yield patched

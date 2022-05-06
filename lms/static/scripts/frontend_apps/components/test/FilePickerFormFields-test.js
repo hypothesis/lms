@@ -1,11 +1,8 @@
 import { mount } from 'enzyme';
 
-import { contentItemForContent } from '../../utils/content-item';
-
 import FilePickerFormFields from '../FilePickerFormFields';
 
 describe('FilePickerFormFields', () => {
-  const launchURL = 'https://testlms.hypothes.is/lti_launch';
   const staticFormFields = {
     lti_message_type: 'ContentItemSelection',
     lti_version: 'LTI-1p0',
@@ -18,7 +15,6 @@ describe('FilePickerFormFields', () => {
         content={{ type: 'url', url: 'https://testsite.example/' }}
         formFields={staticFormFields}
         groupSet={null}
-        ltiLaunchURL={launchURL}
         {...props}
       />
     );
@@ -36,44 +32,14 @@ describe('FilePickerFormFields', () => {
     });
   });
 
-  it('renders `content_items` field for content', () => {
+  it('adds a `group_set` hidden form field', () => {
     const content = { type: 'url', url: 'https://example.com/' };
     const formFields = createComponent({
       content,
-    });
-    const contentItems = JSON.parse(
-      formFields.find('input[name="content_items"]').prop('value')
-    );
-    assert.deepEqual(contentItems, contentItemForContent(launchURL, content));
-  });
-
-  context('`groupSet` prop is specified', () => {
-    it('adds `group_set` query param to LTI launch URL', () => {
-      const content = { type: 'url', url: 'https://example.com/' };
-      const formFields = createComponent({
-        content,
-        groupSet: 'groupSet1',
-      });
-      const contentItems = JSON.parse(
-        formFields.find('input[name="content_items"]').prop('value')
-      );
-      assert.deepEqual(
-        contentItems,
-        contentItemForContent(launchURL, content, {
-          group_set: 'groupSet1',
-        })
-      );
+      groupSet: 'groupSet1',
     });
 
-    it('adds a `group_set` hidden form field', () => {
-      const content = { type: 'url', url: 'https://example.com/' };
-      const formFields = createComponent({
-        content,
-        groupSet: 'groupSet1',
-      });
-
-      assert.isTrue(formFields.find('input[name="group_set"]').exists());
-    });
+    assert.isTrue(formFields.find('input[name="group_set"]').exists());
   });
 
   it('renders `document_url` field for URL content', () => {
