@@ -1,6 +1,7 @@
 from unittest import mock
 
 import pytest
+from factory import Faker
 
 from lms.services import ApplicationInstanceNotFound
 from lms.services.application_instance import ApplicationInstanceService, factory
@@ -100,6 +101,48 @@ class TestApplicationInstanceService:
         assert application_instance.settings == {}
         if developer_secret:
             assert application_instance.developer_secret
+
+    @pytest.mark.parametrize("field", ["issuer", "client_id"])
+    def test_search_by_registration_fields(
+        self, field, service, with_application_instances_for_search
+    ):
+        registrations, _ = with_application_instances_for_search
+
+        for registration in registrations:
+            instances = service.search(**{field: getattr(registration, field)})
+
+            assert len(instances) == 5
+            assert {getattr(registration, field)} == {
+                *[getattr(instance.lti_registration, field) for instance in instances]
+            }
+
+    @pytest.mark.parametrize("field", ["deployment_id", "tool_consumer_instance_guid"])
+    def test_search_by_instance_fields(
+        self, field, service, with_application_instances_for_search
+    ):
+        _, instances = with_application_instances_for_search
+
+        for instance in instances:
+            found_instances = service.search(**{field: getattr(instance, field)})
+            assert len(found_instances) == 1
+            assert getattr(instance, field) == getattr(found_instances[0], field)
+
+    @pytest.fixture
+    def with_application_instances_for_search(self):
+        registrations = factories.LTIRegistration.create_batch(size=3)
+        instances = []
+
+        for registration in registrations:
+            instances.extend(
+                factories.ApplicationInstance.create_batch(
+                    size=5,
+                    lti_registration=registration,
+                    tool_consumer_instance_guid=Faker("hexify", text="^" * 32),
+                    deployment_id=Faker("hexify", text="^" * 8),
+                )
+            )
+
+        return registrations, instances
 
     @pytest.fixture
     def service(self, db_session, pyramid_request, aes_service):
