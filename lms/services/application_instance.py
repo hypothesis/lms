@@ -1,6 +1,7 @@
 import secrets
 from datetime import datetime
 from functools import lru_cache
+from typing import List
 
 from sqlalchemy.exc import NoResultFound
 
@@ -82,6 +83,34 @@ class ApplicationInstanceService:
             )
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
+
+    def search(
+        self,
+        *,
+        issuer=None,
+        client_id=None,
+        deployment_id=None,
+        tool_consumer_instance_guid=None,
+    ) -> List[ApplicationInstance]:
+        """Return the instances that match all of the passed parameters."""
+
+        query = self._db.query(ApplicationInstance).outerjoin(LTIRegistration)
+        if issuer:
+            query = query.filter_by(issuer=issuer)
+
+        if client_id:
+            query = query.filter_by(client_id=client_id)
+
+        if deployment_id:
+            query = query.filter(ApplicationInstance.deployment_id == deployment_id)
+
+        if tool_consumer_instance_guid:
+            query = query.filter(
+                ApplicationInstance.tool_consumer_instance_guid
+                == tool_consumer_instance_guid
+            )
+
+        return query.all()
 
     def build_from_lms_url(  # pylint:disable=too-many-arguments
         self, lms_url, email, developer_key, developer_secret, settings
