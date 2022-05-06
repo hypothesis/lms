@@ -3,7 +3,7 @@ Views for handling what the LTI spec calls "Basic LTI Launches".
 
 A Basic LTI Launch is the form submission POST request that an LMS sends us
 when it wants our app to launch an assignment, as opposed to other kinds of
-LTI launches such as the Content Item Selection launches that some LMS's
+LTI launches such as the deep linking launches that some LMS's
 send us while *creating* a new assignment.
 
 The spec requires Basic LTI Launch requests to have an ``lti_message_type``
@@ -147,8 +147,8 @@ class BasicLTILaunchViews:
 
         DB-configured assignment launch requests don't have any kind of file ID
         or document URL in the request. Instead the document URL is stored in
-        our own DB. This happens with LMS's that don't support LTI content item
-        selection/deep linking, so they don't support storing the document URL
+        our own DB. This happens with LMS's that don't support LTI deep linking,
+        so they don't support storing the document URL
         in the LMS and passing it back to us in each launch request. Instead we
         retrieve the document URL from the DB and pass it to Via.
         """
@@ -266,10 +266,9 @@ class BasicLTILaunchViews:
 
         URL-configured assignment launch requests have the document URL in the
         ``url`` request parameter. This happens in LMS's that support LTI
-        content item selection/deep linking: the document URL is chosen during
-        content item selection (during assignment creation) and saved in the
-        LMS, which passes it back to us in each launch request. All we have to
-        do is pass the URL to Via.
+        deep linking: the document URL is chosen during assignment creation
+        and saved in the LMS, which passes it back to us in each launch request.
+        All we have to do is pass the URL to Via.
         """
         return self.basic_lti_launch(self.request.parsed_params["url"])
 
@@ -284,10 +283,9 @@ class BasicLTILaunchViews:
 
         Unconfigured assignment launch requests don't contain any document URL
         or file ID because the assignment's document hasn't been chosen yet.
-        This happens in LMS's that don't support LTI content item
-        selection/deep linking. They go straight from assignment creation to
-        launching the assignment without the user having had a chance to choose
-        a document.
+        This happens in LMS's that don't support LTI deep linking.
+        They go straight from assignment creation to launching the assignment
+        without the user having had a chance to choose a document.
 
         When this happens we show the user our document-selection form instead
         of launching the assignment. The user will choose the document and

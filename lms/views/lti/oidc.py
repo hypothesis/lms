@@ -79,7 +79,7 @@ def oidc_view(request):
         # The value will be configured when registering the tool in the LMS and
         # will be different depending on the message type. For example, it will
         # be an lti_launch endpoint for launches and content_item_selection /
-        # deeplinking for LMSs that support it while creating or editing
+        # deep linking for LMSs that support it while creating or editing
         # assignments.
         "redirect_uri": params["target_link_uri"],
     }

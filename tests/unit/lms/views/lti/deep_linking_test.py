@@ -4,16 +4,16 @@ import pytest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.content_item_selection import content_item_selection
+from lms.views.lti.deep_linking import deep_linking_launch
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "course_service", "lti_h_service"
 )
 
 
-class TestContentItemSelection:
+class TestDeeplinkingLaunch:
     def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
-        content_item_selection(context, pyramid_request)
+        deep_linking_launch(context, pyramid_request)
 
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",
@@ -24,7 +24,7 @@ class TestContentItemSelection:
         )
 
     def test_it_records_the_course_in_the_DB(self, context, pyramid_request):
-        content_item_selection(context, pyramid_request)
+        deep_linking_launch(context, pyramid_request)
 
         context.get_or_create_course.assert_called_once_with()
 

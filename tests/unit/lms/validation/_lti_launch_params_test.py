@@ -8,7 +8,7 @@ from pyramid import testing
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
-    ContentItemSelectionLTILaunchSchema,
+    DeepLinkingLTILaunchSchema,
     LTIToolRedirect,
     LTIV11CoreSchema,
     URLConfiguredBasicLTILaunchSchema,
@@ -217,7 +217,7 @@ class TestURLConfiguredBasicLTILaunchSchema:
         return URLConfiguredBasicLTILaunchSchema(pyramid_request)
 
 
-class TestContentItemSelectionLTILaunchSchema:
+class TestDeepLinkingLTILaunchSchema:
     def test_it(self, schema, valid_params):
         parsed_params = schema.parse()
 
@@ -290,7 +290,7 @@ class TestContentItemSelectionLTILaunchSchema:
 
     @pytest.fixture
     def schema(self, pyramid_request):
-        return ContentItemSelectionLTILaunchSchema(pyramid_request)
+        return DeepLinkingLTILaunchSchema(pyramid_request)
 
 
 class TestConfigureAssignmentSchema:

@@ -174,8 +174,8 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
         return _data
 
 
-class ContentItemSelectionLTILaunchSchema(_CommonLTILaunchSchema):
-    """Schema for content item selection LTI launches."""
+class DeepLinkingLTILaunchSchema(_CommonLTILaunchSchema):
+    """Schema for deep linking LTI launches."""
 
     lti_message_type = fields.Str(
         validate=OneOf(["ContentItemSelectionRequest"]), required=True

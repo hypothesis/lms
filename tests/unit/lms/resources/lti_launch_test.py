@@ -119,7 +119,7 @@ class TestIsCanvas:
             # `tool_consumer_info_product_family_code: canvas` and you can
             # detect Canvas that way.
             ({"tool_consumer_info_product_family_code": "canvas"}, True),
-            # Some Canvas launches, e.g. content item selection launches, do
+            # Some Canvas launches, e.g. deep linking, do
             # not have a tool_consumer_info_product_family_code param. In these
             # cases we can instead detect Canvas by the presence of its
             # custom_canvas_course_id param.
