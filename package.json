@@ -47,7 +47,7 @@
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.13",
     "preact": "10.7.2",
-    "rollup": "^2.72.0",
+    "rollup": "^2.72.1",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.51.0",
