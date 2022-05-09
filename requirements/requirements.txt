@@ -195,7 +195,7 @@ webob==1.8.6
     #   pyramid
 wired==0.2.2
     # via pyramid-services
-xmltodict==0.12.0
+xmltodict==0.13.0
     # via -r requirements/requirements.in
 yarl==1.7.2
     # via aiohttp
