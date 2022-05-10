@@ -461,7 +461,7 @@ class TestUnconfiguredBasicLTILaunch:
         bearer_token_schema.authorization_param.assert_called_once_with(
             pyramid_request.lti_user
         )
-        context.js_config.enable_content_item_selection_mode.assert_called_once_with(
+        context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="http://example.com/assignment",
             form_fields=dict(
                 {

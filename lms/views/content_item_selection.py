@@ -57,7 +57,7 @@ def content_item_selection(context, request):
 
     request.find_service(name="lti_h").sync([context.h_group], request.params)
 
-    context.js_config.enable_content_item_selection_mode(
+    context.js_config.enable_file_picker_mode(
         form_action=request.params["content_item_return_url"],
         form_fields={
             "lti_message_type": "ContentItemSelection",

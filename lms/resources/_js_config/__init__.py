@@ -15,7 +15,7 @@ class JSConfig:
     class Mode(str, Enum):
         OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
         BASIC_LTI_LAUNCH = "basic-lti-launch"
-        CONTENT_ITEM_SELECTION = "content-item-selection"
+        FILE_PICKER = "content-item-selection"
         ERROR_DIALOG = "error-dialog"
 
     class ErrorCode(str, Enum):
@@ -176,9 +176,9 @@ class JSConfig:
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
 
-    def enable_content_item_selection_mode(self, form_action, form_fields):
+    def enable_file_picker_mode(self, form_action, form_fields):
         """
-        Put the JavaScript code into "content item selection" mode.
+        Put the JavaScript code into "file picker" mode.
 
         This mode shows teachers an assignment configuration UI where they can
         choose the document to be annotated for the assignment.
@@ -193,7 +193,7 @@ class JSConfig:
 
         self._config.update(
             {
-                "mode": JSConfig.Mode.CONTENT_ITEM_SELECTION,
+                "mode": JSConfig.Mode.FILE_PICKER,
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,

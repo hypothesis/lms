@@ -15,7 +15,7 @@ class TestContentItemSelection:
     def test_it_enables_content_item_selection_mode(self, context, pyramid_request):
         content_item_selection(context, pyramid_request)
 
-        context.js_config.enable_content_item_selection_mode.assert_called_once_with(
+        context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",
             form_fields={
                 "lti_message_type": "ContentItemSelection",
