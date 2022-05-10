@@ -40,7 +40,9 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `H_CLIENT_SECRET`                 | `0123456789abcdefghijklmnopqrABCDEFGH` | A `client_credentials` OAuth2 pair from `h`     |
 | `H_JWT_CLIENT_ID`                 | `fedcba98-7654-3210-fedc-ba9876543210` | A `jwt_bearer` OAuth2 pair from `h`             |
 | `H_JWT_CLIENT_SECRET`             | `0123456789abcdefghijklmnopqrABCDEFGH` | A `jwt_bearer` OAuth2 pair from `h`             |
-| `JWT_SECRET`                      | `random-string-12345`                  | An arbitrary secret value                       |                                
+| `JWT_SECRET`                      | `random-string-12345`                  | An arbitrary secret value                       |
+| `JSTOR_API_SECRET`                | `random-string-12345`                  | JWT secret for authenticating with JSTOR        |
+| `JSTOR_API_URL`                   | `http://example.com/api`               | URL of JSTOR API base url.                      |
 | `LMS_SECRET`                      | `random-string-12345`                  | An arbitrary secret value                       |
 | `OAUTH2_STATE_SECRET`             | `random-string-12345`                  | An arbitrary secret value                       |
 | `RPC_ALLOWED_ORIGINS`             | `https://fr.hypothes.is`               | `h` instances clients can be connecting from    |
