@@ -1,8 +1,8 @@
+from datetime import timedelta
 from functools import partial
 from unittest.mock import MagicMock, sentinel
 
 import pytest
-from freezegun import freeze_time
 
 from lms.models import ApplicationSettings
 from lms.services import ExternalRequestError
@@ -27,18 +27,17 @@ class TestJSTORService:
             ("jstor://PREFIX/SUFFIX", "http://jstor.example.com/pdf-url/PREFIX/SUFFIX"),
         ],
     )
-    @freeze_time("2022-01-14")
     def test_via_url(
-        self, svc, pyramid_request, jwt, http_service, via_url, url, expected
+        self, svc, pyramid_request, JWTService, http_service, via_url, url, expected
     ):
-        jwt.encode.return_value = "TOKEN"
+        JWTService.encode_with_secret.return_value = "TOKEN"
 
         url = svc.via_url(pyramid_request, document_url=url)
 
-        jwt.encode.assert_called_once_with(
-            {"exp": 1642122000, "site_code": sentinel.site_code},
+        JWTService.encode_with_secret.assert_called_once_with(
+            {"site_code": sentinel.site_code},
             sentinel.secret,
-            algorithm="HS256",
+            lifetime=timedelta(hours=1),
         )
 
         http_service.request.assert_called_once_with(
@@ -87,8 +86,8 @@ class TestJSTORService:
         return get_service()
 
     @pytest.fixture(autouse=True)
-    def jwt(self, patch):
-        return patch("lms.services.jstor.jwt")
+    def JWTService(self, patch):
+        return patch("lms.services.jstor.JWTService")
 
 
 class TestFactory:

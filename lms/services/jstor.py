@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from jose import jwt
-
-from lms.services import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.jwt import JWTService
 from lms.views.helpers import via_url
 
 
@@ -63,7 +62,12 @@ class JSTORService:
         if "/" not in doi:
             doi = f"{self.DEFAULT_DOI_PREFIX}/{doi}"
 
-        token = self._get_access_token(self._site_code)
+        token = JWTService.encode_with_secret(
+            {"site_code": self._site_code},
+            secret=self._secret,
+            lifetime=timedelta(hours=1),
+        )
+
         s3_url = self._http.request(
             method="GET",
             url=f"{self._api_url}/pdf-url/{doi}",
@@ -76,16 +80,6 @@ class JSTORService:
             )
 
         return s3_url
-
-    def _get_access_token(self, site_code):
-        return jwt.encode(
-            {
-                "exp": int((datetime.now() + timedelta(hours=1)).timestamp()),
-                "site_code": site_code,
-            },
-            self._secret,
-            algorithm="HS256",
-        )
 
 
 def factory(_context, request):
