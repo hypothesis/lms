@@ -15,7 +15,7 @@ class TestValidTeacherPayloads:
     def test_message_as_instructor(self, teacher_payload, assert_launch_get_config):
         """Launch LTI 1.3 Message as Instructor"""
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_with_multiple_roles(self, teacher_payload, assert_launch_get_config):
         """Launch Instructor with Multiple Role Values"""
@@ -26,7 +26,7 @@ class TestValidTeacherPayloads:
         ]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_with_short_role(self, teacher_payload, assert_launch_get_config):
         """Launch Instructor with Short Role Value"""
@@ -35,7 +35,7 @@ class TestValidTeacherPayloads:
         ]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_with_unknown_role(self, teacher_payload, assert_launch_get_config):
         """Launch Instructor with Unknown Role"""
@@ -63,14 +63,14 @@ class TestValidTeacherPayloads:
         del teacher_payload["middle_name"]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_with_only_names(self, teacher_payload, assert_launch_get_config):
         """Launch Instructor Only Names"""
         del teacher_payload["email"]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_without_pii(self, teacher_payload, assert_launch_get_config):
         """Launch Instructor No PII"""
@@ -81,7 +81,7 @@ class TestValidTeacherPayloads:
         del teacher_payload["middle_name"]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     @pytest.mark.xfail(reason="Pending. Context is required in our schemas")
     def test_with_email_no_context(self, teacher_payload, assert_launch_get_config):
@@ -90,7 +90,7 @@ class TestValidTeacherPayloads:
         del teacher_payload["https://purl.imsglobal.org/spec/lti/claim/context"]
 
         js_config = assert_launch_get_config(teacher_payload)
-        assert js_config["mode"] == JSConfig.Mode.CONTENT_ITEM_SELECTION
+        assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
 
     @pytest.fixture
     def assert_launch_get_config(self, do_lti_launch, make_jwt):

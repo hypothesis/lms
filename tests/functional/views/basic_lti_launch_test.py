@@ -32,10 +32,7 @@ class TestBasicLTILaunch:
             status=200,
         )
 
-        assert (
-            self.get_client_config(response)["mode"]
-            == JSConfig.Mode.CONTENT_ITEM_SELECTION
-        )
+        assert self.get_client_config(response)["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_db_configured_basic_lti_launch(
         self, lti_params, assignment, do_lti_launch

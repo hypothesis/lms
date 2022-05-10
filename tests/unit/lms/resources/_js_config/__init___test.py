@@ -20,7 +20,7 @@ pytestmark = pytest.mark.usefixtures(
 @pytest.mark.usefixtures("application_instance_service")
 class TestEnableContentItemSelectionMode:
     def test_it(self, js_config):
-        js_config.enable_content_item_selection_mode(
+        js_config.enable_file_picker_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
         config = js_config.asdict()
@@ -58,7 +58,7 @@ class TestEnableContentItemSelectionMode:
         config_function,
         key,
     ):
-        js_config.enable_content_item_selection_mode(
+        js_config.enable_file_picker_mode(
             mock.sentinel.form_action, mock.sentinel.form_fields
         )
         config = js_config.asdict()
