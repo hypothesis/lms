@@ -47,7 +47,10 @@ class TestJSTORService:
         )
 
         via_url.assert_called_once_with(
-            pyramid_request, http_service.request.return_value.text, content_type="pdf"
+            pyramid_request,
+            http_service.request.return_value.text,
+            content_type="pdf",
+            options={"via.client.contentPartner": "jstor"},
         )
 
         assert url == via_url.return_value

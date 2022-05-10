@@ -46,7 +46,11 @@ class JSTORService:
         """
 
         return via_url(
-            request, document_url=self._get_public_url(document_url), content_type="pdf"
+            request,
+            document_url=self._get_public_url(document_url),
+            content_type="pdf",
+            # Show content partner banner in client for JSTOR.
+            options={"via.client.contentPartner": "jstor"},
         )
 
     def _get_public_url(self, url):
