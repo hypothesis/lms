@@ -90,7 +90,7 @@ class LTI13AuthSchema(LTIV11CoreSchema):
     deployment_id = marshmallow.fields.Str(required=True)
 
     @marshmallow.pre_load
-    def _lti_v13_fields(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def _lti_v13_fields(self, data, **_kwargs):
         if not self.context["request"].lti_jwt:
             return data
 
