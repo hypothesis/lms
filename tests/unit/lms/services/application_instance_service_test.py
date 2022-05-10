@@ -38,6 +38,13 @@ class TestApplicationInstanceService:
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_consumer_key(consumer_key)
 
+    def test_get_by_id(self, service, application_instance):
+        assert service.get_by_id(application_instance.id) == application_instance
+
+    def test_get_by_not_found(self, service):
+        with pytest.raises(ApplicationInstanceNotFound):
+            service.get_by_id(0)
+
     def test_get_by_deployment_id(
         self,
         service,

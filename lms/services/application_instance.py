@@ -30,12 +30,16 @@ class ApplicationInstanceService:
             `ApplicationInstance`
         """
         if self._request.lti_user and self._request.lti_user.application_instance_id:
-            if application_instance := self._db.query(ApplicationInstance).get(
-                self._request.lti_user.application_instance_id
-            ):
-                return application_instance
+            return self.get_by_id(self._request.lti_user.application_instance_id)
 
         raise ApplicationInstanceNotFound()
+
+    @lru_cache(maxsize=1)
+    def get_by_id(self, id_) -> ApplicationInstance:
+        try:
+            return self._db.query(ApplicationInstance).filter_by(id=id_).one()
+        except NoResultFound as err:
+            raise ApplicationInstanceNotFound() from err
 
     @lru_cache(maxsize=128)
     def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
