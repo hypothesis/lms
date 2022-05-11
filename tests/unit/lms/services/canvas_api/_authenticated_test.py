@@ -1,7 +1,6 @@
-from unittest.mock import call, create_autospec, sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.services import CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api._basic import BasicClient
@@ -26,7 +25,7 @@ class TestAuthenticatedClient:
 
         assert result == basic_client.send.return_value
 
-    def test_send_raises_ProxyAPIAccessTokenError_if_we_dont_have_an_access_token_for_the_user(
+    def test_send_raises_OAuth2TokenError_if_we_dont_have_an_access_token_for_the_user(
         self, authenticated_client, oauth2_token_service
     ):
         oauth2_token_service.get.side_effect = OAuth2TokenError()
@@ -38,45 +37,7 @@ class TestAuthenticatedClient:
 
         assert exc_info.value.response is None
 
-    def test_send_refreshes_and_retries_for_ProxyAPIAccessTokenError(
-        self, authenticated_client, basic_client, token_response, oauth_token
-    ):
-        basic_client.send.side_effect = (
-            OAuth2TokenError,  # The first call should fail
-            token_response,  # Then we expect a refresh call
-            "success",  # Then finally our successful content request
-        )
-
-        call_args = ("METHOD", "/path", sentinel.schema, (10, 10), sentinel.params)
-        result = authenticated_client.send(*call_args)
-
-        assert basic_client.send.call_args_list == [
-            # Initial call with access token
-            call(
-                *call_args,
-                headers={"Authorization": f"Bearer {oauth_token.access_token}"},
-            ),
-            # Refresh after the one above fails
-            call(
-                "POST",
-                "login/oauth2/token",
-                url_stub="",
-                params=Any.mapping.containing(
-                    {"refresh_token": oauth_token.refresh_token}
-                ),
-                schema=OAuthTokenResponseSchema,
-                timeout=(10, 10),
-            ),
-            # Repeat call with new access token
-            call(
-                *call_args,
-                headers={"Authorization": "Bearer new_access_token"},
-            ),
-        ]
-
-        assert result == "success"
-
-    def test_send_raises_ProxyAPIAccessTokenError_if_it_cannot_refresh(
+    def test_send_raises_OAuth2TokenError_if_it_cannot_refresh(
         self, authenticated_client, basic_client, oauth_token
     ):
         oauth_token.refresh_token = None
