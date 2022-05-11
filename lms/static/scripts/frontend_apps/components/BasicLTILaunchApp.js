@@ -281,12 +281,16 @@ export default function BasicLTILaunchApp() {
       clientRPC.off('annotationActivity', onAnnotationActivity);
 
     /**
-     * @param {string} eventType
-     * @param {object} data
-     *   @param {string} data.date
+     * @param {import('../services/client-rpc').AnnotationEventType} eventType
+     * @param {import('../services/client-rpc').AnnotationEventData} data
      */
     function onAnnotationActivity(eventType, data) {
-      reportSubmission(data.date).then(unsubscribe);
+      if (
+        ['create', 'update'].includes(eventType) &&
+        data.annotation.isShared
+      ) {
+        reportSubmission(data.date).then(unsubscribe);
+      }
     }
 
     clientRPC.on('annotationActivity', onAnnotationActivity);

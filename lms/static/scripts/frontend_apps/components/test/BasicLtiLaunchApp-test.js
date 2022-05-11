@@ -8,7 +8,7 @@ import { APIError } from '../../errors';
 
 import BasicLTILaunchApp, { $imports } from '../BasicLTILaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
-import { waitFor, waitForElement } from '../../../test-util/wait';
+import { delay, waitFor, waitForElement } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('BasicLTILaunchApp', () => {
@@ -571,70 +571,130 @@ describe('BasicLTILaunchApp', () => {
           assert.isFunction(annotationActivityCalls[0].args[1]);
         });
 
-        it('submits a submission when `annotationActivity` event emitted', async () => {
-          renderLTILaunchApp();
-          assert.isFalse(
-            fakeApiCall.calledWith(
-              sinon.match({ path: '/api/lti/submissions' })
-            )
-          );
-          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
-          const callback = annotationActivityCalls[0].callback;
-          callback('create', {});
-          await new Promise(resolve => setTimeout(resolve, 1));
+        context(
+          '`annotationActivity` event that qualifies for submission',
+          () => {
+            it('submits a submission', async () => {
+              renderLTILaunchApp();
+              assert.isFalse(
+                fakeApiCall.calledWith(
+                  sinon.match({ path: '/api/lti/submissions' })
+                )
+              );
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].callback;
+              callback('create', { annotation: { isShared: true } });
+              await delay(0);
 
-          assert.calledOnce(fakeApiCall);
-          assert.calledWith(
-            fakeApiCall,
-            sinon.match({ path: '/api/lti/submissions' })
-          );
+              assert.calledOnce(fakeApiCall);
+              assert.calledWith(
+                fakeApiCall,
+                sinon.match({ path: '/api/lti/submissions' })
+              );
 
-          const apiCall = fakeApiCall.getCall(0);
-          assert.deepEqual(apiCall.args[0], {
-            authToken: 'dummyAuthToken',
-            path: '/api/lti/submissions',
-            data: {
-              submitted_at: undefined,
-              ...fakeConfig.canvas.speedGrader.submissionParams,
-            },
-          });
-        });
+              const apiCall = fakeApiCall.getCall(0);
+              assert.deepEqual(apiCall.args[0], {
+                authToken: 'dummyAuthToken',
+                path: '/api/lti/submissions',
+                data: {
+                  submitted_at: undefined,
+                  ...fakeConfig.canvas.speedGrader.submissionParams,
+                },
+              });
+            });
 
-        it('deregisters callback after submission is made', async () => {
-          renderLTILaunchApp();
+            it('deregisters callback after submission is made', async () => {
+              renderLTILaunchApp();
 
-          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
-          const callback = annotationActivityCalls[0].args[1];
-          callback('create', {});
-          await new Promise(resolve => setTimeout(resolve, 1));
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].args[1];
+              callback('create', { annotation: { isShared: true } });
+              await delay(0);
 
-          assert.calledOnce(fakeApiCall);
-          assert.calledWith(
-            fakeApiCall,
-            sinon.match({ path: '/api/lti/submissions' })
-          );
-          assert.calledOnce(fakeRpcServer.off);
-          assert.calledWith(fakeRpcServer.off, 'annotationActivity', callback);
-        });
+              assert.calledOnce(fakeApiCall);
+              assert.calledWith(
+                fakeApiCall,
+                sinon.match({ path: '/api/lti/submissions' })
+              );
+              assert.calledOnce(fakeRpcServer.off);
+              assert.calledWith(
+                fakeRpcServer.off,
+                'annotationActivity',
+                callback
+              );
+            });
 
-        it('submits a submission with annotation-activity date if provided', async () => {
-          renderLTILaunchApp();
+            it('submits a submission with annotation-activity date if provided', async () => {
+              renderLTILaunchApp();
 
-          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
-          const callback = annotationActivityCalls[0].args[1];
-          assert.notCalled(fakeApiCall);
-          callback('create', { date: '2022-04-28T13:25:34Z' });
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].args[1];
+              assert.notCalled(fakeApiCall);
+              callback('create', {
+                date: '2022-04-28T13:25:34Z',
+                annotation: { isShared: true },
+              });
 
-          const apiCall = fakeApiCall.getCall(0);
-          assert.deepEqual(apiCall.args[0], {
-            authToken: 'dummyAuthToken',
-            path: '/api/lti/submissions',
-            data: {
-              submitted_at: '2022-04-28T13:25:34Z',
-              ...fakeConfig.canvas.speedGrader.submissionParams,
-            },
-          });
-        });
+              const apiCall = fakeApiCall.getCall(0);
+              assert.deepEqual(apiCall.args[0], {
+                authToken: 'dummyAuthToken',
+                path: '/api/lti/submissions',
+                data: {
+                  submitted_at: '2022-04-28T13:25:34Z',
+                  ...fakeConfig.canvas.speedGrader.submissionParams,
+                },
+              });
+            });
+          }
+        );
+
+        context(
+          '`annotationActivity` event that does not qualify for submission',
+          () => {
+            it('does not submit a submission if event type not `create` or `update`', async () => {
+              renderLTILaunchApp();
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].callback;
+              callback('delete', { annotation: { isShared: true } });
+              await delay(0);
+
+              assert.notCalled(fakeApiCall);
+            });
+
+            it('does not deregister callback on non-qualifying annotation event', async () => {
+              renderLTILaunchApp();
+
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].args[1];
+              callback('delete', { annotation: { isShared: true } });
+              await delay(0);
+
+              assert.notCalled(fakeRpcServer.off);
+            });
+
+            it('does not submit if annotation is not shared', async () => {
+              renderLTILaunchApp();
+              const annotationActivityCalls = getOnActivityCalls(
+                fakeRpcServer.on
+              );
+              const callback = annotationActivityCalls[0].callback;
+              callback('create', { annotation: { isShared: false } });
+              await delay(0);
+
+              assert.notCalled(fakeApiCall);
+            });
+          }
+        );
       }
     );
   });

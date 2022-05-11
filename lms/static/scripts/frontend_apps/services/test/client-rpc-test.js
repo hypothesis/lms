@@ -177,9 +177,8 @@ describe('ClientRPC', () => {
       );
       clientRPC.on('annotationActivity', callback);
 
-      const result = serverMethod('create', 'foo');
+      serverMethod('create', 'foo');
 
-      assert.isTrue(result);
       assert.calledWith(callback, 'create', 'foo');
     });
   });
