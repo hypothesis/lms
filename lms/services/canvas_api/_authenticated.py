@@ -1,6 +1,5 @@
 """Access to the authenticated parts of the Canvas API."""
 
-from lms.services import OAuth2TokenError
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 DEFAULT_TIMEOUT = (10, 10)
@@ -24,7 +23,6 @@ class AuthenticatedClient:
         client_id,
         client_secret,
         redirect_uri,
-        refresh_enabled,
     ):
         """
         Create an AuthenticatedClient object for making authenticated calls.
@@ -43,8 +41,6 @@ class AuthenticatedClient:
         self._client_secret = client_secret
         self._redirect_uri = redirect_uri
 
-        self._refresh_enabled = refresh_enabled
-
     def send(
         self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None
     ):  # pylint:disable=too-many-arguments
@@ -57,24 +53,15 @@ class AuthenticatedClient:
         :raise OAuth2TokenError: if the request fails because our Canvas API
             access token for the user is missing, expired, or has been deleted
         """
-        call_args = (method, path, schema, timeout, params)
-
-        oauth2_token = self._oauth2_token_service.get()
-        access_token = oauth2_token.access_token
-        refresh_token = oauth2_token.refresh_token
-
-        try:
-            return self._client.send(
-                *call_args, headers={"Authorization": f"Bearer {access_token}"}
-            )
-        except OAuth2TokenError:
-            if not refresh_token or not self._refresh_enabled:
-                raise
-
-        new_access_token = self.get_refreshed_token(refresh_token)
+        access_token = self._oauth2_token_service.get().access_token
 
         return self._client.send(
-            *call_args, headers={"Authorization": f"Bearer {new_access_token}"}
+            method,
+            path,
+            schema,
+            timeout,
+            params,
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
     def get_token(self, authorization_code):

@@ -16,7 +16,6 @@ def blackboard_api_client_factory(_context, request):
             redirect_uri=request.route_url("blackboard_api.oauth.callback"),
             http_service=request.find_service(name="http"),
             oauth_http_service=request.find_service(name="oauth_http"),
-            refresh_enabled=False,
         ),
         request=request,
         file_service=request.find_service(name="file"),

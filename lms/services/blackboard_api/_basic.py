@@ -53,13 +53,11 @@ class BasicClient:
         redirect_uri,
         http_service,
         oauth_http_service,
-        refresh_enabled,
     ):  # pylint:disable=too-many-arguments
         self.blackboard_host = blackboard_host
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
-        self.refresh_enabled = refresh_enabled
 
         self._http_service = http_service
         self._oauth_http_service = oauth_http_service
@@ -80,18 +78,15 @@ class BasicClient:
         )
 
     def request(self, method, path):
-        url = self._api_url(path)
-
         try:
-            return self._send(method, url)
-        except ExternalRequestError:
-            if self.refresh_enabled:
-                self._oauth_http_service.refresh_access_token(
-                    self.token_url,
-                    self.redirect_uri,
-                    auth=(self.client_id, self.client_secret),
-                )
-                return self._send(method, url)
+            return self._oauth_http_service.request(method, self._api_url(path))
+        except ExternalRequestError as err:
+            err.refreshable = getattr(err.response, "status_code", None) == 401
+
+            error_dict = BlackboardErrorResponseSchema(err.response).parse()
+
+            if error_dict.get("message") == "Bearer token is invalid":
+                raise OAuth2TokenError(refreshable=err.refreshable) from err
 
             raise
 
@@ -108,16 +103,3 @@ class BasicClient:
             path = "/learn/api/public/v1/" + path
 
         return f"https://{self.blackboard_host}{path}"
-
-    def _send(self, method, url):
-        try:
-            return self._oauth_http_service.request(method, url)
-        except ExternalRequestError as err:
-            err.refreshable = getattr(err.response, "status_code", None) == 401
-
-            error_dict = BlackboardErrorResponseSchema(err.response).parse()
-
-            if error_dict.get("message") == "Bearer token is invalid":
-                raise OAuth2TokenError(refreshable=err.refreshable) from err
-
-            raise
