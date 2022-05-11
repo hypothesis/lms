@@ -11,6 +11,16 @@ import { JWT } from '../utils/jwt';
  */
 
 /**
+ * @typedef {'create'|'update'|'flag'|'delete'} AnnotationEventType
+ *
+ * @typedef AnnotationEventData
+ * @prop {string} date
+ * @prop {object} annotation
+ *  @prop {string} annotation.id
+ *  @prop {boolean} annotation.isShared
+ */
+
+/**
  * @typedef {import('../config').ClientConfig} ClientConfig
  */
 
@@ -72,13 +82,16 @@ export class ClientRPC extends TinyEmitter {
       return clientConfig;
     });
 
-    this._server.register('reportActivity', (event, data) => {
-      this.emit('annotationActivity', event, data);
-      // The client requires a response, or its Promise will reject
-      // TODO: Change this expectation in the client so that we don't have
-      // to return a meaningless return value
-      return true;
-    });
+    this._server.register(
+      'reportActivity',
+      /**
+       * @param {AnnotationEventType} eventType
+       * @param {AnnotationEventData} data
+       */
+      (eventType, data) => {
+        this.emit('annotationActivity', eventType, data);
+      }
+    );
 
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;
