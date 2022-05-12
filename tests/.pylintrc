@@ -16,6 +16,8 @@ load-plugins=pylint.extensions.bad_builtin,
 # https://pylint.pycqa.org/en/latest/messages/messages_introduction.html
 fail-on=C,E,F,I,R,W
 
+ignore-paths=tests/bdd/steps/_compiled_feature_steps.py
+
 [MESSAGES CONTROL]
 enable=
     bad-inline-option,
