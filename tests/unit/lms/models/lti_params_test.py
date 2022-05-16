@@ -1,6 +1,6 @@
 import pytest
 
-from lms.models import LTIParams
+from lms.models import CLAIM_PREFIX, LTIParams
 
 
 class TestLTI13Params:
@@ -46,3 +46,18 @@ class TestLTI13Params:
         assert params["custom_canvas_course_id"] == "SOME_ID"
         # Nonexistent ones in the same "level" are not present
         assert "custom_canvas_api_domain" not in params
+
+    def test_prefers_lti1p1_ids(self):
+        params = LTIParams.from_v13(
+            {
+                "sub": "v13",
+                f"{CLAIM_PREFIX}/resource_link_id": {"id": "v13"},
+                f"{CLAIM_PREFIX}/lti1p1": {
+                    "user_id": "user_id-v11",
+                    "resource_link_id": "resource_link_id-v11",
+                },
+            }
+        )
+
+        assert params["user_id"] == "user_id-v11"
+        assert params["resource_link_id"] == "resource_link_id-v11"

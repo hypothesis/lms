@@ -74,6 +74,19 @@ _V11_TO_V13 = (
         "custom_canvas_user_id",
         [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
     ),
+    # Some LMSs provide a https://purl.imsglobal.org/spec/lti/claim/lti1p1 claim
+    # with the LTI1.1 version value of some IDs that are different in LTI1.3.
+    # To make upgrades seamless we prefer the LTI1.1 version when available
+    #
+    # http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+    (
+        "user_id",
+        [f"{CLAIM_PREFIX}/lti1p1", "user_id"],
+    ),
+    (
+        "resource_link_id",
+        [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
+    ),
 )
 
 
