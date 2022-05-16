@@ -46,7 +46,7 @@ class BasicLTILaunchViews:
         self.application_instance = request.find_service(
             name="application_instance"
         ).get_current()
-        self.application_instance.update_lms_data(self.request.params)
+        self.application_instance.update_lms_data(self.context.lti_params)
 
     def basic_lti_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
@@ -123,7 +123,7 @@ class BasicLTILaunchViews:
         Note that this only apply to assignments configured but not yet launched
         after canvas assignments are also DB configured see: js_config._create_assignment_api
         """
-        course_id = self.request.params["custom_canvas_course_id"]
+        course_id = self.context.lti_params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
 
         # Normally this would be done during `configure_assignment()` but
