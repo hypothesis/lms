@@ -57,7 +57,7 @@ class JSConfig:
                 "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
-                    course_id=self._request.params["context_id"],
+                    course_id=self._context.lti_params["context_id"],
                     _query={"document_url": document_url},
                 ),
             }
@@ -524,19 +524,19 @@ class JSConfig:
             "path": req.route_path("blackboard_api.sync"),
             "data": {
                 "lms": {
-                    "tool_consumer_instance_guid": req.params[
+                    "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
                 },
                 "course": {
-                    "context_id": req.params["context_id"],
+                    "context_id": self._context.lti_params["context_id"],
                 },
                 "assignment": {
-                    "resource_link_id": req.params["resource_link_id"],
+                    "resource_link_id": self._context.lti_params["resource_link_id"],
                 },
                 "group_info": {
                     key: value
-                    for key, value in req.params.items()
+                    for key, value in self._context.lti_params.items()
                     if key in GroupInfo.columns()
                 },
             },
