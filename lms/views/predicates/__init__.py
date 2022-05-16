@@ -12,7 +12,6 @@ from lms.views.predicates._lti_launch import (
     CanvasFile,
     Configured,
     DBConfigured,
-    LegacySpeedGrader,
     URLConfigured,
     VitalSourceBook,
 )
@@ -28,6 +27,5 @@ def includeme(config):
         VitalSourceBook,
         Configured,
         AuthorizedToConfigureAssignments,
-        LegacySpeedGrader,
     ):
         config.add_view_predicate(view_predicate_factory.name, view_predicate_factory)
