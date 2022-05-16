@@ -162,7 +162,13 @@ class DeepLinkingFieldsViews:
         the content as query parameters.
         """
         content = request.parsed_params["content"]
-        params = dict(request.parsed_params.get("extra_params") or {})
+
+        # Filter out any `null` values to avoid adding a ?key=None on the resulting URL
+        params = {
+            key: value
+            for key, value in (request.parsed_params.get("extra_params") or {}).items()
+            if value is not None
+        }
 
         if content["type"] == "file":
             params["canvas_file"] = "true"

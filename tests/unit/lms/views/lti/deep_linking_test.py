@@ -104,9 +104,15 @@ class TestDeepLinkingFieldsView:
             ),
         ],
     )
-    @pytest.mark.parametrize("extra_params", ({}, {"extra": "value"}))
+    @pytest.mark.parametrize(
+        "extra_params,extra_expected",
+        [
+            ({}, {}),
+            ({"extra": "value", "none_value": None}, {"extra": "value"}),
+        ],
+    )
     def test_get_content_url(
-        self, content, output_params, extra_params, pyramid_request
+        self, content, output_params, extra_params, extra_expected, pyramid_request
     ):
         pyramid_request.parsed_params.update(
             {"content": content, "extra_params": extra_params}
@@ -115,7 +121,7 @@ class TestDeepLinkingFieldsView:
         # pylint:disable=protected-access
         url = DeepLinkingFieldsViews._get_content_url(pyramid_request)
 
-        output_params.update(extra_params)
+        output_params.update(extra_expected)
         assert url == Any.url.with_query(output_params)
 
     def test_it_with_unknown_file_type(self, pyramid_request):
