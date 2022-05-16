@@ -8,7 +8,6 @@ from lms.views.predicates._lti_launch import (
     CanvasFile,
     Configured,
     DBConfigured,
-    LegacySpeedGrader,
     URLConfigured,
     VitalSourceBook,
 )
@@ -30,5 +29,4 @@ def test_includeme_adds_the_view_predicates():
         mock.call(
             "authorized_to_configure_assignments", AuthorizedToConfigureAssignments
         ),
-        mock.call("legacy_speedgrader", LegacySpeedGrader),
     ]
