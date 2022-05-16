@@ -500,13 +500,15 @@ class JSConfig:
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {
-                    "tool_consumer_instance_guid": req.params[
+                    "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
                 },
                 "course": {
-                    "context_id": req.params["context_id"],
-                    "custom_canvas_course_id": req.params["custom_canvas_course_id"],
+                    "context_id": self._context.lti_params["context_id"],
+                    "custom_canvas_course_id": self._context.lti_params[
+                        "custom_canvas_course_id"
+                    ],
                     "group_set": req.params.get("group_set"),
                 },
                 "group_info": {
