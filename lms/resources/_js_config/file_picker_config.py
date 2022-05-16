@@ -11,7 +11,7 @@ class FilePickerConfig:
         groups_enabled = context.blackboard_groups_enabled
 
         auth_url = request.route_url("blackboard_api.oauth.authorize")
-        course_id = request.params.get("context_id")
+        course_id = context.lti_params.get("context_id")
 
         config = {
             "enabled": files_enabled,

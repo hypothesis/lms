@@ -27,7 +27,7 @@ class TestFilePickerConfig:
         groups_enabled,
     ):
 
-        pyramid_request.params["context_id"] = "COURSE_ID"
+        context.lti_params["context_id"] = "COURSE_ID"
         blackboard_application_instance.settings.set(
             "blackboard", "files_enabled", files_enabled
         )
