@@ -85,6 +85,13 @@ class TestBasicLTILaunchSchema:
             },
         }
 
+    def test_allows_int_custom_canvas_course_id(self, pyramid_request):
+        pyramid_request.params["custom_canvas_course_id"] = 1
+
+        params = BasicLTILaunchSchema(pyramid_request).parse()
+
+        assert params["custom_canvas_course_id"] == str(1)
+
     @pytest.mark.parametrize(
         "required_param",
         ["oauth_consumer_key", "tool_consumer_instance_guid", "user_id"],
