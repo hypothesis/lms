@@ -62,6 +62,14 @@ _V11_TO_V13 = (
         "deep_linking_settings",
         ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
     ),
+    (
+        "custom_canvas_course_id",
+        [f"{CLAIM_PREFIX}/custom", "canvas_course_id"],
+    ),
+    (
+        "custom_canvas_api_domain",
+        [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
+    ),
 )
 
 
