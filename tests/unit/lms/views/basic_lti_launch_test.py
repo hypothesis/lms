@@ -29,7 +29,7 @@ def legacy_canvas_file_basic_lti_launch_caller(context, pyramid_request):
     # The custom_canvas_course_id param is always present when
     # legacy_canvas_file_basic_lti_launch() is called: Canvas always includes this
     # param because we request it in our config.xml.
-    pyramid_request.params["custom_canvas_course_id"] = "TEST_COURSE_ID"
+    context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
     # The file_id param is always present when legacy_canvas_file_basic_lti_launch()
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
@@ -292,7 +292,7 @@ class TestCanvasFileBasicLTILaunch:
     def test_it(self, context, pyramid_request, assignment_service):
         legacy_canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
-        course_id = pyramid_request.params["custom_canvas_course_id"]
+        course_id = context.lti_params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
 
         assignment_service.upsert.assert_called_once_with(

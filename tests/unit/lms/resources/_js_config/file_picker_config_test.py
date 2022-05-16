@@ -3,6 +3,7 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
+from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import FilePickerConfig
 
@@ -66,7 +67,7 @@ class TestFilePickerConfig:
     def test_canvas_config(
         self, context, pyramid_request, application_instance, groups_enabled
     ):
-        pyramid_request.params["custom_canvas_course_id"] = "COURSE_ID"
+        context.lti_params["custom_canvas_course_id"] = "COURSE_ID"
         context.canvas_groups_enabled = groups_enabled
 
         config = FilePickerConfig.canvas_config(
@@ -197,7 +198,7 @@ class TestFilePickerConfig:
         context.is_canvas = True
 
     @pytest.fixture
-    def context(self):
+    def context(self, pyramid_request):
         return create_autospec(
             LTILaunchResource,
             spec_set=True,
@@ -207,4 +208,5 @@ class TestFilePickerConfig:
             canvas_groups_enabled=False,
             custom_canvas_api_domain=None,
             blackboard_groups_enabled=False,
+            lti_params=LTIParams(pyramid_request.params),
         )

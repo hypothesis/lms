@@ -66,7 +66,7 @@ class JSConfig:
                 "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
                 "path": self._request.route_path(
                     "canvas_api.files.via_url",
-                    resource_link_id=self._context.lti_params["resource_link_id"],
+                    resource_link_id=self._request.params["resource_link_id"],
                 ),
             }
         elif document_url.startswith("vitalsource://"):
