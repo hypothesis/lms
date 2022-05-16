@@ -1,6 +1,3 @@
-import datetime
-from datetime import timezone
-
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
@@ -83,67 +80,45 @@ class LTIOutcomesViews:
             return None
 
         self.lti_grading_service.record_result(
-            lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
+            lis_result_sourcedid,
+            canvas_lti_launch_url=get_speedgrader_launch_url(self.request),
+            canvas_submitted_at=self.request.parsed_params.get("submitted_at"),
         )
 
         return {}
 
 
-class CanvasPreRecordHook:
-    # For details of Canvas extensions to the standard LTI Outcomes request see:
-    # https://erau.instructure.com/doc/api/file.assignment_tools.html
+def get_speedgrader_launch_url(request):
+    parsed_params = request.parsed_params
+    params = {
+        "focused_user": parsed_params["h_username"],
+        "learner_canvas_user_id": parsed_params["learner_canvas_user_id"],
+        "group_set": parsed_params.get("group_set"),
+        "ext_lti_assignment_id": parsed_params.get("ext_lti_assignment_id"),
+        "resource_link_id": parsed_params.get("resource_link_id"),
+    }
 
-    def __init__(self, request):
-        self.request = request
+    if parsed_params.get("document_url"):
+        params["url"] = parsed_params.get("document_url")
+    elif book_id := parsed_params.get("vitalsource_book_id"):
+        params["vitalsource_book"] = "true"
+        params["book_id"] = book_id
+        params["cfi"] = parsed_params["vitalsource_cfi"]
+    else:
+        assert parsed_params.get("canvas_file_id"), (
+            "All Canvas launches should have either a 'document_url' a 'vitalsource_book_id' or "
+            "a 'canvas_file_id' parameter."
+        )
+        params["canvas_file"] = "true"
+        params["file_id"] = parsed_params["canvas_file_id"]
 
-    def __call__(self, score=None, request_body=None):
-        request_body["resultRecord"].setdefault("result", {})["resultData"] = {
-            "ltiLaunchUrl": self.get_speedgrader_launch_url()
-        }
+    # **WARNING**
+    #
+    # Canvas has a bug with handling of percent-encoded characters in the
+    # the SpeedGrader launch URL. Code that responds to the launch will
+    # need to handle this for fields that may contain such chars (eg.
+    # the "url" field).
+    #
+    # See https://github.com/instructure/canvas-lms/issues/1486
 
-        #  A `datetime.datetime` that indicates when the submission was
-        # created. This is only used in Canvas and is displayed in the
-        # SpeedGrader as the submission date. If the submission date matches
-        # an existing submission then the existing submission is updated
-        # rather than creating a new submission.
-        request_body["submissionDetails"] = {
-            "submittedAt": self.request.parsed_params.get("submitted_at")
-            or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
-        }
-
-        return request_body
-
-    def get_speedgrader_launch_url(self):
-        parsed_params = self.request.parsed_params
-        params = {
-            "focused_user": parsed_params["h_username"],
-            "learner_canvas_user_id": parsed_params["learner_canvas_user_id"],
-            "group_set": parsed_params.get("group_set"),
-            "ext_lti_assignment_id": parsed_params.get("ext_lti_assignment_id"),
-            "resource_link_id": parsed_params.get("resource_link_id"),
-        }
-
-        if parsed_params.get("document_url"):
-            params["url"] = parsed_params.get("document_url")
-        elif book_id := parsed_params.get("vitalsource_book_id"):
-            params["vitalsource_book"] = "true"
-            params["book_id"] = book_id
-            params["cfi"] = parsed_params["vitalsource_cfi"]
-        else:
-            assert parsed_params.get("canvas_file_id"), (
-                "All Canvas launches should have either a 'document_url' a 'vitalsource_book_id' or "
-                "a 'canvas_file_id' parameter."
-            )
-            params["canvas_file"] = "true"
-            params["file_id"] = parsed_params["canvas_file_id"]
-
-        # **WARNING**
-        #
-        # Canvas has a bug with handling of percent-encoded characters in the
-        # the SpeedGrader launch URL. Code that responds to the launch will
-        # need to handle this for fields that may contain such chars (eg.
-        # the "url" field).
-        #
-        # See https://github.com/instructure/canvas-lms/issues/1486
-
-        return self.request.route_url("lti_launches", _query=params)
+    return request.route_url("lti_launches", _query=params)

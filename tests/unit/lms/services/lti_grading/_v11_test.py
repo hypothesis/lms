@@ -1,4 +1,5 @@
-from unittest.mock import Mock, sentinel
+from datetime import datetime, timezone
+from unittest.mock import sentinel
 
 import pytest
 import xmltodict
@@ -59,23 +60,25 @@ class TestLTI11GradingService:
             }
         }
 
+    @pytest.mark.parametrize(
+        "submitted_at", [datetime(2022, 2, 3, tzinfo=timezone.utc), None]
+    )
     @pytest.mark.usefixtures("with_response")
-    def test_record_result_calls_hook(self, svc, http_service):
-        my_hook = Mock(return_value={"my_dict": 1})
+    def test_record_submissions_canvas(self, svc, submitted_at, http_service):
+        svc.record_result(
+            sentinel.grading_id,
+            canvas_lti_launch_url=sentinel.canvas_lti_launch_url,
+            canvas_submitted_at=submitted_at,
+        )
 
-        svc.record_result(sentinel.grading_id, score=1.5, pre_record_hook=my_hook)
+        sent_body = self.sent_pox_body(http_service)["replaceResultRequest"]
 
-        my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
-        assert self.sent_pox_body(http_service) == {
-            "replaceResultRequest": {"my_dict": "1"}
-        }
-
-    @pytest.mark.parametrize("hook_result", [None, [], "foo"])
-    def test_record_result_requires_dict_result(self, svc, hook_result):
-        with pytest.raises(TypeError):
-            svc.record_result(
-                sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
-            )
+        assert sent_body["submissionDetails"] == (
+            submitted_at or datetime(2001, 1, 1, tzinfo=timezone.utc)
+        ).isoformat().replace("T", " ")
+        assert sent_body["resultRecord"]["result"]["resultData"]["ltiLaunchUrl"] == str(
+            sentinel.canvas_lti_launch_url
+        )
 
     @pytest.mark.usefixtures("with_response")
     def test_methods_make_valid_post_requests(

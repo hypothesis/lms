@@ -13,7 +13,13 @@ class LTIGradingService:  # pragma: no cover
         """
         raise NotImplementedError()
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
+    def record_result(
+        self,
+        grading_id,
+        score=None,
+        canvas_lti_launch_url=None,
+        canvas_submitted_at=None,
+    ):
         """
         Set the score or content URL for a student submission to an assignment.
 
@@ -26,7 +32,13 @@ class LTIGradingService:  # pragma: no cover
         :param score: Float value between 0 and 1.0.
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
-        :param pre_record_hook: Hook to allow modification of the request
+        :param canvas_lti_launch_url:  Launch URL used in Canvas SpeedGrader
+            https://erau.instructure.com/doc/api/file.assignment_tools.html
+
+        :param canvas_submitted_at: Indicates when the submission was created.
+            This is displayed in the SpeedGrader as the submission date.
+            If the submission date matches an existing submission then the existing
+            submission is updated rather than creating a new submission.
 
         :raise TypeError: if the given pre_record_hook returns a non-dict
         """
