@@ -12,6 +12,7 @@ def includeme(config):
     config.add_route("reports", "/reports")
 
     config.add_route("canvas.v11.config", "/config_xml")
+    config.add_route("canvas.v13.config", "/canvas/1.3/config")
     config.add_route(
         "configure_assignment",
         "/assignment",
