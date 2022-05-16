@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import (
     forbidden_view_config,
     notfound_view_config,
@@ -42,32 +42,6 @@ class AdminViews:
         return {}
 
     @view_config(
-        route_name="admin.instances.consumer_key",
-        request_method="POST",
-        require_csrf=True,
-    )
-    def find_by_consumer_key(self):
-        try:
-            consumer_key = self.request.params["consumer_key"]
-        except KeyError as err:
-            raise HTTPBadRequest() from err
-
-        try:
-            ai = self.application_instance_service.get_by_consumer_key(consumer_key)
-        except ApplicationInstanceNotFound:
-            self.request.session.flash(
-                f'No application instance found for {self.request.params["consumer_key"]}',
-                "errors",
-            )
-            return HTTPFound(location=self.request.route_url("admin.instances"))
-
-        return HTTPFound(
-            location=self.request.route_url(
-                "admin.instance.consumer_key", consumer_key=ai.consumer_key
-            ),
-        )
-
-    @view_config(
         route_name="admin.instances.search",
         request_method="POST",
         require_csrf=True,
@@ -78,6 +52,7 @@ class AdminViews:
             (
                 self.request.params.get(param)
                 for param in [
+                    "consumer_key",
                     "issuer",
                     "client_id",
                     "deployment_id",
@@ -91,6 +66,7 @@ class AdminViews:
             return HTTPFound(location=self.request.route_url("admin.instances"))
 
         instances = self.application_instance_service.search(
+            consumer_key=self.request.params.get("consumer_key"),
             issuer=self.request.params.get("issuer"),
             client_id=self.request.params.get("client_id"),
             deployment_id=self.request.params.get("deployment_id"),

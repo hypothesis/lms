@@ -87,6 +87,7 @@ class ApplicationInstanceService:
     def search(
         self,
         *,
+        consumer_key=None,
         issuer=None,
         client_id=None,
         deployment_id=None,
@@ -95,6 +96,9 @@ class ApplicationInstanceService:
         """Return the instances that match all of the passed parameters."""
 
         query = self._db.query(ApplicationInstance).outerjoin(LTIRegistration)
+        if consumer_key:
+            query = query.filter(ApplicationInstance.consumer_key == consumer_key)
+
         if issuer:
             query = query.filter_by(issuer=issuer)
 
