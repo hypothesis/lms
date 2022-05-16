@@ -1,7 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound
 
 from lms.services import ApplicationInstanceNotFound
 from lms.views.admin import AdminViews, logged_out, notfound
@@ -22,37 +22,6 @@ class TestAdminViews:
 
         assert response == {}
 
-    def test_find_instance_no_consumer_key(self, views):
-
-        with pytest.raises(HTTPBadRequest):
-            views.find_by_consumer_key()
-
-    def test_find_instance_not_found(
-        self, pyramid_request, application_instance_service
-    ):
-        application_instance_service.get_by_consumer_key.side_effect = (
-            ApplicationInstanceNotFound
-        )
-        pyramid_request.params["consumer_key"] = "some-value"
-        response = AdminViews(pyramid_request).find_by_consumer_key()
-
-        assert pyramid_request.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instances")
-        )
-
-    def test_find_instance_found(self, pyramid_request, application_instance_service):
-        pyramid_request.params["consumer_key"] = sentinel.consumer_key
-
-        response = AdminViews(pyramid_request).find_by_consumer_key()
-
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance.consumer_key",
-                consumer_key=application_instance_service.get_by_consumer_key.return_value.consumer_key,
-            )
-        )
-
     def test_search_not_query(self, pyramid_request):
         response = AdminViews(pyramid_request).search()
 
@@ -68,6 +37,7 @@ class TestAdminViews:
         response = AdminViews(pyramid_request).search()
 
         application_instance_service.search.assert_called_once_with(
+            consumer_key=None,
             issuer=sentinel.issuer,
             client_id=None,
             deployment_id=None,
@@ -87,6 +57,7 @@ class TestAdminViews:
         response = AdminViews(pyramid_request).search()
 
         application_instance_service.search.assert_called_once_with(
+            consumer_key=None,
             issuer=sentinel.issuer,
             client_id=None,
             deployment_id=None,
@@ -103,6 +74,7 @@ class TestAdminViews:
         self, pyramid_request, application_instance_service
     ):
         pyramid_request.params = {
+            "consumer_key": sentinel.consumer_key,
             "issuer": sentinel.issuer,
             "client_id": sentinel.client_id,
             "deployment_id": sentinel.deployment_id,
@@ -112,6 +84,7 @@ class TestAdminViews:
         response = AdminViews(pyramid_request).search()
 
         application_instance_service.search.assert_called_once_with(
+            consumer_key=sentinel.consumer_key,
             issuer=sentinel.issuer,
             client_id=sentinel.client_id,
             deployment_id=sentinel.deployment_id,

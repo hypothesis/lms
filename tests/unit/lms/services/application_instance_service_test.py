@@ -116,7 +116,9 @@ class TestApplicationInstanceService:
                 *[getattr(instance.lti_registration, field) for instance in instances]
             }
 
-    @pytest.mark.parametrize("field", ["deployment_id", "tool_consumer_instance_guid"])
+    @pytest.mark.parametrize(
+        "field", ["consumer_key", "deployment_id", "tool_consumer_instance_guid"]
+    )
     def test_search_by_instance_fields(
         self, field, service, with_application_instances_for_search
     ):
