@@ -40,13 +40,13 @@ class FilePickerConfig:
     def canvas_config(cls, context, request, application_instance):
         """Get Canvas files config."""
         enabled = context.is_canvas and (
-            "custom_canvas_course_id" in request.params
+            "custom_canvas_course_id" in context.lti_params
             and application_instance.developer_key is not None
         )
         groups_enabled = context.canvas_groups_enabled
 
         auth_url = request.route_url("canvas_api.oauth.authorize")
-        course_id = request.params.get("custom_canvas_course_id")
+        course_id = context.lti_params.get("custom_canvas_course_id")
 
         config = {
             "enabled": enabled,

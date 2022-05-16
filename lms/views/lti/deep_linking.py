@@ -63,7 +63,7 @@ def deep_linking_launch(context, request):
     application_instance = request.find_service(
         name="application_instance"
     ).get_current()
-    application_instance.update_lms_data(request.params)
+    application_instance.update_lms_data(context.lti_params)
 
     context.get_or_create_course()
 
