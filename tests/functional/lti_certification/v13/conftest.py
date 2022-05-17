@@ -148,6 +148,6 @@ def common_payload():
         # Mirror the custom param we set in the LTI compliance testing tool
         # This gets around the fact it doesn't send a GUID by default
         "https://purl.imsglobal.org/spec/lti/claim/custom": {
-            "certification_guid": "GUID"
+            "certification_guid": "TEST_CONSUMER_INSTANCE_GUID"
         },
     }
