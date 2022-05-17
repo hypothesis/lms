@@ -42,19 +42,32 @@ class LTI13GradingService(LTIGradingService):
         except (ZeroDivisionError, KeyError, IndexError):
             return None
 
-    def record_result(self, grading_id, score=None):  # pylint:disable=arguments-differ
+    def record_result(self, grading_id, score=None, canvas_extensions=None):
+        """
+        https://erau.instructure.com/doc/api/score.html#method.lti/ims/scores.create
+        """
+        payload = {
+            "scoreMaximum": 1,
+            "scoreGiven": score,
+            "userId": grading_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "activityProgress": "Completed",
+            "gradingProgress": "FullyGraded",
+        }
+
+        if canvas_extensions:
+            payload["https://canvas.instructure.com/lti/submission"] = {
+                "subission_type": "basic_lti_launch",
+                "submission_data": canvas_extensions.lti_launch_url,
+                "submitted_at": canvas_extensions.submitted_at
+                or datetime(2001, 1, 1, tzinfo=timezone.utc),
+            }
+
         return self._ltia_service.request(
             "POST",
             self._service_url(self.grading_url, "/scores"),
             scopes=self.LTIA_SCOPES,
-            json={
-                "scoreMaximum": 1,
-                "scoreGiven": score,
-                "userId": grading_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "activityProgress": "Completed",
-                "gradingProgress": "FullyGraded",
-            },
+            json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
 
