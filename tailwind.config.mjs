@@ -8,6 +8,8 @@ export default {
   content: [
     './lms/static/scripts/frontend_apps/**/*.js',
     './lms/static/scripts/ui-playground/**/*.js',
+    // This script adds a DOM element with the `.browser-check-warning` class
+    './lms/static/scripts/browser_check/index.js',
     './node_modules/@hypothesis/frontend-shared/lib/**/*.js',
   ],
   theme: {
