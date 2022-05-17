@@ -1,8 +1,38 @@
-@use '@hypothesis/frontend-shared/styles/util';
 @use 'tailwindcss/utilities';
 
 @layer utilities {
   .u-absolute-centered {
     @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  }
+
+  // Copied current implementation of `hyp-u-outline-on-keyboard-focus`
+  // classes from the `frontend-shared` package.
+  // TODO: This should be implemented as a TW plugin in `frontend-shared`
+  // and replaced
+  .u-outline-on-keyboard-focus:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #59a7e8;
+  }
+  .js-focus-visible .u-outline-on-keyboard-focus:focus:not(.focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+  .u-outline-on-keyboard-focus:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .u-outline-on-keyboard-focus--inset:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #59a7e8 inset;
+  }
+  .js-focus-visible
+    .u-outline-on-keyboard-focus--inset:focus:not(.focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+  .u-outline-on-keyboard-focus--inset:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
   }
 }

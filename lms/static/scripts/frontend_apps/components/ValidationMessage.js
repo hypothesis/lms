@@ -48,7 +48,7 @@ export default function ValidationMessage({
         'left-full',
         // Sm and larger breakpoints position the message to the left of the input
         'sm:left-0 sm:-translate-x-full',
-        'hyp-u-outline-on-keyboard-focus',
+        'u-outline-on-keyboard-focus',
         {
           'animate-validationMessageOpen': showError,
           'animate-validationMessageClose': !showError,
