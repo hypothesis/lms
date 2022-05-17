@@ -1,16 +1,22 @@
 // CSS entry point for back-end app
 @use 'normalize.css/normalize';
 
-@use 'variables' as var;
+$color-text: #202020;
+
+// Typography.
+$sans-font-family: 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande',
+  sans-serif !default;
+
+$normal-font-size: 13px;
 
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: var.$sans-font-family;
-  font-size: var.$normal-font-size;
-  color: var.$color-text;
+  font-family: $sans-font-family;
+  font-size: $normal-font-size;
+  color: $color-text;
 }
 
 .content {
