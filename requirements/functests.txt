@@ -81,7 +81,7 @@ h-matchers==1.2.13
     # via -r requirements/functests.in
 h-pyramid-sentry==1.2.3
     # via -r requirements/requirements.txt
-h-vialib==1.0.18
+h-vialib==1.0.19
     # via -r requirements/requirements.txt
 httpretty==1.1.4
     # via -r requirements/functests.in
