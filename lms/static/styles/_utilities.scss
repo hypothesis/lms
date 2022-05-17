@@ -1,2 +1,8 @@
 @use '@hypothesis/frontend-shared/styles/util';
 @use 'tailwindcss/utilities';
+
+@layer utilities {
+  .u-absolute-centered {
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  }
+}
