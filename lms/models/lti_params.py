@@ -85,6 +85,8 @@ def _to_lti_v11(v13_params):
             if path_item not in value:
                 break
             value = value[path_item]
+        else:
+            # We only found the key if we exhausted all of `v13_path`
             found = True
 
         # We don't want to add partial values along v13_path
