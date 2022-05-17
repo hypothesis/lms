@@ -14,6 +14,7 @@ from lms.validation import (
     URLConfiguredBasicLTILaunchSchema,
     ValidationError,
 )
+from lms.validation._lti_launch_params import _CommonLTILaunchSchema
 
 
 class TestLTIV11CoreSchema:
@@ -40,6 +41,15 @@ class TestLTIV11CoreSchema:
         pyramid_request.params = {"extra": "value"}
         pyramid_request.lti_jwt = sentinel.lti_jwt
         return pyramid_request
+
+
+class TestCommonLTILaunchSchema:
+    def test_it_allows_int_custom_canvas_course_id(self, pyramid_request):
+        pyramid_request.params["custom_canvas_course_id"] = 1
+
+        params = _CommonLTILaunchSchema(pyramid_request).parse()
+
+        assert params["custom_canvas_course_id"] == str(1)
 
 
 class TestBasicLTILaunchSchema:
@@ -84,13 +94,6 @@ class TestBasicLTILaunchSchema:
                 "resource_link_id": ["Missing data for required field."],
             },
         }
-
-    def test_allows_int_custom_canvas_course_id(self, pyramid_request):
-        pyramid_request.params["custom_canvas_course_id"] = 1
-
-        params = BasicLTILaunchSchema(pyramid_request).parse()
-
-        assert params["custom_canvas_course_id"] == str(1)
 
     @pytest.mark.parametrize(
         "required_param",
