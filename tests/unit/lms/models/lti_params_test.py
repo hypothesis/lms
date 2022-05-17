@@ -32,3 +32,17 @@ class TestLTI13Params:
 
         params = LTIParams(sample_dict)
         assert params == params.v11 == sample_dict
+
+    def test_doesnt_set_partial_keys(self):
+        params = LTIParams.from_v13(
+            {
+                "https://purl.imsglobal.org/spec/lti/claim/custom": {
+                    "canvas_course_id": "SOME_ID"
+                }
+            }
+        )
+
+        # The existing param get returned
+        assert params["custom_canvas_course_id"] == "SOME_ID"
+        # Non existing ones in the same "level" are not present
+        assert "custom_canvas_api_domain" not in params
