@@ -218,7 +218,7 @@ export default function SubmitGradeForm({ student }) {
               defaultValue={grade}
               key={student ? student.LISResultSourcedId : null}
             />
-            {gradeLoading && <Spinner classes="hyp-u-absolute-centered" />}
+            {gradeLoading && <Spinner classes="u-absolute-centered" />}
           </span>
 
           <LabeledButton
