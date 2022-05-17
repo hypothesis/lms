@@ -61,7 +61,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
       ]}
       initialFocus={input}
     >
-      <div className="hyp-u-vertical-spacing">
+      <div className="space-y-4">
         <p>Enter the URL of any publicly available web page or PDF:</p>
         <form
           ref={form}

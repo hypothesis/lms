@@ -82,7 +82,7 @@ export default function StudentSelector({
             'appearance-none w-full h-touch-minimum',
             'pl-4 pr-8', // Make room on right for custom down-caret Icon
             'xl:w-80', // Fix the width at wider viewports
-            'hyp-u-outline-on-keyboard-focus--inset hyp-u-border',
+            'hyp-u-outline-on-keyboard-focus--inset border',
             'border-r-0 border-l-0' // left and right borders off
           )}
           onChange={e => {

@@ -45,7 +45,7 @@ function ErrorDetails({ error }) {
 
   return (
     <details
-      className="hyp-u-border"
+      className="border"
       onToggle={onDetailsToggle}
       data-testid="error-details"
     >
