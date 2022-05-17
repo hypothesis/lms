@@ -312,8 +312,10 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        lis_result_sourcedid = self._request.params.get("lis_result_sourcedid")
-        lis_outcome_service_url = self._request.params.get("lis_outcome_service_url")
+        lis_result_sourcedid = self._context.lti_params.get("lis_result_sourcedid")
+        lis_outcome_service_url = self._context.lti_params.get(
+            "lis_outcome_service_url"
+        )
 
         # Don't set the Canvas submission params in non-Canvas LMS's.
         if not self._context.is_canvas:
@@ -337,11 +339,13 @@ class JSConfig:
                 "h_username": self._h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
-                "learner_canvas_user_id": self._request.params["custom_canvas_user_id"],
+                "learner_canvas_user_id": self._context.lti_params[
+                    "custom_canvas_user_id"
+                ],
                 "group_set": self._request.params.get("group_set"),
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"
-                "resource_link_id": self._request.params.get("resource_link_id"),
+                "resource_link_id": self._context.lti_params.get("resource_link_id"),
                 # Canvas doesn't send this value at all on speed grader submissions
                 "ext_lti_assignment_id": self._request.params.get(
                     "ext_lti_assignment_id"
