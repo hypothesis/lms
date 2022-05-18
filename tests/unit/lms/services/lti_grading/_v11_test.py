@@ -70,13 +70,6 @@ class TestLTI11GradingService:
             "replaceResultRequest": {"my_dict": "1"}
         }
 
-    @pytest.mark.parametrize("hook_result", [None, [], "foo"])
-    def test_record_result_requires_dict_result(self, svc, hook_result):
-        with pytest.raises(TypeError):
-            svc.record_result(
-                sentinel.grading_id, pre_record_hook=lambda *args, **kwargs: hook_result
-            )
-
     @pytest.mark.usefixtures("with_response")
     def test_methods_make_valid_post_requests(
         self, svc_method, http_service, oauth1_service

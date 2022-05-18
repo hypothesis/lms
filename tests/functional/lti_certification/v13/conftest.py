@@ -145,9 +145,10 @@ def common_payload():
             ],
             "lineitems": "https://ltiadvantagevalidator.imsglobal.org/ltitool/rest/assignmentsgrades/10843/lineitems",
         },
-        # Mirror the custom param we set in the LTI compliance testing tool
-        # This gets around the fact it doesn't send a GUID by default
         "https://purl.imsglobal.org/spec/lti/claim/custom": {
-            "certification_guid": "TEST_CONSUMER_INSTANCE_GUID"
+            "canvas_user_id": 1000,
+            # Mirror the custom param we set in the LTI compliance testing tool
+            # This gets around the fact it doesn't send a GUID by default
+            "certification_guid": "TEST_CONSUMER_INSTANCE_GUID",
         },
     }

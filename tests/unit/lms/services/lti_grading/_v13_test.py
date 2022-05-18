@@ -2,6 +2,7 @@ from unittest.mock import Mock, sentinel
 
 import pytest
 from freezegun import freeze_time
+from h_matchers import Any
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading._v13 import LTI13GradingService
@@ -80,6 +81,20 @@ class TestLTI13GradingService:
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
         assert response == ltia_http_service.request.return_value
+
+    def test_record_result_calls_hook(self, svc, ltia_http_service):
+        my_hook = Mock(return_value={"my_dict": 1})
+
+        svc.record_result(sentinel.user_id, score=1.5, pre_record_hook=my_hook)
+
+        my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
+        ltia_http_service.request.assert_called_once_with(
+            "POST",
+            "http://example.com/service_url/scores",
+            scopes=svc.LTIA_SCOPES,
+            json={"my_dict": 1},
+            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
+        )
 
     @pytest.fixture
     def response(self):

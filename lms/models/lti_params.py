@@ -70,6 +70,10 @@ _V11_TO_V13 = (
         "custom_canvas_api_domain",
         [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
     ),
+    (
+        "custom_canvas_user_id",
+        [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
+    ),
 )
 
 
