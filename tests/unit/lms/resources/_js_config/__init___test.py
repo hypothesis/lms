@@ -171,17 +171,21 @@ class TestAddDocumentURL:
         assert submission_params()["document_url"] == "example_document_url"
 
     @pytest.mark.parametrize("submit_on_annotation_enabled", [True, False])
+    @pytest.mark.parametrize("custom_canvas_user_id", ["100", 100])
     def test_it_sets_the_canvas_submission_params(
         self,
         pyramid_request,
         js_config,
         submission_params,
+        context,
+        custom_canvas_user_id,
         submit_on_annotation_enabled,
     ):
         if submit_on_annotation_enabled:
             pyramid_request.feature.side_effect = (
                 lambda feature: feature == "submit_on_annotation"
             )
+        context.lti_params["custom_canvas_user_id"] = custom_canvas_user_id
 
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
@@ -190,7 +194,7 @@ class TestAddDocumentURL:
                 "h_username": pyramid_request.lti_user.h_user.username,
                 "lis_outcome_service_url": "example_lis_outcome_service_url",
                 "lis_result_sourcedid": "example_lis_result_sourcedid",
-                "learner_canvas_user_id": "test_user_id",
+                "learner_canvas_user_id": "100",
                 "resource_link_id": pyramid_request.params["resource_link_id"],
                 "ext_lti_assignment_id": pyramid_request.params[
                     "ext_lti_assignment_id"
@@ -215,18 +219,18 @@ class TestAddDocumentURL:
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
     def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
-        self, js_config, pyramid_request
+        self, js_config, context
     ):
-        del pyramid_request.params["lis_result_sourcedid"]
+        del context.lti_params["lis_result_sourcedid"]
 
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
     def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
-        self, js_config, pyramid_request
+        self, js_config, context
     ):
-        del pyramid_request.params["lis_outcome_service_url"]
+        del context.lti_params["lis_outcome_service_url"]
 
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 

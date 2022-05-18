@@ -93,25 +93,30 @@ class CanvasPreRecordHook:
     # For details of Canvas extensions to the standard LTI Outcomes request see:
     # https://erau.instructure.com/doc/api/file.assignment_tools.html
 
+    # We use a set date in the past when no other date is available to avoid creating new submissions.
+    DEFAULT_SUBMISSION_DATE = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+
     def __init__(self, request):
         self.request = request
 
-    def __call__(self, score=None, request_body=None):
-        request_body["resultRecord"].setdefault("result", {})["resultData"] = {
-            "ltiLaunchUrl": self.get_speedgrader_launch_url()
-        }
+    def __call__(self, score=None, request_body=None) -> dict:
+        speedgrader_url = self.get_speedgrader_launch_url()
 
         #  A `datetime.datetime` that indicates when the submission was
         # created. This is only used in Canvas and is displayed in the
         # SpeedGrader as the submission date. If the submission date matches
         # an existing submission then the existing submission is updated
         # rather than creating a new submission.
-        request_body["submissionDetails"] = {
-            "submittedAt": self.request.parsed_params.get("submitted_at")
-            or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
-        }
+        submitted_at = (
+            self.request.parsed_params.get("submitted_at")
+            or self.DEFAULT_SUBMISSION_DATE
+        )
 
-        return request_body
+        if "resultRecord" in request_body:
+
+            return self._rewrite_v11(request_body, speedgrader_url, submitted_at)
+
+        return self._rewrite_v13(request_body, speedgrader_url, submitted_at)
 
     def get_speedgrader_launch_url(self):
         parsed_params = self.request.parsed_params
@@ -147,3 +152,22 @@ class CanvasPreRecordHook:
         # See https://github.com/instructure/canvas-lms/issues/1486
 
         return self.request.route_url("lti_launches", _query=params)
+
+    @staticmethod
+    def _rewrite_v11(request_body, speedgrader_url, submitted_at):
+        request_body["resultRecord"].setdefault("result", {})["resultData"] = {
+            "ltiLaunchUrl": speedgrader_url
+        }
+        request_body["submissionDetails"] = {"submittedAt": submitted_at}
+
+        return request_body
+
+    @staticmethod
+    def _rewrite_v13(request_body, speedgrader_url, submitted_at):
+        request_body["https://canvas.instructure.com/lti/submission"] = {
+            "submission_type": "basic_lti_launch",
+            "submission_data": speedgrader_url,
+            "submitted_at": submitted_at.isoformat(),
+        }
+
+        return request_body

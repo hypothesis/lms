@@ -42,19 +42,23 @@ class LTI13GradingService(LTIGradingService):
         except (ZeroDivisionError, KeyError, IndexError):
             return None
 
-    def record_result(self, grading_id, score=None):  # pylint:disable=arguments-differ
+    def record_result(self, grading_id, score=None, pre_record_hook=None):
+        payload = {
+            "scoreMaximum": 1,
+            "scoreGiven": score,
+            "userId": grading_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "activityProgress": "Completed",
+            "gradingProgress": "FullyGraded",
+        }
+        if pre_record_hook:
+            payload = pre_record_hook(score=score, request_body=payload)
+
         return self._ltia_service.request(
             "POST",
             self._service_url(self.grading_url, "/scores"),
             scopes=self.LTIA_SCOPES,
-            json={
-                "scoreMaximum": 1,
-                "scoreGiven": score,
-                "userId": grading_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "activityProgress": "Completed",
-                "gradingProgress": "FullyGraded",
-            },
+            json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
 

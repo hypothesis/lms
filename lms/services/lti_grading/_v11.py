@@ -44,11 +44,6 @@ class LTI11GradingService(LTIGradingService):
         if pre_record_hook:
             request = pre_record_hook(score=score, request_body=request)
 
-            if not isinstance(request, dict):
-                raise TypeError(
-                    "The pre-record hook must return the request body as a dict"
-                )
-
         self._send_request({"replaceResultRequest": request})
 
     def _send_request(self, request_body) -> dict:

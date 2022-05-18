@@ -1,6 +1,6 @@
 import datetime
 from datetime import timezone
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import patch
 
 import pytest
 from h_matchers import Any
@@ -65,47 +65,79 @@ class TestCanvasPreRecordHook:
     @pytest.mark.parametrize(
         "parsed_params,url_params",
         [
-            [{"document_url": "https://example.com"}, {"url": ["https://example.com"]}],
+            [{"document_url": "https://example.com"}, {"url": "https://example.com"}],
             [
                 {"vitalsource_book_id": "BOOK_ID", "vitalsource_cfi": "CFI"},
-                {"vitalsource_book": ["true"], "book_id": ["BOOK_ID"], "cfi": ["CFI"]},
+                {"vitalsource_book": "true", "book_id": "BOOK_ID", "cfi": "CFI"},
             ],
             [
                 {"canvas_file_id": "file123"},
-                {"canvas_file": ["true"], "file_id": ["file123"]},
+                {"canvas_file": "true", "file_id": "file123"},
             ],
         ],
     )
+    def test_get_speedgrader_launch_url(
+        self, parsed_params, url_params, pyramid_request
+    ):
+        pyramid_request.parsed_params.update(parsed_params)
+
+        launch_url = CanvasPreRecordHook(pyramid_request).get_speedgrader_launch_url()
+
+        assert launch_url == Any.url.with_path("/lti_launches").with_query(
+            dict(
+                url_params,
+                focused_user="h_username",
+                learner_canvas_user_id="learner_canvas_user_id",
+            )
+        )
+
     @pytest.mark.parametrize(
         "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
     )
-    def test_it_sets_expected_fields(
-        self, pyramid_request, parsed_params, url_params, submitted_at
-    ):
-        pyramid_request.parsed_params.update(parsed_params)
-        pyramid_request.parsed_params["submitted_at"] = submitted_at
+    def test_it_v11(self, hook, submitted_at, get_speedgrader_launch_url):
+        hook.request.parsed_params["submitted_at"] = submitted_at
 
-        result = CanvasPreRecordHook(pyramid_request)(
-            score=None, request_body={"resultRecord": {}}
-        )
+        result = hook(score=None, request_body={"resultRecord": {}})
 
         assert result == {
-            "resultRecord": {"result": {"resultData": {"ltiLaunchUrl": Any.string()}}},
+            "resultRecord": {
+                "result": {
+                    "resultData": {
+                        "ltiLaunchUrl": get_speedgrader_launch_url.return_value
+                    }
+                }
+            },
             "submissionDetails": {
-                "submittedAt": submitted_at
-                or datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+                "submittedAt": submitted_at or hook.DEFAULT_SUBMISSION_DATE
             },
         }
 
-        launch_url = result["resultRecord"]["result"]["resultData"]["ltiLaunchUrl"]
-        assert launch_url.startswith("http://example.com/lti_launches?")
+    @pytest.mark.parametrize(
+        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
+    )
+    def test_it_v13(self, hook, submitted_at, get_speedgrader_launch_url):
+        hook.request.parsed_params["submitted_at"] = submitted_at
 
-        query_string = parse_qs(urlparse(launch_url).query)
-        assert query_string == dict(
-            url_params,
-            focused_user=["h_username"],
-            learner_canvas_user_id=["learner_canvas_user_id"],
-        )
+        result = hook(score=None, request_body={})
+
+        assert result == {
+            "https://canvas.instructure.com/lti/submission": {
+                "submission_type": "basic_lti_launch",
+                "submission_data": get_speedgrader_launch_url.return_value,
+                "submitted_at": (
+                    submitted_at or hook.DEFAULT_SUBMISSION_DATE
+                ).isoformat(),
+            }
+        }
+
+    @pytest.fixture
+    def hook(self, pyramid_request):
+        return CanvasPreRecordHook(pyramid_request)
+
+    @pytest.fixture
+    def get_speedgrader_launch_url(self, hook):
+        with patch.object(hook, "get_speedgrader_launch_url", autospec=True) as patched:
+            yield patched
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
