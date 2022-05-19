@@ -131,31 +131,7 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
-    def test_vitalsource_sets_config_with_launch_params(
-        self, js_config, vitalsource_service, pyramid_request
-    ):
-        vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
-        vitalsource_service.get_launch_params.return_value = (
-            sentinel.launch_url,
-            sentinel.launch_params,
-        )
-
-        js_config.add_document_url(vitalsource_url)
-
-        vitalsource_service.get_launch_params.assert_called_with(
-            vitalsource_url, pyramid_request.lti_user
-        )
-        assert js_config.asdict()["vitalSource"] == {
-            "launchUrl": sentinel.launch_url,
-            "launchParams": sentinel.launch_params,
-        }
-
-    def test_vitalsource_sets_config_with_anon_launch(
-        self, js_config, vitalsource_service, pyramid_request
-    ):
-        pyramid_request.feature.side_effect = (
-            lambda feature: feature == "vitalsource_anon_launch"
-        )
+    def test_vitalsource_sets_config(self, js_config, vitalsource_service):
         vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
 
         js_config.add_document_url(vitalsource_url)
