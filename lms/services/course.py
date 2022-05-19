@@ -30,36 +30,21 @@ class CourseService:
             .count()
         )
 
-    @staticmethod
-    def generate_authority_provided_id(tool_consumer_instance_guid, context_id):
-        """
-        Generate the authority_provided_id based on the LTI  tool_consumer_instance_guid and context_id parameters.
-
-        These are "recommended" LTI parameters (according to the spec) that in
-        practice are provided by all of the major LMS's.
-        tool_consumer_instance_guid uniquely identifies an instance of an LMS,
-        and context_id uniquely identifies a course within an LMS. Together they
-        globally uniquely identify a course.
-        """
-        return GroupingService.generate_authority_provided_id(
-            tool_consumer_instance_guid, context_id, None, Grouping.Type.COURSE
+    def get(self, tool_consumer_instance_guid, context_id):
+        authority_provided_id = self._generate_authority_provided_id(
+            tool_consumer_instance_guid, context_id
         )
 
-    def get(self, authority_provided_id):
-        return (
-            self._db.query(Course)
-            .filter_by(
-                application_instance=self._application_instance,
-                authority_provided_id=authority_provided_id,
-            )
-            .one_or_none()
-        )
+        return self._get_by_authority_provided_id(authority_provided_id)
 
     def upsert(
-        self, authority_provided_id, context_id, name, extra, settings=None
+        self, tool_consumer_instance_guid, context_id, name, extra, settings=None
     ):  # pylint: disable=too-many-arguments
-        course = self.get(authority_provided_id)
+        authority_provided_id = self._generate_authority_provided_id(
+            tool_consumer_instance_guid, context_id
+        )
 
+        course = self._get_by_authority_provided_id(authority_provided_id)
         if not course:
             course = Course(
                 application_instance_id=self._application_instance.id,
@@ -76,6 +61,31 @@ class CourseService:
         course.extra = extra
 
         return course
+
+    @staticmethod
+    def _generate_authority_provided_id(tool_consumer_instance_guid, context_id):
+        """
+        Generate the authority_provided_id based on the LTI  tool_consumer_instance_guid and context_id parameters.
+
+        These are "recommended" LTI parameters (according to the spec) that in
+        practice are provided by all of the major LMS's.
+        tool_consumer_instance_guid uniquely identifies an instance of an LMS,
+        and context_id uniquely identifies a course within an LMS. Together they
+        globally uniquely identify a course.
+        """
+        return GroupingService.generate_authority_provided_id(
+            tool_consumer_instance_guid, context_id, None, Grouping.Type.COURSE
+        )
+
+    def _get_by_authority_provided_id(self, authority_provided_id):
+        return (
+            self._db.query(Course)
+            .filter_by(
+                application_instance=self._application_instance,
+                authority_provided_id=authority_provided_id,
+            )
+            .one_or_none()
+        )
 
     def _new_course_settings(self, authority_provided_id):
         # By default we'll make our course setting have the same settings
