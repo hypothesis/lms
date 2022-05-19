@@ -39,9 +39,7 @@ class LTILaunchResource:
         context_id = params["context_id"]
 
         return course_service.upsert(
-            authority_provided_id=course_service.generate_authority_provided_id(
-                tool_consumer_instance_guid, context_id
-            ),
+            tool_consumer_instance_guid,
             context_id=context_id,
             name=params["context_title"],
             extra=self._course_extra(),

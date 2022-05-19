@@ -17,7 +17,6 @@ class Sync:
         self._request = request
         self._grouping_service = self._request.find_service(name="grouping")
         self._canvas_api = self._request.find_service(name="canvas_api_client")
-        self._course_service = self._request.find_service(name="course")
 
     @view_config(
         route_name="canvas_api.sync",
@@ -166,11 +165,9 @@ class Sync:
         )
 
     def _get_course(self):
-        tool_guid = self._request.json["lms"]["tool_consumer_instance_guid"]
-        context_id = self._request.json["course"]["context_id"]
-
-        return self._course_service.get(
-            self._course_service.generate_authority_provided_id(tool_guid, context_id)
+        return self._request.find_service(name="course").get(
+            self._request.json["lms"]["tool_consumer_instance_guid"],
+            self._request.json["course"]["context_id"],
         )
 
     def _get_user(self, user_id):

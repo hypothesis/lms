@@ -229,10 +229,8 @@ class TestCanvasSectionsEnabled:
     def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
         assert lti_launch.canvas_sections_enabled
 
-        course_service.generate_authority_provided_id.assert_called_once()
-
         course_service.upsert.assert_called_with(
-            course_service.generate_authority_provided_id.return_value,
+            "test_tool_consumer_instance_guid",
             "test_context_id",
             "test_context_title",
             {},

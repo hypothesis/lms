@@ -17,7 +17,7 @@ class TestCourseService:
     ):
         db_session.add(
             CourseGroupsExportedFromH(
-                authority_provided_id="test_authority_provided_id",
+                authority_provided_id="05e99013c901bd8af9b794f0645c0511dc678298",
                 created=datetime.datetime.utcnow(),
             )
         )
@@ -25,7 +25,7 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.upsert("test_authority_provided_id", "context_id", "new course name", {})
+        svc.upsert("tool_consumer_instance_guid", "context_id", "new course name", {})
 
         course = db_session.query(Course).one()
         assert not course.settings.get("canvas", "sections_enabled")
@@ -55,13 +55,14 @@ class TestCourseService:
 
         assert svc.any_with_setting("group", "key", value) is expected
 
+    @pytest.mark.usefixtures("with_course")
     def test_upsert_returns_existing(self, svc, application_instance, db_session):
-        existing_course = factories.Course(application_instance=application_instance)
-
         course = svc.upsert(
-            existing_course.authority_provided_id, "context_id", "new course name", {}
+            application_instance.tool_consumer_instance_guid,
+            "context_id",
+            "new course name",
+            {},
         )
-
         # No new courses created
         assert db_session.query(Course).count() == 1
 
@@ -73,15 +74,30 @@ class TestCourseService:
         assert not db_session.query(Course).count()
 
         course = svc.upsert(
-            "new authority_provided_id", "context_id", "new course name", {}
+            "tool_consumer_instance_guid", "context_id", "new course name", {}
         )
 
         assert db_session.query(Course).count() == 1
-        assert course.authority_provided_id == "new authority_provided_id"
+        # pylint: disable=protected-access
+        assert course.authority_provided_id == svc._generate_authority_provided_id(
+            "tool_consumer_instance_guid", "context_id"
+        )
+        assert course.lms_id == "context_id"
+
+    @pytest.mark.usefixtures("with_course")
+    def test_get(self, svc, application_instance):
+        course = svc.get(application_instance.tool_consumer_instance_guid, "context_id")
+
+        assert course.lms_id == "context_id"
+        assert (
+            course.application_instance.tool_consumer_instance_guid
+            == application_instance.tool_consumer_instance_guid
+        )
 
     def test_generate_authority_provided_id(self, svc):
         assert (
-            svc.generate_authority_provided_id("tool", "context_id")
+            # pylint: disable=protected-access
+            svc._generate_authority_provided_id("tool", "context_id")
             == "bc8f8d2c5de70a0f3975268832174fabecfb32d9"
         )
 
@@ -96,6 +112,17 @@ class TestCourseService:
                 )
 
         return add_courses_with_settings
+
+    @pytest.fixture
+    def with_course(self, svc, application_instance):
+        return factories.Course(
+            application_instance=application_instance,
+            # pylint: disable=protected-access
+            authority_provided_id=svc._generate_authority_provided_id(
+                application_instance.tool_consumer_instance_guid, "context_id"
+            ),
+            lms_id="context_id",
+        )
 
     @pytest.fixture
     def svc(self, pyramid_request, application_instance_service, application_instance):
