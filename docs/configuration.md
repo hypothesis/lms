@@ -93,8 +93,6 @@ will not work.
 | `GOOGLE_DEVELOPER_KEY`            | Google Drive     | `01234567-89ab-cdef-0123-456789abcdef` | A developer key from Google                 |
 | `ONEDRIVE_CLIENT_ID`              | MS OneDrive      | `01234567-89ab-cdef-0123-456789abcdef` | Developer key from Microsoft OneDrive       |
 | `VITALSOURCE_API_KEY`             | VitalSource      | `0123456789ABCEDF`                     |                                             |
-| `VITALSOURCE_LTI_LAUNCH_KEY`      | VitalSource      | `0123456789abcedf0123456789abcdef`     |                                             |
-| `VITALSOURCE_LTI_LAUNCH_SECRET`   | VitalSource      | `0123456789abcedf0123456789abcdef`     |                                             |
 
 ### Getting Blackboard credentials
 

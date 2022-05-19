@@ -2,8 +2,6 @@ from unittest import mock
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
-from oauthlib.oauth1 import SIGNATURE_HMAC_SHA1, SIGNATURE_TYPE_BODY
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource import VitalSourceService, factory
@@ -11,20 +9,9 @@ from tests import factories
 
 
 class TestVitalSourceService:
-    @pytest.mark.parametrize(
-        "lti_key,lti_secret,api_key",
-        [
-            (None, "launch-secret", "api-key"),
-            ("launch-key", "launch-secret", None),
-            ("launch-key", None, "api-key"),
-            ("", "", ""),
-        ],
-    )
-    def test_init_raises_if_launch_credentials_invalid(
-        self, http_service, lti_key, lti_secret, api_key
-    ):
+    def test_init_raises_if_launch_credentials_invalid(self, http_service):
         with pytest.raises(ValueError, match="VitalSource credentials are missing"):
-            VitalSourceService(http_service, lti_key, lti_secret, api_key)
+            VitalSourceService(http_service, api_key=None)
 
     @pytest.mark.parametrize(
         "url,book_id,cfi",
@@ -46,55 +33,6 @@ class TestVitalSourceService:
             svc.get_launch_url(document_url)
             == "https://hypothesis.vitalsource.com/books/book-id/cfi//abc"
         )
-
-    def test_it_generates_lti_launch_form_params(self, svc, lti_user):
-        launch_url, params = svc.get_launch_params(
-            "vitalsource://book/bookID/book-id/cfi//abc", lti_user
-        )
-
-        # Ignore OAuth signature params in this test.
-        params = {k: v for (k, v) in params.items() if not k.startswith("oauth_")}
-
-        assert launch_url == "https://bc.vitalsource.com/books/book-id"
-        assert params == {
-            "user_id": "teststudent",
-            "roles": "Learner",
-            "context_id": "testcourse",
-            "launch_presentation_document_target": "window",
-            "lti_version": "LTI-1p0",
-            "lti_message_type": "basic-lti-launch-request",
-            "custom_book_location": "/cfi/abc",
-        }
-
-    def test_it_uses_correct_launch_key_and_secret_to_sign_params(
-        self, svc, lti_user, OAuth1Client
-    ):
-        svc.get_launch_params("vitalsource://book/bookID/book-id/cfi//abc", lti_user)
-
-        OAuth1Client.assert_called_with(
-            "lti_launch_key",
-            "lti_launch_secret",
-            signature_method=SIGNATURE_HMAC_SHA1,
-            signature_type=SIGNATURE_TYPE_BODY,
-        )
-
-    def test_it_signs_lti_launch_form_params(self, svc, lti_user):
-        _, params = svc.get_launch_params(
-            "vitalsource://book/bookID/book-id/cfi//abc", lti_user
-        )
-
-        # Ignore non-OAuth signature params in this test.
-        params = {k: v for (k, v) in params.items() if k.startswith("oauth_")}
-
-        base64_char = "[0-9a-zA-Z+=/]"
-        assert params == {
-            "oauth_consumer_key": "lti_launch_key",
-            "oauth_nonce": Any.string.matching("[0-9]+"),
-            "oauth_signature": Any.string.matching(f"{base64_char}+"),
-            "oauth_signature_method": "HMAC-SHA1",
-            "oauth_timestamp": Any.string.matching("[0-9]+"),
-            "oauth_version": "1.0",
-        }
 
     def test_get(self, svc, http_service):
         svc.get("endpoint/path")
@@ -168,17 +106,7 @@ class TestVitalSourceService:
 
     @pytest.fixture
     def svc(self, http_service):
-        return VitalSourceService(
-            http_service, "lti_launch_key", "lti_launch_secret", "api_key"
-        )
-
-    @pytest.fixture
-    def lti_user(self):
-        return factories.LTIUser(user_id="teststudent", roles="Learner")
-
-    @pytest.fixture
-    def OAuth1Client(self, patch):
-        return patch("lms.services.vitalsource.client.oauthlib.oauth1.Client")
+        return VitalSourceService(http_service, "api_key")
 
     @pytest.fixture(autouse=True)
     def BookTOCSchema(self, patch):
@@ -204,8 +132,6 @@ class TestFactory:
 
         VitalSourceService.assert_called_once_with(
             http_service,
-            "test_vs_lti_launch_key",
-            "test_vs_lti_launch_secret",
             "test_vs_api_key",
         )
         assert svc == VitalSourceService.return_value
@@ -214,8 +140,6 @@ class TestFactory:
     @pytest.mark.parametrize(
         "name_of_missing_envvar",
         [
-            "vitalsource_lti_launch_key",
-            "vitalsource_lti_launch_secret",
             "vitalsource_api_key",
         ],
     )
