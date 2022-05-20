@@ -32,9 +32,9 @@ class ApplicationInstance(BASE):
         # Note that when consumer_key is present we don't require lti_registration_id and deployment_id to be null
         # it could be an instance that has been upgraded from LTI1.1 to LTI1.3 having values for all three fields.
         sa.CheckConstraint(
-            """(consumer_key IS NULL AND lti_registration_id IS NOT NULL and deployment_id IS NOT NULL)
-            OR (consumer_key IS NOT NULL)""",
-            name="consumer_key_required_for_lti_11",
+            """(lti_registration_id IS NOT NULL and deployment_id IS NOT NULL)
+            OR (consumer_key IS NOT NULL AND shared_secret IS NOT NULL)""",
+            name="lti_required_columns",
         ),
         # For LTI 1.3, registration and deployment_id uniquely identify the instance.
         sa.UniqueConstraint("lti_registration_id", "deployment_id"),
@@ -42,7 +42,7 @@ class ApplicationInstance(BASE):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
-    shared_secret = sa.Column(sa.Unicode, nullable=False)
+    shared_secret = sa.Column(sa.Unicode, nullable=True)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow(), nullable=False)
