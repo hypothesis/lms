@@ -1254,10 +1254,10 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
 
-"@types/gapi@^0.0.41":
-  version "0.0.41"
-  resolved "https://registry.yarnpkg.com/@types/gapi/-/gapi-0.0.41.tgz#c477ee4f0951c005869219fd10b456ae2bba437e"
-  integrity sha512-tmHO66z/f91JZCDqinj/nNvQEszsz/hBT4+MvCSKT5sDzl5Ld/oXZ8WaecCBjRLw2uWKUInUHM9MhEXWkOiNjw==
+"@types/gapi@^0.0.42":
+  version "0.0.42"
+  resolved "https://registry.yarnpkg.com/@types/gapi/-/gapi-0.0.42.tgz#772aa461660de09e7a78258064e075818373493c"
+  integrity sha512-kskWpouTGqutaIVRo/swiGnMVoRxOYdRwvaDrh0yavfR9vQoHvJJ7Enp4KE9MEGS8qF7F5KiP6bRNOYcCgRXCA==
 
 "@types/node@*":
   version "14.0.10"
