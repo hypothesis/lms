@@ -36,13 +36,16 @@ describe('api', () => {
     it('makes a GET request if no body is provided', async () => {
       await apiCall({ path: '/api/test', authToken: 'auth' });
 
-      assert.calledWith(window.fetch, '/api/test', {
-        method: 'GET',
-        body: undefined,
-        headers: {
-          Authorization: 'auth',
-        },
-      });
+      assert.calledWith(
+        window.fetch,
+        '/api/test',
+        sinon.match({
+          method: 'GET',
+          headers: {
+            Authorization: 'auth',
+          },
+        })
+      );
     });
 
     it('sets query params if `params` is passed', async () => {
@@ -58,13 +61,12 @@ describe('api', () => {
         `/api/test?a_key=some+value&encode_me=${encodeURIComponent(
           params.encode_me
         )}`,
-        {
+        sinon.match({
           method: 'GET',
-          body: undefined,
           headers: {
             Authorization: 'auth',
           },
-        }
+        })
       );
     });
 
@@ -72,14 +74,18 @@ describe('api', () => {
       const data = { param: 'value' };
       await apiCall({ path: '/api/test', authToken: 'auth', data });
 
-      assert.calledWith(window.fetch, '/api/test', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          Authorization: 'auth',
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      });
+      assert.calledWith(
+        window.fetch,
+        '/api/test',
+        sinon.match({
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: {
+            Authorization: 'auth',
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+        })
+      );
     });
 
     it("returns the response's JSON content", async () => {
@@ -173,7 +179,12 @@ describe('api', () => {
       .onFirstCall()
       .resolves(refreshNeededResponse);
 
-    const result = await apiCall({ path: '/api/test', authToken: 'auth' });
+    const controller = new AbortController();
+    const result = await apiCall({
+      path: '/api/test',
+      authToken: 'auth',
+      signal: controller.signal,
+    });
 
     // Expect initial request, followed by token refresh, followed by a retry
     // of the original request.
@@ -184,13 +195,21 @@ describe('api', () => {
     ]);
 
     const refreshCall = window.fetch.secondCall;
-    assert.deepEqual(refreshCall.args[1], {
+    assert.match(refreshCall.args[1], {
       method: 'POST',
       body: undefined,
       headers: { Authorization: 'auth' },
+      signal: controller.signal,
     });
 
     assert.deepEqual(result, await fakeResponse.json());
+
+    // Though we didn't cancel the request at any point, check that the signal
+    // was passed to each `fetch` call so that it would have been aborted if
+    // needed.
+    for (const call of window.fetch.getCalls()) {
+      assert.equal(call.args[1].signal, controller.signal);
+    }
   });
 
   it('only attempts a token refresh once per call', async () => {
@@ -271,5 +290,34 @@ describe('api', () => {
 
     assert.deepEqual(firstCallResult, await fakeResponse.json());
     assert.deepEqual(secondCallResult, await fakeResponse.json());
+  });
+
+  it('aborts if fetch is canceled', async () => {
+    const controller = new AbortController();
+    window.fetch.rejects(new DOMException('Request canceled', 'AbortError'));
+
+    const result = apiCall({
+      path: '/api/test',
+      authToken: 'auth',
+      signal: controller.signal,
+    });
+
+    assert.calledWith(
+      window.fetch,
+      '/api/test',
+      sinon.match({ method: 'GET', signal: controller.signal })
+    );
+
+    // Simulate request being canceled, as `fetch` would do if we called
+    // `controller.abort()`.
+    let error;
+    try {
+      await result;
+    } catch (e) {
+      error = e;
+    }
+
+    assert.instanceOf(error, Error);
+    assert.equal(error.name, 'AbortError');
   });
 });

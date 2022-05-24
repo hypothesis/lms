@@ -49,6 +49,7 @@ const activeRefreshCalls = new Map();
  *   @param {object} [options.data] - JSON-serializable body of the request
  *   @param {string} [options.method] - Custom HTTP method for call. Defaults
  *     to GET, or POST if `data` is set.
+ *   @param {AbortSignal} [options.signal]
  *   @param {Record<string, string>} [options.params] - Query parameters
  * @return {Promise<any>} - Parsed JSON response. TODO: Convert this to `Promise<unknown>`
  */
@@ -62,6 +63,7 @@ export async function apiCall(options) {
     data,
     method,
     params,
+    signal,
   } = options;
 
   let body;
@@ -90,6 +92,7 @@ export async function apiCall(options) {
     method: method ?? defaultMethod,
     body,
     headers,
+    signal,
   });
   const resultJSON = await result.json();
 
@@ -108,6 +111,7 @@ export async function apiCall(options) {
           method,
           path,
           allowRefresh: false,
+          signal,
         });
         activeRefreshCalls.set(path, refreshDone);
         try {
