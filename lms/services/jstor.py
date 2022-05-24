@@ -1,9 +1,21 @@
 from datetime import timedelta
+from urllib.parse import quote
+
+import requests
+from marshmallow import fields
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
 from lms.services.jwt import JWTService
+from lms.validation._base import RequestsResponseSchema
 from lms.views.helpers import via_url
+
+
+class JSTORMetadataSchema(RequestsResponseSchema):
+    """Response schema for `/metadata/{doi}` endpoint in JSTOR API."""
+
+    # The response has other fields, but we currently only use the "title" field.
+    title = fields.List(fields.Str(), required=True)
 
 
 class JSTORService:
@@ -53,6 +65,47 @@ class JSTORService:
             options={"via.client.contentPartner": "jstor"},
         )
 
+    def metadata(self, article_id: str):
+        """
+        Fetch metadata about a JSTOR article.
+
+        :param article_id: A JSTOR article ID or DOI
+        """
+        doi = self._doi_from_article_id(article_id)
+        response = self._api_request(format_uri("/metadata/{}", doi))
+        metadata = JSTORMetadataSchema(response).parse()
+
+        # Some articles have no title [1]. It is unknown whether any have
+        # multiple titles. To simplify the structure for consumers we return
+        # a single title or none.
+        #
+        # [1] eg. https://www.jstor.org/stable/331473
+        title = None
+        if len(metadata["title"]):
+            title = metadata["title"][0]
+
+        return {"title": title}
+
+    def thumbnail(self, article_id: str):
+        """
+        Fetch a thumbnail image for an article.
+
+        Returns a `data:` URI with base64-encoded data which can be used as the
+        source for an `<img>` element.
+
+        :param article_id: A JSTOR article ID or DOI
+        :raise ExternalRequestError: If the response doesn't look like a valid `data:` URI
+        """
+        doi = self._doi_from_article_id(article_id)
+        data_uri = self._api_request(format_uri("/thumbnail/{}", doi)).text
+
+        if not data_uri.startswith("data:"):
+            raise ExternalRequestError(
+                f"Expected to get data URI but got '{data_uri}' instead"
+            )
+
+        return data_uri
+
     def _get_public_url(self, url):
         """
         Get a signed S3 URL for the given JSTOR URL.
@@ -62,21 +115,9 @@ class JSTORService:
         :raises ExternalRequestError: If we get bad data back from the service
         """
 
-        doi = url.replace("jstor://", "")
-        if "/" not in doi:
-            doi = f"{self.DEFAULT_DOI_PREFIX}/{doi}"
-
-        token = JWTService.encode_with_secret(
-            {"site_code": self._site_code},
-            secret=self._secret,
-            lifetime=timedelta(hours=1),
-        )
-
-        s3_url = self._http.request(
-            method="GET",
-            url=f"{self._api_url}/pdf-url/{doi}",
-            headers={"Authorization": f"Bearer {token}"},
-        ).text
+        article_id = url.replace("jstor://", "")
+        doi = self._doi_from_article_id(article_id)
+        s3_url = self._api_request(format_uri("/pdf-url/{}", doi)).text
 
         if not s3_url.startswith("https://"):
             raise ExternalRequestError(
@@ -84,6 +125,36 @@ class JSTORService:
             )
 
         return s3_url
+
+    def _api_request(self, endpoint: str) -> requests.Response:
+        """
+        Make an authenticated request to the JSTOR API.
+
+        See the JSTOR API's `/docs` endpoint for details.
+        """
+        token = JWTService.encode_with_secret(
+            {"site_code": self._site_code},
+            secret=self._secret,
+            lifetime=timedelta(hours=1),
+        )
+        url = self._api_url + endpoint
+        return self._http.get(url=url, headers={"Authorization": f"Bearer {token}"})
+
+    def _doi_from_article_id(self, article_id):
+        if "/" not in article_id:
+            return f"{self.DEFAULT_DOI_PREFIX}/{article_id}"
+        return article_id
+
+
+def format_uri(template: str, *params: str):
+    """
+    Format a URI string.
+
+    This is like `template.format(*params)` except that the params are
+    percent-encoded.
+    """
+    encoded = [quote(param, safe="") for param in params]
+    return template.format(*encoded)
 
 
 def factory(_context, request):
