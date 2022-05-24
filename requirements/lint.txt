@@ -72,7 +72,7 @@ charset-normalizer==2.0.1
     #   -r requirements/tests.txt
     #   aiohttp
     #   requests
-coverage==6.3.3
+coverage==6.4
     # via -r requirements/tests.txt
 cryptography==36.0.2
     # via
