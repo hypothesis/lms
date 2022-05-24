@@ -1,16 +1,15 @@
 /**
- * Transform a provided URL to a via-recognizable identifier pointing
- * to a JSTOR article.
+ * Extract the JSTOR article ID from a URL.
  *
- * Accepts URLS of the form:
+ * Accepts URLs of the form:
  * - http[s]://www.jstor.org/stable/<articleID> OR
  * - http[s]://www.jstor.org/stable/<doiPrefix>/<doiSuffix>
  *
  * (Query string is ignored on provided URLs)
  *
  * and returns, respectively:
- * - jstor://<articleID> OR
- * - jstor://<doiPrefix>/<doiSuffix>
+ * - <articleID> OR
+ * - <doiPrefix>/<doiSuffix>
  *
  * Return `null` if provided string is not a URL or does not match one of the
  * accepted formats.
@@ -18,7 +17,7 @@
  * @param {string} url
  * @returns {string|null}
  */
-export function toJSTORUrl(url) {
+export function articleIdFromURL(url) {
   let testURL;
 
   try {
@@ -36,14 +35,14 @@ export function toJSTORUrl(url) {
       case 1:
         // Supplied URL is of the format
         // http[s]://www.jstor.org/stable/<articleID>
-        return `jstor://${pathSegments[0]}`;
+        return pathSegments[0];
       case 2:
         // Supplied URL is of the format
         // http[s]://www.jstor.org/stable/<doiPrefix>/<doiSuffix>
         // Ensure <doiPrefix> starts with `10.` and contains only digits or
         // periods
         if (pathSegments[0].match(/10\.[\d.]*$/)) {
-          return `jstor://${pathSegments[0]}/${pathSegments[1]}`;
+          return `${pathSegments[0]}/${pathSegments[1]}`;
         }
         break;
       default:
@@ -52,4 +51,11 @@ export function toJSTORUrl(url) {
   }
 
   return null;
+}
+
+/**
+ * @param {string} articleId
+ */
+export function jstorURLFromArticleId(articleId) {
+  return `jstor://${articleId}`;
 }

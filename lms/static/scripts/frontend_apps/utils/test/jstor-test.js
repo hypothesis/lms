@@ -1,23 +1,23 @@
-import { toJSTORUrl } from '../jstor';
+import { articleIdFromURL } from '../jstor';
 
 describe('utils/jstor', () => {
-  describe('toJSTORUrl', () => {
+  describe('articleIdFromURL', () => {
     [
       // GOOD URLS
       // URL with article ID
-      ['https://www.jstor.org/stable/1234', 'jstor://1234'],
+      ['https://www.jstor.org/stable/1234', '1234'],
       // Querystring ignored
-      ['https://www.jstor.org/stable/1234?q=bananas&bar=baz', 'jstor://1234'],
+      ['https://www.jstor.org/stable/1234?q=bananas&bar=baz', '1234'],
       // Trailing slash(es) ignored
-      ['https://www.jstor.org/stable/1234/', 'jstor://1234'],
-      ['https://www.jstor.org/stable/1234//', 'jstor://1234'],
+      ['https://www.jstor.org/stable/1234/', '1234'],
+      ['https://www.jstor.org/stable/1234//', '1234'],
       // http protocol OK
-      ['http://www.jstor.org/stable/1234', 'jstor://1234'],
+      ['http://www.jstor.org/stable/1234', '1234'],
       // DOI Prefx and DOI suffix
-      ['https://www.jstor.org/stable/10.1086/508573', 'jstor://10.1086/508573'],
+      ['https://www.jstor.org/stable/10.1086/508573', '10.1086/508573'],
       [
         'https://www.jstor.org/stable/10.1086.3333.9/508573',
-        'jstor://10.1086.3333.9/508573',
+        '10.1086.3333.9/508573',
       ],
 
       // BAD URLS
@@ -33,7 +33,9 @@ describe('utils/jstor', () => {
       // Too many path segments
       ['https://www.jstor.org/stable/10.1086/508573/34434', null],
     ].forEach(([input, expected]) => {
-      assert.equal(toJSTORUrl(input), expected);
+      it('returns expected ID', () => {
+        assert.equal(articleIdFromURL(input), expected);
+      });
     });
   });
 });
