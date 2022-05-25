@@ -15,6 +15,7 @@ pytestmark = pytest.mark.usefixtures(
     "h_api",
     "grading_info_service",
     "lti_h_service",
+    "grouping_service",
 )
 
 
@@ -257,13 +258,16 @@ class TestCommon:
         return request.param
 
 
-class TestCourseRecording:
+class TestDBDataRecording:
     def test_it_records_the_course_in_the_DB(
-        self, context, pyramid_request, view_caller
+        self, context, pyramid_request, view_caller, grouping_service
     ):
         view_caller(context, pyramid_request)
 
         context.get_or_create_course.assert_called_once_with()
+        grouping_service.upsert_grouping_memberships.assert_called_once_with(
+            pyramid_request.user, [context.get_or_create_course.return_value]
+        )
 
     @pytest.fixture(
         params=[
@@ -528,6 +532,7 @@ def pyramid_request(pyramid_request):
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
         }
     )
+    pyramid_request.user = factories.User()
     return pyramid_request
 
 

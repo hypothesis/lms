@@ -52,7 +52,9 @@ class BasicLTILaunchViews:
         """Do a basic LTI launch with the given document_url."""
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.context.get_or_create_course()
+        self.request.find_service(name="grouping").upsert_grouping_memberships(
+            self.request.user, [self.context.get_or_create_course()]
+        )
 
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
@@ -292,7 +294,9 @@ class BasicLTILaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        self.context.get_or_create_course()
+        self.request.find_service(name="grouping").upsert_grouping_memberships(
+            self.request.user, [self.context.get_or_create_course()]
+        )
 
         form_fields = {
             param: value
