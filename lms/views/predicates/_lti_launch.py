@@ -4,15 +4,6 @@ from abc import ABC
 from lms.views.predicates._helpers import Base
 
 
-class LegacySpeedGrader(Base):
-    """Allow invoking an LTI launch view only/excluding legacy SpeedGrader launches."""
-
-    name = "legacy_speedgrader"
-
-    def __call__(self, context, request):
-        return context.is_legacy_speedgrader == self.value
-
-
 class DBConfigured(Base):
     """
     Allow invoking an LTI launch view only if the assignment is DB-configured.
@@ -46,11 +37,7 @@ class DBConfigured(Base):
         )
 
         return (
-            assignment_svc.exists(
-                tool_consumer_instance_guid,
-                context.resource_link_id,
-                context.ext_lti_assignment_id,
-            )
+            assignment_svc.exists(tool_consumer_instance_guid, context.resource_link_id)
             == self.value
         )
 

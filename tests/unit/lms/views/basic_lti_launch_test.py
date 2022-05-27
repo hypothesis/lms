@@ -18,46 +18,25 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-def legacy_canvas_file_basic_lti_launch_caller(context, pyramid_request):
+def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch().
+    Call BasicLTILaunchViews.canvas_file_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch() returns.
+    BasicLTILaunchViews.canvas_file_basic_lti_launch(), and return whatever
+    BasicLTILaunchViews.canvas_file_basic_lti_launch() returns.
     """
     # The custom_canvas_course_id param is always present when
-    # legacy_canvas_file_basic_lti_launch() is called: Canvas always includes this
+    # canvas_file_basic_lti_launch() is called: Canvas always includes this
     # param because we request it in our config.xml.
     context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
-    # The file_id param is always present when legacy_canvas_file_basic_lti_launch()
+    # The file_id param is always present when canvas_file_basic_lti_launch()
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
 
     views = BasicLTILaunchViews(context, pyramid_request)
 
-    return views.legacy_canvas_file_basic_lti_launch()
-
-
-def canvas_db_configured_basic_lti_launch_caller(context, pyramid_request):
-    """
-    Call BasicLTILaunchViews.db_configured_basic_lti_launch().
-
-    Set up the appropriate conditions and then call
-    BasicLTILaunchViews.canvas_db_configured_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.canvas_db_configured_basic_lti_launch() returns.
-    """
-    # The custom_canvas_course_id param is always present when
-    # canvas_file_basic_lti_launch() is called: Canvas always includes this
-    # param because we request it in our config.xml.
-    pyramid_request.params["custom_canvas_course_id"] = "TEST_COURSE_ID"
-    # The ext_lti_assignment_id param is always present for canvas launches.
-    # The `request_param="ext_lti_assignment_id"` on the view ensures this.
-    pyramid_request.params["ext_lti_assignment_id"] = "TEXT_EXT_LTI_ASSIGNMENT_ID"
-
-    views = BasicLTILaunchViews(context, pyramid_request)
-
-    return views.canvas_db_configured_basic_lti_launch()
+    return views.canvas_file_basic_lti_launch()
 
 
 def db_configured_basic_lti_launch_caller(context, pyramid_request):
@@ -237,7 +216,7 @@ class TestCommon:
 
     @pytest.fixture(
         params=[
-            legacy_canvas_file_basic_lti_launch_caller,
+            canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
             blackboard_copied_basic_lti_launch_caller,
             brightspace_copied_basic_lti_launch_caller,
@@ -267,7 +246,7 @@ class TestCourseRecording:
 
     @pytest.fixture(
         params=[
-            legacy_canvas_file_basic_lti_launch_caller,
+            canvas_file_basic_lti_launch_caller,
             db_configured_basic_lti_launch_caller,
             blackboard_copied_basic_lti_launch_caller,
             brightspace_copied_basic_lti_launch_caller,
@@ -290,7 +269,7 @@ class TestCourseRecording:
 @pytest.mark.usefixtures("is_canvas")
 class TestCanvasFileBasicLTILaunch:
     def test_it(self, context, pyramid_request, assignment_service):
-        legacy_canvas_file_basic_lti_launch_caller(context, pyramid_request)
+        canvas_file_basic_lti_launch_caller(context, pyramid_request)
 
         course_id = context.lti_params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
@@ -301,31 +280,6 @@ class TestCanvasFileBasicLTILaunch:
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=pyramid_request.params["resource_link_id"],
-        )
-
-
-@pytest.mark.usefixtures("is_canvas")
-class TestCanvasDBConfiguredBasicLTILaunch:
-    def test_it_sets_resource_id(self, context, pyramid_request, assignment_service):
-        assignment = factories.Assignment(resource_link_id=None)
-        assignment_service.get_for_canvas_launch.return_value = [assignment]
-
-        canvas_db_configured_basic_lti_launch_caller(context, pyramid_request)
-
-        assert assignment.resource_link_id == pyramid_request.params["resource_link_id"]
-
-    def test_it_merges_duplicates(self, context, pyramid_request, assignment_service):
-        old_assignment = factories.Assignment(ext_lti_assignment_id=None)
-        new_assignment = factories.Assignment(resource_link_id=None)
-        assignment_service.get_for_canvas_launch.return_value = [
-            old_assignment,
-            new_assignment,
-        ]
-
-        canvas_db_configured_basic_lti_launch_caller(context, pyramid_request)
-
-        assignment_service.merge_canvas_assignments.assert_called_once_with(
-            old_assignment, new_assignment
         )
 
 
