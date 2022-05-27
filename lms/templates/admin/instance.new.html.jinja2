@@ -1,0 +1,51 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% macro registration_field(lti_registration, label, name) %}
+    {% if lti_registration.id %}
+        {{ macros.disabled_text_field(label, lti_registration|attr(name)) }}
+    {% elif lti_registration|attr(name) %}
+        {{ macros.readonly_text_field(label, name, lti_registration|attr(name)) }}
+    {% else %}
+        {{ macros.text_field(label, name) }}
+    {% endif %}
+{% endmacro %}
+
+
+{% block header %}
+New application instance
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" action="{{ request.route_url("admin.instance.new") }}">
+    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+    {% if lti_registration.id %}
+        <input type="hidden" name="lti_registration_id" value="{{lti_registration.id}}">
+    {% endif %}
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Registration</legend>
+        {{ registration_field(lti_registration, "Issuer", "issuer") }}
+        {{ registration_field(lti_registration, "Client ID", "client_id") }}
+
+        {{ registration_field(lti_registration, "Auth login URL", "auth_login_url") }}
+        {{ registration_field(lti_registration, "Key set URL", "key_set_url") }}
+        {{ registration_field(lti_registration, "Token URL", "token_url") }}
+    </fieldset>
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Application instance</legend>
+        {{ macros.text_field("Deployment ID", "deployment_id") }}
+        {{ macros.text_field("LMS URL", "lms_url") }}
+        {{ macros.text_field("Email", "email") }}
+
+        {{ macros.text_field("Developer key", "developer_key") }}
+        {{ macros.text_field("Developer secret", "developer_secret") }}
+    </fieldset>
+
+    <input type="submit" class="button is-info" value="New"/>
+</form>
+
+{% endblock %}

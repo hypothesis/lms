@@ -5,10 +5,11 @@ from pyramid.view import (
     view_config,
     view_defaults,
 )
+from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, LTIRegistration
 from lms.security import Permissions
-from lms.services import ApplicationInstanceNotFound
+from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 
 
 @forbidden_view_config(path_info="/admin/*")
@@ -28,6 +29,12 @@ class AdminViews:
         self.application_instance_service = request.find_service(
             name="application_instance"
         )
+        self.application_instance_service = request.find_service(
+            name="application_instance"
+        )
+        self.lti_registration_service: LTIRegistrationService = request.find_service(
+            LTIRegistrationService
+        )
 
     @view_config(route_name="admin.index")
     def index(self):
@@ -40,6 +47,85 @@ class AdminViews:
     )
     def instances(self):  # pylint: disable=no-self-use
         return {}
+
+    @view_config(
+        route_name="admin.instance.new.registration",
+        request_method="GET",
+        renderer="lms:templates/admin/instance.new.registration.html.jinja2",
+    )
+    def instance_new_registration(self):  # pylint: disable=no-self-use
+        return {}
+
+    @view_config(
+        route_name="admin.instance.new.registration",
+        request_method="POST",
+        renderer="lms:templates/admin/instance.new.html.jinja2",
+    )
+    def instance_new_registration_post(self):
+        self._check_required_and_redirect(
+            ["issuer", "client_id"],
+            "admin.instance.new.registration",
+        )
+
+        lti_registration = self.lti_registration_service.get(
+            self.request.params["issuer"], self.request.params["client_id"]
+        )
+        if not lti_registration:
+            lti_registration = LTIRegistration(
+                issuer=self.request.params["issuer"],
+                client_id=self.request.params["client_id"],
+            )
+        return {
+            "lti_registration": lti_registration,
+        }
+
+    @view_config(
+        route_name="admin.instance.new",
+        request_method="POST",
+    )
+    def instance_new(self):
+        self._check_required_and_redirect(
+            ["lms_url", "email", "deployment_id"],
+            "admin.instance.new.registration",
+        )
+
+        lti_registration_id = self.request.params.get("lti_registration_id")
+        if not lti_registration_id:
+            self._check_required_and_redirect(
+                ["auth_login_url", "key_set_url", "token_url"],
+                "admin.instance.new.registration",
+            )
+
+            lti_registration_id = self.lti_registration_service.create(
+                issuer=self.request.params["issuer"],
+                client_id=self.request.params["client_id"],
+                auth_login_url=self.request.params["auth_login_url"],
+                key_set_url=self.request.params["key_set_url"],
+                token_url=self.request.params["token_url"],
+            ).id
+
+        try:
+            ai = self.application_instance_service.create(
+                lms_url=self.request.params["lms_url"],
+                email=self.request.params["email"],
+                deployment_id=self.request.params["deployment_id"],
+                developer_key=self.request.params.get("developer_key"),
+                developer_secret=self.request.params.get("developer_secret"),
+                lti_registration_id=lti_registration_id,
+            )
+
+        except IntegrityError:
+            self.request.session.flash(
+                f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
+                "errors",
+            )
+            return HTTPFound(
+                location=self.request.route_url("admin.instance.new.registration")
+            )
+
+        return HTTPFound(
+            location=self.request.route_url("admin.instance.id", id_=ai.id)
+        )
 
     @view_config(
         route_name="admin.instances.search",
@@ -149,3 +235,8 @@ class AdminViews:
 
         except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
+
+    def _check_required_and_redirect(self, fields, redirect_to):
+        if not all((self.request.params.get(param) for param in fields)):
+            self.request.session.flash(f"{fields} are required", "errors")
+            raise HTTPFound(location=self.request.route_url(redirect_to))

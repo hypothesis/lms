@@ -1,31 +1,12 @@
+{% import "macros.jinja" as macros %}
+
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
     Application instance {{instance.id}}
 {% endblock %}
 
-{% macro field_body(label) %}
-    <div class="field is-horizontal">
-        <div class="field-label is-normal">
-            <label class="label">{{ label }}</label>
-        </div>
-        <div class="field-body">
-            <div class="field">
-                <div class="control is-expanded">
-                    {{ caller() }}
-                </div>
-            </div>
-        </div>
-    </div>
-{% endmacro %}
-
-{% macro read_only_field(label, value) %}
-    {% call field_body(label) %}
-        <input class="input" disabled type="text" value="{{value}}">
-    {% endcall %}
-{% endmacro %}
-
 {% macro settings_checkbox(label, setting, sub_setting, field_name, default=False) %}
-    {% call field_body(label) %}
+    {% call macros.field_body(label) %}
         <label class="checkbox">
             <input
                 {% if instance.settings.get(setting, sub_setting, default) %}checked {% endif%}
@@ -36,7 +17,7 @@
 {% endmacro %}
 
 {% macro settings_text_field(label, setting, sub_setting, field_name, default='') %}
-    {% call field_body(label) %}
+    {% call macros.field_body(label) %}
         <input
             value="{{ instance.settings.get(setting, sub_setting, default) or '' }}"
             class="input"
@@ -50,21 +31,25 @@
 <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
-    {{ read_only_field("Consumer key", instance.consumer_key) }}
-    {{ read_only_field("Issuer", instance.lti_registration.issuer) }}
-    {{ read_only_field("Client ID", instance.lti_registration.client_id) }}
-    {{ read_only_field("Deployment ID", instance.deployment_id) }}
-    {{ read_only_field("LMS URL", instance.lms_url) }}
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Registration</legend>
+        {{ macros.disabled_text_field("Issuer", instance.lti_registration.issuer) }}
+        {{ macros.disabled_text_field("Client ID", instance.lti_registration.client_id) }}
+    </fieldset>
 
-    {{ read_only_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
-    {{ read_only_field("Tool consumer info product family code", instance.tool_consumer_info_product_family_code) }}
-    {{ read_only_field("Tool consumer instance description", instance.tool_consumer_instance_description) }}
-    {{ read_only_field("Tool consumer instance URL", instance.tool_consumer_instance_url) }}
-    {{ read_only_field("Tool consumer instance name", instance.tool_consumer_instance_name) }}
-    {{ read_only_field("Tool consumer instance contact email", instance.tool_consumer_instance_contact_email) }}
-    {{ read_only_field("Tool consumer info version", instance.tool_consumer_info_version) }}
+    {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
+    {{ macros.disabled_text_field("Deployment ID", instance.deployment_id) }}
+    {{ macros.disabled_text_field("LMS URL", instance.lms_url) }}
 
-    {{ read_only_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
+    {{ macros.disabled_text_field("Tool consumer instance GUID", instance.tool_consumer_instance_guid) }}
+    {{ macros.disabled_text_field("Tool consumer info product family code", instance.tool_consumer_info_product_family_code) }}
+    {{ macros.disabled_text_field("Tool consumer instance description", instance.tool_consumer_instance_description) }}
+    {{ macros.disabled_text_field("Tool consumer instance URL", instance.tool_consumer_instance_url) }}
+    {{ macros.disabled_text_field("Tool consumer instance name", instance.tool_consumer_instance_name) }}
+    {{ macros.disabled_text_field("Tool consumer instance contact email", instance.tool_consumer_instance_contact_email) }}
+    {{ macros.disabled_text_field("Tool consumer info version", instance.tool_consumer_info_version) }}
+
+    {{ macros.disabled_text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Canvas settings</legend>
@@ -86,7 +71,7 @@
         {{ settings_text_field("JSTOR site code", "jstor", "site_code") }}
     </fieldset>
 
-    {% call field_body(label="") %}
+    {% call macros.field_body(label="") %}
         <input type="submit" class="button is-primary" value="Save" />
     {% endcall %}
 </form>

@@ -27,6 +27,25 @@ class LTIRegistrationService:
 
         return query.one_or_none()
 
+    def create(  # pylint:disable=too-many-arguments
+        self,
+        issuer: str,
+        client_id: str,
+        auth_login_url: str,
+        key_set_url: str,
+        token_url: str,
+    ):
+        lti_registration = LTIRegistration(
+            issuer=issuer,
+            client_id=client_id,
+            auth_login_url=auth_login_url,
+            key_set_url=key_set_url,
+            token_url=token_url,
+        )
+        self._db.add(lti_registration)
+        self._db.flush()  # Force the returned registration to have an ID
+        return lti_registration
+
 
 def factory(_context, request):
     return LTIRegistrationService(db=request.db)
