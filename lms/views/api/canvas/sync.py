@@ -165,7 +165,7 @@ class Sync:
         )
 
     def _get_course(self):
-        return self._request.find_service(name="course").get(
+        return self._request.find_service(name="course").get_by_context_id(
             self._request.json["lms"]["tool_consumer_instance_guid"],
             self._request.json["course"]["context_id"],
         )

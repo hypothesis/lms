@@ -124,6 +124,6 @@ class Sync:
         lti_h_svc.sync(groups, group_info)
 
     def get_course(self, course_id):
-        return self.request.find_service(name="course").get(
+        return self.request.find_service(name="course").get_by_context_id(
             self.tool_consumer_instance_guid, course_id
         )

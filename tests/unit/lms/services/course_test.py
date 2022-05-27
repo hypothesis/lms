@@ -85,8 +85,10 @@ class TestCourseService:
         assert course.lms_id == "context_id"
 
     @pytest.mark.usefixtures("with_course")
-    def test_get(self, svc, application_instance):
-        course = svc.get(application_instance.tool_consumer_instance_guid, "context_id")
+    def test_get_by_context_id(self, svc, application_instance):
+        course = svc.get_by_context_id(
+            application_instance.tool_consumer_instance_guid, "context_id"
+        )
 
         assert course.lms_id == "context_id"
         assert (
