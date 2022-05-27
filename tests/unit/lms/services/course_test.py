@@ -54,19 +54,14 @@ class TestCourseService:
         # And existing course has been updated
         assert new_course.lms_name == "new course name"
 
-    def test_upsert_creates_new(
-        self, svc, db_session, application_instance, grouping_service
-    ):
+    def test_upsert_creates_new(self, svc, db_session, grouping_service):
         # Starting with a fresh DB
         assert not db_session.query(Course).count()
 
         course = svc.upsert("context_id", "new course name", {})
 
         grouping_service.get_authority_provided_id.assert_called_once_with(
-            tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
-            lms_id="context_id",
-            parent=None,
-            type_=Grouping.Type.COURSE,
+            lms_id="context_id", type_=Grouping.Type.COURSE
         )
         assert db_session.query(Course).count() == 1
         assert (

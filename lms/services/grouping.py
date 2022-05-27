@@ -13,26 +13,21 @@ class GroupingService:
         self._db = db
         self.application_instance = application_instance
 
-    # pylint: disable=no-self-use
     def get_authority_provided_id(
-        self,
-        tool_consumer_instance_guid,
-        lms_id,
-        parent: Optional[Grouping],
-        type_: Grouping.Type,
+        self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
     ):
+        guid = self.application_instance.tool_consumer_instance_guid
+
         if type_ == Grouping.Type.COURSE:
             assert parent is None, "Course groupings can't have a parent"
-            return hashed_id(tool_consumer_instance_guid, lms_id)
+            return hashed_id(guid, lms_id)
 
         assert parent is not None, "Non-course groupings must have a parent"
 
         if type_ == Grouping.Type.CANVAS_SECTION:
-            return hashed_id(tool_consumer_instance_guid, parent.lms_id, lms_id)
+            return hashed_id(guid, parent.lms_id, lms_id)
 
-        return hashed_id(
-            tool_consumer_instance_guid, parent.lms_id, type_.value, lms_id
-        )
+        return hashed_id(guid, parent.lms_id, type_.value, lms_id)
 
     def upsert_with_parent(
         self,
@@ -63,10 +58,9 @@ class GroupingService:
                 # Things we generate
                 "application_instance_id": self.application_instance.id,
                 "authority_provided_id": self.get_authority_provided_id(
-                    self.application_instance.tool_consumer_instance_guid,
                     grouping["lms_id"],
-                    parent,
                     type_,
+                    parent,
                 ),
                 "updated": func.now(),
                 # From params
