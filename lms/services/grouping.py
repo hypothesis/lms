@@ -9,9 +9,9 @@ from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance_service):
+    def __init__(self, db, application_instance):
         self._db = db
-        self.application_instance = application_instance_service.get_current()
+        self.application_instance = application_instance
 
     @staticmethod
     def generate_authority_provided_id(
@@ -146,6 +146,8 @@ class GroupingService:
 
 def factory(_context, request):
     return GroupingService(
-        request.db,
-        request.find_service(name="application_instance"),
+        db=request.db,
+        application_instance=request.find_service(
+            name="application_instance"
+        ).get_current(),
     )

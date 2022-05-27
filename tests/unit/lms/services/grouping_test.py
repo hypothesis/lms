@@ -315,12 +315,23 @@ class TestGetCourseGroupingsForUser:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request):
-        grouping_service = factory(sentinel.context, pyramid_request)
+    def test_it(self, pyramid_request, application_instance_service, GroupingService):
+        svc = factory(sentinel.context, pyramid_request)
 
-        assert isinstance(grouping_service, GroupingService)
+        application_instance_service.get_current.assert_called_once_with()
+
+        GroupingService.assert_called_once_with(
+            db=pyramid_request.db,
+            application_instance=application_instance_service.get_current.return_value,
+        )
+
+        assert svc == GroupingService.return_value
+
+    @pytest.fixture
+    def GroupingService(self, patch):
+        return patch("lms.services.grouping.GroupingService")
 
 
 @pytest.fixture
-def svc(db_session, application_instance_service):
-    return GroupingService(db_session, application_instance_service)
+def svc(db_session, application_instance):
+    return GroupingService(db_session, application_instance)
