@@ -230,10 +230,7 @@ class TestCanvasSectionsEnabled:
         assert lti_launch.canvas_sections_enabled
 
         course_service.upsert.assert_called_with(
-            "test_tool_consumer_instance_guid",
-            "test_context_id",
-            "test_context_title",
-            {},
+            "test_context_id", "test_context_title", {}
         )
 
     def test_its_disabled_if_sections_are_not_supported(
