@@ -32,16 +32,10 @@ class LTILaunchResource:
 
     def get_or_create_course(self):
         """Get the course this LTI launch based on the request's params."""
-        course_service = self._request.find_service(name="course")
-        params = self._request.parsed_params
 
-        tool_consumer_instance_guid = params["tool_consumer_instance_guid"]
-        context_id = params["context_id"]
-
-        return course_service.upsert(
-            tool_consumer_instance_guid,
-            context_id=context_id,
-            name=params["context_title"],
+        return self._request.find_service(name="course").upsert(
+            context_id=self._request.parsed_params["context_id"],
+            name=self._request.parsed_params["context_title"],
             extra=self._course_extra(),
         )
 

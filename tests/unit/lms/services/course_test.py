@@ -28,7 +28,7 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.upsert("tool_consumer_instance_guid", "context_id", "new course name", {})
+        svc.upsert("context_id", "new course name", {})
 
         course = db_session.query(Course).one()
         assert not course.settings.get("canvas", "sections_enabled")
@@ -60,12 +60,7 @@ class TestCourseService:
 
     @pytest.mark.usefixtures("with_course")
     def test_upsert_returns_existing(self, svc, application_instance, db_session):
-        course = svc.upsert(
-            application_instance.tool_consumer_instance_guid,
-            "context_id",
-            "new course name",
-            {},
-        )
+        course = svc.upsert("context_id", "new course name", {})
         # No new courses created
         assert db_session.query(Course).count() == 1
 
@@ -78,14 +73,12 @@ class TestCourseService:
         # Starting with a fresh DB
         assert not db_session.query(Course).count()
 
-        course = svc.upsert(
-            "tool_consumer_instance_guid", "context_id", "new course name", {}
-        )
+        course = svc.upsert("context_id", "new course name", {})
 
         assert db_session.query(Course).count() == 1
 
         generate_authority_provided_id.assert_called_once_with(
-            tool_consumer_instance_guid="tool_consumer_instance_guid",
+            tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
             lms_id="context_id",
             parent=None,
             type_=Grouping.Type.COURSE,
@@ -97,9 +90,7 @@ class TestCourseService:
 
     @pytest.mark.usefixtures("with_course")
     def test_get_by_context_id(self, svc, application_instance):
-        course = svc.get_by_context_id(
-            application_instance.tool_consumer_instance_guid, "context_id"
-        )
+        course = svc.get_by_context_id("context_id")
 
         assert course.lms_id == "context_id"
         assert (
@@ -130,6 +121,11 @@ class TestCourseService:
     @pytest.fixture
     def svc(self, db_session, application_instance):
         return CourseService(db=db_session, application_instance=application_instance)
+
+    @pytest.fixture
+    def application_instance(self, application_instance):
+        application_instance.tool_consumer_instance_guid = "tool_consumer_instance_guid"
+        return application_instance
 
     @pytest.fixture(autouse=True)
     def generate_authority_provided_id(self, patch):
