@@ -13,8 +13,9 @@ class GroupingService:
         self._db = db
         self.application_instance = application_instance
 
-    @staticmethod
-    def generate_authority_provided_id(
+    # pylint: disable=no-self-use
+    def get_authority_provided_id(
+        self,
         tool_consumer_instance_guid,
         lms_id,
         parent: Optional[Grouping],
@@ -61,7 +62,7 @@ class GroupingService:
             {
                 # Things we generate
                 "application_instance_id": self.application_instance.id,
-                "authority_provided_id": self.generate_authority_provided_id(
+                "authority_provided_id": self.get_authority_provided_id(
                     self.application_instance.tool_consumer_instance_guid,
                     grouping["lms_id"],
                     parent,

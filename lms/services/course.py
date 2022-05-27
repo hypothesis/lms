@@ -7,9 +7,10 @@ from lms.services.grouping import GroupingService
 
 
 class CourseService:
-    def __init__(self, db, application_instance):
+    def __init__(self, db, application_instance, grouping_service: GroupingService):
         self._db = db
         self._application_instance = application_instance
+        self._grouping_service = grouping_service
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -72,7 +73,7 @@ class CourseService:
         return course
 
     def _get_authority_provided_id(self, context_id):
-        return GroupingService.generate_authority_provided_id(
+        return self._grouping_service.get_authority_provided_id(
             tool_consumer_instance_guid=self._application_instance.tool_consumer_instance_guid,
             lms_id=context_id,
             parent=None,
@@ -115,4 +116,5 @@ def course_service_factory(_context, request):
         application_instance=request.find_service(
             name="application_instance"
         ).get_current(),
+        grouping_service=request.find_service(name="grouping"),
     )
