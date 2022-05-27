@@ -74,10 +74,7 @@ class CourseService:
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
-            tool_consumer_instance_guid=self._application_instance.tool_consumer_instance_guid,
-            lms_id=context_id,
-            parent=None,
-            type_=Grouping.Type.COURSE,
+            lms_id=context_id, type_=Grouping.Type.COURSE
         )
 
     def _get_by_authority_provided_id(self, authority_provided_id):
