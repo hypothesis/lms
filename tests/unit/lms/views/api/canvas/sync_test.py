@@ -227,7 +227,7 @@ def assert_sync_and_return_sections(
                 }
                 for section in sections
             ],
-            parent=course_service.get.return_value,
+            parent=course_service.get_by_context_id.return_value,
             type_=Grouping.Type.CANVAS_SECTION,
         )
 
@@ -256,7 +256,7 @@ def assert_sync_and_return_groups(
                 }
                 for group in groups
             ],
-            parent=course_service.get.return_value,
+            parent=course_service.get_by_context_id.return_value,
             type_=Grouping.Type.CANVAS_GROUP,
         )
 

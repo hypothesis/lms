@@ -113,7 +113,7 @@ def test_it_when_grading(
     result = Sync(pyramid_request).sync()
 
     grouping_service.get_course_groupings_for_user.assert_called_once_with(
-        course_service.get.return_value,
+        course_service.get_by_context_id.return_value,
         "GRADING_STUDENT_ID",
         type_=Grouping.Type.BLACKBOARD_GROUP,
         group_set_id=assignment_service.get.return_value.extra["group_set_id"],
@@ -144,7 +144,7 @@ def assert_sync_and_return_groups(
                 for group in groups
             ],
             type_=Grouping.Type.BLACKBOARD_GROUP,
-            parent=course_service.get.return_value,
+            parent=course_service.get_by_context_id.return_value,
         )
 
         lti_h_service.sync.assert_called_once_with(

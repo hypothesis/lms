@@ -30,7 +30,7 @@ class CourseService:
             .count()
         )
 
-    def get(self, tool_consumer_instance_guid, context_id):
+    def get_by_context_id(self, tool_consumer_instance_guid, context_id):
         authority_provided_id = self._generate_authority_provided_id(
             tool_consumer_instance_guid, context_id
         )
