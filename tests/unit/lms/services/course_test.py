@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import Course, CourseGroupsExportedFromH
+from lms.models import Course, CourseGroupsExportedFromH, Grouping
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
 
@@ -11,11 +11,16 @@ from tests import factories
 class TestCourseService:
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
     def test_it_inserts_False_if_theres_a_matching_row_in_course_groups_exported_from_h(
-        self, application_instance, db_session, svc, canvas_sections_enabled
+        self,
+        application_instance,
+        db_session,
+        svc,
+        canvas_sections_enabled,
+        generate_authority_provided_id,
     ):
         db_session.add(
             CourseGroupsExportedFromH(
-                authority_provided_id="05e99013c901bd8af9b794f0645c0511dc678298",
+                authority_provided_id=generate_authority_provided_id.return_value,
                 created=datetime.datetime.utcnow(),
             )
         )
@@ -67,7 +72,9 @@ class TestCourseService:
         # And existing course has been updated
         assert course.lms_name == "new course name"
 
-    def test_upsert_creates_new(self, svc, db_session):
+    def test_upsert_creates_new(
+        self, svc, db_session, application_instance, generate_authority_provided_id
+    ):
         # Starting with a fresh DB
         assert not db_session.query(Course).count()
 
@@ -76,9 +83,15 @@ class TestCourseService:
         )
 
         assert db_session.query(Course).count() == 1
-        # pylint: disable=protected-access
-        assert course.authority_provided_id == svc._get_authority_provided_id(
-            "tool_consumer_instance_guid", "context_id"
+
+        generate_authority_provided_id.assert_called_once_with(
+            tool_consumer_instance_guid="tool_consumer_instance_guid",
+            lms_id="context_id",
+            parent=None,
+            type_=Grouping.Type.COURSE,
+        )
+        assert (
+            course.authority_provided_id == generate_authority_provided_id.return_value
         )
         assert course.lms_id == "context_id"
 
@@ -94,13 +107,6 @@ class TestCourseService:
             == application_instance.tool_consumer_instance_guid
         )
 
-    def test_generate_authority_provided_id(self, svc):
-        assert (
-            # pylint: disable=protected-access
-            svc._get_authority_provided_id("tool", "context_id")
-            == "bc8f8d2c5de70a0f3975268832174fabecfb32d9"
-        )
-
     @pytest.fixture
     def add_courses_with_settings(self, application_instance):
         def add_courses_with_settings(
@@ -114,19 +120,25 @@ class TestCourseService:
         return add_courses_with_settings
 
     @pytest.fixture
-    def with_course(self, svc, application_instance):
+    def with_course(self, svc, application_instance, generate_authority_provided_id):
         return factories.Course(
             application_instance=application_instance,
-            # pylint: disable=protected-access
-            authority_provided_id=svc._get_authority_provided_id(
-                application_instance.tool_consumer_instance_guid, "context_id"
-            ),
+            authority_provided_id=generate_authority_provided_id.return_value,
             lms_id="context_id",
         )
 
     @pytest.fixture
     def svc(self, db_session, application_instance):
         return CourseService(db=db_session, application_instance=application_instance)
+
+    @pytest.fixture(autouse=True)
+    def generate_authority_provided_id(self, patch):
+        generate_authority_provided_id = patch(
+            "lms.services.course.GroupingService.generate_authority_provided_id"
+        )
+        generate_authority_provided_id.return_value = "AUTHORITY_PROVIDED_ID"
+
+        return generate_authority_provided_id
 
 
 class TestCourseServiceFactory:
