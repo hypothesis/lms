@@ -1,4 +1,4 @@
-def includeme(config):
+def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("index", "/")
     config.add_route("feature_flags_test", "/flags/test")
     config.add_route("welcome", "/welcome")
@@ -108,6 +108,10 @@ def includeme(config):
     config.add_route("admin.instances.search", "/admin/instances/search")
     config.add_route("admin.instance.consumer_key", "/admin/instance/{consumer_key}/")
     config.add_route("admin.instance.id", "/admin/instance/id/{id_}/")
+    config.add_route(
+        "admin.instance.new.registration", "/admin/instance/new/registration"
+    )
+    config.add_route("admin.instance.new", "/admin/instance/new")
 
     config.add_route("lti.oidc", "/lti/1.3/oidc")
     config.add_route("lti.jwks", "/lti/1.3/jwks")

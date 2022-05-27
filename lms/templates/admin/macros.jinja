@@ -1,0 +1,32 @@
+{% macro field_body(label) %}
+    <div class="field is-horizontal">
+        <div class="field-label is-normal">
+            <label class="label">{{ label }}</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <div class="control is-expanded">
+                    {{ caller() }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro disabled_text_field(label, value) %}
+    {% call field_body(label) %}
+        <input class="input" disabled type="text" value="{{value}}">
+    {% endcall %}
+{% endmacro %}
+
+{% macro readonly_text_field(label, field_name, value) %}
+    {% call field_body(label) %}
+        <input class="input" readonly type="text" name="{{field_name}}" value="{{value}}">
+    {% endcall %}
+{% endmacro %}
+
+{% macro text_field(label, field_name) %}
+    {% call field_body(label) %}
+        <input class="input" name="{{field_name}}" type="text">
+    {% endcall %}
+{% endmacro %}

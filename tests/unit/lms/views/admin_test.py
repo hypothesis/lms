@@ -1,14 +1,17 @@
 from unittest.mock import sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from sqlalchemy.exc import IntegrityError
 
 from lms.services import ApplicationInstanceNotFound
 from lms.views.admin import AdminViews, logged_out, notfound
-from tests.matchers import temporary_redirect_to
+from tests.matchers import Any, temporary_redirect_to
 
 
-@pytest.mark.usefixtures("pyramid_config", "application_instance_service")
+@pytest.mark.usefixtures(
+    "pyramid_config", "application_instance_service", "lti_registration_service"
+)
 class TestAdminViews:
     def test_index(self, pyramid_request, views):
         response = views.index()
@@ -17,10 +20,138 @@ class TestAdminViews:
             pyramid_request.route_url("admin.instances")
         )
 
-    def test_instances(self, views):
-        response = views.instances()
+    @pytest.mark.parametrize(
+        "view",
+        ("instances", "instance_new_registration"),
+    )
+    def test_render_template_views(self, views, view):
+        assert getattr(views, view)() == {}
 
-        assert response == {}
+    def test_instance_new_registration_post_existent_registration(
+        self, lti_registration_service, pyramid_request
+    ):
+        pyramid_request.params["issuer"] = sentinel.issuer
+        pyramid_request.params["client_id"] = sentinel.client_id
+
+        response = AdminViews(pyramid_request).instance_new_registration_post()
+
+        lti_registration_service.get.assert_called_once_with(
+            sentinel.issuer, sentinel.client_id
+        )
+
+        assert response == {
+            "lti_registration": lti_registration_service.get.return_value
+        }
+
+    def test_instance_new_registration_post_non_existent_registration(
+        self, lti_registration_service, pyramid_request
+    ):
+        lti_registration_service.get.return_value = None
+
+        pyramid_request.params["issuer"] = sentinel.issuer
+        pyramid_request.params["client_id"] = sentinel.client_id
+
+        response = AdminViews(pyramid_request).instance_new_registration_post()
+
+        lti_registration_service.get.assert_called_once_with(
+            sentinel.issuer, sentinel.client_id
+        )
+
+        assert response["lti_registration"].issuer == sentinel.issuer
+        assert response["lti_registration"].client_id == sentinel.client_id
+
+    def test_instance_new_registration_post_missing_params(self, pyramid_request):
+        with pytest.raises(HTTPFound) as redirect_exc:
+            AdminViews(pyramid_request).instance_new_registration_post()
+
+        assert redirect_exc.value == temporary_redirect_to(
+            pyramid_request.route_url("admin.instance.new.registration")
+        )
+        assert pyramid_request.session.peek_flash("errors")
+
+    def test_instance_new_with_registration_id(
+        self, pyramid_request_new_registration, application_instance_service
+    ):
+        response = AdminViews(pyramid_request_new_registration).instance_new()
+
+        application_instance_service.create.assert_called_once_with(
+            lms_url=sentinel.lms_url,
+            email=sentinel.email,
+            deployment_id=sentinel.deployment_id,
+            developer_key=None,
+            developer_secret=None,
+            lti_registration_id=sentinel.lti_registration_id,
+        )
+
+        assert response == temporary_redirect_to(
+            pyramid_request_new_registration.route_url(
+                "admin.instance.id",
+                id_=application_instance_service.create.return_value.id,
+            )
+        )
+
+    def test_instance_new_with_new_registration(
+        self,
+        pyramid_request_new_registration,
+        application_instance_service,
+        lti_registration_service,
+    ):
+        del pyramid_request_new_registration.params["lti_registration_id"]
+
+        response = AdminViews(pyramid_request_new_registration).instance_new()
+
+        lti_registration_service.create.assert_called_once_with(
+            issuer=sentinel.issuer,
+            client_id=sentinel.client_id,
+            auth_login_url=sentinel.auth_login_url,
+            key_set_url=sentinel.key_set_url,
+            token_url=sentinel.token_url,
+        )
+
+        application_instance_service.create.assert_called_once_with(
+            lms_url=sentinel.lms_url,
+            email=sentinel.email,
+            deployment_id=sentinel.deployment_id,
+            developer_key=None,
+            developer_secret=None,
+            lti_registration_id=lti_registration_service.create.return_value.id,
+        )
+
+        assert response == temporary_redirect_to(
+            pyramid_request_new_registration.route_url(
+                "admin.instance.id",
+                id_=application_instance_service.create.return_value.id,
+            )
+        )
+
+    def test_instance_new_missing_params(self, pyramid_request_new_registration):
+        del pyramid_request_new_registration.params["lms_url"]
+
+        with pytest.raises(HTTPFound) as redirect_exc:
+            AdminViews(pyramid_request_new_registration).instance_new()
+
+        assert pyramid_request_new_registration.session.peek_flash("errors")
+        assert redirect_exc.value == temporary_redirect_to(
+            pyramid_request_new_registration.route_url(
+                "admin.instance.new.registration"
+            )
+        )
+
+    def test_instance_with_duplicate(
+        self, pyramid_request_new_registration, application_instance_service
+    ):
+        application_instance_service.create.side_effect = IntegrityError(
+            Any(), Any(), Any()
+        )
+
+        response = AdminViews(pyramid_request_new_registration).instance_new()
+
+        assert pyramid_request_new_registration.session.peek_flash("errors")
+        assert response == temporary_redirect_to(
+            pyramid_request_new_registration.route_url(
+                "admin.instance.new.registration"
+            )
+        )
 
     def test_search_not_query(self, pyramid_request):
         response = AdminViews(pyramid_request).search()
@@ -193,6 +324,20 @@ class TestAdminViews:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {}
+        return pyramid_request
+
+    @pytest.fixture
+    def pyramid_request_new_registration(self, pyramid_request):
+        pyramid_request.params["issuer"] = sentinel.issuer
+        pyramid_request.params["client_id"] = sentinel.client_id
+        pyramid_request.params["email"] = sentinel.email
+        pyramid_request.params["deployment_id"] = sentinel.deployment_id
+        pyramid_request.params["lti_registration_id"] = sentinel.lti_registration_id
+        pyramid_request.params["auth_login_url"] = sentinel.auth_login_url
+        pyramid_request.params["key_set_url"] = sentinel.key_set_url
+        pyramid_request.params["token_url"] = sentinel.token_url
+        pyramid_request.params["lms_url"] = sentinel.lms_url
+
         return pyramid_request
 
     @pytest.fixture

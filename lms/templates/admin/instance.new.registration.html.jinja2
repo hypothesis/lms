@@ -1,0 +1,22 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}
+New application instance
+{% endblock %}
+
+{% block content %}
+
+<fieldset class="box mt-6">
+    <form method="POST" action="{{ request.route_url("admin.instance.new.registration") }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+        {{ macros.text_field("Issuer", "issuer") }}
+        {{ macros.text_field("Client ID", "client_id") }}
+        {% call macros.field_body(label="") %}
+            <input type="submit" class="button is-primary" value="Next" />
+        {% endcall %}
+    </form>
+</fieldset>
+
+{% endblock %}

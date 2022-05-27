@@ -84,8 +84,11 @@ class TestApplicationInstanceService:
             (None, None),
         ],
     )
-    def test_build_from_lms_url(self, developer_secret, developer_key, service):
-        application_instance = service.build_from_lms_url(
+    def test_create(self, developer_secret, developer_key, service, aes_service):
+        aes_service.build_iv.return_value = b"iv"
+        aes_service.encrypt.return_value = b"secret"
+
+        application_instance = service.create(
             "https://example.com/",
             "example@example.com",
             developer_key,
@@ -97,9 +100,14 @@ class TestApplicationInstanceService:
         assert application_instance.shared_secret
         assert application_instance.lms_url == "https://example.com/"
         assert application_instance.requesters_email == "example@example.com"
-        assert application_instance.developer_key == developer_key
         assert application_instance.settings == {}
-        if developer_secret:
+        if developer_secret and developer_key:
+            aes_service.build_iv.assert_called_once()
+            aes_service.encrypt.assert_called_once_with(
+                aes_service.build_iv.return_value, developer_secret
+            )
+
+            assert application_instance.developer_key == developer_key
             assert application_instance.developer_secret
 
     @pytest.mark.parametrize("field", ["issuer", "client_id"])

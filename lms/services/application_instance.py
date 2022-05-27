@@ -116,19 +116,31 @@ class ApplicationInstanceService:
 
         return query.all()
 
-    def build_from_lms_url(  # pylint:disable=too-many-arguments
-        self, lms_url, email, developer_key, developer_secret, settings
+    def create(  # pylint:disable=too-many-arguments
+        self,
+        lms_url,
+        email,
+        developer_key,
+        developer_secret,
+        settings=None,
+        deployment_id=None,
+        lti_registration_id=None,
     ):
-        """Instantiate ApplicationInstance with lms_url."""
-        encrypted_secret = developer_secret
-        aes_iv = None
+        """Create an ApplicationInstance."""
+        consumer_key = (
+            "Hypothesis" + secrets.token_hex(16) if not deployment_id else None
+        )
 
         if developer_secret and developer_key:
             aes_iv = self._aes_service.build_iv()
             encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
+        else:
+            # If either one of developer_key or developer_secret is missing, then we
+            # don't save the other one either.
+            developer_key = encrypted_secret = developer_secret = aes_iv = None
 
         application_instance = ApplicationInstance(
-            consumer_key="Hypothesis" + secrets.token_hex(16),
+            consumer_key=consumer_key,
             shared_secret=secrets.token_hex(32),
             lms_url=lms_url,
             requesters_email=email,
@@ -136,9 +148,12 @@ class ApplicationInstanceService:
             developer_secret=encrypted_secret,
             aes_cipher_iv=aes_iv,
             created=datetime.utcnow(),
-            settings=settings,
+            settings=settings or {},
+            deployment_id=deployment_id,
+            lti_registration_id=lti_registration_id,
         )
         self._db.add(application_instance)
+        self._db.flush()  # Force the returned AI to have an ID
         return application_instance
 
 

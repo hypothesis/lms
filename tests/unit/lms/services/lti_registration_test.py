@@ -10,8 +10,15 @@ class TestLTIRegistrationService:
     def test_get(self, svc, registration):
         assert svc.get(registration.issuer, registration.client_id) == registration
 
-    def test_without_client_id(self, svc, registration):
+    def test_get_without_client_id(self, svc, registration):
         assert svc.get(registration.issuer) == registration
+
+    def test_create(self, svc):
+        registration = svc.create(
+            "ISSUER", "CLIENT_ID", "AUTH_LOGIN_URL", "KEY_SET_URL", "TOKEN_URL"
+        )
+
+        assert svc.get("ISSUER", "CLIENT_ID") == registration
 
     @pytest.fixture
     def registration(self):
