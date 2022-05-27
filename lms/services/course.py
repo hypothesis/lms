@@ -7,9 +7,9 @@ from lms.services.grouping import GroupingService
 
 
 class CourseService:
-    def __init__(self, application_instance_service, db):
-        self._application_instance = application_instance_service.get_current()
+    def __init__(self, db, application_instance):
         self._db = db
+        self._application_instance = application_instance
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -31,7 +31,9 @@ class CourseService:
             .count()
         )
 
-    def get_by_context_id(self, tool_consumer_instance_guid, context_id) -> Optional[Course]:
+    def get_by_context_id(
+        self, tool_consumer_instance_guid, context_id
+    ) -> Optional[Course]:
         """
         Get a course (if one exists) by the GUID and context id.
 
@@ -131,6 +133,8 @@ class CourseService:
 
 def course_service_factory(_context, request):
     return CourseService(
-        request.find_service(name="application_instance"),
-        request.db,
+        db=request.db,
+        application_instance=request.find_service(
+            name="application_instance"
+        ).get_current(),
     )
