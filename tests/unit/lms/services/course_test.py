@@ -79,7 +79,7 @@ class TestCourseService:
 
         assert db_session.query(Course).count() == 1
         # pylint: disable=protected-access
-        assert course.authority_provided_id == svc._generate_authority_provided_id(
+        assert course.authority_provided_id == svc._get_authority_provided_id(
             "tool_consumer_instance_guid", "context_id"
         )
         assert course.lms_id == "context_id"
@@ -99,7 +99,7 @@ class TestCourseService:
     def test_generate_authority_provided_id(self, svc):
         assert (
             # pylint: disable=protected-access
-            svc._generate_authority_provided_id("tool", "context_id")
+            svc._get_authority_provided_id("tool", "context_id")
             == "bc8f8d2c5de70a0f3975268832174fabecfb32d9"
         )
 
@@ -120,7 +120,7 @@ class TestCourseService:
         return factories.Course(
             application_instance=application_instance,
             # pylint: disable=protected-access
-            authority_provided_id=svc._generate_authority_provided_id(
+            authority_provided_id=svc._get_authority_provided_id(
                 application_instance.tool_consumer_instance_guid, "context_id"
             ),
             lms_id="context_id",
