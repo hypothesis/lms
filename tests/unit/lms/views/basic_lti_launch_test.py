@@ -237,7 +237,7 @@ class TestCommon:
 
 
 class TestCourseRecording:
-    def test_it_records_the_course_in_the_DB(
+    def test_it_records_the_course_in_the_db(
         self, context, pyramid_request, view_caller
     ):
         view_caller(context, pyramid_request)

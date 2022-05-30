@@ -40,28 +40,6 @@ class LTILaunchResource:
         )
 
     @property
-    def h_group(self):
-        """
-        Return the h group for the current request.
-
-        The group's name is generated from the LTI course's title and is
-        usually a valid Hypothesis group name.  For example if the course's
-        title is too long for a Hypothesis group name it'll be truncated. But
-        this doesn't currently handle course titles that are *too short* to be
-        Hypothesis group names (shorter than 3 chars) - in that case if you try
-        to create a Hypothesis group using the generated name you'll get back
-        an unsuccessful response from the Hypothesis API.
-
-        The group's groupid and authority_provided_id are each deterministic
-        and unique to the LTI course. Calling this function again with params
-        representing the same LTI course will always return the same
-        groupid and authority_provided_id. Calling this function with
-        different params will always return a different groupid and
-        authority_provided_id.
-        """
-        return self.get_or_create_course()
-
-    @property
     def _is_speedgrader(self):
         return bool(self._request.GET.get("learner_canvas_user_id"))
 

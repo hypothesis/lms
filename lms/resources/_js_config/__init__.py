@@ -488,7 +488,7 @@ class JSConfig:
     def _groups(self):
         if self._context.canvas_sections_enabled or self._context.is_group_launch:
             return "$rpc:requestGroups"
-        return [self._context.h_group.groupid(self._authority)]
+        return [self._context.get_or_create_course().groupid(self._authority)]
 
     def _canvas_sync_api(self):
         req = self._request

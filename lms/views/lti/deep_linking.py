@@ -65,9 +65,9 @@ def deep_linking_launch(context, request):
     ).get_current()
     application_instance.update_lms_data(context.lti_params)
 
-    context.get_or_create_course()
-
-    request.find_service(name="lti_h").sync([context.h_group], request.params)
+    request.find_service(name="lti_h").sync(
+        [context.get_or_create_course()], request.params
+    )
 
     context.js_config.enable_file_picker_mode(
         form_action=request.parsed_params["content_item_return_url"],
