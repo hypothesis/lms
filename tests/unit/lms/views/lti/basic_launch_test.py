@@ -5,7 +5,7 @@ import pytest
 from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.basic_lti_launch import BasicLTILaunchViews
+from lms.views.lti.basic_launch import BasicLaunchViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
@@ -20,11 +20,11 @@ pytestmark = pytest.mark.usefixtures(
 
 def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch().
+    Call BasicLaunchViews.legacy_canvas_file_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.legacy_canvas_file_basic_lti_launch() returns.
+    BasicLaunchViews.legacy_canvas_file_basic_lti_launch(), and return whatever
+    BasicLaunchViews.legacy_canvas_file_basic_lti_launch() returns.
     """
     # The custom_canvas_course_id param is always present when
     # legacy_canvas_file_basic_lti_launch() is called: Canvas always includes this
@@ -34,98 +34,98 @@ def canvas_file_basic_lti_launch_caller(context, pyramid_request):
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
 
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
 
     return views.canvas_file_basic_lti_launch()
 
 
 def db_configured_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.db_configured_basic_lti_launch().
+    Call BasicLaunchViews.db_configured_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.db_configured_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.db_configured_basic_lti_launch() returns.
+    BasicLaunchViews.db_configured_basic_lti_launch(), and return whatever
+    BasicLaunchViews.db_configured_basic_lti_launch() returns.
     """
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
     return views.db_configured_basic_lti_launch()
 
 
 def blackboard_copied_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.blackboard_copied_basic_lti_launch().
+    Call BasicLaunchViews.blackboard_copied_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.blackboard_copied_basic_lti_launch(), and return
-    whatever BasicLTILaunchViews.blackboard_copied_basic_lti_launch() returns.
+    BasicLaunchViews.blackboard_copied_basic_lti_launch(), and return
+    whatever BasicLaunchViews.blackboard_copied_basic_lti_launch() returns.
     """
     pyramid_request.params["resource_link_id_history"] = "test_resource_link_id_history"
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
     return views.blackboard_copied_basic_lti_launch()
 
 
 def brightspace_copied_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.brightspace_copied_basic_lti_launch().
+    Call BasicLaunchViews.brightspace_copied_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.brightspace_copied_basic_lti_launch(), and return
-    whatever BasicLTILaunchViews.brightspace_copied_basic_lti_launch() returns.
+    BasicLaunchViews.brightspace_copied_basic_lti_launch(), and return
+    whatever BasicLaunchViews.brightspace_copied_basic_lti_launch() returns.
     """
     pyramid_request.params[
         "ext_d2l_resource_link_id_history"
     ] = "test_ext_d2l_resource_link_id_history"
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
     return views.brightspace_copied_basic_lti_launch()
 
 
 def url_configured_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.url_configured_basic_lti_launch().
+    Call BasicLaunchViews.url_configured_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.url_configured_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.url_configured_basic_lti_launch() returns.
+    BasicLaunchViews.url_configured_basic_lti_launch(), and return whatever
+    BasicLaunchViews.url_configured_basic_lti_launch() returns.
     """
     # The `url` parsed param is always present when
     # url_configured_basic_lti_launch() is called. The url_configured=True view
     # predicate and URLConfiguredBasicLTILaunchSchema ensure this.
     pyramid_request.parsed_params = {"url": "TEST_URL"}
 
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
 
     return views.url_configured_basic_lti_launch()
 
 
 def legacy_vitalsource_lti_launch_caller(context, pyramid_request):
-    """Call BasicLTILaunchViews.legacy_vitalsource_lti_launch()."""
+    """Call BasicLaunchViews.legacy_vitalsource_lti_launch()."""
     pyramid_request.params["book_id"] = "BOOK_ID"
     pyramid_request.params["cfi"] = "/cfi"
 
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
 
     return views.legacy_vitalsource_lti_launch()
 
 
 def unconfigured_basic_lti_launch_caller(context, pyramid_request):
     """
-    Call BasicLTILaunchViews.unconfigured_basic_lti_launch().
+    Call BasicLaunchViews.unconfigured_basic_lti_launch().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.unconfigured_basic_lti_launch(), and return whatever
-    BasicLTILaunchViews.unconfigured_basic_lti_launch() returns.
+    BasicLaunchViews.unconfigured_basic_lti_launch(), and return whatever
+    BasicLaunchViews.unconfigured_basic_lti_launch() returns.
     """
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
     return views.unconfigured_basic_lti_launch()
 
 
 def configure_assignment_caller(context, pyramid_request, parsed_params=None):
     """
-    Call BasicLTILaunchViews.configure_assignment().
+    Call BasicLaunchViews.configure_assignment().
 
     Set up the appropriate conditions and then call
-    BasicLTILaunchViews.configure_assignment(), and return whatever
-    BasicLTILaunchViews.configure_assignment() returns.
+    BasicLaunchViews.configure_assignment(), and return whatever
+    BasicLaunchViews.configure_assignment() returns.
     """
     # The document_url, resource_link_id and tool_consumer_instance_guid parsed
     # params are always present when configure_assignment() is called.
@@ -138,28 +138,28 @@ def configure_assignment_caller(context, pyramid_request, parsed_params=None):
     if parsed_params:
         pyramid_request.parsed_params.update(parsed_params)
 
-    views = BasicLTILaunchViews(context, pyramid_request)
+    views = BasicLaunchViews(context, pyramid_request)
 
     return views.configure_assignment()
 
 
-class TestBasicLTILaunchViewsInit:
-    """Unit tests for BasicLTILaunchViews.__init__()."""
+class TestBasicLaunchViewsInit:
+    """Unit tests for BasicLaunchViews.__init__()."""
 
     def test_it_sets_frontend_app_mode(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request)
+        BasicLaunchViews(context, pyramid_request)
 
         context.js_config.enable_lti_launch_mode.assert_called_once_with()
 
     def test_it_sets_the_focused_user(self, context, pyramid_request):
-        BasicLTILaunchViews(context, pyramid_request)
+        BasicLaunchViews(context, pyramid_request)
 
         context.js_config.maybe_set_focused_user.assert_called_once_with()
 
 
 class TestCommon:
     """
-    Tests common to multiple (but not all) BasicLTILaunchViews views.
+    Tests common to multiple (but not all) BasicLaunchViews views.
 
     See the parametrized `view_caller` fixture below for the list of view
     methods that these tests apply to.
@@ -402,7 +402,7 @@ class TestConfigureAssignment:
 
     @pytest.fixture
     def JSConfig(self, patch):
-        return patch("lms.views.basic_lti_launch.JSConfig")
+        return patch("lms.views.lti.basic_launch.JSConfig")
 
 
 class TestUnconfiguredBasicLTILaunch:
@@ -451,7 +451,7 @@ class TestUnconfiguredBasicLTILaunch:
 
 class TestUnconfiguredBasicLTILaunchNotAuthorized:
     def test_it_returns_the_right_template_data(self, context, pyramid_request):
-        data = BasicLTILaunchViews(
+        data = BasicLaunchViews(
             context, pyramid_request
         ).unconfigured_basic_lti_launch_not_authorized()
 
@@ -487,12 +487,12 @@ def pyramid_request(pyramid_request):
 
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
-    return patch("lms.views.basic_lti_launch.BearerTokenSchema")
+    return patch("lms.views.lti.basic_launch.BearerTokenSchema")
 
 
 @pytest.fixture(autouse=True)
 def LtiLaunches(patch):
-    return patch("lms.views.basic_lti_launch.LtiLaunches")
+    return patch("lms.views.lti.basic_launch.LtiLaunches")
 
 
 @pytest.fixture
