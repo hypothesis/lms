@@ -123,7 +123,7 @@ class BasicLaunchViews:
         For more about Blackboard course copy see the BlackboardCopied
         predicate's docstring.
         """
-        return self.course_copied_launch(
+        return self._course_copied_launch(
             BlackboardCopied.get_original_resource_link_id(self.request)
         )
 
@@ -135,35 +135,9 @@ class BasicLaunchViews:
         For more about Brightspace course copy see the BrightspaceCopied
         predicate's docstring.
         """
-        return self.course_copied_launch(
+        return self._course_copied_launch(
             BrightspaceCopied.get_original_resource_link_id(self.request)
         )
-
-    def course_copied_launch(self, original_resource_link_id):
-        """
-        Respond to a launch of a newly-copied assignment.
-
-        Find the document_url for the original assignment and make a copy of it
-        with the new resource_link_id, then launch the assignment as normal.
-
-        Helper method for the *_copied_launch() methods above.
-
-        :param original_resource_link_id: the resource_link_id of the original
-            assignment that this assignment was copied from
-        """
-        tool_consumer_instance_guid = self.context.lti_params[
-            "tool_consumer_instance_guid"
-        ]
-
-        document_url = self.assignment_service.get(
-            tool_consumer_instance_guid, original_resource_link_id
-        ).document_url
-
-        self.assignment_service.upsert(
-            document_url, tool_consumer_instance_guid, self.context.resource_link_id
-        )
-
-        return self._do_launch(document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
@@ -276,6 +250,32 @@ class BasicLaunchViews:
         self.context.js_config.enable_lti_launch_mode()
 
         return self._do_launch(document_url, grading_supported=True)
+
+    def _course_copied_launch(self, original_resource_link_id):
+        """
+        Respond to a launch of a newly-copied assignment.
+
+        Find the document_url for the original assignment and make a copy of it
+        with the new resource_link_id, then launch the assignment as normal.
+
+        Helper method for the *_copied_launch() methods above.
+
+        :param original_resource_link_id: the resource_link_id of the original
+            assignment that this assignment was copied from
+        """
+        tool_consumer_instance_guid = self.context.lti_params[
+            "tool_consumer_instance_guid"
+        ]
+
+        document_url = self.assignment_service.get(
+            tool_consumer_instance_guid, original_resource_link_id
+        ).document_url
+
+        self.assignment_service.upsert(
+            document_url, tool_consumer_instance_guid, self.context.resource_link_id
+        )
+
+        return self._do_launch(document_url)
 
     def _do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
