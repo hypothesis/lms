@@ -57,27 +57,32 @@ class GroupingService:
             # Make sure we have a PK for the parent before upserting
             self._db.flush()
 
+        values = [
+            {
+                # Things we generate
+                "application_instance_id": self.application_instance.id,
+                "authority_provided_id": self.generate_authority_provided_id(
+                    self.application_instance.tool_consumer_instance_guid,
+                    grouping["lms_id"],
+                    parent,
+                    type_,
+                ),
+                "updated": func.now(),
+                # From params
+                "parent_id": parent.id,
+                "type": type_,
+                # Things the caller provides
+                "lms_id": grouping["lms_id"],
+                "lms_name": grouping["lms_name"],
+                "extra": grouping.get("extra"),
+            }
+            for grouping in grouping_dicts
+        ]
+
         return bulk_upsert(
             self._db,
             Grouping,
-            [
-                {
-                    "application_instance_id": self.application_instance.id,
-                    "authority_provided_id": self.generate_authority_provided_id(
-                        self.application_instance.tool_consumer_instance_guid,
-                        grouping["lms_id"],
-                        parent,
-                        type_,
-                    ),
-                    "lms_id": grouping["lms_id"],
-                    "parent_id": parent.id,
-                    "type": type_,
-                    "lms_name": grouping["lms_name"],
-                    "extra": grouping.get("extra"),
-                    "updated": func.now(),
-                }
-                for grouping in grouping_dicts
-            ],
+            values,
             index_elements=["application_instance_id", "authority_provided_id"],
             update_columns=["lms_name", "extra", "updated"],
         ).all()
