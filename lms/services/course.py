@@ -43,7 +43,7 @@ class CourseService:
             authority_provided_id=self._get_authority_provided_id(context_id)
         )
 
-    def upsert(self, context_id, name, extra, settings=None) -> Course:
+    def upsert_course(self, context_id, name, extra, settings=None) -> Course:
         """
         Create or update a course based on the provided values.
 
