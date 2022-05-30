@@ -52,7 +52,6 @@ class BasicLTILaunchViews:
         """Do a basic LTI launch with the given document_url."""
         self.sync_lti_data_to_h()
         self.store_lti_data()
-        self.context.get_or_create_course()
 
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
@@ -70,7 +69,7 @@ class BasicLTILaunchViews:
         """
 
         self.request.find_service(name="lti_h").sync(
-            [self.context.h_group], self.request.params
+            [self.context.get_or_create_course()], self.request.params
         )
 
     def store_lti_data(self):

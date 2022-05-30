@@ -94,7 +94,9 @@ class TestEnableLTILaunchMode:
                         "authority": "TEST_AUTHORITY",
                         "enableShareLinks": False,
                         "grantToken": grant_token_service.generate_token.return_value,
-                        "groups": [context.h_group.groupid.return_value],
+                        "groups": [
+                            context.get_or_create_course.return_value.groupid.return_value
+                        ],
                     }
                 ]
             },
@@ -517,7 +519,9 @@ class TestJSConfigHypothesisClient:
                 "authority": "TEST_AUTHORITY",
                 "enableShareLinks": False,
                 "grantToken": grant_token_service.generate_token.return_value,
-                "groups": [context.h_group.groupid.return_value],
+                "groups": [
+                    context.get_or_create_course.return_value.groupid.return_value
+                ],
             }
         ]
 
@@ -722,11 +726,10 @@ def submission_params(config):
 
 @pytest.fixture
 def context(pyramid_request):
-    return create_autospec(
+    context = create_autospec(
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        h_group=create_autospec(Grouping, instance=True, spec_set=True),
         is_canvas=True,
         canvas_sections_enabled=False,
         canvas_groups_enabled=False,
@@ -734,6 +737,12 @@ def context(pyramid_request):
         is_group_launch=False,
         lti_params=LTIParams(pyramid_request.params),
     )
+
+    context.get_or_create_course.return_value = create_autospec(
+        Grouping, instance=True, spec_set=True
+    )
+
+    return context
 
 
 @pytest.fixture
