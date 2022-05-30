@@ -135,6 +135,7 @@ class TestUpsertGroupings:
             "lms_id": "course_id",
             "lms_name": "course_name",
             "extra": {"created": "extra"},
+            "settings": {"created": "settings"},
         }
 
         courses = svc.upsert_groupings([attrs], type_=Grouping.Type.COURSE)
@@ -151,7 +152,9 @@ class TestUpsertGroupings:
             "extra": {"updated": "extra"},
         }
 
-        courses = svc.upsert_groupings([attrs], type_=Grouping.Type.COURSE)
+        courses = svc.upsert_groupings(
+            [dict(attrs, settings={"IGNORED": True})], type_=Grouping.Type.COURSE
+        )
 
         # Load the changes we made in SQLAlchemy
         db_session.refresh(parent_course)

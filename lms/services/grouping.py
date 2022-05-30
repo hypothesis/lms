@@ -72,6 +72,7 @@ class GroupingService:
                 "lms_id": grouping["lms_id"],
                 "lms_name": grouping["lms_name"],
                 "extra": grouping.get("extra"),
+                "settings": grouping.get("settings"),
             }
             for grouping in grouping_dicts
         ]
