@@ -33,7 +33,7 @@ class GroupingService:
         self,
         grouping_dicts: List[dict],
         type_: Grouping.Type,
-        parent: Grouping,
+        parent: Optional[Grouping] = None,
     ) -> List[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
@@ -49,22 +49,24 @@ class GroupingService:
         if not grouping_dicts:
             return []
 
-        if not parent.id:
-            # Make sure we have a PK for the parent before upserting
-            self._db.flush()
+        if parent:
+            if not parent.id:
+                # Make sure we have a PK for the parent before upserting
+                self._db.flush()
+            parent_id = parent.id
+        else:
+            parent_id = None
 
         values = [
             {
                 # Things we generate
                 "application_instance_id": self.application_instance.id,
                 "authority_provided_id": self.get_authority_provided_id(
-                    grouping["lms_id"],
-                    type_,
-                    parent,
+                    grouping["lms_id"], type_, parent
                 ),
                 "updated": func.now(),
                 # From params
-                "parent_id": parent.id,
+                "parent_id": parent_id,
                 "type": type_,
                 # Things the caller provides
                 "lms_id": grouping["lms_id"],
