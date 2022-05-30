@@ -18,105 +18,105 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-def canvas_file_basic_lti_launch_caller(context, pyramid_request):
+def canvas_file_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.legacy_canvas_file_basic_lti_launch().
+    Call BasicLaunchViews.legacy_canvas_file_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.legacy_canvas_file_basic_lti_launch(), and return whatever
-    BasicLaunchViews.legacy_canvas_file_basic_lti_launch() returns.
+    BasicLaunchViews.legacy_canvas_file_launch(), and return whatever
+    BasicLaunchViews.legacy_canvas_file_launch() returns.
     """
     # The custom_canvas_course_id param is always present when
-    # legacy_canvas_file_basic_lti_launch() is called: Canvas always includes this
+    # legacy_canvas_file_launch() is called: Canvas always includes this
     # param because we request it in our config.xml.
     context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
-    # The file_id param is always present when legacy_canvas_file_basic_lti_launch()
+    # The file_id param is always present when legacy_canvas_file_launch()
     # is called. The canvas_file=True view predicate ensures this.
     pyramid_request.params["file_id"] = "TEST_FILE_ID"
 
     views = BasicLaunchViews(context, pyramid_request)
 
-    return views.canvas_file_basic_lti_launch()
+    return views.canvas_file_launch()
 
 
-def db_configured_basic_lti_launch_caller(context, pyramid_request):
+def db_configured_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.db_configured_basic_lti_launch().
+    Call BasicLaunchViews.db_configured_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.db_configured_basic_lti_launch(), and return whatever
-    BasicLaunchViews.db_configured_basic_lti_launch() returns.
+    BasicLaunchViews.db_configured_launch(), and return whatever
+    BasicLaunchViews.db_configured_launch() returns.
     """
     views = BasicLaunchViews(context, pyramid_request)
-    return views.db_configured_basic_lti_launch()
+    return views.db_configured_launch()
 
 
-def blackboard_copied_basic_lti_launch_caller(context, pyramid_request):
+def blackboard_copied_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.blackboard_copied_basic_lti_launch().
+    Call BasicLaunchViews.blackboard_copied_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.blackboard_copied_basic_lti_launch(), and return
-    whatever BasicLaunchViews.blackboard_copied_basic_lti_launch() returns.
+    BasicLaunchViews.blackboard_copied_launch(), and return
+    whatever BasicLaunchViews.blackboard_copied_launch() returns.
     """
     pyramid_request.params["resource_link_id_history"] = "test_resource_link_id_history"
     views = BasicLaunchViews(context, pyramid_request)
-    return views.blackboard_copied_basic_lti_launch()
+    return views.blackboard_copied_launch()
 
 
-def brightspace_copied_basic_lti_launch_caller(context, pyramid_request):
+def brightspace_copied_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.brightspace_copied_basic_lti_launch().
+    Call BasicLaunchViews.brightspace_copied_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.brightspace_copied_basic_lti_launch(), and return
-    whatever BasicLaunchViews.brightspace_copied_basic_lti_launch() returns.
+    BasicLaunchViews.brightspace_copied_launch(), and return
+    whatever BasicLaunchViews.brightspace_copied_launch() returns.
     """
     pyramid_request.params[
         "ext_d2l_resource_link_id_history"
     ] = "test_ext_d2l_resource_link_id_history"
     views = BasicLaunchViews(context, pyramid_request)
-    return views.brightspace_copied_basic_lti_launch()
+    return views.brightspace_copied_launch()
 
 
-def url_configured_basic_lti_launch_caller(context, pyramid_request):
+def url_configured_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.url_configured_basic_lti_launch().
+    Call BasicLaunchViews.url_configured_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.url_configured_basic_lti_launch(), and return whatever
-    BasicLaunchViews.url_configured_basic_lti_launch() returns.
+    BasicLaunchViews.url_configured_launch(), and return whatever
+    BasicLaunchViews.url_configured_launch() returns.
     """
     # The `url` parsed param is always present when
-    # url_configured_basic_lti_launch() is called. The url_configured=True view
-    # predicate and URLConfiguredBasicLTILaunchSchema ensure this.
+    # url_configured_launch() is called. The url_configured=True view
+    # predicate and URLConfiguredLaunchSchema ensure this.
     pyramid_request.parsed_params = {"url": "TEST_URL"}
 
     views = BasicLaunchViews(context, pyramid_request)
 
-    return views.url_configured_basic_lti_launch()
+    return views.url_configured_launch()
 
 
-def legacy_vitalsource_lti_launch_caller(context, pyramid_request):
-    """Call BasicLaunchViews.legacy_vitalsource_lti_launch()."""
+def legacy_vitalsource_launch_caller(context, pyramid_request):
+    """Call BasicLaunchViews.legacy_vitalsource_launch()."""
     pyramid_request.params["book_id"] = "BOOK_ID"
     pyramid_request.params["cfi"] = "/cfi"
 
     views = BasicLaunchViews(context, pyramid_request)
 
-    return views.legacy_vitalsource_lti_launch()
+    return views.legacy_vitalsource_launch()
 
 
-def unconfigured_basic_lti_launch_caller(context, pyramid_request):
+def unconfigured_launch_caller(context, pyramid_request):
     """
-    Call BasicLaunchViews.unconfigured_basic_lti_launch().
+    Call BasicLaunchViews.unconfigured_launch().
 
     Set up the appropriate conditions and then call
-    BasicLaunchViews.unconfigured_basic_lti_launch(), and return whatever
-    BasicLaunchViews.unconfigured_basic_lti_launch() returns.
+    BasicLaunchViews.unconfigured_launch(), and return whatever
+    BasicLaunchViews.unconfigured_launch() returns.
     """
     views = BasicLaunchViews(context, pyramid_request)
-    return views.unconfigured_basic_lti_launch()
+    return views.unconfigured_launch()
 
 
 def configure_assignment_caller(context, pyramid_request, parsed_params=None):
@@ -216,11 +216,11 @@ class TestCommon:
 
     @pytest.fixture(
         params=[
-            canvas_file_basic_lti_launch_caller,
-            db_configured_basic_lti_launch_caller,
-            blackboard_copied_basic_lti_launch_caller,
-            brightspace_copied_basic_lti_launch_caller,
-            url_configured_basic_lti_launch_caller,
+            canvas_file_launch_caller,
+            db_configured_launch_caller,
+            blackboard_copied_launch_caller,
+            brightspace_copied_launch_caller,
+            url_configured_launch_caller,
             configure_assignment_caller,
         ]
     )
@@ -246,12 +246,12 @@ class TestCourseRecording:
 
     @pytest.fixture(
         params=[
-            canvas_file_basic_lti_launch_caller,
-            db_configured_basic_lti_launch_caller,
-            blackboard_copied_basic_lti_launch_caller,
-            brightspace_copied_basic_lti_launch_caller,
-            url_configured_basic_lti_launch_caller,
-            unconfigured_basic_lti_launch_caller,
+            canvas_file_launch_caller,
+            db_configured_launch_caller,
+            blackboard_copied_launch_caller,
+            brightspace_copied_launch_caller,
+            url_configured_launch_caller,
+            unconfigured_launch_caller,
         ]
     )
     def view_caller(self, request):
@@ -267,9 +267,9 @@ class TestCourseRecording:
 
 
 @pytest.mark.usefixtures("is_canvas")
-class TestCanvasFileBasicLTILaunch:
+class TestCanvasFileLaunch:
     def test_it(self, context, pyramid_request, assignment_service):
-        canvas_file_basic_lti_launch_caller(context, pyramid_request)
+        canvas_file_launch_caller(context, pyramid_request)
 
         course_id = context.lti_params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
@@ -285,14 +285,14 @@ class TestCanvasFileBasicLTILaunch:
 
 class TestDBConfiguredBasicLTILaunch:
     def test_it_enables_frontend_grading(self, context, pyramid_request):
-        db_configured_basic_lti_launch_caller(context, pyramid_request)
+        db_configured_launch_caller(context, pyramid_request)
 
         context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(
         self, assignment_service, context, pyramid_request
     ):
-        db_configured_basic_lti_launch_caller(context, pyramid_request)
+        db_configured_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
             assignment_service.get.return_value.document_url
@@ -303,16 +303,16 @@ class TestDBConfiguredBasicLTILaunch:
     "caller,param_name",
     [
         (
-            blackboard_copied_basic_lti_launch_caller,
+            blackboard_copied_launch_caller,
             "resource_link_id_history",
         ),
         (
-            brightspace_copied_basic_lti_launch_caller,
+            brightspace_copied_launch_caller,
             "ext_d2l_resource_link_id_history",
         ),
     ],
 )
-class TestFooCopiedBasicLTILaunch:
+class TestCopiedLaunch:
     """Common tests for the *_copied_basic_lti_launch() views."""
 
     def test_it_copies_the_assignment_settings_and_adds_the_document_url(
@@ -341,23 +341,23 @@ class TestFooCopiedBasicLTILaunch:
         )
 
 
-class TestURLConfiguredBasicLTILaunch:
+class TestURLConfiguredLaunch:
     def test_it_enables_frontend_grading(self, context, pyramid_request):
-        url_configured_basic_lti_launch_caller(context, pyramid_request)
+        url_configured_launch_caller(context, pyramid_request)
 
         context.js_config.maybe_enable_grading.assert_called_once_with()
 
     def test_it_adds_the_document_url(self, context, pyramid_request):
-        url_configured_basic_lti_launch_caller(context, pyramid_request)
+        url_configured_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
             pyramid_request.parsed_params["url"]
         )
 
 
-class TestLegacyVitalSourceLtiLaunch:
+class TestLegacyVitalSourceLaunch:
     def test_it(self, context, pyramid_request):
-        legacy_vitalsource_lti_launch_caller(context, pyramid_request)
+        legacy_vitalsource_launch_caller(context, pyramid_request)
 
         context.js_config.add_document_url.assert_called_once_with(
             "vitalsource://book/bookID/BOOK_ID/cfi//cfi",
@@ -405,11 +405,11 @@ class TestConfigureAssignment:
         return patch("lms.views.lti.basic_launch.JSConfig")
 
 
-class TestUnconfiguredBasicLTILaunch:
+class TestUnconfiguredLaunch:
     def test_it_enables_content_item_selection_mode(
         self, BearerTokenSchema, bearer_token_schema, context, pyramid_request
     ):
-        unconfigured_basic_lti_launch_caller(context, pyramid_request)
+        unconfigured_launch_caller(context, pyramid_request)
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.authorization_param.assert_called_once_with(
@@ -449,11 +449,11 @@ class TestUnconfiguredBasicLTILaunch:
         return context
 
 
-class TestUnconfiguredBasicLTILaunchNotAuthorized:
+class TestUnconfiguredLaunchNotAuthorized:
     def test_it_returns_the_right_template_data(self, context, pyramid_request):
         data = BasicLaunchViews(
             context, pyramid_request
-        ).unconfigured_basic_lti_launch_not_authorized()
+        ).unconfigured_launch_not_authorized()
 
         assert not data
 

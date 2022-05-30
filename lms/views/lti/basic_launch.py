@@ -48,7 +48,7 @@ class BasicLaunchViews:
         ).get_current()
         self.application_instance.update_lms_data(self.context.lti_params)
 
-    def basic_lti_launch(self, document_url, grading_supported=True):
+    def do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
         self.sync_lti_data_to_h()
         self.store_lti_data()
@@ -91,7 +91,7 @@ class BasicLaunchViews:
             request.find_service(name="grading_info").upsert_from_request(request)
 
     @view_config(vitalsource_book=True)
-    def legacy_vitalsource_lti_launch(self):
+    def legacy_vitalsource_launch(self):
         """
         Respond to a legacy configured VitalSource assignment.
 
@@ -105,10 +105,10 @@ class BasicLaunchViews:
 
         document_url = VitalSourceService.generate_document_url(book_id, cfi)
 
-        return self.basic_lti_launch(document_url=document_url, grading_supported=True)
+        return self.do_launch(document_url=document_url, grading_supported=True)
 
     @view_config(canvas_file=True)
-    def canvas_file_basic_lti_launch(self):
+    def canvas_file_launch(self):
         """
         Respond to a Canvas file assignment launch which is not db_configured.
 
@@ -134,10 +134,10 @@ class BasicLaunchViews:
             ],
             resource_link_id=self.context.resource_link_id,
         )
-        return self.basic_lti_launch(document_url=document_url, grading_supported=False)
+        return self.do_launch(document_url=document_url, grading_supported=False)
 
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
-    def db_configured_basic_lti_launch(self):
+    def db_configured_launch(self):
         """
         Respond to a DB-configured assignment launch.
 
@@ -155,40 +155,40 @@ class BasicLaunchViews:
             self.context.lti_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
         ).document_url
-        return self.basic_lti_launch(document_url)
+        return self.do_launch(document_url)
 
     @view_config(blackboard_copied=True)
-    def blackboard_copied_basic_lti_launch(self):
+    def blackboard_copied_launch(self):
         """
         Respond to a launch of a newly-copied Blackboard assignment.
 
         For more about Blackboard course copy see the BlackboardCopied
         predicate's docstring.
         """
-        return self.course_copied_basic_lti_launch(
+        return self.course_copied_launch(
             BlackboardCopied.get_original_resource_link_id(self.request)
         )
 
     @view_config(brightspace_copied=True)
-    def brightspace_copied_basic_lti_launch(self):
+    def brightspace_copied_launch(self):
         """
         Respond to a launch of a newly-copied Brightspace assignment.
 
         For more about Brightspace course copy see the BrightspaceCopied
         predicate's docstring.
         """
-        return self.course_copied_basic_lti_launch(
+        return self.course_copied_launch(
             BrightspaceCopied.get_original_resource_link_id(self.request)
         )
 
-    def course_copied_basic_lti_launch(self, original_resource_link_id):
+    def course_copied_launch(self, original_resource_link_id):
         """
         Respond to a launch of a newly-copied assignment.
 
         Find the document_url for the original assignment and make a copy of it
         with the new resource_link_id, then launch the assignment as normal.
 
-        Helper method for the *_copied_basic_lti_launch() methods above.
+        Helper method for the *_copied_launch() methods above.
 
         :param original_resource_link_id: the resource_link_id of the original
             assignment that this assignment was copied from
@@ -205,10 +205,10 @@ class BasicLaunchViews:
             document_url, tool_consumer_instance_guid, self.context.resource_link_id
         )
 
-        return self.basic_lti_launch(document_url)
+        return self.do_launch(document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
-    def url_configured_basic_lti_launch(self):
+    def url_configured_launch(self):
         """
         Respond to a URL-configured assignment launch.
 
@@ -218,14 +218,14 @@ class BasicLaunchViews:
         and saved in the LMS, which passes it back to us in each launch request.
         All we have to do is pass the URL to Via.
         """
-        return self.basic_lti_launch(self.request.parsed_params["url"])
+        return self.do_launch(self.request.parsed_params["url"])
 
     @view_config(
         authorized_to_configure_assignments=True,
         configured=False,
         renderer="lms:templates/file_picker.html.jinja2",
     )
-    def unconfigured_basic_lti_launch(self):
+    def unconfigured_launch(self):
         """
         Respond to an unconfigured assignment launch.
 
@@ -267,7 +267,7 @@ class BasicLaunchViews:
         configured=False,
         renderer="lms:templates/basic_lti_launch/unconfigured_basic_lti_launch_not_authorized.html.jinja2",
     )
-    def unconfigured_basic_lti_launch_not_authorized(self):
+    def unconfigured_launch_not_authorized(self):
         """
         Respond to an unauthorized unconfigured assignment launch.
 
