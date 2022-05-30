@@ -2,8 +2,9 @@ import datetime
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 
-from lms.models import Course, CourseGroupsExportedFromH, Grouping
+from lms.models import CourseGroupsExportedFromH, Grouping
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
 
@@ -44,31 +45,27 @@ class TestCourseService:
     def test_get_by_context_id_with_no_match(self, svc):
         assert svc.get_by_context_id("NO MATCH") is None
 
-    def test_upsert_returns_existing(self, svc, db_session, course):
-        new_course = svc.upsert(
-            context_id=course.lms_id, name="new course name", extra={}
+    def test_upsert(self, svc, grouping_service):
+        course = svc.upsert(
+            context_id=sentinel.context_id,
+            name=sentinel.name,
+            extra=sentinel.extra,
+            settings=sentinel.settings,
         )
 
-        # No new courses created
-        assert db_session.query(Course).count() == 1
-        # And existing course has been updated
-        assert new_course.lms_name == "new course name"
-
-    def test_upsert_creates_new(self, svc, db_session, grouping_service):
-        # Starting with a fresh DB
-        assert not db_session.query(Course).count()
-
-        course = svc.upsert("context_id", "new course name", {})
-
-        grouping_service.get_authority_provided_id.assert_called_once_with(
-            lms_id="context_id", type_=Grouping.Type.COURSE
+        grouping_service.upsert_groupings.assert_called_once_with(
+            [
+                {
+                    "lms_id": sentinel.context_id,
+                    "lms_name": sentinel.name,
+                    "extra": sentinel.extra,
+                    "settings": sentinel.settings,
+                }
+            ],
+            type_=Grouping.Type.COURSE,
         )
-        assert db_session.query(Course).count() == 1
-        assert (
-            course.authority_provided_id
-            == grouping_service.get_authority_provided_id.return_value
-        )
-        assert course.lms_id == "context_id"
+
+        assert course == grouping_service.upsert_groupings.return_value[0]
 
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
     def test_upsert_sets_canvas_sections_enabled_based_on_legacy_rows(
@@ -91,8 +88,14 @@ class TestCourseService:
 
         svc.upsert("context_id", "new course name", {})
 
-        course = db_session.query(Course).one()
-        assert not course.settings.get("canvas", "sections_enabled")
+        grouping_service.upsert_groupings.assert_called_once_with(
+            [
+                Any.dict.containing(
+                    {"settings": {"canvas": {"sections_enabled": False}}}
+                )
+            ],
+            type_=Any(),
+        )
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):
