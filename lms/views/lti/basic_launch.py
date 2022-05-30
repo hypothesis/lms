@@ -48,48 +48,6 @@ class BasicLaunchViews:
         ).get_current()
         self.application_instance.update_lms_data(self.context.lti_params)
 
-    def do_launch(self, document_url, grading_supported=True):
-        """Do a basic LTI launch with the given document_url."""
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
-
-        if grading_supported:
-            self.context.js_config.maybe_enable_grading()
-
-        self.context.js_config.add_document_url(document_url)
-
-        return {}
-
-    def sync_lti_data_to_h(self):
-        """
-        Sync LTI data to H.
-
-        Before any LTI assignment launch create or update the Hypothesis user
-        and group corresponding to the LTI user and course.
-        """
-
-        self.request.find_service(name="lti_h").sync(
-            [self.context.get_or_create_course()], self.request.params
-        )
-
-    def store_lti_data(self):
-        """Store LTI launch data in our LMS database."""
-
-        request = self.request
-
-        # Report all LTI assignment launches to the /reports page.
-        LtiLaunches.add(
-            request.db,
-            request.params.get("context_id"),
-            request.params.get("oauth_consumer_key"),
-        )
-
-        lti_user = request.lti_user
-
-        if not lti_user.is_instructor and not self.context.is_canvas:
-            # Create or update a record of LIS result data for a student launch
-            request.find_service(name="grading_info").upsert_from_request(request)
-
     @view_config(vitalsource_book=True)
     def legacy_vitalsource_launch(self):
         """
@@ -105,7 +63,7 @@ class BasicLaunchViews:
 
         document_url = VitalSourceService.generate_document_url(book_id, cfi)
 
-        return self.do_launch(document_url=document_url, grading_supported=True)
+        return self._do_launch(document_url=document_url, grading_supported=True)
 
     @view_config(canvas_file=True)
     def canvas_file_launch(self):
@@ -134,7 +92,7 @@ class BasicLaunchViews:
             ],
             resource_link_id=self.context.resource_link_id,
         )
-        return self.do_launch(document_url=document_url, grading_supported=False)
+        return self._do_launch(document_url=document_url, grading_supported=False)
 
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
     def db_configured_launch(self):
@@ -155,7 +113,7 @@ class BasicLaunchViews:
             self.context.lti_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
         ).document_url
-        return self.do_launch(document_url)
+        return self._do_launch(document_url)
 
     @view_config(blackboard_copied=True)
     def blackboard_copied_launch(self):
@@ -205,7 +163,7 @@ class BasicLaunchViews:
             document_url, tool_consumer_instance_guid, self.context.resource_link_id
         )
 
-        return self.do_launch(document_url)
+        return self._do_launch(document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
@@ -218,7 +176,7 @@ class BasicLaunchViews:
         and saved in the LMS, which passes it back to us in each launch request.
         All we have to do is pass the URL to Via.
         """
-        return self.do_launch(self.request.parsed_params["url"])
+        return self._do_launch(self.request.parsed_params["url"])
 
     @view_config(
         authorized_to_configure_assignments=True,
@@ -311,8 +269,8 @@ class BasicLaunchViews:
         )
         self.context.js_config.add_document_url(document_url)
 
-        self.sync_lti_data_to_h()
-        self.store_lti_data()
+        self._sync_lti_data_to_h()
+        self._store_lti_data()
 
         self.context.js_config.maybe_enable_grading()
 
@@ -324,3 +282,45 @@ class BasicLaunchViews:
         self.context.js_config.enable_lti_launch_mode()
 
         return {}
+
+    def _do_launch(self, document_url, grading_supported=True):
+        """Do a basic LTI launch with the given document_url."""
+        self._sync_lti_data_to_h()
+        self._store_lti_data()
+
+        if grading_supported:
+            self.context.js_config.maybe_enable_grading()
+
+        self.context.js_config.add_document_url(document_url)
+
+        return {}
+
+    def _sync_lti_data_to_h(self):
+        """
+        Sync LTI data to H.
+
+        Before any LTI assignment launch create or update the Hypothesis user
+        and group corresponding to the LTI user and course.
+        """
+
+        self.request.find_service(name="lti_h").sync(
+            [self.context.get_or_create_course()], self.request.params
+        )
+
+    def _store_lti_data(self):
+        """Store LTI launch data in our LMS database."""
+
+        request = self.request
+
+        # Report all LTI assignment launches to the /reports page.
+        LtiLaunches.add(
+            request.db,
+            request.params.get("context_id"),
+            request.params.get("oauth_consumer_key"),
+        )
+
+        lti_user = request.lti_user
+
+        if not lti_user.is_instructor and not self.context.is_canvas:
+            # Create or update a record of LIS result data for a student launch
+            request.find_service(name="grading_info").upsert_from_request(request)
