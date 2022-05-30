@@ -29,7 +29,7 @@ from lms.views.predicates import BlackboardCopied, BrightspaceCopied
 
 @view_defaults(
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
-    renderer="lms:templates/basic_lti_launch/basic_lti_launch.html.jinja2",
+    renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
     request_method="POST",
     route_name="lti_launches",
     schema=BasicLTILaunchSchema,
@@ -265,7 +265,7 @@ class BasicLaunchViews:
     @view_config(
         authorized_to_configure_assignments=False,
         configured=False,
-        renderer="lms:templates/basic_lti_launch/unconfigured_basic_lti_launch_not_authorized.html.jinja2",
+        renderer="lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2",
     )
     def unconfigured_launch_not_authorized(self):
         """
