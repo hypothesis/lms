@@ -17,7 +17,7 @@ class TestHGroup:
     @pytest.mark.usefixtures("has_course")
     def test_it(self, lti_launch, course_service):
         course = factories.Course()
-        course_service.upsert.return_value = course
+        course_service.upsert_course.return_value = course
 
         assert lti_launch.h_group == course
 
@@ -229,7 +229,7 @@ class TestCanvasSectionsEnabled:
     def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
         assert lti_launch.canvas_sections_enabled
 
-        course_service.upsert.assert_called_with(
+        course_service.upsert_course.assert_called_with(
             "test_context_id", "test_context_title", {}
         )
 
@@ -249,7 +249,7 @@ class TestCanvasSectionsEnabled:
     def course_settings(self, course_service):
         settings = ApplicationSettings({"canvas": {"sections_enabled": True}})
 
-        course_service.upsert.return_value.settings = settings
+        course_service.upsert_course.return_value.settings = settings
 
         return settings
 

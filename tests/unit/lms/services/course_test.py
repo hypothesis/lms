@@ -45,8 +45,8 @@ class TestCourseService:
     def test_get_by_context_id_with_no_match(self, svc):
         assert svc.get_by_context_id("NO MATCH") is None
 
-    def test_upsert(self, svc, grouping_service):
-        course = svc.upsert(
+    def test_upsert_course(self, svc, grouping_service):
+        course = svc.upsert_course(
             context_id=sentinel.context_id,
             name=sentinel.name,
             extra=sentinel.extra,
@@ -68,7 +68,7 @@ class TestCourseService:
         assert course == grouping_service.upsert_groupings.return_value[0]
 
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
-    def test_upsert_sets_canvas_sections_enabled_based_on_legacy_rows(
+    def test_upsert_course_sets_canvas_sections_enabled_based_on_legacy_rows(
         self,
         application_instance,
         db_session,
@@ -86,7 +86,7 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.upsert("context_id", "new course name", {})
+        svc.upsert_course("context_id", "new course name", {})
 
         grouping_service.upsert_groupings.assert_called_once_with(
             [
