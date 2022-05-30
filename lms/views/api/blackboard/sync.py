@@ -105,7 +105,7 @@ class Sync:
         )
 
     def to_groups_groupings(self, course, groups):
-        return self.grouping_service.upsert_with_parent(
+        return self.grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": group["id"],
